@@ -39,7 +39,7 @@ MenuBar.addAction(new Action({
 				}).click()
 
 			} else {
-				app.dialog.showOpenDialog(currentwindow, {filters: [{name: 'Voxel File', extensions: ['vox']}] }, function (fileNames) {
+				electron.dialog.showOpenDialog(currentwindow, {filters: [{name: 'Voxel File', extensions: ['vox']}] }, function (fileNames) {
 					if (fileNames !== undefined) {
 						file_path = fileNames[0]
 						vox.mainParser.parseFile(file_path, cb)
