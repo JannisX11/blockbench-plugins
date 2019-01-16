@@ -84,5 +84,13 @@
 		"description": "Clone Cubes",
 		"min_version": "2.0.0",
 		"variant": "both"
+	},
+	"techne_importer": {
+		"title": "Techne Importer",
+		"author": "Wither & JTK222 (Maintainer)",
+		"description": "Imports files made with the Techne modeller.",
+		"about": "In order to import a file from Techne, you need to unzip it. (Change the file extension to '.zip' when it doesn't work directly.) You can now import the '.xml', the texture needs to be imported seperatly.",
+		"icon": "present_to_all",
+		"variant": "both"
 	}
 }
