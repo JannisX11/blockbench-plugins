@@ -1,10 +1,10 @@
 var plugin_data = {
-    id: "techne_importer",
-    title: "Techne Importer",
+    id: "mod_model_format_importer",
+    title: "Mod Model Format Importer",
     icon: "present_to_all",
     author: "Wither & JTK222 (Maintainer)",
-    description: "Imports files made with the Techne modeller.",
-	about: "In order to import a file from Techne, you need to unzip it. (Change the file extension to '.zip' when it doesn't work directly.) You can now import the '.xml', the texture needs to be imported seperatly.", 
+    description: "Imports files made with the Techne or Tabula modeller.",
+	about: "First you need to change the file extension to .zip, this step is the same for .tcn and .tbl files. Now you can unzip those into another folder. For .tcn you can import the .xml file. And for .tbl you can import the contained .json file. You need to import and apply the textures manually.", 
     version: "1.0",
     variant: "both"
 }
@@ -24,6 +24,22 @@ MenuBar.addAction(new Action({
     }
 }), "file.import");
 
+MenuBar.addAction(new Action({
+    id: "import_tabula",
+    name: "Import Tabula File",
+    category: "file",
+	icon: "present_to_all",
+    click: function (event) {
+        Blockbench.import({
+            extensions: ["json"],
+            type: "Tabula Model"
+        }, function (files) {
+            loadTabulaModel(files[0].content, files[0].path)
+        })
+    }
+}), "file.import");
+
+
 function loadTechneModel(model, path) {
     entityMode.join()
 
@@ -40,7 +56,7 @@ function loadTechneModel(model, path) {
     Project.texture_height = textureSizes.slice(textureSizes.indexOf(",") + 1, textureSizes.length);
 	
 	var shapes = model.getElementsByTagName("Geometry")[0].getElementsByTagName("Shape");
-	var rootGroup = new Group("root").addTo()
+	var rootGroup = new Group("root").addTo();
 	
 	for(var i = 0; i < shapes.length; i++){
 	  	var shape = shapes[i];
@@ -76,6 +92,66 @@ function loadTechneModel(model, path) {
     Canvas.updateAll();
 }
 
+function loadTabulaModel(model, path) {
+    entityMode.join()
+
+	var json = $.getJSON(path, function(json) {
+		console.log(json); // this will show the info it in firebug console
+		
+		Project.name = json.modelName;
+		Project.texture_width = json.textureWidth;
+		Project.texture_height = json.textureHeight;
+		
+		
+		var rootGroup = new Group(
+			{
+				name: "root",
+				origin: [0, 24, 0],
+				rotation: [0, 0, 0],
+			}
+			).addTo();
+		
+		loadCubes(json.cubes, rootGroup);
+
+
+		Canvas.updateAll();
+	});
+}
+
+function loadCubes(array, parentGroup){
+	var i;
+	for (i = 0; i < array.length; i++) {
+		var obj = array[i];
+		if(typeof obj === "undefined") return;
+		console.log(obj);
+	
+		var group = new Group(
+			{
+				name: obj.name,
+				origin: [parentGroup.origin[0] + obj.position[0], parentGroup.origin[1] - obj.position[1], parentGroup.origin[2] + obj.position[2]],
+				rotation: [-obj.rotation[0], obj.rotation[1], obj.rotation[2]],
+			}
+		).addTo(parentGroup);
+		
+		var cube = new Cube(
+			{
+				shade: obj.txMirror,
+				name: obj.name,
+				from: [group.origin[0] + obj.offset[0], group.origin[1] +  obj.offset[1] - obj.dimensions[1], group.origin[2] +  obj.offset[2]],
+				to: [group.origin[0] + obj.offset[0] + obj.dimensions[0], group.origin[1] + obj.offset[1], group.origin[2] +  obj.offset[2] + obj.dimensions[2]],
+				uv_offset: [obj.txOffset[0],  obj.txOffset[1]],
+			}
+		).addTo(group);
+		Blockbench.elements.push(cube);
+		
+		if(obj.hasOwnProperty("children")){
+			var children = obj.children
+			loadCubes(children, group);
+		}
+	};
+}
+
 onUninstall = function () {
     MenuBar.removeAction("file.import.import_techne")
+    MenuBar.removeAction("file.import.import_tabula")
 }
