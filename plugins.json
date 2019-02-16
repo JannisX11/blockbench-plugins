@@ -85,11 +85,11 @@
 		"min_version": "2.0.0",
 		"variant": "both"
 	},
-	"techne_importer": {
-		"title": "Techne Importer",
+	"mod_model_format_importer": {
+		"title": "Mod Model Format Importer",
 		"author": "Wither & JTK222 (Maintainer)",
-		"description": "Imports files made with the Techne modeller.",
-		"about": "In order to import a file from Techne, you need to unzip it. (Change the file extension to '.zip' when it doesn't work directly.) You can now import the '.xml', the texture needs to be imported seperatly.",
+		"description": "Imports files made with the Techne or Tabula modeller.",
+		"about": "First you need to change the file extension to .zip, this step is the same for .tcn and .tbl files. Now you can unzip those into another folder. For .tcn you can import the .xml file. And for .tbl you can import the contained .json file. You need to import and apply the textures manually.",
 		"icon": "present_to_all",
 		"variant": "both"
 	}
