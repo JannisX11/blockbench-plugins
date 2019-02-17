@@ -137,8 +137,8 @@ function loadCubes(array, parentGroup){
 			{
 				shade: obj.txMirror,
 				name: obj.name,
-				from: [group.origin[0] + obj.offset[0], group.origin[1] +  obj.offset[1] - obj.dimensions[1], group.origin[2] +  obj.offset[2]],
-				to: [group.origin[0] + obj.offset[0] + obj.dimensions[0], group.origin[1] + obj.offset[1], group.origin[2] +  obj.offset[2] + obj.dimensions[2]],
+				from: [group.origin[0] + obj.offset[0], group.origin[1] -  obj.offset[1] - obj.dimensions[1], group.origin[2] +  obj.offset[2]],
+				to: [group.origin[0] + obj.offset[0] + obj.dimensions[0], group.origin[1] - obj.offset[1], group.origin[2] +  obj.offset[2] + obj.dimensions[2]],
 				uv_offset: [obj.txOffset[0],  obj.txOffset[1]],
 			}
 		).addTo(group);
