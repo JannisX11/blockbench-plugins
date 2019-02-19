@@ -89,7 +89,7 @@
 		"title": "Mod Utils",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
 		"description": "A few handy utilities for Modders",
-		"about": "<ul><li>Importing Techne/Tabula Files:<br/>Unzip the .tbl/.tcn file, you can then import the corresponding .xml/.json<br/>You need to import the textures seperatly</li><li>Using the VoxelShape exporter:<br/>You need to create a group, called "VoxelShapes", all cubes within this group will be ored.<br/>IF you want another behavior, for example ONLY_FIRST, create a sub group with the name "only_first" (not case sensitive)</li></ul>", 		
+		"about": "<ul><li>Importing Techne/Tabula Files:<br/>Unzip the .tbl/.tcn file, you can then import the corresponding .xml/.json<br/>You need to import the textures seperatly</li><li>Using the VoxelShape exporter:<br/>You need to create a group, called \"VoxelShapes\", all cubes within this group will be ored.<br/>IF you want another behavior, for example ONLY_FIRST, create a sub group with the name \"only_first\" (not case sensitive)</li></ul>", 		
 		"icon": "present_to_all",
 		"variant": "both",
 		"version": 1.2
