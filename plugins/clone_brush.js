@@ -33,7 +33,7 @@ Toolbox.add(
 	            if (brush_template == 'select') {
 	                brush_template = data.cube
 	                $('#preview').css('cursor', 'url(assets/brush.png), auto')
-	            } else {
+	            } else if (typeof brush_template === 'object') {
 
 	            	var new_cubes = []
 	            	Undo.initEdit({cubes: new_cubes})
@@ -49,31 +49,16 @@ Toolbox.add(
 				        sizes = brush_template.size()
 				    }
 				    switch (main_uv.face) {
-				        case 'north':
-				        from[2] -= sizes[2];
-				        break;
-				        case 'south':
-				        from[2] += sizes[2];
-				        break;
-				        case 'west':
-				        from[0] -= sizes[0];
-				        break;
-				        case 'east':
-				        from[0] += sizes[0];
-				        break;
+				        case 'north':   from[2] -= sizes[2]; break;
+				        case 'south': 	from[2] += sizes[2]; break;
+				        case 'west': 	from[0] -= sizes[0]; break;
+				        case 'east': 	from[0] += sizes[0]; break;
 
-				        case 'up':
-				        from[1] += sizes[1];
-				        break;
-				        case 'down':
-				        from[1] -= sizes[1];
-				        break;
+				        case 'up': 		from[1] += sizes[1]; break;
+				        case 'down': 	from[1] -= sizes[1]; break;
 				    }
 
-				    var base_cube = new Cube()
-				    if (typeof brush_template === 'object') {
-				        base_cube.extend(brush_template).addTo(brush_template.parent)
-				    }
+				    var base_cube = new Cube(brush_template)
 				    base_cube.uuid = guid()
 
 				    base_cube.to = [
@@ -95,6 +80,7 @@ Toolbox.add(
 				    }
 				    base_cube.from = from
 				    selected.length = 0
+				    base_cube.addTo(brush_template.parent)
 				    elements.push(base_cube)
 				    new_cubes.push(base_cube)
 				    selected.push(base_cube)
