@@ -101,5 +101,13 @@
 		"description": "Import structure files",
 		"version": "2.0",
 		"variant": "both"
+	},
+	"guessing_game": {
+		"title": "The Guessing Game",
+		"icon": "casino",
+		"author": "JannisX11",
+		"description": "Play the guessing game in Blockbench with your friends",
+		"version": "0.1",
+		"variant": "both"
 	}
 }
