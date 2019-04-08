@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'account_balance', //Material icon name
 	author: 'JannisX11 & Krozi',
 	description: 'Import structure files',
-	version: '2.0 Preview 1', //Plugin version
+	version: '2.0', //Plugin version
 	variant: 'both'	// 'both', 'web', 'desktop'
 }
 
