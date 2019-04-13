@@ -85,12 +85,21 @@
 		"min_version": "2.0.0",
 		"variant": "both"
 	},
-	"techne_importer": {
-		"title": "Techne Importer",
-		"author": "Wither & JTK222 (Maintainer)",
-		"description": "Imports files made with the Techne modeller.",
-		"about": "In order to import a file from Techne, you need to unzip it. (Change the file extension to '.zip' when it doesn't work directly.) You can now import the '.xml', the texture needs to be imported seperatly.",
+	"mod_utils": {
+		"title": "Mod Utils",
+		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+		"description": "A few handy utilities for Modders",
+		"about": "Usage guides can be found here: https://dark-roleplay.net/html/other/blockbench/mod_utils/mod_utils.php<br/>Sorry, making this link useable closes BB)", 		
 		"icon": "present_to_all",
+		"variant": "both",
+		"version": 1.3
+	},
+	"structure_importer": {
+		"title": "Structure Importer",
+		"icon": "account_balance",
+		"author": "JannisX11 & Krozi",
+		"description": "Import structure files",
+		"version": "2.0",
 		"variant": "both"
 	}
 }

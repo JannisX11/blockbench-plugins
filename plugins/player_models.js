@@ -48,12 +48,12 @@ MenuBar.addAction(new Action({
 }), 'filter');
 
 function setDisplay() {
-    if(!display['head']) {
-        display['head'] = {scale: [1.6, 1.6, 1.6], translation: [0, -29, 0]}
+    if(display.head === undefined) {
+        display.head = new DisplaySlot('head', {translation: [0, -29, 0], scale: [1.6, 1.6, 1.6]});
     }
     else {
-        display['head'].scale = [1.6, 1.6, 1.6]
-        display['head'].translation = [0, -29, 0]
+        display.head.scale = [1.6, 1.6, 1.6];
+        display.head.translation = [0, -29, 0];
     }
 }
 
