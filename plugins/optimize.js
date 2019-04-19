@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'border_outer',
 	author: 'Krozi',
 	description: 'Hide concealed faces for better performance!',
-	version: '1.2.4',
+	version: '1.2.5',
 	variant: 'both'
 }
 
@@ -152,16 +152,6 @@ try {
 			if (planes.length == 0) {
 				cube1.faces[axisToFace[faceAxis]].texture = null
 				removedFaces++
-				var visible = false
-				for (invisibleFace=0; invisibleFace<6; invisibleFace++) {
-					if (cube1.faces[axisToFace[invisibleFace]].texture !== null) {
-						visible = true
-						break
-					}
-				}
-				if (!visible) {
-					invisibleCubes.push(i)
-				}
 			}
 			else if (applyCulling) {
 				var cullFaces = [true, true, true, true, true, true]
@@ -190,6 +180,16 @@ try {
 					}
 				}
 			}
+		}
+		var visible = false
+		for (invisibleFace=0; invisibleFace<6; invisibleFace++) {
+			if (cube1.faces[axisToFace[invisibleFace]].texture !== null) {
+				visible = true
+				break
+			}
+		}
+		if (!visible) {
+			invisibleCubes.push(i)
 		}
 	}
 	for (i=invisibleCubes.length-1; i >= 0; i--) {
