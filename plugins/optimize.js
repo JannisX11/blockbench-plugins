@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'border_outer',
 	author: 'Krozi',
 	description: 'Hide concealed faces for better performance!',
-	version: '1.2.3',
+	version: '1.2.4',
 	variant: 'both'
 }
 
@@ -30,12 +30,12 @@ try {
 	if (restrictToSelected) {
 		elements = selected
 	}
-	aspects = {"cubes": elements, "uv_only": true}
+	aspects = {"cubes": elements, "uv_only": false}
 	Undo.initEdit(aspects)
 	
 	Blockbench.showMessage('Starting optimization', 'center')
 	var axisToFace = ['west', 'down', 'north', 'east', 'up', 'south']
-	var epsilon = 0.000001
+	var epsilon = 0.00001
 	var removedFaces = 0
 	var culledFaces = 0
 	var invisibleCubes = []
@@ -46,6 +46,9 @@ try {
 		var rotationAxis1
 		[angle1, rotationAxis1] = optimize_getAngleAxis(cube1.rotation)
 		for (faceAxis = 0; faceAxis < 6; faceAxis++) {
+			if (cube1.faces[axisToFace[faceAxis]].texture == null) {
+				continue
+			}
 			if (applyCulling) {
 				delete cube1.faces[axisToFace[faceAxis]].cullface
 			}
@@ -59,85 +62,90 @@ try {
 			else {
 				level = cube1.to[y]
 			}
-			var planes = [[cube1.from[x], cube1.from[z], cube1.to[x], cube1.to[z]]]
-			for (j=0; j<elements.length; j++) {
-				if (cube1.faces[axisToFace[faceAxis]].texture !== null && i != j) {
-					var cube2 = elements[j]
-					
-					var origin2 = cube2.origin
-					var angle2
-					var rotationAxis2
-					[angle2, rotationAxis2] = optimize_getAngleAxis(cube2.rotation)
-					if (rotationAxis1 != rotationAxis2 && angle1 != 0 && angle2 != 0) {
-						continue			// Intersection not a rectangle --> Not my problem, ignore
-					}
-					var rotationAxis = Math.max(rotationAxis1, rotationAxis2)
-					var notRotationAxis = 3-y-rotationAxis
-					var intersection = []
-					
-					if (rotationAxis1 == rotationAxis2 && angle1 == angle2) {			// Both cubes have the same orientations
-						var from = optimize_rotatePoint(optimize_rotatePoint(cube2.from, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
-						var to = optimize_rotatePoint(optimize_rotatePoint(cube2.to, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
-						var level2 = to[y]
-						if (faceAxis < 3) {
-							level2 = from[y]
+			if (Math.abs(cube1.to[x] - cube1.from[x]) < epsilon || Math.abs(cube1.to[z] - cube1.from[z]) < epsilon) {
+				var planes = []
+			}
+			else {
+				var planes = [[cube1.from[x], cube1.from[z], cube1.to[x], cube1.to[z]]]
+				for (j=0; j<elements.length; j++) {
+					if (cube1.faces[axisToFace[faceAxis]].texture !== null && i != j) {
+						var cube2 = elements[j]
+						
+						var origin2 = cube2.origin
+						var angle2
+						var rotationAxis2
+						[angle2, rotationAxis2] = optimize_getAngleAxis(cube2.rotation)
+						if (rotationAxis1 != rotationAxis2 && angle1 != 0 && angle2 != 0) {
+							continue			// Intersection not a rectangle --> Not my problem, ignore
 						}
-						if (level2-epsilon <= level && level <= level2+epsilon && cube2.faces[axisToFace[faceAxis]].texture === null) {}
-						else if (from[y]-epsilon <= level && level <= to[y]+epsilon) {
-							intersection = [from[x], from[z], to[x], to[z]]
-						}
-					}
-					
-					else if (rotationAxis1 == rotationAxis2 || angle1 == 0 || angle2 == 0) {		// Both cubes have different orientations
-						var corners = []
-						corner = cube2.from.slice(0)
-						corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-						corner[(rotationAxis+1)%3] = cube2.to[(rotationAxis+1)%3]
-						corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-						corner[(rotationAxis+2)%3] = cube2.to[(rotationAxis+2)%3]
-						corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-						corner[(rotationAxis+1)%3] = cube2.from[(rotationAxis+1)%3]
-						corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-						var intersected = []
-						for (var c=0; c<4; c++) {
-							var t = (level-corners[c][y]) / (corners[(c+1)%4][y]-corners[c][y])
-							if (0 <= t && t < 1) {
-								intersected.push(corners[c][notRotationAxis] + (corners[(c+1)%4][notRotationAxis] - corners[c][notRotationAxis]) * t)
+						var rotationAxis = Math.max(rotationAxis1, rotationAxis2)
+						var notRotationAxis = 3-y-rotationAxis
+						var intersection = []
+						
+						if (rotationAxis1 == rotationAxis2 && angle1 == angle2) {			// Both cubes have the same orientations
+							var from = optimize_rotatePoint(optimize_rotatePoint(cube2.from, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
+							var to = optimize_rotatePoint(optimize_rotatePoint(cube2.to, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
+							var level2 = to[y]
+							if (faceAxis < 3) {
+								level2 = from[y]
+							}
+							if (level2-epsilon <= level && level <= level2+epsilon && cube2.faces[axisToFace[faceAxis]].texture === null) {}
+							else if (from[y]-epsilon <= level && level <= to[y]+epsilon) {
+								intersection = [from[x], from[z], to[x], to[z]]
 							}
 						}
-						if (intersected.length == 2) {
-							if (notRotationAxis == z) {
-								intersection = [cube2.from[x], Math.min(intersected[0], intersected[1]), cube2.to[x], Math.max(intersected[0], intersected[1])]
-							}
-							else {
-								intersection = [Math.min(intersected[0], intersected[1]), cube2.from[z], Math.max(intersected[0], intersected[1]), cube2.to[z]]
-							}
-						}
-					}
-					
-					if (intersection.length == 4) {
-						var newPlanes = []
-						for (planeNumber=0; planeNumber < planes.length; planeNumber++) {
-							plane = planes[planeNumber]
-							if (plane[0] < intersection[2]-epsilon && plane[2] > intersection[0]+epsilon && plane[1] < intersection[3]-epsilon && plane[3] > intersection[1]+epsilon) {		// Cube intersects with plane --> Split up in 4 new planes
-								if (intersection[0]-epsilon > plane[0]) {
-									newPlanes.push([plane[0], plane[1], intersection[0], plane[3]])
-								}
-								if (intersection[1]-epsilon > plane[1]) {
-									newPlanes.push([Math.max(plane[0], intersection[0]), plane[1], Math.min(plane[2], intersection[2]), intersection[1]])
-								}
-								if (intersection[3]+epsilon < plane[3]) {
-									newPlanes.push([Math.max(plane[0], intersection[0]), intersection[3], Math.min(plane[2], intersection[2]), plane[3]])
-								}
-								if (intersection[2]+epsilon < plane[2]) {
-									newPlanes.push([intersection[2], plane[1], plane[2], plane[3]])
+						
+						else if (rotationAxis1 == rotationAxis2 || angle1 == 0 || angle2 == 0) {		// Both cubes have different orientations
+							var corners = []
+							corner = cube2.from.slice(0)
+							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
+							corner[(rotationAxis+1)%3] = cube2.to[(rotationAxis+1)%3]
+							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
+							corner[(rotationAxis+2)%3] = cube2.to[(rotationAxis+2)%3]
+							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
+							corner[(rotationAxis+1)%3] = cube2.from[(rotationAxis+1)%3]
+							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
+							var intersected = []
+							for (var c=0; c<4; c++) {
+								var t = (level-corners[c][y]) / (corners[(c+1)%4][y]-corners[c][y])
+								if (0 <= t && t < 1) {
+									intersected.push(corners[c][notRotationAxis] + (corners[(c+1)%4][notRotationAxis] - corners[c][notRotationAxis]) * t)
 								}
 							}
-							else {
-								newPlanes.push(plane)
+							if (intersected.length == 2) {
+								if (notRotationAxis == z) {
+									intersection = [cube2.from[x], Math.min(intersected[0], intersected[1]), cube2.to[x], Math.max(intersected[0], intersected[1])]
+								}
+								else {
+									intersection = [Math.min(intersected[0], intersected[1]), cube2.from[z], Math.max(intersected[0], intersected[1]), cube2.to[z]]
+								}
 							}
 						}
-						planes = newPlanes
+						
+						if (intersection.length == 4) {
+							var newPlanes = []
+							for (planeNumber=0; planeNumber < planes.length; planeNumber++) {
+								plane = planes[planeNumber]
+								if (plane[0] < intersection[2]-epsilon && plane[2] > intersection[0]+epsilon && plane[1] < intersection[3]-epsilon && plane[3] > intersection[1]+epsilon) {		// Cube intersects with plane --> Split up in 4 new planes
+									if (intersection[0]-epsilon > plane[0]) {
+										newPlanes.push([plane[0], plane[1], intersection[0], plane[3]])
+									}
+									if (intersection[1]-epsilon > plane[1]) {
+										newPlanes.push([Math.max(plane[0], intersection[0]), plane[1], Math.min(plane[2], intersection[2]), intersection[1]])
+									}
+									if (intersection[3]+epsilon < plane[3]) {
+										newPlanes.push([Math.max(plane[0], intersection[0]), intersection[3], Math.min(plane[2], intersection[2]), plane[3]])
+									}
+									if (intersection[2]+epsilon < plane[2]) {
+										newPlanes.push([intersection[2], plane[1], plane[2], plane[3]])
+									}
+								}
+								else {
+									newPlanes.push(plane)
+								}
+							}
+							planes = newPlanes
+						}
 					}
 				}
 			}
