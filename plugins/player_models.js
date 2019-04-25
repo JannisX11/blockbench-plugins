@@ -4,26 +4,19 @@ var plugin_data = {
 	icon: 'accessibility',
 	author: 'Wither, dragonmaster95 and 3XH6R',
     description: 'Generates player shaped models.',
-    version: '2.0.0',
-    min_version: '2.1.0',
+    version: '2.0.1',
+    min_version: '2.6.6',
 	variant: 'both'
 }
-
-var modelDropdown = `Player Model: 
-<select style="color:var(--color-text)" id="player_model_list">
-<option value="steve">Steve (Classic)</option>
-<option value="alex">Alex (Slim)</option>
-<option value="cape">Cape</option>
-</select>`;
 
 var playerModelSettings = new Dialog({
     title: 'Choose Model',
     id: 'playerModelSettings',
-    lines: [
-        modelDropdown,
-        '<br>Generate Second Layer <input type="checkbox" id="second_layer" checked>',
-        '<p></p>'
-    ]
+    form: {
+        model: {label: 'Player Model', type: 'select', options: {steve: 'Steve (Classic)', alex: 'Alex (Slim)'}, default:'Steve (Classic)'},
+        secondLayer: {label: 'Generate Second Layer', type: 'checkbox'},
+        cape: {label: 'Cape', type: 'checkbox'}
+    }
 });
 
 var capeInfo = new Dialog({
@@ -142,23 +135,23 @@ function generateCape(){
     Undo.finishEdit('Generated Cape Model');
 }
 
-playerModelSettings.onConfirm = function() {
-    switch($('#player_model_list')[0].value) {
+playerModelSettings.onConfirm = function(data) {
+    switch(data.model) {
         case 'steve':
-            generateSteve($('#second_layer')[0].checked);
+            generateSteve(data.secondLayer);
             break;
         case 'alex':
-            generateAlex($('#second_layer')[0].checked);
+            generateAlex(data.secondLayer);
             break;
-        case 'cape':
-            playerModelSettings.hide();
-            capeInfo.show();
-            document.getElementById('cape-gen-button').onclick = function() {
-                var capeTexture = new Texture({name: 'cape_texture', res: 32, mode: 'bitmap', source: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAklEQVR4AewaftIAAACRSURBVO3BoQ3CUBSG0e/dNIGEBZpgSBAMwhCMwDIUAQrVCXBMga6pK6JJBbaiqiCK5T0Skt/ccwJvt+oxkqgszqS6lodARNh2xZhXe1Jd7iey3ZNU8/Ux8EXGZJUviGm6no/ZckPM0NbEGGKGmCFmiBlihpghZogZYoaYIWaIGWKGWMak6Xp+MbQ1zjnnnPuHFz1lGpsvFTuyAAAAAElFTkSuQmCC'});
-                capeTexture.add();
-                capeTexture.load();
-            };
-            break;
+    }
+    if (data.cape) {
+        playerModelSettings.hide();
+        capeInfo.show();
+        document.getElementById('cape-gen-button').onclick = function() {
+            var capeTexture = new Texture({name: 'cape_texture', res: 32, mode: 'bitmap', source: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAklEQVR4AewaftIAAACRSURBVO3BoQ3CUBSG0e/dNIGEBZpgSBAMwhCMwDIUAQrVCXBMga6pK6JJBbaiqiCK5T0Skt/ccwJvt+oxkqgszqS6lodARNh2xZhXe1Jd7iey3ZNU8/Ux8EXGZJUviGm6no/ZckPM0NbEGGKGmCFmiBlihpghZogZYoaYIWaIGWKGWMak6Xp+MbQ1zjnnnPuHFz1lGpsvFTuyAAAAAElFTkSuQmCC'});
+            capeTexture.add();
+            capeTexture.load();
+        };
     }
 }
 
@@ -169,5 +162,5 @@ capeInfo.onConfirm = function() {
 }
 
 onUninstall = function() {
-	MenuBar.removeAction('filter.generate_player_statue');
+    MenuBar.removeAction('filter.generate_player_statue');
 }
