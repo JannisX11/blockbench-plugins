@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'account_balance', //Material icon name
 	author: 'JannisX11 & Krozi',
 	description: 'Import structure files',
-	version: '2.0', //Plugin version
+	version: '2.0.1', //Plugin version
 	variant: 'both'	// 'both', 'web', 'desktop'
 }
 
@@ -705,7 +705,7 @@ function structure_importer_updateSize() {
 //Adds an entry to the plugin menu
 MenuBar.addAction(new Action({
 	id: "structure_importer",
-	name: "Structure Importer",
+	name: "Structure file",
 	icon: "account_balance",
 	category: "filter",
 	click: function(ev) {
@@ -901,7 +901,7 @@ MenuBar.addAction(new Action({
 			
 		}
 	}
-}), "filter")
+}), "file.import")
 
 var StructureBuilder = class {
 	constructor() {
@@ -1314,7 +1314,7 @@ var StructureBuilder = class {
 	}
 	
 	doCulling(tile, neighbour, side) {
-		if (neighbour.type == "none") {
+		if (neighbour == undefined || neighbour.type == "none") {
 			return false
 		}
 		if (neighbour.type == "solid") {
@@ -1593,6 +1593,7 @@ var StructureBuilder = class {
 						cube.faces[face].texture = this.getTextureVariable(textures[this.removeHashtag(element.faces[face].texture)])
 						cube.faces[face].rotation = element.faces[face].rotation
 						cube.faces[face].cullface = element.faces[face].cullface
+						cube.faces[face].tint = element.faces[face].tintindex != null
 						if ("uv" in element.faces[face]) {
 							cube.faces[face].uv = element.faces[face].uv
 						}
@@ -1673,10 +1674,11 @@ var StructureBuilder = class {
 			var cubeVisible = false
 			for (var faceIndex=0; faceIndex < this.allFaces.length; faceIndex++) {
 				var face = this.allFaces[faceIndex]
-				if (! cullsides[cubes[i].faces[face].cullface]) {
+				if (! cullsides[cubes[i].faces[face].cullface] && cubes[i].faces[face].texture != null) {
 					cube.faces[face].texture = cubes[i].faces[face].texture
 					cube.faces[face].uv = cubes[i].faces[face].uv
 					cube.faces[face].rotation = cubes[i].faces[face].rotation
+					cube.faces[face].tint = cubes[i].faces[face].tint
 					cubeVisible = true
 				}
 				else {
@@ -1693,7 +1695,7 @@ var StructureBuilder = class {
 
 //Called when the user uninstalls the plugin
 onUninstall = function() {
-	MenuBar.removeAction("filter.structure_importer")
+	MenuBar.removeAction("file.import.structure_importer")
 	MenuBar.removeAction("structure_importer")
 	delete StructureBuilder
 }

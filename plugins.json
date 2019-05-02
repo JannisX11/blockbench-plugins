@@ -99,7 +99,7 @@
 		"icon": "account_balance",
 		"author": "JannisX11 & Krozi",
 		"description": "Import structure files",
-		"version": "2.0",
+		"version": "2.0.1",
 		"variant": "both"
 	}
 }
