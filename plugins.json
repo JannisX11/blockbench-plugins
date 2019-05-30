@@ -101,5 +101,12 @@
 		"description": "Import structure files",
 		"version": "2.0.1",
 		"variant": "both"
+	},
+	"seat_position": {
+		"title": "Seat Position",
+		"icon": "event_seat",
+		"author": "JannisX11",
+		"description": "Preview seat positions for custom Bedrock entities",
+		"variant": "both"
 	}
 }
