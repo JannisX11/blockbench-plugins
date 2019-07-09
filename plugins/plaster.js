@@ -3,8 +3,8 @@ var plugin_data = {
 	title: 'Plaster',
 	icon: 'healing',
 	author: 'JannisX11',
-	description: 'Effectively fixes texture bleeding',
-	version: '1.0.2',
+	description: 'Fixes texture bleeding (small white or colored lines around the edges of your model)',
+	version: '1.0.3',
 	variant: 'both'
 }
 
@@ -38,6 +38,7 @@ MenuBar.addAction(new Action({
 			onConfirm: function(formData) {
 				this.hide()
 				//Margin
+				var margin;
 				switch (formData.margin) {
 					case 's':
 						margin = 0.016
@@ -76,12 +77,10 @@ MenuBar.addAction(new Action({
 					for (var face in obj.faces) {
 						if (obj.faces.hasOwnProperty(face) && obj.faces[face].texture !== null) {
 							//Vars
-							var res = 16
-							var faceTag = obj.faces[face]
-							var texture_match = getTextureById(faceTag.texture)
-							if (texture_match) res = texture_match.res
-							var mirror_x = faceTag.uv[0] > faceTag.uv[2]
-							var mirror_y = faceTag.uv[0] > faceTag.uv[2]
+							var res = 16;
+							var faceTag = obj.faces[face];
+							var texture_match = faceTag.getTexture();
+							if (texture_match) res = texture_match.res;
 
 							//Calculating
 							faceTag.uv.forEach(function(u, i) {
