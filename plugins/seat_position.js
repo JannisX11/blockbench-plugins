@@ -16,15 +16,15 @@ window.SeatPositioner = {
 		lines: [
 			`<div class="dialog_bar">
 				<label class="inline_label">Model Scale</label>
-					<input type="number" id="STP-s" oninput="SeatPositioner.update()" class="dark_bordered mediun_width" value="1">
+					<input type="number" id="STP-s" oninput="SeatPositioner.update()" class="dark_bordered medium_width" value="1">
 			</div>`,
 			`<div class="dialog_bar">
 				<label class="inline_label">X: </label>
-					<input type="number" id="STP-px" class="dark_bordered mediun_width" oninput="SeatPositioner.update()" value="0">
+					<input type="number" id="STP-px" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
 				<label class="inline_label">Y: </label>
-					<input type="number" id="STP-py" class="dark_bordered mediun_width" oninput="SeatPositioner.update()" value="0">
+					<input type="number" id="STP-py" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
 				<label class="inline_label">Z: </label>
-					<input type="number" id="STP-pz" class="dark_bordered mediun_width" oninput="SeatPositioner.update()" value="0">
+					<input type="number" id="STP-pz" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
 			</div>`,
 			`<div class="dialog_bar">
 				<input id="STP-out" class="dark_bordered input_wide code" readonly>
@@ -106,6 +106,7 @@ MenuBar.addAction(new Action({
 	id: 'open_seat_position',
 	name: 'Seat Position',
 	icon: 'event_seat',
+	condition: _ => Format.bone_rig,
 	click: () => {
 		SeatPositioner.dialog.show();
 		$('#blackout').hide(0);

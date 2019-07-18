@@ -33,7 +33,7 @@
 		"author": "JannisX11",
 		"description": "Effectively fixes texture bleeding",
 		"icon": "healing",
-		"min_version": "2.0.2",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"shape_generator": {
@@ -82,7 +82,7 @@
 		"author": "JannisX11",
 		"icon": "account_balance_wallet",
 		"description": "Clone Cubes",
-		"min_version": "2.0.0",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"mod_utils": {
@@ -107,6 +107,7 @@
 		"icon": "event_seat",
 		"author": "JannisX11",
 		"description": "Preview seat positions for custom Bedrock entities",
+		"version": "3.0.0",
 		"variant": "both"
 	}
 }

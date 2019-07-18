@@ -8,10 +8,10 @@ var plugin_data = {
 	variant: 'both'
 }
 
-var brush_template;
+var brush_template, clone_brush_tool;
 
 Toolbox.add(
-	new Tool({
+	clone_brush_tool = new Tool({
 		id: 'clone_brush',
 		name: 'Clone Brush',
 		icon: 'fa-edit',
@@ -19,10 +19,9 @@ Toolbox.add(
     	category: 'tools',
 
 
-				selectFace: true,
-				toolbar: 'transform',
-				alt_tool: 'move_tool',
-				modes: ['edit'],
+		selectFace: true,
+		alt_tool: 'move_tool',
+		modes: ['edit'],
 
 
 		onSelect: function() {
@@ -36,12 +35,12 @@ Toolbox.add(
 	            } else if (typeof brush_template === 'object') {
 
 	            	var new_cubes = []
-	            	Undo.initEdit({cubes: new_cubes})
+	            	Undo.initEdit({elements: new_cubes})
 
 	                var from = [
-				        selected[0].from[0]+0,
-				        selected[0].from[1]+0,
-				        selected[0].from[2]+0
+				        Cube.selected[0].from[0]+0,
+				        Cube.selected[0].from[1]+0,
+				        Cube.selected[0].from[2]+0
 				    ]
 				    var canvas_grid = canvasGridSize()
 				    var sizes = [canvas_grid, canvas_grid, canvas_grid]
@@ -59,14 +58,13 @@ Toolbox.add(
 				    }
 
 				    var base_cube = new Cube(brush_template)
-				    base_cube.uuid = guid()
 
 				    base_cube.to = [
 				        from[0]+base_cube.size(0),
 				        from[1]+base_cube.size(1),
 				        from[2]+base_cube.size(2)
 				    ]
-				    if (isCanvasRestricted()) {
+				    if (Format.canvas_limit) {
 				        var i = 0
 				        while (i < 3) {
 				            if (base_cube.to[i] > 32 || from[i] < -16) return;
@@ -79,12 +77,9 @@ Toolbox.add(
 				        base_cube.name = base_cube.name.split(number).join(number+1)
 				    }
 				    base_cube.from = from
-				    selected.length = 0
-				    base_cube.addTo(brush_template.parent)
-				    elements.push(base_cube)
-				    new_cubes.push(base_cube)
-				    selected.push(base_cube)
-				    Canvas.updateSelected()
+				    base_cube.addTo(brush_template.parent).init()
+				    new_cubes.push(base_cube);
+				    base_cube.select()
 				    Undo.finishEdit('clone_brush')
 	            }
 	        }
@@ -93,5 +88,5 @@ Toolbox.add(
 )
 
 onUninstall = function() {
-	Toolbox.remove('clone_brush')
+	clone_brush_tool.delete()
 }

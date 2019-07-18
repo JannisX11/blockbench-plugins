@@ -10,13 +10,12 @@ var plugin_data = {
 
 onInstall = function() {
 }
-
-MenuBar.addAction(new Action({
+var plaster_action = new Action({
     id: 'plaster',
     name: 'Plaster',
     icon: 'healing',
     category: 'edit',
-    condition: () => !Blockbench.entity_mode,
+    condition: () => !Project.box_uv,
     click: function(ev) {
     	if (selected.length === 0) {
 			Blockbench.showMessage('No cubes selected', 'center')
@@ -71,9 +70,9 @@ MenuBar.addAction(new Action({
 					//Return
 					return ((floor+edge)*16)/res
 				}
-				Undo.initEdit({cubes: selected, uv_only: true})
+				Undo.initEdit({elements: Cube.selected, uv_only: true})
 				//Processing
-				selected.forEach(function(obj) {
+				Cube.selected.forEach(function(obj) {
 					for (var face in obj.faces) {
 						if (obj.faces.hasOwnProperty(face) && obj.faces[face].texture !== null) {
 							//Vars
@@ -97,8 +96,9 @@ MenuBar.addAction(new Action({
 		}).show()
 
     }
-}), 'filter')
+})
+MenuBar.addAction(plaster_action, 'filter')
 
 onUninstall = function() {
-	MenuBar.removeAction('filter.plaster')
+	plaster_action.delete()
 }
