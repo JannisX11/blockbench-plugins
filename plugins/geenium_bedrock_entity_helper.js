@@ -18,13 +18,11 @@ var plugin_data = {
 
 //New addCube function allows you to specify the name and position properties of the cube
 addEntityCube = function(name, from, to, uv, inflate, mirror) {
-	var added_cube = new Cube({name: name, from: from, to: to, uv_offset: uv, shade: (mirror != undefined)}).addTo(selected_group)
+	var added_cube = new Cube({name: name, from: from, to: to, uv_offset: uv, shade: (mirror != undefined)}).addTo(Group.all.last()).init()
 
 	if (inflate) {
 		added_cube.inflate = inflate
 	}
-
-	elements.push(added_cube)
 }
 
 getEntityName = function(entity, parent) {
@@ -169,7 +167,7 @@ createBones = function(entity, add_cubes) {
 		rotationValues = cubeValues.shift()
 
 		//Creates a new group for the bone
-		bone_group = new Group(bone_name).addTo()
+		bone_group = new Group(bone_name).init();
 		bone_group.origin = rotationValues[0]
 		bone_group.shade = false
 		//Sets the selected group to the newly created bone
@@ -286,8 +284,6 @@ var bedrock_entity_selector = new Dialog({title:'Entity Selector', id:'entity_se
 //Runs when 'confirm' is clicked on the dialog window
 bedrock_entity_selector.onConfirm = function() {
 
-	newProject(true)
-
 	//Gets the entity from the dropdown list selected in the dialog window
 	entity = $('#bedrock_entity_list')[0].value
 
@@ -297,7 +293,7 @@ bedrock_entity_selector.onConfirm = function() {
 	//Passes whether 'Create entity model' is checked to the function
 	createBones(entity, $('#mob_model')[0].checked)
 	//Changes the project name to the correct value for the entity selected
-	Project.parent = getEntityName(entity, $('#mob_parent')[0].checked)
+	Project.geometry_name = getEntityName(entity, $('#mob_parent')[0].checked)
 	//Sets the file name to the default mobs.json, if there isn't a file name
 	if (Project.name == '') Project.name = 'mobs.json'
 
