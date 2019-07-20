@@ -108,5 +108,13 @@
 		"author": "JannisX11",
 		"description": "Preview seat positions for custom Bedrock entities",
 		"variant": "both"
+	},
+	"resource_pack_exporter": {
+		"title": "Resource Pack Exporter",
+		"icon": "archive",
+		"author": "Wither",
+		"description": "Exports your model as a ready-to-use Minecraft resource pack",
+		"variant": "both",
+		"min_version": "3.0.0"
 	}
 }
