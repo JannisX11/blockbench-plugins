@@ -6,6 +6,7 @@ var plugin_data = {
     author: 'dragonmaster95',
     description: 'Generates shapes.',
     version: '0.0.3',
+    min_version: '3.0.2',
     variant: 'both'
 };
 
@@ -34,22 +35,15 @@ var axis_list =`
 Blockbench.addMenuEntry('Generate shape','pages', function(){
 
     //Check if the user is in the right mode
-    if (Blockbench.entity_mode) {
-        var confirmation = new Dialog({
-            title: 'Warning', id: "wrong_mode_warning", lines: [
-                'You are currently in "Entity mode".<br/>' +
-                'This Plugin can only be used for normal models.<br />' +
-                '<br/>Do you want to leave "Entity mode"?<br />'
-            ], draggable: true, onConfirm() {
-                entityMode.leave();
-                confirmation.hide();
-                shapeWindow();
-            }
-        });
-        confirmation.show();
+    if (!Format.rotate_cubes) {
+        Blockbench.showMessageBox({
+            title: 'Incompatible Format',
+            message: 'This plugin only works in formats that support cube rotations.'
+        })
+        return;
     }
     else {
-    shapeWindow();
+        shapeWindow();
     }
 });
 
@@ -265,7 +259,7 @@ function borderValues(shape, variable, value, thickness, border, axis, origin) {
 }
 
 function determineShape(shape, variable, value, thickness, border, axis, origin, border_size, angle) {
-	Undo.initEdit({outliner: true, cubes: [], selection: true});
+	Undo.initEdit({outliner: true, elements: [], selection: true});
     if (shape === 'hexadecagon')
     {
         //user chose radius or diameter
@@ -283,7 +277,7 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
 
         //value is too high
         if ((diameter/2+origin[2] > 32 || diameter/2+origin[0] > 32 || thickness/2+origin[1] > 32 ||
-             origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && settings.restricted_canvas.value) {
+             origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && Format.canvas_limit) {
             var error_window2 = new Dialog({title: 'Error', id: 'error_window_2', lines: [
                 'Error occured:<br\>' +
                 'Your shape would go outside of the restricted area.<br/>'+
@@ -320,7 +314,7 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
 
         //value is too high
         if ((diameter/2+origin[2] > 32 || diameter/2+origin[0] > 32 || thickness/2+origin[1] > 32 ||
-                origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && settings.restricted_canvas.value) {
+                origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && Format.canvas_limit) {
             var error_window2 = new Dialog({title: 'Error', id: 'error_window_2', lines: [
                 'Error occured:<br\>' +
                 'Your shape would go outside of the restricted area.<br/>'+
@@ -357,7 +351,7 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
 
         //value is too high
         if ((diameter/2+origin[2] > 32 || diameter/2+origin[0] > 32 || thickness/2+origin[1] > 32 ||
-                origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && settings.restricted_canvas.value) {
+                origin[2]-diameter/2 < -16 || origin[0]-diameter/2 < -16 || origin[1]-thickness/2 < -16) && Format.canvas_limit) {
             var error_window2 = new Dialog({title: 'Error', id: 'error_window_2', lines: [
                 'Error occured:<br\>' +
                 'Your shape would go outside of the restricted area.<br/>'+
@@ -380,7 +374,7 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
     }
 
     //edit
-    Undo.finishEdit('Generated Shape', {outliner: true, cubes: selected, selection: true});
+    Undo.finishEdit('Generated Shape', {outliner: true, elements: selected, selection: true});
     Blockbench.showMessage('Generated a '+shape+' with a '+variable+' of '+value+' (Border:'+border+')', 'sidebar');
 
 }
@@ -389,7 +383,7 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
 
 function generateHexadecagonFilled(diameter, side, origin, axis, thickness) {
 
-    hexadecagon = new Group('hexadecagon').addTo('root');
+    hexadecagon = new Group('hexadecagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     thickness = parseFloat(thickness);
@@ -467,7 +461,7 @@ function generateHexadecagonFilled(diameter, side, origin, axis, thickness) {
 
 function generateHexadecagonBordered(diameter, side, origin, axis, thickness, border_size) {
 
-    hexadecagon = new Group('hexadecagon').addTo('root');
+    hexadecagon = new Group('hexadecagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     thickness = parseFloat(thickness);
@@ -601,7 +595,7 @@ function generateHexadecagonBordered(diameter, side, origin, axis, thickness, bo
 
 function generateOctagonFilled(diameter, side, origin, axis, thickness, angle) {
 
-    octagon = new Group('octagon').addTo('root');
+    octagon = new Group('octagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     thickness = parseFloat(thickness);
@@ -675,7 +669,7 @@ function generateOctagonFilled(diameter, side, origin, axis, thickness, angle) {
 
 function generateOctagonBordered(diameter, side, origin, axis, thickness, border_size, angle) {
 
-    octagon = new Group('octagon').addTo('root');
+    octagon = new Group('octagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     thickness = parseFloat(thickness);
@@ -801,7 +795,7 @@ function generateOctagonBordered(diameter, side, origin, axis, thickness, border
 
 function generateHexagonFlatFilled(diameter, side, side2, origin, axis, thickness, angle) {
 
-    hexagon = new Group('hexagon').addTo('root');
+    hexagon = new Group('hexagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     side2 = parseFloat(side2);
@@ -977,7 +971,7 @@ function generateHexagonFlatFilled(diameter, side, side2, origin, axis, thicknes
 
 function generateHexagonFlatBordered(diameter, side, side2, origin, axis, thickness, border_size, angle) {
 
-    hexagon = new Group('hexagon').addTo('root');
+    hexagon = new Group('hexagon').init();
     diameter = parseFloat(diameter);
     side = parseFloat(side);
     side2 = parseFloat(side2);
@@ -1197,8 +1191,7 @@ function buildCube(fromX,fromY,fromZ,toX,toY,toZ,origin,axis,rotation,group) {
     	from: [fromX, fromY, fromZ],
         to: [toX, toY, toZ],
         rotation: {origin: origin.slice(), axis: axis, angle: rotation}
-    }).addTo(group);
-    elements.push(cube);
+    }).addTo(group).init()
 /*    selected.length = 0;
     selected.push(cube.index());
     if (axis === "y") {
