@@ -10,6 +10,8 @@ var plugin_data = {
     variant: 'both'
 };
 
+(function() {
+
 var shape_list = `
         <select style="color:var(--color-text), class=" id="shape">
         <option selected=true value="hexadecagon"> Hexadecagon </option>
@@ -1200,6 +1202,8 @@ function buildCube(fromX,fromY,fromZ,toX,toY,toZ,origin,axis,rotation,group) {
         console.log(iteration);
     }*/
 }
+
+})()
 
 onUninstall = function() {
 	//Removing entries
