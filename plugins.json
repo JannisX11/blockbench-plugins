@@ -33,7 +33,7 @@
 		"author": "JannisX11",
 		"description": "Effectively fixes texture bleeding",
 		"icon": "healing",
-		"min_version": "2.0.2",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"shape_generator": {
@@ -41,7 +41,7 @@
 		"author": "dragonmaster95",
 		"description": "Generates shapes.",
 		"icon": "pages",
-		"min_version": "2.0.2",
+		"min_version": "3.0.2",
 		"variant": "both"
 	},
 	"outline_creator": {
@@ -50,7 +50,7 @@
 		"description": "Creates stylistic outlines for cubes using negative scale values.",
 		"about": "To use the plugin, select an element you want to create an outline for, go to the Filter tab and click on the Create Outline option.",
 		"icon": "crop_square",
-		"min_version": "2.0.2",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"vox_importer": {
@@ -69,12 +69,12 @@
 		"min_version": "2.0.0",
 		"variant": "both"
 	},
-	"player_models": {
+	"player_statue_generator": {
 		"title": "Player Statue Generator",
 		"author": "Wither, dragonmaster95 and 3XH6R",
 		"description": "Generates player shaped models.",
 		"icon": "accessibility",
-		"min_version": "2.1.0",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"clone_brush": {
@@ -82,7 +82,7 @@
 		"author": "JannisX11",
 		"icon": "account_balance_wallet",
 		"description": "Clone Cubes",
-		"min_version": "2.0.0",
+		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"mod_utils": {
@@ -101,5 +101,21 @@
 		"description": "Import structure files",
 		"version": "2.0.1",
 		"variant": "both"
+	},
+	"seat_position": {
+		"title": "Seat Position",
+		"icon": "event_seat",
+		"author": "JannisX11",
+		"description": "Preview seat positions for custom Bedrock entities",
+		"version": "3.0.0",
+		"variant": "both"
+	},
+	"resource_pack_exporter": {
+		"title": "Resource Pack Exporter",
+		"icon": "archive",
+		"author": "Wither",
+		"description": "Exports your model as a ready-to-use Minecraft resource pack",
+		"variant": "both",
+		"min_version": "3.0.0"
 	}
 }

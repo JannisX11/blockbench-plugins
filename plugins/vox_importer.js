@@ -9,9 +9,7 @@ var plugin_data = {
 }
 
 
-
-//Adds an entry to the plugin menu
-MenuBar.addAction(new Action({
+var import_vox_action = new Action({
 	id: 'import_vox',
 	name: 'Import Vox',
 	icon: 'view_module',
@@ -53,7 +51,7 @@ MenuBar.addAction(new Action({
 
 			function processVoxels() {
 				var colors = []
-				var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').addTo()
+				var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').init().addTo()
 				var vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
 				settings.edit_size.value = ''+Math.max(data.size.x, data.size.y, data.size.z)
                 buildGrid()
@@ -141,7 +139,7 @@ MenuBar.addAction(new Action({
 							safety_i++;
 						}
 						//Cube
-						var cube = new Cube().extend({
+						var cube = new Cube({
 							from: [
 								box.x * vsize,
 								box.z * vsize,
@@ -156,8 +154,7 @@ MenuBar.addAction(new Action({
 							display: {
 								autouv: 0
 							}
-						}).addTo(group, false)
-						elements.push(cube)
+						}).addTo(group, false).init()
 
 						//Color
 						var color = data.palette[voxel.colorIndex]
@@ -286,12 +283,13 @@ MenuBar.addAction(new Action({
 			}
 		})
 	}
-}), 'file.import')
+})
+MenuBar.addAction(import_vox_action, 'file.import')
 
 //Called when the user uninstalls the plugin
 onUninstall = function() {
 	//Removes the menu entry
-	MenuBar.removeAction('file.import.import_vox')
+	import_vox_action.delete();
 }
 
 
