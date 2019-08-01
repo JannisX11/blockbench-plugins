@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'account_balance', //Material icon name
 	author: 'JannisX11 & Krozi',
 	description: 'Import structure files',
-	version: '2.0.1', //Plugin version
+	version: '2.0.2', //Plugin version
 	variant: 'both'	// 'both', 'web', 'desktop'
 }
 
@@ -701,6 +701,12 @@ function structure_importer_updateSize() {
 }
 
 
+Plugin.register("structure_importer", {
+"author": "Krozi",
+"icon": "account_balance",
+"version": "2.0.2",
+"description": "Import structure files",
+onload() {
 
 //Adds an entry to the plugin menu
 MenuBar.addAction(new Action({
@@ -894,7 +900,8 @@ MenuBar.addAction(new Action({
 						cube.faces[face].uv = [0, 0, 16, 16]
 					}
 				}
-				elements.push(cube)
+				// elements.push(cube)
+				cube.init()
 				i++;
 			})
 			Canvas.updateAll()
@@ -902,6 +909,15 @@ MenuBar.addAction(new Action({
 		}
 	}
 }), "file.import")
+
+},
+
+onunload() {
+	MenuBar.removeAction("file.import.structure_importer")
+	MenuBar.removeAction("structure_importer")
+	delete StructureBuilder
+}
+})
 
 var StructureBuilder = class {
 	constructor() {
@@ -1222,7 +1238,7 @@ var StructureBuilder = class {
 	}
 	
 	buildStructure(file) {
-		Undo.initEdit({"cubes": [], "uv_only": false, "textures": []})
+		Undo.initEdit({"elements": [], "uv_only": false, "textures": []})
 		for (var i = 0; i < this.assetPaths.length; i++) {
 			this.assetPaths[i] = this.getAssetsPath(this.assetPaths[i]) + "\\minecraft"
 		}
@@ -1267,7 +1283,7 @@ var StructureBuilder = class {
 			this.addModel(blocks[i].state.value, cullSides, [x*16/this.scale, y*16/this.scale, z*16/this.scale], 1/this.scale)
 		}
 		Canvas.updateAll()
-		Undo.finishEdit("structure_importer", {"cubes": this.group.children, "uv_only": false, "textures": this.texturesAdded})
+		Undo.finishEdit("structure_importer", {"elements": this.group.children, "uv_only": false, "textures": this.texturesAdded})
 	}
 	
 	getAssetsPath(path) {
@@ -1686,7 +1702,8 @@ var StructureBuilder = class {
 				}
 			}
 			if (cubeVisible) {
-				elements.push(cube)
+				cube.init()
+				// elements.push(cube)
 				cube.addTo(this.group)
 			}
 		}
@@ -1694,8 +1711,3 @@ var StructureBuilder = class {
 }
 
 //Called when the user uninstalls the plugin
-onUninstall = function() {
-	MenuBar.removeAction("file.import.structure_importer")
-	MenuBar.removeAction("structure_importer")
-	delete StructureBuilder
-}
