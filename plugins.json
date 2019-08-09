@@ -117,5 +117,13 @@
 		"description": "Exports your model as a ready-to-use Minecraft resource pack",
 		"variant": "both",
 		"min_version": "3.0.0"
+	},
+	"sanlib_entity_models": {
+		"title": "SanLib Entity Model Import & Export",
+		"icon": "domain",
+		"author": "SanAndreasP",
+		"description": "Import and export entity models used by SanLib",
+		"variant": "both",
+		"min_version": "3.0.0"
 	}
 }
