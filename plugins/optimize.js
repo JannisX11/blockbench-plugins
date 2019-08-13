@@ -4,11 +4,17 @@ var plugin_data = {
 	icon: 'border_outer',
 	author: 'Krozi',
 	description: 'Hide concealed faces for better performance!',
-	version: '1.2.5',
+	version: '1.2.6',
 	variant: 'both'
 }
 
-
+Plugin.register("optimize", {
+"author": "Krozi",
+"icon": "border_outer",
+"version": "1.2.6",
+"description": "Hide concealed faces for better performance!",
+onload() {
+	
 MenuBar.addAction(new Action({
 	id: "optimize",
 	name: "Optimize",
@@ -209,6 +215,13 @@ catch(err) {
 
 }}), "filter")
 
+},
+
+onunload() {
+	MenuBar.removeAction("filter.optimize")
+}
+})
+
 optimize_rotatePoint = function(position, origin, axis, angle) {
 	if (angle == 0 || axis == -1) {
 		return position
@@ -252,8 +265,4 @@ optimize_getAngleAxis = function(rotation) {
 		}
 	}
 	return [0, -1]
-}
-
-onUninstall = function() {
-	MenuBar.removeAction("filter.optimize")
 }

@@ -8,6 +8,7 @@ Plugin.register('plaster', {
 	author: 'JannisX11',
 	description: 'Fixes texture bleeding (small white or colored lines around the edges of your model)',
 	version: '1.0.4',
+	min_version: '3.0.5',
 	variant: 'both',
 	onload() {
 		plaster_action = new Action({
@@ -79,7 +80,7 @@ Plugin.register('plaster', {
 									var res = 16;
 									var faceTag = obj.faces[face];
 									var texture_match = faceTag.getTexture();
-									if (texture_match) res = texture_match.res;
+									if (texture_match) res = texture_match.width;
 
 									//Calculating
 									faceTag.uv.forEach(function(u, i) {
