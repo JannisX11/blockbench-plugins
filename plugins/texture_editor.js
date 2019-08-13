@@ -49,6 +49,7 @@ window.TextureEditor = {
 		TextureEditor.effect_slider = new BarSlider({
 			id: 'texture_edit_effect',
 			name: 'Effect Strength',
+			description: '',
 			private: true,
 			min: -1, max: 1, step: 0.01, width: width + 16,
 			onChange: function(slider) {
