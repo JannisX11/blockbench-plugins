@@ -89,7 +89,7 @@
 		"title": "Mod Utils",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
 		"description": "A few handy utilities for Modders",
-		"about": "Usage guides can be found here: https://dark-roleplay.net/html/other/blockbench/mod_utils/mod_utils.php<br/>Sorry, making this link useable closes BB)", 		
+		"about": "Usage guides can be found here: https://dark-roleplay.net/html/other/blockbench/mod_utils/mod_utils.php", 		
 		"icon": "present_to_all",
 		"variant": "both",
 		"version": 1.3
