@@ -96,6 +96,12 @@ var importTechne = new Action({
 });
 
 function loadTechneModel(data) {
+	Undo.initEdit({
+		outliner: true,
+		bitmap: true,
+		uv_mode: true
+	});
+
 	reader = new DOMParser();
 	var xml = reader.parseFromString(data, "text/xml");
 
@@ -145,6 +151,7 @@ function loadTechneModel(data) {
 		Blockbench.elements.push(cube);
 	}
 
+	Undo.finishEdit('Import Techne Model');
 	Canvas.updateAll()
 }
 
@@ -177,9 +184,13 @@ function loadTabulaModel(data) {
 		}
 		).addTo();
 		rootGroup.init();
-	
+	Undo.initEdit({
+		outliner: true,
+		bitmap: true,
+		uv_mode: true
+	});
 	loadCubesTabula(json.cubes, rootGroup);
-
+	Undo.finishEdit('Import Tabula Model');
 	Canvas.updateAll();
 }
 	
