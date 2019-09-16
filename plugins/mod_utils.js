@@ -1,3 +1,5 @@
+(function() {
+
 var mappingsKey = "mod_utils.has_mappings";
 var selectedMappingsKey = "mod_utils.selected_mappings";
 
@@ -79,6 +81,30 @@ var Mappings = {
 	}
 }
 
+
+/** ---------- Help ---------- */
+
+var helpDialog = new Dialog({
+	id: 'mod_utils.help_dialog',
+	title: 'Help - Mod Utils',
+	width: 800,
+	lines: [
+		'<style> .modUtilHelpTabs { position: relative; min-height: 200px; /* This part sucks */ clear: both; margin: 25px 0; } .modUtilsHelpTab { float: left; } .modUtilsHelpTab label { background: var(--color-ui); padding: 10px; border: 1px solid #ccc; margin-left: -1px; position: relative; left: 1px; } .modUtilsHelpTab [type=radio] { display: none; } .modUtilsContent { position: absolute; top: 28px; left: 0; background: var(--color-ui); right: 0; bottom: 0; padding: 20px; border: 1px solid #ccc; height: auto; overflow: auto; } [type=radio]:checked ~ label { background: var(--color-button); border-bottom: 1px solid white; z-index: 2; } [type=radio]:checked ~ label ~ .modUtilsContent { z-index: 1; } </style> <div class="modUtilHelpTabs"> <div class="modUtilsHelpTab"><input type="radio" id="tab-1" name="tab-group-1" checked> <label for="tab-1">VoxelShapes</label> <div class="modUtilsContent"> <p> In order to use the VoxelShape exporter, you first need to create a new Group, called "VoxelShapes". All cubes that you create within this group, will be added to the voxelShape trough the OR BooleanFunction. Additionally you can add sub groups with the name equaling the BooleanFunctions shown in the image bellow. The first cube in such a group does represent the red cube, all other ones will be combined with an OR BooleanFunction first. </p> <img src="https://dark-roleplay.net/files/VoxelShapeGuideCropped.png" width="100%" height="auto"/> </div> </div> <div class="modUtilsHelpTab"><input type="radio" id="tab-2" name="tab-group-1"><label for="tab-2">Tabula Import</label> <div class="modUtilsContent"> <p>In order to import a Tabula Model, you need to create a new Modded Entity. Now the Point "Import Tabula Model (.tbl)" should be available in your import menu.</p> </div> </div> <div class="modUtilsHelpTab"><input type="radio" id="tab-3" name="tab-group-1"><label for="tab-3">Techne Import</label> <div class="modUtilsContent"> <p>The Techne model file import is currently disabled. If you have .tcn model file, please contact "JTK222 | Lukas#7285" on discord, so we can re-add the support</p> </div> </div> </div>'
+	],
+	singleButton: true
+});
+
+var modUtilsHelp = new Action({
+	id: 'mod_utils.help',
+	name: "Mod Utils",
+	icon: 'help',
+	description: 'Opens a Small Help window',
+	category: 'help',
+	condition: () => true,
+	click: function (event) {
+		helpDialog.show();
+	}
+});
 
 /** ---------- Import - Techne ---------- */
 
@@ -334,6 +360,8 @@ function searchVoxelShapeGroup(elements){
 	return rGroup;
 }
 
+var helpMenu;
+
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
 	author: 'JTK222',
@@ -344,9 +372,15 @@ Plugin.register('mod_utils', {
 
 	onload() {
 		if(isValidVersion){
+
+			helpMenu = new BarMenu('help', []);
+			helpMenu.label.textContent = 'Help';
+			MenuBar.update();
+			
 			MenuBar.addAction(exportVoxelShapeAction, 'file.export');
 			MenuBar.addAction(importTabula, 'file.import');
 			//MenuBar.addAction(importTechne, 'file.import');
+			MenuBar.addAction(modUtilsHelp, 'help');
 		}
 	},
 	onunload() {
@@ -354,8 +388,13 @@ Plugin.register('mod_utils', {
 			exportVoxelShapeAction.delete();
 			importTabula.delete();
 			//importTechne.delete();
+			modUtilsHelp.delete();
+
+			helpMenu.hide();
 		}
 	},
 	oninstall(){},
 	onuninstall() {}
 });
+
+})();
