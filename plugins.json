@@ -134,5 +134,13 @@
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model. You can use Ctrl + Z to undo this change or use the option **Revert Bedrock Pivots** to revert the changes later.",
 		"variant": "both",
 		"min_version": "3.0.0"
+	},
+	"guessing_game": {
+		"title": "The Guessing Game",
+		"icon": "casino",
+		"author": "JannisX11",
+		"description": "Play the guessing game in Blockbench with your friends!",
+		"variant": "both",
+		"min_version": "3.1.0"
 	}
 }
