@@ -117,5 +117,13 @@
 		"description": "Exports your model as a ready-to-use Minecraft resource pack",
 		"variant": "both",
 		"min_version": "3.0.0"
+	},
+	"bedrock_pivot_fix": {
+		"title": "Bedrock Pivot Fix",
+		"icon": "gps_fixed",
+		"author": "JannisX11",
+		"description": "Rotated cubes will likely be broken in Bedrock 1.13. This plugin creates support bones to fix this.",
+		"variant": "both",
+		"min_version": "3.0.0"
 	}
 }
