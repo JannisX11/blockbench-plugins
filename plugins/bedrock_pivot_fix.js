@@ -7,6 +7,7 @@ Plugin.register('bedrock_pivot_fix', {
 	icon: 'gps_fixed',
 	author: 'JannisX11',
 	description: 'Rotated cubes will likely be broken in Bedrock 1.13. This plugin creates support bones to fix this.',
+	about: 'After installing, use **Filter > Fix Bedrock Pivots** to fix your current model. You can use Ctrl + Z to undo this change or use the option **Revert Bedrock Pivots** to revert the changes later.',
 	version: '1.0.0',
 	min_version: '3.0.0',
 	variant: 'both',
@@ -40,10 +41,6 @@ Plugin.register('bedrock_pivot_fix', {
 				Group.all.slice().forEach(parent => {
 					var fixgroups = {}
 					parent.children.slice().forEach((cube, i) => {
-						console.log(`${parent.name} ${i}`, cube)
-						console.log(cube instanceof Cube == false)
-						console.log(cube.export == false)
-						console.log(cube.rotation.allEqual(0))
 						if (cube instanceof Cube == false || cube.export == false) return;
 						if (cube.rotation.allEqual(0)) return;
 
@@ -61,7 +58,6 @@ Plugin.register('bedrock_pivot_fix', {
 						}
 						cube.addTo(fixgroups[pivotkey]);
 						cube.extend(cube_reset_data);
-						console.log(`${parent.name} ${i}`)
 
 					})
 				})
