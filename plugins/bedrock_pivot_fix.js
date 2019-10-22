@@ -8,13 +8,13 @@ Plugin.register('bedrock_pivot_fix', {
 	author: 'JannisX11',
 	description: 'Rotated cubes will likely be broken in Bedrock 1.13. This plugin creates support bones to fix this.',
 	about: 'After installing, use **Filter > Fix Bedrock Pivots** to fix your current model. You can use Ctrl + Z to undo this change or use the option **Revert Bedrock Pivots** to revert the changes later.',
-	version: '1.0.0',
+	version: '1.1.0',
 	min_version: '3.0.0',
 	variant: 'both',
 	onload() {
 		fix_action = new Action({
 		    id: 'fix_bedrock_pivots',
-		    name: 'Fix Bedrock Pivots',
+		    name: 'Fix Bedrock Pivots (New)',
 		    description: '',
 		    icon: 'gps_fixed',
 		    category: 'edit',
@@ -26,55 +26,27 @@ Plugin.register('bedrock_pivot_fix', {
 		    	}
 		    	var fixable_cubes = [];
 		    	Cube.all.forEach(cube => {
-		    		if (!cube.rotation.allEqual(0)) {
+		    		if (!cube.rotation.allEqual(0) && cube.parent instanceof Group) {
 		    			fixable_cubes.push(cube);
 		    		}
 		    	})
-		    	if (fixable_cubes) {
+		    	if (fixable_cubes.length) {
 		    		Undo.initEdit({outliner: true, elements: fixable_cubes})
 		    	}
-		    	fix_counter = 0;
-		    	var cube_reset_data = {
-		    		rotation: [0, 0, 0],
-		    		origin: [0, 0, 0]
-		    	}
-				Group.all.slice().forEach(parent => {
-					var fixgroups = {}
-					parent.children.slice().forEach((cube, i) => {
-						if (cube instanceof Cube == false || cube.export == false) return;
-						if (cube.rotation.allEqual(0)) return;
-
-						var pivotkey = cube.rotation.join('_') + cube.origin.join('_');
-						if (!fixgroups[pivotkey]) {
-							var fixgroup = fixgroups[pivotkey] = new Group({
-								name: `pivotfix_${fix_counter}`,
-								origin: cube.origin,
-								rotation: cube.rotation
-							});
-							fixgroup.addTo(parent).init();
-							fixgroup.createUniqueName();
-							fixgroup.rotation[2] *= -1;
-							fix_counter++;
-						}
-						cube.addTo(fixgroups[pivotkey]);
-						cube.extend(cube_reset_data);
-
-					})
-				})
-		    	if (fixable_cubes) {
+		    	fixable_cubes.forEach(cube => {
+		    		cube.transferOrigin(cube.parent.origin);
+		    	})
+		    	if (fixable_cubes.length) {
 		    		Undo.finishEdit('fix bedrock pivots');
 		    	}
-				if (fix_counter) {
-					Canvas.updateAllPositions();
-					Canvas.updateAllBones();
-				} else {
+				if (!fixable_cubes.length) {
 					Blockbench.showMessage('No pivots to fix in this model');
 				}
 		    }
 		})
 		revert_action = new Action({
 		    id: 'revert_bedrock_pivots',
-		    name: 'Revert Bedrock Pivots',
+		    name: 'Revert Bedrock Pivots (Bones)',
 		    icon: 'gps_not_fixed',
 		    description: '',
 		    category: 'edit',
@@ -87,7 +59,7 @@ Plugin.register('bedrock_pivot_fix', {
 		    			fixable_cubes.push(cube);
 		    		}
 		    	})
-		    	if (fixable_cubes) {
+		    	if (fixable_cubes.length) {
 		    		Undo.initEdit({outliner: true, elements: fixable_cubes})
 		    	}
 		    	Group.all.slice().forEach(group => {
@@ -106,7 +78,7 @@ Plugin.register('bedrock_pivot_fix', {
 		    			group.remove(false);
 		    		}
 		    	})
-		    	if (fixable_cubes) {
+		    	if (fixable_cubes.length) {
 		    		Undo.finishEdit('revert bedrock pivots')
 		    	}
 				if (fix_counter) {
