@@ -184,7 +184,6 @@ function loadTechneModel(data) {
 			}
 		).addTo(group);
 		cube.init();
-		Blockbench.elements.push(cube);
 	}
 
 	Undo.finishEdit('Import Techne Model');
