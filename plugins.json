@@ -142,5 +142,14 @@
 		"description": "Play the guessing game in Blockbench with your friends!",
 		"variant": "both",
 		"min_version": "3.1.0"
+	},
+	"csmodel": {
+		"title": "CraftStudio Model Format",
+		"icon": "star",
+		"author": "JannisX11",
+		"description": "Allows to import and export CraftStudio Models (.csmodel).",
+		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
+		"variant": "desktop",
+		"min_version": "3.1.0"
 	}
 }
