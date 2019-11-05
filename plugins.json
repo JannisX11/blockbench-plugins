@@ -133,7 +133,7 @@
 		"description": "Rotated cubes will likely be broken in Bedrock 1.13. This plugin creates support bones to fix this.",
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model. You can use Ctrl + Z to undo this change or use the option **Revert Bedrock Pivots** to revert the changes later.",
 		"variant": "both",
-		"min_version": "3.0.0"
+		"min_version": "3.1.1"
 	},
 	"guessing_game": {
 		"title": "The Guessing Game",
