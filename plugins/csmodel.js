@@ -344,7 +344,6 @@ Plugin.register('csmodel', {
 					}
 					var offset = new THREE.Vector3(center[0] - pivot[0], center[1] - pivot[1], center[2] - pivot[2]);
 					var euler = new THREE.Euler().setFromDegreeArray(obj.rotation);
-					if (obj instanceof Group) euler.z *= -1;
 					var rotation = new THREE.Quaternion().setFromEuler(euler);
 					var scale = new THREE.Vector3(
 						((size[0]+2*cube.inflate) / size[0]) * (size[0] < 0 ?-1:1),
@@ -496,7 +495,6 @@ Plugin.register('csmodel', {
 									origin: parent_cube.origin,
 									rotation: parent_cube.rotation
 								}).addTo(parent_cube).init();
-								parent.rotation[2] *= -1;
 								parent_cube.addTo(parent);
 								parent_cube.extend({rotation: [0, 0, 0]})
 							}
