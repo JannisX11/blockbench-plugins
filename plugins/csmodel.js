@@ -365,8 +365,8 @@ Plugin.register('csmodel', {
 					for (var face_key in oppositeFaces) {
 						var face = cube.faces[face_key];
 						writer.WritePoint({
-							x: face.uv[0] / 16 * Project.texture_width,
-							y: face.uv[1] / 16 * Project.texture_height
+							x: face.uv[0],
+							y: face.uv[1]
 						})
 					}
 					for (var face_key in oppositeFaces) {
@@ -518,14 +518,14 @@ Plugin.register('csmodel', {
 						for (var face_key in cube.faces) {
 							var face = cube.faces[face_key];
 							face.extend({uv: [
-								info[face_key].offset.x/tex.width*16,
-								info[face_key].offset.y/tex.height*16,
+								info[face_key].offset.x,
+								info[face_key].offset.y,
 								0, 0
 							]});
 							var native_size = getNativeSize(cube, face);
 							face.uv_size = [
-								native_size[0]/tex.width*16,
-								native_size[1]/tex.height*16,
+								native_size[0],
+								native_size[1],
 							]
 							var code = info[face_key].transform;
 							if (code >= 16) {
