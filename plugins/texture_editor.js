@@ -18,13 +18,14 @@ window.TextureEditor = {
 		icon: 'photo_filter',
 		children: [
 			{name: 'Color', icon: 'palette', children: [
-				{name: 'Brightness...', icon: 'fa-lightbulb-o',	click: (tex) => {TextureEditor.editMenu(tex, 'brightness', 'Brightness')}},
+				{name: 'Brightness...', icon: 'fa-lightbulb',	click: (tex) => {TextureEditor.editMenu(tex, 'brightness', 'Brightness')}},
 				{name: 'Light...', icon: 'brightness_low',		click: (tex) => {TextureEditor.editMenu(tex, 'light', 'Light')}},
 				{name: 'Contrast...', icon: 'brightness_medium',click: (tex) => {TextureEditor.editMenu(tex, 'contrast', 'Contrast')}},
 				{name: 'Saturation...', icon: 'flare', 			click: (tex) => {TextureEditor.editMenu(tex, 'saturation', 'Saturation')}},
 				{name: 'Hue...', icon: 'looks', 				click: (tex) => {TextureEditor.editMenu(tex, 'hue', 'Hue')}},
 				{name: 'Invert', icon: 'invert_colors',			click: (tex) => {TextureEditor.edit(tex, 'invert')}},
 				{name: 'Grayscale', icon: 'format_color_reset',	click: (tex) => {TextureEditor.edit(tex, 'grayscale')}},
+				{name: 'Limit To Palette', icon: 'blur_linear',	click: (tex) => {TextureEditor.edit(tex, 'limit_palette', {method: 'canvas'})}},
 			]},
 			//{name: 'Blur', icon: 'blur_on', children: [
 				//{name: 'Fast Blur', icon: 'blur_circular',	click: (tex) => {TextureEditor.editMenu(tex, 'fast_blur')}},
@@ -79,6 +80,33 @@ window.TextureEditor = {
 			}
 		})
 	},
+	limitToPalette(canvas) {
+		let ctx = canvas.getContext('2d');
+		var palette = {};
+		ColorPanel.palette.forEach(color => {
+			palette[color] = tinycolor(color);
+		})
+		Painter.scanCanvas(ctx, 0, 0, canvas.width, canvas.height, (x, y, pixel) => {
+
+			if (pixel[3] < 4) return;
+			let nearest = [];
+			for (let key in palette) {
+				let color = palette[key];
+				let distance = colorDistance(color, {_r: pixel[0], _g: pixel[1], _b: pixel[2]});
+				if (distance < 100) {
+					nearest.push({distance, color})
+				}
+			}
+			if (!nearest.length) return;
+			nearest.sort((a, b) => {
+				return a.distance - b.distance;
+			})
+			//cl(x, y, nearest.length);
+			pixel[0] = nearest[0].color._r;
+			pixel[1] = nearest[0].color._g;
+			pixel[2] = nearest[0].color._b;
+		})
+	},
 	editMenu: function(texture, mode, title, effect_0) {
 		TextureEditor.mode = mode
 		TextureEditor.texture = texture
@@ -109,11 +137,11 @@ window.TextureEditor = {
 				.css('background-image', css)
 		})
 	},
-	edit: function(texture, mode) {
+	edit: function(texture, mode, options) {
 		TextureEditor.mode = mode
 		texture.edit(image => {
 			TextureEditor.processImage(image)
-		})
+		}, options)
 	},
 	confirmDialog: function() {
 		TextureEditor.texture.edit(image => {
@@ -131,6 +159,7 @@ window.TextureEditor = {
 			case 'hue':				image.color([{apply: 'hue', params: [TextureEditor.effect*180]}]); break;
 			case 'invert':			image.invert(); break;
 			case 'grayscale':		image.greyscale(); break;
+			case 'limit_palette':	TextureEditor.limitToPalette(image); break;
 			//Blur
 			//case 'fast_blur':		if (TextureEditor.effect > 0) image.blur(1 + TextureEditor.effect * 4); break;
 			case 'gaussian_blur':	if (TextureEditor.effect > -1) image.gaussian(1 + (TextureEditor.effect+1) * 4); break;
