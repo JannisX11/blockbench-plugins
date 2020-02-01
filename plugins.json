@@ -159,5 +159,13 @@
 		"description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
 		"variant": "both",
 		"min_version": "3.2.1"
+	},
+		"discord-rpc": {
+		"title": "Discord RPC",
+		"icon": "announcement",
+		"author": "strajabot, Kastle, & simplyme",
+		"description": "Show a rich presence status in Discord.",
+		"variant": "desktop",
+		"min_version": "3.2.0"
 	}
 }
