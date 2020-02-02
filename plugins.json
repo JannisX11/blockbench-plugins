@@ -160,12 +160,20 @@
 		"variant": "both",
 		"min_version": "3.2.1"
 	},
-		"discord-rpc": {
+	"discord-rpc": {
 		"title": "Discord RPC",
 		"icon": "announcement",
 		"author": "strajabot, Kastle, & simplyme",
 		"description": "Show a rich presence status in Discord.",
 		"variant": "desktop",
+		"min_version": "3.2.0"
+	},
+	"cem-template-loader": {
+		"title": "CEM Telmplate Loader",
+		"icon": "keyboard-capslock",
+		"author": "Ewan Howell",
+		"description": "Load template entity models for use with OptiFine CEM.",
+		"variant": "both",
 		"min_version": "3.2.0"
 	}
 }
