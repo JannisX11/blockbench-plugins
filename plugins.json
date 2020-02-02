@@ -168,7 +168,7 @@
 		"variant": "desktop",
 		"min_version": "3.2.0"
 	},
-	"cem-template-loader": {
+	"cem_template_loader": {
 		"title": "CEM Telmplate Loader",
 		"icon": "keyboard-capslock",
 		"author": "Ewan Howell",
