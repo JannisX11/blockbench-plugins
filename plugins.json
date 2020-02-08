@@ -169,7 +169,7 @@
 		"min_version": "3.2.0"
 	},
 	"cem_template_loader": {
-		"title": "CEM Telmplate Loader",
+		"title": "CEM Template Loader",
 		"icon": "keyboard_capslock",
 		"author": "Ewan Howell",
 		"description": "Load template entity models for use with OptiFine CEM.",
