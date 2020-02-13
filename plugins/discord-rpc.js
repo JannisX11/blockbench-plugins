@@ -178,7 +178,7 @@
                         largeImageKey: "icon",
                         largeImageText: `Blockbench ${Blockbench.version}`,
                         smallImageKey: `${Format.id}`,
-                        details: `${t} a ${Format.name}`,
+                        details: `${t} a/an ${Format.name}`,
                         state: `${e}`,
                         startTimestamp: o,
                         instance: !1
