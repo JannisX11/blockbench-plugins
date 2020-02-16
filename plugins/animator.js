@@ -5,9 +5,11 @@
     var def = {};
 
     Plugin.register('animator', {
-        title: 'Java Model Animator',
+        title: 'Java Item Model Animator',
         author: 'Command Master',
-        description: 'Makes a clean transition between two models',
+        description: `Takes two java item models and outputs a zip with a resourcepack and a datapack to make a clear transaction between them in the players hand (the plugin can also work for other animations but the datapack have to be coded manually).
+The animation is activated using "/scoreboard players set @s animation 0".
+To use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation`,
         icon: 'compare',
         version: '1.0.0',
         variant: 'both',
