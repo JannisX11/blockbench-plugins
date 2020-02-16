@@ -1,4 +1,11 @@
 {
+	"animator": {
+		"title": "Model Animator",
+		"author": "Command master",
+		"description": "Makes a clean transition between two models",
+		"icon": "compare",
+		"variant": "both"
+	},
 	"geenium_bedrock_entity_helper": {
 		"title": "Bedrock Entity Generator",
 		"author": "Geenium",
