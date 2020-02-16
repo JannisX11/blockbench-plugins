@@ -7,7 +7,7 @@
     Plugin.register('animator', {
         title: 'Model Animator',
         author: 'Command Master',
-        description: 'This plugin can take a start model, an end model and the time in ticks and make a transition between them.',
+        description: 'Makes a clean transition between two models',
         icon: 'compare',
         version: '0.0.1',
         variant: 'both',
