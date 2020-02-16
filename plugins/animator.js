@@ -9,7 +9,7 @@
         author: 'Command Master',
         description: 'Makes a clean transition between two models',
         icon: 'compare',
-        version: '0.0.1',
+        version: '0.0.2',
         variant: 'both',
         onload() {
             types = ['thirdperson_righthand', 'thirdperson_lefthand', 'firstperson_righthand', 'firstperson_lefthand', 'gui', 'head', 'ground', 'fixed'];
@@ -119,6 +119,8 @@
     }
 	
 	function generate_animation(start, end, models) {
+        start = JSON.parse(JSON.stringify(start));
+        end = JSON.parse(JSON.stringify(end));
         start['display'] = Object.assign({}, def, start['display']);
         end['display'] = Object.assign({}, def, end['display']);
         start['display']['firstperson_righthand']['translation'][1] += 10;
