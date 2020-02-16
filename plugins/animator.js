@@ -5,11 +5,11 @@
     var def = {};
 
     Plugin.register('animator', {
-        title: 'Model Animator',
+        title: 'Java Model Animator',
         author: 'Command Master',
         description: 'Makes a clean transition between two models',
         icon: 'compare',
-        version: '0.0.2',
+        version: '1.0.0',
         variant: 'both',
         onload() {
             types = ['thirdperson_righthand', 'thirdperson_lefthand', 'firstperson_righthand', 'firstperson_lefthand', 'gui', 'head', 'ground', 'fixed'];
