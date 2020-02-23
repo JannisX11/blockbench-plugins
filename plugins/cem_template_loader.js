@@ -8,7 +8,7 @@ Plugin.register('cem_template_loader', {
 	icon: 'keyboard_capslock',
 	author: 'Ewan Howell',
 	description: 'Load template entity models for use with OptiFine CEM.',
-	version: '0.0.2',
+	version: '0.0.3',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -3164,94 +3164,103 @@ EntityOptions.minecart = {
 	"textureSize": [64, 32],
 	"models": [
 		{
-			"part": "segment1",
-			"id": "segment1",
+			"part": "front",
+			"id": "front",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
+			"translate": [0, -1, -9],
 			"boxes": [
-				{"coordinates": [-4, 7, -4, 8, 1, 8], "textureOffset": [0, 0]}
+				{"coordinates": [-8, 2, 8, 16, 8, 2], "textureOffset": [0, 0]}
+			],
+			"submodels": [
+				{
+					"id": "bone4",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"rotate": [0, -180, 0],
+					"boxes": [
+						{"coordinates": [-8, 2, 8, 16, 8, 2], "textureOffset": [0, 0]}
+					]
+				},
+				{
+					"id": "bone",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"rotate": [0, 90, 0],
+					"submodels": [
+						{
+							"invertAxis": "xy",
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-8, 2, 6, 16, 8, 2], "textureOffset": [0, 0]}
+							]
+						}
+					]
+				},
+				{
+					"id": "bone2",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"rotate": [0, -90, 0],
+					"submodels": [
+						{
+							"invertAxis": "xy",
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-8, 2, 6, 16, 8, 2], "textureOffset": [0, 0]}
+							]
+						}
+					]
+				},
+				{
+					"id": "bone3",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"rotate": [0, 90, 90],
+					"submodels": [
+						{
+							"invertAxis": "xy",
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-10, -8, 0, 20, 16, 2], "textureOffset": [0, 10]}
+							]
+						}
+					]
+				}
 			]
 		},
 		{
-			"part": "segment2",
-			"id": "segment2",
+			"part": "back",
+			"id": "back",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 6, -4, 8, 1, 8], "textureOffset": [0, 1]}
-			]
+			"translate": [0, 0, 0]
 		},
 		{
-			"part": "segment3",
-			"id": "segment3",
+			"part": "bottom",
+			"id": "bottom",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 5, -4, 8, 1, 8], "textureOffset": [24, 10]}
-			]
+			"translate": [0, -20, 0],
+			"rotate": [-180, -180, -180],
+			"mirrorTexture": "u"
 		},
 		{
-			"part": "segment4",
-			"id": "segment4",
+			"part": "right",
+			"id": "right",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 4, -4, 8, 1, 8], "textureOffset": [24, 19]}
-			]
+			"translate": [0, -25, 7],
+			"mirrorTexture": "u"
 		},
 		{
-			"part": "segment5",
-			"id": "segment5",
+			"part": "left",
+			"id": "left",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 3, -4, 8, 1, 8], "textureOffset": [0, 4]}
-			]
+			"translate": [0, -25, -7],
+			"mirrorTexture": "u"
 		},
 		{
-			"part": "segment6",
-			"id": "segment6",
+			"part": "dirt",
+			"id": "dirt",
 			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 2, -4, 8, 1, 8], "textureOffset": [0, 5]}
-			]
-		},
-		{
-			"part": "segment7",
-			"id": "segment7",
-			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 1, -4, 8, 1, 8], "textureOffset": [0, 6]}
-			]
-		},
-		{
-			"part": "segment8",
-			"id": "segment8",
-			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-4, 0, -4, 8, 1, 8], "textureOffset": [0, 7]}
-			]
-		},
-		{
-			"part": "core",
-			"id": "core",
-			"invertAxis": "xy",
-			"translate": [0, -24, 0],
-			"mirrorTexture": "u",
-			"boxes": [
-				{"coordinates": [-2, 2, -2, 4, 4, 4], "textureOffset": [0, 16]}
-			]
+			"translate": [0, 0, 0]
 		}
 	]
 }`
