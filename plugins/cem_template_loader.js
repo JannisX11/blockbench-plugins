@@ -8,7 +8,7 @@ Plugin.register('cem_template_loader', {
 	icon: 'keyboard_capslock',
 	author: 'Ewan Howell',
 	description: 'Load template entity models for use with OptiFine CEM.',
-	version: '0.0.3',
+	version: '0.0.4',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -2823,7 +2823,8 @@ EntityOptions.illusioner = {
 			"translate": [0, -24, 0],
 			"mirrorTexture": "u",
 			"boxes": [
-				{"coordinates": [-4, 24, -4, 8, 10, 8], "textureOffset": [0, 0]}
+				{"coordinates": [-4, 24, -4, 8, 10, 8], "textureOffset": [0, 0]},
+				{"coordinates": [-4, 24, -4, 8, 10, 8], "textureOffset": [32, 0], "sizeAdd": 0.25}
 			]
 		},
 		{
