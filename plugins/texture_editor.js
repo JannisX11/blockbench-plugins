@@ -123,7 +123,7 @@ window.TextureEditor = {
 
 		texture.edit(image => {
 			TextureEditor.image = image
-		}, {noUndo: true})
+		}, {noUndo: true, method: 'jimp'})
 	},
 	preview: function() {
 		var texture = TextureEditor.texture
@@ -139,6 +139,8 @@ window.TextureEditor = {
 	},
 	edit: function(texture, mode, options) {
 		TextureEditor.mode = mode
+		if (typeof options !== 'object') options = {}
+		options.method = 'jimp';
 		texture.edit(image => {
 			TextureEditor.processImage(image)
 		}, options)
@@ -146,7 +148,7 @@ window.TextureEditor = {
 	confirmDialog: function() {
 		TextureEditor.texture.edit(image => {
 			TextureEditor.processImage(image)
-		})
+		}, {method: 'jimp'})
 		TextureEditor.dialog.hide()
 	},
 	processImage: function(image) {
