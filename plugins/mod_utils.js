@@ -95,7 +95,7 @@ var Mappings = {
 /** ---------- Help ---------- */
 
 var helpDialog = new Dialog({
-	id: 'mod_utils.help_dialog',
+	id: 'mod_utils_help_dialog',
 	title: 'Help - Mod Utils',
 	width: 800,
 	lines: [
@@ -369,7 +369,7 @@ function searchVoxelShapeGroup(elements){
 	return rGroup;
 }
 
-var helpMenu;
+// var helpMenu;
 
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
@@ -382,9 +382,9 @@ Plugin.register('mod_utils', {
 	onload() {
 		if(isValidVersion){
 
-			helpMenu = new BarMenu('help', []);
-			helpMenu.label.textContent = 'Help';
-			MenuBar.update();
+			// helpMenu = new BarMenu('help', []);
+			// helpMenu.label.textContent = 'Help';
+			// MenuBar.update();
 			
 			MenuBar.addAction(exportVoxelShapeAction, 'file.export');
 			MenuBar.addAction(importTabula, 'file.import');
@@ -399,7 +399,7 @@ Plugin.register('mod_utils', {
 			importTechne.delete();
 			modUtilsHelp.delete();
 
-			helpMenu.hide();
+			// helpMenu.hide();
 		}
 	},
 	oninstall(){},
