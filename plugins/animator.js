@@ -2,7 +2,6 @@
     var button;
 	var start;
 	var expor;
-    var def = {};
 
     Plugin.register('animator', {
         title: 'Java Item Model Animator',
@@ -15,13 +14,6 @@ To use click Filter -> Save starting model the save the first model, and then cl
         variant: 'both',
         onload() {
             types = ['thirdperson_righthand', 'thirdperson_lefthand', 'firstperson_righthand', 'firstperson_lefthand', 'gui', 'head', 'ground', 'fixed'];
-            for (var i = 0; i < types.length; i++) {
-                def[types[i]] = {
-                    rotation: [0, 0, 0],
-                    translation: [0, 0, 0],
-                    scale: [1, 1, 1]
-                };
-            }
             button = new Action('save_start', {
                 name: 'Save Starting Model',
                 description: 'Saves the current model as the starting model for the animation',
@@ -123,8 +115,18 @@ To use click Filter -> Save starting model the save the first model, and then cl
 	function generate_animation(start, end, models) {
         start = JSON.parse(JSON.stringify(start));
         end = JSON.parse(JSON.stringify(end));
-        start['display'] = Object.assign({}, def, start['display']);
-        end['display'] = Object.assign({}, def, end['display']);
+	for (var i = 0; i < types.length; i++) {
+                start[types[i]] = Object.assign({
+                    rotation: [0, 0, 0],
+                    translation: [0, 0, 0],
+                    scale: [1, 1, 1]
+                }, start[types[i]]);
+		end[types[i]] = Object.assign({
+                    rotation: [0, 0, 0],
+                    translation: [0, 0, 0],
+                    scale: [1, 1, 1]
+                }, start[end[i]]);
+         }
         start['display']['firstperson_righthand']['translation'][1] += 10;
         end['display']['firstperson_righthand']['translation'][1] += 10;
         start['display']['firstperson_lefthand']['translation'][1] += 10;
