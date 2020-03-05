@@ -8,7 +8,7 @@ Plugin.register('cem_template_loader', {
 	icon: 'keyboard_capslock',
 	author: 'Ewan Howell',
 	description: 'Load template entity models for use with OptiFine CEM.',
-	version: '0.0.4',
+	version: '0.0.5',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -4486,14 +4486,8 @@ name: 'Pufferfish [Small]',
 			"id": "eye_right",
 			"invertAxis": "xy",
 			"translate": [0, -3, 0],
-			"submodels": [
-				{
-					"invertAxis": "xy",
-					"mirrorTexture": "u",
-					"boxes": [
-						{"coordinates": [-1.5, 2, -1.5, 1, 1, 1], "textureOffset": [28, 6]}
-					]
-				}
+			"boxes": [
+				{"coordinates": [-1.5, 2, -1.5, 1, 1, 1], "textureOffset": [28, 6]}
 			]
 		},
 		{
@@ -4501,14 +4495,8 @@ name: 'Pufferfish [Small]',
 			"id": "eye_left",
 			"invertAxis": "xy",
 			"translate": [0, -3, 0],
-			"submodels": [
-				{
-					"invertAxis": "xy",
-					"mirrorTexture": "u",
-					"boxes": [
-						{"coordinates": [0.5, 2, -1.5, 1, 1, 1], "textureOffset": [24, 6]}
-					]
-				}
+			"boxes": [
+				{"coordinates": [0.5, 2, -1.5, 1, 1, 1], "textureOffset": [24, 6]}
 			]
 		}
 	]
