@@ -140,7 +140,7 @@ window.TextureEditor = {
 	edit: function(texture, mode, options) {
 		TextureEditor.mode = mode
 		if (typeof options !== 'object') options = {}
-		options.method = 'jimp';
+		if (!options.method) options.method = 'jimp';
 		texture.edit(image => {
 			TextureEditor.processImage(image)
 		}, options)
