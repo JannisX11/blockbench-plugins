@@ -132,7 +132,7 @@
 		"description": "Adds a scalable ambient occlusion shader",
 		"about": "Ambient Occlusion is enabled by default. To disable it, right click the preview and click Ambient Occlusion.",
 		"variant": "both",
-		"min_version": "3.2.1"
+		"min_version": "3.4.0"
 	},
 	"bedrock_pivot_fix": {
 		"title": "Bedrock Pivot Fix",
