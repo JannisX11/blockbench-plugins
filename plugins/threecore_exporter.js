@@ -63,6 +63,9 @@ var dialog = new Dialog({
 			step: 0.1
 		}
 	},
+	lines: [
+		'<p>When you are done exporting your model, you need to put it in your addonpack, the path should be: <i>assets\/&ltnamespace&gt\/models\/entity\/</i></p>'
+	],
 	onConfirm: function (formData) {
 		this.hide();
 		bipedScale = formData.bipedScale;
