@@ -103,7 +103,7 @@ Plugin.register('threecore_exporter', {
 	author: 'Lucraft, Spyeedy',
 	icon: 'looks_3',
 	description: 'Let\'s you export your models in the json entity model format for the ThreeCore mod!',
-	version: '1.0.0',
+	version: '1.0.1',
 	variant: 'both',
 	min_version: '3.3.0',
 	onload() {
@@ -174,15 +174,15 @@ function createCubeFromGroup(group, isRoot) {
 	return cube;
 }
 
-function combineCubeIntoGroup(groupObj, groupCube, cube) {
+function combineCubeIntoGroup(groupObj, groupCube, cube, cubeObj) {
 	groupCube.scale = cube.scale;
 	groupCube.mirror = cube.mirror;
 	groupCube.texture_offset = cube.texture_offset;
-	groupCube.offset = cube.offset;
 	groupCube.size = cube.size;
 	cube.offset[0] += groupObj.origin[0];
-	cube.offset[1] -= groupCube.rotation_point[1];
+	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
 	cube.offset[2] -= groupCube.rotation_point[2];
+	groupCube.offset = cube.offset;
 	
 	return groupCube;
 }
@@ -219,7 +219,7 @@ function recurvBBGroup(obj, cube) {
 				var childCube = createCube(childObj);
 				
 				if (childCube.name === cube.name) {
-					cube = combineCubeIntoGroup(obj, cube, childCube);
+					cube = combineCubeIntoGroup(obj, cube, childCube, childObj);
 				} else {
 					if (cube.children == null)
 						cube.children = []
