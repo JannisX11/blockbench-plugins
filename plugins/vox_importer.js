@@ -4,7 +4,7 @@ var plugin_data = {
 	icon: 'view_module', //Material icon name
 	author: 'JannisX11',
 	description: 'Import MagicaVoxel .vox files',
-	version: '1.0.0', //Plugin version
+	version: '1.1.0', //Plugin version
 	variant: 'both' // 'both', 'web', 'desktop'
 }
 
@@ -18,6 +18,17 @@ var import_vox_action = new Action({
 
 		var file_path;
 		function importVoxFile(cb) {
+
+			Blockbench.import({
+				extensions: ['vox'],
+				type: 'Vox Model',
+				readtype: 'binary',
+			}, (files) => {
+				console.log(files)
+				vox.mainParser.parseUint8Array(new Uint8Array(files[0].content), cb)
+			})
+
+			/*
 			if (Blockbench.isWeb) {
 				$('<input'+
 					' type="file'+
@@ -37,23 +48,29 @@ var import_vox_action = new Action({
 				}).click()
 
 			} else {
+				console.log('test')
 				electron.dialog.showOpenDialog(currentwindow, {filters: [{name: 'Voxel File', extensions: ['vox']}] }, function (fileNames) {
 					if (fileNames !== undefined) {
 						file_path = fileNames[0]
+						console.log(file_path)
 						vox.mainParser.parseFile(file_path, cb)
+						console.log(2)
 					}
 				})
 			}
+			*/
 		}
 
 		importVoxFile(function(a, data) {
 			if (a) throw a
+			console.log(data)
+
 
 			function processVoxels() {
 				var colors = []
 				var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').init().addTo()
-				var vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
-				settings.edit_size.value = ''+Math.max(data.size.x, data.size.y, data.size.z)
+				var vsize = 16/settings.edit_size.value;
+				if (Format.canvas_limit && !settings.deactivate_size_limit.value) vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
                 buildGrid()
 				var i = 0
 				console.log(data)
@@ -244,7 +261,7 @@ var import_vox_action = new Action({
 					}
 				})
 
-				Painter.addBitmap({
+				TextureGenerator.addBitmap({
 					res: 16,
 					color: new tinycolor(0x00000000),
 					name: 'voxel_atlas',
@@ -252,17 +269,26 @@ var import_vox_action = new Action({
 					particle: true
 				}, function (texture) {
 					group.select()
-					texture.apply(true)
-					texture.edit(function(image) {
-						colors.forEach(function(c) {
-							var c_vals = c.string.split('_')
-							c_vals.forEach(function(cv, cvi) {
-								c_vals[cvi] = parseInt(cv)
+					texture.load(_ => {
+
+						texture.edit(function(canvas) {
+							let ctx = canvas.getContext('2d');
+							colors.forEach(function(c) {
+								var c_vals = c.string.split('_')
+								c_vals.forEach(function(cv, cvi) {
+									c_vals[cvi] = parseInt(cv)
+								})
+								//var hex_color = Jimp.rgbaToInt(c_vals[3], c_vals[2], c_vals[1], c_vals[0])
+								let hex_color = tinycolor({r: c_vals[3], g: c_vals[2], b: c_vals[1], a: c_vals[0]}).toRgbString();
+								ctx.fillStyle = hex_color
+								ctx.fillRect(c.position.x, c.position.y, 1, 1);
+								console.log(hex_color, c.position, c)
 							})
-							var hex_color = Jimp.rgbaToInt(c_vals[3], c_vals[2], c_vals[1], c_vals[0])
-							image.setPixelColor(hex_color, c.position.x, c.position.y)
 						})
 					})
+					/*
+					*/
+					texture.apply(true)
 				})
 				loadOutlinerDraggable()
 				Canvas.updateAll()
