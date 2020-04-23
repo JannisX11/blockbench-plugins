@@ -1,13 +1,3 @@
-var plugin_data = {
-	id: 'structure_importer',
-	title: 'Structure Importer',  
-	icon: 'account_balance', //Material icon name
-	author: 'JannisX11 & Krozi',
-	description: 'Import structure files',
-	version: '2.0.2', //Plugin version
-	variant: 'both'	// 'both', 'web', 'desktop'
-}
-
 var nbt = new function() {
 
 	'use strict';
@@ -655,8 +645,13 @@ var structure_importer_resourepackCount = 0
 
 function structure_importer_selectResourcePath(button) {
 	buttonNumber = button.id.split("-")[1]
-	var path = electron.dialog.showOpenDialog({properties:["openDirectory"]})
-	document.getElementById("structure_importer_path_input-" + String(buttonNumber)).value = path
+	
+	ElecDialogs.showOpenDialog(currentwindow, {
+		title: tl('message.default_textures.select'),
+		properties: ['openDirectory'],
+	}, function(filePaths) {
+		document.getElementById("structure_importer_path_input-" + String(buttonNumber)).value = filePaths
+	})
 }
 
 function structure_importer_addResourcePack() {
@@ -700,12 +695,209 @@ function structure_importer_updateSize() {
 	})
 }
 
+function structure_importer_run(ev) {
+	function importStructureFile(cb) {
+		if (Blockbench.isWeb) {
+			fileLoaderLoad('.nbt', false, function() {
+				hideDialog()
+				var file = $('#file_upload').get(0).files[0]
+				var reader = new FileReader()
+				reader.onload = function() {
+					var data = zlib.ungzip(this.result)
+
+					nbt.parse(data, function(error, data) {
+						if (error) throw error
+						legacyStructureImporter(data)
+					})
+				}
+				if (file) {
+					reader.readAsArrayBuffer(file)
+				}
+			})
+			$('#file_folder').val('')
+		} else {
+			structure_importer_resourepackCount = 0
+			var dialog = new Dialog({title:'Import Structure', id:'structure_importer_options', lines:[
+				'<p>File: <input type="file" id="file" accept=".nbt" oninput="structure_importer_updateSize()"></p>',
+				'<p id="structure_importer_size"></p>',
+				'<p>Scale: <input type="number" id="scale" value=16></p>',
+				'<p>Use legacy structure importer: <input type="checkbox" id="structure_importer_legacy"></p>',
+				'<p>Vanilla assets: <input type="text" value="Enter path to assets folder here" id="structure_importer_path_input-0"><button id="structure_importer_path_button-0" onclick="structure_importer_selectResourcePath(this)">Browse</button></p>',
+				'<button onclick="structure_importer_addResourcePack()" id="structure_importer_add">Add resourcepack'
+				],
+				"onConfirm": function(data) {
+					dialog.hide()
+					var filePath = $("#file")[0].files[0].path
+					var paths = []
+					for (var i = 0; i <= structure_importer_resourepackCount; i++) {
+						var path = $("#structure_importer_path_input-" + String(i))
+						if (path.length >= 1) {
+							paths.push(path[0].value)
+						}
+					}
+					
+					var structureBuilder = new StructureBuilder()
+					structureBuilder.scale = $("#scale")[0].value
+					structureBuilder.assetPaths = paths
+					
+					var data = zlib.gunzipSync(fs.readFileSync(filePath))
+					if (!$("#structure_importer_legacy")[0].checked) {
+						nbt.parse(data, function (a, b) {
+							this.buildStructure(b)
+						}.bind(structureBuilder))
+					}
+					else {
+						nbt.parse(data, function (a, b) {
+							legacyStructureImporter(b)
+						})
+					}
+				}
+			})
+			dialog.show()
+		}
+	}
+
+	importStructureFile()
+	
+	function legacyStructureImporter(file) {
+		file = file.value
+
+		var group = new Group('structure').addTo()
+
+		var blocks = file.blocks.value.value
+		var palette = file.palette.value.value
+		var calculated_blocks = []
+		var max_size = 16
+		var i = 0
+
+		while (i < blocks.length) {
+			var blockType = palette[blocks[i].state.value].Name.value
+			if (blocks[i].pos && 
+				blockType !== 'minecraft:air' &&
+				blockType !== 'minecraft:tallgrass' &&
+				blockType !== 'minecraft:double_plant'
+			) {
+				var size = [0, 0, 0, 1, 1, 1]
+
+				if (blockType === 'minecraft:carpet' || blockType.includes('repeater') || blockType.includes('comparator')) {
+					//clearFaces(blocks[i].pos, ['down'])
+
+					size = [0, 0, 0, 1, 0.0625, 1]
+
+				} else if (blockType === 'minecraft:chest') {
+
+					size = [0.0625, 0, 0.0625, 0.9375, 0.9375, 0.9375]
+
+				} else if (blockType.includes('torch')) {
+
+					size = [0.4, 0, 0.4, 0.6, 0.8, 0.6]
+
+				} else if (blockType.includes('flower')) {
+
+					size = [0.4, 0, 0.4, 0.6, 0.5, 0.6]
+
+				} else if (blockType.includes('slab')) {
+					var half;
+					if (
+						palette[blocks[i].state.value] &&
+						palette[blocks[i].state.value].Properties &&
+						palette[blocks[i].state.value].Properties.value.half
+					) {
+						half = palette[blocks[i].state.value].Properties.value.half.value
+					}
+					if (half === 'top') {
+						//clearFaces(blocks[i].pos, ['up'])
+						size = [0, 0.5, 0, 1, 1, 1]
+
+					} else if (half === 'bottom') {
+						//clearFaces(blocks[i].pos, ['down'])
+						size = [0, 0, 0, 1, 0.5, 1]
+
+					} else {
+						//clearFaces(blocks[i].pos, ['north', 'east', 'south', 'west', 'up', 'down'])
+
+						size = [0, 0, 0, 1, 1, 1]
+
+					}
+				} else {
+					//clearFaces(blocks[i].pos, ['north', 'east', 'south', 'west', 'up', 'down'])
+
+					size = [0, 0, 0, 1, 1, 1]
+
+				}
+				//Add Block Position Offset
+				for (si = 0; si<6; si++) {
+					size[si] += blocks[i].pos.value.value[si%3]
+				}
+				calculated_blocks.push({
+					pos: size,
+					name: blockType.replace('minecraft:', '')
+				})
+
+				max_size = Math.max(max_size, size[0], size[3], size[1], size[4], size[2], size[5])
+			}
+			i++;
+		}
+
+		//Print Into Canvas
+		var size_multiplier = 1
+		max_size = max_size/16
+
+		if (max_size > 1) {
+
+			if (max_size <= 2) {
+				size_multiplier = 0.5
+
+			} else if (max_size <= 4) {
+				size_multiplier = 0.25
+
+			} else if (max_size <= 8) {
+				size_multiplier = 0.125
+
+			} else {
+				size_multiplier = 0.0625
+			}
+			//Adapt Grid
+			settings.edit_size.value = 16 / size_multiplier
+			saveSettings()
+		}
+
+		calculated_blocks.forEach(function(cbl) {
+			if (size_multiplier !== 1) {
+				cbl.pos.forEach(function(p, ip) {
+					cbl.pos[ip] = p * size_multiplier
+				})
+			}
+			var cube = new Cube().extend({
+				from: [cbl.pos[0], cbl.pos[1], cbl.pos[2]],
+				to:   [cbl.pos[3], cbl.pos[4], cbl.pos[5]],
+				name: cbl.name,
+				display: {
+					autouv: false
+				}
+			}).addTo(group)
+			for (var face in cube.faces) {
+				if (cube.faces.hasOwnProperty(face)) {
+					cube.faces[face].uv = [0, 0, 16, 16]
+				}
+			}
+			// elements.push(cube)
+			cube.init()
+			i++;
+		})
+		Canvas.updateAll()
+		
+	}
+}
+
 
 Plugin.register("structure_importer", {
-"author": "Krozi",
-"icon": "account_balance",
-"version": "2.0.2",
-"description": "Import structure files",
+title: 'Structure Importer',  
+author: "Krozi",
+icon: "account_balance",
+description: "Import structure files generated by structure blocks in Minecraft Java",
+version: "2.1",
+variant: 'both',
 onload() {
 
 //Adds an entry to the plugin menu
@@ -713,207 +905,25 @@ MenuBar.addAction(new Action({
 	id: "structure_importer",
 	name: "Structure file",
 	icon: "account_balance",
+	description: "Import a structure file",
 	category: "filter",
-	click: function(ev) {
-		function importStructureFile(cb) {
-			if (Blockbench.isWeb) {
-				fileLoaderLoad('.nbt', false, function() {
-					hideDialog()
-					var file = $('#file_upload').get(0).files[0]
-					var reader = new FileReader()
-					reader.onload = function() {
-						var data = zlib.ungzip(this.result)
-
-						nbt.parse(data, function(error, data) {
-							if (error) throw error
-							legacyStructureImporter(data)
-						})
-					}
-					if (file) {
-						reader.readAsArrayBuffer(file)
-					}
-				})
-				$('#file_folder').val('')
-			} else {
-				structure_importer_resourepackCount = 0
-				var dialog = new Dialog({title:'Import Structure', id:'structure_importer_options', lines:[
-					'<p>File: <input type="file" id="file" accept=".nbt" oninput="structure_importer_updateSize()"></p>',
-					'<p id="structure_importer_size"></p>',
-					'<p>Scale: <input type="number" id="scale" value=16></p>',
-					'<p>Use legacy structure importer: <input type="checkbox" id="structure_importer_legacy"></p>',
-					'<p>Vanilla assets: <input type="text" value="Enter path to assets folder here" id="structure_importer_path_input-0"><button id="structure_importer_path_button-0" onclick="structure_importer_selectResourcePath(this)">Browse</button></p>',
-					'<button onclick="structure_importer_addResourcePack()" id="structure_importer_add">Add resourcepack'
-					],
-					"onConfirm": function(data) {
-						dialog.hide()
-						var filePath = $("#file")[0].files[0].path
-						var paths = []
-						for (var i = 0; i <= structure_importer_resourepackCount; i++) {
-							var path = $("#structure_importer_path_input-" + String(i))
-							if (path.length >= 1) {
-								paths.push(path[0].value)
-							}
-						}
-						
-						var structureBuilder = new StructureBuilder()
-						structureBuilder.scale = $("#scale")[0].value
-						structureBuilder.assetPaths = paths
-						
-						var data = zlib.gunzipSync(fs.readFileSync(filePath))
-						if (!$("#structure_importer_legacy")[0].checked) {
-							nbt.parse(data, function (a, b) {
-								this.buildStructure(b)
-							}.bind(structureBuilder))
-						}
-						else {
-							nbt.parse(data, function (a, b) {
-								legacyStructureImporter(b)
-							})
-						}
-					}
-				})
-				dialog.show()
-			}
-		}
-	
-		importStructureFile()
-		
-		function legacyStructureImporter(file) {
-			file = file.value
-	
-			var group = new Group('structure').addTo()
-
-			var blocks = file.blocks.value.value
-			var palette = file.palette.value.value
-			var calculated_blocks = []
-			var max_size = 16
-			var i = 0
-
-			while (i < blocks.length) {
-				var blockType = palette[blocks[i].state.value].Name.value
-				if (blocks[i].pos && 
-					blockType !== 'minecraft:air' &&
-					blockType !== 'minecraft:tallgrass' &&
-					blockType !== 'minecraft:double_plant'
-				) {
-					var size = [0, 0, 0, 1, 1, 1]
-
-					if (blockType === 'minecraft:carpet' || blockType.includes('repeater') || blockType.includes('comparator')) {
-						//clearFaces(blocks[i].pos, ['down'])
-
-						size = [0, 0, 0, 1, 0.0625, 1]
-
-					} else if (blockType === 'minecraft:chest') {
-
-						size = [0.0625, 0, 0.0625, 0.9375, 0.9375, 0.9375]
-
-					} else if (blockType.includes('torch')) {
-
-						size = [0.4, 0, 0.4, 0.6, 0.8, 0.6]
-
-					} else if (blockType.includes('flower')) {
-
-						size = [0.4, 0, 0.4, 0.6, 0.5, 0.6]
-
-					} else if (blockType.includes('slab')) {
-						var half;
-						if (
-							palette[blocks[i].state.value] &&
-							palette[blocks[i].state.value].Properties &&
-							palette[blocks[i].state.value].Properties.value.half
-						) {
-							half = palette[blocks[i].state.value].Properties.value.half.value
-						}
-						if (half === 'top') {
-							//clearFaces(blocks[i].pos, ['up'])
-							size = [0, 0.5, 0, 1, 1, 1]
-
-						} else if (half === 'bottom') {
-							//clearFaces(blocks[i].pos, ['down'])
-							size = [0, 0, 0, 1, 0.5, 1]
-
-						} else {
-							//clearFaces(blocks[i].pos, ['north', 'east', 'south', 'west', 'up', 'down'])
-
-							size = [0, 0, 0, 1, 1, 1]
-
-						}
-					} else {
-						//clearFaces(blocks[i].pos, ['north', 'east', 'south', 'west', 'up', 'down'])
-
-						size = [0, 0, 0, 1, 1, 1]
-
-					}
-					//Add Block Position Offset
-					for (si = 0; si<6; si++) {
-						size[si] += blocks[i].pos.value.value[si%3]
-					}
-					calculated_blocks.push({
-						pos: size,
-						name: blockType.replace('minecraft:', '')
-					})
-
-					max_size = Math.max(max_size, size[0], size[3], size[1], size[4], size[2], size[5])
-				}
-				i++;
-			}
-
-			//Print Into Canvas
-			var size_multiplier = 1
-			max_size = max_size/16
-
-			if (max_size > 1) {
-
-				if (max_size <= 2) {
-					size_multiplier = 0.5
-
-				} else if (max_size <= 4) {
-					size_multiplier = 0.25
-
-				} else if (max_size <= 8) {
-					size_multiplier = 0.125
-
-				} else {
-					size_multiplier = 0.0625
-				}
-				//Adapt Grid
-				settings.edit_size.value = 16 / size_multiplier
-				saveSettings()
-			}
-
-			calculated_blocks.forEach(function(cbl) {
-				if (size_multiplier !== 1) {
-					cbl.pos.forEach(function(p, ip) {
-						cbl.pos[ip] = p * size_multiplier
-					})
-				}
-				var cube = new Cube().extend({
-					from: [cbl.pos[0], cbl.pos[1], cbl.pos[2]],
-					to:   [cbl.pos[3], cbl.pos[4], cbl.pos[5]],
-					name: cbl.name,
-					display: {
-						autouv: false
-					}
-				}).addTo(group)
-				for (var face in cube.faces) {
-					if (cube.faces.hasOwnProperty(face)) {
-						cube.faces[face].uv = [0, 0, 16, 16]
-					}
-				}
-				// elements.push(cube)
-				cube.init()
-				i++;
-			})
-			Canvas.updateAll()
-			
-		}
-	}
+	click: structure_importer_run
 }), "file.import")
+
+MenuBar.addAction(new Action({
+	id: "structure_importer",
+	name: "Import Structure",
+	icon: "account_balance",
+	description: "Import a structure file",
+	category: "filter",
+	click: structure_importer_run
+}), "filter")
 
 },
 
 onunload() {
 	MenuBar.removeAction("file.import.structure_importer")
+	MenuBar.removeAction("filter.structure_importer")
 	MenuBar.removeAction("structure_importer")
 	delete StructureBuilder
 }
@@ -1006,6 +1016,38 @@ var StructureBuilder = class {
 			"green_wool",
 			"red_wool",
 			"black_wool",
+			"white_concrete",
+			"orange_concrete",
+			"magenta_concrete",
+			"light_blue_concrete",
+			"yellow_concrete",
+			"lime_concrete",
+			"pink_concrete",
+			"gray_concrete",
+			"light_gray_concrete",
+			"cyan_concrete",
+			"purple_concrete",
+			"blue_concrete",
+			"brown_concrete",
+			"green_concrete",
+			"red_concrete",
+			"black_concrete",
+			"white_concrete_powder",
+			"orange_concrete_powder",
+			"magenta_concrete_powder",
+			"light_blue_concrete_powder",
+			"yellow_concrete_powder",
+			"lime_concrete_powder",
+			"pink_concrete_powder",
+			"gray_concrete_powder",
+			"light_gray_concrete_powder",
+			"cyan_concrete_powder",
+			"purple_concrete_powder",
+			"blue_concrete_powder",
+			"brown_concrete_powder",
+			"green_concrete_powder",
+			"red_concrete_powder",
+			"black_concrete_powder",
 			"gold_block",
 			"iron_block",
 			"bricks",
@@ -1098,14 +1140,64 @@ var StructureBuilder = class {
 			"orange_glazed_terracotta",
 			"magenta_glazed_terracotta",
 			"light_blue_glazed_terracotta",
+			"tube_coral_block",
+			"brain_coral_block",
+			"bubble_coral_block",
+			"fire_coral_block",
+			"horn_coral_block",
+			"dead_tube_coral_block",
+			"dead_brain_coral_block",
+			"dead_bubble_coral_block",
+			"dead_fire_coral_block",
+			"dead_horn_coral_block",
+			"blue_ice",
+			"dried_kelp_block",
 			"barrel",
 			"blast_furnace",
 			"cartography_table",
 			"fletching_table",
+			"composter",
+			"structure_block",
 			"jigsaw",
 			"loom",
 			"smithing_table",
 			"smoker",
+			"bee_nest",
+			"beehive",
+			"honeycomb_block",
+			"ancient_debris",
+			"basalt",
+			"polished_basalt",
+			"blackstone",
+			"gilded_blackstone",
+			"polished_blackstone",
+			"chiseled_polished_blackstone",
+			"polished_blackstone_bricks",
+			"cracked_polished_blackstone_bricks",
+			"netherite_block",
+			"chiseled_nether_bricks",
+			"cracked_nether_bricks",
+			"crimson_nylium",
+			"warped_nylium",
+			"crimson_planks",
+			"warped_planks",
+			"crimson_stem",
+			"warped_stem",
+			"stripped_crimson_stem",
+			"stripped_warped_stem",
+			"crying_obsidian",
+			"crimson_hyphae",
+			"warped_hyphae",
+			"stripped_crimson_hyphae",
+			"stripped_warped_hyphae",
+			"lodestone",
+			"nether_gold_ore",
+			"quartz_bricks",
+			"respawn_anchor",
+			"shroomlight",
+			"soul_soil",
+			"target",
+			"warped_wart_block"
 		]
 		this.cullSelf = [
 			"glass",
@@ -1143,8 +1235,10 @@ var StructureBuilder = class {
 			"red_stained_glass_pane",
 			"black_stained_glass_pane",
 			"ice",
+			"cactus",
 			"iron_bars",
-			"slime_block"
+			"slime_block",
+			"honey_block"
 		]
 		this.cullSelfGroup = [
 			[
@@ -1169,7 +1263,10 @@ var StructureBuilder = class {
 				"red_nether_brick_wall",
 				"sandstone_wall",
 				"end_stone_brick_wall",
-				"diorite_wall"
+				"diorite_wall",
+				"blackstone_wall",
+				"polished_blackstone_brick_wall",
+				"polished_blackstone_wall"
 			]
 		]
 		this.slabs = [
@@ -1207,7 +1304,10 @@ var StructureBuilder = class {
 			"polished_andesite_slab",
 			"diorite_slab",
 			"cut_red_sandstone_slab",
-			"cut_sandstone_slab"
+			"cut_sandstone_slab",
+			"blackstone_slab",
+			"polished_blackstone_slab",
+			"polished_blackstone_brick_slab"
 		]
 		this.flatBlocks = {
 			"farmland": 15,
@@ -1240,13 +1340,13 @@ var StructureBuilder = class {
 	buildStructure(file) {
 		Undo.initEdit({"elements": [], "uv_only": false, "textures": []})
 		for (var i = 0; i < this.assetPaths.length; i++) {
-			this.assetPaths[i] = this.getAssetsPath(this.assetPaths[i]) + "\\minecraft"
+			this.assetPaths[i] = this.getAssetsPath(this.assetPaths[i])
 		}
 		file = file.value
 		var palette = file.palette.value.value
 		var blocks = file.blocks.value.value
 		for (var i = 0; i < palette.length; i++) {
-			var blockId = palette[i].Name.value.slice(palette[i].Name.value.indexOf(":") + 1)
+			var blockId = palette[i].Name.value
 			var blockstates = {}
 			if (Object.keys(palette[i]).indexOf("Properties") >= 0) {
 				var properties = Object.keys(palette[i].Properties.value)
@@ -1287,14 +1387,15 @@ var StructureBuilder = class {
 	}
 	
 	getAssetsPath(path) {
-		path = path.replace("/", "\\")
-		if (path.endsWith("\\assets")) return path
-		if (fs.existsSync(path + "\\assets")) return path + "\\assets"
-		if (path.indexOf("\\assets\\") >= 0) return path.slice(0, path.indexOf("\\assets\\") + 7)
+		// path = path.replace("/", "\\")
+		if (path.endsWith(osfs + "assets")) return path
+		if (fs.existsSync(path + osfs + "assets")) return path + osfs + "assets"
+		if (path.indexOf(osfs + "assets" + osfs) >= 0) return path.slice(0, path.indexOf(osfs + "assets" + osfs) + 7)
 		return path
 	}
 	
 	getCullingType(blockId, blockstates) {
+		blockId = blockId.slice(blockId.indexOf(":") + 1)
 		if (this.solid.indexOf(blockId) >= 0) {
 			return {"type": "solid"}
 		}
@@ -1358,9 +1459,16 @@ var StructureBuilder = class {
 		return false
 	}
 	
-	getResourcePath(localPath) {
+	getResourcePath(object_type, localPath) {
+		var namespace = "minecraft"
+		var parts = localPath.split(":")
+		if (parts.length > 1) {
+			namespace = parts[0]
+			localPath = parts[1]
+		}
+		localPath = localPath.replace("/", osfs)
 		for (var i = this.assetPaths.length - 1; i >= 0; i--) {
-			var fullPath = this.assetPaths[i] + "\\" + localPath
+			var fullPath = this.assetPaths[i] + osfs + namespace + osfs + object_type + osfs + localPath
 			if (fs.existsSync(fullPath)) {
 				return fullPath
 			}
@@ -1370,7 +1478,7 @@ var StructureBuilder = class {
 	}
 	
 	loadBlockstate(blockId, blockstates) {
-		var fullPath = this.getResourcePath("blockstates\\" + blockId + ".json")
+		var fullPath = this.getResourcePath("blockstates", blockId + ".json")
 		var data = JSON.parse(fs.readFileSync(fullPath, "utf8"))
 		if (Object.keys(data).indexOf("variants") >= 0) {
 			var variants = Object.keys(data.variants)
@@ -1526,7 +1634,7 @@ var StructureBuilder = class {
 					cube.faces.up = temp
 					
 					for (var i = 0; i < 6; i++) {
-						cube.faces[this.allFaces[i]].cullface = {"down": "north", "south": "down", "up": "south", "north": "up"}[cube.faces[this.allFaces[i]].cullface]
+						cube.faces[this.allFaces[i]].cullface = {"down": "north", "south": "down", "up": "south", "north": "up", "east": "east", "west": "west"}[cube.faces[this.allFaces[i]].cullface]
 					}
 
 				} else if (axis === 1) {
@@ -1546,7 +1654,7 @@ var StructureBuilder = class {
 					cube.faces.east = temp
 					
 					for (var i = 0; i < 6; i++) {
-						cube.faces[this.allFaces[i]].cullface = {"west": "north", "south": "west", "east": "south", "north": "east"}[cube.faces[this.allFaces[i]].cullface]
+						cube.faces[this.allFaces[i]].cullface = {"west": "north", "south": "west", "east": "south", "north": "east", "up": "up", "down": "down"}[cube.faces[this.allFaces[i]].cullface]
 					}
 				}
 
@@ -1575,7 +1683,7 @@ var StructureBuilder = class {
 	
 	loadModel(model, textures = {}) {
 		var cubes = []
-		var path = this.getResourcePath("models\\" + model + ".json")
+		var path = this.getResourcePath("models", model + ".json")
 		var data = JSON.parse(fs.readFileSync(path, "utf8"))
 		if (Object.keys(data).indexOf("textures") >= 0) {
 			var newTextureList = Object.keys(data.textures)
@@ -1655,7 +1763,7 @@ var StructureBuilder = class {
 			return this.textureVariables[path]
 		}
 		else {
-			var texture = new Texture().fromPath(this.getResourcePath("\\textures\\" + path.replace("/", "\\") + ".png")).add(false)
+			var texture = new Texture().fromPath(this.getResourcePath("textures", path + ".png")).add(false)
 			this.texturesAdded.push(texture)
 			var variable = texture.uuid
 			this.textureVariables[path] = variable
@@ -1709,5 +1817,3 @@ var StructureBuilder = class {
 		}
 	}
 }
-
-//Called when the user uninstalls the plugin
