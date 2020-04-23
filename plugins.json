@@ -1,4 +1,12 @@
 {
+	"animator": {
+		"title": "Java Item Model Animator",
+		"author": "Command master",
+		"description": "Takes two java item models and outputs a zip with a resourcepack and a datapack to make a clear transaction between them in the players hand (the plugin can also work for other animations but the datapack have to be coded manually).",
+		"about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
+		"icon": "compare",
+		"variant": "both"
+	},
 	"geenium_bedrock_entity_helper": {
 		"title": "Bedrock Entity Generator",
 		"author": "Geenium",
@@ -86,13 +94,12 @@
 		"variant": "both"
 	},
 	"mod_utils": {
-		"title": "Mod Utils",
-		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
-		"description": "A few handy utilities for Modders",
-		"about": "Usage guides can be found here: https://dark-roleplay.net/html/other/blockbench/mod_utils/mod_utils.php<br/>Sorry, making this link useable closes BB)", 		
+		"title": "Mod Utils",		
 		"icon": "present_to_all",
-		"variant": "both",
-		"version": 1.3
+		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+		"description": "Allows importing Tabula files, and exporting VoxelShapes", 		
+		"variant": "desktop",
+		"version": "1.4"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
@@ -117,5 +124,64 @@
 		"description": "Exports your model as a ready-to-use Minecraft resource pack",
 		"variant": "both",
 		"min_version": "3.0.0"
+	},
+	"ambient_occlusion": {
+		"title": "Ambient Occlusion",
+		"icon": "gradient",
+		"author": "JannisX11",
+		"description": "Adds a scalable ambient occlusion shader",
+		"about": "Ambient Occlusion is enabled by default. To disable it, right click the preview and click Ambient Occlusion.",
+		"variant": "both",
+		"min_version": "3.4.0"
+	},
+	"guessing_game": {
+		"title": "The Guessing Game",
+		"icon": "casino",
+		"author": "JannisX11",
+		"description": "Play the guessing game in Blockbench with your friends!",
+		"variant": "both",
+		"min_version": "3.1.0"
+	},
+	"csmodel": {
+		"title": "CraftStudio Model Format",
+		"icon": "star",
+		"author": "JannisX11",
+		"description": "Allows to import and export CraftStudio Models (.csmodel).",
+		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
+		"variant": "desktop",
+		"min_version": "3.2.0"
+	},
+	"screencast_keys": {
+		"title": "Screencast Keys",
+		"icon": "keyboard",
+		"author": "JannisX11",
+		"description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
+		"variant": "both",
+		"min_version": "3.2.1"
+	},
+	"discord-rpc": {
+		"title": "Discord RPC",
+		"icon": "announcement",
+		"author": "strajabot, Kastle, & simplyme",
+		"description": "Show a rich presence status in Discord.",
+		"variant": "desktop",
+		"min_version": "3.2.0"
+	},
+	"cem_template_loader": {
+		"title": "CEM Template Loader",
+		"icon": "keyboard_capslock",
+		"author": "Ewan Howell",
+		"description": "Load template entity models for use with OptiFine CEM.",
+		"variant": "both",
+		"min_version": "3.2.0"
+	},
+	"threecore_exporter": {
+		"title": "ThreeCore Exporter",
+		"author": "Lucraft, Spyeedy",
+		"icon": "looks_3",
+		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
+		"version": "1.0.1",
+		"variant": "both",
+		"min_version": "3.3.0"
 	}
 }

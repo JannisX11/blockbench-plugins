@@ -10,6 +10,8 @@ var plugin_data = {
     variant: 'both'
 };
 
+(function() {
+
 var shape_list = `
         <select style="color:var(--color-text), class=" id="shape">
         <option selected=true value="hexadecagon"> Hexadecagon </option>
@@ -53,7 +55,7 @@ function shapeWindow() {
         title: 'Shape selector', id: 'shape_selector', lines: [
             '<p style="text-align:left;">Select shape:' + shape_list +
             '<span style="float:right;"><button title="Reset values" =button id="reset_shape"><i class="material-icons" style="color:white">refresh</i></button></span></p>' +
-            'Filled <input type="checkbox" id="border"> Hollow<br/><p></p>' +
+            'Hollow <input type="checkbox" id="border"><br/><p></p>' +
             'Variable ' + variable_list + '<br/>' +
             'Value: <input value=16 type="number" id="value" style="background-color:var(--color-back)" > <br/>' +
             'Height/Depth: <input value=1 type="number" style="background-color:var(--color-back)" id="thickness"> <br/><p></p>' +
@@ -1200,6 +1202,8 @@ function buildCube(fromX,fromY,fromZ,toX,toY,toZ,origin,axis,rotation,group) {
         console.log(iteration);
     }*/
 }
+
+})()
 
 onUninstall = function() {
 	//Removing entries
