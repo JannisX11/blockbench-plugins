@@ -24,7 +24,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
             });
             MenuBar.addAction(button, 'filter');
 			expor = new Action('export_animation', {
-                name: 'Export Animation',
+                name: 'Export Java Item Animation',
                 description: 'Exports the animation to a zip',
                 icon: 'compare',
                 click: function() {
