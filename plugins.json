@@ -180,7 +180,7 @@
 		"author": "Lucraft, Spyeedy",
 		"icon": "looks_3",
 		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"variant": "both",
 		"min_version": "3.3.0"
 	}
