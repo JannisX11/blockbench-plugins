@@ -187,9 +187,9 @@ function combineCubeIntoGroup(groupObj, groupCube, cube, cubeObj) {
 	return groupCube;
 }
 
-function parentCubeToGroup(groupCube, cube) {
-	cube.offset[0] -= groupCube.rotation_point[0];
-	cube.offset[1] -= groupCube.rotation_point[1];
+function parentCubeToGroup(groupObj, cubeObj, groupCube, cube) {
+	cube.offset[0] += groupObj.origin[0]; 
+	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
 	cube.offset[2] -= groupCube.rotation_point[2];
 	
 	return cube;
@@ -224,7 +224,7 @@ function recurvBBGroup(obj, cube) {
 					if (cube.children == null)
 						cube.children = []
 					
-					childCube = parentCubeToGroup(cube, childCube);
+					childCube = parentCubeToGroup(obj, childObj, cube, childCube);
 					cube.children.push(childCube);
 				}
 			}
