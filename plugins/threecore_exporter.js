@@ -1,7 +1,7 @@
 (function() {
 var type;
 var bipedScale;
-var bipedParent = {bipedhead:'head', bipedbody:'chest', bipedrightarm:'right_arm', bipedleftarm:'left_arm', bipedrightleg:'right_leg', bipedleftleg:'left_leg'};
+var bipedParent = {bipedHead:'head', bipedBody:'chest', bipedRightArm:'right_arm', bipedLeftArm:'left_arm', bipedRightLeg:'right_leg', bipedLeftLeg:'left_leg'};
 
 var threeCoreCodec = new Codec('threecore_model', {
 	name: 'ThreeCore Model',
@@ -245,11 +245,11 @@ function generateBipedModel(isAlex) {
 	
 	// Player Head, size 8, 8, 8
 	group = new Group({
-		name: 'bipedhead',
+		name: 'bipedHead',
 		origin: [0, 24, 0]
 	}).init();
 	new Cube({
-		name: 'bipedhead',
+		name: 'bipedHead',
 		from: [-4, 24, -4],
 		to: [4, 32, 4],
 		uv_offset: [0, 0]
@@ -258,11 +258,11 @@ function generateBipedModel(isAlex) {
 	
 	// Player Body, size 8, 12, 4
 	group = new Group({
-		name: 'bipedbody',
+		name: 'bipedBody',
 		origin: [0, 24, 0]
 	}).init();
 	new Cube({
-		name: 'bipedbody',
+		name: 'bipedBody',
 		from: [-4, 12, -2],
 		to: [4, 24, 2],
 		uv_offset: [16, 16]
@@ -273,11 +273,11 @@ function generateBipedModel(isAlex) {
 	const armOffY = isAlex ? 11.5 : 12;
 	// Player Right Arm, size 4 or 3, 12, 4
 	group = new Group({
-		name: 'bipedrightarm',
+		name: 'bipedRightArm',
 		origin: [5, armOriginY, 0]
 	}).init();
 	new Cube({
-		name: 'bipedrightarm',
+		name: 'bipedRightArm',
 		from: [4, armOffY, -2],
 		to: [isAlex? 7 : 8, armOffY+12, 2],
 		uv_offset: [40, 16]
@@ -286,11 +286,11 @@ function generateBipedModel(isAlex) {
 	
 	// Player Left Arm, size 4 or 3, 12, 4
 	group = new Group({
-		name: 'bipedleftarm',
+		name: 'bipedLeftArm',
 		origin: [-5, armOriginY, 0]
 	}).init();
 	new Cube({
-		name: 'bipedleftarm',
+		name: 'bipedLeftArm',
 		from: [isAlex ? -7 : -8, armOffY, -2],
 		to: [-4, armOffY+12, 2],
 		uv_offset: [32, 48]
@@ -299,11 +299,11 @@ function generateBipedModel(isAlex) {
 	
 	// Player Right Leg, size 4, 12, 4
 	group = new Group({
-		name: 'bipedrightleg',
+		name: 'bipedRightLeg',
 		origin: [1.9, 12, 0]
 	}).init();
 	new Cube({
-		name: 'bipedrightleg',
+		name: 'bipedRightLeg',
 		from: [-0.1, 0, -2],
 		to: [3.9, 12, 2],
 		uv_offset: [0, 16]
@@ -312,11 +312,11 @@ function generateBipedModel(isAlex) {
 	
 	// Player Left Leg, size 4, 12, 4
 	group = new Group({
-		name: 'bipedleftleg',
+		name: 'bipedLeftLeg',
 		origin: [-1.9, 12, 0]
 	}).init();
 	new Cube({
-		name: 'bipedleftleg',
+		name: 'bipedLeftLeg',
 		from: [-3.9, 0, -2],
 		to: [0.1, 12, 2],
 		uv_offset: [16, 48]
