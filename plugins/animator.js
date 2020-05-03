@@ -115,17 +115,19 @@ To use click Filter -> Save starting model the save the first model, and then cl
 	function generate_animation(start, end, models) {
         start = JSON.parse(JSON.stringify(start));
         end = JSON.parse(JSON.stringify(end));
+	start['display'] = start['display']?start['display']:{};
+	end['display'] = end['display']?end['display']:{};
 	for (var i = 0; i < types.length; i++) {
-                start[types[i]] = Object.assign({
+                start['display'][types[i]] = Object.assign({
                     rotation: [0, 0, 0],
                     translation: [0, 0, 0],
                     scale: [1, 1, 1]
-                }, start[types[i]]);
-		end[types[i]] = Object.assign({
+                }, start['display'][types[i]]);
+		end['display'][types[i]] = Object.assign({
                     rotation: [0, 0, 0],
                     translation: [0, 0, 0],
                     scale: [1, 1, 1]
-                }, start[end[i]]);
+                }, start['display'][end[i]]);
          }
         start['display']['firstperson_righthand']['translation'][1] += 10;
         end['display']['firstperson_righthand']['translation'][1] += 10;
