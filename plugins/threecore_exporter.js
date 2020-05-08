@@ -181,16 +181,22 @@ function combineCubeIntoGroup(groupObj, groupCube, cube, cubeObj) {
 	groupCube.size = cube.size;
 	cube.offset[0] += groupObj.origin[0];
 	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
-	cube.offset[2] -= groupCube.rotation_point[2];
+	cube.offset[2] -= groupObj.origin[2];
 	groupCube.offset = cube.offset;
 	
 	return groupCube;
 }
 
 function parentCubeToGroup(groupObj, cubeObj, groupCube, cube) {
+	console.log("-- Child Cube --")
+	console.log("old cube.offset[2]:" + cube.offset[2]);
+
 	cube.offset[0] += groupObj.origin[0]; 
 	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
-	cube.offset[2] -= groupCube.rotation_point[2];
+	cube.offset[2] -= groupObj.origin[2];
+
+	console.log("new cube.offset[2]:" + cube.offset[2]);
+	console.log("groupObj.origin:" + groupObj.origin[2]);
 	
 	return cube;
 }
