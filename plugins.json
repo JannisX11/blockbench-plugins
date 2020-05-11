@@ -183,5 +183,14 @@
 		"version": "1.0.2",
 		"variant": "both",
 		"min_version": "3.3.0"
+	},
+	"startup_tips": {
+		"title": "Startup Tips",
+		"author": "TheOtterlord",
+		"icon": "info",
+		"description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
+		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
