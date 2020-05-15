@@ -190,7 +190,7 @@
 		"icon": "info",
 		"description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
 		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"variant": "both"
 	}
 }

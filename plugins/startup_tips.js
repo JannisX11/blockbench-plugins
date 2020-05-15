@@ -6,7 +6,7 @@
     icon: 'info',
     description: 'This plugin provides helpful tips for those unfamiliar with Blockbench',
     about: 'The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more',
-    version: '1.0.0',
+    version: '1.1.0',
     variant: 'both',
     onload() {
       // define tips
@@ -24,6 +24,10 @@
         "Set a custom background with Right Click > Background > Load",
         "Save your angle with Right Click > Save Angle",
         "Click the eyes in the right sidebar to hide elements",
+        "You can also load these tips from the help menu",
+        "You can adjust the screen size using the buttons in the view menu",
+        "You can search for an action using the button in the help menu",
+        "Blockbench saves your recent models for quick access when you return",
         // Model Creation Tips
         "Animations add a lot to an entity, make sure you include animations in yours too",
         "If 2 cubes with different textures are overlapping on a certain axis, you can inflate one of them to fix it",
@@ -36,6 +40,7 @@
         "Looking for inspiration? https://mcpedl.com is a hub of Minecraft creativity",
         "Report any issues to https://github.com/JannisX11/blockbench/issues",
         "Got a tip? Tag @TheOtterlord in an issue at https://github.com/JannisX11/blockbench-plugins/issues",
+        "Want to make your own plugin? Visit https://jannisx11.github.io/blockbench-docs to get started",
         // Misc
         "Backup your models to keep them safe"
       ];
@@ -73,7 +78,7 @@
           showTip();
         }
       });
-      MenuBar.addAction(button, 'filter');
+      MenuBar.addAction(button, 'help.-1');
       // show a tip on load
       showTip();
     },
