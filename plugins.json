@@ -192,5 +192,13 @@
 		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
 		"version": "1.1.0",
 		"variant": "both"
+	},
+	"mcearth_template_loader": {
+		"title": "MCEARTH Template Loader",
+		"icon": "keyboard_capslock",
+		"author": "Ewan Howell",
+		"description": "Load template Minecraft Earth models & textures made compatible for use with OptiFine CEM.",
+		"variant": "both",
+		"min_version": "3.2.0"
 	}
 }
