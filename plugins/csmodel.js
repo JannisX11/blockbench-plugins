@@ -13,7 +13,7 @@ Plugin.register('csmodel', {
 		Import the file into Blockbench using the import menu.
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
-	version: '0.1.0',
+	version: '0.1.1',
 	variant: 'desktop',
 	onload() {
 
@@ -504,7 +504,16 @@ Plugin.register('csmodel', {
 				}
 
 				var image = reader.ReadBytes(reader.ReadUInt32());
-				var url = 'data:image/png;base64,'+ btoa(String.fromCharCode.apply(null, image));
+				var i = 0;
+				let txt = '';
+				while (i < image.length) {
+					let sub = image.subarray(i, Math.clamp(i+1024, 0, image.length));
+					let substr = String.fromCharCode.apply(null, sub);
+					txt += substr;
+					i += 1024;
+				}
+				let url = 'data:image/png;base64,' + btoa(txt);
+
 				var tex = new Texture({name: 'texture'}).fromDataURL(url).add();
 				tex.load_callback = function() {
 					Project.texture_width = tex.width;
