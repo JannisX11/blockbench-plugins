@@ -46,7 +46,7 @@
 			flip_y: true,
 			integer_size: false,
 			file: `// Made with Blockbench %(bb_version)
-// Exported for Minecraft version 1.15.2 for entity models animated with GeckoLib
+// Exported for Minecraft version 1.12.2 or 1.15.2 (same format for both) for entity models animated with GeckoLib
 // Paste this class into your mod and follow the documentation for GeckoLib to use animations. You can find the documentation here: https://github.com/bernie-g/geckolib
 // Blockbench plugin created by Gecko
 public class %(identifier) extends AnimatedEntityModel<Entity> {
@@ -58,18 +58,15 @@ public class %(identifier) extends AnimatedEntityModel<Entity> {
         textureWidth = %(texture_width);
 		textureHeight = %(texture_height);
 		%(content)
+
+		%(renderers)
 	}
 
-	@Override
-    public void render(MatrixStack matrixStack, IVertexBuilder buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha)
-    {
-		%(renderers)
-    }
 
     @Override
     public ResourceLocation getAnimationFileLocation()
     {
-        return new ResourceLocation("MODID:" + "animations/ANIMATIONFILE.json");
+        return new ResourceLocation("MODID", "animations/ANIMATIONFILE.json");
     }
 }`,
 			field: `private final AnimatedModelRenderer %(bone);`,
@@ -81,7 +78,7 @@ public class %(identifier) extends AnimatedEntityModel<Entity> {
 %(cubes)
 %(bone).setModelRendererName(\"%(bone)\");
 this.registerModelRenderer(%(bone));`,
-			renderer: `%(bone).render(matrixStack, buffer, packedLight, packedOverlay);`,
+			renderer: `this.rootBones.add(%(bone));`,
 			cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addBox(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
 		},
 
