@@ -18,6 +18,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                 name: 'Save Starting Model',
                 description: 'Saves the current model as the starting model for the animation',
                 icon: 'filter_cetner_focus',
+                condition: {formats: ['java_block']},
                 click: function() {
 					start = JSON.parse(JSON.stringify(Codecs.java_block.compile({raw: true})));
                 }
@@ -27,6 +28,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                 name: 'Export Java Item Animation',
                 description: 'Exports the animation to a zip',
                 icon: 'compare',
+                condition: {formats: ['java_block']},
                 click: function() {
                     if (!start) {
                         Blockbench.showQuickMessage('You didn\'t configured a starting model', 2000);
@@ -44,7 +46,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                         }).show()
                 }
             });
-            MenuBar.addAction(expor, 'file.export.0');
+            MenuBar.addAction(expor, 'file.export');
         },
         onunload() {
             MenuBar.removeAction('file.export.export_animation')
