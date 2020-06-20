@@ -129,8 +129,8 @@
     "title": "Ambient Occlusion",
     "icon": "gradient",
     "author": "JannisX11",
-    "description": "Adds a scalable ambient occlusion shader",
-    "about": "Ambient Occlusion is enabled by default. To disable it, right click the preview and click Ambient Occlusion.",
+    "description": "Adds an ambient occlusion shader",
+    "about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
     "variant": "both",
     "min_version": "3.4.0"
   },
