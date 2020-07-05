@@ -8,7 +8,7 @@ Plugin.register('mcearth_template_loader', {
 	icon: 'keyboard_capslock',
 	author: 'Ewan Howell',
 	description: 'Load template Minecraft Earth models & textures made compatible for use with OptiFine CEM.',
-	version: '0.0.1',
+	version: '0.0.2',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -1895,6 +1895,125 @@ EntityOptions.pig_mottled = {
         ]
     }`
 }
+EntityOptions.muddy_foot_rabbit = {
+	name: 'Muddy Foot Rabbit',
+	texture_name: 'muddy_foot_rabbit.png',
+	texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAEvElEQVRogcVZzW8bRRT/Odl1kll2t44cRWlShapCCCrl0ApoJVSEkIy4IeASJBDi0AsS/0DFuafeOVBx4MCFAzckJC5c+BIcKgECFFErdosby+nuxkPiTbUc3De8He/as7bj/CRrPvfNe2/em/dmXIIhfvjmq6S6tj7Q377fzJz/wiuvlUxp63jQ3E30vijYH5h34dmtzDVevLyVAICwLQDA19//UsrrN2Zy57c7CQAsCgeHsqtKoK+E6tp6qjRVQJIkyd69BlbOboDKbhQOzGs16qq+KBwAwPqTFwbWqF251BeybEH2jkeuP2fCJF+U16nULSPLUoZBHkT48K0a5EE0kgfORx5E2cLtt99PtQHg8/euqzqVlimTtl0GBOAvVxF02soKCK5fyayPQjcKUV1bx81Pv1BtAJibn1dzlpjgtl0GAMRxL5MeCaa3RdnCP0Ew0GdsAbR40GkrJmy7rBgjhly/ksucCRzXg+N6WBKO+tFatC61s3BuxQcAJeywOUABFwAA4Xpq4dWNTSUod4lxhCehHddTfbe3r6XKlbMbEK4HweY07+4kB2GQ+nEBaae5wFSn0vgQJOIyChHHPeUKQN8tZBRCuB5ajToWhZN5QA2jy4UHgHeeewqVzfPYr/+Nz376C0DfPeRjF+FRYVE4ih9a9/VrzyfnVnzs7gVoPeyqud/d+TXFVyELAJDaAW6GvN9frhrTI4G6UZg6/Sub51Wpj+lWdii7qShRBIUtgJgW2o4FnTb85SpajTpWNzbxhOcb0W7e3UmAvjKF6ymFZCGOe6nQm4WPbtyAKFvKxHf3+mcBhURyiy+//bEEjKkAE5gqAACubl1UtHUTLYralUsJCSl7x6l8IJJHWD3jQPaOVXJk8QxPD19Zu8zBfZ/GyS0eNHcTvmN5eLX2EgBgr3OvuLQZiOQRInkEAHDFAmTvWLUBoPWwC1csqHaJZ3gEEozATZP8jwTNU1Ke4DyDBPLT2VlBHYKHsqtiLZ30cdwbEFCPxxwyCtWYnrHpPmuS0c0CSgF6DOfKAAZ3mvfJKETQaSul0Q6TkCR8+34TjZ0/AUCVpw0L6DNKO0fx1fUrKQH1JITAzwAZhep7oneIQVfgCjltKP+jU/6N2ssA/r9Cmo5z0LlCMPVzfh75y9VCkWRcFE6ETFHkQsS/mfXZUNLj+zCfz0LWLtGDBrmDqQVQ6ARw+hYwLCOj8VFzxkFehDkpzJEQPM7TLuhjutC5d/KcA3MU6JtZKqHE3990gfjjg84UhTvu63lRAsh+06Nv+Xc8kmRh2onTXBTsQx7FAIAP3t0G0E+KKJaToNe331QKyktxuXXo1jLsUGw16ifmUqNQ4peHcXDr408ApHeT77rrV3J3n8ZprgmmbQEWMHhVHPaamvfamidAnhKobSr4SWEibV7dupj04r4yyrY19lWWrsNE6+ff/5jZBWmiRIgLPw1Mi04RTLTiNBmet+fxKH40NXqmmFgCelzgjw7j0oBtIZKTclQME7kAf1nh9aLgUWj1zGzvAhNZgEnUKEpr1phoVc9ZelxOzgjRmjVGhpvLzzyd0GHnigW1UzrDYfdfVac/IihKcCyJBfX3tChbQ+nQkzbHtEPkfxKViriFJFQZAAAAAElFTkSuQmCC',
+    model: `{
+        "texture": "muddy_foot_rabbit.png",
+        "textureSize": [64, 32],
+        "models": [
+            {
+                "part": "left_foot",
+                "id": "left_foot",
+                "invertAxis": "xy",
+                "translate": [3, -8, -6.2],
+                "boxes": [
+                    {"coordinates": [2, 2, 2.5, 2, 1, 7], "textureOffset": [26, 24]}
+                ]
+            },
+            {
+                "part": "right_foot",
+                "id": "right_foot",
+                "invertAxis": "xy",
+                "translate": [-3, -8, -6.2],
+                "boxes": [
+                    {"coordinates": [-4, 2, 2.5, 2, 1, 7], "textureOffset": [8, 24]}
+                ]
+            },
+            {
+                "part": "left_thigh",
+                "id": "left_thigh",
+                "invertAxis": "xy",
+                "translate": [3, -6.5, -4.7],
+                "boxes": [
+                    {"coordinates": [2, 3, 4.5, 2, 4, 5], "textureOffset": [16, 15]}
+                ]
+            },
+            {
+                "part": "right_thigh",
+                "id": "right_thigh",
+                "invertAxis": "xy",
+                "translate": [-3, -6.5, -4.7],
+                "boxes": [
+                    {"coordinates": [-4, 3, 4.5, 2, 4, 5], "textureOffset": [30, 15]}
+                ]
+            },
+            {
+                "part": "body",
+                "id": "body",
+                "invertAxis": "xy",
+                "translate": [0, -9, -9],
+                "boxes": [
+                    {"coordinates": [-3, 6, -1, 6, 5, 10], "textureOffset": [0, 0]}
+                ]
+            },
+            {
+                "part": "left_arm",
+                "id": "left_arm",
+                "invertAxis": "xy",
+                "translate": [3, -7, 1],
+                "boxes": [
+                    {"coordinates": [2, 0, -2, 2, 7, 2], "textureOffset": [8, 15]}
+                ]
+            },
+            {
+                "part": "right_arm",
+                "id": "right_arm",
+                "invertAxis": "xy",
+                "translate": [-3, -7, 1],
+                "boxes": [
+                    {"coordinates": [-4, 0, -2, 2, 7, 2], "textureOffset": [0, 15]}
+                ]
+            },
+            {
+                "part": "head",
+                "id": "head",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-2.5, 8, -6, 5, 4, 5], "textureOffset": [32, 0]}
+                ]
+            },
+            {
+                "part": "right_ear",
+                "id": "right_ear",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [0.5, 12, -2, 2, 5, 1], "textureOffset": [58, 0]}
+                ]
+            },
+            {
+                "part": "left_ear",
+                "id": "left_ear",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-2.5, 12, -2, 2, 5, 1], "textureOffset": [52, 0]}
+                ]
+            },
+            {
+                "part": "tail",
+                "id": "tail",
+                "invertAxis": "xy",
+                "translate": [0, -7.75, -9],
+                "boxes": [
+                    {"coordinates": [-1.5, 6.25, 9, 3, 3, 2], "textureOffset": [52, 6]}
+                ]
+            },
+            {
+                "part": "nose",
+                "id": "nose",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-0.5, 9.5, -6.5, 1, 1, 1], "textureOffset": [32, 9]}
+                ]
+            }
+        ]
+    }`
+}
 EntityOptions.muddy_pig = {
     name: 'Muddy Pig',
     texture_name: 'muddy_pig.png',
@@ -3034,6 +3153,125 @@ EntityOptions.tropical_slime = {
                 "mirrorTexture": "u",
                 "boxes": [
                     {"coordinates": [0, 2, -3.5, 1, 1, 1], "textureOffset": [32, 8]}
+                ]
+            }
+        ]
+    }`
+}
+EntityOptions.vested_rabbit = {
+	name: 'Vested Rabbit',
+	texture_name: 'vested_rabbit.png',
+	texture_data: 'data:image/png;base64,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',
+    model: `{
+	   "texture": "vested_rabbit.png",
+        "textureSize": [64, 32],
+        "models": [
+            {
+                "part": "left_foot",
+                "id": "left_foot",
+                "invertAxis": "xy",
+                "translate": [3, -8, -6.2],
+                "boxes": [
+                    {"coordinates": [2, 2, 2.5, 2, 1, 7], "textureOffset": [26, 24]}
+                ]
+            },
+            {
+                "part": "right_foot",
+                "id": "right_foot",
+                "invertAxis": "xy",
+                "translate": [-3, -8, -6.2],
+                "boxes": [
+                    {"coordinates": [-4, 2, 2.5, 2, 1, 7], "textureOffset": [8, 24]}
+                ]
+            },
+            {
+                "part": "left_thigh",
+                "id": "left_thigh",
+                "invertAxis": "xy",
+                "translate": [3, -6.5, -4.7],
+                "boxes": [
+                    {"coordinates": [2, 3, 4.5, 2, 4, 5], "textureOffset": [16, 15]}
+                ]
+            },
+            {
+                "part": "right_thigh",
+                "id": "right_thigh",
+                "invertAxis": "xy",
+                "translate": [-3, -6.5, -4.7],
+                "boxes": [
+                    {"coordinates": [-4, 3, 4.5, 2, 4, 5], "textureOffset": [30, 15]}
+                ]
+            },
+            {
+                "part": "body",
+                "id": "body",
+                "invertAxis": "xy",
+                "translate": [0, -9, -9],
+                "boxes": [
+                    {"coordinates": [-3, 6, -1, 6, 5, 10], "textureOffset": [0, 0]}
+                ]
+            },
+            {
+                "part": "left_arm",
+                "id": "left_arm",
+                "invertAxis": "xy",
+                "translate": [3, -7, 1],
+                "boxes": [
+                    {"coordinates": [2, 0, -2, 2, 7, 2], "textureOffset": [8, 15]}
+                ]
+            },
+            {
+                "part": "right_arm",
+                "id": "right_arm",
+                "invertAxis": "xy",
+                "translate": [-3, -7, 1],
+                "boxes": [
+                    {"coordinates": [-4, 0, -2, 2, 7, 2], "textureOffset": [0, 15]}
+                ]
+            },
+            {
+                "part": "head",
+                "id": "head",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-2.5, 8, -6, 5, 4, 5], "textureOffset": [32, 0]}
+                ]
+            },
+            {
+                "part": "right_ear",
+                "id": "right_ear",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [0.5, 12, -2, 2, 5, 1], "textureOffset": [58, 0]}
+                ]
+            },
+            {
+                "part": "left_ear",
+                "id": "left_ear",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-2.5, 12, -2, 2, 5, 1], "textureOffset": [52, 0]}
+                ]
+            },
+            {
+                "part": "tail",
+                "id": "tail",
+                "invertAxis": "xy",
+                "translate": [0, -7.75, -9],
+                "boxes": [
+                    {"coordinates": [-1.5, 6.25, 9, 3, 3, 2], "textureOffset": [52, 6]}
+                ]
+            },
+            {
+                "part": "nose",
+                "id": "nose",
+                "invertAxis": "xy",
+                "translate": [0, -8, 1],
+                "boxes": [
+                    {"coordinates": [-0.5, 9.5, -6.5, 1, 1, 1], "textureOffset": [32, 9]}
                 ]
             }
         ]
