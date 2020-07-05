@@ -54,6 +54,25 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		}
 	};
 
+	function updateKeyframeEasing(input) {
+		console.log('updateKeyframeEasing:', input); 
+	}
+
+	const displayAnimationFrameCallback = (...args) => {
+		const keyframe = $('#keyframe');
+		console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe);
+	};
+
+	const updateKeyframeSelectionCallback = (...args) => {
+		$('#keyframe_bar_easing').remove()
+		const keyframe = $('#keyframe');
+		console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
+		keyframe.append(`<div class="bar flex" id="keyframe_bar_easing">
+			<label class="tl" style="font-weight: bolder">Easing</label>
+			<input type="text" id="keyframe_easing" class="dark_bordered code keyframe_input tab_target" oninput="updateKeyframeEasing(this)">
+		</div>`);
+	};
+
 	Plugin.register("animation_utils", {
 		name: "Gecko's Animation Utils",
 		author: "Gecko",
@@ -66,6 +85,12 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		onload() {
 			Codecs.project.on('compile', compileCallback);
 			Codecs.project.on('parse', parseCallback);
+			Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
+			Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
+			oldUpdateKeyframeSelection = global.updateKeyframeSelection;
+			
+			global.updateKeyframeEasing = updateKeyframeEasing;
+			
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
@@ -109,10 +134,13 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			MenuBar.addAction(button, 'file.1');
 		},
 		onunload() {
-			exportAction.delete();
-			button.delete();
 			Codecs.project.events.compile.remove(compileCallback)
 			Codecs.project.events.parse.remove(parseCallback)
+			Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
+			Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
+			exportAction.delete();
+			button.delete();
+			delete global.updateKeyframeEasing;
 			console.clear();
 		},
 	});
