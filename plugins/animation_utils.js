@@ -10,6 +10,50 @@
 		return Math.floor(num);
 	}
 
+	const MOD_SDK_1_15_FORGE = '1.15 - Forge';
+	const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
+	const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
+	const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
+
+	const geckoSettingsDefault = {
+		// modSDK: MOD_SDK_1_15_FORGE,
+		entityType: 'Entity',
+		javaPackage: 'package com.example.mod;',
+		animFileNamespace: 'MODID',
+		animFilePath: 'animations/ANIMATIONFILE.json',
+	};
+	Object.freeze(geckoSettingsDefault);
+
+	let geckoSettings = Object.assign({}, geckoSettingsDefault);
+
+	const getImports = () => {
+		// switch(geckoSettings.modSDK) {
+		// 	case MOD_SDK_1_15_FORGE:
+		// 		return ``;
+		// 	case MOD_SDK_1_15_FABRIC:
+		// 		return ``;
+		// 	default:
+		// 		throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
+		// }
+		return `import software.bernie.geckolib.animation.model.AnimatedEntityModel;
+import software.bernie.geckolib.animation.model.AnimatedModelRenderer;
+import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
+	};
+
+	const compileCallback = (e) => {
+		e.model.geckoSettings = geckoSettings;
+		console.log(`compileCallback model:`, e.model);
+	};
+
+	const parseCallback = (e) => {
+		console.log(`parseCallback:`, e);
+		if (e.model && typeof e.model.geckoSettings === 'object') {
+			geckoSettings = e.model.geckoSettings;
+		} else {
+			geckoSettings = Object.assign({}, geckoSettingsDefault);
+		}
+	};
+
 	Plugin.register("animation_utils", {
 		name: "Gecko's Animation Utils",
 		author: "Gecko",
@@ -20,6 +64,9 @@
 		version: "1.0.0",
 		variant: "both",
 		onload() {
+			Codecs.project.on('compile', compileCallback);
+			Codecs.project.on('parse', parseCallback);
+
 			exportAction = new Action({
 				id: "export_animated_entity_model",
 				name: "Export Animated Java Entity",
@@ -33,9 +80,39 @@
 				},
 			});
 			MenuBar.addAction(exportAction, "file.export");
+
+			button = new Action('gecko_settings', {
+				name: 'Animated Entity Settings...',
+				description: 'Customize animated entity export.',
+				icon: 'info',
+				condition: () => Format.id === "animated_entity_model",
+				click: function () {
+					var dialog = new Dialog({
+						id: 'project',
+						title: 'Animated Entity Settings',
+						width: 540,
+						form: {
+							// modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
+							entityType: {label: 'Entity Type', value: geckoSettings.entityType },
+							javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
+							animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
+							animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
+						},
+						onConfirm: function(formResult) {
+							Object.assign(geckoSettings, formResult);
+							dialog.hide()
+						}
+					})
+					dialog.show()
+				}
+			});
+			MenuBar.addAction(button, 'file.1');
 		},
 		onunload() {
 			exportAction.delete();
+			button.delete();
+			Codecs.project.events.compile.remove(compileCallback)
+			Codecs.project.events.parse.remove(parseCallback)
 			console.clear();
 		},
 	});
@@ -49,7 +126,11 @@
 // Exported for Minecraft version 1.12.2 or 1.15.2 (same format for both) for entity models animated with GeckoLib
 // Paste this class into your mod and follow the documentation for GeckoLib to use animations. You can find the documentation here: https://github.com/bernie-g/geckolib
 // Blockbench plugin created by Gecko
-public class %(identifier) extends AnimatedEntityModel<Entity> {
+%(javaPackage)
+
+%(imports)
+
+public class %(identifier) extends AnimatedEntityModel<%(entityType)> {
 
     %(fields)
 
@@ -66,7 +147,7 @@ public class %(identifier) extends AnimatedEntityModel<Entity> {
     @Override
     public ResourceLocation getAnimationFileLocation()
     {
-        return new ResourceLocation("MODID", "animations/ANIMATIONFILE.json");
+        return new ResourceLocation("%(animFileNamespace)", "%(animFilePath)");
     }
 }`,
 			field: `private final AnimatedModelRenderer %(bone);`,
@@ -128,9 +209,18 @@ this.registerModelRenderer(%(bone));`,
 			let model = Templates.get("file");
 
 			model = model.replace(R("bb_version"), Blockbench.version);
+
+			model = model.replace(R("javaPackage"), geckoSettings.javaPackage);
+			model = model.replace(R("imports"), getImports());
+
 			model = model.replace(R("identifier"), identifier);
+			model = model.replace(R("entityType"), geckoSettings.entityType);
+
 			model = model.replace(R("texture_width"), Project.texture_width);
 			model = model.replace(R("texture_height"), Project.texture_height);
+
+			model = model.replace(R("animFileNamespace"), geckoSettings.animFileNamespace);
+			model = model.replace(R("animFilePath"), geckoSettings.animFilePath);
 
 			model = model.replace(R("fields"), () => {
 				let group_snippets = [];
