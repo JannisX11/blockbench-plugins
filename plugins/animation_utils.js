@@ -10,15 +10,15 @@
 		return Math.floor(num);
 	}
 
-	const MOD_SDK_1_15_FORGE = '1.15 - Forge';
-	const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
-	const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-	const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
+	// const MOD_SDK_1_15_FORGE = '1.15 - Forge';
+	// const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
+	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
+	// const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
 
 	const geckoSettingsDefault = {
 		// modSDK: MOD_SDK_1_15_FORGE,
 		entityType: 'Entity',
-		javaPackage: 'package com.example.mod;',
+		javaPackage: 'com.example.mod',
 		animFileNamespace: 'MODID',
 		animFilePath: 'animations/ANIMATIONFILE.json',
 	};
@@ -126,7 +126,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 // Exported for Minecraft version 1.12.2 or 1.15.2 (same format for both) for entity models animated with GeckoLib
 // Paste this class into your mod and follow the documentation for GeckoLib to use animations. You can find the documentation here: https://github.com/bernie-g/geckolib
 // Blockbench plugin created by Gecko
-%(javaPackage)
+package %(javaPackage);
 
 %(imports)
 
