@@ -58,6 +58,42 @@
 	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
 	// const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
 
+	const EASING_OPTIONS = {
+		linear: "linear",
+		easeInSine: "easeInSine",
+		easeOutSine: "easeOutSine",
+		easeInOutSine: "easeInOutSine",
+		easeInQuad: "easeInQuad",
+		easeOutQuad: "easeOutQuad",
+		easeInOutQuad: "easeInOutQuad",
+		easeInCubic: "easeInCubic",
+		easeOutCubic: "easeOutCubic",
+		easeInOutCubic: "easeInOutCubic",
+		easeInQuart: "easeInQuart",
+		easeOutQuart: "easeOutQuart",
+		easeInOutQuart: "easeInOutQuart",
+		easeInQuint: "easeInQuint",
+		easeOutQuint: "easeOutQuint",
+		easeInOutQuint: "easeInOutQuint",
+		easeInExpo: "easeInExpo",
+		easeOutExpo: "easeOutExpo",
+		easeInOutExpo: "easeInOutExpo",
+		easeInCirc: "easeInCirc",
+		easeOutCirc: "easeOutCirc",
+		easeInOutCirc: "easeInOutCirc",
+		easeInBack: "easeInBack",
+		easeOutBack: "easeOutBack",
+		easeInOutBack: "easeInOutBack",
+		easeInElastic: "easeInElastic",
+		easeOutElastic: "easeOutElastic",
+		easeInOutElastic: "easeInOutElastic",
+		easeInBounce: "easeInBounce",
+		easeOutBounce: "easeOutBounce",
+		easeInOutBounce: "easeInOutBounce",
+	};
+	Object.freeze(EASING_OPTIONS);
+	const EASING_DEFAULT = 'linear';
+
 	const geckoSettingsDefault = {
 		// modSDK: MOD_SDK_1_15_FORGE,
 		entityType: 'Entity',
@@ -104,12 +140,13 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	function updateKeyframeEasing(obj) {
 		console.log('updateKeyframeEasing:', obj); 
-		var axis = $(obj).attr('axis');
+		// var axis = $(obj).attr('axis');
 		var value = $(obj).val();
 		Timeline.selected.forEach(function(kf) {
-			kf.set(axis, value);
+			// kf.set(axis, value);
+			kf.easing = value;
 		})
-		Animator.preview();
+		// Animator.preview();
 	}
 
 	const updateKeyframeSelectionCallback = (...args) => {
@@ -134,13 +171,36 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 					// 	if (typeof n == 'number') return trimFloatNumber(n);
 					// 	return n;
 					// }
-					const keyframe = $('#keyframe');
+					const keyframe = document.getElementById('keyframe');
 					// console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
-					keyframe.append(`<div class="bar flex" id="keyframe_bar_easing">
+					// const easingBar = $(`<div class="bar flex" id="keyframe_bar_easing">
+					// 	<label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
+					// </div>`);
+					let easingBar = document.createElement('div');
+					keyframe.appendChild(easingBar);
+					easingBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing">
 						<label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
-						<input type="text" id="keyframe_easing" axis="easing" class="dark_bordered code keyframe_input tab_target" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)">
-					</div>`);
-					$('#keyframe_bar_easing input').val(first.easing || '');
+					</div>`;
+					easingBar = document.getElementById('keyframe_bar_easing');
+
+					// var el = $(`<div class="bar_select half"><select class="focusable_input" id="${form_id}"></select></div>`)
+					// const el = $(`<select class="focusable_input" id="keyframe_easing" style="flex: 1; margin-right: 9px;"></select>`)
+					// const sel = el.find('select')
+					let sel = document.createElement('select');
+					easingBar.appendChild(sel);
+					sel.outerHTML = `<select class="focusable_input" id="keyframe_easing" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)"></select>`;
+					sel = document.getElementById('keyframe_easing');
+					for (var key in EASING_OPTIONS) {
+						var name = EASING_OPTIONS[key];
+						const option = document.createElement('option')
+						sel.appendChild(option);
+						// option.outerHTML = `<option id="${key}" ${first.easing || EASING_DEFAULT === key ? 'selected' : ''}>${name}</option>`;
+						option.outerHTML = `<option id="${key}" ${(first.easing || EASING_DEFAULT) === key ? 'selected' : ''}>${name}</option>`;
+					}
+					// easingBar.append(el)
+						// <input type="text" id="keyframe_easing" axis="easing" class="dark_bordered code keyframe_input tab_target" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)"></input>
+					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
+					// $('#keyframe_bar_easing input').val(first.easing || '');
 			}
 		}
 	};
