@@ -443,9 +443,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Keyframe.prototype.getArray = keyframeGetArray;
 			Keyframe.prototype.getUndoCopy = keyframeGetUndoCopy;
 			Keyframe.prototype.extend = keyframeExtend;
-			Keyframe = patch(Keyframe, "KeyframeOriginal", {
-				constructed: keyframeConstructor,
-			});
+			// Keyframe = patch(Keyframe, "KeyframeOriginal", {
+			// 	constructed: keyframeConstructor,
+			// });
 			
 			global.updateKeyframeEasing = updateKeyframeEasing;
 			
@@ -499,7 +499,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			exportAction.delete();
 			button.delete();
 			delete global.updateKeyframeEasing;
-	 		Keyframe = KeyframeOriginal;
+	 		// Keyframe = KeyframeOriginal;
 			Keyframe.prototype.getLerp = KeyframeGetLerpOriginal;
 			Keyframe.prototype.getArray = KeyframeGetArrayOriginal;
 			Keyframe.prototype.getUndoCopy = KeyframeGetUndoCopyOriginal;
