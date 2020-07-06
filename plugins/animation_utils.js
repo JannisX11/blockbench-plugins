@@ -10,6 +10,49 @@
 		return Math.floor(num);
 	}
 
+	// For monkeypatching constructors from https://github.com/jamesallardice/patchwork.js
+	const patch = (function () {
+    /*jshint evil: true */
+
+    "use strict";
+
+    var global = new Function("return this;")(), // Get a reference to the global object
+        fnProps = Object.getOwnPropertyNames(Function); // Get the own ("static") properties of the Function constructor
+
+    return function (original, originalRef, patches) {
+
+        var ref = global[originalRef] = original, // Maintain a reference to the original constructor as a new property on the global object
+            args = [],
+            newRef, // This will be the new patched constructor
+            i;
+
+        patches.called = patches.called || originalRef; // If we are not patching static calls just pass them through to the original function
+
+        for (i = 0; i < original.length; i++) { // Match the arity of the original constructor
+            args[i] = "a" + i; // Give the arguments a name (native constructors don't care, but user-defined ones will break otherwise)
+        }
+
+        if (patches.constructed) { // This string is evaluated to create the patched constructor body in the case that we are patching newed calls
+            args.push("'use strict'; return (!!this ? " + patches.constructed + " : " + patches.called + ").apply(null, arguments);"); 
+        } else { // This string is evaluated to create the patched constructor body in the case that we are only patching static calls
+            args.push("'use strict'; return (!!this ? new (Function.prototype.bind.apply(" + originalRef + ", [{}].concat([].slice.call(arguments))))() : " + patches.called + ".apply(null, arguments));");
+        }
+
+        newRef = new (Function.prototype.bind.apply(Function, [{}].concat(args)))(); // Create a new function to wrap the patched constructor
+        newRef.prototype = original.prototype; // Keep a reference to the original prototype to ensure instances of the patch appear as instances of the original
+        newRef.prototype.constructor = newRef; // Ensure the constructor of patched instances is the patched constructor
+
+        Object.getOwnPropertyNames(ref).forEach(function (property) { // Add any "static" properties of the original constructor to the patched one
+            if (fnProps.indexOf(property) < 0) { // Don't include static properties of Function since the patched constructor will already have them
+                newRef[property] = ref[property];
+            }
+        });
+
+        return newRef; // Return the patched constructor
+    };
+
+}());
+
 	// const MOD_SDK_1_15_FORGE = '1.15 - Forge';
 	// const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
 	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
@@ -54,24 +97,79 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		}
 	};
 
-	function updateKeyframeEasing(input) {
-		console.log('updateKeyframeEasing:', input); 
-	}
-
 	const displayAnimationFrameCallback = (...args) => {
 		const keyframe = $('#keyframe');
-		console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe);
+		console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 	};
 
+	function updateKeyframeEasing(obj) {
+		console.log('updateKeyframeEasing:', obj); 
+		var axis = $(obj).attr('axis');
+		var value = $(obj).val();
+		Timeline.selected.forEach(function(kf) {
+			kf.set(axis, value);
+		})
+		Animator.preview();
+	}
+
 	const updateKeyframeSelectionCallback = (...args) => {
-		$('#keyframe_bar_easing').remove()
-		const keyframe = $('#keyframe');
-		console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
-		keyframe.append(`<div class="bar flex" id="keyframe_bar_easing">
-			<label class="tl" style="font-weight: bolder">Easing</label>
-			<input type="text" id="keyframe_easing" class="dark_bordered code keyframe_input tab_target" oninput="updateKeyframeEasing(this)">
-		</div>`);
+			$('#keyframe_bar_easing').remove()
+
+			var multi_channel = false;
+			var channel = false;
+			Timeline.selected.forEach((kf) => {
+				if (channel === false) {
+					channel = kf.channel
+				} else if (channel !== kf.channel) {
+					multi_channel = true
+				}
+			})
+
+			if (Timeline.selected.length && !multi_channel && Format.id === "animated_entity_model") {
+				var first = Timeline.selected[0]
+
+				if (first.animator instanceof BoneAnimator) {
+					function _gt(axis) {
+						var n = first.get(axis);
+						if (typeof n == 'number') return trimFloatNumber(n);
+						return n;
+					}
+					const keyframe = $('#keyframe');
+					console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
+					keyframe.append(`<div class="bar flex" id="keyframe_bar_easing">
+						<label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
+						<input type="text" id="keyframe_easing" axis="easing" class="dark_bordered code keyframe_input tab_target" style="width: unset; flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)">
+					</div>`);
+					$('#keyframe_bar_easing input').val(_gt('easing'));
+			}
+		}
 	};
+
+	const KeyframeGetArrayOriginal = Keyframe.prototype.getArray;
+	function keyframeGetArray() {
+			const easing = this.easing;
+			const result = KeyframeGetArrayOriginal.apply(this, arguments);
+			result.push(easing);
+			console.log('@@@ keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+			return result;
+	}
+
+	const KeyframeGetUndoCopyOriginal = Keyframe.prototype.getUndoCopy;
+	function keyframeGetUndoCopy() {
+			const easing = this.easing;
+			const result = KeyframeGetUndoCopyOriginal.apply(this, arguments);
+			Object.assign(result, { easing });
+			console.log('@@@ keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+			return result;
+	}
+
+	function keyframeConstructor(data, uuid) {
+			// const result = new (Function.prototype.bind.apply(KeyframeOriginal, arguments));//[{}].concat(arguments)));
+			const result = new (Function.prototype.bind.apply(KeyframeOriginal, [{}, ...arguments]));
+			Object.assign(result, { easing: data.easing });
+			console.log('@@@ keyframeConstructor arguments:', arguments, 'this:', this, 'result:', result);
+			return result;
+	}
 
 	Plugin.register("animation_utils", {
 		name: "Gecko's Animation Utils",
@@ -87,7 +185,11 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Codecs.project.on('parse', parseCallback);
 			Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
 			Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
-			oldUpdateKeyframeSelection = global.updateKeyframeSelection;
+			Keyframe.prototype.getArray = keyframeGetArray;
+			Keyframe.prototype.getUndoCopy = keyframeGetUndoCopy;
+			Keyframe = patch(Keyframe, "KeyframeOriginal", {
+				constructed: keyframeConstructor,
+			});
 			
 			global.updateKeyframeEasing = updateKeyframeEasing;
 			
@@ -141,6 +243,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			exportAction.delete();
 			button.delete();
 			delete global.updateKeyframeEasing;
+	 		Keyframe = KeyframeOriginal;
+			Keyframe.prototype.getArray = KeyframeGetArrayOriginal;
+			Keyframe.prototype.getUndoCopy = KeyframeGetUndoCopyOriginal;
 			console.clear();
 		},
 	});
