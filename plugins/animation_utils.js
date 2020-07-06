@@ -85,7 +85,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	const compileCallback = (e) => {
 		e.model.geckoSettings = geckoSettings;
-		console.log(`compileCallback model:`, e.model);
+		// console.log(`compileCallback model:`, e.model);
 	};
 
 	const parseCallback = (e) => {
@@ -98,8 +98,8 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	};
 
 	const displayAnimationFrameCallback = (...args) => {
-		const keyframe = $('#keyframe');
-		console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
+		// const keyframe = $('#keyframe');
+		// console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 	};
 
 	function updateKeyframeEasing(obj) {
@@ -129,18 +129,18 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				var first = Timeline.selected[0]
 
 				if (first.animator instanceof BoneAnimator) {
-					function _gt(axis) {
-						var n = first.get(axis);
-						if (typeof n == 'number') return trimFloatNumber(n);
-						return n;
-					}
+					// function _gt(axis) {
+					// 	var n = first.get(axis);
+					// 	if (typeof n == 'number') return trimFloatNumber(n);
+					// 	return n;
+					// }
 					const keyframe = $('#keyframe');
-					console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
+					// console.log(`updateKeyframeSelection:`, args, ' keyframe:', keyframe);
 					keyframe.append(`<div class="bar flex" id="keyframe_bar_easing">
 						<label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
-						<input type="text" id="keyframe_easing" axis="easing" class="dark_bordered code keyframe_input tab_target" style="width: unset; flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)">
+						<input type="text" id="keyframe_easing" axis="easing" class="dark_bordered code keyframe_input tab_target" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)">
 					</div>`);
-					$('#keyframe_bar_easing input').val(_gt('easing'));
+					$('#keyframe_bar_easing input').val(first.easing || '');
 			}
 		}
 	};
@@ -148,9 +148,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	const KeyframeGetArrayOriginal = Keyframe.prototype.getArray;
 	function keyframeGetArray() {
 			const easing = this.easing;
-			const result = KeyframeGetArrayOriginal.apply(this, arguments);
-			result.push(easing);
-			console.log('@@@ keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+			let result = KeyframeGetArrayOriginal.apply(this, arguments);
+			if (Format.id === "animated_entity_model") result = { vector: result, easing };
+			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -158,16 +158,34 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	function keyframeGetUndoCopy() {
 			const easing = this.easing;
 			const result = KeyframeGetUndoCopyOriginal.apply(this, arguments);
-			Object.assign(result, { easing });
-			console.log('@@@ keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+			if (Format.id === "animated_entity_model") Object.assign(result, { easing });
+			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
+	}
+
+	const KeyframeExtendOriginal = Keyframe.prototype.extend;
+	function keyframeExtend(data) {
+		if (Format.id === "animated_entity_model") {
+			if (typeof data.values === 'object') {
+				if (data.values.easing !== undefined) {
+					Merge.string(this, data.values, 'easing');
+					// Convert data to format expected by KeyframeExtendOriginal
+					data.values = data.values.vector;
+				}
+			} else if (data.easing !== undefined) {
+					Merge.string(this, data, 'easing');
+			}
+		}
+		const result = KeyframeExtendOriginal.apply(this, arguments);
+		console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+		return result;
 	}
 
 	function keyframeConstructor(data, uuid) {
 			// const result = new (Function.prototype.bind.apply(KeyframeOriginal, arguments));//[{}].concat(arguments)));
 			const result = new (Function.prototype.bind.apply(KeyframeOriginal, [{}, ...arguments]));
-			Object.assign(result, { easing: data.easing });
-			console.log('@@@ keyframeConstructor arguments:', arguments, 'this:', this, 'result:', result);
+			// if (Format.id === "animated_entity_model") Object.assign(result, { easing: data.easing });
+			// console.log('keyframeConstructor arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -187,6 +205,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
 			Keyframe.prototype.getArray = keyframeGetArray;
 			Keyframe.prototype.getUndoCopy = keyframeGetUndoCopy;
+			Keyframe.prototype.extend = keyframeExtend;
 			Keyframe = patch(Keyframe, "KeyframeOriginal", {
 				constructed: keyframeConstructor,
 			});
@@ -246,6 +265,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	 		Keyframe = KeyframeOriginal;
 			Keyframe.prototype.getArray = KeyframeGetArrayOriginal;
 			Keyframe.prototype.getUndoCopy = KeyframeGetUndoCopyOriginal;
+			Keyframe.prototype.extend = KeyframeExtendOriginal;
 			console.clear();
 		},
 	});
