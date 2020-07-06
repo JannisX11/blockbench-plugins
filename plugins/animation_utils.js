@@ -368,7 +368,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	// 	}
 	// }
 	function keyframeGetLerp(other, axis, amount, allow_expression) {
-			const easing = this.easing;
+			const easing = this.easing || EASING_DEFAULT;
 			if (Format.id !== "animated_entity_model") {
 				return KeyframeGetLerpOriginal.apply(this, arguments);
 			}
