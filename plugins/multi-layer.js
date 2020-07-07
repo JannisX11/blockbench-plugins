@@ -13,8 +13,11 @@
     ]
 
     var layerGroups = {}
+    var useMultiLayer = false
 
     Codecs.java_block.on('compile', event => {
+        // if we're not doing a multi-layer export, return
+        if (!useMultiLayer) return;
         event.model.loader = "forge:multi-layer"
         event.model.layers = {}
         delete event.model.elements
@@ -161,6 +164,7 @@
     }
 
     LAYERS.forEach(l => createModel(l))
+    useMultiLayer = false
 })
 
 function getDialog() {
@@ -193,6 +197,7 @@ function getDialog() {
                     layerGroups[l.name] = formData[l.name];
                 }
             });
+            useMultiLayer = true
             Codecs.java_block.export();
         }
     });
