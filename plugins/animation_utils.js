@@ -14,6 +14,15 @@ function lerp(start, stop, amt) {
   return amt * (stop - start) + start;
 };
 
+function uniq(arr) {
+	return arr.reduce((acc, val) => {
+		if (!acc.includes(val)) {
+			return [...acc, val];
+		}
+		return acc;
+	}, []);
+}
+
 const easingsFunctions = (function() {
 	const pow = Math.pow;
 	const sqrt = Math.sqrt;
@@ -249,9 +258,10 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	};
 
 	function updateKeyframeEasing(obj) {
-		console.log('updateKeyframeEasing:', obj); 
 		// var axis = $(obj).attr('axis');
 		var value = $(obj).val();
+		console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
+		if (value === "-") return;
 		Timeline.selected.forEach(function(kf) {
 			// kf.set(axis, value);
 			kf.easing = value;
@@ -272,15 +282,25 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			})
 
-			if (Timeline.selected.length && !multi_channel && Format.id === "animated_entity_model") {
-				var first = Timeline.selected[0]
-
-				if (first.animator instanceof BoneAnimator) {
+			if (Timeline.selected.length && Format.id === "animated_entity_model") {
+				if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator)) {
 					// function _gt(axis) {
 					// 	var n = first.get(axis);
 					// 	if (typeof n == 'number') return trimFloatNumber(n);
 					// 	return n;
 					// }
+					const displayedEasing = (() => {
+						if (multi_channel) {
+							const uniqSelected = uniq(Timeline.selected.map(kf => kf.easing));
+							if (uniqSelected.length === 1) {
+								return uniqSelected[0];
+							} else {
+								return "null";
+							}
+						} else {
+							return Timeline.selected[0].easing || EASING_DEFAULT;
+						}
+					})();
 					const keyframe = document.getElementById('keyframe');
 					let easingBar = document.createElement('div');
 					keyframe.appendChild(easingBar);
@@ -293,11 +313,12 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 					easingBar.appendChild(sel);
 					sel.outerHTML = `<select class="focusable_input" id="keyframe_easing" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)"></select>`;
 					sel = document.getElementById('keyframe_easing');
-					for (var key in EASING_OPTIONS) {
-						var name = EASING_OPTIONS[key];
+					const easingOptions = displayedEasing !== "null" ? EASING_OPTIONS : Object.assign({}, { null: "-" }, EASING_OPTIONS);
+					for (var key in easingOptions) {
+						var name = easingOptions[key];
 						const option = document.createElement('option')
 						sel.appendChild(option);
-						option.outerHTML = `<option id="${key}" ${(first.easing || EASING_DEFAULT) === key ? 'selected' : ''}>${name}</option>`;
+						option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
 					}
 					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
 			}
