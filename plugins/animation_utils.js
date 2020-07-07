@@ -29,9 +29,9 @@ const easingsFunctions = (function() {
 	const sin = Math.sin;
 	const cos = Math.cos;
 	const PI = Math.PI;
-	const c1 = 1.70158;
-	const c2 = c1 * 1.525;
-	const c3 = c1 + 1;
+	const getC1 = scalar => 1.70158 * scalar;
+  const getC2 = c1 => c1 * 1.525;
+	const getC3 = c1 => c1 + 1;
 	const c4 = (2 * PI) / 3;
 	const c5 = (2 * PI) / 4.5;
 	function bounceOut(x) {
@@ -125,13 +125,19 @@ const easingsFunctions = (function() {
 							? (1 - sqrt(1 - pow(2 * x, 2))) / 2
 							: (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
 			},
-			easeInBack(x) {
-					return c3 * x * x * x - c1 * x * x;
+			easeInBack(scalar, x) {
+				const c1 = getC1(scalar);
+				const c3 = getC3(c1);
+				return c3 * x * x * x - c1 * x * x;
 			},
-			easeOutBack(x) {
-					return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
+			easeOutBack(scalar, x) {
+				const c1 = getC1(scalar);
+				const c3 = getC3(c1);
+				return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
 			},
-			easeInOutBack(x) {
+			easeInOutBack(scalar, x) {
+					const c1 = getC1(scalar);
+					const c2 = getC2(c1);
 					return x < 0.5
 							? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
 							: (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
@@ -259,14 +265,23 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
-		var value = $(obj).val();
+		const value = $(obj).val();
 		console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
 		if (value === "-") return;
-		Timeline.selected.forEach(function(kf) {
-			// kf.set(axis, value);
+		Timeline.selected.forEach((kf) => {
 			kf.easing = value;
 		})
+		updateKeyframeSelection(); // Ensure easingScale display is updated
 		// Animator.preview();
+	}
+
+	function updateKeyframeEasingScale(obj) {
+		const value = parseInt($(obj).val().trim(), 10);
+		console.log('updateKeyframeEasingScale value:', value, 'obj:', obj); 
+		if (value === "-") return;
+		Timeline.selected.forEach((kf) => {
+			kf.easingScale = value;
+		})
 	}
 
 	const updateKeyframeSelectionCallback = (...args) => {
@@ -282,25 +297,23 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			})
 
+			const getMultiSelectValue = (property, defaultValue, conflictValue) => {
+				if (Timeline.selected.length > 1) {
+					const uniqSelected = uniq(Timeline.selected.map(kf => kf[property]));
+					if (uniqSelected.length === 1) {
+						return uniqSelected[0];
+					} else {
+						return conflictValue;
+					}
+				} else {
+					return Timeline.selected[0][property] || defaultValue;
+				}
+			};
+
 			if (Timeline.selected.length && Format.id === "animated_entity_model") {
 				if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator)) {
-					// function _gt(axis) {
-					// 	var n = first.get(axis);
-					// 	if (typeof n == 'number') return trimFloatNumber(n);
-					// 	return n;
-					// }
-					const displayedEasing = (() => {
-						if (multi_channel) {
-							const uniqSelected = uniq(Timeline.selected.map(kf => kf.easing));
-							if (uniqSelected.length === 1) {
-								return uniqSelected[0];
-							} else {
-								return "null";
-							}
-						} else {
-							return Timeline.selected[0].easing || EASING_DEFAULT;
-						}
-					})();
+					const displayedEasing = getMultiSelectValue('easing', EASING_DEFAULT, 'null');
+
 					const keyframe = document.getElementById('keyframe');
 					let easingBar = document.createElement('div');
 					keyframe.appendChild(easingBar);
@@ -313,13 +326,28 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 					easingBar.appendChild(sel);
 					sel.outerHTML = `<select class="focusable_input" id="keyframe_easing" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)"></select>`;
 					sel = document.getElementById('keyframe_easing');
-					const easingOptions = displayedEasing !== "null" ? EASING_OPTIONS : Object.assign({}, { null: "-" }, EASING_OPTIONS);
+
+					const easingOptions = displayedEasing !== "null"
+						? EASING_OPTIONS
+						: Object.assign({}, { null: "-" }, EASING_OPTIONS);
 					for (var key in easingOptions) {
 						var name = easingOptions[key];
 						const option = document.createElement('option')
 						sel.appendChild(option);
 						option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
 					}
+
+					if (Timeline.selected.every(kf => kf.easing && kf.easing.includes("Back"))) {
+						const displayedValue = getMultiSelectValue('easingScale', 1, 1);
+						let scaleBar = document.createElement('div');
+						keyframe.appendChild(scaleBar);
+						scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_scale">
+							<label class="tl" style="font-weight: bolder; min-width: 90px;">Easing Scale</label>
+							<input type="text" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingScale(this)" style="flex: 1; margin-right: 9px;">
+						</div>`;
+						scaleBar = document.getElementById('keyframe_bar_easing_scale');
+					}
+
 					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
 			}
 		}
@@ -331,7 +359,12 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			if (Format.id !== "animated_entity_model") {
 				return KeyframeGetLerpOriginal.apply(this, arguments);
 			}
-			const easingFunc = easingsFunctions[easing];
+			let easingFunc = easingsFunctions[easing];
+			if (easing.includes("Back")) {
+				const easingScale = typeof this.easingScale === 'number' ? this.easingScale : 1;
+				console.log(`keyframeGetLerp easingScale: ${easingScale}`);
+				easingFunc = easingFunc.bind(null, easingScale);
+			}
 			const easedAmount = easingFunc(amount); 
 			const start = this.calc(axis);
 			const stop = other.calc(axis);
@@ -342,18 +375,18 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	const KeyframeGetArrayOriginal = Keyframe.prototype.getArray;
 	function keyframeGetArray() {
-			const easing = this.easing;
+			const { easing, easingScale } = this;
 			let result = KeyframeGetArrayOriginal.apply(this, arguments);
-			if (Format.id === "animated_entity_model") result = { vector: result, easing };
+			if (Format.id === "animated_entity_model") result = { vector: result, easing, easingScale };
 			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
 	const KeyframeGetUndoCopyOriginal = Keyframe.prototype.getUndoCopy;
 	function keyframeGetUndoCopy() {
-			const easing = this.easing;
+			const { easing, easingScale } = this;
 			const result = KeyframeGetUndoCopyOriginal.apply(this, arguments);
-			if (Format.id === "animated_entity_model") Object.assign(result, { easing });
+			if (Format.id === "animated_entity_model") Object.assign(result, { easing, easingScale });
 			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
@@ -364,11 +397,19 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			if (typeof data.values === 'object') {
 				if (data.values.easing !== undefined) {
 					Merge.string(this, data.values, 'easing');
-					// Convert data to format expected by KeyframeExtendOriginal
-					data.values = data.values.vector;
 				}
-			} else if (data.easing !== undefined) {
-					Merge.string(this, data, 'easing');
+				if (data.values.easingScale !== undefined) {
+					Merge.number(this, data.values, 'easingScale');
+				}
+				// Convert data to format expected by KeyframeExtendOriginal
+				data.values = data.values.vector;
+			} else {
+				if (data.easing !== undefined) {
+						Merge.string(this, data, 'easing');
+				}
+				if (data.easingScale !== undefined) {
+					Merge.number(this, data, 'easingScale');
+				}
 			}
 		}
 		const result = KeyframeExtendOriginal.apply(this, arguments);
@@ -396,6 +437,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Keyframe.prototype.extend = keyframeExtend;
 			
 			global.updateKeyframeEasing = updateKeyframeEasing;
+			global.updateKeyframeEasingScale = updateKeyframeEasingScale;
 			
 
 			exportAction = new Action({
@@ -447,6 +489,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			exportAction.delete();
 			button.delete();
 			delete global.updateKeyframeEasing;
+			delete global.updateKeyframeEasingScale;
 			Keyframe.prototype.getLerp = KeyframeGetLerpOriginal;
 			Keyframe.prototype.getArray = KeyframeGetArrayOriginal;
 			Keyframe.prototype.getUndoCopy = KeyframeGetUndoCopyOriginal;
