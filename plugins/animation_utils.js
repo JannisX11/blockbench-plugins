@@ -365,11 +365,27 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	//#endregion Global Animation UI Handlers
 
 	//#region Keyframe Mixins
-	const KeyframeGetLerpOriginal = Keyframe.prototype.getLerp;
+	const Original = {
+	};
+	const addMonkeypatch = (symbol, path, functionKey, newFunction) => {
+		const pathAccessor = path ? symbol[path] : symbol;
+		if(!Original[symbol]) Original[symbol] = { _pathAccessor: pathAccessor };
+		Original[symbol][functionKey] = pathAccessor[functionKey];
+		pathAccessor[functionKey] = newFunction;
+	};
+	const removeMonkeypatches = () => {
+		Object.keys(Original).forEach(symbolKey => {
+			const symbol = Original[symbolKey];
+			Object.keys(symbol).forEach(functionKey => {
+				symbol._pathAccessor[functionKey] = symbol[functionKey];
+			});
+			delete Original[symbolKey];
+		});
+	}
 	function keyframeGetLerp(other, axis, amount, allow_expression) {
 			const easing = this.easing || EASING_DEFAULT;
 			if (Format.id !== "animated_entity_model") {
-				return KeyframeGetLerpOriginal.apply(this, arguments);
+				return Original[Keyframe].getLerp.apply(this, arguments);
 			}
 			let easingFunc = easingsFunctions[easing];
 			if (easing.includes("Back")) {
@@ -385,25 +401,22 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			return result;
 	}
 
-	const KeyframeGetArrayOriginal = Keyframe.prototype.getArray;
 	function keyframeGetArray() {
 			const { easing, easingScale } = this;
-			let result = KeyframeGetArrayOriginal.apply(this, arguments);
+			let result = Original[Keyframe].getArray.apply(this, arguments);
 			if (Format.id === "animated_entity_model") result = { vector: result, easing, easingScale };
 			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
-	const KeyframeGetUndoCopyOriginal = Keyframe.prototype.getUndoCopy;
 	function keyframeGetUndoCopy() {
 			const { easing, easingScale } = this;
-			const result = KeyframeGetUndoCopyOriginal.apply(this, arguments);
+			const result = Original[Keyframe].getUndoCopy.apply(this, arguments);
 			if (Format.id === "animated_entity_model") Object.assign(result, { easing, easingScale });
 			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
-	const KeyframeExtendOriginal = Keyframe.prototype.extend;
 	function keyframeExtend(data) {
 		if (Format.id === "animated_entity_model") {
 			if (typeof data.values === 'object') {
@@ -424,7 +437,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			}
 		}
-		const result = KeyframeExtendOriginal.apply(this, arguments);
+		const result = Original[Keyframe].extend.apply(this, arguments);
 		console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
 		return result;
 	}
@@ -446,14 +459,14 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Codecs.project.on('parse', parseCallback);
 			Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
 			Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
-			Keyframe.prototype.getLerp = keyframeGetLerp;
-			Keyframe.prototype.getArray = keyframeGetArray;
-			Keyframe.prototype.getUndoCopy = keyframeGetUndoCopy;
-			Keyframe.prototype.extend = keyframeExtend;
+
+			addMonkeypatch(Keyframe, "prototype", "getLerp", keyframeGetLerp);
+			addMonkeypatch(Keyframe, "prototype", "getArray", keyframeGetArray);
+			addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
+			addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
 			
-			global.updateKeyframeEasing = updateKeyframeEasing;
-			global.updateKeyframeEasingScale = updateKeyframeEasingScale;
-			
+			addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
+			addMonkeypatch(global, null, "updateKeyframeEasingScale", updateKeyframeEasingScale);
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
@@ -503,12 +516,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
 			exportAction.delete();
 			button.delete();
-			delete global.updateKeyframeEasing;
-			delete global.updateKeyframeEasingScale;
-			Keyframe.prototype.getLerp = KeyframeGetLerpOriginal;
-			Keyframe.prototype.getArray = KeyframeGetArrayOriginal;
-			Keyframe.prototype.getUndoCopy = KeyframeGetUndoCopyOriginal;
-			Keyframe.prototype.extend = KeyframeExtendOriginal;
+			removeMonkeypatches();
 			console.clear();
 		},
 	});
