@@ -365,27 +365,26 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	//#endregion Global Animation UI Handlers
 
 	//#region Keyframe Mixins
-	const Original = {
-	};
+	const Original = new Map();
 	const addMonkeypatch = (symbol, path, functionKey, newFunction) => {
 		const pathAccessor = path ? symbol[path] : symbol;
-		if(!Original[symbol]) Original[symbol] = { _pathAccessor: pathAccessor };
-		Original[symbol][functionKey] = pathAccessor[functionKey];
+		if(!Original.get(symbol)) Original.set(symbol, { _pathAccessor: pathAccessor });
+		Original.get(symbol)[functionKey] = pathAccessor[functionKey];
 		pathAccessor[functionKey] = newFunction;
 	};
 	const removeMonkeypatches = () => {
-		Object.keys(Original).forEach(symbolKey => {
-			const symbol = Original[symbolKey];
+		Original.forEach(symbol => {
 			Object.keys(symbol).forEach(functionKey => {
+				if(functionKey.startsWith('_')) return;
 				symbol._pathAccessor[functionKey] = symbol[functionKey];
 			});
-			delete Original[symbolKey];
 		});
+		Original.clear();
 	}
 	function keyframeGetLerp(other, axis, amount, allow_expression) {
 			const easing = this.easing || EASING_DEFAULT;
 			if (Format.id !== "animated_entity_model") {
-				return Original[Keyframe].getLerp.apply(this, arguments);
+				return Original.get(Keyframe).getLerp.apply(this, arguments);
 			}
 			let easingFunc = easingsFunctions[easing];
 			if (easing.includes("Back")) {
@@ -403,7 +402,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	function keyframeGetArray() {
 			const { easing, easingScale } = this;
-			let result = Original[Keyframe].getArray.apply(this, arguments);
+			let result = Original.get(Keyframe).getArray.apply(this, arguments);
 			if (Format.id === "animated_entity_model") result = { vector: result, easing, easingScale };
 			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
@@ -411,7 +410,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	function keyframeGetUndoCopy() {
 			const { easing, easingScale } = this;
-			const result = Original[Keyframe].getUndoCopy.apply(this, arguments);
+			const result = Original.get(Keyframe).getUndoCopy.apply(this, arguments);
 			if (Format.id === "animated_entity_model") Object.assign(result, { easing, easingScale });
 			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
@@ -437,7 +436,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			}
 		}
-		const result = Original[Keyframe].extend.apply(this, arguments);
+		const result = Original.get(Keyframe).extend.apply(this, arguments);
 		console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
 		return result;
 	}
