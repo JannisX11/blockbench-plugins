@@ -1,4 +1,5 @@
 (function () {
+	//#region Helper Functions
 	function F(num) {
 		var s = trimFloatNumber(num) + "";
 		if (!s.includes(".")) {
@@ -10,178 +11,175 @@
 		return Math.floor(num);
 	}
 
-function lerp(start, stop, amt) {
-  return amt * (stop - start) + start;
-};
-
-function uniq(arr) {
-	return arr.reduce((acc, val) => {
-		if (!acc.includes(val)) {
-			return [...acc, val];
-		}
-		return acc;
-	}, []);
-}
-
-const easingsFunctions = (function() {
-	const pow = Math.pow;
-	const sqrt = Math.sqrt;
-	const sin = Math.sin;
-	const cos = Math.cos;
-	const PI = Math.PI;
-	const getC1 = scalar => 1.70158 * scalar;
-  const getC2 = c1 => c1 * 1.525;
-	const getC3 = c1 => c1 + 1;
-	const c4 = (2 * PI) / 3;
-	const c5 = (2 * PI) / 4.5;
-	function bounceOut(x) {
-			const n1 = 7.5625;
-			const d1 = 2.75;
-			if (x < 1 / d1) {
-					return n1 * x * x;
-			}
-			else if (x < 2 / d1) {
-					return n1 * (x -= 1.5 / d1) * x + 0.75;
-			}
-			else if (x < 2.5 / d1) {
-					return n1 * (x -= 2.25 / d1) * x + 0.9375;
-			}
-			else {
-					return n1 * (x -= 2.625 / d1) * x + 0.984375;
-			}
-	}
-	const easingsFunctions = {
-			linear(x) {
-				return x;
-			},
-			easeInQuad(x) {
-					return x * x;
-			},
-			easeOutQuad(x) {
-					return 1 - (1 - x) * (1 - x);
-			},
-			easeInOutQuad(x) {
-					return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
-			},
-			easeInCubic(x) {
-					return x * x * x;
-			},
-			easeOutCubic(x) {
-					return 1 - pow(1 - x, 3);
-			},
-			easeInOutCubic(x) {
-					return x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
-			},
-			easeInQuart(x) {
-					return x * x * x * x;
-			},
-			easeOutQuart(x) {
-					return 1 - pow(1 - x, 4);
-			},
-			easeInOutQuart(x) {
-					return x < 0.5 ? 8 * x * x * x * x : 1 - pow(-2 * x + 2, 4) / 2;
-			},
-			easeInQuint(x) {
-					return x * x * x * x * x;
-			},
-			easeOutQuint(x) {
-					return 1 - pow(1 - x, 5);
-			},
-			easeInOutQuint(x) {
-					return x < 0.5 ? 16 * x * x * x * x * x : 1 - pow(-2 * x + 2, 5) / 2;
-			},
-			easeInSine(x) {
-					return 1 - cos((x * PI) / 2);
-			},
-			easeOutSine(x) {
-					return sin((x * PI) / 2);
-			},
-			easeInOutSine(x) {
-					return -(cos(PI * x) - 1) / 2;
-			},
-			easeInExpo(x) {
-					return x === 0 ? 0 : pow(2, 10 * x - 10);
-			},
-			easeOutExpo(x) {
-					return x === 1 ? 1 : 1 - pow(2, -10 * x);
-			},
-			easeInOutExpo(x) {
-					return x === 0
-							? 0
-							: x === 1
-									? 1
-									: x < 0.5
-											? pow(2, 20 * x - 10) / 2
-											: (2 - pow(2, -20 * x + 10)) / 2;
-			},
-			easeInCirc(x) {
-					return 1 - sqrt(1 - pow(x, 2));
-			},
-			easeOutCirc(x) {
-					return sqrt(1 - pow(x - 1, 2));
-			},
-			easeInOutCirc(x) {
-					return x < 0.5
-							? (1 - sqrt(1 - pow(2 * x, 2))) / 2
-							: (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-			},
-			easeInBack(scalar, x) {
-				const c1 = getC1(scalar);
-				const c3 = getC3(c1);
-				return c3 * x * x * x - c1 * x * x;
-			},
-			easeOutBack(scalar, x) {
-				const c1 = getC1(scalar);
-				const c3 = getC3(c1);
-				return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
-			},
-			easeInOutBack(scalar, x) {
-					const c1 = getC1(scalar);
-					const c2 = getC2(c1);
-					return x < 0.5
-							? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
-							: (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
-			},
-			easeInElastic(x) {
-					return x === 0
-							? 0
-							: x === 1
-									? 1
-									: -pow(2, 10 * x - 10) * sin((x * 10 - 10.75) * c4);
-			},
-			easeOutElastic(x) {
-					return x === 0
-							? 0
-							: x === 1
-									? 1
-									: pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1;
-			},
-			easeInOutElastic(x) {
-					return x === 0
-							? 0
-							: x === 1
-									? 1
-									: x < 0.5
-											? -(pow(2, 20 * x - 10) * sin((20 * x - 11.125) * c5)) / 2
-											: (pow(2, -20 * x + 10) * sin((20 * x - 11.125) * c5)) / 2 + 1;
-			},
-			easeInBounce(x) {
-					return 1 - bounceOut(1 - x);
-			},
-			easeOutBounce: bounceOut,
-			easeInOutBounce(x) {
-					return x < 0.5
-							? (1 - bounceOut(1 - 2 * x)) / 2
-							: (1 + bounceOut(2 * x - 1)) / 2;
-			},
+	function lerp(start, stop, amt) {
+		return amt * (stop - start) + start;
 	};
-	return easingsFunctions;
-})();
 
-	// const MOD_SDK_1_15_FORGE = '1.15 - Forge';
-	// const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
-	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-	// const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
+	function uniq(arr) {
+		return arr.reduce((acc, val) => {
+			if (!acc.includes(val)) {
+				return [...acc, val];
+			}
+			return acc;
+		}, []);
+	}
+	//#endregion Helper Functions
+
+	//#region Easing Functions
+	const easingsFunctions = (function() {
+		const pow = Math.pow;
+		const sqrt = Math.sqrt;
+		const sin = Math.sin;
+		const cos = Math.cos;
+		const PI = Math.PI;
+		const getC1 = scalar => 1.70158 * scalar;
+		const getC2 = c1 => c1 * 1.525;
+		const getC3 = c1 => c1 + 1;
+		const c4 = (2 * PI) / 3;
+		const c5 = (2 * PI) / 4.5;
+		function bounceOut(x) {
+				const n1 = 7.5625;
+				const d1 = 2.75;
+				if (x < 1 / d1) {
+						return n1 * x * x;
+				}
+				else if (x < 2 / d1) {
+						return n1 * (x -= 1.5 / d1) * x + 0.75;
+				}
+				else if (x < 2.5 / d1) {
+						return n1 * (x -= 2.25 / d1) * x + 0.9375;
+				}
+				else {
+						return n1 * (x -= 2.625 / d1) * x + 0.984375;
+				}
+		}
+		const easingsFunctions = {
+				linear(x) {
+					return x;
+				},
+				easeInQuad(x) {
+						return x * x;
+				},
+				easeOutQuad(x) {
+						return 1 - (1 - x) * (1 - x);
+				},
+				easeInOutQuad(x) {
+						return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
+				},
+				easeInCubic(x) {
+						return x * x * x;
+				},
+				easeOutCubic(x) {
+						return 1 - pow(1 - x, 3);
+				},
+				easeInOutCubic(x) {
+						return x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
+				},
+				easeInQuart(x) {
+						return x * x * x * x;
+				},
+				easeOutQuart(x) {
+						return 1 - pow(1 - x, 4);
+				},
+				easeInOutQuart(x) {
+						return x < 0.5 ? 8 * x * x * x * x : 1 - pow(-2 * x + 2, 4) / 2;
+				},
+				easeInQuint(x) {
+						return x * x * x * x * x;
+				},
+				easeOutQuint(x) {
+						return 1 - pow(1 - x, 5);
+				},
+				easeInOutQuint(x) {
+						return x < 0.5 ? 16 * x * x * x * x * x : 1 - pow(-2 * x + 2, 5) / 2;
+				},
+				easeInSine(x) {
+						return 1 - cos((x * PI) / 2);
+				},
+				easeOutSine(x) {
+						return sin((x * PI) / 2);
+				},
+				easeInOutSine(x) {
+						return -(cos(PI * x) - 1) / 2;
+				},
+				easeInExpo(x) {
+						return x === 0 ? 0 : pow(2, 10 * x - 10);
+				},
+				easeOutExpo(x) {
+						return x === 1 ? 1 : 1 - pow(2, -10 * x);
+				},
+				easeInOutExpo(x) {
+						return x === 0
+								? 0
+								: x === 1
+										? 1
+										: x < 0.5
+												? pow(2, 20 * x - 10) / 2
+												: (2 - pow(2, -20 * x + 10)) / 2;
+				},
+				easeInCirc(x) {
+						return 1 - sqrt(1 - pow(x, 2));
+				},
+				easeOutCirc(x) {
+						return sqrt(1 - pow(x - 1, 2));
+				},
+				easeInOutCirc(x) {
+						return x < 0.5
+								? (1 - sqrt(1 - pow(2 * x, 2))) / 2
+								: (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
+				},
+				easeInBack(scalar, x) {
+					const c1 = getC1(scalar);
+					const c3 = getC3(c1);
+					return c3 * x * x * x - c1 * x * x;
+				},
+				easeOutBack(scalar, x) {
+					const c1 = getC1(scalar);
+					const c3 = getC3(c1);
+					return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
+				},
+				easeInOutBack(scalar, x) {
+						const c1 = getC1(scalar);
+						const c2 = getC2(c1);
+						return x < 0.5
+								? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+								: (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+				},
+				easeInElastic(x) {
+						return x === 0
+								? 0
+								: x === 1
+										? 1
+										: -pow(2, 10 * x - 10) * sin((x * 10 - 10.75) * c4);
+				},
+				easeOutElastic(x) {
+						return x === 0
+								? 0
+								: x === 1
+										? 1
+										: pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1;
+				},
+				easeInOutElastic(x) {
+						return x === 0
+								? 0
+								: x === 1
+										? 1
+										: x < 0.5
+												? -(pow(2, 20 * x - 10) * sin((20 * x - 11.125) * c5)) / 2
+												: (pow(2, -20 * x + 10) * sin((20 * x - 11.125) * c5)) / 2 + 1;
+				},
+				easeInBounce(x) {
+						return 1 - bounceOut(1 - x);
+				},
+				easeOutBounce: bounceOut,
+				easeInOutBounce(x) {
+						return x < 0.5
+								? (1 - bounceOut(1 - 2 * x)) / 2
+								: (1 + bounceOut(2 * x - 1)) / 2;
+				},
+		};
+		return easingsFunctions;
+	})();
 
 	const EASING_OPTIONS = {
 		linear: "linear",
@@ -219,16 +217,24 @@ const easingsFunctions = (function() {
 	Object.freeze(EASING_OPTIONS);
 	const EASING_DEFAULT = 'linear';
 
-	const geckoSettingsDefault = {
+	//#endregion Easing Functions
+
+	//#region Codec Helpers / Export Settings
+	const GECKO_SETTINGS_DEFAULT = {
 		// modSDK: MOD_SDK_1_15_FORGE,
 		entityType: 'Entity',
 		javaPackage: 'com.example.mod',
 		animFileNamespace: 'MODID',
 		animFilePath: 'animations/ANIMATIONFILE.json',
 	};
-	Object.freeze(geckoSettingsDefault);
+	Object.freeze(GECKO_SETTINGS_DEFAULT);
 
-	let geckoSettings = Object.assign({}, geckoSettingsDefault);
+	let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
+
+	// const MOD_SDK_1_15_FORGE = '1.15 - Forge';
+	// const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
+	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
+	// const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
 
 	const getImports = () => {
 		// switch(geckoSettings.modSDK) {
@@ -254,10 +260,13 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		if (e.model && typeof e.model.geckoSettings === 'object') {
 			geckoSettings = e.model.geckoSettings;
 		} else {
-			geckoSettings = Object.assign({}, geckoSettingsDefault);
+			geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 		}
 	};
 
+	//#endregion Codec Helpers / Export Settings
+
+	//#region Global Animation UI Handlers
 	const displayAnimationFrameCallback = (...args) => {
 		// const keyframe = $('#keyframe');
 		// console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
@@ -353,6 +362,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		}
 	};
 
+	//#endregion Global Animation UI Handlers
+
+	//#region Keyframe Mixins
 	const KeyframeGetLerpOriginal = Keyframe.prototype.getLerp;
 	function keyframeGetLerp(other, axis, amount, allow_expression) {
 			const easing = this.easing || EASING_DEFAULT;
@@ -417,6 +429,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		return result;
 	}
 
+	//#endregion Keyframe Mixins
+
+	//#region Plugin Definition
 	Plugin.register("animation_utils", {
 		name: "Gecko's Animation Utils",
 		author: "Gecko",
@@ -497,7 +512,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			console.clear();
 		},
 	});
+	//#endregion Plugin Definition
 
+	//#region Codec / ModelFormat
 	const Templates = {
 		"1.15": {
 			name: "1.15",
@@ -1155,4 +1172,6 @@ this.registerModelRenderer(%(bone));`,
 	});
 	//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
 	codec.format = format;
+
+	//#endregion Codec / ModelFormat
 })();
