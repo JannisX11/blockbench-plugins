@@ -208,5 +208,13 @@
     "description": "This plugin lets you create animated java entities with GeckoLib. Learn about Geckolib here: https://github.com/bernie-g/geckolib",
     "version": "1.0.0",
     "variant": "both"
+  },
+  "multi-layer": {
+      "title": "Multi-Layer",
+      "icon": "layers",
+      "author": "aidancbrady",
+      "description": "Allows exporting in Forge's multi-layer model format.",
+      "version": "1.0",
+      "variant": "both"
   }
 }
