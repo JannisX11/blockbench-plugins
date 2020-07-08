@@ -210,11 +210,11 @@
     "variant": "both"
   },
   "multi-layer": {
-      "title": "Multi-Layer",
-      "icon": "layers",
-      "author": "aidancbrady",
-      "description": "Allows exporting in Forge's multi-layer model format.",
-      "version": "1.0",
-      "variant": "both"
+    "title": "Multi-Layer",
+    "icon": "layers",
+    "author": "aidancbrady",
+    "description": "Allows exporting in Forge's multi-layer model format.",
+    "version": "1.0",
+    "variant": "both"
   }
 }
