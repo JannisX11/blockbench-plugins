@@ -272,6 +272,8 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		// console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 	};
 
+	const hasArgs = (easing = "") => easing.includes("Back");
+
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
 		const value = $(obj).val();
@@ -289,7 +291,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		console.log('updateKeyframeEasingScale value:', value, 'obj:', obj); 
 		if (value === "-") return;
 		Timeline.selected.forEach((kf) => {
-			kf.easingScale = value;
+			kf.easingArgs = [value];
 		})
 	}
 
@@ -346,8 +348,8 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 						option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
 					}
 
-					if (Timeline.selected.every(kf => kf.easing && kf.easing.includes("Back"))) {
-						const displayedValue = getMultiSelectValue('easingScale', 1, 1);
+					if (Timeline.selected.every(kf => hasArgs(kf.easing))) {
+						const [displayedValue] = getMultiSelectValue('easingArgs', [1], [1]);
 						let scaleBar = document.createElement('div');
 						keyframe.appendChild(scaleBar);
 						scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_scale">
@@ -387,8 +389,10 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				return Original.get(Keyframe).getLerp.apply(this, arguments);
 			}
 			let easingFunc = easingsFunctions[easing];
-			if (easing.includes("Back")) {
-				const easingScale = typeof this.easingScale === 'number' ? this.easingScale : 1;
+			if (hasArgs(easing)) {
+				const easingScale = Array.isArray(this.easingArgs) && this.easingArgs.length > 0
+					? this.easingArgs[0]
+					: 1;
 				console.log(`keyframeGetLerp easingScale: ${easingScale}`);
 				easingFunc = easingFunc.bind(null, easingScale);
 			}
@@ -401,17 +405,23 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	}
 
 	function keyframeGetArray() {
-			const { easing, easingScale } = this;
+			const { easing, easingArgs } = this;
 			let result = Original.get(Keyframe).getArray.apply(this, arguments);
-			if (Format.id === "animated_entity_model") result = { vector: result, easing, easingScale };
+			if (Format.id === "animated_entity_model") {
+				result = { vector: result, easing };
+				if (hasArgs(easing)) result.easingArgs = easingArgs;
+			}
 			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
 	function keyframeGetUndoCopy() {
-			const { easing, easingScale } = this;
+			const { easing, easingArgs } = this;
 			const result = Original.get(Keyframe).getUndoCopy.apply(this, arguments);
-			if (Format.id === "animated_entity_model") Object.assign(result, { easing, easingScale });
+			if (Format.id === "animated_entity_model") {
+				Object.assign(result, { easing });
+				if (hasArgs(easing)) result.easingArgs = easingArgs;
+			}
 			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
@@ -422,8 +432,8 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				if (data.values.easing !== undefined) {
 					Merge.string(this, data.values, 'easing');
 				}
-				if (data.values.easingScale !== undefined) {
-					Merge.number(this, data.values, 'easingScale');
+				if (Array.isArray(data.values.easingArgs)) {
+					this.easingArgs = data.values.easingArgs;
 				}
 				// Convert data to format expected by KeyframeExtendOriginal
 				data.values = data.values.vector;
@@ -431,8 +441,8 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				if (data.easing !== undefined) {
 						Merge.string(this, data, 'easing');
 				}
-				if (data.easingScale !== undefined) {
-					Merge.number(this, data, 'easingScale');
+				if (Array.isArray(data.easingArgs)) {
+					this.easingArgs = data.easingArgs;
 				}
 			}
 		}
