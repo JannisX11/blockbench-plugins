@@ -384,14 +384,14 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		Original.clear();
 	}
 	function keyframeGetLerp(other, axis, amount, allow_expression) {
-			const easing = this.easing || EASING_DEFAULT;
+			const easing = other.easing || EASING_DEFAULT;
 			if (Format.id !== "animated_entity_model") {
 				return Original.get(Keyframe).getLerp.apply(this, arguments);
 			}
 			let easingFunc = easingsFunctions[easing];
 			if (hasArgs(easing)) {
-				const easingScale = Array.isArray(this.easingArgs) && this.easingArgs.length > 0
-					? this.easingArgs[0]
+				const easingScale = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
+					? other.easingArgs[0]
 					: 1;
 				console.log(`keyframeGetLerp easingScale: ${easingScale}`);
 				easingFunc = easingFunc.bind(null, easingScale);
