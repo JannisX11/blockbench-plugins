@@ -321,8 +321,23 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			};
 
+			const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
+				if (!acc.has(kf.animator)) acc.set(kf.animator, {});
+				const animatorChannels = acc.get(kf.animator);
+				if (!animatorChannels[kf.channel]) animatorChannels[kf.channel] = [];
+				animatorChannels[kf.channel].push(kf);
+				animatorChannels[kf.channel].sort((a, b) => {
+					if (a.time < b.time) return -1;
+					if (a.time > b.time) return 1;
+					return 0;
+				});
+				return acc;
+			}, new Map());
+
+			const isFirstInChannel = kf => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
+
 			if (Timeline.selected.length && Format.id === "animated_entity_model") {
-				if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator)) {
+				if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
 					const displayedEasing = getMultiSelectValue('easing', EASING_DEFAULT, 'null');
 
 					const keyframe = document.getElementById('keyframe');
