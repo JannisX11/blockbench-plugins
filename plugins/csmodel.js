@@ -14,10 +14,10 @@ Plugin.register('csmodel', {
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
 	version: '0.1.1',
-	variant: 'desktop',
+	variant: 'both',
 	onload() {
 
-		getNativeSize = function(cube, face) {
+		let getNativeSize = function(cube, face) {
 			var side = face.direction;
 			var size = {};
 			if (side == 'north' || side == 'south') {
@@ -407,11 +407,11 @@ Plugin.register('csmodel', {
 
 				return writer.array;
 			},
-			parse(model, path) {
+			parse(arraybuffer) {
 
 				newProject(Formats.bedrock)
 
-				var reader = new BinaryReader(model.buffer);
+				var reader = new BinaryReader(arraybuffer);
 
 				var nodes = {};
 				var face_info = {};
@@ -566,23 +566,18 @@ Plugin.register('csmodel', {
 			icon: 'star',
 			category: 'file',
 			click() {
-				ElecDialogs.showOpenDialog(
-				    currentwindow,
-				    {
-				        title: 'Import csmodel',
-				        dontAddToRecent: true,
-				        filters: [{
-				            name: '',
-				            extensions: ['csmodel']
-				        }]
-				    },
-				function (files) {
-				    if (!files) return;
-				    fs.readFile(files[0], (err, data) => {
-				        if (err) return;
-				        codec.parse(data, files[0])
-				    });
-				});
+				Blockbench.import({
+					extensions: ['csmodel'],
+					type: 'CraftStudio Model',
+					readtype: 'binary',
+					resource_id: 'craftstudio_files'
+				}, files => {
+					if (isApp) {
+						codec.parse(files[0].content.buffer);
+					} else {
+						codec.parse(files[0].content);
+					}
+				})
 			}
 		})
 		export_action = new Action('export_csmodel', {
