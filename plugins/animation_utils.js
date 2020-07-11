@@ -26,6 +26,68 @@
 	//#endregion Helper Functions
 
 	//#region Easing Functions
+	// The MIT license notice below applies to the function findIntervalBorderIndex
+	/* The MIT License (MIT)
+
+	Copyright (c) 2015 Boris Chumichev
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of
+	this software and associated documentation files (the "Software"), to deal in
+	the Software without restriction, including without limitation the rights to
+	use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+	the Software, and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+	FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+	COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	/**
+	 *
+	 * Utilizes bisection method to search an interval to which
+	 * point belongs to, then returns an index of left or right
+	 * border of the interval
+	 *
+	 * @param {Number} point
+	 * @param {Array} intervals
+	 * @param {Boolean} useRightBorder
+	 * @returns {Number}
+	 */
+	function findIntervalBorderIndex(point, intervals, useRightBorder) {
+		//If point is beyond given intervals
+		if (point < intervals[0])
+			return 0
+		if (point > intervals[intervals.length - 1])
+			return intervals.length - 1
+		//If point is inside interval
+		//Start searching on a full range of intervals
+		var indexOfNumberToCompare = 0;
+		var leftBorderIndex = 0;
+		var rightBorderIndex = intervals.length - 1
+		//Reduce searching range till it find an interval point belongs to using binary search
+		while (rightBorderIndex - leftBorderIndex !== 1) {
+			indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2)
+			point >= intervals[indexOfNumberToCompare] ?
+				leftBorderIndex = indexOfNumberToCompare :
+				rightBorderIndex = indexOfNumberToCompare
+		}
+		return useRightBorder ? rightBorderIndex : leftBorderIndex
+	}
+
+	function stepRange(steps, stop = 1) {
+		if (steps < 2) throw new Error("steps must be > 2, got:" + steps);
+		const stepLength = stop / steps;
+		return Array.from({
+			length: steps
+		}, (_, i) => i * stepLength);
+	};
+
 	const easingsFunctions = (function() {
 		const pow = Math.pow;
 		const sqrt = Math.sqrt;
@@ -56,6 +118,10 @@
 		const easingsFunctions = {
 				linear(x) {
 					return x;
+				},
+				step(steps, x) {
+					const intervals = stepRange(steps);
+					return intervals[findIntervalBorderIndex(x, intervals, false)];
 				},
 				easeInQuad(x) {
 						return x * x;
@@ -183,6 +249,7 @@
 
 	const EASING_OPTIONS = {
 		linear: "linear",
+		step: "step",
 		easeInSine: "easeInSine",
 		easeOutSine: "easeOutSine",
 		easeInOutSine: "easeInOutSine",
@@ -217,6 +284,19 @@
 	Object.freeze(EASING_OPTIONS);
 	const EASING_DEFAULT = 'linear';
 
+	const getEasingArgDefault = kf => {
+		switch(kf.easing) {
+			case EASING_OPTIONS.easeInBack:
+			case EASING_OPTIONS.easeOutBack:
+			case EASING_OPTIONS.easeInOutBack:
+				return 1;
+			case EASING_OPTIONS.step:
+				return 5;
+			default:
+				return null;
+		}
+	};
+	
 	//#endregion Easing Functions
 
 	//#region Codec Helpers / Export Settings
@@ -272,7 +352,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		// console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 	};
 
-	const hasArgs = (easing = "") => easing.includes("Back");
+	const hasArgs = (easing = "") => easing.includes("Back") || easing === EASING_OPTIONS.step;
 
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
@@ -282,15 +362,21 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		Timeline.selected.forEach((kf) => {
 			kf.easing = value;
 		})
-		updateKeyframeSelection(); // Ensure easingScale display is updated
+		updateKeyframeSelection(); // Ensure easingArg display is updated
 		// Animator.preview();
 	}
 
-	function updateKeyframeEasingScale(obj) {
-		const value = parseInt($(obj).val().trim(), 10);
-		console.log('updateKeyframeEasingScale value:', value, 'obj:', obj); 
+	function updateKeyframeEasingArg(obj) {
+		let value = parseInt($(obj).val().trim(), 10);
+		console.log('updateKeyframeEasingArg value:', value, 'obj:', obj); 
 		if (value === "-") return;
 		Timeline.selected.forEach((kf) => {
+			if (kf.easing === EASING_OPTIONS.step) {
+				if (value < 2) {
+					value = 2;
+					obj.value = 2;
+				}
+			}
 			kf.easingArgs = [value];
 		})
 	}
@@ -308,20 +394,25 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 				}
 			})
 
-			const getMultiSelectValue = (property, defaultValue, conflictValue) => {
+			const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
+				const selectorFunction = typeof selector === 'function' 
+					? selector
+					: x => x[selector];
+
 				if (Timeline.selected.length > 1) {
-					const uniqSelected = uniq(Timeline.selected.map(kf => kf[property]));
+					const uniqSelected = uniq(Timeline.selected.map(selectorFunction));
 					if (uniqSelected.length === 1) {
 						return uniqSelected[0];
 					} else {
 						return conflictValue;
 					}
 				} else {
-					return Timeline.selected[0][property] || defaultValue;
+					return selectorFunction(Timeline.selected[0]) || defaultValue;
 				}
 			};
 
 			const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
+				// Dear god I miss lodash
 				if (!acc.has(kf.animator)) acc.set(kf.animator, {});
 				const animatorChannels = acc.get(kf.animator);
 				if (!animatorChannels[kf.channel]) animatorChannels[kf.channel] = [];
@@ -363,13 +454,28 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 						option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
 					}
 
-					if (Timeline.selected.every(kf => hasArgs(kf.easing))) {
-						const [displayedValue] = getMultiSelectValue('easingArgs', [1], [1]);
+
+					const getEasingArgLabel = (kf) => {
+						switch(kf.easing) {
+							case EASING_OPTIONS.easeInBack:
+							case EASING_OPTIONS.easeOutBack:
+							case EASING_OPTIONS.easeInOutBack:
+								return 'Easing Scale';
+							case EASING_OPTIONS.step:
+								return 'Easing Steps';
+							default:
+								return 'N/A';
+						}
+					};
+					const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
+					if (Timeline.selected.every(kf => hasArgs(kf.easing)) && easingArgLabel !== null) {
+						const argDefault = getMultiSelectValue(getEasingArgDefault, null, null);
+						const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
 						let scaleBar = document.createElement('div');
 						keyframe.appendChild(scaleBar);
 						scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_scale">
-							<label class="tl" style="font-weight: bolder; min-width: 90px;">Easing Scale</label>
-							<input type="text" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingScale(this)" style="flex: 1; margin-right: 9px;">
+							<label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
+							<input type="text" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
 						</div>`;
 						scaleBar = document.getElementById('keyframe_bar_easing_scale');
 					}
@@ -405,11 +511,11 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			}
 			let easingFunc = easingsFunctions[easing];
 			if (hasArgs(easing)) {
-				const easingScale = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
+				const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
 					? other.easingArgs[0]
-					: 1;
-				console.log(`keyframeGetLerp easingScale: ${easingScale}`);
-				easingFunc = easingFunc.bind(null, easingScale);
+					: getEasingArgDefault(other);
+				console.log(`keyframeGetLerp arg1: ${arg1}`);
+				easingFunc = easingFunc.bind(null, arg1);
 			}
 			const easedAmount = easingFunc(amount); 
 			const start = this.calc(axis);
@@ -490,7 +596,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
 			
 			addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
-			addMonkeypatch(global, null, "updateKeyframeEasingScale", updateKeyframeEasingScale);
+			addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
