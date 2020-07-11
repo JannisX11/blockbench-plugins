@@ -576,13 +576,13 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 
 	//#region Plugin Definition
 	Plugin.register("animation_utils", {
-		name: "Gecko's Animation Utils",
-		author: "Gecko",
-		title: "Gecko's Animation Utils",
+		name: "Geckolib Animation Utils",
+		author: "Eliot Lash, Gecko",
+		title: "Geckolib Animation Utils",
 		description:
 			"This plugin lets you create animated java entities with GeckoLib. Learn about Geckolib here: https://github.com/bernie-g/geckolib",
 		icon: "movie_filter",
-		version: "1.0.0",
+		version: "2.0.0",
 		variant: "both",
 		onload() {
 			Codecs.project.on('compile', compileCallback);
