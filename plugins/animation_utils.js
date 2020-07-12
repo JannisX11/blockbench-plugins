@@ -271,6 +271,8 @@
 	const quint = Easing.poly(5);
 	const back = (direction, scalar, t) =>
 		direction(Easing.back(1.70158 * scalar))(t);
+	const elastic = (direction, bounciness, t) =>
+		direction(Easing.elastic(bounciness))(t);
 
 	const easingFunctions = {
 		linear: Easing.linear,
@@ -302,9 +304,9 @@
 		easeInBack: back.bind(null, Easing.in),
 		easeOutBack: back.bind(null, Easing.out),
 		easeInOutBack: back.bind(null, Easing.inOut),
-		easeInElastic: Easing.in(Easing.elastic()), // TODO make configurable
-		easeOutElastic: Easing.out(Easing.elastic()),
-		easeInOutElastic: Easing.inOut(Easing.elastic()),
+		easeInElastic: elastic.bind(null, Easing.in),
+		easeOutElastic: elastic.bind(null, Easing.out),
+		easeInOutElastic: elastic.bind(null, Easing.inOut),
 		easeInBounce: Easing.in(Easing.bounce),
 		easeOutBounce: Easing.out(Easing.bounce),
 		easeInOutBounce: Easing.inOut(Easing.bounce),
@@ -352,11 +354,30 @@
 			case EASING_OPTIONS.easeInBack:
 			case EASING_OPTIONS.easeOutBack:
 			case EASING_OPTIONS.easeInOutBack:
+			case EASING_OPTIONS.easeInElastic:
+			case EASING_OPTIONS.easeOutElastic:
+			case EASING_OPTIONS.easeInOutElastic:
 				return 1;
 			case EASING_OPTIONS.step:
 				return 5;
 			default:
 				return null;
+		}
+	};
+
+	const parseEasingArg = (kf, value) => {
+		switch(kf.easing) {
+			case EASING_OPTIONS.easeInBack:
+			case EASING_OPTIONS.easeOutBack:
+			case EASING_OPTIONS.easeInOutBack:
+			case EASING_OPTIONS.easeInElastic:
+			case EASING_OPTIONS.easeOutElastic:
+			case EASING_OPTIONS.easeInOutElastic:
+				return parseFloat(value);
+			case EASING_OPTIONS.step:
+				return Math.max(parseInt(value, 10), 2);
+			default:
+				return parseInt(value, 10);
 		}
 	};
 	
@@ -415,7 +436,10 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 		// console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 	};
 
-	const hasArgs = (easing = "") => easing.includes("Back") || easing === EASING_OPTIONS.step;
+	const hasArgs = (easing = "") =>
+		easing.includes("Back")
+		|| easing.includes("Elastic")
+		|| easing === EASING_OPTIONS.step;
 
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
@@ -430,17 +454,12 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	}
 
 	function updateKeyframeEasingArg(obj) {
-		let value = parseInt($(obj).val().trim(), 10);
-		console.log('updateKeyframeEasingArg value:', value, 'obj:', obj); 
-		if (value === "-") return;
+		if ($(obj).val() === "-") return;
+		console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
 		Timeline.selected.forEach((kf) => {
-			if (kf.easing === EASING_OPTIONS.step) {
-				if (value < 2) {
-					value = 2;
-					obj.value = 2;
-				}
-			}
+			const value = parseEasingArg(kf, $(obj).val().trim());
 			kf.easingArgs = [value];
+			// obj.value = value;
 		})
 	}
 
@@ -460,7 +479,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
 				const selectorFunction = typeof selector === 'function' 
 					? selector
-					: x => x[selector];
+					: x => (x[selector] === undefined ? defaultValue : x[selector]);
 
 				if (Timeline.selected.length > 1) {
 					const uniqSelected = uniq(Timeline.selected.map(selectorFunction));
@@ -517,15 +536,18 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 						option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
 					}
 
-
 					const getEasingArgLabel = (kf) => {
 						switch(kf.easing) {
 							case EASING_OPTIONS.easeInBack:
 							case EASING_OPTIONS.easeOutBack:
 							case EASING_OPTIONS.easeInOutBack:
-								return 'Easing Scale';
+								return 'Overshoot';
+							case EASING_OPTIONS.easeInElastic:
+							case EASING_OPTIONS.easeOutElastic:
+							case EASING_OPTIONS.easeInOutElastic:
+								return 'Bounciness';
 							case EASING_OPTIONS.step:
-								return 'Easing Steps';
+								return 'Steps';
 							default:
 								return 'N/A';
 						}
@@ -536,11 +558,11 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 						const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
 						let scaleBar = document.createElement('div');
 						keyframe.appendChild(scaleBar);
-						scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_scale">
+						scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_arg1">
 							<label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
-							<input type="text" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
+							<input type="number" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
 						</div>`;
-						scaleBar = document.getElementById('keyframe_bar_easing_scale');
+						scaleBar = document.getElementById('keyframe_bar_easing_arg1');
 					}
 
 					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
