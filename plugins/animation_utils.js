@@ -23,6 +23,10 @@
 			return acc;
 		}, []);
 	}
+
+	function compose(...fns) {
+		 return x => fns.reduceRight((y, f) => f(y), x);
+	}
 	//#endregion Helper Functions
 
 	//#region Easing Functions
@@ -88,112 +92,214 @@
 		}, (_, i) => i * stepLength);
 	};
 
+	// The MIT license notice below applies to the Easing class
+	/**
+	 * Copyright (c) Facebook, Inc. and its affiliates.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+	class Easing {
+			/**
+			 * A stepping function, returns 1 for any positive value of `n`.
+			 */
+			static step0(n) {
+					return n > 0 ? 1 : 0;
+			}
+			/**
+			 * A stepping function, returns 1 if `n` is greater than or equal to 1.
+			 */
+			static step1(n) {
+					return n >= 1 ? 1 : 0;
+			}
+			/**
+			 * A linear function, `f(t) = t`. Position correlates to elapsed time one to
+			 * one.
+			 *
+			 * http://cubic-bezier.com/#0,0,1,1
+			 */
+			static linear(t) {
+					return t;
+			}
+			/**
+			 * A simple inertial interaction, similar to an object slowly accelerating to
+			 * speed.
+			 *
+			 * http://cubic-bezier.com/#.42,0,1,1
+			 */
+			// static ease(t) {
+			// 		if (!ease) {
+			// 				ease = Easing.bezier(0.42, 0, 1, 1);
+			// 		}
+			// 		return ease(t);
+			// }
+			/**
+			 * A quadratic function, `f(t) = t * t`. Position equals the square of elapsed
+			 * time.
+			 *
+			 * http://easings.net/#easeInQuad
+			 */
+			static quad(t) {
+					return t * t;
+			}
+			/**
+			 * A cubic function, `f(t) = t * t * t`. Position equals the cube of elapsed
+			 * time.
+			 *
+			 * http://easings.net/#easeInCubic
+			 */
+			static cubic(t) {
+					return t * t * t;
+			}
+			/**
+			 * A power function. Position is equal to the Nth power of elapsed time.
+			 *
+			 * n = 4: http://easings.net/#easeInQuart
+			 * n = 5: http://easings.net/#easeInQuint
+			 */
+			static poly(n) {
+					return (t) => Math.pow(t, n);
+			}
+			/**
+			 * A sinusoidal function.
+			 *
+			 * http://easings.net/#easeInSine
+			 */
+			static sin(t) {
+					return 1 - Math.cos((t * Math.PI) / 2);
+			}
+			/**
+			 * A circular function.
+			 *
+			 * http://easings.net/#easeInCirc
+			 */
+			static circle(t) {
+					return 1 - Math.sqrt(1 - t * t);
+			}
+			/**
+			 * An exponential function.
+			 *
+			 * http://easings.net/#easeInExpo
+			 */
+			static exp(t) {
+					return Math.pow(2, 10 * (t - 1));
+			}
+			/**
+			 * A simple elastic interaction, similar to a spring oscillating back and
+			 * forth.
+			 *
+			 * Default bounciness is 1, which overshoots a little bit once. 0 bounciness
+			 * doesn't overshoot at all, and bounciness of N > 1 will overshoot about N
+			 * times.
+			 *
+			 * http://easings.net/#easeInElastic
+			 */
+			static elastic(bounciness = 1) {
+					const p = bounciness * Math.PI;
+					return t => 1 - Math.pow(Math.cos((t * Math.PI) / 2), 3) * Math.cos(t * p);
+			}
+			/**
+			 * Use with `Animated.parallel()` to create a simple effect where the object
+			 * animates back slightly as the animation starts.
+			 *
+			 * Wolfram Plot:
+			 *
+			 * - http://tiny.cc/back_default (s = 1.70158, default)
+			 */
+			static back(s = 1.70158) {
+					return t => t * t * ((s + 1) * t - s);
+			}
+			/**
+			 * Provides a simple bouncing effect.
+			 *
+			 * http://easings.net/#easeInBounce
+			 */
+			static bounce(t) {
+					if (t < 1 / 2.75) {
+							return 7.5625 * t * t;
+					}
+					if (t < 2 / 2.75) {
+							const t2 = t - 1.5 / 2.75;
+							return 7.5625 * t2 * t2 + 0.75;
+					}
+					if (t < 2.5 / 2.75) {
+							const t2 = t - 2.25 / 2.75;
+							return 7.5625 * t2 * t2 + 0.9375;
+					}
+					const t2 = t - 2.625 / 2.75;
+					return 7.5625 * t2 * t2 + 0.984375;
+			}
+			/**
+			 * Provides a cubic bezier curve, equivalent to CSS Transitions'
+			 * `transition-timing-function`.
+			 *
+			 * A useful tool to visualize cubic bezier curves can be found at
+			 * http://cubic-bezier.com/
+			 */
+			// static bezier(x1, y1, x2, y2) {
+			// 		const _bezier = require('./bezier');
+			// 		return _bezier(x1, y1, x2, y2);
+			// }
+			/**
+			 * Runs an easing function forwards.
+			 */
+			static in(easing) {
+					return easing;
+			}
+			/**
+			 * Runs an easing function backwards.
+			 */
+			static out(easing) {
+					return t => 1 - easing(1 - t);
+			}
+			/**
+			 * Makes any easing function symmetrical. The easing function will run
+			 * forwards for half of the duration, then backwards for the rest of the
+			 * duration.
+			 */
+			static inOut(easing) {
+					return t => {
+							if (t < 0.5) {
+									return easing(t * 2) / 2;
+							}
+							return 1 - easing((1 - t) * 2) / 2;
+					};
+			}
+	}
+	
+
 	const easingsFunctions = (function() {
-		const pow = Math.pow;
-		const sqrt = Math.sqrt;
-		const sin = Math.sin;
-		const cos = Math.cos;
-		const PI = Math.PI;
-		const getC1 = scalar => 1.70158 * scalar;
-		const getC2 = c1 => c1 * 1.525;
-		const getC3 = c1 => c1 + 1;
-		const c4 = (2 * PI) / 3;
-		const c5 = (2 * PI) / 4.5;
-		function bounceOut(x) {
-				const n1 = 7.5625;
-				const d1 = 2.75;
-				if (x < 1 / d1) {
-						return n1 * x * x;
-				}
-				else if (x < 2 / d1) {
-						return n1 * (x -= 1.5 / d1) * x + 0.75;
-				}
-				else if (x < 2.5 / d1) {
-						return n1 * (x -= 2.25 / d1) * x + 0.9375;
-				}
-				else {
-						return n1 * (x -= 2.625 / d1) * x + 0.984375;
-				}
-		}
+		const { pow, sin, cos, sqrt, PI } = Math; // TODO delete
+		const quart = Easing.poly(4);
+		const quint = Easing.poly(5);
+		const back = scalar => Easing.back(1.70158 * scalar);
 		const easingsFunctions = {
-				linear(x) {
-					return x;
-				},
-				step(steps, x) {
-					const intervals = stepRange(steps);
-					return intervals[findIntervalBorderIndex(x, intervals, false)];
-				},
-				easeInQuad(x) {
-						return x * x;
-				},
-				easeOutQuad(x) {
-						return 1 - (1 - x) * (1 - x);
-				},
-				easeInOutQuad(x) {
-						return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
-				},
-				easeInCubic(x) {
-						return x * x * x;
-				},
-				easeOutCubic(x) {
-						return 1 - pow(1 - x, 3);
-				},
-				easeInOutCubic(x) {
-						return x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
-				},
-				easeInQuart(x) {
-						return x * x * x * x;
-				},
-				easeOutQuart(x) {
-						return 1 - pow(1 - x, 4);
-				},
-				easeInOutQuart(x) {
-						return x < 0.5 ? 8 * x * x * x * x : 1 - pow(-2 * x + 2, 4) / 2;
-				},
-				easeInQuint(x) {
-						return x * x * x * x * x;
-				},
-				easeOutQuint(x) {
-						return 1 - pow(1 - x, 5);
-				},
-				easeInOutQuint(x) {
-						return x < 0.5 ? 16 * x * x * x * x * x : 1 - pow(-2 * x + 2, 5) / 2;
-				},
-				easeInSine(x) {
-						return 1 - cos((x * PI) / 2);
-				},
-				easeOutSine(x) {
-						return sin((x * PI) / 2);
-				},
-				easeInOutSine(x) {
-						return -(cos(PI * x) - 1) / 2;
-				},
-				easeInExpo(x) {
-						return x === 0 ? 0 : pow(2, 10 * x - 10);
-				},
-				easeOutExpo(x) {
-						return x === 1 ? 1 : 1 - pow(2, -10 * x);
-				},
-				easeInOutExpo(x) {
-						return x === 0
-								? 0
-								: x === 1
-										? 1
-										: x < 0.5
-												? pow(2, 20 * x - 10) / 2
-												: (2 - pow(2, -20 * x + 10)) / 2;
-				},
-				easeInCirc(x) {
-						return 1 - sqrt(1 - pow(x, 2));
-				},
-				easeOutCirc(x) {
-						return sqrt(1 - pow(x - 1, 2));
-				},
-				easeInOutCirc(x) {
-						return x < 0.5
-								? (1 - sqrt(1 - pow(2 * x, 2))) / 2
-								: (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-				},
+			linear: Easing.linear,
+			step(steps, x) {
+				const intervals = stepRange(steps);
+				return intervals[findIntervalBorderIndex(x, intervals, false)];
+			},
+			easeInQuad: Easing.in(Easing.quad),
+			easeOutQuad: Easing.out(Easing.quad),
+			easeInOutQuad: Easing.inOut(Easing.quad),
+			easeInCubic: Easing.in(Easing.cubic),
+			easeOutCubic: Easing.out(Easing.cubic),
+			easeInOutCubic: Easing.inOut(Easing.cubic),
+			easeInQuart: Easing.in(quart),
+			easeOutQuart: Easing.out(quart),
+			easeInOutQuart: Easing.inOut(quart),
+			easeInQuint: Easing.in(quint),
+			easeOutQuint: Easing.out(quint),
+			easeInOutQuint: Easing.inOut(quint),
+			easeInSine: Easing.in(Easing.sin),
+			easeOutSine: Easing.out(Easing.sin),
+			easeInOutSine: Easing.inOut(Easing.sin),
+			easeInExpo: Easing.in(Easing.exp),
+			easeOutExpo: Easing.out(Easing.exp),
+			easeInOutExpo: Easing.inOut(Easing.exp),
+			easeInCirc: Easing.in(Easing.circle),
+			easeOutCirc: Easing.out(Easing.circle),
+			easeInOutCirc: Easing.inOut(Easing.circle),
 				easeInBack(scalar, x) {
 					const c1 = getC1(scalar);
 					const c3 = getC3(c1);
@@ -234,15 +340,9 @@
 												? -(pow(2, 20 * x - 10) * sin((20 * x - 11.125) * c5)) / 2
 												: (pow(2, -20 * x + 10) * sin((20 * x - 11.125) * c5)) / 2 + 1;
 				},
-				easeInBounce(x) {
-						return 1 - bounceOut(1 - x);
-				},
-				easeOutBounce: bounceOut,
-				easeInOutBounce(x) {
-						return x < 0.5
-								? (1 - bounceOut(1 - 2 * x)) / 2
-								: (1 + bounceOut(2 * x - 1)) / 2;
-				},
+				easeInBounce: Easing.in(Easing.bounce),
+				easeOutBounce: Easing.out(Easing.bounce),
+				easeInOutBounce: Easing.inOut(Easing.bounce),
 		};
 		return easingsFunctions;
 	})();
@@ -521,7 +621,10 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			const start = this.calc(axis);
 			const stop = other.calc(axis);
 			const result = lerp(start, stop, easedAmount);
-			console.log('keyframeGetLerp arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
+			console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
+			if (Number.isNaN(result)) {
+				throw new Error('batman');
+			}
 			return result;
 	}
 
