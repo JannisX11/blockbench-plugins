@@ -266,86 +266,49 @@
 					};
 			}
 	}
-	
 
-	const easingsFunctions = (function() {
-		const { pow, sin, cos, sqrt, PI } = Math; // TODO delete
-		const quart = Easing.poly(4);
-		const quint = Easing.poly(5);
-		const back = scalar => Easing.back(1.70158 * scalar);
-		const easingsFunctions = {
-			linear: Easing.linear,
-			step(steps, x) {
-				const intervals = stepRange(steps);
-				return intervals[findIntervalBorderIndex(x, intervals, false)];
-			},
-			easeInQuad: Easing.in(Easing.quad),
-			easeOutQuad: Easing.out(Easing.quad),
-			easeInOutQuad: Easing.inOut(Easing.quad),
-			easeInCubic: Easing.in(Easing.cubic),
-			easeOutCubic: Easing.out(Easing.cubic),
-			easeInOutCubic: Easing.inOut(Easing.cubic),
-			easeInQuart: Easing.in(quart),
-			easeOutQuart: Easing.out(quart),
-			easeInOutQuart: Easing.inOut(quart),
-			easeInQuint: Easing.in(quint),
-			easeOutQuint: Easing.out(quint),
-			easeInOutQuint: Easing.inOut(quint),
-			easeInSine: Easing.in(Easing.sin),
-			easeOutSine: Easing.out(Easing.sin),
-			easeInOutSine: Easing.inOut(Easing.sin),
-			easeInExpo: Easing.in(Easing.exp),
-			easeOutExpo: Easing.out(Easing.exp),
-			easeInOutExpo: Easing.inOut(Easing.exp),
-			easeInCirc: Easing.in(Easing.circle),
-			easeOutCirc: Easing.out(Easing.circle),
-			easeInOutCirc: Easing.inOut(Easing.circle),
-				easeInBack(scalar, x) {
-					const c1 = getC1(scalar);
-					const c3 = getC3(c1);
-					return c3 * x * x * x - c1 * x * x;
-				},
-				easeOutBack(scalar, x) {
-					const c1 = getC1(scalar);
-					const c3 = getC3(c1);
-					return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
-				},
-				easeInOutBack(scalar, x) {
-						const c1 = getC1(scalar);
-						const c2 = getC2(c1);
-						return x < 0.5
-								? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
-								: (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
-				},
-				easeInElastic(x) {
-						return x === 0
-								? 0
-								: x === 1
-										? 1
-										: -pow(2, 10 * x - 10) * sin((x * 10 - 10.75) * c4);
-				},
-				easeOutElastic(x) {
-						return x === 0
-								? 0
-								: x === 1
-										? 1
-										: pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1;
-				},
-				easeInOutElastic(x) {
-						return x === 0
-								? 0
-								: x === 1
-										? 1
-										: x < 0.5
-												? -(pow(2, 20 * x - 10) * sin((20 * x - 11.125) * c5)) / 2
-												: (pow(2, -20 * x + 10) * sin((20 * x - 11.125) * c5)) / 2 + 1;
-				},
-				easeInBounce: Easing.in(Easing.bounce),
-				easeOutBounce: Easing.out(Easing.bounce),
-				easeInOutBounce: Easing.inOut(Easing.bounce),
-		};
-		return easingsFunctions;
-	})();
+	const quart = Easing.poly(4);
+	const quint = Easing.poly(5);
+	const back = (direction, scalar, t) =>
+		direction(Easing.back(1.70158 * scalar))(t);
+
+	const easingFunctions = {
+		linear: Easing.linear,
+		step(steps, x) {
+			const intervals = stepRange(steps);
+			return intervals[findIntervalBorderIndex(x, intervals, false)];
+		},
+		easeInQuad: Easing.in(Easing.quad),
+		easeOutQuad: Easing.out(Easing.quad),
+		easeInOutQuad: Easing.inOut(Easing.quad),
+		easeInCubic: Easing.in(Easing.cubic),
+		easeOutCubic: Easing.out(Easing.cubic),
+		easeInOutCubic: Easing.inOut(Easing.cubic),
+		easeInQuart: Easing.in(quart),
+		easeOutQuart: Easing.out(quart),
+		easeInOutQuart: Easing.inOut(quart),
+		easeInQuint: Easing.in(quint),
+		easeOutQuint: Easing.out(quint),
+		easeInOutQuint: Easing.inOut(quint),
+		easeInSine: Easing.in(Easing.sin),
+		easeOutSine: Easing.out(Easing.sin),
+		easeInOutSine: Easing.inOut(Easing.sin),
+		easeInExpo: Easing.in(Easing.exp),
+		easeOutExpo: Easing.out(Easing.exp),
+		easeInOutExpo: Easing.inOut(Easing.exp),
+		easeInCirc: Easing.in(Easing.circle),
+		easeOutCirc: Easing.out(Easing.circle),
+		easeInOutCirc: Easing.inOut(Easing.circle),
+		easeInBack: back.bind(null, Easing.in),
+		easeOutBack: back.bind(null, Easing.out),
+		easeInOutBack: back.bind(null, Easing.inOut),
+		easeInElastic: Easing.in(Easing.elastic()), // TODO make configurable
+		easeOutElastic: Easing.out(Easing.elastic()),
+		easeInOutElastic: Easing.inOut(Easing.elastic()),
+		easeInBounce: Easing.in(Easing.bounce),
+		easeOutBounce: Easing.out(Easing.bounce),
+		easeInOutBounce: Easing.inOut(Easing.bounce),
+	};
 
 	const EASING_OPTIONS = {
 		linear: "linear",
@@ -609,7 +572,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 			if (Format.id !== "animated_entity_model") {
 				return Original.get(Keyframe).getLerp.apply(this, arguments);
 			}
-			let easingFunc = easingsFunctions[easing];
+			let easingFunc = easingFunctions[easing];
 			if (hasArgs(easing)) {
 				const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
 					? other.easingArgs[0]
