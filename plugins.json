@@ -29,7 +29,7 @@
     "min_version": "2.0.2",
     "variant": "both"
   },
-  "blockmodels_exporter": {
+  "blockmodels-exporter": {
     "title": "Export to BlockModels.com",
     "author": "TheDestruc7i0n",
     "description": "Export models from Blockbench directly to BlockModels.com",
