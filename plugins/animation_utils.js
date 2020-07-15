@@ -384,8 +384,13 @@
 	//#endregion Easing Functions
 
 	//#region Codec Helpers / Export Settings
+	const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
+	const MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
+	const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
+	const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
+
 	const GECKO_SETTINGS_DEFAULT = {
-		// modSDK: MOD_SDK_1_15_FORGE,
+		modSDK: MOD_SDK_1_15_FORGE,
 		entityType: 'Entity',
 		javaPackage: 'com.example.mod',
 		animFileNamespace: 'MODID',
@@ -395,23 +400,19 @@
 
 	let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 
-	// const MOD_SDK_1_15_FORGE = '1.15 - Forge';
-	// const MOD_SDK_1_15_FABRIC = '1.15 - Fabric';
-	// const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-	// const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
-
 	const getImports = () => {
-		// switch(geckoSettings.modSDK) {
-		// 	case MOD_SDK_1_15_FORGE:
-		// 		return ``;
-		// 	case MOD_SDK_1_15_FABRIC:
-		// 		return ``;
-		// 	default:
-		// 		throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
-		// }
-		return `import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.model.AnimatedModelRenderer;
-import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
+		switch(geckoSettings.modSDK) {
+			case MOD_SDK_1_15_FORGE:
+				return `import net.minecraft.util.ResourceLocation;
+import software.bernie.geckolib.animation.model.AnimatedEntityModel;
+import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
+			case MOD_SDK_1_15_FABRIC:
+				return `import software.bernie.geckolib.forgetofabric.ResourceLocation;
+import software.bernie.geckolib.animation.model.AnimatedEntityModel;
+import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
+			default:
+				throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
+		}
 	};
 
 	const compileCallback = (e) => {
@@ -422,7 +423,7 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	const parseCallback = (e) => {
 		console.log(`parseCallback:`, e);
 		if (e.model && typeof e.model.geckoSettings === 'object') {
-			geckoSettings = e.model.geckoSettings;
+			Object.assign(geckoSettings, e.model.geckoSettings);
 		} else {
 			geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 		}
@@ -663,14 +664,16 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 	//#endregion Keyframe Mixins
 
 	//#region Plugin Definition
+	const PLUGIN_VERSION = "2.0.0";
+
 	Plugin.register("animation_utils", {
-		name: "Geckolib Animation Utils",
+		name: "GeckoLib Animation Utils",
 		author: "Eliot Lash, Gecko",
-		title: "Geckolib Animation Utils",
+		title: "GeckoLib Animation Utils",
 		description:
-			"This plugin lets you create animated java entities with GeckoLib. Learn about Geckolib here: https://github.com/bernie-g/geckolib",
+			"This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench 3.5.4 or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
 		icon: "movie_filter",
-		version: "2.0.0",
+		version: PLUGIN_VERSION,
 		variant: "both",
 		onload() {
 			Codecs.project.on('compile', compileCallback);
@@ -710,8 +713,9 @@ import software.bernie.geckolib.forgetofabric.ResourceLocation;`;
 						id: 'project',
 						title: 'Animated Entity Settings',
 						width: 540,
+						lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${PLUGIN_VERSION}</b>`],
 						form: {
-							// modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
+							modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
 							entityType: {label: 'Entity Type', value: geckoSettings.entityType },
 							javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
 							animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
