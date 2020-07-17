@@ -669,7 +669,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
 
       holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
-        .children.find(x => x.name !== 'menu.animation.loop.hold');
+        .children.find(x => x.name === 'menu.animation.loop.hold');
       holdMenuConditionOriginal = holdMenu.condition;
       holdMenu.condition = () => Format.id !== "animated_entity_model";
 
