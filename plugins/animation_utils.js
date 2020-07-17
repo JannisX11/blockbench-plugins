@@ -641,6 +641,8 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	//#region Plugin Definition
 	const PLUGIN_VERSION = "2.0.0";
 	const MIN_BLOCKBENCH_VERSION = "3.6";
+  let holdMenu;
+  let holdMenuConditionOriginal;
 
 	Plugin.register("animation_utils", {
 		name: "GeckoLib Animation Utils",
@@ -665,6 +667,11 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			
 			addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
 			addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
+
+      holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
+        .children.find(x => x.name !== 'menu.animation.loop.hold');
+      holdMenuConditionOriginal = holdMenu.condition;
+      holdMenu.condition = () => Format.id !== "animated_entity_model";
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
@@ -716,6 +723,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			exportAction.delete();
 			button.delete();
 			removeMonkeypatches();
+      holdMenu.condition = holdMenuConditionOriginal;
 			console.clear();
 		},
 	});
