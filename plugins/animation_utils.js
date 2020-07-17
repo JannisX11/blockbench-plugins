@@ -212,23 +212,18 @@
 			/**
 			 * Provides a simple bouncing effect.
 			 *
+			 * Props to Waterded#6455 for making the bounce adjustable and GiantLuigi4#6616 for helping clean it up
+			 * using min instead of ternaries
 			 * http://easings.net/#easeInBounce
 			 */
-			static bounce(t) {
-					if (t < 1 / 2.75) {
-							return 7.5625 * t * t;
-					}
-					if (t < 2 / 2.75) {
-							const t2 = t - 1.5 / 2.75;
-							return 7.5625 * t2 * t2 + 0.75;
-					}
-					if (t < 2.5 / 2.75) {
-							const t2 = t - 2.25 / 2.75;
-							return 7.5625 * t2 * t2 + 0.9375;
-					}
-					const t2 = t - 2.625 / 2.75;
-					return 7.5625 * t2 * t2 + 0.984375;
+			static bounce(k = 0.5) {
+				const q = x => (121 / 16) * x * x;
+				const w = x => ((121 / 4) * k) * Math.pow(x - (6 / 11), 2) + 1 - k;
+				const r = x => 121 * k * k * Math.pow(x - (9 / 11), 2) + 1 - k * k;
+				const t = x => 484 * k * k * k * Math.pow(x - (10.5 / 11), 2) + 1 - k * k * k;
+				return x => Math.min(q(x), w(x), r(x), t(x));
 			}
+
 			/**
 			 * Provides a cubic bezier curve, equivalent to CSS Transitions'
 			 * `transition-timing-function`.
@@ -273,6 +268,8 @@
 		direction(Easing.back(1.70158 * scalar))(t);
 	const elastic = (direction, bounciness, t) =>
 		direction(Easing.elastic(bounciness))(t);
+	const bounce = (direction, bounciness, t) =>
+		direction(Easing.bounce(bounciness))(t);
 
 	const easingFunctions = {
 		linear: Easing.linear,
@@ -307,50 +304,20 @@
 		easeInElastic: elastic.bind(null, Easing.in),
 		easeOutElastic: elastic.bind(null, Easing.out),
 		easeInOutElastic: elastic.bind(null, Easing.inOut),
-		easeInBounce: Easing.in(Easing.bounce),
-		easeOutBounce: Easing.out(Easing.bounce),
-		easeInOutBounce: Easing.inOut(Easing.bounce),
+		easeInBounce: bounce.bind(null, Easing.in),
+		easeOutBounce: bounce.bind(null, Easing.out),
+		easeInOutBounce: bounce.bind(null, Easing.inOut),
 	};
 
-	const EASING_OPTIONS = {
-		linear: "linear",
-		step: "step",
-		easeInSine: "easeInSine",
-		easeOutSine: "easeOutSine",
-		easeInOutSine: "easeInOutSine",
-		easeInQuad: "easeInQuad",
-		easeOutQuad: "easeOutQuad",
-		easeInOutQuad: "easeInOutQuad",
-		easeInCubic: "easeInCubic",
-		easeOutCubic: "easeOutCubic",
-		easeInOutCubic: "easeInOutCubic",
-		easeInQuart: "easeInQuart",
-		easeOutQuart: "easeOutQuart",
-		easeInOutQuart: "easeInOutQuart",
-		easeInQuint: "easeInQuint",
-		easeOutQuint: "easeOutQuint",
-		easeInOutQuint: "easeInOutQuint",
-		easeInExpo: "easeInExpo",
-		easeOutExpo: "easeOutExpo",
-		easeInOutExpo: "easeInOutExpo",
-		easeInCirc: "easeInCirc",
-		easeOutCirc: "easeOutCirc",
-		easeInOutCirc: "easeInOutCirc",
-		easeInBack: "easeInBack",
-		easeOutBack: "easeOutBack",
-		easeInOutBack: "easeInOutBack",
-		easeInElastic: "easeInElastic",
-		easeOutElastic: "easeOutElastic",
-		easeInOutElastic: "easeInOutElastic",
-		easeInBounce: "easeInBounce",
-		easeOutBounce: "easeOutBounce",
-		easeInOutBounce: "easeInOutBounce",
-	};
+	// Object with the same keys as easingFunctions and values of the stringified key names
+	const EASING_OPTIONS = Object.fromEntries(
+		Object.entries(easingFunctions).map(entry => ([entry[0], entry[0]]))
+	);
 	Object.freeze(EASING_OPTIONS);
 	const EASING_DEFAULT = 'linear';
 
 	const getEasingArgDefault = kf => {
-		switch(kf.easing) {
+		switch (kf.easing) {
 			case EASING_OPTIONS.easeInBack:
 			case EASING_OPTIONS.easeOutBack:
 			case EASING_OPTIONS.easeInOutBack:
@@ -358,6 +325,10 @@
 			case EASING_OPTIONS.easeOutElastic:
 			case EASING_OPTIONS.easeInOutElastic:
 				return 1;
+			case EASING_OPTIONS.easeInBounce:
+			case EASING_OPTIONS.easeOutBounce:
+			case EASING_OPTIONS.easeInOutBounce:
+				return 0.5;
 			case EASING_OPTIONS.step:
 				return 5;
 			default:
@@ -373,6 +344,9 @@
 			case EASING_OPTIONS.easeInElastic:
 			case EASING_OPTIONS.easeOutElastic:
 			case EASING_OPTIONS.easeInOutElastic:
+			case EASING_OPTIONS.easeInBounce:
+			case EASING_OPTIONS.easeOutBounce:
+			case EASING_OPTIONS.easeInOutBounce:
 				return parseFloat(value);
 			case EASING_OPTIONS.step:
 				return Math.max(parseInt(value, 10), 2);
@@ -438,9 +412,10 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	};
 
 	const hasArgs = (easing = "") =>
-		easing.includes("Back")
-		|| easing.includes("Elastic")
-		|| easing === EASING_OPTIONS.step;
+		easing.includes("Back") ||
+		easing.includes("Elastic") ||
+		easing.includes("Bounce") ||
+		easing === EASING_OPTIONS.step;
 
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
