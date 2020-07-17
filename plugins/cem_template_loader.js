@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.1.1',
+		version: '0.2.1',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -11336,7 +11336,6 @@
 					"id": "head",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 24, -4, 8, 8, 8], "textureOffset": [0, 0]}
 					]
@@ -11346,7 +11345,6 @@
 					"id": "headwear",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 24, -4, 8, 8, 8], "textureOffset": [32, 0], "sizeAdd": 0.25}
 					]
@@ -11356,7 +11354,6 @@
 					"id": "body",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]},
 						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 32], "sizeAdd": 0.25}
@@ -11367,7 +11364,6 @@
 					"id": "right_arm",
 					"invertAxis": "xy",
 					"translate": [8, -22, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]},
 						{"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 32], "sizeAdd": 0.25}
@@ -11378,7 +11374,6 @@
 					"id": "left_arm",
 					"invertAxis": "xy",
 					"translate": [-8, -22, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]},
 						{"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [48, 48], "sizeAdd": 0.25}
@@ -11389,7 +11384,6 @@
 					"id": "right_leg",
 					"invertAxis": "xy",
 					"translate": [2, -12, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]},
 						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 32], "sizeAdd": 0.25}
@@ -11400,7 +11394,6 @@
 					"id": "left_leg",
 					"invertAxis": "xy",
 					"translate": [-2, -12, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]},
 						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 48], "sizeAdd": 0.25}
@@ -11419,7 +11412,6 @@
 					"id": "head",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 24, -4, 8, 8, 8], "textureOffset": [0, 0]}
 					]
@@ -11429,7 +11421,6 @@
 					"id": "headwear",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 24, -4, 8, 8, 8], "textureOffset": [32, 0], "sizeAdd": 0.25}
 					]
@@ -11439,7 +11430,6 @@
 					"id": "body",
 					"invertAxis": "xy",
 					"translate": [0, -24, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]},
 						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 32], "sizeAdd": 0.25}
@@ -11450,7 +11440,6 @@
 					"id": "left_arm",
 					"invertAxis": "xy",
 					"translate": [7, -22, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [4, 12, -2, 3, 12, 4], "textureOffset": [40, 16]},
 						{"coordinates": [4, 12, -2, 3, 12, 4], "textureOffset": [40, 32], "sizeAdd": 0.25}
@@ -11461,7 +11450,6 @@
 					"id": "right_arm",
 					"invertAxis": "xy",
 					"translate": [-7, -22, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-7, 12, -2, 3, 12, 4], "textureOffset": [32, 48]},
 						{"coordinates": [-7, 12, -2, 3, 12, 4], "textureOffset": [48, 48], "sizeAdd": 0.25}
@@ -11472,7 +11460,6 @@
 					"id": "left_leg",
 					"invertAxis": "xy",
 					"translate": [2, -12, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]},
 						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 32], "sizeAdd": 0.25}
@@ -11483,7 +11470,6 @@
 					"id": "right_leg",
 					"invertAxis": "xy",
 					"translate": [-2, -12, 0],
-					"mirrorTexture": "u",
 					"boxes": [
 						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]},
 						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 48], "sizeAdd": 0.25}
