@@ -640,15 +640,17 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 
 	//#region Plugin Definition
 	const PLUGIN_VERSION = "2.0.0";
+	const MIN_BLOCKBENCH_VERSION = "3.6";
 
 	Plugin.register("animation_utils", {
 		name: "GeckoLib Animation Utils",
 		author: "Eliot Lash, Gecko",
 		title: "GeckoLib Animation Utils",
 		description:
-			"This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench 3.5.4 or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
+			`This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
 		icon: "movie_filter",
 		version: PLUGIN_VERSION,
+    min_version: MIN_BLOCKBENCH_VERSION,
 		variant: "both",
 		onload() {
 			Codecs.project.on('compile', compileCallback);
