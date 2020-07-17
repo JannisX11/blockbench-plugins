@@ -1,19 +1,19 @@
 ! function(e) {
     var t = {};
 
-    function n(s) {
-        if (t[s]) return t[s].exports;
-        var i = t[s] = {
-            i: s,
+    function n(i) {
+        if (t[i]) return t[i].exports;
+        var s = t[i] = {
+            i: i,
             l: !1,
             exports: {}
         };
-        return e[s].call(i.exports, i, i.exports, n), i.l = !0, i.exports
+        return e[i].call(s.exports, s, s.exports, n), s.l = !0, s.exports
     }
-    n.m = e, n.c = t, n.d = function(e, t, s) {
+    n.m = e, n.c = t, n.d = function(e, t, i) {
         n.o(e, t) || Object.defineProperty(e, t, {
             enumerable: !0,
-            get: s
+            get: i
         })
     }, n.r = function(e) {
         "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {
@@ -24,15 +24,15 @@
     }, n.t = function(e, t) {
         if (1 & t && (e = n(e)), 8 & t) return e;
         if (4 & t && "object" == typeof e && e && e.__esModule) return e;
-        var s = Object.create(null);
-        if (n.r(s), Object.defineProperty(s, "default", {
+        var i = Object.create(null);
+        if (n.r(i), Object.defineProperty(i, "default", {
                 enumerable: !0,
                 value: e
             }), 2 & t && "string" != typeof e)
-            for (var i in e) n.d(s, i, function(t) {
+            for (var s in e) n.d(i, s, function(t) {
                 return e[t]
-            }.bind(null, i));
-        return s
+            }.bind(null, s));
+        return i
     }, n.n = function(e) {
         var t = e && e.__esModule ? function() {
             return e.default
@@ -45,23 +45,23 @@
     }, n.p = "/", n(n.s = 4)
 }([function(e, t, n) {
     "use strict";
-    let s;
+    let i;
     try {
         const {
             app: e
         } = n(6);
-        s = e.setAsDefaultProtocolClient.bind(e)
+        i = e.setAsDefaultProtocolClient.bind(e)
     } catch (e) {
         try {
-            s = n(7)
+            i = n(7)
         } catch (e) {}
     }
-    "function" != typeof s && (s = () => !1);
+    "function" != typeof i && (i = () => !1);
     e.exports = {
         pid: function() {
             return "undefined" != typeof process ? process.pid : null
         },
-        register: s,
+        register: i,
         uuid: () => {
             let e = "";
             for (let t = 0; t < 32; t += 1) {
@@ -80,22 +80,22 @@
     e.exports = require("events")
 }, function(e, t, n) {
     "use strict";
-    var s = function() {
+    var i = function() {
         if ("undefined" != typeof self) return self;
         if ("undefined" != typeof window) return window;
-        if (void 0 !== s) return s;
+        if (void 0 !== i) return i;
         throw new Error("unable to locate global object")
     }();
-    e.exports = t = s.fetch, t.default = s.fetch.bind(s), t.Headers = s.Headers, t.Request = s.Request, t.Response = s.Response
+    e.exports = t = i.fetch, t.default = i.fetch.bind(i), t.Headers = i.Headers, t.Request = i.Request, t.Response = i.Response
 }, function(e, t, n) {
     "use strict";
 
-    function s(e) {
+    function i(e) {
         const t = {};
         for (const n of e) t[n] = n;
         return t
     }
-    t.browser = "undefined" != typeof window, t.RPCCommands = s(["DISPATCH", "AUTHORIZE", "AUTHENTICATE", "GET_GUILD", "GET_GUILDS", "GET_CHANNEL", "GET_CHANNELS", "GET_RELATIONSHIPS", "GET_USER", "SUBSCRIBE", "UNSUBSCRIBE", "SET_USER_VOICE_SETTINGS", "SET_USER_VOICE_SETTINGS_2", "SELECT_VOICE_CHANNEL", "GET_SELECTED_VOICE_CHANNEL", "SELECT_TEXT_CHANNEL", "GET_VOICE_SETTINGS", "SET_VOICE_SETTINGS_2", "SET_VOICE_SETTINGS", "CAPTURE_SHORTCUT", "SET_ACTIVITY", "SEND_ACTIVITY_JOIN_INVITE", "CLOSE_ACTIVITY_JOIN_REQUEST", "ACTIVITY_INVITE_USER", "ACCEPT_ACTIVITY_INVITE", "INVITE_BROWSER", "DEEP_LINK", "CONNECTIONS_CALLBACK", "BRAINTREE_POPUP_BRIDGE_CALLBACK", "GIFT_CODE_BROWSER", "OVERLAY", "BROWSER_HANDOFF", "SET_CERTIFIED_DEVICES", "GET_IMAGE", "CREATE_LOBBY", "UPDATE_LOBBY", "DELETE_LOBBY", "UPDATE_LOBBY_MEMBER", "CONNECT_TO_LOBBY", "DISCONNECT_FROM_LOBBY", "SEND_TO_LOBBY", "SEARCH_LOBBIES", "CONNECT_TO_LOBBY_VOICE", "DISCONNECT_FROM_LOBBY_VOICE", "SET_OVERLAY_LOCKED", "OPEN_OVERLAY_ACTIVITY_INVITE", "OPEN_OVERLAY_GUILD_INVITE", "OPEN_OVERLAY_VOICE_SETTINGS", "VALIDATE_APPLICATION", "GET_ENTITLEMENT_TICKET", "GET_APPLICATION_TICKET", "START_PURCHASE", "GET_SKUS", "GET_ENTITLEMENTS", "GET_NETWORKING_CONFIG", "NETWORKING_SYSTEM_METRICS", "NETWORKING_PEER_METRICS", "NETWORKING_CREATE_TOKEN", "SET_USER_ACHIEVEMENT", "GET_USER_ACHIEVEMENTS"]), t.RPCEvents = s(["CURRENT_USER_UPDATE", "GUILD_STATUS", "GUILD_CREATE", "CHANNEL_CREATE", "RELATIONSHIP_UPDATE", "VOICE_CHANNEL_SELECT", "VOICE_STATE_CREATE", "VOICE_STATE_DELETE", "VOICE_STATE_UPDATE", "VOICE_SETTINGS_UPDATE", "VOICE_SETTINGS_UPDATE_2", "VOICE_CONNECTION_STATUS", "SPEAKING_START", "SPEAKING_STOP", "GAME_JOIN", "GAME_SPECTATE", "ACTIVITY_JOIN", "ACTIVITY_JOIN_REQUEST", "ACTIVITY_SPECTATE", "ACTIVITY_INVITE", "NOTIFICATION_CREATE", "MESSAGE_CREATE", "MESSAGE_UPDATE", "MESSAGE_DELETE", "LOBBY_DELETE", "LOBBY_UPDATE", "LOBBY_MEMBER_CONNECT", "LOBBY_MEMBER_DISCONNECT", "LOBBY_MEMBER_UPDATE", "LOBBY_MESSAGE", "CAPTURE_SHORTCUT_CHANGE", "OVERLAY", "OVERLAY_UPDATE", "ENTITLEMENT_CREATE", "ENTITLEMENT_DELETE", "USER_ACHIEVEMENT_UPDATE", "READY", "ERROR"]), t.RPCErrors = {
+    t.browser = "undefined" != typeof window, t.RPCCommands = i(["DISPATCH", "AUTHORIZE", "AUTHENTICATE", "GET_GUILD", "GET_GUILDS", "GET_CHANNEL", "GET_CHANNELS", "GET_RELATIONSHIPS", "GET_USER", "SUBSCRIBE", "UNSUBSCRIBE", "SET_USER_VOICE_SETTINGS", "SET_USER_VOICE_SETTINGS_2", "SELECT_VOICE_CHANNEL", "GET_SELECTED_VOICE_CHANNEL", "SELECT_TEXT_CHANNEL", "GET_VOICE_SETTINGS", "SET_VOICE_SETTINGS_2", "SET_VOICE_SETTINGS", "CAPTURE_SHORTCUT", "SET_ACTIVITY", "SEND_ACTIVITY_JOIN_INVITE", "CLOSE_ACTIVITY_JOIN_REQUEST", "ACTIVITY_INVITE_USER", "ACCEPT_ACTIVITY_INVITE", "INVITE_BROWSER", "DEEP_LINK", "CONNECTIONS_CALLBACK", "BRAINTREE_POPUP_BRIDGE_CALLBACK", "GIFT_CODE_BROWSER", "OVERLAY", "BROWSER_HANDOFF", "SET_CERTIFIED_DEVICES", "GET_IMAGE", "CREATE_LOBBY", "UPDATE_LOBBY", "DELETE_LOBBY", "UPDATE_LOBBY_MEMBER", "CONNECT_TO_LOBBY", "DISCONNECT_FROM_LOBBY", "SEND_TO_LOBBY", "SEARCH_LOBBIES", "CONNECT_TO_LOBBY_VOICE", "DISCONNECT_FROM_LOBBY_VOICE", "SET_OVERLAY_LOCKED", "OPEN_OVERLAY_ACTIVITY_INVITE", "OPEN_OVERLAY_GUILD_INVITE", "OPEN_OVERLAY_VOICE_SETTINGS", "VALIDATE_APPLICATION", "GET_ENTITLEMENT_TICKET", "GET_APPLICATION_TICKET", "START_PURCHASE", "GET_SKUS", "GET_ENTITLEMENTS", "GET_NETWORKING_CONFIG", "NETWORKING_SYSTEM_METRICS", "NETWORKING_PEER_METRICS", "NETWORKING_CREATE_TOKEN", "SET_USER_ACHIEVEMENT", "GET_USER_ACHIEVEMENTS"]), t.RPCEvents = i(["CURRENT_USER_UPDATE", "GUILD_STATUS", "GUILD_CREATE", "CHANNEL_CREATE", "RELATIONSHIP_UPDATE", "VOICE_CHANNEL_SELECT", "VOICE_STATE_CREATE", "VOICE_STATE_DELETE", "VOICE_STATE_UPDATE", "VOICE_SETTINGS_UPDATE", "VOICE_SETTINGS_UPDATE_2", "VOICE_CONNECTION_STATUS", "SPEAKING_START", "SPEAKING_STOP", "GAME_JOIN", "GAME_SPECTATE", "ACTIVITY_JOIN", "ACTIVITY_JOIN_REQUEST", "ACTIVITY_SPECTATE", "ACTIVITY_INVITE", "NOTIFICATION_CREATE", "MESSAGE_CREATE", "MESSAGE_UPDATE", "MESSAGE_DELETE", "LOBBY_DELETE", "LOBBY_UPDATE", "LOBBY_MEMBER_CONNECT", "LOBBY_MEMBER_DISCONNECT", "LOBBY_MEMBER_UPDATE", "LOBBY_MESSAGE", "CAPTURE_SHORTCUT_CHANGE", "OVERLAY", "OVERLAY_UPDATE", "ENTITLEMENT_CREATE", "ENTITLEMENT_DELETE", "USER_ACHIEVEMENT_UPDATE", "READY", "ERROR"]), t.RPCErrors = {
         CAPTURE_SHORTCUT_ALREADY_LISTENING: 5004,
         GET_GUILD_TIMED_OUT: 5002,
         INVALID_ACTIVITY_JOIN_REQUEST: 4012,
@@ -149,37 +149,48 @@
         IMPLICIT: 5
     }
 }, function(e, t, n) {
-    const s = n(5),
-        i = new s.Client({
+    const i = n(5),
+        s = new i.Client({
             transport: "ipc"
         });
     var o = new Date;
     ! function() {
         let e, t, n = !0,
-            s = "";
+            i = "";
         Plugin.register("discord-rpc", {
             title: "Discord RPC",
             author: "strajabot, Kastle, & simplyme",
             icon: "announcement",
-            version: "1.1.1",
+            version: "1.1.3",
             description: "Show a rich presence status in Discord",
             variant: "desktop",
             onload() {
                 async function r() {
-                    if (!i) return;
-                    s !== Project.name && (s = Project.name, o = new Date);
-                    var e = Settings.get("obfuscaterpc") ? "Unknown Model" : `${s}.bbmodel`;
+                    if (!s) return;
+                    i !== Project.name && (i = Project.name, o = new Date);
+                    var e = Settings.get("obfuscaterpc") ? "Unknown Model" : i + ".bbmodel";
                     const t = {
-                        edit: "Editing",
-                        paint: "Painting",
-                        animate: "Animating"
-                    } [Modes.selected.id] || "Making";
-                    i.setActivity({
+                            edit: "Editing",
+                            paint: "Painting",
+                            animate: "Animating",
+                            start: "Starting"
+                        } [Modes.selected.id] || "Making",
+                        n = {
+                            java_block: "a Java Block/Item",
+                            bedrock: "a Bedrock Model",
+                            bedrock_old: "a Bedrock Legacy Model",
+                            modded_entity: "a Modded Entity",
+                            optifine_entity: "an OptiFine Entity",
+                            optifine_part: "an OptiFine Part",
+                            skin: "a Skin",
+                            free: "a Generic Model"
+                        } [Format.id] || "a " + Format.name;
+                    s.setActivity({
                         largeImageKey: "icon",
-                        largeImageText: `Blockbench ${Blockbench.version}`,
-                        smallImageKey: `${Format.id}`,
-                        details: `${t} a ${Format.name}`,
-                        state: `${e}`,
+                        largeImageText: "Blockbench " + Blockbench.version,
+                        smallImageKey: "" + Format.id,
+                        details: `${t} ${n}`,
+                        state: "" + e,
                         startTimestamp: o,
                         instance: !1
                     })
@@ -198,11 +209,11 @@
                             e.apply(this, arguments), n && r()
                         }
                     }
-                }), i.on("ready", () => {
+                }), s.on("ready", () => {
                     r(), t = setInterval(() => {
                         r()
                     }, 15e3)
-                }), i.login({
+                }), s.login({
                     clientId: "642126871177199617"
                 }).catch(console.error)
             },
@@ -213,10 +224,10 @@
     }()
 }, function(e, t, n) {
     "use strict";
-    const s = n(0);
+    const i = n(0);
     e.exports = {
         Client: n(8),
-        register: e => s.register(`discord-${e}`)
+        register: e => i.register("discord-" + e)
     }
 }, function(e, t) {
     if ("undefined" == typeof electron) {
@@ -226,9 +237,9 @@
     e.exports = electron
 }, function(e, t) {}, function(e, t, n) {
     "use strict";
-    const s = n(1),
+    const i = n(1),
         {
-            setTimeout: i,
+            setTimeout: s,
             clearTimeout: o
         } = n(9),
         r = n(2),
@@ -246,34 +257,34 @@
     function d(e, t) {
         return `${e}${JSON.stringify(t)}`
     }
-    e.exports = class extends s {
+    e.exports = class extends i {
         constructor(e = {}) {
             super(), this.options = e, this.accessToken = null, this.clientId = null, this.application = null, this.user = null;
             const t = c[e.transport];
             if (!t) throw new TypeError("RPC_INVALID_TRANSPORT", e.transport);
             this.fetch = (e, t, {
                 data: n,
-                query: s
-            } = {}) => r(`${this.fetch.endpoint}${t}${s?new URLSearchParams(s):""}`, {
+                query: i
+            } = {}) => r(`${this.fetch.endpoint}${t}${i?new URLSearchParams(i):""}`, {
                 method: e,
                 body: n,
                 headers: {
-                    Authorization: `Bearer ${this.accessToken}`
+                    Authorization: "Bearer " + this.accessToken
                 }
-            }).then(e => e.json()), this.fetch.endpoint = "https://discordapp.com/api", this.transport = new t(this), this.transport.on("message", this._onRpcMessage.bind(this)), this._expecting = new Map, this._subscriptions = new Map, this._connectPromise = void 0
+            }).then(e => e.json()), this.fetch.endpoint = "https://discord.com/api", this.transport = new t(this), this.transport.on("message", this._onRpcMessage.bind(this)), this._expecting = new Map, this._subscriptions = new Map, this._connectPromise = void 0
         }
         connect(e) {
-            return this._connectPromise ? this._connectPromise : (this._connectPromise = new Promise((t, n) => {
+            return this._connectPromise || (this._connectPromise = new Promise((t, n) => {
                 this.clientId = e;
-                const s = i(() => n(new Error("RPC_CONNECTION_TIMEOUT")), 1e4);
-                s.unref(), this.once("connected", () => {
-                    o(s), t(this)
+                const i = s(() => n(new Error("RPC_CONNECTION_TIMEOUT")), 1e4);
+                i.unref(), this.once("connected", () => {
+                    o(i), t(this)
                 }), this.transport.once("close", () => {
                     this._expecting.forEach(e => {
                         e.reject(new Error("connection closed"))
-                    }), this.emit("disconnected"), n()
+                    }), this.emit("disconnected"), n(new Error("connection closed"))
                 }), this.transport.connect().catch(n)
-            }), this._connectPromise)
+            })), this._connectPromise
         }
         async login(e = {}) {
             let {
@@ -283,7 +294,7 @@
             return await this.connect(t), e.scopes ? (n || (n = await this.authorize(e)), this.authenticate(n)) : (this.emit("ready"), this)
         }
         request(e, t, n) {
-            return new Promise((s, i) => {
+            return new Promise((i, s) => {
                 const o = T();
                 this.transport.send({
                     cmd: e,
@@ -291,8 +302,8 @@
                     evt: n,
                     nonce: o
                 }), this._expecting.set(o, {
-                    resolve: s,
-                    reject: i
+                    resolve: i,
+                    reject: s
                 })
             })
         }
@@ -318,7 +329,7 @@
             scopes: e,
             clientSecret: t,
             rpcToken: n,
-            redirectUri: s
+            redirectUri: i
         } = {}) {
             if (t && !0 === n) {
                 n = (await this.fetch("POST", "/oauth2/token/rpc", {
@@ -329,20 +340,20 @@
                 })).rpc_token
             }
             const {
-                code: i
+                code: s
             } = await this.request("AUTHORIZE", {
                 scopes: e,
                 client_id: this.clientId,
                 rpc_token: n,
-                redirect_uri: s
+                redirect_uri: i
             });
             return (await this.fetch("POST", "/oauth2/token", {
                 data: new URLSearchParams({
                     client_id: this.clientId,
                     client_secret: t,
-                    code: i,
+                    code: s,
                     grant_type: "authorization_code",
-                    redirect_uri: s
+                    redirect_uri: i
                 })
             })).access_token
         }
@@ -491,7 +502,7 @@
             }).then(() => n)
         }
         setActivity(e = {}, t = u()) {
-            let n, s, i, o;
+            let n, i, s, o;
             if (e.startTimestamp || e.endTimestamp) {
                 if (n = {
                         start: e.startTimestamp,
@@ -499,14 +510,14 @@
                     }, n.start instanceof Date && (n.start = Math.round(n.start.getTime())), n.end instanceof Date && (n.end = Math.round(n.end.getTime())), n.start > 2147483647e3) throw new RangeError("timestamps.start must fit into a unix timestamp");
                 if (n.end > 2147483647e3) throw new RangeError("timestamps.end must fit into a unix timestamp")
             }
-            return (e.largeImageKey || e.largeImageText || e.smallImageKey || e.smallImageText) && (s = {
+            return (e.largeImageKey || e.largeImageText || e.smallImageKey || e.smallImageText) && (i = {
                 large_image: e.largeImageKey,
                 large_text: e.largeImageText,
                 small_image: e.smallImageKey,
                 small_text: e.smallImageText
-            }), (e.partySize || e.partyId || e.partyMax) && (i = {
+            }), (e.partySize || e.partyId || e.partyMax) && (s = {
                 id: e.partyId
-            }, (e.partySize || e.partyMax) && (i.size = [e.partySize, e.partyMax])), (e.matchSecret || e.joinSecret || e.spectateSecret) && (o = {
+            }, (e.partySize || e.partyMax) && (s.size = [e.partySize, e.partyMax])), (e.matchSecret || e.joinSecret || e.spectateSecret) && (o = {
                 match: e.matchSecret,
                 join: e.joinSecret,
                 spectate: e.spectateSecret
@@ -516,8 +527,8 @@
                     state: e.state,
                     details: e.details,
                     timestamps: n,
-                    assets: s,
-                    party: i,
+                    assets: i,
+                    party: s,
                     secrets: o,
                     instance: !!e.instance
                 }
@@ -553,15 +564,15 @@
         updateLobby(e, {
             type: t,
             owner: n,
-            capacity: s,
-            metadata: i
+            capacity: i,
+            metadata: s
         } = {}) {
             return this.request(a.UPDATE_LOBBY, {
                 id: e.id || e,
                 type: t,
                 owner_id: n && n.id || n,
-                capacity: s,
-                metadata: i
+                capacity: i,
+                metadata: s
             })
         }
         deleteLobby(e) {
@@ -602,9 +613,9 @@
         }
         subscribe(e, t, n) {
             return n || "function" != typeof t || (n = t, t = void 0), this.request(a.SUBSCRIBE, t, e).then(() => {
-                const s = d(e, t);
-                return this._subscriptions.set(s, n), {
-                    unsubscribe: () => this.request(a.UNSUBSCRIBE, t, e).then(() => this._subscriptions.delete(s))
+                const i = d(e, t);
+                return this._subscriptions.set(i, n), {
+                    unsubscribe: () => this.request(a.UNSUBSCRIBE, t, e).then(() => this._subscriptions.delete(i))
                 }
             })
         }
@@ -622,8 +633,8 @@
     }
 }, function(e, t, n) {
     "use strict";
-    const s = n(12),
-        i = n(1),
+    const i = n(12),
+        s = n(1),
         o = n(2),
         {
             uuid: r
@@ -636,22 +647,22 @@
 
     function T(e = 0) {
         return new Promise((t, n) => {
-            const i = function(e) {
-                    if ("win32" === process.platform) return `\\\\?\\pipe\\discord-ipc-${e}`;
+            const s = function(e) {
+                    if ("win32" === process.platform) return "\\\\?\\pipe\\discord-ipc-" + e;
                     const {
                         env: {
                             XDG_RUNTIME_DIR: t,
                             TMPDIR: n,
-                            TMP: s,
-                            TEMP: i
+                            TMP: i,
+                            TEMP: s
                         }
                     } = process;
-                    return `${(t||n||s||i||"/tmp").replace(/\/$/,"")}/discord-ipc-${e}`
+                    return `${(t||n||i||s||"/tmp").replace(/\/$/,"")}/discord-ipc-${e}`
                 }(e),
                 o = () => {
                     e < 10 ? t(T(e + 1)) : n(new Error("Could not connect"))
                 },
-                r = s.createConnection(i, () => {
+                r = i.createConnection(s, () => {
                     r.removeListener("error", o), t(r)
                 });
             r.once("error", o)
@@ -661,8 +672,8 @@
     function d(e, t) {
         t = JSON.stringify(t);
         const n = Buffer.byteLength(t),
-            s = Buffer.alloc(8 + n);
-        return s.writeInt32LE(e, 0), s.writeInt32LE(n, 4), s.write(t, 8, n), s
+            i = Buffer.alloc(8 + n);
+        return i.writeInt32LE(e, 0), i.writeInt32LE(n, 4), i.write(t, 8, n), i
     }
     const I = {
         full: "",
@@ -672,25 +683,25 @@
     function l(e, t) {
         const n = e.read();
         if (!n) return;
-        let s, {
-            op: i
+        let i, {
+            op: s
         } = I;
         if ("" === I.full) {
-            i = I.op = n.readInt32LE(0);
+            s = I.op = n.readInt32LE(0);
             const e = n.readInt32LE(4);
-            s = n.slice(8, e + 8)
-        } else s = n.toString();
+            i = n.slice(8, e + 8)
+        } else i = n.toString();
         try {
             t({
-                op: i,
-                data: JSON.parse(I.full + s)
+                op: s,
+                data: JSON.parse(I.full + i)
             }), I.full = "", I.op = void 0
         } catch (e) {
-            I.full += s
+            I.full += i
         }
         l(e, t)
     }
-    e.exports = class extends i {
+    e.exports = class extends s {
         constructor(e) {
             super(), this.client = e, this.socket = null
         }
@@ -712,7 +723,7 @@
                             if (!t) return;
                             "AUTHORIZE" === t.cmd && "ERROR" !== t.evt && async function e(t = 0) {
                                 if (t > 30) throw new Error("Could not find endpoint");
-                                const n = `http://127.0.0.1:${6463+t%10}`;
+                                const n = "http://127.0.0.1:" + (6463 + t % 10);
                                 try {
                                     return 401 !== (await o(n)).status ? e(t + 1) : n
                                 } catch (n) {
@@ -745,21 +756,21 @@
     e.exports = require("net")
 }, function(e, t, n) {
     "use strict";
-    const s = n(1),
+    const i = n(1),
         {
-            browser: i
+            browser: s
         } = n(3),
-        o = i ? window.WebSocket : n(14);
-    e.exports = class extends s {
+        o = s ? window.WebSocket : n(14);
+    e.exports = class extends i {
         constructor(e) {
             super(), this.client = e, this.ws = null, this.tries = 0
         }
         async connect(e, t = this.tries) {
             if (this.connected) return;
             const n = 6463 + t % 10;
-            this.hostAndPort = `127.0.0.1:${n}`;
-            const s = this.ws = new o(`ws://${this.hostAndPort}/?v=1&client_id=${this.client.clientId}`);
-            s.onopen = this.onOpen.bind(this), s.onclose = s.onerror = this.onClose.bind(this), s.onmessage = this.onMessage.bind(this)
+            this.hostAndPort = "127.0.0.1:" + n;
+            const i = this.ws = new o(`ws://${this.hostAndPort}/?v=1&client_id=${this.client.clientId}`);
+            i.onopen = this.onOpen.bind(this), i.onclose = i.onerror = this.onClose.bind(this), i.onmessage = this.onMessage.bind(this)
         }
         send(e) {
             var t;
