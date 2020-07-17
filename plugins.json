@@ -173,7 +173,7 @@
     "author": "Ewan Howell",
     "description": "Load template entity models for use with OptiFine CEM.",
     "variant": "both",
-    "min_version": "3.2.0"
+    "min_version": "3.6.0"
   },
   "threecore_exporter": {
     "title": "ThreeCore Exporter",
