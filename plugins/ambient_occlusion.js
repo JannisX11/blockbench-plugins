@@ -1306,7 +1306,7 @@ Plugin.register('ambient_occlusion', {
 	icon: 'gradient',
 	author: 'JannisX11',
 	description: 'Adds a scalable ambient occlusion shader',
-	version: '1.0.1',
+	version: '1.0.2',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -1317,7 +1317,7 @@ Plugin.register('ambient_occlusion', {
 			category: 'preview',
 			value: 'true',
 			onChange: (value) => {
-				previews.forEach(preview => {
+				Preview.all.forEach(preview => {
 					if (!value) return;
 					preview.composer.setSize(preview.width, preview.height);
 				})
@@ -1333,7 +1333,7 @@ Plugin.register('ambient_occlusion', {
 			max: 50,
 			onChange: (value) => {
 				value = Math.clamp(value, 0, 50)/100;
-				previews.forEach(preview => {
+				Preview.all.forEach(preview => {
 					if (!preview.saoPass) return;
 					preview.saoPass.params.saoIntensity = value;
 				})
@@ -1357,7 +1357,7 @@ Plugin.register('ambient_occlusion', {
 
 
 
-		previews.forEach(setupPreviewSAO)
+		Preview.all.forEach(setupPreviewSAO)
 
 		Preview.prototype.render = function() {
 			if (this.canvas.isConnected === false) return;
