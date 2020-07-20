@@ -395,7 +395,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	};
 
 	const parseCallback = (e) => {
-		console.log(`parseCallback:`, e);
+		// console.log(`parseCallback:`, e);
 		if (e.model && typeof e.model.geckoSettings === 'object') {
 			Object.assign(geckoSettings, e.model.geckoSettings);
 		} else {
@@ -420,7 +420,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
 		const value = $(obj).val();
-		console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
+		// console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
 		if (value === "-") return;
 		Timeline.selected.forEach((kf) => {
 			kf.easing = value;
@@ -431,7 +431,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 
 	function updateKeyframeEasingArg(obj) {
 		if ($(obj).val() === "-") return;
-		console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
+		// console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
 		Timeline.selected.forEach((kf) => {
 			const value = parseEasingArg(kf, $(obj).val().trim());
 			kf.easingArgs = [value];
@@ -521,6 +521,9 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 							case EASING_OPTIONS.easeInElastic:
 							case EASING_OPTIONS.easeOutElastic:
 							case EASING_OPTIONS.easeInOutElastic:
+							case EASING_OPTIONS.easeInBounce:
+							case EASING_OPTIONS.easeOutBounce:
+							case EASING_OPTIONS.easeInOutBounce:
 								return 'Bounciness';
 							case EASING_OPTIONS.step:
 								return 'Steps';
@@ -541,7 +544,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 						scaleBar = document.getElementById('keyframe_bar_easing_arg1');
 					}
 
-					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
+					// console.log('easingBar:', easingBar, 'keyframe:', keyframe);
 			}
 		}
 	};
@@ -575,14 +578,14 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
 					? other.easingArgs[0]
 					: getEasingArgDefault(other);
-				console.log(`keyframeGetLerp arg1: ${arg1}`);
+				// console.log(`keyframeGetLerp arg1: ${arg1}`);
 				easingFunc = easingFunc.bind(null, arg1);
 			}
 			const easedAmount = easingFunc(amount); 
 			const start = this.calc(axis);
 			const stop = other.calc(axis);
 			const result = lerp(start, stop, easedAmount);
-			console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
+			// console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
 			if (Number.isNaN(result)) {
 				throw new Error('batman');
 			}
@@ -596,7 +599,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				result = { vector: result, easing };
 				if (hasArgs(easing)) result.easingArgs = easingArgs;
 			}
-			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+			// console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -607,7 +610,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				Object.assign(result, { easing });
 				if (hasArgs(easing)) result.easingArgs = easingArgs;
 			}
-			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+			// console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -632,8 +635,14 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			}
 		}
 		const result = Original.get(Keyframe).extend.apply(this, arguments);
-		console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+		// console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
 		return result;
+	}
+
+	function reverseKeyframesCondition() {
+		const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
+	  // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
+		return res;
 	}
 
 	//#endregion Keyframe Mixins
@@ -641,8 +650,8 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	//#region Plugin Definition
 	const PLUGIN_VERSION = "2.0.0";
 	const MIN_BLOCKBENCH_VERSION = "3.6";
-  let holdMenu;
-  let holdMenuConditionOriginal;
+	let holdMenu;
+	let holdMenuConditionOriginal;
 
 	Plugin.register("animation_utils", {
 		name: "GeckoLib Animation Utils",
@@ -652,7 +661,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			`This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
 		icon: "movie_filter",
 		version: PLUGIN_VERSION,
-    min_version: MIN_BLOCKBENCH_VERSION,
+		min_version: MIN_BLOCKBENCH_VERSION,
 		variant: "both",
 		onload() {
 			Codecs.project.on('compile', compileCallback);
@@ -664,14 +673,16 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			addMonkeypatch(Keyframe, "prototype", "getArray", keyframeGetArray);
 			addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
 			addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
+
+			addMonkeypatch(BarItems.reverse_keyframes, null, "condition", reverseKeyframesCondition);
 			
 			addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
 			addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
 
-      holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
-        .children.find(x => x.name === 'menu.animation.loop.hold');
-      holdMenuConditionOriginal = holdMenu.condition;
-      holdMenu.condition = () => Format.id !== "animated_entity_model";
+			holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
+				.children.find(x => x.name === 'menu.animation.loop.hold');
+			holdMenuConditionOriginal = holdMenu.condition;
+			holdMenu.condition = () => Format.id !== "animated_entity_model";
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
@@ -723,7 +734,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			exportAction.delete();
 			button.delete();
 			removeMonkeypatches();
-      holdMenu.condition = holdMenuConditionOriginal;
+			holdMenu.condition = holdMenuConditionOriginal;
 			console.clear();
 		},
 	});
@@ -1376,6 +1387,7 @@ this.registerModelRenderer(%(bone));`,
 	var format = new ModelFormat({
 		id: "animated_entity_model",
 		name: "Animated Java Entity",
+		description: "Animated Entity for Java mods using GeckoLib",
 		icon: "icon-format_java",
 		codec,
 		box_uv: true,
