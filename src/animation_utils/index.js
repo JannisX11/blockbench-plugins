@@ -1,3 +1,4 @@
+import { uniq } from 'lodash';
 import { easingFunctions, EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './Easing';
 
 (function () {
@@ -16,19 +17,6 @@ import { easingFunctions, EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, p
   function lerp(start, stop, amt) {
     return amt * (stop - start) + start;
   };
-
-  function uniq(arr) {
-    return arr.reduce((acc, val) => {
-      if (!acc.includes(val)) {
-        return [...acc, val];
-      }
-      return acc;
-    }, []);
-  }
-
-  function compose(...fns) {
-     return x => fns.reduceRight((y, f) => f(y), x);
-  }
 
   //#region Codec Helpers / Export Settings
   const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
