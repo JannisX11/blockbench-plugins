@@ -521,6 +521,9 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 							case EASING_OPTIONS.easeInElastic:
 							case EASING_OPTIONS.easeOutElastic:
 							case EASING_OPTIONS.easeInOutElastic:
+							case EASING_OPTIONS.easeInBounce:
+							case EASING_OPTIONS.easeOutBounce:
+							case EASING_OPTIONS.easeInOutBounce:
 								return 'Bounciness';
 							case EASING_OPTIONS.step:
 								return 'Steps';
@@ -636,13 +639,19 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 		return result;
 	}
 
+	function reverseKeyframesCondition() {
+		const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
+		console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
+		return res;
+	}
+
 	//#endregion Keyframe Mixins
 
 	//#region Plugin Definition
 	const PLUGIN_VERSION = "2.0.0";
 	const MIN_BLOCKBENCH_VERSION = "3.6";
-  let holdMenu;
-  let holdMenuConditionOriginal;
+	let holdMenu;
+	let holdMenuConditionOriginal;
 
 	Plugin.register("animation_utils", {
 		name: "GeckoLib Animation Utils",
@@ -652,7 +661,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			`This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
 		icon: "movie_filter",
 		version: PLUGIN_VERSION,
-    min_version: MIN_BLOCKBENCH_VERSION,
+		min_version: MIN_BLOCKBENCH_VERSION,
 		variant: "both",
 		onload() {
 			Codecs.project.on('compile', compileCallback);
@@ -664,14 +673,16 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			addMonkeypatch(Keyframe, "prototype", "getArray", keyframeGetArray);
 			addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
 			addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
+
+			addMonkeypatch(BarItems.reverse_keyframes, null, "condition", reverseKeyframesCondition);
 			
 			addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
 			addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
 
-      holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
-        .children.find(x => x.name === 'menu.animation.loop.hold');
-      holdMenuConditionOriginal = holdMenu.condition;
-      holdMenu.condition = () => Format.id !== "animated_entity_model";
+			holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
+				.children.find(x => x.name === 'menu.animation.loop.hold');
+			holdMenuConditionOriginal = holdMenu.condition;
+			holdMenu.condition = () => Format.id !== "animated_entity_model";
 
 			exportAction = new Action({
 				id: "export_animated_entity_model",
@@ -723,7 +734,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			exportAction.delete();
 			button.delete();
 			removeMonkeypatches();
-      holdMenu.condition = holdMenuConditionOriginal;
+			holdMenu.condition = holdMenuConditionOriginal;
 			console.clear();
 		},
 	});
