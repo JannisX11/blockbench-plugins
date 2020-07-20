@@ -1387,6 +1387,7 @@ this.registerModelRenderer(%(bone));`,
 	var format = new ModelFormat({
 		id: "animated_entity_model",
 		name: "Animated Java Entity",
+		description: "Animated Entity for Java mods using GeckoLib",
 		icon: "icon-format_java",
 		codec,
 		box_uv: true,
