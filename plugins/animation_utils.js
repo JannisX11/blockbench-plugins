@@ -395,7 +395,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	};
 
 	const parseCallback = (e) => {
-		console.log(`parseCallback:`, e);
+		// console.log(`parseCallback:`, e);
 		if (e.model && typeof e.model.geckoSettings === 'object') {
 			Object.assign(geckoSettings, e.model.geckoSettings);
 		} else {
@@ -420,7 +420,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 	function updateKeyframeEasing(obj) {
 		// var axis = $(obj).attr('axis');
 		const value = $(obj).val();
-		console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
+		// console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
 		if (value === "-") return;
 		Timeline.selected.forEach((kf) => {
 			kf.easing = value;
@@ -431,7 +431,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 
 	function updateKeyframeEasingArg(obj) {
 		if ($(obj).val() === "-") return;
-		console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
+		// console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
 		Timeline.selected.forEach((kf) => {
 			const value = parseEasingArg(kf, $(obj).val().trim());
 			kf.easingArgs = [value];
@@ -544,7 +544,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 						scaleBar = document.getElementById('keyframe_bar_easing_arg1');
 					}
 
-					console.log('easingBar:', easingBar, 'keyframe:', keyframe);
+					// console.log('easingBar:', easingBar, 'keyframe:', keyframe);
 			}
 		}
 	};
@@ -578,14 +578,14 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
 					? other.easingArgs[0]
 					: getEasingArgDefault(other);
-				console.log(`keyframeGetLerp arg1: ${arg1}`);
+				// console.log(`keyframeGetLerp arg1: ${arg1}`);
 				easingFunc = easingFunc.bind(null, arg1);
 			}
 			const easedAmount = easingFunc(amount); 
 			const start = this.calc(axis);
 			const stop = other.calc(axis);
 			const result = lerp(start, stop, easedAmount);
-			console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
+			// console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
 			if (Number.isNaN(result)) {
 				throw new Error('batman');
 			}
@@ -599,7 +599,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				result = { vector: result, easing };
 				if (hasArgs(easing)) result.easingArgs = easingArgs;
 			}
-			console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+			// console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -610,7 +610,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 				Object.assign(result, { easing });
 				if (hasArgs(easing)) result.easingArgs = easingArgs;
 			}
-			console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+			// console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
 			return result;
 	}
 
@@ -635,13 +635,13 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
 			}
 		}
 		const result = Original.get(Keyframe).extend.apply(this, arguments);
-		console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+		// console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
 		return result;
 	}
 
 	function reverseKeyframesCondition() {
 		const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
-		console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
+	  // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
 		return res;
 	}
 
