@@ -202,11 +202,12 @@
     "min_version": "3.2.0"
   },
   "animation_utils": {
-    "title": "Gecko's Animation Utils",
-    "author": "Gecko",
+    "title": "GeckoLib Animation Utils",
+    "author": "Eliot Lash, Gecko",
     "icon": "movie_filter",
-    "description": "This plugin lets you create animated java entities with GeckoLib. Learn about Geckolib here: https://github.com/bernie-g/geckolib",
-    "version": "1.0.0",
+    "description": "This plugin lets you create animated java entities with GeckoLib. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
+    "version": "2.0.0",
+    "min_version": "3.6",
     "variant": "both"
   },
   "multi-layer": {
