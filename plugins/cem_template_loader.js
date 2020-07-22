@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.1',
+		version: '0.2.2',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -8164,9 +8164,9 @@
 						}
 					],
 					"animation": [
-						"
+						{
 							"rotation.rx": "0"
-						"
+                        }
 					]
 				}
 			]
