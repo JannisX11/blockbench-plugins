@@ -44,7 +44,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
       case MOD_SDK_1_15_FABRIC:
         return `import software.bernie.geckolib.forgetofabric.ResourceLocation;
 import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
+import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
       default:
         throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
     }
@@ -309,7 +309,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
   //#endregion Keyframe Mixins
 
   //#region Plugin Definition
-  const PLUGIN_VERSION = "2.0.0";
+  const PLUGIN_VERSION = "2.0.1";
   const MIN_BLOCKBENCH_VERSION = "3.6";
   let exportAction;
   let button;
