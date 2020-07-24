@@ -1,5 +1,6 @@
 import { uniq } from 'lodash';
 import { easingFunctions, EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './Easing';
+import { version } from './package.json';
 
 (function () {
   //#region Helper Functions
@@ -309,7 +310,6 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
   //#endregion Keyframe Mixins
 
   //#region Plugin Definition
-  const PLUGIN_VERSION = "2.0.1";
   const MIN_BLOCKBENCH_VERSION = "3.6";
   let exportAction;
   let button;
@@ -323,7 +323,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
     description:
       `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
     icon: "movie_filter",
-    version: PLUGIN_VERSION,
+    version,
     min_version: MIN_BLOCKBENCH_VERSION,
     variant: "both",
     onload() {
@@ -371,7 +371,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
             id: 'project',
             title: 'Animated Entity Settings',
             width: 540,
-            lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${PLUGIN_VERSION}</b>`],
+            lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${version}</b>`],
             form: {
               modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
               entityType: {label: 'Entity Type', value: geckoSettings.entityType },
