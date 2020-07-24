@@ -440,6 +440,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _Easing__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Easing */ "./Easing.js");
+/* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./package.json */ "./package.json");
+var _package_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t(/*! ./package.json */ "./package.json", 1);
+
 
 
 
@@ -486,7 +489,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
       case MOD_SDK_1_15_FABRIC:
         return `import software.bernie.geckolib.forgetofabric.ResourceLocation;
 import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
+import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
       default:
         throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
     }
@@ -751,7 +754,6 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
   //#endregion Keyframe Mixins
 
   //#region Plugin Definition
-  const PLUGIN_VERSION = "2.0.0";
   const MIN_BLOCKBENCH_VERSION = "3.6";
   let exportAction;
   let button;
@@ -765,7 +767,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
     description:
       `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
     icon: "movie_filter",
-    version: PLUGIN_VERSION,
+    version: _package_json__WEBPACK_IMPORTED_MODULE_2__["version"],
     min_version: MIN_BLOCKBENCH_VERSION,
     variant: "both",
     onload() {
@@ -813,7 +815,7 @@ import software.bernie.geckolib.animation.model.AnimatedModelRenderer;`;
             id: 'project',
             title: 'Animated Entity Settings',
             width: 540,
-            lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${PLUGIN_VERSION}</b>`],
+            lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_2__["version"]}</b>`],
             form: {
               modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
               entityType: {label: 'Entity Type', value: geckoSettings.entityType },
@@ -18706,6 +18708,17 @@ module.exports = function(module) {
 	return module;
 };
 
+
+/***/ }),
+
+/***/ "./package.json":
+/*!**********************!*\
+  !*** ./package.json ***!
+  \**********************/
+/*! exports provided: name, version, private, description, main, scripts, author, license, devDependencies, dependencies, default */
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"2.0.1\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack\",\"watch\":\"webpack --watch\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko\",\"license\":\"MIT\",\"devDependencies\":{\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\"}}");
 
 /***/ })
 
