@@ -1,7 +1,7 @@
 const PathModule = require('path')
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     devtool: 'none',
     target: 'node',
     entry: './index.js',
