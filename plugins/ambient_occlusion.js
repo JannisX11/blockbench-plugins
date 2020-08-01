@@ -1318,7 +1318,7 @@ Plugin.register('ambient_occlusion', {
 			value: 'true',
 			onChange: (value) => {
 				Preview.all.forEach(preview => {
-					if (!value) return;
+					if (!value || preview == MediaPreview) return;
 					preview.composer.setSize(preview.width, preview.height);
 				})
 			}
@@ -1334,7 +1334,7 @@ Plugin.register('ambient_occlusion', {
 			onChange: (value) => {
 				value = Math.clamp(value, 0, 50)/100;
 				Preview.all.forEach(preview => {
-					if (!preview.saoPass) return;
+					if (!preview.saoPass || preview == MediaPreview) return;
 					preview.saoPass.params.saoIntensity = value;
 				})
 			}
@@ -1357,53 +1357,60 @@ Plugin.register('ambient_occlusion', {
 
 
 
-		Preview.all.forEach(setupPreviewSAO)
+		Preview.all.filter(preview => preview != MediaPreview).forEach(setupPreviewSAO)
 
 		Preview.prototype.render = function() {
-			if (this.canvas.isConnected === false) return;
+			if (this.canvas.isConnected === false && this !== MediaPreview) return;
 			this.controls.update()
 			this[Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer'].render(
 				display_mode
 					? display_scene
 					: scene,
-				this.isOrtho
-					? this.camOrtho
-					: this.camPers
+				this.camera
 			)
 		}
 
-		Preview.prototype.resize = function() {
-			if (!this.canvas.isConnected) return;
-			this.height = this.canvas.parentElement.clientHeight;
-			this.width  = this.canvas.parentElement.clientWidth;
+		Preview.prototype.resize = function(width, height) {
 
-			if (!this.saoPass) {
-				setupPreviewSAO(this);
+			if (this.canvas.isConnected && this !== MediaPreview) {
+				this.height = this.node.parentElement.clientHeight;
+				this.width  = this.node.parentElement.clientWidth;
+			} else if (height && width) {
+				this.height = height;
+				this.width = width;
+			} else {
+				return this;
 			}
 
+			if (!this.saoPass && this !== MediaPreview) {
+				setupPreviewSAO(this);
+			}
+	
 			if (this.isOrtho === false) {
 				this.camPers.aspect = this.width / this.height
 				this.camPers.updateProjectionMatrix();
-				if (Transformer) {
-					Transformer.update()
-				}
 			} else {
-
 				this.camOrtho.right = this.width / 80
 				this.camOrtho.left = this.camOrtho.right*-1
 				this.camOrtho.top = this.height / 80
 				this.camOrtho.bottom = this.camOrtho.top*-1
 				this.camOrtho.updateProjectionMatrix();
 			}
-			this.renderer.setSize(this.width, this.height);
-			if (Settings.get('ambient_occlusion_enabled')) this.composer.setSize(this.width, this.height);
-			this.renderer.setPixelRatio(window.devicePixelRatio);
-			this.updateBackground()
+			
 
-			if (this._wasOrtho != this.isOrtho) {
-				var cam = this.isOrtho ? this.camOrtho : this.camPers;
-				this.renderPass.camera = cam;
-				this.saoPass.camera = cam;
+			this.renderer.setSize(this.width, this.height);
+	
+			if (this.canvas.isConnected) {
+				this.renderer.setPixelRatio(window.devicePixelRatio);
+				this.updateBackground()
+				if (Transformer) {
+					Transformer.update()
+				}
+			}
+
+			if (this._wasOrtho != this.isOrtho && this !== MediaPreview) {
+				this.renderPass.camera = this.camera;
+				this.saoPass.camera = this.camera;
 				this._wasOrtho == this.isOrtho;
 			}
 
