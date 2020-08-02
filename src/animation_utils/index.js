@@ -276,7 +276,8 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
       return result;
   }
 
-  function keyframeExtend(data) {
+  function keyframeExtend(dataIn) {
+    const data = Object.assign({}, dataIn);
     if (Format.id === "animated_entity_model") {
       if (typeof data.values === 'object') {
         if (data.values.easing !== undefined) {
@@ -285,8 +286,10 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
         if (Array.isArray(data.values.easingArgs)) {
           this.easingArgs = data.values.easingArgs;
         }
-        // Convert data to format expected by KeyframeExtendOriginal
-        data.values = data.values.vector;
+        if (!Array.isArray(data.values) && Array.isArray(data.values.vector)) {
+          // Convert data to format expected by KeyframeExtendOriginal
+          data.values = data.values.vector;
+        }
       } else {
         if (data.easing !== undefined) {
             Merge.string(this, data, 'easing');

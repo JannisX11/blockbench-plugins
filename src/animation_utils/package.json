@@ -1,12 +1,12 @@
 {
   "name": "animation_utils",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "watch": "webpack --watch",
+    "watch": "webpack --watch --mode=development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Eliot Lash, Gecko",
