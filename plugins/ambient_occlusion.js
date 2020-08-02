@@ -1342,6 +1342,8 @@ Plugin.register('ambient_occlusion', {
 
 		function setupPreviewSAO(preview) {
 
+			console.log('setup')
+
 			var this_scene = preview.id == 'display' ? display_scene : scene;
 
 			preview.composer = new THREE.EffectComposer( preview.renderer );
@@ -1360,9 +1362,9 @@ Plugin.register('ambient_occlusion', {
 		Preview.all.filter(preview => preview != MediaPreview).forEach(setupPreviewSAO)
 
 		Preview.prototype.render = function() {
-			if (this.canvas.isConnected === false && this !== MediaPreview) return;
 			this.controls.update()
-			this[Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer'].render(
+			//console.log(Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer', this[Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer'])
+			this[(Settings.get('ambient_occlusion_enabled') && this !== MediaPreview) ? 'composer' : 'renderer'].render(
 				display_mode
 					? display_scene
 					: scene,
@@ -1399,9 +1401,10 @@ Plugin.register('ambient_occlusion', {
 			
 
 			this.renderer.setSize(this.width, this.height);
-	
+
+			if (Settings.get('ambient_occlusion_enabled') && this !== MediaPreview) this.composer.setSize(this.width, this.height);
+			this.renderer.setPixelRatio(window.devicePixelRatio);
 			if (this.canvas.isConnected) {
-				this.renderer.setPixelRatio(window.devicePixelRatio);
 				this.updateBackground()
 				if (Transformer) {
 					Transformer.update()
