@@ -217,5 +217,13 @@
 		"description": "Allows exporting in Forge's multi-layer model format.",
 		"version": "1.0",
 		"variant": "both"
+	},
+	"model_info": {
+		"title": "Model Infomation",
+		"icon": "border_outer",
+		"author": "Ryangar46",
+		"description": "Finds out information about your model. more features will be added soon",
+		"version": "1.0",
+		"variant": "desktop"
 	}
 }
