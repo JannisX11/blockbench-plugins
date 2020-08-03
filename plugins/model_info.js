@@ -1,10 +1,10 @@
 var plugin_data = {
 	id: 'model_info',
-	title: 'Model Infomation',  
+	title: 'Model Information',  
 	icon: 'border_outer',
 	author: 'Ryangar46',
-	description: 'Finds out information about your model. more features will be added soon',
-	version: '1.0.0',
+	description: 'Finds out information about your model. more features will be added soon.',
+	version: '1.0.1',
 	variant: 'desktop'
 };
 
@@ -12,15 +12,14 @@ Plugin.register('model_info', {
 	onload() {
 		model_info = new Action({
 			id: 'model_info',
-			name: 'Model Infomation',
+			name: 'Model Information',
 			icon: 'border_outer',
-			category: 'filter',
 			click: function(ev) {
 				try {
 
 					// where the user selects the options for the plugin
 					var options_dialog = new Dialog({
-						title:'Model Infomation', 
+						title:'Model Information', 
 						id:'model_info_options', 
 						lines:[
 						'<p>Restrict to select: <input type="checkbox" id="restrict"></p>'
@@ -43,11 +42,11 @@ Plugin.register('model_info', {
 							
 							// where the info is displayed
 							var info_dialog = new Dialog({
-								title:'Model Infomation', 
+								title:'Model Information', 
 								id:'model_info', 
 								lines:[
-								'<p>Cubes </p>' + cubes,
-								'<p>Vertices </p>' + vertices,
+								'<p>Cubes: </p>' + cubes,
+								'<p>Vertices: </p>' + vertices,
 								'<p>Faces: </p>' + faces,
 								'<p>Tris: </p>' + tris
 								],
@@ -100,7 +99,7 @@ Plugin.register('model_info', {
 			}
 		});
 		
-		MenuBar.addAction(model_info, 'filter');
+		MenuBar.addAction(model_info, 'view');
 	},
 	
 	onunload() {
