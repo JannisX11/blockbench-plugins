@@ -217,5 +217,13 @@
 		"description": "Allows exporting in Forge's multi-layer model format.",
 		"version": "1.0",
 		"variant": "both"
+	},
+	"light_tracer_uploader": {
+		"title": "Light Tracer Uploader",
+		"icon": "fas.fa-feather",
+		"author": "JannisX11",
+		"description": "Upload models to Light Tracer to share them or to create renders",
+		"version": "0.0.1",
+		"variant": "both"
 	}
 }
