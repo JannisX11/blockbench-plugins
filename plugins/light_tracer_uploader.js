@@ -1,35 +1,8 @@
 (function() {
 
-	let action, setting_login, setting_token;
+	let action, setting_login;
 
-	async function getToken() {
-
-		if (Settings.get('light_tracer_token')) {
-			return Settings.get('light_tracer_token');
-		}
-
-		let dialog_promise = new Promise((resolve, reject) => {
-			var dialog = new Dialog({
-				id: 'light_tracer_login',
-				title: 'Light Tracer Login',
-				width: 500,
-				form: {
-					login: {label: 'Email', value: Settings.get('light_tracer_login')},
-					password: {label: 'Password', value: '', type: 'password'},
-					info: {type: 'info', text: 'Don\'t have an account? [Sign up](https://lighttracer.org/accounts/signup/)'}
-				},
-				onConfirm(formResult) {
-					dialog.hide();
-					resolve(formResult);
-				},
-				onCancel() {
-					dialog.hide();
-					reject()
-				}
-			})
-			dialog.show()
-		})
-		let {login, password} = await dialog_promise;
+	async function getToken(login, password) {
 
 		var data = new FormData()
 		data.append('login', login)
@@ -45,18 +18,21 @@
 		})
 
 		if (result && result.message && result.message.token) {
-			settings.light_tracer_token.value = result.message.token;
 			settings.light_tracer_login.value = login;
 			return result.message.token;
 		} else {
-			console.error('Failed to generate token', result)
+			Blockbench.showMessageBox({
+				title: 'Failed to Upload Model',
+				icon: 'error',
+				message: (result && result.message) ? result.message : 'Cannot connect to server',
+			})
+			console.error(result)
 		}
 	}
 
 	async function uploadLightTracerModel() {
 		if (Cube.all.length === 0) return;
 
-		let token = await getToken();
 		let login = Settings.get('light_tracer_login');
 		
 		var dialog = new Dialog({
@@ -65,23 +41,32 @@
 			width: 540,
 			form: {
 				login: {label: 'Email', value: login},
-				token: {label: 'Token', value: token, type: 'password'},
+				password: {label: 'Password', value: '', type: 'password'},
+				info: {label: ' ', nocolon: true, type: 'info', text: 'Don\'t have an account? [Sign up](https://lighttracer.org/accounts/signup/)'},
 				name: {label: 'Name', value: Project.name},
-				author: {label: 'Author'},
 				description: {label: 'Description', type: 'textarea'},
 				public: {label: 'Public', type: 'checkbox'},
 			},
-			onConfirm: function(formResult) {
+			onConfirm: async function(formResult) {
+
+				if (!formResult.login || !formResult.password) {
+					Blockbench.showQuickMessage('Email and password are required')
+					return;
+				}
+
+				dialog.hide();
+				Blockbench.showQuickMessage('Uploading... this may take a few moments...', 3000)
+
+				let token = await getToken(formResult.login, formResult.password);
+
+				if (!token) return;
 
 				var data = new FormData()
 				data.append('login', formResult.login);
-				data.append('token', formResult.token);
+				data.append('token', token);
 				data.append('name', formResult.name);
-				data.append('author', formResult.author);
 				data.append('description', formResult.description);
 				data.append('public', formResult.public);
-
-				if (formResult.token) settings.light_tracer_token.value = formResult.token;
 	
 				Codecs.gltf.compile({animations: false}, (content) => {
 	
@@ -106,12 +91,15 @@
 						},
 						error: function(response) {
 
-							Blockbench.showQuickMessage('Failed to Upload Model', 1500);
+							Blockbench.showMessageBox({
+								title: 'Failed to Upload Model',
+								icon: 'error',
+								message: `Unable to upload model`,
+							})
 							console.error(response);
 						}
 					})
 				})
-				dialog.hide();
 			}
 		})
 		dialog.show();
@@ -144,18 +132,10 @@
 				value: '',
 				type: 'text'
 			});
-			setting_token = new Setting('light_tracer_token', {
-				name: 'Light Tracer Token',
-				description: 'Light Tracer API access token',
-				category: 'export',
-				value: '',
-				type: 'password'
-			});
 		},
 		onunload() {
 			action.delete();
 			setting_login.delete();
-			setting_token.delete();
 		}
 	})
 
