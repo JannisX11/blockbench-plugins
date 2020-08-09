@@ -1305,7 +1305,7 @@ Plugin.register('ambient_occlusion', {
 	title: 'Ambient Occlusion',
 	icon: 'gradient',
 	author: 'JannisX11',
-	description: 'Adds a scalable ambient occlusion shader',
+	description: 'Adds a screen space ambient occlusion shader',
 	version: '1.0.2',
 	min_version: '3.2.0',
 	variant: 'both',
