@@ -9,6 +9,12 @@ function isValidVersion(){
 }
 
 function loadZipToJson(importType){
+	/*Undo.initEdit({
+		outliner: true,
+		uv_mode: true,
+		elements: Outliner.elements,
+		textures: textures
+	});*/
 	ElecDialogs.showOpenDialog(
 		currentwindow,
 		{
@@ -49,6 +55,7 @@ function loadZipToJson(importType){
 			});
 		}
 	);
+	//Undo.finishEdit("Model Import");
 }
 
 var ImportTypeEnum = {
@@ -132,11 +139,6 @@ var importTechne = new Action({
 });
 
 function loadTechneModel(data) {
-	Undo.initEdit({
-		outliner: true,
-		bitmap: true,
-		uv_mode: true
-	});
 
 	reader = new DOMParser();
 	var xml = reader.parseFromString(data, "text/xml");
@@ -176,7 +178,7 @@ function loadTechneModel(data) {
 		
 		var cube = new Cube(
 			{
-				shade: mirror,
+				mirror_uv: mirror,
 				name: shape.getAttribute("name"),
 				from: [position[0] + offset[0], position[1] - size[1] - offset[1], position[2] + offset[2]],
 				to: [position[0] + size[0] + offset[0], position[1] - offset[1], position[2] + offset[2] + size[2]],
@@ -185,8 +187,6 @@ function loadTechneModel(data) {
 		).addTo(group);
 		cube.init();
 	}
-
-	Undo.finishEdit('Import Techne Model');
 	Canvas.updateAll()
 }
 
@@ -205,62 +205,106 @@ var importTabula = new Action({
 });
 
 function loadTabulaModel(data) {
-	var json = JSON.parse(data);
-	
-	Project.name = json.modelName;
-	Project.texture_width = json.textureWidth;
-	Project.texture_height = json.textureHeight;
-	
-	var rootGroup = new Group(
-		{
-			name: "root",
-			origin: [0, 24, 0],
-			rotation: [0, 0, 0],
-		}
-		).addTo();
-		rootGroup.init();
 	Undo.initEdit({
 		outliner: true,
 		bitmap: true,
 		uv_mode: true
 	});
-	loadCubesTabula(json.cubes, rootGroup);
+	var json = JSON.parse(data);
+	
+	var version = json.projVersion || 0;
+
+	switch(version){
+		case 5:
+			Project.name = json.modelName;
+			Project.texture_width = json.texWidth;
+			Project.texture_height = json.texHeight;
+			json.parts.forEach(part => readTblBone(part, version, null));
+			Blockbench.showMessageBox({
+				title: "Warning",
+				message: "You imported a version 5 Tabula Model.\nThis Format has some functions which are not supported by Blockbench, for this reason some things might have broken on import."
+			});
+			break;
+		default:
+			Project.name = json.modelName;
+			Project.texture_width = json.textureWidth;
+			Project.texture_height = json.textureHeight;
+			var rootGroup = new Group(
+				{
+					name: "root",
+					origin: [0, 24, 0],
+					rotation: [0, 0, 0],
+				}
+			).addTo();
+			rootGroup.init();
+			json.cubes.forEach(cube => readTblBone(cube, version, rootGroup));
+			break;
+	}
+	
+
 	Undo.finishEdit('Import Tabula Model');
 	Canvas.updateAll();
 }
-	
-function loadCubesTabula(array, parentGroup){
-	var i;
-	for (i = 0; i < array.length; i++) {
-		var obj = array[i];
-		if(typeof obj === "undefined") return;
-	
-		var group = new Group(
-			{
-				name: obj.name,
-				origin: [parentGroup.origin[0] + obj.position[0], parentGroup.origin[1] - obj.position[1], parentGroup.origin[2] + obj.position[2]],
-				rotation: [-obj.rotation[0], obj.rotation[1], obj.rotation[2]],
-			}
-		).addTo(parentGroup);
-		group.init();
-		
-		var cube = new Cube(
-			{
-				shade: obj.txMirror,
-				name: obj.name,
-				from: [group.origin[0] + obj.offset[0], group.origin[1] -  obj.offset[1] - obj.dimensions[1], group.origin[2] +  obj.offset[2]],
-				to: [group.origin[0] + obj.offset[0] + obj.dimensions[0], group.origin[1] - obj.offset[1], group.origin[2] +  obj.offset[2] + obj.dimensions[2]],
-				uv_offset: [obj.txOffset[0],  obj.txOffset[1]],
-			}
-		).addTo(group);
-		cube.init();
-		//Outliner.elements.push(cube);
-		
-		if(obj.hasOwnProperty("children")){
-			var children = obj.children
-			loadCubesTabula(children, group);
-		}
-	};
+
+function readTblBone(json, version, parentGroup){
+	var group;
+	switch(version){
+		case 5:
+			group = new Group({
+				name: json.name,
+				origin: [(parentGroup == null ? 0 : parentGroup.origin[0]) + json.rotPX, (parentGroup == null ?  + 24 : parentGroup.origin[1]) - json.rotPY, (parentGroup == null ? 0 : parentGroup.origin[2]) + json.rotPZ],
+				rotation: [-json.rotAX, json.rotAY, json.rotAZ]
+			});
+			break;
+		default:
+			group = new Group({
+				name: json.name,
+				origin: [parentGroup.origin[0] + json.position[0], parentGroup.origin[1] - json.position[1], parentGroup.origin[2] + json.position[2]],
+				rotation: [-json.rotation[0], json.rotation[1], json.rotation[2]],
+			});
+			break;
+	}
+	if(parentGroup) group.addTo(parentGroup);
+	group.init();
+
+	switch(version){
+		case 5:
+			if(json.children) json.children.forEach(bone => readTblBone(bone, version, group));
+			if(json.boxes) json.boxes.forEach(cube => readTblCube(cube, version, group, json));
+			break;
+		default:
+			if(json.children) json.children.forEach(bone => readTblBone(cubebone, version, group));
+			readTblCube(json, version, group);
+			break;
+	}
+}
+
+function readTblCube(json, version, parentGroup, extra){
+	var cube;
+	switch(version){
+		case 5:
+			var pos = [json.posX, json.posY, json.posZ];
+			var dim = [json.dimX, json.dimY, json.dimZ];
+			cube = new Cube({
+				mirror_uv: json.mirror,
+				name: json.name,
+				from: [parentGroup.origin[0] + pos[0], parentGroup.origin[1] -  pos[1] - dim[1], parentGroup.origin[2] +  pos[2]],
+				to: [parentGroup.origin[0] + pos[0] + dim[0], parentGroup.origin[1] - pos[1], parentGroup.origin[2] +  pos[2] + dim[2]],
+				uv_offset: [extra.texOffX + json.texOffX, extra.texOffY + json.texOffY]
+			});
+			break;
+		default:
+			cube = new Cube({
+				mirror_uv: json.txMirror,
+				name: json.name,
+				from: [parentGroup.origin[0] + json.offset[0], parentGroup.origin[1] -  json.offset[1] - json.dimensions[1], parentGroup.origin[2] +  json.offset[2]],
+				to: [parentGroup.origin[0] + json.offset[0] + json.dimensions[0], parentGroup.origin[1] - json.offset[1], parentGroup.origin[2] +  json.offset[2] + json.dimensions[2]],
+				uv_offset: [json.txOffset[0],  json.txOffset[1]],
+			});
+			break;
+	}
+	if(parentGroup) cube.addTo(parentGroup);
+	cube.init();
 }
 
 /** ---------- Export - VoxelShape ---------- */
@@ -376,7 +420,7 @@ Plugin.register('mod_utils', {
 	author: 'JTK222',
 	icon: 'fa-cubes',
 	description: '',
-	version: '1.4',
+	version: '1.5',
 	variant: 'desktop',
 
 	onload() {
