@@ -178,7 +178,7 @@ function loadTechneModel(data) {
 		
 		var cube = new Cube(
 			{
-				shade: mirror,
+				mirror_uv: mirror,
 				name: shape.getAttribute("name"),
 				from: [position[0] + offset[0], position[1] - size[1] - offset[1], position[2] + offset[2]],
 				to: [position[0] + size[0] + offset[0], position[1] - offset[1], position[2] + offset[2] + size[2]],
@@ -286,7 +286,7 @@ function readTblCube(json, version, parentGroup, extra){
 			var pos = [json.posX, json.posY, json.posZ];
 			var dim = [json.dimX, json.dimY, json.dimZ];
 			cube = new Cube({
-				shade: json.mirror,
+				mirror_uv: json.mirror,
 				name: json.name,
 				from: [parentGroup.origin[0] + pos[0], parentGroup.origin[1] -  pos[1] - dim[1], parentGroup.origin[2] +  pos[2]],
 				to: [parentGroup.origin[0] + pos[0] + dim[0], parentGroup.origin[1] - pos[1], parentGroup.origin[2] +  pos[2] + dim[2]],
@@ -295,7 +295,7 @@ function readTblCube(json, version, parentGroup, extra){
 			break;
 		default:
 			cube = new Cube({
-				shade: json.txMirror,
+				mirror_uv: json.txMirror,
 				name: json.name,
 				from: [parentGroup.origin[0] + json.offset[0], parentGroup.origin[1] -  json.offset[1] - json.dimensions[1], parentGroup.origin[2] +  json.offset[2]],
 				to: [parentGroup.origin[0] + json.offset[0] + json.dimensions[0], parentGroup.origin[1] - json.offset[1], parentGroup.origin[2] +  json.offset[2] + json.dimensions[2]],
