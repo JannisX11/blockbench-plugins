@@ -273,7 +273,7 @@ function readTblBone(json, version, parentGroup){
 			if(json.boxes) json.boxes.forEach(cube => readTblCube(cube, version, group, json));
 			break;
 		default:
-			if(json.children) json.children.forEach(bone => readTblBone(cubebone, version, group));
+			if(json.children) json.children.forEach(bone => readTblBone(bone, version, group));
 			readTblCube(json, version, group);
 			break;
 	}
@@ -420,7 +420,7 @@ Plugin.register('mod_utils', {
 	author: 'JTK222',
 	icon: 'fa-cubes',
 	description: '',
-	version: '1.5',
+	version: '1.5.1',
 	variant: 'desktop',
 
 	onload() {
