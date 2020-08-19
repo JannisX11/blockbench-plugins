@@ -210,6 +210,15 @@
 		"min_version": "3.6",
 		"variant": "both"
 	},
+	"modded_entity_fabric": {
+		"title": "Fabric Modded Entity",
+		"author": "Eliot Lash",
+		"icon": "icon-format_java",
+		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
+		"version": "0.2.0",
+		"min_version": "3.6.6",
+		"variant": "both"
+	},
 	"multi-layer": {
 		"title": "Multi-Layer",
 		"icon": "layers",
