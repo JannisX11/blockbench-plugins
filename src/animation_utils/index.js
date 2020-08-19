@@ -52,6 +52,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
   };
 
   const compileCallback = (e) => {
+    if (Format.id !== "animated_entity_model") return;
     e.model.geckoSettings = geckoSettings;
     // console.log(`compileCallback model:`, e.model);
   };
