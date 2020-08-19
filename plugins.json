@@ -215,7 +215,7 @@
 		"author": "Eliot Lash",
 		"icon": "icon-format_java",
 		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
-		"version": "0.2.0",
+		"version": "0.2.1",
 		"min_version": "3.6.6",
 		"variant": "both"
 	},

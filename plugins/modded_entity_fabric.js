@@ -12,6 +12,7 @@ fabricOptions = Object.assign({}, FABRIC_OPTIONS_DEFAULT);
 let button;
 
 const compileCallback = (e) => {
+  if (Format.id !== "modded_entity") return;
   e.model.fabricOptions = fabricOptions;
   // console.log(`compileCallback model:`, e.model);
 };
@@ -133,7 +134,7 @@ Plugin.register('modded_entity_fabric', {
   author: 'Eliot Lash',
   description: 'Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap',
   min_version: '3.6.6',
-  version: '0.2.0',
+  version: '0.2.1',
   variant: 'both',
   onload() {
     Codecs.project.on('compile', compileCallback);
@@ -144,7 +145,7 @@ Plugin.register('modded_entity_fabric', {
       name: 'Fabric Options',
       description: 'Stuff for Fabric support',
       icon: 'info',
-      condition: () => Format,
+      condition: () => Format.id === "modded_entity",
       click: function () {
         var dialog = new Dialog({
           id: 'project',
@@ -152,7 +153,7 @@ Plugin.register('modded_entity_fabric', {
           width: 540,
           lines: [
             '<p>These settings allow you to customize the exported java code if desired.<p>',
-            '<p><b>Be sure to select your Fabric version</b> in project settings first.</p>',
+            `<p><b>Be sure to select your Fabric version</b> in project settings first. Fabric format is currently <b>${Project.modded_entity_version.includes("Fabric") ? 'Enabled' : '<span style="color:red;">Disabled</span>'}</b>.</p>`,
             '<p>For help animating your models, check out <a href="https://github.com/bernie-g/geckolib">GeckoLib</a> which has native Fabric support.</p>',
           ],
           form: {
