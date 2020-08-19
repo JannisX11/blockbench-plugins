@@ -1,9 +1,9 @@
 import { version } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
-import { addKeyframeMonkeypatches } from './keyframe';
+import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
 import geckoSettings, { MOD_SDK_OPTIONS } from './settings';
-import { loadCodec, unloadCodec } from './codec';
+import codec, { loadCodec, unloadCodec } from './codec';
 
 (function () {
   const MIN_BLOCKBENCH_VERSION = "3.6";
@@ -23,7 +23,7 @@ import { loadCodec, unloadCodec } from './codec';
     onload() {
       loadCodec();
       loadAnimationUI();
-      addKeyframeMonkeypatches();
+      loadKeyframeOverrides();
 
       exportAction = new Action({
         id: "export_animated_entity_model",
@@ -68,12 +68,13 @@ import { loadCodec, unloadCodec } from './codec';
       MenuBar.addAction(button, 'file.1');
     },
     onunload() {
-      unloadCodec();
       exportAction.delete();
       button.delete();
+      unloadKeyframeOverrides();
       unloadAnimationUI();
+      unloadCodec();
       removeMonkeypatches();
-      console.clear();
+      console.clear(); // eslint-disable-line no-console
     },
   });
 })();

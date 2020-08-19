@@ -2,7 +2,7 @@ import { Original, addMonkeypatch, hasArgs } from './utils';
 import { easingFunctions, EASING_DEFAULT, getEasingArgDefault } from './easing';
 
 //#region Keyframe Mixins
-export function addKeyframeMonkeypatches() {
+export function loadKeyframeOverrides() {
   addMonkeypatch(Keyframe, "prototype", "getLerp", keyframeGetLerp);
   addMonkeypatch(Keyframe, "prototype", "getArray", keyframeGetArray);
   addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
@@ -11,10 +11,15 @@ export function addKeyframeMonkeypatches() {
   addMonkeypatch(BarItems.reverse_keyframes, null, "condition", reverseKeyframesCondition);
 }
 
+export function unloadKeyframeOverrides() {
+  //No-op for now since monkeypatches are unloaded automatically
+}
+
 function lerp(start, stop, amt) {
   return amt * (stop - start) + start;
-};
+}
 
+// eslint-disable-next-line no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
   const easing = other.easing || EASING_DEFAULT;
   if (Format.id !== "animated_entity_model") {
@@ -46,7 +51,7 @@ function keyframeGetArray() {
     result = { vector: result, easing };
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
-  console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+  // console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
@@ -85,7 +90,7 @@ function keyframeExtend(dataIn) {
     }
   }
   const result = Original.get(Keyframe).extend.apply(this, arguments);
-  console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+  // console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 

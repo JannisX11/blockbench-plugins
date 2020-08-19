@@ -58,7 +58,7 @@ function stepRange(steps, stop = 1) {
   return Array.from({
     length: steps
   }, (_, i) => i * stepLength);
-};
+}
 
 // The MIT license notice below applies to the Easing class
 /**

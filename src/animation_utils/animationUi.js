@@ -9,8 +9,8 @@ export const loadAnimationUI = () => {
   Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
 
-  addMonkeypatch(global, null, "updateKeyframeEasing", updateKeyframeEasing);
-  addMonkeypatch(global, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
+  addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
+  addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
 
   holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
     .children.find(x => x.name === 'menu.animation.loop.hold');
@@ -25,7 +25,7 @@ export const unloadAnimationUI = () => {
 };
 
 //#region Global Animation UI Handlers
-export const displayAnimationFrameCallback = (...args) => {
+export const displayAnimationFrameCallback = (/*...args*/) => {
   // const keyframe = $('#keyframe');
   // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
@@ -38,7 +38,7 @@ export function updateKeyframeEasing(obj) {
   Timeline.selected.forEach((kf) => {
     kf.easing = value;
   })
-  updateKeyframeSelection(); // Ensure easingArg display is updated
+  window.updateKeyframeSelection(); // Ensure easingArg display is updated
   // Animator.preview();
 }
 
@@ -52,7 +52,7 @@ export function updateKeyframeEasingArg(obj) {
   })
 }
 
-export const updateKeyframeSelectionCallback = (...args) => {
+export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing').remove()
 
     var multi_channel = false;
@@ -61,7 +61,7 @@ export const updateKeyframeSelectionCallback = (...args) => {
       if (channel === false) {
         channel = kf.channel
       } else if (channel !== kf.channel) {
-        multi_channel = true
+        multi_channel = true //eslint-disable-line no-unused-vars
       }
     })
 

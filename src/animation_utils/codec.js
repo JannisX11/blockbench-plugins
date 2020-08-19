@@ -1,4 +1,5 @@
 import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT } from './settings';
+/* eslint-disable no-useless-escape */
 //#region Codec Helpers / Export Settings
 
 export function loadCodec() {
@@ -16,7 +17,7 @@ function compileCallback(e) {
   if (Format.id !== "animated_entity_model") return;
   e.model.geckoSettings = geckoSettings;
   // console.log(`compileCallback model:`, e.model);
-};
+}
 
 function parseCallback(e) {
   // console.log(`parseCallback:`, e);
@@ -25,7 +26,7 @@ function parseCallback(e) {
   } else {
     Object.assign(geckoSettings, GECKO_SETTINGS_DEFAULT);
   }
-};
+}
 
 const getImports = () => {
   switch(geckoSettings.modSDK) {
@@ -43,7 +44,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
 };
 
 function F(num) {
-  var s = trimFloatNumber(num) + "";
+  var s = window.trimFloatNumber(num) + "";
   if (!s.includes(".")) {
     s += ".0";
   }
@@ -123,7 +124,7 @@ function getIdentifier() {
   );
 }
 
-var codec = new Codec("animated_entity_model", {
+const codec = new Codec("animated_entity_model", {
   name: "Animated Java Class",
   extension: "java",
   remember: true,
@@ -131,7 +132,7 @@ var codec = new Codec("animated_entity_model", {
     let R = Templates.getVariableRegex;
     let identifier = getIdentifier();
 
-    let all_groups = getAllGroups();
+    let all_groups = window.getAllGroups();
     let loose_cubes = [];
     Cube.all.forEach((cube) => {
       if (cube.parent == "root") loose_cubes.push(cube);
@@ -164,7 +165,7 @@ var codec = new Codec("animated_entity_model", {
 
     model = model.replace(R("fields"), () => {
       let group_snippets = [];
-      for (var group of all_groups) {
+      for (const group of all_groups) {
         if (group instanceof Group === false || !group.export)
           continue;
         let snippet = Templates.get("field").replace(
@@ -178,7 +179,7 @@ var codec = new Codec("animated_entity_model", {
 
     model = model.replace(R("content"), () => {
       let group_snippets = [];
-      for (var group of all_groups) {
+      for (const group of all_groups) {
         if (group instanceof Group === false || !group.export)
           continue;
         let snippet = Templates.get("bone")
@@ -302,7 +303,7 @@ var codec = new Codec("animated_entity_model", {
 
     model = model.replace(R("renderers"), () => {
       let group_snippets = [];
-      for (var group of all_groups) {
+      for (const group of all_groups) {
         if (group instanceof Group === false || !group.export)
           continue;
         if (
@@ -323,6 +324,7 @@ var codec = new Codec("animated_entity_model", {
     this.dispatchEvent("compile", { model, options });
     return model;
   },
+  // eslint-disable-next-line no-unused-vars
   parse(model, path, add) {
     this.dispatchEvent("parse", { model });
 
@@ -342,21 +344,21 @@ var codec = new Codec("animated_entity_model", {
         .replace(/\(/g, "\\(")
         .replace(/\)/g, "\\)")
         .replace(/\./g, "\\.");
-      var parts = scheme.split("$");
-      var regexstring = "";
-      var results = [];
-      var location = 0;
-      var i = 0;
+      const parts = scheme.split("$");
+      // const regexstring = "";
+      const results = [];
+      let location = 0;
+      let i = 0;
       for (var part of parts) {
         if (i == 0) {
-          var partmatch = new RegExp("^" + part).exec(input);
+          const partmatch = new RegExp("^" + part).exec(input);
           if (partmatch == null) return;
 
           location = partmatch[0].length;
         } else {
-          var key = part.substr(0, 1);
+          const key = part.substr(0, 1);
           part = part.substr(1);
-          var key_regex = "";
+          let key_regex = "";
           switch (key) {
             case "v":
               key_regex = "^[a-zA-Z_][a-zA-Z0-9_]+";
@@ -374,12 +376,12 @@ var codec = new Codec("animated_entity_model", {
               key_regex = "^true|false";
               break;
           }
-          var partmatch = new RegExp(key_regex + part).exec(
+          const partmatch = new RegExp(key_regex + part).exec(
             input.substr(location)
           );
           if (partmatch == null) return;
 
-          var variable = new RegExp(key_regex).exec(
+          const variable = new RegExp(key_regex).exec(
             input.substr(location)
           )[0];
           switch (key) {
@@ -411,7 +413,7 @@ var codec = new Codec("animated_entity_model", {
       match = results;
       return true;
     }
-    var scope = 0,
+    let scope = 0,
       bones = {},
       geo_name,
       match,
@@ -493,7 +495,7 @@ var codec = new Codec("animated_entity_model", {
         } else if (
           parseScheme("$v.setRotationPoint($f, $f, $f)", line)
         ) {
-          var bone = bones[match[0]];
+          const bone = bones[match[0]];
           if (bone) {
             bone.extend({
               origin: [-match[1], 24 - match[2], match[3]],
@@ -515,7 +517,7 @@ var codec = new Codec("animated_entity_model", {
             line.replace(/\(this\./g, "(")
           )
         ) {
-          var child = bones[match[1]],
+          const child = bones[match[1]],
             parent = bones[match[0]];
           child.addTo(parent);
           child.origin.V3_add(parent.origin);
@@ -540,8 +542,8 @@ var codec = new Codec("animated_entity_model", {
             line
           )
         ) {
-          var group = bones[match[0]];
-          var cube = new Cube({
+          const group = bones[match[0]];
+          const cube = new Cube({
             name: match[0],
             uv_offset: [match[2], match[3]],
             from: [
@@ -574,8 +576,8 @@ var codec = new Codec("animated_entity_model", {
             line
           )
         ) {
-          var group = bones[match[0]];
-          var cube = new Cube({
+          const group = bones[match[0]];
+          const cube = new Cube({
             name: match[0],
             uv_offset: last_uv,
             from: [
@@ -600,8 +602,8 @@ var codec = new Codec("animated_entity_model", {
             line
           )
         ) {
-          var group = bones[match[0]];
-          var cube = new Cube({
+          const group = bones[match[0]];
+          const cube = new Cube({
             name: match[0],
             uv_offset: [match[1], match[2]],
             from: [
@@ -627,7 +629,7 @@ var codec = new Codec("animated_entity_model", {
           parseScheme("setRotationAngle($v, $f, $f, $f)", line)
         ) {
           //blockbench
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.extend({
               rotation: [
@@ -641,7 +643,7 @@ var codec = new Codec("animated_entity_model", {
           parseScheme("setRotation($v, $f, $f, $f)", line)
         ) {
           //cubik
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.extend({
               rotation: [
@@ -655,7 +657,7 @@ var codec = new Codec("animated_entity_model", {
           parseScheme("setRotateAngle($v, $f, $f, $f)", line)
         ) {
           //tabula
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.extend({
               rotation: [
@@ -667,24 +669,24 @@ var codec = new Codec("animated_entity_model", {
           }
         } else if (parseScheme("$v.rotateAngleX = $f", line)) {
           //default
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.rotation[0] = -Math.radToDeg(match[1]);
           }
         } else if (parseScheme("$v.rotateAngleY = $f", line)) {
           //default
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.rotation[1] = -Math.radToDeg(match[1]);
           }
         } else if (parseScheme("$v.rotateAngleZ = $f", line)) {
           //default
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           if (group) {
             group.rotation[2] = Math.radToDeg(match[1]);
           }
         } else if (parseScheme("$v.mirror = $b", line)) {
-          var group = bones[match[0]];
+          const group = bones[match[0]];
           group.mirror_uv = match[1];
           group.children.forEach((cube) => {
             cube.mirror_uv = match[1];
@@ -715,5 +717,7 @@ const format = new ModelFormat({
 });
 //Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
 codec.format = format;
+
+export default codec;
 
 //#endregion Codec / ModelFormat
