@@ -1,26 +1,36 @@
 (function() {
 
+const FABRIC_OPTIONS_DEFAULT = {
+  header: 'package com.example.mod;',
+  entity: 'Entity',
+  render: '',
+  members: '',
+};
+Object.freeze(FABRIC_OPTIONS_DEFAULT);
+
+fabricOptions = Object.assign({}, FABRIC_OPTIONS_DEFAULT);
 let button;
-let fabricOptions;
 
-const getStorageKey = () => `modded_entity_fabric.${Project.name}`;
+const compileCallback = (e) => {
+  e.model.fabricOptions = fabricOptions;
+  // console.log(`compileCallback model:`, e.model);
+};
 
-function loadFabricOptions() {
-	const storageKey = getStorageKey();
-	fabricOptions = localStorage.getItem(storageKey)
-		? JSON.parse(localStorage.getItem(storageKey))
-		: {};
-}
-
-const initModelCallback = (tag) => console.log(`mod#tag:${tag}`);
+const parseCallback = (e) => {
+  // console.log(`parseCallback:`, e);
+  if (e.model && typeof e.model.fabricOptions === 'object') {
+    Object.assign(fabricOptions, e.model.fabricOptions);
+  } else {
+    fabricOptions = Object.assign({}, FABRIC_OPTIONS_DEFAULT);
+  }
+  setTemplate();
+};
 
 function setTemplate() {
-	const header = fabricOptions.header || '';
-	const entity = fabricOptions.entity || '';
-	const render = fabricOptions.render || '';
-	const members = fabricOptions.members || '';
-	Codecs.modded_entity.templates['1.14 - Fabric'] = {
-		name: '1.14 - Fabric',
+	const { header, entity, render, members } = fabricOptions;
+
+	Codecs.modded_entity.templates['Fabric 1.14'] = {
+		name: 'Fabric 1.14',
 		flip_y: true,
 		integer_size: true,
 		file: 
@@ -70,8 +80,9 @@ function setTemplate() {
 		renderer: `%(bone).render(f5);`,
 		cube: `%(bone).boxes.add(new Box(%(bone), %(uv_x), %(uv_y), %(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror)));`,
 	};
-	Codecs.modded_entity.templates['1.15 - Fabric'] = {
-		name: '1.15 - Fabric',
+
+	Codecs.modded_entity.templates['Fabric 1.15+'] = {
+		name: 'Fabric 1.15+',
 		flip_y: true,
 		integer_size: false,
 		file: 
@@ -117,16 +128,17 @@ function setTemplate() {
 }
 
 Plugin.register('modded_entity_fabric', {
-	title: 'Modded Entity (Fabric)',
+	title: 'Fabric Modded Entity',
 	icon: 'icon-format_java',
 	author: 'Eliot Lash',
-	description: 'Plugin for exporting Modded Entities for Fabric/Yarn API',
-	min_version: '3.5.0',
+	description: 'Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap',
+	min_version: '3.6.6',
+  version: '0.2.0',
 	variant: 'both',
 	onload() {
-		loadFabricOptions();
+    Codecs.project.on('compile', compileCallback);
+    Codecs.project.on('parse', parseCallback);
 		setTemplate();
-		Blockbench.on('init_model', initModelCallback);
 		// add a button to show the tips
 		button = new Action('fabric_info', {
 			name: 'Fabric Options',
@@ -134,21 +146,23 @@ Plugin.register('modded_entity_fabric', {
 			icon: 'info',
 			condition: () => Format,
 			click: function () {
-				// TODO This is a hack, replace this with metadata in the project file when this becomes possible
-				loadFabricOptions();
 				var dialog = new Dialog({
 					id: 'project',
 					title: 'Fabric Options',
 					width: 540,
+          lines: [
+            '<p>These settings allow you to customize the exported java code if desired.<p>',
+            '<p><b>Be sure to select your Fabric version</b> in project settings first.</p>',
+            '<p>For help animating your models, check out <a href="https://github.com/bernie-g/geckolib">GeckoLib</a> which has native Fabric support.</p>',
+          ],
 					form: {
-						entity: {label: 'Entity Type', value: fabricOptions.entity || 'Entity'},
+						entity: {label: 'Entity Type', value: fabricOptions.entity},
 						header: {label: 'Code Header Injection', value: fabricOptions.header},
 						render: {label: 'Render Code Injection', value: fabricOptions.render},
 						members: {label: 'Code Extra Members Injection', value: fabricOptions.members},
 					},
 					onConfirm: function(formResult) {
 						Object.assign(fabricOptions, formResult);
-						localStorage.setItem(getStorageKey(), JSON.stringify(fabricOptions));
 						setTemplate();
 						dialog.hide()
 					}
@@ -159,10 +173,12 @@ Plugin.register('modded_entity_fabric', {
 		MenuBar.addAction(button, 'file.1');
 	},
 	onunload() {
-		delete Codecs.modded_entity.templates['1.15'];
-      // remove button when plugin is unloaded
-			button.delete();
-			Blockbench.removeListener('init_model', initModelCallback);
+    delete Codecs.modded_entity.templates['Fabric 1.14'];
+    delete Codecs.modded_entity.templates['Fabric 1.15+'];
+    // remove button when plugin is unloaded
+    button.delete();
+    Codecs.project.events.compile.remove(compileCallback)
+    Codecs.project.events.parse.remove(parseCallback)
 	}
 });
 
