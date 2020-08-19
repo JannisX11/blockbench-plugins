@@ -7,14 +7,18 @@
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch --mode=development",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "pretest": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Eliot Lash, Gecko",
   "license": "MIT",
-   "sideEffects": [
+  "sideEffects": [
     "./index.js"
   ],
   "devDependencies": {
+    "eslint": "7.7.0",
     "webpack": "4.43.0",
     "webpack-cli": "3.3.12"
   },

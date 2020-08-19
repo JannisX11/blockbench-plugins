@@ -1,0 +1,34 @@
+{
+  "env": {
+    "browser": true,
+    "es2015": true,
+    "jquery": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "globals": {
+    "Blockbench": "readonly",
+    "Keyframe": "readonly",
+    "BarItems": "readonly",
+    "Format": "readonly",
+    "Action": "readonly",
+    "MenuBar": "readonly",
+    "Project": "readonly",
+    "Cube": "readonly",
+    "Canvas": "readonly",
+    "ModelFormat": "readonly",
+    "Timeline": "readonly",
+    "BoneAnimator": "readonly",
+    "Codecs": "readonly",
+    "Codec": "readonly",
+    "Merge": "readonly",
+    "Group": "readonly",
+    "Dialog": "readonly"
+  },
+  "rules": {
+    "no-console": "error"
+  }
+}
