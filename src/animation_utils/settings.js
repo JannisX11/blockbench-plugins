@@ -4,6 +4,7 @@ export const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
 export const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
 
 export const GECKO_SETTINGS_DEFAULT = {
+  formatVersion: 2,
   modSDK: MOD_SDK_1_15_FORGE,
   entityType: 'Entity',
   javaPackage: 'com.example.mod',

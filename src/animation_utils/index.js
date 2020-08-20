@@ -6,7 +6,7 @@ import geckoSettings, { MOD_SDK_OPTIONS } from './settings';
 import codec, { loadCodec, unloadCodec } from './codec';
 
 (function () {
-  const MIN_BLOCKBENCH_VERSION = "3.6";
+  const MIN_BLOCKBENCH_VERSION = "3.6.6";
   let exportAction;
   let button;
 

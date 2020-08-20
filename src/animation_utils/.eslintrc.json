@@ -10,6 +10,7 @@
     "sourceType": "module"
   },
   "globals": {
+    "Animator": "readonly",
     "Blockbench": "readonly",
     "Keyframe": "readonly",
     "BarItems": "readonly",

@@ -1,4 +1,7 @@
+import omit from 'lodash/omit';
 import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT } from './settings';
+import { Original, addMonkeypatch } from './utils';
+
 /* eslint-disable no-useless-escape */
 //#region Codec Helpers / Export Settings
 
@@ -6,6 +9,8 @@ export function loadCodec() {
   // The actual Codec is automatically registered by superclass constructor
   Codecs.project.on('compile', compileCallback);
   Codecs.project.on('parse', parseCallback);
+  addMonkeypatch(Animator, null, "buildFile", animatorBuildFile);
+  addMonkeypatch(Animator, null, "loadFile", animatorLoadFile);
 }
 
 export function unloadCodec() {
@@ -20,12 +25,29 @@ function compileCallback(e) {
 }
 
 function parseCallback(e) {
-  // console.log(`parseCallback:`, e);
+  console.log(`parseCallback:`, e);
   if (e.model && typeof e.model.geckoSettings === 'object') {
-    Object.assign(geckoSettings, e.model.geckoSettings);
+    Object.assign(geckoSettings, omit(e.model.geckoSettings, ['formatVersion']));
   } else {
     Object.assign(geckoSettings, GECKO_SETTINGS_DEFAULT);
   }
+}
+
+function animatorBuildFile() {
+  const res = Original.get(Animator).buildFile.apply(this, arguments);
+  Object.assign(
+    res,
+    {
+      'geckolib_format_version': geckoSettings.formatVersion,
+    }
+  );
+  // console.log('animatorBuildFile res:', res);
+  return res;
+}
+
+function animatorLoadFile() {
+  // Currently no modifications are needed
+  return Original.get(Animator).loadFile.apply(this, arguments);
 }
 
 const getImports = () => {
