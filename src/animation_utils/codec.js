@@ -150,7 +150,7 @@ const codec = new Codec("animated_entity_model", {
   name: "Animated Java Class",
   extension: "java",
   remember: true,
-  compile(options) {
+  compile(options = {}) {
     let R = Templates.getVariableRegex;
     let identifier = getIdentifier();
 
@@ -343,386 +343,87 @@ const codec = new Codec("animated_entity_model", {
       return group_snippets.join("\n\t\t");
     });
 
+    console.log('poopie');
+    maybeExportItemJson.bind(this, options)();
+
     this.dispatchEvent("compile", { model, options });
     return model;
   },
   // eslint-disable-next-line no-unused-vars
   parse(model, path, add) {
-    this.dispatchEvent("parse", { model });
-
-    var lines = [];
-    model.split("\n").forEach((l) => {
-      l = l
-        .replace(/\/\*[^(\*\/)]*\*\/|\/\/.*/g, "")
-        .trim()
-        .replace(/;$/, "");
-      if (l) {
-        lines.push(l);
-      }
-    });
-
-    function parseScheme(scheme, input) {
-      scheme = scheme
-        .replace(/\(/g, "\\(")
-        .replace(/\)/g, "\\)")
-        .replace(/\./g, "\\.");
-      const parts = scheme.split("$");
-      // const regexstring = "";
-      const results = [];
-      let location = 0;
-      let i = 0;
-      for (var part of parts) {
-        if (i == 0) {
-          const partmatch = new RegExp("^" + part).exec(input);
-          if (partmatch == null) return;
-
-          location = partmatch[0].length;
-        } else {
-          const key = part.substr(0, 1);
-          part = part.substr(1);
-          let key_regex = "";
-          switch (key) {
-            case "v":
-              key_regex = "^[a-zA-Z_][a-zA-Z0-9_]+";
-              break;
-            case "i":
-              key_regex = "^-?\\d+";
-              break;
-            case "f":
-              key_regex = "^-?\\d+\\.?\\d*F";
-              break;
-            case "d":
-              key_regex = "^-?\\d+\\.?\\d*";
-              break;
-            case "b":
-              key_regex = "^true|false";
-              break;
-          }
-          const partmatch = new RegExp(key_regex + part).exec(
-            input.substr(location)
-          );
-          if (partmatch == null) return;
-
-          const variable = new RegExp(key_regex).exec(
-            input.substr(location)
-          )[0];
-          switch (key) {
-            case "v":
-              results.push(variable);
-              break;
-            case "i":
-              results.push(parseInt(variable));
-              break;
-            case "f":
-              results.push(
-                parseFloat(variable.replace(/F$/, ""))
-              );
-              break;
-            case "d":
-              results.push(
-                parseFloat(variable.replace(/F$/, ""))
-              );
-              break;
-            case "b":
-              results.push(variable == "true");
-              break;
-          }
-          location += partmatch[0].length;
-        }
-
-        i++;
-      }
-      match = results;
-      return true;
-    }
-    let scope = 0,
-      bones = {},
-      geo_name,
-      match,
-      last_uv;
-
-    lines.forEach((line) => {
-      if (scope == 0) {
-        if (/^public class/.test(line)) {
-          scope = 1;
-          geo_name = line.split(/[\s<>()\.]+/g)[2];
-        }
-      } else if (scope == 1) {
-        line = line
-          .replace(/public |static |final |private |void /g, "")
-          .trim();
-        if (
-          line.substr(0, 13) == "AnimatedModelRenderer" ||
-          line.substr(0, 13) == "RendererModel"
-        ) {
-          let name = line.split(" ")[1];
-          bones[name] = new Group({
-            name,
-            origin: [0, 24, 0],
-          }).init();
-        } else if (line.substr(0, geo_name.length) == geo_name) {
-          scope = 2;
-        }
-      } else if (scope == 2) {
-        line = line.replace(/^this\./, "");
-        match = undefined;
-
-        if (line == "}") {
-          scope--;
-        } else if (parseScheme("textureWidth = $i", line)) {
-          Project.texture_width = match[0];
-        } else if (parseScheme("textureHeight = $i", line)) {
-          Project.texture_height = match[0];
-        } else if (parseScheme("super($v, $i, $i)", line)) {
-          Project.texture_width = match[1];
-          Project.texture_height = match[2];
-        } else if (
-          parseScheme(
-            "AnimatedModelRenderer $v = new AnimatedModelRenderer(this, $i, $i)",
-            line
-          ) ||
-          parseScheme(
-            "RendererModel $v = new RendererModel(this, $i, $i)",
-            line
-          ) ||
-          parseScheme(
-            "$v = new AnimatedModelRenderer(this, $i, $i)",
-            line
-          ) ||
-          parseScheme(
-            "$v = new RendererModel(this, $i, $i)",
-            line
-          )
-        ) {
-          if (!bones[match[0]]) {
-            bones[match[0]] = new Group({
-              name: match[0],
-              origin: [0, 24, 0],
-            }).init();
-          }
-          last_uv = [match[1], match[2]];
-        } else if (
-          parseScheme(
-            "$v = new AnimatedModelRenderer(this)",
-            line
-          )
-        ) {
-          // Blockbench for 1.15
-          if (!bones[match[0]]) {
-            bones[match[0]] = new Group({
-              name: match[0],
-              origin: [0, 0, 0],
-            }).init();
-          }
-        } else if (
-          parseScheme("$v.setRotationPoint($f, $f, $f)", line)
-        ) {
-          const bone = bones[match[0]];
-          if (bone) {
-            bone.extend({
-              origin: [-match[1], 24 - match[2], match[3]],
-            });
-            bone.children.forEach((cube) => {
-              if (cube instanceof Cube) {
-                cube.from[0] += bone.origin[0];
-                cube.to[0] += bone.origin[0];
-                cube.from[1] += bone.origin[1] - 24;
-                cube.to[1] += bone.origin[1] - 24;
-                cube.from[2] += bone.origin[2];
-                cube.to[2] += bone.origin[2];
-              }
-            });
-          }
-        } else if (
-          parseScheme(
-            "$v.addChild($v)",
-            line.replace(/\(this\./g, "(")
-          )
-        ) {
-          const child = bones[match[1]],
-            parent = bones[match[0]];
-          child.addTo(parent);
-          child.origin.V3_add(parent.origin);
-          child.origin[1] -= 24;
-
-          child.children.forEach((cube) => {
-            if (cube instanceof Cube) {
-              cube.from[0] += parent.origin[0];
-              cube.to[0] += parent.origin[0];
-              cube.from[1] += parent.origin[1] - 24;
-              cube.to[1] += parent.origin[1] - 24;
-              cube.from[2] += parent.origin[2];
-              cube.to[2] += parent.origin[2];
-            }
-          });
-        }
-
-        //Cubes
-        else if (
-          parseScheme(
-            "$v.cubeList.add(new ModelBox($v, $i, $i, $f, $f, $f, $i, $i, $i, $f, $b))",
-            line
-          )
-        ) {
-          const group = bones[match[0]];
-          const cube = new Cube({
-            name: match[0],
-            uv_offset: [match[2], match[3]],
-            from: [
-              group.origin[0] - match[4] - match[7],
-              group.origin[1] - match[5] - match[8],
-              group.origin[2] + match[6],
-            ],
-            inflate: match[10],
-            mirror_uv: match[11],
-          });
-          cube.extend({
-            to: [
-              cube.from[0] + Math.floor(match[7]),
-              cube.from[1] + Math.floor(match[8]),
-              cube.from[2] + Math.floor(match[9]),
-            ],
-          });
-          cube.addTo(bones[match[0]]).init();
-        } else if (
-          parseScheme(
-            "$v.addBox($f, $f, $f, $i, $i, $i)",
-            line
-          ) ||
-          parseScheme(
-            "$v.addBox($f, $f, $f, $i, $i, $i, $v)",
-            line
-          ) ||
-          parseScheme(
-            "$v.addBox($f, $f, $f, $i, $i, $i, $f)",
-            line
-          )
-        ) {
-          const group = bones[match[0]];
-          const cube = new Cube({
-            name: match[0],
-            uv_offset: last_uv,
-            from: [
-              group.origin[0] - match[1] - match[4],
-              group.origin[1] - match[2] - match[5],
-              group.origin[2] + match[3],
-            ],
-            inflate: typeof match[7] == "number" ? match[7] : 0,
-            mirror_uv: group.mirror_uv,
-          });
-          cube.extend({
-            to: [
-              cube.from[0] + Math.floor(match[4]),
-              cube.from[1] + Math.floor(match[5]),
-              cube.from[2] + Math.floor(match[6]),
-            ],
-          });
-          cube.addTo(bones[match[0]]).init();
-        } else if (
-          parseScheme(
-            "$v.setTextureOffset($i, $i).addBox($f, $f, $f, $f, $f, $f, $f, $b)",
-            line
-          )
-        ) {
-          const group = bones[match[0]];
-          const cube = new Cube({
-            name: match[0],
-            uv_offset: [match[1], match[2]],
-            from: [
-              group.origin[0] - match[3] - match[6],
-              group.origin[1] - match[4] - match[7],
-              group.origin[2] + match[5],
-            ],
-            inflate: match[9],
-            mirror_uv: match[10],
-          });
-          cube.extend({
-            to: [
-              cube.from[0] + Math.floor(match[6]),
-              cube.from[1] + Math.floor(match[7]),
-              cube.from[2] + Math.floor(match[8]),
-            ],
-          });
-          cube.addTo(bones[match[0]]).init();
-        }
-
-        //Rotation
-        else if (
-          parseScheme("setRotationAngle($v, $f, $f, $f)", line)
-        ) {
-          //blockbench
-          const group = bones[match[0]];
-          if (group) {
-            group.extend({
-              rotation: [
-                -Math.radToDeg(match[1]),
-                -Math.radToDeg(match[2]),
-                Math.radToDeg(match[3]),
-              ],
-            });
-          }
-        } else if (
-          parseScheme("setRotation($v, $f, $f, $f)", line)
-        ) {
-          //cubik
-          const group = bones[match[0]];
-          if (group) {
-            group.extend({
-              rotation: [
-                -Math.radToDeg(match[1]),
-                -Math.radToDeg(match[2]),
-                Math.radToDeg(match[3]),
-              ],
-            });
-          }
-        } else if (
-          parseScheme("setRotateAngle($v, $f, $f, $f)", line)
-        ) {
-          //tabula
-          const group = bones[match[0]];
-          if (group) {
-            group.extend({
-              rotation: [
-                -Math.radToDeg(match[1]),
-                -Math.radToDeg(match[2]),
-                Math.radToDeg(match[3]),
-              ],
-            });
-          }
-        } else if (parseScheme("$v.rotateAngleX = $f", line)) {
-          //default
-          const group = bones[match[0]];
-          if (group) {
-            group.rotation[0] = -Math.radToDeg(match[1]);
-          }
-        } else if (parseScheme("$v.rotateAngleY = $f", line)) {
-          //default
-          const group = bones[match[0]];
-          if (group) {
-            group.rotation[1] = -Math.radToDeg(match[1]);
-          }
-        } else if (parseScheme("$v.rotateAngleZ = $f", line)) {
-          //default
-          const group = bones[match[0]];
-          if (group) {
-            group.rotation[2] = Math.radToDeg(match[1]);
-          }
-        } else if (parseScheme("$v.mirror = $b", line)) {
-          const group = bones[match[0]];
-          group.mirror_uv = match[1];
-          group.children.forEach((cube) => {
-            cube.mirror_uv = match[1];
-          });
-        }
-      }
-    });
-    Canvas.updateAll();
+    alert("Loading animated models from .java files is not supported. Please use 'Save Project' to keep your work as a .bbmodel file and then export to Java when needed.");
   },
   fileName() {
     return getIdentifier();
   },
 });
 codec.templates = Templates;
+
+function maybeExportItemJson(options, as) {
+  function checkExport(key, condition) {
+    key = options[key]
+    if (key === undefined) {
+      return condition;
+    } else {
+      return key
+    }
+  }
+  const blockmodel = {}
+  if (checkExport('comment', settings.credit.value)) {
+    blockmodel.credit = settings.credit.value
+  }
+  if (checkExport('parent', Project.parent != '')) {
+    blockmodel.parent = Project.parent
+  }
+  if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
+    blockmodel.ambientocclusion = false
+  }
+  if (Project.texture_width !== 16 || Project.texture_height !== 16) {
+    blockmodel.texture_size = [Project.texture_width, Project.texture_height]
+  }
+  if (checkExport('front_gui_light', Project.front_gui_light)) {
+    blockmodel.gui_light = 'front';
+  }
+  if (checkExport('overrides', Project.overrides)) {
+    blockmodel.overrides = Project.overrides;
+  }
+  if (checkExport('display', Object.keys(display).length >= 1)) {
+    var new_display = {}
+    var entries = 0;
+    for (var i in DisplayMode.slots) {
+      var key = DisplayMode.slots[i]
+      if (DisplayMode.slots.hasOwnProperty(i) && display[key] && display[key].export) {
+        new_display[key] = display[key].export()
+        entries++;
+      }
+    }
+    if (entries) {
+      blockmodel.display = new_display
+    }
+  }
+  
+  const blockmodelString = JSON.stringify(blockmodel, null, 2);
+
+  var scope = this; // Dear god why is this needed
+
+  let path = geckoSettings.itemModelPath;
+  // regular export
+  if (isApp && !path) {
+    path = (scope.startPath() || ModelMeta.export_path).replace(".java", ".json");
+  }
+  Blockbench.export({
+    resource_id: 'model',
+    type: Codecs.java_block.name,
+    extensions: ['json'],
+    name: scope.fileName(),
+    startpath: path,
+    content: blockmodelString,
+  }, (real_path) => {
+    geckoSettings.itemModelPath = real_path;
+  });
+
+  return this;
+}
 
 const format = new ModelFormat({
   id: "animated_entity_model",
@@ -736,6 +437,7 @@ const format = new ModelFormat({
   centered_grid: true,
   integer_size: true,
   animation_mode: true,
+  display_mode: true,
 });
 //Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
 codec.format = format;
