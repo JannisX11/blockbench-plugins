@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.2',
+		version: '0.2.3',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -5204,6 +5204,194 @@
 			]
 		}`
 	}
+    EntityOptions.piglin = {
+		name: 'Piglin',
+		model: `{
+            "textureSize": [64, 64],
+            "models": [
+                {
+                    "part": "head",
+                    "id": "head",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-5, 24, -4, 10, 8, 8], "textureOffset": [0, 0]},
+                        {"coordinates": [-2, 24, -5, 4, 4, 1], "textureOffset": [31, 1]},
+                        {"coordinates": [-3, 24, -5, 1, 2, 1], "textureOffset": [2, 4]},
+                        {"coordinates": [2, 24, -5, 1, 2, 1], "textureOffset": [2, 0]}
+                    ]
+                },
+                {
+                    "part": "headwear",
+                    "id": "headwear",
+                    "invertAxis": "xy",
+                    "translate": [0, 0, 0]
+                },
+                {
+                    "part": "body",
+                    "id": "body",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]},
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_arm",
+                    "id": "left_arm",
+                    "invertAxis": "xy",
+                    "translate": [5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]},
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [48, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_arm",
+                    "id": "right_arm",
+                    "invertAxis": "xy",
+                    "translate": [-5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]},
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_leg",
+                    "id": "left_leg",
+                    "invertAxis": "xy",
+                    "translate": [2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]},
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_leg",
+                    "id": "right_leg",
+                    "invertAxis": "xy",
+                    "translate": [-2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]},
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_ear",
+                    "id": "left_ear",
+                    "invertAxis": "xy",
+                    "translate": [5.25, -30, 0],
+                    "boxes": [
+                        {"coordinates": [-6, 25, -2, 1, 5, 4], "textureOffset": [51, 6]}
+                    ]
+                },
+                {
+                    "part": "right_ear",
+                    "id": "right_ear",
+                    "invertAxis": "xy",
+                    "translate": [-5.5, -30, 0],
+                    "boxes": [
+                        {"coordinates": [5, 25, -2, 1, 5, 4], "textureOffset": [39, 6]}
+                    ]
+                }
+            ]
+        }`
+	}
+    EntityOptions.piglin_brute = {
+		name: 'Piglin Brute',
+		model: `{
+            "textureSize": [64, 64],
+            "models": [
+                {
+                    "part": "head",
+                    "id": "head",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-5, 24, -4, 10, 8, 8], "textureOffset": [0, 0]},
+                        {"coordinates": [-2, 24, -5, 4, 4, 1], "textureOffset": [31, 1]},
+                        {"coordinates": [-3, 24, -5, 1, 2, 1], "textureOffset": [2, 4]},
+                        {"coordinates": [2, 24, -5, 1, 2, 1], "textureOffset": [2, 0]}
+                    ]
+                },
+                {
+                    "part": "headwear",
+                    "id": "headwear",
+                    "invertAxis": "xy",
+                    "translate": [0, 0, 0]
+                },
+                {
+                    "part": "body",
+                    "id": "body",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]},
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_arm",
+                    "id": "left_arm",
+                    "invertAxis": "xy",
+                    "translate": [5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]},
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [48, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_arm",
+                    "id": "right_arm",
+                    "invertAxis": "xy",
+                    "translate": [-5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]},
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_leg",
+                    "id": "left_leg",
+                    "invertAxis": "xy",
+                    "translate": [2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]},
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_leg",
+                    "id": "right_leg",
+                    "invertAxis": "xy",
+                    "translate": [-2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]},
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_ear",
+                    "id": "left_ear",
+                    "invertAxis": "xy",
+                    "translate": [5.25, -30, 0],
+                    "boxes": [
+                        {"coordinates": [-6, 25, -2, 1, 5, 4], "textureOffset": [51, 6]}
+                    ]
+                },
+                {
+                    "part": "right_ear",
+                    "id": "right_ear",
+                    "invertAxis": "xy",
+                    "translate": [-5.5, -30, 0],
+                    "boxes": [
+                        {"coordinates": [5, 25, -2, 1, 5, 4], "textureOffset": [39, 6]}
+                    ]
+                }
+            ]
+        }`
+	}
 	EntityOptions.pillager = {
 		name: 'Pillager',
 		model: `{
@@ -9282,6 +9470,100 @@
 			]
 		}`
 	}
+    EntityOptions.zombified_piglin = {
+		name: 'Piglin',
+		model: `{
+            "textureSize": [64, 64],
+            "models": [
+                {
+                    "part": "head",
+                    "id": "head",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-5, 24, -4, 10, 8, 8], "textureOffset": [0, 0]},
+                        {"coordinates": [-2, 24, -5, 4, 4, 1], "textureOffset": [31, 1]},
+                        {"coordinates": [-3, 24, -5, 1, 2, 1], "textureOffset": [2, 4]},
+                        {"coordinates": [2, 24, -5, 1, 2, 1], "textureOffset": [2, 0]}
+                    ]
+                },
+                {
+                    "part": "headwear",
+                    "id": "headwear",
+                    "invertAxis": "xy",
+                    "translate": [0, 0, 0]
+                },
+                {
+                    "part": "body",
+                    "id": "body",
+                    "invertAxis": "xy",
+                    "translate": [0, -24, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]},
+                        {"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_arm",
+                    "id": "left_arm",
+                    "invertAxis": "xy",
+                    "translate": [5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]},
+                        {"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [48, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_arm",
+                    "id": "right_arm",
+                    "invertAxis": "xy",
+                    "translate": [-5, -22, 0],
+                    "boxes": [
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]},
+                        {"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_leg",
+                    "id": "left_leg",
+                    "invertAxis": "xy",
+                    "translate": [2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]},
+                        {"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 48], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "right_leg",
+                    "id": "right_leg",
+                    "invertAxis": "xy",
+                    "translate": [-2, -12, 0],
+                    "boxes": [
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]},
+                        {"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 32], "sizeAdd": 0.25}
+                    ]
+                },
+                {
+                    "part": "left_ear",
+                    "id": "left_ear",
+                    "invertAxis": "xy",
+                    "translate": [5.25, -30, 0],
+                    "boxes": [
+                        {"coordinates": [-6, 25, -2, 1, 5, 4], "textureOffset": [51, 6]}
+                    ]
+                },
+                {
+                    "part": "right_ear",
+                    "id": "right_ear",
+                    "invertAxis": "xy",
+                    "translate": [-5.5, -30, 0],
+                    "boxes": [
+                        {"coordinates": [5, 25, -2, 1, 5, 4], "textureOffset": [39, 6]}
+                    ]
+                }
+            ]
+        }`
+	}
 	EntityOptions.custom = {
 		name: '---- Custom Models ----'
 	}
@@ -11241,91 +11523,6 @@
 			]
 		}`
 	}
-	EntityOptions.piglin = {
-		name: 'Piglin',
-		model: `{
-			"textureSize": [64, 64],
-			"models": [
-				{
-					"part": "head",
-					"id": "head",
-					"invertAxis": "xy",
-					"translate": [0, -24, 0],
-					"boxes": [
-						{"coordinates": [-5, 24, -4, 10, 8, 8], "textureOffset": [0, 0]},
-						{"coordinates": [-2, 24, -5, 4, 4, 1], "textureOffset": [31, 1]},
-						{"coordinates": [-3, 24, -5, 1, 2, 1], "textureOffset": [2, 4]},
-						{"coordinates": [2, 24, -5, 1, 2, 1], "textureOffset": [2, 0]}
-					]
-				},
-				{
-					"part": "left_ear",
-					"id": "left_ear",
-					"invertAxis": "xy",
-					"translate": [-4.5, -30, 0],
-					"rotate": [0, 0, -25],
-					"boxes": [
-						{"coordinates": [-5.5, 25, -2, 1, 5, 4], "textureOffset": [51, 6]}
-					]
-				},
-				{
-					"part": "right_ear",
-					"id": "right_ear",
-					"invertAxis": "xy",
-					"translate": [4.5, -30, 0],
-					"rotate": [0, 0, 25],
-					"boxes": [
-						{"coordinates": [4.5, 25, -2, 1, 5, 4], "textureOffset": [39, 6]}
-					]
-				},
-				{
-					"part": "body",
-					"id": "body",
-					"invertAxis": "xy",
-					"translate": [0, -24, 0],
-					"boxes": [
-						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]}
-					]
-				},
-				{
-					"part": "left_arm",
-					"id": "left_arm",
-					"invertAxis": "xy",
-					"translate": [-4, -22, 0],
-					"boxes": [
-						{"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]}
-					]
-				},
-				{
-					"part": "right_arm",
-					"id": "right_arm",
-					"invertAxis": "xy",
-					"translate": [4, -22, 0],
-					"boxes": [
-						{"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]}
-					]
-				},
-				{
-					"part": "left_leg",
-					"id": "left_leg",
-					"invertAxis": "xy",
-					"translate": [-2, -12, 0],
-					"boxes": [
-						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]}
-					]
-				},
-				{
-					"part": "right_leg",
-					"id": "right_leg",
-					"invertAxis": "xy",
-					"translate": [2, -12, 0],
-					"boxes": [
-						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]}
-					]
-				}
-			]
-		}`
-	}
 	EntityOptions.player = {
 		name: 'Player',
 		model: `{
@@ -11943,81 +12140,6 @@
 					"translate": [4.5, -11, -13],
 					"boxes": [
 						{"coordinates": [2, 0, 11.5, 5, 11, 5], "textureOffset": [21, 45]}
-					]
-				}
-			]
-		}`
-	}
-	EntityOptions.zombified_piglin = {
-		name: 'Zombified Piglin',
-		model: `{
-			"textureSize": [64, 64],
-			"models": [
-				{
-					"part": "head",
-					"id": "head",
-					"invertAxis": "xy",
-					"translate": [0, -24, 0],
-					"boxes": [
-						{"coordinates": [-5, 24, -4, 10, 8, 8], "textureOffset": [0, 0]},
-						{"coordinates": [-2, 24, -5, 4, 4, 1], "textureOffset": [31, 1]},
-						{"coordinates": [-3, 24, -5, 1, 2, 1], "textureOffset": [2, 4]},
-						{"coordinates": [2, 24, -5, 1, 2, 1], "textureOffset": [2, 0]}
-					]
-				},
-				{
-					"part": "left_ear",
-					"id": "left_ear",
-					"invertAxis": "xy",
-					"translate": [-4.5, -30, 0],
-					"rotate": [0, 0, -25],
-					"boxes": [
-						{"coordinates": [-5.5, 25, -2, 1, 5, 4], "textureOffset": [51, 6]}
-					]
-				},
-				{
-					"part": "body",
-					"id": "body",
-					"invertAxis": "xy",
-					"translate": [0, -24, 0],
-					"boxes": [
-						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16]}
-					]
-				},
-				{
-					"part": "left_arm",
-					"id": "left_arm",
-					"invertAxis": "xy",
-					"translate": [-4, -22, 0],
-					"boxes": [
-						{"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [32, 48]}
-					]
-				},
-				{
-					"part": "right_arm",
-					"id": "right_arm",
-					"invertAxis": "xy",
-					"translate": [4, -22, 0],
-					"boxes": [
-						{"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16]}
-					]
-				},
-				{
-					"part": "left_leg",
-					"id": "left_leg",
-					"invertAxis": "xy",
-					"translate": [-2, -12, 0],
-					"boxes": [
-						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [16, 48]}
-					]
-				},
-				{
-					"part": "right_leg",
-					"id": "right_leg",
-					"invertAxis": "xy",
-					"translate": [2, -12, 0],
-					"boxes": [
-						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16]}
 					]
 				}
 			]

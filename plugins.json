@@ -215,7 +215,7 @@
 		"author": "Eliot Lash",
 		"icon": "icon-format_java",
 		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
-		"version": "0.2.0",
+		"version": "0.2.1",
 		"min_version": "3.6.6",
 		"variant": "both"
 	},
@@ -234,5 +234,13 @@
 		"description": "Upload models to Light Tracer to share them or to create renders",
 		"version": "0.0.1",
 		"variant": "both"
-	}
+    },
+    "code_view": {
+        "title": "Code View",
+        "icon": "developer_mode",
+        "author": "wither",
+        "description": "'View the model you are currently editing in the raw format",
+        "version": "1.0.0",
+        "variant": "both"
+    }
 }

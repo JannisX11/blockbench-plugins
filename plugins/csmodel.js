@@ -495,6 +495,7 @@ Plugin.register('csmodel', {
 									origin: parent_cube.origin,
 									rotation: parent_cube.rotation
 								}).addTo(parent_cube).init();
+								parent.createUniqueName();
 								parent_cube.addTo(parent);
 								parent_cube.extend({rotation: [0, 0, 0]})
 							}
