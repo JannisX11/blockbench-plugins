@@ -26,6 +26,7 @@
     "Codecs": "readonly",
     "Codec": "readonly",
     "Merge": "readonly",
+    "Modes": "readonly",
     "Group": "readonly",
     "Dialog": "readonly"
   },

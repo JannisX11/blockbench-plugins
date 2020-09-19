@@ -1,5 +1,5 @@
 import omit from 'lodash/omit';
-import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT } from './settings';
+import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT, onSettingsChanged } from './settings';
 import { Original, addMonkeypatch } from './utils';
 
 /* eslint-disable no-useless-escape */
@@ -31,6 +31,7 @@ function parseCallback(e) {
   } else {
     Object.assign(geckoSettings, GECKO_SETTINGS_DEFAULT);
   }
+  onSettingsChanged();
 }
 
 function animatorBuildFile() {
@@ -343,7 +344,6 @@ const codec = new Codec("animated_entity_model", {
       return group_snippets.join("\n\t\t");
     });
 
-    console.log('poopie');
     maybeExportItemJson.bind(this, options)();
 
     this.dispatchEvent("compile", { model, options });
@@ -437,7 +437,7 @@ const format = new ModelFormat({
   centered_grid: true,
   integer_size: true,
   animation_mode: true,
-  display_mode: true,
+  display_mode: false, // This may be dynamically turned on by settings
 });
 //Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
 codec.format = format;

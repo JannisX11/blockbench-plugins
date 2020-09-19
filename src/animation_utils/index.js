@@ -2,7 +2,7 @@ import { version } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
-import geckoSettings, { MOD_SDK_OPTIONS } from './settings';
+import geckoSettings, { MOD_SDK_OPTIONS, OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
 import codec, { loadCodec, unloadCodec } from './codec';
 
 (function () {
@@ -51,6 +51,7 @@ import codec, { loadCodec, unloadCodec } from './codec';
             width: 540,
             lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${version}</b>`],
             form: {
+              objectType: {label: 'Object Type', type: 'select', default: geckoSettings.objectType, options: OBJ_TYPE_OPTIONS},
               modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
               entityType: {label: 'Entity Type', value: geckoSettings.entityType },
               javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
@@ -59,6 +60,7 @@ import codec, { loadCodec, unloadCodec } from './codec';
             },
             onConfirm: function(formResult) {
               Object.assign(geckoSettings, formResult);
+              onSettingsChanged();
               dialog.hide()
             }
           })
