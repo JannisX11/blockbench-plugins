@@ -5,17 +5,21 @@ export const MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
 export const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
 export const MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
 
-export const OBJ_TYPE_MISC = 'OBJ_TYPE_MISC';
+export const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
+export const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
+export const OBJ_TYPE_BLOCK = 'OBJ_TYPE_BLOCK';
 export const OBJ_TYPE_ITEM = 'OBJ_TYPE_ITEM';
 export const OBJ_TYPE_OPTIONS = {
-  OBJ_TYPE_MISC: 'Entity/Armor',
-  OBJ_TYPE_ITEM: 'Item Stack',
+  [OBJ_TYPE_ENTITY]: 'Entity',
+  [OBJ_TYPE_ARMOR]: 'Armor',
+  [OBJ_TYPE_BLOCK]: 'Block',
+  [OBJ_TYPE_ITEM]: 'Item',
 };
 
 export const GECKO_SETTINGS_DEFAULT = {
   formatVersion: 2,
   modSDK: MOD_SDK_1_15_FORGE,
-  objectType: OBJ_TYPE_MISC,
+  objectType: OBJ_TYPE_ENTITY,
   entityType: 'Entity',
   javaPackage: 'com.example.mod',
   animFileNamespace: 'MODID',
