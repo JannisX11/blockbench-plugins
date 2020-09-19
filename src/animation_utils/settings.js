@@ -7,13 +7,11 @@ export const MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
 
 export const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
 export const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
-export const OBJ_TYPE_BLOCK = 'OBJ_TYPE_BLOCK';
-export const OBJ_TYPE_ITEM = 'OBJ_TYPE_ITEM';
+export const OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
 export const OBJ_TYPE_OPTIONS = {
   [OBJ_TYPE_ENTITY]: 'Entity',
   [OBJ_TYPE_ARMOR]: 'Armor',
-  [OBJ_TYPE_BLOCK]: 'Block',
-  [OBJ_TYPE_ITEM]: 'Item',
+  [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item',
 };
 
 export const GECKO_SETTINGS_DEFAULT = {
@@ -30,7 +28,7 @@ Object.freeze(GECKO_SETTINGS_DEFAULT);
 let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 
 export function onSettingsChanged() {
-  Format.display_mode = geckoSettings.objectType === OBJ_TYPE_ITEM;
+  Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
   Modes.selected.select();
 }
 

@@ -40,23 +40,23 @@ import codec, { loadCodec, unloadCodec } from './codec';
       MenuBar.addAction(exportAction, "file.export");
 
       button = new Action('gecko_settings', {
-        name: 'Animated Entity Settings...',
-        description: 'Customize animated entity export.',
+        name: 'GeckoLib Model Settings...',
+        description: 'Customize animated model export.',
         icon: 'info',
         condition: () => Format.id === "animated_entity_model",
         click: function () {
           var dialog = new Dialog({
             id: 'project',
-            title: 'Animated Entity Settings',
+            title: 'GeckoLib Model Settings',
             width: 540,
             lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${version}</b>`],
             form: {
               objectType: {label: 'Object Type', type: 'select', default: geckoSettings.objectType, options: OBJ_TYPE_OPTIONS},
-              modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
-              entityType: {label: 'Entity Type', value: geckoSettings.entityType },
-              javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
-              animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
-              animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
+              // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
+              // entityType: {label: 'Entity Type', value: geckoSettings.entityType},
+              // javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
+              // animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
+              // animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
             },
             onConfirm: function(formResult) {
               Object.assign(geckoSettings, formResult);
