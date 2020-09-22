@@ -239,8 +239,16 @@
         "title": "Code View",
         "icon": "developer_mode",
         "author": "wither",
-        "description": "'View the model you are currently editing in the raw format",
+        "description": "View the model you are currently editing in the raw format",
         "version": "1.0.0",
+        "variant": "both"
+    },
+    "only": {
+        "title": "Only",
+        "icon": "fa-glasses",
+        "author": "JannisX11",
+        "description": "Hide everything except for the selected cubes",
+        "version": "0.0.1",
         "variant": "both"
     }
 }
