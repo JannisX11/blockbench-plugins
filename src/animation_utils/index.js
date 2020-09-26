@@ -2,7 +2,7 @@ import { version } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
-import geckoSettings, { MOD_SDK_OPTIONS, OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
+import geckoSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
 import codec, { loadCodec, unloadCodec } from './codec';
 
 (function () {

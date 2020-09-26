@@ -1,5 +1,4 @@
 import omit from 'lodash/omit';
-import cloneDeep from 'lodash/cloneDeep';
 import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT, onSettingsChanged } from './settings';
 import { Original, addMonkeypatch } from './utils';
 
@@ -8,32 +7,39 @@ import { Original, addMonkeypatch } from './utils';
 
 export function loadCodec() {
   // The actual Codec is automatically registered by superclass constructor
-  Codecs.project.on('compile', compileCallback);
-  Codecs.project.on('parse', parseCallback);
+  Codecs.project.on('compile', onProjectCompile);
+  Codecs.project.on('parse', onProjectParse);
+  Codecs.bedrock.on('compile', onBedrockCompile);
   addMonkeypatch(Animator, null, "buildFile", animatorBuildFile);
   addMonkeypatch(Animator, null, "loadFile", animatorLoadFile);
 }
 
 export function unloadCodec() {
-  Codecs.project.events.compile.remove(compileCallback)
-  Codecs.project.events.parse.remove(parseCallback)
+  Codecs.project.events.compile.remove(onProjectCompile)
+  Codecs.project.events.parse.remove(onProjectParse)
+  Codecs.bedrock.events.compile.remove(onBedrockCompile)
   format.delete();
 }
 
-function compileCallback(e) {
+function onProjectCompile(e) {
   if (Format.id !== "animated_entity_model") return;
   e.model.geckoSettings = geckoSettings;
   // console.log(`compileCallback model:`, e.model);
 }
 
-function parseCallback(e) {
-  console.log(`parseCallback:`, e);
+function onProjectParse(e) {
+  // console.log(`onProjectParse:`, e);
   if (e.model && typeof e.model.geckoSettings === 'object') {
     Object.assign(geckoSettings, omit(e.model.geckoSettings, ['formatVersion']));
   } else {
     Object.assign(geckoSettings, GECKO_SETTINGS_DEFAULT);
   }
   onSettingsChanged();
+}
+
+function onBedrockCompile(e) {
+  console.log('onBedrockCompile e:', e);
+  maybeExportItemJson(e.options);
 }
 
 function animatorBuildFile() {
@@ -53,89 +59,76 @@ function animatorLoadFile() {
   return Original.get(Animator).loadFile.apply(this, arguments);
 }
 
-const getImports = () => {
-  switch(geckoSettings.modSDK) {
-    case MOD_SDK_1_15_FORGE:
-      return `import net.minecraft.util.ResourceLocation;
-import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
-    case MOD_SDK_1_15_FABRIC:
-      return `import software.bernie.geckolib.forgetofabric.ResourceLocation;
-import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
-    default:
-      throw new Error(`Unrecognized mod SDK:`, geckoSettings.modSDK);
-  }
-};
-
 //#endregion Codec Helpers / Export Settings
 
 //#region Codec / ModelFormat
-// function maybeExportItemJson(options, as) {
-//   function checkExport(key, condition) {
-//     key = options[key]
-//     if (key === undefined) {
-//       return condition;
-//     } else {
-//       return key
-//     }
-//   }
-//   const blockmodel = {}
-//   if (checkExport('comment', settings.credit.value)) {
-//     blockmodel.credit = settings.credit.value
-//   }
-//   if (checkExport('parent', Project.parent != '')) {
-//     blockmodel.parent = Project.parent
-//   }
-//   if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
-//     blockmodel.ambientocclusion = false
-//   }
-//   if (Project.texture_width !== 16 || Project.texture_height !== 16) {
-//     blockmodel.texture_size = [Project.texture_width, Project.texture_height]
-//   }
-//   if (checkExport('front_gui_light', Project.front_gui_light)) {
-//     blockmodel.gui_light = 'front';
-//   }
-//   if (checkExport('overrides', Project.overrides)) {
-//     blockmodel.overrides = Project.overrides;
-//   }
-//   if (checkExport('display', Object.keys(display).length >= 1)) {
-//     var new_display = {}
-//     var entries = 0;
-//     for (var i in DisplayMode.slots) {
-//       var key = DisplayMode.slots[i]
-//       if (DisplayMode.slots.hasOwnProperty(i) && display[key] && display[key].export) {
-//         new_display[key] = display[key].export()
-//         entries++;
-//       }
-//     }
-//     if (entries) {
-//       blockmodel.display = new_display
-//     }
-//   }
+function maybeExportItemJson(options = {}, as) {
+  function checkExport(key, condition) {
+    key = options[key]
+    if (key === undefined) {
+      return condition;
+    } else {
+      return key
+    }
+  }
+  const blockmodel = {}
+  if (checkExport('comment', settings.credit.value)) {
+    blockmodel.credit = settings.credit.value
+  }
+  if (checkExport('parent', Project.parent != '')) {
+    blockmodel.parent = Project.parent
+  }
+  if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
+    blockmodel.ambientocclusion = false
+  }
+  if (Project.texture_width !== 16 || Project.texture_height !== 16) {
+    blockmodel.texture_size = [Project.texture_width, Project.texture_height]
+  }
+  if (checkExport('front_gui_light', Project.front_gui_light)) {
+    blockmodel.gui_light = 'front';
+  }
+  if (checkExport('overrides', Project.overrides)) {
+    blockmodel.overrides = Project.overrides;
+  }
+  if (checkExport('display', Object.keys(display).length >= 1)) {
+    var new_display = {}
+    var entries = 0;
+    for (var i in DisplayMode.slots) {
+      var key = DisplayMode.slots[i]
+      if (Object.prototype.hasOwnProperty.call(DisplayMode.slots, i) && display[key] && display[key].export) {
+        new_display[key] = display[key].export()
+        entries++;
+      }
+    }
+    if (entries) {
+      blockmodel.display = new_display
+    }
+  }
   
-//   const blockmodelString = JSON.stringify(blockmodel, null, 2);
+  const blockmodelString = JSON.stringify(blockmodel, null, 2);
 
-//   var scope = this; // Dear god why is this needed
+  var scope = codec;
 
-//   let path = geckoSettings.itemModelPath;
-//   // regular export
-//   if (isApp && !path) {
-//     path = (scope.startPath() || ModelMeta.export_path).replace(".java", ".json");
-//   }
-//   Blockbench.export({
-//     resource_id: 'model',
-//     type: Codecs.java_block.name,
-//     extensions: ['json'],
-//     name: scope.fileName(),
-//     startpath: path,
-//     content: blockmodelString,
-//   }, (real_path) => {
-//     geckoSettings.itemModelPath = real_path;
-//   });
+  let path = geckoSettings.itemModelPath;
+  // regular export
+  if (isApp && !path) {
+    path = (scope.startPath() || ModelMeta.export_path).replace(".geo", ".item");
+  }
+  Blockbench.export({
+    resource_id: 'model',
+    type: Codecs.java_block.name,
+    extensions: ['json'],
+    name: scope.fileName().replace(".geo", ".item"),
+    startpath: path,
+    content: blockmodelString,
+  }, (real_path) => {
+    geckoSettings.itemModelPath = real_path;
+  });
 
-//   return this;
-// }
+  return this;
+}
+
+var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
   id: "animated_entity_model",
@@ -160,6 +153,6 @@ var format = new ModelFormat({
 //Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
 // codec.format = format; // This sets the default format for the codec
 
-export default Codecs.bedrock; // This is used for plugin "Export Animated Model" menu item
+export default codec; // This is used for plugin "Export Animated Model" menu item
 
 //#endregion Codec / ModelFormat

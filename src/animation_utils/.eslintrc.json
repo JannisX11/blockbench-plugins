@@ -10,6 +10,9 @@
     "sourceType": "module"
   },
   "globals": {
+    "isApp": "readonly",
+    "display": "readonly",
+    "settings": "readonly",
     "Animator": "readonly",
     "Blockbench": "readonly",
     "Keyframe": "readonly",
@@ -27,8 +30,10 @@
     "Codec": "readonly",
     "Merge": "readonly",
     "Modes": "readonly",
+    "ModelMeta": "readonly",
     "Group": "readonly",
-    "Dialog": "readonly"
+    "Dialog": "readonly",
+    "DisplayMode": "readonly"
   },
   "rules": {
     "no-console": "error"
