@@ -273,6 +273,17 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
 
 /***/ }),
 
+/***/ "./armorTemplate.json":
+/*!****************************!*\
+  !*** ./armorTemplate.json ***!
+  \****************************/
+/*! exports provided: meta, name, geo_name, resolution, elements, outliner, textures, default */
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"meta\":{\"format_version\":\"3.2\",\"model_format\":\"animated_entity_model\",\"box_uv\":true},\"name\":\"CustomArmor\",\"geo_name\":\"CustomArmor\",\"resolution\":{\"width\":64,\"height\":64},\"elements\":[{\"name\":\"dontTouch\",\"from\":[-4,24,-4],\"to\":[4,32,4],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[0,0,0],\"uuid\":\"9675593e-b27d-b70e-e1ea-1fc29f46a294\"},{\"name\":\"dontTouch\",\"from\":[-4,12,-2],\"to\":[4,24,2],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[0,24,0],\"uuid\":\"fa43156a-2a62-948c-082f-483d525f6d1f\"},{\"name\":\"dontTouch\",\"from\":[4,12,-2],\"to\":[8,24,2],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[4,22,0],\"uuid\":\"aa51170c-8b32-fb62-71f1-58ac0b7785a8\"},{\"name\":\"dontTouch\",\"from\":[-8,12,-2],\"to\":[-4,24,2],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[4,22,0],\"uuid\":\"bf2c2539-20e3-cfcc-94c0-491734019889\"},{\"name\":\"dontTouch\",\"from\":[-4,0,-2],\"to\":[0,12,2],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[4,22,0],\"uuid\":\"17b9bae0-356a-9bba-fad9-4672e2671191\"},{\"name\":\"dontTouch\",\"from\":[0,0,-2],\"to\":[4,12,2],\"autouv\":1,\"color\":0,\"export\":false,\"origin\":[4,22,0],\"uuid\":\"7b31bac4-dc40-2b93-1204-7bbdcfe7d924\"}],\"outliner\":[{\"name\":\"bipedHead\",\"uuid\":\"d340b6fa-56aa-9c0f-3560-7a067643b77d\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[0,24,0],\"children\":[\"9675593e-b27d-b70e-e1ea-1fc29f46a294\",{\"name\":\"armorHead\",\"uuid\":\"6ab88dea-c816-d2bb-6be9-05ed7838da97\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[0,24,0],\"children\":[]}]},{\"name\":\"bipedBody\",\"uuid\":\"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[0,24,0],\"children\":[\"fa43156a-2a62-948c-082f-483d525f6d1f\",{\"name\":\"armorBody\",\"uuid\":\"282fcdbb-8ea9-4a13-4154-f2ed20d696c8\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[0,24,0],\"children\":[]}]},{\"name\":\"bipedRightArm\",\"uuid\":\"d8113cc7-7e10-0930-259e-b8e4211ce9da\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[4,22,0],\"children\":[\"aa51170c-8b32-fb62-71f1-58ac0b7785a8\",{\"name\":\"armorRightArm\",\"uuid\":\"c5300e23-fd2f-b56c-3552-45d6650e11c6\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[4,22,0],\"children\":[]}]},{\"name\":\"bipedLeftArm\",\"uuid\":\"3b8901e8-3420-0834-51eb-76d64ff2ae8f\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[-4,22,0],\"children\":[\"bf2c2539-20e3-cfcc-94c0-491734019889\",{\"name\":\"armorLeftArm\",\"uuid\":\"b0d41a53-f4ce-53c1-f899-5a2048c90ac2\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[-4,22,0],\"children\":[]}]},{\"name\":\"bipedRightLeg\",\"uuid\":\"37231be7-a8ef-22ca-7fea-40aed58003bb\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[2,12,0],\"children\":[\"17b9bae0-356a-9bba-fad9-4672e2671191\",{\"name\":\"armorRightLeg\",\"uuid\":\"e4b19746-2d17-1f56-befe-00718165ae50\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[2,12,0],\"children\":[]},{\"name\":\"armorRightBoot\",\"uuid\":\"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[2,12,0],\"children\":[]}]},{\"name\":\"bipedLeftLeg\",\"uuid\":\"45c031a5-b6be-e0a7-5454-b45d07f28429\",\"export\":false,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[-2,12,0],\"children\":[\"7b31bac4-dc40-2b93-1204-7bbdcfe7d924\",{\"name\":\"armorLeftLeg\",\"uuid\":\"60238f18-e74b-c863-cb45-2e2f162221bd\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[-2,12,0],\"children\":[]},{\"name\":\"armorLeftBoot\",\"uuid\":\"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70\",\"export\":true,\"isOpen\":true,\"visibility\":true,\"autouv\":0,\"origin\":[-2,12,0],\"children\":[]}]}],\"textures\":[]}");
+
+/***/ }),
+
 /***/ "./codec.js":
 /*!******************!*\
   !*** ./codec.js ***!
@@ -297,30 +308,39 @@ __webpack_require__.r(__webpack_exports__);
 
 function loadCodec() {
   // The actual Codec is automatically registered by superclass constructor
-  Codecs.project.on('compile', compileCallback);
-  Codecs.project.on('parse', parseCallback);
+  Codecs.project.on('compile', onProjectCompile);
+  Codecs.project.on('parse', onProjectParse);
+  Codecs.bedrock.on('compile', onBedrockCompile);
   Object(_utils__WEBPACK_IMPORTED_MODULE_2__["addMonkeypatch"])(Animator, null, "buildFile", animatorBuildFile);
   Object(_utils__WEBPACK_IMPORTED_MODULE_2__["addMonkeypatch"])(Animator, null, "loadFile", animatorLoadFile);
 }
 
 function unloadCodec() {
-  Codecs.project.events.compile.remove(compileCallback)
-  Codecs.project.events.parse.remove(parseCallback)
+  Codecs.project.events.compile.remove(onProjectCompile)
+  Codecs.project.events.parse.remove(onProjectParse)
+  Codecs.bedrock.events.compile.remove(onBedrockCompile)
+  format.delete();
 }
 
-function compileCallback(e) {
+function onProjectCompile(e) {
   if (Format.id !== "animated_entity_model") return;
   e.model.geckoSettings = _settings__WEBPACK_IMPORTED_MODULE_1__["default"];
   // console.log(`compileCallback model:`, e.model);
 }
 
-function parseCallback(e) {
-  console.log(`parseCallback:`, e);
+function onProjectParse(e) {
+  // console.log(`onProjectParse:`, e);
   if (e.model && typeof e.model.geckoSettings === 'object') {
     Object.assign(_settings__WEBPACK_IMPORTED_MODULE_1__["default"], lodash_omit__WEBPACK_IMPORTED_MODULE_0___default()(e.model.geckoSettings, ['formatVersion']));
   } else {
     Object.assign(_settings__WEBPACK_IMPORTED_MODULE_1__["default"], _settings__WEBPACK_IMPORTED_MODULE_1__["GECKO_SETTINGS_DEFAULT"]);
   }
+  Object(_settings__WEBPACK_IMPORTED_MODULE_1__["onSettingsChanged"])();
+}
+
+function onBedrockCompile(e) {
+  console.log('onBedrockCompile e:', e);
+  maybeExportItemJson(e.options);
 }
 
 function animatorBuildFile() {
@@ -340,316 +360,10 @@ function animatorLoadFile() {
   return _utils__WEBPACK_IMPORTED_MODULE_2__["Original"].get(Animator).loadFile.apply(this, arguments);
 }
 
-const getImports = () => {
-  switch(_settings__WEBPACK_IMPORTED_MODULE_1__["default"].modSDK) {
-    case _settings__WEBPACK_IMPORTED_MODULE_1__["MOD_SDK_1_15_FORGE"]:
-      return `import net.minecraft.util.ResourceLocation;
-import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
-    case _settings__WEBPACK_IMPORTED_MODULE_1__["MOD_SDK_1_15_FABRIC"]:
-      return `import software.bernie.geckolib.forgetofabric.ResourceLocation;
-import software.bernie.geckolib.animation.model.AnimatedEntityModel;
-import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
-    default:
-      throw new Error(`Unrecognized mod SDK:`, _settings__WEBPACK_IMPORTED_MODULE_1__["default"].modSDK);
-  }
-};
-
-function F(num) {
-  var s = window.trimFloatNumber(num) + "";
-  if (!s.includes(".")) {
-    s += ".0";
-  }
-  return s + "F";
-}
-
-function I(num) {
-  return Math.floor(num);
-}
-
 //#endregion Codec Helpers / Export Settings
 
 //#region Codec / ModelFormat
-const Templates = {
-  "1.15": {
-    name: "1.15",
-    flip_y: true,
-    integer_size: false,
-    file: `// Made with Blockbench %(bb_version)
-// Exported for Minecraft version 1.12.2 or 1.15.2 (same format for both) for entity models animated with GeckoLib
-// Paste this class into your mod and follow the documentation for GeckoLib to use animations. You can find the documentation here: https://github.com/bernie-g/geckolib
-// Blockbench plugin created by Gecko
-package %(javaPackage);
-
-%(imports)
-
-public class %(identifier) extends AnimatedEntityModel<%(entityType)> {
-
-  %(fields)
-
-  public %(identifier)()
-  {
-      textureWidth = %(texture_width);
-  textureHeight = %(texture_height);
-  %(content)
-
-  %(renderers)
-}
-
-
-  @Override
-  public ResourceLocation getAnimationFileLocation()
-  {
-      return new ResourceLocation("%(animFileNamespace)", "%(animFilePath)");
-  }
-}`,
-    field: `private final AnimatedModelRenderer %(bone);`,
-
-    bone: `%(bone) = new AnimatedModelRenderer(this);
-%(bone).setRotationPoint(%(x), %(y), %(z));
-?(has_parent)%(parent).addChild(%(bone));
-?(has_rotation)setRotationAngle(%(bone), %(rx), %(ry), %(rz));
-%(cubes)
-%(bone).setModelRendererName(\"%(bone)\");
-this.registerModelRenderer(%(bone));`,
-    renderer: `this.rootBones.add(%(bone));`,
-    cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addBox(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
-  },
-
-  get(key, version = Project.modded_entity_version) {
-    let temp = Templates[version][key];
-    if (typeof temp === "string") temp = temp.replace(/\t\t\t/g, "");
-    return temp;
-  },
-  keepLine(line) {
-    return line.replace(/\?\(\w+\)/, "");
-  },
-  getVariableRegex(name) {
-    return new RegExp(`%\\(${name}\\)`, "g");
-  },
-};
-
-function getIdentifier() {
-  return (
-    Project.geometry_name.replace(/[\s-]+/g, "_") ||
-    "animated_entity_model"
-  );
-}
-
-const codec = new Codec("animated_entity_model", {
-  name: "Animated Java Class",
-  extension: "java",
-  remember: true,
-  compile(options = {}) {
-    let R = Templates.getVariableRegex;
-    let identifier = getIdentifier();
-
-    let all_groups = window.getAllGroups();
-    let loose_cubes = [];
-    Cube.all.forEach((cube) => {
-      if (cube.parent == "root") loose_cubes.push(cube);
-    });
-    if (loose_cubes.length) {
-      all_groups.push({
-        name: "bb_main",
-        rotation: [0, 0, 0],
-        origin: [0, 0, 0],
-        parent: "root",
-        children: loose_cubes,
-      });
-    }
-
-    let model = Templates.get("file");
-
-    model = model.replace(R("bb_version"), Blockbench.version);
-
-    model = model.replace(R("javaPackage"), _settings__WEBPACK_IMPORTED_MODULE_1__["default"].javaPackage);
-    model = model.replace(R("imports"), getImports());
-
-    model = model.replace(R("identifier"), identifier);
-    model = model.replace(R("entityType"), _settings__WEBPACK_IMPORTED_MODULE_1__["default"].entityType);
-
-    model = model.replace(R("texture_width"), Project.texture_width);
-    model = model.replace(R("texture_height"), Project.texture_height);
-
-    model = model.replace(R("animFileNamespace"), _settings__WEBPACK_IMPORTED_MODULE_1__["default"].animFileNamespace);
-    model = model.replace(R("animFilePath"), _settings__WEBPACK_IMPORTED_MODULE_1__["default"].animFilePath);
-
-    model = model.replace(R("fields"), () => {
-      let group_snippets = [];
-      for (const group of all_groups) {
-        if (group instanceof Group === false || !group.export)
-          continue;
-        let snippet = Templates.get("field").replace(
-          R("bone"),
-          group.name
-        );
-        group_snippets.push(snippet);
-      }
-      return group_snippets.join("\n\t");
-    });
-
-    model = model.replace(R("content"), () => {
-      let group_snippets = [];
-      for (const group of all_groups) {
-        if (group instanceof Group === false || !group.export)
-          continue;
-        let snippet = Templates.get("bone")
-
-          .replace(R("bone"), group.name)
-
-          .replace(
-            /\n\?\(has_rotation\).+/,
-            group.rotation.allEqual(0) ? "" : Templates.keepLine
-          );
-
-        snippet = snippet
-          .replace(R("rx"), F(Math.degToRad(-group.rotation[0])))
-          .replace(R("ry"), F(Math.degToRad(-group.rotation[1])))
-          .replace(R("rz"), F(Math.degToRad(group.rotation[2])));
-
-        var origin = group.origin.slice();
-        if (group.parent instanceof Group) {
-          origin.V3_subtract(group.parent.origin);
-        }
-        origin[0] *= -1;
-        if (Templates.get("flip_y")) {
-          origin[1] *= -1;
-          if (group.parent instanceof Group === false) {
-            origin[1] += 24;
-          }
-        }
-
-        snippet = snippet
-          .replace(R("x"), F(origin[0]))
-          .replace(R("y"), F(origin[1]))
-          .replace(R("z"), F(origin[2]))
-
-          .replace(
-            /\n\?\(has_parent\).+/,
-            group.parent instanceof Group
-              ? Templates.keepLine
-              : ""
-          )
-          .replace(R("parent"), group.parent.name)
-
-          .replace(R("cubes"), () => {
-            let cube_snippets = [];
-            for (var cube of group.children) {
-              if (
-                cube instanceof Cube === false ||
-                !cube.export
-              )
-                continue;
-
-              let c_snippet = Templates.get("cube")
-                .replace(R("bone"), group.name)
-
-                .replace(R("uv_x"), I(cube.uv_offset[0]))
-                .replace(R("uv_y"), I(cube.uv_offset[1]))
-
-                .replace(R("inflate"), F(cube.inflate))
-                .replace(R("mirror"), cube.mirror_uv);
-
-              if (Templates.get("flip_y")) {
-                c_snippet = c_snippet
-                  .replace(
-                    R("x"),
-                    F(group.origin[0] - cube.to[0])
-                  )
-                  .replace(
-                    R("y"),
-                    F(
-                      -cube.from[1] -
-                        cube.size(1) +
-                        group.origin[1]
-                    )
-                  )
-                  .replace(
-                    R("z"),
-                    F(cube.from[2] - group.origin[2])
-                  );
-              } else {
-                c_snippet = c_snippet
-                  .replace(
-                    R("x"),
-                    F(group.origin[0] - cube.to[0])
-                  )
-                  .replace(
-                    R("y"),
-                    F(cube.from[1] - group.origin[1])
-                  )
-                  .replace(
-                    R("z"),
-                    F(cube.from[2] - group.origin[2])
-                  );
-              }
-              if (Templates.get("integer_size")) {
-                c_snippet = c_snippet
-                  .replace(R("dx"), I(cube.size(0, true)))
-                  .replace(R("dy"), I(cube.size(1, true)))
-                  .replace(
-                    R("dz"),
-                    I(cube.size(2, true))
-                  );
-              } else {
-                c_snippet = c_snippet
-                  .replace(R("dx"), F(cube.size(0, true)))
-                  .replace(R("dy"), F(cube.size(1, true)))
-                  .replace(
-                    R("dz"),
-                    F(cube.size(2, true))
-                  );
-              }
-
-              cube_snippets.push(c_snippet);
-            }
-            return cube_snippets.join("\n");
-          })
-          .replace(/\n/g, "\n\t\t");
-
-        group_snippets.push(snippet);
-      }
-      return group_snippets.join("\n\n\t\t");
-    });
-
-    model = model.replace(R("renderers"), () => {
-      let group_snippets = [];
-      for (const group of all_groups) {
-        if (group instanceof Group === false || !group.export)
-          continue;
-        if (
-          !Templates.get("render_subgroups") &&
-          group.parent instanceof Group
-        )
-          continue;
-
-        let snippet = Templates.get("renderer").replace(
-          R("bone"),
-          group.name
-        );
-        group_snippets.push(snippet);
-      }
-      return group_snippets.join("\n\t\t");
-    });
-
-    console.log('poopie');
-    maybeExportItemJson.bind(this, options)();
-
-    this.dispatchEvent("compile", { model, options });
-    return model;
-  },
-  // eslint-disable-next-line no-unused-vars
-  parse(model, path, add) {
-    alert("Loading animated models from .java files is not supported. Please use 'Save Project' to keep your work as a .bbmodel file and then export to Java when needed.");
-  },
-  fileName() {
-    return getIdentifier();
-  },
-});
-codec.templates = Templates;
-
-function maybeExportItemJson(options, as) {
+function maybeExportItemJson(options = {}, as) {
   function checkExport(key, condition) {
     key = options[key]
     if (key === undefined) {
@@ -682,7 +396,7 @@ function maybeExportItemJson(options, as) {
     var entries = 0;
     for (var i in DisplayMode.slots) {
       var key = DisplayMode.slots[i]
-      if (DisplayMode.slots.hasOwnProperty(i) && display[key] && display[key].export) {
+      if (Object.prototype.hasOwnProperty.call(DisplayMode.slots, i) && display[key] && display[key].export) {
         new_display[key] = display[key].export()
         entries++;
       }
@@ -694,18 +408,18 @@ function maybeExportItemJson(options, as) {
   
   const blockmodelString = JSON.stringify(blockmodel, null, 2);
 
-  var scope = this; // Dear god why is this needed
+  var scope = codec;
 
   let path = _settings__WEBPACK_IMPORTED_MODULE_1__["default"].itemModelPath;
   // regular export
   if (isApp && !path) {
-    path = (scope.startPath() || ModelMeta.export_path).replace(".java", ".json");
+    path = (scope.startPath() || ModelMeta.export_path).replace(".geo", ".item");
   }
   Blockbench.export({
     resource_id: 'model',
     type: Codecs.java_block.name,
     extensions: ['json'],
-    name: scope.fileName(),
+    name: scope.fileName().replace(".geo", ".item"),
     startpath: path,
     content: blockmodelString,
   }, (real_path) => {
@@ -715,24 +429,32 @@ function maybeExportItemJson(options, as) {
   return this;
 }
 
-const format = new ModelFormat({
-  id: "animated_entity_model",
-  name: "Animated Java Entity",
-  description: "Animated Entity for Java mods using GeckoLib",
-  icon: "icon-format_java",
-  codec,
-  box_uv: true,
-  single_texture: true,
-  bone_rig: true,
-  centered_grid: true,
-  integer_size: true,
-  animation_mode: true,
-  display_mode: true,
-});
-//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
-codec.format = format;
+var codec = Codecs.bedrock;
 
-/* harmony default export */ __webpack_exports__["default"] = (codec);
+var format = new ModelFormat({
+  id: "animated_entity_model",
+  name: "GeckoLib Animated Model",
+  description: "Animated Model for Java mods using GeckoLib",
+  icon: "icon-format_java",
+	rotate_cubes: true,
+	box_uv: true,
+	optional_box_uv: true,
+	single_texture: true,
+	bone_rig: true,
+	centered_grid: true,
+	animated_textures: true,
+	animation_mode: true,
+	locators: true,
+  codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
+  display_mode: false, // This may be dynamically turned on by settings
+	onActivation: function () {
+	}
+})
+
+//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
+// codec.format = format; // This sets the default format for the codec
+
+/* harmony default export */ __webpack_exports__["default"] = (codec); // This is used for plugin "Export Animated Model" menu item
 
 //#endregion Codec / ModelFormat
 
@@ -1124,8 +846,8 @@ var _package_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpac
       Object(_keyframe__WEBPACK_IMPORTED_MODULE_3__["loadKeyframeOverrides"])();
 
       exportAction = new Action({
-        id: "export_animated_entity_model",
-        name: "Export Animated Java Entity",
+        id: "export_geckolib_model",
+        name: "Export GeckoLib Model",
         icon: "archive",
         description:
           "Export your java animated model as a model for GeckoLib.",
@@ -1138,25 +860,27 @@ var _package_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpac
       MenuBar.addAction(exportAction, "file.export");
 
       button = new Action('gecko_settings', {
-        name: 'Animated Entity Settings...',
-        description: 'Customize animated entity export.',
+        name: 'GeckoLib Model Settings...',
+        description: 'Configure animated model.',
         icon: 'info',
         condition: () => Format.id === "animated_entity_model",
         click: function () {
           var dialog = new Dialog({
             id: 'project',
-            title: 'Animated Entity Settings',
+            title: 'GeckoLib Model Settings',
             width: 540,
             lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_0__["version"]}</b>`],
             form: {
-              modSDK: {label: 'Modding SDK', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].modSDK, options: _settings__WEBPACK_IMPORTED_MODULE_4__["MOD_SDK_OPTIONS"]},
-              entityType: {label: 'Entity Type', value: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].entityType },
-              javaPackage: {label: 'Java Package', value: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].javaPackage},
-              animFileNamespace: {label: 'Animation File Namespace', value: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].animFileNamespace},
-              animFilePath: {label: 'Animation File Path', value: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].animFilePath},
+              objectType: {label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_4__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_4__["OBJ_TYPE_OPTIONS"]},
+              // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
+              // entityType: {label: 'Entity Type', value: geckoSettings.entityType},
+              // javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
+              // animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
+              // animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
             },
             onConfirm: function(formResult) {
               Object.assign(_settings__WEBPACK_IMPORTED_MODULE_4__["default"], formResult);
+              Object(_settings__WEBPACK_IMPORTED_MODULE_4__["onSettingsChanged"])();
               dialog.hide()
             }
           })
@@ -1214,7 +938,6 @@ function lerp(start, stop, amt) {
   return amt * (stop - start) + start;
 }
 
-let didLog = false;
 // eslint-disable-next-line no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
   const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_1__["EASING_DEFAULT"];
@@ -1234,13 +957,6 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
   const stop = other.calc(axis);
   const result = lerp(start, stop, easedAmount);
   // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
-  if(this.animator.name === 'leftArm') {
-    if (!didLog) {
-      console.log('keyframeGetLerp START, animator:', this.animator.name, 'this:', JSON.stringify(this.getUndoCopy(), null, 2), ' other:', JSON.stringify(other.getUndoCopy(), null, 2));
-      didLog = true;
-    }
-    console.log('axis:', axis, 'start:', start, 'stop:', stop, 'amount:', amount, 'result:', result);
-  }
   if (Number.isNaN(result)) {
     throw new Error('batman');
   }
@@ -6787,7 +6503,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"2.0.2\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack\",\"watch\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko\",\"license\":\"MIT\",\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0-alpha.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko\",\"license\":\"MIT\",\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\"}}");
 
 /***/ }),
 
@@ -6795,7 +6511,7 @@ module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"2.0.2\"
 /*!*********************!*\
   !*** ./settings.js ***!
   \*********************/
-/*! exports provided: MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC, MOD_SDKS, MOD_SDK_OPTIONS, GECKO_SETTINGS_DEFAULT, default */
+/*! exports provided: MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC, MOD_SDKS, MOD_SDK_OPTIONS, OBJ_TYPE_ENTITY, OBJ_TYPE_ARMOR, OBJ_TYPE_BLOCK_ITEM, OBJ_TYPE_OPTIONS, GECKO_SETTINGS_DEFAULT, onSettingsChanged, default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6804,15 +6520,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MOD_SDK_1_15_FABRIC", function() { return MOD_SDK_1_15_FABRIC; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MOD_SDKS", function() { return MOD_SDKS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MOD_SDK_OPTIONS", function() { return MOD_SDK_OPTIONS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OBJ_TYPE_ENTITY", function() { return OBJ_TYPE_ENTITY; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OBJ_TYPE_ARMOR", function() { return OBJ_TYPE_ARMOR; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OBJ_TYPE_BLOCK_ITEM", function() { return OBJ_TYPE_BLOCK_ITEM; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OBJ_TYPE_OPTIONS", function() { return OBJ_TYPE_OPTIONS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GECKO_SETTINGS_DEFAULT", function() { return GECKO_SETTINGS_DEFAULT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onSettingsChanged", function() { return onSettingsChanged; });
+/* harmony import */ var _armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./armorTemplate.json */ "./armorTemplate.json");
+var _armorTemplate_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpack_require__.t(/*! ./armorTemplate.json */ "./armorTemplate.json", 1);
+
+
+const makeOptions = arr => Object.fromEntries(arr.map(x => [x, x]));
+
 const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
 const MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
 const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-const MOD_SDK_OPTIONS = Object.fromEntries(MOD_SDKS.map(x => [x, x]));
+const MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
+
+const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
+const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
+const OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
+const OBJ_TYPE_OPTIONS = {
+  [OBJ_TYPE_ENTITY]: 'Entity',
+  [OBJ_TYPE_ARMOR]: 'Armor',
+  [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item',
+};
 
 const GECKO_SETTINGS_DEFAULT = {
   formatVersion: 2,
   modSDK: MOD_SDK_1_15_FORGE,
+  objectType: OBJ_TYPE_ENTITY,
   entityType: 'Entity',
   javaPackage: 'com.example.mod',
   animFileNamespace: 'MODID',
@@ -6821,6 +6558,18 @@ const GECKO_SETTINGS_DEFAULT = {
 Object.freeze(GECKO_SETTINGS_DEFAULT);
 
 let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
+
+function onSettingsChanged() {
+  Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
+  Modes.selected.select();
+  if (geckoSettings.objectType === OBJ_TYPE_ARMOR) {
+    if(Outliner.root.length === 0) {
+      Codecs.project.parse(_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__);
+    } else {
+      alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
+    }
+  }
+}
 
 /* harmony default export */ __webpack_exports__["default"] = (geckoSettings);
 
