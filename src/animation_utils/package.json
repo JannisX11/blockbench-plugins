@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "watch": "webpack --watch --mode=development",
+    "start": "webpack --watch --mode=development",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "pretest": "npm run lint",
