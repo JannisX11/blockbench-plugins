@@ -17,6 +17,7 @@ export function loadCodec() {
 export function unloadCodec() {
   Codecs.project.events.compile.remove(compileCallback)
   Codecs.project.events.parse.remove(parseCallback)
+  format.delete();
 }
 
 function compileCallback(e) {
@@ -136,14 +137,10 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
 //   return this;
 // }
 
-const codec = cloneDeep(Codecs.bedrock);
-codec.id = 'geckolib_model';
-Codecs[codec.id] = this;
-
-const format = new ModelFormat({
+var format = new ModelFormat({
   id: "animated_entity_model",
-  name: "Animated Java Entity",
-  description: "Animated Entity for Java mods using GeckoLib",
+  name: "GeckoLib Animated Model",
+  description: "Animated Model for Java mods using GeckoLib",
   icon: "icon-format_java",
 	rotate_cubes: true,
 	box_uv: true,
@@ -154,15 +151,15 @@ const format = new ModelFormat({
 	animated_textures: true,
 	animation_mode: true,
 	locators: true,
-  codec,
+  codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
   display_mode: false, // This may be dynamically turned on by settings
 	onActivation: function () {
 	}
 })
 
 //Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
-codec.format = format;
+// codec.format = format; // This sets the default format for the codec
 
-export default codec;
+export default Codecs.bedrock; // This is used for plugin "Export Animated Model" menu item
 
 //#endregion Codec / ModelFormat

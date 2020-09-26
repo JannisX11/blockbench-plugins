@@ -26,8 +26,8 @@ import codec, { loadCodec, unloadCodec } from './codec';
       loadKeyframeOverrides();
 
       exportAction = new Action({
-        id: "export_animated_entity_model",
-        name: "Export Animated Java Entity",
+        id: "export_geckolib_model",
+        name: "Export GeckoLib Model",
         icon: "archive",
         description:
           "Export your java animated model as a model for GeckoLib.",
@@ -41,7 +41,7 @@ import codec, { loadCodec, unloadCodec } from './codec';
 
       button = new Action('gecko_settings', {
         name: 'GeckoLib Model Settings...',
-        description: 'Customize animated model export.',
+        description: 'Configure animated model.',
         icon: 'info',
         condition: () => Format.id === "animated_entity_model",
         click: function () {
