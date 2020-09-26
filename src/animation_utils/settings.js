@@ -1,3 +1,5 @@
+import armorTemplate from './armorTemplate.json';
+
 const makeOptions = arr => Object.fromEntries(arr.map(x => [x, x]));
 
 export const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
@@ -30,6 +32,13 @@ let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 export function onSettingsChanged() {
   Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
   Modes.selected.select();
+  if (geckoSettings.objectType === OBJ_TYPE_ARMOR) {
+    if(Outliner.root.length === 0) {
+      Codecs.project.parse(armorTemplate);
+    } else {
+      alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
+    }
+  }
 }
 
 export default geckoSettings;

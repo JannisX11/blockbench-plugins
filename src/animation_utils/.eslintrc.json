@@ -32,6 +32,7 @@
     "Modes": "readonly",
     "ModelMeta": "readonly",
     "Group": "readonly",
+    "Outliner": "readonly",
     "Dialog": "readonly",
     "DisplayMode": "readonly"
   },

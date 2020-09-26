@@ -1,5 +1,5 @@
 import omit from 'lodash/omit';
-import geckoSettings, { MOD_SDK_1_15_FABRIC, MOD_SDK_1_15_FORGE, GECKO_SETTINGS_DEFAULT, onSettingsChanged } from './settings';
+import geckoSettings, { GECKO_SETTINGS_DEFAULT, onSettingsChanged } from './settings';
 import { Original, addMonkeypatch } from './utils';
 
 /* eslint-disable no-useless-escape */
