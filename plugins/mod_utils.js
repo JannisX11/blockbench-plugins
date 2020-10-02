@@ -253,7 +253,7 @@ function readTblBone(json, version, parentGroup){
 			group = new Group({
 				name: json.name,
 				origin: [(parentGroup == null ? 0 : parentGroup.origin[0]) + json.rotPX, (parentGroup == null ?  + 24 : parentGroup.origin[1]) - json.rotPY, (parentGroup == null ? 0 : parentGroup.origin[2]) + json.rotPZ],
-				rotation: [-json.rotAX, json.rotAY, json.rotAZ]
+				rotation: [json.rotAX, json.rotAY, json.rotAZ]
 			});
 			break;
 		default:
