@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.4',
+		version: '0.2.5',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -1440,6 +1440,8 @@
 	}
 	EntityOptions.dolphin = {
 		name: 'Dolphin',
+		texture_name: 'dolphin.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACiElEQVR4Xu1ZvU4DMQy+k5BA6k6LihAIJF6hOw/BI/AoLJQBJqY+AVsfomLugoTEj6jUIgaWDkwgn3B1ShMnl1xdX/GNl8R2vnz+iZNnjm84fv1xjcH/Qf+WGs7uB1c5OcEyuAqdIBNsddnjNBIW9k72rXsYPb0XAHTbHev4ZDaNBqBunQqAMkBdID4GrCMIpsSAr8u9JZM744vs7uFm6f/W+We2c3yd52fTvjXaw0LqswmF+SCY+kAplXlSAei1dxfiR7OPDAFoHR0s/s+f3wo7FwCUF8EsXHjYaVltfZnOC1TLQmEiCt7unlrXfU8eC6UKAFF7pDLAFB3kApvCgJjiq4gBCkApcDQ5BkQzwOaS68oC3Kl3KSLjhQQvOzGowiZc6ZXaYCzolExfWl4pAGZsoQyNTb2UzJC0rACYCNbpAo1ggOmr6IdmqYu+RFVyZTBt6VWkC/x7AMibizFotqzMtlg5YzQ2C1CAlNtkZluMaoP5en2o09dnxHmhqdnXDgN5lRqXKQC4Ljm4KV+fEedV6TcqAJ5+oDJAXYAxBoRkm8YHQVtTEjbuu+QgOLF9RlxvFmligmDI6cfOoeoNVzsMdUF1y5IGYzcXss5Vcrs6wigTb4qVASgbRVWCIcbXMScZgColq+nLLp+1bcxsTIReqnwgJbtA6K3NbFi43gZsBpuNCd/7gG/TdY5bu8I2BQrA3zMTvhZtFANCKSUxBoTa7ppXKQukKpO4XgGQeCqcNikDONGWqEsZIPFUOG1SBnCiLVGXMkDiqXDapAzgRFuiLmWAxFPhtEkZwIm2RF3KAImnwmmTMoATbYm6lAEST4XTJmUAJ9oSdSkDJJ4Kp03KAE60Jer6BQiNoXCK3JJrAAAAAElFTkSuQmCC',
 		model: `{
 			"textureSize": [64, 64],
 			"models": [
@@ -1469,21 +1471,6 @@
 					"translate": [0, -2.5, -11],
 					"boxes": [
 						{"coordinates": [-2, 0, 10, 4, 5, 11], "textureOffset": [0, 19]}
-					],
-					"submodels": [
-						{
-							"id": "tail_fin",
-							"invertAxis": "xy",
-							"translate": [0, 2.5, 20],
-							"boxes": [
-								{"coordinates": [-5, -0.5, -1, 10, 1, 6], "textureOffset": [19, 20]}
-							]
-						}
-					],
-					"animations": [
-						{
-							"tail_fin.rx": "tail.rx"
-						}
 					]
 				},
 				{
@@ -1511,6 +1498,15 @@
 					"translate": [0, -11, 5],
 					"boxes": [
 						{"coordinates": [-0.5, 7, 3, 1, 4, 5], "textureOffset": [51, 0]}
+					]
+				},
+				{
+					"part": "tail_fin",
+					"id": "tail_fin",
+					"invertAxis": "xy",
+					"translate": [0, -2.5, -20],
+					"boxes": [
+						{"coordinates": [-5, 2, 19, 10, 1, 6], "textureOffset": [19, 20]}
 					]
 				}
 			]
@@ -5410,9 +5406,7 @@
 				},
 				{
 					"part": "nose",
-					"id": "nose",
-					"invertAxis": "xy",
-					"translate": [0, 0, 0]
+					"id": "nose"
 				},
 				{
 					"part": "body",
@@ -7435,6 +7429,8 @@
 	}
 	EntityOptions.squid = {
 		name: 'Squid',
+		texture_name: 'squid.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABJ0lEQVRoQ2NkIBFsufLwPyla5vdOJkU5w9r5PYwkaYAqhrkLZh+x5pBsGcgiCxUZotx44s4TBpCDpMUliFL/9OWL0QAgNuZgIer8ohecIiWupIOFZp6aBKZZwt+AaQ7lPryRPORTwGgAjKaA0SwwWgaMFoKjtcBoNUjfdgBRzTqoIlo3hSluB8AMINZTsBYXsephLTNi1cNacMSq9+aWBisluyUICgALcTGi7Dvx8hXYIgUJbqLUP3jxFdw05VaUI0r91/uPwE1Ydml1otT/fHqTYTQARlPAaBYYLQNGC8HRWmAEV4OERnwI1aeMQ70dMBoABMb8RlMAgRAYzQKjZcAQ7wxRpRAkVFAgyw+27jDFAUCK54ejWpJnhoZbIIwGwHCLUVL9AwDOVj4/czl/xgAAAABJRU5ErkJggg==',
 		model: `{
 			"textureSize": [64, 32],
 			"models": [
@@ -7442,83 +7438,123 @@
 					"part": "body",
 					"id": "body",
 					"invertAxis": "xy",
-					"translate": [0, 0, 0],
+					"translate": [0, -25, 0],
 					"boxes": [
-						{"coordinates": [-6, -8, -6, 12, 16, 12], "textureOffset": [0, 0]}
+						{"coordinates": [-6, 17, -6, 12, 16, 12], "textureOffset": [0, 0]}
 					]
 				},
 				{
 					"part": "tentacle1",
 					"id": "tentacle1",
 					"invertAxis": "xy",
-					"translate": [-5, 7, 0],
+					"translate": [-5, -18, 0],
 					"boxes": [
-						{"coordinates": [4, -25, -1, 2, 18, 2], "textureOffset": [48, 0]}
+						{"coordinates": [4, 0, -1, 2, 18, 2], "textureOffset": [48, 0]}
 					]
 				},
 				{
 					"part": "tentacle2",
 					"id": "tentacle2",
 					"invertAxis": "xy",
-					"translate": [-3.5, 7, 3.5],
-					"boxes": [
-						{"coordinates": [2.5, -25, -4.5, 2, 18, 2], "textureOffset": [48, 0]}
+					"translate": [-3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle2_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, -3.5],
+							"rotate": [0, 135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				},
 				{
 					"part": "tentacle3",
 					"id": "tentacle3",
 					"invertAxis": "xy",
-					"translate": [0, 7, 5],
+					"translate": [0, -18, 5],
 					"boxes": [
-						{"coordinates": [-1, -25, -6, 2, 18, 2], "textureOffset": [48, 0]}
+						{"coordinates": [-1, 0, -6, 2, 18, 2], "textureOffset": [48, 0]}
 					]
 				},
 				{
 					"part": "tentacle4",
 					"id": "tentacle4",
 					"invertAxis": "xy",
-					"translate": [3.5, 7, 3.5],
-					"boxes": [
-						{"coordinates": [-4.5, -25, -4.5, 2, 18, 2], "textureOffset": [48, 0]}
+					"translate": [3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle4_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, -3.5],
+							"rotate": [0, -135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				},
 				{
 					"part": "tentacle5",
 					"id": "tentacle5",
 					"invertAxis": "xy",
-					"translate": [-10, 7, 5],
+					"translate": [-10, -18, 5],
 					"rotate": [0, -90, 0],
 					"boxes": [
-						{"coordinates": [-6, -25, -11, 2, 18, 2], "textureOffset": [48, 0]}
+						{"coordinates": [-6, 0, -11, 2, 18, 2], "textureOffset": [48, 0]}
 					]
 				},
 				{
 					"part": "tentacle6",
 					"id": "tentacle6",
 					"invertAxis": "xy",
-					"translate": [3.5, 7, -3.5],
-					"boxes": [
-						{"coordinates": [-4.5, -25, 2.5, 2, 18, 2], "textureOffset": [48, 0]}
+					"translate": [3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle6_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, 3.5],
+							"rotate": [0, -45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				},
 				{
 					"part": "tentacle7",
 					"id": "tentacle7",
 					"invertAxis": "xy",
-					"translate": [0, 7, -1.65],
+					"translate": [0, -18, -1.65],
 					"rotate": [0, -180, 0],
-					"boxes": [
-						{"coordinates": [-1, -25, -2.7, 2, 18, 2], "textureOffset": [48, 0]}
+					"submodels": [
+						{
+							"id": "tentacle7_rotation",
+							"invertAxis": "xy",
+							"translate": [0, 9, -1.7],
+							"rotate": [0, -180, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				},
 				{
 					"part": "tentacle8",
 					"id": "tentacle8",
 					"invertAxis": "xy",
-					"translate": [-3.5, 7, -3.5],
-					"boxes": [
-						{"coordinates": [2.5, -25, 2.5, 2, 18, 2], "textureOffset": [48, 0]}
+					"translate": [-3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle8_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, 3.5],
+							"rotate": [0, 45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				}
 			]
@@ -12151,7 +12187,7 @@
 	EntityOptions.axolotl = {
 		name: 'Axolotl',
 		texture_name: 'axolotl.png',
-		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABv0lEQVRoQ2NkQANbrjz8jy6GzJ/fOxmfNMPa+T2MyAqi93zBax4uw+Yq1uG1B5ckh3Ifiv2EDMFQDAoACxUZrPpO3HnCAAoAaXEJrPJPX77AGgAKEtyE3IEi/+DFVwZQALBLq5Ok7+fTmwyjAUCNFEDtLDCoU4Dzi16UPCpxJR1vspt5ahKKPEv4G7zqk+83MQz6ALAQFwN74sTLVwygAMDlYFDeBAUAt6IcWP3X+48YQAGAK6+C8uRoAIymgCaSSnKYYrpVg7QuA7y5pTECYOO8nxhi/knsRKnjqaoiqZ4nFPp4DaNGowgUwLAyBlbOgAIAVo7AyhJQABCjju4BQGmjCD2FgTw8pFLAaABQ2CwezQJoDa0RlwVwlcLYygaYWmxlBEyO7oUgNfsFyGahZw2YHKg1il5LwORALU+qBwC+mCC1X4DsQUJ9BFD7ALnaG9AAwOUQUvoFyJ4npo8wGgBYWogDUgYMZBbAVb7QtRDEFwCE2tH4HEpIL7ULM0L24ZJnxFUaEzIQX2lNSC8tSnNCdo4GAI4QGE0BI74MIDfvDBd9VB1dGYqBMhoAQzHWqOnm0RRAzdAcimaN+BQAAGBy5DBL+OqTAAAAAElFTkSuQmCC',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABsklEQVRoQ2NkIAJsufLwPz5l83sn4zWFI7qBCFswlcxVrCNLH4dyHyOxGolSCAoACxUZrGaeuPOEARQA0uISWOWfvnzBAAoABQluYt0EVvfgxVcGUACwS6uTpO/n05sMowEwmgJGswBRWRuUt4hSOFoGjBaClNcCJBXlUMWDqhqkpB2wdn4PUVmNnECiVA+j84tevI0ckAUSV9Lx2jPz1CSC7mAJf4O/sURC1UXQMhIUgAPAQlwMp5YTL1+BAwBXQwbUYAEFALeiHE4zvt5/xAAKAFyNGlIbLyT4j6DS0QAY8VkAWxqhtPPzoV2SYNJDVrBx3k+S1PNUVVGtUMVqEKUNH1AA4CtXkH0LKmNAAYCvDEFWDypPRgNgNAXQIQtQ0vAZUmUAtlqAnIYPoYaON7c0wYKOmMKQmvkf3BtEbwiR0/AZzA0dQqE+GgCjKQBLZ4gWZQApA5WEki015bH2BrEVRv5J7Bj20kMdtQs9dE9gLQPQW2agQg4UAMitO2wtOFqoo0sAoIcKPWKW2BRF8wCgZn4aimZRrVc1FD0PbggNVYdTy92jAUCtkByq5oz4FAAAYGm3MEO1QgQAAAAASUVORK5CYII=',
 		model: `{
 			"textureSize": [64, 32],
 			"models": [
@@ -12161,8 +12197,8 @@
 					"invertAxis": "xy",
 					"translate": [0, 0, 0],
 					"boxes": [
-						{"coordinates": [-4, 0, -7, 8, 5, 4], "textureOffset": [0, 0]},
-						{"coordinates": [-7, 0, -3, 14, 8, 0], "textureOffset": [24, 0]}
+						{"coordinates": [-4, 0, -7, 8, 5, 5], "textureOffset": [0, 13]},
+						{"coordinates": [-7, 0, -3, 14, 8, 0], "textureOffset": [25, 0]}
 					]
 				},
 				{
@@ -12171,48 +12207,48 @@
 					"invertAxis": "xy",
 					"translate": [0, 0, 0],
 					"boxes": [
-						{"coordinates": [-4, 0, -3, 8, 4, 7], "textureOffset": [0, 9]},
-						{"coordinates": [0, 4, -3, 0, 1, 7], "textureOffset": [30, 12]}
+						{"coordinates": [-4, 0, -2, 8, 4, 9], "textureOffset": [0, 0]},
+						{"coordinates": [0, 4, -2, 0, 1, 9], "textureOffset": [26, 9]}
 					]
 				},
 				{
 					"part": "left_arm",
 					"id": "left_arm",
 					"invertAxis": "xy",
-					"translate": [-4, -0.5, 2],
+					"translate": [-4, -0.5, 1],
 					"rotate": [0, -30, 0],
 					"boxes": [
-						{"coordinates": [-4, -1, -2, 0, 3, 5], "textureOffset": [24, 3]}
+						{"coordinates": [-4, -1, -1, 0, 3, 5], "textureOffset": [0, 18]}
 					]
 				},
 				{
 					"part": "right_arm",
 					"id": "right_arm",
 					"invertAxis": "xy",
-					"translate": [4, -0.5, 2],
+					"translate": [4, -0.5, 1],
 					"rotate": [0, 30, 0],
 					"boxes": [
-						{"coordinates": [4, -1, -2, 0, 3, 5], "textureOffset": [34, 3]}
+						{"coordinates": [4, -1, -1, 0, 3, 5], "textureOffset": [10, 18]}
 					]
 				},
 				{
 					"part": "left_leg",
 					"id": "left_leg",
 					"invertAxis": "xy",
-					"translate": [-4, -0.5, -4],
+					"translate": [-4, -0.5, -7],
 					"rotate": [0, -15, 0],
 					"boxes": [
-						{"coordinates": [-4, -1, 4, 0, 3, 5], "textureOffset": [24, 6]}
+						{"coordinates": [-4, -1, 7, 0, 3, 5], "textureOffset": [20, 18]}
 					]
 				},
 				{
 					"part": "right_leg",
 					"id": "right_leg",
 					"invertAxis": "xy",
-					"translate": [4, -0.5, -4],
+					"translate": [4, -0.5, -7],
 					"rotate": [0, 15, 0],
 					"boxes": [
-						{"coordinates": [4, -1, 4, 0, 3, 5], "textureOffset": [34, 6]}
+						{"coordinates": [4, -1, 7, 0, 3, 5], "textureOffset": [30, 18]}
 					]
 				},
 				{
@@ -12221,7 +12257,140 @@
 					"invertAxis": "xy",
 					"translate": [0, -2.5, -4],
 					"boxes": [
-						{"coordinates": [0, 0, 4, 0, 5, 7], "textureOffset": [30, 7]}
+						{"coordinates": [0, 0, 7, 0, 5, 12], "textureOffset": [21, 1]}
+					]
+				}
+			]
+		}`
+	}
+	EntityOptions.glow_squid = {
+		name: 'Glow Squid',
+		texture_name: 'glow_squid.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABJ0lEQVRoQ2NkIBFsufLwPyla5vdOJkU5w9r5PYwkaYAqhrkLZh+x5pBsGcgiCxUZotx44s4TBpCDpMUliFL/9OWL0QAgNuZgIer8ohecIiWupIOFZp6aBKZZwt+AaQ7lPryRPORTwGgAjKaA0SwwWgaMFoKjtcBoNUjfdgBRzTqoIlo3hSluB8AMINZTsBYXsephLTNi1cNacMSq9+aWBisluyUICgALcTGi7Dvx8hXYIgUJbqLUP3jxFdw05VaUI0r91/uPwE1Ydml1otT/fHqTYTQARlPAaBYYLQNGC8HRWmAEV4OERnwI1aeMQ70dMBoABMb8RlMAgRAYzQKjZcAQ7wxRpRAkVFAgyw+27jDFAUCK54ejWpJnhoZbIIwGwHCLUVL9AwDOVj4/czl/xgAAAABJRU5ErkJggg==',
+		model: `{
+			"textureSize": [64, 32],
+			"models": [
+				{
+					"part": "body",
+					"id": "body",
+					"invertAxis": "xy",
+					"translate": [0, -25, 0],
+					"boxes": [
+						{"coordinates": [-6, 17, -6, 12, 16, 12], "textureOffset": [0, 0]}
+					]
+				},
+				{
+					"part": "tentacle1",
+					"id": "tentacle1",
+					"invertAxis": "xy",
+					"translate": [-5, -18, 0],
+					"boxes": [
+						{"coordinates": [4, 0, -1, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle2",
+					"id": "tentacle2",
+					"invertAxis": "xy",
+					"translate": [-3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle2_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, -3.5],
+							"rotate": [0, 135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle3",
+					"id": "tentacle3",
+					"invertAxis": "xy",
+					"translate": [0, -18, 5],
+					"boxes": [
+						{"coordinates": [-1, 0, -6, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle4",
+					"id": "tentacle4",
+					"invertAxis": "xy",
+					"translate": [3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle4_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, -3.5],
+							"rotate": [0, -135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle5",
+					"id": "tentacle5",
+					"invertAxis": "xy",
+					"translate": [-10, -18, 5],
+					"rotate": [0, -90, 0],
+					"boxes": [
+						{"coordinates": [-6, 0, -11, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle6",
+					"id": "tentacle6",
+					"invertAxis": "xy",
+					"translate": [3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle6_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, 3.5],
+							"rotate": [0, -45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle7",
+					"id": "tentacle7",
+					"invertAxis": "xy",
+					"translate": [0, -18, -1.65],
+					"rotate": [0, -180, 0],
+					"submodels": [
+						{
+							"id": "tentacle7_rotation",
+							"invertAxis": "xy",
+							"translate": [0, 9, -1.7],
+							"rotate": [0, -180, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle8",
+					"id": "tentacle8",
+					"invertAxis": "xy",
+					"translate": [-3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle8_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, 3.5],
+							"rotate": [0, 45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
 					]
 				}
 			]
@@ -12328,7 +12497,6 @@
 		texture_name: 'warden.png',
 		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAABACAYAAADS1n9/AAADxUlEQVR4Xu1dvW4UMRB2JCSQricnHUJEIOUV0lPyABSUFLwFBTWhgCpFlCegS8kDRNRpkJCSICJdECUpqEDOYbJ38vgbe73rXe93rX93/M3n8XjGt2WUv+PTiz/Kqt5qR/sf2jQ3H4/ebrXq4F9j9B1onm3nUXr8TRmqhWonvvfkQdIanHz9bqxgF9vzpPaXV8usAJC+A80zxzxCcuxjfAIgAOQ+FoAASOCAHJrnhi29AKXHJwOQAdYwQBugIQ5uAQF6phFoTI6tiFvAAGyA0BR4DBSkMxYGeLrcD/or5qevghA8+Pw+WH7n+c9g+bPZIlje9fj3Hr9Tb+t2ourKyIGBFBtpFmqvdcBYAOxt3/d2d3L1w9gFeDSfecvPl9fGAmC289Bbfn32zVgA3F3sest/X34xFgAlx48GANIY96UIuWgBkWa59kjD0DilF6D0+EkAkBDrhI00By0K0izXHmkYGmcIGkgAeFaJAFgJBSkSkhNSEKsAZIDCezAZgAwwPiOQNsAKtTkomAxABiADbGIAaRZPAfkYiEYgjUC1c+/GExjynNEPsM5lmmMYbQDaALQBaAOUu4ugDUAbgDZAyds42gC0AcZnA6BbNlvO62BjqjwFaBbf1WkbFOL6aRsc4vrxBYkwIKSjiCAr9DZhYf99Ci2zhFw/UoAmAUAAMCQsgtajjgxkgApjAiPAwi2gxqBQAuBWAujWkqeAFiniNAIHGhNIBiADqDFAI5BGYPIrIX1uASFEI48mSmBBiSvVpoY5R5CaLgIVu/QExs5P8m5Kc9SmqCHvaWz/Lz79Ur3RdLjzWiUCd218ExGkapHhPsCNg7SsOR+kcdq5S/fkvm1NeicgJT08V/8WAFJOo5OBPcVYAEi5i65eM4FEFRJmG6KsFu1CoKNWsx907NKOGcqYybVA0lxy9U8AaFfbU48AWBcKGaAhj1waSgZQaugQtwDf1GONtBAAcvTPLUAJMF81lzbuK5OOhZKhKhml0vEvV/8vz96ID1vQCATgkN4NkAxbiaUko7SP/gmADAywGSxKACgzg2o4BvqidccGAI0OJDmCUHo4AbASfektgADQSEDwA9TAAPQEEgBBCdAVLIinDyu9a4bhKSBR+20zAoCuYO8LnmM7BdAGSGQBMgAZgAzQwMAkbwO79tV33T+NwET6d0Zg7MsZLYbrpGmnIWFT8ASOHQCdoMq9EqbtHEXUavsZUkygds611otKDq1VCFP+LgJgyqsf85cxE5dTtZ9PBqh2aXUfRgDo5FRtLQKg2qXVfdhfyHTJ1xsOlbcAAAAASUVORK5CYII=',
 		model: `{
-			"texture": "warden.png",
 			"textureSize": [128, 64],
 			"models": [
 				{
