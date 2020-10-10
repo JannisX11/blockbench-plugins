@@ -6576,12 +6576,18 @@ let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 
 function onSettingsChanged() {
   Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
-  Modes.selected.select();
-  if (geckoSettings.objectType === OBJ_TYPE_ARMOR) {
-    if(Outliner.root.length === 0) {
-      Codecs.project.parse(_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__);
-    } else {
-      alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
+  Modes.selected.select(); 
+  switch(geckoSettings.objectType) {
+    case OBJ_TYPE_ARMOR: {
+      if(Outliner.root.length === 0) {
+        Codecs.project.parse(_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__);
+      } else {
+        alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
+      }
+      break;
+    } case OBJ_TYPE_BLOCK_ITEM: {
+      Project.parent = 'builtin/entity';
+      break;
     }
   }
 }
