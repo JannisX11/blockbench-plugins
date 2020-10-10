@@ -2,12 +2,13 @@ import { version } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
-import geckoSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
-import codec, { loadCodec, unloadCodec } from './codec';
+import geckoSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged, OBJ_TYPE_BLOCK_ITEM } from './settings';
+import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
 
 (function () {
   const MIN_BLOCKBENCH_VERSION = "3.6.6";
   let exportAction;
+  let exportDisplayAction;
   let button;
 
   Plugin.register("animation_utils", {
@@ -38,6 +39,18 @@ import codec, { loadCodec, unloadCodec } from './codec';
         },
       });
       MenuBar.addAction(exportAction, "file.export");
+
+      exportDisplayAction = new Action({
+        id: "export_geckolib_display",
+        name: "Export GeckoLib Display Settings",
+        icon: "icon-bb_interface",
+        description:
+          "Export your java animated model display settings for GeckoLib.",
+        category: "file",
+        condition: () => Format.id === "animated_entity_model", //&& geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM,
+        click: maybeExportItemJson,
+      });
+      MenuBar.addAction(exportDisplayAction, "file.export");
 
       button = new Action('gecko_settings', {
         name: 'GeckoLib Model Settings...',
@@ -71,6 +84,7 @@ import codec, { loadCodec, unloadCodec } from './codec';
     },
     onunload() {
       exportAction.delete();
+      exportDisplayAction.delete();
       button.delete();
       unloadKeyframeOverrides();
       unloadAnimationUI();

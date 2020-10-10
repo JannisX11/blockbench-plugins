@@ -288,13 +288,14 @@ module.exports = JSON.parse("{\"meta\":{\"format_version\":\"3.2\",\"model_forma
 /*!******************!*\
   !*** ./codec.js ***!
   \******************/
-/*! exports provided: loadCodec, unloadCodec, default */
+/*! exports provided: loadCodec, unloadCodec, maybeExportItemJson, default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "loadCodec", function() { return loadCodec; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unloadCodec", function() { return unloadCodec; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "maybeExportItemJson", function() { return maybeExportItemJson; });
 /* harmony import */ var lodash_omit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash/omit */ "./node_modules/lodash/omit.js");
 /* harmony import */ var lodash_omit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_omit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./settings */ "./settings.js");
@@ -340,7 +341,7 @@ function onProjectParse(e) {
 
 function onBedrockCompile(e) {
   console.log('onBedrockCompile e:', e);
-  maybeExportItemJson(e.options);
+  // maybeExportItemJson(e.options);
 }
 
 function animatorBuildFile() {
@@ -828,6 +829,7 @@ var _package_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpac
 (function () {
   const MIN_BLOCKBENCH_VERSION = "3.6.6";
   let exportAction;
+  let exportDisplayAction;
   let button;
 
   Plugin.register("animation_utils", {
@@ -858,6 +860,18 @@ var _package_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpac
         },
       });
       MenuBar.addAction(exportAction, "file.export");
+
+      exportDisplayAction = new Action({
+        id: "export_geckolib_display",
+        name: "Export GeckoLib Display Settings",
+        icon: "icon-bb_interface",
+        description:
+          "Export your java animated model display settings for GeckoLib.",
+        category: "file",
+        condition: () => Format.id === "animated_entity_model", //&& geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM,
+        click: _codec__WEBPACK_IMPORTED_MODULE_5__["maybeExportItemJson"],
+      });
+      MenuBar.addAction(exportDisplayAction, "file.export");
 
       button = new Action('gecko_settings', {
         name: 'GeckoLib Model Settings...',
@@ -891,6 +905,7 @@ var _package_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpac
     },
     onunload() {
       exportAction.delete();
+      exportDisplayAction.delete();
       button.delete();
       Object(_keyframe__WEBPACK_IMPORTED_MODULE_3__["unloadKeyframeOverrides"])();
       Object(_animationUi__WEBPACK_IMPORTED_MODULE_1__["unloadAnimationUI"])();

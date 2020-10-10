@@ -39,7 +39,7 @@ function onProjectParse(e) {
 
 function onBedrockCompile(e) {
   console.log('onBedrockCompile e:', e);
-  maybeExportItemJson(e.options);
+  // maybeExportItemJson(e.options);
 }
 
 function animatorBuildFile() {
@@ -62,7 +62,7 @@ function animatorLoadFile() {
 //#endregion Codec Helpers / Export Settings
 
 //#region Codec / ModelFormat
-function maybeExportItemJson(options = {}, as) {
+export function maybeExportItemJson(options = {}, as) {
   function checkExport(key, condition) {
     key = options[key]
     if (key === undefined) {
