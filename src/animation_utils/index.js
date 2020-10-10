@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { version } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
@@ -16,7 +17,7 @@ import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
     author: "Eliot Lash, Gecko",
     title: "GeckoLib Animation Utils",
     description:
-      `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
+      `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION}. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
     icon: "movie_filter",
     version,
     min_version: MIN_BLOCKBENCH_VERSION,
@@ -25,6 +26,10 @@ import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
       loadCodec();
       loadAnimationUI();
       loadKeyframeOverrides();
+
+      if (!semver.satisfies(semver.coerce(Blockbench.version), '^3.6.6')) {
+        alert('GeckoLib Animation Utils currently only supports Blockbench 3.6.x. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.');
+      }
 
       exportAction = new Action({
         id: "export_geckolib_model",
@@ -47,7 +52,7 @@ import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
         description:
           "Export your java animated model display settings for GeckoLib.",
         category: "file",
-        condition: () => Format.id === "animated_entity_model", //&& geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM,
+        condition: () => Format.id === "animated_entity_model" && geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM,
         click: maybeExportItemJson,
       });
       MenuBar.addAction(exportDisplayAction, "file.export");
