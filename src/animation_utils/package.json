@@ -1,6 +1,6 @@
 {
   "name": "animation_utils",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "private": true,
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
