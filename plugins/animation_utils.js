@@ -161,6 +161,7 @@ function updateKeyframeEasingArg(obj) {
 
 const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing').remove()
+    $('#keyframe_bar_easing_arg1').remove()
 
     var multi_channel = false;
     var channel = false;
@@ -992,7 +993,7 @@ function keyframeGetArray() {
     result = { vector: result, easing };
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["hasArgs"])(easing)) result.easingArgs = easingArgs;
   }
-  // console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
@@ -1003,12 +1004,13 @@ function keyframeGetUndoCopy() {
     Object.assign(result, { easing });
     if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["hasArgs"])(easing)) result.easingArgs = easingArgs;
   }
-  // console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function keyframeExtend(dataIn) {
   const data = Object.assign({}, dataIn);
+  console.log('keyframeExtend 1 arguments:', arguments);
   if (Format.id === "animated_entity_model") {
     if (typeof data.values === 'object') {
       if (data.values.easing !== undefined) {
@@ -1031,7 +1033,7 @@ function keyframeExtend(dataIn) {
     }
   }
   const result = _utils__WEBPACK_IMPORTED_MODULE_0__["Original"].get(Keyframe).extend.apply(this, arguments);
-  // console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 

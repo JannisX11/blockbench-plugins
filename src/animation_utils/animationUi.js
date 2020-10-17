@@ -54,6 +54,7 @@ export function updateKeyframeEasingArg(obj) {
 
 export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing').remove()
+    $('#keyframe_bar_easing_arg1').remove()
 
     var multi_channel = false;
     var channel = false;
