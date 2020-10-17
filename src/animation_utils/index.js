@@ -328,6 +328,7 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
     icon: "movie_filter",
     version,
     min_version: MIN_BLOCKBENCH_VERSION,
+    max_version: '3.6.99',
     variant: "both",
     onload() {
       Codecs.project.on('compile', compileCallback);
