@@ -118,11 +118,14 @@ const loadAnimationUI = () => {
 
   Object(_utils__WEBPACK_IMPORTED_MODULE_1__["addMonkeypatch"])(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   Object(_utils__WEBPACK_IMPORTED_MODULE_1__["addMonkeypatch"])(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
+  Object(_utils__WEBPACK_IMPORTED_MODULE_1__["addMonkeypatch"])(BarItems.keyframe_interpolation, null, 'condition', () => 
+    Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__["Original"].get(BarItems.keyframe_interpolation).condition()
+  );
 
   holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
     .children.find(x => x.name === 'menu.animation.loop.hold');
   holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model";
+  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 const unloadAnimationUI = () => {

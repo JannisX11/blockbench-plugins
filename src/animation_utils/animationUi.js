@@ -1,5 +1,5 @@
 import uniq from 'lodash/uniq';
-import { addMonkeypatch, hasArgs } from './utils';
+import { addMonkeypatch, hasArgs, Original } from './utils';
 import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './easing';
 
 let holdMenu;
@@ -11,11 +11,14 @@ export const loadAnimationUI = () => {
 
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
+  addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
+    Format.id !== "animated_entity_model" && Original.get(BarItems.keyframe_interpolation).condition()
+  );
 
   holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
     .children.find(x => x.name === 'menu.animation.loop.hold');
   holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model";
+  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 export const unloadAnimationUI = () => {
