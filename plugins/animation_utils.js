@@ -170,6 +170,9 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing').remove()
     $('#keyframe_bar_easing_arg1').remove()
 
+    const addPrePostButton = document.querySelector('#keyframe_type_label > div');
+    if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
+
     var multi_channel = false;
     var channel = false;
     Timeline.selected.forEach((kf) => {
