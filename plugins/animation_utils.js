@@ -138,6 +138,7 @@ const displayAnimationFrameCallback = (/*...args*/) => {
 };
 
 function updateKeyframeEasing(obj) {
+  Undo.initEdit({keyframes: Timeline.selected}) 
   // var axis = $(obj).attr('axis');
   const value = $(obj).val();
   // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
@@ -147,9 +148,11 @@ function updateKeyframeEasing(obj) {
   })
   window.updateKeyframeSelection(); // Ensure easingArg display is updated
   // Animator.preview();
+  Undo.finishEdit('edit keyframe easing')
 }
 
 function updateKeyframeEasingArg(obj) {
+  Undo.initEdit({keyframes: Timeline.selected}) 
   if ($(obj).val() === "-") return;
   // console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
   Timeline.selected.forEach((kf) => {
@@ -157,6 +160,7 @@ function updateKeyframeEasingArg(obj) {
     kf.easingArgs = [value];
     // obj.value = value;
   })
+  Undo.finishEdit('edit keyframe easing argument')
 }
 
 const updateKeyframeSelectionCallback = (/*...args*/) => {

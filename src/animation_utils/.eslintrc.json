@@ -23,6 +23,7 @@
     "Project": "readonly",
     "Cube": "readonly",
     "Canvas": "readonly",
+    "Undo": "readonly",
     "ModelFormat": "readonly",
     "Timeline": "readonly",
     "BoneAnimator": "readonly",

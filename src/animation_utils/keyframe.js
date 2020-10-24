@@ -51,7 +51,7 @@ function keyframeGetArray() {
     result = { vector: result, easing };
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
-  // console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
@@ -62,12 +62,13 @@ function keyframeGetUndoCopy() {
     Object.assign(result, { easing });
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
-  // console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function keyframeExtend(dataIn) {
   const data = Object.assign({}, dataIn);
+  console.log('keyframeExtend 1 arguments:', arguments);
   if (Format.id === "animated_entity_model") {
     if (typeof data.values === 'object') {
       if (data.values.easing !== undefined) {
@@ -90,7 +91,7 @@ function keyframeExtend(dataIn) {
     }
   }
   const result = Original.get(Keyframe).extend.apply(this, arguments);
-  // console.log('keyframeExtend arguments:', arguments, 'this:', this, 'result:', result);
+  console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
