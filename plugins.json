@@ -206,8 +206,8 @@
 		"author": "Eliot Lash, Gecko",
 		"icon": "movie_filter",
 		"description": "This plugin lets you create animated java entities with GeckoLib. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
-		"version": "2.0.2",
-		"min_version": "3.6",
+		"version": "2.0.4",
+		"min_version": "3.6.6",
 		"max_version": "3.6.99",
 		"variant": "both"
 	},

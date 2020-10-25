@@ -1,6 +1,6 @@
 {
   "name": "animation_utils",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "private": true,
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
@@ -11,7 +11,7 @@
   },
   "author": "Eliot Lash, Gecko",
   "license": "MIT",
-   "sideEffects": [
+  "sideEffects": [
     "./index.js"
   ],
   "devDependencies": {
@@ -19,6 +19,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "lodash": "4.17.19"
+    "lodash": "4.17.19",
+    "semver": "7.3.2"
   }
 }

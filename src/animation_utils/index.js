@@ -1,4 +1,5 @@
 import uniq from 'lodash/uniq';
+import semver from 'semver';
 import { easingFunctions, EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './Easing';
 import { version } from './package.json';
 
@@ -319,12 +320,16 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
   let holdMenu;
   let holdMenuConditionOriginal;
 
+  if (!semver.satisfies(semver.coerce(Blockbench.version), '~3.6.6')) {
+    alert('GeckoLib Animation Utils currently only supports Blockbench 3.6.x. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.');
+  }
+
   Plugin.register("animation_utils", {
     name: "GeckoLib Animation Utils",
     author: "Eliot Lash, Gecko",
     title: "GeckoLib Animation Utils",
     description:
-      `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION} or higher. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
+      `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION}. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
     icon: "movie_filter",
     version,
     min_version: MIN_BLOCKBENCH_VERSION,
