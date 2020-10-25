@@ -320,6 +320,10 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
   let holdMenu;
   let holdMenuConditionOriginal;
 
+  if (!semver.satisfies(semver.coerce(Blockbench.version), '~3.6.6')) {
+    alert('GeckoLib Animation Utils currently only supports Blockbench 3.6.x. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.');
+  }
+
   Plugin.register("animation_utils", {
     name: "GeckoLib Animation Utils",
     author: "Eliot Lash, Gecko",
@@ -351,10 +355,6 @@ import software.bernie.geckolib.animation.render.AnimatedModelRenderer;`;
         .children.find(x => x.name === 'menu.animation.loop.hold');
       holdMenuConditionOriginal = holdMenu.condition;
       holdMenu.condition = () => Format.id !== "animated_entity_model";
-
-      if (!semver.satisfies(semver.coerce(Blockbench.version), '^3.6.6')) {
-        alert('GeckoLib Animation Utils currently only supports Blockbench 3.6.x. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.');
-      }
 
       exportAction = new Action({
         id: "export_animated_entity_model",
