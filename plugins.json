@@ -206,9 +206,10 @@
 		"author": "Eliot Lash, Gecko",
 		"icon": "movie_filter",
 		"description": "This plugin lets you create animated java entities with GeckoLib. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
-		"version": "2.0.2",
-		"min_version": "3.6.6",
-		"variant": "both"
+		"version": "3.0.0-beta.0",
+		"min_version": "3.7.0",
+		"variant": "both",
+		"max_version": "3.7.99"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
@@ -234,13 +235,13 @@
 		"description": "Upload models to Light Tracer to share them or to create renders",
 		"version": "0.0.1",
 		"variant": "both"
-    },
-    "code_view": {
-        "title": "Code View",
-        "icon": "developer_mode",
-        "author": "wither",
-        "description": "'View the model you are currently editing in the raw format",
-        "version": "1.0.0",
-        "variant": "both"
-    }
+	},
+	"code_view": {
+		"title": "Code View",
+		"icon": "developer_mode",
+		"author": "wither",
+		"description": "'View the model you are currently editing in the raw format",
+		"version": "1.0.0",
+		"variant": "both"
+	}
 }

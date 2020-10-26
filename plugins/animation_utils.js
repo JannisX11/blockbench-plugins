@@ -823,15 +823,17 @@ const parseEasingArg = (kf, value) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var semver__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! semver */ "./node_modules/semver/index.js");
-/* harmony import */ var semver__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(semver__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./package.json */ "./package.json");
-var _package_json__WEBPACK_IMPORTED_MODULE_1___namespace = /*#__PURE__*/__webpack_require__.t(/*! ./package.json */ "./package.json", 1);
-/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationUi */ "./animationUi.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./utils.js");
-/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./keyframe */ "./keyframe.js");
-/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./settings */ "./settings.js");
-/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./codec */ "./codec.js");
+/* harmony import */ var semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! semver/functions/coerce */ "./node_modules/semver/functions/coerce.js");
+/* harmony import */ var semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! semver/functions/satisfies */ "./node_modules/semver/functions/satisfies.js");
+/* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./package.json */ "./package.json");
+var _package_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t(/*! ./package.json */ "./package.json", 1);
+/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./animationUi */ "./animationUi.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils */ "./utils.js");
+/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./keyframe */ "./keyframe.js");
+/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./settings */ "./settings.js");
+/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./codec */ "./codec.js");
 
 
 
@@ -839,99 +841,97 @@ var _package_json__WEBPACK_IMPORTED_MODULE_1___namespace = /*#__PURE__*/__webpac
 
 
 
+
+
+const SUPPORTED_BB_VERSION_RANGE = `${_package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"].min_version} - ${_package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"].max_version}`;
+if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default()(Blockbench.version), SUPPORTED_BB_VERSION_RANGE)) {
+  alert(`GeckoLib Animation Utils currently only supports Blockbench ${SUPPORTED_BB_VERSION_RANGE}. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.`);
+}
 
 (function () {
-  const MIN_BLOCKBENCH_VERSION = "3.6.6";
   let exportAction;
   let exportDisplayAction;
   let button;
 
-  Plugin.register("animation_utils", {
-    name: "GeckoLib Animation Utils",
-    author: "Eliot Lash, Gecko",
-    title: "GeckoLib Animation Utils",
-    description:
-      `This plugin lets you create animated java entities with GeckoLib. This plugin requires Blockbench ${MIN_BLOCKBENCH_VERSION}. Learn about GeckoLib here: https://github.com/bernie-g/geckolib`,
-    icon: "movie_filter",
-    version: _package_json__WEBPACK_IMPORTED_MODULE_1__["version"],
-    min_version: MIN_BLOCKBENCH_VERSION,
-    variant: "both",
-    onload() {
-      Object(_codec__WEBPACK_IMPORTED_MODULE_6__["loadCodec"])();
-      Object(_animationUi__WEBPACK_IMPORTED_MODULE_2__["loadAnimationUI"])();
-      Object(_keyframe__WEBPACK_IMPORTED_MODULE_4__["loadKeyframeOverrides"])();
+  Plugin.register("animation_utils", Object.assign(
+    {},
+    _package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"],
+    {
+      name: _package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"].title,
+      version: _package_json__WEBPACK_IMPORTED_MODULE_2__["version"],
+      onload() {
+        Object(_codec__WEBPACK_IMPORTED_MODULE_7__["loadCodec"])();
+        Object(_animationUi__WEBPACK_IMPORTED_MODULE_3__["loadAnimationUI"])();
+        Object(_keyframe__WEBPACK_IMPORTED_MODULE_5__["loadKeyframeOverrides"])();
 
-      if (!semver__WEBPACK_IMPORTED_MODULE_0___default.a.satisfies(semver__WEBPACK_IMPORTED_MODULE_0___default.a.coerce(Blockbench.version), '^3.6.6')) {
-        alert('GeckoLib Animation Utils currently only supports Blockbench 3.6.x. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.');
-      }
+        exportAction = new Action({
+          id: "export_geckolib_model",
+          name: "Export GeckoLib Model",
+          icon: "archive",
+          description:
+            "Export your java animated model as a model for GeckoLib.",
+          category: "file",
+          condition: () => Format.id === "animated_entity_model",
+          click: function () {
+            _codec__WEBPACK_IMPORTED_MODULE_7__["default"].export();
+          },
+        });
+        MenuBar.addAction(exportAction, "file.export");
 
-      exportAction = new Action({
-        id: "export_geckolib_model",
-        name: "Export GeckoLib Model",
-        icon: "archive",
-        description:
-          "Export your java animated model as a model for GeckoLib.",
-        category: "file",
-        condition: () => Format.id === "animated_entity_model",
-        click: function () {
-          _codec__WEBPACK_IMPORTED_MODULE_6__["default"].export();
-        },
-      });
-      MenuBar.addAction(exportAction, "file.export");
+        exportDisplayAction = new Action({
+          id: "export_geckolib_display",
+          name: "Export GeckoLib Display Settings",
+          icon: "icon-bb_interface",
+          description:
+            "Export your java animated model display settings for GeckoLib.",
+          category: "file",
+          condition: () => Format.id === "animated_entity_model" && _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType === _settings__WEBPACK_IMPORTED_MODULE_6__["OBJ_TYPE_BLOCK_ITEM"],
+          click: _codec__WEBPACK_IMPORTED_MODULE_7__["maybeExportItemJson"],
+        });
+        MenuBar.addAction(exportDisplayAction, "file.export");
 
-      exportDisplayAction = new Action({
-        id: "export_geckolib_display",
-        name: "Export GeckoLib Display Settings",
-        icon: "icon-bb_interface",
-        description:
-          "Export your java animated model display settings for GeckoLib.",
-        category: "file",
-        condition: () => Format.id === "animated_entity_model" && _settings__WEBPACK_IMPORTED_MODULE_5__["default"].objectType === _settings__WEBPACK_IMPORTED_MODULE_5__["OBJ_TYPE_BLOCK_ITEM"],
-        click: _codec__WEBPACK_IMPORTED_MODULE_6__["maybeExportItemJson"],
-      });
-      MenuBar.addAction(exportDisplayAction, "file.export");
-
-      button = new Action('gecko_settings', {
-        name: 'GeckoLib Model Settings...',
-        description: 'Configure animated model.',
-        icon: 'info',
-        condition: () => Format.id === "animated_entity_model",
-        click: function () {
-          var dialog = new Dialog({
-            id: 'project',
-            title: 'GeckoLib Model Settings',
-            width: 540,
-            lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_1__["version"]}</b>`],
-            form: {
-              objectType: {label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_5__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_5__["OBJ_TYPE_OPTIONS"]},
-              // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
-              // entityType: {label: 'Entity Type', value: geckoSettings.entityType},
-              // javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
-              // animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
-              // animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
-            },
-            onConfirm: function(formResult) {
-              Object.assign(_settings__WEBPACK_IMPORTED_MODULE_5__["default"], formResult);
-              Object(_settings__WEBPACK_IMPORTED_MODULE_5__["onSettingsChanged"])();
-              dialog.hide()
-            }
-          })
-          dialog.show()
-        }
-      });
-      MenuBar.addAction(button, 'file.1');
-    },
-    onunload() {
-      exportAction.delete();
-      exportDisplayAction.delete();
-      button.delete();
-      Object(_keyframe__WEBPACK_IMPORTED_MODULE_4__["unloadKeyframeOverrides"])();
-      Object(_animationUi__WEBPACK_IMPORTED_MODULE_2__["unloadAnimationUI"])();
-      Object(_codec__WEBPACK_IMPORTED_MODULE_6__["unloadCodec"])();
-      Object(_utils__WEBPACK_IMPORTED_MODULE_3__["removeMonkeypatches"])();
-      console.clear(); // eslint-disable-line no-console
-    },
-  });
+        button = new Action('gecko_settings', {
+          name: 'GeckoLib Model Settings...',
+          description: 'Configure animated model.',
+          icon: 'info',
+          condition: () => Format.id === "animated_entity_model",
+          click: function () {
+            var dialog = new Dialog({
+              id: 'project',
+              title: 'GeckoLib Model Settings',
+              width: 540,
+              lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_2__["version"]}</b>`],
+              form: {
+                objectType: {label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_6__["OBJ_TYPE_OPTIONS"]},
+                // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
+                // entityType: {label: 'Entity Type', value: geckoSettings.entityType},
+                // javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
+                // animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
+                // animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
+              },
+              onConfirm: function(formResult) {
+                Object.assign(_settings__WEBPACK_IMPORTED_MODULE_6__["default"], formResult);
+                Object(_settings__WEBPACK_IMPORTED_MODULE_6__["onSettingsChanged"])();
+                dialog.hide()
+              }
+            })
+            dialog.show()
+          }
+        });
+        MenuBar.addAction(button, 'file.1');
+      },
+      onunload() {
+        exportAction.delete();
+        exportDisplayAction.delete();
+        button.delete();
+        Object(_keyframe__WEBPACK_IMPORTED_MODULE_5__["unloadKeyframeOverrides"])();
+        Object(_animationUi__WEBPACK_IMPORTED_MODULE_3__["unloadAnimationUI"])();
+        Object(_codec__WEBPACK_IMPORTED_MODULE_7__["unloadCodec"])();
+        Object(_utils__WEBPACK_IMPORTED_MODULE_4__["removeMonkeypatches"])();
+        console.clear(); // eslint-disable-line no-console
+      },
+    }
+  ));
 })();
 
 
@@ -7422,23 +7422,6 @@ module.exports = SemVer
 
 /***/ }),
 
-/***/ "./node_modules/semver/functions/clean.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/clean.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const parse = __webpack_require__(/*! ./parse */ "./node_modules/semver/functions/parse.js")
-const clean = (version, options) => {
-  const s = parse(version.trim().replace(/^[=v]+/, ''), options)
-  return s ? s.version : null
-}
-module.exports = clean
-
-
-/***/ }),
-
 /***/ "./node_modules/semver/functions/cmp.js":
 /*!**********************************************!*\
   !*** ./node_modules/semver/functions/cmp.js ***!
@@ -7560,38 +7543,6 @@ module.exports = coerce
 
 /***/ }),
 
-/***/ "./node_modules/semver/functions/compare-build.js":
-/*!********************************************************!*\
-  !*** ./node_modules/semver/functions/compare-build.js ***!
-  \********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const compareBuild = (a, b, loose) => {
-  const versionA = new SemVer(a, loose)
-  const versionB = new SemVer(b, loose)
-  return versionA.compare(versionB) || versionA.compareBuild(versionB)
-}
-module.exports = compareBuild
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/compare-loose.js":
-/*!********************************************************!*\
-  !*** ./node_modules/semver/functions/compare-loose.js ***!
-  \********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
-const compareLoose = (a, b) => compare(a, b, true)
-module.exports = compareLoose
-
-
-/***/ }),
-
 /***/ "./node_modules/semver/functions/compare.js":
 /*!**************************************************!*\
   !*** ./node_modules/semver/functions/compare.js ***!
@@ -7604,40 +7555,6 @@ const compare = (a, b, loose) =>
   new SemVer(a, loose).compare(new SemVer(b, loose))
 
 module.exports = compare
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/diff.js":
-/*!***********************************************!*\
-  !*** ./node_modules/semver/functions/diff.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const parse = __webpack_require__(/*! ./parse */ "./node_modules/semver/functions/parse.js")
-const eq = __webpack_require__(/*! ./eq */ "./node_modules/semver/functions/eq.js")
-
-const diff = (version1, version2) => {
-  if (eq(version1, version2)) {
-    return null
-  } else {
-    const v1 = parse(version1)
-    const v2 = parse(version2)
-    const hasPre = v1.prerelease.length || v2.prerelease.length
-    const prefix = hasPre ? 'pre' : ''
-    const defaultResult = hasPre ? 'prerelease' : ''
-    for (const key in v1) {
-      if (key === 'major' || key === 'minor' || key === 'patch') {
-        if (v1[key] !== v2[key]) {
-          return prefix + key
-        }
-      }
-    }
-    return defaultResult // may be undefined
-  }
-}
-module.exports = diff
 
 
 /***/ }),
@@ -7684,32 +7601,6 @@ module.exports = gte
 
 /***/ }),
 
-/***/ "./node_modules/semver/functions/inc.js":
-/*!**********************************************!*\
-  !*** ./node_modules/semver/functions/inc.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-
-const inc = (version, release, options, identifier) => {
-  if (typeof (options) === 'string') {
-    identifier = options
-    options = undefined
-  }
-
-  try {
-    return new SemVer(version, options).inc(release, identifier).version
-  } catch (er) {
-    return null
-  }
-}
-module.exports = inc
-
-
-/***/ }),
-
 /***/ "./node_modules/semver/functions/lt.js":
 /*!*********************************************!*\
   !*** ./node_modules/semver/functions/lt.js ***!
@@ -7734,34 +7625,6 @@ module.exports = lt
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const lte = (a, b, loose) => compare(a, b, loose) <= 0
 module.exports = lte
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/major.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/major.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const major = (a, loose) => new SemVer(a, loose).major
-module.exports = major
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/minor.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/minor.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const minor = (a, loose) => new SemVer(a, loose).minor
-module.exports = minor
 
 
 /***/ }),
@@ -7828,65 +7691,6 @@ module.exports = parse
 
 /***/ }),
 
-/***/ "./node_modules/semver/functions/patch.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/patch.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const patch = (a, loose) => new SemVer(a, loose).patch
-module.exports = patch
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/prerelease.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/semver/functions/prerelease.js ***!
-  \*****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const parse = __webpack_require__(/*! ./parse */ "./node_modules/semver/functions/parse.js")
-const prerelease = (version, options) => {
-  const parsed = parse(version, options)
-  return (parsed && parsed.prerelease.length) ? parsed.prerelease : null
-}
-module.exports = prerelease
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/rcompare.js":
-/*!***************************************************!*\
-  !*** ./node_modules/semver/functions/rcompare.js ***!
-  \***************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
-const rcompare = (a, b, loose) => compare(b, a, loose)
-module.exports = rcompare
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/rsort.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/rsort.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const compareBuild = __webpack_require__(/*! ./compare-build */ "./node_modules/semver/functions/compare-build.js")
-const rsort = (list, loose) => list.sort((a, b) => compareBuild(b, a, loose))
-module.exports = rsort
-
-
-/***/ }),
-
 /***/ "./node_modules/semver/functions/satisfies.js":
 /*!****************************************************!*\
   !*** ./node_modules/semver/functions/satisfies.js ***!
@@ -7904,96 +7708,6 @@ const satisfies = (version, range, options) => {
   return range.test(version)
 }
 module.exports = satisfies
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/sort.js":
-/*!***********************************************!*\
-  !*** ./node_modules/semver/functions/sort.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const compareBuild = __webpack_require__(/*! ./compare-build */ "./node_modules/semver/functions/compare-build.js")
-const sort = (list, loose) => list.sort((a, b) => compareBuild(a, b, loose))
-module.exports = sort
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/functions/valid.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/functions/valid.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const parse = __webpack_require__(/*! ./parse */ "./node_modules/semver/functions/parse.js")
-const valid = (version, options) => {
-  const v = parse(version, options)
-  return v ? v.version : null
-}
-module.exports = valid
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/index.js":
-/*!**************************************!*\
-  !*** ./node_modules/semver/index.js ***!
-  \**************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// just pre-load all the stuff that index.js lazily exports
-const internalRe = __webpack_require__(/*! ./internal/re */ "./node_modules/semver/internal/re.js")
-module.exports = {
-  re: internalRe.re,
-  src: internalRe.src,
-  tokens: internalRe.t,
-  SEMVER_SPEC_VERSION: __webpack_require__(/*! ./internal/constants */ "./node_modules/semver/internal/constants.js").SEMVER_SPEC_VERSION,
-  SemVer: __webpack_require__(/*! ./classes/semver */ "./node_modules/semver/classes/semver.js"),
-  compareIdentifiers: __webpack_require__(/*! ./internal/identifiers */ "./node_modules/semver/internal/identifiers.js").compareIdentifiers,
-  rcompareIdentifiers: __webpack_require__(/*! ./internal/identifiers */ "./node_modules/semver/internal/identifiers.js").rcompareIdentifiers,
-  parse: __webpack_require__(/*! ./functions/parse */ "./node_modules/semver/functions/parse.js"),
-  valid: __webpack_require__(/*! ./functions/valid */ "./node_modules/semver/functions/valid.js"),
-  clean: __webpack_require__(/*! ./functions/clean */ "./node_modules/semver/functions/clean.js"),
-  inc: __webpack_require__(/*! ./functions/inc */ "./node_modules/semver/functions/inc.js"),
-  diff: __webpack_require__(/*! ./functions/diff */ "./node_modules/semver/functions/diff.js"),
-  major: __webpack_require__(/*! ./functions/major */ "./node_modules/semver/functions/major.js"),
-  minor: __webpack_require__(/*! ./functions/minor */ "./node_modules/semver/functions/minor.js"),
-  patch: __webpack_require__(/*! ./functions/patch */ "./node_modules/semver/functions/patch.js"),
-  prerelease: __webpack_require__(/*! ./functions/prerelease */ "./node_modules/semver/functions/prerelease.js"),
-  compare: __webpack_require__(/*! ./functions/compare */ "./node_modules/semver/functions/compare.js"),
-  rcompare: __webpack_require__(/*! ./functions/rcompare */ "./node_modules/semver/functions/rcompare.js"),
-  compareLoose: __webpack_require__(/*! ./functions/compare-loose */ "./node_modules/semver/functions/compare-loose.js"),
-  compareBuild: __webpack_require__(/*! ./functions/compare-build */ "./node_modules/semver/functions/compare-build.js"),
-  sort: __webpack_require__(/*! ./functions/sort */ "./node_modules/semver/functions/sort.js"),
-  rsort: __webpack_require__(/*! ./functions/rsort */ "./node_modules/semver/functions/rsort.js"),
-  gt: __webpack_require__(/*! ./functions/gt */ "./node_modules/semver/functions/gt.js"),
-  lt: __webpack_require__(/*! ./functions/lt */ "./node_modules/semver/functions/lt.js"),
-  eq: __webpack_require__(/*! ./functions/eq */ "./node_modules/semver/functions/eq.js"),
-  neq: __webpack_require__(/*! ./functions/neq */ "./node_modules/semver/functions/neq.js"),
-  gte: __webpack_require__(/*! ./functions/gte */ "./node_modules/semver/functions/gte.js"),
-  lte: __webpack_require__(/*! ./functions/lte */ "./node_modules/semver/functions/lte.js"),
-  cmp: __webpack_require__(/*! ./functions/cmp */ "./node_modules/semver/functions/cmp.js"),
-  coerce: __webpack_require__(/*! ./functions/coerce */ "./node_modules/semver/functions/coerce.js"),
-  Comparator: __webpack_require__(/*! ./classes/comparator */ "./node_modules/semver/classes/comparator.js"),
-  Range: __webpack_require__(/*! ./classes/range */ "./node_modules/semver/classes/range.js"),
-  satisfies: __webpack_require__(/*! ./functions/satisfies */ "./node_modules/semver/functions/satisfies.js"),
-  toComparators: __webpack_require__(/*! ./ranges/to-comparators */ "./node_modules/semver/ranges/to-comparators.js"),
-  maxSatisfying: __webpack_require__(/*! ./ranges/max-satisfying */ "./node_modules/semver/ranges/max-satisfying.js"),
-  minSatisfying: __webpack_require__(/*! ./ranges/min-satisfying */ "./node_modules/semver/ranges/min-satisfying.js"),
-  minVersion: __webpack_require__(/*! ./ranges/min-version */ "./node_modules/semver/ranges/min-version.js"),
-  validRange: __webpack_require__(/*! ./ranges/valid */ "./node_modules/semver/ranges/valid.js"),
-  outside: __webpack_require__(/*! ./ranges/outside */ "./node_modules/semver/ranges/outside.js"),
-  gtr: __webpack_require__(/*! ./ranges/gtr */ "./node_modules/semver/ranges/gtr.js"),
-  ltr: __webpack_require__(/*! ./ranges/ltr */ "./node_modules/semver/ranges/ltr.js"),
-  intersects: __webpack_require__(/*! ./ranges/intersects */ "./node_modules/semver/ranges/intersects.js"),
-  simplifyRange: __webpack_require__(/*! ./ranges/simplify */ "./node_modules/semver/ranges/simplify.js"),
-  subset: __webpack_require__(/*! ./ranges/subset */ "./node_modules/semver/ranges/subset.js"),
-}
 
 
 /***/ }),
@@ -8273,546 +7987,6 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\.0\.0-0\\s*$')
 
 /***/ }),
 
-/***/ "./node_modules/semver/ranges/gtr.js":
-/*!*******************************************!*\
-  !*** ./node_modules/semver/ranges/gtr.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Determine if version is greater than all the versions possible in the range.
-const outside = __webpack_require__(/*! ./outside */ "./node_modules/semver/ranges/outside.js")
-const gtr = (version, range, options) => outside(version, range, '>', options)
-module.exports = gtr
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/intersects.js":
-/*!**************************************************!*\
-  !*** ./node_modules/semver/ranges/intersects.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-const intersects = (r1, r2, options) => {
-  r1 = new Range(r1, options)
-  r2 = new Range(r2, options)
-  return r1.intersects(r2)
-}
-module.exports = intersects
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/ltr.js":
-/*!*******************************************!*\
-  !*** ./node_modules/semver/ranges/ltr.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const outside = __webpack_require__(/*! ./outside */ "./node_modules/semver/ranges/outside.js")
-// Determine if version is less than all the versions possible in the range
-const ltr = (version, range, options) => outside(version, range, '<', options)
-module.exports = ltr
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/max-satisfying.js":
-/*!******************************************************!*\
-  !*** ./node_modules/semver/ranges/max-satisfying.js ***!
-  \******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-
-const maxSatisfying = (versions, range, options) => {
-  let max = null
-  let maxSV = null
-  let rangeObj = null
-  try {
-    rangeObj = new Range(range, options)
-  } catch (er) {
-    return null
-  }
-  versions.forEach((v) => {
-    if (rangeObj.test(v)) {
-      // satisfies(v, range, options)
-      if (!max || maxSV.compare(v) === -1) {
-        // compare(max, v, true)
-        max = v
-        maxSV = new SemVer(max, options)
-      }
-    }
-  })
-  return max
-}
-module.exports = maxSatisfying
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/min-satisfying.js":
-/*!******************************************************!*\
-  !*** ./node_modules/semver/ranges/min-satisfying.js ***!
-  \******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-const minSatisfying = (versions, range, options) => {
-  let min = null
-  let minSV = null
-  let rangeObj = null
-  try {
-    rangeObj = new Range(range, options)
-  } catch (er) {
-    return null
-  }
-  versions.forEach((v) => {
-    if (rangeObj.test(v)) {
-      // satisfies(v, range, options)
-      if (!min || minSV.compare(v) === 1) {
-        // compare(min, v, true)
-        min = v
-        minSV = new SemVer(min, options)
-      }
-    }
-  })
-  return min
-}
-module.exports = minSatisfying
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/min-version.js":
-/*!***************************************************!*\
-  !*** ./node_modules/semver/ranges/min-version.js ***!
-  \***************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-const gt = __webpack_require__(/*! ../functions/gt */ "./node_modules/semver/functions/gt.js")
-
-const minVersion = (range, loose) => {
-  range = new Range(range, loose)
-
-  let minver = new SemVer('0.0.0')
-  if (range.test(minver)) {
-    return minver
-  }
-
-  minver = new SemVer('0.0.0-0')
-  if (range.test(minver)) {
-    return minver
-  }
-
-  minver = null
-  for (let i = 0; i < range.set.length; ++i) {
-    const comparators = range.set[i]
-
-    comparators.forEach((comparator) => {
-      // Clone to avoid manipulating the comparator's semver object.
-      const compver = new SemVer(comparator.semver.version)
-      switch (comparator.operator) {
-        case '>':
-          if (compver.prerelease.length === 0) {
-            compver.patch++
-          } else {
-            compver.prerelease.push(0)
-          }
-          compver.raw = compver.format()
-          /* fallthrough */
-        case '':
-        case '>=':
-          if (!minver || gt(minver, compver)) {
-            minver = compver
-          }
-          break
-        case '<':
-        case '<=':
-          /* Ignore maximum versions */
-          break
-        /* istanbul ignore next */
-        default:
-          throw new Error(`Unexpected operation: ${comparator.operator}`)
-      }
-    })
-  }
-
-  if (minver && range.test(minver)) {
-    return minver
-  }
-
-  return null
-}
-module.exports = minVersion
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/outside.js":
-/*!***********************************************!*\
-  !*** ./node_modules/semver/ranges/outside.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-const Comparator = __webpack_require__(/*! ../classes/comparator */ "./node_modules/semver/classes/comparator.js")
-const {ANY} = Comparator
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-const satisfies = __webpack_require__(/*! ../functions/satisfies */ "./node_modules/semver/functions/satisfies.js")
-const gt = __webpack_require__(/*! ../functions/gt */ "./node_modules/semver/functions/gt.js")
-const lt = __webpack_require__(/*! ../functions/lt */ "./node_modules/semver/functions/lt.js")
-const lte = __webpack_require__(/*! ../functions/lte */ "./node_modules/semver/functions/lte.js")
-const gte = __webpack_require__(/*! ../functions/gte */ "./node_modules/semver/functions/gte.js")
-
-const outside = (version, range, hilo, options) => {
-  version = new SemVer(version, options)
-  range = new Range(range, options)
-
-  let gtfn, ltefn, ltfn, comp, ecomp
-  switch (hilo) {
-    case '>':
-      gtfn = gt
-      ltefn = lte
-      ltfn = lt
-      comp = '>'
-      ecomp = '>='
-      break
-    case '<':
-      gtfn = lt
-      ltefn = gte
-      ltfn = gt
-      comp = '<'
-      ecomp = '<='
-      break
-    default:
-      throw new TypeError('Must provide a hilo val of "<" or ">"')
-  }
-
-  // If it satisifes the range it is not outside
-  if (satisfies(version, range, options)) {
-    return false
-  }
-
-  // From now on, variable terms are as if we're in "gtr" mode.
-  // but note that everything is flipped for the "ltr" function.
-
-  for (let i = 0; i < range.set.length; ++i) {
-    const comparators = range.set[i]
-
-    let high = null
-    let low = null
-
-    comparators.forEach((comparator) => {
-      if (comparator.semver === ANY) {
-        comparator = new Comparator('>=0.0.0')
-      }
-      high = high || comparator
-      low = low || comparator
-      if (gtfn(comparator.semver, high.semver, options)) {
-        high = comparator
-      } else if (ltfn(comparator.semver, low.semver, options)) {
-        low = comparator
-      }
-    })
-
-    // If the edge version comparator has a operator then our version
-    // isn't outside it
-    if (high.operator === comp || high.operator === ecomp) {
-      return false
-    }
-
-    // If the lowest version comparator has an operator and our version
-    // is less than it then it isn't higher than the range
-    if ((!low.operator || low.operator === comp) &&
-        ltefn(version, low.semver)) {
-      return false
-    } else if (low.operator === ecomp && ltfn(version, low.semver)) {
-      return false
-    }
-  }
-  return true
-}
-
-module.exports = outside
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/simplify.js":
-/*!************************************************!*\
-  !*** ./node_modules/semver/ranges/simplify.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// given a set of versions and a range, create a "simplified" range
-// that includes the same versions that the original range does
-// If the original range is shorter than the simplified one, return that.
-const satisfies = __webpack_require__(/*! ../functions/satisfies.js */ "./node_modules/semver/functions/satisfies.js")
-const compare = __webpack_require__(/*! ../functions/compare.js */ "./node_modules/semver/functions/compare.js")
-module.exports = (versions, range, options) => {
-  const set = []
-  let min = null
-  let prev = null
-  const v = versions.sort((a, b) => compare(a, b, options))
-  for (const version of v) {
-    const included = satisfies(version, range, options)
-    if (included) {
-      prev = version
-      if (!min)
-        min = version
-    } else {
-      if (prev) {
-        set.push([min, prev])
-      }
-      prev = null
-      min = null
-    }
-  }
-  if (min)
-    set.push([min, null])
-
-  const ranges = []
-  for (const [min, max] of set) {
-    if (min === max)
-      ranges.push(min)
-    else if (!max && min === v[0])
-      ranges.push('*')
-    else if (!max)
-      ranges.push(`>=${min}`)
-    else if (min === v[0])
-      ranges.push(`<=${max}`)
-    else
-      ranges.push(`${min} - ${max}`)
-  }
-  const simplified = ranges.join(' || ')
-  const original = typeof range.raw === 'string' ? range.raw : String(range)
-  return simplified.length < original.length ? simplified : range
-}
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/subset.js":
-/*!**********************************************!*\
-  !*** ./node_modules/semver/ranges/subset.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Range = __webpack_require__(/*! ../classes/range.js */ "./node_modules/semver/classes/range.js")
-const { ANY } = __webpack_require__(/*! ../classes/comparator.js */ "./node_modules/semver/classes/comparator.js")
-const satisfies = __webpack_require__(/*! ../functions/satisfies.js */ "./node_modules/semver/functions/satisfies.js")
-const compare = __webpack_require__(/*! ../functions/compare.js */ "./node_modules/semver/functions/compare.js")
-
-// Complex range `r1 || r2 || ...` is a subset of `R1 || R2 || ...` iff:
-// - Every simple range `r1, r2, ...` is a subset of some `R1, R2, ...`
-//
-// Simple range `c1 c2 ...` is a subset of simple range `C1 C2 ...` iff:
-// - If c is only the ANY comparator
-//   - If C is only the ANY comparator, return true
-//   - Else return false
-// - Let EQ be the set of = comparators in c
-// - If EQ is more than one, return true (null set)
-// - Let GT be the highest > or >= comparator in c
-// - Let LT be the lowest < or <= comparator in c
-// - If GT and LT, and GT.semver > LT.semver, return true (null set)
-// - If EQ
-//   - If GT, and EQ does not satisfy GT, return true (null set)
-//   - If LT, and EQ does not satisfy LT, return true (null set)
-//   - If EQ satisfies every C, return true
-//   - Else return false
-// - If GT
-//   - If GT is lower than any > or >= comp in C, return false
-//   - If GT is >=, and GT.semver does not satisfy every C, return false
-// - If LT
-//   - If LT.semver is greater than that of any > comp in C, return false
-//   - If LT is <=, and LT.semver does not satisfy every C, return false
-// - If any C is a = range, and GT or LT are set, return false
-// - Else return true
-
-const subset = (sub, dom, options) => {
-  sub = new Range(sub, options)
-  dom = new Range(dom, options)
-  let sawNonNull = false
-
-  OUTER: for (const simpleSub of sub.set) {
-    for (const simpleDom of dom.set) {
-      const isSub = simpleSubset(simpleSub, simpleDom, options)
-      sawNonNull = sawNonNull || isSub !== null
-      if (isSub)
-        continue OUTER
-    }
-    // the null set is a subset of everything, but null simple ranges in
-    // a complex range should be ignored.  so if we saw a non-null range,
-    // then we know this isn't a subset, but if EVERY simple range was null,
-    // then it is a subset.
-    if (sawNonNull)
-      return false
-  }
-  return true
-}
-
-const simpleSubset = (sub, dom, options) => {
-  if (sub.length === 1 && sub[0].semver === ANY)
-    return dom.length === 1 && dom[0].semver === ANY
-
-  const eqSet = new Set()
-  let gt, lt
-  for (const c of sub) {
-    if (c.operator === '>' || c.operator === '>=')
-      gt = higherGT(gt, c, options)
-    else if (c.operator === '<' || c.operator === '<=')
-      lt = lowerLT(lt, c, options)
-    else
-      eqSet.add(c.semver)
-  }
-
-  if (eqSet.size > 1)
-    return null
-
-  let gtltComp
-  if (gt && lt) {
-    gtltComp = compare(gt.semver, lt.semver, options)
-    if (gtltComp > 0)
-      return null
-    else if (gtltComp === 0 && (gt.operator !== '>=' || lt.operator !== '<='))
-      return null
-  }
-
-  // will iterate one or zero times
-  for (const eq of eqSet) {
-    if (gt && !satisfies(eq, String(gt), options))
-      return null
-
-    if (lt && !satisfies(eq, String(lt), options))
-      return null
-
-    for (const c of dom) {
-      if (!satisfies(eq, String(c), options))
-        return false
-    }
-    return true
-  }
-
-  let higher, lower
-  let hasDomLT, hasDomGT
-  for (const c of dom) {
-    hasDomGT = hasDomGT || c.operator === '>' || c.operator === '>='
-    hasDomLT = hasDomLT || c.operator === '<' || c.operator === '<='
-    if (gt) {
-      if (c.operator === '>' || c.operator === '>=') {
-        higher = higherGT(gt, c, options)
-        if (higher === c)
-          return false
-      } else if (gt.operator === '>=' && !satisfies(gt.semver, String(c), options))
-        return false
-    }
-    if (lt) {
-      if (c.operator === '<' || c.operator === '<=') {
-        lower = lowerLT(lt, c, options)
-        if (lower === c)
-          return false
-      } else if (lt.operator === '<=' && !satisfies(lt.semver, String(c), options))
-        return false
-    }
-    if (!c.operator && (lt || gt) && gtltComp !== 0)
-      return false
-  }
-
-  // if there was a < or >, and nothing in the dom, then must be false
-  // UNLESS it was limited by another range in the other direction.
-  // Eg, >1.0.0 <1.0.1 is still a subset of <2.0.0
-  if (gt && hasDomLT && !lt && gtltComp !== 0)
-    return false
-
-  if (lt && hasDomGT && !gt && gtltComp !== 0)
-    return false
-
-  return true
-}
-
-// >=1.2.3 is lower than >1.2.3
-const higherGT = (a, b, options) => {
-  if (!a)
-    return b
-  const comp = compare(a.semver, b.semver, options)
-  return comp > 0 ? a
-    : comp < 0 ? b
-    : b.operator === '>' && a.operator === '>=' ? b
-    : a
-}
-
-// <=1.2.3 is higher than <1.2.3
-const lowerLT = (a, b, options) => {
-  if (!a)
-    return b
-  const comp = compare(a.semver, b.semver, options)
-  return comp < 0 ? a
-    : comp > 0 ? b
-    : b.operator === '<' && a.operator === '<=' ? b
-    : a
-}
-
-module.exports = subset
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/to-comparators.js":
-/*!******************************************************!*\
-  !*** ./node_modules/semver/ranges/to-comparators.js ***!
-  \******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-
-// Mostly just for testing and legacy API reasons
-const toComparators = (range, options) =>
-  new Range(range, options).set
-    .map(comp => comp.map(c => c.value).join(' ').trim().split(' '))
-
-module.exports = toComparators
-
-
-/***/ }),
-
-/***/ "./node_modules/semver/ranges/valid.js":
-/*!*********************************************!*\
-  !*** ./node_modules/semver/ranges/valid.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
-const validRange = (range, options) => {
-  try {
-    // Return '*' instead of '' so that truthiness works.
-    // This will throw if it's invalid anyway
-    return new Range(range, options).range || '*'
-  } catch (er) {
-    return null
-  }
-}
-module.exports = validRange
-
-
-/***/ }),
-
 /***/ "./node_modules/webpack/buildin/module.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/module.js ***!
@@ -8850,10 +8024,10 @@ module.exports = function(module) {
 /*!**********************!*\
   !*** ./package.json ***!
   \**********************/
-/*! exports provided: name, version, private, description, main, scripts, author, license, sideEffects, devDependencies, dependencies, default */
+/*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0-alpha.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko\",\"license\":\"MIT\",\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0-beta.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko\",\"icon\":\"movie_filter\",\"description\":\"This plugin lets you create animated java entities with GeckoLib. Learn about GeckoLib here: https://github.com/bernie-g/geckolib\",\"min_version\":\"3.7.0\",\"max_version\":\"3.7.99\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 
