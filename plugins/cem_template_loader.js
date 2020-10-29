@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.6',
+		version: '0.2.7',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -4979,6 +4979,7 @@
 	}
 	EntityOptions.parrot = {
 		name: 'Parrot',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABhklEQVRYR+2UPU7DQBCFJxJSkNwTIyMEIhJXSE/JATgCB+AQNIQCKqqcgC5t+ih1GqRI/IhIDqKgSUEV9FYaa7Jek52N7TR2tXFmZj+/mXktCnyG0/cVUgf9R1PheXDXCikVlISLfAA4RoLasDkAn8I+ABdpfxVPrzNRniYPtHf1nf3eP7s3d1cOcBJH9JYuiQHayTn9zl8oBwBiEDE1EvAw9WWUrLXYjuM/ZTxiSgNgYt9BU7dgkwJaAF9Q9RZgSLF6cu1c77YCKFqfn9tDMyM8UFCFpZbveEtsUBeUUwEA9LpHNJ59GqNJOjHNFynVCsC07HRat/NtS6YAD6FcRZx5HeVK4uwaSruGnevKWQPodQ5ovPgyfZb7G50e0/L1w3iCbSSyrwCQNQAgcxuAWhTglvC6SoveCCCT+awZQl/zkXFqJwy55L+crQB8d70SgCIL1ioUrMDOAbRfWhTvtGIEj+KbYHU0cDkrRjLsuAHYiQKyd7UDaAanzNhaJr0SJyxLhUaBP/v0nTAyBrQeAAAAAElFTkSuQmCC',
 		model: `{
 			"textureSize": [32, 32],
 			"models": [
@@ -4991,8 +4992,18 @@
 						{"coordinates": [-1, 6.5, -1.5, 2, 3, 2], "textureOffset": [2, 2]},
 						{"coordinates": [-1, 9.5, -3.5, 2, 1, 4], "textureOffset": [10, 0]},
 						{"coordinates": [-0.5, 7.5, -2.5, 1, 2, 1], "textureOffset": [11, 7]},
-						{"coordinates": [-0.5, 7.8, -3.5, 1, 1.7, 1], "textureOffset": [16, 7]},
-						{"coordinates": [0, 9.5, -2.5, 0, 5, 4], "textureOffset": [2, 18]}
+						{"coordinates": [-0.5, 7.75, -3.45, 1, 2, 1], "textureOffset": [16, 7], "sizeAdd": -0.01}
+					],
+					"submodels": [
+						{
+							"id": "feather",
+							"invertAxis": "xy",
+							"translate": [0, 9.5, -2.5],
+							"rotate": [15, 0, 0],
+							"boxes": [
+								{"coordinates": [0, 0, 0, 0, 5, 4], "textureOffset": [2, 18]}
+							]
+						}
 					]
 				},
 				{
@@ -5023,15 +5034,6 @@
 					]
 				},
 				{
-					"part": "right_wing",
-					"id": "right_wing",
-					"invertAxis": "xy",
-					"translate": [1.5, -7.1, 0.8],
-					"boxes": [
-						{"coordinates": [-2, 2.1, -2.3, 1, 5, 3], "textureOffset": [19, 8]}
-					]
-				},
-				{
 					"part": "left_leg",
 					"id": "left_leg",
 					"invertAxis": "xy",
@@ -5047,6 +5049,21 @@
 					"translate": [-1, -2, 1],
 					"boxes": [
 						{"coordinates": [-1.5, 0, -1.5, 1, 2, 1], "textureOffset": [14, 18]}
+					]
+				},
+				{
+					"part": "right_wing",
+					"id": "right_wing",
+					"invertAxis": "xy",
+					"translate": [1.5, -7.1, 0.8],
+					"submodels": [
+						{
+							"invertAxis": "xy",
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-2, 2.1, -2.3, 1, 5, 3], "textureOffset": [19, 8]}
+							]
+						}
 					]
 				}
 			]
@@ -8700,6 +8717,7 @@
 	}
 	EntityOptions.wither = {
 		name: 'Wither',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFAmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0MzUyLCAyMDIwLzAxLzMwLTE1OjUwOjM4ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTEwLTI5VDIzOjIwOjU5WiIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMTAtMjlUMjM6MjQ6MTJaIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIwLTEwLTI5VDIzOjI0OjEyWiIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpkODQ4NzM0My04MGY1LTNiNDctOTRkMS1hMzdlZGQwODc3MTciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6ZDg0ODczNDMtODBmNS0zYjQ3LTk0ZDEtYTM3ZWRkMDg3NzE3IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6ZDg0ODczNDMtODBmNS0zYjQ3LTk0ZDEtYTM3ZWRkMDg3NzE3Ij4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpkODQ4NzM0My04MGY1LTNiNDctOTRkMS1hMzdlZGQwODc3MTciIHN0RXZ0OndoZW49IjIwMjAtMTAtMjlUMjM6MjA6NTlaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+j++3pAAAArFJREFUeJztmL2O1DAUhU9WkbaYDiRmpEGwi0A0PAD90C0lEo9Av1RIiCcgFFBRrShGVHRbQo+op0EC8SNGyqxop6DKFqyzTuIb24mzZ2D8VaPYk3t0HN9r3wQWjhc/irbxo+xV6//fHT1Pzt5jHL9/57pXXCmeilOnKFrlI20dPePuzavG5x+//AIATMcT4/hylbu83jmuFK9PHCcD+jDLMwDA28XloUN1YoctgM3gX8CHyWMAwPHigXF8PrQAC4Mb0Ae15+v0zS069BwwyzNjmpbmv7l1yfh8/vVQSvfG6qBwMkBaCUXvbD++Uo23OgEA7E1Gleff8zUAYLR/rfJ8/e0nAGB3ervy/M/yszV2Kq2Awpa9pRUpA6yXf9+//8w4foBp6/+HJgWaK6CQVkIhrYhCWhmFywoNTSyDbAHA+ZdWR31hddSXVafLF0U34P340Jylx8IfZk+Cxt/6LbD1BqSAvAcV0l5USHtSsQnZXqKy/2x3f19svQJf9Du/7Z7vSiMJSnd/X2y9Al9Cnv91GgbYjr2+DCU8FIl+FJ4sHgV9+etPL8vf6cPfQd+9eyNrveS4Uh6FbcdeX/Rjsu1I7EvIpNqoAraM74teITaxGohVQM/gUsfVZX5RFEiSxKvC+FQPFatrVWgchPQq4JLBfedvGq1VwCWD2+bfW70oZnnm1RVWPQaXxDl/WnaCOiXFSkNEF6k3OvR208HovIHhNL+LqgvEWAWkDK6SmM/88rYn3e5MBL7xtbH1l6FoAFsAm04GSAenTT/0mPBuiVVaWHpiu8DEFZK4BdgC2OwA/9ee9iUJ1Vr6V4lbgC2ATTSALYBNNIAtgE00gC2ATTSALYBNNIAtgE00gC2ATTSALYBNNIAtgE00gC2ATTSALYBNNIAtgE00gC2ATTSALYDNKVPKHrznax7QAAAAAElFTkSuQmCC',
 		model: `{
 			"textureSize": [64, 64],
 			"models": [
@@ -8730,7 +8748,7 @@
 					"invertAxis": "xy",
 					"translate": [-3, -7.1, 0.5],
 					"boxes": [
-						{"coordinates": [-1, 1.1, -0.5, 3, 6, 3], "textureOffset": [12, 22]}
+						{"coordinates": [-1, 1.1, -0.5, 3, 6, 3], "textureOffset": [12, 34]}
 					]
 				},
 				{
@@ -8748,7 +8766,7 @@
 					"invertAxis": "xy",
 					"translate": [-9, -20, 1],
 					"boxes": [
-						{"coordinates": [-12, 18, -4, 6, 6, 6], "textureOffset": [32, 0]}
+						{"coordinates": [6, 18, -4, 6, 6, 6], "textureOffset": [32, 0]}
 					]
 				},
 				{
@@ -8757,7 +8775,7 @@
 					"invertAxis": "xy",
 					"translate": [9, -20, 1],
 					"boxes": [
-						{"coordinates": [6, 18, -4, 6, 6, 6], "textureOffset": [32, 0]}
+						{"coordinates": [-12, 18, -4, 6, 6, 6], "textureOffset": [32, 0]}
 					]
 				}
 			]
