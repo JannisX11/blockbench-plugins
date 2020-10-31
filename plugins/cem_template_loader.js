@@ -10349,7 +10349,112 @@
 		}`
 	}
 	EntityOptions.unsupported = {
-		name: '---- Broken / Unsupported ----'
+		name: '---- Unsupported ----'
+	}
+	EntityOptions.armor_layer_one = {
+		name: 'Armor [Layer 1]',
+		texture_name: 'armor_layer_1.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFAmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0MzUyLCAyMDIwLzAxLzMwLTE1OjUwOjM4ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTEwLTI5VDEzOjQwOjIxWiIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMTAtMzFUMjA6NTk6NDRaIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIwLTEwLTMxVDIwOjU5OjQ0WiIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmOTY1MjMyYy0yMWJhLWZhNGYtODM0OC05Nzk0MzYxZDIwZTgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Zjk2NTIzMmMtMjFiYS1mYTRmLTgzNDgtOTc5NDM2MWQyMGU4IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6Zjk2NTIzMmMtMjFiYS1mYTRmLTgzNDgtOTc5NDM2MWQyMGU4Ij4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmOTY1MjMyYy0yMWJhLWZhNGYtODM0OC05Nzk0MzYxZDIwZTgiIHN0RXZ0OndoZW49IjIwMjAtMTAtMjlUMTM6NDA6MjFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+48s9QAAAAc9JREFUaIHtmLFKw1AUhv9IoEI3CzYQEQVLX6FDt7oJTkKHPoCz4AM4umSpgziJoJsP4RicXYSCRVpISwYHC3aQOsXmHu89bZqWA/Z+U3JP7j0/h/bkP3FAiL++lfuw05vQZ9LcBldcGAAcv+wZg+3Lc9H87qzdAFA72NGuh50eAMCUoD+I5jleNP/G4rL+B7YA0gKksQWQFiDNXG+BpNuaWFa3l8jvNKKAfc96L6fsATfPbTbuNmM2flT02fiq87sAUCtva4PhYAgA2POK2ng3GgEAivu72vjo7R0AUPCr2vi4/wrp/GvfA2wBpAVIYwsgLUAaF5h2WxNJtzWRdFsTSbc3IZnfaUSBsnAWnyi+QDNvO5utC2Uh/S5+Om7lnt8fryu/N4cfn7n03dcf2GRaJ5jM33Tentdxrfr7QV59adw/JoQ3TgA0Va2XptedzBpYlqKPQfsLoN47a2VXPTvk1ZfGDQdD5T/VjUrKA3eVLXVDM56kmwr18h7ZT9GcRx9Rzg/J+Vn1Ffyqw+lRZgHqvanXpt6aevms3j3rrLCoPo619wG2ANICpLEFkBYgjS2AtABpbAGkBUij/R5A5286b1OHNWs/ZdZ5lLz6OH4As9QDGvlmQdoAAAAASUVORK5CYII=',
+		model: `{
+			"textureSize": [64, 32],
+			"models": [
+				{
+					"part": "head",
+					"id": "head",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"boxes": [
+						{"coordinates": [-4, 23, -4, 8, 8, 8], "textureOffset": [0, 0], "sizeAdd": 0.75},
+						{"coordinates": [-4, 23, -4, 8, 8, 8], "textureOffset": [32, 0], "sizeAdd": 1}
+					]
+				},
+				{
+					"part": "body",
+					"id": "body",
+					"invertAxis": "xy",
+					"translate": [0, -17, 0],
+					"boxes": [
+						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16], "sizeAdd": 0.75}
+					]
+				},
+				{
+					"part": "left_shoe",
+					"id": "left_shoe",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"mirrorTexture": "u",
+					"boxes": [
+						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 16], "sizeAdd": 0.75}
+					]
+				},
+				{
+					"part": "right_shoe",
+					"id": "right_shoe",
+					"invertAxis": "xy",
+					"translate": [4, 0, 0],
+					"boxes": [
+						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16], "sizeAdd": 0.75}
+					]
+				},
+				{
+					"part": "left_arm",
+					"id": "left_arm",
+					"invertAxis": "xy",
+					"translate": [-12, 0, 0],
+					"mirrorTexture": "u",
+					"boxes": [
+						{"coordinates": [-8, 12, -2, 4, 12, 4], "textureOffset": [40, 16], "sizeAdd": 0.75}
+					]
+				},
+				{
+					"part": "right_arm",
+					"id": "right_arm",
+					"invertAxis": "xy",
+					"translate": [12, 0, 0],
+					"boxes": [
+						{"coordinates": [4, 12, -2, 4, 12, 4], "textureOffset": [40, 16], "sizeAdd": 0.75}
+					]
+				}
+			]
+		}`
+	}
+	EntityOptions.armor_layer_two = {
+		name: 'Armor [Layer 2]',
+		texture_name: 'armor_layer_2.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFAmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0MzUyLCAyMDIwLzAxLzMwLTE1OjUwOjM4ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTEwLTI5VDEzOjQwOjIyWiIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMTAtMzFUMjA6NTk6NDJaIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIwLTEwLTMxVDIwOjU5OjQyWiIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmNDBkMjcxZC03YTU1LTY1NDgtYjljMi1mZGU5YjllNTI3YWUiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6ZjQwZDI3MWQtN2E1NS02NTQ4LWI5YzItZmRlOWI5ZTUyN2FlIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6ZjQwZDI3MWQtN2E1NS02NTQ4LWI5YzItZmRlOWI5ZTUyN2FlIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmNDBkMjcxZC03YTU1LTY1NDgtYjljMi1mZGU5YjllNTI3YWUiIHN0RXZ0OndoZW49IjIwMjAtMTAtMjlUMTM6NDA6MjJaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+ho9UGwAAAWpJREFUaIHtmLFKA0EURU9kIUI6AyYQERWDv5AipZ1gJVikt/cP/AEttBArEbTzIyyDfyAEDGIgG9KmsFoLmazz3GQj0dwic6rZt/Mulzs77DCFJElYZlbUBtSEANQG1IQA1AbUhADUBtSEANQG1IQA1AbUhADUBtSEANQG1ET78YVXOB0eeRcEt+dXtqew2jrzCjfPl+Px02Fr6gVDht4P/cfrevpUPMmbPxdRVrGxuwFAu/MOQK1SBaAX92cSdf0Wq2eZVf8viRqVdb8yzG+6bz74hWY5HXfmN7VIMr8At1KO366M7bcoVnoSUTseeHu22y97E+7qa37D8TD56L2Mnw9KNe991fRbMvTsFE+/uENhquCcRABuG7TjAQBb1RIA3f4IgNL2JgCj17cvU7U9AJzRSf2WPD3L9yD+i6X/DYYA1AbUhADUBtSEANQG1IQA1AbURJCe4BzuxOZwJzaHPaHl9Vvy9BbJJw7zbR9TjZwDAAAAAElFTkSuQmCC',
+		model: `{
+			"textureSize": [64, 32],
+			"models": [
+				{
+					"part": "waist",
+					"id": "waist",
+					"invertAxis": "xy",
+					"translate": [0, -17, 0],
+					"boxes": [
+						{"coordinates": [-4, 12, -2, 8, 12, 4], "textureOffset": [16, 16], "sizeAdd": 0.5}
+					]
+				},
+				{
+					"part": "left_leg",
+					"id": "left_leg",
+					"invertAxis": "xy",
+					"translate": [0, 0, 0],
+					"mirrorTexture": "u",
+					"boxes": [
+						{"coordinates": [-4, 0, -2, 4, 12, 4], "textureOffset": [0, 16], "sizeAdd": 0.5}
+					]
+				},
+				{
+					"part": "right_leg",
+					"id": "right_leg",
+					"invertAxis": "xy",
+					"translate": [4, 0, 0],
+					"boxes": [
+						{"coordinates": [0, 0, -2, 4, 12, 4], "textureOffset": [0, 16], "sizeAdd": 0.5}
+					]
+				}
+			]
+		}`
 	}
 	EntityOptions.arrow = {
 		name: 'Arrow',
@@ -12254,7 +12359,7 @@
 	EntityOptions.goat = {
 		name: 'Goat',
 		texture_name: 'goat.png',
-		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADDklEQVR4Xu1bvWobQRCWTCAGpQyxjExISCBN6uA+ZR7AhR/And2rDqSJUySVmqhOkSKQdHkAkVpNIOAfLJCNCzfCGAwOu2iW0Wj2ZvZ0xqvzqDlJMzt7++387dxcszH9/Bwe3biv/f0v/p/v/Y9NoLmrRMe8t/Ed5sey4V7xf/S+pXsJi5QWKNGliRalu/k3X24EMYN/J36zOmvt8N/odDy3cdK8zbfjfb/z7eGO5+39+eyvD7bO/fVdq+OvMfrvyz1pjqBVRYzSzmUNAN4ZukhupyiPZucMgJxNwDQAOSczAYJAlT6AgltZGMQxFgsFz1xEp86prAZcfFgvjCYQhTATRKzYQIhkmL764tNMfuPDIBbuhOKB198eN3be7AYZ49e9xq/JKPx2YbAKH+AA2Fx7wq5lcHrmw/CzdivQD8cTH7Jbz5+yYyYHx34dDzuvAv1q9LdhAHAagCH88fVqBtFH3e6MylC4qzSBO9MAmNipmgMA1MqpkQFgGmAmUH8fcK+doHiWFRi4QoUmY6M8d5oILQICl6FReVLGJs3PZXR0DE1wJJlA95lgLP5KQrgMjY6RMjZpDi6jo2O4DE+SawBMETANMBMwH2BO0KKAhcFIJUaKpbXJA6SFFtGXPhNMWbwm7wd5XMU2Npf0WCzlHlN5C4+6qeUv4NeUwoFX81gsdVEp/AZAClpSAdQ0YIqAmQDTvBDTNPMBJbo6UsxW4jUnKCGE6eYESZdGDLxaO0GtxixNJghdYpqFafJ+kJNSCdZUfUFu2epvbH3qmqDm5AeTpFSCNVVfkLtI9dcAiCBgGqCtCpsJMH06MbsyHyA0MGHgzAky3VwxzbIowLS5afKXIh6LAhYFlM8Gax0GtXaUw1lg+/1K8msxhT6AnvfhN9c0zZXJc+LXbiTmm3szzDU+4/N8Uc0OCiS58FcCQE47KrXxl1kwHRPeGnME2jYPzPi8Dm+R5cK/aH0g5AHYy+NcHqeqLhNzALjH6bnwGwCk/z/VLEwDIBPMRaVTTcxMoAoTALu5l1Eg1WnUjf8/kOKmm4i4hQwAAAAASUVORK5CYII=',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACmklEQVR4Xu1bvUoDQRC+gKCQ3pxERFGw8QHS+xA+gqWFD2FjLLRKlSew0077YJ1GEPzBwEUsbIJYKauZZT13b2c2d7inn9WBM7s3383vN6SR/PO/Rhn2nw3v333n9LsnPpHktH9Yyvt4LzIESrlQAdDZWHbeO7h5TBQA7VbqlBmNs28AmKCa4PlAkuoBAIm7uGThASWFwMvBksY4He7q597VsX6e23nWzwvrR58evJ11dQ6S6CndqEIAAMADEALIAYSAJJkhCaIKoAyiDwjJHdE1Qr5Bp4y2PX9GaZ2g7+WiHofNMuIzxPZ/s2S59M1+PuQOcwZw6dNsIDlfDxOd1qJET8sOxk+JAmA1bTr177JJogBorq0E3TG5fUgUAPPtTaf+2+g6AQDT6VCCMjyA5mmEAHIAkqAkd6AKEAIog3+lDwjy/6lS7TtBrvGcFRidxen9SfY3hiC6WzQM+RYgOi8wVmEkm1+JmR9DuuZSulIdAMB1f0K3aAkKD5giwNkGu0IghOEN0Yk2B4QYE6IDAKYIRJcEQ75miA48AB7whYA4BLhlszadoIQR5vT8BJCEBeYwvnRuCPFZ9NEaCgAOHcYZe+kiCQvMYXzp3FDmFwAUIAAPQAggByAJ1qoKXLzu/Uhptp6DyzLVLgkqAExOwjZ6F7FMefQAQN2qADwAIVBBDuBOeDEMQ6WHANf4WOTyu4mZq0AshnHfIxoAaANDTQi38eAa6pKzredmaoRCX6hsALjEjC0PcckXG/EiosQUWPSi9CJ0OR1uMjY2oy7TfeudnH7ERspwyRcb8aIIlsoBMNkmZQAAgAdEHAKc3bo0B9QmBJRhZobNtnrJ+WSki0T+R4rcJCgBgFORKqsCVQGQN8qVBDnGVyHzATQnonZ03SAOAAAAAElFTkSuQmCC',
 		model: `{
 			"textureSize": [64, 64],
 			"models": [
@@ -12262,53 +12367,30 @@
 					"part": "head",
 					"id": "head",
 					"invertAxis": "xy",
-					"translate": [0, -12.5, 8],
-					"rotate": [35, 0, 0],
+					"translate": [-1, -10, 0],
 					"boxes": [
-						{"coordinates": [-2.5, 8, -15, 5, 10, 8], "textureOffset": [34, 0]}
+						{"coordinates": [-0.01, 19, -10, 2, 7, 2], "textureOffset": [12, 55]},
+						{"coordinates": [-2.99, 19, -10, 2, 7, 2], "textureOffset": [12, 55]},
+						{"coordinates": [2, 19, -10, 3, 2, 1], "textureOffset": [2, 61]},
+						{"coordinates": [-0.5, 6, -14, 0, 7, 5], "textureOffset": [23, 52]}
 					],
 					"submodels": [
 						{
-							"id": "goatee",
-							"invertAxis": "xy",
-							"translate": [0, 8, -13.5],
-							"rotate": [-35, 0, 0],
-							"boxes": [
-								{"coordinates": [0, -6, 0, 0, 6, 4], "textureOffset": [0, 7]}
-							]
-						},
-						{
-							"id": "horns",
-							"invertAxis": "xy",
-							"translate": [0, 18, -12.5],
-							"rotate": [-35, 0, 0],
-							"boxes": [
-								{"coordinates": [0.4, 0, -2, 2, 6, 2], "textureOffset": [8, 0]},
-								{"coordinates": [-2.4, 0, -2, 2, 6, 2], "textureOffset": [0, 0]}
-							]
-						},
-						{
 							"id": "left_ear",
 							"invertAxis": "xy",
-							"translate": [-2, 17, -13.5],
-							"rotate": [-35, 0, 0],
+							"translate": [-1, 10, 0],
+							"mirrorTexture": "u",
 							"boxes": [
-								{"coordinates": [-3, -1, -0.5, 3, 2, 1], "textureOffset": [0, 8]}
+								{"coordinates": [-5, 9, -10, 3, 2, 1], "textureOffset": [2, 61]}
 							]
 						},
 						{
-							"id": "right_ear",
+							"id": "head_rotation",
 							"invertAxis": "xy",
-							"translate": [2, 17, -13.5],
-							"rotate": [-35, 0, 0],
-							"submodels": [
-								{
-									"invertAxis": "xy",
-									"mirrorTexture": "u",
-									"boxes": [
-										{"coordinates": [0, -1, -0.5, 3, 2, 1], "textureOffset": [8, 8]}
-									]
-								}
+							"translate": [-1, 18, -8],
+							"rotate": [-55, 0, 0],
+							"boxes": [
+								{"coordinates": [-2, -3, -8, 5, 7, 10], "textureOffset": [34, 46]}
 							]
 						}
 					]
@@ -12317,46 +12399,46 @@
 					"part": "body",
 					"id": "body",
 					"invertAxis": "xy",
-					"translate": [0, 0, -3],
+					"translate": [0, -19, -2],
 					"boxes": [
-						{"coordinates": [-4.5, 6, -7, 9, 11, 16], "textureOffset": [0, 2]},
-						{"coordinates": [-5.5, 5, -8, 11, 13, 11], "textureOffset": [0, 29]}
+						{"coordinates": [-5, 6, -7, 9, 11, 16], "textureOffset": [1, 1]},
+						{"coordinates": [-6, 4, -8, 11, 14, 11], "textureOffset": [0, 28]}
 					]
 				},
 				{
-					"part": "leg1",
-					"id": "leg1",
+					"part": "front_left_leg",
+					"id": "front_left_leg",
 					"invertAxis": "xy",
-					"translate": [-2, -7, -6.5],
+					"translate": [-1, -10, 6],
 					"boxes": [
-						{"coordinates": [-3.5, 0, 5, 3, 7, 3], "textureOffset": [24, 53]}
+						{"coordinates": [-4, 0, -6, 3, 10, 3], "textureOffset": [35, 2]}
 					]
 				},
 				{
-					"part": "leg2",
-					"id": "leg2",
+					"part": "front_right_leg",
+					"id": "front_right_leg",
 					"invertAxis": "xy",
-					"translate": [2, -7, -6.5],
+					"translate": [3, -10, 6],
 					"boxes": [
-						{"coordinates": [0.5, 0, 5, 3, 7, 3], "textureOffset": [36, 53]}
+						{"coordinates": [0, 0, -6, 3, 10, 3], "textureOffset": [49, 2]}
 					]
 				},
 				{
-					"part": "leg3",
-					"id": "leg3",
+					"part": "back_right_leg",
+					"id": "back_right_leg",
 					"invertAxis": "xy",
-					"translate": [-2, -7, 5.25],
+					"translate": [3, -10, -4],
 					"boxes": [
-						{"coordinates": [-3.5, 0, -6.75, 3, 7, 3], "textureOffset": [0, 53]}
+						{"coordinates": [0, 0, 4, 3, 6, 3], "textureOffset": [49, 29]}
 					]
 				},
 				{
-					"part": "leg4",
-					"id": "leg4",
+					"part": "back_left_leg",
+					"id": "back_left_leg",
 					"invertAxis": "xy",
-					"translate": [2, -7, 5.25],
+					"translate": [-1, -10, -4],
 					"boxes": [
-						{"coordinates": [0.5, 0, -6.75, 3, 7, 3], "textureOffset": [12, 53]}
+						{"coordinates": [-4, 0, 4, 3, 6, 3], "textureOffset": [36, 29]}
 					]
 				}
 			]
