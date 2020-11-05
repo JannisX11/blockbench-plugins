@@ -251,5 +251,13 @@
         "description": "Hide everything except for the selected cubes",
         "version": "0.0.1",
         "variant": "both"
+    },
+    "datagen_export": {
+      "title": "Datagen Export",
+      "icon": "code",
+      "author": "itsmeow",
+      "description": "Allows exporting to BlockStateProvider datagen code",
+      "version": "1.0.0",
+      "variant": "both"
     }
 }
