@@ -3,7 +3,6 @@
 	let position = [0, 0, 0]
 
 	function getDialogLines() {
-		console.log({scale, position})
 		return [
 			`<div class="dialog_bar">
 				<label class="inline_label">Model Scale</label>
@@ -18,7 +17,7 @@
 					<input type="number" step="0.1" id="STP-pz" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[2]}">
 			</div>`,
 			`<div class="dialog_bar">
-				<input id="STP-out" class="dark_bordered input_wide code" readonly>
+				<input type="text" id="STP-out" class="dark_bordered input_wide code" readonly>
 			</div>`
 		]
 	}
@@ -109,7 +108,7 @@
 		icon: 'event_seat',
 		author: 'JannisX11',
 		description: 'Preview seat positions for custom Bedrock entities',
-		version: '1.1.1',
+		version: '1.1.2',
 		variant: 'both',
 		onload() {
 			action = new Action({
