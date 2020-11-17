@@ -1,9 +1,14 @@
 (function() {
 	let scale = 1;
-	let position = [0, 0, 0]
+	let position = [0, 0, 0];
+	let new_version = true;
 
 	function getDialogLines() {
 		return [
+			`<div class="dialog_bar">
+				<label class="inline_label">Current Version</label>
+					<input type="checkbox" id="STP-v" oninput="SeatPositioner.update()" checked="${new_version}">
+			</div>`,
 			`<div class="dialog_bar">
 				<label class="inline_label">Model Scale</label>
 					<input type="number" step="0.1" id="STP-s" oninput="SeatPositioner.update()" class="dark_bordered medium_width" value="${scale}">
@@ -87,9 +92,11 @@
 			position[1] = trimFloatNumber(parseFloat($('#STP-py').val())||0);
 			position[2] = trimFloatNumber(parseFloat($('#STP-pz').val())||0);
 
+			new_version = $('#STP-v').is(':checked');
+
 			SeatPositioner.object.position.set(
 				position[0] * -16,
-				position[1] * 16,
+				position[1] * 16 + (new_version ? 2.2 : 0),
 				position[2] * -16,
 			);
 			scale = parseFloat( $('#STP-s').val() )||0
@@ -108,7 +115,7 @@
 		icon: 'event_seat',
 		author: 'JannisX11',
 		description: 'Preview seat positions for custom Bedrock entities',
-		version: '1.1.2',
+		version: '1.1.3',
 		variant: 'both',
 		onload() {
 			action = new Action({
