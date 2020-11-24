@@ -9,8 +9,6 @@
         version: '1.0.0',
         variant: 'both',
         onload() {
-            // add a button to show the tips
-            console.log("here")
             button = new Action('rename_duplicates', {
                 name: 'Rename Duplicates',
                 description: 'Rename all duplicate bone names',
