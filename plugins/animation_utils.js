@@ -238,9 +238,16 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
           : Object.assign({}, { null: "-" }, _easing__WEBPACK_IMPORTED_MODULE_2__["EASING_OPTIONS"]);
         for (var key in easingOptions) {
           var name = easingOptions[key];
+          var label = name;
+          var matches = label.match(/^ease(InOut|In|Out)?([\w]+)$/);
+          if (matches) {
+            label = matches[2] + " " + matches[1].replace("InOut", "In/Out");
+          } else {
+            label = label.substring(0, 1).toUpperCase() + label.substring(1);
+          }
           const option = document.createElement('option')
           sel.appendChild(option);
-          option.outerHTML = `<option id="${key}" ${displayedEasing === key ? 'selected' : ''}>${name}</option>`;
+          option.outerHTML = `<option id="${key}" value="${name}" ${displayedEasing === key ? 'selected' : ''}>${label}</option>`;
         }
 
         const getEasingArgLabel = (kf) => {
