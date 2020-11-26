@@ -173,7 +173,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         const keyframe = document.getElementById('keyframe');
         let easingBar = document.createElement('div');
         keyframe.appendChild(easingBar);
-        easingBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing">
+        easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
           <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
         </div>`;
         easingBar = document.getElementById('keyframe_bar_easing');
