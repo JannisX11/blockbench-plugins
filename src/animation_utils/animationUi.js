@@ -2,6 +2,8 @@ import uniq from 'lodash/uniq';
 import { addMonkeypatch, hasArgs, Original } from './utils';
 import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './easing';
 
+const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
+
 let holdMenu;
 let holdMenuConditionOriginal;
 
@@ -33,10 +35,10 @@ export const displayAnimationFrameCallback = (/*...args*/) => {
   // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
 
-export function updateKeyframeEasing(obj) {
+export function updateKeyframeEasing(value) {
   Undo.initEdit({keyframes: Timeline.selected}) 
   // var axis = $(obj).attr('axis');
-  const value = $(obj).val();
+  // const value = $(obj).val();
   // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
   if (value === "-") return;
   Timeline.selected.forEach((kf) => {
@@ -61,6 +63,7 @@ export function updateKeyframeEasingArg(obj) {
 
 export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing').remove()
+    $('#keyframe_bar_easing_type').remove()
     $('#keyframe_bar_easing_arg1').remove()
 
     const addPrePostButton = document.querySelector('#keyframe_type_label > div');
@@ -113,6 +116,60 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
       if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
         const displayedEasing = getMultiSelectValue('easing', EASING_DEFAULT, 'null');
 
+        const convertEasingTypeToId = (easing, easingType, inputEasingOrType) => {
+          const easingTypeToTypeId = type => {
+            let finalEasingType = "In";
+
+            if (type === "out") {
+              finalEasingType = "Out";
+            } else if (type === "inout") {
+              finalEasingType = "InOut";
+            }
+
+            return finalEasingType;
+          };
+
+          let finalEasing = 'ease';
+
+          if (inputEasingOrType === "in" || inputEasingOrType === "out" || inputEasingOrType === "inout") {
+              let finalEasingType = easingTypeToTypeId(inputEasingOrType)
+
+              finalEasing += finalEasingType + easing.substring(0, 1).toUpperCase() + easing.substring(1);
+            } else if (inputEasingOrType === "linear" || inputEasingOrType == "step") {
+              finalEasing = inputEasingOrType;
+            } else {
+              let finalEasingType = easingTypeToTypeId(easingType);
+
+              finalEasing += finalEasingType + inputEasingOrType.substring(0, 1).toUpperCase() + inputEasingOrType.substring(1);
+            }
+
+            return finalEasing;
+        };
+
+        const addEasingTypeIcons = (bar, easingType, title) => {
+          var div = document.createElement("div");
+          div.innerHTML = getIcon(easingType);
+          div.id = "kf_easing_type_" + easingType;
+          div.setAttribute("style", "stroke:var(--color-text);margin:0px;padding:3px;width:30px;height:30px");
+          div.setAttribute("title", title);
+          div.onclick = () => {
+            let selectedEasing = $(".selected_kf_easing");
+            let selectedEasingType = $(".selected_kf_easing_type");
+
+            let keySelectedEasing = selectedEasing.attr("id").substring(15);
+            let keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
+
+            let currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
+            let finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
+
+            if (finalEasing != currentEasing) {
+              console.log("Changed from " + currentEasing + " to " + finalEasing);
+              updateKeyframeEasing(finalEasing);
+            }
+          };
+          bar.appendChild(div);
+        };
+
         const keyframe = document.getElementById('keyframe');
         let easingBar = document.createElement('div');
         keyframe.appendChild(easingBar);
@@ -121,26 +178,42 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         </div>`;
         easingBar = document.getElementById('keyframe_bar_easing');
 
-        let sel = document.createElement('select');
-        easingBar.appendChild(sel);
-        sel.outerHTML = `<select class="focusable_input" id="keyframe_easing" style="flex: 1; margin-right: 9px;" oninput="updateKeyframeEasing(this)"></select>`;
-        sel = document.getElementById('keyframe_easing');
+        addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
+        addEasingTypeIcons(easingBar, "step", "Switch to Linear easing");
+        addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
+        addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
+        addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");
+        addEasingTypeIcons(easingBar, "quart", "Switch to Quartic easing");
+        addEasingTypeIcons(easingBar, "quint", "Switch to Quntic easing");
+        addEasingTypeIcons(easingBar, "expo", "Switch to Exponential easing");
+        addEasingTypeIcons(easingBar, "circ", "Switch to Cicle easing");
+        addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
+        addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
+        addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
 
-        const easingOptions = displayedEasing !== "null"
-          ? EASING_OPTIONS
-          : Object.assign({}, { null: "-" }, EASING_OPTIONS);
-        for (var key in easingOptions) {
-          var name = easingOptions[key];
-          var label = name;
-          var matches = label.match(/^ease(InOut|In|Out)?([\w]+)$/);
-          if (matches) {
-            label = matches[2] + " " + matches[1].replace("InOut", "In/Out");
-          } else {
-            label = label.substring(0, 1).toUpperCase() + label.substring(1);
-          }
-          const option = document.createElement('option')
-          sel.appendChild(option);
-          option.outerHTML = `<option id="${key}" value="${name}" ${displayedEasing === key ? 'selected' : ''}>${label}</option>`;
+        let keyEasing = getEasingInterpolation(displayedEasing);
+        let keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
+
+        keyEasingElement.style.stroke = "var(--color-accent)";
+        keyEasingElement.classList.add('selected_kf_easing');
+
+        if (!(keyEasing === "linear" || keyEasing == "step")) {
+          let easingTypeBar = document.createElement('div');
+          keyframe.appendChild(easingTypeBar);
+          easingTypeBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_type">
+            <label class="tl" style="font-weight: bolder; min-width: 47px;">Type</label>
+          </div>`;
+          easingTypeBar = document.getElementById('keyframe_bar_easing_type');
+
+          addEasingTypeIcons(easingTypeBar, "in", "Switch to In easing type");
+          addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
+          addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
+
+          let keyEasingType = getEasingType(displayedEasing);
+          let keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
+
+          keyEasingTypeElement.style.stroke = "var(--color-accent)";
+          keyEasingTypeElement.classList.add('selected_kf_easing_type');
         }
 
         const getEasingArgLabel = (kf) => {
@@ -177,6 +250,60 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
 
         // console.log('easingBar:', easingBar, 'keyframe:', keyframe);
     }
+  }
+};
+
+const getEasingInterpolation = (name) => {
+  var matches = name.match(easingRegExp);
+
+  if (matches) {
+    return matches[2].toLowerCase();
+  }
+
+  return name;
+};
+
+const getEasingType = (name) => {
+  var matches = name.match(easingRegExp);
+
+  if (matches) {
+    return matches[1].toLowerCase();
+  }
+
+  return "in";
+};
+
+const getIcon = (name) => {
+  switch(name) {
+    case "back":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.94165 c 3.17500003,0 4.23333333,2.91041 5.29166663,-4.7625" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "bounce":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 0.26458333,-0.26458 0.52916673,-0.26458 0.79375003,0 0.5291666,-0.52916 0.5291666,-0.52916 1.0583333,0 0.79375,-2.11666 1.5875,-2.11666 2.38125,0 0.2645833,-4.23333 1.0583333,-5.29165 1.0583333,-5.29165" style="fill:none;stroke-width:0.52899998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "circle":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 5.8208333,295.67706 5.8208333,293.82498 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "cubic":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 3.175,296.47081 4.7625,293.82498 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "elastic":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.67706 c 0.79375003,0 0.79375003,-0.26458 1.32291663,-0.26458 0.5291667,0 0.79375,0.52917 1.3229167,0.52917 0.5291667,0 1.0094474,-1.83865 1.3229167,-0.79375 0.79375,2.64583 1.3229166,1.32292 1.3229166,-3.96874" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "expo":
+    case "in":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 4.23333333,0 5.29166663,-1.05833 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "inout":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 5.55625003,0 -0.26458334,-5.29166 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "out":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 0,-4.23333 1.05833333,-5.29166 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "quad":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 3.175,296.47081 4.7625,293.03123 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "quart":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 3.17500003,0 4.23333333,-2.64583 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "quint":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 3.43958333,0 4.23333333,-1.85208 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "sine":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 5.8208333,291.17915" style="fill:none;stroke-width:0.52916667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    case "step":
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 0,-1.32291 H 1.8520833 v -1.32292 H 3.175 v -1.32292 h 1.3229167 v -1.32291 l 1.3229166,1e-5" style="fill:none;stroke-width:0.52899998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
+    default: // linear
+      return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 5.8208333,291.17915" style="fill:none;stroke-width:0.52916667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
   }
 };
 
