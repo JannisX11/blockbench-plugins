@@ -259,5 +259,13 @@
       "description": "Allows exporting to BlockStateProvider datagen code",
       "version": "1.0.0",
       "variant": "both"
-    }
+    },
+	"duplicate_renamer": {
+		"title": "Duplicate Bone Renamer",
+		"icon": "fa-font",
+		"author": "Gecko",
+		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
+		"version": "1.0.0",
+		"variant": "both"
+	}
 }
