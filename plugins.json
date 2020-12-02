@@ -267,5 +267,13 @@
 		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"texture_stitcher": {
+		"title": "Texture Stitcher",
+		"icon": "fa-compress-arrows-alt",
+		"author": "McHorse",
+		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
