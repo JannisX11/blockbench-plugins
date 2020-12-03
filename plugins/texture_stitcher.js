@@ -17,14 +17,22 @@
 
         t.forEach((texture, i) => 
         {
-            rects.push({
+            var multX = Project.texture_width / texture.width;
+            var multY = Project.texture_height / texture.height;
+            var rect = {
                 texture: texture,
                 x: x,
-                y: y
-            });
+                y: y,
+                w: multX * texture.width,
+                h: multY * texture.height,
+                mx: multX,
+                my: multY
+            };
 
-            x += texture.width;
-            h = Math.max(h, texture.height);
+            rects.push(rect);
+
+            x += rect.w;
+            h = Math.max(h, rect.h);
 
             if ((i + 1) % 3 == 0)
             {
@@ -36,8 +44,8 @@
 
         rects.forEach(rect => 
         {
-            width = Math.max(width, rect.x + rect.texture.width);
-            height = Math.max(height, rect.y + rect.texture.height);
+            width = Math.max(width, rect.x + rect.w);
+            height = Math.max(height, rect.y + rect.h);
         });
 
         return {
@@ -53,9 +61,10 @@
         const rects = data.rects;
 
         const offscreen = new OffscreenCanvas(data.w, data.h);
+        const tmp = new OffscreenCanvas(10, 10);
         const c = offscreen.getContext('2d');
 
-        rects.forEach(rect => c.drawImage(rect.texture.img, rect.x, rect.y));
+        rects.forEach(rect => drawToCanvas(c, tmp, rect));
 
         const config = {
             type: 'image/png' 
@@ -65,11 +74,51 @@
             var reader = new FileReader();
             
             reader.readAsDataURL(blob);
-            reader.onloadend = () => 
-            {
-                replaceTextures(rects, reader.result, data.w, data.h);
-            };
+            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h);
         });
+    }
+
+    function drawToCanvas(c, tmp, rect)
+    {
+        if (rect.mx === 1 && rect.my === 1)
+        {
+            c.drawImage(rect.texture.img, rect.x, rect.y);
+
+            return;
+        }
+
+        const getIndex = (x, y, width) =>
+        {
+            return y * (width * 4) + x * 4;
+        };
+
+        tmp.width = rect.texture.width;
+        tmp.height = rect.texture.height;
+
+        var ct = tmp.getContext('2d');
+
+        ct.clearRect(0, 0, tmp.width, tmp.height);
+        ct.drawImage(rect.texture.img, 0, 0);
+
+        var data = ct.getImageData(0, 0, tmp.width, tmp.height);
+
+        for (var x = 0; x < rect.w; x++)
+        {
+            for (var y = 0; y < rect.h; y++)
+            {
+                var ix = Math.floor(x / rect.mx);
+                var iy = Math.floor(y / rect.my);
+
+                var index = getIndex(ix, iy, data.width);
+                var r = data.data[index];
+                var g = data.data[index + 1];
+                var b = data.data[index + 2];
+                var a = data.data[index + 3] / 255;
+
+                c.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+                c.fillRect(rect.x + x, rect.y + y, 1, 1);
+            }
+        }
     }
 
     function replaceTextures(rects, data, w, h)
