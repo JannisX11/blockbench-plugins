@@ -14,6 +14,12 @@
 
         var h = 0;
         var y = 0;
+        var rows = Math.ceil(Math.sqrt(textures.length));
+
+        if (rows < 1)
+        {
+            rows = 1;
+        }
 
         t.forEach((texture, i) => 
         {
@@ -34,7 +40,7 @@
             x += rect.w;
             h = Math.max(h, rect.h);
 
-            if ((i + 1) % 3 == 0)
+            if ((i + 1) % rows == 0)
             {
                 y += h;
                 h = 0;
@@ -212,6 +218,7 @@
             });
 
             Interface.Panels.textures.menu.addAction(button);
+            Texture.prototype.menu.addAction(button);
         },
         onunload() 
         {
