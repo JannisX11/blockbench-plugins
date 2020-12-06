@@ -1,68 +1,3 @@
-interface DialogFormElement {
-	label: string
-	type: 'text' | 'number' | 'checkbox' | 'select' | 'radio' | 'textarea' | 'vector' | 'color' | 'file' | 'folder' | 'save' | 'info' 
-	nocolon?: boolean
-	readonly?: boolean
-	value?: any
-	placeholder?: string
-	text?: string
-	colorpicker?: any
-	min?: number
-	max?: number
-	step?: number
-	height?: number
-	options?: object
-}
-interface DialogOptions {
-	title: string
-	id: string
-	/**
-	 * Array of HTML object strings for each line of content in the dialog.
-	 */
-	lines: string[]
-	/**
-	 *  If false, the confirm button of the dialog is disabled
-	 */
-	confirmEnabled?: boolean
-	/**
-	 *  If false, the cancel button of the dialog is disabled
-	 */
-	cancelEnabled?: boolean
-	/**
-	 *  Function to execute when the user confirms the dialog
-	 */
-	onConfirm?: (formResult: object) => void
-	/**
-	 *  Function to execute when the user cancels the dialog
-	 */
-	onCancel?: () => void
-	/**
-	 * Creates a form in the dialog
-	 */
-	form?: {
-		[formElement: string]: '_' | DialogFormElement
-	}
-	/**
-	 * Vue component. Requires Blockbench 3.8 or newer
-	 */
-	component: Vue.Component
-}
-
-class Dialog {
-	constructor (options: DialogOptions)
-	show: () => Dialog
-	hide: () => Dialog
-	/**
-	 * Triggers the confirm event of the dialog.
-	 */
-	confirm: () => void
-	/**
-	 * Triggers the cancel event of the dialog.
-	 */
-	cancel: () => void
-
-}
-
 class Deletable {
 	delete: () => void
 }
@@ -227,7 +162,111 @@ interface PanelOptions {
 }
 class Panel {
 	constructor (options: PanelOptions)
+}
 
+
+interface PropertyOptions {
+	default?: any
+	condition?: any
+	exposed?: boolean
+	label?: string
+	/**
+	 * Options used for select types
+	 */
+	options?: object
+	merge?: (instance: any, data: object) => void
+	reset?: (instance: any) => void
+	merge_validation?: (value: any) => boolean
+}
+/**
+ * Creates a new property on the specified target class
+ */
+class Property {
+    constructor(target_class: any, type: string, name: string, options?: PropertyOptions);
+    class: any;
+    name: string;
+    type: string;
+	default: any;
+	
+    isString: boolean;
+    isMolang: boolean;
+    isNumber: boolean;
+    isBoolean: boolean;
+    isArray: boolean;
+    isVector: boolean;
+	isVector2: boolean;
+	
+    merge_validation: undefined | ((value: any) => boolean);
+    condition: any;
+    exposed: boolean;
+    label: any;
+	merge: (instance: any, data: object) => void
+	reset: (instance: any) => void
+    delete(): void;
+    getDefault(instance: any): any;
+    copy(instance: any, target: any): void;
+}
+
+
+
+
+type ArrayVector3 = number[3]
+type ArrayVector2 = number[2]
+
+/**
+ * @private
+ */
+class OutlinerElement {
+	constructor (): void
+	uuid: string
+	export: boolean
+	locked: boolean
+	parent: Group | 'root'
+
+}
+/**
+ * @private
+ */
+class NonGroup extends OutlinerElement {
+	constructor (): void
+	selected: boolean
+	static fromSave: (data: object, keep_uuid?: boolean) => NonGroup
+	static isParent: false
+}
+class Group extends OutlinerElement {
+	constructor (): void
+	name = Format.bone_rig ? 'bone' : 'group'
+	children = []
+	reset: boolean
+	shade: boolean
+	selected: boolean
+	visibility: boolean
+	autouv: 1 | 2 | 3
+	isOpen: boolean
+	ik_enabled: boolean
+	ik_chain_length: number
+}
+
+interface CubeOptions {
+	autouv: 1 | 2 | 3
+	shade: boolean
+	mirror_uv: boolean
+	inflate: number
+	autouv: number
+	color: number
+	visibility: boolean
+	from: ArrayVector3
+	to: ArrayVector3
+	rotation: ArrayVector3
+	origin: ArrayVector3
+	/**
+	 * UV position for box UV mode
+	 */
+	uv_offset: ArrayVector2
+}
+class Cube extends NonGroup implements CubeOptions {
+	constructor (options: CubeOptions, uuid?: string): void
+	static all: Cube[]
 }
 
 
