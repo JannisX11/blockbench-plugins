@@ -1,20 +1,34 @@
 {
   "name": "animation_utils",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "private": true,
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch --mode=development",
+    "build": "webpack && node scripts/updateManifest.js",
+    "start": "webpack --watch --mode=development",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "pretest": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eliot Lash, Gecko",
+  "author": "Eliot Lash, Gecko, McHorse",
   "license": "MIT",
+  "blockbenchConfig": {
+    "title": "GeckoLib Animation Utils",
+    "author": "Eliot Lash, Gecko, McHorse",
+    "icon": "movie_filter",
+    "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+    "min_version": "3.7.0",
+    "max_version": "3.7.99",
+    "variant": "both"
+  },
   "sideEffects": [
     "./index.js"
   ],
   "devDependencies": {
+    "eol": "0.9.1",
+    "eslint": "7.7.0",
     "webpack": "4.43.0",
     "webpack-cli": "3.3.12"
   },
