@@ -27,7 +27,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         loadCodec();
         loadAnimationUI();
         loadKeyframeOverrides();
-
+        console.log("Loaded GeckoLib plugin")
         exportAction = new Action({
           id: "export_geckolib_model",
           name: "Export GeckoLib Model",
@@ -64,7 +64,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
               id: 'project',
               title: 'GeckoLib Model Settings',
               width: 540,
-              lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib">GeckoLib</a> Animation Utils v${version}</b>`],
+              lines: [`<b class="tl"><a href="https://geckolib.com">GeckoLib</a> Animation Utils v${version}</b>`],
               form: {
                 objectType: {label: 'Object Type', type: 'select', default: geckoSettings.objectType, options: OBJ_TYPE_OPTIONS},
                 // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
