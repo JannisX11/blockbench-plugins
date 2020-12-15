@@ -517,9 +517,8 @@ Plugin.register('csmodel', {
 
 				var tex = new Texture({name: 'texture'}).fromDataURL(url).add();
 				tex.load_callback = function() {
-					ratio = tex.height/tex.width
-					Project.texture_width = 16;
-					Project.texture_height = 16*ratio;
+					Project.texture_width = tex.width;
+					Project.texture_height = tex.height;
 
 					Project.box_uv = false;
 
@@ -529,30 +528,26 @@ Plugin.register('csmodel', {
 						for (var face_key in cube.faces) {
 							var face = cube.faces[face_key];
 							face.extend({uv: [
-								info[face_key].offset.x / (tex.width/16),
-								info[face_key].offset.y / (tex.height/16) * ratio,
+								info[face_key].offset.x,
+								info[face_key].offset.y,
 								0,0
 							]});
 							var native_size = getNativeSize(cube, face);
-							
-							if (info.scale.y != info.scale.x || info.scale.z != info.scale.y) {
-								console.log(info);
-								console.log(info.cube.name+": "+info.scale.x+" "+info.scale.y+" "+info.scale.z);
-							}
+
 							if (face.direction == 'south' || face.direction == 'north') {
 								face.uv_size = [
-									native_size[0]/(tex.width/16)/info.scale.x,
-									native_size[1]/(tex.height/16/ratio)/info.scale.y
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.y
 								]
 							} else if (face.direction == 'up' || face.direction == 'down') {
 								face.uv_size = [
-									native_size[0]/(tex.width/16)/info.scale.x,
-									native_size[1]/(tex.height/16/ratio)/info.scale.z
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.z
 								]			
 							} else {
 								face.uv_size = [
-									native_size[0]/(tex.width/16)/info.scale.z,
-									native_size[1]/(tex.height/16/ratio)/info.scale.y
+									native_size[0]/info.scale.z,
+									native_size[1]/info.scale.y
 								]	
 							}
 							var code = info[face_key].transform;
