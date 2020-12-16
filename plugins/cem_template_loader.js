@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.7',
+		version: '0.2.8',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -10485,6 +10485,107 @@
 			]
 		}`
 	}
+	EntityOptions.axolotl = {
+		name: 'Axolotl',
+		texture_name: 'axolotl.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACEUlEQVR4Xu2aS0oDQRCGe0BQiGszEBFFIVfI3kN4BO+QMxgXunJjTuBC8BAh62wEwQcGJuI2i6yUCsxQmal+TCBUPyrb6fTjq7//6pqeTCX+y6j1v8w+/0xcxqN7I7an8Q3Zr4+stQAGF8fkfCdv3woA9Lo5+Xy+KJQAEAVEsAWS8YDLYtQwvHx2bfSrh+ld4/ne1a/xPwfnt14aYwYABt2javKTxY8CAKd5h1zQR7FUAKBzdlI9X75/KQCw3+uT/1nNX5UAEAV4vAXquk3KA1xPZ7GeDp2dGQDEeDqsAOB0+Py4qoRxOByu2yQBANIhpEEAAGkO0psAEAUktAXKjZ+kB9jSYfQmKAAsBKI9CFHlMMVim+Mx1Y9vZXOjHKYmvU2JTPXjY9ksAJLfAjb3j/05WQzpFo0PSLo2Ze0QCrgNAPjdYH0BuEjSLQ4XTwIgEAKigDJQLtkgeg9oo1oXGLg/X83ReQvgxbgYIm7vszkKAOwBpjSYhAKS9oA2i4+p7cbFiC0V2pzfV6c3BawBQOcDNuf32elbATA1jlIBtisxDKRN21B8onojpLsSqwMwXZ+Fsmg8TwFQfiMkCtDcCssWQATaqCUUP1h7QDlZ6lI0+iwQSqR2NU/nb4R2NQHufgUAdwS4xxcFcEeAe3xRAHcEuMcXBXBHgHt8UQB3BLjHFwVwR4B7fFEAdwS4x09eAf8bdmdfOzIE/QAAAABJRU5ErkJggg==',
+		model: `{
+			"textureSize": [64, 64],
+			"models": [
+				{
+					"part": "body",
+					"id": "body",
+					"invertAxis": "xy",
+					"translate": [0, -6, 0],
+					"boxes": [
+						{"coordinates": [-4, 4, -5, 8, 4, 10], "textureOffset": [0, 11]},
+						{"coordinates": [0, 4, -4, 0, 5, 9], "textureOffset": [2, 17]}
+					]
+				},
+				{
+					"part": "head",
+					"id": "head",
+					"invertAxis": "xy",
+					"translate": [0, -6, 5],
+					"boxes": [
+						{"coordinates": [-4, 4, -10, 8, 5, 5], "textureOffset": [0, 1]}
+					]
+				},
+				{
+					"part": "tail",
+					"id": "tail",
+					"invertAxis": "xy",
+					"translate": [0, -6.5, -5],
+					"boxes": [
+						{"coordinates": [0, 4, 5, 0, 5, 12], "textureOffset": [2, 19]}
+					]
+				},
+				{
+					"part": "top_gills",
+					"id": "top_gills",
+					"invertAxis": "xy",
+					"translate": [0, -9, 6],
+					"boxes": [
+						{"coordinates": [-4, 9, -6, 8, 3, 0], "textureOffset": [3, 37]}
+					]
+				},
+				{
+					"part": "left_gills",
+					"id": "left_gills",
+					"invertAxis": "xy",
+					"translate": [-4, -7.5, 6],
+					"boxes": [
+						{"coordinates": [-7, 4, -6, 3, 7, 0], "textureOffset": [11, 40]}
+					]
+				},
+				{
+					"part": "right_gills",
+					"id": "right_gills",
+					"invertAxis": "xy",
+					"translate": [4, -7.5, 6],
+					"boxes": [
+						{"coordinates": [4, 4, -6, 3, 7, 0], "textureOffset": [0, 40]}
+					]
+				},
+				{
+					"part": "front_left_leg",
+					"id": "front_left_leg",
+					"invertAxis": "xy",
+					"translate": [-4, -5, 4],
+					"boxes": [
+						{"coordinates": [-5.5, 0, -4, 3, 5, 0], "textureOffset": [2, 13]}
+					]
+				},
+				{
+					"part": "back_left_leg",
+					"id": "back_left_leg",
+					"invertAxis": "xy",
+					"translate": [-4, -5, -3],
+					"boxes": [
+						{"coordinates": [-5.5, 0, 3, 3, 5, 0], "textureOffset": [2, 13]}
+					]
+				},
+				{
+					"part": "front_right_leg",
+					"id": "front_right_leg",
+					"invertAxis": "xy",
+					"translate": [4, -5, 4],
+					"boxes": [
+						{"coordinates": [2.5, 0, -4, 3, 5, 0], "textureOffset": [2, 13]}
+					]
+				},
+				{
+					"part": "back_right_leg",
+					"id": "back_right_leg",
+					"invertAxis": "xy",
+					"translate": [4, -5, -3],
+					"boxes": [
+						{"coordinates": [2.5, 0, 3, 3, 5, 0], "textureOffset": [2, 13]}
+					]
+				}
+			]
+		}`
+	}
 	EntityOptions.bee = {
 		name: 'Bee',
 		model: `{
@@ -11229,6 +11330,243 @@
 					"id": "dirt",
 					"invertAxis": "xy",
 					"translate": [0, 0, 0]
+				}
+			]
+		}`
+	}
+	EntityOptions.glow_squid = {
+		name: 'Glow Squid',
+		texture_name: 'glow_squid.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABJ0lEQVRoQ2NkIBFsufLwPyla5vdOJkU5w9r5PYwkaYAqhrkLZh+x5pBsGcgiCxUZotx44s4TBpCDpMUliFL/9OWL0QAgNuZgIer8ohecIiWupIOFZp6aBKZZwt+AaQ7lPryRPORTwGgAjKaA0SwwWgaMFoKjtcBoNUjfdgBRzTqoIlo3hSluB8AMINZTsBYXsephLTNi1cNacMSq9+aWBisluyUICgALcTGi7Dvx8hXYIgUJbqLUP3jxFdw05VaUI0r91/uPwE1Ydml1otT/fHqTYTQARlPAaBYYLQNGC8HRWmAEV4OERnwI1aeMQ70dMBoABMb8RlMAgRAYzQKjZcAQ7wxRpRAkVFAgyw+27jDFAUCK54ejWpJnhoZbIIwGwHCLUVL9AwDOVj4/czl/xgAAAABJRU5ErkJggg==',
+		model: `{
+			"textureSize": [64, 32],
+			"models": [
+				{
+					"part": "body",
+					"id": "body",
+					"invertAxis": "xy",
+					"translate": [0, -25, 0],
+					"boxes": [
+						{"coordinates": [-6, 17, -6, 12, 16, 12], "textureOffset": [0, 0]}
+					]
+				},
+				{
+					"part": "tentacle1",
+					"id": "tentacle1",
+					"invertAxis": "xy",
+					"translate": [-5, -18, 0],
+					"boxes": [
+						{"coordinates": [4, 0, -1, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle2",
+					"id": "tentacle2",
+					"invertAxis": "xy",
+					"translate": [-3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle2_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, -3.5],
+							"rotate": [0, 135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle3",
+					"id": "tentacle3",
+					"invertAxis": "xy",
+					"translate": [0, -18, 5],
+					"boxes": [
+						{"coordinates": [-1, 0, -6, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle4",
+					"id": "tentacle4",
+					"invertAxis": "xy",
+					"translate": [3.5, -18, 3.5],
+					"submodels": [
+						{
+							"id": "tentacle4_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, -3.5],
+							"rotate": [0, -135, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle5",
+					"id": "tentacle5",
+					"invertAxis": "xy",
+					"translate": [-10, -18, 5],
+					"rotate": [0, -90, 0],
+					"boxes": [
+						{"coordinates": [-6, 0, -11, 2, 18, 2], "textureOffset": [48, 0]}
+					]
+				},
+				{
+					"part": "tentacle6",
+					"id": "tentacle6",
+					"invertAxis": "xy",
+					"translate": [3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle6_rotation",
+							"invertAxis": "xy",
+							"translate": [-3.5, 9, 3.5],
+							"rotate": [0, -45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle7",
+					"id": "tentacle7",
+					"invertAxis": "xy",
+					"translate": [0, -18, -1.65],
+					"rotate": [0, -180, 0],
+					"submodels": [
+						{
+							"id": "tentacle7_rotation",
+							"invertAxis": "xy",
+							"translate": [0, 9, -1.7],
+							"rotate": [0, -180, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				},
+				{
+					"part": "tentacle8",
+					"id": "tentacle8",
+					"invertAxis": "xy",
+					"translate": [-3.5, -18, -3.5],
+					"submodels": [
+						{
+							"id": "tentacle8_rotation",
+							"invertAxis": "xy",
+							"translate": [3.5, 9, 3.5],
+							"rotate": [0, 45, 0],
+							"boxes": [
+								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
+							]
+						}
+					]
+				}
+			]
+		}`
+	}
+	EntityOptions.goat = {
+		name: 'Goat',
+		texture_name: 'goat.png',
+		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACmklEQVR4Xu1bvUoDQRC+gKCQ3pxERFGw8QHS+xA+gqWFD2FjLLRKlSew0077YJ1GEPzBwEUsbIJYKauZZT13b2c2d7inn9WBM7s3383vN6SR/PO/Rhn2nw3v333n9LsnPpHktH9Yyvt4LzIESrlQAdDZWHbeO7h5TBQA7VbqlBmNs28AmKCa4PlAkuoBAIm7uGThASWFwMvBksY4He7q597VsX6e23nWzwvrR58evJ11dQ6S6CndqEIAAMADEALIAYSAJJkhCaIKoAyiDwjJHdE1Qr5Bp4y2PX9GaZ2g7+WiHofNMuIzxPZ/s2S59M1+PuQOcwZw6dNsIDlfDxOd1qJET8sOxk+JAmA1bTr177JJogBorq0E3TG5fUgUAPPtTaf+2+g6AQDT6VCCMjyA5mmEAHIAkqAkd6AKEAIog3+lDwjy/6lS7TtBrvGcFRidxen9SfY3hiC6WzQM+RYgOi8wVmEkm1+JmR9DuuZSulIdAMB1f0K3aAkKD5giwNkGu0IghOEN0Yk2B4QYE6IDAKYIRJcEQ75miA48AB7whYA4BLhlszadoIQR5vT8BJCEBeYwvnRuCPFZ9NEaCgAOHcYZe+kiCQvMYXzp3FDmFwAUIAAPQAggByAJ1qoKXLzu/Uhptp6DyzLVLgkqAExOwjZ6F7FMefQAQN2qADwAIVBBDuBOeDEMQ6WHANf4WOTyu4mZq0AshnHfIxoAaANDTQi38eAa6pKzredmaoRCX6hsALjEjC0PcckXG/EiosQUWPSi9CJ0OR1uMjY2oy7TfeudnH7ERspwyRcb8aIIlsoBMNkmZQAAgAdEHAKc3bo0B9QmBJRhZobNtnrJ+WSki0T+R4rcJCgBgFORKqsCVQGQN8qVBDnGVyHzATQnonZ03SAOAAAAAElFTkSuQmCC',
+		model: `{
+			"textureSize": [64, 64],
+			"models": [
+				{
+					"part": "head",
+					"id": "head",
+					"invertAxis": "xy",
+					"translate": [-0.5, -18, 8],
+					"rotate": [-55, 0, 0],
+					"boxes": [
+						{"coordinates": [-2.5, 15, -16, 5, 7, 10], "textureOffset": [34, 46]}
+					]
+				},
+				{
+					"part": "body",
+					"id": "body",
+					"invertAxis": "xy",
+					"translate": [0, -11, 0],
+					"boxes": [
+						{"coordinates": [-4.5, 6, -7, 9, 11, 16], "textureOffset": [1, 1]},
+						{"coordinates": [-5.5, 4, -8, 11, 14, 11], "textureOffset": [0, 28]}
+					]
+				},
+				{
+					"part": "right_ear",
+					"id": "right_ear",
+					"invertAxis": "xy",
+					"translate": [2.5, -20, 10],
+					"boxes": [
+						{"coordinates": [2.5, 19, -10, 3, 2, 1], "textureOffset": [2, 61]}
+					]
+				},
+				{
+					"part": "left_ear",
+					"id": "left_ear",
+					"invertAxis": "xy",
+					"translate": [-2.5, -20, 10],
+					"mirrorTexture": "u",
+					"boxes": [
+						{"coordinates": [-5.5, 19, -10, 3, 2, 1], "textureOffset": [2, 61]}
+					]
+				},
+				{
+					"part": "horns",
+					"id": "horns",
+					"invertAxis": "xy",
+					"translate": [0, -20, 9],
+					"boxes": [
+						{"coordinates": [-2.49, 19, -10, 2, 7, 2], "textureOffset": [12, 55]},
+						{"coordinates": [0.49, 19, -10, 2, 7, 2], "textureOffset": [12, 55]}
+					]
+				},
+				{
+					"part": "goatee",
+					"id": "goatee",
+					"invertAxis": "xy",
+					"translate": [0, -12.5, 11.5],
+					"boxes": [
+						{"coordinates": [0, 6, -14, 0, 7, 5], "textureOffset": [23, 52]}
+					]
+				},
+				{
+					"part": "front_left_leg",
+					"id": "front_left_leg",
+					"invertAxis": "xy",
+					"translate": [-0.5, -10, 6],
+					"boxes": [
+						{"coordinates": [-3.5, 0, -6, 3, 10, 3], "textureOffset": [35, 2]}
+					]
+				},
+				{
+					"part": "front_right_leg",
+					"id": "front_right_leg",
+					"invertAxis": "xy",
+					"translate": [3.5, -10, 6],
+					"boxes": [
+						{"coordinates": [0.5, 0, -6, 3, 10, 3], "textureOffset": [49, 2]}
+					]
+				},
+				{
+					"part": "back_right_leg",
+					"id": "back_right_leg",
+					"invertAxis": "xy",
+					"translate": [3.5, -10, -4],
+					"boxes": [
+						{"coordinates": [0.5, 0, 4, 3, 6, 3], "textureOffset": [49, 29]}
+					]
+				},
+				{
+					"part": "back_left_leg",
+					"id": "back_left_leg",
+					"invertAxis": "xy",
+					"translate": [-0.5, -10, -4],
+					"boxes": [
+						{"coordinates": [-3.5, 0, 4, 3, 6, 3], "textureOffset": [36, 29]}
+					]
 				}
 			]
 		}`
@@ -12143,306 +12481,6 @@
 	}
 	EntityOptions.unreleased = {
 		name: '---- Unreleased Models ----'
-	}
-	EntityOptions.axolotl = {
-		name: 'Axolotl',
-		texture_name: 'axolotl.png',
-		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABsklEQVRoQ2NkIAJsufLwPz5l83sn4zWFI7qBCFswlcxVrCNLH4dyHyOxGolSCAoACxUZrGaeuPOEARQA0uISWOWfvnzBAAoABQluYt0EVvfgxVcGUACwS6uTpO/n05sMowEwmgJGswBRWRuUt4hSOFoGjBaClNcCJBXlUMWDqhqkpB2wdn4PUVmNnECiVA+j84tevI0ckAUSV9Lx2jPz1CSC7mAJf4O/sURC1UXQMhIUgAPAQlwMp5YTL1+BAwBXQwbUYAEFALeiHE4zvt5/xAAKAFyNGlIbLyT4j6DS0QAY8VkAWxqhtPPzoV2SYNJDVrBx3k+S1PNUVVGtUMVqEKUNH1AA4CtXkH0LKmNAAYCvDEFWDypPRgNgNAXQIQtQ0vAZUmUAtlqAnIYPoYaON7c0wYKOmMKQmvkf3BtEbwiR0/AZzA0dQqE+GgCjKQBLZ4gWZQApA5WEki015bH2BrEVRv5J7Bj20kMdtQs9dE9gLQPQW2agQg4UAMitO2wtOFqoo0sAoIcKPWKW2BRF8wCgZn4aimZRrVc1FD0PbggNVYdTy92jAUCtkByq5oz4FAAAYGm3MEO1QgQAAAAASUVORK5CYII=',
-		model: `{
-			"textureSize": [64, 32],
-			"models": [
-				{
-					"part": "head",
-					"id": "head",
-					"invertAxis": "xy",
-					"translate": [0, 0, 0],
-					"boxes": [
-						{"coordinates": [-4, 0, -7, 8, 5, 5], "textureOffset": [0, 13]},
-						{"coordinates": [-7, 0, -3, 14, 8, 0], "textureOffset": [25, 0]}
-					]
-				},
-				{
-					"part": "body",
-					"id": "body",
-					"invertAxis": "xy",
-					"translate": [0, 0, 0],
-					"boxes": [
-						{"coordinates": [-4, 0, -2, 8, 4, 9], "textureOffset": [0, 0]},
-						{"coordinates": [0, 4, -2, 0, 1, 9], "textureOffset": [26, 9]}
-					]
-				},
-				{
-					"part": "left_arm",
-					"id": "left_arm",
-					"invertAxis": "xy",
-					"translate": [-4, -0.5, 1],
-					"rotate": [0, -30, 0],
-					"boxes": [
-						{"coordinates": [-4, -1, -1, 0, 3, 5], "textureOffset": [0, 18]}
-					]
-				},
-				{
-					"part": "right_arm",
-					"id": "right_arm",
-					"invertAxis": "xy",
-					"translate": [4, -0.5, 1],
-					"rotate": [0, 30, 0],
-					"boxes": [
-						{"coordinates": [4, -1, -1, 0, 3, 5], "textureOffset": [10, 18]}
-					]
-				},
-				{
-					"part": "left_leg",
-					"id": "left_leg",
-					"invertAxis": "xy",
-					"translate": [-4, -0.5, -7],
-					"rotate": [0, -15, 0],
-					"boxes": [
-						{"coordinates": [-4, -1, 7, 0, 3, 5], "textureOffset": [20, 18]}
-					]
-				},
-				{
-					"part": "right_leg",
-					"id": "right_leg",
-					"invertAxis": "xy",
-					"translate": [4, -0.5, -7],
-					"rotate": [0, 15, 0],
-					"boxes": [
-						{"coordinates": [4, -1, 7, 0, 3, 5], "textureOffset": [30, 18]}
-					]
-				},
-				{
-					"part": "tail",
-					"id": "tail",
-					"invertAxis": "xy",
-					"translate": [0, -2.5, -4],
-					"boxes": [
-						{"coordinates": [0, 0, 7, 0, 5, 12], "textureOffset": [21, 1]}
-					]
-				}
-			]
-		}`
-	}
-	EntityOptions.glow_squid = {
-		name: 'Glow Squid',
-		texture_name: 'glow_squid.png',
-		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABJ0lEQVRoQ2NkIBFsufLwPyla5vdOJkU5w9r5PYwkaYAqhrkLZh+x5pBsGcgiCxUZotx44s4TBpCDpMUliFL/9OWL0QAgNuZgIer8ohecIiWupIOFZp6aBKZZwt+AaQ7lPryRPORTwGgAjKaA0SwwWgaMFoKjtcBoNUjfdgBRzTqoIlo3hSluB8AMINZTsBYXsephLTNi1cNacMSq9+aWBisluyUICgALcTGi7Dvx8hXYIgUJbqLUP3jxFdw05VaUI0r91/uPwE1Ydml1otT/fHqTYTQARlPAaBYYLQNGC8HRWmAEV4OERnwI1aeMQ70dMBoABMb8RlMAgRAYzQKjZcAQ7wxRpRAkVFAgyw+27jDFAUCK54ejWpJnhoZbIIwGwHCLUVL9AwDOVj4/czl/xgAAAABJRU5ErkJggg==',
-		model: `{
-			"textureSize": [64, 32],
-			"models": [
-				{
-					"part": "body",
-					"id": "body",
-					"invertAxis": "xy",
-					"translate": [0, -25, 0],
-					"boxes": [
-						{"coordinates": [-6, 17, -6, 12, 16, 12], "textureOffset": [0, 0]}
-					]
-				},
-				{
-					"part": "tentacle1",
-					"id": "tentacle1",
-					"invertAxis": "xy",
-					"translate": [-5, -18, 0],
-					"boxes": [
-						{"coordinates": [4, 0, -1, 2, 18, 2], "textureOffset": [48, 0]}
-					]
-				},
-				{
-					"part": "tentacle2",
-					"id": "tentacle2",
-					"invertAxis": "xy",
-					"translate": [-3.5, -18, 3.5],
-					"submodels": [
-						{
-							"id": "tentacle2_rotation",
-							"invertAxis": "xy",
-							"translate": [3.5, 9, -3.5],
-							"rotate": [0, 135, 0],
-							"boxes": [
-								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
-							]
-						}
-					]
-				},
-				{
-					"part": "tentacle3",
-					"id": "tentacle3",
-					"invertAxis": "xy",
-					"translate": [0, -18, 5],
-					"boxes": [
-						{"coordinates": [-1, 0, -6, 2, 18, 2], "textureOffset": [48, 0]}
-					]
-				},
-				{
-					"part": "tentacle4",
-					"id": "tentacle4",
-					"invertAxis": "xy",
-					"translate": [3.5, -18, 3.5],
-					"submodels": [
-						{
-							"id": "tentacle4_rotation",
-							"invertAxis": "xy",
-							"translate": [-3.5, 9, -3.5],
-							"rotate": [0, -135, 0],
-							"boxes": [
-								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
-							]
-						}
-					]
-				},
-				{
-					"part": "tentacle5",
-					"id": "tentacle5",
-					"invertAxis": "xy",
-					"translate": [-10, -18, 5],
-					"rotate": [0, -90, 0],
-					"boxes": [
-						{"coordinates": [-6, 0, -11, 2, 18, 2], "textureOffset": [48, 0]}
-					]
-				},
-				{
-					"part": "tentacle6",
-					"id": "tentacle6",
-					"invertAxis": "xy",
-					"translate": [3.5, -18, -3.5],
-					"submodels": [
-						{
-							"id": "tentacle6_rotation",
-							"invertAxis": "xy",
-							"translate": [-3.5, 9, 3.5],
-							"rotate": [0, -45, 0],
-							"boxes": [
-								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
-							]
-						}
-					]
-				},
-				{
-					"part": "tentacle7",
-					"id": "tentacle7",
-					"invertAxis": "xy",
-					"translate": [0, -18, -1.65],
-					"rotate": [0, -180, 0],
-					"submodels": [
-						{
-							"id": "tentacle7_rotation",
-							"invertAxis": "xy",
-							"translate": [0, 9, -1.7],
-							"rotate": [0, -180, 0],
-							"boxes": [
-								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
-							]
-						}
-					]
-				},
-				{
-					"part": "tentacle8",
-					"id": "tentacle8",
-					"invertAxis": "xy",
-					"translate": [-3.5, -18, -3.5],
-					"submodels": [
-						{
-							"id": "tentacle8_rotation",
-							"invertAxis": "xy",
-							"translate": [3.5, 9, 3.5],
-							"rotate": [0, 45, 0],
-							"boxes": [
-								{"coordinates": [-1, -9, -1, 2, 18, 2], "textureOffset": [48, 0]}
-							]
-						}
-					]
-				}
-			]
-		}`
-	}
-	EntityOptions.goat = {
-		name: 'Goat',
-		texture_name: 'goat.png',
-		texture_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACmklEQVR4Xu1bvUoDQRC+gKCQ3pxERFGw8QHS+xA+gqWFD2FjLLRKlSew0077YJ1GEPzBwEUsbIJYKauZZT13b2c2d7inn9WBM7s3383vN6SR/PO/Rhn2nw3v333n9LsnPpHktH9Yyvt4LzIESrlQAdDZWHbeO7h5TBQA7VbqlBmNs28AmKCa4PlAkuoBAIm7uGThASWFwMvBksY4He7q597VsX6e23nWzwvrR58evJ11dQ6S6CndqEIAAMADEALIAYSAJJkhCaIKoAyiDwjJHdE1Qr5Bp4y2PX9GaZ2g7+WiHofNMuIzxPZ/s2S59M1+PuQOcwZw6dNsIDlfDxOd1qJET8sOxk+JAmA1bTr177JJogBorq0E3TG5fUgUAPPtTaf+2+g6AQDT6VCCMjyA5mmEAHIAkqAkd6AKEAIog3+lDwjy/6lS7TtBrvGcFRidxen9SfY3hiC6WzQM+RYgOi8wVmEkm1+JmR9DuuZSulIdAMB1f0K3aAkKD5giwNkGu0IghOEN0Yk2B4QYE6IDAKYIRJcEQ75miA48AB7whYA4BLhlszadoIQR5vT8BJCEBeYwvnRuCPFZ9NEaCgAOHcYZe+kiCQvMYXzp3FDmFwAUIAAPQAggByAJ1qoKXLzu/Uhptp6DyzLVLgkqAExOwjZ6F7FMefQAQN2qADwAIVBBDuBOeDEMQ6WHANf4WOTyu4mZq0AshnHfIxoAaANDTQi38eAa6pKzredmaoRCX6hsALjEjC0PcckXG/EiosQUWPSi9CJ0OR1uMjY2oy7TfeudnH7ERspwyRcb8aIIlsoBMNkmZQAAgAdEHAKc3bo0B9QmBJRhZobNtnrJ+WSki0T+R4rcJCgBgFORKqsCVQGQN8qVBDnGVyHzATQnonZ03SAOAAAAAElFTkSuQmCC',
-		model: `{
-			"textureSize": [64, 64],
-			"models": [
-				{
-					"part": "head",
-					"id": "head",
-					"invertAxis": "xy",
-					"translate": [-1, -10, 0],
-					"boxes": [
-						{"coordinates": [-0.01, 19, -10, 2, 7, 2], "textureOffset": [12, 55]},
-						{"coordinates": [-2.99, 19, -10, 2, 7, 2], "textureOffset": [12, 55]},
-						{"coordinates": [2, 19, -10, 3, 2, 1], "textureOffset": [2, 61]},
-						{"coordinates": [-0.5, 6, -14, 0, 7, 5], "textureOffset": [23, 52]}
-					],
-					"submodels": [
-						{
-							"id": "left_ear",
-							"invertAxis": "xy",
-							"translate": [-1, 10, 0],
-							"mirrorTexture": "u",
-							"boxes": [
-								{"coordinates": [-5, 9, -10, 3, 2, 1], "textureOffset": [2, 61]}
-							]
-						},
-						{
-							"id": "head_rotation",
-							"invertAxis": "xy",
-							"translate": [-1, 18, -8],
-							"rotate": [-55, 0, 0],
-							"boxes": [
-								{"coordinates": [-2, -3, -8, 5, 7, 10], "textureOffset": [34, 46]}
-							]
-						}
-					]
-				},
-				{
-					"part": "body",
-					"id": "body",
-					"invertAxis": "xy",
-					"translate": [0, -19, -2],
-					"boxes": [
-						{"coordinates": [-5, 6, -7, 9, 11, 16], "textureOffset": [1, 1]},
-						{"coordinates": [-6, 4, -8, 11, 14, 11], "textureOffset": [0, 28]}
-					]
-				},
-				{
-					"part": "front_left_leg",
-					"id": "front_left_leg",
-					"invertAxis": "xy",
-					"translate": [-1, -10, 6],
-					"boxes": [
-						{"coordinates": [-4, 0, -6, 3, 10, 3], "textureOffset": [35, 2]}
-					]
-				},
-				{
-					"part": "front_right_leg",
-					"id": "front_right_leg",
-					"invertAxis": "xy",
-					"translate": [3, -10, 6],
-					"boxes": [
-						{"coordinates": [0, 0, -6, 3, 10, 3], "textureOffset": [49, 2]}
-					]
-				},
-				{
-					"part": "back_right_leg",
-					"id": "back_right_leg",
-					"invertAxis": "xy",
-					"translate": [3, -10, -4],
-					"boxes": [
-						{"coordinates": [0, 0, 4, 3, 6, 3], "textureOffset": [49, 29]}
-					]
-				},
-				{
-					"part": "back_left_leg",
-					"id": "back_left_leg",
-					"invertAxis": "xy",
-					"translate": [-1, -10, -4],
-					"boxes": [
-						{"coordinates": [-4, 0, 4, 3, 6, 3], "textureOffset": [36, 29]}
-					]
-				}
-			]
-		}`
 	}
 	EntityOptions.warden = {
 		name: 'Warden',
