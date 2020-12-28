@@ -13,8 +13,6 @@
   },
   "homepage": "https://github.com/JannisX11/blockbench-plugins#readme",
   "devDependencies": {
-    "@types/jquery": "^3.5.4",
-    "three": "^0.123.0",
-    "vue": "^2.6.12"
+    "blockbench-types": "^3.7.2"
   }
 }

@@ -9,12 +9,14 @@ Create a pull request to submit or update plugins. Open an issue to report bugs 
 * Plugin Documentation: [documentation.blockbench.net](https://documentation.blockbench.net)
 * Discord plugin development channel: [#plugin-dev](https://discord.gg/xtauSmR)
 
-
 ## Conventions
 
 * Plugin IDs should be snake_case and must be consistent across all properties and file names.
 * Indentation for common files must be Tab character. Individual plugin files can follow own personal preferences.
 
+## Development
+
+* To develop a plugin, fork and clone the repository. Make sure [NodeJS](https://nodejs.org/en/) is installed and run `npm install` in the repository. This will install the Blockbench types that make it easier to use the Blockbench API.
 
 ## Bundling
 
