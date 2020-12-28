@@ -530,13 +530,26 @@ Plugin.register('csmodel', {
 							face.extend({uv: [
 								info[face_key].offset.x,
 								info[face_key].offset.y,
-								0, 0
+								0,0
 							]});
 							var native_size = getNativeSize(cube, face);
-							face.uv_size = [
-								native_size[0],
-								native_size[1],
-							]
+
+							if (face.direction == 'south' || face.direction == 'north') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.y
+								]
+							} else if (face.direction == 'up' || face.direction == 'down') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.z
+								]			
+							} else {
+								face.uv_size = [
+									native_size[0]/info.scale.z,
+									native_size[1]/info.scale.y
+								]	
+							}
 							var code = info[face_key].transform;
 							if (code >= 16) {
 								var size = face.uv[3] - face.uv[1];
