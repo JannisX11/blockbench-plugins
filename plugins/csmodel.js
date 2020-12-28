@@ -17,6 +17,14 @@ Plugin.register('csmodel', {
 	variant: 'both',
 	onload() {
 
+		function toArrayBuffer(buf) {
+			var ab = new ArrayBuffer(buf.length);
+			var view = new Uint8Array(ab);
+			for (var i = 0; i < buf.length; ++i) {
+				view[i] = buf[i];
+			}
+			return ab;
+		}
 		let getNativeSize = function(cube, face) {
 			var side = face.direction;
 			var size = {};
@@ -587,7 +595,8 @@ Plugin.register('csmodel', {
 					resource_id: 'craftstudio_files'
 				}, files => {
 					if (isApp) {
-						codec.parse(files[0].content.buffer);
+						let buffer = toArrayBuffer(files[0].content);
+						codec.parse(buffer);
 					} else {
 						codec.parse(files[0].content);
 					}
