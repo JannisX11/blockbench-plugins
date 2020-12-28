@@ -591,7 +591,7 @@ Plugin.register('csmodel', {
 					} else {
 						codec.parse(files[0].content);
 					}
-					csname = files[0].name.replace(".csmodel","").replace(" ","_").toLowerCase();
+					csname = files[0].name.replace(".csmodel","").replace(/\s+/g, "_").toLowerCase();
 					Project.name = csname;
 					Project.geometry_name = csname;
 					textures[0].name = csname;
