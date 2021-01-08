@@ -21,6 +21,14 @@
 		"description": "Highlights missing textures by flashing them.",
 		"variant": "both"
 	},
+	"double_sided_cubes": {
+		"title": "Double Sided Cube Generator",
+		"author": "SnaveSutit",
+		"icon": "flip_to_back",
+		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 	"optimize": {
 		"title": "Optimize",
 		"author": "Krozi",
