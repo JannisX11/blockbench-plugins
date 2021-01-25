@@ -6,7 +6,7 @@
 		icon: 'keyboard_capslock',
 		author: 'Ewan Howell',
 		description: 'Load template entity models for use with OptiFine CEM.',
-		version: '0.2.8',
+		version: '0.2.9',
 		min_version: '3.6.0',
 		variant: 'both',
 		onload() {
@@ -1073,7 +1073,7 @@
 					"translate": [8, -5, 7],
 					"submodels": [
 						{
-							"id": "lif_right_rotation",
+							"id": "lid_right_rotation",
 							"invertAxis": "xy",
 							"translate": [0, 7, 0],
 							"rotate": [-180, 0, 0],
@@ -7991,7 +7991,7 @@
 					"translate": [8, -5, 7],
 					"submodels": [
 						{
-							"id": "lif_right_rotation",
+							"id": "lid_right_rotation",
 							"invertAxis": "xy",
 							"translate": [0, 7, 0],
 							"rotate": [-180, 0, 0],
