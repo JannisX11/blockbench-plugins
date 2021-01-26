@@ -283,5 +283,13 @@
 		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
 		"version": "1.0.0",
 		"variant": "both"
-	}
+	},
+	"arcaniax_block_exporter": {
+		"title": "Bedrock Block Exporter",
+		"icon": "icon-format_block",
+		"author": "Arcaniax",
+		"description": "Helps making new Bedrock blocks (requires experimental mode)",
+		"variant": "desktop",
+		"version": "0.1.1"
+	}		
 }
