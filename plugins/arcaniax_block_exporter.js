@@ -257,23 +257,21 @@
 		var uuid2 = generateUUID();
 		var json =
 `{
-    "format_version": 2,
-    "header": {
-      "description": "` + name + ` Resource Pack",
-      "name": "` + name + ` RP",
-      "uuid": "` + uuid1 + `",
-      "version": [1, 0, 0],
-      "min_engine_version": [1, 14, 0]
-    },
-    "modules": [
-      {
-        "description": "` + name + ` Resource Pack",
-        "type": "resources",
-        "uuid": "` + uuid2 + `",
-        "version": [1, 0, 0]
-      }
-    ]
-  }`;
+  "format_version": 2,
+  "header": {
+    "description": "` + name + ` Resource Pack",
+    "name": "` + name + ` RP",
+    "uuid": "` + uuid1 + `",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 14, 0]
+  },
+  "modules": [{
+    "description": "` + name + ` Resource Pack",
+    "type": "resources",
+    "uuid": "` + uuid2 + `",
+    "version": [1, 0, 0]
+  }]
+}`;
 		return json;
 	}
 	
@@ -285,19 +283,17 @@
 `{
   "format_version": 1,
   "header": {
-     "description": "` + name + ` Behavior Pack",
-     "name": "` + name + ` BP",
-     "uuid": "` + uuid1 + `",
-     "version": [1, 0, 0]
+    "description": "` + name + ` Behavior Pack",
+    "name": "` + name + ` BP",
+    "uuid": "` + uuid1 + `",
+    "version": [1, 0, 0]
   },
-  "modules": [
-    {
-      "description": "${name} Behavior Pack",
-      "version": [ 1, 0, 0 ],
-      "uuid": "` + uuid2 + `",
-      "type": "data"
-    }
-  ]
+  "modules": [{
+    "description": "${name} Behavior Pack",
+    "version": [ 1, 0, 0 ],
+    "uuid": "` + uuid2 + `",
+    "type": "data"
+  }]
 }`;
 		return json;
 	}
@@ -306,15 +302,15 @@
 		var file_name = formData.file_name;
 				var json =
 `{
-	"resource_pack_name": "vanilla",
-	"texture_name": "atlas.terrain",
-	"padding": 8,
-	"num_mip_levels": 4,
-	"texture_data": {
-		"` + file_name + `": {
-			"textures": "textures/blocks/` + file_name + `"
-		}
+  "resource_pack_name": "vanilla",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "` + file_name + `": { 
+	  "textures": "textures/blocks/` + file_name + `"
 	}
+  }
 }`;
 		return json;
 	}
@@ -423,6 +419,7 @@
 			}
 		}
 	
+	var export_action;
 	
 	Plugin.register('arcaniax_block_exporter', {
 		title: 'Bedrock Block Exporter',
@@ -433,18 +430,25 @@
 		variant: 'both',
 
 		onload() {
-
-			Blockbench.addMenuEntry('Bedrock Block Exporter', 'icon-format_block', function() {
-				getDialog().show();
-				$('#blackout').hide(0);
-				setupPreview();
+			export_action = new Action({
+				id: 'block_exporter',
+				name: 'Bedrock Block Exporter',
+				icon: 'icon-format_block',
+				category: 'filter',
+				click: function(ev) {
+					getDialog().show();
+					$('#blackout').hide(0);
+					setupPreview();
+				}
 			});
+
+			MenuBar.addAction(export_action, 'filter');
 		},
 		onunload() {
 			this.onuninstall();
 		},
 		onuninstall() {
-			Blockbench.removeMenuEntry('Bedrock Block Exporter');
+			export_action.delete();
 		}
 	})
 })()
