@@ -14,6 +14,7 @@ Plugin.register('clone_brush', {
 		clone_brush_tool = new Tool({
 			id: 'clone_brush',
 			name: 'Clone Brush',
+			description: 'Tool to clone and place cubes against other cubes',
 			icon: 'fa-edit',
 			transformerMode: 'hidden',
 	    	category: 'tools',
