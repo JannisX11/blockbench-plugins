@@ -348,7 +348,15 @@ function exportVoxelShape(){
 	
 	var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
 
-	if(voxelShapeGroup === undefined) return;
+	if(voxelShapeGroup === undefined) {
+		Blockbench.showMessageBox({
+			buttons: ["ok"],
+			confirm: 0,
+			title: "Error - VoxelShape Export",
+			message: "You are missing the \"VoxelShapes\" group,\nwhich is required to export a voxel Shape.\nCheck out the Help menu for further instructions."
+		})
+		return;
+	};
 
 	var output = generateShape(voxelShapeGroup, mappings);
 	
