@@ -286,7 +286,7 @@ function readTblCube(json, version, parentGroup, extra){
 			var pos = [json.posX, json.posY, json.posZ];
 			var dim = [json.dimX, json.dimY, json.dimZ];
 			cube = new Cube({
-				mirror_uv: json.mirror,
+				mirror_uv: extra.mirror,
 				name: json.name,
 				from: [parentGroup.origin[0] + pos[0], parentGroup.origin[1] -  pos[1] - dim[1], parentGroup.origin[2] +  pos[2]],
 				to: [parentGroup.origin[0] + pos[0] + dim[0], parentGroup.origin[1] - pos[1], parentGroup.origin[2] +  pos[2] + dim[2]],
