@@ -107,7 +107,7 @@
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"variant": "desktop",
-		"version": "1.5.1"
+		"version": "1.5.2"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
