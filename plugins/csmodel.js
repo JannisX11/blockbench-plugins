@@ -17,6 +17,14 @@ Plugin.register('csmodel', {
 	variant: 'both',
 	onload() {
 
+		function toArrayBuffer(buf) {
+			var ab = new ArrayBuffer(buf.length);
+			var view = new Uint8Array(ab);
+			for (var i = 0; i < buf.length; ++i) {
+				view[i] = buf[i];
+			}
+			return ab;
+		}
 		let getNativeSize = function(cube, face) {
 			var side = face.direction;
 			var size = {};
@@ -530,13 +538,26 @@ Plugin.register('csmodel', {
 							face.extend({uv: [
 								info[face_key].offset.x,
 								info[face_key].offset.y,
-								0, 0
+								0,0
 							]});
 							var native_size = getNativeSize(cube, face);
-							face.uv_size = [
-								native_size[0],
-								native_size[1],
-							]
+
+							if (face.direction == 'south' || face.direction == 'north') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.y
+								]
+							} else if (face.direction == 'up' || face.direction == 'down') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.z
+								]			
+							} else {
+								face.uv_size = [
+									native_size[0]/info.scale.z,
+									native_size[1]/info.scale.y
+								]	
+							}
 							var code = info[face_key].transform;
 							if (code >= 16) {
 								var size = face.uv[3] - face.uv[1];
@@ -574,10 +595,15 @@ Plugin.register('csmodel', {
 					resource_id: 'craftstudio_files'
 				}, files => {
 					if (isApp) {
-						codec.parse(files[0].content.buffer);
+						let buffer = toArrayBuffer(files[0].content);
+						codec.parse(buffer);
 					} else {
 						codec.parse(files[0].content);
 					}
+					csname = files[0].name.replace(".csmodel","").replace(/\s+/g, "_").toLowerCase();
+					Project.name = csname;
+					Project.geometry_name = csname;
+					textures[0].name = csname;
 				})
 			}
 		})

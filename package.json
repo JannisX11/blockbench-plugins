@@ -1,0 +1,18 @@
+{
+  "name": "blockbench-plugins",
+  "version": "1.0.0",
+  "description": "Blockbench plugins repository.",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JannisX11/blockbench-plugins.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JannisX11/blockbench-plugins/issues"
+  },
+  "homepage": "https://github.com/JannisX11/blockbench-plugins#readme",
+  "devDependencies": {
+    "blockbench-types": "^3.7.2"
+  }
+}

@@ -21,6 +21,14 @@
 		"description": "Highlights missing textures by flashing them.",
 		"variant": "both"
 	},
+	"double_sided_cubes": {
+		"title": "Double Sided Cube Generator",
+		"author": "SnaveSutit",
+		"icon": "flip_to_back",
+		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 	"optimize": {
 		"title": "Optimize",
 		"author": "Krozi",
@@ -99,7 +107,7 @@
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"variant": "desktop",
-		"version": "1.5.1"
+		"version": "1.5.2"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
@@ -203,13 +211,13 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko",
+		"author": "Eliot Lash, Gecko, McHorse",
 		"icon": "movie_filter",
-		"description": "This plugin lets you create animated java entities with GeckoLib. Learn about GeckoLib here: https://github.com/bernie-g/geckolib",
-		"version": "2.0.4",
-		"min_version": "3.6.6",
-		"max_version": "3.6.99",
-		"variant": "both"
+		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+		"version": "3.0.0",
+		"min_version": "3.7.0",
+		"variant": "both",
+		"max_version": "3.7.99"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
@@ -252,6 +260,47 @@
         "version": "0.0.1",
         "variant": "both"
     },
+    "datagen_export": {
+      "title": "Datagen Export",
+      "icon": "code",
+      "author": "itsmeow",
+      "description": "Allows exporting to BlockStateProvider datagen code",
+      "version": "1.0.0",
+      "variant": "both"
+    },
+	"duplicate_renamer": {
+		"title": "Duplicate Bone Renamer",
+		"icon": "fa-font",
+		"author": "Gecko",
+		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"texture_stitcher": {
+		"title": "Texture Stitcher",
+		"icon": "fa-compress-arrows-alt",
+		"author": "McHorse",
+		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"arcaniax_block_exporter": {
+		"title": "Bedrock Block Exporter",
+		"icon": "icon-format_block",
+		"author": "Arcaniax",
+		"description": "Helps making new Bedrock blocks (requires experimental mode)",
+		"variant": "desktop",
+		"version": "0.1.1"
+	},
+	"bakery": {
+		"title": "Bakery",
+		"icon": "storefront",
+		"author": "JannisX11",
+		"description": "Bakes complex animations into simple linear keyframes",
+		"version": "1.0.0",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
     "triangle_generator": {
         "title": "Triangle Generator",
         "icon": "pages",
@@ -259,5 +308,5 @@
         "description": "Generates triangles.",
         "version": "1.0.0",
         "variant": "both"
-	}
+    }
 }
