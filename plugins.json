@@ -251,5 +251,13 @@
         "description": "Hide everything except for the selected cubes",
         "version": "0.0.1",
         "variant": "both"
-    }
+    },
+    "triangle_generator": {
+		"title": "Triangle Generator",
+	    "icon": "pages",
+	    "author": "Sleepyhead08",
+	    "description": "Generates triangles.",
+	    "version": "1.0.0",
+	    "variant": "both"
+	}
 }
