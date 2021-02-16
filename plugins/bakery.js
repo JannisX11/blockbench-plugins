@@ -62,7 +62,7 @@ Plugin.register('bakery', {
 										keyframe = new Keyframe({
 											channel, time
 										})
-										animator.fillValues(keyframe, null, true);
+										animator.fillValues(keyframe, null, true, false);
 										new_keyframes.push(keyframe);
 									}
 								}
