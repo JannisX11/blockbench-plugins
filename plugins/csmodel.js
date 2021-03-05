@@ -14,6 +14,7 @@ Plugin.register('csmodel', {
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
 	version: '0.1.1',
+	min_version: '3.8.0',
 	variant: 'both',
 	onload() {
 
@@ -594,12 +595,7 @@ Plugin.register('csmodel', {
 					readtype: 'binary',
 					resource_id: 'craftstudio_files'
 				}, files => {
-					if (isApp) {
-						let buffer = toArrayBuffer(files[0].content);
-						codec.parse(buffer);
-					} else {
-						codec.parse(files[0].content);
-					}
+					codec.parse(files[0].content);
 					csname = files[0].name.replace(".csmodel","").replace(/\s+/g, "_").toLowerCase();
 					Project.name = csname;
 					Project.geometry_name = csname;
