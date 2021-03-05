@@ -30,7 +30,7 @@ Object.freeze(GECKO_SETTINGS_DEFAULT);
 let geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 
 export function onSettingsChanged() {
-  if(Format.id === "animated_entity_model") {
+  if(Format.id === "animated_entity_model ") {
     Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
   }
   Modes.selected.select();
