@@ -292,6 +292,7 @@ var format = new ModelFormat({
     centered_grid: true,
     animated_textures: true,
     animation_mode: true,
+    animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
     display_mode: false, // This may be dynamically turned on by settings
