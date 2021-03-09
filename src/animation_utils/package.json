@@ -20,7 +20,7 @@
     "icon": "movie_filter",
     "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
     "min_version": "3.7.0",
-    "max_version": "3.7.99",
+    "max_version": "4.0.0",
     "variant": "both"
   },
   "sideEffects": [

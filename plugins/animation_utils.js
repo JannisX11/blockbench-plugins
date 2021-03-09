@@ -739,6 +739,7 @@ var format = new ModelFormat({
     centered_grid: true,
     animated_textures: true,
     animation_mode: true,
+    animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
     display_mode: false, // This may be dynamically turned on by settings
@@ -8310,7 +8311,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com\",\"min_version\":\"3.7.0\",\"max_version\":\"3.7.99\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com\",\"min_version\":\"3.7.0\",\"max_version\":\"4.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 
