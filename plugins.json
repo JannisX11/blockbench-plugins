@@ -248,7 +248,7 @@
         "icon": "developer_mode",
         "author": "wither",
         "description": "View the model you are currently editing in the raw format",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "variant": "both"
     },
     "only": {
