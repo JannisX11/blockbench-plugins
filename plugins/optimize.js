@@ -1,17 +1,9 @@
-var plugin_data = {
-	id: 'optimize',
-	title: 'Optimize',  
-	icon: 'border_outer',
-	author: 'Krozi',
-	description: 'Hide concealed faces for better performance!',
-	version: '1.2.6',
-	variant: 'both'
-}
 
 Plugin.register("optimize", {
+"title": "Optimize",
 "author": "Krozi",
 "icon": "border_outer",
-"version": "1.2.6",
+"version": "1.2.7",
 "description": "Hide concealed faces for better performance!",
 onload() {
 	
@@ -28,15 +20,16 @@ try {
 		'<br/>Please check if all visible cubes are still there.<br/>Unwanted changes can be reverted using Ctrl+Z.'
 	],
 	"onConfirm": function(data) {
-	dialog.hide()
+	// dialog.hide()
 	var restrictToSelected = $("#restrict")[0].checked
 	var applyCulling = $("#culling")[0].checked
+	dialog.hide()
 	
-	var elements = Blockbench.elements
+	var elements = Outliner.elements
 	if (restrictToSelected) {
 		elements = selected
 	}
-	aspects = {"cubes": elements, "uv_only": false}
+	aspects = {"elements": elements, "uv_only": false}
 	Undo.initEdit(aspects)
 	
 	Blockbench.showMessage('Starting optimization', 'center')
