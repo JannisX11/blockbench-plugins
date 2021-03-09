@@ -1,3 +1,5 @@
+/// <reference path="../types/index.d.ts" />
+
 (function() {
 
 var plaster_action;

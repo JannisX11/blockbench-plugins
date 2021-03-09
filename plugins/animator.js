@@ -18,6 +18,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                 name: 'Save Starting Model',
                 description: 'Saves the current model as the starting model for the animation',
                 icon: 'filter_cetner_focus',
+                condition: {formats: ['java_block']},
                 click: function() {
 					start = JSON.parse(JSON.stringify(Codecs.java_block.compile({raw: true})));
                 }
@@ -27,6 +28,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                 name: 'Export Java Item Animation',
                 description: 'Exports the animation to a zip',
                 icon: 'compare',
+                condition: {formats: ['java_block']},
                 click: function() {
                     if (!start) {
                         Blockbench.showQuickMessage('You didn\'t configured a starting model', 2000);
@@ -44,7 +46,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                         }).show()
                 }
             });
-            MenuBar.addAction(expor, 'file.export.0');
+            MenuBar.addAction(expor, 'file.export');
         },
         onunload() {
             MenuBar.removeAction('file.export.export_animation')
@@ -115,17 +117,19 @@ To use click Filter -> Save starting model the save the first model, and then cl
 	function generate_animation(start, end, models) {
         start = JSON.parse(JSON.stringify(start));
         end = JSON.parse(JSON.stringify(end));
+	start['display'] = start['display']?start['display']:{};
+	end['display'] = end['display']?end['display']:{};
 	for (var i = 0; i < types.length; i++) {
-                start[types[i]] = Object.assign({
+                start['display'][types[i]] = Object.assign({
                     rotation: [0, 0, 0],
                     translation: [0, 0, 0],
                     scale: [1, 1, 1]
-                }, start[types[i]]);
-		end[types[i]] = Object.assign({
+                }, start['display'][types[i]]);
+		end['display'][types[i]] = Object.assign({
                     rotation: [0, 0, 0],
                     translation: [0, 0, 0],
                     scale: [1, 1, 1]
-                }, start[end[i]]);
+                }, start['display'][end[i]]);
          }
         start['display']['firstperson_righthand']['translation'][1] += 10;
         end['display']['firstperson_righthand']['translation'][1] += 10;

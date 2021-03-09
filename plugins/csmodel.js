@@ -13,11 +13,20 @@ Plugin.register('csmodel', {
 		Import the file into Blockbench using the import menu.
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
-	version: '0.1.0',
-	variant: 'desktop',
+	version: '0.1.1',
+	min_version: '3.8.0',
+	variant: 'both',
 	onload() {
 
-		getNativeSize = function(cube, face) {
+		function toArrayBuffer(buf) {
+			var ab = new ArrayBuffer(buf.length);
+			var view = new Uint8Array(ab);
+			for (var i = 0; i < buf.length; ++i) {
+				view[i] = buf[i];
+			}
+			return ab;
+		}
+		let getNativeSize = function(cube, face) {
 			var side = face.direction;
 			var size = {};
 			if (side == 'north' || side == 'south') {
@@ -407,11 +416,11 @@ Plugin.register('csmodel', {
 
 				return writer.array;
 			},
-			parse(model, path) {
+			parse(arraybuffer) {
 
 				newProject(Formats.bedrock)
 
-				var reader = new BinaryReader(model.buffer);
+				var reader = new BinaryReader(arraybuffer);
 
 				var nodes = {};
 				var face_info = {};
@@ -495,6 +504,7 @@ Plugin.register('csmodel', {
 									origin: parent_cube.origin,
 									rotation: parent_cube.rotation
 								}).addTo(parent_cube).init();
+								parent.createUniqueName();
 								parent_cube.addTo(parent);
 								parent_cube.extend({rotation: [0, 0, 0]})
 							}
@@ -504,7 +514,16 @@ Plugin.register('csmodel', {
 				}
 
 				var image = reader.ReadBytes(reader.ReadUInt32());
-				var url = 'data:image/png;base64,'+ btoa(String.fromCharCode.apply(null, image));
+				var i = 0;
+				let txt = '';
+				while (i < image.length) {
+					let sub = image.subarray(i, Math.clamp(i+1024, 0, image.length));
+					let substr = String.fromCharCode.apply(null, sub);
+					txt += substr;
+					i += 1024;
+				}
+				let url = 'data:image/png;base64,' + btoa(txt);
+
 				var tex = new Texture({name: 'texture'}).fromDataURL(url).add();
 				tex.load_callback = function() {
 					Project.texture_width = tex.width;
@@ -520,13 +539,26 @@ Plugin.register('csmodel', {
 							face.extend({uv: [
 								info[face_key].offset.x,
 								info[face_key].offset.y,
-								0, 0
+								0,0
 							]});
 							var native_size = getNativeSize(cube, face);
-							face.uv_size = [
-								native_size[0],
-								native_size[1],
-							]
+
+							if (face.direction == 'south' || face.direction == 'north') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.y
+								]
+							} else if (face.direction == 'up' || face.direction == 'down') {
+								face.uv_size = [
+									native_size[0]/info.scale.x,
+									native_size[1]/info.scale.z
+								]			
+							} else {
+								face.uv_size = [
+									native_size[0]/info.scale.z,
+									native_size[1]/info.scale.y
+								]	
+							}
 							var code = info[face_key].transform;
 							if (code >= 16) {
 								var size = face.uv[3] - face.uv[1];
@@ -557,23 +589,18 @@ Plugin.register('csmodel', {
 			icon: 'star',
 			category: 'file',
 			click() {
-				ElecDialogs.showOpenDialog(
-				    currentwindow,
-				    {
-				        title: 'Import csmodel',
-				        dontAddToRecent: true,
-				        filters: [{
-				            name: '',
-				            extensions: ['csmodel']
-				        }]
-				    },
-				function (files) {
-				    if (!files) return;
-				    fs.readFile(files[0], (err, data) => {
-				        if (err) return;
-				        codec.parse(data, files[0])
-				    });
-				});
+				Blockbench.import({
+					extensions: ['csmodel'],
+					type: 'CraftStudio Model',
+					readtype: 'binary',
+					resource_id: 'craftstudio_files'
+				}, files => {
+					codec.parse(files[0].content);
+					csname = files[0].name.replace(".csmodel","").replace(/\s+/g, "_").toLowerCase();
+					Project.name = csname;
+					Project.geometry_name = csname;
+					textures[0].name = csname;
+				})
 			}
 		})
 		export_action = new Action('export_csmodel', {
