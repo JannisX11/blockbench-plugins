@@ -9,7 +9,7 @@ Plugin.register('bakery', {
 	icon: 'storefront',
 	author: 'JannisX11',
 	description: 'Bakes complex animations into simple linear keyframes',
-	version: '1.0.0',
+	version: '1.0.1',
 	min_version: '3.7.0',
 	variant: 'both',
 	onload() {
@@ -71,6 +71,7 @@ Plugin.register('bakery', {
 									keyframes.push(kf);
 									kf.animator = animator;
 								})
+								target_keyframes.push(...new_keyframes);
 							})
 						})
 						target_keyframes.forEach(kf => {
