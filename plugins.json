@@ -243,30 +243,30 @@
 		"version": "0.0.1",
 		"variant": "both"
     },
-    "code_view": {
-        "title": "Code View",
-        "icon": "developer_mode",
-        "author": "wither",
-        "description": "View the model you are currently editing in the raw format",
-        "version": "1.0.1",
-        "variant": "both"
+	"code_view": {
+		"title": "Code View",
+		"icon": "developer_mode",
+		"author": "wither",
+		"description": "View the model you are currently editing in the raw format",
+		"version": "1.0.1",
+		"variant": "both"
+	},
+	"only": {
+		"title": "Only",
+		"icon": "fa-glasses",
+		"author": "JannisX11",
+		"description": "Hide everything except for the selected cubes",
+		"version": "0.0.1",
+		"variant": "both"
     },
-    "only": {
-        "title": "Only",
-        "icon": "fa-glasses",
-        "author": "JannisX11",
-        "description": "Hide everything except for the selected cubes",
-        "version": "0.0.1",
-        "variant": "both"
-    },
-    "datagen_export": {
-      "title": "Datagen Export",
-      "icon": "code",
-      "author": "itsmeow",
-      "description": "Allows exporting to BlockStateProvider datagen code",
-      "version": "1.0.0",
-      "variant": "both"
-    },
+	"datagen_export": {
+		"title": "Datagen Export",
+		"icon": "code",
+		"author": "itsmeow",
+		"description": "Allows exporting to BlockStateProvider datagen code",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 	"duplicate_renamer": {
 		"title": "Duplicate Bone Renamer",
 		"icon": "fa-font",
