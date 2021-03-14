@@ -64,7 +64,7 @@ function shapeWindow() {
             variable: {label: "Variable", type: "select", options: variable_list},
             value: {label: "Value", type: "number", value: 0},
             thickness: {label: "Height/Depth", type: "number", value: 16},
-            x: {label: "X", type: "number", value: 8}, y: {label: "Y", type: "number", value: 8}, z: {label: "Z", type: "number", value: 8},
+            center: {label: "Center Point", type: "vector", value: [8,8,8]},
             axis: {label: "Axis", type: "select", options: axis_list}
         },
         lines: [
@@ -95,9 +95,9 @@ function shapeWindow() {
         $('.dialog#shape_selector input#value').val(localStorage.getItem("value"));
         $('.dialog#shape_selector input#thickness').val(localStorage.getItem("thickness"));
         document.getElementById("axis").selectedIndex = localStorage.getItem("axis");
-        $('.dialog#shape_selector input#x').val(localStorage.getItem("x"));
-        $('.dialog#shape_selector input#y').val(localStorage.getItem("y"));
-        $('.dialog#shape_selector input#z').val(localStorage.getItem("z"));
+        $('.dialog#shape_selector input#center_0').val(localStorage.getItem("center_x"));
+        $('.dialog#shape_selector input#center_1').val(localStorage.getItem("center_y"));
+        $('.dialog#shape_selector input#center_2').val(localStorage.getItem("center_z"));
     }
 
     //Reset Button Click Event
@@ -108,9 +108,9 @@ function shapeWindow() {
         $('.dialog#shape_selector input#value').val(16);
         $('.dialog#shape_selector input#thickness').val(1);
         document.getElementById("axis").selectedIndex=1;
-        $('.dialog#shape_selector input#x').val(8);
-        $('.dialog#shape_selector input#y').val(8);
-        $('.dialog#shape_selector input#z').val(8);
+        $('.dialog#shape_selector input#center_0').val(8);
+        $('.dialog#shape_selector input#center_1').val(8);
+        $('.dialog#shape_selector input#center_2').val(8);
 
         localStorage.removeItem("shape");
         localStorage.removeItem("border");
@@ -118,9 +118,7 @@ function shapeWindow() {
         localStorage.removeItem("value");
         localStorage.removeItem("thickness");
         localStorage.removeItem("axis");
-        localStorage.removeItem("x");
-        localStorage.removeItem("y");
-        localStorage.removeItem("z");
+        localStorage.removeItem("center");
     }
 }
 
@@ -186,8 +184,8 @@ function generateShape(result) {
                 ' <br\>' +
                 'Your value: ' +value
             ], draggable: true, onConfirm() {
-                error_window1.hide();
                 shapeWindow();
+                error_window1.hide();
             }
         });
         error_window1.show();
@@ -195,7 +193,7 @@ function generateShape(result) {
     }
 
     //negative value for thickness
-    var thickness = $('.dialog#shape_selector input#thickness').val().valueOf();
+    var thickness = result.thickness;
     localStorage.setItem("thickness", thickness);
     if (thickness == "" || parseFloat(thickness) <= 0) {
         var error_window2 = new Dialog({
@@ -205,8 +203,8 @@ function generateShape(result) {
                 ' <br\>' +
                 'Your value: ' + thickness
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
         });
         error_window2.show();
@@ -214,11 +212,10 @@ function generateShape(result) {
     }
 
     //invalid Origin
-    var origin = [parseFloat($('.dialog#shape_selector input#x').val()), parseFloat($('.dialog#shape_selector input#y').val()), parseFloat($('.dialog#shape_selector input#z').val())];
-    localStorage.setItem("x", $('.dialog#shape_selector input#x').val().valueOf());
-    localStorage.setItem("y", $('.dialog#shape_selector input#y').val().valueOf());
-    localStorage.setItem("z", $('.dialog#shape_selector input#z').val().valueOf());
-
+    var origin = result.center;
+    localStorage.setItem("center_x", origin[0]);
+    localStorage.setItem("center_y", origin[1]);
+    localStorage.setItem("center_z", origin[2]);
     if (isNaN(origin[0]) || isNaN(origin[1]) || isNaN(origin[2])) {
         var error_window3 = new Dialog({
             title: 'Error', id: 'error_window_3', lines: [
@@ -227,8 +224,8 @@ function generateShape(result) {
                 ' <br\>' +
                 'Your values:\tX:'+origin[0]+' Y:'+origin[1]+' Z:'+origin[2]
             ], draggable: true, onConfirm() {
-                error_window3.hide();
                 shapeWindow();
+                error_window3.hide();
             }
         });
         error_window3.show();
@@ -272,8 +269,8 @@ function borderValues(shape, variable, value, thickness, border, axis, origin) {
                         ' <br\>' +
                         'Your value: ' + border_size + '\t(Maximum size: ' + tmp.toFixed(2) + ')'
                     ], draggable: true, onConfirm() {
-                        error_window1.hide();
                         borderValues(shape, variable, value, thickness, border, axis, origin);
+                        error_window1.hide();
                     }
                 });
                 error_window1.show();
@@ -321,8 +318,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();
@@ -358,8 +355,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();
@@ -395,8 +392,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();
