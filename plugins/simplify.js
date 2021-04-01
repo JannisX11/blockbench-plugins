@@ -3,7 +3,7 @@ Plugin.register("simplify", {
     author: "Ryan Garrett",
     icon: "build",
     description: "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-    version: "0.1.0",
+    version: "0.1.1",
     variant: "both",
     onload() {
         MenuBar.addAction(new Action({
@@ -13,8 +13,8 @@ Plugin.register("simplify", {
             category: "filter",
             click: function(ev) {
                 var dialog = new Dialog({title:"Simplify cubes", id:"simplify_options", lines:[
-                    "<p>Selected cubes only <input type='checkbox' id='restrict'></p>",
-                    "<br/>This will simplify the cubes in the current model. It will do this to the rotation, pivot point, scale, UV, and position of each cube. Ctrl + Z does <b>not</b> work at the moment.<br/>"
+                    "<p>Selected cubes only <input type='checkbox' id='restrict'>",
+                    "<br/>This will simplify the cubes in the current model. It will do this to the rotation, pivot point, size, UV, and position of each cube.<br/></p>"
                 ],
                 "onConfirm": function(data) {
                     try {
@@ -22,45 +22,49 @@ Plugin.register("simplify", {
 
                         dialog.hide();
 
-                        var elements = Outliner.elements;
+                        var cubes = Cube.all;
                         if (restrictToSelected == true) {
                             if (selected.length > 0) {
-                                elements = selected;
+                                cubes = selected;
                             }
                             else {
-                                elements = null;
+                                cubes = null;
                             }
                         }
 
-                        console.log(elements);
+                        // Undo
+                        Undo.initEdit({elements: cubes});
 
-                        // Goes through all of the cubes.
-                        for (let i = 0; i < elements.length; i++) {
+                        // Goes through all of the cubes and simplifies them.
+                        for (let i = 0; i < cubes.length; i++) {
 
                             // to
-                            elements[i].to = Simplify(elements[i].to);
+                            cubes[i].to = Simplify(cubes[i].to);
 
                             // from
-                            elements[i].from = Simplify(elements[i].from);
+                            cubes[i].from = Simplify(cubes[i].from);
 
                             // uv
-                            elements[i].faces.north.uv = Simplify(elements[i].faces.north.uv);
+                            cubes[i].faces.north.uv = Simplify(cubes[i].faces.north.uv);
 
-                            elements[i].faces.east.uv = Simplify(elements[i].faces.east.uv);
+                            cubes[i].faces.east.uv = Simplify(cubes[i].faces.east.uv);
 
-                            elements[i].faces.south.uv = Simplify(elements[i].faces.south.uv);
+                            cubes[i].faces.south.uv = Simplify(cubes[i].faces.south.uv);
 
-                            elements[i].faces.west.uv = Simplify(elements[i].faces.west.uv);
+                            cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv);
 
                             // rotation
-                            elements[i].rotation = Simplify(elements[i].rotation);
+                            cubes[i].rotation = Simplify(cubes[i].rotation);
 
                             // origin
-                            elements[i].origin = Simplify(elements[i].origin);
+                            cubes[i].origin = Simplify(cubes[i].origin);
 
-                            Canvas.adaptObjectPosition(elements[i]);
-                            Canvas.updateUV(elements[i]);
+                            Canvas.adaptObjectPosition(cubes[i]);
+                            Canvas.updateUV(cubes[i]);
                         }
+
+                        Undo.finishEdit("simplify cubes", {elements: cubes});
+
 						updateSelection()
                     }
                     catch {
