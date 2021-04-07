@@ -201,14 +201,6 @@
 		"version": "1.1.0",
 		"variant": "both"
 	},
-	"mcearth_template_loader": {
-		"title": "MCEARTH Template Loader",
-		"icon": "keyboard_capslock",
-		"author": "Ewan Howell",
-		"description": "Load template Minecraft Earth models & textures made compatible for use with OptiFine CEM.",
-		"variant": "both",
-		"min_version": "3.2.0"
-	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
 		"author": "Eliot Lash, Gecko, McHorse",
@@ -242,7 +234,7 @@
 		"description": "Upload models to Light Tracer to share them or to create renders",
 		"version": "0.0.1",
 		"variant": "both"
-    },
+	},
 	"code_view": {
 		"title": "Code View",
 		"icon": "developer_mode",
@@ -258,7 +250,7 @@
 		"description": "Hide everything except for the selected cubes",
 		"version": "0.0.1",
 		"variant": "both"
-    },
+	},
 	"datagen_export": {
 		"title": "Datagen Export",
 		"icon": "code",
