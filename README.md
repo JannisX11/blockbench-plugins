@@ -7,7 +7,7 @@ Create a pull request to submit or update plugins. Open an issue to report bugs 
 
 * Main Blockbench repository: [JannisX11/blockbench](https://github.com/JannisX11/blockbench)
 * Plugin Documentation: [documentation.blockbench.net](https://documentation.blockbench.net)
-* Discord plugin development channel: [#plugin-dev](https://discord.gg/xtauSmR)
+* Discord plugin development channel: [#bb-plugin-dev](https://discord.gg/xtauSmR)
 
 ## Conventions
 
