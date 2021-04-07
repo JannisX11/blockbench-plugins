@@ -301,5 +301,13 @@
 		"version": "2.0.0",
 		"min_version": "3.0.0",
 		"variant": "both"
+	},
+	"simplify": {
+		"title": "Simplify Models",
+		"icon": "build",
+		"author": "Ryan Garrett",
+		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
+		"version": "0.1.1",
+		"variant": "both"
 	}
 }
