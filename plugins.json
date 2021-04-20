@@ -310,7 +310,7 @@
 		"version": "0.1.1",
 		"variant": "both"
 	},
-	"javaanimator": {
+	"java_animator": {
 		"title": "JavaAnimator",
 		"author": "Blocks_n_more",
 		"description": "A simple model animation tool for Minecraft: Java Edition",
