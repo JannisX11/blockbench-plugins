@@ -4,7 +4,7 @@
   var remove;
   var exporter;
   var clear;
-  Plugin.register("javaanimator", {
+  Plugin.register("java_animator", {
     title: "Java Animator",
     author: "Blocks_n_more",
     icon: "fas.fa-draw-polygon",
