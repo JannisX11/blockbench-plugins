@@ -309,5 +309,14 @@
 		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
 		"version": "0.1.1",
 		"variant": "both"
-	}
+	},
+	"javaanimator": {
+		"title": "JavaAnimator",
+		"author": "Blocks_n_more",
+		"description": "A simple model animation tool for Minecraft: Java Edition",
+		"about": "When installed create your model and click the save state button, then once completed a few times export it and you'll get a ZIP with all the models.",
+		"icon": "fas.fa-draw-polygon",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 }
