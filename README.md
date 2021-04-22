@@ -2,6 +2,10 @@
 
 Create a pull request to submit or update plugins. Open an issue to report bugs within plugins and tag the author if possible.
 
+## Installing Plugins
+
+To install a plugin, go to File > Plugins... and switch to the available tab. Find the plugin you want to use and click Install.
+
 
 ## Links
 
