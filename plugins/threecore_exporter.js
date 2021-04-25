@@ -20,7 +20,7 @@ var threeCoreCodec = new Codec('threecore_model', {
 		var cubes = [];
 		Outliner.root.forEach(obj => {
 			if (obj.type === 'cube') {
-				cubes.push(createCube(obj));
+				cubes.push(createCube(obj, true));
 			} else {
 				var cube = recurvBBGroup(obj, createCubeFromGroup(obj, true));
 				
@@ -230,7 +230,7 @@ function dummyCube() {
 	}
 }
 
-function createCube(obj) {	
+function createCube(obj, isRoot) {	
 	var cube = dummyCube();
 	cube.name = obj.name;
 	cube.scale = obj.inflate;
@@ -238,11 +238,23 @@ function createCube(obj) {
 	cube.texture_offset[0] = Math.floor(obj.uv_offset[0]);
 	cube.texture_offset[1] = Math.floor(obj.uv_offset[1]);
 	cube.offset[0] = -obj.to[0];
-	cube.offset[1] = 24-obj.to[1];
+	cube.offset[1] = -obj.to[1] + (isRoot ? 24 : 0); // if it's root, it has no parent, so we have to calculate immediately by 24-value. If it's not a root, meaning it's a child part, we pass the calculation to the parenting method (it corrects the offset and rotation point based on the parent values)
 	cube.offset[2] = obj.from[2];
 	cube.size[0] = obj.size(0, true);
 	cube.size[1] = obj.size(1, true);
 	cube.size[2] = obj.size(2, true);
+	
+	cube.rotation_point[0] = -obj.origin[0];
+	cube.rotation_point[1] = -obj.origin[1] + (isRoot ? 24 : 0);
+	cube.rotation_point[2] = obj.origin[2];
+	cube.rotation[0] = -obj.rotation[0];
+	cube.rotation[1] = -obj.rotation[1];
+	cube.rotation[2] = obj.rotation[2];
+
+	if (cube.name == "top") {
+		console.log(obj);
+		console.log(cube);
+	}
 	
 	return cube;
 }
@@ -275,9 +287,13 @@ function combineCubeIntoGroup(groupObj, groupCube, cube, cubeObj) {
 }
 
 function parentCubeToGroup(groupObj, cubeObj, groupCube, cube) {
-	cube.offset[0] += groupObj.origin[0]; 
-	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
-	cube.offset[2] -= groupObj.origin[2];
+	cube.rotation_point[0] += groupObj.origin[0];
+	cube.rotation_point[1] += groupObj.origin[1];
+	cube.rotation_point[2] -= groupObj.origin[2];
+
+	cube.offset[0] += cubeObj.origin[0]; 
+	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + cubeObj.origin[1]);
+	cube.offset[2] -= cubeObj.origin[2];
 	
 	return cube;
 }
