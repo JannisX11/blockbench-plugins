@@ -1,7 +1,8 @@
 (function() {
-var type;
-var bipedScale;
-var bipedParent = {bipedHead:'head', bipedBody:'chest', bipedRightArm:'right_arm', bipedLeftArm:'left_arm', bipedRightLeg:'right_leg', bipedLeftLeg:'left_leg'};
+let type;
+let bipedScale;
+let bipedParent = {bipedHead:'head', bipedBody:'chest', bipedRightArm:'right_arm', bipedLeftArm:'left_arm', bipedRightLeg:'right_leg', bipedLeftLeg:'left_leg'};
+let visibilityOverrides = {head:true, head_overlay:true, chest:true, chest_overlay:true, right_arm:true, right_arm_overlay:true, left_arm:true, left_arm_overlay:true, right_leg:true, right_leg_overlay:true, left_leg:true, left_leg_overlay:true};
 
 var threeCoreCodec = new Codec('threecore_model', {
 	name: 'ThreeCore Model',
@@ -12,13 +13,14 @@ var threeCoreCodec = new Codec('threecore_model', {
 			type: type,
 			scale: bipedScale,
 			texture_width: Project.texture_width,
-			texture_height: Project.texture_height
+			texture_height: Project.texture_height,
+			visibility_overrides: visibilityOverrides
 		};
 		
 		var cubes = [];
 		Outliner.root.forEach(obj => {
 			if (obj.type === 'cube') {
-				cubes.push(createCube(obj));
+				cubes.push(createCube(obj, true));
 			} else {
 				var cube = recurvBBGroup(obj, createCubeFromGroup(obj, true));
 				
@@ -70,6 +72,90 @@ var dialog = new Dialog({
 		this.hide();
 		bipedScale = formData.bipedScale;
 		type = formData.modelType.replace('_', ':');
+		visibleOverridesDialog.show();
+	}
+});
+
+var visibleOverridesDialog = new Dialog({
+	id: 'threecore_visible_overrides_dialog',
+	title: 'Visiblity Overrides',
+	lines: [
+		'<p>This sets each biped part\'s visibility for all armor item.</p>'
+	], // This shows up as a paragraph in the dialog
+	form: {
+		head: {
+			label: 'Head',
+			type: 'checkbox',
+			value: visibilityOverrides.head
+		},
+		headOverlay: {
+			label: 'Head Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.head_overlay
+		},
+		chest: {
+			label: 'Chest',
+			type: 'checkbox',
+			value: visibilityOverrides.chest
+		},
+		chestOverlay: {
+			label: 'Chest Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.chest_overlay
+		},
+		rightArm: {
+			label: 'Right Arm',
+			type: 'checkbox',
+			value: visibilityOverrides.right_arm
+		},
+		rightArmOverlay: {
+			label: 'Right Arm Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.right_arm_overlay
+		},
+		leftArm: {
+			label: 'Left Arm',
+			type: 'checkbox',
+			value: visibilityOverrides.left_arm
+		},
+		leftArmOverlay: {
+			label: 'Left Arm Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.left_arm_overlay
+		},
+		rightLeg: {
+			label: 'Right Leg',
+			type: 'checkbox',
+			value: visibilityOverrides.right_leg
+		},
+		rightLegOverlay: {
+			label: 'Right Leg Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.right_leg_overlay
+		},
+		leftLeg: {
+			label: 'Left Leg',
+			type: 'checkbox',
+			value: visibilityOverrides.left_leg
+		},
+		leftLegOverlay: {
+			label: 'Left Leg Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.left_leg_overlay
+		}
+	},
+	onConfirm: function(formData) {
+		this.hide();
+		for (let key in formData) {
+			let newKey = "";
+			for (ch of key) {
+				if (ch == ch.toUpperCase()) { // if character is uppercase, we append underscore
+					newKey += "_";
+				}
+				newKey += ch.toLowerCase();
+			}
+			visibilityOverrides[newKey] = formData[key]; // We assign the value of checkbox to our object
+		}
 		threeCoreCodec.export();
 	}
 });
@@ -98,33 +184,33 @@ var filterMenuItem = {
 };
 var exportAction;
 
-Plugin.register('threecore_exporter', {
-	title: 'ThreeCore Exporter',
-	author: 'Lucraft, Spyeedy',
-	icon: 'looks_3',
-	description: 'Let\'s you export your models in the json entity model format for the ThreeCore mod!',
-	version: '1.0.1',
-	variant: 'both',
-	min_version: '3.3.0',
+Plugin.register("threecore_exporter", {
+	title: "ThreeCore Exporter",
+	author: "Lucas, Spyeedy",
+	icon: "looks_3",
+	description: "Let's you export your models in the json entity model format for the ThreeCore mod!",
+	version: "1.0.3",
+	variant: "both",
+	min_version: "3.7.5",
 	onload() {
 		exportAction = new Action({
-			id: 'export_threecore',
-			name: 'Export ThreeCore entity model',
-			icon: 'archive',
-			description: 'Let\'s you export your models in the json entity model format for the ThreeCore mod!',
-			category: 'file',
-			condition: () => Format.id === 'modded_entity',
+			id: "export_threecore",
+			name: "Export ThreeCore entity model",
+			icon: "archive",
+			description: "Let's you export your models in the json entity model format for the ThreeCore mod!",
+			category: "file",
+			condition: () => Format.id === "modded_entity",
 			click: function () {
 				dialog.show();
 			}
 		});
 		
-		MenuBar.addAction(exportAction, 'file.export');
-		MenuBar.addAction(filterMenuItem, 'filter');
+		MenuBar.addAction(exportAction, "file.export");
+		MenuBar.addAction(filterMenuItem, "filter");
 	},
 	onunload() {
 		exportAction.delete();
-		MenuBar.removeAction('filter.filter_threecore');
+		MenuBar.removeAction("filter.filter_threecore");
 		console.clear();
 	}
 });
@@ -143,7 +229,7 @@ function dummyCube() {
 	}
 }
 
-function createCube(obj) {	
+function createCube(obj, isRoot) {	
 	var cube = dummyCube();
 	cube.name = obj.name;
 	cube.scale = obj.inflate;
@@ -151,11 +237,18 @@ function createCube(obj) {
 	cube.texture_offset[0] = Math.floor(obj.uv_offset[0]);
 	cube.texture_offset[1] = Math.floor(obj.uv_offset[1]);
 	cube.offset[0] = -obj.to[0];
-	cube.offset[1] = 24-obj.to[1];
+	cube.offset[1] = -obj.to[1] + (isRoot ? 24 : 0); // if it's root, it has no parent, so we have to calculate immediately by 24-value. If it's not a root, meaning it's a child part, we pass the calculation to the parenting method (it corrects the offset and rotation point based on the parent values)
 	cube.offset[2] = obj.from[2];
 	cube.size[0] = obj.size(0, true);
 	cube.size[1] = obj.size(1, true);
 	cube.size[2] = obj.size(2, true);
+
+	cube.rotation_point[0] = -obj.origin[0];
+	cube.rotation_point[1] = -obj.origin[1] + (isRoot ? 24 : 0);
+	cube.rotation_point[2] = obj.origin[2];
+	cube.rotation[0] = -obj.rotation[0];
+	cube.rotation[1] = -obj.rotation[1];
+	cube.rotation[2] = obj.rotation[2];
 	
 	return cube;
 }
@@ -188,9 +281,13 @@ function combineCubeIntoGroup(groupObj, groupCube, cube, cubeObj) {
 }
 
 function parentCubeToGroup(groupObj, cubeObj, groupCube, cube) {
-	cube.offset[0] += groupObj.origin[0]; 
-	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + groupObj.origin[1]);
-	cube.offset[2] -= groupObj.origin[2];
+	cube.rotation_point[0] += groupObj.origin[0];
+	cube.rotation_point[1] += groupObj.origin[1];
+	cube.rotation_point[2] -= groupObj.origin[2];
+
+	cube.offset[0] += cubeObj.origin[0]; 
+	cube.offset[1] = (-cubeObj.from[1] - cubeObj.size(1, true) + cubeObj.origin[1]);
+	cube.offset[2] -= cubeObj.origin[2];
 	
 	return cube;
 }
@@ -236,7 +333,7 @@ function recurvBBGroup(obj, cube) {
 function generateBipedModel(isAlex) {
 	Blockbench.showMessageBox({
 		title: 'Warning!',
-		message: 'Do not change or delete any auto-generated parts\' name. If you chose "threecore:biped" as the type during export, the auto-generated part will be ignored as a parent for it\'s children parts'
+		message: 'Do not change or delete any auto-generated parts name. If you chose "threecore:biped" as the type during export, the auto-generated part will be ignored as a parent for it\'s children parts'
 	});
 	
 	Undo.initEdit({outliner:true, elements:Outliner.elements});
