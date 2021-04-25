@@ -1,7 +1,8 @@
 (function() {
-var type;
-var bipedScale;
-var bipedParent = {bipedHead:'head', bipedBody:'chest', bipedRightArm:'right_arm', bipedLeftArm:'left_arm', bipedRightLeg:'right_leg', bipedLeftLeg:'left_leg'};
+let type;
+let bipedScale;
+let bipedParent = {bipedHead:'head', bipedBody:'chest', bipedRightArm:'right_arm', bipedLeftArm:'left_arm', bipedRightLeg:'right_leg', bipedLeftLeg:'left_leg'};
+let visibilityOverrides = {head:true, head_overlay:true, chest:true, chest_overlay:true, right_arm:true, right_arm_overlay:true, left_arm:true, left_arm_overlay:true, right_leg:true, right_leg_overlay:true, left_leg:true, left_leg_overlay:true};
 
 var threeCoreCodec = new Codec('threecore_model', {
 	name: 'ThreeCore Model',
@@ -12,7 +13,8 @@ var threeCoreCodec = new Codec('threecore_model', {
 			type: type,
 			scale: bipedScale,
 			texture_width: Project.texture_width,
-			texture_height: Project.texture_height
+			texture_height: Project.texture_height,
+			visibility_overrides: visibilityOverrides
 		};
 		
 		var cubes = [];
@@ -70,6 +72,91 @@ var dialog = new Dialog({
 		this.hide();
 		bipedScale = formData.bipedScale;
 		type = formData.modelType.replace('_', ':');
+		visibleOverridesDialog.show();
+	}
+});
+
+var visibleOverridesDialog = new Dialog({
+	id: 'threecore_visible_overrides_dialog',
+	title: 'Visiblity Overrides',
+	lines: [
+		'<p>This sets each biped part\'s visibility for all armor item.</p>'
+	], // This shows up as a paragraph in the dialog
+	form: {
+		head: {
+			label: 'Head',
+			type: 'checkbox',
+			value: visibilityOverrides.head
+		},
+		headOverlay: {
+			label: 'Head Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.head_overlay
+		},
+		chest: {
+			label: 'Chest',
+			type: 'checkbox',
+			value: visibilityOverrides.chest
+		},
+		chestOverlay: {
+			label: 'Chest Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.chest_overlay
+		},
+		rightArm: {
+			label: 'Right Arm',
+			type: 'checkbox',
+			value: visibilityOverrides.right_arm
+		},
+		rightArmOverlay: {
+			label: 'Right Arm Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.right_arm_overlay
+		},
+		leftArm: {
+			label: 'Left Arm',
+			type: 'checkbox',
+			value: visibilityOverrides.left_arm
+		},
+		leftArmOverlay: {
+			label: 'Left Arm Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.left_arm_overlay
+		},
+		rightLeg: {
+			label: 'Right Leg',
+			type: 'checkbox',
+			value: visibilityOverrides.right_leg
+		},
+		rightLegOverlay: {
+			label: 'Right Leg Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.right_leg_overlay
+		},
+		leftLeg: {
+			label: 'Left Leg',
+			type: 'checkbox',
+			value: visibilityOverrides.left_leg
+		},
+		leftLegOverlay: {
+			label: 'Left Leg Overlay',
+			type: 'checkbox',
+			value: visibilityOverrides.left_leg_overlay
+		}
+	},
+	onConfirm: function(formData) {
+		this.hide();
+		for (let key in formData) {
+			let newKey = "";
+			for (ch of key) {
+				if (ch == ch.toUpperCase()) { // if character is uppercase, we append underscore
+					newKey += "_";
+				}
+				newKey += ch.toLowerCase();
+			}
+			console.log(newKey);
+			visibilityOverrides[newKey] = formData[key]; // We assign the value of checkbox to our object
+		}
 		threeCoreCodec.export();
 	}
 });
