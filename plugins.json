@@ -185,12 +185,12 @@
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
-		"author": "Lucraft, Spyeedy",
+		"author": "Lucas, Spyeedy",
 		"icon": "looks_3",
 		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
-		"version": "1.0.2",
+		"version": "1.0.3",
 		"variant": "both",
-		"min_version": "3.3.0"
+		"min_version": "3.7.5"
 	},
 	"startup_tips": {
 		"title": "Startup Tips",

@@ -154,7 +154,6 @@ var visibleOverridesDialog = new Dialog({
 				}
 				newKey += ch.toLowerCase();
 			}
-			console.log(newKey);
 			visibilityOverrides[newKey] = formData[key]; // We assign the value of checkbox to our object
 		}
 		threeCoreCodec.export();
@@ -185,33 +184,33 @@ var filterMenuItem = {
 };
 var exportAction;
 
-Plugin.register('threecore_exporter', {
-	title: 'ThreeCore Exporter',
-	author: 'Lucraft, Spyeedy',
-	icon: 'looks_3',
-	description: 'Let\'s you export your models in the json entity model format for the ThreeCore mod!',
-	version: '1.0.1',
-	variant: 'both',
-	min_version: '3.3.0',
+Plugin.register("threecore_exporter", {
+	title: "ThreeCore Exporter",
+	author: "Lucas, Spyeedy",
+	icon: "looks_3",
+	description: "Let's you export your models in the json entity model format for the ThreeCore mod!",
+	version: "1.0.3",
+	variant: "both",
+	min_version: "3.7.5",
 	onload() {
 		exportAction = new Action({
-			id: 'export_threecore',
-			name: 'Export ThreeCore entity model',
-			icon: 'archive',
-			description: 'Let\'s you export your models in the json entity model format for the ThreeCore mod!',
-			category: 'file',
-			condition: () => Format.id === 'modded_entity',
+			id: "export_threecore",
+			name: "Export ThreeCore entity model",
+			icon: "archive",
+			description: "Let's you export your models in the json entity model format for the ThreeCore mod!",
+			category: "file",
+			condition: () => Format.id === "modded_entity",
 			click: function () {
 				dialog.show();
 			}
 		});
 		
-		MenuBar.addAction(exportAction, 'file.export');
-		MenuBar.addAction(filterMenuItem, 'filter');
+		MenuBar.addAction(exportAction, "file.export");
+		MenuBar.addAction(filterMenuItem, "filter");
 	},
 	onunload() {
 		exportAction.delete();
-		MenuBar.removeAction('filter.filter_threecore');
+		MenuBar.removeAction("filter.filter_threecore");
 		console.clear();
 	}
 });
@@ -243,18 +242,13 @@ function createCube(obj, isRoot) {
 	cube.size[0] = obj.size(0, true);
 	cube.size[1] = obj.size(1, true);
 	cube.size[2] = obj.size(2, true);
-	
+
 	cube.rotation_point[0] = -obj.origin[0];
 	cube.rotation_point[1] = -obj.origin[1] + (isRoot ? 24 : 0);
 	cube.rotation_point[2] = obj.origin[2];
 	cube.rotation[0] = -obj.rotation[0];
 	cube.rotation[1] = -obj.rotation[1];
 	cube.rotation[2] = obj.rotation[2];
-
-	if (cube.name == "top") {
-		console.log(obj);
-		console.log(cube);
-	}
 	
 	return cube;
 }
@@ -339,7 +333,7 @@ function recurvBBGroup(obj, cube) {
 function generateBipedModel(isAlex) {
 	Blockbench.showMessageBox({
 		title: 'Warning!',
-		message: 'Do not change or delete any auto-generated parts\' name. If you chose "threecore:biped" as the type during export, the auto-generated part will be ignored as a parent for it\'s children parts'
+		message: 'Do not change or delete any auto-generated parts name. If you chose "threecore:biped" as the type during export, the auto-generated part will be ignored as a parent for it\'s children parts'
 	});
 	
 	Undo.initEdit({outliner:true, elements:Outliner.elements});
