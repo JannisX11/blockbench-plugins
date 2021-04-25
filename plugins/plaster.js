@@ -1,3 +1,5 @@
+/// <reference path="../types/index.d.ts" />
+
 (function() {
 
 var plaster_action;
@@ -33,7 +35,9 @@ Plugin.register('plaster', {
 							m: 'Medium',
 							l: 'Large',
 							xl: 'Extra Large',
+							custom: 'Custom',
 						}, default: 'm'},
+						custom: {label: 'Custom Margin (%)', value: 5, min: 0, max: 50, condition: result => result.margin == 'custom'}
 					},
 					onConfirm: function(formData) {
 						this.hide()
@@ -52,11 +56,14 @@ Plugin.register('plaster', {
 							case 'xl':
 								margin = 0.1
 								break;
+							case 'custom':
+								margin = formData.custom/100
+								break;
 						}
-						var fixNumber = function(number, res, isSecond) {
+						var fixNumber = function(number, isSecond) {
 							//Vars
-							var adapted_margin = margin * (16/res)
-							var x1 = (number*res)/16
+							var adapted_margin = margin
+							var x1 = number
 							var edge = x1%1
 							var floor = Math.floor(x1)
 
@@ -69,7 +76,7 @@ Plugin.register('plaster', {
 								edge = adapted_margin
 							}
 							//Return
-							return ((floor+edge)*16)/res
+							return floor+edge
 						}
 						Undo.initEdit({elements: Cube.selected, uv_only: true})
 						//Processing
@@ -77,15 +84,12 @@ Plugin.register('plaster', {
 							for (var face in obj.faces) {
 								if (obj.faces.hasOwnProperty(face) && obj.faces[face].texture !== null) {
 									//Vars
-									var res = 16;
 									var faceTag = obj.faces[face];
-									var texture_match = faceTag.getTexture();
-									if (texture_match) res = texture_match.width;
 
 									//Calculating
 									faceTag.uv.forEach(function(u, i) {
 										var is_mirrored = faceTag.uv[ (i>1?i-2:i) ] > faceTag.uv[i+ (i>1?0:2) ]
-										faceTag.uv[i] = fixNumber(faceTag.uv[i], res, i>1 !== is_mirrored)
+										faceTag.uv[i] = fixNumber(faceTag.uv[i], i>1 !== is_mirrored)
 									})
 								}
 							}

@@ -1,26 +1,38 @@
 (function() {
+	let scale = 1;
+	let position = [0, 0, 0];
+	let new_version = true;
+
+	function getDialogLines() {
+		return [
+			`<div class="dialog_bar">
+				<label class="inline_label">Current Version</label>
+					<input type="checkbox" id="STP-v" oninput="SeatPositioner.update()" checked="${new_version}">
+			</div>`,
+			`<div class="dialog_bar">
+				<label class="inline_label">Model Scale</label>
+					<input type="number" step="0.1" id="STP-s" oninput="SeatPositioner.update()" class="dark_bordered medium_width" value="${scale}">
+			</div>`,
+			`<div class="dialog_bar">
+				<label class="inline_label">X: </label>
+					<input type="number" step="0.1" id="STP-px" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[0]}">
+				<label class="inline_label">Y: </label>
+					<input type="number" step="0.1" id="STP-py" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[1]}">
+				<label class="inline_label">Z: </label>
+					<input type="number" step="0.1" id="STP-pz" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[2]}">
+			</div>`,
+			`<div class="dialog_bar">
+				<input type="text" id="STP-out" class="dark_bordered input_wide code" readonly>
+			</div>`
+		]
+	}
+
 	window.SeatPositioner = {
 		dialog: new Dialog({
 			id: 'seat_position',
 			title: 'Seat Position',
 			width: 540,
-			lines: [
-				`<div class="dialog_bar">
-					<label class="inline_label">Model Scale</label>
-						<input type="number" id="STP-s" oninput="SeatPositioner.update()" class="dark_bordered medium_width" value="1">
-				</div>`,
-				`<div class="dialog_bar">
-					<label class="inline_label">X: </label>
-						<input type="number" id="STP-px" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
-					<label class="inline_label">Y: </label>
-						<input type="number" id="STP-py" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
-					<label class="inline_label">Z: </label>
-						<input type="number" id="STP-pz" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="0">
-				</div>`,
-				`<div class="dialog_bar">
-					<input id="STP-out" class="dark_bordered input_wide code" readonly>
-				</div>`
-			],
+			lines: getDialogLines(),
 			singleButton: true,
 			onConfirm: function() {
 				scene.remove(SeatPositioner.object);
@@ -76,20 +88,22 @@
 			SeatPositioner.init = true;
 		},
 		update: function() {
-			var pos = {
-				x: trimFloatNumber(parseFloat($('#STP-px').val())||0),
-				y: trimFloatNumber(parseFloat($('#STP-py').val())||0),
-				z: trimFloatNumber(parseFloat($('#STP-pz').val())||0)
-			};
+			position[0] = trimFloatNumber(parseFloat($('#STP-px').val())||0);
+			position[1] = trimFloatNumber(parseFloat($('#STP-py').val())||0);
+			position[2] = trimFloatNumber(parseFloat($('#STP-pz').val())||0);
+
+			new_version = $('#STP-v').is(':checked');
+
 			SeatPositioner.object.position.set(
-				pos.x * -16,
-				pos.y * 16,
-				pos.z * -16,
+				position[0] * -16,
+				position[1] * 16 + (new_version ? 2.2 : 0),
+				position[2] * -16,
 			);
-			var s = 1 / (parseFloat( $('#STP-s').val() )||0);
+			scale = parseFloat( $('#STP-s').val() )||0
+			var s = 1 / scale;
 			SeatPositioner.object.scale.set(s, s, s);
 	
-			$('#STP-out').val(`"position": [ ${pos.x}, ${pos.y}, ${pos.z} ]`);
+			$('#STP-out').val(`"position": [${position.join(', ')}]`);
 	
 		}
 	};
@@ -101,7 +115,7 @@
 		icon: 'event_seat',
 		author: 'JannisX11',
 		description: 'Preview seat positions for custom Bedrock entities',
-		version: '1.1.0',
+		version: '1.1.3',
 		variant: 'both',
 		onload() {
 			action = new Action({
@@ -110,6 +124,7 @@
 				icon: 'event_seat',
 				condition: _ => Format.bone_rig,
 				click: () => {
+					SeatPositioner.dialog.lines = getDialogLines();
 					SeatPositioner.dialog.show();
 					$('#blackout').hide(0);
 					SeatPositioner.setupObject();

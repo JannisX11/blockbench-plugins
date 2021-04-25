@@ -9,6 +9,12 @@ function isValidVersion(){
 }
 
 function loadZipToJson(importType){
+	/*Undo.initEdit({
+		outliner: true,
+		uv_mode: true,
+		elements: Outliner.elements,
+		textures: textures
+	});*/
 	ElecDialogs.showOpenDialog(
 		currentwindow,
 		{
@@ -49,6 +55,7 @@ function loadZipToJson(importType){
 			});
 		}
 	);
+	//Undo.finishEdit("Model Import");
 }
 
 var ImportTypeEnum = {
@@ -99,7 +106,7 @@ var helpDialog = new Dialog({
 	title: 'Help - Mod Utils',
 	width: 800,
 	lines: [
-		'<style> .modUtilHelpTabs { position: relative; min-height: 200px; /* This part sucks */ clear: both; margin: 25px 0; } .modUtilsHelpTab { float: left; } .modUtilsHelpTab label { background: var(--color-ui); padding: 10px; border: 1px solid #ccc; margin-left: -1px; position: relative; left: 1px; } .modUtilsHelpTab [type=radio] { display: none; } .modUtilsContent { position: absolute; top: 28px; left: 0; background: var(--color-ui); right: 0; bottom: 0; padding: 20px; border: 1px solid #ccc; height: auto; overflow: auto; } [type=radio]:checked ~ label { background: var(--color-button); border-bottom: 1px solid white; z-index: 2; } [type=radio]:checked ~ label ~ .modUtilsContent { z-index: 1; } </style> <div class="modUtilHelpTabs"> <div class="modUtilsHelpTab"> <input type="radio" id="tab-1" name="tab-group-1" checked> <label for="tab-1">VoxelShapes</label> <div class="modUtilsContent"> <p> In order to use the VoxelShape exporter, you first need to create a new Group, called "VoxelShapes". All cubes that you create within this group, will be added to the voxelShape trough the OR BooleanFunction. Additionally you can add sub groups with the name equaling the BooleanFunctions shown in the image bellow. The first cube in such a group does represent the red cube, all other ones will be combined with an OR BooleanFunction first. </p> <img src="https://dark-roleplay.net/files/VoxelShapeGuideCropped.png" width="100%" height="auto" /> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-2" name="tab-group-1"> <label for="tab-2">Tabula Import</label> <div class="modUtilsContent"> <p>In order to import a Tabula Model, you need to create a new Modded Entity. Now the Point "Import Tabula Model (.tbl)" should be available in your import menu.</p> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-3" name="tab-group-1"> <label for="tab-3">Techne Import</label> <div class="modUtilsContent"> <p>Techne Import is only Available in Modded Entity Mode. A new Menu entry under "File > Import > Import Techne Model (.tcn)" should be available.</p> </div> </div> </div>'
+		'<style> .modUtilHelpTabs { position: relative; min-height: 200px; /* This part sucks */ clear: both; margin: 25px 0; } .modUtilsHelpTab { float: left; } .modUtilsHelpTab label { background: var(--color-ui); padding: 10px; border: 1px solid #ccc; margin-left: -1px; position: relative; left: 1px; } .modUtilsHelpTab [type=radio] { display: none; } .modUtilsContent { position: absolute; top: 28px; left: 0; background: var(--color-ui); right: 0; bottom: 0; padding: 20px; border: 1px solid #ccc; height: auto; overflow: auto; } [type=radio]:checked ~ label { background: var(--color-button); border-bottom: 1px solid white; z-index: 2; } [type=radio]:checked ~ label ~ .modUtilsContent { z-index: 1; } </style> <div class="modUtilHelpTabs"> <div class="modUtilsHelpTab"> <input type="radio" id="tab-1" name="tab-group-1" checked> <label for="tab-1">VoxelShapes</label> <div class="modUtilsContent"> <p> In order to use the VoxelShape exporter, you first need to create a new Group, called "VoxelShapes". All cubes that you create within this group, will be added to the voxelShape trough the OR BooleanFunction. Additionally you can add sub groups with the name equaling the BooleanFunctions shown in the image bellow. The first cube in such a group does represent the red cube, all other ones will be combined with an OR BooleanFunction first. </p> <img src="https://raw.githubusercontent.com/JannisX11/blockbench-plugins/master/src/mod_utils/voxel_shape_guide.png" width="100%" height="auto" /> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-2" name="tab-group-1"> <label for="tab-2">Tabula Import</label> <div class="modUtilsContent"> <p>In order to import a Tabula Model, you need to create a new Modded Entity. Now the Point "Import Tabula Model (.tbl)" should be available in your import menu.</p> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-3" name="tab-group-1"> <label for="tab-3">Techne Import</label> <div class="modUtilsContent"> <p>Techne Import is only Available in Modded Entity Mode. A new Menu entry under "File > Import > Import Techne Model (.tcn)" should be available.</p> </div> </div> </div>'
 	],
 	singleButton: true
 });
@@ -132,11 +139,6 @@ var importTechne = new Action({
 });
 
 function loadTechneModel(data) {
-	Undo.initEdit({
-		outliner: true,
-		bitmap: true,
-		uv_mode: true
-	});
 
 	reader = new DOMParser();
 	var xml = reader.parseFromString(data, "text/xml");
@@ -176,7 +178,7 @@ function loadTechneModel(data) {
 		
 		var cube = new Cube(
 			{
-				shade: mirror,
+				mirror_uv: mirror,
 				name: shape.getAttribute("name"),
 				from: [position[0] + offset[0], position[1] - size[1] - offset[1], position[2] + offset[2]],
 				to: [position[0] + size[0] + offset[0], position[1] - offset[1], position[2] + offset[2] + size[2]],
@@ -185,8 +187,6 @@ function loadTechneModel(data) {
 		).addTo(group);
 		cube.init();
 	}
-
-	Undo.finishEdit('Import Techne Model');
 	Canvas.updateAll()
 }
 
@@ -205,62 +205,106 @@ var importTabula = new Action({
 });
 
 function loadTabulaModel(data) {
-	var json = JSON.parse(data);
-	
-	Project.name = json.modelName;
-	Project.texture_width = json.textureWidth;
-	Project.texture_height = json.textureHeight;
-	
-	var rootGroup = new Group(
-		{
-			name: "root",
-			origin: [0, 24, 0],
-			rotation: [0, 0, 0],
-		}
-		).addTo();
-		rootGroup.init();
 	Undo.initEdit({
 		outliner: true,
 		bitmap: true,
 		uv_mode: true
 	});
-	loadCubesTabula(json.cubes, rootGroup);
+	var json = JSON.parse(data);
+	
+	var version = json.projVersion || 0;
+
+	switch(version){
+		case 5:
+			Project.name = json.modelName;
+			Project.texture_width = json.texWidth;
+			Project.texture_height = json.texHeight;
+			json.parts.forEach(part => readTblBone(part, version, null));
+			Blockbench.showMessageBox({
+				title: "Warning",
+				message: "You imported a version 5 Tabula Model.\nThis Format has some functions which are not supported by Blockbench, for this reason some things might have broken on import."
+			});
+			break;
+		default:
+			Project.name = json.modelName;
+			Project.texture_width = json.textureWidth;
+			Project.texture_height = json.textureHeight;
+			var rootGroup = new Group(
+				{
+					name: "root",
+					origin: [0, 24, 0],
+					rotation: [0, 0, 0],
+				}
+			).addTo();
+			rootGroup.init();
+			json.cubes.forEach(cube => readTblBone(cube, version, rootGroup));
+			break;
+	}
+	
+
 	Undo.finishEdit('Import Tabula Model');
 	Canvas.updateAll();
 }
-	
-function loadCubesTabula(array, parentGroup){
-	var i;
-	for (i = 0; i < array.length; i++) {
-		var obj = array[i];
-		if(typeof obj === "undefined") return;
-	
-		var group = new Group(
-			{
-				name: obj.name,
-				origin: [parentGroup.origin[0] + obj.position[0], parentGroup.origin[1] - obj.position[1], parentGroup.origin[2] + obj.position[2]],
-				rotation: [-obj.rotation[0], obj.rotation[1], obj.rotation[2]],
-			}
-		).addTo(parentGroup);
-		group.init();
-		
-		var cube = new Cube(
-			{
-				shade: obj.txMirror,
-				name: obj.name,
-				from: [group.origin[0] + obj.offset[0], group.origin[1] -  obj.offset[1] - obj.dimensions[1], group.origin[2] +  obj.offset[2]],
-				to: [group.origin[0] + obj.offset[0] + obj.dimensions[0], group.origin[1] - obj.offset[1], group.origin[2] +  obj.offset[2] + obj.dimensions[2]],
-				uv_offset: [obj.txOffset[0],  obj.txOffset[1]],
-			}
-		).addTo(group);
-		cube.init();
-		//Outliner.elements.push(cube);
-		
-		if(obj.hasOwnProperty("children")){
-			var children = obj.children
-			loadCubesTabula(children, group);
-		}
-	};
+
+function readTblBone(json, version, parentGroup){
+	var group;
+	switch(version){
+		case 5:
+			group = new Group({
+				name: json.name,
+				origin: [(parentGroup == null ? 0 : parentGroup.origin[0]) + json.rotPX, (parentGroup == null ?  + 24 : parentGroup.origin[1]) - json.rotPY, (parentGroup == null ? 0 : parentGroup.origin[2]) + json.rotPZ],
+				rotation: [-json.rotAX, json.rotAY, -json.rotAZ]
+			});
+			break;
+		default:
+			group = new Group({
+				name: json.name,
+				origin: [parentGroup.origin[0] + json.position[0], parentGroup.origin[1] - json.position[1], parentGroup.origin[2] + json.position[2]],
+				rotation: [-json.rotation[0], json.rotation[1], json.rotation[2]],
+			});
+			break;
+	}
+	if(parentGroup) group.addTo(parentGroup);
+	group.init();
+
+	switch(version){
+		case 5:
+			if(json.children) json.children.forEach(bone => readTblBone(bone, version, group));
+			if(json.boxes) json.boxes.forEach(cube => readTblCube(cube, version, group, json));
+			break;
+		default:
+			if(json.children) json.children.forEach(bone => readTblBone(bone, version, group));
+			readTblCube(json, version, group);
+			break;
+	}
+}
+
+function readTblCube(json, version, parentGroup, extra){
+	var cube;
+	switch(version){
+		case 5:
+			var pos = [json.posX, json.posY, json.posZ];
+			var dim = [json.dimX, json.dimY, json.dimZ];
+			cube = new Cube({
+				mirror_uv: extra.mirror,
+				name: json.name,
+				from: [parentGroup.origin[0] + pos[0], parentGroup.origin[1] -  pos[1] - dim[1], parentGroup.origin[2] +  pos[2]],
+				to: [parentGroup.origin[0] + pos[0] + dim[0], parentGroup.origin[1] - pos[1], parentGroup.origin[2] +  pos[2] + dim[2]],
+				uv_offset: [extra.texOffX + json.texOffX, extra.texOffY + json.texOffY]
+			});
+			break;
+		default:
+			cube = new Cube({
+				mirror_uv: json.txMirror,
+				name: json.name,
+				from: [parentGroup.origin[0] + json.offset[0], parentGroup.origin[1] -  json.offset[1] - json.dimensions[1], parentGroup.origin[2] +  json.offset[2]],
+				to: [parentGroup.origin[0] + json.offset[0] + json.dimensions[0], parentGroup.origin[1] - json.offset[1], parentGroup.origin[2] +  json.offset[2] + json.dimensions[2]],
+				uv_offset: [json.txOffset[0],  json.txOffset[1]],
+			});
+			break;
+	}
+	if(parentGroup) cube.addTo(parentGroup);
+	cube.init();
 }
 
 /** ---------- Export - VoxelShape ---------- */
@@ -304,7 +348,15 @@ function exportVoxelShape(){
 	
 	var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
 
-	if(voxelShapeGroup === undefined) return;
+	if(voxelShapeGroup === undefined) {
+		Blockbench.showMessageBox({
+			buttons: ["ok"],
+			confirm: 0,
+			title: "Error - VoxelShape Export",
+			message: "You are missing the \"VoxelShapes\" group,\nwhich is required to export a voxel Shape.\nCheck out the Help menu for further instructions."
+		})
+		return;
+	};
 
 	var output = generateShape(voxelShapeGroup, mappings);
 	
@@ -376,7 +428,7 @@ Plugin.register('mod_utils', {
 	author: 'JTK222',
 	icon: 'fa-cubes',
 	description: '',
-	version: '1.4',
+	version: '1.5.2',
 	variant: 'desktop',
 
 	onload() {

@@ -1,0 +1,43 @@
+{
+  "env": {
+    "browser": true,
+    "es2015": true,
+    "jquery": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "globals": {
+    "isApp": "readonly",
+    "display": "readonly",
+    "settings": "readonly",
+    "Animator": "readonly",
+    "Blockbench": "readonly",
+    "Keyframe": "readonly",
+    "BarItems": "readonly",
+    "Format": "readonly",
+    "Action": "readonly",
+    "MenuBar": "readonly",
+    "Project": "readonly",
+    "Cube": "readonly",
+    "Canvas": "readonly",
+    "Undo": "readonly",
+    "ModelFormat": "readonly",
+    "Timeline": "readonly",
+    "BoneAnimator": "readonly",
+    "Codecs": "readonly",
+    "Codec": "readonly",
+    "Merge": "readonly",
+    "Modes": "readonly",
+    "ModelMeta": "readonly",
+    "Group": "readonly",
+    "Outliner": "readonly",
+    "Dialog": "readonly",
+    "DisplayMode": "readonly"
+  },
+  "rules": {
+    "no-console": "error"
+  }
+}

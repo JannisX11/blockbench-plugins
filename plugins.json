@@ -21,6 +21,14 @@
 		"description": "Highlights missing textures by flashing them.",
 		"variant": "both"
 	},
+	"double_sided_cubes": {
+		"title": "Double Sided Cube Generator",
+		"author": "SnaveSutit",
+		"icon": "flip_to_back",
+		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 	"optimize": {
 		"title": "Optimize",
 		"author": "Krozi",
@@ -29,7 +37,7 @@
 		"min_version": "2.0.2",
 		"variant": "both"
 	},
-	"blockmodels_exporter": {
+	"blockmodels-exporter": {
 		"title": "Export to BlockModels.com",
 		"author": "TheDestruc7i0n",
 		"description": "Export models from Blockbench directly to BlockModels.com",
@@ -94,12 +102,12 @@
 		"variant": "both"
 	},
 	"mod_utils": {
-		"title": "Mod Utils",		
+		"title": "Mod Utils",
 		"icon": "present_to_all",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
-		"description": "Allows importing Tabula files, and exporting VoxelShapes", 		
+		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"variant": "desktop",
-		"version": "1.4"
+		"version": "1.5.2"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
@@ -129,8 +137,8 @@
 		"title": "Ambient Occlusion",
 		"icon": "gradient",
 		"author": "JannisX11",
-		"description": "Adds a scalable ambient occlusion shader",
-		"about": "Ambient Occlusion is enabled by default. To disable it, right click the preview and click Ambient Occlusion.",
+		"description": "Adds a screen space ambient occlusion shader",
+		"about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
 		"variant": "both",
 		"min_version": "3.4.0"
 	},
@@ -148,7 +156,7 @@
 		"author": "JannisX11",
 		"description": "Allows to import and export CraftStudio Models (.csmodel).",
 		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
-		"variant": "desktop",
+		"variant": "both",
 		"min_version": "3.2.0"
 	},
 	"screencast_keys": {
@@ -173,7 +181,7 @@
 		"author": "Ewan Howell",
 		"description": "Load template entity models for use with OptiFine CEM.",
 		"variant": "both",
-		"min_version": "3.2.0"
+		"min_version": "3.6.0"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
@@ -183,5 +191,123 @@
 		"version": "1.0.2",
 		"variant": "both",
 		"min_version": "3.3.0"
+	},
+	"startup_tips": {
+		"title": "Startup Tips",
+		"author": "TheOtterlord",
+		"icon": "info",
+		"description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
+		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
+		"version": "1.1.0",
+		"variant": "both"
+	},
+	"animation_utils": {
+		"title": "GeckoLib Animation Utils",
+		"author": "Eliot Lash, Gecko, McHorse",
+		"icon": "movie_filter",
+		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+		"version": "3.0.0",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"modded_entity_fabric": {
+		"title": "Fabric Modded Entity",
+		"author": "Eliot Lash",
+		"icon": "icon-format_java",
+		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
+		"version": "0.2.1",
+		"min_version": "3.6.6",
+		"variant": "both"
+	},
+	"multi-layer": {
+		"title": "Multi-Layer",
+		"icon": "layers",
+		"author": "aidancbrady",
+		"description": "Allows exporting in Forge's multi-layer model format.",
+		"version": "1.0",
+		"variant": "both"
+	},
+	"light_tracer_uploader": {
+		"title": "Light Tracer Uploader",
+		"icon": "fas.fa-feather",
+		"author": "JannisX11",
+		"description": "Upload models to Light Tracer to share them or to create renders",
+		"version": "0.0.1",
+		"variant": "both"
+	},
+	"code_view": {
+		"title": "Code View",
+		"icon": "developer_mode",
+		"author": "wither",
+		"description": "View the model you are currently editing in the raw format",
+		"version": "1.0.1",
+		"variant": "both"
+	},
+	"only": {
+		"title": "Only",
+		"icon": "fa-glasses",
+		"author": "JannisX11",
+		"description": "Hide everything except for the selected cubes",
+		"version": "0.0.1",
+		"variant": "both"
+	},
+	"datagen_export": {
+		"title": "Datagen Export",
+		"icon": "code",
+		"author": "itsmeow",
+		"description": "Allows exporting to BlockStateProvider datagen code",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"duplicate_renamer": {
+		"title": "Duplicate Bone Renamer",
+		"icon": "fa-font",
+		"author": "Gecko",
+		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"texture_stitcher": {
+		"title": "Texture Stitcher",
+		"icon": "fa-compress-arrows-alt",
+		"author": "McHorse",
+		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"arcaniax_block_exporter": {
+		"title": "Bedrock Block Exporter",
+		"icon": "icon-format_block",
+		"author": "Arcaniax",
+		"description": "Helps making new Bedrock blocks (requires experimental mode)",
+		"variant": "desktop",
+		"version": "0.1.1"
+	},
+	"bakery": {
+		"title": "Bakery",
+		"icon": "storefront",
+		"author": "JannisX11",
+		"description": "Bakes complex animations into simple linear keyframes",
+		"version": "1.0.0",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"bedrock_pivot_fix": {
+		"title": "Bedrock Pivot Fix 2",
+		"icon": "gps_fixed",
+		"author": "JannisX11",
+		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
+		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
+		"version": "2.0.0",
+		"min_version": "3.0.0",
+		"variant": "both"
+	},
+	"simplify": {
+		"title": "Simplify Models",
+		"icon": "build",
+		"author": "Ryan Garrett",
+		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
+		"version": "0.1.1",
+		"variant": "both"
 	}
 }
