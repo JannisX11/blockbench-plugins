@@ -33,7 +33,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "lodash": "4.17.19",
+    "lodash": "^4.17.21",
     "semver": "7.3.2"
   }
 }
