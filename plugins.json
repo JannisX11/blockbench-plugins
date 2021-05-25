@@ -1,13 +1,13 @@
 {
-    "resourcepack_creator": {
-        "title": "Resourcepack Creator",
-        "author": "BurnGemios3643 alias patatoe02#1499",
-        "icon": "source",
-        "description": "Create custom models and export them as resourcepack",
-        "about": "This plugin allows you to export your block/item as a resourcepack with fully customizable settings",
-        "version": "1.0.0",
-        "variant": "both",
-    },
+	"resourcepack_creator": {
+		"title": "ResourcepackCreator",
+		"author": "BurnGemios3643 alias patatoe02#1499",
+		"icon": "source",
+		"description": "[java edition only] Create custom models and export them as resourcepack",
+		"about": "[java edition only] This plugin allows you to export your block/item as a resourcepack with fully customizable settings",
+		"version": "1.0.0",
+		"variant": "both"
+	},
 	"animator": {
 		"title": "Java Item Model Animator",
 		"author": "Command master",
