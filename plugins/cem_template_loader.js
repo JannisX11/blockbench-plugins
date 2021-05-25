@@ -12,15 +12,19 @@
 				entities: {}
 			}
 			for (let entity of category.entities){
+				if (typeof entity === "string"){
+					entity = {
+						name: entity
+					}
+				}
+				const model = entityData.models[entity.model || entity.name]
+				const pngPrefix = "data:image/png;base64,"
 				entityCategories[category.name].entities[entity.name] = {
-					name: entity.display_name,
-					model: JSON.stringify(entity.model)
-				}
-				if (entity.hasOwnProperty("texture_name")){
-					entityCategories[category.name].entities[entity.name].texture_name = entity.texture_name
-				}
-				if (entity.hasOwnProperty("texture_data")){
-					entityCategories[category.name].entities[entity.name].texture_data = entity.texture_data
+					name: entity.display_name || entity.name.replace(/_/g, " ").replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1)),
+					file_name: entity.file_name || entity.name,
+					model: model.model,
+					texture_name: Array.isArray(entity.texture_name) ? entity.texture_name.map(e => e + ".png") : (entity.texture_name || entity.name) + ".png",
+					texture_data: typeof model.texture_data === "string" ? pngPrefix + model.texture_data : model.texture_data.map(e => pngPrefix + e)
 				}
 			}
 		}
@@ -46,18 +50,22 @@
 								entity: {label: `${categoryName} Entity`, type: "select", options}
 							},
 							onConfirm(result) {
-								if (Format.id !== "optifine_entity") {
-									if (!newProject(Formats.optifine_entity)) return
-								}
+								newProject(Formats.optifine_entity)
 								let entity = entityCategories[categoryName].entities[result.entity]
 								var model = JSON.parse(entity.model)
+								Project.name = entity.file_name
 								Formats.optifine_entity.codec.parse(model, "")
-								if (entity.texture_data) {
+								if (typeof entity.texture_data === "string"){
 									new Texture({name: entity.texture_name}).fromDataURL(entity.texture_data).add()
+								} else {
+									for (let i = 0; i < entity.texture_data.length; i++){
+										new Texture({name: entity.texture_name[i]}).fromDataURL(entity.texture_data[i]).add()
+									}
 								}
 								Undo.history.length = 0
 								Undo.index = 0
 								this.hide()
+								Blockbench.setStatusBarText(entity.name)
 							}
 						});
 						dialog.show();
@@ -78,25 +86,25 @@
 			icon: "keyboard_capslock",
 		}, "filter")
 	}
-	loadEntities(await fetch("https://www.wynem.com/bot_assets/json/cem_templates.json").then(e => e.json()))
+	loadEntities(await fetch("https://www.wynem.com/bot_assets/json/cem_template_models.json").then(e => e.json()))
 	Plugin.register("cem_template_loader", {
 		title: "CEM Template Loader",
 		icon: "keyboard_capslock",
 		author: "Ewan Howell",
 		description: "Load template entity models for use with OptiFine CEM.",
-		version: "3.1.0",
+		version: "4.0.0",
 		min_version: "3.6.0",
 		variant: "both",
 		onload() {
 			setupPlugin()
 			reloadButton = new Action("cem_template_loader_reload", {
 				name: `Reload CEM Templates`,
-				description: "Reload the CEM Template models",
+				description: "Reload the CEM Template Loader models",
 				icon: "sync",
 				click: async function(){
 					loadEntities(await fetch("https://www.wynem.com/bot_assets/json/cem_templates.json?rnd=" + Math.random()).then(e => e.json()))
 					for (let action of generatorActions){
-						if (typeof action.delete == "function") {
+						if (typeof action.delete === "function") {
 							action.delete()
 						}
 					}
@@ -109,7 +117,7 @@
 		},
 		onunload() {
 			for (let action of generatorActions){
-				if (typeof action.delete == "function") {
+				if (typeof action.delete === "function") {
 					action.delete()
 				}
 			}
