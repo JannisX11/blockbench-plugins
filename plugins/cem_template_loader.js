@@ -102,7 +102,7 @@
 				description: "Reload the CEM Template Loader models",
 				icon: "sync",
 				click: async function(){
-					loadEntities(await fetch("https://www.wynem.com/bot_assets/json/cem_templates.json?rnd=" + Math.random()).then(e => e.json()))
+					loadEntities(await fetch("https://www.wynem.com/bot_assets/json/cem_template_models.json?rnd=" + Math.random()).then(e => e.json()))
 					for (let action of generatorActions){
 						if (typeof action.delete === "function") {
 							action.delete()
