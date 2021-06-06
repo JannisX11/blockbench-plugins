@@ -1,6 +1,7 @@
 (function() {
 	let scale = 1;
 	let position = [0, 0, 0];
+	let rotation = 0;
 	let new_version = true;
 
 	function getDialogLines() {
@@ -20,6 +21,8 @@
 					<input type="number" step="0.1" id="STP-py" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[1]}">
 				<label class="inline_label">Z: </label>
 					<input type="number" step="0.1" id="STP-pz" class="dark_bordered medium_width" oninput="SeatPositioner.update()" value="${position[2]}">
+				<label class="inline_label">Rotation</label>
+					<input type="number" step="1" id="STP-r" oninput="SeatPositioner.update()" class="dark_bordered medium_width" value="${rotation}">
 			</div>`,
 			`<div class="dialog_bar">
 				<input type="text" id="STP-out" class="dark_bordered input_wide code" readonly>
@@ -88,22 +91,31 @@
 			SeatPositioner.init = true;
 		},
 		update: function() {
+			let output = '';
+
 			position[0] = trimFloatNumber(parseFloat($('#STP-px').val())||0);
 			position[1] = trimFloatNumber(parseFloat($('#STP-py').val())||0);
 			position[2] = trimFloatNumber(parseFloat($('#STP-pz').val())||0);
 
 			new_version = $('#STP-v').is(':checked');
-
 			SeatPositioner.object.position.set(
 				position[0] * -16,
 				position[1] * 16 + (new_version ? 2.2 : 0),
 				position[2] * -16,
 			);
+			output = `"position": [${position.join(', ')}]`;
+			
 			scale = parseFloat( $('#STP-s').val() )||0
 			var s = 1 / scale;
 			SeatPositioner.object.scale.set(s, s, s);
-	
-			$('#STP-out').val(`"position": [${position.join(', ')}]`);
+
+			rotation = parseFloat( $('#STP-r').val() )||0;
+			SeatPositioner.object.rotation.y = -Math.degToRad(rotation);
+			if (rotation) {
+				output += `, "rotate_rider_by": ${trimFloatNumber(rotation)}`
+			}
+				
+			$('#STP-out').val(output);
 	
 		}
 	};

@@ -185,12 +185,12 @@
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
-		"author": "Lucraft, Spyeedy",
+		"author": "Lucas, Spyeedy",
 		"icon": "looks_3",
 		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
-		"version": "1.0.2",
+		"version": "1.0.3",
 		"variant": "both",
-		"min_version": "3.3.0"
+		"min_version": "3.7.5"
 	},
 	"startup_tips": {
 		"title": "Startup Tips",
@@ -200,14 +200,6 @@
 		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
 		"version": "1.1.0",
 		"variant": "both"
-	},
-	"mcearth_template_loader": {
-		"title": "MCEARTH Template Loader",
-		"icon": "keyboard_capslock",
-		"author": "Ewan Howell",
-		"description": "Load template Minecraft Earth models & textures made compatible for use with OptiFine CEM.",
-		"variant": "both",
-		"min_version": "3.2.0"
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
@@ -242,7 +234,7 @@
 		"description": "Upload models to Light Tracer to share them or to create renders",
 		"version": "0.0.1",
 		"variant": "both"
-    },
+	},
 	"code_view": {
 		"title": "Code View",
 		"icon": "developer_mode",
@@ -258,7 +250,7 @@
 		"description": "Hide everything except for the selected cubes",
 		"version": "0.0.1",
 		"variant": "both"
-    },
+	},
 	"datagen_export": {
 		"title": "Datagen Export",
 		"icon": "code",

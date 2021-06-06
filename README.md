@@ -2,12 +2,16 @@
 
 Create a pull request to submit or update plugins. Open an issue to report bugs within plugins and tag the author if possible.
 
+## Installing Plugins
+
+To install a plugin, go to File > Plugins... and switch to the available tab. Find the plugin you want to use and click Install.
+
 
 ## Links
 
 * Main Blockbench repository: [JannisX11/blockbench](https://github.com/JannisX11/blockbench)
 * Plugin Documentation: [documentation.blockbench.net](https://documentation.blockbench.net)
-* Discord plugin development channel: [#plugin-dev](https://discord.gg/xtauSmR)
+* Discord plugin development channel: [#bb-plugin-dev](https://discord.gg/xtauSmR)
 
 ## Conventions
 
