@@ -3,7 +3,7 @@ Plugin.register("simplify", {
 	author: "Ryan Garrett",
 	icon: "build",
 	description: "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-	version: "0.1.1",
+	version: "0.2.0",
 	variant: "both",
 	onload() {
 		MenuBar.addAction(new Action({
