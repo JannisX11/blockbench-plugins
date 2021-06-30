@@ -4,6 +4,7 @@
 		"author": "Command master",
 		"description": "Takes two java item models and outputs a zip with a resourcepack and a datapack to make a clear transaction between them in the players hand (the plugin can also work for other animations but the datapack have to be coded manually).",
 		"about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
+		"tags": ["Minecraft: Java Edition"],
 		"icon": "compare",
 		"variant": "both"
 	},
@@ -11,6 +12,7 @@
 		"title": "Bedrock Entity Generator",
 		"author": "Geenium",
 		"description": "Helps making Bedrock entity models",
+		"tags": ["Minecraft: Bedrock Edition"],
 		"icon": "pets",
 		"variant": "both"
 	},
@@ -25,7 +27,8 @@
 		"title": "Double Sided Cube Generator",
 		"author": "SnaveSutit",
 		"icon": "flip_to_back",
-		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.",
+		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
+		"tags": ["Minecraft: Java Edition"],
 		"version": "1.0.0",
 		"variant": "both"
 	},
@@ -47,7 +50,7 @@
 	"plaster": {
 		"title": "Plaster",
 		"author": "JannisX11",
-		"description": "Effectively fixes texture bleeding",
+		"description": "Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps",
 		"icon": "healing",
 		"min_version": "3.0.0",
 		"variant": "both"
@@ -89,6 +92,7 @@
 		"title": "Player Statue Generator",
 		"author": "Wither, dragonmaster95 and 3XH6R",
 		"description": "Generates player shaped models.",
+		"tags": ["Minecraft"],
 		"icon": "accessibility",
 		"min_version": "3.0.0",
 		"variant": "both"
@@ -106,6 +110,7 @@
 		"icon": "present_to_all",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
+		"tags": ["Minecraft: Java Edition"],
 		"variant": "desktop",
 		"version": "1.5.2"
 	},
@@ -122,6 +127,7 @@
 		"icon": "event_seat",
 		"author": "JannisX11",
 		"description": "Preview seat positions for custom Bedrock entities",
+		"tags": ["Minecraft: Bedrock Edition"],
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -130,6 +136,7 @@
 		"icon": "archive",
 		"author": "Wither",
 		"description": "Exports your model as a ready-to-use Minecraft resource pack",
+		"tags": ["Minecraft: Java Edition"],
 		"variant": "both",
 		"min_version": "3.0.0"
 	},
@@ -156,6 +163,7 @@
 		"author": "JannisX11",
 		"description": "Allows to import and export CraftStudio Models (.csmodel).",
 		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
+		"tags": ["CraftStudio"],
 		"variant": "both",
 		"min_version": "3.2.0"
 	},
@@ -206,6 +214,7 @@
 		"author": "Eliot Lash, Gecko, McHorse",
 		"icon": "movie_filter",
 		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+		"tags": ["Minecraft: Java Edition"],
 		"version": "3.0.0",
 		"min_version": "3.7.0",
 		"variant": "both"
@@ -215,6 +224,7 @@
 		"author": "Eliot Lash",
 		"icon": "icon-format_java",
 		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
+		"tags": ["Minecraft: Java Edition"],
 		"version": "0.2.1",
 		"min_version": "3.6.6",
 		"variant": "both"
@@ -224,6 +234,7 @@
 		"icon": "layers",
 		"author": "aidancbrady",
 		"description": "Allows exporting in Forge's multi-layer model format.",
+		"tags": ["Minecraft: Java Edition"],
 		"version": "1.0",
 		"variant": "both"
 	},
@@ -280,6 +291,7 @@
 		"icon": "icon-format_block",
 		"author": "Arcaniax",
 		"description": "Helps making new Bedrock blocks (requires experimental mode)",
+		"tags": ["Minecraft: Bedrock Edition"],
 		"variant": "desktop",
 		"version": "0.1.1"
 	},
@@ -298,6 +310,7 @@
 		"author": "JannisX11",
 		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
+		"tags": ["Minecraft: Bedrock Edition"],
 		"version": "2.0.0",
 		"min_version": "3.0.0",
 		"variant": "both"

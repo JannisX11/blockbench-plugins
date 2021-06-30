@@ -428,6 +428,7 @@ Plugin.register('mod_utils', {
 	author: 'JTK222',
 	icon: 'fa-cubes',
 	description: '',
+    tags: ["Minecraft: Java Edition"],
 	version: '1.5.2',
 	variant: 'desktop',
 

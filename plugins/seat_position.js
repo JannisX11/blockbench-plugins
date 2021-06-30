@@ -127,6 +127,7 @@
 		icon: 'event_seat',
 		author: 'JannisX11',
 		description: 'Preview seat positions for custom Bedrock entities',
+		tags: ["Minecraft: Bedrock Edition"],
 		version: '1.1.3',
 		variant: 'both',
 		onload() {

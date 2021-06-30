@@ -8,6 +8,7 @@ var plugin_data = {
 	icon: 'pets',
 	author: 'Geenium',
 	description: 'Helps making Bedrock entity models',
+	tags: ["Minecraft: Bedrock Edition"],
 	version: '0.3.0',
 	variant: 'both'
 }

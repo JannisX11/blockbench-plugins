@@ -8,7 +8,7 @@ Plugin.register('plaster', {
 	title: 'Plaster',
 	icon: 'healing',
 	author: 'JannisX11',
-	description: 'Fixes texture bleeding (small white or colored lines around the edges of your model)',
+	description: 'Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps',
 	version: '1.0.4',
 	min_version: '3.0.5',
 	variant: 'both',
