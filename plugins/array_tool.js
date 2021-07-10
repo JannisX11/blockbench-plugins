@@ -14,8 +14,8 @@
                 description: 'choose array settings',
                 icon: 'reorder',
                 click: function() { 
-                    if(selected.length != 0) {
-                    var array = new Dialog({
+                    if(Cube.selected != 0) {
+                    var array_dialog = new Dialog({
                         id: 'array_settings_dailog',
                         title: 'Array Settings',
                         form: {
@@ -24,7 +24,7 @@
                         },
                         onConfirm: function(formResult) {
                             Undo.initEdit({elements: Outliner.elements});
-                                array.hide();
+                            array_dialog.hide();
                                 for (var m = 0; m < formResult.array_count; m++) {
                                     array_confirm(formResult.array_offset, m);
                                 }
@@ -59,45 +59,45 @@ function array_confirm(array_offset, m) {
         var array_cube = new Cube({
             name: `${selected_cubes.name}_array`,
             rotation: selected_cubes.rotation,
-            origin: selected_cubes.origin,
-            from:[selected_cubes.to[0] + array_offset[0] + m * array_offset[0], selected_cubes.to[1] + array_offset[1] + m * array_offset[1], selected_cubes.to[2] + array_offset[2] + m * array_offset[2]], 
-            to:[selected_cubes.from[0] + array_offset[0] + m * array_offset[0], selected_cubes.from[1] + array_offset[1] + m * array_offset[1], selected_cubes.from[2] + array_offset[2] + m * array_offset[2]],
+            origin: [selected_cubes.origin[0] + array_offset[0] + m * array_offset[0],selected_cubes.origin[1] + array_offset[1] + m * array_offset[1],selected_cubes.origin[2] + array_offset[2] + m * array_offset[2]],
+            to:[selected_cubes.to[0] + array_offset[0] + m * array_offset[0], selected_cubes.to[1] + array_offset[1] + m * array_offset[1], selected_cubes.to[2] + array_offset[2] + m * array_offset[2]], 
+            from:[selected_cubes.from[0] + array_offset[0] + m * array_offset[0], selected_cubes.from[1] + array_offset[1] + m * array_offset[1], selected_cubes.from[2] + array_offset[2] + m * array_offset[2]],
             color: selected_cubes.color,
             faces: {
-                north: {
+                south: {
                     uv: selected_cubes.faces.south.uv,
                     texture: selected_cubes.faces.south.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.south.rotation,
                     cullface: selected_cubes.faces.south.cullface
                 },
-                south: {
+                north: {
                     uv: selected_cubes.faces.north.uv,
                     texture: selected_cubes.faces.north.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.north.rotation,
                     cullface: selected_cubes.faces.north.cullface
                 },
-                west: {
+                east: {
                     uv: selected_cubes.faces.east.uv,
                     texture: selected_cubes.faces.east.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.east.rotation,
                     cullface: selected_cubes.faces.east.cullface
                 },
-                east: {
+                west: {
                     uv: selected_cubes.faces.west.uv,
                     texture: selected_cubes.faces.west.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.west.rotation,
                     cullface: selected_cubes.faces.west.cullface
                 },
-                up: {
+                down: {
                     uv: selected_cubes.faces.down.uv,
                     texture: selected_cubes.faces.down.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.down.rotation,
                     cullface: selected_cubes.faces.down.cullface
                 },
-                down: {
+                up: {
                     uv: selected_cubes.faces.up.uv,
                     texture: selected_cubes.faces.up.texture,
-                    rotation: 180,
+                    rotation: selected_cubes.faces.up.rotation,
                     cullface: selected_cubes.faces.up.cullface
                 }
             }
@@ -105,3 +105,7 @@ function array_confirm(array_offset, m) {
     });
         Undo.finishEdit('Created Array');
 }
+
+
+/*
+ */
