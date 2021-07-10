@@ -22,13 +22,12 @@
                             array_count: {label: 'Array Count', type: "number", value: 1, min: 0, step: 1},
                             array_offset: {label: "Array Offset", type: "vector", value: [0,0,0], step: 0.25},
                         },
+                        lines: ["<p>Note: Offset Values From A Range Of -0.99 To 0.99 Will Cause Cube Overlapping.</p>"],
                         onConfirm: function(formResult) {
-                            Undo.initEdit({elements: Outliner.elements});
                             array_dialog.hide();
                                 for (var m = 0; m < formResult.array_count; m++) {
                                     array_confirm(formResult.array_offset, m);
                                 }
-                                Undo.finishEdit('Confirmed Array Dialog');
                         }
                     }).show()
                 }
@@ -54,9 +53,14 @@
 })();   
 
 function array_confirm(array_offset, m) {
-    Undo.initEdit({elements: Outliner.elements});
-    selected.forEach(selected_cubes => {
-        var array_cube = new Cube({
+    var added_elements = [];
+    Undo.initEdit({
+        elements: added_elements, 
+        outliner: true, 
+        selection: true,
+    })
+    selected.forEachReverse(selected_cubes => {
+        var copy = new Cube({
             name: `${selected_cubes.name}_array`,
             rotation: selected_cubes.rotation,
             origin: [selected_cubes.origin[0] + array_offset[0] + m * array_offset[0],selected_cubes.origin[1] + array_offset[1] + m * array_offset[1],selected_cubes.origin[2] + array_offset[2] + m * array_offset[2]],
@@ -102,10 +106,13 @@ function array_confirm(array_offset, m) {
                 }
             }
         }).init()
-    });
-        Undo.finishEdit('Created Array');
+        added_elements.push(copy);
+    })
+    BarItems.move_tool.select();
+    Undo.finishEdit('Created Array', {elements: added_elements, outliner: true, selection: true,});
 }
 
 
 /*
  */
+
