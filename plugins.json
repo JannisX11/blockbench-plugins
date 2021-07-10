@@ -322,5 +322,13 @@
 		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
 		"version": "0.2.0",
 		"variant": "both"
+	},
+	"array_tool": {
+		"title": "Array tool",
+	        "author": "Malik12tree",
+	        "icon": "reorder",
+	        "description": "A Plugin that adds an Array tool that creates an array of copies of the base object, with each copy being offset from the previous one in any of a number of possible ways.",
+	        "version": "0.0.1",
+	        "variant": "both"
 	}
 }
