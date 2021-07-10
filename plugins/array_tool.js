@@ -20,7 +20,7 @@
                         title: 'Array Settings',
                         form: {
                             array_count: {label: 'Array Count', type: "number", value: 1, min: 0, step: 1},
-                            array_offset: {label: "Array Offset", type: "vector", value: [1,1,1], step: 0.25},
+                            array_offset: {label: "Array Offset", type: "vector", value: [0,0,0], step: 0.25},
                         },
                         onConfirm: function(formResult) {
                             Undo.initEdit({elements: Outliner.elements});
