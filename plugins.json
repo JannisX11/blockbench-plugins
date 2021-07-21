@@ -334,5 +334,14 @@
 		"version": "0.1.0",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+	"java_animator": {
+		"title": "JavaAnimator",
+		"author": "Blocks_n_more",
+		"description": "A simple model animation tool for Minecraft: Java Edition",
+		"about": "When installed create your model and click the save state button, then once completed a few times export it and you'll get a ZIP with all the models.",
+		"icon": "fas.fa-draw-polygon",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
