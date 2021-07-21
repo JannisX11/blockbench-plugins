@@ -453,11 +453,11 @@ function searchVoxelShapeGroup(elements){
 
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
-	author: 'JTK222',
+	author: 'JTK222 (Maintainer) & Wither (For the Techne importer)',
 	icon: 'fa-cubes',
-	description: '',
+	description: 'Allows importing Tabula files, and exporting VoxelShapes',
     tags: ["Minecraft: Java Edition"],
-	version: '1.5.2',
+	version: '1.6.0',
 	variant: 'desktop',
 
 	onload() {
