@@ -286,7 +286,7 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
         easingBar = document.getElementById('keyframe_bar_easing');
 
         addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
-        addEasingTypeIcons(easingBar, "step", "Switch to Linear easing");
+        addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
         addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
         addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
         addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");
@@ -1143,6 +1143,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
     {
       name: _package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"].title,
       version: _package_json__WEBPACK_IMPORTED_MODULE_2__["version"],
+      await_loading: true,
       onload() {
         Object(_codec__WEBPACK_IMPORTED_MODULE_7__["loadCodec"])();
         Object(_animationUi__WEBPACK_IMPORTED_MODULE_3__["loadAnimationUI"])();
