@@ -426,7 +426,7 @@ function generateShape(group, mappings){
 			}
 		}
 		
-		output = output + ").reduce((v1, v2) -> {return " + mappings.combine + "(v1, v2, " + mappings.booleanFunction + "." + operation + ");});";
+		output = output + ").reduce((v1, v2) -> " + mappings.combine + "(v1, v2, " + mappings.booleanFunction + "." + operation + ")).get();";
 		
 		return output;
 	}else{
