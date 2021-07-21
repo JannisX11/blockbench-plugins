@@ -323,6 +323,17 @@
 		"version": "0.2.0",
 		"variant": "both"
 	},
+	"animation_sliders": {
+		"title": "Animation Sliders",
+		"icon": "fas.fa-bezier-curve",
+		"author": "JannisX11",
+		"description": "Adds multiple sliders to tweak keyframes",
+		"about": "Adds sliders and other tools to modify keyframes:\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+		"tags": ["Animation"],
+		"version": "0.1.0",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
 	"array_tool": {
 		"title": "Array tool",
 	        "author": "Malik12tree",
