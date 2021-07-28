@@ -51,9 +51,9 @@ function openMappingsBox(){
             var file = "";
 
             if(form.mappings === 'momap')
-                file = generateMomapFile();
+                file = generateMomapFile(Format.centered_grid);
             else if(form.mappings === 'mcp'){
-                file = generateMCPFile();
+                file = generateMCPFile(Format.centered_grid);
             }
 
             this.hide();
@@ -69,7 +69,7 @@ function openMappingsBox(){
     .show();
 }
 
-function generateMomapFile(){
+function generateMomapFile(centered){
     var data = "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n";
     for(var i = 0; i< Cube.all.length; ++i){
         var cube = Cube.all[i];
@@ -78,23 +78,23 @@ function generateMomapFile(){
         var to = cube.to;
 
         data += "\tshape = VoxelShapes.join(shape, VoxelShapes.box("
-            .concat(formatVec3(from)).concat(", ")
-            .concat(formatVec3(to))
+            .concat(formatVec3(from, centered)).concat(", ")
+            .concat(formatVec3(to, centered))
             .concat("), IBooleanFunction.OR);\n");
     }
     data += "\n\treturn shape;\n}";
     return data;
 }
 
-function generateMCPFile(){
+function generateMCPFile(centered){
     var data = "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n"
 
     for(var i = 0; i < Cube.all.length; ++i){
         var cube = Cube.all[i];
 
         data += "\tshape = VoxelShapes.combineAndSimplify(shape, VoxelShapes.create("
-            .concat(formatVec3(cube.from)).concat(", ")
-            .concat(formatVec3(cube.to))
+            .concat(formatVec3(cube.from, centered)).concat(", ")
+            .concat(formatVec3(cube.to, centered))
             .concat(");\n");
     }
     data += "\n\treturn shape;\n}"
@@ -106,9 +106,10 @@ function convertToBlockPercent(pixel){
     return pixel / 16.0;
 }
 
-function formatVec3(vector){
+function formatVec3(vector, centered){
+    var offset = centered ? 0.5 : 0;
     return ""
-        .concat(convertToBlockPercent(vector[0])).concat(", ")
+        .concat(convertToBlockPercent(vector[0]) + offset).concat(", ")
         .concat(convertToBlockPercent(vector[1])).concat(", ")
-        .concat(convertToBlockPercent(vector[2]));
+        .concat(convertToBlockPercent(vector[2]) + offset);
 }
