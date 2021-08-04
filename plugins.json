@@ -334,5 +334,15 @@
 		"version": "0.1.0",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+	"mimodel_format": {
+		"title": "Mine-imator Model Exporter",
+		"icon": "fas.fa-box-open",
+		"author": "JannisX11",
+		"description": "Export .mimodel files for Mine-imator and Modelbench",
+		"tags": ["Exporter"],
+		"version": "1.0.0",
+		"min_version": "3.7.0",
+		"variant": "both"
 	}
 }
