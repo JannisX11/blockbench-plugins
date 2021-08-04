@@ -329,7 +329,7 @@
 		"icon": "fas.fa-bezier-curve",
 		"author": "JannisX11",
 		"description": "Adds multiple sliders to tweak keyframes",
-		"about": "Adds sliders and other tools to modify keyframes:\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
 		"tags": ["Animation"],
 		"version": "0.1.0",
 		"min_version": "3.7.0",
@@ -343,5 +343,26 @@
 	        "description": "A Plugin that adds an Array tool that creates an array of copies of the base object, with each copy being offset from the previous one in any of a number of possible ways.",
 	        "version": "0.0.1",
 	        "variant": "both"
+=======
+	},
+	"mimodel_format": {
+		"title": "Mine-imator Model Exporter",
+		"icon": "fas.fa-box-open",
+		"author": "JannisX11",
+		"description": "Export .mimodel files for Mine-imator and Modelbench",
+		"tags": ["Exporter"],
+		"version": "1.0.1",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"minecraft_entity_wizard": {
+		"title": "Minecraft Entity Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "fas.fa-hat-wizard",
+		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.0.0",
+		"min_version": "3.7.0",
+		"variant": "desktop"
 	}
 }
