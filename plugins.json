@@ -344,5 +344,15 @@
 		"version": "1.0.1",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+	"minecraft_entity_wizard": {
+		"title": "Minecraft Entity Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "fas.fa-hat-wizard",
+		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.0.0",
+		"min_version": "3.7.0",
+		"variant": "desktop"
 	}
 }
