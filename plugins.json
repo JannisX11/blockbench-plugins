@@ -341,7 +341,7 @@
 		"author": "JannisX11",
 		"description": "Export .mimodel files for Mine-imator and Modelbench",
 		"tags": ["Exporter"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	}

@@ -10,7 +10,7 @@ Plugin.register('mimodel_format', {
 	author: 'JannisX11',
 	description: 'Export .mimodel files for Mine-imator and Modelbench',
 	tags: ["Exporter"],
-	version: '1.0.0',
+	version: '1.0.1',
 	min_version: '3.7.0',
 	variant: 'both',
 	onload() {
@@ -28,7 +28,7 @@ Plugin.register('mimodel_format', {
 					})
 				}
 
-				var entitymodel = {
+				let entitymodel = {
 					name: Project.geometry_name || Project.name || ''
 				}
 				if (Texture.getDefault()) {
@@ -42,11 +42,11 @@ Plugin.register('mimodel_format', {
 					array[2] *= -1;
 					return array;
 				}
+				let base_part;
 
 				function exportArray(array, target) {
 					array.forEach(item => {
 						if (item instanceof Group) {
-							if (!target.parts) target.parts = [];
 
 							let part = {
 								name: item.name,
@@ -59,15 +59,15 @@ Plugin.register('mimodel_format', {
 							if (item.rotation.find(v => v)) {
 								part.rotation = convertSpace(item.rotation.slice());
 							}
+
+							if (!target.parts) target.parts = [];
 							target.parts.push(part);
 
 							exportArray(item.children, part);
 
 						} else if (item instanceof Cube) {
-							if (!target.shapes) target.shapes = [];
 
 							let shape = {
-								name: item.name,
 								type: 'block',
 								from: convertSpace(item.from.slice().V3_subtract(item.origin)),
 								to: convertSpace(item.to.slice().V3_subtract(item.origin)),
@@ -102,7 +102,22 @@ Plugin.register('mimodel_format', {
 								shape.rotation = convertSpace(item.rotation.slice());
 							}
 
-							target.shapes.push(shape);
+							if (target == entitymodel) {
+								if (!base_part) {
+									base_part = {
+										name: 'model_part',
+										position: [0, 0, 0],
+										shapes: []
+									}
+									if (!entitymodel.parts) entitymodel.parts = [];
+									entitymodel.parts.push(base_part);
+								}
+								base_part.shapes.push(shape);
+
+							} else {
+								if (!target.shapes) target.shapes = [];
+								target.shapes.push(shape);
+							}
 						}
 					})
 				}
