@@ -231,9 +231,7 @@
 	}
 	const setupPlugin = async url => {
 		try{
-			//entityData = await fetch(url).then(e => e.json())
-			const fs = require("fs")
-			entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
+			entityData = await fetch(url).then(e => e.json())
 			entitySelector = new Dialog({
 				id: "cem_template_selector",
 				title: "CEM Template Loader",
