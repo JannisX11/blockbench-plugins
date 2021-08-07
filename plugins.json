@@ -8,14 +8,6 @@
 		"icon": "compare",
 		"variant": "both"
 	},
-	"geenium_bedrock_entity_helper": {
-		"title": "Bedrock Entity Generator",
-		"author": "Geenium",
-		"description": "Helps making Bedrock entity models",
-		"tags": ["Minecraft: Bedrock Edition"],
-		"icon": "pets",
-		"variant": "both"
-	},
 	"missing_texture_highlighter": {
 		"title": "Missing Texture Highlighter",
 		"icon": "flash_on",
