@@ -147,6 +147,7 @@
 				newProject(Formats.optifine_entity)
 				const entity = entityCategories[categoryName].entities[modelID]
 				const model = JSON.parse(entity.model)
+				Project.name = entity.file_name
 				Formats.optifine_entity.codec.parse(model, "")
 				if($("#cem_template_texture_check").is(":checked")){
 					try{
@@ -230,9 +231,9 @@
 	}
 	const setupPlugin = async url => {
 		try{
-			entityData = await fetch(url).then(e => e.json())
-			//const fs = require("fs")
-			//entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
+			//entityData = await fetch(url).then(e => e.json())
+			const fs = require("fs")
+			entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
 			entitySelector = new Dialog({
 				id: "cem_template_selector",
 				title: "CEM Template Loader",
