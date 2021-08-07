@@ -188,8 +188,9 @@
 		"icon": "keyboard_capslock",
 		"author": "Ewan Howell",
 		"description": "Load template entity models for use with OptiFine CEM.",
+		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
 		"variant": "both",
-		"min_version": "3.6.0"
+		"min_version": "3.9.2"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
