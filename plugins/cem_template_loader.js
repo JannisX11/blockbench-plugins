@@ -58,7 +58,7 @@
 						E("input").addClass("dark_bordered").attr("type", "text").on("input", evt => {
 							const query = evt.currentTarget.value.toLowerCase()
 							$(evt.currentTarget).parent().next().find(".cem_template_model").each((i, e) => {
-								const label = $(e).children().first()
+								const label = $(e).children().eq(1)
 								if(~label.text().toLowerCase().indexOf(query)){
 									$(e).css("display", "")
 								}else{
@@ -152,7 +152,7 @@
 				if($("#cem_template_texture_check").is(":checked")){
 					try{
 						for(const [idx, textureName] of (entity.vanilla_textures || [entity.texture_name]).entries()){
-							const r = await fetch(`https://www.wynem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`, {method: "HEAD"})
+							const r = await fetch(`https://www.wyneem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`, {method: "HEAD"})
 							if(r.status < 400){
 								new Texture({name: textureName}).fromDataURL(await getBase64FromUrl(`https://www.wynem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`)).add()
 							}else{
@@ -160,7 +160,7 @@
 							}
 						}
 					}catch{
-						if (typeof entity.texture_data === "string"){
+						if ((typeof entity.texture_data).match(/string|undefined/)){
 							if(entity.texture_data){
 								new Texture({name: entity.texture_name}).fromDataURL(entity.texture_data).add()
 							}else{
@@ -331,8 +331,9 @@
 		icon: "keyboard_capslock",
 		author: "Ewan Howell",
 		description: "Load template entity models for use with OptiFine CEM.",
+		about: "CEM Template Loader helps you create custom entitiy models for use in OptiFine. To use, head to the \"Filter\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit, and load it. When editing entity models, make sure not move any pivot points of main folders, or create any new main folders. After editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, it must be saved in this same location.",
 		tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		version: "5.0.0",
+		version: "5.0.1",
 		min_version: "3.9.2",
 		variant: "both",
 		onload() {
