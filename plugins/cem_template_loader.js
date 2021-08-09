@@ -152,7 +152,7 @@
 				if($("#cem_template_texture_check").is(":checked")){
 					try{
 						for(const [idx, textureName] of (entity.vanilla_textures || [entity.texture_name]).entries()){
-							const r = await fetch(`https://www.wyneem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`, {method: "HEAD"})
+							const r = await fetch(`https://www.wynem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`, {method: "HEAD"})
 							if(r.status < 400){
 								new Texture({name: textureName}).fromDataURL(await getBase64FromUrl(`https://www.wynem.com/bot_assets/images/minecraft/entities/${modelID}${idx || ""}.png`)).add()
 							}else{
