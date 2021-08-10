@@ -8,6 +8,14 @@
 		"icon": "compare",
 		"variant": "both"
 	},
+	"geenium_bedrock_entity_helper": {
+		"title": "Bedrock Entity Model Presets",
+		"author": "Geenium",
+		"description": "Loads Bedrock vanilla entity models up to version 1.13",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"icon": "pets",
+		"variant": "both"
+	},
 	"missing_texture_highlighter": {
 		"title": "Missing Texture Highlighter",
 		"icon": "flash_on",
