@@ -347,7 +347,7 @@
 		"version": "1.0.1",
 		"min_version": "3.7.0",
 		"variant": "both"
-	},
+=	},
 	"image_model_importer": {
 		"title": "Image Model Importer",
 		"author": "Malik12tree",
@@ -356,5 +356,6 @@
 		"version": "0.0.1",
 		"min_version": "3.7.0",
 		"variant": "both"
+=======
 	}
 }
