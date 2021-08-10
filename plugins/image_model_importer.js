@@ -73,7 +73,6 @@ Plugin.register('image_model_importer', {
 
             //X cubes
             for (var Xloop = -1; Xloop < imgWidth; Xloop++) {
-                if(Xloop < imgWidth - 1) {
                     var cubeX = new Cube({
                         name: `${imgfilename}`,
                         from: [-8 + 1 + Xloop * 1, imgHeight - 1, 0],
@@ -108,7 +107,6 @@ Plugin.register('image_model_importer', {
                     added_elements.push(cubeX);
                     XCubes.push(cubeX);
                     AlphaCube_.push(cubeX);
-                }
 
             }
             XCubes.forEach(addedxcubes => {
