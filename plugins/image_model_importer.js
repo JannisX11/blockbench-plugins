@@ -50,7 +50,7 @@ Plugin.register('image_model_importer', {
         }, (files) => {
 
             //file name & path
-            var imgfilename = files[0].name.replace(/\.[^/.]+$/, '')
+            var     imgfilename = files[0].name.replace(/\.[^/.]+$/, '')
             var imgfilepath = files[0].path
 
             //new texture
@@ -110,7 +110,7 @@ Plugin.register('image_model_importer', {
 
             }
             XCubes.forEach(addedxcubes => {
-                for (var Yloop = -1; Yloop < imgHeight; Yloop++) {
+                for (var Yloop = 0; Yloop < imgHeight; Yloop++) {
                     if(Yloop < imgHeight - 1) {
                         var cubeY = new Cube({
                             name: `${imgfilename}`,
