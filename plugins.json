@@ -107,12 +107,12 @@
 	},
 	"mod_utils": {
 		"title": "Mod Utils",
-		"icon": "present_to_all",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+		"icon": "fa-cubes",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"tags": ["Minecraft: Java Edition"],
-		"variant": "desktop",
-		"version": "1.5.2"
+		"version": "1.6.0",
+		"variant": "desktop"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
