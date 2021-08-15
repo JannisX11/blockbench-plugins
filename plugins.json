@@ -1,4 +1,15 @@
 {
+	"armor_stand_animator": {
+		"title": "Armor Stand Animator",
+		"author": "DoubleFelix",
+		"description": "Provides an interface to animate armor stands which is converted to a data pack",
+		"about": "Animations can be run with \"/execute as @e[tag=entity_tag] run function animation_pack:start\". The armor stand for an animation can be summoned with \"/function animation_pack:create\". Supports looping, time scale, block/blockbench unit scale, and start delays.",
+		"tags": ["Java Edition"],
+		"icon": "fa-forward",
+		"version": "1.0.0",
+		"min_version": "3.1.0",
+		"variant": "both"
+	},
 	"animator": {
 		"title": "Java Item Model Animator",
 		"author": "Command master",
