@@ -10,6 +10,7 @@
         icon: 'bar_chart',
         version: '0.0.1',
         variant: 'both',
+        tags: ["Minecraft: Java Edition"],
         onload(){
             menuButton = new Action("export_vs", {
                 name : 'Export Voxel Shape',
