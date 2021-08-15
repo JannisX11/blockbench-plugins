@@ -179,7 +179,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         easingBar = document.getElementById('keyframe_bar_easing');
 
         addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
-        addEasingTypeIcons(easingBar, "step", "Switch to Linear easing");
+        addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
         addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
         addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
         addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");

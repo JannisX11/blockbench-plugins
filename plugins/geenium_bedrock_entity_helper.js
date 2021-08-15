@@ -4,11 +4,11 @@
 
 var plugin_data = {
 	id: 'geenium_bedrock_entity_helper',
-	title: 'Bedrock Entity Generator',
+	title: 'Bedrock Entity Model Presets',
 	icon: 'pets',
 	author: 'Geenium',
-	description: 'Helps making Bedrock entity models',
-	tags: ["Minecraft: Bedrock Edition"],
+	description: 'Loads Bedrock vanilla entity models up to version 1.13',
+	tags: ['Minecraft: Bedrock Edition'],
 	version: '0.3.0',
 	variant: 'both'
 }

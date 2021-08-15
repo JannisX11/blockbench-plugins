@@ -1,7 +1,9 @@
 (function() {
 
 var mappingsKey = "mod_utils.has_mappings";
-var selectedMappingsKey = "mod_utils.selected_mappings";
+var selectedMojMapsMappingsKey = "mod_utils.selected_mappings.mojmaps";
+var selectedMCPMappingsKey = "mod_utils.selected_mappings.mcp";
+var selectedYarnMappingsKey = "mod_utils.selected_mappings.yarn";
 
 function isValidVersion(){
 	var versions = Blockbench.version.split(".");
@@ -86,6 +88,11 @@ var AxisEnum = {
 }
 
 var Mappings = {
+	mojmaps: {
+		createCube: "Block.box",
+		combine: "VoxelShapes.join",
+		booleanFunction: "IBooleanFunction",
+	},
 	mcp: {
 		createCube: "Block.makeCuboidShape",
 		combine: "VoxelShapes.combineAndSimplify",
@@ -329,23 +336,44 @@ var exportVoxelShapeDialog = new Dialog({
 	title: 'VoxelShape Exporter',
 	form: {
 			mappings: {label: 'Mappings', type: 'select', options: {
+				mojmaps: 'MojMaps (Mojang\'s Offical Mappings)',
 				mcp: 'MCP',
 				yarn: 'Yarn'
-			}, default: 'mcp'}
+			}, default: 'mojmaps'}
 	},
 	onConfirm: function(formData) {
 		this.hide();
 		Blockbench.addFlag(mappingsKey);
-		if(mappings === 'yarn')
-			Blockbench.addFlag(selectedMappingsKey);
+		switch(formData.mappings) {
+			case "mojmaps":
+				Blockbench.addFlag(selectedMojMapsMappingsKey);
+				break;
+			case "mcp":
+				Blockbench.addFlag(selectedMCPMappingsKey);
+				break;
+			case "yarn":
+				Blockbench.addFlag(selectedYarnMappingsKey)
+				break;
+		}
 		
 		exportVoxelShape();
 	}
 });
 
 function exportVoxelShape(){
-	var mappings = !Blockbench.hasFlag(selectedMappingsKey) ? Mappings.mcp : Mappings.yarn;
-	
+	var mappings;
+
+	if (Blockbench.hasFlag(selectedMojMapsMappingsKey)) {
+		mappings = Mappings.mojmaps;
+	} else if (Blockbench.hasFlag(selectedMCPMappingsKey)) {
+		mappings = Mappings.mcp;
+	} else if (Blockbench.hasFlag(selectedYarnMappingsKey)) {
+		mappings = Mappings.yarn;
+	} else {
+		exportVoxelShapeDialog.show();
+		return;
+	}
+
 	var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
 
 	if(voxelShapeGroup === undefined) {
@@ -398,7 +426,7 @@ function generateShape(group, mappings){
 			}
 		}
 		
-		output = output + ").reduce((v1, v2) -> {return " + mappings.combine + "(v1, v2, " + mappings.booleanFunction + "." + operation + ");});";
+		output = output + ").reduce((v1, v2) -> " + mappings.combine + "(v1, v2, " + mappings.booleanFunction + "." + operation + ")).get();";
 		
 		return output;
 	}else{
@@ -425,11 +453,11 @@ function searchVoxelShapeGroup(elements){
 
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
-	author: 'JTK222',
+	author: 'JTK222 (Maintainer) & Wither (For the Techne importer)',
 	icon: 'fa-cubes',
-	description: '',
+	description: 'Allows importing Tabula files, and exporting VoxelShapes',
     tags: ["Minecraft: Java Edition"],
-	version: '1.5.2',
+	version: '1.6.0',
 	variant: 'desktop',
 
 	onload() {
