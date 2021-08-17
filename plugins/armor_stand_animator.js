@@ -59,7 +59,7 @@ function generatePackFromAnimation(animationContents, animationName, configData,
 
     let workingDir = `${packName}/functions`;
     // This needs to be run manually by the user
-    zip.file(`${workingDir}/init.mcfunction`, `scoreboard objectives add ${animationName.slice(0, 10)}.isrun dummy\nscoreboard objectives add ${animationName.slice(0, 10)}.timer dummy`)
+    zip.file(`${workingDir}/init.mcfunction`, `scoreboard objectives add ${animationName.slice(0, 10)}.timer dummy`)
     
     zip.file(`${workingDir}/create.mcfunction`, `summon minecraft:armor_stand ~ ~ ~ {Tags:["${configData.entityTag}"],NoBasePlate:1b,ShowArms:1b,Pose:{LeftArm:[0f,0f,0f],RightArm:[0f,0f,0f],LeftLeg:[0f,0f,0f],RightLeg:[0f,0f,0f]}}`)
     let isFirstFrame = true;
