@@ -341,6 +341,7 @@
 		"author": "Spectre0987",
 		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
 		"version": "0.1.0",
-		"variant": "both"
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
 	}
 }
