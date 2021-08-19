@@ -349,6 +349,15 @@
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
+	"voxel_shape_generator": {
+		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
+		"icon": "fa-cubes",
+		"author": "Spectre0987",
+		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
+		"version": "0.1.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
+  },
 	"mimodel_format": {
 		"title": "Mine-imator Model Exporter",
 		"icon": "fas.fa-box-open",
