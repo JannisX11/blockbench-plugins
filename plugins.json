@@ -1,4 +1,15 @@
 {
+	"armor_stand_animator": {
+		"title": "Armor Stand Animator",
+		"author": "DoubleFelix",
+		"description": "Provides an interface to animate armor stands which is converted to a data pack",
+		"about": "To start, create the armor stand model by using the \"Create Armor Stand Model\" action in the toolbar. Then, create your animation in the animate tab as normal. Make sure the snapping value for keyframes is set to 20 for best results. When you're finished, use the \"Export Armor Stand Animation\" action in the toolbar. Change the settings as needed, then click \"Confirm\". Animations can be run with \"/execute as @e[tag=entity_tag] run function animation_pack:start\". The armor stand for an animation can be summoned with \"/function animation_pack:create\". Supports looping, time scale, block/blockbench unit scale, and start delays.",
+		"tags": ["Minecraft: Java Edition"],
+		"icon": "fa-forward",
+		"version": "1.0.0",
+		"min_version": "3.1.0",
+		"variant": "both"
+	},
 	"animator": {
 		"title": "Java Item Model Animator",
 		"author": "Command master",
@@ -9,9 +20,9 @@
 		"variant": "both"
 	},
 	"geenium_bedrock_entity_helper": {
-		"title": "Bedrock Entity Generator",
+		"title": "Bedrock Entity Model Presets",
 		"author": "Geenium",
-		"description": "Helps making Bedrock entity models",
+		"description": "Loads Bedrock vanilla entity models up to version 1.13",
 		"tags": ["Minecraft: Bedrock Edition"],
 		"icon": "pets",
 		"variant": "both"
@@ -107,12 +118,12 @@
 	},
 	"mod_utils": {
 		"title": "Mod Utils",
-		"icon": "present_to_all",
 		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+		"icon": "fa-cubes",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"tags": ["Minecraft: Java Edition"],
-		"variant": "desktop",
-		"version": "1.5.2"
+		"version": "1.6.0",
+		"variant": "desktop"
 	},
 	"structure_importer": {
 		"title": "Structure Importer",
@@ -123,11 +134,12 @@
 		"variant": "both"
 	},
 	"seat_position": {
-		"title": "Seat Position",
+		"title": "Seat Position + Hitbox",
 		"icon": "event_seat",
 		"author": "JannisX11",
-		"description": "Preview seat positions for custom Bedrock entities",
+		"description": "Preview seat positions and hitboxes for custom MC Bedrock entities",
 		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.2.0",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -188,8 +200,10 @@
 		"icon": "keyboard_capslock",
 		"author": "Ewan Howell",
 		"description": "Load template entity models for use with OptiFine CEM.",
+		"about": "CEM Template Loader helps you create custom entitiy models for use in OptiFine. To use, head to the \"Filter\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit, and load it. When editing entity models, make sure not move any pivot points of main folders, or create any new main folders. After editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, it must be saved in this same location.", 
+		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
 		"variant": "both",
-		"min_version": "3.6.0"
+		"min_version": "3.9.2"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
@@ -329,7 +343,7 @@
 		"icon": "fas.fa-bezier-curve",
 		"author": "JannisX11",
 		"description": "Adds multiple sliders to tweak keyframes",
-		"about": "Adds sliders and other tools to modify keyframes:\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
 		"tags": ["Animation"],
 		"version": "0.1.0",
 		"min_version": "3.7.0",
@@ -343,5 +357,25 @@
 		"version": "0.1.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
+  },
+	"mimodel_format": {
+		"title": "Mine-imator Model Exporter",
+		"icon": "fas.fa-box-open",
+		"author": "JannisX11",
+		"description": "Export .mimodel files for Mine-imator and Modelbench",
+		"tags": ["Exporter"],
+		"version": "1.0.1",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"minecraft_entity_wizard": {
+		"title": "Minecraft Entity Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "fas.fa-hat-wizard",
+		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.0.1",
+		"min_version": "3.7.0",
+		"variant": "both"
 	}
 }

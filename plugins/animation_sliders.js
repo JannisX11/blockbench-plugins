@@ -9,7 +9,7 @@
 		icon: 'fas.fa-bezier-curve',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
-		about: `Adds sliders and other tools to modify keyframes:\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
+		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
 		tags: ['Animation'],
 		version: '0.1.0',
 		min_version: '3.7.0',
@@ -67,6 +67,7 @@
 				icon: 'more_vert',
 				condition: () => Animator.open,
 				click() {
+					Timeline.selected.empty();
 					let new_keyframes = [];
 					Undo.initEdit({keyframes: new_keyframes})
 					Timeline.animators.forEach(animator => {
@@ -91,11 +92,18 @@
 				condition: () => Animator.open,
 				click() {
 					Timeline.selected.empty();
-					Timeline.keyframes.forEach(kf => {
-						if (Math.epsilon(kf.time, Timeline.time, 1e-5) && Timeline.vue.channels[kf.channel] !== false) {
-							Timeline.selected.push(kf);
-							kf.selected = true;
-						}
+					Timeline.animators.forEach(animator => {
+						if (animator instanceof BoneAnimator == false) return;
+						channels.forEach(channel => {
+							if (Timeline.vue.channels[channel] !== false && animator[channel] && animator[channel].length) {
+								animator[channel].forEach(kf => {
+									if (Math.epsilon(kf.time, Timeline.time, 1e-5) && Timeline.vue.channels[kf.channel] !== false) {
+										Timeline.selected.push(kf);
+										kf.selected = true;
+									}
+								})
+							}
+						})
 					})
 					updateKeyframeSelection();
 				}
