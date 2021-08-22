@@ -16,8 +16,13 @@ Plugin.register("simplify", {
 					"<p>This will simplify the cubes in the current model. It will do this to the rotation, pivot point, size, UV, and position of each cube.</p>"
 				],
 				form: {
-					selectOnly: {label: "Selected Cubes Only", type: "checkbox"},
-					roundAmount: {label: "Rounding Amount", type: "number", value: 0.25, min: 0, step: 0.25}
+					selectOnly:		{label: "Selected Cubes Only", type: "checkbox"},
+					roundAmount:	{label: "Rounding Amount", type: "number", value: 0.25, min: 0, step: 0.25},
+					position:		{label: "Position", type: "checkbox", value: true},
+					size:			{label: "Size", type: "checkbox", value: true},
+					uv:				{label: "UV", type: "checkbox", value: true},
+					rotation:		{label: "Rotation", type: "checkbox", value: true},
+					origin:			{label: "Origin", type: "checkbox", value: true}
 				},
 				onConfirm: function(data) {
 					if (data.roundAmount == 0) {
@@ -44,30 +49,39 @@ Plugin.register("simplify", {
 						// Goes through all of the cubes and simplifies them
 						for (let i = 0; i < cubes.length; i++) {
 
-							// to
-							cubes[i].to = Simplify(cubes[i].to, data.roundAmount);
+							// Size
+							if (data.position) {
+								// To
+								cubes[i].to = Simplify(cubes[i].to, data.roundAmount);
 
-							// from
-							cubes[i].from = Simplify(cubes[i].from, data.roundAmount);
+								// From
+								cubes[i].from = Simplify(cubes[i].from, data.roundAmount);
+							}
 
-							// uv
-							cubes[i].faces.north.uv = Simplify(cubes[i].faces.north.uv, data.roundAmount);
+							if (data.uv) {
+								// UV
+								cubes[i].faces.north.uv = Simplify(cubes[i].faces.north.uv, data.roundAmount);
 
-							cubes[i].faces.east.uv = Simplify(cubes[i].faces.east.uv, data.roundAmount);
+								cubes[i].faces.east.uv = Simplify(cubes[i].faces.east.uv, data.roundAmount);
 
-							cubes[i].faces.south.uv = Simplify(cubes[i].faces.south.uv, data.roundAmount);
+								cubes[i].faces.south.uv = Simplify(cubes[i].faces.south.uv, data.roundAmount);
 
-							cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv, data.roundAmount);
+								cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv, data.roundAmount);
 
-							cubes[i].faces.up.uv = Simplify(cubes[i].faces.up.uv, data.roundAmount);
+								cubes[i].faces.up.uv = Simplify(cubes[i].faces.up.uv, data.roundAmount);
 
-							cubes[i].faces.down.uv = Simplify(cubes[i].faces.down.uv, data.roundAmount);
+								cubes[i].faces.down.uv = Simplify(cubes[i].faces.down.uv, data.roundAmount);
+							}
 
-							// rotation
-							cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
+							// Rotation
+							if (data.rotation) {
+								cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
+							}
 
-							// origin
-							cubes[i].origin = Simplify(cubes[i].origin, data.roundAmount);
+							// Origin
+							if (data.origin) {
+								cubes[i].origin = Simplify(cubes[i].origin, data.roundAmount);
+							}
 
 							Canvas.adaptObjectPosition(cubes[i]);
 							Canvas.updateUV(cubes[i]);
