@@ -6,6 +6,7 @@
 		title: 'Double Sided Cubes',
 		author: 'SnaveSutit',
 		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.',
+        tags: ["Minecraft: Java Edition"],
 		icon: 'flip_to_back',
 		version: '1.0.0',
 		variant: 'both',

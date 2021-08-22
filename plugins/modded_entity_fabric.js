@@ -133,6 +133,7 @@ Plugin.register('modded_entity_fabric', {
 	icon: 'icon-format_java',
 	author: 'Eliot Lash',
 	description: 'Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap',
+    tags: ["Minecraft: Java Edition"],
 	min_version: '3.6.6',
 	version: '0.2.1',
 	variant: 'both',
