@@ -54,6 +54,10 @@ Plugin.register("simplify", {
 
 							cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv, data.roundAmount);
 
+							cubes[i].faces.up.uv = Simplify(cubes[i].faces.up.uv, data.roundAmount);
+
+							cubes[i].faces.down.uv = Simplify(cubes[i].faces.down.uv, data.roundAmount);
+
 							// rotation
 							cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
 
