@@ -20,6 +20,11 @@ Plugin.register("simplify", {
 					roundAmount: {label: "Rounding Amount", type: "number", value: 0.25, min: 0, step: 0.25}
 				},
 				onConfirm: function(data) {
+					if (data.roundAmount == 0) {
+						Blockbench.showMessage("Failed, Invalid Number.", "center");
+						return;
+					}
+
 					try {
 						dialog.hide();
 
@@ -73,7 +78,7 @@ Plugin.register("simplify", {
 						updateSelection()
 					}
 					catch {
-						Blockbench.showMessage("Failed");
+						Blockbench.showMessage("Failed", "center");
 						updateSelection()
 					}
 				}
