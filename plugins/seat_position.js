@@ -127,24 +127,39 @@
 			title: 'Setup Hitbox',
 			width: 540,
 			form: {
+				type: {label: 'Type', type: 'select', options: {
+					entity_hitbox: 'Entity Hitbox',
+					entity_collision: 'Entity Collision'
+				}},
 				size: {label: 'Size', type: 'vector', value: [1, 1], dimensions: 2, step: 0.1},
-				offset: {label: 'Offset', type: 'vector', value: [0, 0, 0], step: 0.1},
+				offset: {label: 'Offset', type: 'vector', value: [0, 0, 0], step: 0.1, condition: form => form.type == 'entity_hitbox'},
 				result: {type: 'textarea', height: 130, readonly: true}
 			},
 			singleButton: true,
-			onFormChange({size, offset}) {
+			onFormChange({type, size, offset}) {
 				SetupHitboxHelper.object.scale.x = SetupHitboxHelper.object.scale.z = size[0] || '0.01';
 				SetupHitboxHelper.object.scale.y = size[1] || '0.01';
 				SetupHitboxHelper.object.position.fromArray(offset).multiplyScalar(16);
 				SetupHitboxHelper.object.position.set(-offset[0] * 16, offset[1] * 16, -offset[2] * 16);
 
-				let json_result = {
-					width: size[0],
-					height: size[1],
-					pivot: [offset[0], offset[1] + size[1]/2, offset[2]]
+				let result_string;
+				if (type == 'entity_hitbox') {
+					result_string = '"minecraft:custom_hit_test": '+ compileJSON({
+						"hitboxes": [
+							{
+								width: size[0],
+								height: size[1],
+								pivot: [offset[0], offset[1] + size[1]/2, offset[2]]
+							}
+						]
+					})
+				} else {
+					result_string = '"minecraft:collision_box": '+ compileJSON({
+						width: size[0],
+						height: size[1],
+					})
 				}
-				console.log(offset[1] + size[1]/2, offset[1], size[1])
-				$('dialog#setup_hitbox textarea').val(compileJSON(json_result)).addClass('code');
+				$('dialog#setup_hitbox textarea').val(result_string).addClass('code');
 			},
 			onConfirm() {
 				scene.remove(SetupHitboxHelper.object);
@@ -183,15 +198,15 @@
 		}
 	};
 	
-	var seat_pos_action, hitbox_action;
+	var seat_pos_action, hitbox_action, style;
 
 	Plugin.register('seat_position', {
 		title: 'Seat Position + Hitbox',
 		icon: 'event_seat',
 		author: 'JannisX11',
-		description: 'Preview seat positions and hitboxes for custom MC Bedrock entities',
+		description: 'Preview seat positions, hitboxes, and collision boxes for custom MC Bedrock entities',
 		tags: ["Minecraft: Bedrock Edition"],
-		version: '1.2.0',
+		version: '1.2.1',
 		variant: 'both',
 		onload() {
 			seat_pos_action = new Action('open_seat_position', {
@@ -215,10 +230,17 @@
 					$('#blackout').hide(0);
 					SetupHitboxHelper.setupObject();
 					scene.add(SetupHitboxHelper.object);
+					SetupHitboxHelper.dialog.updateFormValues();
 				}
 			})
 			MenuBar.addAction(seat_pos_action, 'filter');
 			MenuBar.addAction(hitbox_action, 'filter');
+
+			style = Blockbench.addCSS(`
+				dialog#setup_hitbox textarea {
+					tab-size: 40px;
+				}
+			`)
 		},
 		onunload() {
 			seat_pos_action.delete();

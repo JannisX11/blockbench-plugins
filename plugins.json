@@ -139,7 +139,7 @@
 		"author": "JannisX11",
 		"description": "Preview seat positions and hitboxes for custom MC Bedrock entities",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
