@@ -197,11 +197,6 @@ function generatePackFromAnimation(animationContents, animationName, configData,
                 click: function() {
                     let startTime = new Date();
 
-                    if (Modes.selected.name != "Animate") {
-                        Blockbench.showQuickMessage("The animate menu must be open", 2000);
-                        return;
-                    }
-
                     // Fetch the selected animation by checking which one as the selected property 
                     let selectedAnimation = Animator.animations.find(q => (q.selected === true));
 
