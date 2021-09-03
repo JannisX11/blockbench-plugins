@@ -69,7 +69,7 @@ function hmImport(canvas, ctx) {
                 id: 'hmD',
                 title: 'Height Map Settings',
                 lines: [
-                    'Note: RGB/RGBA images will be automatically get gray-scaled.' +
+                    'Note: RGB/RGBA images will automatically get gray-scaled.' +
                     '<p>Strength:'+
                     ' <input type="range" id="strength_range"value="255" min="0" max="255" oninput="$(\'label#strength_value\').text(\' \'+parseInt($(\'input#strength_range\').val()))" style="top: 10px; position:relative;">' +
                     '<label id="strength_value"> 255 </label>' +
