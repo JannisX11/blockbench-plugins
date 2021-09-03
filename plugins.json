@@ -377,5 +377,13 @@
 		"version": "1.0.2",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+		"height-map-import": {
+		"title": "Height Map Importer",
+		"author": "Malik12tree",
+		"icon": "line_weight",
+		"description": "Imports Height Maps.",
+		"min_version": "3.0.0",
+		"variant": "both"
 	}
 }
