@@ -210,7 +210,7 @@
       ]
     },
     {
-      "name": "bipedRightArm",
+      "name": "bipedLeftArm",
       "uuid": "d8113cc7-7e10-0930-259e-b8e4211ce9da",
       "export": false,
       "isOpen": true,
@@ -224,7 +224,7 @@
       "children": [
         "aa51170c-8b32-fb62-71f1-58ac0b7785a8",
         {
-          "name": "armorRightArm",
+          "name": "armorLeftArm",
           "uuid": "c5300e23-fd2f-b56c-3552-45d6650e11c6",
           "export": true,
           "isOpen": true,
@@ -242,7 +242,7 @@
       ]
     },
     {
-      "name": "bipedLeftArm",
+      "name": "bipedRightArm",
       "uuid": "3b8901e8-3420-0834-51eb-76d64ff2ae8f",
       "export": false,
       "isOpen": true,
@@ -256,7 +256,7 @@
       "children": [
         "bf2c2539-20e3-cfcc-94c0-491734019889",
         {
-          "name": "armorLeftArm",
+          "name": "armorRightArm",
           "uuid": "b0d41a53-f4ce-53c1-f899-5a2048c90ac2",
           "export": true,
           "isOpen": true,
