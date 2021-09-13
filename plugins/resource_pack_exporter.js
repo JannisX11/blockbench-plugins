@@ -5,6 +5,7 @@ Plugin.register('resource_pack_exporter', {
     icon: 'archive',
     author: 'Wither',
     description: 'Exports your model as a ready-to-use Minecraft resource pack',
+    tags: ["Minecraft: Java Edition"],
     version: '1.0.0',
     min_version: '3.0.0',
     variant: 'both',
