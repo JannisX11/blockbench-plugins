@@ -3,7 +3,7 @@
         title: 'Bone Separator Export',
         icon: 'fa-bone',
         author: 'Malik12tree',
-        description: 'Exports bones separately and puts them in a resource pack automaticly(useful for datapack-ers with animating)',
+        description: 'Exports bones separately and puts them in a resource pack automatically(useful for datapack-ers with animating)',
         min_version: '3.0.0',
         variant: "desktop",
         tags:["Minecraft: Java Edition"],
