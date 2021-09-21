@@ -377,5 +377,14 @@
 		"version": "1.0.2",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+	"bone_separator": {
+		"title": "Bone Separator Export",
+		"author": "Malik12tree",
+       		 "icon": "fa-bone",
+       		 "description": "Exports bones separately and puts them in a resource pack automaticly(useful for datapack-ers with animating)",
+		"tags": ["Minecraft: Java Edition"],
+		"min_version": "3.0.0",
+		"variant": "desktop"
 	}
 }
