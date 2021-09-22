@@ -3,7 +3,7 @@
         title: 'Bone Separator Export',
         icon: 'fa-bone',
         author: 'Malik12tree',
-        description: 'Exports bones separately and puts them in a resource pack automatically(useful for datapack-ers with animating)',
+        description: 'Exports bones separately and puts them in a resource pack automatically(useful for datapack-ers with animating) ',
         min_version: '3.0.0',
         variant: "desktop",
         tags:["Minecraft: Java Edition"],
@@ -103,7 +103,11 @@ function ExportBS(zip, packPath) {
     if (codecJsonBS["textures"]) {
         // console.log("texture")
         for (let f = 0; f < textures.length; f++) {
-            var BStextures = zip.file(["assets/minecraft/textures/" + textures[f].folder + "/" + textures[f].name], textures[f].getBase64(), {base64: true});
+            if (textures[f].folder !== "") {
+                var BStextures = zip.file(["assets/minecraft/textures/" + textures[f].folder + "/" + textures[f].name], textures[f].getBase64(), {base64: true});
+            } else{
+                var BStexture = zip.file(["assets/minecraft/textures/"+ textures[f].name], textures[f].getBase64(), {base64: true});
+            }
         }
     }
 
@@ -114,11 +118,15 @@ function ExportBS(zip, packPath) {
         let BSchild = [];
         let k = 0;
         let g = 0;
+        let b = 0;
         //
         for (let c = 0; c < Group.all[i].children.length; c++) {
             k++
             if (!Group.all[i].children[c].isParent) {
-                BSchild.push(c)
+
+                //
+                BSchild.push(b);
+                b+=1
                 codecJsonBS["groups"].push({
                     "name" : Group.all[i].name,
                     "origin": [Group.all[i].origin[0], Group.all[i].origin[1], Group.all[i].origin[2]],
@@ -126,9 +134,10 @@ function ExportBS(zip, packPath) {
                     "children" : BSchild,
                 });
                 //fix group duplication
-                if (k == (Group.all[i].children.length - g) - 1) {
-                    codecJsonBS["groups"] = [codecJsonBS["groups"][0]]
+                codecJsonBS["groups"] = [codecJsonBS["groups"][0]]
+                if (k == (Group.all[i].children.length - g)) {
                 }
+                //
 
                 let thisElement = Group.all[i].children[c];
                 //Group.all[0].children[0];
