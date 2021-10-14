@@ -167,7 +167,7 @@
 								TextureGenerator.addBitmap({
 									name: entity.texture_name,
 									color: new tinycolor("#00000000"),
-									template: true,
+									type: "template",
 									rearrange_uv: false,
 									resolution: "16"
 								})	
@@ -187,7 +187,7 @@
 							TextureGenerator.addBitmap({
 								name: entity.texture_name,
 								color: new tinycolor("#00000000"),
-								template: true,
+								type: "template",
 								rearrange_uv: false,
 								resolution: "16"
 							})	
@@ -232,14 +232,15 @@
 	const setupPlugin = async url => {
 		try{
 			entityData = await fetch(url).then(e => e.json())
+			//const fs = require("fs")
+			//entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
 			entitySelector = new Dialog({
 				id: "cem_template_selector",
 				title: "CEM Template Loader",
 				width: 980,
-				padding: false,
 				buttons: [],
 				lines: [
-					'<style>#cem_template_wrapper{display:flex;min-height:484px;--color-subtle_text:#91949c}#cem_template_selector{max-width:100%!important}#cem_template_selector>.dialog_handle{margin-bottom:0}#cem_template_sidebar{background-color:var(--color-back);flex:0 0 160px;padding:16px 0;position:relative}#cem_template_sidebar li{width:100%;padding:6px 20px;border-left:4px solid transparent;cursor:pointer}#cem_template_sidebar li:hover{color:var(--color-light)}#cem_template_sidebar li.selected{background-color:var(--color-ui);border-left:4px solid var(--color-accent)}#cem_template_sidebar li .icon_wrapper{margin:0 10px 0 -10px}@media (max-device-width:640px){#cem_template_sidebar{display:none}}ul.cem_template_list{max-height:384px;width:100%;overflow-y:auto}ul.cem_template_list>li{display:flex;flex-direction:column;position:relative;float:left;width:124px;height:92px;margin:2px;background-color:var(--color-back);cursor:pointer;box-sizing:border-box;padding:2px 2px 20px;border:2px solid transparent}ul.cem_template_list>li:hover{background-color:var(--color-selected);color:var(--color-light)}ul.cem_template_list>li.selected{border-color:var(--color-accent);background-color:var(--color-button)}ul.cem_template_list>li.selected:hover{background-color:var(--color-selected)}ul.cem_template_list>li .cem_template_image{height:86px;background-size:contain;background-position:50%;background-repeat:no-repeat;image-rendering:auto}ul.cem_template_list>li label{position:absolute;bottom:0;text-align:center;width:100%;pointer-events:none;text-transform:capitalize}#cem_template_page{display:flex;flex-direction:column;flex-grow:1;padding:5px 20px 45px;position:relative}#cem_template_page>content{flex-grow:1}#cem_template_buttons{flex:40px 0 0;padding:8px;display:flex;position:absolute;bottom:0;right:0;left:0}#cem_template_buttons .bar_spacer{flex-grow:1}#cem_template_texture_check_wrapper{display:flex;align-items:center;margin-left:8px;align-self:stretch}#cem_template_texture_check_wrapper label{padding:4px 8px}#cem_template_load_button{background-color:var(--color-accent);color:var(--color-light);width:112px;margin-right:4px}#cem_template_discord{display:flex;position:absolute;bottom:12px;left:0;right:0;justify-content:center;gap:5px;text-decoration:none;cursor:pointer}#cem_template_discord:hover{color:var(--color-light)}#cem_template_discord span{text-decoration:underline}</style><div id="cem_template_wrapper"><ul id="cem_template_sidebar"><a id="cem_template_discord"><i class="material-icons">bug_report</i><span>Report issues</span></a></ul><div id="cem_template_page"><div id="cem_template_buttons"><div id="cem_template_texture_check_wrapper"><input class="focusable_input" id="cem_template_texture_check" type="checkbox"><label for="cem_template_texture_check">Load vanilla texture</label></div><div class="bar_spacer"></div><button class="confirm_btn" id="cem_template_load_button">Load</button><button class="cancel_btn">Cancel</button></div></div></div>'
+					'<style>#cem_template_background{min-height:493px}#cem_template_wrapper{position:absolute;left:0;top:30px;display:flex;min-height:541px;min-width:100%;--color-subtle_text:#91949c}#cem_template_selector{max-width:100%!important}#cem_template_selector>.dialog_handle{margin-bottom:0}#cem_template_sidebar{background-color:var(--color-back);flex:0 0 160px;padding:16px 0;position:relative}#cem_template_sidebar li{width:100%;padding:6px 20px;border-left:4px solid transparent;cursor:pointer}#cem_template_sidebar li:hover{color:var(--color-light)}#cem_template_sidebar li.selected{background-color:var(--color-ui);border-left:4px solid var(--color-accent)}#cem_template_sidebar li .icon_wrapper{margin:0 10px 0 -10px}@media (max-device-width:640px){#cem_template_sidebar{display:none}}ul.cem_template_list{max-height:384px;width:100%;overflow-y:auto}ul.cem_template_list>li{display:flex;flex-direction:column;position:relative;float:left;width:124px;height:92px;margin:2px;background-color:var(--color-back);cursor:pointer;box-sizing:border-box;padding:2px 2px 20px;border:2px solid transparent}ul.cem_template_list>li:hover{background-color:var(--color-selected);color:var(--color-light)}ul.cem_template_list>li.selected{border-color:var(--color-accent);background-color:var(--color-button)}ul.cem_template_list>li.selected:hover{background-color:var(--color-selected)}ul.cem_template_list>li .cem_template_image{height:86px;background-size:contain;background-position:50%;background-repeat:no-repeat;image-rendering:auto}ul.cem_template_list>li label{position:absolute;bottom:0;text-align:center;width:100%;pointer-events:none;text-transform:capitalize}#cem_template_page{display:flex;flex-direction:column;flex-grow:1;padding:5px 20px 45px;position:relative}#cem_template_page>content{flex-grow:1}#cem_template_buttons{flex:40px 0 0;padding:8px;display:flex;position:absolute;bottom:0;right:0;left:0}#cem_template_buttons .bar_spacer{flex-grow:1}#cem_template_texture_check_wrapper{display:flex;align-items:center;margin-left:8px;align-self:stretch}#cem_template_texture_check_wrapper label{padding:4px 8px}#cem_template_load_button{background-color:var(--color-accent);color:var(--color-light);width:112px;margin-right:4px}#cem_template_discord{display:flex;position:absolute;bottom:12px;left:0;right:0;justify-content:center;gap:5px;text-decoration:none;cursor:pointer}#cem_template_discord:hover{color:var(--color-light)}#cem_template_discord span{text-decoration:underline}</style><div id="cem_template_background"></div><div id="cem_template_wrapper"><ul id="cem_template_sidebar"><a id="cem_template_discord"><i class="material-icons">bug_report</i><span>Report issues</span></a></ul><div id="cem_template_page"><div id="cem_template_buttons"><div id="cem_template_texture_check_wrapper"><input class="focusable_input" id="cem_template_texture_check" type="checkbox"><label for="cem_template_texture_check">Load vanilla texture</label></div><div class="bar_spacer"></div><button class="confirm_btn" id="cem_template_load_button">Load</button><button class="cancel_btn">Cancel</button></div></div></div>'
 				]
 			})
 			shown = false
@@ -267,7 +268,7 @@
 				children: generatorActions,
 				icon: "keyboard_capslock",
 			}, "filter")
-			for(const item of $("#start-files>left>ul>li")){
+			for(const item of $("#start-files>.start_screen_left>ul>li")){
 				if($(item).find("h3").text() === "OptiFine Entity"){
 					$(item).after(E("li").attr("id", "new_cem_template").append(
 						E("span").addClass("icon_wrapper f_left").append(
@@ -333,8 +334,8 @@
 		description: "Load template entity models for use with OptiFine CEM.",
 		about: "CEM Template Loader helps you create custom entitiy models for use in OptiFine. To use, head to the \"Filter\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit, and load it. When editing entity models, make sure not move any pivot points of main folders, or create any new main folders. After editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, it must be saved in this same location.",
 		tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		version: "5.0.1",
-		min_version: "3.9.2",
+		version: "5.3.0",
+		min_version: "4.0.0",
 		variant: "both",
 		onload() {
 			setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json")
