@@ -269,14 +269,6 @@
 		"version": "1.0.1",
 		"variant": "both"
 	},
-	"only": {
-		"title": "Only",
-		"icon": "fa-glasses",
-		"author": "JannisX11",
-		"description": "Hide everything except for the selected cubes",
-		"version": "0.0.1",
-		"variant": "both"
-	},
 	"datagen_export": {
 		"title": "Datagen Export",
 		"icon": "code",

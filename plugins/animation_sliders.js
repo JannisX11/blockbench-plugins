@@ -115,6 +115,7 @@
 				name: 'Tween Keyframes',
 				category: 'animation',
 				condition: () => Animator.open && Timeline.selected.length,
+				settings: {show_bar: true, limit: false, min: 0, max: 100},
 				getInterval(event) {
 					return 5
 				},
@@ -173,6 +174,7 @@
 				name: 'Amplify Keyframes',
 				category: 'animation',
 				condition: () => Animator.open && Timeline.selected.length,
+				settings: {show_bar: true, limit: false, min: 0, max: 200},
 				getInterval(event) {
 					return 5
 				},
@@ -210,6 +212,7 @@
 				name: 'Ease Keyframes',
 				category: 'animation',
 				condition: () => Animator.open && Timeline.selected.length,
+				settings: {show_bar: true, limit: false, min: 0, max: 100},
 				getInterval,
 				get: function() {
 					return easing_value;

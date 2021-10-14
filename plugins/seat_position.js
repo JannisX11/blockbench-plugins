@@ -50,17 +50,16 @@
 			var O = SeatPositioner.object;
 			var M = new THREE.MeshLambertMaterial({color: 0xffffff});
 	
-			var head = new THREE.Mesh(new THREE.CubeGeometry(8, 8, 8), M);
+			var head = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), M);
 			head.position.y = 19;
 			O.add(head);
 	
-			var body = new THREE.Mesh(new THREE.CubeGeometry(8, 12, 4), M);
+			var body = new THREE.Mesh(new THREE.BoxGeometry(8, 12, 4), M);
 			body.position.y = 9;
 			O.add(body);
 	
-			var leg_geo = new THREE.CubeGeometry();
-			leg_geo.from([-2, -12, -2]);
-			leg_geo.to([2, 0, 2]);
+			var leg_geo = new THREE.BoxGeometry();
+			leg_geo.setShape([-2, -12, -2], [2, 0, 2]);
 	
 			var leg_r = new THREE.Mesh(leg_geo, M);
 			leg_r.position.set(2, 3, 0);
@@ -74,9 +73,8 @@
 			leg_l.rotation.z = Math.degToRad(-13);
 			O.add(leg_l);
 	
-			var arm_geo = new THREE.CubeGeometry();
-			arm_geo.from([-2, -10, -2]);
-			arm_geo.to([2, 2, 2]);
+			var arm_geo = new THREE.BoxGeometry();
+			arm_geo.setShape([-2, -10, -2], [2, 2, 2]);
 	
 			var arm_r = new THREE.Mesh(arm_geo, M);
 			arm_r.position.set(6, 13, 0);

@@ -95,7 +95,7 @@ Plugin.register('plaster', {
 							}
 							Canvas.updateUV(obj)
 						})
-						main_uv.loadData()
+						UVEditor.loadData()
 						Undo.finishEdit('plaster')
 					}
 				}).show()

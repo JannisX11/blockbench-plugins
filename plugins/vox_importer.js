@@ -1,332 +1,299 @@
-var plugin_data = {
+/// <reference path="../types/index.d.ts" />
+
+(function() {
+
+let import_vox_action;
+let vox = {};
+
+BBPlugin.register({
 	id: 'vox_importer',
 	title: 'Voxel Importer',  
-	icon: 'view_module', //Material icon name
+	icon: 'view_module',
 	author: 'JannisX11',
 	description: 'Import MagicaVoxel .vox files',
-	version: '1.1.0', //Plugin version
-	variant: 'both' // 'both', 'web', 'desktop'
-}
+	version: '1.2.0',
+	variant: 'both',
+	onload() {
 
-
-var import_vox_action = new Action({
-	id: 'import_vox',
-	name: 'Import Vox',
-	icon: 'view_module',
-	category: 'file',
-	click: function(ev) {
-
-		var file_path;
-		function importVoxFile(cb) {
-
-			Blockbench.import({
-				extensions: ['vox'],
-				type: 'Vox Model',
-				readtype: 'binary',
-			}, (files) => {
-				console.log(files)
-				vox.mainParser.parseUint8Array(new Uint8Array(files[0].content), cb)
-			})
-
-			/*
-			if (Blockbench.isWeb) {
-				$('<input'+
-					' type="file'+
-					'" accept=".vox'+
-				'">').change(function(e) {
-
-					hideDialog()
-
-					var input = this;
-					var reader = new FileReader()
-					reader.onload = function() {
-						vox.mainParser.parseUint8Array(new Uint8Array(reader.result), cb)
-					}
-					if (input.files.length) {
-						reader.readAsArrayBuffer(input.files[0])
-					}
-				}).click()
-
-			} else {
-				console.log('test')
-				electron.dialog.showOpenDialog(currentwindow, {filters: [{name: 'Voxel File', extensions: ['vox']}] }, function (fileNames) {
-					if (fileNames !== undefined) {
-						file_path = fileNames[0]
-						console.log(file_path)
-						vox.mainParser.parseFile(file_path, cb)
-						console.log(2)
-					}
-				})
-			}
-			*/
-		}
-
-		importVoxFile(function(a, data) {
-			if (a) throw a
-			console.log(data)
-
-
-			function processVoxels() {
-				var colors = []
-				var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').init().addTo()
-				var vsize = 16/settings.edit_size.value;
-				if (Format.canvas_limit && !settings.deactivate_size_limit.value) vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
-                buildGrid()
-				var i = 0
-				console.log(data)
-				var matrix = {}
-				function getFromMatrix(x, y, z) {
-					if (matrix[x] && matrix[x][y] && matrix[x][y][z]) {
-						return matrix[x][y][z];
-					} else {
-						return false;
-					}
+		import_vox_action = new Action({
+			id: 'import_vox',
+			name: 'Import Vox',
+			icon: 'view_module',
+			category: 'file',
+			click: function(ev) {
+		
+				var file_path;
+				function importVoxFile(cb) {
+		
+					Blockbench.import({
+						extensions: ['vox'],
+						type: 'Vox Model',
+						readtype: 'binary',
+					}, (files) => {
+						console.log(files)
+						vox.mainParser.parseUint8Array(new Uint8Array(files[0].content), cb)
+					})
 				}
-				function expandTo(box, axis, direction, color, write) {
-					var success = true
-					var axisNumber = getAxisNumber(axis)
-					//u, v, layer
-					var layer = direction ? (box[axis+'2']+1) : (box[axis]-1)
-					var u_axis = getAxisLetter((axisNumber + 1) % 3)
-					var v_axis = getAxisLetter((axisNumber + 2) % 3)
-
-					for (	var u = box[u_axis]; u <= box[u_axis+'2']; u++) {
-						for (var v = box[v_axis]; v <= box[v_axis+'2']; v++) {
-
-							let coords = {}
-							coords[u_axis] = u
-							coords[v_axis] = v
-							coords[axis] = layer
-
-							let voxel = getFromMatrix(coords.x, coords.y, coords.z)
-							if (!voxel || voxel.processed || voxel.colorIndex !== color) {
+		
+				importVoxFile(function(a, data) {
+					if (a) throw a
+					console.log(data)
+		
+		
+					function processVoxels() {
+						var colors = []
+						var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').init().addTo()
+						var vsize = 16/settings.edit_size.value;
+						if (Format.canvas_limit && !settings.deactivate_size_limit.value) vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
+						buildGrid()
+						var i = 0
+						console.log(data)
+						var matrix = {}
+						function getFromMatrix(x, y, z) {
+							if (matrix[x] && matrix[x][y] && matrix[x][y][z]) {
+								return matrix[x][y][z];
+							} else {
 								return false;
-							} else if (write) {
-								voxel.processed = true;
 							}
 						}
-					}
-					if (!write) {
-                        //mark voxels as processed
-						expandTo(box, axis, direction, color, true)
-                        //Box
-                        if (direction) {
-                            box[axis+'2']++;
-                        } else {
-                            box[axis]--;
-                        }
-						return true;
-					}
-				}
-				
-				//Setup Matrix
-				while (i < data.voxels.length) {
-					var voxel = data.voxels[i]
-					if (typeof matrix[voxel.x] !== 'object') {
-						matrix[voxel.x] = {}
-					}
-					if (typeof matrix[voxel.x][voxel.y] !== 'object') {
-						matrix[voxel.x][voxel.y] = {}
-					}
-					if (typeof matrix[voxel.x][voxel.y][voxel.z] !== 'object') {
-						matrix[voxel.x][voxel.y][voxel.z] = voxel
-					}
-					i++;
-				}
-
-				//Scan Model
-				i = 0;
-				while (i < data.voxels.length) {
-					var voxel = data.voxels[i]
-					if (!voxel.processed) {
-						voxel.processed = true
-						var box = {
-							x:  voxel.x, y:  voxel.y, z:  voxel.z,
-							x2: voxel.x, y2: voxel.y, z2: voxel.z
-						}
-						var safety_i = 0
-						var can_expand = [true, true, true, true, true, true]
-						while (can_expand.includes(true) && safety_i < 1024) {
-							can_expand[0] = can_expand[0] && expandTo(box, 'x', true,  voxel.colorIndex)
-							can_expand[1] = can_expand[1] && expandTo(box, 'x', false, voxel.colorIndex)
-							can_expand[2] = can_expand[2] && expandTo(box, 'y', true,  voxel.colorIndex)
-							can_expand[3] = can_expand[3] && expandTo(box, 'y', false, voxel.colorIndex)
-							can_expand[4] = can_expand[4] && expandTo(box, 'z', true,  voxel.colorIndex)
-							can_expand[5] = can_expand[5] && expandTo(box, 'z', false, voxel.colorIndex)
-							safety_i++;
-						}
-						//Cube
-						var cube = new Cube({
-							from: [
-								box.x * vsize,
-								box.z * vsize,
-                                box.y * vsize,
-							],
-							to:   [
-								(box.x2+1) * vsize,
-								(box.z2+1) * vsize,
-                                (box.y2+1) * vsize,
-							],
-							name: 'voxel',
-							display: {
-								autouv: 0
+						function expandTo(box, axis, direction, color, write) {
+							var success = true
+							var axisNumber = getAxisNumber(axis)
+							//u, v, layer
+							var layer = direction ? (box[axis+'2']+1) : (box[axis]-1)
+							var u_axis = getAxisLetter((axisNumber + 1) % 3)
+							var v_axis = getAxisLetter((axisNumber + 2) % 3)
+		
+							for (	var u = box[u_axis]; u <= box[u_axis+'2']; u++) {
+								for (var v = box[v_axis]; v <= box[v_axis+'2']; v++) {
+		
+									let coords = {}
+									coords[u_axis] = u
+									coords[v_axis] = v
+									coords[axis] = layer
+		
+									let voxel = getFromMatrix(coords.x, coords.y, coords.z)
+									if (!voxel || voxel.processed || voxel.colorIndex !== color) {
+										return false;
+									} else if (write) {
+										voxel.processed = true;
+									}
+								}
 							}
-						}).addTo(group, false).init()
-
-						//Color
-						var color = data.palette[voxel.colorIndex]
-						color = color.a + '_' + color.b + '_' + color.g + '_' + color.r
-						var createNew = true
-						colors.forEach(function(c) {
-							if (c.string === color) {
-								createNew = false
-								c.elements.push(cube)
-							}
-						})
-						if (createNew === true) {
-							colors.push({
-								string: color,
-								elements: [cube]
-							})
-						}
-
-					}
-					i++;
-				}
-				/*
-					var voxel = data.voxels[i]
-
-					//Cube
-					var cube = new Cube().extend({
-						from: [
-							voxel.x * vsize,
-							voxel.z * vsize,
-							voxel.y * vsize
-						],
-						to:   [
-							(voxel.x+1) * vsize,
-							(voxel.z+1) * vsize,
-							(voxel.y+1) * vsize
-						],
-						name: 'voxel',
-						display: {
-							autouv: false
-						}
-					}).addTo(group, false)
-					elements.push(cube)
-
-					//Color
-					var color = data.palette[voxel.colorIndex]
-					color = color.a + '_' + color.b + '_' + color.g + '_' + color.r
-					var createNew = true
-					colors.forEach(function(c) {
-						if (c.string === color) {
-							createNew = false
-							c.elements.push(cube)
-						}
-					})
-					if (createNew === true) {
-						colors.push({
-							string: color,
-							elements: [cube]
-						})
-					}*/
-
-				var pos = {x: 0, y: 0}
-				var atlas_size = 16
-				colors.forEach(function(c) {
-					c.elements.forEach(function(s) {
-						for (var face in s.faces) {
-							if (s.faces.hasOwnProperty(face)) {
-								s.faces[face].uv = [
-									pos.x + 0.25,
-									pos.y + 0.25,
-									pos.x + 0.75,
-									pos.y + 0.75
-								]
+							if (!write) {
+								//mark voxels as processed
+								expandTo(box, axis, direction, color, true)
+								//Box
+								if (direction) {
+									box[axis+'2']++;
+								} else {
+									box[axis]--;
+								}
+								return true;
 							}
 						}
-					})
-					c.position = {x: pos.x, y: pos.y}
-					//Position for next pixel
-					if (pos.x > 14) {
-						pos.x = 0
-						if (pos.y > 14) {
-							pos = {x: 15, z: 15}
-						} else {
-							pos.y += 1
+						
+						//Setup Matrix
+						while (i < data.voxels.length) {
+							var voxel = data.voxels[i]
+							if (typeof matrix[voxel.x] !== 'object') {
+								matrix[voxel.x] = {}
+							}
+							if (typeof matrix[voxel.x][voxel.y] !== 'object') {
+								matrix[voxel.x][voxel.y] = {}
+							}
+							if (typeof matrix[voxel.x][voxel.y][voxel.z] !== 'object') {
+								matrix[voxel.x][voxel.y][voxel.z] = voxel
+							}
+							i++;
 						}
-					} else {
-						pos.x += 1
-					}
-				})
-
-				TextureGenerator.addBitmap({
-					res: 16,
-					color: new tinycolor(0x00000000),
-					name: 'voxel_atlas',
-					folder: 'blocks',
-					particle: true
-				}, function (texture) {
-					group.select()
-					texture.load(_ => {
-
-						texture.edit(function(canvas) {
-							let ctx = canvas.getContext('2d');
-							colors.forEach(function(c) {
-								var c_vals = c.string.split('_')
-								c_vals.forEach(function(cv, cvi) {
-									c_vals[cvi] = parseInt(cv)
+		
+						//Scan Model
+						i = 0;
+						while (i < data.voxels.length) {
+							var voxel = data.voxels[i]
+							if (!voxel.processed) {
+								voxel.processed = true
+								var box = {
+									x:  voxel.x, y:  voxel.y, z:  voxel.z,
+									x2: voxel.x, y2: voxel.y, z2: voxel.z
+								}
+								var safety_i = 0
+								var can_expand = [true, true, true, true, true, true]
+								while (can_expand.includes(true) && safety_i < 1024) {
+									can_expand[0] = can_expand[0] && expandTo(box, 'x', true,  voxel.colorIndex)
+									can_expand[1] = can_expand[1] && expandTo(box, 'x', false, voxel.colorIndex)
+									can_expand[2] = can_expand[2] && expandTo(box, 'y', true,  voxel.colorIndex)
+									can_expand[3] = can_expand[3] && expandTo(box, 'y', false, voxel.colorIndex)
+									can_expand[4] = can_expand[4] && expandTo(box, 'z', true,  voxel.colorIndex)
+									can_expand[5] = can_expand[5] && expandTo(box, 'z', false, voxel.colorIndex)
+									safety_i++;
+								}
+								//Cube
+								var cube = new Cube({
+									from: [
+										box.x * vsize,
+										box.z * vsize,
+										box.y * vsize,
+									],
+									to:   [
+										(box.x2+1) * vsize,
+										(box.z2+1) * vsize,
+										(box.y2+1) * vsize,
+									],
+									name: 'voxel',
+									display: {
+										autouv: 0
+									}
+								}).addTo(group, false).init()
+		
+								//Color
+								var color = data.palette[voxel.colorIndex]
+								color = color.a + '_' + color.b + '_' + color.g + '_' + color.r
+								var createNew = true
+								colors.forEach(function(c) {
+									if (c.string === color) {
+										createNew = false
+										c.elements.push(cube)
+									}
 								})
-								//var hex_color = Jimp.rgbaToInt(c_vals[3], c_vals[2], c_vals[1], c_vals[0])
-								let hex_color = tinycolor({r: c_vals[3], g: c_vals[2], b: c_vals[1], a: c_vals[0]}).toRgbString();
-								ctx.fillStyle = hex_color
-								ctx.fillRect(c.position.x, c.position.y, 1, 1);
-								console.log(hex_color, c.position, c)
+								if (createNew === true) {
+									colors.push({
+										string: color,
+										elements: [cube]
+									})
+								}
+		
+							}
+							i++;
+						}
+						/*
+							var voxel = data.voxels[i]
+		
+							//Cube
+							var cube = new Cube().extend({
+								from: [
+									voxel.x * vsize,
+									voxel.z * vsize,
+									voxel.y * vsize
+								],
+								to:   [
+									(voxel.x+1) * vsize,
+									(voxel.z+1) * vsize,
+									(voxel.y+1) * vsize
+								],
+								name: 'voxel',
+								display: {
+									autouv: false
+								}
+							}).addTo(group, false)
+							elements.push(cube)
+		
+							//Color
+							var color = data.palette[voxel.colorIndex]
+							color = color.a + '_' + color.b + '_' + color.g + '_' + color.r
+							var createNew = true
+							colors.forEach(function(c) {
+								if (c.string === color) {
+									createNew = false
+									c.elements.push(cube)
+								}
 							})
+							if (createNew === true) {
+								colors.push({
+									string: color,
+									elements: [cube]
+								})
+							}*/
+		
+						var pos = {x: 0, y: 0}
+						colors.forEach(function(c) {
+							c.elements.forEach(function(s) {
+								for (var face in s.faces) {
+									if (s.faces.hasOwnProperty(face)) {
+										s.faces[face].uv = [
+											pos.x + 0.25,
+											pos.y + 0.25,
+											pos.x + 0.75,
+											pos.y + 0.75
+										]
+									}
+								}
+							})
+							c.position = {x: pos.x, y: pos.y}
+							//Position for next pixel
+							if (pos.x > 14) {
+								pos.x = 0
+								if (pos.y > 14) {
+									pos = {x: 15, z: 15}
+								} else {
+									pos.y += 1
+								}
+							} else {
+								pos.x += 1
+							}
 						})
-					})
-					/*
-					*/
-					texture.apply(true)
-				})
-				loadOutlinerDraggable()
-				Canvas.updateAll()
-			}
-			if (data.voxels.length > 6000 && Blockbench.showMessageBox) {
-				Blockbench.showMessageBox({
-					title: 'Warning',
-					icon: 'warning',
-					buttons: ['Continue', 'Cancel'],
-					message: 'This file contains too many voxels ('+data.voxels.length+'). Importing it might freeze or crash Blockbench.'
-				}, function (result) {
-					if (result === 0) {
+		
+						TextureGenerator.addBitmap({
+							res: 16,
+							color: new tinycolor(0x00000000),
+							name: 'voxel_palette',
+							folder: 'blocks',
+							particle: true
+						}, function (texture) {
+							group.select()
+							texture.load(_ => {
+		
+								texture.edit(function(canvas) {
+									let ctx = canvas.getContext('2d');
+									colors.forEach(function(c) {
+										var c_vals = c.string.split('_')
+										c_vals.forEach(function(cv, cvi) {
+											c_vals[cvi] = parseInt(cv)
+										})
+										//var hex_color = Jimp.rgbaToInt(c_vals[3], c_vals[2], c_vals[1], c_vals[0])
+										let hex_color = tinycolor({r: c_vals[3], g: c_vals[2], b: c_vals[1], a: c_vals[0]}).toRgbString();
+										ctx.fillStyle = hex_color
+										ctx.fillRect(c.position.x, c.position.y, 1, 1);
+										console.log(hex_color, c.position, c)
+									})
+								})
+							})
+							/*
+							*/
+							texture.apply(true)
+						})
+						Canvas.updateAll()
+					}
+					if (data.voxels.length > 6000 && Blockbench.showMessageBox) {
+						Blockbench.showMessageBox({
+							title: 'Warning',
+							icon: 'warning',
+							buttons: ['Continue', 'Cancel'],
+							message: 'This file contains too many voxels ('+data.voxels.length+'). Importing it might freeze or crash Blockbench.'
+						}, function (result) {
+							if (result === 0) {
+								processVoxels()
+							}
+						})
+					} else {
 						processVoxels()
 					}
 				})
-			} else {
-				processVoxels()
 			}
 		})
+		MenuBar.addAction(import_vox_action, 'file.import')
+	},
+	onunload() {
+		import_vox_action.delete();
 	}
 })
-MenuBar.addAction(import_vox_action, 'file.import')
-
-//Called when the user uninstalls the plugin
-onUninstall = function() {
-	//Removes the menu entry
-	import_vox_action.delete();
-}
-
-
-
 
 "use strict";
 
 /**
  * @namespace
  */
-var vox = {};
 
 (function() {
 	if (typeof(window) !== "undefined") {
@@ -1495,10 +1462,6 @@ function MD5_hexhash(data) {
 
 vox.mainParser = new vox.Parser()
 
-
-
 vox.md5 = MD5_hexhash;
 })();
-
-
-
+})();
