@@ -226,7 +226,7 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse",
+		"author": "Eliot Lash, Gecko, McHorse, AzureDoom",
 		"icon": "movie_filter",
 		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
 		"tags": ["Minecraft: Java Edition"],
