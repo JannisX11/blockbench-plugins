@@ -370,5 +370,14 @@
 		"version": "1.0.2",
 		"min_version": "3.7.0",
 		"variant": "both"
+	},
+	"fcurves_bake": {
+		"title": "Sound F-Curvers Baker",
+		"author": "Malik12tree",
+		"icon": "graphic_eq",
+		"description": "Bake sounds f-curves into simple animation keyframes.",
+		"version": "1.0",
+		"min_version": "3.7.0",
+		"variant": "both"
 	}
 }
