@@ -1,11 +1,6 @@
 (function() {
     var button;
 
-    function getAllTextures()
-    {
-        return Array.isArray(textures) ? textures : Project.textures;
-    }
-
     function calculateRects()
     {
         var width = 0;
@@ -14,7 +9,7 @@
         var x = 0;
         var t = [];
 
-        var ts = getAllTextures();
+        var ts = Texture.all;
 
         t.push(...ts);
         t.sort((a, b) => (a.width + a.height) - (b.width + b.height));
@@ -163,7 +158,7 @@
             keep_size : true
         });
 
-        var ts = getAllTextures();
+        var ts = Texture.all;
 
         Undo.initEdit({
             elements: Cube.all,
