@@ -1,6 +1,11 @@
 (function() {
     var button;
 
+    function getAllTextures()
+    {
+        return Array.isArray(textures) ? textures : Project.textures;
+    }
+
     function calculateRects()
     {
         var width = 0;
@@ -9,7 +14,9 @@
         var x = 0;
         var t = [];
 
-        t.push(...textures);
+        var ts = getAllTextures();
+
+        t.push(...ts);
         t.sort((a, b) => (a.width + a.height) - (b.width + b.height));
 
         /* Calculate max width and height */
@@ -24,7 +31,7 @@
 
         var h = 0;
         var y = 0;
-        var rows = Math.max(Math.ceil(Math.sqrt(textures.length)), 1);
+        var rows = Math.max(Math.ceil(Math.sqrt(ts.length)), 1);
 
         t.forEach((texture, i) => 
         {
@@ -156,15 +163,17 @@
             keep_size : true
         });
 
+        var ts = getAllTextures();
+
         Undo.initEdit({
             elements: Cube.all,
-            textures: textures,
+            textures: ts,
             bitmap: true,
             uv_mode: true
         });
 
         var newTextures = [];
-        textures.forEach(t => newTextures.push(t));
+        ts.forEach(t => newTextures.push(t));
         newTextures.forEach(t => t.remove(true));
 
         texture.fromDataURL(data).add(false).select();
