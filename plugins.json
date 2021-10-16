@@ -6,8 +6,8 @@
 		"about": "To start, create the armor stand model by using the \"Create Armor Stand Model\" action in the toolbar. Then, create your animation in the animate tab as normal. Make sure the snapping value for keyframes is set to 20 for best results. When you're finished, use the \"Export Armor Stand Animation\" action in the toolbar. Change the settings as needed, then click \"Confirm\". Animations can be run with \"/execute as @e[tag=entity_tag] run function animation_pack:start\". The armor stand for an animation can be summoned with \"/function animation_pack:create\". Supports looping, time scale, block/blockbench unit scale, and start delays.",
 		"tags": ["Minecraft: Java Edition"],
 		"icon": "fa-forward",
-		"version": "1.0.0",
-		"min_version": "3.1.0",
+		"version": "1.0.1",
+		"min_version": "4.0.0",
 		"variant": "both"
 	},
 	"animator": {
