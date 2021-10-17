@@ -5,13 +5,12 @@
 let import_vox_action;
 let vox = {};
 
-BBPlugin.register({
-	id: 'vox_importer',
+BBPlugin.register('vox_importer', {
 	title: 'Voxel Importer',  
 	icon: 'view_module',
 	author: 'JannisX11',
 	description: 'Import MagicaVoxel .vox files',
-	version: '1.2.0',
+	version: '1.2.1',
 	variant: 'both',
 	onload() {
 
@@ -20,6 +19,7 @@ BBPlugin.register({
 			name: 'Import Vox',
 			icon: 'view_module',
 			category: 'file',
+			condition: () => Project instanceof ModelProject,
 			click: function(ev) {
 		
 				var file_path;
