@@ -1,16 +1,3 @@
-var plugin_data = {
-	id: 'texture_editor',
-	title: 'Texture Editor',
-	icon: 'photo_filter',
-	author: 'JannisX11',
-	description: 'Adds basic image manipulation functions - like contrast and saturation - to textures',
-	about: 'To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.',
-	version: '1.0.0',
-	min_version: '2.0.0',
-	variant: 'desktop'
-}
-
-
 window.TextureEditor = {
 	submenu: {
 		id: 'texture_edit',
@@ -39,46 +26,6 @@ window.TextureEditor = {
 				{name: 'Rotate...', icon: 'sync',				click: (tex) => {TextureEditor.editMenu(tex, 'rotate_free', 'Rotate')}},
 			]},
 		]
-	},
-	setup: function() {
-
-		var width = 400
-
-		Texture.prototype.menu.addAction(TextureEditor.submenu, '3')
-
-
-		TextureEditor.effect_slider = new BarSlider({
-			id: 'texture_edit_effect',
-			name: 'Effect Strength',
-			description: '',
-			private: true,
-			min: -1, max: 1, step: 0.01, width: width + 16,
-			onChange: function(slider) {
-				TextureEditor.effect = TextureEditor.effect_slider.get()||0
-				TextureEditor.preview()
-			}
-		})
-
-		TextureEditor.dialog = new Dialog({
-			id: 'texture_editor',
-			title: 'Texture Editor',
-			lines: [
-				'<p id="texture_editor_info"></p>',
-				`<div id="preview_image_wrapper" style="
-					height: ${width}px;
-					width: ${width}px;
-					margin: 8px;
-					background-color: var(--color-back);
-					background-repeat: no-repeat;
-					background-size: contain;
-				"></div>`,
-				{widget: TextureEditor.effect_slider}
-			],
-			draggable: true,
-			onConfirm: function() {
-				TextureEditor.confirmDialog()
-			}
-		})
 	},
 	limitToPalette(canvas) {
 		let ctx = canvas.getContext('2d');
@@ -176,12 +123,56 @@ window.TextureEditor = {
 		return image;
 	},
 }
-TextureEditor.setup()
 
 
-onInstall = function() {
-}
+Plugin.register('texture_editor', {
+	title: 'Texture Editor',
+	icon: 'photo_filter',
+	author: 'JannisX11',
+	description: 'Adds basic image manipulation functions - like contrast and saturation - to textures',
+	about: 'To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.',
+	version: '1.0.0',
+	min_version: '2.0.0',
+	variant: 'desktop',
+	onload() {
+		var width = 400
 
-onUninstall = function() {
-	Texture.prototype.menu.removeAction('texture_edit')
-}
+		Texture.prototype.menu.addAction(TextureEditor.submenu, '3')
+
+		TextureEditor.effect_slider = new BarSlider({
+			id: 'texture_edit_effect',
+			name: 'Effect Strength',
+			description: '',
+			private: true,
+			min: -1, max: 1, step: 0.01, width: width + 16,
+			onChange: function(slider) {
+				TextureEditor.effect = TextureEditor.effect_slider.get()||0
+				TextureEditor.preview()
+			}
+		})
+
+		TextureEditor.dialog = new Dialog({
+			id: 'texture_editor',
+			title: 'Texture Editor',
+			lines: [
+				'<p id="texture_editor_info"></p>',
+				`<div id="preview_image_wrapper" style="
+					height: ${width}px;
+					width: ${width}px;
+					margin: 8px;
+					background-color: var(--color-back);
+					background-repeat: no-repeat;
+					background-size: contain;
+				"></div>`,
+				{widget: TextureEditor.effect_slider}
+			],
+			draggable: true,
+			onConfirm: function() {
+				TextureEditor.confirmDialog()
+			}
+		})
+	},
+	onunload() {
+		Texture.prototype.menu.removeAction('texture_edit')
+	}
+})

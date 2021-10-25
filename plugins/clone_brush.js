@@ -6,7 +6,6 @@ Plugin.register('clone_brush', {
 	title: 'Clone Brush',
 	author: 'JannisX11',
 	icon: 'account_balance_wallet',
-	author: 'JannisX11',
 	description: 'Clone Cubes',
 	version: '1.1.0',
 	variant: 'both',

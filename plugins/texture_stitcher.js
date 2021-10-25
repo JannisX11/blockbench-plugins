@@ -9,22 +9,29 @@
         var x = 0;
         var t = [];
 
-        t.push(...textures);
+        var ts = Texture.all;
+
+        t.push(...ts);
         t.sort((a, b) => (a.width + a.height) - (b.width + b.height));
+
+        /* Calculate max width and height */
+        var maxW = Project.texture_width;
+        var maxH = Project.texture_height;
+
+        t.forEach(t => 
+        {
+            maxW = Math.max(maxW, t.width);
+            maxH = Math.max(maxH, t.height);
+        });
 
         var h = 0;
         var y = 0;
-        var rows = Math.ceil(Math.sqrt(textures.length));
-
-        if (rows < 1)
-        {
-            rows = 1;
-        }
+        var rows = Math.max(Math.ceil(Math.sqrt(ts.length)), 1);
 
         t.forEach((texture, i) => 
         {
-            var multX = Project.texture_width / texture.width;
-            var multY = Project.texture_height / texture.height;
+            var multX = maxW / texture.width;
+            var multY = maxH / texture.height;
             var rect = {
                 texture: texture,
                 x: x,
@@ -57,6 +64,8 @@
         return {
             w: width,
             h: height,
+            mx: maxW / Project.texture_width,
+            my: maxH / Project.texture_height,
             rects: rects
         };
     }
@@ -80,7 +89,7 @@
             var reader = new FileReader();
             
             reader.readAsDataURL(blob);
-            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h);
+            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h, data.mx, data.my);
         });
     }
 
@@ -127,7 +136,7 @@
         }
     }
 
-    function replaceTextures(rects, data, w, h)
+    function replaceTextures(rects, data, w, h, mx, my)
     {
         const getRect = texture_uuid =>
         {
@@ -149,21 +158,25 @@
             keep_size : true
         });
 
+        var ts = Texture.all;
+
         Undo.initEdit({
             elements: Cube.all,
-            textures: textures,
+            textures: ts,
             bitmap: true,
             uv_mode: true
         });
 
         var newTextures = [];
-        textures.forEach(t => newTextures.push(t));
+        ts.forEach(t => newTextures.push(t));
         newTextures.forEach(t => t.remove(true));
 
         texture.fromDataURL(data).add(false).select();
 
         Cube.all.forEach(cube => 
         {
+            var toApplySides = [];
+
             if (Project.box_uv)
             {
                 var north = cube.faces['north'];
@@ -171,9 +184,11 @@
 
                 if (rect != null)
                 {
-                    cube.uv_offset[0] += rect.x;
-                    cube.uv_offset[1] += rect.y;
+                    cube.uv_offset[0] += rect.x / mx;
+                    cube.uv_offset[1] += rect.y / my;
                 }
+
+                toApplySides = north.texture !== false;
             }
             else
             {
@@ -184,19 +199,28 @@
 
                     if (rect !== null)
                     {
-                        face.uv[0] += rect.x;
-                        face.uv[1] += rect.y;
-                        face.uv[2] += rect.x;
-                        face.uv[3] += rect.y;
+                        face.uv[0] = face.uv[0] * mx + rect.x;
+                        face.uv[1] = face.uv[1] * my + rect.y;
+                        face.uv[2] = face.uv[2] * mx + rect.x;
+                        face.uv[3] = face.uv[3] * my + rect.y;
+                    }
+
+                    if (face.texture !== false)
+                    {
+                        toApplySides.push(side);
                     }
                 });
             }
 
-            cube.applyTexture(texture, true);
+            if (toApplySides !== false)
+            {
+                cube.applyTexture(texture, toApplySides);
+            }
         });
 
-        Project.texture_width = w;
-        Project.texture_height = h;
+        Project.texture_width = Project.box_uv ? w / mx : w;
+        Project.texture_height = Project.box_uv ? h / my : h;
+
         Undo.finishEdit('finished stitching');
     }
 

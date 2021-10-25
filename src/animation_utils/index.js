@@ -23,6 +23,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
     {
       name: blockbenchConfig.title,
       version,
+      await_loading: true,
       onload() {
         loadCodec();
         loadAnimationUI();

@@ -127,7 +127,7 @@ const loadAnimationUI = () => {
   holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
     .children.find(x => x.name === 'menu.animation.loop.hold');
   holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
+  //holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 const unloadAnimationUI = () => {
@@ -286,7 +286,7 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
         easingBar = document.getElementById('keyframe_bar_easing');
 
         addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
-        addEasingTypeIcons(easingBar, "step", "Switch to Linear easing");
+        addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
         addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
         addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
         addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");
@@ -739,6 +739,7 @@ var format = new ModelFormat({
     centered_grid: true,
     animated_textures: true,
     animation_mode: true,
+    animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
     display_mode: false, // This may be dynamically turned on by settings
@@ -1142,6 +1143,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
     {
       name: _package_json__WEBPACK_IMPORTED_MODULE_2__["blockbenchConfig"].title,
       version: _package_json__WEBPACK_IMPORTED_MODULE_2__["version"],
+      await_loading: true,
       onload() {
         Object(_codec__WEBPACK_IMPORTED_MODULE_7__["loadCodec"])();
         Object(_animationUi__WEBPACK_IMPORTED_MODULE_3__["loadAnimationUI"])();
@@ -2144,7 +2146,8 @@ var Stack = __webpack_require__(/*! ./_Stack */ "./node_modules/lodash/_Stack.js
     isMap = __webpack_require__(/*! ./isMap */ "./node_modules/lodash/isMap.js"),
     isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
     isSet = __webpack_require__(/*! ./isSet */ "./node_modules/lodash/isSet.js"),
-    keys = __webpack_require__(/*! ./keys */ "./node_modules/lodash/keys.js");
+    keys = __webpack_require__(/*! ./keys */ "./node_modules/lodash/keys.js"),
+    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js");
 
 /** Used to compose bitmasks for cloning. */
 var CLONE_DEEP_FLAG = 1,
@@ -8310,7 +8313,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com\",\"min_version\":\"3.7.0\",\"max_version\":\"3.7.99\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"4.17.19\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com\",\"min_version\":\"3.7.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 
