@@ -6,9 +6,9 @@ var generate_triangle_action;
 Plugin.register('triangle_generator', 
 	{
 		title: 'Triangle Generator',
-	    icon: 'pages',
+	    icon: 'change_history',
 	    author: 'Sleepyhead08',
-	    description: 'Generates triangles.',
+	    description: 'Generates triangles in a step-like pattern',
 	    version: '1.0.0',
 	    variant: 'both',
 
@@ -16,7 +16,7 @@ Plugin.register('triangle_generator',
 			generate_triangle_action = new Action({
 				id: 'triangle_generator_action',
 				name: 'Generate Triangle',
-				icon: 'pages',
+				icon: 'change_history',
 				category: 'filter',
 				click: function(ev) {
 					getTriangleWindow().show();

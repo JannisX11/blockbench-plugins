@@ -305,7 +305,7 @@
         "title": "Triangle Generator",
         "icon": "pages",
         "author": "Sleepyhead08",
-        "description": "Generates triangles.",
+        "description": "Generates triangles in a step-like pattern",
         "version": "1.0.0",
         "variant": "both"
     }
