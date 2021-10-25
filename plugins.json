@@ -383,7 +383,7 @@
 	},
 	"triangle_generator": {
 		"title": "Triangle Generator",
-		"icon": "pages",
+		"icon": "change_history",
 		"author": "Sleepyhead08",
 		"description": "Generates triangles in a step-like pattern",
 		"version": "1.0.0",
