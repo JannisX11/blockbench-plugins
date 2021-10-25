@@ -372,6 +372,15 @@
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
+	"reference_models": {
+		"title": "Reference Models",
+		"author": "JannisX11",
+		"icon": "fas.fa-monument",
+		"description": "Load and view glTF reference models in Blockbench",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"variant": "desktop"
+	},
 	"triangle_generator": {
 		"title": "Triangle Generator",
 		"icon": "pages",
