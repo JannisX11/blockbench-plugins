@@ -11,7 +11,7 @@
 To use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation`,
         tags: ["Minecraft: Java Edition"],
         icon: 'compare',
-        version: '1.0.0',
+        version: '1.0.1',
         variant: 'both',
         onload() {
             types = ['thirdperson_righthand', 'thirdperson_lefthand', 'firstperson_righthand', 'firstperson_lefthand', 'gui', 'head', 'ground', 'fixed'];
@@ -192,7 +192,7 @@ To use click Filter -> Save starting model the save the first model, and then cl
                 type: 'Zip Archive',
                 extensions: ['zip'],
                 name: 'animation',
-                startpath: ModelMeta.export_path,
+                startpath: Project.export_path,
                 content: content,
                 savetype: 'zip'
             })

@@ -124,7 +124,7 @@ function generatePackFromAnimation(animationContents, animationName, configData,
     
     zip.generateAsync({type: "blob"}).then(content => {
         Blockbench.export({
-            startpath: ModelMeta.export_path,
+            startpath: Project.export_path,
             type: "Zip Archive",
             extensions: ["zip"],
             name: animationName,
@@ -141,7 +141,7 @@ function generatePackFromAnimation(animationContents, animationName, configData,
         description: "Provides an interface to animate armor stands which is converted to a data pack",
         tags: ["Minecraft: Java Edition"],
         icon: "fa-forward",
-        version: "1.0.0",
+        version: "1.0.1",
         variant: "both",
         onload() {
             // Both actions are globals
