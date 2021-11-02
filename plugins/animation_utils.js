@@ -690,12 +690,12 @@ function maybeExportItemJson(options = {}, as) {
         var new_display = {}
         var entries = 0;
         for (var i in DisplayMode.slots) {
-			var key = DisplayMode.slots[i]
-			if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
-				new_display[key] = Project.display_settings[key].export()
-				entries++;
-			}
-		}
+		    var key = DisplayMode.slots[i]
+		    if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
+		        new_display[key] = Project.display_settings[key].export()
+		        entries++;
+            }
+        }
         if (entries) {
             blockmodel.display = new_display
         }
