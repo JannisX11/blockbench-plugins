@@ -690,10 +690,10 @@ function maybeExportItemJson(options = {}, as) {
         var new_display = {}
         var entries = 0;
         for (var i in DisplayMode.slots) {
-            var key = DisplayMode.slots[i]
-            if (Object.prototype.hasOwnProperty.call(DisplayMode.slots, i) && display[key] && display[key].export) {
-                new_display[key] = display[key].export()
-                entries++;
+		    var key = DisplayMode.slots[i]
+		    if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
+		        new_display[key] = Project.display_settings[key].export()
+		        entries++;
             }
         }
         if (entries) {
@@ -1185,7 +1185,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
               id: 'project',
               title: 'GeckoLib Model Settings',
               width: 540,
-              lines: [`<b class="tl"><a href="https://geckolib.com">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_2__["version"]}</b>`],
+              lines: [`<b class="tl"><a href="https://github.com/bernie-g/geckolib/wiki">GeckoLib</a> Animation Utils v${_package_json__WEBPACK_IMPORTED_MODULE_2__["version"]}</b>`],
               form: {
                 objectType: {label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_6__["OBJ_TYPE_OPTIONS"]},
                 // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
@@ -8313,7 +8313,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.0\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com\",\"min_version\":\"3.7.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.1\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki\",\"min_version\":\"3.7.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 
