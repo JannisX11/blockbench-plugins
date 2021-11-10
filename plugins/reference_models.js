@@ -9,7 +9,7 @@ Plugin.register('reference_models', {
 	icon: 'fas.fa-monument',
 	author: 'JannisX11',
 	description: 'Load and view glTF reference models in Blockbench',
-	version: '1.0.0',
+	version: '1.0.1',
 	min_version: '4.0.0',
 	variant: 'desktop',
 	onload() {
@@ -142,7 +142,8 @@ Plugin.register('reference_models', {
 
 				Blockbench.import({
 					type: 'glTF Model',
-					extensions: ['gltf'],
+					extensions: ['gltf', 'glb'],
+					readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text')
 
 				}, files => {
 					let path = files[0].path;

@@ -377,7 +377,7 @@
 		"author": "JannisX11",
 		"icon": "fas.fa-monument",
 		"description": "Load and view glTF reference models in Blockbench",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.0.0",
 		"variant": "desktop"
 	}
