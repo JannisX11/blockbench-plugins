@@ -380,5 +380,13 @@
 		"version": "1.0.0",
 		"min_version": "4.0.0",
 		"variant": "desktop"
+	},
+	"vintagestory_models": {
+		"title": "Reference Models",
+		"author": "Vintage Story Models",
+		"icon": "park",
+		"description": "Allows to export VintageStory models.",
+		"version": "1.0",
+		"variant": "both"
 	}
 }
