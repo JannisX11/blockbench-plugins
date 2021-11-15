@@ -45,17 +45,17 @@
                     let channels = ["rotation", "position", "scale"];
                     for (let i = 0; i < Group.all.length; i++) {
                         let elem = {
-                            name :          Group.all[i].name,
+                            name:           Group.all[i].name,
                             rotationOrigin: [Group.all[i].origin[0]+worldcenter,Group.all[i].origin[1],Group.all[i].origin[2]+worldcenter],
                             from:           [0,0,0],
                             to:             [0,0,0],
                             parent:         Group.all[i].parent === "root" ? null : Group.all[i].parent.name,
-                            faces: {north: {    texture: "#", uv: [ 41.0, 10.0, 46.0, 15.0 ] },east: {     texture: "#", uv: [ 57.0, 10.0, 63.0, 15.0 ] },south: {    texture: "#", uv: [ 52.0, 10.0, 57.0, 15.0 ] },west: {     texture: "#", uv: [ 46.0, 10.0, 52.0, 15.0 ] },up: {       texture: "#", uv: [ 34.0, 5.0, 40.0, 10.0 ] },down: {     texture: "#", uv: [ 34.0, 10.0, 40.0, 15.0 ] }},
+                            faces:          {north: {    texture: "#", uv: [ 0,0,0,0 ] },east: {     texture: "#", uv: [ 0,0,0,0 ] },south: {    texture: "#", uv: [ 0,0,0,0 ] },west: {     texture: "#", uv: [ 0,0,0,0 ] },up: {       texture: "#", uv: [ 0,0,0,0 ] },down: {     texture: "#", uv: [ 0,0,0,0 ] }},
                         }
                         // rotations
                         axis.forEach((axis, index) => {
-                            if (Cube.all[i].rotation[index] !== 0) {
-                                elem["rotation" + axis.toUpperCase()] = Cube.all[i].rotation[index];
+                            if (Group.all[i].rotation[index] !== 0) {
+                                elem["rotation" + axis.toUpperCase()] = Group.all[i].rotation[index];
                             }
                         });
                         elemALL.push(elem)
@@ -68,12 +68,12 @@
                             to:             [Cube.all[i].to[0]+worldcenter,Cube.all[i].to[1],Cube.all[i].to[2]+worldcenter],
                             rotationOrigin: [Cube.all[i].origin[0]+worldcenter,Cube.all[i].origin[1],Cube.all[i].origin[2]+worldcenter],
                             faces: {
-                                north: {    texture: "#0", uv: [ 41.0, 10.0, 46.0, 15.0 ] },
-                                east: {     texture: "#0", uv: [ 57.0, 10.0, 63.0, 15.0 ] },
-                                south: {    texture: "#0", uv: [ 52.0, 10.0, 57.0, 15.0 ] },
-                                west: {     texture: "#0", uv: [ 46.0, 10.0, 52.0, 15.0 ] },
-                                up: {       texture: "#0", uv: [ 34.0, 5.0, 40.0, 10.0 ] },
-                                down: {     texture: "#0", uv: [ 34.0, 10.0, 40.0, 15.0 ] }
+                                north: {    texture: "#0", uv: [ 0, 0, 0, 0 ] },
+                                east: {     texture: "#0", uv: [ 0, 0, 0, 0 ] },
+                                south: {    texture: "#0", uv: [ 0, 0, 0, 0 ] },
+                                west: {     texture: "#0", uv: [ 0, 0, 0, 0 ] },
+                                up: {       texture: "#0", uv: [ 0, 0, 0, 0 ] },
+                                down: {     texture: "#0", uv: [ 0, 0, 0, 0 ] }
                             },
                             parent: Cube.all[i].parent === "root" ? null : Cube.all[i].parent.name
                         };
@@ -179,6 +179,7 @@
                                                     elemA[kf.channel.replace("position", "offset").replace("scale", "stretch") + a.toUpperCase()] = kf.data_points[0][a]*1;
                                                 });
                                             });
+                                            // 30 is fps VS uses for anims
                                             if (anim.keyframes.find(e => e.frame === (frame[0].time*30).toFixed()*1) !== undefined) {
                                                 anim.keyframes.find(e => e.frame === (frame[0].time*30).toFixed()*1).elements[groupC[g].name] = elemA;
                                             } else {
@@ -199,13 +200,13 @@
                             Blockbench.export({
                                 type: 'VintageStory Model',
                                 extensions: ['json'],
-                                name: Project.name,
+                                name: (Project.name !== '' ? Project.name: "model"),
                                 content: autoStringify(VSjson),
                                 savetype: 'json'
                             });
                     } else{
                         var blob = new Blob([autoStringify(VSjson)], {type: "text/plain;charset=utf-8"});
-                        saveAs(blob, Project.name + ".json");
+                        saveAs(blob, (Project.name !== '' ? Project.name: "model") + ".json");
                     }
                     console.log(VSjson);
                 }
