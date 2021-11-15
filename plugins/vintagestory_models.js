@@ -216,8 +216,7 @@
             exportVsAction.delete();
         }
     });
-})()
-
+    
 function getRangeBool(x, min, max) {
     return x >= min && x <= max;
 }
@@ -241,9 +240,4 @@ function list_to_tree(list) {
     }
     return roots;
   }
-
-
-/*
-
-
-*/
+})()
