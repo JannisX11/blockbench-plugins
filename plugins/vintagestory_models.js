@@ -5,7 +5,7 @@
         icon: 'park',
         author: 'Malik12tree',
         description: 'Allows to export VintageStory models.',
-        version: '1.0',
+        version: '1.0.0',
         variant: "both",
         onload() {
             exportVsAction = new Action("exportVsModel", {
