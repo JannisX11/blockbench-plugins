@@ -17,46 +17,37 @@ function loadZipToJson(importType){
 		elements: Outliner.elements,
 		textures: textures
 	});*/
-	ElecDialogs.showOpenDialog(
-		currentwindow,
-		{
-			title: '',
-			dontAddToRecent: true,
-			filters: [{
-				name: '',
-				extensions: [importType.extension]
-			}]
-		},
-		files => {
-			if (!files) return;
-			fs.readFile(files[0], (err, data) => {
-					if (err) return;
-					var loadedZip = new JSZip().loadAsync(data);
-					loadedZip.then(zip => {
-						zip.file(importType.file).async("string")
-						.then(json => {
-							importType.import(json);
-						});
-						
-						if(importType == ImportTypeEnum.TBL){
-							var imgFile = zip.file(importType.texture).async("base64").then(img => {
-								var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
-							
-								texture.add();
-							});
-						}else{
-							var imgFile = zip.file(importType.texture).forEach(pr => {
-								pr.async("base64").then(img => {
-									var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
-								
-									texture.add();
-								});
-							});
-						}
-					});
+
+	Blockbench.import({
+		type: importType.extension + ' File',
+		extensions: [importType.extension],
+		readtype: 'binary'
+	}, (files) => {
+		let data = files[0].content;
+		var loadedZip = new JSZip().loadAsync(data);
+		loadedZip.then(zip => {
+			zip.file(importType.file).async("string")
+			.then(json => {
+				importType.import(json);
 			});
-		}
-	);
+			
+			if(importType == ImportTypeEnum.TBL){
+				var imgFile = zip.file(importType.texture).async("base64").then(img => {
+					var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
+				
+					texture.add();
+				});
+			}else{
+				var imgFile = zip.file(importType.texture).forEach(pr => {
+					pr.async("base64").then(img => {
+						var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
+					
+						texture.add();
+					});
+				});
+			}
+		});
+	});
 	//Undo.finishEdit("Model Import");
 }
 
@@ -457,7 +448,7 @@ Plugin.register('mod_utils', {
 	icon: 'fa-cubes',
 	description: 'Allows importing Tabula files, and exporting VoxelShapes',
     tags: ["Minecraft: Java Edition"],
-	version: '1.6.0',
+	version: '1.6.1',
 	variant: 'desktop',
 
 	onload() {
