@@ -380,5 +380,13 @@
 		"version": "1.0.1",
 		"min_version": "4.0.0",
 		"variant": "desktop"
+	},
+	"vintagestory_models": {
+		"title": "Vintage Story Models",
+		"author": "Malik12tree",
+		"icon": "park",
+		"description": "Allows to export VintageStory models.",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
