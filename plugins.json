@@ -229,7 +229,7 @@
 		"icon": "movie_filter",
 		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "3.0.0",
+		"version": "3.0.2",
 		"min_version": "3.7.0",
 		"await_loading": true,
 		"variant": "both"
