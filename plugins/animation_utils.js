@@ -686,7 +686,7 @@ function maybeExportItemJson(options = {}, as) {
     if (checkExport('overrides', Project.overrides)) {
         blockmodel.overrides = Project.overrides;
     }
-    if (checkExport('display', Object.keys(display).length >= 1)) {
+    if (checkExport('display', Object.keys(Project.display_settings).length >= 1)) {
         var new_display = {}
         var entries = 0;
         for (var i in DisplayMode.slots) {
@@ -706,10 +706,7 @@ function maybeExportItemJson(options = {}, as) {
     var scope = codec;
 
     let path = _settings__WEBPACK_IMPORTED_MODULE_1__["default"].itemModelPath;
-    // regular export
-    if (isApp && !path) {
-        path = (scope.startPath() || ModelMeta.export_path).replace(".geo", ".item");
-    }
+
     Blockbench.export({
         resource_id: 'model',
         type: Codecs.java_block.name,
@@ -8313,7 +8310,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.1\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki\",\"min_version\":\"3.7.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.2\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki\",\"min_version\":\"4.0.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 

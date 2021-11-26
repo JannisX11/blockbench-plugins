@@ -239,7 +239,7 @@ export function maybeExportItemJson(options = {}, as) {
     if (checkExport('overrides', Project.overrides)) {
         blockmodel.overrides = Project.overrides;
     }
-    if (checkExport('display', Object.keys(display).length >= 1)) {
+    if (checkExport('display', Object.keys(Project.display_settings).length >= 1)) {
         var new_display = {}
         var entries = 0;
         for (var i in DisplayMode.slots) {
@@ -259,10 +259,7 @@ export function maybeExportItemJson(options = {}, as) {
     var scope = codec;
 
     let path = geckoSettings.itemModelPath;
-    // regular export
-    if (isApp && !path) {
-        path = (scope.startPath() || ModelMeta.export_path).replace(".geo", ".item");
-    }
+
     Blockbench.export({
         resource_id: 'model',
         type: Codecs.java_block.name,
