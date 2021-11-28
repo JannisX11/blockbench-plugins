@@ -388,5 +388,16 @@
 		"description": "Allows to export VintageStory models.",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"endimations_exporter": {
+		"title": "Endimator Animations Exporter",
+		"author": "SmellyModder",
+		"icon": "icon-format_java",
+		"description": "Exports Blockbench animations as the JSON format for Endimator animations from the Blueprint Mod Library. https://github.com/team-abnormals/blueprint",
+		"about": "Go to Animation -> Export Endimations...",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"variant": "both"
 	}
 }
