@@ -90,51 +90,53 @@
 		const parts = {};
 		for (const uuid in animators) {
 			const animator = animators[uuid];
-			const keyframes = animator.keyframes;
-			if (keyframes.length) {
-				const group = animator.getGroup();
-				const part = parts[group ? group.name : animator.name] = {};
-				const channels = {};
-				keyframes.forEach(function (kf) {
-					const channel = kf.channel;
-					if (!channels[channel]) {
-						channels[channel] = {};
-					}
-					if (kf.transform) {
-						let endimatorKeyframe;
-						const timecodeString = kf.getTimecodeString();
-						if (kf.data_points.length === 1) {
-							endimatorKeyframe = {
-								time: parseFloat(timecodeString),
-								transform: kf.getArray(),
-								interpolation: {
-									type: kf.interpolation
-								}
-							}
-						} else {
-							endimatorKeyframe = {
-								time: parseFloat(timecodeString),
-								transform: {
-									pre: kf.getArray(0),
-									post: kf.getArray(1),
-								},
-								interpolation: {
-									type: kf.interpolation
-								}
-							}
+			if (animator instanceof BoneAnimator) {
+				const keyframes = animator.keyframes;
+				if (keyframes.length) {
+					const group = animator.getGroup();
+					const part = parts[group ? group.name : animator.name] = {};
+					const channels = {};
+					keyframes.forEach(function (kf) {
+						const channel = kf.channel;
+						if (!channels[channel]) {
+							channels[channel] = {};
 						}
-						channels[channel][timecodeString] = endimatorKeyframe;
-					}
-				})
-				for (const channel in Animator.possible_channels) {
-					const timecodes = channels[channel];
-					if (timecodes) {
-						Object.keys(timecodes).sort((a, b) => parseFloat(a) - parseFloat(b)).forEach((timecode) => {
-							if (!part[channel]) {
-								part[channel] = [];
+						if (kf.transform) {
+							let endimatorKeyframe;
+							const timecodeString = kf.getTimecodeString();
+							if (kf.data_points.length === 1) {
+								endimatorKeyframe = {
+									time: parseFloat(timecodeString),
+									transform: kf.getArray(),
+									interpolation: {
+										type: kf.interpolation
+									}
+								}
+							} else {
+								endimatorKeyframe = {
+									time: parseFloat(timecodeString),
+									transform: {
+										pre: kf.getArray(0),
+										post: kf.getArray(1),
+									},
+									interpolation: {
+										type: kf.interpolation
+									}
+								}
 							}
-							part[channel].push(timecodes[timecode]);
-						})
+							channels[channel][timecodeString] = endimatorKeyframe;
+						}
+					})
+					for (const channel in Animator.possible_channels) {
+						const timecodes = channels[channel];
+						if (timecodes) {
+							Object.keys(timecodes).sort((a, b) => parseFloat(a) - parseFloat(b)).forEach((timecode) => {
+								if (!part[channel]) {
+									part[channel] = [];
+								}
+								part[channel].push(timecodes[timecode]);
+							})
+						}
 					}
 				}
 			}
