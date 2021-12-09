@@ -36,6 +36,7 @@
 						new_cube.from = [...cube.to];
 						new_cube.to = [...cube.from];
 						new_cube.inflate = -new_cube.inflate;
+						new_cube.origin = [-new_cube.origin[0],-new_cube.origin[1],-new_cube.origin[2]];
 						Canvas.adaptObjectPosition(new_cube);
 						Canvas.updateUV(new_cube);
 						cubes.push(new_cube);
