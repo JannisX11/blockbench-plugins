@@ -1,4 +1,13 @@
 {
+	"change_animation_speed": {
+        "title": "Animation Speed Changer",
+        "author": "Ancientkingg",
+        "description": "Allows you to change the speed of animations",
+		"tags": ["Minecraft: Bedrock Edition"],
+        "icon": "fa-tachometer-alt",
+        "version": "0.0.1",
+        "variant": "both"
+    },
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
 		"author": "DoubleFelix",
