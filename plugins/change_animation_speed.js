@@ -50,9 +50,9 @@
                 selection: {label: 'Selection', type: 'select', options: all_animations},
             },
             onConfirm: function(formData) {
-                Undo.initEdit({animations:[Animation.all[formData.selection-1]]});
                 const speed = $('#ak_change_speed_label').val();
                 if (formData.selection == 0) {
+                    Undo.initEdit({animations:[Animation.selected]});
                     let selectedKeyframes = 0;
                     for (const animator in Animation.selected.animators) {
 
@@ -84,6 +84,7 @@
                         Blockbench.showQuickMessage('No keyframes selected');
                     }
                 } else {
+                    Undo.initEdit({animations:[Animation.all[formData.selection-1]]});
                     for (const animator in Animation.all[formData.selection-1].animators) {
 
                         if (Animation.all[formData.selection-1].animators.hasOwnProperty(animator)) {
