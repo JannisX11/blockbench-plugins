@@ -257,7 +257,7 @@
         author: 'McHorse',
         description: 'Adds a menu item to textures editor that stitches multiple textures into one',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.0',
+        version: '1.0.1',
         variant: 'both',
         onload() 
         {
