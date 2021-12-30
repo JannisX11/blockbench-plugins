@@ -159,9 +159,15 @@
         });
 
         var ts = Texture.all;
+        var elems = Cube.all;
+
+        if (Mesh)
+        {
+            elems = elems.concat(Mesh.all);
+        }
 
         Undo.initEdit({
-            elements: Cube.all,
+            elements: elems,
             textures: ts,
             bitmap: true,
             uv_mode: true
@@ -217,6 +223,28 @@
                 cube.applyTexture(texture, toApplySides);
             }
         });
+
+        if (Mesh)
+        {
+            Mesh.all.forEach(mesh =>
+            {
+                Object.keys(mesh.faces).forEach(key =>
+                {
+                    var face = mesh.faces[key];
+                    var rect = getRect(face.texture);
+
+                    Object.keys(face.uv).forEach(key => 
+                    {
+                        var uv = face.uv[key];
+
+                        uv[0] = uv[0] * mx + rect.x;
+                        uv[1] = uv[1] * my + rect.y;
+                    });
+                });
+
+                mesh.applyTexture(texture, true);
+            });
+        }
 
         Project.texture_width = Project.box_uv ? w / mx : w;
         Project.texture_height = Project.box_uv ? h / my : h;
