@@ -186,6 +186,7 @@
 		"icon": "keyboard",
 		"author": "JannisX11",
 		"description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
+		"version": "0.1.1",
 		"variant": "both",
 		"min_version": "3.2.1"
 	},

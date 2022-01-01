@@ -7,7 +7,7 @@ Plugin.register('screencast_keys', {
 	icon: 'keyboard',
 	author: 'JannisX11',
 	description: 'Displays the key combinations you press on screen. Useful for tutorial videos.',
-	version: '0.1.0',
+	version: '0.1.1',
 	min_version: '3.2.1',
 	variant: 'both',
 	onload() {
@@ -34,22 +34,19 @@ Plugin.register('screencast_keys', {
 				$('#preview').append(element);
 			}
 			clearTimeout(timeout);
-			element.text(label.replace(/\[\w+\] \+ /g, ''));
+			setTimeout(() => {
+				element[0].textContent = label.replace(/\[\w+\] \+ /g, '');
+			}, element[0].textContent ? 50 : 0)
+			element[0].textContent = '';
+
 			timeout = setTimeout(() => {
-				timeout = setTimeout(() => {
-					element.text('');
-				}, 900)
-			}, 100)
+			element[0].textContent = '';
+			}, 1000)
 		}
 
-		Keybind.prototype.isTriggered = function (event) {
-			var result = (
-				this.key 	=== event.which &&
-				(this.ctrl 	=== event.ctrlKey 	|| this.ctrl == null 	) &&
-				(this.shift === event.shiftKey 	|| this.shift == null	) &&
-				(this.alt 	=== event.altKey 	|| this.alt == null 	) &&
-				(this.meta 	=== event.metaKey	|| this.meta == null 	)
-			)
+		Keybind.prototype.screencastOldIsTriggered = Keybind.prototype.isTriggered;
+		Keybind.prototype.isTriggered = function (event, ...args) {
+			var result = this.screencastOldIsTriggered(event, ...args);
 			if (result && event instanceof MouseEvent == false) {
 				screencast(this.label);
 			}
