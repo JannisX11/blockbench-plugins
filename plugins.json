@@ -401,5 +401,13 @@
 		"version": "1.0.0",
 		"min_version": "4.0.0",
 		"variant": "both"
+	},
+	"brush_randomizer": {
+		"title": "Brush Color Randomizer",
+		"author": "Anniken(YT)",
+		"icon": "brush",
+		"description": "Randomize the Brush Color with each stroke to give your artwork more variation",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
