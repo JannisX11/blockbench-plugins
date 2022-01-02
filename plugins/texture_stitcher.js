@@ -209,11 +209,11 @@
                         face.uv[1] = face.uv[1] * my + rect.y;
                         face.uv[2] = face.uv[2] * mx + rect.x;
                         face.uv[3] = face.uv[3] * my + rect.y;
-                    }
 
-                    if (face.texture !== false)
-                    {
-                        toApplySides.push(side);
+                        if (face.texture !== false)
+                        {
+                            toApplySides.push(side);
+                        }
                     }
                 });
             }
@@ -228,10 +228,17 @@
         {
             Mesh.all.forEach(mesh =>
             {
+                var applied = false;
+
                 Object.keys(mesh.faces).forEach(key =>
                 {
                     var face = mesh.faces[key];
                     var rect = getRect(face.texture);
+
+                    if (!rect)
+                    {
+                        return;
+                    }
 
                     Object.keys(face.uv).forEach(key => 
                     {
@@ -239,10 +246,15 @@
 
                         uv[0] = uv[0] * mx + rect.x;
                         uv[1] = uv[1] * my + rect.y;
+
+                        applied = true;
                     });
                 });
 
-                mesh.applyTexture(texture, true);
+                if (applied)
+                {
+                    mesh.applyTexture(texture, true);
+                }
             });
         }
 
