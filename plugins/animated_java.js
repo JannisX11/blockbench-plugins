@@ -207,7 +207,7 @@
 |                                                                                            |
 | A tool for mapmakers to create smooth, and detailed animations for Minecraft Java Edition. |
 |                                                                                            |
-| Source: https://github.com/Animated-Java/animated-java                                     |
+| https://github.com/animated-java/animated-java                                             |
 \********************************************************************************************/
 
 
