@@ -239,14 +239,14 @@ export function maybeExportItemJson(options = {}, as) {
     if (checkExport('overrides', Project.overrides)) {
         blockmodel.overrides = Project.overrides;
     }
-    if (checkExport('display', Object.keys(display).length >= 1)) {
+    if (checkExport('display', Object.keys(Project.display_settings).length >= 1)) {
         var new_display = {}
         var entries = 0;
         for (var i in DisplayMode.slots) {
-            var key = DisplayMode.slots[i]
-            if (Object.prototype.hasOwnProperty.call(DisplayMode.slots, i) && display[key] && display[key].export) {
-                new_display[key] = display[key].export()
-                entries++;
+		    var key = DisplayMode.slots[i]
+		    if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
+		        new_display[key] = Project.display_settings[key].export()
+		        entries++;
             }
         }
         if (entries) {
@@ -259,10 +259,7 @@ export function maybeExportItemJson(options = {}, as) {
     var scope = codec;
 
     let path = geckoSettings.itemModelPath;
-    // regular export
-    if (isApp && !path) {
-        path = (scope.startPath() || ModelMeta.export_path).replace(".geo", ".item");
-    }
+
     Blockbench.export({
         resource_id: 'model',
         type: Codecs.java_block.name,
@@ -292,6 +289,7 @@ var format = new ModelFormat({
     centered_grid: true,
     animated_textures: true,
     animation_mode: true,
+    animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
     display_mode: false, // This may be dynamically turned on by settings

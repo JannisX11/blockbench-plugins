@@ -4,6 +4,7 @@ Plugin.register('player_statue_generator', {
     icon: 'accessibility',
     title: 'Player Statue Generator',
     description: 'Generates player shaped models.',
+    tags: ["Minecraft"],
     author: 'Wither, dragonmaster95 and 3XH6R',
     version: '2.0.2',
     min_version: '3.0.0',

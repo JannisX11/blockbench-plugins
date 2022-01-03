@@ -1,58 +1,76 @@
-var plugin_data = {
-
-    id: 'shape_generator',
-    title: 'Shape Generator',
-    icon: 'pages',
-    author: 'dragonmaster95',
-    description: 'Generates shapes.',
-    version: '0.0.3',
-    min_version: '3.0.2',
-    variant: 'both'
-};
-
 (function() {
 
-var shape_list = `
-        <select style="color:var(--color-text), class=" id="shape">
-        <option selected=true value="hexadecagon"> Hexadecagon </option>
-        <option value="octagon"> Octagon </option>
-<!--        <option value="hexagon_flat"> Hexagon (flat corner) </option>
-        <option value="hexagon_sharp"> Hexagon (sharp corner) </option>-->
-    </select>`;
 
-var variable_list = `
-        <select style="color:var(--color-text), class=" id="variable">
-        <option value="diameter"> Diameter/Length </option>
-        <option value="radius"> Radius </option>
-        <option value="side"> Edge </option>
-    </select>`;
+    Plugin.register('shape_generator', {
+        title: 'Shape Generator',
+        icon: 'pages',
+        author: 'dragonmaster95',
+        description: 'Generates shapes.',
+        version: '0.0.3',
+        min_version: '3.0.2',
+        variant: 'both',
+        onload() {
+            ShapeGeneratorAction = new Action("generate_shape", {
+                name: "Generate shape",
+                description: "Generates circular shapes.",
+                icon: "pages",
+                click: function(){
+    
+                    //Check if the user is in the right mode
+                    if (!Format.rotate_cubes) {
+                        Blockbench.showMessageBox({
+                            title: 'Incompatible Format',
+                            message: 'This plugin only works in formats that support cube rotations.'
+                        })
+                        return;
+                    }
+                    else {
+                        shapeWindow();
+                    }
+                }
+            })
+            MenuBar.addAction(ShapeGeneratorAction, "filter");
+        },
+        onunload() {
+            ShapeGeneratorAction.delete();
+        }
+    });
 
-var axis_list =`
-        <select style="color:var(--color-text)" id="axis">
-        <option value="x"> X </option>
-        <option selected=true value="y"> Y </option>
-        <option value="z"> Z </option>
-    </select>`;
-
-Blockbench.addMenuEntry('Generate shape','pages', function(){
-
-    //Check if the user is in the right mode
-    if (!Format.rotate_cubes) {
-        Blockbench.showMessageBox({
-            title: 'Incompatible Format',
-            message: 'This plugin only works in formats that support cube rotations.'
-        })
-        return;
-    }
-    else {
-        shapeWindow();
-    }
-});
 
 //shape selection window
 function shapeWindow() {
+    var shape_list = {
+        hexadecagon: "Hexadecagon",
+        octagon: "Octagon"
+    };
+    var variable_list = {
+        diameter: "Diameter/Length",
+        radius: "Radius",
+        side: "Side"
+    };
+    var axis_list = {
+        x: "X",
+        y: "Y",
+        z: "Z"
+    };
+
     var shape_window = new Dialog({
-        title: 'Shape selector', id: 'shape_selector', lines: [
+        title: 'Shape selector', 
+        id: 'shape_selector', 
+
+        form: {
+            shape: {label: "Select shape", type: "select", options: shape_list},
+            border: {label: "Hollow", type: "checkbox"},
+            variable: {label: "Variable", type: "select", options: variable_list},
+            value: {label: "Value", type: "number", value: 0},
+            thickness: {label: "Height/Depth", type: "number", value: 16},
+            center: {label: "Center Point", type: "vector", value: [8,8,8]},
+            axis: {label: "Axis", type: "select", options: axis_list}
+        },
+        lines: [
+            '<p><span style="float:left;">Reset values: <button title="Reset values" =button id="reset_shape"><i class="material-icons" style="color:white">refresh</i></button></span></p><br/><br/>'
+        ],
+        /*lines: [
             '<p style="text-align:left;">Select shape:' + shape_list +
             '<span style="float:right;"><button title="Reset values" =button id="reset_shape"><i class="material-icons" style="color:white">refresh</i></button></span></p>' +
             'Hollow <input type="checkbox" id="border"><br/><p></p>' +
@@ -62,9 +80,11 @@ function shapeWindow() {
             'Center point: <input value=8 type="number" style="background-color:var(--color-back)" id="x">' + ' ' + '<input value=8 type="number" style="background-color:var(--color-back)" id="y"> <input value=8 type="number" style="background-color:var(--color-back)" id="z"> <br\>' +
             'Axis:' + axis_list
 
-        ], draggable: true, onConfirm() {
+        ],*/ 
+        draggable: true, 
+        onConfirm(result) {
+            generateShape(result);
             shape_window.hide();
-            generateShape();
         }
     });
     shape_window.show();
@@ -75,9 +95,9 @@ function shapeWindow() {
         $('.dialog#shape_selector input#value').val(localStorage.getItem("value"));
         $('.dialog#shape_selector input#thickness').val(localStorage.getItem("thickness"));
         document.getElementById("axis").selectedIndex = localStorage.getItem("axis");
-        $('.dialog#shape_selector input#x').val(localStorage.getItem("x"));
-        $('.dialog#shape_selector input#y').val(localStorage.getItem("y"));
-        $('.dialog#shape_selector input#z').val(localStorage.getItem("z"));
+        $('.dialog#shape_selector input#center_0').val(localStorage.getItem("center_x"));
+        $('.dialog#shape_selector input#center_1').val(localStorage.getItem("center_y"));
+        $('.dialog#shape_selector input#center_2').val(localStorage.getItem("center_z"));
     }
 
     //Reset Button Click Event
@@ -88,9 +108,9 @@ function shapeWindow() {
         $('.dialog#shape_selector input#value').val(16);
         $('.dialog#shape_selector input#thickness').val(1);
         document.getElementById("axis").selectedIndex=1;
-        $('.dialog#shape_selector input#x').val(8);
-        $('.dialog#shape_selector input#y').val(8);
-        $('.dialog#shape_selector input#z').val(8);
+        $('.dialog#shape_selector input#center_0').val(8);
+        $('.dialog#shape_selector input#center_1').val(8);
+        $('.dialog#shape_selector input#center_2').val(8);
 
         localStorage.removeItem("shape");
         localStorage.removeItem("border");
@@ -98,9 +118,7 @@ function shapeWindow() {
         localStorage.removeItem("value");
         localStorage.removeItem("thickness");
         localStorage.removeItem("axis");
-        localStorage.removeItem("x");
-        localStorage.removeItem("y");
-        localStorage.removeItem("z");
+        localStorage.removeItem("center");
     }
 }
 
@@ -139,16 +157,19 @@ function shapeWindow() {
     shape_window.show();*/
 
 
-function generateShape() {
-    var shape = $('.dialog#shape_selector #shape')[0].value;
+function generateShape(result) {
+    var shape = result.shape;
     var shape_selected = document.getElementById("shape").selectedIndex;
     localStorage.setItem("shape", shape_selected);
-    var variable = $('.dialog#shape_selector #variable')[0].value;
+    
+    var variable = result.variable;
     var variable_selected = document.getElementById("variable").selectedIndex;
     localStorage.setItem("variable", variable_selected);
-    var border = $('.dialog#shape_selector input#border').is(':checked');
+
+    var border = result.border;
     localStorage.setItem("border", border);
-    var axis = $('#axis')[0].value;
+
+    var axis = result.axis;
     var axis_selected = document.getElementById("axis").selectedIndex;
     localStorage.setItem("axis", axis_selected);
 
@@ -163,8 +184,8 @@ function generateShape() {
                 ' <br\>' +
                 'Your value: ' +value
             ], draggable: true, onConfirm() {
-                error_window1.hide();
                 shapeWindow();
+                error_window1.hide();
             }
         });
         error_window1.show();
@@ -172,7 +193,7 @@ function generateShape() {
     }
 
     //negative value for thickness
-    var thickness = $('.dialog#shape_selector input#thickness').val().valueOf();
+    var thickness = result.thickness;
     localStorage.setItem("thickness", thickness);
     if (thickness == "" || parseFloat(thickness) <= 0) {
         var error_window2 = new Dialog({
@@ -182,8 +203,8 @@ function generateShape() {
                 ' <br\>' +
                 'Your value: ' + thickness
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
         });
         error_window2.show();
@@ -191,11 +212,10 @@ function generateShape() {
     }
 
     //invalid Origin
-    var origin = [parseFloat($('.dialog#shape_selector input#x').val()), parseFloat($('.dialog#shape_selector input#y').val()), parseFloat($('.dialog#shape_selector input#z').val())];
-    localStorage.setItem("x", $('.dialog#shape_selector input#x').val().valueOf());
-    localStorage.setItem("y", $('.dialog#shape_selector input#y').val().valueOf());
-    localStorage.setItem("z", $('.dialog#shape_selector input#z').val().valueOf());
-
+    var origin = result.center;
+    localStorage.setItem("center_x", origin[0]);
+    localStorage.setItem("center_y", origin[1]);
+    localStorage.setItem("center_z", origin[2]);
     if (isNaN(origin[0]) || isNaN(origin[1]) || isNaN(origin[2])) {
         var error_window3 = new Dialog({
             title: 'Error', id: 'error_window_3', lines: [
@@ -204,8 +224,8 @@ function generateShape() {
                 ' <br\>' +
                 'Your values:\tX:'+origin[0]+' Y:'+origin[1]+' Z:'+origin[2]
             ], draggable: true, onConfirm() {
-                error_window3.hide();
                 shapeWindow();
+                error_window3.hide();
             }
         });
         error_window3.show();
@@ -221,27 +241,36 @@ function borderValues(shape, variable, value, thickness, border, axis, origin) {
     var border_window = new Dialog({
         title: 'Define more stuff',
         id: 'border_width',
+        form: {
+            border: {label: "Border width", type: "number", value: 1}
+        },
         lines: [
-            '<p>Border width: <input value=1 type="number" id="border" class="dark_bordered"> <br/><p/>' +
             '<p>Shape rotation: <input id="angle" type="range" min="0" max="7" value="0" oninput="$(\'label#test\').text(\' \'+parseInt($(\'input#angle\').val())*22.5+\'°\')" onchange="$(\'label#test\').text(parseInt($(\'input#angle\').val())*22.5+\'°\')">' +
             '<label id="test"> 0°</label>' +
             '<br/><p/>'
         ],
         draggable: true,
-        onConfirm() {
-            border_window.hide();
-            var border_size = $('.dialog#border_width input#border').val().valueOf();
+        onConfirm(result) {
+            var border_size = result.border;
             angle = $('.dialog#border_width input#angle').val().valueOf();
-            if (border_size < 0 || border_size === "" || border_size >= value / 2) {
+
+            var tmp = value;
+            if (variable=='diameter') tmp = value/2;
+            if (variable=='side') console.log(tmp);
+            if (variable=='side') tmp = value / 0.414213562373095 /2;
+            if (variable=='side') console.log(tmp);
+
+            
+            if (border_size < 0 || border_size === "" || border_size >= tmp) {
                 var error_window1 = new Dialog({
                     title: 'Error', id: 'error_window_1', lines: [
                         'Error occured:<br\>' +
                         'The border_width has to be set to a positive number and can\'t be bigger than the object\'s radius.<br\>' +
                         ' <br\>' +
-                        'Your value: ' + border_size + '\t(Maximum size: ' + (value / 2) + ')'
+                        'Your value: ' + border_size + '\t(Maximum size: ' + tmp.toFixed(2) + ')'
                     ], draggable: true, onConfirm() {
-                        error_window1.hide();
                         borderValues(shape, variable, value, thickness, border, axis, origin);
+                        error_window1.hide();
                     }
                 });
                 error_window1.show();
@@ -250,6 +279,7 @@ function borderValues(shape, variable, value, thickness, border, axis, origin) {
             localStorage.setItem("border_size", border_size);
             localStorage.setItem("angle", angle);
             determineShape(shape, variable, value, thickness, border, axis, origin, border_size, angle*22.5);
+            border_window.hide();
         }
     });
     border_window.show();
@@ -264,17 +294,18 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
 	Undo.initEdit({outliner: true, elements: [], selection: true});
     if (shape === 'hexadecagon')
     {
+        var diameter = 0;
         //user chose radius or diameter
         if (variable === 'radius' || variable === 'diameter') {
-            if (variable === 'radius') var diameter = parseFloat(value) * 2;
-            else var diameter = parseFloat(value);
+            if (variable === 'radius') diameter = parseFloat(value) * 2;
+            else diameter = parseFloat(value);
             var side = diameter * 0.198912367379658;
         }
 
         //user chose side
         else if (variable === 'side') {
             var side = parseFloat(value);
-            var diameter = side / 0.198912367379658;
+            diameter = side / 0.198912367379658;
         }
 
         //value is too high
@@ -287,8 +318,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();
@@ -324,8 +355,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();
@@ -361,8 +392,8 @@ function determineShape(shape, variable, value, thickness, border, axis, origin,
                 'Please make sure to keep the shape small enough so that it still fits in the canvas and <br\>'+
                 'that the center point isn\'t causing issues.<br\>'
             ], draggable: true, onConfirm() {
-                error_window2.hide();
                 shapeWindow();
+                error_window2.hide();
             }
             });
             error_window2.show();

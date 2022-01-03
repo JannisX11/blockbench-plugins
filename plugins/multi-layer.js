@@ -208,6 +208,7 @@ Plugin.register('multi-layer', {
     icon: 'layers',
     author: 'aidancbrady',
     description: 'Allows exporting in Forge\'s multi-layer model format.',
+    tags: ["Minecraft: Java Edition"],
     version: '1.0',
     variant: 'both',
     onload() {

@@ -6,14 +6,14 @@ Plugin.register('clone_brush', {
 	title: 'Clone Brush',
 	author: 'JannisX11',
 	icon: 'account_balance_wallet',
-	author: 'JannisX11',
 	description: 'Clone Cubes',
-	version: '1.1.0',
+	version: '1.1.1',
 	variant: 'both',
 	onload() {
 		clone_brush_tool = new Tool({
 			id: 'clone_brush',
 			name: 'Clone Brush',
+			description: 'Tool to clone and place cubes against other cubes',
 			icon: 'fa-edit',
 			transformerMode: 'hidden',
 	    	category: 'tools',
@@ -25,8 +25,8 @@ Plugin.register('clone_brush', {
 			},
 			onCanvasClick: function(data) {
 				if (data.event.shiftKey === false) {
-		            if (brush_template == 'select') {
-		                brush_template = data.cube
+		            if (brush_template == 'select' && data.element instanceof Cube) {
+		                brush_template = data.element
 		                $('#preview').css('cursor', 'url(assets/brush.png), auto')
 		            } else if (brush_template instanceof Cube) {
 
@@ -43,7 +43,7 @@ Plugin.register('clone_brush', {
 					    if (brush_template && brush_template.type === 'cube') {
 					        sizes = brush_template.size()
 					    }
-					    switch (main_uv.face) {
+					    switch (data.face) {
 					        case 'north':   from[2] -= sizes[2] + Cube.selected[0].inflate + brush_template.inflate; break;
 					        case 'south': 	from[2] += sizes[2] + Cube.selected[0].inflate + brush_template.inflate; break;
 					        case 'west': 	from[0] -= sizes[0] + Cube.selected[0].inflate + brush_template.inflate; break;
