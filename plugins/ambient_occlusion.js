@@ -464,7 +464,7 @@ THREE.RenderPass.prototype = Object.assign( Object.create( THREE.Pass.prototype 
 
 		if ( this.clearColor ) {
 
-			oldClearColor = renderer.getClearColor().getHex();
+			oldClearColor = renderer.getClearColor(new THREE.Color()).getHex();
 			oldClearAlpha = renderer.getClearAlpha();
 
 			renderer.setClearColor( this.clearColor, this.clearAlpha );
@@ -1100,7 +1100,7 @@ THREE.SAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), 
 
 		}
 
-		this.oldClearColor.copy( renderer.getClearColor() );
+		this.oldClearColor.copy( renderer.getClearColor(new THREE.Color()) );
 		this.oldClearAlpha = renderer.getClearAlpha();
 		var oldAutoClear = renderer.autoClear;
 		renderer.autoClear = false;
@@ -1219,7 +1219,7 @@ THREE.SAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), 
 	renderPass: function ( renderer, passMaterial, renderTarget, clearColor, clearAlpha ) {
 
 		// save original state
-		this.originalClearColor.copy( renderer.getClearColor() );
+		this.originalClearColor.copy( renderer.getClearColor(new THREE.Color()) );
 		var originalClearAlpha = renderer.getClearAlpha();
 		var originalAutoClear = renderer.autoClear;
 
@@ -1247,7 +1247,7 @@ THREE.SAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), 
 
 	renderOverride: function ( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
 
-		this.originalClearColor.copy( renderer.getClearColor() );
+		this.originalClearColor.copy( renderer.getClearColor(new THREE.Color()) );
 		var originalClearAlpha = renderer.getClearAlpha();
 		var originalAutoClear = renderer.autoClear;
 

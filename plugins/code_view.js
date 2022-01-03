@@ -10,7 +10,7 @@ Plugin.register('code_view', {
 	icon: 'developer_mode',
 	author: 'Wither',
 	description: 'View the model you are currently editing in the raw format',
-	version: '1.0.0',
+	version: '1.0.1',
 	variant: 'both',
 	onload() {
         codeViewDialog = new Dialog({
@@ -18,10 +18,23 @@ Plugin.register('code_view', {
 			id: 'code_view',
 			resizable: true,
 			width: 650,
-            lines: [
-                '<vue-prism-editor id="code-view-output" v-model="text" language="json" style="height: 25em;" :line-numbers="true" />',
-                '<button onclick="navigator.clipboard.writeText(codeViewVue.text);" style="width: 100%;">Copy</button>'
-            ]
+			component: {
+				components: {VuePrismEditor},
+				data: {
+					text: ''
+				},
+				methods: {
+					copyText() {
+						navigator.clipboard.writeText(this.text);
+					}
+				},
+				template: `
+					<div>
+						<vue-prism-editor id="code-view-output" v-model="text" language="json" style="height: 25em;" :line-numbers="true" />
+						<button @click="copyText()" style="width: 100%;">Copy</button>
+					</div>
+				`
+			}
         });
 
         openCodeViewAction = new Action('open_code_view', {
@@ -30,13 +43,7 @@ Plugin.register('code_view', {
 			icon: 'developer_mode',
 			click() {
 				codeViewDialog.show();
-				codeViewVue = new Vue({
-					components: {VuePrismEditor},
-					el: 'dialog#code_view > vue-prism-editor',
-					data: {
-						text: Format.codec.compile()
-					}
-				})
+				codeViewDialog.content_vue.text = Format ? Format.codec.compile() : '';
 			}
 		})
 

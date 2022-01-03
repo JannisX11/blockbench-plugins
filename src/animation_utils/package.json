@@ -1,6 +1,6 @@
 {
   "name": "animation_utils",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "private": true,
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
@@ -12,15 +12,15 @@
     "pretest": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eliot Lash, Gecko, McHorse",
+  "author": "Eliot Lash, Gecko, McHorse, AzureDoom",
   "license": "MIT",
   "blockbenchConfig": {
     "title": "GeckoLib Animation Utils",
-    "author": "Eliot Lash, Gecko, McHorse",
+    "author": "Eliot Lash, Gecko, McHorse, AzureDoom",
     "icon": "movie_filter",
-    "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
-    "min_version": "3.7.0",
-    "max_version": "3.7.99",
+    "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki",
+    "min_version": "4.0.0",
+    "max_version": "5.0.0",
     "variant": "both"
   },
   "sideEffects": [
@@ -33,7 +33,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "lodash": "4.17.19",
+    "lodash": "^4.17.21",
     "semver": "7.3.2"
   }
 }
