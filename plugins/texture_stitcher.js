@@ -159,9 +159,15 @@
         });
 
         var ts = Texture.all;
+        var elems = Cube.all;
+
+        if (Mesh)
+        {
+            elems = elems.concat(Mesh.all);
+        }
 
         Undo.initEdit({
-            elements: Cube.all,
+            elements: elems,
             textures: ts,
             bitmap: true,
             uv_mode: true
@@ -203,11 +209,11 @@
                         face.uv[1] = face.uv[1] * my + rect.y;
                         face.uv[2] = face.uv[2] * mx + rect.x;
                         face.uv[3] = face.uv[3] * my + rect.y;
-                    }
 
-                    if (face.texture !== false)
-                    {
-                        toApplySides.push(side);
+                        if (face.texture !== false)
+                        {
+                            toApplySides.push(side);
+                        }
                     }
                 });
             }
@@ -217,6 +223,40 @@
                 cube.applyTexture(texture, toApplySides);
             }
         });
+
+        if (Mesh)
+        {
+            Mesh.all.forEach(mesh =>
+            {
+                var applied = false;
+
+                Object.keys(mesh.faces).forEach(key =>
+                {
+                    var face = mesh.faces[key];
+                    var rect = getRect(face.texture);
+
+                    if (!rect)
+                    {
+                        return;
+                    }
+
+                    Object.keys(face.uv).forEach(key => 
+                    {
+                        var uv = face.uv[key];
+
+                        uv[0] = uv[0] * mx + rect.x;
+                        uv[1] = uv[1] * my + rect.y;
+
+                        applied = true;
+                    });
+                });
+
+                if (applied)
+                {
+                    mesh.applyTexture(texture, true);
+                }
+            });
+        }
 
         Project.texture_width = Project.box_uv ? w / mx : w;
         Project.texture_height = Project.box_uv ? h / my : h;
@@ -229,7 +269,7 @@
         author: 'McHorse',
         description: 'Adds a menu item to textures editor that stitches multiple textures into one',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.0',
+        version: '1.0.1',
         variant: 'both',
         onload() 
         {
