@@ -200,17 +200,14 @@
 
 
 (()=>{
-/*************************************************************************************\
-| Animated Java                                                                       |
-|                                                                                     |
-| A Blockbench plugin by Ian Senne(FetchBot) and SnaveSutit                           |
-|                                                                                     |
-| This file when loaded into blockbench 4+ allows for the generation of data packs    |
-| and resource packs for vanilla Minecraft java edition that produce animated models. |
-|                                                                                     |
-| mc-build can be found at https://www.github.com/mc-build/mc-build                   |
-|                                                                                     |
-\*************************************************************************************/
+/********************************************************************************************\
+| Animated Java                                                                              |
+|                                                                                            |
+| A Blockbench plugin by Ian Senne (Fetchbot) and Titus Evans (SnaveSutit)                   |
+|                                                                                            |
+| A tool for mapmakers to create smooth, and detailed animations for Minecraft Java Edition. |
+|                                                                                            |
+\********************************************************************************************/
 
 
 
