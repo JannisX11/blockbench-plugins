@@ -19,9 +19,9 @@
         click: function () {
           file = generateFabricFile(Format.centered_grid);
           Blockbench.export({
-            type: "Voxel Shape File (.txt)",
-            extensions: ["txt"],
-            savetype: "text",
+            type: "Voxel Shape File",
+            extensions: ["java", "txt"],
+            savetype: "java",
             content: file,
           });
         },
