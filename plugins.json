@@ -48,7 +48,7 @@
 		"author": "SnaveSutit & FetchBot",
 		"icon": "icon-armor_stand",
 		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
-		"version": "0.2.0",
+		"version": "0.2.1",
 		"variant": "desktop",
 		"tags": [
 			"Minecraft: Java Edition",
