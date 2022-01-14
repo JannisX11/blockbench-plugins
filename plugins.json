@@ -367,6 +367,15 @@
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
   	},
+	"voxel_shape_fabric_generator": {
+		"title": "VoxelShape Fabric Generator",
+		"icon": "bar_chart",
+		"author": "CyberStefNef",
+		"description": "Generates Voxel Shapes for Fabric",
+		"version": "0.0.1",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
+  	},
 	"mimodel_format": {
 		"title": "Mine-imator Model Exporter",
 		"icon": "fas.fa-box-open",
