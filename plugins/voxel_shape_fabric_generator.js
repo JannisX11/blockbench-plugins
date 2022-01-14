@@ -33,35 +33,35 @@
       menuButton.delete();
     },
   });
-})();
 
-function generateFabricFile(centered) {
-  var data =
-    "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n";
+  function generateFabricFile(centered) {
+    var data =
+      "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n";
 
-  for (var i = 0; i < Cube.all.length; ++i) {
-    var cube = Cube.all[i];
+    for (var i = 0; i < Cube.all.length; ++i) {
+      var cube = Cube.all[i];
 
-    data += "\tshape = VoxelShapes.union(shape, VoxelShapes.cuboid("
-      .concat(formatVec3(cube.from, centered))
-      .concat(", ")
-      .concat(formatVec3(cube.to, centered))
-      .concat("));\n");
+      data += "\tshape = VoxelShapes.union(shape, VoxelShapes.cuboid("
+        .concat(formatVec3(cube.from, centered))
+        .concat(", ")
+        .concat(formatVec3(cube.to, centered))
+        .concat("));\n");
+    }
+    data += "\n\treturn shape;\n}";
+    return data;
   }
-  data += "\n\treturn shape;\n}";
-  return data;
-}
 
-function convertToBlockPercent(pixel) {
-  return pixel / 16.0;
-}
+  function convertToBlockPercent(pixel) {
+    return pixel / 16.0;
+  }
 
-function formatVec3(vector, centered) {
-  var offset = centered ? 0.5 : 0;
-  return ""
-    .concat(convertToBlockPercent(vector[0]) + offset)
-    .concat(", ")
-    .concat(convertToBlockPercent(vector[1]))
-    .concat(", ")
-    .concat(convertToBlockPercent(vector[2]) + offset);
-}
+  function formatVec3(vector, centered) {
+    var offset = centered ? 0.5 : 0;
+    return ""
+      .concat(convertToBlockPercent(vector[0]) + offset)
+      .concat(", ")
+      .concat(convertToBlockPercent(vector[1]))
+      .concat(", ")
+      .concat(convertToBlockPercent(vector[2]) + offset);
+  }
+})();
