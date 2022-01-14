@@ -374,7 +374,7 @@
 		"description": "Generates Voxel Shapes for Fabric",
 		"version": "0.0.1",
 		"variant": "both",
-		"tags": ["Minecraft: Java Edition"],
+		"tags": ["Minecraft: Java Edition"]
   	},
 	"mimodel_format": {
 		"title": "Mine-imator Model Exporter",
