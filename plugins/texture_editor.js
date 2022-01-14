@@ -133,7 +133,7 @@ Plugin.register('texture_editor', {
 	about: 'To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.',
 	version: '1.0.0',
 	min_version: '2.0.0',
-	variant: 'desktop',
+	variant: 'both',
 	onload() {
 		var width = 400
 
