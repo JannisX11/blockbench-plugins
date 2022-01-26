@@ -1342,8 +1342,6 @@ Plugin.register('ambient_occlusion', {
 
 		function setupPreviewSAO(preview) {
 
-			console.log('setup')
-
 			var this_scene = preview.id == 'display' ? display_scene : scene;
 
 			preview.composer = new THREE.EffectComposer( preview.renderer );

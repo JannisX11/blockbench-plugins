@@ -176,14 +176,6 @@
 		"variant": "both",
 		"min_version": "3.4.0"
 	},
-	"guessing_game": {
-		"title": "The Guessing Game",
-		"icon": "casino",
-		"author": "JannisX11",
-		"description": "Play the guessing game in Blockbench with your friends!",
-		"variant": "both",
-		"min_version": "3.1.0"
-	},
 	"csmodel": {
 		"title": "CraftStudio Model Format",
 		"icon": "star",
