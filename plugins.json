@@ -423,5 +423,14 @@
 		"description": "Randomize the Brush Color with each stroke to give your artwork more variation",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"cardinal": {
+		"title": "Cardinal",
+		"author": "Bug1312",
+		"icon": "border_outer",
+		"description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
+		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
+		"version": "1.0.0",
+		"variant": "both"
 	}
 }
