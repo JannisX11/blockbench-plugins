@@ -8,6 +8,21 @@
         version: '1.0.0',
         variant: "both",
         onload() {
+            // Simulate the rotation on a mesh; rotation is stored as local
+            let m = new THREE.Mesh();
+            function rotationToLocal(rotation) {
+                m.rotation.set(0,0,0, "ZYX");
+                m.rotateOnWorldAxis(new THREE.Vector3(1,0,0), Math.degToRad(rotation[0]));
+                m.rotateOnWorldAxis(new THREE.Vector3(0,1,0), Math.degToRad(rotation[1]));
+                m.rotateOnWorldAxis(new THREE.Vector3(0,0,1), Math.degToRad(rotation[2]));
+                m.rotation.reorder("XYZ");
+                let r = [
+                    Math.radToDeg(m.rotation.x),
+                    Math.radToDeg(m.rotation.y),
+                    Math.radToDeg(m.rotation.z),
+                ]
+                return r;
+            }
             exportVsAction = new Action("exportVsModel", {
                 name: "Export Vintage Story Model",
                 icon: "park",
@@ -35,7 +50,12 @@
                             } else {
                                 TFS = "";
                             }
-                            eval(`VSjson.textures["${Project.textures[i].id}"] = "${(Project.textures[i].folder + TFS) + (Project.textures[i].name).replace(".png", "")}"`)
+                            if (Blockbench.operating_system == "Windows") {
+                                                                                            // remove Drive name
+                                VSjson.textures[Project.textures[i].id] = Project.textures[i].path.substring(2).replace(".png", "").replaceAll("\\", "/")
+                            } else {
+                                VSjson.textures[Project.textures[i].id] = Project.textures[i].path.replace(".png", "").replaceAll("\\", "/").replaceAll("\/", "/")
+                            }
                         }
                     }
                     //elements
@@ -53,13 +73,14 @@
                             faces:          {north: {    texture: "#", uv: [ 0,0,0,0 ] },east: {     texture: "#", uv: [ 0,0,0,0 ] },south: {    texture: "#", uv: [ 0,0,0,0 ] },west: {     texture: "#", uv: [ 0,0,0,0 ] },up: {       texture: "#", uv: [ 0,0,0,0 ] },down: {     texture: "#", uv: [ 0,0,0,0 ] }},
                         }
                         // rotations
+                        let r = Cube.all[i].mesh.rotation.clone().reorder("XYZ");
+                        r = [Math.radToDeg(r.x),Math.radToDeg(r.y),Math.radToDeg(r.z)]
                         axis.forEach((axis, index) => {
                             if (Group.all[i].rotation[index] !== 0) {
-                                elem["rotation" + axis.toUpperCase()] = Group.all[i].rotation[index];
+                                elem["rotation" + axis.toUpperCase()] = r[index];
                             }
                         });
-                        elemALL.push(elem)
-
+                        elemALL.push(elem);
                     }
                     for (let i = 0; i < Cube.all.length; i++) {
                         let elem = {
@@ -79,9 +100,11 @@
                         };
 
                         //rotations
+                        let r = Cube.all[i].mesh.rotation.clone().reorder("XYZ");
+                        r = [Math.radToDeg(r.x),Math.radToDeg(r.y),Math.radToDeg(r.z)]
                         axis.forEach((axis, index) => {
                             if (Cube.all[i].rotation[index] !== 0) {
-                                elem["rotation" + axis.toUpperCase()] = Cube.all[i].rotation[index];
+                                elem["rotation" + axis.toUpperCase()] = r[index];
                             }
                         });
 
@@ -96,7 +119,7 @@
                                     }   
 
                                 } else {
-                                    elem.faces[face].texture = "#" + Project.textures[0].id;
+                                    elem.faces[face].texture = "#" + Cube.all[i].faces[face].getTexture().id;
                                 }
                             }
                             elem.faces[face].autoUv = Project.box_uv;
@@ -130,13 +153,13 @@
                                 keyframes: [
                                 ],
                             }
+                            // loop mode
+                            if (Animation.all[i].loop === "hold") {
+                                anim.onAnimationEnd = "Hold"
+                            } else if (Animation.all[i].loop === "once"){
+                                anim.onAnimationEnd = "Stop"
+                            }
                             animators.forEach(animator => {
-                                // loop mode
-                                if (animator.animation.loop === "hold") {
-                                    anim.onAnimationEnd = "Hold"
-                                } else if (animator.animation.loop === "once"){
-                                    anim.onAnimationEnd = "Stop"
-                                }
 
                                 // keyframes
 
@@ -151,12 +174,22 @@
                                             //target kf
                                             const findingKF = animator[channel].find(kf => getRangeBool(kf.time, timeIndex-.02, timeIndex+.02));
                                             if(findingKF !== undefined){
-
+                                                let KFclone = new Keyframe(findingKF);                                                
+                                                if (findingKF.channel == "rotation") {
+                                                    let rl = rotationToLocal([
+                                                        findingKF.data_points[0].x*1,
+                                                        findingKF.data_points[0].y*1,
+                                                        findingKF.data_points[0].z*1,
+                                                    ])
+                                                    KFclone.data_points[0].x = rl[0];
+                                                    KFclone.data_points[0].y = rl[1];
+                                                    KFclone.data_points[0].z = rl[2];
+                                                }
                                                 const tIndex = newKfs.findIndex(e => e.find(f => f.time == findingKF.time));
                                                 if (tIndex !== -1) {
-                                                    newKfs[tIndex].push(findingKF);
+                                                    newKfs[tIndex].push(KFclone);
                                                 } else {
-                                                    newKfs.push([findingKF]);
+                                                    newKfs.push([KFclone]);
                                                 }
                                             }
                                         }
@@ -221,7 +254,6 @@
 function getRangeBool(x, min, max) {
     return x >= min && x <= max;
 }
-
 
 function list_to_tree(list) {
     var map = {}, node, roots = [], i;
