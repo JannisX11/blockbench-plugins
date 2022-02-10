@@ -23,7 +23,7 @@
 		"title": "Bedrock Entity Model Presets",
 		"author": "Geenium",
 		"description": "Loads Bedrock vanilla entity models up to version 1.13",
-		"tags": ["Minecraft: Bedrock Edition"],
+		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"icon": "pets",
 		"variant": "both"
 	},
