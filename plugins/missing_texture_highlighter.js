@@ -5,10 +5,10 @@ Plugin.register('missing_texture_highlighter', {
 	icon: 'flash_on',
 	author: 'JannisX11',
 	description: 'Highlights missing textures by flashing them.',
-	version: '0.1.0',
+	version: '0.1.1',
 	variant: 'both',
 	onload() {
-		window.mt_highlighter = {
+		const mt_highlighter = {
 			i: 0,
 			start: function() {
 				clearInterval(mt_highlighter.interval);
@@ -18,13 +18,13 @@ Plugin.register('missing_texture_highlighter', {
 			},
 			flash: function() {
 				var fc = mt_highlighter.i;
-				var x = (fc%2) ? -0.3 : 0.3;
 				if (fc > 16) {
 					x = 0;
 					clearInterval(mt_highlighter.interval);
 				}
-				emptyMaterials.forEach(function(m) {
-					m.emissive = {r: x, b: x, g: x};
+				Canvas.emptyMaterials.forEach((m, i) => {
+					let brightness = (fc%2) ? settings.brightness.value / 50 : 2.5;
+					m.uniforms.BRIGHTNESS.value = brightness;
 				})
 				mt_highlighter.i++;
 			}

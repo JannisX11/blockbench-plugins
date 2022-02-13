@@ -32,6 +32,7 @@
 		"icon": "flash_on",
 		"author": "JannisX11",
 		"description": "Highlights missing textures by flashing them.",
+		"version": "0.1.1",
 		"variant": "both"
 	},
 	"double_sided_cubes": {
