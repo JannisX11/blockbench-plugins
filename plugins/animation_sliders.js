@@ -9,9 +9,9 @@
 		icon: 'fas.fa-bezier-curve',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
-		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
+		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
 		tags: ['Animation'],
-		version: '0.1.0',
+		version: '0.2.0',
 		min_version: '3.7.0',
 		variant: 'both',
 		onload() {
@@ -278,10 +278,57 @@
 				}
 			})
 
+
+			let retime_offset = 0;
+			let retime_original_values = [];
+			retime_slider = new NumSlider('slider_retime_keyframes', {
+				name: 'Retime Keyframes',
+				category: 'animation',
+				condition: () => Animator.open && Animation.selected && Timeline.selected.length,
+				getInterval(event) {
+					return 1 / Animation.selected.snapping;
+				},
+				get() {
+					return retime_offset;
+				},
+				change(modify) {
+					let previous_retime = retime_offset;
+					retime_offset = modify(previous_retime);
+					let axis = Timeline.vue.graph_editor_axis;
+
+					Timeline.selected.forEach((kf) => {
+						let new_time = kf.time + retime_offset;
+						let index = Math.round(new_time * Animation.selected.snapping + retime_original_values.length*100) % retime_original_values.length;
+						let value = retime_original_values[index];
+						kf.set(axis, value);
+					})
+					Animator.preview();
+				},
+				onBefore() {
+					let original_time = Timeline.time;
+					let first = Timeline.selected[0];
+					let axis = Timeline.vue.graph_editor_axis;
+					for (let time = 0; time <= Animation.selected.length; time += 1 / Animation.selected.snapping) {
+						Timeline.time = time;
+						let value = first.animator.interpolate(first.channel, true, axis);
+						retime_original_values.push(value);
+					}
+					Timeline.time = original_time;
+					Undo.initEdit({keyframes: Timeline.selected})
+				},
+				onAfter() {
+					Undo.finishEdit('Retime keyframes')
+					retime_offset = 0;
+					retime_original_values = [];
+					this.update();
+				}
+			})
+
 			updateSliders = function() {
 				tween_slider.update();
 				amplify_slider.update();
 				easing_slider.update();
+				retime_slider.update();
 			}
 			
 			Blockbench.on('update_keyframe_selection', updateSliders);
@@ -290,6 +337,7 @@
 			tween_slider.delete();
 			amplify_slider.delete();
 			easing_slider.delete();
+			retime_slider.delete();
 			axis_selector.delete();
 			key_column.delete();
 			select_column.delete();
