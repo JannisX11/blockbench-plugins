@@ -1,0 +1,17 @@
+{
+	"name": "pixeltastic_icons",
+	"version": "0.0.1",
+	"author": "JannisX11",
+	"description": "Pixel Icon Plugin",
+	"private": true,
+	"main": "main.js",
+	"scripts": {
+		"build": "webpack",
+		"watch": "webpack --watch"
+	},
+	"devDependencies": {
+		"url-loader": "^4.1.1",
+		"webpack": "4.43.0",
+		"webpack-cli": "3.3.12"
+	}
+}
