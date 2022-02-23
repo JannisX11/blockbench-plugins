@@ -294,23 +294,27 @@
 				change(modify) {
 					let previous_retime = retime_offset;
 					retime_offset = modify(previous_retime);
-					let axis = Timeline.vue.graph_editor_axis;
 
 					Timeline.selected.forEach((kf) => {
 						let new_time = kf.time + retime_offset;
 						let index = Math.round(new_time * Animation.selected.snapping + retime_original_values.length*100) % retime_original_values.length;
 						let value = retime_original_values[index];
-						kf.set(axis, value);
+						if (selected_axes.x) kf.set('x', value[0]);
+						if (selected_axes.y) kf.set('y', value[1]);
+						if (selected_axes.z) kf.set('z', value[2]);
 					})
 					Animator.preview();
 				},
 				onBefore() {
 					let original_time = Timeline.time;
 					let first = Timeline.selected[0];
-					let axis = Timeline.vue.graph_editor_axis;
 					for (let time = 0; time <= Animation.selected.length; time += 1 / Animation.selected.snapping) {
 						Timeline.time = time;
-						let value = first.animator.interpolate(first.channel, true, axis);
+						let value = [
+							first.animator.interpolate(first.channel, true, 'x'),
+							first.animator.interpolate(first.channel, true, 'y'),
+							first.animator.interpolate(first.channel, true, 'z'),
+						]
 						retime_original_values.push(value);
 					}
 					Timeline.time = original_time;
