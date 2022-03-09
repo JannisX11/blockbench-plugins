@@ -51,11 +51,7 @@
 		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
 		"version": "0.2.2",
 		"variant": "desktop",
-		"tags": [
-			"Minecraft: Java Edition",
-			"Animation",
-			"Armor Stand"
-		]
+		"tags": ["Minecraft: Java Edition", "Animation", "Armor Stand"]
 	},
 	"optimize": {
 		"title": "Optimize",
