@@ -208,12 +208,12 @@
 		"title": "CEM Template Loader",
 		"icon": "keyboard_capslock",
 		"author": "Ewan Howell",
-		"description": "Load template entity models for use with OptiFine CEM.",
-		"about": "CEM Template Loader helps you create custom entitiy models for use in OptiFine. To use, head to the \"Filter\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit, and load it. When editing entity models, make sure not move any pivot points of main folders, or create any new main folders. After editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, it must be saved in this same location.", 
+		"description": "Load template Java Edition entity models for use with OptiFine CEM.",
+		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate parent bones, or move the pivot points of parent bones (top level folders), as this can break your model. If you need to rotate, use a subbone. If you need to change pivot points, use custom animations." 
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
 		"variant": "both",
 		"min_version": "4.0.0",
-		"version": "5.3.0"
+		"version": "5.10.2"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
