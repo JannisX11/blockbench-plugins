@@ -1,433 +1,482 @@
 {
-	"armor_stand_animator": {
-		"title": "Armor Stand Animator",
-		"author": "DoubleFelix",
-		"description": "Provides an interface to animate armor stands which is converted to a data pack",
-		"about": "To start, create the armor stand model by using the \"Create Armor Stand Model\" action in the toolbar. Then, create your animation in the animate tab as normal. Make sure the snapping value for keyframes is set to 20 for best results. When you're finished, use the \"Export Armor Stand Animation\" action in the toolbar. Change the settings as needed, then click \"Confirm\". Animations can be run with \"/execute as @e[tag=entity_tag] run function animation_pack:start\". The armor stand for an animation can be summoned with \"/function animation_pack:create\". Supports looping, time scale, block/blockbench unit scale, pausing and playback, and start delays.",
-		"tags": ["Minecraft: Java Edition"],
-		"icon": "fa-forward",
-		"version": "1.1.0",
-		"min_version": "4.0.0",
-		"variant": "both"
-	},
-	"animator": {
-		"title": "Java Item Model Animator",
-		"author": "Command master",
-		"description": "Takes two java item models and outputs a zip with a resourcepack and a datapack to make a clear transaction between them in the players hand (the plugin can also work for other animations but the datapack have to be coded manually).",
-		"about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
-		"tags": ["Minecraft: Java Edition"],
-		"icon": "compare",
-		"variant": "both"
-	},
-	"geenium_bedrock_entity_helper": {
-		"title": "Bedrock Entity Model Presets",
-		"author": "Geenium",
-		"description": "Loads Bedrock vanilla entity models up to version 1.13",
-		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
-		"icon": "pets",
-		"variant": "both"
-	},
-	"missing_texture_highlighter": {
-		"title": "Missing Texture Highlighter",
-		"icon": "flash_on",
-		"author": "JannisX11",
-		"description": "Highlights missing textures by flashing them.",
-		"version": "0.1.1",
-		"variant": "both"
-	},
-	"double_sided_cubes": {
-		"title": "Double Sided Cube Generator",
-		"author": "SnaveSutit",
-		"icon": "flip_to_back",
-		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
-		"variant": "both"
-	},
-	"animated_java": {
-		"title": "Animated Java",
-		"author": "SnaveSutit & FetchBot",
-		"icon": "icon-armor_stand",
-		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
-		"version": "0.2.2",
-		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation", "Armor Stand"]
-	},
-	"optimize": {
-		"title": "Optimize",
-		"author": "Krozi",
-		"description": "Hide concealed faces for better performance!",
-		"icon": "border_outer",
-		"min_version": "2.0.2",
-		"variant": "both"
-	},
-	"blockmodels-exporter": {
-		"title": "Export to BlockModels.com",
-		"author": "TheDestruc7i0n",
-		"description": "Export models from Blockbench directly to BlockModels.com",
-		"icon": "web",
-		"variant": "both"
-	},
-	"plaster": {
-		"title": "Plaster",
-		"author": "JannisX11",
-		"description": "Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps",
-		"icon": "healing",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
-	"shape_generator": {
-		"title": "Shape Generator",
-		"author": "dragonmaster95",
-		"description": "Generates shapes.",
-		"icon": "pages",
-		"min_version": "3.0.2",
-		"variant": "both"
-	},
-	"outline_creator": {
-		"title": "Outline Creator",
-		"author": "Wither",
-		"description": "Creates stylistic outlines for cubes using negative scale values.",
-		"about": "To use the plugin, select an element you want to create an outline for, go to the Filter tab and click on the Create Outline option.",
-		"icon": "crop_square",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
-	"vox_importer": {
-		"title": "Voxel Importer",
-		"author": "JannisX11",
-		"description": "Import voxel (.vox) files",
-		"icon": "view_module",
-		"variant": "both",
-		"version": "1.2.1"
-	},
-	"texture_editor": {
-		"title": "Texture Editor",
-		"author": "JannisX11",
-		"description": "Adds basic image manipulation functions - like contrast and saturation - to textures",
-		"about": "To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.",
-		"icon": "photo_filter",
-		"min_version": "2.0.0",
-		"variant": "both"
-	},
-	"player_statue_generator": {
-		"title": "Player Statue Generator",
-		"author": "Wither, dragonmaster95 and 3XH6R",
-		"description": "Generates player shaped models.",
-		"tags": ["Minecraft"],
-		"icon": "accessibility",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
-	"clone_brush": {
-		"title": "Clone Brush",
-		"author": "JannisX11",
-		"icon": "account_balance_wallet",
-		"description": "Clone Cubes",
-		"min_version": "3.0.0",
-		"version": "1.1.1",
-		"variant": "both"
-	},
-	"mod_utils": {
-		"title": "Mod Utils",
-		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
-		"icon": "fa-cubes",
-		"description": "Allows importing Tabula files, and exporting VoxelShapes",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "1.6.1",
-		"variant": "desktop"
-	},
-	"structure_importer": {
-		"title": "Structure Importer",
-		"icon": "account_balance",
-		"author": "JannisX11 & Krozi",
-		"description": "Import structure files",
-		"version": "2.0.1",
-		"variant": "both"
-	},
-	"seat_position": {
-		"title": "Seat Position + Hitbox",
-		"icon": "event_seat",
-		"author": "JannisX11",
-		"description": "Preview seat positions and hitboxes for custom MC Bedrock entities",
-		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.2.1",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
-	"resource_pack_exporter": {
-		"title": "Resource Pack Exporter",
-		"icon": "archive",
-		"author": "Wither",
-		"description": "Exports your model as a ready-to-use Minecraft resource pack",
-		"tags": ["Minecraft: Java Edition"],
-		"variant": "both",
-		"min_version": "3.0.0"
-	},
-	"ambient_occlusion": {
-		"title": "Ambient Occlusion",
-		"icon": "gradient",
-		"author": "JannisX11",
-		"description": "Adds a screen space ambient occlusion shader",
-		"about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
-		"variant": "both",
-		"min_version": "3.4.0"
-	},
-	"csmodel": {
-		"title": "CraftStudio Model Format",
-		"icon": "star",
-		"author": "JannisX11",
-		"description": "Allows to import and export CraftStudio Models (.csmodel).",
-		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
-		"tags": ["CraftStudio"],
-		"variant": "both",
-		"min_version": "3.2.0"
-	},
-	"screencast_keys": {
-		"title": "Screencast Keys",
-		"icon": "keyboard",
-		"author": "JannisX11",
-		"description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
-		"version": "0.1.1",
-		"variant": "both",
-		"min_version": "3.2.1"
-	},
-	"discord-rpc": {
-		"title": "Discord RPC",
-		"icon": "announcement",
-		"author": "strajabot, Kastle, & simplyme",
-		"description": "Show a rich presence status in Discord.",
-		"variant": "desktop",
-		"min_version": "3.2.0"
-	},
-	"cem_template_loader": {
-		"title": "CEM Template Loader",
-		"icon": "keyboard_capslock",
-		"author": "Ewan Howell",
-		"description": "Load template Java Edition entity models for use with OptiFine CEM.",
-		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate parent bones, or move the pivot points of parent bones (top level folders), as this can break your model. If you need to rotate, use a subbone. If you need to change pivot points, use custom animations." 
-		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"variant": "both",
-		"min_version": "4.0.0",
-		"version": "5.10.2"
-	},
-	"threecore_exporter": {
-		"title": "ThreeCore Exporter",
-		"author": "Lucas, Spyeedy",
-		"icon": "looks_3",
-		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
-		"version": "1.0.3",
-		"variant": "both",
-		"min_version": "3.7.5"
-	},
-	"startup_tips": {
-		"title": "Startup Tips",
-		"author": "TheOtterlord",
-		"icon": "info",
-		"description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
-		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
-		"version": "1.1.0",
-		"variant": "both"
-	},
-	"animation_utils": {
-		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse, AzureDoom",
-		"icon": "movie_filter",
-		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "3.0.2",
-		"min_version": "4.0.0",
-		"await_loading": true,
-		"variant": "both"
-	},
-	"modded_entity_fabric": {
-		"title": "Fabric Modded Entity",
-		"author": "Eliot Lash",
-		"icon": "icon-format_java",
-		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "0.2.1",
-		"min_version": "3.6.6",
-		"variant": "both"
-	},
-	"multi-layer": {
-		"title": "Multi-Layer",
-		"icon": "layers",
-		"author": "aidancbrady",
-		"description": "Allows exporting in Forge's multi-layer model format.",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0",
-		"variant": "both"
-	},
-	"light_tracer_uploader": {
-		"title": "Light Tracer Uploader",
-		"icon": "fas.fa-feather",
-		"author": "JannisX11",
-		"description": "Upload models to Light Tracer to share them or to create renders",
-		"version": "0.0.1",
-		"variant": "both"
-	},
-	"code_view": {
-		"title": "Code View",
-		"icon": "developer_mode",
-		"author": "wither",
-		"description": "View the model you are currently editing in the raw format",
-		"version": "1.0.1",
-		"variant": "both"
-	},
-	"datagen_export": {
-		"title": "Datagen Export",
-		"icon": "code",
-		"author": "itsmeow",
-		"description": "Allows exporting to BlockStateProvider datagen code",
-		"version": "1.0.0",
-		"variant": "both"
-	},
-	"duplicate_renamer": {
-		"title": "Duplicate Bone Renamer",
-		"icon": "fa-font",
-		"author": "Gecko",
-		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
-		"version": "1.0.0",
-		"variant": "both"
-	},
-	"texture_stitcher": {
-		"title": "Texture Stitcher",
-		"icon": "fa-compress-arrows-alt",
-		"author": "McHorse",
-		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
-		"version": "1.0.1",
-		"variant": "both"
-	},
-	"arcaniax_block_exporter": {
-		"title": "Bedrock Block Exporter",
-		"icon": "icon-format_block",
-		"author": "Arcaniax",
-		"description": "Helps making new Bedrock blocks (requires experimental mode)",
-		"tags": ["Minecraft: Bedrock Edition"],
-		"variant": "desktop",
-		"version": "0.1.1"
-	},
-	"bakery": {
-		"title": "Bakery",
-		"icon": "storefront",
-		"author": "JannisX11",
-		"description": "Bakes complex animations into simple linear keyframes",
-		"version": "1.0.0",
-		"min_version": "3.7.0",
-		"variant": "both"
-	},
-	"bedrock_pivot_fix": {
-		"title": "Bedrock Pivot Fix 2",
-		"icon": "gps_fixed",
-		"author": "JannisX11",
-		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
-		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "2.0.0",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
-	"simplify": {
-		"title": "Simplify Models",
-		"icon": "build",
-		"author": "Ryan Garrett",
-		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-		"version": "0.2.0",
-		"variant": "both"
-	},
-	"animation_sliders": {
-		"title": "Animation Sliders",
-		"icon": "fas.fa-bezier-curve",
-		"author": "JannisX11",
-		"description": "Adds multiple sliders to tweak keyframes",
-		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
-		"tags": ["Animation"],
-		"version": "0.2.0",
-		"min_version": "3.7.0",
-		"variant": "both"
-	},
-	"voxel_shape_generator": {
-		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
-		"icon": "fa-cubes",
-		"author": "Spectre0987",
-		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
-		"version": "0.1.0",
-		"variant": "both",
-		"tags": ["Minecraft: Java Edition"]
-  	},
-	"voxel_shape_fabric_generator": {
-		"title": "VoxelShape Fabric Generator",
-		"icon": "bar_chart",
-		"author": "CyberStefNef",
-		"description": "Generates Voxel Shapes for Fabric",
-		"version": "0.0.1",
-		"variant": "both",
-		"tags": ["Minecraft: Java Edition"]
-  	},
-	"mimodel_format": {
-		"title": "Mine-imator Model Exporter",
-		"icon": "fas.fa-box-open",
-		"author": "JannisX11",
-		"description": "Export .mimodel files for Mine-imator and Modelbench",
-		"tags": ["Exporter"],
-		"version": "1.0.1",
-		"min_version": "3.7.0",
-		"variant": "both"
-	},
-	"minecraft_entity_wizard": {
-		"title": "Minecraft Entity Wizard",
-		"author": "JannisX11 & Mojang Studios",
-		"icon": "fas.fa-hat-wizard",
-		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
-		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.0.6",
-		"min_version": "3.7.0",
-		"variant": "both"
-	},
-	"reference_models": {
-		"title": "Reference Models",
-		"author": "JannisX11",
-		"icon": "fas.fa-monument",
-		"description": "Load and view glTF reference models in Blockbench",
-		"version": "1.0.1",
-		"min_version": "4.0.0",
-		"variant": "desktop"
-	},
-	"vintagestory_models": {
-		"title": "Vintage Story Models",
-		"author": "Malik12tree",
-		"icon": "park",
-		"description": "Allows to export VintageStory models.",
-		"version": "1.0.0",
-		"variant": "both"
-	},
-	"endimations_exporter": {
-		"title": "Endimator Animations Exporter",
-		"author": "SmellyModder",
-		"icon": "icon-format_java",
-		"description": "Exports Blockbench animations as the JSON format for Endimator animations from the Blueprint Mod Library. https://github.com/team-abnormals/blueprint",
-		"about": "Go to Animation -> Export Endimations...",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
-		"min_version": "4.0.0",
-		"variant": "both"
-	},
-	"brush_randomizer": {
-		"title": "Brush Color Randomizer",
-		"author": "Anniken(YT)",
-		"icon": "brush",
-		"description": "Randomize the Brush Color with each stroke to give your artwork more variation",
-		"version": "1.0.0",
-		"variant": "both"
-	},
-	"cardinal": {
-		"title": "Cardinal",
-		"author": "Bug1312",
-		"icon": "border_outer",
-		"description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
-		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
-		"version": "1.0.0",
-		"variant": "both"
-	}
+  "armor_stand_animator": {
+    "title": "Armor Stand Animator",
+    "author": "DoubleFelix",
+    "description": "Provides an interface to animate armor stands which is converted to a data pack",
+    "about": "To start, create the armor stand model by using the \"Create Armor Stand Model\" action in the toolbar. Then, create your animation in the animate tab as normal. Make sure the snapping value for keyframes is set to 20 for best results. When you're finished, use the \"Export Armor Stand Animation\" action in the toolbar. Change the settings as needed, then click \"Confirm\". Animations can be run with \"/execute as @e[tag=entity_tag] run function animation_pack:start\". The armor stand for an animation can be summoned with \"/function animation_pack:create\". Supports looping, time scale, block/blockbench unit scale, pausing and playback, and start delays.",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "icon": "fa-forward",
+    "version": "1.1.0",
+    "min_version": "4.0.0",
+    "variant": "both"
+  },
+  "animator": {
+    "title": "Java Item Model Animator",
+    "author": "Command master",
+    "description": "Takes two java item models and outputs a zip with a resourcepack and a datapack to make a clear transaction between them in the players hand (the plugin can also work for other animations but the datapack have to be coded manually).",
+    "about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "icon": "compare",
+    "variant": "both"
+  },
+  "geenium_bedrock_entity_helper": {
+    "title": "Bedrock Entity Model Presets",
+    "author": "Geenium",
+    "description": "Loads Bedrock vanilla entity models up to version 1.13",
+    "tags": [
+      "Deprecated",
+      "Minecraft: Bedrock Edition"
+    ],
+    "icon": "pets",
+    "variant": "both"
+  },
+  "missing_texture_highlighter": {
+    "title": "Missing Texture Highlighter",
+    "icon": "flash_on",
+    "author": "JannisX11",
+    "description": "Highlights missing textures by flashing them.",
+    "version": "0.1.1",
+    "variant": "both"
+  },
+  "double_sided_cubes": {
+    "title": "Double Sided Cube Generator",
+    "author": "SnaveSutit",
+    "icon": "flip_to_back",
+    "description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "1.0.0",
+    "variant": "both"
+  },
+  "animated_java": {
+    "title": "Animated Java",
+    "author": "SnaveSutit & FetchBot",
+    "icon": "icon-armor_stand",
+    "description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
+    "version": "0.2.2",
+    "variant": "desktop",
+    "tags": [
+      "Minecraft: Java Edition",
+      "Animation",
+      "Armor Stand"
+    ]
+  },
+  "optimize": {
+    "title": "Optimize",
+    "author": "Krozi",
+    "description": "Hide concealed faces for better performance!",
+    "icon": "border_outer",
+    "min_version": "2.0.2",
+    "variant": "both"
+  },
+  "blockmodels-exporter": {
+    "title": "Export to BlockModels.com",
+    "author": "TheDestruc7i0n",
+    "description": "Export models from Blockbench directly to BlockModels.com",
+    "icon": "web",
+    "variant": "both"
+  },
+  "plaster": {
+    "title": "Plaster",
+    "author": "JannisX11",
+    "description": "Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps",
+    "icon": "healing",
+    "min_version": "3.0.0",
+    "variant": "both"
+  },
+  "shape_generator": {
+    "title": "Shape Generator",
+    "author": "dragonmaster95",
+    "description": "Generates shapes.",
+    "icon": "pages",
+    "min_version": "3.0.2",
+    "variant": "both"
+  },
+  "outline_creator": {
+    "title": "Outline Creator",
+    "author": "Wither",
+    "description": "Creates stylistic outlines for cubes using negative scale values.",
+    "about": "To use the plugin, select an element you want to create an outline for, go to the Filter tab and click on the Create Outline option.",
+    "icon": "crop_square",
+    "min_version": "3.0.0",
+    "variant": "both"
+  },
+  "vox_importer": {
+    "title": "Voxel Importer",
+    "author": "JannisX11",
+    "description": "Import voxel (.vox) files",
+    "icon": "view_module",
+    "variant": "both",
+    "version": "1.2.1"
+  },
+  "texture_editor": {
+    "title": "Texture Editor",
+    "author": "JannisX11",
+    "description": "Adds basic image manipulation functions - like contrast and saturation - to textures",
+    "about": "To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.",
+    "icon": "photo_filter",
+    "min_version": "2.0.0",
+    "variant": "both"
+  },
+  "player_statue_generator": {
+    "title": "Player Statue Generator",
+    "author": "Wither, dragonmaster95 and 3XH6R",
+    "description": "Generates player shaped models.",
+    "tags": [
+      "Minecraft"
+    ],
+    "icon": "accessibility",
+    "min_version": "3.0.0",
+    "variant": "both"
+  },
+  "clone_brush": {
+    "title": "Clone Brush",
+    "author": "JannisX11",
+    "icon": "account_balance_wallet",
+    "description": "Clone Cubes",
+    "min_version": "3.0.0",
+    "version": "1.1.1",
+    "variant": "both"
+  },
+  "mod_utils": {
+    "title": "Mod Utils",
+    "author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+    "icon": "fa-cubes",
+    "description": "Allows importing Tabula files, and exporting VoxelShapes",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "1.6.1",
+    "variant": "desktop"
+  },
+  "structure_importer": {
+    "title": "Structure Importer",
+    "icon": "account_balance",
+    "author": "JannisX11 & Krozi",
+    "description": "Import structure files",
+    "version": "2.0.1",
+    "variant": "both"
+  },
+  "seat_position": {
+    "title": "Seat Position + Hitbox",
+    "icon": "event_seat",
+    "author": "JannisX11",
+    "description": "Preview seat positions and hitboxes for custom MC Bedrock entities",
+    "tags": [
+      "Minecraft: Bedrock Edition"
+    ],
+    "version": "1.2.1",
+    "min_version": "3.0.0",
+    "variant": "both"
+  },
+  "resource_pack_exporter": {
+    "title": "Resource Pack Exporter",
+    "icon": "archive",
+    "author": "Wither",
+    "description": "Exports your model as a ready-to-use Minecraft resource pack",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "variant": "both",
+    "min_version": "3.0.0"
+  },
+  "ambient_occlusion": {
+    "title": "Ambient Occlusion",
+    "icon": "gradient",
+    "author": "JannisX11",
+    "description": "Adds a screen space ambient occlusion shader",
+    "about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
+    "variant": "both",
+    "min_version": "3.4.0"
+  },
+  "csmodel": {
+    "title": "CraftStudio Model Format",
+    "icon": "star",
+    "author": "JannisX11",
+    "description": "Allows to import and export CraftStudio Models (.csmodel).",
+    "about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
+    "tags": [
+      "CraftStudio"
+    ],
+    "variant": "both",
+    "min_version": "3.2.0"
+  },
+  "screencast_keys": {
+    "title": "Screencast Keys",
+    "icon": "keyboard",
+    "author": "JannisX11",
+    "description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
+    "version": "0.1.1",
+    "variant": "both",
+    "min_version": "3.2.1"
+  },
+  "discord-rpc": {
+    "title": "Discord RPC",
+    "icon": "announcement",
+    "author": "strajabot, Kastle, & simplyme",
+    "description": "Show a rich presence status in Discord.",
+    "variant": "desktop",
+    "min_version": "3.2.0"
+  },
+  "cem_template_loader": {
+    "title": "CEM Template Loader",
+    "icon": "keyboard_capslock",
+    "author": "Ewan Howell",
+    "description": "Load template Java Edition entity models for use with OptiFine CEM.",
+    "about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate parent bones, or move the pivot points of parent bones (top level folders), as this can break your model. If you need to rotate, use a subbone. If you need to change pivot points, use custom animations.",
+    "tags": [
+      "Minecraft: Java Edition",
+      "OptiFine",
+      "Templates"
+    ],
+    "variant": "both",
+    "min_version": "4.0.0",
+    "version": "5.10.2"
+  },
+  "threecore_exporter": {
+    "title": "ThreeCore Exporter",
+    "author": "Lucas, Spyeedy",
+    "icon": "looks_3",
+    "description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
+    "version": "1.0.3",
+    "variant": "both",
+    "min_version": "3.7.5"
+  },
+  "startup_tips": {
+    "title": "Startup Tips",
+    "author": "TheOtterlord",
+    "icon": "info",
+    "description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
+    "about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
+    "version": "1.1.0",
+    "variant": "both"
+  },
+  "animation_utils": {
+    "title": "GeckoLib Animation Utils",
+    "author": "Eliot Lash, Gecko, McHorse, AzureDoom",
+    "icon": "movie_filter",
+    "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "3.0.2",
+    "min_version": "4.0.0",
+    "await_loading": true,
+    "variant": "both"
+  },
+  "modded_entity_fabric": {
+    "title": "Fabric Modded Entity",
+    "author": "Eliot Lash",
+    "icon": "icon-format_java",
+    "description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "0.2.1",
+    "min_version": "3.6.6",
+    "variant": "both"
+  },
+  "multi-layer": {
+    "title": "Multi-Layer",
+    "icon": "layers",
+    "author": "aidancbrady",
+    "description": "Allows exporting in Forge's multi-layer model format.",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "1.0",
+    "variant": "both"
+  },
+  "light_tracer_uploader": {
+    "title": "Light Tracer Uploader",
+    "icon": "fas.fa-feather",
+    "author": "JannisX11",
+    "description": "Upload models to Light Tracer to share them or to create renders",
+    "version": "0.0.1",
+    "variant": "both"
+  },
+  "code_view": {
+    "title": "Code View",
+    "icon": "developer_mode",
+    "author": "wither",
+    "description": "View the model you are currently editing in the raw format",
+    "version": "1.0.1",
+    "variant": "both"
+  },
+  "datagen_export": {
+    "title": "Datagen Export",
+    "icon": "code",
+    "author": "itsmeow",
+    "description": "Allows exporting to BlockStateProvider datagen code",
+    "version": "1.0.0",
+    "variant": "both"
+  },
+  "duplicate_renamer": {
+    "title": "Duplicate Bone Renamer",
+    "icon": "fa-font",
+    "author": "Gecko",
+    "description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
+    "version": "1.0.0",
+    "variant": "both"
+  },
+  "texture_stitcher": {
+    "title": "Texture Stitcher",
+    "icon": "fa-compress-arrows-alt",
+    "author": "McHorse",
+    "description": "Adds a menu item to textures editor that stitches multiple textures into one",
+    "version": "1.0.1",
+    "variant": "both"
+  },
+  "arcaniax_block_exporter": {
+    "title": "Bedrock Block Exporter",
+    "icon": "icon-format_block",
+    "author": "Arcaniax",
+    "description": "Helps making new Bedrock blocks (requires experimental mode)",
+    "tags": [
+      "Minecraft: Bedrock Edition"
+    ],
+    "variant": "desktop",
+    "version": "0.1.1"
+  },
+  "bakery": {
+    "title": "Bakery",
+    "icon": "storefront",
+    "author": "JannisX11",
+    "description": "Bakes complex animations into simple linear keyframes",
+    "version": "1.0.0",
+    "min_version": "3.7.0",
+    "variant": "both"
+  },
+  "bedrock_pivot_fix": {
+    "title": "Bedrock Pivot Fix 2",
+    "icon": "gps_fixed",
+    "author": "JannisX11",
+    "description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
+    "about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
+    "tags": [
+      "Minecraft: Bedrock Edition"
+    ],
+    "version": "2.0.0",
+    "min_version": "3.0.0",
+    "variant": "both"
+  },
+  "simplify": {
+    "title": "Simplify Models",
+    "icon": "build",
+    "author": "Ryan Garrett",
+    "description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
+    "version": "0.2.0",
+    "variant": "both"
+  },
+  "animation_sliders": {
+    "title": "Animation Sliders",
+    "icon": "fas.fa-bezier-curve",
+    "author": "JannisX11",
+    "description": "Adds multiple sliders to tweak keyframes",
+    "about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+    "tags": [
+      "Animation"
+    ],
+    "version": "0.2.0",
+    "min_version": "3.7.0",
+    "variant": "both"
+  },
+  "voxel_shape_generator": {
+    "title": "Voxel Shape Generator for MCP and Mojang Mappings",
+    "icon": "fa-cubes",
+    "author": "Spectre0987",
+    "description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
+    "version": "0.1.0",
+    "variant": "both",
+    "tags": [
+      "Minecraft: Java Edition"
+    ]
+  },
+  "voxel_shape_fabric_generator": {
+    "title": "VoxelShape Fabric Generator",
+    "icon": "bar_chart",
+    "author": "CyberStefNef",
+    "description": "Generates Voxel Shapes for Fabric",
+    "version": "0.0.1",
+    "variant": "both",
+    "tags": [
+      "Minecraft: Java Edition"
+    ]
+  },
+  "mimodel_format": {
+    "title": "Mine-imator Model Exporter",
+    "icon": "fas.fa-box-open",
+    "author": "JannisX11",
+    "description": "Export .mimodel files for Mine-imator and Modelbench",
+    "tags": [
+      "Exporter"
+    ],
+    "version": "1.0.1",
+    "min_version": "3.7.0",
+    "variant": "both"
+  },
+  "minecraft_entity_wizard": {
+    "title": "Minecraft Entity Wizard",
+    "author": "JannisX11 & Mojang Studios",
+    "icon": "fas.fa-hat-wizard",
+    "description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
+    "tags": [
+      "Minecraft: Bedrock Edition"
+    ],
+    "version": "1.0.6",
+    "min_version": "3.7.0",
+    "variant": "both"
+  },
+  "reference_models": {
+    "title": "Reference Models",
+    "author": "JannisX11",
+    "icon": "fas.fa-monument",
+    "description": "Load and view glTF reference models in Blockbench",
+    "version": "1.0.1",
+    "min_version": "4.0.0",
+    "variant": "desktop"
+  },
+  "vintagestory_models": {
+    "title": "Vintage Story Models",
+    "author": "Malik12tree",
+    "icon": "park",
+    "description": "Allows to export VintageStory models.",
+    "version": "1.0.0",
+    "variant": "both"
+  },
+  "endimations_exporter": {
+    "title": "Endimator Animations Exporter",
+    "author": "SmellyModder",
+    "icon": "icon-format_java",
+    "description": "Exports Blockbench animations as the JSON format for Endimator animations from the Blueprint Mod Library. https://github.com/team-abnormals/blueprint",
+    "about": "Go to Animation -> Export Endimations...",
+    "tags": [
+      "Minecraft: Java Edition"
+    ],
+    "version": "1.0.0",
+    "min_version": "4.0.0",
+    "variant": "both"
+  },
+  "brush_randomizer": {
+    "title": "Brush Color Randomizer",
+    "author": "Anniken(YT)",
+    "icon": "brush",
+    "description": "Randomize the Brush Color with each stroke to give your artwork more variation",
+    "version": "1.0.0",
+    "variant": "both"
+  },
+  "cardinal": {
+    "title": "Cardinal",
+    "author": "Bug1312",
+    "icon": "border_outer",
+    "description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
+    "about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
+    "version": "1.0.0",
+    "variant": "both"
+  }
 }
