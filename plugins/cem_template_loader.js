@@ -102,12 +102,6 @@
 							if(f.description){
 								element.attr("title", f.description)
 							}
-							if(f.popup){
-								element.attr("data-popup", f.popup)
-							}
-							if(f.popup_width){
-								element.attr("data-popup-width", f.popup_width)
-							}
 							imageObserver.observe(imageElement[0])
 							return element
 						})
@@ -135,7 +129,9 @@
 					model: model.model,
 					texture_name: Array.isArray(entity.texture_name) ? entity.texture_name.map(e => e + ".png") : (entity.texture_name || entity.name) + ".png",
 					texture_data: model.texture_data && (typeof model.texture_data === "string" ? "data:image/png;base64," + model.texture_data : model.texture_data.map(e => "data:image/png;base64," + e)),
-					vanilla_textures: entity.vanilla_textures
+					vanilla_textures: entity.vanilla_textures,
+					popup: entity.popup,
+					popup_width: entity.popup_width
 				}
 			}
 		}
@@ -188,6 +184,18 @@
 		Undo.index = 0
 		entitySelector.hide()
 		Blockbench.setStatusBarText(entity.name)
+		if (entity.popup) {
+			const options = {
+				id: "cem_template_loader_popup",
+				title: "CEM Template Loader",
+				buttons: ["Okay"],
+				lines: [
+					(entity.popup_width ? `<style>#cem_template_loader_popup{max-width:min(${entity.popup_width}px, 100%)!important}</style>` : "") + entity.popup
+				]
+			}
+			if (entity.popup_width) options.width = parseInt(entity.popup_width)
+			new Dialog(options).show()
+		}
 	}
 	function loadInterface(categoryID, data){
 		entitySelector.show()
@@ -200,18 +208,6 @@
 				if(selectedModel.length === 0) return Blockbench.showQuickMessage("Please select a template model", 2000)
 				const modelID = selectedModel.attr("data-modelid")
 				await loadModel(modelID, selectedModel.attr("data-category"), $("#cem_template_texture_check").is(":checked"), data)
-				if(selectedModel.attr("data-popup")){
-					const options = {
-						id: "cem_template_loader_popup",
-						title: "CEM Template Loader",
-						buttons: ["Okay"],
-						lines: [
-							(selectedModel.attr("data-popup-width") ? `<style>#cem_template_loader_popup{max-width:min(${selectedModel.attr("data-popup-width")}px, 100%)!important}</style>` : "") + selectedModel.attr("data-popup")
-						]
-					}
-					if (selectedModel.attr("data-popup-width")) options.width = parseInt(selectedModel.attr("data-popup-width"))
-					new Dialog(options).show()
-				}
 			})
 			$("#cem_template_load_button+button").on("click", evt => {
 				entitySelector.hide()
