@@ -148,8 +148,8 @@
 			categoryName = category[0]
 		}
 		const entity = entityCategories[categoryName].entities[modelID] 
-		newProject(Formats.optifine_entity)
 		const model = JSON.parse(entity.model)
+		newProject(Formats.optifine_entity)
 		Project.name = entity.file_name
 		Formats.optifine_entity.codec.parse(model, "")
 		if (defaultTexture) {
