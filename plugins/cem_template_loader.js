@@ -147,7 +147,7 @@
 			if (!category) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
 			categoryName = category[0]
 		}
-    const entity = entityCategories[categoryName].entities[modelID] 
+		const entity = entityCategories[categoryName].entities[modelID] 
 		newProject(Formats.optifine_entity)
 		const model = JSON.parse(entity.model)
 		Project.name = entity.file_name
@@ -332,18 +332,18 @@
 			width: 780,
 			buttons: [],
 			lines: [`
-			  <style>
-			  	code{padding:0 2px}
-			  	a.cem_template_info_link{
-			  		cursor:pointer;
-			  		display:flex;
-			  		align-items:center;
-			  		gap:10px;
-			  		text-decoration:none!important;
-			  		padding-right:40px
-			  	}
-			  	a.cem_template_info_link span{text-decoration:underline}
-			  </style>
+				<style>
+					code{padding:0 2px}
+					a.cem_template_info_link{
+						cursor:pointer;
+						display:flex;
+						align-items:center;
+						gap:10px;
+						text-decoration:none!important;
+						padding-right:40px
+					}
+					a.cem_template_info_link span{text-decoration:underline}
+				</style>
 				<h1 style="margin-top:-10px">CEM Template Loader</h1>
 				<p>CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.</p>
 				<br>
