@@ -209,7 +209,7 @@
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
 		"variant": "both",
 		"min_version": "4.0.0",
-		"version": "5.10.2"
+		"version": "5.11.0"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
