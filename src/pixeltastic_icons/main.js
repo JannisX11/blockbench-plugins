@@ -16,12 +16,17 @@ const icons = {
 	'sync': rotate_tool,
 	'gps_fixed': pivot_tool,
 	'icon-vertexsnap': vertex_snap,
+	'vertical_align_center': {
+		'x': rotate_tool,
+		'y': pivot_tool,
+		'z': vertex_snap
+	}
 }
 let style;
 
 Plugin.register('pixeltastic_icons', {
 	title: 'Pixeltastic Icon Pack',
-	author: 'JannisX11',
+	author: 'Marctron & JannisX11',
 	icon: 'insert_emoticon',
 	description: 'Pixeltastic Icon Pack',
 	version: '0.0.1',
@@ -45,9 +50,13 @@ Plugin.register('pixeltastic_icons', {
 
 		let originalGetIconNode = Blockbench.getIconNode;
 		Blockbench.getIconNode = (icon, color) => {
-			if (icons[icon]) {
+			let match = icons[icon];
+			if (typeof match == 'object') {
+				match = match[color] || match.default;
+			}
+			if (typeof match == 'string') {
 				let img = new Image();
-				img.src = icons[icon];
+				img.src = match;
 				img.classList.add('pixeltastic_icon', 'icon');
 				return img;
 			}
@@ -57,7 +66,7 @@ Plugin.register('pixeltastic_icons', {
 		for (let id in BarItems) {
 			let action = BarItems[id];
 			if (action instanceof Action && icons[action.icon]) {
-				action.setIcon(Blockbench.getIconNode(action.icon));
+				action.setIcon(Blockbench.getIconNode(action.icon, action.color));
 			}
 		}
 
@@ -84,6 +93,5 @@ Plugin.register('pixeltastic_icons', {
 		})
 	},
 	onunload() {
-		style.delete();
 	}
 });
