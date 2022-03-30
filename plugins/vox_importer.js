@@ -45,7 +45,7 @@ BBPlugin.register('vox_importer', {
 						var group = new Group(typeof file_path === 'string' ? pathToName(file_path) : 'voxel_file').init().addTo()
 						var vsize = 16/settings.edit_size.value;
 						if (Format.canvas_limit && !settings.deactivate_size_limit.value) vsize = 16 / Math.max(data.size.x, data.size.y, data.size.z)
-						buildGrid()
+						Canvas.buildGrid()
 						var i = 0
 						console.log(data)
 						var matrix = {}
@@ -57,7 +57,6 @@ BBPlugin.register('vox_importer', {
 							}
 						}
 						function expandTo(box, axis, direction, color, write) {
-							var success = true
 							var axisNumber = getAxisNumber(axis)
 							//u, v, layer
 							var layer = direction ? (box[axis+'2']+1) : (box[axis]-1)

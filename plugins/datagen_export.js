@@ -49,7 +49,7 @@
                 let temp = {};
                 temp.uv = s.faces[face].uv.slice();
                 temp.uv.forEach((n, i) => {
-                  temp.uv[i] = (n * 16) / main_uv.getResolution(i % 2);
+                  temp.uv[i] = (n * 16) / UVEditor.getResolution(i % 2);
                 });
                 faces += `.uvs(${temp.uv[0]}F, ${temp.uv[1]}F, ${temp.uv[2]}F, ${temp.uv[3]}F)`;
               }
