@@ -107,6 +107,7 @@
 		"description": "Adds basic image manipulation functions - like contrast and saturation - to textures",
 		"about": "To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.",
 		"icon": "photo_filter",
+		"tags": ["Deprecated"],
 		"min_version": "2.0.0",
 		"variant": "both"
 	},

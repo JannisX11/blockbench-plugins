@@ -131,6 +131,7 @@ Plugin.register('texture_editor', {
 	author: 'JannisX11',
 	description: 'Adds basic image manipulation functions - like contrast and saturation - to textures',
 	about: 'To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.',
+	tags: ['Deprecated'],
 	version: '1.0.0',
 	min_version: '2.0.0',
 	variant: 'both',
