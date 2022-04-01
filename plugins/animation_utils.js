@@ -277,7 +277,7 @@ const updateKeyframeSelectionCallback = (/*...args*/) => {
           bar.appendChild(div);
         };
 
-        const keyframe = document.getElementById('keyframe');
+        const keyframe = document.getElementById('panel_keyframe');
         let easingBar = document.createElement('div');
         keyframe.appendChild(easingBar);
         easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
