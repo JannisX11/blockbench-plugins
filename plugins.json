@@ -432,11 +432,11 @@
 		"variant": "both"
 	},
 	"mesh_tools": {
-		"title": 'MTools',
-		"icon": 'fas.fa-vector-square',
-		"author": 'Malik12tree',
-		"description": 'Adds helpful Modeling Tools, Operators and Generators for Meshs!',
-		"version": '1.0.0',
+		"title": "MTools",
+		"icon": "fas.fa-vector-square",
+		"author": "Malik12tree",
+		"description": "Adds helpful Modeling Tools, Operators and Generators for Meshs!",
+		"version": "1.0.0",
 		"variant": "desktop"
 	}
 }
