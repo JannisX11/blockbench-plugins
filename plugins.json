@@ -430,5 +430,13 @@
 		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"mesh_tools": {
+		"title": 'MTools',
+		"icon": 'fas.fa-vector-square',
+		"author": 'Malik12tree',
+		"description": 'Adds helpful Modeling Tools, Operators and Generators for Meshs!',
+		"version": '1.0.0',
+		"variant": "desktop",
 	}
 }
