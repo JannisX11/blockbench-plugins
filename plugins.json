@@ -430,5 +430,15 @@
 		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"wasd_controls": {
+		"title": "WASD Controls",
+		"icon": "sports_esports",
+		"author": "JannisX11",
+		"description": "Adds a WASD controlled viewport navigation mode",
+		"about": "The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview.",
+		"version": "1.0.0",
+		"min_version": "4.1.0",
+		"variant": "both"
 	}
 }
