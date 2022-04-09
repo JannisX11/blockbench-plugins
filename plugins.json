@@ -437,7 +437,7 @@
 		"author": "Malik12tree",
 		"description": "Adds helpful Modeling Tools, Operators and Generators for Meshs!",
 		"version": "1.0.0",
-		"variant": "desktop"
+		"variant": "both"
   },
 	"wasd_controls": {
 		"title": "WASD Controls",
