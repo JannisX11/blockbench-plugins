@@ -20,7 +20,7 @@
 **Terrain**: Generates Terrains procedurally with fully customized settings.\n
 **Terrain Style Editor**: Configure the values of the style \`Custom\` for the Terrain Generator.\n
 **Text Mesh**: Generate a mesh representation of a text with Opentype Fonts and custom settings.\n
-*An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is \`http://gero3.github.io/facetype.js/\`*
+*An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is \`http://gero3.github.io/facetype.js/*\n
 **XYZ Math Surface Function**: Creates an xyz surface based on given inputs. Also contains already-made 12 presets!\n
 **Quick Primitives [Polyhedron]**: generate the basic 4 regular polyhedron with custom detail.\n
 **Quick Primitives [Torus Knot]**: generates a p-q torus knot with custom settings.\n
