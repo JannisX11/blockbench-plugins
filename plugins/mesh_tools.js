@@ -1992,10 +1992,15 @@
 					description: "Creates an xyz surface based on given inputs. Also contains already-made 12 presets!",
 					click(){
 						let options = {};
+						let msettings = localStorage.getItem('mt_xyzSettings');
 						for (const key in xyzpresets) {
 							options[key] = key;
 						}
 						let presetBeforeUpdate;
+						if (msettings != null) {
+							msettings = JSON.parse(msettings);
+							presetBeforeUpdate = msettings.preset;
+						}
 						let justOpened = true;
 						let dial = new Dialog ({
 							title: "XYZ Math Surface Function",
@@ -2010,7 +2015,7 @@
 								}
 								if (data.preset == presetBeforeUpdate) return; // stop call stack
 								presetBeforeUpdate = data.preset;
-
+								
 								this.setFormValues(xyzpresets[data.preset]);
 							},
 							form: {
@@ -2108,9 +2113,7 @@
 							}
 						})
 						dial.show();
-						let msettings = localStorage.getItem('mt_xyzSettings');
 						if(msettings != null) {
-							msettings = JSON.parse(msettings);
 							dial.setFormValues(msettings);
 						}
 
@@ -2118,7 +2121,6 @@
 						saveBtn.off("click");
 						saveBtn.on("click", function() {
 							let mmsettings = dial.getFormResult();
-							delete mmsettings.preset;
 							localStorage.setItem("mt_xyzSettings", JSON.stringify(mmsettings));
 						});
 					}
