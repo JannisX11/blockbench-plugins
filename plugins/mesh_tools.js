@@ -282,12 +282,16 @@
 										// terrain.settings[key].value = _out[key];
 										let c = {};
 										for (const _key in terrain.settings[key]) {
-											if (_key != 'condition') {
+											if (_key != 'condition' && _key != 'value') {
 												c[_key] = terrain.settings[key][_key];
+											}
+											if ( _key == 'value') {
+												c[_key] = _out[key];
 											}
 										}
 										_form_[key] = c;
 									}
+									console.log(_form_);
 									
 									Undo.amendEdit(_form_, form => {
 										runEdit(form, true);
@@ -547,9 +551,9 @@
 				},
 				suggested: {
 					style: "Ice",
-					scale: 25,
+					scale: 15,
 					multiplier: 3,
-					lacunarity: 1,
+					lacunarity: 2,
 				},
 				noise: function(s) {
 					let noise = TerrainGen.all[0].noise(s, function(val, x,y) {
@@ -1825,7 +1829,6 @@
 					i++;
 				}
 			}
-
 			let _mathfuncs = ["abs","acos","asin","atan","atan2","ceil","clamp","cos","die_roll","die_roll_integer","exp","floor","hermite_blend","lerp","lerprotate","ln","max","min","min_angle","mod","pi","pow","random","random_integer","round","sin","sqrt","trunc"];
 			function mtParse(string) {
 				_mathfuncs.forEach(f => {
@@ -1960,6 +1963,18 @@
 					vWrap: false,
 					vClose: false,
 				},
+				"Pseudo Sphere": {
+					x: "cos(p.u)*cos(p.v)+sin((sin(p.u)+1)*2*pi)*2",
+					y: "4*sin(p.u)*2",
+					z: "cos(p.u)*sin(p.v)+cos((sin(p.u)+1)*2*pi)*2",
+					uRange: [-1.5707963705062866,1.5707963705062866],
+					uDivs: 32,
+					uWrap: false,
+					vRange: [0,6.2831854820251465],
+					vDivs: 8,
+					vWrap: false,
+					vClose: false,
+				},
 				"Stero Sphere": {
 					x: "(2.*p.u/(p.u*p.u+p.v*p.v+1.))*8",
 					y: "((p.u*p.u+p.v*p.v-1.)/(p.u*p.u+p.v*p.v+1.))*8",
@@ -2024,11 +2039,11 @@
 								y: {label:"Y", type:'text', value:xyzpresets['Twisted Torus'].y},
 								z: {label:"Z", type:'text', value:xyzpresets['Twisted Torus'].z},
 								_:"_",
-								uRange: {label:"U range", type:'vector', dimensions:2, value: [0,6.2831854820251465]},
-								uDivs: {label:"U divisions", type:'number', min:2, value:32},
+								uRange: {label:"U Range", type:'vector', dimensions:2, value: [0,6.2831854820251465]},
+								uDivs: {label:"U Divisions", type:'number', min:2, value:32},
 								uWrap: {label:"U Wrap", type:"checkbox", value:true},
-								vRange: {label:"V range", type:'vector', dimensions:2, value: [0,6.2831854820251465]},
-								vDivs: {label:"V divisions", type:'number', min:2, value:16},
+								vRange: {label:"V Range", type:'vector', dimensions:2, value: [0,6.2831854820251465]},
+								vDivs: {label:"V Divisions", type:'number', min:2, value:16},
 								vWrap: {label:"V Wrap", type:"checkbox", value:true},
 								vClose: {label:"V Close", type:"checkbox", value:true},
 								__:"_",
@@ -2044,24 +2059,26 @@
 									Undo.initEdit({elements, selection: true}, amended);
 									let mesh = new Mesh({vertices:{}});
 									
-									let [umin,umax] = s.uRange;
+									let [umin,umax] = out.uRange;
 									let usteps = s.uDivs;
 									let uinc = (umax - umin)/usteps;
 									
-									let [vmin,vmax] = s.vRange;
+									let [vmin,vmax] = out.vRange;
 									let vsteps = s.vDivs;
 									let vinc = (vmax - vmin)/vsteps;
 									
 									let uRange = usteps+1;
 									let vRange = vsteps+1;
-									if (s.uWrap) uRange -= 1;
-									if (s.vWrap) vRange -= 1;
+									if (out.uWrap) uRange -= 1;
+									if (out.vWrap) vRange -= 1;
 
 									let vertices = [];
+									let uvPositions = [];
 									for (let j = 0; j < vRange; j++) {
-										let v = uinc + (j*vinc);;
+										let v = vmin + (j*vinc);;
 										for (let i = 0; i < uRange; i++) {
-											let u = vinc + (i*uinc);
+											let u = umin + (i*uinc);
+											//console.log(u,v);
 											
 											mtMolangParser.global_variables = {'p.u': u,'p.v': v};
 
@@ -2069,6 +2086,7 @@
 											let y = mtMolangParser.parse(out.y);
 											let z = mtMolangParser.parse(out.z);
 											vertices.push(mesh.addVertices([x,y,z])[0]);
+											uvPositions.push([i,j])
 										}
 									}
 									for (let y = 0; y < vsteps; y++) {
@@ -2079,15 +2097,34 @@
 											if (out.vWrap && yNext >= vRange) yNext = 0;
 											if (out.uWrap && xNext >= uRange) xNext = 0;
 
-											let face = new MeshFace(mesh, {vertices: [
-												vertices[(yNext * uRange) + xNext],
-												vertices[(yNext * uRange) + x],
-												vertices[	 (y * uRange) + x],
-												vertices[    (y * uRange) + xNext],											
-											]});
+											let vertexIndices = [
+												(yNext * uRange) + xNext,
+												(yNext * uRange) + x,
+												(y * uRange) + x,
+												(y * uRange) + xNext
+											]
+											let face = new MeshFace(mesh, {
+												vertices: [
+													vertices[vertexIndices[0]],
+													vertices[vertexIndices[1]],
+													vertices[vertexIndices[2]],
+													vertices[vertexIndices[3]],											
+												],
+											});
+											let uv = [
+												uvPositions[vertexIndices[0]].slice().V3_divide(uRange-1,vRange-1).V3_multiply(Project._texture_width,Project._texture_height),
+												uvPositions[vertexIndices[1]].slice().V3_divide(uRange-1,vRange-1).V3_multiply(Project._texture_width,Project._texture_height),
+												uvPositions[vertexIndices[2]].slice().V3_divide(uRange-1,vRange-1).V3_multiply(Project._texture_width,Project._texture_height),
+												uvPositions[vertexIndices[3]].slice().V3_divide(uRange-1,vRange-1).V3_multiply(Project._texture_width,Project._texture_height)
+											]
+											face.uv[face.vertices[0]] = [uv[0][0],uv[0][1]];
+											face.uv[face.vertices[1]] = [uv[1][0],uv[1][1]];
+											face.uv[face.vertices[2]] = [uv[2][0],uv[2][1]];
+											face.uv[face.vertices[3]] = [uv[3][0],uv[3][1]];
 											mesh.addFaces(face);
 										}
 									}
+									delete uvPositions;
 									// fills end caps
 									if (out.vClose && out.uWrap && !out.vWrap) {
 										for (let x = 1; x < usteps-1; x++) {
@@ -2110,6 +2147,12 @@
 									Undo.finishEdit('Generate Mesh');
 								}
 								runEdit(out);
+								Undo.amendEdit({
+									uDivs: {label: "U divisions", value: out.uDivs, min:2},
+									vDivs: {label: "V divisions", value: out.vDivs, min:2}
+								}, form => {
+									runEdit(form,true)
+								})
 							}
 						})
 						dial.show();
@@ -2134,17 +2177,17 @@
 					icon: quickPrimitivesI,
 					click(){
 						new Dialog ({
-							title: "Quick Primtive [ Polyhedron ]",
+							title: "Quick Primitive [ Polyhedron ]",
 							form: {
 								select: {label: "Hedron", type:"select", options: {Icosahedron:"Icosahedron", Dodecahedron:"Dodecahedron",Octahedron:"Octahedron", Tetrahedron:"Tetrahedron"}},
-								radius: {label: "Radius", value: 8},
-								detail: {label: "Detail", value: 2, min:1,max:6}
+								radius: {label: "Radius", value: 8, type:'number'},
+								detail: {label: "Detail", value: 2, min:1,max:6, type:'number'}
 							},
 							onConfirm(out){
 								function runEdit(s, amended=false) {
 									let elements = [];
 									Undo.initEdit({elements, selection: true}, amended);
-									const geometry = eval(`new THREE.${out.select}BufferGeometry(${s.radius},${s.detail-1})`);
+									const geometry = new THREE[out.select + 'BufferGeometry'](s.radius, s.detail-1);
 									let mesh = ThreeToBB.nonIndexed(geometry);										
 									
 									mesh.init();
@@ -2172,7 +2215,7 @@
 					icon: quickPrimitivesI,
 					click(){
 						new Dialog ({
-							title: "Quick Primtive [ Torus Knot ]",
+							title: "Quick Primitive [ Torus Knot ]",
 							lines: [`<p class="small_text subtle" style="display: inline;">P and Q should be coprime integers meaning non should be divisible by the other.</p>`],
 							form: {
 								r: {label:"Torus Radius", type:"number", value:8},
