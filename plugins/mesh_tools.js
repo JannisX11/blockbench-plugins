@@ -3,8 +3,7 @@
 	let MeshToolsAction;
 	let GensAction;
 	let about = 
-`
-\`Modeling Tools:\`\n
+`\`Modeling Tools:\`\n
 **To Sphere**: Casts selected vertices into a sphere based on an influence.\n
 **Poke Faces**: Creates a Fan out of selected faces.\n
 **Triangles To Quads**: Trys to dissolve adjacent triangles into a quad.\n
@@ -21,18 +20,16 @@
 **Terrain Style Editor**: Configure the values of the style \`Custom\` for the Terrain Generator.\n
 **Text Mesh**: Generate a mesh representation of a text with Opentype Fonts and custom settings.\n
 *An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is \`http://gero3.github.io/facetype.js/*\n
-**XYZ Math Surface Function**: Creates an xyz surface based on given inputs. Also contains already-made 12 presets!\n
+**XYZ Math Surface Function**: Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n
 **Quick Primitives [Polyhedron]**: generate the basic 4 regular polyhedron with custom detail.\n
-**Quick Primitives [Torus Knot]**: generates a p-q torus knot with custom settings.\n
-
-`;
+**Quick Primitives [Torus Knot]**: generates a p-q torus knot with custom settings.\n`;
 	Plugin.register('mesh_tools', {
 		title: 'MTools',
 		icon: 'fas.fa-vector-square',
 		author: 'Malik12tree',
 		description: 'Adds helpful Modeling Tools, Operators and Generators for Meshs!',
 		about,
-		version: '1.0.1',
+		version: '1.0.2',
 		variant: "both",
 		tags: ["Format: Generic Model", "Edit"],
 		onload() {
@@ -291,7 +288,6 @@
 										}
 										_form_[key] = c;
 									}
-									console.log(_form_);
 									
 									Undo.amendEdit(_form_, form => {
 										runEdit(form, true);
@@ -543,7 +539,7 @@
 				name: 'River',
 				settings: {
 					time: {label: 'Time', type: 'number', min: 0, value: 0, step: 1},
-					scale: {label: 'Scale', type: 'number', min: 0, value: 15},
+					scale: {label: 'Scale', type: 'number', min: 0, value: 25},
 					octaves: {label: 'Octaves', type: 'number', min: 0, value: 5},
 					persistance: {label: 'Persistancy', type: 'number', min: 0, max: 1, step: .1,value: .4},
 					lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 2},
@@ -1457,7 +1453,7 @@
 						}
 						runEdit();
 						Undo.amendEdit({
-							// shame vector inut
+							// shame vector input
 							x: {type: 'number', value: 1, label: 'OffsetX', step:.1},
 							y: {type: 'number', value: 0, label: 'OffsetY', step:.1},
 							z: {type: 'number', value: 0, label: 'OffsetZ', step:.1},
@@ -1532,7 +1528,7 @@
 							color.jq.spectrum({
 								preferredFormat: "hex",
 								color: col || "#fff",
-								showInut: true,
+								showinput: true,
 								maxSelectionSize: 128,
 								resetText: tl('generic.reset'),
 								cancelText: tl('dialog.cancel'),
@@ -1542,11 +1538,11 @@
 								change: function()  { comuteMTStyle() },
 								move: function() 	{ comuteMTStyle() },
 							})
-							let height = c('inut').attr({type:"number",min:0,max:100,step:.5,value:typeof v == "number"?v:100}).addClass('dark_bordered focusable_inut');
-							let blending = c('inut').attr({type:"number",min:0,max:100,step:.5,value:typeof b == "number"?b:100}).addClass('dark_bordered focusable_inut');
+							let height = c('input').attr({type:"number",min:0,max:100,step:.5,value:typeof v == "number"?v:100}).addClass('dark_bordered focusable_input');
+							let blending = c('input').attr({type:"number",min:0,max:100,step:.5,value:typeof b == "number"?b:100}).addClass('dark_bordered focusable_input');
 							
-							height[0].oninut = function() { comuteMTStyle(); }
-							blending[0].oninut = function() { comuteMTStyle(); }
+							height[0].oninput = function() { comuteMTStyle(); }
+							blending[0].oninput = function() { comuteMTStyle(); }
 							deleteBtn[0].onclick = function() {
 								ctx.clearRect(0,0,256,25);
 								level.remove(); 
@@ -1810,207 +1806,94 @@
 					}
 				})
 			);
-			let mtMolangParser = new Molang();
-			mtMolangParser.use_radians=true;
-			let currentMTVariablesTextContent;
 
-			// stolen from Animator.MolangParser.variableHandler;
-			mtMolangParser.variableHandler = function(variable) {
-				var inuts = currentMTVariablesTextContent.split(`\n`);
-				var i = 0;
-				while (i < inuts.length) {
-					let key, val;
-					[key, val] = inuts[i].split(/=(.+)/);
-					key = key.replace(/[\s;]/g, '');
-					if (key === variable && val !== undefined) {
-						val = val.trim();
-						return val[0] == `'` ? val : mtMolangParser.parse(val);
-					}
-					i++;
-				}
+			let mtMolangParser;
+			let currentMTVariablesTextContent = '';
+			let molangScript = $('script[src="lib/molang.umd.js"]')[0];
+			//https://stackoverflow.com/questions/148441/how-can-i-get-the-content-of-the-file-specified-as-the-src-of-a-script-tag
+			function printScriptTextContent(script, cb) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET",script.src)
+				xhr.onreadystatechange = _ => {
+					if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) cb(xhr.responseText);
+				};
+				xhr.send(); 
 			}
-			let _mathfuncs = ["abs","acos","asin","atan","atan2","ceil","clamp","cos","die_roll","die_roll_integer","exp","floor","hermite_blend","lerp","lerprotate","ln","max","min","min_angle","mod","pi","pow","random","random_integer","round","sin","sqrt","trunc"];
+
+			// this is so stupid
+			// just an add-in of more functions
+			printScriptTextContent(molangScript, function(f) {
+				eval(f.replace('Molang', '_Molang_').replace(`case"random_integer":return new u(125,s[0],s[1],s[2])`, `case"random_integer":return new u(125,s[0],s[1],s[2]);case 'acosh':return new u(126, s[0]);case 'asinh':return new u(127, s[0]);case 'atanh':return new u(128, s[0]);case 'cosh':return new u(129, s[0]);case 'sinh':return new u(130, s[0]);case 'tan':return new u(131, s[0]);case'tanh':return new u(132, s[0])`).replace('case 125:return r.randomInt(v(n.a),v(n.b))', 'case 125:return r.randomInt(v(n.a),v(n.b));case 126:return Math.acosh(v(n.a));case 127:return Math.asinh(v(n.a));case 128:return Math.atanh(v(n.a));case 129:return Math.cosh(v(n.a));case 130:return Math.sinh(v(n.a));case 131:return Math.tan(v(n.a));case 132:return Math.tanh(v(n.a))'))
+				mtMolangParser = new _Molang_();
+				mtMolangParser.use_radians=true;
+
+				// stolen from Animator.MolangParser.variableHandler;
+				mtMolangParser.variableHandler = function(variable) {
+					var inputs = currentMTVariablesTextContent.split(`\n`);
+					var i = 0;
+					while (i < inputs.length) {
+						let key, val;
+						[key, val] = inputs[i].split(/=(.+)/);
+						key = key.replace(/[\s;]/g, '');
+						if (key === variable && val !== undefined) {
+							val = val.trim();
+							return val[0] == `'` ? val : mtMolangParser.parse(val);
+						}
+						i++;
+					}
+				}
+			});
+			let mathFuncs = ["abs","acos","asin","atan","atan2","ceil","clamp","cos","die_roll","die_roll_integer","exp","floor","hermite_blend","lerp","lerprotate","ln","max","min","min_angle","mod","pi","pow","random","random_integer","round","sin","sqrt","trunc","acosh","asinh","atanh","cosh","sinh","tan","tanh"];
 			function mtParse(string) {
-				_mathfuncs.forEach(f => {
-					string = string.replaceAll(f, "math." + f);
+				mathFuncs.forEach(f => {
+					if (f == 'pi')
+						string = string.replaceAll(f, "math." + f);
+					else 
+						string = string.replaceAll(f+'(', "math." + f+'(');
 				});
-				return string;
+				return string.replaceAll('amath.', 'a');
 			}
 			
 			// Special thanks to the Blender3d addon "Add Mesh - Extra Objects" for the inspiration! :)
 			// 				  and the presets of the addon, at: https://github.com/elfnor/blender_XYZ_surface_presets
 			// :)
 			let xyzpresets = {
-				"Twisted Torus": {
-					x: "-cos(p.u)*(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))",
-					y: "-(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))*sin(p.u)",
-					z: "cos(p.v-3*p.u)*(5./4.+sin(3*p.v))",
-					uRange: [0,6.2831854820251465],
-					uDivs: 32,
-					uWrap: true,
-					vRange: [0,6.2831854820251465],
-					vDivs: 16,
-					vWrap: true,
-					vClose: true,
-				},
-				"Bonbon": {
-					x: "(p.u-3.3379) * 2",
-					y: "cos(p.u)*sin(p.v)*2",
-					z: "cos(p.u)*cos(p.v)*2",
-					uRange: [0,6.2831854820251465],
-					uDivs: 16,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Clifford Torus": {
-					x: "cos(p.u+p.v)/(sqrt(2)+cos(p.v-p.u))*4",
-					y: "sin(p.v-p.u)/(sqrt(2)+cos(p.v-p.u))*4",
-					z: "sin(p.u+p.v)/(sqrt(2)+cos(p.v-p.u))*4",
-					uRange: [0,3.1415927410125732],
-					uDivs: 8,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 32,
-					vWrap: false,
-					vClose: false,
-				},
-				"Cochlea": {
-					x: "p.v*cos(p.u)*4",
-					y: "p.v*sin(p.u)*4",
-					z: "(0.4*p.u-2.5383)*4",
-					uRange: [0,12.566370964050293],
-					uDivs: 16,
-					uWrap: false,
-					vRange: [0,2],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Dini": {
-					x: "aa*cos(p.u)*sin(p.v)",
-					y: "aa*(((cos(p.v)+ln(tan(p.v/2)+1E-2)) + bb*p.u)+3.4985)",
-					z: "aa*sin(p.u)*sin(p.v)",
-					uRange: [0,Math.PI*2],
-					uDivs: 16,
-					uWrap: false,
-					vRange: [0,Math.PI],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-					variables: `aa = 4\nbb=0.4`
-				},
-				"Hexahedron": {
-					x: "pow(cos(p.v),3)*pow(cos(p.u),3)*8",
-					y: "pow(sin(p.u),3)*8",
-					z: "pow(sin(p.v),3)*pow(cos(p.u),3)*8",
-					uRange: [-1.2999999523162842,1.2999999523162842],
-					uDivs: 16,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Klein": {
-					x: "(3*(1+sin(p.v)) + 2*(1-cos(p.v)/2)*cos(p.u))*cos(p.v)",
-					y: "(4+2*(1-cos(p.v)/2)*cos(p.u))*sin(p.v)",
-					z: "-2*(1-cos(p.v)/2)*sin(p.u)",
-					uRange: [0,6.2831854820251465],
-					uDivs: 16,
-					uWrap: true,
-					vRange: [0,6.2831854820251465],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Moebius": {
-					x: "(cos(p.v)+p.u*cos(p.v/2)*cos(p.v))*4",
-					y: "(p.u*sin(p.v/2))*4",
-					z: "(sin(p.v)+p.u*cos(p.v/2)*sin(p.v))*4",
-					uRange: [-0.4000000059604645,0.4000000059604645],
-					uDivs: 4,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Ridged Torus": {
-					x: "aa*cos(p.u)+(bb*sin(ff*p.u)+cc)*cos(p.u)*cos(p.v)",
-					y: "aa*sin(p.u)+(bb*sin(ff*p.u)+cc)*sin(p.u)*cos(p.v)",
-					z: "(bb*sin(ff*p.u)+cc)*sin(p.v)",
-					uRange: [0,6.2831854820251465],
-					uDivs: 32,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 8,
-					vWrap: false,
-					vClose: false,
-					variables: `aa = 5\n bb = 0.6\n cc = 2\n ff = 10`
-				},
-				"Shell": {
-					x: "(cos(p.v)*(1+cos(p.u))*sin(p.v/8))*4",
-					y: "(sin(p.u)*sin(p.v/8)+cos(p.v/8)*1.5)*4",
-					z: "(sin(p.v)*(1+cos(p.u))*sin(p.v/8))*4",
-					uRange: [0,6.2831854820251465],
-					uDivs: 16,
-					uWrap: true,
-					vRange: [0,12.566370964050293],
-					vDivs: 32,
-					vWrap: false,
-					vClose: false,
-				},
-				"Pseudo Sphere": {
-					x: "cos(p.u)*cos(p.v)+sin((sin(p.u)+1)*2*pi)*2",
-					y: "4*sin(p.u)*2",
-					z: "cos(p.u)*sin(p.v)+cos((sin(p.u)+1)*2*pi)*2",
-					uRange: [-1.5707963705062866,1.5707963705062866],
-					uDivs: 32,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 8,
-					vWrap: false,
-					vClose: false,
-				},
-				"Stero Sphere": {
-					x: "(2.*p.u/(p.u*p.u+p.v*p.v+1.))*8",
-					y: "((p.u*p.u+p.v*p.v-1.)/(p.u*p.u+p.v*p.v+1.))*8",
-					z: "(2*p.v/(p.u*p.u+p.v*p.v+1))*8",
-					uRange: [-2,2],
-					uDivs: 16,
-					uWrap: false,
-					vRange: [-2,2],
-					vDivs: 16,
-					vWrap: false,
-					vClose: false,
-				},
-				"Torus": {
-					x: "(1+0.5*cos(p.u))*cos(p.v)*6",
-					y: "0.5*sin(p.u)*6",
-					z: "(1+0.5*cos(p.u))*sin(p.v)*6",
-					uRange: [0,6.2831854820251465],
-					uDivs: 8,
-					uWrap: false,
-					vRange: [0,6.2831854820251465],
-					vDivs: 12,
-					vWrap: false,
-					vClose: false,
-				},
-			}
+				TwistedTorus:		{x:"-cos(p.u)*(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))",y:"-(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))*sin(p.u)",z:"cos(p.v-3*p.u)*(5./4.+sin(3*p.v))",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
+				Bonbon:				{x:"(p.u-3.3379)",y:"cos(p.u)*sin(p.v)",z:"cos(p.u)*cos(p.v)",scale:2,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Boy:				{x:"(sq2 * cos(2*p.u)*pow(cos(p.v),2) + cos(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",y:"(sq2 * sin(2*p.u)*pow(cos(p.v),2) - sin(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",z:"(3*pow(cos(p.v),2)) / (2 - alpha*sq2*sin(3*p.u)*sin(2*p.v))",scale:4,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:16,uWrap:!1,vRange:[0,3.1415927410125732],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951\nalpha=1"},
+				Catalan:			{x:"p.u-sin(p.u)*cosh(p.v)",y:"4*sin(1/2*p.u)*sinh(p.v/2)",z:"1-cos(p.u)*cosh(p.v)",scale:1,uRange:[-3.1415927410125732,9.42477798461914],uDivs:24,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
+				Catenoid:			{x:"2*cosh(p.v/2)*cos(p.u)",y:"p.v",z:"2*cosh(p.v/2)*sin(p.u)",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:24,uWrap:!0,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
+				CliffordTorus:		{x:"cos(p.u+p.v)/(sq2+cos(p.v-p.u))",y:"sin(p.v-p.u)/(sq2+cos(p.v-p.u))",z:"sin(p.u+p.v)/(sq2+cos(p.v-p.u))",scale:4,uRange:[0,3.1415927410125732],uDivs:8,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951"},
+				Cochlea:			{x:"p.v*cos(p.u)",y:"p.v*sin(p.u)",z:"(0.4*p.u-2.5383)",scale:4,uRange:[0,12.566370964050293],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:16,vWrap:!1,vClose:!1},
+				Cosinus:			{x:"p.u",y:"sin(pi* ( pow(p.u,2) + pow(p.v,2) ) )/2",z:"p.v",scale:8,uRange:[-1,1],uDivs:16,uWrap:!1,vRange:[-1,1],vDivs:16,vWrap:!1,vClose:!1},
+				Dini:				{x:"radius*cos(p.u)*sin(p.v)",y:"2*(((cos(p.v)+ln(tan(p.v/2)+1E-2)) + twistrot*p.u)+3.4985)",z:"radius*sin(p.u)*sin(p.v)",scale:1,uRange:[0,4*Math.PI],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:8,vWrap:!1,vClose:!1,variables:"radius = 4\ntwistrot=0.2"},
+				Enneper:			{x:"p.u -pow(p.u,3)/3  + p.u*pow(p.v,2)",y:"pow(p.u,2) - pow(p.v,2)",z:"p.v -pow(p.v,3)/3  + p.v*pow(p.u,2)",scale:1,uRange:[-2,2],uDivs:8,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
+				Helicoidal:			{x:"sinh(p.v)*sin(p.u)",y:"3*p.u",z:"-sinh(p.v)*cos(p.u)",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:16,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
+				Helix:				{x:"(1-0.1*cos(p.v))*cos(p.u)/0.1",y:"0.1*(sin(p.v) + p.u/1.7 -10)/0.1 + 5",z:"(1-0.1*cos(p.v))*sin(p.u)/0.1",scale:1,uRange:[0,12.566370964050293],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1},
+				Hexahedron:			{x:"pow(cos(p.v),3)*pow(cos(p.u),3)",y:"pow(sin(p.u),3)",z:"pow(sin(p.v),3)*pow(cos(p.u),3)",scale:8,uRange:[-1.2999999523162842,1.2999999523162842],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Hyperhelicoidal:	{x:"(sinh(p.v)*cos(3*p.u))/(1+cosh(p.u)*cosh(p.v))",y:"(cosh(p.v)*sinh(p.u))/(1+cosh(p.u)*cosh(p.v))",z:"(sinh(p.v)*sin(3*p.u))/(1+cosh(p.u)*cosh(p.v))",scale:8,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:32,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
+				Klein:				{x:"(3*(1+sin(p.v)) + 2*(1-cos(p.v)/2)*cos(p.u))*cos(p.v)",y:"(4+2*(1-cos(p.v)/2)*cos(p.u))*sin(p.v)",z:"-2*(1-cos(p.v)/2)*sin(p.u)",scale:1,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Moebius:			{x:"(cos(p.v)+p.u*cos(p.v/2)*cos(p.v))",y:"(p.u*sin(p.v/2))",z:"(sin(p.v)+p.u*cos(p.v/2)*sin(p.v))",scale:4,uRange:[-.4000000059604645,.4000000059604645],uDivs:4,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				PseudoCatenoid:		{x:"2.2*(2*cosh(p.v/2)*cos(p.u))",y:"1.51166 * (2*cosh(p.v/2)*sin(p.u) * sin((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513) + 1.8*(p.v) * cos((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513))",z:"1.51166 * (2*cosh(p.v/2)*sin(p.u) * cos((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513) - 1.8*(p.v) * sin((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513))",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:32,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:14,vWrap:!1,vClose:!1},
+				PseudoSphere:		{x:"cos(p.u)*cos(p.v)+sin((sin(p.u)+1)*2*pi)",y:"4*sin(p.u)",z:"cos(p.u)*sin(p.v)+cos((sin(p.u)+1)*2*pi)",scale:2,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1},
+				RidgedTorus:		{x:"outerradius*cos(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*cos(p.u)*cos(p.v)",y:"outerradius*sin(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.u)*cos(p.v)",z:"(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1,variables:"outerradius = 5\nridgepower = 0.6\ninnerradius = 2\nnumofridges = 10"},
+				Shell:				{x:"(cos(p.v)*(1+cos(p.u))*sin(p.v/8))",y:"(sin(p.u)*sin(p.v/8)+cos(p.v/8)*1.5)",z:"(sin(p.v)*(1+cos(p.u))*sin(p.v/8))",scale:4,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!0,vRange:[0,12.566370964050293],vDivs:32,vWrap:!1,vClose:!1},
+				Sine:				{x:"sin(p.u)",y:"sin(p.v)",z:"sin(p.u+p.v)",scale:8,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
+				Snake:				{x:"1.2*(1 -p.v/(2*pi))*cos(3*p.v)*(1 + cos(p.u)) + 3*cos(3*p.v)",y:"9*p.v/(2*pi) + 1.2*(1 - p.v/(2*pi))*sin(p.u)",z:"1.2*(1 -p.v/(2*pi))*sin(3*p.v)*(1 + cos(p.u)) + 3*sin(3*p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:7,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:42,vWrap:!1,vClose:!1},
+				SteroSphere:		{x:"(2.*p.u/(p.u*p.u+p.v*p.v+1.))",y:"((p.u*p.u+p.v*p.v-1.)/(p.u*p.u+p.v*p.v+1.))",z:"(2*p.v/(p.u*p.u+p.v*p.v+1))",scale:8,uRange:[-2,2],uDivs:16,uWrap:!1,vRange:[-2,2],vDivs:16,vWrap:!1,vClose:!1},
+				Torus:				{x:"(1+0.5*cos(p.u))*cos(p.v)",y:"0.5*sin(p.u)",z:"(1+0.5*cos(p.u))*sin(p.v)",scale:6,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:12,vWrap:!1,vClose:!1}
+			};
 			generators.push(
 				new Action("xyzmathsurfacefunction", {
 					name: "XYZ Math Surface",
 					icon: "fas.fa-brain",
-					description: "Creates an xyz surface based on given inputs. Also contains already-made 12 presets!",
+					description: "Creates an xyz surface based on given inputs. Also contains already-made 23 presets!",
 					click(){
 						let options = {};
-						let msettings = localStorage.getItem('mt_xyzSettings');
 						for (const key in xyzpresets) {
 							options[key] = key;
 						}
+						let msettings = localStorage.getItem('mt_xyzSettings');
 						let presetBeforeUpdate;
 						if (msettings != null) {
 							msettings = JSON.parse(msettings);
@@ -2035,9 +1918,10 @@
 							},
 							form: {
 								preset: {label:"Preset", type:"select", options},
-								x: {label:"X", type:'text', value:xyzpresets['Twisted Torus'].x},
-								y: {label:"Y", type:'text', value:xyzpresets['Twisted Torus'].y},
-								z: {label:"Z", type:'text', value:xyzpresets['Twisted Torus'].z},
+								x: {label:"X", type:'text', value:xyzpresets['TwistedTorus'].x},
+								y: {label:"Y", type:'text', value:xyzpresets['TwistedTorus'].y},
+								z: {label:"Z", type:'text', value:xyzpresets['TwistedTorus'].z},
+								scale: {label: "Scale", type:'number', value:1},
 								_:"_",
 								uRange: {label:"U Range", type:'vector', dimensions:2, value: [0,6.2831854820251465]},
 								uDivs: {label:"U Divisions", type:'number', min:2, value:32},
@@ -2053,7 +1937,7 @@
 								out.x = mtParse(out.x);
 								out.y = mtParse(out.y);
 								out.z = mtParse(out.z);
-								currentMTVariablesTextContent = out.variables;
+								currentMTVariablesTextContent = mtParse(out.variables);
 								function runEdit(s, amended=false) {
 									let elements = [];
 									Undo.initEdit({elements, selection: true}, amended);
@@ -2078,13 +1962,12 @@
 										let v = vmin + (j*vinc);;
 										for (let i = 0; i < uRange; i++) {
 											let u = umin + (i*uinc);
-											//console.log(u,v);
 											
 											mtMolangParser.global_variables = {'p.u': u,'p.v': v};
 
-											let x = mtMolangParser.parse(out.x);
-											let y = mtMolangParser.parse(out.y);
-											let z = mtMolangParser.parse(out.z);
+											let x = mtMolangParser.parse(out.x) * out.scale;
+											let y = mtMolangParser.parse(out.y) * out.scale;
+											let z = mtMolangParser.parse(out.z) * out.scale;
 											vertices.push(mesh.addVertices([x,y,z])[0]);
 											uvPositions.push([i,j])
 										}
