@@ -1898,6 +1898,9 @@
 						if (msettings != null) {
 							msettings = JSON.parse(msettings);
 							presetBeforeUpdate = msettings.preset;
+						} else {
+							msettings = xyzpresets.TwistedTorus;
+							presetBeforeUpdate = "TwistedTorus";
 						}
 						let justOpened = true;
 						let dial = new Dialog ({
