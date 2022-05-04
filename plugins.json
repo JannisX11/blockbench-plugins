@@ -450,5 +450,16 @@
 		"version": "1.0.0",
 		"min_version": "4.1.0",
 		"variant": "both"
+	},
+	"skin_packager": {
+		"title": "Minecraft Skin Pack Packager",
+		"author": "JannisX11",
+		"icon": "icon-player",
+		"description": "Create Skin Packs for the Minecraft Marketplace",
+		"about": "Generates skin packs for the Minecraft Marketplace.\nAll open Blockbench tabs count as skins. You can load individual skins into Blockbench via **File** > **Import Minecraft Skins**.\nYou can also create new skins via **New** > **Minecraft Skin**, in the File menu or on the start screen.\nExport a skin pack via **File** > **Export** > **Export Skin Pack**.",
+		"tags": ["Minecraft: Bedrock Edition", "Minecraft Marketplace"],
+		"version": "0.1.0",
+		"min_version": "4.2.3",
+		"variant": "both"
 	}
 }
