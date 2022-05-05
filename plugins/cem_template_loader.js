@@ -1,5 +1,5 @@
 ;(async function () {
-  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds
+  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange
   const description = "Load template Java Edition entity models for use with OptiFine CEM."
   const links = {
     discord: "https://discord.com/invite/FcpnSjrP82",
@@ -333,7 +333,7 @@
         <p>After editing your model, export it as an OptiFine JEM to the folder <code>assets/minecraft/optifine/cem</code>. If a texture is used in the model, make sure it saves with a valid file path.</p>
         <br>
         <h2>Important</h3>
-        <p>When editing an entity model, you cannot rotate parent bones, or move the pivot points of parent bones (top level folders), as this can break your model. If you need to rotate, use a subbone. If you need to change pivot points, use custom animations.</p>
+        <p>When editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.</p>
         <br>
         <div class="dialog_bar" style="display:flex;align-items:center">
           <a id="cem_template_info_ewan" class="cem_template_info_link">
@@ -963,7 +963,13 @@
       }
     }
     Blockbench.on("update_selection", updateSelection)
-    Blockbench.dispatchEvent("update_selection")
+    updateSelection()
+    tabChange = () => {
+      group = null
+      content.css("display", "none")
+      placeholder.css("display", "block")
+    }
+    Blockbench.on("select_project", tabChange)
     editorKeybinds = evt => {
       if (evt.key === "s" && evt.ctrlKey && !evt.shiftKey && !evt.altKey) {
         BarItems.export_over.trigger()
@@ -1442,9 +1448,9 @@
     icon: "keyboard_capslock",
     author: "Ewan Howell",
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
-    about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate parent bones, or move the pivot points of parent bones (top level folders), as this can break your model. If you need to rotate, use a subbone. If you need to change pivot points, use custom animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
+    about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.0.1",
+    version: "6.0.2",
     min_version: "4.2.0",
     variant: "both",
     oninstall() {
@@ -1484,6 +1490,7 @@
     onunload() {
       stopAnimations(true)
       Blockbench.removeListener("update_selection", updateSelection)
+      Blockbench.removeListener("select_project", tabChange)
       $("#cem_animation_editor_container>div")[0].removeEventListener("keydown", editorKeybinds)
       groupObserver.disconnect()
       $("#new_cem_template").remove()
