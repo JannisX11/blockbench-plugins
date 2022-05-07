@@ -127,7 +127,7 @@ const BoneTypes = {
 }
 
 const FormValues = {};
-const SkinData = {};
+const SkinData = [];
 
 function isProjectSlim(project) {
 	let arm_cube = project.elements.find(el => el instanceof Cube && el.name.includes('Right Arm'));
@@ -166,6 +166,11 @@ Object(_util_uninstall_register__WEBPACK_IMPORTED_MODULE_0__["registerRemovable"
 	.skin_pack_export_list li input[type=text] {
 		flex-grow: 1;
 	}
+	.skin_pack_export_list .skin_drag_handle {
+		flex-grow: 0;
+		cursor: move;
+		padding-top: 6px;
+	}
 	.skin_pack_export_list li img {
 		transition: transform 100ms ease;
 		transform-origin: left;
@@ -188,14 +193,16 @@ function selectSkinsForExport() {
 		if (!project.textures[0]) return;
 
 		if (project.format.id === 'minecraft_skin_geometry') {
-			if (!SkinData[project.uuid]) {
-				SkinData[project.uuid] = {
+			let data = SkinData.find(s => s.uuid == project.uuid);
+			if (!data) {
+				data = {
+					uuid: project.uuid,
 					export: true,
 					slim: project.minecraft_skin_slim,
 					free: false
 				};
+				SkinData.push(data)
 			}
-			let data = SkinData[project.uuid];
 			data.thumbnail = project.thumbnail || project.textures[0].source;
 			data.name = project.name;
 			data.id = project.geometry_name;
@@ -204,30 +211,32 @@ function selectSkinsForExport() {
 		} else {
 			let multi = project.textures.length > 1;
 			project.textures.forEach((texture, i) => {
-				let id = project.uuid + '-' + texture.uuid;
-				if (!SkinData[id]) {
-					SkinData[id] = {
+				let uuid = project.uuid + '-' + texture.uuid;
+				let data = SkinData.find(s => s.uuid == uuid);
+				if (!data) {
+					data = {
+						uuid: uuid,
 						export: true,
 						slim: isProjectSlim(project),
 						free: false,
 						name: multi ? cleanTextureName(texture.name) : project.name,
 						id: multi ? cleanTextureName(texture.name).replace(/\s+/g, '') : project.geometry_name,
 					};
+					SkinData.push(data);
 				}
-				let data = SkinData[id];
 				data.texture = texture;
 				data.thumbnail = texture.source;
 				if (!multi) data.name = project.name;
 				if (!multi) data.id = project.geometry_name;
-				uuids.push(id);
+				uuids.push(data.uuid);
 			})
 		}
 	})
-	for (let uuid in SkinData) {
-		if (!uuids.includes(uuid)) {
-			delete SkinData[uuid];
+	SkinData.forEachReverse((skin) => {
+		if (!uuids.includes(skin.uuid)) {
+			SkinData.remove(skin);
 		}
-	}
+	})
 
 	let dialog = new Dialog({
 		id: 'skin_pack_export',
@@ -257,7 +266,12 @@ function selectSkinsForExport() {
 						}
 						project.saved = false;
 					}
-				}
+				},
+				sort(event) {
+					var item = this.skins.splice(event.oldIndex, 1)[0];
+					this.skins.splice(event.newIndex, 0, item);
+				},
+				drop(event) {},
 			},
 			template: `
 				<div class="skin_pack_export_list">
@@ -267,12 +281,13 @@ function selectSkinsForExport() {
 						<label class="checkbox">Slim</label>
 						<label class="checkbox">Free</label>
 					</div>
-					<ul>
-						<li v-for="(skin, uuid) in skins" :class="{disabled_skin: !skin.export}">
+					<ul v-sortable="{onUpdate: sort, onEnd: drop, animation: 160, handle: '.skin_drag_handle'}">
+						<li v-for="skin in skins" :key="skin.uuid" :class="{disabled_skin: !skin.export}">
+							<div class="skin_drag_handle"><i class="material-icons">drag_handle</i></div>
 							<input type="checkbox" v-model="skin.export" :style="{color: skin.export ? 'var(--color-accent)' : 'unset'}">
 							<img :src="skin.thumbnail" width="48px" height="48px" />
-							<input type="text" class="dark_bordered" v-model="skin.id" @input="changeMeta(skin, uuid, 'id', $event)">
-							<input type="text" class="dark_bordered" v-model="skin.name" @input="changeMeta(skin, uuid, 'name', $event)">
+							<input type="text" class="dark_bordered" v-model="skin.id" @input="changeMeta(skin, skin.id, 'id', $event)">
+							<input type="text" class="dark_bordered" v-model="skin.name" @input="changeMeta(skin, skin.id, 'name', $event)">
 							<input type="checkbox" v-model="skin.slim">
 							<input type="checkbox" v-model="skin.free">
 						</li>
@@ -304,10 +319,12 @@ async function generatePack(options) {
 		`skinpack.${options.id}=${options.name}`
 	];
 
-	for (let id in SkinData) {
-		let skin = SkinData[id];
+	for (let skin of SkinData) {
+		let uuid = skin.uuid;
+		console.log(skin, uuid)
 		if (!skin.export) continue;
-		let project = ModelProject.all.find(p => id.substring(0, p.uuid.length) == p.uuid);
+		let project = ModelProject.all.find(p => uuid.substring(0, p.uuid.length) == p.uuid);
+		console.log(project)
 		if (!project) continue;
 
 		let geometry_name = (project.format.id == 'minecraft_skin_geometry') && `geometry.${options.id}.${skin.id}`;
@@ -437,10 +454,10 @@ BBPlugin.register('skin_packager', {
 	icon: 'icon-player',
 	description: 'Create Skin Packs for the Minecraft Marketplace',
 	tags: ['Minecraft: Bedrock Edition', 'Minecraft Marketplace'],
-	about: 'Generates skin packs for the Minecraft Marketplace.\nAll open Blockbench tabs count as skins. You can load individual skins into Blockbench via **File** > **Import Minecraft Skins**.\n'+
+	about: 'Generates skin packs for the Minecraft Marketplace.\nAll textures in all open tabs count as skins. You can load individual skins into Blockbench via **File** > **Import Minecraft Skins**.\n'+
 		`You can also create new skins via **New** > **Minecraft Skin**, in the File menu or on the start screen.\n`+
 		`Export a skin pack via **File** > **Export** > **Export Skin Pack**.`,
-	version: "0.1.1",
+	version: "0.1.2",
 	min_version: '3.7.0',
 	variant: 'both',
 	await_loading: true,
