@@ -945,7 +945,7 @@
     }
     let group
     updateSelection = () => {
-      if (Project.format.name === "OptiFine Entity") {
+      if (Project.format.id === "optifine_entity") {
         stopAnimations()
         let selected = Group.selected ?? Cube.selected?.[0]
         if (selected) {
@@ -981,7 +981,7 @@
     $("#cem_animation_editor_container>div")[0].addEventListener("keydown", editorKeybinds, true)
     resizeWindow()
     function addAnimationToggles() {
-      if (Project.format?.name === "OptiFine Entity") {
+      if (Project.format?.id === "optifine_entity") {
         const toggle = $(".outliner_toggle")
         if (toggle.hasClass("enabled")) {
           const toggles = $("#cubes_list>.outliner_node>.group>[toggle='autouv']")
