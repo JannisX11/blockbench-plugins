@@ -945,20 +945,22 @@
     }
     let group
     updateSelection = () => {
-      stopAnimations()
-      let selected = Group.selected ?? Cube.selected?.[0]
-      if (selected && Project.format.name === "OptiFine Entity") {
-        while (selected.parent !== "root") selected = selected.parent
-        if (group !== selected) {
-          group = selected
-          partName.text(group.name)
-          content.css("display", "flex")
-          placeholder.css("display", "none")
-          const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
-          parseAnimations(animation)
-          animationEditorPanel.vue.text = animation
-          editorWrapper[0].__vue__._data.undoStack = [{plain: animation}]
-          editorWrapper[0].__vue__._data.undoOffset = 0
+      if (Project.format.name === "OptiFine Entity") {
+        stopAnimations()
+        let selected = Group.selected ?? Cube.selected?.[0]
+        if (selected) {
+          while (selected.parent !== "root") selected = selected.parent
+          if (group !== selected) {
+            group = selected
+            partName.text(group.name)
+            content.css("display", "flex")
+            placeholder.css("display", "none")
+            const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
+            parseAnimations(animation)
+            animationEditorPanel.vue.text = animation
+            editorWrapper[0].__vue__._data.undoStack = [{plain: animation}]
+            editorWrapper[0].__vue__._data.undoOffset = 0
+          }
         }
       }
     }
@@ -1450,7 +1452,7 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.0.2",
+    version: "6.0.3",
     min_version: "4.2.0",
     variant: "both",
     oninstall() {
