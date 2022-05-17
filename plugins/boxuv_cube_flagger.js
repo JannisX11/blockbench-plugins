@@ -1,5 +1,5 @@
 (function() {
-  const button;
+  let button;
   Plugin.register('boxuv_cube_flagger', {
     title: 'BoxUV Cube Flagger',
     author: 'SirJain',
@@ -9,7 +9,7 @@
     variant: 'both',
     min_version: '4.2.0',
     tags: ['Textures', 'BoxUV', 'UV'],
-    about: 'Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all cubes smaller than one unit, allowing you easily find and edit them so that you can keep using BoxUV. Simple, yet effective.\n\nTo use this plugin, go to \'File > Plugins > Available\' and search for \'BoxUV Cube Flagger\'. Click install, then use \'Tools > Flag Invalid Cubes\'. This will cause cubes less than one unit on any axis to blink on-screen.\n\nIt would be appreciated to report any bugs and suggestions!'
+    about: 'Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all cubes smaller than one unit, allowing you easily find and edit them so that you can keep using BoxUV. Simple, yet effective.\n\nTo use this plugin, go to \'File > Plugins > Available\' and search for \'BoxUV Cube Flagger\'. Click install, then use \'Tools > Flag Invalid Cubes\'. This will cause cubes less than one unit on any axis to blink on-screen.\n\nIt would be appreciated to report any bugs and suggestions!',
     onload() {
       const flashMaterial = new THREE.MeshBasicMaterial({color: 0xFF3F3F})
       button = new Action('flag_invalid_cubes', {
