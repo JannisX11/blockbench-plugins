@@ -22,10 +22,8 @@
             i: 0,
             start: function() {
               if (running) {
-                console.log("already running...")
                 return;
               }
-              console.log("running")
               running = true;
               cubes = Cube.all.filter(cube => (cube.size(0) > 0 && cube.size(0) < 1) || (cube.size(1) > 0 && cube.size(1) < 1) || (cube.size(2) > 0 && cube.size(2) < 1));
               for (const cube of cubes) {
