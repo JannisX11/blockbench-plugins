@@ -33,7 +33,9 @@ function isTintColorArray(obj) {
 	 * Hook to patch textures when added
 	 */
 	function addTextureEvent(data) {
-		applyTintingShader(Project, data.texture);
+		if(isTintingFormat(Project.format)) {
+			applyTintingShader(Project, data.texture);
+		}
 	} 
 
 	/**
@@ -78,10 +80,15 @@ function isTintColorArray(obj) {
 	 * Causes any changes to face tint toggle to update the tint preview
 	 */
 	function finishEditEvent(data) {
+		if(!isTintingFormat(Project.format)) {
+			return;
+		}
 		let elements = data.aspects.elements;
 		if(Undo.current_save.elements && Object.keys(Undo.current_save.elements).length && Array.isArray(elements) && elements.length) {
 			let obj = data.aspects.elements[0];
 			let oldObj = Undo.current_save.elements[obj.uuid];
+			if(!obj.faces || !oldObj.faces)
+				return;
 			function faceTintChanged(a, b) {
 				return a.tint != b.tint;
 			}
@@ -99,6 +106,10 @@ function isTintColorArray(obj) {
 	 * element to trigger tint update.
 	 */
 	function undoRedoEvent(data) {
+		if(!isTintingFormat(Project.format)) {
+			return;
+		}
+
 		let beforeElements = data.entry.before.elements;
 		if(typeof beforeElements !== 'object' || !beforeElements)
 			return;
@@ -241,16 +252,17 @@ Important: This plugin is designed for JSON models only and will not work for ot
 			StateMemory.init('tint_color_wheel', 'boolean');
 			StateMemory.init('show_tint', 'boolean');
 
-			toggleTintAction = new Action({
-				id: 'toggle_tint_preview',
-				name: 'Toggle Tint Preview',
+			toggleTintAction = new Toggle('toggle_tint_preview', {
+				name: 'Show Tint Color',
 				icon: (StateMemory.show_tint ? 'fa-fill-drip' : 'fa-fill'),
 				description: 'Toggles the tint effect for tint enabled faces',
 				category: 'tools',
+				default: StateMemory.show_tint,
 				condition: () => isTintingFormat(Format),
-				click: () => {
-					toggleTint();
-					toggleTintAction.setIcon(StateMemory.show_tint ? 'fa-fill-drip' : 'fa-fill');
+				onChange: (state) => {
+					StateMemory.show_tint = state;
+					StateMemory.save('show_tint');
+					updateTint(true);
 				}
 			});
 
@@ -520,21 +532,12 @@ function getTintColor(project = Project) {
 }
 
 /**
- * Toggles the tint preview
- */
-function toggleTint() {
-	StateMemory.show_tint = !StateMemory.show_tint;
-	StateMemory.save('show_tint');
-	updateTint();
-}
-
-/**
  * Updates the color atrribute on the cube geometry. Faces that that have tint
  * enabled will recieve the tint color while other faces will just recieve a
  * white tint.
  */
-function updateTint() {
-	if(!StateMemory.show_tint) 
+function updateTint(force = false) {
+	if(!StateMemory.show_tint && !force)
 		return;
 	Outliner.elements.forEach(obj => {
 		const geometry = obj.mesh.geometry;
@@ -571,92 +574,92 @@ function updateTint() {
 function applyTintingShader(project, texture) {
 	var originalMat = project.materials[texture.uuid];
 	var vertShader = `
-			attribute float highlight;
+		attribute float highlight;
 
-			uniform bool SHADE;
+		uniform bool SHADE;
 
-			varying vec3 vColor;
-			varying vec2 vUv;
-			varying float light;
-			varying float lift;
+		varying vec3 vColor;
+		varying vec2 vUv;
+		varying float light;
+		varying float lift;
 
-			float AMBIENT = 0.5;
-			float XFAC = -0.15;
-			float ZFAC = 0.05;
+		float AMBIENT = 0.5;
+		float XFAC = -0.15;
+		float ZFAC = 0.05;
 
-			void main() {
-				if (SHADE) {
-					vec3 N = normalize( vec3( modelMatrix * vec4(normal, 0.0) ) );
-					float yLight = (1.0+N.y) * 0.5;
-					light = yLight * (1.0-AMBIENT) + N.x*N.x * XFAC + N.z*N.z * ZFAC + AMBIENT;
-				} else {
-					light = 1.0;
-				}
-				if (highlight == 2.0) {
-					lift = 0.22;
-				} else if (highlight == 1.0) {
-					lift = 0.1;
-				} else {
-					lift = 0.0;
-				}
-				vColor = color;
-				vUv = uv;
-				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-				gl_Position = projectionMatrix * mvPosition;
-			}`
-		var fragShader = `
-			#ifdef GL_ES
-			precision ${isApp ? 'highp' : 'mediump'} float;
-			#endif
+		void main() {
+			if (SHADE) {
+				vec3 N = normalize( vec3( modelMatrix * vec4(normal, 0.0) ) );
+				float yLight = (1.0+N.y) * 0.5;
+				light = yLight * (1.0-AMBIENT) + N.x*N.x * XFAC + N.z*N.z * ZFAC + AMBIENT;
+			} else {
+				light = 1.0;
+			}
+			if (highlight == 2.0) {
+				lift = 0.22;
+			} else if (highlight == 1.0) {
+				lift = 0.1;
+			} else {
+				lift = 0.0;
+			}
+			vColor = color;
+			vUv = uv;
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			gl_Position = projectionMatrix * mvPosition;
+		}`
+	var fragShader = `
+		#ifdef GL_ES
+		precision ${isApp ? 'highp' : 'mediump'} float;
+		#endif
 
-			uniform sampler2D map;
+		uniform sampler2D map;
 
-			uniform bool SHADE;
-			uniform bool EMISSIVE;
-			uniform float BRIGHTNESS;
+		uniform bool SHADE;
+		uniform bool EMISSIVE;
+		uniform float BRIGHTNESS;
 
-			varying vec3 vColor;
-			varying vec2 vUv;
-			varying float light;
-			varying float lift;
+		varying vec3 vColor;
+		varying vec2 vUv;
+		varying float light;
+		varying float lift;
 
-			void main(void) {
-				
-				vec4 color = texture2D(map, vUv);
-				if (color.a < 0.01) 
-					discard;
-				if (EMISSIVE == false) {
-					color = vec4(lift + color.rgb * light * BRIGHTNESS, color.a);
-				} else {
-					float light2 = (light * BRIGHTNESS) + (1.0 - light * BRIGHTNESS) * (1.0 - color.a);
-					color = vec4(lift + color.rgb * light2, 1.0);
-				}
-				if (lift > 0.2) {
-					color.r = color.r * 0.6;
-					color.g = color.g * 0.7;
-				}
-				vec4 tint = vec4(vColor.rgb, 1.0);
-				gl_FragColor = color * tint;
-			}`
-		var mat = new THREE.ShaderMaterial({
-			uniforms: {
-				map: {type: 't', value: originalMat.map},
-				SHADE: {type: 'bool', value: settings.shading.value},
-				BRIGHTNESS: {type: 'bool', value: settings.brightness.value / 50},
-				EMISSIVE: {type: 'bool', value: texture.render_mode == 'emissive'}
-			},
-			vertexShader: vertShader,
-			fragmentShader: fragShader,
-			side: Canvas.getRenderSide(),
-			vertexColors: true,
-			transparent: true,
-		});
-		mat.map = originalMat.map;
-		mat.name = texture.name;
-		project.materials[texture.uuid] = mat;
+		void main(void) {
+			
+			vec4 color = texture2D(map, vUv);
+			if (color.a < 0.01) 
+				discard;
+			if (EMISSIVE == false) {
+				color = vec4(lift + color.rgb * light * BRIGHTNESS, color.a);
+			} else {
+				float light2 = (light * BRIGHTNESS) + (1.0 - light * BRIGHTNESS) * (1.0 - color.a);
+				color = vec4(lift + color.rgb * light2, 1.0);
+			}
+			if (lift > 0.2) {
+				color.r = color.r * 0.6;
+				color.g = color.g * 0.7;
+			}
+			vec4 tint = vec4(vColor.rgb, 1.0);
+			gl_FragColor = color * tint;
+		}`
+	var mat = new THREE.ShaderMaterial({
+		uniforms: {
+			map: {type: 't', value: originalMat.map},
+			SHADE: {type: 'bool', value: settings.shading.value},
+			BRIGHTNESS: {type: 'bool', value: settings.brightness.value / 50},
+			EMISSIVE: {type: 'bool', value: texture.render_mode == 'emissive'}
+		},
+		vertexShader: vertShader,
+		fragmentShader: fragShader,
+		side: Canvas.getRenderSide(),
+		vertexColors: true,
+		transparent: true,
+	});
+	mat.map = originalMat.map;
+	mat.name = texture.name;
+	project.materials[texture.uuid] = mat;
 
-		// Store the original mat for restoring
-		origMats[texture.uuid] = originalMat;
+	// Store the original mat for restoring
+	origMats[texture.uuid] = originalMat;
 }
 
 /**
