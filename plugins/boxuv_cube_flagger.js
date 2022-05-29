@@ -5,11 +5,11 @@
     author: 'SirJain',
     description: 'This plugin flags cubes less than 1 unit by flashing them.',
     icon: 'lightbulb',
-    version: '1.1.0',
+    version: '1.1.1',
     variant: 'both',
     min_version: '4.2.0',
     tags: ['Textures', 'BoxUV', 'UV'],
-    about: 'Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all cubes smaller than one unit, allowing you easily find and edit them so that you can keep using BoxUV. Simple, yet effective.\n\nTo use this plugin, go to \'File > Plugins > Available\' and search for \'BoxUV Cube Flagger\'. Click install, then use \'Tools > Flag Invalid Cubes\'. This will cause cubes less than one unit on any axis to blink on-screen.\n\nIt would be appreciated to report any bugs and suggestions!',
+    about: '<h2>About</h2>\nHave you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all possible invalid cubes in your project. This includes cubes with decimal sizes and cubes less than 1, both of which can cause complications and errors. Simple, yet effective.\n\n<h2>How to use</h2>\nTo use this plugin, go to `File > Plugins > Available` and search for `BoxUV Cube Flagger`. Click install, then use `Tools > Flag Cubes` and click one of the options. Clicking the first option causes the plugin to flag cubes less than 1. The second option allows Blockbench to flag cubes with decimal sizes.\n\n\nIt would be appreciated to report any bugs and suggestions!',
     onload() {
       const highlighter = {
         i: 0,
