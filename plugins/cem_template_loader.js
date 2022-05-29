@@ -309,14 +309,14 @@
       buttons: [],
       lines: [`
         <style>
-          .dialog_content {
+          dialog#about .dialog_content {
             text-align: left!important;
             margin: 0!important;
           }
-          .socials {
+          dialog#about .socials {
             padding: 0!important;
           }
-          code {
+          dialog#about code {
             padding: 0 2px;
           }
           .cem_template_loader_banner {
@@ -390,8 +390,7 @@
     sqrt: Math.sqrt,
     fmod: (x, y) => ((x % y) + y) % y,
     if: (...args) => {
-      if (args.length < 3) throw new Error
-      if (args.length % 2 !== 1) throw new Error
+      if (args.length < 3 || args.length % 2 !== 1) throw new Error
       for (let i = 0; i < args.length; i += 2) {
         if (i === args.length - 1) return args[i]
         else if (args[i]) return args[i+1]
