@@ -532,10 +532,12 @@
         single_texture: true,
         bone_rig: true,
         centered_grid: true,
+        integer_size: true,
         codec,
         onActivation: () => Canvas.scene.add(model),
         onDeactivation: () => Canvas.scene.remove(model)
       })
+      Object.defineProperty(format, "integer_size", {get: _ => Project.box_uv})
       codec.format = format
       action = new Action("export_optifine_player_model", {
         name: "Export OptiFine Player Model",
@@ -702,30 +704,30 @@
       buttons: [],
       lines: [`
         <style>
-          .dialog_content {
+          dialog#about .dialog_content {
             text-align: left!important;
             margin: 0!important;
           }
-          .socials {
+          dialog#about .socials {
             padding: 20px 0 0!important;
             margin-bottom: -30px!important;
           }
-          code {
+          dialog#about code {
             padding: 0 2px;
           }
-          ul > li {
+          dialog#about ul > li {
             list-style: disc;
           }
-          .dialog_content > div > ol, .dialog_content > div > ul {
+          dialog#about ol, dialog#about ul {
             padding-left: 20px;
           }
-          ol > li {
+          dialog#about ol > li {
             list-style: decimal;
           }
-          .dialog_content > div > ol > li > p {
+          dialog#about div > ol > li > p {
             padding-left: 8px;
           }
-          li > p{
+          dialog#about li > p{
             white-space: pre-wrap;
           }
           .optifine_player_model_banner {
