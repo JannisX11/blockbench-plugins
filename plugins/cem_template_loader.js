@@ -1,4 +1,4 @@
-;(async function () {
+(async function () {
   let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange
   const description = "Load template Java Edition entity models for use with OptiFine CEM."
   const links = {
@@ -248,25 +248,21 @@
         icon: "info",
         click: () => showInfo()
       })
+      MenuBar.addAction("_", "tools")
       MenuBar.addAction({
         name: "Load CEM Template",
         id: "cem_template_loader",
         description,
         children: generatorActions,
         icon: "keyboard_capslock",
-      }, "filter")
-      for(const item of $("#start-files>.start_screen_left>ul>li")){
-        if($(item).find("i").hasClass("icon-format_optifine")){
-          $(item).after(E("li").attr("id", "new_cem_template").append(
-            E("span").addClass("icon_wrapper f_left").append(
-              E("i").addClass("material-icons icon").text("keyboard_capslock")
-            ),
-            E("h3").text("CEM Template Model"),
-            E("p").text(description)
-          ).on("click", () => loadInterface(entityData.categories[0].name, data)))
-          break
-        }
-      }
+      }, "tools")
+      $("#start-files>.start_screen_left>ul>li>span>i.icon-format_optifine").parent().parent().after(E("li").attr("id", "new_cem_template").append(
+        E("span").addClass("icon_wrapper f_left").append(
+          E("i").addClass("material-icons icon").text("keyboard_capslock")
+        ),
+        E("h3").text("CEM Template Model"),
+        E("p").text(description)
+      ).on("click", () => loadInterface(entityData.categories[0].name, data)))
       return true
     } catch (err) {
       console.error(err)
@@ -284,7 +280,7 @@
         icon: "sync",
         click: async () => {
           for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
-          MenuBar.removeAction("filter.cem_template_loader")
+          MenuBar.removeAction("tools.cem_template_loader")
           if (await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json?rnd=" + Math.random())) Blockbench.showQuickMessage("Reconnected sucessfully", 2000)
           else{
             new Dialog({
@@ -302,61 +298,67 @@
         description,
         children: generatorActions,
         icon: "keyboard_capslock",
-      }, "filter")
+      }, "tools")
       return false
     }
   }
-  function showInfo() {
+  function showInfo(banner) {
     const infoBox = new Dialog({
-      id: "cem_template_install",
+      id: "about",
       title: "CEM Template Loader",
       width: 780,
       buttons: [],
       lines: [`
         <style>
-          code{padding:0 2px}
-          a.cem_template_info_link{
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            gap:10px;
-            text-decoration:none!important;
-            padding-right:40px
+          .dialog_content {
+            text-align: left!important;
+            margin: 0!important;
           }
-          a.cem_template_info_link span{text-decoration:underline}
+          .socials {
+            padding: 0!important;
+          }
+          code {
+            padding: 0 2px;
+          }
+          .cem_template_loader_banner {
+            background-color: var(--color-accent);
+            color: var(--color-accent_text);
+            width: 100%;
+            padding: 0 8px
+          }
+          .cem_template_loader_container {
+            margin: 24px;
+          }
         </style>
-        <h1 style="margin-top:-10px">CEM Template Loader</h1>
-        <p>CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.</p>
-        <br>
-        <p>To use this plugin, head to the <code>Tools</code> tab and select <code>CEM Template Loader</code>. From here, select the model that you would like to edit and load it.</p>
-        <br>
-        <p>After editing your model, export it as an OptiFine JEM to the folder <code>assets/minecraft/optifine/cem</code>. If a texture is used in the model, make sure it saves with a valid file path.</p>
-        <br>
-        <h2>Important</h3>
-        <p>When editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.</p>
-        <br>
-        <div class="dialog_bar" style="display:flex;align-items:center">
-          <a id="cem_template_info_ewan" class="cem_template_info_link">
-            <i class="material-icons icon">language</i>
-            <span>By Ewan Howell</span>
-          </a>
-          <a id="cem_template_info_discord" class="cem_template_info_link">
-            <i class="fa_big icon fab fa-discord"></i>
-            <span>Discord Server</span>
-          </a>
-          <a id="cem_template_info_tutorials" class="cem_template_info_link">
-            <i class="material-icons icon">menu_book</i>
-            <span>CEM Modelling Tutorials</span>
-          </a>
-          <span style="flex-grow:1"></span>
-          <button type="button" id="cem_template_dismiss">Dismiss</button>
+        ${banner ? '<div class="cem_template_loader_banner">This window can be reopened at any time from <strong>Help > About Plugins > About CEM Template Loader</strong></div>' : ""}
+        <div class="cem_template_loader_container">
+          <h1 style="margin-top:-10px">CEM Template Loader</h1>
+          <p>CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.</p>
+          <br>
+          <p>To use this plugin, head to the <strong>Tools</strong> tab and select <strong>CEM Template Loader</strong>. From here, select the model that you would like to edit and load it.</p>
+          <br>
+          <p>After editing your model, export it as an OptiFine JEM to the folder <code>assets/minecraft/optifine/cem</code>. If a texture is used in the model, make sure it saves with a valid file path.</p>
+          <br>
+          <h2>Important</h2>
+          <p>When editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.</p>
+          <br>
+          <div class="socials">
+            <a href="${links["ewan"]}" class="open-in-browser">
+              <i class="icon material-icons" style="color:#33E38E">language</i>
+              <label>By Ewan Howell</label>
+            </a>
+            <a href="${links["discord"]}" class="open-in-browser">
+              <i class="icon fab fa-discord" style="color:#727FFF"></i>
+              <label>Discord Server</label>
+            </a>
+            <a href="${links["tutorials"]}" class="open-in-browser">
+              <i class="icon fab fa-youtube" style="color:#FF4444"></i>
+              <label>CEM Modelling Tutorials</label>
+            </a>
+          </div>
         </div>
       `]
     }).show()
-    $("#cem_template_info_ewan").on("click", evt => openLink("ewan"))
-    $("#cem_template_info_discord").on("click", evt => openLink("discord"))
-    $("#cem_template_info_tutorials").on("click", evt => openLink("tutorials"))
-    $("#cem_template_dismiss").on("click", evt => infoBox.hide())
   }
   function openLink(type) {
     if (Blockbench.isWeb || Blockbench.isMobile) window.open(links[type], "_blank").focus()
@@ -389,6 +391,8 @@
     sqrt: Math.sqrt,
     fmod: (x, y) => ((x % y) + y) % y,
     if: (...args) => {
+      if (args.length < 3) throw new Error
+      if (args.length % 2 !== 1) throw new Error
       for (let i = 0; i < args.length; i += 2) {
         if (i === args.length - 1) return args[i]
         else if (args[i]) return args[i+1]
@@ -911,6 +915,7 @@
         for (const step of steps) {
           const parsed = parseCEMA(step.anim)
           if (isNaN(parsed)) throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
+          if (parsed === true || parsed === false) throw `Unable to play animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" as it retuned a <strong>boolean</strong> instead of a <strong>number</strong>`
           step.part.mesh[step.mode][step.axis] = parsed * step.invert
           context[step.part.name][step.transform] = step.transform === "ty" ? (step.part.parent === "root") * 24 + (step.part.parent?.parent === "root") * -step.part.mesh.parent.position.y - step.part.mesh.position.y : step.transform === "tx" ? (step.part.cemAnimationInvertPivotPoint ? 1 : -1) * ((step.part.parent?.parent === "root") * step.part.mesh.parent.position.x + step.part.mesh.position.x) : step.transform === "tz" ? (step.part.parent?.parent === "root") * step.part.mesh.parent.position.z + step.part.mesh.position.z : invertions.has(step.transform) ? - step.part.mesh[step.mode][step.axis] : step.part.mesh[step.mode][step.axis]
         }
@@ -956,10 +961,12 @@
             content.css("display", "flex")
             placeholder.css("display", "none")
             const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
-            parseAnimations(animation)
-            animationEditorPanel.vue.text = animation
-            editorWrapper[0].__vue__._data.undoStack = [{plain: animation}]
-            editorWrapper[0].__vue__._data.undoOffset = 0
+            if (animation) {
+              parseAnimations(animation)
+              animationEditorPanel.vue.text = animation
+              editorWrapper[0].__vue__._data.undoStack = [{plain: animation}]
+              editorWrapper[0].__vue__._data.undoOffset = 0
+            }
           }
         }
       }
@@ -1010,7 +1017,7 @@
                     setupAnimations(currentGroups, true)
                   }
                 }).insertBefore(toggle)
-                if (part.cemAnimationInvertPivotPoint) invertToggle.removeClass("icon_off")
+                if (part?.cemAnimationInvertPivotPoint) invertToggle.removeClass("icon_off")
               }
               if (!toggle.parent().find("[toggle='cem_animation_disable_rotations']").length) {
                 const rotateToggle = E("i").attr({
@@ -1450,15 +1457,12 @@
     icon: "keyboard_capslock",
     author: "Ewan Howell",
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
-    about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the \"Tools\" tab and select \"CEM Template Loader\". From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an OptiFine JEM to the folder \"assets/minecraft/optifine/cem\". If a texture is used in the model, make sure it saves with a valid file path.\n\nImportant\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
+    about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.0.4",
+    version: "6.1.0",
     min_version: "4.2.0",
     variant: "both",
-    oninstall() {
-      showInfo()
-      MenuBar.menus.tools.highlight()
-    },
+    oninstall: () => showInfo(true),
     async onload() {
       addStyles()
       await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json")
@@ -1468,7 +1472,7 @@
         icon: "sync",
         click: async function(){
           for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
-          MenuBar.removeAction("filter.cem_template_loader")
+          MenuBar.removeAction("tools.cem_template_loader")
           $("#new_cem_template").remove()
           const result = await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json", {
             appendToURL: `?rnd=${Math.random()}`
@@ -1488,6 +1492,21 @@
         const params = (new URL(location.href)).searchParams
         if (params.has("plugins") && params.get("plugins").split(",").includes("cem_template_loader") && params.has("model") && params.get("model") !== "") loadModel(params.get("model").toLowerCase(), null, params.has("texture"))
       }
+      let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
+      if (!about) {
+        about = new Action("about_plugins", {
+          name: "About Plugins...",
+          icon: "info",
+          children: []
+        })
+        MenuBar.addAction(about, "help")
+      }
+      infoAction = new Action("about_cem_template_loader", {
+        name: "About CEM Template Loader...",
+        icon: "keyboard_capslock",
+        click: () => showInfo()
+      })
+      about.children.push(infoAction)
     },
     onunload() {
       stopAnimations(true)
@@ -1498,10 +1517,11 @@
       $("#new_cem_template").remove()
       $("[toggle='cem_animation_invert_pivots']").remove()
       $("[toggle='cem_animation_disable_rotations']").remove()
-      for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
+      for (const action of generatorActions) action.delete?.()
       reloadButton.delete()
-      MenuBar.removeAction("filter.cem_template_loader")
+      MenuBar.removeAction("tools.cem_template_loader")
       MenuBar.removeAction("help.developer.cem_template_loader_reload")
+      MenuBar.removeAction("help.about_plugins.about_cem_template_loader")
       animationEditorPanel.delete()
       animationControlPanel.delete()
       styles.delete()
