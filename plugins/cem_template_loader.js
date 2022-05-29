@@ -248,7 +248,6 @@
         icon: "info",
         click: () => showInfo()
       })
-      MenuBar.addAction("_", "tools")
       MenuBar.addAction({
         name: "Load CEM Template",
         id: "cem_template_loader",
