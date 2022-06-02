@@ -1,9 +1,13 @@
 (async function () {
   let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange
+  const id = "cem_template_loader"
+  const name = "CEM Template Loader"
+  const icon = "keyboard_capslock"
+  const author = "Ewan Howell"
   const description = "Load template Java Edition entity models for use with OptiFine CEM."
   const links = {
+    website: "https://www.ewanhowell.com/",
     discord: "https://discord.com/invite/FcpnSjrP82",
-    ewan: "https://www.ewanhowell.com/",
     tutorials: "https://youtube.com/playlist?list=PLYMG6bVBIumIdRUIcHZxuKeM8u-kOmlml"
   }
   const E = s => $(document.createElement(s))
@@ -181,7 +185,7 @@
     if (entity.popup) {
       const options = {
         id: "cem_template_loader_popup",
-        title: "CEM Template Loader",
+        title: name,
         buttons: ["Okay"],
         lines: [
           (entity.popup_width ? `<style>#cem_template_loader_popup{max-width:min(${entity.popup_width}px, 100%)!important}</style>` : "") + entity.popup
@@ -222,7 +226,7 @@
       //entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
       entitySelector = new Dialog({
         id: "cem_template_selector",
-        title: "CEM Template Loader",
+        title: name,
         width: 980,
         buttons: [],
         lines: [
@@ -246,18 +250,18 @@
         name: `v${entityData.version}`,
         id: "cem_template_loader_version",
         icon: "info",
-        click: () => showInfo()
+        click: () => showAbout()
       })
       MenuBar.addAction({
         name: "Load CEM Template",
-        id: "cem_template_loader",
+        id,
         description,
         children: generatorActions,
-        icon: "keyboard_capslock",
+        icon,
       }, "tools")
       $("#start-files>.start_screen_left>ul>li>span>i.icon-format_optifine").parent().parent().after(E("li").attr("id", "new_cem_template").append(
         E("span").addClass("icon_wrapper f_left").append(
-          E("i").addClass("material-icons icon").text("keyboard_capslock")
+          E("i").addClass("material-icons icon").text(icon)
         ),
         E("h3").text("CEM Template Model"),
         E("p").text(description)
@@ -284,7 +288,7 @@
           else{
             new Dialog({
               id: "cem_template_loader_connection_failure_dialog",
-              title: "CEM Template Loader",
+              title: name,
               lines: ['<h2>Connection failed</h2><span>Please check your internet connection and make sure that you can access <a href=\"https://www.wynem.com/?cem\">wynem.com</a></span>'],
               "buttons": ["Okay"]
             }).show()
@@ -293,71 +297,13 @@
       }))
       MenuBar.addAction({
         name: "Load CEM Template",
-        id: "cem_template_loader",
+        id,
         description,
         children: generatorActions,
-        icon: "keyboard_capslock",
+        icon,
       }, "tools")
       return false
     }
-  }
-  function showInfo(banner) {
-    const infoBox = new Dialog({
-      id: "about",
-      title: "CEM Template Loader",
-      width: 780,
-      buttons: [],
-      lines: [`
-        <style>
-          dialog#about .dialog_content {
-            text-align: left!important;
-            margin: 0!important;
-          }
-          dialog#about .socials {
-            padding: 0!important;
-          }
-          dialog#about code {
-            padding: 0 2px;
-          }
-          .cem_template_loader_banner {
-            background-color: var(--color-accent);
-            color: var(--color-accent_text);
-            width: 100%;
-            padding: 0 8px
-          }
-          .cem_template_loader_container {
-            margin: 24px;
-          }
-        </style>
-        ${banner ? '<div class="cem_template_loader_banner">This window can be reopened at any time from <strong>Help > About Plugins > About CEM Template Loader</strong></div>' : ""}
-        <div class="cem_template_loader_container">
-          <h1 style="margin-top:-10px">CEM Template Loader</h1>
-          <p>CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.</p>
-          <br>
-          <p>To use this plugin, head to the <strong>Tools</strong> tab and select <strong>CEM Template Loader</strong>. From here, select the model that you would like to edit and load it.</p>
-          <br>
-          <p>After editing your model, export it as an OptiFine JEM to the folder <code>assets/minecraft/optifine/cem</code>. If a texture is used in the model, make sure it saves with a valid file path.</p>
-          <br>
-          <h2>Important</h2>
-          <p>When editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.</p>
-          <br>
-          <div class="socials">
-            <a href="${links["ewan"]}" class="open-in-browser">
-              <i class="icon material-icons" style="color:#33E38E">language</i>
-              <label>By Ewan Howell</label>
-            </a>
-            <a href="${links["discord"]}" class="open-in-browser">
-              <i class="icon fab fa-discord" style="color:#727FFF"></i>
-              <label>Discord Server</label>
-            </a>
-            <a href="${links["tutorials"]}" class="open-in-browser">
-              <i class="icon fab fa-youtube" style="color:#FF4444"></i>
-              <label>CEM Modelling Tutorials</label>
-            </a>
-          </div>
-        </div>
-      `]
-    }).show()
   }
   function openLink(type) {
     if (Blockbench.isWeb || Blockbench.isMobile) window.open(links[type], "_blank").focus()
@@ -1450,17 +1396,17 @@
       }
     `)
   }
-  Plugin.register("cem_template_loader", {
-    title: "CEM Template Loader",
-    icon: "keyboard_capslock",
-    author: "Ewan Howell",
+  Plugin.register(id, {
+    title: name,
+    icon,
+    author,
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.1.0",
+    version: "6.2.0",
     min_version: "4.2.0",
     variant: "both",
-    oninstall: () => showInfo(true),
+    oninstall: () => showAbout(true),
     async onload() {
       addStyles()
       await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json")
@@ -1478,7 +1424,7 @@
           if (result) Blockbench.showQuickMessage("Reloaded CEM Templates", 2000)
           else new Dialog({
             id: "cem_template_loader_connection_failure_dialog",
-            title: "CEM Template Loader",
+            title: name,
             lines: ['<h2>Connection failed</h2><p>Please connect to the internet to use CEM Template Loader</p>'],
             "buttons": ["Okay"]
           }).show()
@@ -1499,12 +1445,12 @@
         })
         MenuBar.addAction(about, "help")
       }
-      infoAction = new Action("about_cem_template_loader", {
+      aboutAction = new Action("about_cem_template_loader", {
         name: "About CEM Template Loader...",
-        icon: "keyboard_capslock",
-        click: () => showInfo()
+        icon,
+        click: () => showAbout()
       })
-      about.children.push(infoAction)
+      about.children.push(aboutAction)
     },
     onunload() {
       stopAnimations(true)
@@ -1526,4 +1472,89 @@
       resizeWindow()
     }
   })
+  function addAbout() {
+    let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
+    if (!about) {
+      about = new Action("about_plugins", {
+        name: "About Plugins...",
+        icon: "info",
+        children: []
+      })
+      MenuBar.addAction(about, "help")
+    }
+    aboutAction = new Action(`about_${id}`, {
+      name: `About ${name}...`,
+      icon,
+      click: () => showAbout()
+    })
+    about.children.push(aboutAction)
+  }
+  function showAbout(banner) {
+    new Dialog({
+      id: "about",
+      title: name,
+      width: 780,
+      buttons: [],
+      lines: [`
+        <style>
+          dialog#about .dialog_title {
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          dialog#about .dialog_content {
+            text-align: left!important;
+            margin: 0!important;
+          }
+          dialog#about .socials {
+            padding: 0!important;
+          }
+          dialog#about code {
+            padding: 0 2px;
+          }
+          dialog#about #banner {
+            background-color: var(--color-accent);
+            color: var(--color-accent_text);
+            width: 100%;
+            padding: 0 8px
+          }
+          dialog#about #content {
+            margin: 24px;
+          }
+        </style>
+        ${banner ? `<div id="banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
+        <div id="content">
+          <h1 style="margin-top:-10px">${name}</h1>
+          <p>${name} can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.</p>
+          <br>
+          <p>To use this plugin, head to the <strong>Tools</strong> tab and select <strong>${name}</strong>. From here, select the model that you would like to edit and load it.</p>
+          <br>
+          <p>After editing your model, export it as an OptiFine JEM to the folder <code>assets/minecraft/optifine/cem</code>. If a texture is used in the model, make sure it saves with a valid file path.</p>
+          <br>
+          <h2>Important</h2>
+          <p>When editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.</p>
+          <br>
+          <div class="socials">
+            <a href="${links["website"]}" class="open-in-browser">
+              <i class="icon material-icons" style="color:#33E38E">language</i>
+              <label>By ${author}</label>
+            </a>
+            <a href="${links["discord"]}" class="open-in-browser">
+              <i class="icon fab fa-discord" style="color:#727FFF"></i>
+              <label>Discord Server</label>
+            </a>
+            <a href="${links["tutorials"]}" class="open-in-browser">
+              <i class="icon fab fa-youtube" style="color:#FF4444"></i>
+              <label>CEM Modelling Tutorials</label>
+            </a>
+          </div>
+        </div>
+      `]
+    }).show()
+    $("dialog#about .dialog_title").html(`
+      <i class="icon material-icons">${icon}</i>
+      ${name}
+    `)
+  }
 })()
