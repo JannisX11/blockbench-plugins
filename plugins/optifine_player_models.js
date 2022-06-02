@@ -1,5 +1,9 @@
 (async function () {
-  let format, codec, action, config, property, setResolution, textureAdd, model, infoAction
+  let format, codec, action, config, property, setResolution, textureAdd, model, aboutAction
+  const id = "optifine_player_models"
+  const name = "OptiFine Player Models"
+  const icon = "icon-player"
+  const author = "Ewan Howell"
   const links = {
     discord: "https://discord.com/invite/FcpnSjrP82",
     ewan: "https://www.ewanhowell.com/",
@@ -32,18 +36,19 @@
     }
   ]
   const groupNames = groups.map(e => e.name)
-  Plugin.register("optifine_player_models", {
-    title: "OptiFine Player Models",
-    icon: "icon-player",
-    author: "Ewan Howell",
+  Plugin.register(id, {
+    title: name,
+    icon,
+    author,
     description: "Adds a new format that allows you to create OptiFine player models.",
     about: "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.0.0",
+    version: "1.1.0",
     min_version: "4.2.0",
     variant: "both",
-    oninstall: () => showInfo(true),
+    oninstall: () => showAbout(true),
     async onload() {
+      addAbout()
       codec = new Codec("optifine_player_model_codec", {
         name: "OptiFine Player Model",
         extension: "cfg",
@@ -667,20 +672,6 @@
       })
       MenuBar.addAction(config, "file.export.1")
       let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
-      if (!about) {
-        about = new Action("about_plugins", {
-          name: "About Plugins...",
-          icon: "info",
-          children: []
-        })
-        MenuBar.addAction(about, "help")
-      }
-      infoAction = new Action("about_optifine_player_models", {
-        name: "About OptiFine Player Models...",
-        icon: "icon-player",
-        click: () => showInfo()
-      })
-      about.children.push(infoAction)
     },
     onunload() {
       Blockbench.removeListener("new_project", setResolution)
@@ -690,20 +681,43 @@
       config.delete()
       codec.delete()
       property.delete()
-      infoAction.delete()
+      aboutAction.delete()
       MenuBar.removeAction("file.export.export_optifine_player_model")
       MenuBar.removeAction("file.export.create_optifine_player_model_config")
       MenuBar.removeAction("help.about_plugins.about_optifine_player_models")
     }
   })
-  function showInfo(banner) {
-    const infoBox = new Dialog({
+  function addAbout() {
+    let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
+    if (!about) {
+      about = new Action("about_plugins", {
+        name: "About Plugins...",
+        icon: "info",
+        children: []
+      })
+      MenuBar.addAction(about, "help")
+    }
+    aboutAction = new Action(`about_${id}`, {
+      name: `About ${name}...`,
+      icon,
+      click: () => showAbout()
+    })
+    about.children.push(aboutAction)
+  }
+  function showAbout(banner) {
+    new Dialog({
       id: "about",
-      title: "OptiFine Player Models",
+      title: name,
       width: 780,
       buttons: [],
       lines: [`
         <style>
+          dialog#about .dialog_title {
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
           dialog#about .dialog_content {
             text-align: left!important;
             margin: 0!important;
@@ -730,18 +744,18 @@
           dialog#about li > p{
             white-space: pre-wrap;
           }
-          .optifine_player_model_banner {
+          dialog#about #banner {
             background-color: var(--color-accent);
             color: var(--color-accent_text);
             width: 100%;
             padding: 0 8px
           }
-          .optifine_player_model_container {
+          dialog#about #content {
             margin: 24px;
           }
         </style>
-        ${banner ? '<div class="optifine_player_model_banner">This window can be reopened at any time from <strong>Help > About Plugins > About OptiFine Player Models</strong></div>' : ""}
-        <div class="optifine_player_model_container">
+        ${banner ? `<div id="banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
+        <div id="content">
           <h1 style="margin-top:-10px">OptiFine Player Models</h1>
           <p>This plugin adds a new format that allows you to make you own custom OptiFine player models.</p>
           <div class="socials">
@@ -791,5 +805,9 @@
         </div>
       `]
     }).show()
+    $("dialog#about .dialog_title").html(`
+      <i class="icon icon-player"></i>
+      ${name}
+    `)
   }
 })()
