@@ -7,7 +7,7 @@
   const links = {
     discord: "https://discord.com/invite/FcpnSjrP82",
     ewan: "https://www.ewanhowell.com/",
-    tutorial: "https://youtu.be/IASDM0CDHBI"
+    tutorial: "https://youtu.be/0rT-q95dpV0"
   }
   const groups = [
     {
