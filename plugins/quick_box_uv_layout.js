@@ -33,6 +33,7 @@
                         cube.faces['down'].uv = [h + z + x + x, v, h + z + x, v + z];
                     });
                     Undo.finishEdit('convert to box-uv layout');
+                    Canvas.updateView({elements: Cube.selected, element_aspects: {uv: true}});
                 }
             });
             Toolbars.uv_editor.add(button);
