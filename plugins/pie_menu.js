@@ -1,4 +1,23 @@
 (function() {
+    function getTextWidth(text, font = 'var(--font-custom-main)', size = '1em'){
+        let t = $(`<label style="font-family:${font};width:fit-content;font-size:${size}">${text}</label>`);
+        
+        $(document.body).append(t);
+        let width = t.width();
+        
+        t.remove();
+        return width;
+    }
+    function getElementWidth(jqelement){        
+        jqelement.attr('style',`width: fit-content`);
+        $(document.body).append(jqelement);
+        jqelement.attr('style',`width: max-content`);
+        let width = jqelement.width();
+        
+        jqelement.remove();
+        return width;
+    }
+
     class PieMenu extends BarItem{
         /**
          * @type PieMenu
@@ -27,7 +46,7 @@
                 id = data.id;
             }
             super(id, data);
-            this.radius = data.radius !== undefined ? data.radius: 200;
+            this._radius_ = data.radius !== undefined ? data.radius: -1; // negative radius means auto radius multiplied by the absoulte value
             this.structure = data.structure || [];
             this.node = $(`<div class=pieMenu><div class=pieSlices></div><h4></h4><div class=pieCenter><svg><defs><mask id=AngleIndicator><circle/></mask></defs><foreignObject mask=url(#AngleIndicator)><div class=gradient xmlns=http://www.w3.org/1999/xhtml /></foreignObject></svg></div></div>`);
 
@@ -42,6 +61,25 @@
             }
 
             if (this.id) this.setId(this.id);
+        }
+        get radius(){
+            if (this._radius_ < 0) {
+                let autoRadius = 0;
+                let indices = [
+                    this.actionIndexFromAngle(0,'deg'),
+                    this.actionIndexFromAngle(90,'deg'),
+                    this.actionIndexFromAngle(180,'deg'),
+                    this.actionIndexFromAngle(270,'deg'),
+                ]
+                for (let i = 0; i < 4; i++) {
+                        autoRadius += getElementWidth( this.buildAction( this.getActionAt(indices[i]) ) );
+                }
+                return ( autoRadius/2 ) * Math.abs(this._radius_);
+            }
+            return this._radius_;
+        }
+        set radius(value){
+            return value;
         }
         equals(otherPieMenu) {
             return this.uuid == otherPieMenu.uuid;
@@ -69,13 +107,15 @@
             PieMenu.active = this;
             this.build();
 
-            x = Math.clamp(x, this.radius, window.innerWidth - this.radius);
-            y = Math.clamp(y, this.radius, window.innerHeight - this.radius);
+            let r = this.radius;
+            // 30 is action heights
+            x = Math.clamp(x, r+30, window.innerWidth - (r+30));
+            y = Math.clamp(y, r+30, window.innerHeight - (r+30));
 
             this.node[0].style.left = x + 'px';
             this.node[0].style.top =  y + 'px';
-            this.node[0].style.width = `calc(${this.radius<<1}px + calc(var(--pie-major_radius)*2))` 
-            this.node[0].style.height = `calc(${this.radius<<1}px + calc(var(--pie-major_radius)*2))` 
+            this.node[0].style.width = `calc(${r<<1}px + calc(var(--pie-major_radius)*2))` 
+            this.node[0].style.height = `calc(${r<<1}px + calc(var(--pie-major_radius)*2))` 
             this.cache.lastCenter = [x,y];
 
             $(document.body).append(this.node)
@@ -103,7 +143,23 @@
             return this.getActionAt(index);
         }
         // \ - - - /
+        buildAction(action, i){
+            // Create Action Node
+            let actionNode = $('<div></div>');
 
+            // Add Icon
+            if (action.icon) {
+                let iconParms = action.icon.split(' ');
+                actionNode.append(Blockbench.getIconNode(iconParms[0], action.color || iconParms[1]));
+            }
+
+            // Add Text
+            actionNode.append($('<span></span>').text(tl(action.name)));
+
+            // Add Keybind Label
+            actionNode.append( $(`<label class=keybinding_label i=${i}></label>`).text( i < 10 ?i:'' ) );
+            return actionNode;
+        }
         build(){
             let slices = this.node.children('.pieSlices');
             slices.empty();
@@ -131,20 +187,7 @@
 
                 slice.attr('style', `transform: translate(-50%,-50%) rotate(${angle}deg);`);
 
-                // Create Action Node
-                let actionNode = $('<div></div>');
-
-                // Add Icon
-                if (action.icon) {
-                    let iconParms = action.icon.split(' ');
-                    actionNode.append(Blockbench.getIconNode(iconParms[0], action.color || iconParms[1]));
-                }
-
-                // Add Text
-                actionNode.append($('<span></span>').text(tl(action.name)));
-                
-                // Add Keybind Label
-                actionNode.append( $(`<label class=keybinding_label i=${i}></label>`).text( i < 10 ?i:'' ) );
+                let actionNode = this.buildAction(action, i);
 
                 // Reverse Rotation
                 actionNode.attr('style', `transform: rotate(${360-angle}deg);`);
@@ -235,7 +278,7 @@
                 `@keyframes expandOut{0%{height:0%}100%{height:100%}}`
                 + 
                 // Title
-                `.pieMenu h4{position: absolute;left: 50%;top: 37.5%;transform: translate(-50%,-50%);width: fit-content;color: var(--color-subtle_text);}`
+                `.pieMenu h4{position: absolute;left: 50%;top: calc(50% - 75px);transform: translate(-50%,-50%);width: fit-content;color: var(--color-subtle_text);}`
             )
             $(document.body).append(style);
         }
@@ -311,6 +354,7 @@
                 if (option.condition) data.condition = option.condition;
                 actions.push( new Action(data) )
             }
+            this.name = tl(barselect.name);
             this.structure=actions;
             return this;
         }
