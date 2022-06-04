@@ -131,7 +131,8 @@
             return typeof this.structure[i] == 'string' ? BarItems[this.structure[i]]: this.structure[i];
         }
         actionConditionMetAt(i) {
-            return Condition(this.getActionAt(i).condition);
+            let action = this.getActionAt(i);
+            return Condition(action.condition);
         }
         actionIndexFromAngle(angle, unit = 'rad'){
             if (unit == 'deg') {
@@ -173,15 +174,7 @@
                 const action = this.getActionAt(i);
 
                 if (!PieMenu.debugMode){
-                    if (action instanceof Tool) {
-                        let index = Toolbox.children.findIndex(t => t.id == action.id);
-                        if (index >= 0) {
-                            if (!Toolbox.condition_cache[index]) continue;
-                        }
-                    } 
-                    else {
-                        if (!this.actionConditionMetAt(i)) continue;
-                    }
+                    if (!this.actionConditionMetAt(i)) continue;
                 }         
                 
                 
@@ -193,7 +186,7 @@
                 let actionNode = this.buildAction(action, i);
 
                 // Reverse Rotation
-                actionNode.attr('style', `transform: rotate(${360-angle}deg);`);
+                actionNode.attr('style', `transform: rotate(${360-angle}deg)`);
 
                 slice.append(actionNode);
                 slices.append(slice);
@@ -447,7 +440,26 @@
                     id: 'main_tools_pie_menu',
                     radius: -1.5,
                     keybind: {key:84,shift:true},
-                }).fromAction(MenuBar.menus.filter.structure.find(e=>e.id=='main_tools')),
+                    structure: (function() {
+                        let actions = [];
+                        let tools = Toolbox.children.filter(tool => tool instanceof Tool);
+                        tools.forEach(tool => {
+                            actions.push(
+                                new Action({
+                                    id: tool.id,
+                                    name: tl(tool.name),
+                                    private: true,
+                                    icon: tool.icon,
+                                    click(){
+                                        tool.select();
+                                    },
+                                    condition: tool.condition
+                                })
+                            )
+                        });
+                        return actions;
+                    })()
+                }),
 
                 new PieMenu({
                     name: 'New Pie Menu',
