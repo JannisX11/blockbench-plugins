@@ -28,11 +28,11 @@
     },
     {
       name: "leftLeg",
-      origin: [-1.95, 12, 0.05]
+      origin: [-1.95, 12, 0]
     },
     {
       name: "rightLeg",
-      origin: [1.95, 12, 0.05]
+      origin: [1.95, 12, 0]
     }
   ]
   const groupNames = groups.map(e => e.name)
@@ -350,7 +350,7 @@
         }
       })
       async function getTexture(path) {
-        const texture = await new Promise(fulfill => new THREE.TextureLoader().load(path, fulfill))
+        const texture = await new Promise(fulfill => new THREE.TextureLoader().load(path, fulfill, null, fulfill))
         const canvas = document.createElement("canvas")
         canvas.width = 64
         canvas.height = 64
@@ -392,7 +392,7 @@
       model.position.x = 0.001
       model.position.y = 0.001
       model.position.z = 0.001
-      for (const cube of [
+      const cubes = [
         {
           //Head
           "size": [8, 8, 8],
@@ -443,7 +443,7 @@
         {
           //L Leg
           "size": [3.95, 12, 4],
-          "pos": [-1.975, 6, 0.05],
+          "pos": [-1.975, 6, 0],
           "origin": [0, 12, 0],
           "north": {"uv": [5.032, 13.032, 5.968, 15.968]},
           "east": {"uv": [4.032, 13.032, 4.968, 15.968]},
@@ -455,7 +455,7 @@
         {
           //R Leg
           "size": [3.95, 12, 4],
-          "pos": [1.975, 6, 0.05],
+          "pos": [1.975, 6, 0],
           "origin": [0, 12, 0],
           "north": {"uv": [1.032, 5.032, 1.968, 7.968]},
           "east": {"uv": [0.032, 5.032, 0.968, 7.968]},
@@ -464,7 +464,8 @@
           "up": {"uv": [1.968, 4.968, 1.032, 4.032]},
           "down": {"uv": [2.968, 4.032, 2.032, 4.968]}
         }
-      ]) {
+      ]
+      for (const cube of cubes) {
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(...cube.size), material)
         if (cube.origin) {
           mesh.position.set(cube.origin[0], cube.origin[1], cube.origin[2])
