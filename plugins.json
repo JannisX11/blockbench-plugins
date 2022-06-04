@@ -208,7 +208,7 @@
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "6.1.0",
+		"version": "6.2.0",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -219,6 +219,17 @@
 		"description": "Adds a new format that allows you to create OptiFine player models.",
 		"about": "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Player Models"],
+		"version": "1.1.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"colour_gradient_generator": {
+		"title": "Colour Gradient Generator",
+		"icon": "gradient",
+		"author": "Ewan Howell",
+		"description": "Generate hue shifted gradient palettes from a single colour.",
+		"about": "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Output gradient\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon <i class=\"icon material-icons\">gradient</i> to generate a colour gradient.",
+		"tags": ["Paint", "Palette", "Color"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
 		"variant": "both"
