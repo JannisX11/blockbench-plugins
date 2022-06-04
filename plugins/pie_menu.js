@@ -1,13 +1,4 @@
 (function() {
-    function getTextWidth(text, font = 'var(--font-custom-main)', size = '1em'){
-        let t = $(`<label style="font-family:${font};width:fit-content;font-size:${size}">${text}</label>`);
-        
-        $(document.body).append(t);
-        let width = t.width();
-        
-        t.remove();
-        return width;
-    }
     function getElementWidth(jqelement){        
         jqelement.attr('style',`width: fit-content`);
         $(document.body).append(jqelement);
@@ -28,6 +19,7 @@
         static HALF_PI = 1.5707963267948966;
         static QUARTER_PI = 0.7853981633974483;
         static mouseEvent = null;
+        static debugMode = false;
 
         /**
          * Create Pie Menu
@@ -37,7 +29,8 @@
          * radius: Number,
          * structure: Array<Action | String>,
          * condition: any,
-         * keybind: {key:Number,shift:boolean,ctrl:boolean,alt:boolean,meta:boolean}
+         * keybind: {key:Number,shift:boolean,ctrl:boolean,alt:boolean,meta:boolean},
+         * skipExtraName: Boolean
          * }} data 
          */
         constructor(id, data){
@@ -45,12 +38,20 @@
                 data = id;
                 id = data.id;
             }
+            if (!data.skipExtraName) {
+                if (!data.name.endsWith(' Pie Menu')) {
+                    data.name = tl(data.name) + ' Pie Menu';
+                }
+            }
+
             super(id, data);
+
             this._radius_ = data.radius !== undefined ? data.radius: -1; // negative radius means auto radius multiplied by the absoulte value
             this.structure = data.structure || [];
             this.node = $(`<div class=pieMenu><div class=pieSlices></div><h4></h4><div class=pieCenter><svg><defs><mask id=AngleIndicator><circle/></mask></defs><foreignObject mask=url(#AngleIndicator)><div class=gradient xmlns=http://www.w3.org/1999/xhtml /></foreignObject></svg></div></div>`);
 
             this.uuid = guid();
+
             PieMenu.all[this.uuid] = this;
 
             this.setName(this.name);
@@ -89,7 +90,7 @@
             this.setNodeTitle(value);
         }
         setNodeTitle(value){
-            this.node.children('h4').text(value);
+            this.node.children('h4').html(value);
         }
         setId(value){
             this.id = value;
@@ -171,16 +172,18 @@
                 angle += angleStep;
                 const action = this.getActionAt(i);
 
-                // Fix conditions with tools
-                if (action instanceof Tool) {
-                    let index = Toolbox.children.findIndex(t => t.id == action.id);
-                    if (index >= 0) {
-                        Toolbox.condition_cache[i] = Condition(action.condition);
+                if (!PieMenu.debugMode){
+                    if (action instanceof Tool) {
+                        let index = Toolbox.children.findIndex(t => t.id == action.id);
+                        if (index >= 0) {
+                            if (!Toolbox.condition_cache[index]) continue;
+                        }
+                    } 
+                    else {
+                        if (!this.actionConditionMetAt(i)) continue;
                     }
-                    Toolbox.update()
-                }
-
-                if (!this.actionConditionMetAt(i)) continue;
+                }         
+                
                 
                 // Create Pie Slice Which Handels Rotation And Animation ( Action Container )
                 let slice = $(`<div class=pieSlice></div>`);
@@ -202,10 +205,10 @@
         trigger(event){
             this.cache.isHold = event.repeat;
             if (!this.cache.isHold) {
-                this.setNodeTitle(this.name + ' ( State: Single )')
+                this.setNodeTitle(this.name + `<br> ( IsHold: ${tl('dialog.no')})`)
                 this.show();
             } else {
-                this.setNodeTitle(this.name + ' ( State: Hold )')
+                this.setNodeTitle(this.name + `<br> ( IsHold: ${tl('dialog.yes')})`)
             }
         }
         unTrigger(...arg){ // is it even a word?
@@ -269,7 +272,7 @@
             style = $('<style id="pieMenuStyles"></style>');
             style.text(
                 // Container
-                `:root{--pie-dir_indicator_angle_padding:10%;--pie-major_radius:30px;--pie-major_thickness:22px}.pieMenu{transform:translate(-50%,-50%);width:50%;height:50%;position: fixed;}.pieCenter{position:relative;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(var(--pie-major_radius) * 2);height:calc(var(--pie-major_radius) * 2)}.pieCenter>svg{height:calc(var(--pie-major_radius) * 2);width:calc(var(--pie-major_radius) * 2)}.pieCenter>svg circle{cx:var(--pie-major_radius);cy:var(--pie-major_radius);r:calc(var(--pie-major_radius) - calc(var(--pie-major_thickness) * 0.5));stroke-width:calc(var(--pie-major_thickness) * .5);fill:none;stroke:white}.pieCenter div.gradient{width:100%;height:100%;border-radius:50%;--l_o:calc(50% - var(--pie-dir_indicator_angle_padding));--r_o:calc(50% + var(--pie-dir_indicator_angle_padding));background:conic-gradient(from 0deg at 50% 50%,var(--color-bright_ui) var(--l_o),var(--color-accent) var(--l_o),var(--color-accent) 50%,var(--color-accent) var(--r_o),var(--color-bright_ui) var(--r_o));box-shadow: inset 0px 0px 20px 0px black;}.pieCenter>svg foreignObject{--r:calc(var(--pie-major_radius)*2);width:var(--r);height:var(--r)}`
+                `:root{--pie-dir_idct_size:10%;--pie-major_radius:30px;--pie-major_thickness:22px}.pieMenu{transform:translate(-50%,-50%);width:50%;height:50%;position: fixed;}.pieCenter{position:relative;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(var(--pie-major_radius) * 2);height:calc(var(--pie-major_radius) * 2)}.pieCenter>svg{height:calc(var(--pie-major_radius) * 2);width:calc(var(--pie-major_radius) * 2)}.pieCenter>svg circle{cx:var(--pie-major_radius);cy:var(--pie-major_radius);r:calc(var(--pie-major_radius) - calc(var(--pie-major_thickness) * 0.5));stroke-width:calc(var(--pie-major_thickness) * .5);fill:none;stroke:white}.pieCenter div.gradient{width:100%;height:100%;border-radius:50%;--l_o:calc(50% - var(--pie-dir_idct_size));--r_o:calc(50% + var(--pie-dir_idct_size));background:conic-gradient(from 0deg at 50% 50%,var(--color-bright_ui) var(--l_o),var(--color-accent) var(--l_o),var(--color-accent) 50%,var(--color-accent) var(--r_o),var(--color-bright_ui) var(--r_o));box-shadow: inset 0px 0px 20px 0px black;}.pieCenter>svg foreignObject{--r:calc(var(--pie-major_radius)*2);width:var(--r);height:var(--r)}`
                 +
                 // Actions
                 `.pieSlice{height:100%;width:fit-content;position: absolute;left: 50%;top: 50%;animation:expandOut .1s linear}.pieSlice div{display:flex;height:30px;padding:4px;padding-left:34px;padding-right:8px;width:max-content;background-color: var(--color-bright_ui);color: var(--color-bright_ui_text);border-radius:5px;box-shadow: 0 0 6px 0px #0005;}.pieSlice div.focused{background-color:var(--color-accent)}.pieSlice div>i{margin-top:1px;margin-right:4px;margin-left:-28px;pointer-events:none}.pieSlice div>img{cursor:default;height:20px;width:20px;color:var(--color-text);white-space:nowrap;margin-bottom:-3px;margin-left:-27px;margin-right:5px;margin-top:1px}.pieSlice div>span{pointer-events:none;flex:1 0 auto}.pieSlices{width:100%;height:100%;position: absolute;}`
@@ -278,7 +281,7 @@
                 `@keyframes expandOut{0%{height:0%}100%{height:100%}}`
                 + 
                 // Title
-                `.pieMenu h4{position: absolute;left: 50%;top: calc(50% - 75px);transform: translate(-50%,-50%);width: fit-content;color: var(--color-subtle_text);}`
+                `.pieMenu h4{position: absolute;left: 50%;top: calc(50% - 75px);transform: translate(-50%,-50%);width: fit-content;color: var(--color-subtle_text);text-align:center}`
             )
             $(document.body).append(style);
         }
@@ -333,7 +336,6 @@
             }
             this.condition = action.condition || menu.condition;
             this.structure = this.structure.filter(e=> e != '_');
-            this.name = tl(action.name);
             return this;
         }
         fromBarSelect(barselect){
@@ -345,6 +347,8 @@
                 let icon = option.icon || '';
                 let data = {
                     name,icon,
+                    id: key+'_pie_action',
+                    private: true,
                     click(){
                         barselect.set(key);
                         barselect.onChange(barselect.value);
@@ -354,7 +358,6 @@
                 if (option.condition) data.condition = option.condition;
                 actions.push( new Action(data) )
             }
-            this.name = tl(barselect.name);
             this.structure=actions;
             return this;
         }
@@ -379,32 +382,45 @@
 		icon: "fas.fa-chart-pie",
 		author: "Malik12tree",
 		description: "Add pie shaped menus for faster work.",
-		about: "<h1>Built-in Pies</h1><style>.piePrivate p{width: fit-content;display: inline;margin-left: 10px !important;}.piePrivate tr td:nth-child(2){padding-left:10px}</style><table class=piePrivate><tr>    <td>Add Object Pie</td>    <td>Keybind: </td>    <td><p><code>shift + a</code></p></td></tr><tr>    <td>Import Pie</td>    <td>Keybind: </td>    <td><p><code>shift + q</code></p></td></tr><tr>    <td>Export Pie</td>    <td>Keybind: </td>    <td><p><code>shift + w</code></p></td></tr><tr>    <td>Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + tab (web: shift + x)</code></p></td></tr><tr>    <td>View Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + z</code></p></td></tr><tr>    <td>Toolbox Pie</td>    <td>Keybind: </td>    <td><p><code>shift + t</code></p></td></tr><tr>    <td>New Pie</td>    <td>Keybind: </td>    <td><p><code>shift + n</code></p></td></tr><tr>    <td>Preferences Pie</td>    <td>Keybind: </td>    <td><p><code>shift + o</code></p></td></tr><tr>    <td>Rotate Pie</td>    <td>Keybind: </td>    <td><p><code>shift + r</code></p></td></tr><tr>    <td>Flip Pie</td>    <td>Keybind: </td>    <td><p><code>shift + f</code></p></td></tr><tr>    <td>Center Pie</td>    <td>Keybind: </td>    <td><p><code>shift + c</code></p></td></tr><tr>    <td>Properties Pie</td>    <td>Keybind: </td>    <td><p><code>shift + p</code></p></td></tr></table>",
+		about: "<style>.piePrivate p{width: fit-content;display: inline;margin-left: 10px !important;}.piePrivate tr td:nth-child(2){padding-left:10px}.piePrivate2 td, .piePrivate2 th{padding:0 10px}</style><h1>Built-in Pies</h1><table class=piePrivate><tr>    <td>Add Pie</td>    <td>Keybind: </td>    <td><p><code>ctrl + shift + a</code></p></td></tr><tr>    <td>Import Pie</td>    <td>Keybind: </td>    <td><p><code>shift + q</code></p></td></tr><tr>    <td>Export Pie</td>    <td>Keybind: </td>    <td><p><code>shift + w</code></p></td></tr><tr>    <td>Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + tab (web: shift + x)</code></p></td></tr><tr>    <td>View Mode Pie</td>    <td>Keybind: </td>    <td><p><code>alt + z</code></p></td></tr><tr>    <td>Toolbox Pie</td>    <td>Keybind: </td>    <td><p><code>shift + t</code></p></td></tr><tr>    <td>New Pie</td>    <td>Keybind: </td>    <td><p><code>shift + n</code></p></td></tr><tr>    <td>Preferences Pie</td>    <td>Keybind: </td>    <td><p><code>shift + o</code></p></td></tr><tr>    <td>Rotate Pie</td>    <td>Keybind: </td>    <td><p><code>shift + r</code></p></td></tr><tr>    <td>Flip Pie</td>    <td>Keybind: </td>    <td><p><code>shift + f</code></p></td></tr><tr>    <td>Center Pie</td>    <td>Keybind: </td>    <td><p><code>shift + c</code></p></td></tr><tr>    <td>Properties Pie</td>    <td>Keybind: </td>    <td><p><code>shift + p</code></p></td></tr></table><h1>API</h1><h2>CSS Variables</h2><table class=piePrivate2><tr><th>Name</th><th>Default</th><th>Description</th></tr><tr><td>--pie-dir_idct_size</td><td>10%</td><td>sets the angle indicator size</td></tr><tr><td>--pie-major_radius</td><td>30px</td><td>sets the center pie's radius</td></tr><tr><td>--pie-major_thickness</td><td>22px</td><td>sets the center pie's thickness</td></tr></table>",
 		version: "1.0.0",
 		variant: "both",
         tags: ["Interface"],
 		onload() {
             addedPieMenus.push(
                 new PieMenu({
-                    name: "Add", // NEEDS LANG SUPPORT
-                    keybind: {key:65,shift:true},
+                    name: "Add Pie Menu", // NEEDS LANG SUPPORT,
+                    id: 'add_pie_menu',
+                    radius: -0.75,
+                    keybind: {key:65,shift:true,ctrl:true},
                     structure: ['add_cube','add_group','add_locator','add_mesh','add_null_object','add_texture_mesh','add_animation','add_keyframe']
                 }),
 
                 new PieMenu({
-                    keybind: {key:81,shift:true}
+                    name: 'generic.import',
+                    keybind: {key:81,shift:true},
+                    id: 'import_pie_menu',
+                    radius: -0.75,
                 }).fromAction(MenuBar.menus.file.structure.find(e=>e.id=='import')),
                 
                 new PieMenu({
+                    name: 'generic.export',
                     keybind: {key:87,shift:true},
+                    id: 'export_pie_menu',
+                    radius: -0.7,
                 }).fromAction(MenuBar.menus.file.structure.find(e=>e.id=='export')),
                 
                 new PieMenu({
-                    keybind: {key:90,shift:true},
+                    name: 'action.view_mode',
+                    id: 'view_mode_pie_menu',
+                    keybind: {key:90,alt:true},
+                    radius: -1,
                 }).fromBarSelect(BarItems['view_mode']),
                 
                 new PieMenu({
-                    name: "Mode", // NEEDS LANG SUPPORT
+                    name: "Mode Pie Menu", // NEEDS LANG SUPPORT,
+                    id: 'mode_pie_menu',
+                    radius: -1.5,
                     keybind: Blockbench.isWeb ? {key:88,shift:true}: {key:9,shift:true},
                     structure: (function() {
                         let actions = [];
@@ -415,6 +431,9 @@
                                 new Action({
                                     name: mode.name,
                                     condition: mode.condition,
+                                    id: key+'_pie_action',
+                                    private: true,
+
                                     click(){ mode.select() }
                                 })
                             )
@@ -424,15 +443,24 @@
                 }),
 
                 new PieMenu({
+                    name: 'Tool Pie Menu',
+                    id: 'main_tools_pie_menu',
+                    radius: -1.5,
                     keybind: {key:84,shift:true},
                 }).fromAction(MenuBar.menus.filter.structure.find(e=>e.id=='main_tools')),
 
                 new PieMenu({
+                    name: 'New Pie Menu',
                     keybind: {key:78,shift:true},
+                    id: 'new_pie_menu',
+                    radius: -1,
                 }).fromAction(MenuBar.menus.file.structure.find(e=>e.id=='new')),
 
                 new PieMenu({
+                    name: 'Preferences Pie Menu',
                     keybind: {key:79,shift:true},
+                    id: 'preferences_pie_menu',
+                    radius: -1,
                 }).fromAction(MenuBar.menus.file.structure.find(e=>e.id=="preferences")),
 
                 ...(function() {
@@ -443,10 +471,16 @@
                         {key:67,shift:true},
                         {key:80,shift:true}
                     ];
+                    const radii = [ -0.75,-1,-1,-0.75 ];
+
                     for (let i = 1; i < 5; i++) {
+                        let action = MenuBar.menus.transform.structure[i];
                         pies.push(
                             new PieMenu({
-                                keybind: keybinds[i-1]
+                                keybind: keybinds[i-1],
+                                id: action.id +'_pie_menu',
+                                name: tl(action.name),
+                                radius: radii[i-1],
                             }).fromAction(MenuBar.menus.transform.structure[i], MenuBar.menus.transform),
                         )
                     }
@@ -462,3 +496,5 @@
         }
     });
 })()
+
+// 500.
