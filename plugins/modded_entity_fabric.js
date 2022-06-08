@@ -126,99 +126,100 @@ function setTemplate() {
 		cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addCuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
 	};
 
+	Codecs.modded_entity.templates['Fabric 1.15-1.16'] = {
+		name: 'Fabric 1.15-1.16',
+		flip_y: true,
+		integer_size: false,
+		file:
+			`// Made with Blockbench %(bb_version)
+				// Exported for Minecraft version 1.15 - 1.16
+				// Paste this class into your mod and generate all required imports
+
+				${header}
+
+				public class %(identifier) extends EntityModel<${entity}> {
+						%(fields)
+						public %(identifier)() {
+								textureWidth = %(texture_width);
+								textureHeight = %(texture_height);
+								%(content)
+						}
+						@Override
+						public void setAngles(${entity} entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch){
+								//previously the render function, render code was moved to a method below
+						}
+						@Override
+						public void render(MatrixStack matrixStack, VertexConsumer	buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha){
+								${render}
+								%(renderers)
+						}
+						public void setRotationAngle(ModelPart bone, float x, float y, float z) {
+								bone.pitch = x;
+								bone.yaw = y;
+								bone.roll = z;
+						}
+						${members}
+				}`,
+		field: `private final ModelPart %(bone);`,
+		bone:
+			`%(bone) = new ModelPart(this);
+			%(bone).setPivot(%(x), %(y), %(z));
+			?(has_parent)%(parent).addChild(%(bone));
+			?(has_rotation)setRotationAngle(%(bone), %(rx), %(ry), %(rz));
+			%(cubes)`,
+		renderer: `%(bone).render(matrixStack, buffer, packedLight, packedOverlay);`,
+		cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addCuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
+	};
+
 	Codecs.modded_entity.templates['Fabric 1.17+'] = {
 		name: 'Fabric 1.17+',
 		flip_y: true,
 		integer_size: false,
-		file: generateJavaFile(header, entity),
-	};
-}
+		file:
+			`// Made with Blockbench %(bb_version)
+			// Exported for Minecraft version 1.17+ for Yarn
+			// Paste this class into your mod and generate all required imports
+			public class %(identifier) extends EntityModel<${entity}> {
+				%(fields)
+				public %(identifier)(ModelPart root) {
+					%(model_parts)
+				}
+				public static TexturedModelData getTexturedModelData() {
+					ModelData modelData = new ModelData();
+					ModelPartData modelPartData = modelData.getRoot();
+					%(content)
+					return TexturedModelData.of(modelData, %(texture_width), %(texture_height));
+				}
+				@Override
+				public void setAngles(${entity} entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+				}
+				@Override
+				public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
+					%(renderers)
+				}
+			}`,
+		field: `private final ModelPart %(bone);`,
+		model_part: `this.%(bone) = root.getChild("%(bone)");`,
+		bone:
+			`?(has_no_parent)ModelPartData %(bone) = modelPartData.addChild("%(bone)", ModelPartBuilder.create()
+			?(has_parent)ModelPartData %(bone) = %(parent).addChild("%(bone)", ModelPartBuilder.create()
+			%(remove_n)%(cubes)
+			?(has_rotation)%(remove_n), ModelTransform.of(%(x), %(y), %(z), %(rx), %(ry), %(rz)));
+			?(has_no_rotation)%(remove_n), ModelTransform.pivot(%(x), %(y), %(z)));`,
+		renderer: `%(bone).render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);`,
+		cube: `.uv(%(uv_x), %(uv_y)){?(has_mirror).mirrored()}.cuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), new Dilation(%(inflate))){?(has_mirror).mirrored(false)}`,
+	}
 
-function generateJavaFile(header, entity) {
-
-		// grabs groups and cubes that are child of root
-		let rootGroups = Outliner.root.filter(node => node instanceof Group)
-		let rootCubes = Outliner.root.filter(node => node instanceof Cube)
-
-		// placeholder string that will get sent off later
-		let modelCode = ""
-
-		modelCode+= "// Made with Blockbench %(bb_version)\n"
-		modelCode+= "// Exported for Minecraft version 1.17+\n"
-		modelCode+= "// 1.17+ port by SebaSphere @ https://sebastianb.dev\n\n"
-
-		modelCode+= header + "\n\n"
-
-		modelCode+= "public class %(identifier) extends EntityModel<" + entity + ">{\n\n"
-
-		modelCode+= "	private final ModelPart root;\n\n"
-		if (rootCubes.length >= 1) {
-			modelCode+= "	private final ModelPart bb_main;\n\n"
-		}
-		// adds all groups in existence to its own field
-		Group.all.forEach(function (group, i) {
-			modelCode+= "	private final ModelPart " + group.name + ";\n"
-		})
-
-		modelCode+= "\n"
-		modelCode+= "	public %(identifier)(ModelPart root){\n"
-		// makes each folder in root it's own assigned group
-		rootGroups.forEach(function (rootGroup, index){
-			modelCode+= "		this." + rootGroup.name + " = root.getChild(\"" + rootGroup.name + "\");\n";
-			// not sure if I need this
-			// modelCode+= "		this." + rootGroup.name +
-			// 	".setPivot(\"" + rootGroup.origin.at(0) + ", " + rootGroup.origin.at(1) + ", " + rootGroup.origin.at(2) + "\");\n";
-		})
-
-		// handle all subgroups
-		Group.all.forEach(function (eachGroup, i) {
-			if (eachGroup.parent !== "root") {
-				modelCode+= "		this." + eachGroup.name + " = this." + eachGroup.parent.name + ".getChild(\"" + eachGroup.name +"\");\n";
-
-			}
-		})
-
-		// used to add all cubes in root to its own group
-		if (rootCubes.length >= 1) {
-			modelCode+= "		this.bb_main = this.root.getChild(\"bb_main\");\n"
-		}
-		modelCode+= "	}\n\n"
-
-		// getTexturedModelData, bulk of model information
-		modelCode+= "	public static TexturedModelData getTexturedModelData(){\n"
-		modelCode+= "		ModelData data = new ModelData();\n"
-		modelCode+= "		ModelPartData modelPartData = data.getRoot();\n\n"
-
-		// adds model data for root cubes only
-		rootGroups.forEach(function (rootGroup, index){
-			modelCode+= "	ModelPartData " + rootGroup.name + " = root.addChild(\n"
-			modelCode+= "		\"" + rootGroup.name + "\",\n"
-			modelCode+= "		ModelPartBuilder.create()\n"
-			// add UVs and stuff based on cubes
-			let innerCubes = rootGroup.children.filter(node => node instanceof Cube)
-			innerCubes.forEach(function (cube, i) {
-				console.log(cube.parent)
-			})
-			modelCode+= "	);\n"
-
-		})
-		modelCode+= "	}\n"
-
-
-		modelCode+= "}"
-
-		console.log(modelCode)
-		return modelCode
 }
 
 Plugin.register('modded_entity_fabric', {
 	title: 'Fabric Modded Entity',
 	icon: 'icon-format_java',
-	author: 'Eliot Lash',
+	author: 'Eliot Lash, SebaSphere',
 	description: 'Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap',
     tags: ["Minecraft: Java Edition"],
 	min_version: '3.6.6',
-	version: '0.3.0',
+	version: '0.4.0',
 	variant: 'both',
 	onload() {
 		Codecs.project.on('compile', compileCallback);
