@@ -1,3 +1,5 @@
+// code based off the existing modded_entity.js module built into Blockbench for entity code but for Fabric Yarn mappings!
+// https://github.com/JannisX11/blockbench/blob/master/js/io/formats/modded_entity.js
 (function() {
 
 const FABRIC_OPTIONS_DEFAULT = {
@@ -260,6 +262,7 @@ Plugin.register('modded_entity_fabric', {
 	},
 	onunload() {
 		delete Codecs.modded_entity.templates['Fabric 1.14'];
+		delete Codecs.modded_entity.templates['Fabric 1.15+']; // added for legacy purposes. If upgrading the plugin, will remove the old template name
 		delete Codecs.modded_entity.templates['Fabric 1.15-1.16'];
 		delete Codecs.modded_entity.templates['Fabric 1.17+'];
 		// remove button when plugin is unloaded
