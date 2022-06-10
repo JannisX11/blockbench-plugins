@@ -83,7 +83,7 @@ function setTemplate() {
 		renderer: `%(bone).render(f5);`,
 		cube: `%(bone).boxes.add(new Box(%(bone), %(uv_x), %(uv_y), %(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror)));`,
 	};
-	Codecs.modded_entity.templates['Fabric 1.15-1.16'] = {
+	Codecs.modded_entity.templates['Fabric 1.15+'] = { // ID used internally, will show "Fabric 1.15-1.16" in blockbench
 		name: 'Fabric 1.15-1.16',
 		flip_y: true,
 		integer_size: false,
@@ -120,51 +120,6 @@ function setTemplate() {
 		field: `private final ModelPart %(bone);`,
 		bone:
 			 `%(bone) = new ModelPart(this);
-			%(bone).setPivot(%(x), %(y), %(z));
-			?(has_parent)%(parent).addChild(%(bone));
-			?(has_rotation)setRotationAngle(%(bone), %(rx), %(ry), %(rz));
-			%(cubes)`,
-		renderer: `%(bone).render(matrixStack, buffer, packedLight, packedOverlay);`,
-		cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addCuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
-	};
-
-	Codecs.modded_entity.templates['Fabric 1.15-1.16'] = {
-		name: 'Fabric 1.15-1.16',
-		flip_y: true,
-		integer_size: false,
-		file:
-			`// Made with Blockbench %(bb_version)
-				// Exported for Minecraft version 1.15 - 1.16
-				// Paste this class into your mod and generate all required imports
-
-				${header}
-
-				public class %(identifier) extends EntityModel<${entity}> {
-						%(fields)
-						public %(identifier)() {
-								textureWidth = %(texture_width);
-								textureHeight = %(texture_height);
-								%(content)
-						}
-						@Override
-						public void setAngles(${entity} entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch){
-								//previously the render function, render code was moved to a method below
-						}
-						@Override
-						public void render(MatrixStack matrixStack, VertexConsumer	buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha){
-								${render}
-								%(renderers)
-						}
-						public void setRotationAngle(ModelPart bone, float x, float y, float z) {
-								bone.pitch = x;
-								bone.yaw = y;
-								bone.roll = z;
-						}
-						${members}
-				}`,
-		field: `private final ModelPart %(bone);`,
-		bone:
-			`%(bone) = new ModelPart(this);
 			%(bone).setPivot(%(x), %(y), %(z));
 			?(has_parent)%(parent).addChild(%(bone));
 			?(has_rotation)setRotationAngle(%(bone), %(rx), %(ry), %(rz));
@@ -262,9 +217,8 @@ Plugin.register('modded_entity_fabric', {
 	},
 	onunload() {
 		delete Codecs.modded_entity.templates['Fabric 1.14'];
-		delete Codecs.modded_entity.templates['Fabric 1.15+']; // added for legacy purposes. If upgrading the plugin, will remove the old template name
-		delete Codecs.modded_entity.templates['Fabric 1.15-1.16'];
-		delete Codecs.modded_entity.templates['Fabric 1.17+'];
+		delete Codecs.modded_entity.templates['Fabric 1.15+']; // 1.15 to 1.16
+		delete Codecs.modded_entity.templates['Fabric 1.17+']; // 1.17 to 1.19 at time of writing
 		// remove button when plugin is unloaded
 		button.delete();
 		Codecs.project.events.compile.remove(compileCallback)
