@@ -208,7 +208,7 @@
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "6.2.0",
+		"version": "6.2.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -228,9 +228,9 @@
 		"icon": "gradient",
 		"author": "Ewan Howell",
 		"description": "Generate hue shifted gradient palettes from a single colour.",
-		"about": "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Output gradient\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon <i class=\"icon material-icons\">gradient</i> to generate a colour gradient.",
+		"about": "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">\nOutput gradient\n<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon to generate a colour gradient.",
 		"tags": ["Paint", "Palette", "Color"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
