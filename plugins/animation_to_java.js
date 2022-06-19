@@ -49,7 +49,7 @@ function generateFile() {
       const boneAnimator = animation.animators[id];
       if (boneAnimator.position.length) {
         outfileText += `.addAnimation("${boneAnimator._name}", new AnimationChannel(AnimationChannel.Targets.POSITION`;
-        for (const keyFrame of boneAnimator.scale) {
+        for (const keyFrame of boneAnimator.position) {
           const { x, y, z } = keyFrame.data_points[0];
           outfileText += `, new Keyframe(${
             keyFrame.time
