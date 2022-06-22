@@ -13,13 +13,11 @@
       "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
     tags: ["Minecraft: Java Edition"],
     onload() {
-      if (!Format.animation_mode) {
-        return;
-      }
       menuButton = new Action("export_animation_to_java", {
         name: "Export Animations to Java",
         description: "Exports animations to Java code",
         icon: "fa-file-export",
+        condition: () => Format.animation_mode,
         click: function () {
           var file = generateFile();
           Blockbench.export({
