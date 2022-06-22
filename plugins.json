@@ -532,6 +532,7 @@
 		"icon": "fa-cube",
 		"version": "1.0.0",
 		"variant": "both",
-		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation"
+		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
+		"tags": ["Minecraft: Java Edition"]
 	}
 }
