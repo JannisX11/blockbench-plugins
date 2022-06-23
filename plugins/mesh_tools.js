@@ -29,7 +29,7 @@
 		author: 'Malik12tree',
 		description: 'Adds helpful Modeling Tools, Operators and Generators for Meshs!',
 		about,
-		version: '1.0.2',
+		version: '1.0.3',
 		variant: "both",
 		tags: ["Format: Generic Model", "Edit"],
 		onload() {
@@ -1861,23 +1861,38 @@
 				TwistedTorus:		{x:"-cos(p.u)*(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))",y:"-(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))*sin(p.u)",z:"cos(p.v-3*p.u)*(5./4.+sin(3*p.v))",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
 				Bonbon:				{x:"(p.u-3.3379)",y:"cos(p.u)*sin(p.v)",z:"cos(p.u)*cos(p.v)",scale:2,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
 				Boy:				{x:"(sq2 * cos(2*p.u)*pow(cos(p.v),2) + cos(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",y:"(sq2 * sin(2*p.u)*pow(cos(p.v),2) - sin(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",z:"(3*pow(cos(p.v),2)) / (2 - alpha*sq2*sin(3*p.u)*sin(2*p.v))",scale:4,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:16,uWrap:!1,vRange:[0,3.1415927410125732],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951\nalpha=1"},
-				Catalan:			{x:"p.u-sin(p.u)*cosh(p.v)",y:"4*sin(1/2*p.u)*sinh(p.v/2)",z:"1-cos(p.u)*cosh(p.v)",scale:1,uRange:[-3.1415927410125732,9.42477798461914],uDivs:24,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
-				Catenoid:			{x:"2*cosh(p.v/2)*cos(p.u)",y:"p.v",z:"2*cosh(p.v/2)*sin(p.u)",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:24,uWrap:!0,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
+				Hexahedron:			{x:"pow(cos(p.v),3)*pow(cos(p.u),3)",y:"pow(sin(p.u),3)",z:"pow(sin(p.v),3)*pow(cos(p.u),3)",scale:8,uRange:[-1.2999999523162842,1.2999999523162842],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Klein:				{x:"(3*(1+sin(p.v)) + 2*(1-cos(p.v)/2)*cos(p.u))*cos(p.v)",y:"(4+2*(1-cos(p.v)/2)*cos(p.u))*sin(p.v)",z:"-2*(1-cos(p.v)/2)*sin(p.u)",scale:1,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Moebius:			{x:"(cos(p.v)+p.u*cos(p.v/2)*cos(p.v))",y:"(p.u*sin(p.v/2))",z:"(sin(p.v)+p.u*cos(p.v/2)*sin(p.v))",scale:4,uRange:[-.4000000059604645,.4000000059604645],uDivs:4,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
+				Breather:			{x:"-p.u + (2*rr*cosh(alpha*p.u)*sinh(alpha*p.u))/denom",y:"(2*ww*cosh(alpha*p.u)*(-(ww*cos(p.v)*cos(ww*p.v)) - sin(p.v)*sin(ww*p.v)))/denom",z:"(2*ww*cosh(alpha*p.u)*(-(ww*sin(p.v)*cos(ww*p.v)) + cos(p.v)*sin(ww*p.v)))/denom",scale:2,uRange:[-13.2,13.2],uDivs:16,uWrap:!1,vRange:[-37.4,37.4],vDivs:32,vWrap:!1,vClose:!1,variables:"alpha = 0.4\nrr= 1 - pow(alpha,2)\nww = sqrt(rr)\ndenom = alpha*( pow(ww*cosh(alpha*p.u),2) + pow(alpha*sin(ww*p.v),2) )"},
+				RidgedTorus:		{x:"outerradius*cos(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*cos(p.u)*cos(p.v)",y:"outerradius*sin(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.u)*cos(p.v)",z:"(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1,variables:"outerradius = 5\nridgepower = 0.6\ninnerradius = 2\nnumofridges = 10"},
 				CliffordTorus:		{x:"cos(p.u+p.v)/(sq2+cos(p.v-p.u))",y:"sin(p.v-p.u)/(sq2+cos(p.v-p.u))",z:"sin(p.u+p.v)/(sq2+cos(p.v-p.u))",scale:4,uRange:[0,3.1415927410125732],uDivs:8,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951"},
+				Cyclide: {
+					x: "(dd*(cc - aa*cos(p.u)*cos(p.v) ) + bb*bb*cos(p.u)) / denom",
+					y: "(bb*sin(p.u)*(aa-dd*cos(p.v) ) )/denom",
+					z: "(bb*sin(p.v)*(cc*cos(p.u)-dd ) )/denom",
+					scale: 4,
+					uRange: [0,6.2831854820251465],
+					uDivs: 16,
+					uWrap: false,
+					vRange: [0,6.2831854820251465],
+					vDivs: 8,
+					vWrap: false,
+					vClose: false,
+					variables: `aa = 1\nbb = 0.98\ncc = 0.199\ndd  = 0.3\ndenom = (aa-cc*cos(p.u)*cos(p.v))`
+				},
+				Shell:				{x:"(cos(p.v)*(1+cos(p.u))*sin(p.v/8))",y:"(sin(p.u)*sin(p.v/8)+cos(p.v/8)*1.5)",z:"(sin(p.v)*(1+cos(p.u))*sin(p.v/8))",scale:4,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!0,vRange:[0,12.566370964050293],vDivs:32,vWrap:!1,vClose:!1},
+				Catalan:			{x:"p.u-sin(p.u)*cosh(p.v)",y:"4*sin(1/2*p.u)*sinh(p.v/2)",z:"1-cos(p.u)*cosh(p.v)",scale:1,uRange:[-3.1415927410125732,9.42477798461914],uDivs:24,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
+				Dini:				{x:"radius*cos(p.u)*sin(p.v)",y:"2*(((cos(p.v)+ln(tan(p.v/2)+1E-2)) + twistrot*p.u)+3.4985)",z:"radius*sin(p.u)*sin(p.v)",scale:1,uRange:[0,4*Math.PI],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:8,vWrap:!1,vClose:!1,variables:"radius = 4\ntwistrot=0.2"},
+				Catenoid:			{x:"2*cosh(p.v/2)*cos(p.u)",y:"p.v",z:"2*cosh(p.v/2)*sin(p.u)",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:24,uWrap:!0,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
 				Cochlea:			{x:"p.v*cos(p.u)",y:"p.v*sin(p.u)",z:"(0.4*p.u-2.5383)",scale:4,uRange:[0,12.566370964050293],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:16,vWrap:!1,vClose:!1},
 				Cosinus:			{x:"p.u",y:"sin(pi* ( pow(p.u,2) + pow(p.v,2) ) )/2",z:"p.v",scale:8,uRange:[-1,1],uDivs:16,uWrap:!1,vRange:[-1,1],vDivs:16,vWrap:!1,vClose:!1},
-				Dini:				{x:"radius*cos(p.u)*sin(p.v)",y:"2*(((cos(p.v)+ln(tan(p.v/2)+1E-2)) + twistrot*p.u)+3.4985)",z:"radius*sin(p.u)*sin(p.v)",scale:1,uRange:[0,4*Math.PI],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:8,vWrap:!1,vClose:!1,variables:"radius = 4\ntwistrot=0.2"},
 				Enneper:			{x:"p.u -pow(p.u,3)/3  + p.u*pow(p.v,2)",y:"pow(p.u,2) - pow(p.v,2)",z:"p.v -pow(p.v,3)/3  + p.v*pow(p.u,2)",scale:1,uRange:[-2,2],uDivs:8,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
 				Helicoidal:			{x:"sinh(p.v)*sin(p.u)",y:"3*p.u",z:"-sinh(p.v)*cos(p.u)",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:16,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
 				Helix:				{x:"(1-0.1*cos(p.v))*cos(p.u)/0.1",y:"0.1*(sin(p.v) + p.u/1.7 -10)/0.1 + 5",z:"(1-0.1*cos(p.v))*sin(p.u)/0.1",scale:1,uRange:[0,12.566370964050293],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1},
-				Hexahedron:			{x:"pow(cos(p.v),3)*pow(cos(p.u),3)",y:"pow(sin(p.u),3)",z:"pow(sin(p.v),3)*pow(cos(p.u),3)",scale:8,uRange:[-1.2999999523162842,1.2999999523162842],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
 				Hyperhelicoidal:	{x:"(sinh(p.v)*cos(3*p.u))/(1+cosh(p.u)*cosh(p.v))",y:"(cosh(p.v)*sinh(p.u))/(1+cosh(p.u)*cosh(p.v))",z:"(sinh(p.v)*sin(3*p.u))/(1+cosh(p.u)*cosh(p.v))",scale:8,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:32,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:8,vWrap:!1,vClose:!1},
-				Klein:				{x:"(3*(1+sin(p.v)) + 2*(1-cos(p.v)/2)*cos(p.u))*cos(p.v)",y:"(4+2*(1-cos(p.v)/2)*cos(p.u))*sin(p.v)",z:"-2*(1-cos(p.v)/2)*sin(p.u)",scale:1,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
-				Moebius:			{x:"(cos(p.v)+p.u*cos(p.v/2)*cos(p.v))",y:"(p.u*sin(p.v/2))",z:"(sin(p.v)+p.u*cos(p.v/2)*sin(p.v))",scale:4,uRange:[-.4000000059604645,.4000000059604645],uDivs:4,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
 				PseudoCatenoid:		{x:"2.2*(2*cosh(p.v/2)*cos(p.u))",y:"1.51166 * (2*cosh(p.v/2)*sin(p.u) * sin((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513) + 1.8*(p.v) * cos((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513))",z:"1.51166 * (2*cosh(p.v/2)*sin(p.u) * cos((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513) - 1.8*(p.v) * sin((2.2*(2*cosh(p.v/2)*cos(p.u)) - -11.0404)*2*pi*1/22.0513))",scale:1,uRange:[-3.1415927410125732,3.1415927410125732],uDivs:32,uWrap:!1,vRange:[-3.1415927410125732,3.1415927410125732],vDivs:14,vWrap:!1,vClose:!1},
 				PseudoSphere:		{x:"cos(p.u)*cos(p.v)+sin((sin(p.u)+1)*2*pi)",y:"4*sin(p.u)",z:"cos(p.u)*sin(p.v)+cos((sin(p.u)+1)*2*pi)",scale:2,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1},
-				RidgedTorus:		{x:"outerradius*cos(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*cos(p.u)*cos(p.v)",y:"outerradius*sin(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.u)*cos(p.v)",z:"(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1,variables:"outerradius = 5\nridgepower = 0.6\ninnerradius = 2\nnumofridges = 10"},
-				Shell:				{x:"(cos(p.v)*(1+cos(p.u))*sin(p.v/8))",y:"(sin(p.u)*sin(p.v/8)+cos(p.v/8)*1.5)",z:"(sin(p.v)*(1+cos(p.u))*sin(p.v/8))",scale:4,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!0,vRange:[0,12.566370964050293],vDivs:32,vWrap:!1,vClose:!1},
 				Sine:				{x:"sin(p.u)",y:"sin(p.v)",z:"sin(p.u+p.v)",scale:8,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
 				Snake:				{x:"1.2*(1 -p.v/(2*pi))*cos(3*p.v)*(1 + cos(p.u)) + 3*cos(3*p.v)",y:"9*p.v/(2*pi) + 1.2*(1 - p.v/(2*pi))*sin(p.u)",z:"1.2*(1 -p.v/(2*pi))*sin(3*p.v)*(1 + cos(p.u)) + 3*sin(3*p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:7,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:42,vWrap:!1,vClose:!1},
 				SteroSphere:		{x:"(2.*p.u/(p.u*p.u+p.v*p.v+1.))",y:"((p.u*p.u+p.v*p.v-1.)/(p.u*p.u+p.v*p.v+1.))",z:"(2*p.v/(p.u*p.u+p.v*p.v+1))",scale:8,uRange:[-2,2],uDivs:16,uWrap:!1,vRange:[-2,2],vDivs:16,vWrap:!1,vClose:!1},
@@ -1909,6 +1924,7 @@
 							buttons: ["Save Settings To Memory", "Confirm","Cancel"],
 							cancelIndex: 2,
 							confirmIndex: 1,
+							width: 650,
 							onFormChange(data){
 								if (justOpened) { // this just for skipping loading saved settings
 									justOpened=false;
@@ -1971,6 +1987,10 @@
 											let x = mtMolangParser.parse(out.x) * out.scale;
 											let y = mtMolangParser.parse(out.y) * out.scale;
 											let z = mtMolangParser.parse(out.z) * out.scale;
+											if (isNaN(x) || Math.abs(x) === Infinity) {x = 0};
+											if (isNaN(y) || Math.abs(y) === Infinity) {y = 0};
+											if (isNaN(z) || Math.abs(z) === Infinity) {z = 0};
+
 											vertices.push(mesh.addVertices([x,y,z])[0]);
 											uvPositions.push([i,j])
 										}
@@ -2155,6 +2175,7 @@
 				name: "MTools Generate",
 				icon: "fas.fa-vector-square",
 				children: generators,
+				condition: { modes: ['edit'], features: ['meshes'] }
 			});
 			MeshToolsAction = new Action("meshtools", {
 				name: "MTools",
