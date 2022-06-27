@@ -524,5 +524,15 @@
 		"version": "0.0.1",
 		"variant": "both",
 		"about": "This plugin simply adds a button that rearranges your individual Per-face UV rectangles in the same way Box-UV mode would. This is handy if you want to use the standard Box-UV format, but also have the flexibility of Per-face UV mode."
+	},
+	"animation_to_java": {
+		"title": "Animation to Java Converter",
+		"author": "MG",
+		"description": "Converts Blockbench animations to Java code for the new 1.19 keyframe system",
+		"icon": "fa-cube",
+		"version": "1.0.0",
+		"variant": "both",
+		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
+		"tags": ["Minecraft: Java Edition"]
 	}
 }
