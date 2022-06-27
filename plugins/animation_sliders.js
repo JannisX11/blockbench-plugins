@@ -11,7 +11,7 @@
 		description: 'Adds multiple sliders to tweak keyframes',
 		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
 		tags: ['Animation'],
-		version: '0.2.0',
+		version: '0.2.1',
 		min_version: '3.7.0',
 		variant: 'both',
 		onload() {
@@ -187,9 +187,15 @@
 
 					Timeline.selected.forEach((kf) => {
 						let val = calcKeyframeValues(kf);
-						if (selected_axes.x) kf.offset('x', amplify_original_values[kf.uuid][0] * (amplify_value/100) - val[0]);
-						if (selected_axes.y) kf.offset('y', amplify_original_values[kf.uuid][1] * (amplify_value/100) - val[1]);
-						if (selected_axes.z) kf.offset('z', amplify_original_values[kf.uuid][2] * (amplify_value/100) - val[2]);
+						if (kf.channel == 'scale') {
+							if (selected_axes.x) kf.offset('x', (amplify_original_values[kf.uuid][0]-1) * (amplify_value/100) + 1 - val[0]);
+							if (selected_axes.y) kf.offset('y', (amplify_original_values[kf.uuid][1]-1) * (amplify_value/100) + 1 - val[1]);
+							if (selected_axes.z) kf.offset('z', (amplify_original_values[kf.uuid][2]-1) * (amplify_value/100) + 1 - val[2]);
+						} else {
+							if (selected_axes.x) kf.offset('x', amplify_original_values[kf.uuid][0] * (amplify_value/100) - val[0]);
+							if (selected_axes.y) kf.offset('y', amplify_original_values[kf.uuid][1] * (amplify_value/100) - val[1]);
+							if (selected_axes.z) kf.offset('z', amplify_original_values[kf.uuid][2] * (amplify_value/100) - val[2]);
+						}
 					})
 					Animator.preview();
 				},
