@@ -50,6 +50,8 @@ function generateFile() {
     }
     for (const id in animation.animators) {
       const boneAnimator = animation.animators[id];
+      if (!(boneAnimator instanceof BoneAnimator)) continue;
+
       if (boneAnimator.position.length) {
         outfileText += `.addAnimation("${boneAnimator._name}", new AnimationChannel(AnimationChannel.Targets.POSITION`;
         for (const keyFrame of boneAnimator.position) {
