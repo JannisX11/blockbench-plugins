@@ -534,5 +534,15 @@
 		"variant": "both",
 		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
 		"tags": ["Minecraft: Java Edition"]
-	}
+	},
+	"bb_to_tbl": {
+        "title": "Tabula Exporter",
+        "icon": "keyboard_capslock",
+        "author": "grillo78",
+        "description": "This plugin allows modded entity models to export as .tbl files.",
+        "tags": ["Minecraft: Java Edition", "Tabula"],
+        "version": "1.0",
+        "min_version": "4.2.0",
+        "variant": "both"
+    }
 }
