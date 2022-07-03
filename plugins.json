@@ -489,7 +489,7 @@
 		"author": "SirJain",
 		"description": "This plugin flags cubes less than 1 unit by flashing them.",
 		"icon": "lightbulb",
-		"version": "1.1.1",
+		"version": "1.2.0",
 		"variant": "both",
 		"min_version": "4.2.0",
 		"tags": ["Textures", "BoxUV", "UV"],
