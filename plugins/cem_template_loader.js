@@ -1,5 +1,5 @@
 (async function () {
-  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange
+  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, loader
   const id = "cem_template_loader"
   const name = "CEM Template Loader"
   const icon = "keyboard_capslock"
@@ -220,10 +220,10 @@
     page.find(".search_bar>input").focus()
   }
   async function setupPlugin(url, data) {
-    try{
+    try {
       entityData = await fetch(url + (data?.appendToURL ?? "")).then(e => e.json())
-      //const fs = require("fs")
-      //entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
+      // const fs = require("fs")
+      // entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
       entitySelector = new Dialog({
         id: "cem_template_selector",
         title: name,
@@ -259,13 +259,68 @@
         children: generatorActions,
         icon,
       }, "tools")
-      $("#start-files>.start_screen_left>ul>li>span>i.icon-format_optifine").parent().parent().after(E("li").attr("id", "new_cem_template").append(
-        E("span").addClass("icon_wrapper f_left").append(
-          E("i").addClass("material-icons icon").text(icon)
-        ),
-        E("h3").text("CEM Template Model"),
-        E("p").text(description)
-      ).on("click", () => loadInterface(entityData.categories[0].name, data)))
+      loader = new ModelLoader(id, {
+        name,
+        description,
+        icon,
+        target: ["Minecraft: Java Edition with OptiFine", "Texturing Templates"],
+        onStart: () => loadInterface(entityData.categories[0].name, data),
+        format_page: {
+          component: {
+            methods: {
+              load: () => loadInterface(entityData.categories[0].name, data)
+            },
+            template: `
+              <div style="display:flex;flex-direction:column;height:100%;">
+                <p class="format_description">${description}</p>
+                <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition with OptiFine</span> <span>Texturing Templates</span></p>
+                <content style="flex:1;margin:-22px 0 20px">
+                  <h3 class="markdown"><p>How to use:</p></h3>
+                  <p class="markdown">
+                    <ul>
+                      <li><p>Press <code>Load CEM Template</code> and select a model.</p></li>
+                      <li><p>Select your load settings, load the model, then edit the model.</p></li>
+                      <li><p>Export your model as an <code>OptiFine JEM</code> to <code>assets/minecraft/optifine/cem</code>, using the provided name.</p></li>
+                    </ul>
+                  </p>
+                  <h3 class="markdown"><p><strong>Do:</strong></p></h3>
+                  <p class="markdown">
+                    <ul>
+                      <li><p>Edit any of the cubes that were loaded with the template, add your own cubes, and create your own subgroups.</p></li>
+                    </ul>
+                  </p>
+                  <h3 class="markdown"><p><strong>Do not:</strong></p></h3>
+                  <p class="markdown">
+                    <ul>
+                      <li><p>Edit any of the groups that were loaded with the template, add your own root groups, or remove any built in animations.</p></li>
+                    </ul>
+                  </p>
+                </content>
+                    <div class="socials">
+                      <a href="${links["website"]}" class="open-in-browser">
+                        <i class="icon material-icons" style="color:#33E38E">language</i>
+                        <label>By ${author}</label>
+                      </a>
+                      <a href="${links["discord"]}" class="open-in-browser">
+                        <i class="icon fab fa-discord" style="color:#727FFF"></i>
+                        <label>Discord Server</label>
+                      </a>
+                      <a href="${links["tutorial"]}" class="open-in-browser">
+                        <i class="icon fab fa-youtube" style="color:#FF4444"></i>
+                        <label>CEM Modelling Tutorial</label>
+                      </a>
+                    </div>
+                <div class="button_bar">
+                  <button id="create_new_model_button" style="margin-top:20px;" @click="load()">
+                    <i class="material-icons">${icon}</i>
+                    Load CEM Template
+                  </button>
+                </div>
+              </div>
+            `,
+          }
+        }
+      })
       return true
     } catch (err) {
       console.error(err)
@@ -309,6 +364,7 @@
     if (Blockbench.isWeb || Blockbench.isMobile) window.open(links[type], "_blank").focus()
     else shell.openExternal(links[type])
   }
+  let frameCount
   const constants = {
     pi: Math.PI,
     sin: Math.sin,
@@ -330,13 +386,21 @@
     frac: x => x - Math.floor(x),
     log: Math.log,
     pow: Math.pow,
-    random: Math.random,
+    random: (seed) => {
+      if (!seed) return Math.random()
+      seed = constants.frac(seed * 123.34)
+      seed += seed * (seed + 45.32)
+      return constants.frac(seed * seed)
+    },
     round: Math.round,
     signum: Math.sign,
-    sqrt: Math.sqrt,
+    sqrt: x => {
+      if (x >= 0) return Math.sqrt(x)
+      return 0
+    },
     fmod: (x, y) => ((x % y) + y) % y,
     if: (...args) => {
-      if (args.length < 3 || args.length % 2 !== 1) throw new Error
+      if (args.length < 3 || args.length % 2 !== 1 || typeof args[0] !== "boolean") throw new Error
       for (let i = 0; i < args.length; i += 2) {
         if (i === args.length - 1) return args[i]
         else if (args[i]) return args[i+1]
@@ -345,28 +409,46 @@
     between: (x, min, max) => x >= min && x <= max,
     equals: (x, y, epsilon) => Math.abs(x - y) <= epsilon,
     in: (x, ...vals) => vals.includes(x),
-    print: num => {
-      console.log(num)
-      return num
+    print: (id, int, val) => {
+      if (typeof val !== "number") throw Error('<strong>print</strong> can only print numbers, use <strong>printb</strong> instead')
+      if (frameCount % int === 0) console.log(`CEM print(${id}) = ${val}`)
+      return val
     },
-    idle_time: 0,
-    revenge_time: 0,
+    printb: (id, int, val) => {
+      if (typeof val !== "boolean") throw Error('<strong>printb</strong> can only print booleans, use <strong>print</strong> instead')
+      if (frameCount % int === 0) console.log(`CEM print(${id}) = ${val}`)
+      return val
+    },
+    smooth: (id, val) => {
+      return val ?? id
+    },
+    lerp: (a, b, c) => a * (1 - c) + b * c,
+    frame_time: 0,
     move_forward: 0,
     move_strafing: 0
   }
   const rangesObj = {
-    pos_x: 0,
-    pos_y: [-64, 64, 320],
-    pos_z: 0,
+    pos_x: [-128, 0, 128, 0.1],
+    pos_y: [-64, 64, 320, 0.1],
+    pos_z: [-128, 0, 128, 0.1],
+    rot_x: [0, 0, 2 * Math.PI, 0.01],
+    rot_y: [0, 0, 2 * Math.PI, 0.01],
+    player_pos_x: [-128, 0, 128, 0.1],
+    player_pos_y: [-64, 64, 320, 0.1],
+    player_pos_z: [-128, 0, 128, 0.1],
+    player_rot_x: [0, 0, 2 * Math.PI, 0.01],
+    player_rot_y: [0, 0, 2 * Math.PI, 0.01],
     health: [0, 20, 20],
     max_health: [1, 20, 500],
     limb_speed: [0, 0, 1, 0.01],
     head_yaw: [-90, 0, 90],
-    head_pitch: [-90, 0, 90]
+    head_pitch: [-90, 0, 90],
+    dimension: [-1, 0, 1]
   }
   const specialsObj = {
     limb_swing: [0, false],
     hurt_time: [10, false],
+    death_time: [0, false],
     swing_progress: [0, false]
   }
   const enabledBooleans = new Set([
@@ -390,18 +472,19 @@
   }
   function preprocessCEMA(anim) {
     if (typeof anim === "number") return anim
-    if (typeof anim !== "string") throw "Expression must be a string/number"
+    if (typeof anim !== "string") throw ["Expression must be a string/number"]
     anim = anim.trim()
     if (anim.length === 0) return ""
     const boolsMatch = anim.matchAll(/(?<=[\s\n(!&|=,]|^)is_[a-z_]+(?=[\s\n)!&|=,]|$)/g)
     for (const bool of boolsMatch) boolMap.set(bool[0], bools.get(bool[0]) ?? enabledBooleans.has(bool[0]) ? true : false)
     const check = anim.match(/[^a-z0-9_,\+\-\*\/%!&\|>=<\(\)\[\]:\.\s]/gi)
-    if (check) throw `Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`
-    const check2 = anim.match(/[\)\]]\s*\(|=>|\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--/gi)
-    if (check2) throw `Invalid syntax "<span style="font-weight:600">${check2[0].replace(/</g, "&lt;")}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`
+    if (check) throw [`Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
+    const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\bvarb?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--/gi)
+    if (check2) throw [`Invalid syntax "<span style="font-weight:600">${check2[0].replace(/</g, "&lt;")}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
     return anim
       .replace(/:[a-z_]([a-z0-9_]+)?/gi, m => `.children["${m.slice(1)}"]`)
-      .replace(/(?<=[\s\n(+*\/%!&|=<>,-]|^)[a-z_]([a-z0-9_]+)?/gi, m => {
+      .replace(/(?<=[\s\n(+*\/%!&|=<>,-]|^)[a-z_]([a-z0-9_]+)?/gi, (m, g, o, s) => {
+        if (s[o + m.length] === ".") return `ctx[Symbol.for("${m}")]`
         if (m in rangesObj && !rangeMap.has(m)) rangeMap.set(m, ranges.get(m) ?? [rangesObj[m], rangesObj[m]?.[1] ?? rangesObj[m]])
         if (m in specialsObj && !specialMap.has(m)) specialMap.set(m, specials.get(m) ?? specialsObj[m])
         return m === "true" || m === "false" ? m : `ctx["${m}"]`
@@ -483,7 +566,8 @@
           },
           play() {
             if (playButton.hasClass("cem_animation_button_disabled")) return
-            let selected = Group.selected
+            let selected = Group.selected ?? Cube.selected[0]
+            if (!selected) return
             while (selected.parent !== "root") selected = selected.parent
             setupAnimations([selected])
           },
@@ -567,39 +651,80 @@
     let prevTime
     const invertions = new Set(["tx", "rx", "ry"])
     function setupAnimations(groups, keepTime) {
-      if (!keepTime) time = 0
       playing = true
       playButton.css("display", "none")
       stopButton.css("display", "flex")
+      if (!keepTime) time = 0
+      constants.id = Math.random()
+      constants[Symbol.for("var")] = new Proxy({}, {
+        get(target, name, receiver) {
+          if (Reflect.has(target, name)) {
+            return Reflect.get(target, name, receiver)
+          } else {
+            return 0
+          }
+        },
+        set(target, name, value, receiver) {
+          if (typeof value !== "number") throw Error('A <strong>var</strong> must be set to a number')
+          return Reflect.set(target, name, value, receiver)
+        }
+      })
+      constants[Symbol.for("varb")] = new Proxy({}, {
+        get(target, name, receiver) {
+          if (Reflect.has(target, name)) {
+            return Reflect.get(target, name, receiver)
+          } else {
+            return false
+          }
+        },
+        set(target, name, value, receiver) {
+          if (typeof value !== "boolean") throw Error('A <strong>varb</strong> must be set to a boolean')
+          return Reflect.set(target, name, value, receiver)
+        }
+      })
+      frameCount = 0
       steps = []
       boolMap = new Map()
       rangeMap = new Map()
       specialMap = new Map()
-      for (const part of Group.all.filter(e => e.cemAnimationInvertPivotPoint && !e.cemAnimationPivotPointInverted)) {
-        part.cemAnimationPivotPointInverted = true
-        part.mesh.position.x = -part.mesh.position.x
-        for (const child of part.mesh.children) child.position.x = -child.position.x 
-      }
       for (const group of groups) for (const section of group.cem_animations) for (const [key, val] of Object.entries(section)) {
         const split = key.split(".")
-        const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
-        if (!part || part.cemAnimationDisableRotation && split[1][0] === "r") continue
-        let anim
-        try {
-          anim = split[1] === "ty" ? `${part.parent === "root" ? "24-" : part.parent?.parent === "root" ? `- ${part.mesh.parent.position.y}-` : "-"}(${preprocessCEMA(val)})` : split[1] === "tz" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) - ${part.mesh.parent.position.z}` : split[1] === "tx" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) + ${part.mesh.parent.position.x}` : preprocessCEMA(val)
-        } catch (err) {
-          return animationErrorToggle(err)
+        if (split[0] === "render") continue
+        else if (split[0] === "var") {
+          steps.push({
+            type: "variable",
+            key,
+            raw: val,
+            anim: `ctx[Symbol.for("var")].${split[1]} = ${preprocessCEMA(val)}`
+          })
+        } else if (split[0] === "varb") {
+          steps.push({
+            type: "variableBoolean",
+            key,
+            raw: val,
+            anim: `ctx[Symbol.for("varb")].${split[1]} = ${preprocessCEMA(val)}`
+          })
+        } else {
+          const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
+          if (!part || part.cemAnimationDisableRotation && split[1][0] === "r") continue
+          let anim
+          try {
+            anim = split[1] === "ty" ? `${part.parent === "root" ? "24-" : part.parent?.parent === "root" ? `- ${part.mesh.parent.position.y}-` : "-"}(${preprocessCEMA(val)})` : split[1] === "tz" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) - ${part.mesh.parent.position.z}` : split[1] === "tx" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) + ${part.mesh.parent.position.x}` : preprocessCEMA(val)
+          } catch (err) {
+            return animationErrorToggle(err)
+          }
+          steps.push({
+            type: "animation",
+            part,
+            mode: split[1][0] === "t" ? "position" : split[1][0] === "r" ? "rotation" : "scale",
+            axis: split[1][1],
+            transform: split[1],
+            key,
+            raw: val,
+            anim,
+            invert: invertions.has(split[1]) ? -1 : 1
+          })
         }
-        steps.push({
-          part,
-          mode: split[1][0] === "t" ? "position" : split[1][0] === "r" ? "rotation" : "scale",
-          axis: split[1][1],
-          transform: split[1],
-          key,
-          raw: val,
-          anim,
-          invert: invertions.has(split[1]) ? -1 : 1
-        })
       }
       controller.empty()
       bools = new Map(boolMap)
@@ -667,8 +792,8 @@
             E("input").attr({
               id: `cem_animation_range_${range[0]}_slider`,
               type: "range",
-              min: range[1][0][0] ?? -1000,
-              max: range[1][0][2] ?? 1000,
+              min: range[1][0][0],
+              max: range[1][0][2],
               step: range[1][0][3] ?? 1,
               value: range[1][1],
             }).on("input", evt => {
@@ -680,16 +805,16 @@
             E("input").addClass("tool cem_animation_range_number").attr({
               id: `cem_animation_range_${range[0]}_text`,
               type: "number",
-              min: range[1][0][0] ?? -1000,
-              max: range[1][0][2] ?? 1000,
+              min: range[1][0][0],
+              max: range[1][0][2],
               step: range[1][0][3] ?? 1,
               value: range[1][1],
             }).on("input", evt => {
               slider.val(evt.target.value)
-              const clamped = Math.min(range[1][0][2] ?? 1000, Math.max(range[1][0][0], parseFloat(evt.target.value)))
+              const clamped = Math.min(range[1][0][2], Math.max(range[1][0][0], parseFloat(evt.target.value)))
               clearTimeout(timeout)
               timeout = setTimeout(() => text.val(isNaN(clamped) ? range[1][1] : clamped), 1000)
-              const num = Math.max(range[1][0][0] ?? -1000, clamped)
+              const num = Math.max(range[1][0][0], clamped)
               ranges.set(range[0], [range[1][0], num])
               if (range[0] === "max_health") updateHealth(num)
             })
@@ -717,6 +842,21 @@
           })
         ).appendTo(container)
         if (specials.get("hurt_time")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
+      }
+      if (specials.has("death_time")) {
+        let container = $("#cem_animation_buttons")
+        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
+        const button = E("div").addClass("cem_animation_button").append(
+          E("button").attr({
+            id: "cem_animation_death_time_button",
+            title: 'Simulate the entity attacking. Runs "death_time"'
+          }).text("Kill entity").on("click", evt => {
+            if ($(evt.target).hasClass("cem_animation_button_disabled")) return
+            specials.set("death_time", [0, true])
+            button.children().first().addClass("cem_animation_button_disabled")
+          })
+        ).appendTo(container)
+        if (specials.get("death_time")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
       }
       if (specials.has("swing_progress")) {
         let container = $("#cem_animation_buttons")
@@ -748,17 +888,22 @@
         for (const section of animations) for (const [key, val] of Object.entries(section)) {
           if (val.trim?.() === "") throw ["Animations cannot be empty", key, val]
           const split = key.split(".")
+          if (split[0] === "render") continue
           if (split.length < 2 || split[1] === "") throw [`Missing transformation type in animation "<span style="font-weight:600">${key}</span>"`, key, val]
-          if (split[1].length > 2) throw [`Invalid transformation type in animation "<span style="font-weight:600">${key}</span>"`, key, val]
-          if (!["r", "t", "s"].includes(split[1][0])) throw [`Unknown transform type "<span style="font-weight:600">${split[1][0]}</span>"`, key, val]
-          if (!split[1][1]) throw [`Missing axis in animation "<span style="font-weight:600">${key}<span>"`, key, val]
-          if (!["x", "y", "z"].includes(split[1][1])) throw [`Unknown axis "<span style="font-weight:600">${split[1][1]}</span>"`, key, val]
+          if (!["var", "varb"].includes(split[0])) {
+            if (split[1].length > 2) throw [`Invalid transformation type in animation "<span style="font-weight:600">${key}</span>"`, key, val]
+            if (!["r", "t", "s"].includes(split[1][0])) throw [`Unknown transform type "<span style="font-weight:600">${split[1][0]}</span>"`, key, val]
+            if (!split[1][1]) throw [`Missing axis in animation "<span style="font-weight:600">${key}<span>"`, key, val]
+            if (!["x", "y", "z"].includes(split[1][1])) throw [`Unknown axis "<span style="font-weight:600">${split[1][1]}</span>"`, key, val]
+          }
           boolMap = new Map()
           rangeMap = new Map()
           specialMap = new Map()
           preprocessCEMA(val)
-          const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
-          if (!part) animationErrorToggle(`Unknown group "<span style="font-weight:600">${split[0]}</span>"`, null, true)
+          if (!["var", "varb"].includes(split[0])) {
+            const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
+            if (!part) animationErrorToggle(`Unknown group "<span style="font-weight:600">${split[0]}</span>"`, null, true)
+          }
         }
         return animations
       } catch (err) {
@@ -809,10 +954,13 @@
         playButton.removeClass("cem_animation_button_disabled")
       }
     }
+    let parents
     function playAnimations() {
-      try{
+      try {
+        frameCount++
         const now = Date.now()
         const dt = (now - prevTime) / 1000
+        constants.frame_time = dt
         prevTime = now
         const difference = 20 * timescale * dt
         time += difference
@@ -825,22 +973,43 @@
             bools.set("is_hurt", false)
           }
         }
+        if (specials.get("death_time")?.[0] >= 20) {
+          specials.set("death_time", [0, false])
+          $("#cem_animation_death_time_button").removeClass("cem_animation_button_disabled")
+        }
         if (specials.get("swing_progress")?.[0] >= 1) {
           specials.set("swing_progress", [0, false])
           $("#cem_animation_swing_progress_button").removeClass("cem_animation_button_disabled")
+        }
+        if (frameCount === 1) {
+          parents = {}
+          for (const part of Group.all.filter(e => e.parent === "root")) {
+            parents[part.name] = {
+              tx: -((part.parent?.parent === "root") * part.mesh.parent.position.x + part.mesh.position.x),
+              ty: (part.parent === "root") * 24 + (part.parent?.parent === "root") * -part.mesh.parent.position.y - part.mesh.position.y,
+              tz: (part.parent?.parent === "root") * part.mesh.parent.position.z + part.mesh.position.z,
+              rx: -part.mesh.rotation.x,
+              ry: -part.mesh.rotation.y,
+              rz: part.mesh.rotation.z,
+              sx: part.mesh.scale.x,
+              sy: part.mesh.scale.y,
+              sz: part.mesh.scale.z
+            }
+          }
         }
         context = Object.assign({
           time: time,
           age: time,
           limb_swing: specials.get("limb_swing")?.[1] ? specials.get("limb_swing")[0] += difference / 1.666 : specials.get("limb_swing")?.[0] ?? 0,
           hurt_time: specials.get("hurt_time")?.[1] ? specials.get("hurt_time")[0] -= difference : 0,
+          death_time: specials.get("death_time")?.[1] ? specials.get("death_time")[0] += difference : 0,
           swing_progress: specials.get("swing_progress")?.[1] ? specials.get("swing_progress")[0] += difference / 4 : 0
         }, constants, Object.fromEntries(bools), Object.fromEntries(Array.from(ranges.entries()).map(e => [e[0], e[1][1]])))
         const parts = new Map()
         for (const part of Group.all) {
           const partObj = {
             children: {},
-            tx: (part.cemAnimationInvertPivotPoint ? 1 : -1) * ((part.parent?.parent === "root") * part.mesh.parent.position.x + part.mesh.position.x),
+            tx: -((part.parent?.parent === "root") * part.mesh.parent.position.x + part.mesh.position.x),
             ty: (part.parent === "root") * 24 + (part.parent?.parent === "root") * -part.mesh.parent.position.y - part.mesh.position.y,
             tz: (part.parent?.parent === "root") * part.mesh.parent.position.z + part.mesh.position.z,
             rx: -part.mesh.rotation.x,
@@ -851,18 +1020,26 @@
             sz: part.mesh.scale.z
           }
           parts.set(part, partObj)
-          context[part.name] = partObj
+          context[Symbol.for(part.name)] = partObj
         }
-        for (const part of Group.all) {
+        for (const part of Group.all.filter(e => e.parent !== "root")) {
           const partObj = parts.get(part)
           for (const child of part.children) partObj.children[child.name] = parts.get(child)
         }
         for (const step of steps) {
+          if (step.type === "animation" && typeof anim === "string" && step.part.name in parents) {
+            step.anim = step.anim.replace(`ctx["Symbol.for(${step.part.name})"].${step.transform}`, parents[step.part.name][step.transform])
+          }
           const parsed = parseCEMA(step.anim)
-          if (isNaN(parsed)) throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
-          if (parsed === true || parsed === false) throw `Unable to play animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" as it retuned a <strong>boolean</strong> instead of a <strong>number</strong>`
-          step.part.mesh[step.mode][step.axis] = parsed * step.invert
-          context[step.part.name][step.transform] = step.transform === "ty" ? (step.part.parent === "root") * 24 + (step.part.parent?.parent === "root") * -step.part.mesh.parent.position.y - step.part.mesh.position.y : step.transform === "tx" ? (step.part.cemAnimationInvertPivotPoint ? 1 : -1) * ((step.part.parent?.parent === "root") * step.part.mesh.parent.position.x + step.part.mesh.position.x) : step.transform === "tz" ? (step.part.parent?.parent === "root") * step.part.mesh.parent.position.z + step.part.mesh.position.z : invertions.has(step.transform) ? - step.part.mesh[step.mode][step.axis] : step.part.mesh[step.mode][step.axis]
+          if (isNaN(parsed)) {
+            if (parsed?.message) throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> ${parsed.message}`
+            throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
+          }
+          else if (step.type === "animation") {
+            if (parsed === true || parsed === false) throw `Unable to play animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" as it retuned a <strong>boolean</strong> instead of a <strong>number</strong>`
+            step.part.mesh[step.mode][step.axis] = parsed * step.invert
+            context[Symbol.for(step.part.name)][step.transform] = step.transform === "ty" ? (step.part.parent === "root") * 24 + (step.part.parent?.parent === "root") * -step.part.mesh.parent.position.y - step.part.mesh.position.y : step.transform === "tx" ? -((step.part.parent?.parent === "root") * step.part.mesh.parent.position.x + step.part.mesh.position.x) : step.transform === "tz" ? (step.part.parent?.parent === "root") * step.part.mesh.parent.position.z + step.part.mesh.position.z : invertions.has(step.transform) ? - step.part.mesh[step.mode][step.axis] : step.part.mesh[step.mode][step.axis]
+          }
         }
       } catch (err) {
         stopAnimations()
@@ -871,20 +1048,13 @@
     }
     stopAnimations = resetGroups => {
       Blockbench.removeListener("render_frame", playAnimations)
-      for (const group of Group.all.filter(e => e.cemAnimationPivotPointInverted)) {
-        group.cemAnimationPivotPointInverted = false
-        group.mesh.position.x = -group.mesh.position.x
-        for (const child of group.mesh.children) child.position.x = -child.position.x
-      }
-      if (resetGroups) {
-        for (const group of Group.all.filter(e => e.cemAnimationInvertPivotPoint)) group.cemAnimationInvertPivotPoint = false
-        for (const group of Group.all.filter(e => e.cemAnimationDisableRotation)) group.cemAnimationDisableRotation = false
-      }
+      if (resetGroups) for (const group of Group.all.filter(e => e.cemAnimationDisableRotation)) group.cemAnimationDisableRotation = false
       Canvas.updateView({groups: Group.all})
       playButton.css("display", "flex")
       stopButton.css("display", "none")
       pauseButton.text("pause").attr("title", "Pause the animations")
       $("#cem_animation_hurt_time_button").addClass("cem_animation_button_disabled")
+      $("#cem_animation_death_time_button").addClass("cem_animation_button_disabled")
       $("#cem_animation_swing_progress_button").addClass("cem_animation_button_disabled")
       playing = false
       paused = false
@@ -936,34 +1106,14 @@
       if (Project.format?.id === "optifine_entity") {
         const toggle = $(".outliner_toggle")
         if (toggle.hasClass("enabled")) {
-          const toggles = $("#cubes_list>.outliner_node>.group>[toggle='autouv']")
+          const toggles = $("#cubes_list [toggle='autouv']")
           if (toggles.length) {
             groupObserver.disconnect()
             toggles.each((i, e) => {
               const toggle = $(e)
               const partName = toggle.parent().find("input").val()
               const part = Project.groups.find(e => e.name === partName)
-              if (!toggle.parent().find("[toggle='cem_animation_invert_pivots']").length) {
-                const invertToggle = E("i").attr({
-                  title: "Invert this groups pivot point while playing animations",
-                  toggle: "cem_animation_invert_pivots"
-                }).addClass("material-icons icon_off").text("swap_horiz").on("click", evt => {
-                  evt.stopPropagation()
-                  const invertToggle = $(evt.target)
-                  if (invertToggle.hasClass("icon_off")) {
-                    invertToggle.removeClass("icon_off")
-                    part.cemAnimationInvertPivotPoint = true
-                  } else {
-                    invertToggle.addClass("icon_off")
-                    part.cemAnimationInvertPivotPoint = false
-                  }
-                  if (playing) {
-                    stopAnimations()
-                    setupAnimations(currentGroups, true)
-                  }
-                }).insertBefore(toggle)
-                if (part?.cemAnimationInvertPivotPoint) invertToggle.removeClass("icon_off")
-              }
+              if (!part) return
               if (!toggle.parent().find("[toggle='cem_animation_disable_rotations']").length) {
                 const rotateToggle = E("i").attr({
                   title: "Disable this group rotating while playing animations",
@@ -972,12 +1122,12 @@
                   evt.stopPropagation()
                   const partName = toggle.parent().find("input").val()
                   const part = Project.groups.find(e => e.name === partName)
-                  const invertToggle = $(evt.target)
-                  if (invertToggle.hasClass("icon_off")) {
-                    invertToggle.removeClass("icon_off")
+                  const rotateToggle = $(evt.target)
+                  if (rotateToggle.hasClass("icon_off")) {
+                    rotateToggle.removeClass("icon_off")
                     part.cemAnimationDisableRotation = true
                   } else {
-                    invertToggle.addClass("icon_off")
+                    rotateToggle.addClass("icon_off")
                     part.cemAnimationDisableRotation = false
                   }
                   if (playing) {
@@ -993,10 +1143,7 @@
               subtree: true
             })
           }
-        } else {
-          $("[toggle='cem_animation_invert_pivots']").remove()
-          $("[toggle='cem_animation_disable_rotations']").remove()
-        }
+        } else $("[toggle='cem_animation_disable_rotations']").remove()
       }
     }
     groupObserver = new MutationObserver(() => {
@@ -1166,6 +1313,45 @@
   }
   function addStyles() {
     styles = Blockbench.addCSS(`
+      #format_page_cem_template_loader .socials {
+        padding: 0!important;
+        display: flex;
+        max-width: 540px;
+        margin: auto;
+        width: 100%;
+      }
+      #format_page_cem_template_loader .socials a {
+        text-align: center;
+        flex-basis: 0;
+        flex-grow: 1;
+        text-decoration: none;
+        padding: 6px;
+        padding-top: 10px;
+      }
+      #format_page_cem_template_loader .socials a i {
+        display: block;
+        font-size: 2em;
+        max-width: none;
+        pointer-events: none;
+      }
+      #format_page_cem_template_loader .socials a label {
+        color: var(--color-subtle_text);
+        cursor: inherit;
+        pointer-events: none;
+      }
+      #format_page_cem_template_loader .socials a:hover {
+        background-color: var(--color-accent);
+      }
+      #format_page_cem_template_loader .socials a:hover * {
+        color: var(--color-light)!important;
+      }
+      #format_page_cem_template_loader code {
+        padding: 0 2px;
+        background-color: var(--color-back);
+        border: 1px solid var(--color-border);
+        user-select: text;
+        font-family: var(--font-code);
+      }
       #panel_cem_animation .panel_vue_wrapper {
         flex: 1;
         padding: 8px;
@@ -1182,6 +1368,9 @@
         min-height: 100%!important;
         position: sticky;
         left: 0;
+      }
+      #panel_cem_animation .prism-editor__line-number {
+        background-color: var(--color-back);
       }
       #panel_cem_animation .prism-editor__code {
         overflow: visible!important;
@@ -1271,7 +1460,7 @@
         color: #a6e22e;
       }
       .cem_animation_error_line {
-        background-color: var(--color-close);
+        background-color: var(--color-close)!important;
         color: var(--color-light)!important;
         position: relative;
         padding-right: 4px;
@@ -1404,8 +1593,8 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.2.1",
-    min_version: "4.2.0",
+    version: "6.5.0",
+    min_version: "4.3.0",
     variant: "both",
     oninstall: () => showAbout(true),
     async onload() {
@@ -1418,7 +1607,7 @@
         click: async function(){
           for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
           MenuBar.removeAction("tools.cem_template_loader")
-          $("#new_cem_template").remove()
+          loader.delete()
           const result = await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json", {
             appendToURL: `?rnd=${Math.random()}`
           })
@@ -1459,8 +1648,7 @@
       Blockbench.removeListener("select_project", tabChange)
       $("#cem_animation_editor_container>div")[0].removeEventListener("keydown", editorKeybinds)
       groupObserver.disconnect()
-      $("#new_cem_template").remove()
-      $("[toggle='cem_animation_invert_pivots']").remove()
+      loader.delete()
       $("[toggle='cem_animation_disable_rotations']").remove()
       for (const action of generatorActions) action.delete?.()
       reloadButton.delete()
