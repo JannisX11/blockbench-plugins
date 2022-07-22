@@ -115,7 +115,7 @@
 		"title": "Player Statue Generator",
 		"author": "Wither, dragonmaster95 and 3XH6R",
 		"description": "Generates player shaped models.",
-		"tags": ["Minecraft"],
+		"tags": ["Minecraft: Java Edition"],
 		"icon": "accessibility",
 		"min_version": "3.0.0",
 		"variant": "both"
