@@ -995,7 +995,7 @@ THREE.SAOPass = function ( scene, camera, depthTexture, useNormals, resolution )
 	this.saoMaterial.uniforms[ 'tDepth' ].value = ( this.supportsDepthTextureExtension ) ? depthTexture : this.depthRenderTarget.texture;
 	this.saoMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
 	this.saoMaterial.uniforms[ 'size' ].value.set( this.resolution.x, this.resolution.y );
-	this.saoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.getInverse( this.camera.projectionMatrix );
+	this.saoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.copy( this.camera.projectionMatrix ).invert();
 	this.saoMaterial.uniforms[ 'cameraProjectionMatrix' ].value = this.camera.projectionMatrix;
 	this.saoMaterial.blending = THREE.NoBlending;
 
@@ -1284,7 +1284,7 @@ THREE.SAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), 
 		this.depthRenderTarget.setSize( width, height );
 
 		this.saoMaterial.uniforms[ 'size' ].value.set( width, height );
-		this.saoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.getInverse( this.camera.projectionMatrix );
+		this.saoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.copy( this.camera.projectionMatrix ).invert();
 		this.saoMaterial.uniforms[ 'cameraProjectionMatrix' ].value = this.camera.projectionMatrix;
 		this.saoMaterial.needsUpdate = true;
 
@@ -1306,7 +1306,7 @@ Plugin.register('ambient_occlusion', {
 	icon: 'gradient',
 	author: 'JannisX11',
 	description: 'Adds a screen space ambient occlusion shader',
-	version: '1.0.2',
+	version: '1.0.3',
 	min_version: '3.2.0',
 	variant: 'both',
 	onload() {
@@ -1342,7 +1342,7 @@ Plugin.register('ambient_occlusion', {
 
 		function setupPreviewSAO(preview) {
 
-			var this_scene = preview.id == 'display' ? display_scene : scene;
+			var this_scene = (preview.id == 'display' && Blockbench.isOlderThan('4.3')) ? window.display_scene : scene;
 
 			preview.composer = new THREE.EffectComposer( preview.renderer );
 			preview.renderPass = new THREE.RenderPass( this_scene, preview.camPers );
@@ -1363,7 +1363,7 @@ Plugin.register('ambient_occlusion', {
 			this.controls.update()
 			//console.log(Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer', this[Settings.get('ambient_occlusion_enabled') ? 'composer' : 'renderer'])
 			this[(Settings.get('ambient_occlusion_enabled') && this !== MediaPreview) ? 'composer' : 'renderer'].render(
-				display_mode
+				(display_mode && Blockbench.isOlderThan('4.3'))
 					? display_scene
 					: scene,
 				this.camera
