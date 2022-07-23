@@ -501,9 +501,9 @@
 		"author": "MrCrayfish",
 		"description": "Quickly preview a color on tint enabled faces!",
 		"icon": "fa-fill",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"variant": "both",
-		"min_version": "4.2.0",
+		"min_version": "4.3.0",
 		"tags": ["Minecraft: Java Edition"],
 		"about": "Tint Preview is a tool to help designers who work with the tint face feature of Java Block/Item models. It features the ability to quickly preview a color on tint enabled faces. Tint Preview adds two new actions to the Tools menu that allows you to toggle tinting and change the tint color.\n**Important:** This plugin is designed for Java Block/Item models only and will not work for other formats."
 	},
