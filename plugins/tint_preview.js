@@ -19,6 +19,420 @@ var defaultTintColor = [1.0, 0.705, 0.294];
 var dragTintColor = null;
 var origMats = [];
 
+var blockColorOptions = {
+	'empty': 'Select...',
+	'foilage_badlands': 'Foilage (Badlands)',
+	'foilage_bamboo_jungle': 'Foilage (Bamboo Jungle)',
+	'foilage_basalt_deltas': 'Foilage (Basalt Deltas)',
+	'foilage_beach': 'Foilage (Beach)',
+	'foilage_birch_forest': 'Foilage (Birch Forest)',
+	'foilage_cold_ocean': 'Foilage (Cold Ocean)',
+	'foilage_crimson_forest': 'Foilage (Crimson Forest)',
+	'foilage_dark_forest': 'Foilage (Dark Forest)',
+	'foilage_deep_cold_ocean': 'Foilage (Deep Cold Ocean)',
+	'foilage_deep_frozen_ocean': 'Foilage (Deep Frozen Ocean)',
+	'foilage_deep_lukewarm_ocean': 'Foilage (Deep Lukewarm Ocean)',
+	'foilage_deep_ocean': 'Foilage (Deep Ocean)',
+	'foilage_desert': 'Foilage (Desert)',
+	'foilage_dripstone_caves': 'Foilage (Dripstone Caves)',
+	'foilage_end_barrens': 'Foilage (End Barrens)',
+	'foilage_end_highlands': 'Foilage (End Highlands)',
+	'foilage_end_midlands': 'Foilage (End Midlands)',
+	'foilage_eroded_badlands': 'Foilage (Eroded Badlands)',
+	'foilage_flower_forest': 'Foilage (Flower Forest)',
+	'foilage_forest': 'Foilage (Forest)',
+	'foilage_frozen_ocean': 'Foilage (Frozen Ocean)',
+	'foilage_frozen_peaks': 'Foilage (Frozen Peaks)',
+	'foilage_frozen_river': 'Foilage (Frozen River)',
+	'foilage_grove': 'Foilage (Grove)',
+	'foilage_ice_spikes': 'Foilage (Ice Spikes)',
+	'foilage_jagged_peaks': 'Foilage (Jagged Peaks)',
+	'foilage_jungle': 'Foilage (Jungle)',
+	'foilage_lukewarm_ocean': 'Foilage (Lukewarm Ocean)',
+	'foilage_lush_caves': 'Foilage (Lush Caves)',
+	'foilage_meadow': 'Foilage (Meadow)',
+	'foilage_mushroom_fields': 'Foilage (Mushroom Fields)',
+	'foilage_nether_wastes': 'Foilage (Nether Wastes)',
+	'foilage_ocean': 'Foilage (Ocean)',
+	'foilage_old_growth_birch_forest': 'Foilage (Old Growth Birch Forest)',
+	'foilage_old_growth_pine_taiga': 'Foilage (Old Growth Pine Taiga)',
+	'foilage_old_growth_spruce_taiga': 'Foilage (Old Growth Spruce Taiga)',
+	'foilage_plains': 'Foilage (Plains)',
+	'foilage_river': 'Foilage (River)',
+	'foilage_savanna': 'Foilage (Savanna)',
+	'foilage_savanna_plateau': 'Foilage (Savanna Plateau)',
+	'foilage_small_end_islands': 'Foilage (Small End Islands)',
+	'foilage_snowy_beach': 'Foilage (Snowy Beach)',
+	'foilage_snowy_plains': 'Foilage (Snowy Plains)',
+	'foilage_snowy_slopes': 'Foilage (Snowy Slopes)',
+	'foilage_snowy_taiga': 'Foilage (Snowy Taiga)',
+	'foilage_soul_sand_valley': 'Foilage (Soul Sand Valley)',
+	'foilage_sparse_jungle': 'Foilage (Sparse Jungle)',
+	'foilage_stony_peaks': 'Foilage (Stony Peaks)',
+	'foilage_stony_shore': 'Foilage (Stony Shore)',
+	'foilage_sunflower_plains': 'Foilage (Sunflower Plains)',
+	'foilage_swamp': 'Foilage (Swamp)',
+	'foilage_taiga': 'Foilage (Taiga)',
+	'foilage_the_end': 'Foilage (The End)',
+	'foilage_the_void': 'Foilage (The Void)',
+	'foilage_warm_ocean': 'Foilage (Warm Ocean)',
+	'foilage_warped_forest': 'Foilage (Warped Forest)',
+	'foilage_windswept_forest': 'Foilage (Windswept Forest)',
+	'foilage_windswept_gravelly_hills': 'Foilage (Windswept Gravelly Hills)',
+	'foilage_windswept_hills': 'Foilage (Windswept Hills)',
+	'foilage_windswept_savanna': 'Foilage (Windswept Savanna)',
+	'foilage_wooded_badlands': 'Foilage (Wooded Badlands)',
+	'grass_badlands': 'Grass (Badlands)',
+	'grass_bamboo_jungle': 'Grass (Bamboo Jungle)',
+	'grass_basalt_deltas': 'Grass (Basalt Deltas)',
+	'grass_beach': 'Grass (Beach)',
+	'grass_birch_forest': 'Grass (Birch Forest)',
+	'grass_cold_ocean': 'Grass (Cold Ocean)',
+	'grass_crimson_forest': 'Grass (Crimson Forest)',
+	'grass_dark_forest': 'Grass (Dark Forest)',
+	'grass_deep_cold_ocean': 'Grass (Deep Cold Ocean)',
+	'grass_deep_frozen_ocean': 'Grass (Deep Frozen Ocean)',
+	'grass_deep_lukewarm_ocean': 'Grass (Deep Lukewarm Ocean)',
+	'grass_deep_ocean': 'Grass (Deep Ocean)',
+	'grass_desert': 'Grass (Desert)',
+	'grass_dripstone_caves': 'Grass (Dripstone Caves)',
+	'grass_end_barrens': 'Grass (End Barrens)',
+	'grass_end_highlands': 'Grass (End Highlands)',
+	'grass_end_midlands': 'Grass (End Midlands)',
+	'grass_eroded_badlands': 'Grass (Eroded Badlands)',
+	'grass_flower_forest': 'Grass (Flower Forest)',
+	'grass_forest': 'Grass (Forest)',
+	'grass_frozen_ocean': 'Grass (Frozen Ocean)',
+	'grass_frozen_peaks': 'Grass (Frozen Peaks)',
+	'grass_frozen_river': 'Grass (Frozen River)',
+	'grass_grove': 'Grass (Grove)',
+	'grass_ice_spikes': 'Grass (Ice Spikes)',
+	'grass_jagged_peaks': 'Grass (Jagged Peaks)',
+	'grass_jungle': 'Grass (Jungle)',
+	'grass_lukewarm_ocean': 'Grass (Lukewarm Ocean)',
+	'grass_lush_caves': 'Grass (Lush Caves)',
+	'grass_meadow': 'Grass (Meadow)',
+	'grass_mushroom_fields': 'Grass (Mushroom Fields)',
+	'grass_nether_wastes': 'Grass (Nether Wastes)',
+	'grass_ocean': 'Grass (Ocean)',
+	'grass_old_growth_birch_forest': 'Grass (Old Growth Birch Forest)',
+	'grass_old_growth_pine_taiga': 'Grass (Old Growth Pine Taiga)',
+	'grass_old_growth_spruce_taiga': 'Grass (Old Growth Spruce Taiga)',
+	'grass_plains': 'Grass (Plains)',
+	'grass_river': 'Grass (River)',
+	'grass_savanna': 'Grass (Savanna)',
+	'grass_savanna_plateau': 'Grass (Savanna Plateau)',
+	'grass_small_end_islands': 'Grass (Small End Islands)',
+	'grass_snowy_beach': 'Grass (Snowy Beach)',
+	'grass_snowy_plains': 'Grass (Snowy Plains)',
+	'grass_snowy_slopes': 'Grass (Snowy Slopes)',
+	'grass_snowy_taiga': 'Grass (Snowy Taiga)',
+	'grass_soul_sand_valley': 'Grass (Soul Sand Valley)',
+	'grass_sparse_jungle': 'Grass (Sparse Jungle)',
+	'grass_stony_peaks': 'Grass (Stony Peaks)',
+	'grass_stony_shore': 'Grass (Stony Shore)',
+	'grass_sunflower_plains': 'Grass (Sunflower Plains)',
+	'grass_swamp': 'Grass (Swamp)',
+	'grass_swamp': 'Grass (Swamp)',
+	'grass_taiga': 'Grass (Taiga)',
+	'grass_the_end': 'Grass (The End)',
+	'grass_the_void': 'Grass (The Void)',
+	'grass_warm_ocean': 'Grass (Warm Ocean)',
+	'grass_warped_forest': 'Grass (Warped Forest)',
+	'grass_windswept_forest': 'Grass (Windswept Forest)',
+	'grass_windswept_gravelly_hills': 'Grass (Windswept Gravelly Hills)',
+	'grass_windswept_hills': 'Grass (Windswept Hills)',
+	'grass_windswept_savanna': 'Grass (Windswept Savanna)',
+	'grass_wooded_badlands': 'Grass (Wooded Badlands)',
+	'leaves_birch': 'Leaves (Birch)',
+	'leaves_spruce': 'Leaves (Spruce)',
+	'lily_pad': 'Lily Pad',
+	'redstone_0': 'Redstone (Power 0)',
+	'redstone_1': 'Redstone (Power 1)',
+	'redstone_2': 'Redstone (Power 2)',
+	'redstone_3': 'Redstone (Power 3)',
+	'redstone_4': 'Redstone (Power 4)',
+	'redstone_5': 'Redstone (Power 5)',
+	'redstone_6': 'Redstone (Power 6)',
+	'redstone_7': 'Redstone (Power 7)',
+	'redstone_8': 'Redstone (Power 8)',
+	'redstone_9': 'Redstone (Power 9)',
+	'redstone_10': 'Redstone (Power 10)',
+	'redstone_11': 'Redstone (Power 11)',
+	'redstone_12': 'Redstone (Power 12)',
+	'redstone_13': 'Redstone (Power 13)',
+	'redstone_14': 'Redstone (Power 14)',
+	'redstone_15': 'Redstone (Power 15)',
+	'water_badlands': 'Water (Badlands)',
+	'water_bamboo_jungle': 'Water (Bamboo Jungle)',
+	'water_basalt_deltas': 'Water (Basalt Deltas)',
+	'water_beach': 'Water (Beach)',
+	'water_birch_forest': 'Water (Birch Forest)',
+	'water_cold_ocean': 'Water (Cold Ocean)',
+	'water_crimson_forest': 'Water (Crimson Forest)',
+	'water_dark_forest': 'Water (Dark Forest)',
+	'water_deep_cold_ocean': 'Water (Deep Cold Ocean)',
+	'water_deep_dark': 'Water (Deep Dark)',
+	'water_deep_frozen_ocean': 'Water (Deep Frozen Ocean)',
+	'water_deep_lukewarm_ocean': 'Water (Deep Lukewarm Ocean)',
+	'water_deep_ocean': 'Water (Deep Ocean)',
+	'water_desert': 'Water (Desert)',
+	'water_dripstone_caves': 'Water (Dripstone Caves)',
+	'water_end_barrens': 'Water (End Barrens)',
+	'water_end_midlands': 'Water (End Midlands)',
+	'water_eroded_badlands': 'Water (Eroded Badlands)',
+	'water_flower_forest': 'Water (Flower Forest)',
+	'water_forest': 'Water (Forest)',
+	'water_frozen_ocean': 'Water (Frozen Ocean)',
+	'water_frozen_peaks': 'Water (Frozen Peaks)',
+	'water_frozen_river': 'Water (Frozen River)',
+	'water_grove': 'Water (Grove)',
+	'water_ice_spikes': 'Water (Ice Spikes)',
+	'water_jagged_peaks': 'Water (Jagged Peaks)',
+	'water_jungle': 'Water (Jungle)',
+	'water_lukewarm_ocean': 'Water (Lukewarm Ocean)',
+	'water_lush_caves': 'Water (Lush Caves)',
+	'water_meadow': 'Water (Meadow)',
+	'water_mushroom_fields': 'Water (Mushroom Fields)',
+	'water_nether_wastes': 'Water (Nether Wastes)',
+	'water_ocean': 'Water (Ocean)',
+	'water_old_growth_birch_forest': 'Water (Old Growth Birch Forest)',
+	'water_old_growth_pine_taiga': 'Water (Old Growth Pine Taiga)',
+	'water_old_growth_spruce_taiga': 'Water (Old Growth Spruce Taiga)',
+	'water_plains': 'Water (Plains)',
+	'water_river': 'Water (River)',
+	'water_savanna': 'Water (Savanna)',
+	'water_savanna_plateau': 'Water (Savanna Plateau)',
+	'water_small_end_islands': 'Water (Small End Islands)',
+	'water_snowy_beach': 'Water (Snowy Beach)',
+	'water_snowy_plains': 'Water (Snowy Plains)',
+	'water_snowy_slopes': 'Water (Snowy Slopes)',
+	'water_snowy_taiga': 'Water (Snowy Taiga)',
+	'water_soul_sand_valley': 'Water (Soul Sand Valley)',
+	'water_sparse_jungle': 'Water (Sparse Jungle)',
+	'water_stony_peaks': 'Water (Stony Peaks)',
+	'water_stony_shore': 'Water (Stony Shore)',
+	'water_sunflower_plains': 'Water (Sunflower Plains)',
+	'water_swamp': 'Water (Swamp)',
+	'water_taiga': 'Water (Taiga)',
+	'water_the_end': 'Water (The End)',
+	'water_the_void': 'Water (The Void)',
+	'water_warm_ocean': 'Water (Warm Ocean)',
+	'water_warped_forest': 'Water (Warped Forest)',
+	'water_windswept_forest': 'Water (Windswept Forest)',
+	'water_windswept_gravelly_hills': 'Water (Windswept Gravelly Hills)',
+	'water_windswept_hills': 'Water (Windswept Hills)',
+	'water_windswept_savanna': 'Water (Windswept Savanna)',
+	'water_wooded_badlands': 'Water (Wooded Badlands)'
+}
+
+// Color values sourced from https://minecraft.fandom.com/wiki/Block_colors
+var blockColorValues = {
+	'foilage_badlands': '#9e814d',
+	'foilage_bamboo_jungle': '#30bb0b',
+	'foilage_basalt_deltas': '#aea42a',
+	'foilage_beach': '#77ab2f',
+	'foilage_birch_forest': '#6ba941',
+	'foilage_cold_ocean': '#71a74d',
+	'foilage_crimson_forest': '#aea42a',
+	'foilage_dark_forest': '#59ae30',
+	'foilage_deep_cold_ocean': '#71a74d',
+	'foilage_deep_frozen_ocean': '#71a74d',
+	'foilage_deep_lukewarm_ocean': '#71a74d',
+	'foilage_deep_ocean': '#71a74d',
+	'foilage_desert': '#aea42a',
+	'foilage_dripstone_caves': '#77ab2f',
+	'foilage_end_barrens': '#71a74d',
+	'foilage_end_highlands': '#71a74d',
+	'foilage_end_midlands': '#71a74d',
+	'foilage_eroded_badlands': '#9e814d',
+	'foilage_flower_forest': '#59ae30',
+	'foilage_forest': '#59ae30',
+	'foilage_frozen_ocean': '#60a17b',
+	'foilage_frozen_peaks': '#60a17b',
+	'foilage_frozen_river': '#60a17b',
+	'foilage_grove': '#60a17b',
+	'foilage_ice_spikes': '#60a17b',
+	'foilage_jagged_peaks': '#60a17b',
+	'foilage_jungle': '#30bb0b',
+	'foilage_lukewarm_ocean': '#71a74d',
+	'foilage_lush_caves': '#71a74d',
+	'foilage_meadow': '#63a948',
+	'foilage_mushroom_fields': '#2bbb0f',
+	'foilage_nether_wastes': '#aea42a',
+	'foilage_ocean': '#71a74d',
+	'foilage_old_growth_birch_forest': '#6ba941',
+	'foilage_old_growth_pine_taiga': '#68a55f',
+	'foilage_old_growth_spruce_taiga': '#68a464',
+	'foilage_plains': '#77ab2f',
+	'foilage_river': '#71a74d',
+	'foilage_savanna': '#aea42a',
+	'foilage_savanna_plateau': '#aea42a',
+	'foilage_small_end_islands': '#71a74d',
+	'foilage_snowy_beach': '#64a278',
+	'foilage_snowy_plains': '#60a17b',
+	'foilage_snowy_slopes': '#60a17b',
+	'foilage_snowy_taiga': '#60a17b',
+	'foilage_soul_sand_valley': '#aea42a',
+	'foilage_sparse_jungle': '#3eb80f',
+	'foilage_stony_peaks': '#82ac1e',
+	'foilage_stony_shore': '#6da36b',
+	'foilage_sunflower_plains': '#77ab2f',
+	'foilage_swamp': '#6a7039',
+	'foilage_taiga': '#68a464',
+	'foilage_the_end': '#71a74d',
+	'foilage_the_void': '#71a74d',
+	'foilage_warm_ocean': '#71a74d',
+	'foilage_warped_forest': '#aea42a',
+	'foilage_windswept_forest': '#6da36b',
+	'foilage_windswept_gravelly_hills': '#6da36b',
+	'foilage_windswept_hills': '#6da36b',
+	'foilage_windswept_savanna': '#aea42a',
+	'foilage_wooded_badlands': '#9e814d',
+	'grass_badlands': '#90814d',
+	'grass_bamboo_jungle': '#59c93c',
+	'grass_basalt_deltas': '#bfb755',
+	'grass_beach': '#91bd59',
+	'grass_birch_forest': '#88bb67',
+	'grass_cold_ocean': '#8eb971',
+	'grass_crimson_forest': '#bfb755',
+	'grass_dark_forest': '#507a32',
+	'grass_deep_cold_ocean': '#8eb971',
+	'grass_deep_frozen_ocean': '#8eb971',
+	'grass_deep_lukewarm_ocean': '#8eb971',
+	'grass_deep_ocean': '#8eb971',
+	'grass_desert': '#bfb755',
+	'grass_dripstone_caves': '#91bd59',
+	'grass_end_barrens': '#8eb971',
+	'grass_end_highlands': '#8eb971',
+	'grass_end_midlands': '#8eb971',
+	'grass_eroded_badlands': '#90814d',
+	'grass_flower_forest': '#79c05a',
+	'grass_forest': '#79c05a',
+	'grass_frozen_ocean': '#80b497',
+	'grass_frozen_peaks': '#80b497',
+	'grass_frozen_river': '#80b497',
+	'grass_grove': '#80b497',
+	'grass_ice_spikes': '#80b497',
+	'grass_jagged_peaks': '#80b497',
+	'grass_jungle': '#59c93c',
+	'grass_lukewarm_ocean': '#8eb971',
+	'grass_lush_caves': '#8eb971',
+	'grass_meadow': '#83bb6d',
+	'grass_mushroom_fields': '#55c93f',
+	'grass_nether_wastes': '#bfb755',
+	'grass_ocean': '#8eb971',
+	'grass_old_growth_birch_forest': '#88bb67',
+	'grass_old_growth_pine_taiga': '#86b87f',
+	'grass_old_growth_spruce_taiga': '#86b783',
+	'grass_plains': '#91bd59',
+	'grass_river': '#8eb971',
+	'grass_savanna': '#bfb755',
+	'grass_savanna_plateau': '#bfb755',
+	'grass_small_end_islands': '#8eb971',
+	'grass_snowy_beach': '#83b593',
+	'grass_snowy_plains': '#80b497',
+	'grass_snowy_slopes': '#80b497',
+	'grass_snowy_taiga': '#80b497',
+	'grass_soul_sand_valley': '#bfb755',
+	'grass_sparse_jungle': '#64c73f',
+	'grass_stony_peaks': '#9abe4b',
+	'grass_stony_shore': '#8ab689',
+	'grass_sunflower_plains': '#91bd59',
+	'grass_swamp': '#4c763c',
+	'grass_swamp': '#6a7039',
+	'grass_taiga': '#86b783',
+	'grass_the_end': '#8eb971',
+	'grass_the_void': '#8eb971',
+	'grass_warm_ocean': '#8eb971',
+	'grass_warped_forest': '#bfb755',
+	'grass_windswept_forest': '#8ab689',
+	'grass_windswept_gravelly_hills': '#8ab689',
+	'grass_windswept_hills': '#8ab689',
+	'grass_windswept_savanna': '#bfb755',
+	'grass_wooded_badlands': '#90814d',
+	'leaves_birch': '#80a755',
+	'leaves_spruce': '#619961',
+	'lily_pad': '#208030',
+	'redstone_0': '#4b0000',
+	'redstone_1': '#6f0000',
+	'redstone_2': '#790000',
+	'redstone_3': '#820000',
+	'redstone_4': '#8c0000',
+	'redstone_5': '#970000',
+	'redstone_6': '#a10000',
+	'redstone_7': '#ab0000',
+	'redstone_8': '#b50000',
+	'redstone_9': '#bf0000',
+	'redstone_10': '#ca0000',
+	'redstone_11': '#d30000',
+	'redstone_12': '#dd0000',
+	'redstone_13': '#e70600',
+	'redstone_14': '#f11b00',
+	'redstone_15': '#fc3100',
+	'water_badlands': '#3f76e4',
+	'water_bamboo_jungle': '#3f76e4',
+	'water_basalt_deltas': '#3f76e4',
+	'water_beach': '#3f76e4',
+	'water_birch_forest': '#3f76e4',
+	'water_cold_ocean': '#3d57d6',
+	'water_crimson_forest': '#3f76e4',
+	'water_dark_forest': '#3f76e4',
+	'water_deep_cold_ocean': '#3d57d6',
+	'water_deep_dark': '#3f76e4',
+	'water_deep_frozen_ocean': '#3938c9',
+	'water_deep_lukewarm_ocean': '#45adf2',
+	'water_deep_ocean': '#3f76e4',
+	'water_desert': '#3f76e4',
+	'water_dripstone_caves': '#3f76e4',
+	'water_end_barrens': '#3f76e4',
+	'water_end_midlands': '#3f76e4',
+	'water_eroded_badlands': '#3f76e4',
+	'water_flower_forest': '#3f76e4',
+	'water_forest': '#3f76e4',
+	'water_frozen_ocean': '#3938c9',
+	'water_frozen_peaks': '#3f76e4',
+	'water_frozen_river': '#3938c9',
+	'water_grove': '#3f76e4',
+	'water_ice_spikes': '#3f76e4',
+	'water_jagged_peaks': '#3f76e4',
+	'water_jungle': '#3f76e4',
+	'water_lukewarm_ocean': '#45adf2',
+	'water_lush_caves': '#3f76e4',
+	'water_meadow': '#0e4ecf',
+	'water_mushroom_fields': '#3f76e4',
+	'water_nether_wastes': '#3f76e4',
+	'water_ocean': '#3f76e4',
+	'water_old_growth_birch_forest': '#3f76e4',
+	'water_old_growth_pine_taiga': '#3f76e4',
+	'water_old_growth_spruce_taiga': '#3f76e4',
+	'water_plains': '#3f76e4',
+	'water_river': '#3f76e4',
+	'water_savanna': '#3f76e4',
+	'water_savanna_plateau': '#3f76e4',
+	'water_small_end_islands': '#3f76e4',
+	'water_snowy_beach': '#3d57d6',
+	'water_snowy_plains': '#3f76e4',
+	'water_snowy_slopes': '#3f76e4',
+	'water_snowy_taiga': '#3d57d6',
+	'water_soul_sand_valley': '#3f76e4',
+	'water_sparse_jungle': '#3f76e4',
+	'water_stony_peaks': '#3f76e4',
+	'water_stony_shore': '#3f76e4',
+	'water_sunflower_plains': '#3f76e4',
+	'water_swamp': '#617b64',
+	'water_taiga': '#3f76e4',
+	'water_the_end': '#3f76e4',
+	'water_the_void': '#3f76e4',
+	'water_warm_ocean': '#43d5ee',
+	'water_warped_forest': '#3f76e4',
+	'water_windswept_forest': '#3f76e4',
+	'water_windswept_gravelly_hills': '#3f76e4',
+	'water_windswept_hills': '#3f76e4',
+	'water_windswept_savanna': '#3f76e4',
+	'water_wooded_badlands': '#3f76e4'
+}
+
 function isTintColorArray(obj) {
 	return obj && Array.isArray(obj) && obj.length == 3 && obj.every(e => typeof e === 'number');
 }
@@ -225,8 +639,9 @@ function isTintColorArray(obj) {
 Important: This plugin is designed for JSON models only and will not work for other formats.`,
 		tags: ["Minecraft: Java Edition"],
 		icon: 'fa-fill',
-		version: '1.0.0',
+		version: '1.1.0',
 		variant: 'both',
+		min_version: '4.3.0',
 		onload() {
 			// Custom translations. Am I doing this right?
 			window.Language.addTranslations('en', {
@@ -285,6 +700,8 @@ Important: This plugin is designed for JSON models only and will not work for ot
 			MenuBar.addAction(toggleTintAction, 'tools');
 			MenuBar.addAction(setTintColorAction, 'tools');
 			MenuBar.update();
+
+			updateTint(true);
 		},
 		onunload() {
 			toggleTintAction.delete();
@@ -300,6 +717,7 @@ Important: This plugin is designed for JSON models only and will not work for ot
 			Blockbench.removeListener('undo', undoRedoEvent);
 			Blockbench.removeListener('redo', undoRedoEvent);
 			patchedCodecs.forEach(codec => codec.removeListener('parsed', parsedEvent));
+			clearTint();
 		}
 	});
 })();
@@ -330,6 +748,8 @@ function createTintColorDialog(project = Project) {
 				text_input: tintColor.toHexString(),
 				tint_color: tintColor.toHexString(),
 				hover_color: '',
+				selected_preset: 'empty',
+				color_presets: blockColorOptions,
 				get color_code() {
 					return this.hover_color || this.tint_color
 				},
@@ -392,6 +812,14 @@ function createTintColorDialog(project = Project) {
 					Vue.nextTick(() => {
 						$('#tint_colorpicker').spectrum('reflow');
 					});
+				},
+				selected_preset: function(value) {
+					dragTintColor = null;
+					let color = blockColorValues[value];
+					if(color) {
+						this.tint_color = color;
+						setTintColor(new tinycolor(this.tint_color), true);
+					}
 				}
 			},
 			template: `
@@ -447,6 +875,10 @@ function createTintColorDialog(project = Project) {
 								<div class="color_inner" v-bind:style="{'background-color': color}"></div>
 							</li>
 						</ul>
+					</div>
+					<div style="font-size: 0.94em;">Presets</div>
+					<div class="bar_select">
+						<select-input v-model="selected_preset" :options="color_presets""/>
 					</div>
 				</div>
 			`,
@@ -562,6 +994,18 @@ function updateTint(force = false) {
 			}
 		}
 		geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+		obj.preview_controller.updateFaces(obj);
+	});
+}
+
+/**
+ * Removes the tint from obj geometry. Only called when uninstalling plugin
+ */
+function clearTint() {
+	Outliner.elements.forEach(obj => {
+		const geometry = obj.mesh.geometry;
+		geometry.deleteAttribute('color');
+		obj.preview_controller.updateFaces(obj);
 	});
 }
 
@@ -577,6 +1021,7 @@ function applyTintingShader(project, texture) {
 		attribute float highlight;
 
 		uniform bool SHADE;
+		uniform int LIGHTSIDE;
 
 		varying vec3 vColor;
 		varying vec2 vUv;
@@ -589,9 +1034,32 @@ function applyTintingShader(project, texture) {
 
 		void main() {
 			if (SHADE) {
-				vec3 N = normalize( vec3( modelMatrix * vec4(normal, 0.0) ) );
-				float yLight = (1.0+N.y) * 0.5;
-				light = yLight * (1.0-AMBIENT) + N.x*N.x * XFAC + N.z*N.z * ZFAC + AMBIENT;
+				vec3 N = normalize(vec3(modelMatrix * vec4(normal, 0.0)));
+				if (LIGHTSIDE == 1) {
+					float temp = N.y;
+					N.y = N.z * -1.0;
+					N.z = temp;
+				}
+				if (LIGHTSIDE == 2) {
+					float temp = N.y;
+					N.y = N.x;
+					N.x = temp;
+				}
+				if (LIGHTSIDE == 3) {
+					N.y = N.y * -1.0;
+				}
+				if (LIGHTSIDE == 4) {
+					float temp = N.y;
+					N.y = N.z;
+					N.z = temp;
+				}
+				if (LIGHTSIDE == 5) {
+					float temp = N.y;
+					N.y = N.x * -1.0;
+					N.x = temp;
+				}
+				float yLight = (1.0 + N.y) * 0.5;
+				light = yLight * (1.0 - AMBIENT) + N.x * N.x * XFAC + N.z * N.z * ZFAC + AMBIENT;
 			} else {
 				light = 1.0;
 			}
@@ -604,7 +1072,7 @@ function applyTintingShader(project, texture) {
 			}
 			vColor = color;
 			vUv = uv;
-			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 			gl_Position = projectionMatrix * mvPosition;
 		}`
 	var fragShader = `
@@ -616,7 +1084,7 @@ function applyTintingShader(project, texture) {
 
 		uniform bool SHADE;
 		uniform bool EMISSIVE;
-		uniform float BRIGHTNESS;
+		uniform vec3 LIGHTCOLOR;
 
 		varying vec3 vColor;
 		varying vec2 vUv;
@@ -629,10 +1097,15 @@ function applyTintingShader(project, texture) {
 			if (color.a < 0.01) 
 				discard;
 			if (EMISSIVE == false) {
-				color = vec4(lift + color.rgb * light * BRIGHTNESS, color.a);
+				color = vec4(lift + color.rgb * light, color.a);
+				color.r = color.r * LIGHTCOLOR.r;
+				color.g = color.g * LIGHTCOLOR.g;
+				color.b = color.b * LIGHTCOLOR.b;
 			} else {
-				float light2 = (light * BRIGHTNESS) + (1.0 - light * BRIGHTNESS) * (1.0 - color.a);
-				color = vec4(lift + color.rgb * light2, 1.0);
+				float light_r = (light * LIGHTCOLOR.r) + (1.0 - light * LIGHTCOLOR.r) * (1.0 - color.a);
+				float light_g = (light * LIGHTCOLOR.g) + (1.0 - light * LIGHTCOLOR.g) * (1.0 - color.a);
+				float light_b = (light * LIGHTCOLOR.b) + (1.0 - light * LIGHTCOLOR.b) * (1.0 - color.a);
+				color = vec4(lift + color.r * light_r, lift + color.g * light_g, lift + color.b * light_b, 1.0);
 			}
 			if (lift > 0.2) {
 				color.r = color.r * 0.6;
@@ -645,7 +1118,8 @@ function applyTintingShader(project, texture) {
 		uniforms: {
 			map: {type: 't', value: originalMat.map},
 			SHADE: {type: 'bool', value: settings.shading.value},
-			BRIGHTNESS: {type: 'bool', value: settings.brightness.value / 50},
+			LIGHTCOLOR: {type: 'vec3', value: new THREE.Color().copy(Canvas.global_light_color).multiplyScalar(settings.brightness.value / 50)},
+			LIGHTSIDE: {type: 'int', value: Canvas.global_light_side},
 			EMISSIVE: {type: 'bool', value: texture.render_mode == 'emissive'}
 		},
 		vertexShader: vertShader,
