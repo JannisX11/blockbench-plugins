@@ -279,8 +279,9 @@ var codec = Codecs.bedrock;
 var format = new ModelFormat({
     id: "animated_entity_model",
     name: "GeckoLib Animated Model",
+    category: "minecraft",
     description: "Animated Model for Java mods using GeckoLib",
-    icon: "icon-format_java",
+    icon: "view_in_ar",
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,

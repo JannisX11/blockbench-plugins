@@ -726,8 +726,9 @@ var codec = Codecs.bedrock;
 var format = new ModelFormat({
     id: "animated_entity_model",
     name: "GeckoLib Animated Model",
+    category: "minecraft",
     description: "Animated Model for Java mods using GeckoLib",
-    icon: "icon-format_java",
+    icon: "view_in_ar",
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
@@ -8310,7 +8311,7 @@ module.exports = function(module) {
 /*! exports provided: name, version, private, description, main, scripts, author, license, blockbenchConfig, sideEffects, devDependencies, dependencies, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.4\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki\",\"min_version\":\"4.0.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
+module.exports = JSON.parse("{\"name\":\"animation_utils\",\"version\":\"3.0.5\",\"private\":true,\"description\":\"GeckoLib Animation Utils\",\"main\":\"index.js\",\"scripts\":{\"build\":\"webpack && node scripts/updateManifest.js\",\"start\":\"webpack --watch --mode=development\",\"lint\":\"eslint .\",\"lint:fix\":\"eslint --fix .\",\"pretest\":\"npm run lint\",\"test\":\"echo \\\"Error: no test specified\\\" && exit 1\"},\"author\":\"Eliot Lash, Gecko, McHorse,AzureDoom\",\"license\":\"MIT\",\"blockbenchConfig\":{\"title\":\"GeckoLib Animation Utils\",\"author\":\"Eliot Lash, Gecko, McHorse, AzureDoom\",\"icon\":\"movie_filter\",\"description\":\"Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki\",\"min_version\":\"4.0.0\",\"max_version\":\"5.0.0\",\"variant\":\"both\"},\"sideEffects\":[\"./index.js\"],\"devDependencies\":{\"eol\":\"0.9.1\",\"eslint\":\"7.7.0\",\"webpack\":\"4.43.0\",\"webpack-cli\":\"3.3.12\"},\"dependencies\":{\"lodash\":\"^4.17.21\",\"semver\":\"7.3.2\"}}");
 
 /***/ }),
 
