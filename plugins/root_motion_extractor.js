@@ -44,7 +44,7 @@
         icon: "fa-exchange",
         author: "Tschipp",
         description: "Attempts to extract root motion from an animation",
-        version: "1.0.0",
+        version: "1.0.1",
         tags: ["Minecraft: Bedrock Edition"],
         onload() {
             Blockbench.on("select_mode", (event) => {
@@ -168,7 +168,8 @@
     {
         if(processingMotion)
         {
-            if(Timeline.time >= Timeline.animation_length)
+            let length = Timeline.animation_length > 0 ? Timeline.animation_length : 10;
+            if(Timeline.time >= length)
             {
                 console.log("Finished processing motion");
                 Blockbench.showQuickMessage('Finished extracting root motion');
