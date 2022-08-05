@@ -44,7 +44,7 @@
         icon: "fa-exchange",
         author: "Tschipp",
         description: "Attempts to extract root motion from an animation",
-        version: "1.0.1",
+        version: "1.1.0",
         tags: ["Minecraft: Bedrock Edition"],
         onload() {
             Blockbench.on("select_mode", (event) => {
@@ -87,7 +87,7 @@
                         pos.applyMatrix4(mesh.matrixWorld);
                         positions.push({[cubeid + "_" + i] : pos});
 
-                        //remder a sphere at the vertex
+                        //render a sphere at the vertex
                         if(pos.y < floorHeight)
                         {
                             let sphereGeometry = new THREE.SphereGeometry(0.3, 8, 8);
@@ -264,7 +264,8 @@
             },
             lines : [`<p>Average speed (pixels/s): ${avgSpeed.toFixed(5)}</p>`,
                      `<p>Average speed (m/s): ${(avgSpeed / 16.0).toFixed(5)}</p>`,
-                     `<p>Movement Component Speed: ${((avgSpeed / 16.0) / (6.6 * Math.sqrt((avgSpeed / 16.0)))).toFixed(5)}</p>`]
+                     `<p>Movement Component Speed: ${((avgSpeed / 16.0) / (6.6 * Math.sqrt((avgSpeed / 16.0)))).toFixed(5)}</p>`,
+                     `<p>Animation Time Factor: divide by ${(avgSpeed / 2).toFixed(5)} or mulitply by ${(2/avgSpeed).toFixed(5)}</p>`]
         }).show();
     }
 
