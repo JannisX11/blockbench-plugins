@@ -156,15 +156,6 @@
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
-	"resource_pack_exporter": {
-		"title": "Resource Pack Exporter",
-		"icon": "archive",
-		"author": "Wither",
-		"description": "Exports your model as a ready-to-use Minecraft resource pack",
-		"tags": ["Minecraft: Java Edition"],
-		"variant": "both",
-		"min_version": "3.0.0"
-	},
 	"ambient_occlusion": {
 		"title": "Ambient Occlusion",
 		"icon": "gradient",
