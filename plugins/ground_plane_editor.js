@@ -2,7 +2,7 @@
     let aboutAction, action
     const id = "ground_plane_editor"
     const name = "Ground Plane Editor"
-    const icon = "linear_scale"
+    const icon = "icon-format_free"
     const author = "SirJain"
     const links = {
       twitter: "https://www.twitter.com/SirJain2",
@@ -12,7 +12,7 @@
       icon,
       author,
       description: "Edits the opacity and color of the ground plane feature in Blockbench.",
-      about: "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Edit Ground Plane`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
+      about: "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
       tags: ["Ground Plane", "Animation"],
       version: "1.0.0",
       min_version: "4.2.0",
@@ -191,7 +191,7 @@
             <p>- There is currently no way to revert back to the default ground plane. However, adding this feature is planned. For now you'll have to uninstall the plugin and restart Blockbench to revert back to the default.</p>
             <p>- Just like the default ground plane, changing it's properties in one tab will update in other tabs as well.</p>
             <h4>How to use:</h4>
-            <p>To use this plugin, simply go to <b>Tools > Edit Ground Plane</b>, fill out the appropriate categories, and hit <b>Done</b>. You can choose to edit either the color, the opacity, or both!</p>
+            <p>To use this plugin, simply go to <b>Tools > Ground Plane Editor</b>, fill out the appropriate categories, and hit <b>Done</b>. You can choose to edit either the color, the opacity, or both!</p>
             <p>Please report any bugs or suggestions you may have to make this plugin more enjoyable for everyone.</p>
             <br>
             <div class="socials">
