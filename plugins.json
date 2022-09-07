@@ -481,7 +481,7 @@
 		"author": "SirJain",
 		"description": "Flashes cubes less than 1 unit on any axis on demand.",
 		"icon": "lightbulb",
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"variant": "both",
 		"min_version": "4.2.0",
 		"tags": ["Textures", "BoxUV", "UV"],
