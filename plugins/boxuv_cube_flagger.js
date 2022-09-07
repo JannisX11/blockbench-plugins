@@ -6,6 +6,7 @@
   const author = "SirJain"
   const links = {
     Twitter: "https://twitter.com/SirJain2",
+    Discord: "https://discord.gg/wM4CKTbFVN"
   }
   Plugin.register(id, {
     title: name,
@@ -149,6 +150,10 @@
             <a href="${links["Twitter"]}" class="open-in-browser">
               <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
               <label>By ${author}</label>
+            </a>
+            <a href="${links["Discord"]}" class="open-in-browser">
+              <i class="fa-brands fa-discord" style="color:#5865F2"></i>
+              <label>Author's Discord Server</label>
             </a>
           </div>
         </div>
