@@ -479,7 +479,7 @@
 	"boxuv_cube_flagger": {
 		"title": "BoxUV Cube Flagger",
 		"author": "SirJain",
-		"description": "This plugin flags cubes less than 1 unit by flashing them.",
+		"description": "Flashes cubes less than 1 unit on any axis on demand.",
 		"icon": "lightbulb",
 		"version": "1.2.0",
 		"variant": "both",
