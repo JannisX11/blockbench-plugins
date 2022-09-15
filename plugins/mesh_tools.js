@@ -426,10 +426,9 @@ Plugin.register('mesh_tools', {
 						for (let i = 0; i < s.octaves; i++) {
 							const sampX = x / s.scale * frequency;
 							const sampY = y / s.scale * frequency;
-							const val = 0.35 + 0.65 * perlin.get(sampX, sampY, s.time / s.scale * frequency);
-							
+							const val = perlin.get(sampX, sampY, s.time / s.scale * frequency) + 0.5;
+
 							noiseHeight += val * amplitude;
-							
 							normalization += amplitude;
 
 							amplitude*= G;
@@ -437,17 +436,16 @@ Plugin.register('mesh_tools', {
 						}
 						noiseHeight /= normalization;
 						
-						
 						// custom functions
-						if (typeof addOn == "string") {
-							noiseHeight = eval(addOn);
-						} else if (typeof addOn == "function") {
+						if (addOn) {
 							noiseHeight = addOn(noiseHeight, x,y);
 						}
 			
 						// falloff
-						const falloff = falloffMap(x,y, s.width, s.height);
-						if (s.falloff) noiseHeight = Math.clamp(noiseHeight - falloff, 0,1);
+						if (s.falloff) {
+							const falloff = falloffMap(x,y, s.width, s.height);
+							noiseHeight = Math.clamp(noiseHeight - falloff, 0,1);
+						}
 			
 						// min/max level
 						if (s.min || s.max) {
@@ -478,8 +476,8 @@ Plugin.register('mesh_tools', {
 				style: "EarthMountains"
 			},
 			noise: function(s) {
-				s.min = .2;
-				let noise = TerrainGen.all[0].noise(s, `1-Math.abs((noiseHeight-.5)*2)`);
+				s.min = .7;
+				const noise = TerrainGen.all[0].noise(s, v => 1 - Math.abs(v * 2 - 1));
 				return noise;
 			}
 		});
