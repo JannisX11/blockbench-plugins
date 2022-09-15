@@ -1,4 +1,4 @@
-(async function () {
+(async function() {
   let aboutAction, button, button2, cubeAction
   const id = "mesh_flagger"
   const name = "Mesh Flagger"
@@ -7,18 +7,25 @@
   const links = {
     TwitterSirJain: "https://twitter.com/SirJain2",
     TwitterDerfX: "https://twitter.com/Derf31922027",
+    SirJainDiscord: "https://discord.gg/wM4CKTbFVN"
   }
   Plugin.register(id, {
     title: name,
     icon,
     author,
-    description: "This plugin flags meshes in a project on demand.",
+    description: "Flags meshes in a project on demand.",
     about: "The **Generic model format** is the only format that supports meshes. If you convert to another format with meshes in your project, the meshes will disappear. You can choose to flag all meshes in the project through one click with this plugin. This lets you know what you are losing by converting your project, in case you looked over any.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `Mesh Flagger`. Click install, then use `Tools > Flag Meshes` and click one of the options. Clicking the first option causes the plugin to flag all meshes in a project. The second option allows Blockbench to flag all meshes with six faces. This includes cuboid-meshes, but keep in mind it can flag non-cuboid meshes with six faces too!\n\n\nIt would be appreciated to report any bugs and suggestions!",
     tags: ["Generic Model", "Per-FaceUV", "Meshes"],
-    version: "1.0.0",
+    version: "1.0.1",
     min_version: "4.2.0",
     variant: "both",
-    oninstall: () => showAbout(true),
+    oninstall() {
+      showAbout(true)
+      Blockbench.showQuickMessage("Successfully installed Mesh Flagger!", 3000)
+    },
+    onuninstall() {
+      Blockbench.showQuickMessage("Uninstalled Mesh Flagger", 3000)
+    },
     onload() {
       addAbout()
       const highlighter = {
@@ -54,21 +61,21 @@
       actions = [
         new Action("flag_all_meshes", {
           name: "Flag All Meshes",
-          description: "Highlight cubes less than 1 unit",
+          description: "Highlight all meshes in a project",
           icon: "fa-gem",
           click: function() {
             const cubes = Mesh.all
-            const material = new THREE.MeshBasicMaterial({color:0xFFFFFF})
+            const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
             highlighter.start(cubes, material)
           }
         }),
         new Action("flag_six_faced_meshes", {
           name: "Flag 6-Faced Meshes",
-          description: "Highlight cubes with decimal sizes",
+          description: "Highlight all meshes with 6 faces",
           icon: "crop_7_5",
           click: function() {
             const cubes2 = Mesh.all.filter(e => Object.entries(e.faces).length === 6)
-            const material2 = new THREE.MeshBasicMaterial({color: 0x89CFF0})
+            const material2 = new THREE.MeshBasicMaterial({ color: 0x89CFF0 })
             highlighter.start(cubes2, material2)
           }
         })
@@ -138,14 +145,13 @@
         ${banner ? `<div id="banner">Note: You can re-open this window using <strong>Help > About Plugins > ${name}</strong></div>` : ""}
         <div id="content">
           <h1 style="margin-top:-10px">${name}</h1>
-          <p>The <b>Generic model format</b> is the only format that supports meshes. If you convert to another format with meshes in your project, the meshes will disappear. You can choose to flag all meshes in the project through one click with this plugin. This lets you know what you are losing by converting your project, in case you looked over any.</p>
-          <br>
-          <p><strong>Flagging capabilities:</strong></p>
-          <p>- Flag all meshes in a project</p>
-          <p>- Flag all meshes with six faces in a project</p>
-          <br>
-          <p>Go to Tools > Flag Meshes and choose the option you want to use this plugin. You can read more about this plugin on the Blockbench website, or in the plugin list in File > Plugins.</p>
-          <br>
+          <p>Flags meshes in a project on demand.</p>
+          <h4>Worth noting:</h4>
+          <p>- Plugin has the following capabilities: Flags all meshes in a project, and flags all meshes with six faces in a project.</p>
+          <p>- The desired effect of the six-faced functionality is to flag meshes that may look like cuboids but really are, internally, meshes. However, that's not always going to be the case.</p>
+          <p>- If you are wondering why a particular 6-faced mesh isn't being flagged, make sure the mesh doesn't have any loop cuts.
+          <h4>How to use:</h4>
+          <p>Go to <b>Tools > Flag Meshes</b> and simply select one of the options - <b>Flag All Meshes</b> for all meshes and <b>Flag 6-Faced Meshes</b> for meshes with 6 faces.
           <div class="socials">
             <a href="${links["TwitterSirJain"]}" class="open-in-browser">
               <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
@@ -154,6 +160,10 @@
             <a href="${links["TwitterDerfX"]}" class="open-in-browser">
               <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
               <label>DerfX</label>
+            </a>
+            <a href="${links["SirJainDiscord"]}" class="open-in-browser">
+              <i class="fa-brands fa-discord" style="color:#5865F2"></i>
+              <label>SirJain's Discord Server</label>
             </a>
           </div>
         </div>
