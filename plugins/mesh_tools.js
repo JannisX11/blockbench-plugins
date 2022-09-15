@@ -2,32 +2,13 @@
 // !warning, terrible code ahead!
 let MeshToolsAction;
 let GensAction;
-const about = 
-`\`Modeling Tools:\`\n
-**To Sphere**: Casts selected vertices into a sphere based on an influence.\n
-**Poke Faces**: Creates a Fan out of selected faces.\n
-**Triangles To Quads**: Trys to dissolve adjacent triangles into a quad.\n
-**Triangulate Faces**: Cuttes a face into triangles.\n
-**UV Mapping [Project From View]**: Creates a UV map based on the vertice's position on the screen from the camera.\n
-**UV Mapping [Cubic Projection]**: Creates a UV map based on the sides of a cube.\n
-\`Modeling Operators:\`\n
-**Subdivide**: Splits the faces of a mesh into smaller faces, giving it a smooth appearance.\n
-**Split Edges**: Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges.\n
-**Scatter**: Scatters selected meshs on the active mesh.\n
-**Array**: Creates an array of copies of the base object, with each copy being offset from the previous one.\n
-\`Mesh Generators:\`\n
-**Terrain**: Generates Terrains procedurally with fully customized settings.\n
-**Terrain Style Editor**: Configure the values of the style \`Custom\` for the Terrain Generator.\n
-**Text Mesh**: Generate a mesh representation of a text with Opentype Fonts and custom settings.\n
-*An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is \`http://gero3.github.io/facetype.js/*\n
-**XYZ Math Surface Function**: Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n
-**Quick Primitives [Polyhedron]**: generate the basic 4 regular polyhedron with custom detail.\n
-**Quick Primitives [Torus Knot]**: generates a p-q torus knot with custom settings.\n`;
+const about = "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td> generates a p-q torus knot with custom settings</td></tr></table>"
+
 Plugin.register('mesh_tools', {
 	title: 'MTools',
 	icon: 'fas.fa-vector-square',
 	author: 'Malik12tree',
-	description: 'Adds helpful Modeling Tools, Operators and Generators for Meshs!',
+	description: 'Adds helpful Modeling Tools, Operators and Generators for meshes!',
 	about,
 	version: '1.0.4',
 	variant: "both",
@@ -255,7 +236,7 @@ Plugin.register('mesh_tools', {
 									elements.push(mesh);
 									mesh.select();
 									textures.push(texture);
-									Undo.finishEdit('Generate Terrain Mesh');
+									Undo.finishEdit('Mtools: Generate Terrain Mesh');
 								}
 								runEdit(_out, false);
 								const amendForm = {};
@@ -424,61 +405,61 @@ Plugin.register('mesh_tools', {
 			name: 'Open Terrain',
 			settings: {
 				time: {label: 'Time', type: 'number', min: 0, value: 0, step: 1},
-				scale: {label: 'Scale', type: 'number', min: 0, value: 15},
-				octaves: {label: 'Octaves', type: 'number', min: 0, value: 5},
+				scale: {label: 'Scale', type: 'number', min: 0, value: 25},
+				octaves: {label: 'Octaves', type: 'number', min: 0, value: 2},
 				persistance: {label: 'Persistancy', type: 'number', min: 0, max: 1, step: .1,value: .4},
-				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 2},
+				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 3},
 				min: {label: 'Min Level', type: 'number', min: 0, max: .9, step: .1,value: .1},
 			},
 			noise: function(s, addOn) {
 				if (s.scale <= 0) s.scale = 1E-6
-				let map = {};
+				const map = {};
 
-				let MaxHeight = 0;
-				let MinHeight = 0;
 				for (let y = s.height-1; y >= 0; y--) {
 					for (let x = s.width-1; x >= 0; x--) {
+						const G = Math.pow(2.0, -s.persistance);
 						let amplitude = 1;
 						let frequency = 1;
 						let noiseHeight = 0;
+						let normalization = 0;
 
 						for (let i = 0; i < s.octaves; i++) {
-							let sampX = x / s.scale * frequency;
-							let sampY = y / s.scale * frequency;
-							let val = perlin.get(sampX, sampY, s.time);
+							const sampX = x / s.scale * frequency;
+							const sampY = y / s.scale * frequency;
+							const val = 0.35 + 0.65 * perlin.get(sampX, sampY, s.time / s.scale * frequency);
+							
 							noiseHeight += val * amplitude;
-							amplitude*= s.persistance;
+							
+							normalization += amplitude;
+
+							amplitude*= G;
 							frequency*= s.lacunarity;
 						}
-						if (noiseHeight > MaxHeight) {
-							MaxHeight = noiseHeight;
-						} else if(noiseHeight < MinHeight) {
-							MinHeight = noiseHeight;
-						}
-						map[ [x,y] ] = noiseHeight;
-					}
-				}
-				for (let y = s.height-1; y >= 0; y--) {
-					for (let x = s.width-1; x >= 0; x--) {
-						map[ [x,y] ] = THREE.Math.inverseLerp(MinHeight, MaxHeight, map[ [x,y] ]);
+						noiseHeight /= normalization;
+						
+						
 						// custom functions
 						if (typeof addOn == "string") {
-							map[ [x,y] ] = eval(addOn);
+							noiseHeight = eval(addOn);
 						} else if (typeof addOn == "function") {
-							map[ [x,y] ] = addOn(map[ [x,y] ],x,y);
+							noiseHeight = addOn(noiseHeight, x,y);
 						}
 			
 						// falloff
-						let f = falloffMap(x,y, s.width, s.height);
-						if (s.falloff) map[ [x,y] ] = Math.clamp(map[ [x,y] ] - f, 0,1);
+						const falloff = falloffMap(x,y, s.width, s.height);
+						if (s.falloff) noiseHeight = Math.clamp(noiseHeight - falloff, 0,1);
 			
 						// min/max level
 						if (s.min || s.max) {
-							const min = s.min != undefined ? s.min: 0;
-							const max = s.max != undefined ? s.max: 1;
-							
-							map[ [x,y] ] = Math.clamp(THREE.MathUtils.mapLinear(easeInOutSine(map[ [x,y] ]), min, max, 0,1),0,1); // color ramp: ease
+							const min = s.min ?? 0;
+							const max = s.max ?? 1;
+
+							noiseHeight = Math.clamp(
+								THREE.MathUtils.mapLinear(
+									easeInOutSine(noiseHeight), min, max, 0, 1), 0, 1);
 						}
+						
+						map[x + ',' + y] = noiseHeight;
 					}
 				}
 				return map;
@@ -488,17 +469,17 @@ Plugin.register('mesh_tools', {
 			name: 'Valley',
 			settings: {
 				time: {label: 'Time', type: 'number', min: 0, value: 0, step: 1},
-				scale: {label: 'Scale', type: 'number', min: 0, value: 15},
-				octaves: {label: 'Octaves', type: 'number', min: 0, value: 5},
+				scale: {label: 'Scale', type: 'number', min: 0, value: 25},
+				octaves: {label: 'Octaves', type: 'number', min: 0, value: 2},
 				persistance: {label: 'Persistancy', type: 'number', min: 0, max: 1, step: .1,value: .4},
-				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 2},
+				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 3},
 			},
 			suggested: {
 				style: "EarthMountains"
 			},
 			noise: function(s) {
-				s.min = 0;
-				let noise = TerrainGen.all[0].noise(s, `1-Math.abs((map[ [x,y] ]-.5)*2)`);
+				s.min = .2;
+				let noise = TerrainGen.all[0].noise(s, `1-Math.abs((noiseHeight-.5)*2)`);
 				return noise;
 			}
 		});
@@ -506,10 +487,10 @@ Plugin.register('mesh_tools', {
 			name: 'Mesa',
 			settings: {
 				time: {label: 'Time', type: 'number', min: 0, value: 0, step: 1},
-				scale: {label: 'Scale', type: 'number', min: 0, value: 15},
-				octaves: {label: 'Octaves', type: 'number', min: 0, value: 5},
+				scale: {label: 'Scale', type: 'number', min: 0, value: 25},
+				octaves: {label: 'Octaves', type: 'number', min: 0, value: 2},
 				persistance: {label: 'Persistancy', type: 'number', min: 0, max: 1, step: .1,value: .4},
-				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 2}
+				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 3}
 			},
 			suggested: {
 				falloff: true,
@@ -518,7 +499,7 @@ Plugin.register('mesh_tools', {
 			noise: function(s) {
 				s.max = .7;
 				s.min = 0;
-				let noise = TerrainGen.all[0].noise(s);
+				const noise = TerrainGen.all[0].noise(s);
 				return noise;
 			}
 		});
@@ -527,21 +508,21 @@ Plugin.register('mesh_tools', {
 			settings: {
 				time: {label: 'Time', type: 'number', min: 0, value: 0, step: 1},
 				scale: {label: 'Scale', type: 'number', min: 0, value: 25},
-				octaves: {label: 'Octaves', type: 'number', min: 0, value: 5},
+				octaves: {label: 'Octaves', type: 'number', min: 0, value: 2},
 				persistance: {label: 'Persistancy', type: 'number', min: 0, max: 1, step: .1,value: .4},
-				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 2},
-				turbpower: {label: 'Turb-Power', type: 'number', min: 0, value: 1,step: .1}
+				lacunarity: {label: 'lacunarity', type: 'number', min: 0, value: 3},
+				turbpower: {label: 'Turb-Power', type: 'number', min: 0, value: 1.3,step: .1}
 			},
 			suggested: {
 				style: "Ice",
-				scale: 15,
 				multiplier: 3,
 				lacunarity: 2,
+				octaves: 4,
 			},
 			noise: function(s) {
-				let noise = TerrainGen.all[0].noise(s, function(val, x,y) {
-					let xyValue = (x / s.width) + (y / s.height) + (s.turbpower *val);
-					let sineValue = Math.abs(Math.cos(xyValue * Math.PI));
+				const noise = TerrainGen.all[0].noise(s, function(val, x,y) {
+					const xyValue = (x / s.width) + (y / s.height) + (s.turbpower *val);
+					const sineValue = Math.abs(Math.cos(xyValue * Math.PI));
 					return sineValue;
 				});
 				
@@ -561,33 +542,48 @@ Plugin.register('mesh_tools', {
 				icon: "change_circle",
 				condition,
 				click: function() {
-					function runEdit(amended, influence = 100){
+					function runEdit(amended, influence = 100) {
+						influence /= 100;
+
 						Undo.initEdit({elements: Mesh.selected, selection: true}, amended);
 						/* selected meshes */
 						Mesh.selected.forEach(mesh => {
-							let center = [0,0,0];
-							let selectedV = mesh.getSelectedVertices();
-							let positions = [];
-							let size = [0,0,0];
-							selectedV.forEach(key => {
+							const center = [0,0,0];
+							const selectedVertices = mesh.getSelectedVertices();
+							const positions = [];
+							const size = [0,0,0];
+							selectedVertices.forEach(key => {
 								positions.push(mesh.vertices[key]);
 								center.V3_add(mesh.vertices[key]);
 							});
-							center.V3_divide(selectedV.length);
+							center.V3_divide(selectedVertices.length);
 							
 							for (let i = 0; i < 3; i++) {
 								positions.sort((a, b) => a[i] - b[i]);
 								size[i] = positions.last()[i] - positions[0][i];
 							}
 							size.V3_divide(2);
-							selectedV.forEach(key => {
-								let vertex = mesh.vertices[key];
-								let spherePosition = vertex.V3_subtract(center).V3_toThree().normalize().toArray().V3_multiply(size).V3_add(center).V3_toThree();
-								let finalP = vertex.V3_add(center).V3_toThree().lerp(spherePosition, influence/100).toArray();
-								mesh.vertices[key] = finalP;
+
+							selectedVertices.forEach(key => {
+								const vertex = mesh.vertices[key];
+								const spherePosition = vertex
+												.V3_subtract(center)
+												.V3_toThree()
+												.normalize()
+												.toArray()
+												.V3_multiply(size)
+												.V3_add(center)
+												.V3_toThree();
+
+								const finalPoint = vertex
+												.V3_add(center)
+												.V3_toThree()
+												.lerp(spherePosition, influence)
+												.toArray();
+								mesh.vertices[key] = finalPoint;
 							});
 						});
-						Undo.finishEdit('spherize mesh selection')
+						Undo.finishEdit('Mtools: Spherize mesh selection')
 						Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 					}
 					runEdit(false, 100);
@@ -614,34 +610,34 @@ Plugin.register('mesh_tools', {
 						Mesh.selected.forEach(mesh => {
 							/* selected faces */
 							
-							mesh.getSelectedFaces().forEach(face => {
-								let _face = mesh.faces[face];
+							mesh.getSelectedFaces().forEach(key => {
+								const face = mesh.faces[key];
 								
 								/* center vertex creation */
-								var am = _face.getNormal(true).V3_multiply(depth);
-								let centerVertex = mesh.addVertices(_face.getCenter().V3_add(am))[0];
+								const am = face.getNormal(true).V3_multiply(depth);
+								const centerVertex = mesh.addVertices(face.getCenter().V3_add(am))[0];
 								Project.selected_vertices[mesh.uuid].push(centerVertex);
 
 								/* faces creation */
-								let SortedV = _face.getSortedVertices();
-								for (let i = 0; i < SortedV.length; i++) {
-									const vertexA = SortedV[i];
-									const vertexB = SortedV[(i+1) % SortedV.length];
-									let new_face = new MeshFace(mesh, _face).extend({
+								const vertices = face.getSortedVertices();
+								for (let i = 0; i < vertices.length; i++) {
+									const vertexA = vertices[i];
+									const vertexB = vertices[(i+1) % vertices.length];
+									const new_face = new MeshFace(mesh, face).extend({
 										vertices: [
 											vertexA,
 											vertexB,
 											centerVertex,
 										]
 									});
-									new_face.uv[centerVertex] = getFaceUVCenter(_face);
+									new_face.uv[centerVertex] = getFaceUVCenter(face);
 									Project.selected_faces.push(mesh.addFaces(new_face));
 								}
-								delete mesh.faces[face];
+								delete mesh.faces[key];
 
 							});
 						});
-						Undo.finishEdit('Poke mesh face selection')
+						Undo.finishEdit('Mtools: Poke mesh face selection')
 						Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 					}
 					runEdit(false);
@@ -715,7 +711,7 @@ Plugin.register('mesh_tools', {
 							}
 						});
 					});
-					Undo.finishEdit('Tris To Quads execute')
+					Undo.finishEdit('Mtools: Convert selected Triangles to Quads')
 					Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 				}
 			})
@@ -746,21 +742,20 @@ Plugin.register('mesh_tools', {
 		function Triangulate(polygon, normal) {
 			/* found out that BB only supports quads/tris
 			polygons. but im gonna keep it just incase one day it does*/
-			let vertices = polygon;
-			let indexs = [];
-			let triangles = [];
-			// if (normal[1] > 0) {
-			// 	// winding order thing
-			// 	vertices.reverse();
-			// }
+			const vertices = polygon;
+			const indexs = [];
+			const triangles = [];
+
 			for (let i = 0; i < vertices.length; i++) indexs.push(i);
 			let si = 0;
 			
 			// comute coplanar position
-			let plane = new THREE.Plane();
-			plane.setFromCoplanarPoints(polygon[0].V3_toThree(),polygon[1].V3_toThree(),polygon[2].V3_toThree());
-			let rot = cameraTargetToRotation([0, 0, 0], normal);
-			let e = new THREE.Euler(Math.degToRad(-rot[1] - 90), Math.degToRad(rot[0]), 0);
+			const plane = new THREE.Plane();
+			plane.setFromCoplanarPoints(polygon[0].V3_toThree(), polygon[1].V3_toThree(), polygon[2].V3_toThree());
+			
+			const rotation = cameraTargetToRotation([0, 0, 0], normal);
+			const e = new THREE.Euler(Math.degToRad(-rotation[1] - 90), Math.degToRad(rotation[0]), 0);
+			
 			for (let i = 0; i < vertices.length; i++) {
 				vertices[i] = plane.projectPoint(vertices[i].V3_toThree(), Reusable.vec1).applyEuler(e).toArray();
 				vertices[i][1] = 0;
@@ -769,19 +764,19 @@ Plugin.register('mesh_tools', {
 			// 1000 is a safety limit
 			while (indexs.length > 3 && si <= 1000) {
 				for (let i = 0; i < indexs.length; i++) {
-					let earlyIndexs = getAdjacentVertices(indexs, i);
-					let CurrentTri = [vertices[earlyIndexs[0]],vertices[earlyIndexs[1]],vertices[earlyIndexs[2]]];
+					const earlyIndexes = getAdjacentVertices(indexs, i);
+					const CurrentTri = [vertices[earlyIndexes[0]],vertices[earlyIndexes[1]],vertices[earlyIndexes[2]]];
 					
 					// CHECK 1: if angle BAC (were "A" is the current vertex) is convex (< 180deg)
-					let pointA = [CurrentTri[2][0] - CurrentTri[1][0], CurrentTri[2][2] - CurrentTri[1][2]];
-					let pointB = [CurrentTri[0][0] - CurrentTri[1][0], CurrentTri[0][2] - CurrentTri[1][2]];
+					const pointA = CurrentTri[2].V2_subtract(CurrentTri[1]);
+					const pointB = CurrentTri[1].V2_subtract(CurrentTri[1]);
 					
-					let crossP = cross(pointA, pointB);
-					if (crossP <= 0) {
+					const crossProductBetweenPoints = cross(pointA, pointB);
+					if (crossProductBetweenPoints <= 0) {
 						// CHECK 2: if any of the vertices isnt inside the current triangle
 						let inTri = false;
 						for (let j = 0; j < vertices.length; j++) {
-							if (earlyIndexs[0] == j || earlyIndexs[1] == j || earlyIndexs[2] == j) continue;
+							if (earlyIndexes[0] == j || earlyIndexes[1] == j || earlyIndexes[2] == j) continue;
 							if (PointInTri(vertices[j], CurrentTri)) {
 								inTri = true;
 								break;
@@ -789,7 +784,7 @@ Plugin.register('mesh_tools', {
 						}
 						if (!inTri) {
 							// Accepted; remove the current vertex and add the ear to the array
-							triangles.push(earlyIndexs.sort((a,b) => b - a))
+							triangles.push(earlyIndexes.sort((a,b) => b - a))
 							indexs.splice(i,1);
 							break;
 						}
@@ -831,7 +826,7 @@ Plugin.register('mesh_tools', {
 							}
 						});
 					});
-					Undo.finishEdit('Triangulate mesh face selection')
+					Undo.finishEdit('Mtools: Triangulate mesh face selection')
 					Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 				}
 			})
@@ -856,23 +851,27 @@ Plugin.register('mesh_tools', {
 				icon: "view_in_ar",
 				click: function() {
 					Undo.initEdit({elements: Mesh.selected, selection: true, uv_only: true, uv_mode: true});
-					const Cwidth = Transformer.canvas.width;
-					const Cheight = Transformer.canvas.height;
+					const preview = Canvas.getHoveredPreview();
+					const { width, height, camera } = preview;
+					const clampedAspect = Math.min(width, height) / Math.max(width, height);
 					
 					Mesh.selected.forEach(mesh => {
 						/* selected faces */
 						mesh.getSelectedFaces().forEach(key => {
-							mesh.faces[key].vertices.forEach(Vkey => {
+							const face = mesh.faces[key];
 
-								const xy = WorldToScreen(mesh.vertices[Vkey][0], mesh.vertices[Vkey][1], mesh.vertices[Vkey][2], Transformer.camera, Cwidth, Cheight);
-								mesh.faces[key].uv[Vkey] = [
-									(xy.x + 1) / 2 / Cwidth  * Math.min(width, height),
-									(xy.y + 1) / 2 / Cheight * Math.min(width, height)
+							face.vertices.forEach(vkey => {
+								const vertex = mesh.vertices[vkey];
+
+								const xy = WorldToScreen(vertex[0], vertex[1], vertex[2], camera, width, height);
+								face.uv[vkey] = [
+									xy.x / width * Project.texture_width,
+									xy.y / height * Project.texture_height * clampedAspect
 								]
 							})
 						});
 					});
-					Undo.finishEdit('Unwrap mesh face selection uv from view', {uv_only: true, uv_mode: true})
+					Undo.finishEdit('Mtools: Unwrap mesh face selection uv from view', {uv_only: true, uv_mode: true})
 					Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 					updateSelection();
 				}
@@ -957,7 +956,7 @@ Plugin.register('mesh_tools', {
 								}
 							}
 						});
-						Undo.finishEdit('Unwrap mesh face selection (cubic projection)', {uv_only: true, uv_mode: true})
+						Undo.finishEdit('Mtools: Unwrap mesh face selection (cubic projection)', {uv_only: true, uv_mode: true})
 						Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 						updateSelection();
 					}
@@ -980,7 +979,7 @@ Plugin.register('mesh_tools', {
 				condition,
 			})
 		);
-		function test(v3) {
+		function v3Tov2(v3) {
 			return [v3[0],v3[1]];
 		}
 		function getFaceUVCenter(face){
@@ -993,10 +992,59 @@ Plugin.register('mesh_tools', {
 				i++;
 			}
 			center.V3_divide(i+1E-5);
-			return test(center);
+			return v3Tov2(center);
 		}
 		const operatorsCondition = { modes: ['edit'], features: ['meshes'], method: () => (Mesh.selected.length && BarItems.selection_mode.value == "object") };
 
+		//https://en.wikipedia.org/wiki/Catmull–Clark_subdivision_surface
+		// custom data, just for manging other data easily
+		class CMFace {
+			/**
+			 * @type Array<CMFace>
+			 */
+			static all = [];
+			constructor(bbFace,key){
+				this.key = key;
+				this.bbFace = bbFace;
+				this.facePoint = bbFace.getCenter();
+				this.uuid = guid();
+				this.facePointKey = bbFace.mesh.addVertices(this.facePoint)[0];
+				this.edgePoints = [];// should be called edges
+				this.vertices = []; // store sorted vertices before editing vertices positions and causing BB sorting problems
+				CMFace.all.push(this);
+			}
+			for(vertex){
+				return this.bbFace.vertices.includes(vertex);
+			}
+		}
+		class CMEdge {
+			/**
+				* @type Array<CMEdge>
+				*/
+			static all = [];
+			constructor(a,b, edgePoint, center){
+				this.vertexA = a;
+				this.vertexB = b;
+				this.uuid = guid();
+				this.center = center;
+				this.edgePoint = edgePoint;
+				CMEdge.all.push(this);
+			}
+			equals(other){
+				return 	(other.vertexA == this.vertexA && other.vertexB == this.vertexB) ||
+						(other.vertexA == this.vertexB && other.vertexB == this.vertexA)
+			}
+			equalsV(a,b){
+				return 	(a == this.vertexA && b == this.vertexB) ||
+						(a == this.vertexB && b == this.vertexA)
+			}
+			equalsU(other){
+				return this.uuid == other.uuid;
+			}
+			for(vertex){
+				return (this.vertexA == vertex || this.vertexB == vertex);
+			}
+		}
 		children.push(
 			new Action("subdivide", {
 				name: "Subdivide",
@@ -1005,133 +1053,91 @@ Plugin.register('mesh_tools', {
 				condition: operatorsCondition,
 				click(){
 					Undo.initEdit({elements: Mesh.selected, selection:true})
-					//https://en.wikipedia.org/wiki/Catmull–Clark_subdivision_surface
-					// custom data, just for manging other data easily
-					class CMFace {
-						/**
-						 * @type Array<CMFace>
-						 */
-						static all = [];
-						constructor(bbFace,key){
-							this.key = key;
-							this.bbFace = bbFace;
-							this.facePoint = bbFace.getCenter();
-							this.uuid = guid();
-							this.facePointKey = bbFace.mesh.addVertices(this.facePoint)[0];
-							this.edgePoints = [];// should be called edges
-							this.vertices = []; // store sorted vertices before editing vertices positions and causing BB sorting problems
-							CMFace.all.push(this);
-						}
-						for(vertex){
-							return this.bbFace.vertices.includes(vertex);
-						}
-					}
-					class CMEdge {
-						/**
-						 * @type Array<CMEdge>
-						 */
-						static all = [];
-						constructor(a,b, edgePoint, center){
-							this.vertexA = a;
-							this.vertexB = b;
-							this.uuid = guid();
-							this.center = center;
-							this.edgePoint = edgePoint;
-							CMEdge.all.push(this);
-						}
-						equals(other){
-							return 	(other.vertexA == this.vertexA && other.vertexB == this.vertexB) ||
-									(other.vertexA == this.vertexB && other.vertexB == this.vertexA)
-						}
-						equalsV(a,b){
-							return 	(a == this.vertexA && b == this.vertexB) ||
-									(a == this.vertexB && b == this.vertexA)
-						}
-						equalsU(other){
-							return this.uuid == other.uuid;
-						}
-						for(vertex){
-							return (this.vertexA == vertex || this.vertexB == vertex);
-						}
-					}
 					Mesh.selected.forEach(mesh => {
 						CMEdge.all = []; CMFace.all = [];
-						let originalVertices = Object.keys(mesh.vertices);
-						let faces = mesh.faces;
+						const originalVertices = Object.keys(mesh.vertices);
+						const { faces } = mesh;
+						
 						for (let key in faces) {
-							let face = faces[key];
+							const face = faces[key];
 							
-							let vertices = face.getSortedVertices();
-							let len = vertices.length;
+							const vertices = face.getSortedVertices();
+							const len = vertices.length;
 							if (len < 3) {
 								continue;
 							}
-							let _face = new CMFace(face, key);
-							_face.vertices = vertices;
+							const cmface = new CMFace(face, key);
+							cmface.vertices = vertices;
 							
 							for (let i = 0; i < len; i++) {
 								const a = vertices[i];	
 								const b = vertices[(i+1)%len];
-								let center = mesh.vertices[a].slice().V3_add(mesh.vertices[b]).V3_divide(2);
+								const center = mesh.vertices[a].slice().V3_add(mesh.vertices[b]).V3_divide(2);
 								
-								let earlyEdge = CMEdge.all.find(e => e.equalsV(a,b));
-								if (!earlyEdge) {
-									let e = new CMEdge(a,b,null, center);
-									_face.edgePoints.push(e);
-								} else {
-									_face.edgePoints.push(earlyEdge);
-								}
+								const targetEdge = CMEdge.all.find(e => e.equalsV(a,b)) ?? 
+													new CMEdge(a,b, null, center);
+
+								cmface.edgePoints.push(targetEdge);
 							}
 						}
 
-						let lll = CMEdge.all.length;
-						for (let i = 0; i < lll; i++) {
-							let edge = CMEdge.all[i];
-							let averagedP = [0,0,0];
-							let llll = CMFace.all.length;
+						const cmedgeLength = CMEdge.all.length;
+						for (let i = 0; i < cmedgeLength; i++) {
+							const edge = CMEdge.all[i];
+							const averagedPoint = [0,0,0];
+							const cmfaceLength = CMFace.all.length;
+							
 							let k = 0;
-							for (let j = 0; j < llll; j++) {
+							for (let j = 0; j < cmfaceLength; j++) {
 								const face = CMFace.all[j];
 								if (face.edgePoints.find(e => edge.equalsU(e))) {
-									averagedP.V3_add(face.facePoint);
+									averagedPoint.V3_add(face.facePoint);
 									k++;
 								}
 							};
 							if (k < 2) {
 								edge.edgePoint = edge.center;
 							} else {
-								edge.edgePoint = averagedP.V3_divide(k);
+								edge.edgePoint = averagedPoint.V3_divide(k);
 								edge.edgePoint.V3_add(edge.center).V3_divide(2);
 							}
 							edge.edgePointKey = mesh.addVertices(edge.edgePoint)[0];
 						}
 
-						let originalL = originalVertices.length;
-						for (let index = 0; index < originalL;index++) {
-							let key = originalVertices[index];
-							let P = mesh.vertices[key]; // originalPoint;
+						const originalVertexLength = originalVertices.length;
+						for (let index = 0; index < originalVertexLength; index++) {
+							const key = originalVertices[index];
+							const P = mesh.vertices[key]; // originalPoint;
 							
-							let F = [0,0,0]; // The average of touching face points
+							const F = [0,0,0]; // The average of touching face points
 							let l = CMFace.all.length;
 							let tlength = 0;
 							let atleastFace = false;
+							
 							for (let i = 0; i < l; i++) {
 								const face = CMFace.all[i];
-								if (face.for(key)) {F.V3_add(face.facePoint);atleastFace=true; tlength++;}
-							}
-							if (!atleastFace) {
-								continue;
-							}
-							F = F.V3_divide(tlength);
+								if (!face.for(key)) continue;
 
-							let R = [0,0,0]; // The average of touching edge points
+								F.V3_add(face.facePoint);
+								atleastFace=true; 
+								tlength++;
+							}
+
+							if (!atleastFace) continue;
+
+							F.V3_divide(tlength);
+
+							const R = [0,0,0]; // The average of touching edge points
 							l = CMEdge.all.length;
 							let elength = 0;
 							for (let i = 0; i < l; i++) {
 								const edge = CMEdge.all[i];
-								if (edge.for(key)) {R.V3_add(edge.center); elength++;}
+								if (!edge.for(key)) continue;
+
+								R.V3_add(edge.center); 
+								elength++;
 							}
-							R = R.V3_divide(elength);
+							R.V3_divide(elength);
 
 							if (elength != tlength) {
 								P.V3_add(R).V3_divide(2);
@@ -1146,13 +1152,12 @@ Plugin.register('mesh_tools', {
 							mesh.vertices[key] = P;
 						}
 
-						let Cfaces = CMFace.all;
-						let facesLength = Cfaces.length;
+						let facesLength = CMFace.all.length;
 						for (let i = 0; i < facesLength; i++) {
-							const currentFace = Cfaces[i];
-							let bbFace = currentFace.bbFace;
-							let vertices = currentFace.vertices;
-							let verticesLen = vertices.length;
+							const currentFace = CMFace.all[i];
+							const bbFace = currentFace.bbFace;
+							const vertices = currentFace.vertices;
+							const verticesLen = vertices.length;
 
 							for (let j = 0; j < verticesLen; j++) {
 								const vertexA = vertices[j];
@@ -1167,26 +1172,26 @@ Plugin.register('mesh_tools', {
 								x -- w -- u
 								*/
 
-								let a = currentFace.facePointKey;
-								let b = currentFace.edgePoints.find(e => e.equalsV(vertexA,vertexB)).edgePointKey;
-								let c = vertexA;
-								let d = currentFace.edgePoints.find(e => e.equalsV(vertexA,vertexBeforeA)).edgePointKey;
+								const a = currentFace.facePointKey;
+								const b = currentFace.edgePoints.find(e => e.equalsV(vertexA,vertexB)).edgePointKey;
+								const c = vertexA;
+								const d = currentFace.edgePoints.find(e => e.equalsV(vertexA,vertexBeforeA)).edgePointKey;
 						
-								let newFace = new MeshFace(mesh, bbFace).extend({vertices: [d,c,b,a]});
+								const newFace = new MeshFace(mesh, bbFace).extend({vertices: [d,c,b,a]});
 
 								// uv center point
 								newFace.uv[currentFace.facePointKey] = getFaceUVCenter(bbFace);
 								
 								
 								// uv edges
-								let bPoint = [0,0,0].V3_add(bbFace.uv[vertexA]).V3_add(bbFace.uv[vertexB]);
+								const bPoint = [0,0,0].V3_add(bbFace.uv[vertexA]).V3_add(bbFace.uv[vertexB]);
 								bPoint.V3_divide(2);
 
-								let dPoint = [0,0,0].V3_add(bbFace.uv[vertexA]).V3_add(bbFace.uv[vertexBeforeA]);
+								const dPoint = [0,0,0].V3_add(bbFace.uv[vertexA]).V3_add(bbFace.uv[vertexBeforeA]);
 								dPoint.V3_divide(2);
 								
-								newFace.uv[b] = test(bPoint);
-								newFace.uv[d] = test(dPoint);
+								newFace.uv[b] = v3Tov2(bPoint);
+								newFace.uv[d] = v3Tov2(dPoint);
 								//
 
 								mesh.addFaces(newFace);
@@ -1194,7 +1199,7 @@ Plugin.register('mesh_tools', {
 							delete mesh.faces[currentFace.key];
 						}
 					});
-					Undo.finishEdit("Subdivide selected meshs");
+					Undo.finishEdit('Mtools: Subdivide selected meshes');
 					Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})
 				}
 			})
@@ -1237,67 +1242,67 @@ Plugin.register('mesh_tools', {
 						Mesh.selected.forEach(mesh => {
 							MTEdge.reset();
 
-							let faces = mesh.faces;
+							const faces = mesh.faces;
 							for (const key in faces) {
-								let face = faces[key];
+								const face = faces[key];
 
-								let vertices = face.getSortedVertices();
-								let len = vertices.length;
+								const vertices = face.getSortedVertices();
+								const len = vertices.length;
 								if (len <= 2) continue; 
 								for (let i = 0; i < len; i++) {
 									const a = vertices[i];	
-									const b = vertices[(i+1)%len];
-									let center = mesh.vertices[a].slice().V3_add(mesh.vertices[b]).V3_divide(2);
+									const b = vertices[(i + 1) % len];
+									const center = mesh.vertices[a].slice().V3_add(mesh.vertices[b]).V3_divide(2);
 									
-									let earlyEdge = MTEdge.all.find(e => e.equalsV(a,b));
-									if (!earlyEdge) {
-										// indices in the non sorted order
-										let indices = [];
-										indices[0] = face.vertices.findIndex(vkey => vkey == a);
-										indices[1] = face.vertices.findIndex(vkey => vkey == b);
-										
-										let e = new MTEdge(a,b, {center, indices});
-										e.faces = [face];
-									} else {
+									const earlyEdge = MTEdge.all.find(e => e.equalsV(a,b));
+									if (earlyEdge) {
 										if (earlyEdge.faces.length >= 2) {
-											Blockbench.showQuickMessage("Error: non-manifold meshs are not allowed", 2000);
-											throw new Error("non-manifold meshs are not allowed");
+											Blockbench.showQuickMessage("Error: non-manifold meshes are not allowed", 2000);
+											throw new Error("non-manifold meshes are not allowed");
 										}
 										earlyEdge.faces.push(face);
+										continue;
 									}
+									// indices in the non sorted order
+									const indices = [];
+									indices[0] = face.vertices.findIndex(vkey => vkey == a);
+									indices[1] = face.vertices.findIndex(vkey => vkey == b);
+									
+									const e = new MTEdge(a,b, {center, indices});
+									e.faces = [face];
 								}
 							}
 							
-							let edgesLength = MTEdge.all.length; // skip calculating length each iteration
+							const edgesLength = MTEdge.all.length; // skip calculating length each iteration
 							for (let i = 0; i < edgesLength; i++) {
-								let edge = MTEdge.all[i];
+								const edge = MTEdge.all[i];
 								if (edge.faces.length < 2) continue;
 
 								/*
 									ANGLE BETWEEN FACES
 
-										/θ\
-										/   \
-									f1 /     \ f2
-									/       \
+                                        /θ\
+                                       /   \
+                                   f1 /     \ f2
+                                     /       \
 								*/
 
-								let face1 = edge.faces[0];
-								let face2 = edge.faces[1];
+								const [ face1 , face2 ] = edge.faces;
+
 								// Duplicate code!!
-								let disp1 = new THREE.Vector3().subVectors(face1.getCenter().V3_toThree(), edge.center.V3_toThree());
-								let disp2 = new THREE.Vector3().subVectors(face2.getCenter().V3_toThree(), edge.center.V3_toThree());
+								const disp1 = face2.getCenter().V3_subtract(edge.center).V3_toThree();
+								const disp2 = face2.getCenter().V3_subtract(edge.center).V3_toThree();
 								
-								let theta = disp1.angleTo(disp2);
+								const theta = disp1.angleTo(disp2);
 
 								// splitting process
 								
 								// saved indices since: faces update, edge vertices doesnt
 								if (theta <= angle) {
 									
-									let newVertices = mesh.addVertices(mesh.vertices[edge.vertexA],mesh.vertices[edge.vertexB]);
-									let indexA = edge.indices[0];
-									let indexB = edge.indices[1];
+									const newVertices = mesh.addVertices(mesh.vertices[edge.vertexA],mesh.vertices[edge.vertexB]);
+									const indexA = edge.indices[0];
+									const indexB = edge.indices[1];
 
 									face1.uv[newVertices[0]] = face1.uv[edge.vertexA];
 									face1.uv[newVertices[1]] = face1.uv[edge.vertexB];
@@ -1306,7 +1311,7 @@ Plugin.register('mesh_tools', {
 								}
 							}
 						});
-						Undo.finishEdit("split edges");
+						Undo.finishEdit('Mtools: Split edges');
 						Canvas.updateView({elements: Mesh.selected, element_aspects: {geometry: true, uv: true, faces: true}, selection: true})				
 					}
 					runEdit(180);
@@ -1322,23 +1327,24 @@ Plugin.register('mesh_tools', {
 		children.push(
 			new Action("scatter", {
 				name: "Scatter",
-				description: "scatters selected meshs on the active mesh",
+				description: "scatters selected meshes on the active mesh",
 				icon: "scatter_plot",
 				condition: operatorsCondition,
 				click: function() {
 					if (Mesh.selected.length < 2) {
-						Blockbench.showQuickMessage('Error: must selected atleast two meshs');
+						Blockbench.showQuickMessage('At least two meshes must be selected');
 						return;
-					};
-					let mesh = Mesh.selected.last();
+					}
+
+					const mesh = Mesh.selected.last();
 					mesh.unselect();
 		
-					const group = new Group({name:"instances_on_"+mesh.name});
+					const group = new Group({name: "instances_on_" + mesh.name });
 					group.init();
 
 					function runEdit(density, amend=false) {
-						const meshs = [];
-						Undo.initEdit({elements: meshs, selection: true, group}, amend);
+						const meshes = [];
+						Undo.initEdit({elements: meshes, selection: true, group}, amend);
 
 						const tmesh = mesh.mesh; // threejs mesh
 			
@@ -1354,17 +1360,17 @@ Plugin.register('mesh_tools', {
 								vertices.getX(faces.getX(i)),
 								vertices.getY(faces.getX(i)),
 								vertices.getZ(faces.getX(i))
-							);
+							)
 							const t1 = new THREE.Vector3(
 								vertices.getX(faces.getY(i)),
 								vertices.getY(faces.getY(i)),
 								vertices.getZ(faces.getY(i))
-							);
+							)
 							const t2 = new THREE.Vector3(
 								vertices.getX(faces.getZ(i)),
 								vertices.getY(faces.getZ(i)),
 								vertices.getZ(faces.getZ(i))
-							);
+							)
 
 							
 							tmesh.localToWorld( t0 );
@@ -1388,9 +1394,9 @@ Plugin.register('mesh_tools', {
 							otherMesh.origin = pointF.toArray();
 							
 							otherMesh.addTo(group);
-							meshs.push(otherMesh);
+							meshes.push(otherMesh);
 						}
-						Undo.finishEdit('scatter meshs');
+						Undo.finishEdit('Mtools: Scatter meshes');
 						Canvas.updatePositions();
 					}
 					runEdit(3);
@@ -1411,7 +1417,7 @@ Plugin.register('mesh_tools', {
 				condition: operatorsCondition,
 				click(){
 					const selected = Mesh.selected;
-					selected.forEach(mesh => { mesh.mesh.geometry.comuteBoundingBox() });
+					selected.forEach(mesh => { mesh.mesh.geometry.computeBoundingBox() });
 					/**
 					 * 
 					 * @param {THREE.Vector3} offset _
@@ -1431,7 +1437,7 @@ Plugin.register('mesh_tools', {
 								elements.push(newMesh);
 							}
 						})
-						Undo.finishEdit("array selected meshs");
+						Undo.finishEdit('Mtools: Array selected meshes');
 					}
 					runEdit();
 					Undo.amendEdit({
@@ -1599,20 +1605,19 @@ Plugin.register('mesh_tools', {
 			 * @param {THREE.BufferGeometry} geometry
 			 */
 			nonIndexed(geometry) {
-				let mesh = new Mesh({vertices:{}});
+				const mesh = new Mesh({vertices:{}});
 				
-				let vertices = geometry.getAttribute('position');
-				let vertexLength = vertices.count;
+				const vertices = geometry.getAttribute('position');
+				const vertexLength = vertices.count;
 
-				let newVertices = [];
-				let positions = {}; // remove duplicate vertices on the go
+				const newVertices = []
+				const positions = {} // remove duplicate vertices on the go
 				for (let i = 0; i < vertexLength; i++) {
 					let v = [
 						vertices.getX(i),
 						vertices.getY(i),
 						vertices.getZ(i)
 					]
-					// Object[myArray] is litterly saying: Object[myArray.toString()]: Object[`${myArray[0]},${myArray[1]},${myArray[2]}`]
 					if (positions[v]) {
 						newVertices.push(positions[v].key)
 					} else {
@@ -1640,17 +1645,17 @@ Plugin.register('mesh_tools', {
 			 * @param {THREE.BufferGeometry} geometry
 			 */
 			indexed(geometry, quadCompatible) {
-				let mesh = new Mesh({vertices:{}});
+				const mesh = new Mesh({vertices:{}});
 				
-				let vertices = geometry.getAttribute('position');
+				const vertices = geometry.getAttribute('position');
 				let indices = geometry.getIndex();
-				let vertexLength = vertices.count;
-				let faceLength = indices.count;
+				const vertexLength = vertices.count;
+				const faceLength = indices.count;
 				indices = indices.array;
 
-				let newVertices = [];
+				const newVertices = [];
 				for (let i = 0; i < vertexLength; i++) {
-					let v = [
+					const v = [
 						vertices.getX(i),
 						vertices.getY(i),
 						vertices.getZ(i)
@@ -1661,7 +1666,7 @@ Plugin.register('mesh_tools', {
 				}
 				if (quadCompatible) {
 					for (let i = 0; i < faceLength; i+=6) {
-						let face = new MeshFace(mesh, {
+						const face = new MeshFace(mesh, {
 							vertices: [
 								newVertices[indices[i+0]],
 								newVertices[indices[i+1]],
@@ -1673,7 +1678,7 @@ Plugin.register('mesh_tools', {
 					}
 				} else {
 					for (let i = 0; i < faceLength; i+=3) {
-						let face = new MeshFace(mesh, {
+						const face = new MeshFace(mesh, {
 							vertices: [
 								newVertices[indices[i+0]],
 								newVertices[indices[i+1]],
@@ -1763,7 +1768,7 @@ Plugin.register('mesh_tools', {
 									mesh.init();
 									elements.push(mesh);
 									mesh.select();
-									Undo.finishEdit('Generate Mesh');
+									Undo.finishEdit('Mtools: Generate Mesh');
 								}
 								runEdit(out);
 
@@ -1849,20 +1854,7 @@ Plugin.register('mesh_tools', {
 			Breather:			{x:"-p.u + (2*rr*cosh(alpha*p.u)*sinh(alpha*p.u))/denom",y:"(2*ww*cosh(alpha*p.u)*(-(ww*cos(p.v)*cos(ww*p.v)) - sin(p.v)*sin(ww*p.v)))/denom",z:"(2*ww*cosh(alpha*p.u)*(-(ww*sin(p.v)*cos(ww*p.v)) + cos(p.v)*sin(ww*p.v)))/denom",scale:2,uRange:[-13.2,13.2],uDivs:16,uWrap:!1,vRange:[-37.4,37.4],vDivs:32,vWrap:!1,vClose:!1,variables:"alpha = 0.4\nrr= 1 - pow(alpha,2)\nww = sqrt(rr)\ndenom = alpha*( pow(ww*cosh(alpha*p.u),2) + pow(alpha*sin(ww*p.v),2) )"},
 			RidgedTorus:		{x:"outerradius*cos(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*cos(p.u)*cos(p.v)",y:"outerradius*sin(p.u)+(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.u)*cos(p.v)",z:"(ridgepower*sin(numofridges*p.u)+innerradius)*sin(p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1,variables:"outerradius = 5\nridgepower = 0.6\ninnerradius = 2\nnumofridges = 10"},
 			CliffordTorus:		{x:"cos(p.u+p.v)/(sq2+cos(p.v-p.u))",y:"sin(p.v-p.u)/(sq2+cos(p.v-p.u))",z:"sin(p.u+p.v)/(sq2+cos(p.v-p.u))",scale:4,uRange:[0,3.1415927410125732],uDivs:8,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951"},
-			Cyclide: {
-				x: "(dd*(cc - aa*cos(p.u)*cos(p.v) ) + bb*bb*cos(p.u)) / denom",
-				y: "(bb*sin(p.u)*(aa-dd*cos(p.v) ) )/denom",
-				z: "(bb*sin(p.v)*(cc*cos(p.u)-dd ) )/denom",
-				scale: 4,
-				uRange: [0,6.2831854820251465],
-				uDivs: 16,
-				uWrap: false,
-				vRange: [0,6.2831854820251465],
-				vDivs: 8,
-				vWrap: false,
-				vClose: false,
-				variables: `aa = 1\nbb = 0.98\ncc = 0.199\ndd  = 0.3\ndenom = (aa-cc*cos(p.u)*cos(p.v))`
-			},
+			Cyclide: {x: "(dd*(cc - aa*cos(p.u)*cos(p.v) ) + bb*bb*cos(p.u)) / denom",y: "(bb*sin(p.u)*(aa-dd*cos(p.v) ) )/denom",z: "(bb*sin(p.v)*(cc*cos(p.u)-dd ) )/denom",scale: 4,uRange: [0,6.2831854820251465],uDivs: 16,uWrap: false,vRange: [0,6.2831854820251465],vDivs: 8,vWrap: false,vClose: false,variables: `aa = 1\nbb = 0.98\ncc = 0.199\ndd  = 0.3\ndenom = (aa-cc*cos(p.u)*cos(p.v))`},
 			Shell:				{x:"(cos(p.v)*(1+cos(p.u))*sin(p.v/8))",y:"(sin(p.u)*sin(p.v/8)+cos(p.v/8)*1.5)",z:"(sin(p.v)*(1+cos(p.u))*sin(p.v/8))",scale:4,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!0,vRange:[0,12.566370964050293],vDivs:32,vWrap:!1,vClose:!1},
 			Catalan:			{x:"p.u-sin(p.u)*cosh(p.v)",y:"4*sin(1/2*p.u)*sinh(p.v/2)",z:"1-cos(p.u)*cosh(p.v)",scale:1,uRange:[-3.1415927410125732,9.42477798461914],uDivs:24,uWrap:!1,vRange:[-2,2],vDivs:8,vWrap:!1,vClose:!1},
 			Dini:				{x:"radius*cos(p.u)*sin(p.v)",y:"2*(((cos(p.v)+ln(tan(p.v/2)+1E-2)) + twistrot*p.u)+3.4985)",z:"radius*sin(p.u)*sin(p.v)",scale:1,uRange:[0,4*Math.PI],uDivs:16,uWrap:!1,vRange:[0,2],vDivs:8,vWrap:!1,vClose:!1,variables:"radius = 4\ntwistrot=0.2"},
@@ -2032,7 +2024,7 @@ Plugin.register('mesh_tools', {
 								mesh.init();
 								elements.push(mesh);
 								mesh.select();
-								Undo.finishEdit('Generate Mesh');
+								Undo.finishEdit('Mtools: Generate Mesh');
 							}
 							runEdit(out);
 							Undo.amendEdit({
@@ -2083,7 +2075,7 @@ Plugin.register('mesh_tools', {
 								mesh.select();
 								UVEditor.setAutoSize(null, true, Object.keys(mesh.faces));
 								UVEditor.selected_faces.empty();
-								Undo.finishEdit('Generate Mesh');
+								Undo.finishEdit('Mtools: Generate Mesh');
 							}
 							runEdit(out);
 							Undo.amendEdit({
@@ -2125,7 +2117,7 @@ Plugin.register('mesh_tools', {
 								mesh.select();
 								UVEditor.setAutoSize(null, true, Object.keys(mesh.faces));
 								UVEditor.selected_faces.empty();
-								Undo.finishEdit('Generate Mesh');
+								Undo.finishEdit('Mtools: Generate Mesh');
 							}
 							runEdit(out);
 							let s = out;
