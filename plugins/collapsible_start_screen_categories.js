@@ -1,10 +1,10 @@
 (async function () {
   let aboutAction, styles, collapsed
-  const id = "collapsible_menu_categories"
-  const name = "Collapsible Menu Categories"
+  const id = "collapsible_start_screen_categories"
+  const name = "Collapsible Start Screen Categories"
   const icon = "chevron_right"
   const author = "Ewan Howell"
-  const about = "This plugin adds a small dropdown arrow next to each category on the start menu, allowing you to collapse each category and hide their respective formats."
+  const about = "This plugin adds a small dropdown arrow next to each category on the start screen, allowing you to collapse each category and hide their respective formats."
   const links = {
     website: "https://ewanhowell.com/",
     discord: "https://discord.com/invite/pkRxtGw"
@@ -14,9 +14,9 @@
     title: name,
     icon,
     author,
-    description: "Add the ability to collapse the menu categories.",
+    description: "Add the ability to collapse the start screen categories.",
     about,
-    tags: ["Menu", "Start screen"],
+    tags: ["Start screen", "Menu", "Formats"],
     version: "1.0.0",
     min_version: "4.4.1",
     variant: "both",
