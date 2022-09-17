@@ -226,6 +226,17 @@
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
+	"collapsible_start_screen_categories": {
+		"title": "Collapsible Start Screen Categories",
+		"icon": "chevron_right",
+		"author": "Ewan Howell",
+		"description": "Add the ability to collapse the start screen categories.",
+		"about": "This plugin adds a small dropdown arrow next to each category on the start screen, allowing you to collapse each category and hide their respective formats.",
+		"tags": ["Menu", "Start screen"],
+		"version": "1.0.0",
+		"min_version": "4.4.1",
+		"variant": "both"
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
