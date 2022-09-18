@@ -622,6 +622,7 @@ BBPlugin.register('mesh_tools', {
 				function runEdit(amend = false, influence = 1, iterations = 1) {
 					Undo.initEdit({elements: Mesh.selected, selection:true}, amend);
 
+
 					Mesh.selected.forEach(mesh => {
 						if (!influence || !iterations) return; //
 
@@ -630,20 +631,26 @@ BBPlugin.register('mesh_tools', {
 						
 						const selectedVertices = mesh.getSelectedVertices();
 
-						for (let i = 0; i < iterations; i++) 
-						for (let vertexKey of selectedVertices) {
-							const neighbors = neighborMap[vertexKey];
-							
-							const vertexSmoothed = [0,0,0];
-							for (const neigbor of neighbors) {
-								const neigborPosition = vertices[neigbor];
-								vertexSmoothed.V3_add(neigborPosition);
+						for (let i = 0; i < iterations; i++) {
+							const originalVertexPositions = {}
+							for (let vertexKey of selectedVertices) {
+								originalVertexPositions[vertexKey] = mesh.vertices[vertexKey].slice();
 							}
-							vertexSmoothed.V3_divide(neighbors.length);
+							
+							for (let vertexKey of selectedVertices) {
+								const neighbors = neighborMap[vertexKey];
+								
+								const vertexSmoothed = [0,0,0];
+								for (const neigbor of neighbors) {
+									const neigborPosition = originalVertexPositions[neigbor];
+									vertexSmoothed.V3_add(neigborPosition);
+								}
+								vertexSmoothed.V3_divide(neighbors.length);
 
-							vertices[vertexKey] = vertices[vertexKey].map(
-								(e, i) => 
-									Math.lerp(e, vertexSmoothed[i], influence));
+								vertices[vertexKey] = vertices[vertexKey].map(
+									(e, i) => 
+										Math.lerp(e, vertexSmoothed[i], influence));
+							}
 						}
 					})
 					Undo.finishEdit('Mtools: Laplacian Smooth selected vertices');
