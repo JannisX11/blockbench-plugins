@@ -1,5 +1,5 @@
 (async function () {
-  let aboutAction, button, button2, cubeAction
+  let aboutAction
   const id = "boxuv_cube_flagger"
   const name = "BoxUV Cube Flagger"
   const icon = "lightbulb"
@@ -14,11 +14,17 @@
     author,
     description: "Flashes cubes less than 1 unit on any axis on demand.",
     about: "Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all possible invalid cubes in your project. This includes cubes with decimal sizes and cubes less than 1, both of which can cause complications and errors. Simple, yet effective.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `BoxUV Cube Flagger`. Click install, then use `Tools > Flag Cubes` and click one of the options. Clicking the first option causes the plugin to flag cubes less than 1. The second option allows Blockbench to flag cubes with decimal sizes.\n\n\nIt would be appreciated to report any bugs and suggestions!",
-    tags: ["Textures", "BoxUV", "UV"],
-    version: "1.2.1",
+    tags: ["Textures", "BoxUV", "Modded Entity"],
+    version: "1.2.2",
     min_version: "4.2.0",
     variant: "both",
-    oninstall: () => showAbout(true),
+    oninstall() { 
+      showAbout(true) 
+      Blockbench.showQuickMessage("Successfully installed BoxUV Cube Flagger!", 2000);
+    },
+    onuninstall() {
+      Blockbench.showQuickMessage("Uninstalled BoxUV Cube Flagger", 2000);
+    },
     onload() {
       addAbout()
       const highlighter = {
@@ -60,6 +66,7 @@
             const cubes = Cube.all.filter(cube => (cube.size(0) > 0 && cube.size(0) < 1) || (cube.size(1) > 0 && cube.size(1) < 1) || (cube.size(2) > 0 && cube.size(2) < 1))
             const material = new THREE.MeshBasicMaterial({color:0xFF3F3F})
             highlighter.start(cubes, material)
+            Blockbench.showQuickMessage("Flagging cubes...", 2000)
           }
         }),
         new Action("flag_decimal_cubes", {
@@ -67,9 +74,10 @@
           description: "Highlight cubes with decimal sizes",
           icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAANlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABHcEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABaC8NGAAAAEXRSTlMOvPX05alOdgATXZkjYD/KIlbIiwwAAAB3SURBVBjTrdDLEoAgCAVQTIxQK/n/n400qpke06K7PIoCMNwEHhAAuA8YeoY1DZlQpBMRTBMbRi8zlTI6PUDihiSKuZZm6uKOWu7GXO/SCVswXdDp/xckffUn1OYNMxnWMdcE58VHWwhPCbc+bcw64LGnl31+xAWtrQ4+c9fnFgAAAABJRU5ErkJggg==",
           click: function() {
-            const cubes = Cube.all.filter(cube => cube.size(0) % 1 !== 0 || cube.size(1) % 1 !== 0 || cube.size(2) % 1 !== 0)
+            const cubes = Cube.all.filter(cube => (cube.size(0) % 1 !== 0 || cube.size(1) % 1 !== 0 || cube.size(2) % 1 !== 0))
             const material = new THREE.MeshBasicMaterial({color: 0xF8872E})
             highlighter.start(cubes, material)
+            Blockbench.showQuickMessage("Flagging cubes...", 2000)
           }
         })
       ]
@@ -138,22 +146,20 @@
         ${banner ? `<div id="banner">Note: You can re-open this window using <strong>Help > About Plugins > ${name}</strong></div>` : ""}
         <div id="content">
           <h1 style="margin-top:-10px">${name}</h1>
-          <p>Use this plugin to flag cubes that are potentially invalid when using BoxUV.</p>
-          <br>
-          <p>Flagging capabilities:</p>
-          <p>- Flagging cubes less than 1 unit on any axis</p>
-          <p>- Flagging cubes with decimal values on any axis</p>
-          <br>
-          <p>Go to Tools > Flag Cubes and choose the option you want to use this plugin. You can read more about this plugin on the Blockbench website, or in the plugin list in File > Plugins.</p>
-          <br>
+          <p>Flashes cubes less than 1 unit on any axis on demand.</p>
+          <h4>Worth noting:</h4>
+          <p>- Plugin has the following capabilities: Flags cubes less than 1 on any axis, flags cubes with decimal sizes</p>
+          <p>- Planned (no ETA): The ability to customize the flashing a little more (i.e. color, whether to flash textured cubes, etc)
+          <h4>How to use:</h4>
+          <p>Go to <b>Tools > Flag Cubes</b> and simply select one of the options - <b>Flag Small Cubes</b> for all cubes with sizes less than 1 and <b>Flag Decimal Cubes</b> for flagging cubes with decimal sizes.
           <div class="socials">
             <a href="${links["Twitter"]}" class="open-in-browser">
               <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
-              <label>By ${author}</label>
+              <label>SirJain</label>
             </a>
             <a href="${links["Discord"]}" class="open-in-browser">
               <i class="fa-brands fa-discord" style="color:#5865F2"></i>
-              <label>Author's Discord Server</label>
+              <label>SirJain's Discord Server</label>
             </a>
           </div>
         </div>
