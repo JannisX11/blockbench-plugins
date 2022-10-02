@@ -1,3 +1,27 @@
+/**
+MIT License
+
+Copyright (c) 2022 JTK222
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+**/
+
 (function() {
 
 var mappingsKey = "mod_utils.has_mappings";
@@ -28,23 +52,26 @@ function loadZipToJson(importType){
 		loadedZip.then(zip => {
 			zip.file(importType.file).async("string")
 			.then(json => {
+				console.log(importType);
 				importType.import(json);
 			});
 			
 			if(importType == ImportTypeEnum.TBL){
-				var imgFile = zip.file(importType.texture).async("base64").then(img => {
-					var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
-				
-					texture.add();
-				});
-			}else{
-				var imgFile = zip.file(importType.texture).forEach(pr => {
-					pr.async("base64").then(img => {
+				if(zip.file(importType.texture))
+					zip.file(importType.texture).async("base64").then(img => {
 						var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
 					
 						texture.add();
 					});
-				});
+			}else{
+				if(zip.file(importType.texture))
+					zip.file(importType.texture).forEach(pr => {
+						pr.async("base64").then(img => {
+							var texture = new Texture().fromDataURL('data:image/png;base64,' + img);
+						
+							texture.add();
+						});
+					});
 			}
 		});
 	});
@@ -57,6 +84,12 @@ var ImportTypeEnum = {
 		file: 'model.json',
 		texture: 'texture.png',
 		import: loadTabulaModel
+	},
+	TBL2: {
+		extension: 'tbl',
+		file: 'model.json',
+		texture: 'texture.png',
+		import: null
 	},
 	TCN: {
 		extension: 'tcn',
@@ -254,6 +287,13 @@ function readTblBone(json, version, parentGroup){
 				rotation: [-json.rotAX, json.rotAY, -json.rotAZ]
 			});
 			break;
+		case 2:
+			group = new Group({
+				name: json.name,
+				origin: [parentGroup.origin[0] + json.position[0], parentGroup.origin[1] - json.position[1], parentGroup.origin[2] + json.position[2]],
+				rotation: [-json.rotation[0], json.rotation[1], -json.rotation[2]],
+			});
+			break;
 		default:
 			group = new Group({
 				name: json.name,
@@ -304,6 +344,124 @@ function readTblCube(json, version, parentGroup, extra){
 	if(parentGroup) cube.addTo(parentGroup);
 	cube.init();
 }
+
+/** ---------- Import Tabula Model v2 --------- */
+var importTabula2Obj = (function (){
+
+	function loadTabulaModel2(data) {
+		Undo.initEdit({
+			outliner: true,
+			bitmap: true,
+			uv_mode: true,
+		});
+		var json = JSON.parse(data);
+		
+		var version = json.projVersion || 0;
+
+		if(version != 2){
+			Blockbench.showMessageBox({
+				title: "Warning",
+				message: "You are importing an unsuported version of Tabula files, if you experience any issues, please report them and provide your model file so we can try to fix them."
+			});
+		}
+		Project.name = json.modelName;
+		Project.texture_width = json.textureWidth;
+		Project.texture_height = json.textureHeight;
+		var rootGroup = new Group(
+			{
+				name: json.modelName,
+				origin: [0, 24, 0],
+				rotation: [0, 0, 0],
+			}
+		).addTo();
+		rootGroup.init();
+		json.cubes.forEach(cube => parseTbl(cube, version, rootGroup));
+		
+	
+		Undo.finishEdit('Import Tabula Model', {
+			outliner: true,
+			bitmap: true,
+			uv_mode: true,
+		});
+		Canvas.updateAll();
+	}
+
+	function parseTbl(json, version, parentGroup){
+		if((json.children && json.children.length > 1) || !parentGroup){
+			var group = null;
+			switch(version){
+				case 2:
+					group = new Group({
+						name: json.name,
+						origin: [parentGroup.origin[0] + json.position[0], parentGroup.origin[1] - json.position[1], parentGroup.origin[2] + json.position[2]],
+						rotation: [-json.rotation[0], json.rotation[1], -json.rotation[2]],
+					});
+					if(parentGroup) group.addTo(parentGroup);
+					group.init();
+					createCube(json, group, false);
+					if(json.children) json.children.forEach(bone => parseTbl(bone, version, group));
+					break;
+				default: break;
+			}
+		}else{
+			createCube(json, parentGroup, true);
+		}
+	}
+
+	function createCube(json, parentGroup, useRotation){
+		var cubeObj = null;
+		
+		if(!useRotation)
+			cubeObj = {
+				mirror_uv: json.txMirror,
+				name: json.name,
+				from: [parentGroup.origin[0] + json.offset[0], parentGroup.origin[1] -  json.offset[1] - json.dimensions[1], parentGroup.origin[2] +  json.offset[2]],
+				to: [parentGroup.origin[0] + json.offset[0] + json.dimensions[0], parentGroup.origin[1] - json.offset[1], parentGroup.origin[2] +  json.offset[2] + json.dimensions[2]],
+				uv_offset: [json.txOffset[0],  json.txOffset[1]],
+				origin: [parentGroup.origin[0], parentGroup.origin[1], parentGroup.origin[2]],
+			};
+		else
+			cubeObj = {
+				mirror_uv: json.txMirror,
+				name: json.name,
+				from: [
+					parentGroup.origin[0] + json.position[0] + json.offset[0],
+					parentGroup.origin[1] - json.position[1] - json.offset[1] - json.dimensions[1],
+					parentGroup.origin[2] + json.position[2] + json.offset[2]
+				],
+				to: [
+					parentGroup.origin[0] + json.position[0] + json.offset[0] + json.dimensions[0],
+					parentGroup.origin[1] - json.position[1] - json.offset[1],
+					parentGroup.origin[2] + json.position[2] + json.offset[2] + json.dimensions[2]
+				],
+				uv_offset: [json.txOffset[0],  json.txOffset[1]],
+				origin: [parentGroup.origin[0] + json.position[0], parentGroup.origin[1] - json.position[1], parentGroup.origin[2] + json.position[2]],
+				rotation: [-json.rotation[0], json.rotation[1], -json.rotation[2]],
+			};
+
+		var cube = new Cube(cubeObj);
+		if(parentGroup) cube.addTo(parentGroup);
+		cube.init();
+	}
+
+	return {
+		act: new Action({
+			id: 'import_tabula_2',
+			name: "Import Tabula Model - Better but Experimental (.tbl)",
+			icon: 'flip_to_back',
+			description: 'Experimental - Import a Tabula Model, may produce a better result, but does not support all tabula file format versions. If you have broken results please report those issues.',
+			category: 'file',
+			condition: () => Format.id === Formats.modded_entity.id,
+			click: function (event) {
+				loadZipToJson(ImportTypeEnum.TBL2);
+			}
+		}),
+		baseFunc: loadTabulaModel2,
+	};
+})();
+
+var importTabula2 = importTabula2Obj.act;
+ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 
 /** ---------- Export - VoxelShape ---------- */
 
@@ -444,11 +602,11 @@ function searchVoxelShapeGroup(elements){
 
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
-	author: 'JTK222 (Maintainer) & Wither (For the Techne importer)',
+	author: 'JTK222 (Maintainer) & Wither (For the original Techne importer)',
 	icon: 'fa-cubes',
 	description: 'Allows importing Tabula files, and exporting VoxelShapes',
     tags: ["Minecraft: Java Edition"],
-	version: '1.6.1',
+	version: '1.7',
 	variant: 'desktop',
 
 	onload() {
@@ -459,6 +617,7 @@ Plugin.register('mod_utils', {
 			// MenuBar.update();
 			
 			MenuBar.addAction(exportVoxelShapeAction, 'file.export');
+			MenuBar.addAction(importTabula2, 'file.import');
 			MenuBar.addAction(importTabula, 'file.import');
 			MenuBar.addAction(importTechne, 'file.import');
 			MenuBar.addAction(modUtilsHelp, 'help');
@@ -468,6 +627,7 @@ Plugin.register('mod_utils', {
 		if(isValidVersion){
 			exportVoxelShapeAction.delete();
 			importTabula.delete();
+			importTabula2.delete();
 			importTechne.delete();
 			modUtilsHelp.delete();
 
