@@ -492,10 +492,10 @@
 		"author": "SirJain",
 		"description": "Flashes cubes less than 1 unit on any axis on demand.",
 		"icon": "lightbulb",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"variant": "both",
 		"min_version": "4.2.0",
-		"tags": ["Textures", "BoxUV", "UV"],
+		"tags": ["Textures", "BoxUV", "Modded Entity"],
 		"about": "Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all possible invalid cubes in your project. This includes cubes with decimal sizes and cubes less than 1, both of which can cause complications and errors. Simple, yet effective.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `BoxUV Cube Flagger`. Click install, then use `Tools > Flag Cubes` and click one of the options. Clicking the first option causes the plugin to flag cubes less than 1. The second option allows Blockbench to flag cubes with decimal sizes.\n\n\nIt would be appreciated to report any bugs and suggestions!"
 	},
 	"tint_preview": {
@@ -545,7 +545,7 @@
 		"description": "Flags meshes in a project on demand.",
 		"about": "The **Generic model format** is the only format that supports meshes. If you convert to another format with meshes in your project, the meshes will disappear. You can choose to flag all meshes in the project through one click with this plugin. This lets you know what you are losing by converting your project, in case you looked over any.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `Mesh Flagger`. Click install, then use `Tools > Flag Meshes` and click one of the options. Clicking the first option causes the plugin to flag all meshes in a project. The second option allows Blockbench to flag all meshes with six faces. This includes cuboid-meshes, but keep in mind it can flag non-cuboid meshes with six faces too!\n\n\nIt would be appreciated to report any bugs and suggestions!",
 		"tags": ["Generic Model", "Per-FaceUV", "Meshes"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -565,8 +565,8 @@
 		"author": "SirJain",
 		"description": "Edits the opacity and color of the ground plane feature in Blockbench.",
 		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
-		"tags": ["Ground Plane", "Animation"],
-		"version": "1.0.0",
+		"tags": ["Ground Plane", "Animation", "Customization"],
+		"version": "1.0.1",
       		"min_version": "4.2.0",
 		"variant": "both"
 	}
