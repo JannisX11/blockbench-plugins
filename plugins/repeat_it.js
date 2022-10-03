@@ -70,9 +70,9 @@
                                 });
                                 return;
                             }
-                            
+
                             if (rotationLimit) {
-                                if (!rotationDiff.every((e) => e % rotationLimit === 0)) {
+                                if (!rotationDiff.every((e) => e % 22.5 === 0)) {
                                     Blockbench.showMessageBox({
                                         buttons: ["OK", "Cancel"],
                                         title: "Error",
