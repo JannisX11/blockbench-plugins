@@ -24,9 +24,9 @@
                             repeat: {
                                 label: "Repeat",
                                 type: "number",
-                                value: 1,
+                                value: 2,
                                 description: "Number of times to copy the cube",
-                                min: 1,
+                                min: 2,
                             },
                             possitionDiff: {
                                 label: "Position difference",
