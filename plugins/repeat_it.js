@@ -113,9 +113,10 @@
                                 outliner: true,
                                 selection: true,
                             });
+                            var shouldCreateGroup = formResult.shouldCreateGroup;
                             Cube.selected.forEach(function (cube, i) {
                                 var group;
-                                if (rotationLimit) {
+                                if (shouldCreateGroup) {
                                     group = new Group(
                                         cube.name + " group"
                                     ).init();
@@ -156,7 +157,7 @@
                                         shade: cube.shade,
                                         name: cube.name + "_" + j,
                                     }).init();
-                                    if (rotationLimit) {
+                                    if (shouldCreateGroup) {
                                         newCube.addTo(group);
                                     }
                                     elementsToAdd.push(newCube);
