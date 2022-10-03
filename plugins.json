@@ -567,16 +567,15 @@
 		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Ground Plane", "Animation"],
 		"version": "1.0.0",
-      		"min_version": "4.2.0",
+			"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"repeat_it":{
 		"title": "Repeat It",
-        "author": "Ocraftyone",
-        "icon": "content_copy",
-        "description":
-            "Allows you to repeat shapes with a translation applied to each new object",
-        "version": "0.0.1",
-        "variant": "both"
+		"author": "Ocraftyone",
+		"icon": "content_copy",
+		"description": "Allows you to repeat shapes with a translation applied to each new object",
+		"version": "0.0.1",
+		"variant": "both"
 	}
 }
