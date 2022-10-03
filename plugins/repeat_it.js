@@ -55,7 +55,7 @@
                             var rotationDiff = formResult.rotationDiff;
                             
                             if (rotationLimit) {
-                                if (rotationDiff.every((e) => e % rotationLimit == 0 || e == 0)) {
+                                if (!rotationDiff.every((e) => e % rotationLimit === 0)) {
                                     Blockbench.showMessageBox({
                                         buttons: ["OK", "Cancel"],
                                         title: "Error",
