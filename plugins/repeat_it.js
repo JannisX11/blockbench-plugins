@@ -150,11 +150,10 @@
                                                 rotationDiff[2] * j,
                                         ];
                                     }
-                                    var newCube = new Cube({
+                                    var newCube = new Cube(cube).extend({
                                         from: newCubeFrom,
                                         to: newCubeTo,
                                         rotation: newCubeRotation,
-                                        shade: cube.shade,
                                         name: cube.name + "_" + j,
                                     }).init();
                                     if (shouldCreateGroup) {
