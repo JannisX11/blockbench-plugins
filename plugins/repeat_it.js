@@ -53,6 +53,23 @@
                         onConfirm (formResult) {
                             var possitionDiff = formResult.possitionDiff;
                             var rotationDiff = formResult.rotationDiff;
+                            var zero = [0, 0, 0];
+                            
+                            if (rotationDiff.equals(zero) && possitionDiff.equals(zero)) {
+                                Blockbench.showMessageBox({
+                                    buttons: ["OK", "Cancel"],
+                                    title: "Error",
+                                    message: "There are no transforms applied to the repeated shapes!",
+                                    confirm: 0,
+                                    cancel: 1,
+                                },
+                                (button) => {
+                                    if (button == 0) {
+                                        option_dialog.show()
+                                    }
+                                });
+                                return;
+                            }
                             
                             if (rotationLimit) {
                                 if (!rotationDiff.every((e) => e % rotationLimit === 0)) {
