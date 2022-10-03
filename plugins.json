@@ -131,11 +131,11 @@
 	},
 	"mod_utils": {
 		"title": "Mod Utils",
-		"author": "JTK222 (Maintainer) & Wither (For the Techne importer)",
+		"author": "JTK222 (Maintainer) & Wither (For the original Techne importer)",
 		"icon": "fa-cubes",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.6.1",
+		"version": "1.7",
 		"variant": "desktop"
 	},
 	"structure_importer": {
@@ -200,7 +200,7 @@
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "6.5.1",
+		"version": "6.6.0",
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
@@ -460,9 +460,9 @@
 		"title": "MTools",
 		"icon": "fas.fa-vector-square",
 		"author": "Malik12tree",
-		"description": "Adds helpful Modeling Tools, Operators and Generators for Meshs!",
-		"version": "1.0.4",
-		"about": "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td> generates a p-q torus knot with custom settings</td></tr></table>",
+		"description": "Adds helpful Mesh Modeling Tools, Operators and Generators!",
+		"version": "1.0.5",
+		"about": "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</p><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr><td>Laplacian Smooth</td><td>Smoothes selected vertices by averaging the position of neighboring vertices</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected meshes</p><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the tool menu. For procedural mesh generatation</p><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> Generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td>Generates a p-q torus knot with custom settings</td></tr></table>",
 		"variant": "both",
 		"tags": ["Format: Generic Model", "Edit"]
 	},
@@ -492,10 +492,10 @@
 		"author": "SirJain",
 		"description": "Flashes cubes less than 1 unit on any axis on demand.",
 		"icon": "lightbulb",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"variant": "both",
 		"min_version": "4.2.0",
-		"tags": ["Textures", "BoxUV", "UV"],
+		"tags": ["Textures", "BoxUV", "Modded Entity"],
 		"about": "Have you ever been using BoxUV and had to change to Per-Face UV because your cubes were smaller than one unit on an axis? You can use the BoxUV Cube Flagger plugin to flash all possible invalid cubes in your project. This includes cubes with decimal sizes and cubes less than 1, both of which can cause complications and errors. Simple, yet effective.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `BoxUV Cube Flagger`. Click install, then use `Tools > Flag Cubes` and click one of the options. Clicking the first option causes the plugin to flag cubes less than 1. The second option allows Blockbench to flag cubes with decimal sizes.\n\n\nIt would be appreciated to report any bugs and suggestions!"
 	},
 	"tint_preview": {
@@ -545,7 +545,7 @@
 		"description": "Flags meshes in a project on demand.",
 		"about": "The **Generic model format** is the only format that supports meshes. If you convert to another format with meshes in your project, the meshes will disappear. You can choose to flag all meshes in the project through one click with this plugin. This lets you know what you are losing by converting your project, in case you looked over any.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `Mesh Flagger`. Click install, then use `Tools > Flag Meshes` and click one of the options. Clicking the first option causes the plugin to flag all meshes in a project. The second option allows Blockbench to flag all meshes with six faces. This includes cuboid-meshes, but keep in mind it can flag non-cuboid meshes with six faces too!\n\n\nIt would be appreciated to report any bugs and suggestions!",
 		"tags": ["Generic Model", "Per-FaceUV", "Meshes"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -565,9 +565,9 @@
 		"author": "SirJain",
 		"description": "Edits the opacity and color of the ground plane feature in Blockbench.",
 		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
-		"tags": ["Ground Plane", "Animation"],
-		"version": "1.0.0",
-			"min_version": "4.2.0",
+		"tags": ["Ground Plane", "Animation", "Customization"],
+		"version": "1.0.1",
+      		"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"repeat_it":{
