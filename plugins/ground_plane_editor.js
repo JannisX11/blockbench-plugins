@@ -6,6 +6,7 @@
     const author = "SirJain"
     const links = {
       twitter: "https://www.twitter.com/SirJain2",
+      discordlink: "https://discord.gg/wM4CKTbFVN"
     }
     Plugin.register(id, {
       title: name,
@@ -13,11 +14,17 @@
       author,
       description: "Edits the opacity and color of the ground plane feature in Blockbench.",
       about: "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
-      tags: ["Ground Plane", "Animation"],
-      version: "1.0.0",
+      tags: ["Ground Plane", "Animation", "Customization"],
+      version: "1.0.1",
       min_version: "4.2.0",
       variant: "both",
-      oninstall: () => showAbout(true),
+      oninstall() { 
+        showAbout(true)
+        Blockbench.showQuickMessage("Successfully Installed Ground Plane Editor!"); 
+      },
+      onuninstall() {
+        Blockbench.showQuickMessage("Uninstalled Ground Plane Editor");
+      },
       onload() {
         addAbout()
         action = new Action({
@@ -198,6 +205,10 @@
               <a href="${links["twitter"]}" class="open-in-browser">
                 <i class="fa-brands fa-twitter" style="color:#00acee"></i>
                 <label>By ${author}</label>
+              </a>
+              <a href="${links["discordlink"]}" class="open-in-browser">
+                <i class="fa-brands fa-discord" style="color:#5865F2"></i>
+                <label>Discord Server</label>
               </a>
             </div>
           </div>
