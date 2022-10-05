@@ -147,7 +147,7 @@ var helpDialog = new Dialog({
 		`<style>
 		.modUtilHelpTabs {
 			position: relative;
-			min-height: 200px; /* This part sucks */
+			min-height: 400px; /* This part sucks */
 			clear: both;
 			margin: 25px 0;
 		}
