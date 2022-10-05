@@ -25,8 +25,8 @@ SOFTWARE.
 (function() {
 
 var mappingsKey = "mod_utils.has_mappings";
-var addGroupBasedLogic = "mod_utils.addGroupBasedLogic";
-var onlyIncludeVoxelShapesGroup = "mod_utils.onlyIncludeVoxelShapesGroup";
+var removeGroupBasedLogic = "mod_utils.addGroupBasedLogic";
+var omitVoxelShapesGroup = "mod_utils.omitVoxelShapesGroup";
 
 function isValidVersion(){
 	var versions = Blockbench.version.split(".");
@@ -576,6 +576,9 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
     var exportVoxelShapeDialog = new Dialog({
         id: "export_voxelshape",
         title: "VoxelShape Exporter",
+		buttons: ["Confirm", "Cancel", "Advanced Settings"],
+		confirmIndex: 0,
+		cancelIndex: 1,
         form: {
             mappings: {
                 label: "Mappings",
@@ -588,18 +591,6 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
                 },
                 value: "mojmaps",
 				description: "Select the mappings being used by your development environment",
-            },
-            addGroupBasedLogic: {
-                label: "Group name logic",
-                type: "checkbox",
-                value: true,
-				description: "Adds boolean logic based on the name of each subgroup (explained in the help section)",
-            },
-            onlyIncludeVoxelShapesGroup: {
-                label: '"VoxelShapes" required',
-                type: "checkbox",
-                value: true,
-				description: 'Only the cubes in the group named "VoxelShapes" will be used.\nIf not enabled, all cubes in the project will be used.',
             },
             rememberSettings: {
                 label: "Remember settings",
@@ -619,6 +610,39 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 
             exportVoxelShape(Mappings[formData.mappings]);
         },
+		onButton(index, event) {
+			if (index !== 2) return;
+			
+			var advancedSettingsDialog = new Dialog({
+				id: "voxelshape_advanced_settings",
+				title: "Advanced Settings",
+				lines: [],
+				form: {
+					addGroupBasedLogic: {
+						label: "Group name logic",
+						type: "checkbox",
+						value: !Blockbench.hasFlag(removeGroupBasedLogic),
+						description: "Adds boolean logic based on the name of each subgroup (explained in the help section)",
+					},
+					onlyIncludeVoxelShapesGroup: {
+						label: '"VoxelShapes" required',
+						type: "checkbox",
+						value: !Blockbench.hasFlag(omitVoxelShapesGroup),
+						description: 'Only the cubes in the group named "VoxelShapes" will be used.\nIf not enabled, all cubes in the project will be used.',
+					},
+				},
+				part_order: ["lines", "form", "component"],
+				onConfirm(formData) {
+					if (!formData.addGroupBasedLogic) Blockbench.addFlag(removeGroupBasedLogic); else Blockbench.removeFlag(removeGroupBasedLogic);
+					if (!formData.onlyIncludeVoxelShapesGroup) Blockbench.addFlag(omitVoxelShapesGroup); else Blockbench.removeFlag(omitVoxelShapesGroup);
+					exportVoxelShapeDialog.show();
+				},
+				onCancel() {
+					exportVoxelShapeDialog.show();
+				}
+			})
+			advancedSettingsDialog.show()
+		}
     });
 
     function exportVoxelShape(mappings) {
@@ -638,7 +662,7 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
         }
 
 		var output;
-        if (Blockbench.hasFlag(onlyIncludeVoxelShapesGroup)) {
+        if (!Blockbench.hasFlag(omitVoxelShapesGroup)) {
 			var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
             if (voxelShapeGroup === undefined) {
                 Blockbench.showMessageBox({
@@ -704,11 +728,11 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
     function generateShape(group, mappings) {
 		var elements = []
 		if (group === undefined) {
-			elements = Blockbench.hasFlag(addGroupBasedLogic) ? Outliner.elements : Cube.all;
+			elements = !Blockbench.hasFlag(removeGroupBasedLogic) ? Outliner.elements : Cube.all;
 		} else {
 			elements = group.children;
 		}
-        var operation = Blockbench.hasFlag(addGroupBasedLogic) ?  group.name.toUpperCase() : "OR";
+        var operation = !Blockbench.hasFlag(removeGroupBasedLogic) ?  group.name.toUpperCase() : "OR";
         if (operation === "VOXELSHAPES" || group === undefined) {
             operation = "OR";
         }
@@ -796,8 +820,8 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
         Blockbench.removeFlag(Mappings.mcp.key);
         Blockbench.removeFlag(Mappings.yarn.key);
         Blockbench.removeFlag(Mappings.parchment.key);
-        Blockbench.removeFlag(addGroupBasedLogic);
-        Blockbench.removeFlag(onlyIncludeVoxelShapesGroup);
+        Blockbench.removeFlag(removeGroupBasedLogic);
+        Blockbench.removeFlag(omitVoxelShapesGroup);
     }
 
 // var helpMenu;
