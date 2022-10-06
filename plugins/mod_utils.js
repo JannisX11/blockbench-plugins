@@ -616,7 +616,18 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 			var advancedSettingsDialog = new Dialog({
 				id: "voxelshape_advanced_settings",
 				title: "Advanced Settings",
-				lines: [],
+				lines: [
+					`
+					<style>
+						h1, p {
+							margin: 0%;
+						}
+					</style>
+					<h1>WARNING</h1>
+					<p>Disabling these settings can and will severly harm your model's performance. These settings should only be used for basic models and/or for prototyping. For the proper way of doing this, please look at the help section.</p>
+					<br>
+					`,
+				],
 				form: {
 					addGroupBasedLogic: {
 						label: "Group name logic",
