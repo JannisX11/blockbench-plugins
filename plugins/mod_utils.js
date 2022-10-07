@@ -743,7 +743,7 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 		} else {
 			elements = group.children;
 		}
-        var operation = !Blockbench.hasFlag(removeGroupBasedLogic) ?  group.name.toUpperCase() : "OR";
+        var operation = !Blockbench.hasFlag(removeGroupBasedLogic) ? group.name[0] === '$' ? group.name.substring(1).toUpperCase() : "OR" : "OR";
         if (operation === "VOXELSHAPES" || group === undefined) {
             operation = "OR";
         }
