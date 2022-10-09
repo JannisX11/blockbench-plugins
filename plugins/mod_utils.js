@@ -195,10 +195,20 @@ var helpDialog = new Dialog({
 					create a new Group, called "VoxelShapes". All cubes that you
 					create within this group, will be added to the voxelShape trough
 					the OR BooleanFunction. Additionally you can add sub groups with
-					the name equaling the BooleanFunctions shown in the image
-					bellow. The first cube in such a group does represent the red
+					the name equaling a "$" and a BooleanFunction as shown in the image
+					bellow (Ex: $and). The first cube in such a group represents the red
 					cube, all other ones will be combined with an OR BooleanFunction
 					first.
+				</p>
+				<p>
+					There is an advanced settings menu for the VoxelShape exporter that
+					allows you to disable the requirement of the "VoxelShapes" group.
+					This option is only designed to be used for rapid prototyping and should
+					not be used in production. For the best performance, you should be creating a
+					representation of your VoxelShape in a separate model and use the BooleanFunctions
+					to create the proper shape rather than ORing all of the cubes in your model together.
+					If not using BooleanFunctions, use the "VoxelShapes" group to make sure that only
+					the cubes you need are being used for the VoxelShape. The less cubes, the better.
 				</p>
 				<img
 					src="https://raw.githubusercontent.com/JannisX11/blockbench-plugins/master/src/mod_utils/voxel_shape_guide.png"
@@ -453,7 +463,7 @@ var importTabula2Obj = (function (){
 		if(version != 2){
 			Blockbench.showMessageBox({
 				title: "Warning",
-				message: "You are importing an unsuported version of Tabula files, if you experience any issues, please report them and provide your model file so we can try to fix them."
+				message: "You are importing an unsupported version of Tabula files, if you experience any issues, please report them and provide your model file so we can try to fix them."
 			});
 		}
 		Project.name = json.modelName;
@@ -583,7 +593,7 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
                 label: "Mappings",
                 type: "select",
                 options: {
-                    mojmaps: "MojMaps (Mojang's Offical Mappings)",
+                    mojmaps: "MojMaps (Mojang's Official Mappings)",
                     mcp: "MCP",
                     yarn: "Yarn",
                     parchment: "Parchment",
@@ -623,7 +633,7 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 						}
 					</style>
 					<h1>WARNING</h1>
-					<p>Disabling this setting can and will severly harm your model's performance. This setting should only be used for basic models and/or for prototyping. For the proper way of doing this, please look at the help section.</p>
+					<p>Disabling this setting can and will severely harm your model's performance. This setting should only be used for basic models and/or for prototyping. For the proper way of doing this, please look at the help section.</p>
 					<br>
 					`,
 				],
