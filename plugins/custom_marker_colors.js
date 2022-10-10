@@ -72,17 +72,6 @@
                               },
                               _: "_"
                           },
-                          // openContextMenu(preset, event) {
-                          //   new Menu([
-                          //     {
-                          //       name: 'generic.delete',
-                          //       icon: 'delete',
-                          //       click: () => {
-                          //         this.removePreset(preset);
-                          //       }
-                          //     }
-                          //   ]).open(event);
-                          // },
                           onConfirm(formData) {
 
                               const hexStr = formData.color.toHexString();
@@ -115,6 +104,24 @@
                               this.close()
                           }
                       }).show()
+                      // For replacing spaces with underscores in ID section
+                      const inputRef = document.getElementById('id');
+                      inputRef.addEventListener('input', () => {
+                        const orignalSelectionStart = inputRef.selectionStart;
+
+                        inputRef.value = inputRef.value.toLowerCase().replace(/\s+/, '_');
+
+                        // Reset caret position
+                        if (inputRef.createTextRange) {
+                            const range = inputRef.createTextRange();
+                            range.move(' ', orignalSelectionStart);
+                            range.select();
+                            return;
+                        }
+                        
+                        inputRef.focus();
+                        inputRef?.setSelectionRange?.(orignalSelectionStart, orignalSelectionStart);
+                      });
                   }
               }].concat("_", defaultColourFunction())
           }
