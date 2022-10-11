@@ -116,11 +116,12 @@
                             });
                             var shouldCreateGroup = formResult.shouldCreateGroup;
                             Cube.selected.forEach(function (cube, i) {
-                                var group;
+                                var group = cube.parent;
                                 if (shouldCreateGroup) {
                                     group = new Group(
                                         cube.name + " group"
                                     ).init();
+                                    group.addTo(cube.parent);
                                     cube.addTo(group);
                                 }
 
@@ -157,9 +158,7 @@
                                         rotation: newCubeRotation,
                                         name: cube.name + "_" + j,
                                     }).init();
-                                    if (shouldCreateGroup) {
-                                        newCube.addTo(group);
-                                    }
+                                    newCube.addTo(group);
                                     elementsToAdd.push(newCube);
                                 }
                             });
