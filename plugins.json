@@ -580,5 +580,15 @@
 		"version": "1.0.1",
       		"min_version": "4.2.0",
 		"variant": "both"
+	},
+	"resourcepack-packager": {
+		"title": "Resourcepack Packager",
+		"author": "leopoldhub",
+		"description": "Export your java models and texture into a resourcepack",
+		"icon": "fa-file-zipper",
+		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "4.4.0",
+		"variant": "both"
 	}
 }
