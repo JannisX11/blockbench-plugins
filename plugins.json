@@ -418,7 +418,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
