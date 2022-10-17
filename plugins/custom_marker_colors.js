@@ -3,234 +3,245 @@
   const E = s => $(document.createElement(s))
   const errorTitle = "Invalid Marker!"
   const duplicateIDErrorTitle = "This ID already exists!"
-  const errorMessage = 'You have made an invalid marker because you have empty fields. Make sure that you leave no fields blank.'
-  const duplicateIDErrorMessage = 'The ID of your marker color is already taken by a default marker color. Please enter a name which does not have the same ID as the default colors\n\nNote: Marker colors are derived from your marker name but lowercase and with `_` instead of spaces.'
+  const errorMessage = "You have made an invalid marker because you have empty fields. Make sure that you leave no fields blank."
+  const duplicateIDErrorMessage = "The ID of your marker color is already taken by a default marker color. Please enter a name which does not have the same ID as the default colors\n\nNote: Marker colors are derived from your marker name but lowercase and with `_` instead of spaces."
   const id = "custom_marker_colors"
   const name = "Custom Marker Colors"
   const icon = "colorize"
   const author = "SirJain and Geode" 
   const defaultMarkerArray = markerColors.map(e => e.id)
   const links = {
-      // Twitter & Discord
-      twitter: "https://www.twitter.com/SirJain2",
-      twittergeode: "https://twitter.com/GeodeModels",
-      discord: "https://discord.gg/wM4CKTbFVN"
+    // Twitter & Discord
+    twitter: "https://www.twitter.com/SirJain2",
+    twittergeode: "https://twitter.com/GeodeModels",
+    discord: "https://discord.gg/wM4CKTbFVN"
   }
   Plugin.register(id, {
-      title: name,
-      icon,
-      author,
-      description: "Allows users to add custom marker colors.",
-      about: "With this plugin, you can add more marker colors to allow for futher customization.\n## How to use\nSimply go to the menu where you add custom marker colors. Click on the new button named `Add Custom Marker`, fill out the fields leaving nothing blank, and click `Add`. Your color will be added to the default list!",
-      tags: ["Marker Color", "Customize", "UX"],
-      version: "1.0.0",
-      min_version: "4.2.0",
-      variant: "both",
-      oninstall() { 
-        showAbout(true)
-        Blockbench.showQuickMessage("Installed Custom Marker Colors!", 3000)
-      },
-      onload() {
-          addAboutButton()
-          defaultColourFunction = Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children
-          Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = () => {
-              return [
-                {
-                  icon: "fa-plus",
-                  name: "Add Custom Marker",
-                  color: "#000000",
-                  click() {
-                      createMarkersDialog = new Blockbench.Dialog({
-                          id: "add_custom_marker",
-                          title: "Add Custom Marker",
-                          buttons:['Add Marker', 'Cancel'],
-                          lines: [`
-                          <style>
-                            input#id {
-                              text-transform: lowercase;
-                            }
-                          </style>
-                        `],
-                          form: {
-                              name: {
-                                  label: "Marker Name",
-                                  type: 'text',
-                                  value: ""
-                              },
-                              color: {
-                                  label: "Choose Color",
-                                  type: 'color',
-                                  value: "#6E6E6E"
-                              }
-                          },
-                          onConfirm(formData) {
-
-                              const hexStr = formData.color.toHexString();
-                              const rawID = formData.name;
-                              const FormID = rawID.toLowerCase().replace(" ", "_");
-
-                              // case 1 - ID and name are not blank
-                              if ((FormID && formData.name) && !(defaultMarkerArray.includes(FormID))) {
-                                  Blockbench.showQuickMessage(`Added marker color "${formData.name}"`, 3000)
-
-                                  // update marker colors
-                                  markerColors.push({
-                                      id: FormID,
-                                      name: formData.name,
-                                      standard: hexStr,
-                                      pastel: hexStr
-                                  })
-
-                                  Canvas.updateMarkerColorMaterials()
-                              }
-
-                              // case 2 - Duplicate ID
-                              if (defaultMarkerArray.includes(FormID)) {
-                                Blockbench.showMessageBox({
-                                  title: duplicateIDErrorTitle,
-                                  message: duplicateIDErrorMessage
-                                })
-                              }
-                              
-                              // case 3 - ID and name are blank
-                              if (FormID === "" || formData.name === "") {
-                                  Blockbench.showMessageBox({
-                                      title: errorTitle,
-                                      message: errorMessage
-                                  })
-                              }
-                          },
-                          onCancel() {
-                              // close
-                              this.close()
-                          }
-                      }).show()
-                  }
-              },
-              {
-              icon: "settings",
-              name: "Edit Markers",
-              color: "#000000",
-              type: "button",
-              click() {
-                editMarkersDialog = new Dialog({
-                  id: "edit_marker_colors_dialog",
-                  title: "Edit Marker Colors",
-                  buttons: [],
-                  lines: [`
-                    <style>
-                      dialog#edit_marker_colors_dialog #marker-colors {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 10px;
-                        padding-bottom: 20px;
-                      }
-
-                      dialog#edit_marker_colors_dialog .marker-color {
-                        display: flex;
-                        gap: 10px;
-                      }
-                      
-                      dialog#edit_marker_colors_dialog .marker-color-display {
-                        width: 24px;
-                        height: 24px;
-                        border-radius: 5px;
-                      }
-
-                      dialog#edit_marker_colors_dialog .marker-color-hex {
-                        color: grey;
-                        font-size: 14px;
-                        padding: 3px 0;
-                      }
-
-                      dialog#edit_marker_colors_dialog .marker-color-name {
-                        font-weight: bold;
-                      }
-
-                      dialog#edit_marker_colors_dialog .marker-color-remove {
-                        padding: 2px 0;
-                      }
-                    </style>
-                    <div id="marker-colors"></div>
-                  `],
-                  component: {
-                    template: `
-                      <div>
-                        <div style="display:flex;gap:8px">
-                          <button @click="create()">+  Add New Marker</button>
-                          <span style="flex-grow:1"></span>
-                          <button @click="close()">Close</button>
-                        </div>
-                      </div>
-                    `,
-                    methods: {
-                      create() {
-                        createMarkersDialog.show();
-                        editMarkersDialog.close();
-                      },
-                      close() {
-                        editMarkersDialog.close();
-                      }
-                    }
-                  },
-                }).show()
-                const container = $("dialog#edit_marker_colors_dialog #marker-colors")
-                for (const color of markerColors) {
-                  if (defaultMarkerArray.includes(color.id)) continue;
-                  const name = tl(`cube.color.${color.id}`)
-                  const markerDisplay = E("div").addClass("marker-color").append(
-                    E("div").addClass("marker-color-display").css("background-color", color.standard),
-                    E("div").addClass("marker-color-name").text(color.name),
-                    E("div").addClass("marker-color-hex").text(color.standard),
-                    E("div").addClass("marker-color-remove").attr("title", "Delete marker").append(`<i class="material-icons icon tool">delete</i>`)
-                    .on("click", e => {
-                      Blockbench.showQuickMessage(`Removed "${color.name}" marker`, 3000)
-                      const index = markerColors.indexOf(color)
-                      markerColors.splice(index, 1)
-                      Canvas.emptyMaterials.splice(index, 1)
-                      markerDisplay.remove()
-                    })
-                  ).appendTo(container)
-                }
-              }
-            }].concat("_", defaultColourFunction())
-          }
-      },
-      onunload() {
-          aboutAction.delete()
-          MenuBar.removeAction(`help.about_plugins.about_${id}`)
-          Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = defaultColourFunction
-      },
-      onuninstall()  {
-        Blockbench.showQuickMessage("Uninstalled Custom Marker Colors", 3000)
-      }
+    title: name,
+    icon,
+    author,
+    description: "Allows users to add their own marker colors.",
+    about: "With this plugin, you can add more marker colors to allow for futher customization.\n## How to use\nSimply go to the menu where you add custom marker colors. Click on the new button named `Add Custom Marker`, fill out the fields leaving nothing blank, and click `Add`. Your color will be added to the default list!",
+    tags: ["Marker Color", "Customize", "UX"],
+    version: "1.0.0",
+    min_version: "4.2.0",
+    variant: "both",
+    oninstall() { 
+      showAbout(true)
+      Blockbench.showQuickMessage("Installed Custom Marker Colors!", 3000)
+    },
+    onload() {
+      addAboutButton()
+      defaultColourFunction = Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children
+      Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = () => [
+        {
+          icon: "fa-plus",
+          name: "Add Custom Marker",
+          color: "#000000",
+          click: () => createMarkers()
+        },
+        {
+          icon: "settings",
+          name: "Edit Markers",
+          color: "#000000",
+          click: () => editMarkers()
+        }
+      ].concat("_", defaultColourFunction())
+    },
+    onunload() {
+      aboutAction.delete()
+      MenuBar.removeAction(`help.about_plugins.about_${id}`)
+      Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = defaultColourFunction
+    },
+    onuninstall()  {
+      Blockbench.showQuickMessage("Uninstalled Custom Marker Colors", 3000)
+    }
   })
 
-  function addAboutButton() {
-      let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
-      if (!about) {
-          about = new Action("about_plugins", {
-              name: "About Plugins...",
-              icon: "info",
-              children: []
+  function createMarkers() {
+    const createMarkersDialog = new Blockbench.Dialog({
+      id: "add_custom_marker",
+      title: "Add Custom Marker",
+      buttons: ["Add Marker", "Cancel"],
+      lines: [`
+        <style>
+          input#id {
+            text-transform: lowercase;
+          }
+        </style>
+      `],
+      form: {
+        name: {
+          label: "Marker Name",
+          type: "text",
+          value: ""
+        },
+        color: {
+          label: "Choose Color",
+          type: "color",
+          value: "#6E6E6E"
+        }
+      },
+      onConfirm(formData) {
+        const hexStr = formData.color.toHexString();
+        const rawID = formData.name;
+        const FormID = rawID.toLowerCase().replace(" ", "_");
+
+        // case 1 - ID and name are not blank
+        if ((FormID && formData.name) && !(defaultMarkerArray.includes(FormID))) {
+          Blockbench.showQuickMessage(`Added marker color "${formData.name}"`, 3000)
+
+          // update marker colors
+          markerColors.push({
+              id: FormID,
+              name: formData.name,
+              standard: hexStr,
+              pastel: hexStr
           })
-          MenuBar.addAction(about, "help")
+
+          Canvas.updateMarkerColorMaterials()
+        }
+
+        // case 2 - Duplicate ID
+        if (defaultMarkerArray.includes(FormID)) {
+          Blockbench.showMessageBox({
+            title: duplicateIDErrorTitle,
+            message: duplicateIDErrorMessage
+          })
+        }
+        
+        // case 3 - ID and name are blank
+        if (FormID === "" || formData.name === "") {
+          Blockbench.showMessageBox({
+            title: errorTitle,
+            message: errorMessage
+          })
+        }
+      },
+      onCancel() {
+        // close
+        this.close()
       }
-      aboutAction = new Action(`about_${id}`, {
-          name: `About ${name}...`,
-          icon,
-          click: () => showAbout()
+    }).show()
+  }
+
+
+  function editMarkers() {
+    const editMarkersDialog = new Dialog({
+      id: "edit_marker_colors_dialog",
+      title: "Edit Marker Colors",
+      buttons: [],
+      lines: [`
+        <style>
+          dialog#edit_marker_colors_dialog #marker-colors {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 20px;
+          }
+
+          dialog#edit_marker_colors_dialog .marker-color {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+          }
+          
+          dialog#edit_marker_colors_dialog .marker-color-display {
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+          }
+
+          dialog#edit_marker_colors_dialog .marker-color-hex {
+            color: grey;
+            font-size: 14px;
+            padding: 3px 0;
+          }
+
+          dialog#edit_marker_colors_dialog .marker-color-name {
+            font-weight: bold;
+          }
+
+          dialog#edit_marker_colors_dialog .marker-color-remove {
+            padding: 2px 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+          }
+
+          dialog#edit_marker_colors_dialog .spacer {
+            flex: 1;
+            height: 2px;
+            background-color: var(--color-button);
+          }
+        </style>
+        <div id="marker-colors"></div>
+      `],
+      component: {
+        template: `
+          <div>
+            <div style="display:flex;gap:8px">
+              <button @click="create()">+  Add New Marker</button>
+              <span style="flex-grow:1"></span>
+              <button @click="close()">Close</button>
+            </div>
+          </div>
+        `,
+        methods: {
+          create: () => createMarkers(),
+          close: () => editMarkersDialog.close()
+        }
+      },
+    }).show()
+    const container = $("dialog#edit_marker_colors_dialog #marker-colors")
+    for (const color of markerColors) {
+      if (defaultMarkerArray.includes(color.id)) continue;
+      const name = tl(`cube.color.${color.id}`)
+      const markerDisplay = E("div").addClass("marker-color").append(
+        E("div").addClass("marker-color-display").css("background-color", color.standard),
+        E("div").addClass("marker-color-name").text(color.name),
+        E("div").addClass("marker-color-hex").text(color.standard),
+        E("div").addClass("spacer"),
+        E("i").addClass("marker-color-remove material-icons icon tool").attr("title", "Delete marker").text("delete").on("click", e => {
+          Blockbench.showQuickMessage(`Removed "${color.name}" marker`, 3000)
+          const index = markerColors.indexOf(color)
+          markerColors.splice(index, 1)
+          Canvas.emptyMaterials.splice(index, 1)
+          markerDisplay.remove()
+        })
+      ).appendTo(container)
+    }
+    console.log(container.length)
+    if (!container.children().length) container.append(
+      E("p").text("No custom marker colours. Please add a new custom marker before trying to edit them.")
+    )
+  }
+
+  function addAboutButton() {
+    let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
+    if (!about) {
+      about = new Action("about_plugins", {
+        name: "About Plugins...",
+        icon: "info",
+        children: []
       })
-      about.children.push(aboutAction)
+      MenuBar.addAction(about, "help")
+    }
+    aboutAction = new Action(`about_${id}`, {
+      name: `About ${name}...`,
+      icon,
+      click: () => showAbout()
+    })
+    about.children.push(aboutAction)
   }
 
   function showAbout(banner) {
-      const infoBox = new Dialog({
-          id: "about",
-          title: name,
-          width: 780,
-          buttons: [],
-          lines: [`
+    const infoBox = new Dialog({
+      id: "about",
+      title: name,
+      width: 780,
+      buttons: [],
+      lines: [`
         <style>
           dialog#about .dialog_title {
             padding-left: 0;
@@ -258,9 +269,8 @@
         ${banner ? `<div id="banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
         <div id="content">
           <h1 style="margin-top:-10px">${name}</h1>
-            <p>Allows users to add custom marker colors.</p>
+            <p>Allows users to add their own marker colors.</p>
             <h4>Worth noting:</h4>
-            <p>- Marker IDs are auto-generated from your marker name. They are the same as your marker name, but lower-case and with underscores instead of spaces.</p>
             <p>- Currently, the only way to get rid of your custom markers altogether is to uninstall the plugin and restart Blockbench.</p>
             <p>- You can use these marker colors for meshes and keyframes too!
             <h4>How to use:</h4>
@@ -283,8 +293,8 @@
           </div>
         </div>
       `]
-      }).show()
-      $("dialog#about .dialog_title").html(`
+    }).show()
+    $("dialog#about .dialog_title").html(`
       <i class="icon material-icons">${icon}</i>
       ${name}
     `)
