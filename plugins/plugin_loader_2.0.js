@@ -202,10 +202,14 @@
               cursor: initial;
               color: var(--color-subtle_text)!important;
             }
-            dialog#plugins .plugin-button-bar > a {
+            dialog#plugins .plugin-button-bar > .link {
               text-decoration: none;
+              cursor: pointer;
             }
-            dialog#plugins .plugin-button-bar > a > i {
+            dialog#plugins .plugin-button-bar > .link:hover {
+              color: var(--color-light);
+            }
+            dialog#plugins .plugin-button-bar > .link > i {
               font-size: 1.5rem;
             }
             dialog#plugins .plugin-details-description {
@@ -423,11 +427,17 @@
                       <li class="plugin-tag-no-tags" @click="currentTag = 'No Tags'; detailsVisible = null">No Tags</li>
                     </ul>
                     <div class="spacer"></div>
-                    <a :href="'https://www.blockbench.net/plugins/' + plugin.id" title="View on the Blockbench website">
+                    <a v-if="plugin.source === 'store'" class="link" :href="'https://www.blockbench.net/plugins/' + plugin.id" title="View on the Blockbench website">
                       <i class="icon material-icons">language</i>
                     </a>
-                    <a :href="'https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/' + plugin.id + '.js'">
+                    <a v-if="plugin.source === 'store'" class="link" :href="'https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/' + plugin.id + '.js'"  title="View the source code on GitHub">
                       <i class="icon fab fa-github"></i>
+                    </a>
+                    <span v-if="plugin.source === 'file' && isApp" class="link" title="Show in File Explorer" @click="shell.showItemInFolder(plugin.path)">
+                      <i class="icon material-icons">folder</i>
+                    </span>
+                    <a v-if="plugin.source === 'url'" class="link" :href="plugin.path" title="View the source code">
+                      <i class="icon material-icons">language</i>
                     </a>
                   </div>
                   <div class="plugin-details-description">{{ plugin.description }}</div>
