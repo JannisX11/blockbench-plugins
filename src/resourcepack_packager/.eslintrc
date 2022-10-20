@@ -1,0 +1,36 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends": ["airbnb-base", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["airbnb-typescript/base", "prettier"],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "rules": {
+        "comma-dangle": "off",
+        "@typescript-eslint/comma-dangle": ["error", "never"]
+      }
+    }
+  ],
+  "plugins": ["@typescript-eslint", "prettier"],
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-restricted-syntax": "off",
+    "class-methods-use-this": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "none"
+      }
+    ],
+    "no-empty": "off",
+    "comma-dangle": ["error", "never"],
+    "import/prefer-default-export": "off"
+  }
+}
