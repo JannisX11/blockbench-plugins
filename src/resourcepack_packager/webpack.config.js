@@ -10,7 +10,7 @@ module.exports = {
         terserOptions: {
           output: {
             preamble:
-              '/* Blockbench "resourcepack-packager" Plugin created by leopoldhub*/\n\n/** This work is licensed under the Creative Commons Attribution 4.0 International License.\nTo view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA. */\n\n/* the source code is in the "src/resourcepack-packager" folder! */',
+              '/* Blockbench "resourcepack_packager" Plugin created by leopoldhub*/\n\n/** This work is licensed under the Creative Commons Attribution 4.0 International License.\nTo view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA. */\n\n/* the source code is in the "src/resourcepack_packager" folder! */',
             comments: false
           }
         },
@@ -30,8 +30,11 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js']
   },
+  externals: {
+    jszip: 'JSZip'
+  },
   output: {
-    filename: 'resourcepack-packager.js',
+    filename: 'resourcepack_packager.js',
     path: path.resolve(__dirname, '../../plugins')
   }
 };

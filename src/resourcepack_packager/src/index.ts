@@ -20,11 +20,12 @@ import pluginEmitter from './pluginEmitter';
     });
   });
 
-  Plugin.register('resourcepack-packager', {
+  Plugin.register('resourcepack_packager', {
     title: 'Resourcepack Packager',
     author: 'leopoldhub',
     description: 'Export your java models and texture into a resourcepack',
     icon: 'fa-file-zipper',
+    tags: ['Minecraft: Java Edition', 'Resourcepack', 'Exporter'],
     variant: 'both',
     version: '1.0.0',
     oninstall: () => {

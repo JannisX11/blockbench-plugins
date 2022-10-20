@@ -32,7 +32,7 @@ export function compileJavaBlockCodec(
   credits: string = ''
 ) {
   // @ts-ignore
-  const data = JSON.parse(Codecs.java_block.compile());
+  const data = Codecs.java_block.compile({ raw: true });
   (data as { credit: string }).credit = enableCredits ? credits : '';
   return data;
 }

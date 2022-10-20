@@ -9,7 +9,7 @@ export function getDefaultResourcepackFormDialogOptions(): ResourcepackOptions {
     resourcepackDescription: '',
     enableResourcepackCredits: true,
     resourcepackCredits:
-      'Created with Blockbench [Exported as resourcepack with the "resourcepack-packager" plugin]',
+      'Created with Blockbench [Exported as resourcepack with the "resourcepack_packager" plugin]',
     resourcepackVersion: Object.values(javaPackVersions)
       .reverse()[0]
       .toString(),

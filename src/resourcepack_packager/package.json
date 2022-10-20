@@ -1,5 +1,5 @@
 {
-  "name": "resourcepack-packager",
+  "name": "resourcepack_packager",
   "version": "1.0.0",
   "description": "Export your java models and texture into a resourcepack",
   "scripts": {
