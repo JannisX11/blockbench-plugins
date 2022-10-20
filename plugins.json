@@ -418,7 +418,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -589,7 +589,17 @@
 		"about" : "With this plugin, you can add more marker colors to allow for futher customization.\n## How to use\nSimply go to the menu where you add custom marker colors. Click on the new button named `Add Custom Marker`, fill out the fields leaving nothing blank, and click `Add`. Your color will be added to the default list!",
 		"tags": ["Marker Color", "Customize", "UX"],
 		"version": "1.0.0",
-      		"min_version": "4.2.0",
+    "min_version": "4.2.0",
+    "variant": "both"
+  },
+	"resourcepack-packager": {
+		"title": "Resourcepack Packager",
+		"author": "leopoldhub",
+		"description": "Export your java models and texture into a resourcepack",
+		"icon": "fa-file-zipper",
+		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "4.4.0",
 		"variant": "both"
 	}
 }
