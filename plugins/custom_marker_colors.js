@@ -37,6 +37,22 @@
     onload() {
       addAboutButton()
 
+      actions = [
+        new Action("add_marker_color", {
+          name: "Add Marker Color",
+          description: "Add a custom marker color",
+          icon: "fa-plus",
+          click: () => createMarkers()
+        }),
+
+        new Action("edit_marker_colors", {
+          name: "Edit Marker Colors",
+          description: "Manage your custom marker colors",
+          icon: "settings",
+          click: () => editMarkers()
+        })
+      ]
+
       // Update list
       for (const [name, hex] of Object.entries(customMarkers)) {
         markerColors.push({
@@ -50,20 +66,12 @@
       Canvas.updateMarkerColorMaterials()
 
       defaultColourFunction = Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children
-      Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = () => [
-        {
-          icon: "fa-plus",
-          name: "Add Marker Color",
-          color: "#000000",
-          click: () => createMarkers()
-        },
-        {
-          icon: "settings",
-          name: "Edit Marker Colors",
-          color: "#000000",
-          click: () => editMarkers()
-        }
-      ].concat("_", defaultColourFunction())
+      MenuBar.addAction({
+        id: "marker_colors",
+        name: "Marker Colors",
+        children: actions,
+        icon: "fa-cube"
+      }, "tools")
     },
     onunload() {
       aboutAction.delete()
@@ -71,6 +79,7 @@
       Blockbench.showQuickMessage("Uninstalled Custom Marker Colors", 3000)
 
       MenuBar.removeAction(`help.about_plugins.about_${id}`)
+      MenuBar.removeAction("tools.marker_colors")
       Cube.prototype.menu.structure.find(e => e.name === "menu.cube.color").children = defaultColourFunction
 
       for (const name of Object.keys(customMarkers)) {
