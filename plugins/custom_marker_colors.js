@@ -46,7 +46,7 @@
         }),
 
         new Action("edit_marker_colors", {
-          name: "Edit Marker Colors",
+          name: "Manage Marker Colors",
           description: "Manage your custom marker colors",
           icon: "settings",
           click: () => editMarkers()
