@@ -581,7 +581,7 @@
       		"min_version": "4.2.0",
 		"variant": "both"
 	},
-	"resourcepack-packager": {
+	"resourcepack_packager": {
 		"title": "Resourcepack Packager",
 		"author": "leopoldhub",
 		"description": "Export your java models and texture into a resourcepack",
