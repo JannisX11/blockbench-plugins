@@ -5,7 +5,7 @@
   const icon = "gradient"
   const author = "Ewan Howell"
   const links = {
-    website: "https://www.ewanhowell.com/",
+    website: "https://ewanhowell.com/",
     discord: "https://discord.com/invite/FcpnSjrP82"
   }
   Plugin.register(id, {
@@ -15,7 +15,7 @@
     description: "Generate hue shifted gradient palettes from a single colour.",
     about: "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">\nOutput gradient\n<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon to generate a colour gradient.",
     tags: ["Paint", "Palette", "Color"],
-    version: "1.0.1",
+    version: "1.1.0",
     min_version: "4.2.0",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -160,6 +160,10 @@
         }
       })
       Toolbars.palette.add(generate)
+    },
+    onuninstall() {
+      localStorage.removeItem("colour_gradient_steps")
+      localStorage.removeItem("colour_gradient_angle")
     },
     onunload() {
       aboutAction.delete()
