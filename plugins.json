@@ -371,7 +371,7 @@
 		"author": "JannisX11",
 		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Minecraft: Bedrock Edition"],
+		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"version": "2.0.1",
 		"min_version": "3.0.0",
 		"variant": "both"
@@ -589,7 +589,7 @@
 		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Ground Plane", "Animation", "Customization"],
 		"version": "1.0.1",
-      		"min_version": "4.2.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"custom_marker_colors": {
@@ -600,8 +600,8 @@
 		"about" : "With this plugin, you can add more marker colors to allow for futher customization.\n## How to use\nSimply go to the menu where you add custom marker colors. Click on the new button named `Add Custom Marker`, fill out the fields leaving nothing blank, and click `Add`. Your color will be added to the default list!",
 		"tags": ["Marker Color", "Customize", "UX"],
 		"version": "1.0.0",
-    		"min_version": "4.2.0",
-    		"variant": "both"
+		"min_version": "4.2.0",
+		"variant": "both"
  	},
 	"resourcepack_packager": {
 		"title": "Resourcepack Packager",
