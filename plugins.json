@@ -200,7 +200,7 @@
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "6.6.0",
+		"version": "6.6.1",
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
@@ -235,6 +235,28 @@
 		"tags": ["Menu", "Start screen"],
 		"version": "1.0.0",
 		"min_version": "4.4.1",
+		"variant": "both"
+	},
+	"preview_scene_customiser": {
+		"title": "Preview Scene Customiser",
+		"icon": "image",
+		"author": "Ewan Howell",
+		"description": "Create your very own preview scenes. Download preview scenes from the Preview Scene Store. Edit and manage existing preview scenes.",
+		"about": "## Creating your own preview scenes\n\nWith this plugin, you can create your own preview scenes that you can use with any model in Blockbench. A new format has been added that allows you to create, export, and install your very own preview scenes.\n\n## Downloading preview scenes\n\nA preview scene store is included, that allows you to browse and download preview scenes created by other people. Any downloaded scenes can be edited and customised as you wish from the preview scene management menu. You can submit your own preview scenes to the [GitHub Repository](https://github.com/ewanhowell5195/preview-scene-customiser/).\n\n## How to use\n\nYou can find all the options to manage, import, and download custom preview scenes under the \n`View > Preview Scene Customiser` menu.\n\nTo create custom preview scenes, use the new **Preview Scene** model format, and then export or install them from the \n`File > Export` menu.",
+		"tags": ["Preview Scenes", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.4.2",
+		"variant": "both"
+	},
+	"plugin_loader_2.0": {
+		"title": "Plugin Loader 2.0",
+		"icon": "extension",
+		"author": "Ewan Howell",
+		"description": "Replace the default Blockbench Plugin Loader interface with an improved and redesigned Plugin Loader interface.",
+		"about": "This plugin replaces the built in Blockbench Plugin Loader interface with a new and improved Plugin Loader.\n\n## Plugin Pages\nEach plugin now gets its own page where you can view all of its information, as well as install/uninstall/reload it.\n\n## Plugin Tabs\nAll of the tags used across the plugins are now shown as a list of tabs up the side of the Plugin Loader, allowing you to quickly and easily browse and filter by the tags.",
+		"tags": ["Plugins", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"threecore_exporter": {
@@ -349,7 +371,7 @@
 		"author": "JannisX11",
 		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Minecraft: Bedrock Edition"],
+		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"version": "2.0.1",
 		"min_version": "3.0.0",
 		"variant": "both"
@@ -407,7 +429,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.0.9",
+		"version": "1.1.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -567,7 +589,28 @@
 		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Ground Plane", "Animation", "Customization"],
 		"version": "1.0.1",
-      		"min_version": "4.2.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"custom_marker_colors": {
+		"title": "Custom Marker Colors",
+		"icon": "colorize",
+		"author": "SirJain and Geode",
+		"description": "Allows users to add their own marker colors.",
+		"about" : "With this plugin, you can add more marker colors to allow for futher customization.\n## How to use\nSimply go to the menu where you add custom marker colors. Click on the new button named `Add Custom Marker`, fill out the fields leaving nothing blank, and click `Add`. Your color will be added to the default list!",
+		"tags": ["Marker Color", "Customize", "UX"],
+		"version": "1.0.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+ 	},
+	"resourcepack_packager": {
+		"title": "Resourcepack Packager",
+		"author": "leopoldhub",
+		"description": "Export your java models and texture into a resourcepack",
+		"icon": "fa-file-zipper",
+		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "4.4.0",
 		"variant": "both"
 	}
 }
