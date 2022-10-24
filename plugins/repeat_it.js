@@ -6,8 +6,8 @@
         author: "Ocraftyone",
         icon: "content_copy",
         description:
-            "Allows you to repeat shapes with a translation applied to each new object",
-        about: "Allows you to repeat shapes with a translation applied to each new object.\n\nAt this time, the only shape that can be copied are cubes, but this may be updated in the future.",
+            "Allows you to repeat cubes with a translation applied to each new object",
+        about: "Allows you to repeat cubes with a translation applied to each new object.\n\nAt this time, the only shape that can be copied are cubes, but this may be updated in the future.",
         version: "0.0.1",
         variant: "both",
         onload () {
@@ -103,7 +103,7 @@
                                             option_dialog.show()
                                         }
                                     });
-                                    return;                                
+                                    return;
                                 }
                             }
                             
@@ -162,6 +162,7 @@
                                     elementsToAdd.push(newCube);
                                 }
                             });
+                            Canvas.updateView({ elements: elementsToAdd, element_aspects: {transform: true} })
                             Undo.finishEdit("Repeat shape", {
                                 outliner: true,
                                 elements: elementsToAdd,
