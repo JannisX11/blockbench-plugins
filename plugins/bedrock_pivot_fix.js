@@ -8,7 +8,7 @@ Plugin.register('bedrock_pivot_fix', {
 	author: 'JannisX11',
 	description: 'Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.',
 	about: 'After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.',
-    tags: ["Minecraft: Bedrock Edition"],
+    tags: ["Deprecated", "Minecraft: Bedrock Edition"],
 	version: '2.0.1',
 	min_version: '3.0.0',
 	variant: 'both',

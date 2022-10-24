@@ -11,8 +11,8 @@ To install a plugin, go to File > Plugins... and switch to the available tab. Fi
 
 * Discover plugins: [blockbench.net/plugins](https://blockbench.net/plugins)
 * Main Blockbench repository: [JannisX11/blockbench](https://github.com/JannisX11/blockbench)
-* Plugin Documentation: [documentation.blockbench.net](https://documentation.blockbench.net)
-* Discord plugin development channel: [#bb-plugin-dev](https://discord.gg/xtauSmR)
+* Plugin Documentation: [blockbench.net/wiki/api/plugin](https://www.blockbench.net/wiki/api/plugin)
+* Discord plugin development forum: [#bb-plugin-dev](https://discord.gg/2Df3h6ge9f)
 
 ## Conventions
 
