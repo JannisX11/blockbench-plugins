@@ -1,12 +1,12 @@
 (async function () {
-  let format, codec, action, config, property, setResolution, textureAdd, model, aboutAction
+  let format, codec, action, config, property, setResolution, textureAdd, model, aboutAction, styles
   const id = "optifine_player_models"
   const name = "OptiFine Player Models"
   const icon = "icon-player"
   const author = "Ewan Howell"
   const links = {
     discord: "https://discord.com/invite/FcpnSjrP82",
-    ewan: "https://www.ewanhowell.com/",
+    ewan: "https://ewanhowell.com/",
     tutorial: "https://youtu.be/0rT-q95dpV0"
   }
   const groups = [
@@ -43,11 +43,12 @@
     description: "Adds a new format that allows you to create OptiFine player models.",
     about: "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.1.1",
+    version: "1.2.0",
     min_version: "4.2.0",
     variant: "both",
     oninstall: () => showAbout(true),
     async onload() {
+      addStyles()
       addAbout()
       codec = new Codec("optifine_player_model_codec", {
         name: "OptiFine Player Model",
@@ -531,6 +532,7 @@
         name: "OptiFine Player Model",
         description: "Player models for OptiFine",
         icon: "icon-player",
+        category: "minecraft",
         show_on_start_screen: true,
         model_identifier: false,
         box_uv: true,
@@ -541,7 +543,58 @@
         integer_size: true,
         codec,
         onActivation: () => Canvas.scene.add(model),
-        onDeactivation: () => Canvas.scene.remove(model)
+        onDeactivation: () => Canvas.scene.remove(model),
+        format_page: {
+          component: {
+            methods: {
+              load: () => loadInterface(entityData.categories[0].name, data),
+              info: () => showAbout()
+            },
+            template: `
+              <div style="display:flex;flex-direction:column;height:100%;">
+                <p class="format_description">Create player models for use with OptiFine</p>
+                <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition with OptiFine</span></p>
+                <content style="flex:1;margin:-22px 0 20px">
+                  <h3 class="markdown"><strong>How to use:</strong></h3>
+                  <br>
+                  <button @click="info">Show information</button>
+                  <br>
+                  <br>
+                  <h3 class="markdown"><strong>Limitations:</strong></h3>
+                  <p class="markdown">
+                    <ul>
+                      <li>They are client side only.</li>
+                      <li>They are not part of resource packs.</li>
+                      <li>They require OptiFine, and JVM args set in the launcher.</li>
+                      <li>Animations are not supported.</li>
+                      <li>You can only target specific players, not all players.</li>
+                    </ul>
+                  </p>
+                </content>
+                <div class="socials">
+                  <a href="${links["website"]}" class="open-in-browser">
+                    <i class="icon material-icons" style="color:#33E38E">language</i>
+                    <label>By ${author}</label>
+                  </a>
+                  <a href="${links["discord"]}" class="open-in-browser">
+                    <i class="icon fab fa-discord" style="color:#727FFF"></i>
+                    <label>Discord Server</label>
+                  </a>
+                  <a href="${links["tutorial"]}" class="open-in-browser">
+                    <i class="icon fab fa-youtube" style="color:#FF4444"></i>
+                    <label>Player Model Tutorial</label>
+                  </a>
+                </div>
+                <div class="button_bar">
+                  <button id="create_new_model_button" style="margin-top:20px;" @click="Formats.preview_scene_model.new()">
+                    <i class="icon icon-player"></i>
+                    Create New OptiFine Player Model
+                  </button>
+                </div>
+              </div>
+            `,
+          }
+        }
       })
       Object.defineProperty(format, "integer_size", {get: _ => Project.box_uv})
       codec.format = format
@@ -562,10 +615,6 @@
           formats: [format.id]
         }
       })
-      setTimeout(() => {
-        const templateLoader = $('li>h3:contains("CEM Template Model")').parent()
-        $('li>h3:contains("OptiFine Player Model")').parent().insertAfter(templateLoader.length ? templateLoader : $("#start-files>.start_screen_left>ul>li>span>i.icon-format_optifine").parent().parent())
-      }, 0)
       setResolution = () => {
         if (Project.format === format) {
           Project.texture_width = Project.texture_height = 64
@@ -677,10 +726,11 @@
     onunload() {
       Blockbench.removeListener("new_project", setResolution)
       Blockbench.removeListener("add_texture", textureAdd)
+      codec.delete()
       format.delete()
       action.delete()
       config.delete()
-      codec.delete()
+      styles.delete()
       property.delete()
       aboutAction.delete()
       MenuBar.removeAction("file.export.export_optifine_player_model")
@@ -688,6 +738,49 @@
       MenuBar.removeAction("help.about_plugins.about_optifine_player_models")
     }
   })
+  function addStyles() {
+    styles = Blockbench.addCSS(`
+      #format_page_optifine_player_model .socials {
+        padding: 0!important;
+        display: flex;
+        max-width: 540px;
+        margin: auto;
+        width: 100%;
+      }
+      #format_page_optifine_player_model .socials a {
+        text-align: center;
+        flex-basis: 0;
+        flex-grow: 1;
+        text-decoration: none;
+        padding: 6px;
+        padding-top: 10px;
+      }
+      #format_page_optifine_player_model .socials a i {
+        display: block;
+        font-size: 2em;
+        max-width: none;
+        pointer-events: none;
+      }
+      #format_page_optifine_player_model .socials a label {
+        color: var(--color-subtle_text);
+        cursor: inherit;
+        pointer-events: none;
+      }
+      #format_page_optifine_player_model .socials a:hover {
+        background-color: var(--color-accent);
+      }
+      #format_page_optifine_player_model .socials a:hover * {
+        color: var(--color-light)!important;
+      }
+      #format_page_optifine_player_model code {
+        padding: 0 2px;
+        background-color: var(--color-back);
+        border: 1px solid var(--color-border);
+        user-select: text;
+        font-family: var(--font-code);
+      }
+    `)
+  }
   function addAbout() {
     let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
     if (!about) {
