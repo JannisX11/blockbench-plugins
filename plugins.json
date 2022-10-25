@@ -612,5 +612,15 @@
 		"version": "1.0.0",
 		"min_version": "4.4.0",
 		"variant": "both"
+	},
+	"minecraft_block_wizard": {
+		"title": "Minecraft Block Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "fas.fa-hat-wizard",
+		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.0.0",
+		"min_version": "4.4.0",
+		"variant": "both"
 	}
 }
