@@ -986,7 +986,7 @@
         frameCount++
         const now = Date.now()
         const dt = (now - prevTime) / 1000
-        constants.frame_time = dt
+        constants.frame_time = dt * timescale
         prevTime = now
         const difference = 20 * timescale * dt
         time += difference
@@ -1627,7 +1627,7 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.6.2",
+    version: "6.6.3",
     min_version: "4.3.0",
     variant: "both",
     oninstall: () => showAbout(true),
