@@ -25,7 +25,7 @@
     description,
     about: `## Creating your own preview scenes\n\nWith this plugin, you can create your own preview scenes that you can use with any model in Blockbench. A new format has been added that allows you to create, export, and install your very own preview scenes.\n\n## Downloading preview scenes\n\nA preview scene store is included, that allows you to browse and download preview scenes created by other people. Any downloaded scenes can be edited and customised as you wish from the preview scene management menu. You can submit your own preview scenes to the [GitHub Repository](${links["github"]}).\n\n## How to use\n\nYou can find all the options to manage, import, and download custom preview scenes under the \n\`View > Preview Scene Customiser\` menu.\n\nTo create custom preview scenes, use the new **Preview Scene** model format, and then export or install them from the \n\`File > Export\` menu.`,
     tags: ["Blockbench", "Preview Scenes"],
-    version: "1.0.0",
+    version: "1.0.1",
     min_version: "4.4.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -130,7 +130,7 @@
             }
           }
           const previewScene = {}
-          if (checkExport("comment", settings.credit.value)) previewScene.credit = settings.credit.value
+          if (checkExport("comment", Project.credit || settings.credit.value)) previewScene.credit = Project.credit || settings.credit.value
           if (options.settings) previewScene.settings = options.settings
           const texture = Texture.getDefault()
           if (texture) {
@@ -162,6 +162,7 @@
           })
           newProject(Formats[format.id])
           this.dispatchEvent("parse", {model})
+          if (typeof model.credit === "string") Project.credit = model.credit
           if (Array.isArray(model.texture_size)) {
             Project.texture_width = model.texture_size[0]
             Project.texture_height = model.texture_size[1]
