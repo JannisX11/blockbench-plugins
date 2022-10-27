@@ -439,7 +439,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},
