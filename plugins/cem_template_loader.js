@@ -477,6 +477,8 @@
       return err
     }
   }
+  const reInnerGroups = /(?<!\w)\([^(),]*\)/g
+  const reInnerFuncArgs = /(?<=\w\()[^()]*(?=\))/g
   function preprocessCEMA(anim) {
     if (typeof anim === "number") return anim
     if (typeof anim !== "string") throw ["Expression must be a string/number"]
@@ -486,18 +488,17 @@
     for (const bool of boolsMatch) boolMap.set(bool[0], bools.get(bool[0]) ?? enabledBooleans.has(bool[0]) ? true : false)
     const check = anim.match(/[^a-z0-9_,\+\-\*\/%!&\|>=<\(\)\[\]:\.\s]/gi)
     if (check) throw [`Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
-    const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--/gi)
+    const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--|\.\.\.|(?<![$\u200c\u200d\p{ID_Continue}])\d+n|[$\u200c\u200d\p{ID_Continue}]+\.[$\u200c\u200d\p{ID_Continue}]+[\.\(]|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>>?|\*\*/ui)
     if (check2) throw [`Invalid syntax "<span style="font-weight:600">${check2[0].replace(/</g, "&lt;")}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
     if (anim.match(/\(/g)?.length !== anim.match(/\)/g)?.length) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Number of opening and closing brackets do not match`]
     let s = anim, allArgs = ""
-    while (s.match(/(?<!\w)\([^(),]*\)/)) s = s.replace(/(?<!\w)\([^(),]*\)/g, "")
-    while (s.match(/(?<=\w\()[^()]*(?=\))/)) {
-      allArgs += s.match(/(?<=\w\()[^()]*(?=\))/g).join('')
+    while (reInnerGroups.test(s)) s = s.replace(reInnerGroups, "")
+    while (reInnerFuncArgs.test(s)) {
+      allArgs += s.match(reInnerFuncArgs).join("")
       s = s.replace(/\w\([^()]*\)/g, "")
-      while (s.match(/(?<!\w)\([^(),]*\)/)) s = s.replace(/(?<!\w)\([^(),]*\)/g, "")
+      while (reInnerGroups.test(s)) s = s.replace(reInnerGroups, "")
     }
-    const check3 = allArgs.match(/,/g)?.length !== anim.match(/,/g)?.length
-    if (check3) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Commas are not allowed outside of functions`]
+    if (allArgs.match(/,/g)?.length !== anim.match(/,/g)?.length) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Commas are not allowed outside of functions`]
     return anim
       .replace(/:[a-z_]([a-z0-9_]+)?/gi, m => `.children["${m.slice(1)}"]`)
       .replace(/(?<=[\s\n(+*\/%!&|=<>,-]|^)[a-z_]([a-z0-9_]+)?/gi, (m, g, o, s) => {
