@@ -622,5 +622,15 @@
 		"version": "1.0.0",
 		"min_version": "4.4.0",
 		"variant": "both"
+	},
+	"grayscale_preview": {
+		"title": "Grayscale Preview",
+		"author": "JannisX11",
+		"description": "Adds a Grayscale preview mode. The mode can be toggled from the View menu.",
+		"icon": "filter_b_and_w",
+		"tags": ["Viewport"],
+		"version": "1.0.0",
+		"min_version": "4.3.0",
+		"variant": "both"
 	}
 }
