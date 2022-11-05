@@ -527,11 +527,6 @@ new MathBrush({
 	func: ({uvX, uvY}) => uvX >= 0 && uvX <= 1 && uvY >= 0 && uvY <= 1 ? 1: 0
 })
 new MathBrush({
-	id: 'random',
-	icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' enable-background='new 0 0 24 24' height='24px' viewBox='0 0 24 24' width='24px' fill='white'%3E%3Cg%3E%3Crect fill='none' height='24' width='24'/%3E%3C/g%3E%3Cg%3E%3Cpath d='M11.07,12.85c0.77-1.39,2.25-2.21,3.11-3.44c0.91-1.29,0.4-3.7-2.18-3.7c-1.69,0-2.52,1.28-2.87,2.34L6.54,6.96 C7.25,4.83,9.18,3,11.99,3c2.35,0,3.96,1.07,4.78,2.41c0.7,1.15,1.11,3.3,0.03,4.9c-1.2,1.77-2.35,2.31-2.97,3.45 c-0.25,0.46-0.35,0.76-0.35,2.24h-2.89C10.58,15.22,10.46,13.95,11.07,12.85z M14,20c0,1.1-0.9,2-2,2s-2-0.9-2-2c0-1.1,0.9-2,2-2 S14,18.9,14,20z'/%3E%3C/g%3E%3C/svg%3E",
-	func: () => Math.round(Math.random())
-})
-new MathBrush({
 	id: 'line',
 	icon: "data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m 0 50 l 100 0' stroke-width='4px' stroke='white' /%3E%3C/svg%3E",
 	func: ({localY}) => localY == 0 || Math.abs(localY) == 0.5
