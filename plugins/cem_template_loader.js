@@ -477,6 +477,8 @@
       return err
     }
   }
+  const reInnerGroups = /(?<!\w)\([^(),]*\)/g
+  const reInnerFuncArgs = /(?<=\w\()[^()]*(?=\))/g
   function preprocessCEMA(anim) {
     if (typeof anim === "number") return anim
     if (typeof anim !== "string") throw ["Expression must be a string/number"]
@@ -486,18 +488,17 @@
     for (const bool of boolsMatch) boolMap.set(bool[0], bools.get(bool[0]) ?? enabledBooleans.has(bool[0]) ? true : false)
     const check = anim.match(/[^a-z0-9_,\+\-\*\/%!&\|>=<\(\)\[\]:\.\s]/gi)
     if (check) throw [`Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
-    const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--/gi)
+    const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--|\.\.\.|(?<![$\u200c\u200d\p{ID_Continue}])\d+n|[$\u200c\u200d\p{ID_Continue}]+\.[$\u200c\u200d\p{ID_Continue}]+[\.\(]|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>>?|\*\*/ui)
     if (check2) throw [`Invalid syntax "<span style="font-weight:600">${check2[0].replace(/</g, "&lt;")}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
     if (anim.match(/\(/g)?.length !== anim.match(/\)/g)?.length) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Number of opening and closing brackets do not match`]
     let s = anim, allArgs = ""
-    while (s.match(/(?<!\w)\([^(),]*\)/)) s = s.replace(/(?<!\w)\([^(),]*\)/g, "")
-    while (s.match(/(?<=\w\()[^()]*(?=\))/)) {
-      allArgs += s.match(/(?<=\w\()[^()]*(?=\))/g).join('')
+    while (reInnerGroups.test(s)) s = s.replace(reInnerGroups, "")
+    while (reInnerFuncArgs.test(s)) {
+      allArgs += s.match(reInnerFuncArgs).join("")
       s = s.replace(/\w\([^()]*\)/g, "")
-      while (s.match(/(?<!\w)\([^(),]*\)/)) s = s.replace(/(?<!\w)\([^(),]*\)/g, "")
+      while (reInnerGroups.test(s)) s = s.replace(reInnerGroups, "")
     }
-    const check3 = allArgs.match(/,/g)?.length !== anim.match(/,/g)?.length
-    if (check3) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Commas are not allowed outside of functions`]
+    if (allArgs.match(/,/g)?.length !== anim.match(/,/g)?.length) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Commas are not allowed outside of functions`]
     return anim
       .replace(/:[a-z_]([a-z0-9_]+)?/gi, m => `.children["${m.slice(1)}"]`)
       .replace(/(?<=[\s\n(+*\/%!&|=<>,-]|^)[a-z_]([a-z0-9_]+)?/gi, (m, g, o, s) => {
@@ -1058,10 +1059,13 @@
           if (step.type === "animation" && typeof anim === "string" && step.part.name in parents) {
             step.anim = step.anim.replace(`ctx["Symbol.for(${step.part.name})"].${step.transform}`, parents[step.part.name][step.transform])
           }
-          const parsed = parseCEMA(step.anim)
+          let parsed = parseCEMA(step.anim)
           if (isNaN(parsed)) {
-            if (parsed?.message) throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> ${parsed.message}`
-            throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
+            if (typeof parsed === "number") parsed = 0
+            else {
+              if (parsed?.message) throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> ${parsed.message}`
+              throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
+            }
           }
           else if (step.type === "animation") {
             if (parsed === true || parsed === false) throw `Unable to play animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" as it retuned a <strong>boolean</strong> instead of a <strong>number</strong>`
@@ -1627,7 +1631,7 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.6.3",
+    version: "6.6.4",
     min_version: "4.3.0",
     variant: "both",
     oninstall: () => showAbout(true),
