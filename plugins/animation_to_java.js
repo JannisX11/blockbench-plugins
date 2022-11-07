@@ -3,16 +3,17 @@
 
   Plugin.register("animation_to_java", {
     title: "Animation to Java Converter",
-    author: "MG,Vincent_Huto(PR)",
+    author: "MG,Vincent_Huto(PR),DailyCraft(PR)",
     description:
       "Converts Blockbench animations to Java code for the new 1.19 keyframe system",
     icon: "fa-cube",
-    version: "1.1.0",
+    version: "1.1.1",
     variant: "both",
     about:
       "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
     tags: ["Minecraft: Java Edition"],
     onload() {
+      Formats.modded_entity.animation_mode = true
       menuButton = new Action("export_animation_to_java", {
         name: "Export Animations to Java",
         description: "Exports animations to Java code",
@@ -31,6 +32,7 @@
       MenuBar.addAction(menuButton, "file.export");
     },
     onunload() {
+      Formats.modded_entity.animation_mode = false
       menuButton.delete();
     },
   });

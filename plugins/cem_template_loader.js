@@ -273,7 +273,7 @@
                 <p class="format_description">${description}</p>
                 <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition with OptiFine</span> <span>Texturing Templates</span></p>
                 <content style="flex:1;margin:-22px 0 20px">
-                  <h3 class="markdown"><p>How to use:</p></h3>
+                  <h3 class="markdown"><strong>How to use:</strong></h3>
                   <p class="markdown">
                     <ul>
                       <li><p>Press <code>Load CEM Template</code> and select a model.</p></li>
@@ -281,33 +281,33 @@
                       <li><p>Export your model as an <code>OptiFine JEM</code> to <code>assets/minecraft/optifine/cem</code>, using the provided name.</p></li>
                     </ul>
                   </p>
-                  <h3 class="markdown"><p><strong>Do:</strong></p></h3>
+                  <h3 class="markdown"><strong>Do:</strong></h3>
                   <p class="markdown">
                     <ul>
                       <li><p>Edit any of the cubes that were loaded with the template, add your own cubes, and create your own subgroups.</p></li>
                     </ul>
                   </p>
-                  <h3 class="markdown"><p><strong>Do not:</strong></p></h3>
+                  <h3 class="markdown"><strong>Do not:</strong></h3>
                   <p class="markdown">
                     <ul>
                       <li><p>Edit any of the groups that were loaded with the template, add your own root groups, or remove any built in animations.</p></li>
                     </ul>
                   </p>
                 </content>
-                    <div class="socials">
-                      <a href="${links["website"]}" class="open-in-browser">
-                        <i class="icon material-icons" style="color:#33E38E">language</i>
-                        <label>By ${author}</label>
-                      </a>
-                      <a href="${links["discord"]}" class="open-in-browser">
-                        <i class="icon fab fa-discord" style="color:#727FFF"></i>
-                        <label>Discord Server</label>
-                      </a>
-                      <a href="${links["tutorial"]}" class="open-in-browser">
-                        <i class="icon fab fa-youtube" style="color:#FF4444"></i>
-                        <label>CEM Modelling Tutorial</label>
-                      </a>
-                    </div>
+                <div class="socials">
+                  <a href="${links["website"]}" class="open-in-browser">
+                    <i class="icon material-icons" style="color:#33E38E">language</i>
+                    <label>By ${author}</label>
+                  </a>
+                  <a href="${links["discord"]}" class="open-in-browser">
+                    <i class="icon fab fa-discord" style="color:#727FFF"></i>
+                    <label>Discord Server</label>
+                  </a>
+                  <a href="${links["tutorial"]}" class="open-in-browser">
+                    <i class="icon fab fa-youtube" style="color:#FF4444"></i>
+                    <label>CEM Modelling Tutorial</label>
+                  </a>
+                </div>
                 <div class="button_bar">
                   <button id="create_new_model_button" style="margin-top:20px;" @click="load()">
                     <i class="material-icons">${icon}</i>
@@ -414,13 +414,13 @@
     equals: (x, y, epsilon) => Math.abs(x - y) <= epsilon,
     in: (x, ...vals) => vals.includes(x),
     print: (id, int, val) => {
-      if (!val) throw Error("Not enough arguments. <strong>print</strong> requires <strong>3</strong> arguments")
+      if (val === undefined) throw Error("Not enough arguments. <strong>print</strong> requires <strong>3</strong> arguments")
       if (typeof val !== "number") throw Error("<strong>print</strong> can only print numbers, use <strong>printb</strong> instead")
       if (frameCount % int === 0) console.log(`CEM print(${id}) = ${val}`)
       return val
     },
     printb: (id, int, val) => {
-      if (!val) throw Error("Not enough arguments. <strong>printb</strong> requires <strong>3</strong> arguments")
+      if (val === undefined) throw Error("Not enough arguments. <strong>printb</strong> requires <strong>3</strong> arguments")
       if (typeof val !== "boolean") throw Error("<strong>printb</strong> can only print booleans, use <strong>print</strong> instead")
       if (frameCount % int === 0) console.log(`CEM print(${id}) = ${val}`)
       return val
@@ -428,7 +428,7 @@
     smooth: (id, val) => {
       return val ?? id
     },
-    lerp: (a, b, c) => a * (1 - c) + b * c,
+    lerp: (a, b, c) => b * (1 - a) + c * a,
     frame_time: 0,
     move_forward: 0,
     move_strafing: 0
@@ -450,7 +450,7 @@
     head_yaw: [-90, 0, 90],
     head_pitch: [-90, 0, 90],
     dimension: [-1, 0, 1],
-    rule_index: [0, 1, 256]
+    rule_index: [0, 0, 256]
   }
   const specialsObj = {
     limb_swing: [0, false],
@@ -986,7 +986,7 @@
         frameCount++
         const now = Date.now()
         const dt = (now - prevTime) / 1000
-        constants.frame_time = dt
+        constants.frame_time = dt * timescale
         prevTime = now
         const difference = 20 * timescale * dt
         time += difference
@@ -1627,12 +1627,13 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.6.1",
+    version: "6.6.3",
     min_version: "4.3.0",
     variant: "both",
     oninstall: () => showAbout(true),
     async onload() {
       addStyles()
+      addAbout()
       await setupPlugin("https://www.wynem.com/bot_assets/json/cem_template_models.json")
       reloadButton = new Action("cem_template_loader_reload", {
         name: `Reload CEM Templates`,
@@ -1660,21 +1661,6 @@
         const params = (new URL(location.href)).searchParams
         if (params.has("plugins") && params.get("plugins").split(",").includes("cem_template_loader") && params.has("model") && params.get("model") !== "") loadModel(params.get("model").toLowerCase(), null, params.has("texture"))
       }
-      let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
-      if (!about) {
-        about = new Action("about_plugins", {
-          name: "About Plugins...",
-          icon: "info",
-          children: []
-        })
-        MenuBar.addAction(about, "help")
-      }
-      aboutAction = new Action("about_cem_template_loader", {
-        name: "About CEM Template Loader...",
-        icon,
-        click: () => showAbout()
-      })
-      about.children.push(aboutAction)
     },
     onunload() {
       stopAnimations(true)
