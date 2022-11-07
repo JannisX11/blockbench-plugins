@@ -7,7 +7,7 @@
     description:
       "Converts Blockbench animations to Java code for the new 1.19 keyframe system",
     icon: "fa-cube",
-    version: "1.1.1",
+    version: "1.1.2",
     variant: "both",
     about:
       "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
@@ -39,15 +39,14 @@
 })();
 
 function generateFile() {
-  let outfileText = "";      
+  let outfileText = "";
 
   for (const animation of Animation.all) {
     outfileText += `\npublic static final AnimationDefinition ${animation.name
       .replaceAll(".", "_")
       .replace("animation_", "")
-      .toUpperCase()} = AnimationDefinition.Builder.withLength(${
-      animation.length
-    }f)`;
+      .toUpperCase()} = AnimationDefinition.Builder.withLength(${animation.length
+      }f)`;
     if (animation.loop === "loop") {
       outfileText += ".looping()";
     }
@@ -60,50 +59,47 @@ function generateFile() {
       let scaleKeyArray = [];
 
       if (boneAnimator.position.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}", new AnimationChannel(AnimationChannel.Targets.POSITION`;
-            //Sorts by time to ensure ordering
-            for (const keyFrame of boneAnimator.position) {
-              posKeyArray.push(keyFrame);
-            }
-            posKeyArray.sort((a, b) => a.time - b.time)
+        outfileText += `.addAnimation("${boneAnimator._name}",\n new AnimationChannel(AnimationChannel.Targets.POSITION`;
+        //Sorts by time to ensure ordering
+        for (const keyFrame of boneAnimator.position) {
+          posKeyArray.push(keyFrame);
+        }
+        posKeyArray.sort((a, b) => a.time - b.time)
 
         for (const keyFrame of posKeyArray) {
-          const { x, y, z } = keyFrame.data_points[0];
-          outfileText += `, new Keyframe(${
-            keyFrame.time
-          }f, KeyframeAnimations.posVec(${x}f, ${y}f, ${z}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          var { x, y, z } = keyFrame.data_points[0];
+          outfileText += `, \n new Keyframe(${round2(keyFrame.time)
+            }f, KeyframeAnimations.posVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
       }
       if (boneAnimator.rotation.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}", new AnimationChannel(AnimationChannel.Targets.ROTATION`;
-           //Sorts by time to ensure ordering
-           for (const keyFrame of boneAnimator.rotation) {
-            rotKeyArray.push(keyFrame);
-          }
-          rotKeyArray.sort((a, b) => a.time - b.time)
+        outfileText += `.addAnimation("${boneAnimator._name}",\n new AnimationChannel(AnimationChannel.Targets.ROTATION`;
+        //Sorts by time to ensure ordering
+        for (const keyFrame of boneAnimator.rotation) {
+          rotKeyArray.push(keyFrame);
+        }
+        rotKeyArray.sort((a, b) => a.time - b.time)
 
         for (const keyFrame of rotKeyArray) {
-          const { x, y, z } = keyFrame.data_points[0];
-          outfileText += `, new Keyframe(${
-            keyFrame.time
-          }f, KeyframeAnimations.degreeVec(${x}f, ${y}f, ${z}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          var { x, y, z } = keyFrame.data_points[0];
+          outfileText += `,\n new Keyframe(${round2(keyFrame.time)
+            }f, KeyframeAnimations.degreeVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
-      }        
+      }
       if (boneAnimator.scale.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}", new AnimationChannel(AnimationChannel.Targets.SCALE`;
+        outfileText += `.addAnimation("${boneAnimator._name}", \n new AnimationChannel(AnimationChannel.Targets.SCALE`;
         //Sorts by time to ensure ordering
         for (const keyFrame of boneAnimator.scale) {
           scaleKeyArray.push(keyFrame);
         }
         scaleKeyArray.sort((a, b) => a.time - b.time)
-      
+
         for (const keyFrame of scaleKeyArray) {
-          const { x, y, z } = keyFrame.data_points[0];
-          outfileText += `, new Keyframe(${
-            keyFrame.time
-          }f, KeyframeAnimations.scaleVec(${x}f, ${y}f, ${z}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          var { x, y, z } = keyFrame.data_points[0];
+          outfileText += `,\n new Keyframe(${round2(keyFrame.time)
+            }f, KeyframeAnimations.scaleVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
       }
@@ -111,4 +107,8 @@ function generateFile() {
     outfileText += ".build();";
   }
   return outfileText;
+}
+
+function round2(x) {
+  return Math.round((Number(x) + Number.EPSILON) * 100) / 100;
 }
