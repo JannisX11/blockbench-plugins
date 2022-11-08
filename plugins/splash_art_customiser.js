@@ -33,6 +33,7 @@
         }
         #splash_screen > .graphic {
           background-position: 50% 50%;
+          max-height: initial;
         }
         #customise-splash-art {
           position: absolute;
@@ -126,6 +127,7 @@
           height: 30px;
           align-items: center;
           padding: 0 5px;
+          gap: 8px;
         }
         dialog#${id} .splash-art-preview:hover > .button-bar {
           display: flex;
@@ -213,9 +215,7 @@
                     images.splice(images.indexOf(images.find(e => e.image === image)), 1)
                     setSplashArt()
                   },
-                  importGalleryImage(image) {
-                    addSplashArt(image)
-                  },
+                  addSplashArt,
                   setCurrentSplashArt(image) {
                     setSplashArt(image)
                     Blockbench.showQuickMessage("Applied splash art")
@@ -248,6 +248,7 @@
                             <div title="Apply splash art" @click="setCurrentSplashArt(image.image)">
                               <svg viewBox="0 0 24 24"><path d="M19,19H5V5H15V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V11H19M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z" /></svg>
                             </div>
+                            <i class="material-icons icon" title="Edit splash art" @click="addSplashArt(image.image)">edit</i>
                             <div class="spacer"></div>
                             <i class="material-icons icon" title="Delete splash art" @click="deleteImage(image.image)">delete</i>
                           </div>
@@ -307,7 +308,7 @@
                       <div id="splash-art-previews">
                         <div v-for="image in galleryImages" class="splash-art-preview" :style="{ backgroundImage: 'url(' + image + ')'}">
                           <div class="button-bar">
-                            <i class="material-icons icon" title="Import splash art" @click="importGalleryImage(image)">download</i>
+                            <i class="material-icons icon" title="Import splash art" @click="addSplashArt(image)">download</i>
                           </div>
                         </div>
                       </div>
@@ -349,7 +350,7 @@
       "64:27"
     ]
     const imageRenderers = [
-      "Smooth",
+      "Auto",
       "Pixelated"
     ]
     const backgroundSizes = [
@@ -370,18 +371,14 @@
       title: "Splash art settings",
       lines: [`
         <style>
-          dialog#splash_art_settings li {
-            list-style: disc;
-            list-style-position: inside;
+          dialog#splash_art_settings #splash-art-settings-preview {
+            height: 200px;
+            background-position: 50% 50%;
+            margin: auto;
+            background-color: var(--color-back);
           }
         </style>
-        <h2>Examples of each setting:</h2>
-        <ul>
-          <li><a href="https://www.w3schools.com/cssref/playdemo.php?filename=playcss_aspect-ratio">Aspect Ratio</a></li>
-          <li><a href="https://www.w3schools.com/cssref/playdemo.php?filename=playcss_image-rendering">Image Rendering</a></li>
-          <li><a href="https://www.w3schools.com/cssref/playdemo.php?filename=playcss_background-size">Background Size</a></li>
-          <li><a href="https://www.w3schools.com/cssref/playdemo.php?filename=playcss_background-repeat">Background Repeat</a></li>
-        </ul>
+        <div id="splash-art-settings-preview" style="background-image:url(${image})"></div>
         <br>
       `],
       form: {
@@ -419,8 +416,19 @@
           backgroundRepeat: backgroundRepeats[data.backgroundRepeat].toLowerCase().replace(" ", "-")
         })
         setSplashArt(image)
+        observer.disconnect()
       }
     }).show()
+    const preview = $("dialog#splash_art_settings #splash-art-settings-preview")
+    const updatePreview = () => preview.css({
+      aspectRatio: aspectRatios[parseInt(dialog.form.aspectRatio.bar.find("bb-select").attr("value"))].replace(":", " / "),
+      imageRendering: imageRenderers[parseInt(dialog.form.imageRendering.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundSize: backgroundSizes[parseInt(dialog.form.backgroundSize.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundRepeat: backgroundRepeats[parseInt(dialog.form.backgroundRepeat.bar.find("bb-select").attr("value"))].toLowerCase().replace(" ", "-")
+    })
+    updatePreview()
+    const observer = new MutationObserver(updatePreview)
+    document.querySelectorAll("dialog#splash_art_settings bb-select").forEach(e => observer.observe(e, { attributes: true }))
   }
   async function setSplashArt(image) {
     splashArtStyles?.delete()
@@ -462,7 +470,7 @@
       #splash_screen > .graphic {
         background-image: url("${data.image}")!important;
         aspect-ratio: ${data.aspectRatio ?? "64 / 27"}!important;
-        image-rendering: ${data.imageRendering ?? "smooth"}!important;
+        image-rendering: ${data.imageRendering ?? "initial"}!important;
         background-size: ${data.backgroundSize ?? "cover"}!important;
         background-repeat: ${data.backgroundRepeat ?? "no-repeat"}!important;
       }
