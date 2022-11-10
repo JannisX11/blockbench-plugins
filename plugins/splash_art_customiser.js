@@ -20,7 +20,7 @@
     min_version: "4.4.3",
     variant: "both",
     onload() {
-      setSplashArt()
+      if (!Blockbench.flags.after_update) setSplashArt()
       styles = Blockbench.addCSS(`
         #splash_screen > i {
           color: var(--color-light);
