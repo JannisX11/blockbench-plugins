@@ -59,7 +59,7 @@ function generateFile() {
       let scaleKeyArray = [];
 
       if (boneAnimator.position.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}",\n new AnimationChannel(AnimationChannel.Targets.POSITION`;
+        outfileText += `\n.addAnimation("${boneAnimator.name}",\n\tnew AnimationChannel(AnimationChannel.Targets.POSITION`;
         //Sorts by time to ensure ordering
         for (const keyFrame of boneAnimator.position) {
           posKeyArray.push(keyFrame);
@@ -68,13 +68,13 @@ function generateFile() {
 
         for (const keyFrame of posKeyArray) {
           var { x, y, z } = keyFrame.data_points[0];
-          outfileText += `, \n new Keyframe(${round2(keyFrame.time)
-            }f, KeyframeAnimations.posVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          outfileText += `, \n\t\tnew Keyframe(${keyFrame.time
+            }f, KeyframeAnimations.posVec(${x}f, ${y}f, ${z}f),\n\t\t\tAnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
       }
       if (boneAnimator.rotation.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}",\n new AnimationChannel(AnimationChannel.Targets.ROTATION`;
+        outfileText += `\n.addAnimation("${boneAnimator.name}",\n\tnew AnimationChannel(AnimationChannel.Targets.ROTATION`;
         //Sorts by time to ensure ordering
         for (const keyFrame of boneAnimator.rotation) {
           rotKeyArray.push(keyFrame);
@@ -83,13 +83,13 @@ function generateFile() {
 
         for (const keyFrame of rotKeyArray) {
           var { x, y, z } = keyFrame.data_points[0];
-          outfileText += `,\n new Keyframe(${round2(keyFrame.time)
-            }f, KeyframeAnimations.degreeVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          outfileText += `,\n\t\tnew Keyframe(${keyFrame.time
+            }f, KeyframeAnimations.degreeVec(${x}f, ${y}f, ${z}f),\n\t\t\tAnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
       }
       if (boneAnimator.scale.length) {
-        outfileText += `.addAnimation("${boneAnimator._name}", \n new AnimationChannel(AnimationChannel.Targets.SCALE`;
+        outfileText += `\n.addAnimation("${boneAnimator.name}",\n\tnew AnimationChannel(AnimationChannel.Targets.SCALE`;
         //Sorts by time to ensure ordering
         for (const keyFrame of boneAnimator.scale) {
           scaleKeyArray.push(keyFrame);
@@ -98,17 +98,17 @@ function generateFile() {
 
         for (const keyFrame of scaleKeyArray) {
           var { x, y, z } = keyFrame.data_points[0];
-          outfileText += `,\n new Keyframe(${round2(keyFrame.time)
-            }f, KeyframeAnimations.scaleVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f), AnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
+          outfileText += `,\n\t\tnew Keyframe(${keyFrame.time
+            }f, KeyframeAnimations.scaleVec(${round2(x)}f, ${round2(y)}f, ${round2(z)}f),\n\t\t\tAnimationChannel.Interpolations.${keyFrame.interpolation.toUpperCase()})`;
         }
         outfileText += "))";
       }
     }
-    outfileText += ".build();";
+    outfileText += ".build();"
   }
-  return outfileText;
+  return outfileText.replaceAll("66666666666","67").replaceAll("33333333333","34");
 }
 
-function round2(x) {
-  return Math.round((Number(x) + Number.EPSILON) * 100) / 100;
+function round2(n) {
+  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 }
