@@ -633,6 +633,16 @@
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
+	"brush": {
+		"title": "Brush Plus",
+		"icon": "fa-brush",
+		"author": "Malik12tree",
+		"description": "Create/Use custom brushes with dynamic behavior!",
+		"version": "1.0.0",
+		"min_version": "4.4.0",
+		"variant": "both",
+		"tags": ["Paint", "Customization", "Interface"]
+  },
 	"repeat_it": {
 		"title": "Repeat It",
 		"author": "Ocraftyone",
