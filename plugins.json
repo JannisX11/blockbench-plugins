@@ -211,7 +211,7 @@
 		"description": "Adds a new format that allows you to create OptiFine player models.",
 		"about": "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-		"version": "1.3.0",
+		"version": "1.3.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -257,6 +257,17 @@
 		"tags": ["Plugins", "Blockbench"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"splash_art_customiser": {
+		"title": "Splash Art Customiser",
+		"icon": "palette",
+		"author": "Ewan Howell",
+		"description": "Customise the start screen's splash art, by adding your own!",
+		"about": "This plugin allows you to customise the start screen's splash art by adding your own! If you add multiple splash art images, you can set it to pick a random one every time your launch Blockbench.\n\n## How to use\nOn the top left corner of the splash art, you will find a gear icon. From here you can manage your custom splash arts.\n\n## Splash art types\n- URL - A splash art can be loaded from a URL (faster loading)\n- File - A splash art can be loaded from a file (slower loading)\n- Gallery - Pick an image from the [Blockbench Gallery](https://www.blockbench.net/gallery)\n\n## Supported file types\n- PNG\n- JPG/JPEG\n- GIF\n- WebP\n- SVG",
+		"tags": ["Splash art", "Start screen", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.4.3",
 		"variant": "both"
 	},
 	"threecore_exporter": {
@@ -633,6 +644,16 @@
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
+	"brush": {
+		"title": "Brush Plus",
+		"icon": "fa-brush",
+		"author": "Malik12tree",
+		"description": "Create/Use custom brushes with dynamic behavior!",
+		"version": "1.0.0",
+		"min_version": "4.4.0",
+		"variant": "both",
+		"tags": ["Paint", "Customization", "Interface"]
+  },
 	"repeat_it": {
 		"title": "Repeat It",
 		"author": "Ocraftyone",
