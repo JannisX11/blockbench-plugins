@@ -654,6 +654,15 @@
 		"variant": "both",
 		"tags": ["Paint", "Customization", "Interface"]
 	},
+	"pluginstats": {
+		"title": "Plugin Statistics",
+		"icon": "trending_up",
+		"author": "Malik12tree",
+		"description": "View download statistics of your blockbench plugin",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Blockbench", "Plugins", "Development"]
+	},
 	"repeat_it": {
 		"title": "Repeat It",
 		"author": "Ocraftyone",
