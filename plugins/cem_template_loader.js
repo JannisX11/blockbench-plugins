@@ -77,7 +77,7 @@
           E("ul").addClass("cem_template_list").append(
             e.entities.map(f => {
               const model = entityData.models[typeof f === "string" ? f : f.model || f.name]
-              const image = `https://beta.wynem.com/assets/images/minecraft/renders/${f.name || f}.webp` + (data?.appendToURL ?? "")
+              const image = `https://wynem.com/assets/images/minecraft/renders/${f.name || f}.webp` + (data?.appendToURL ?? "")
               const imageElement = E("div").addClass("cem_template_image").attr("data-src", image)
               const element = E("li").addClass("cem_template_model").attr("data-modelid", f.name || f).attr("data-category", e.name).append(
                 imageElement,
@@ -148,8 +148,8 @@
     if (defaultTexture) {
       try {
         for (const [idx, textureName] of (entity.vanilla_textures || [entity.texture_name]).entries()) {
-          const r = await fetch(`https://beta.wynem.com/assets/images/minecraft/entities/${modelID}${idx || ""}.png` + (data?.appendToURL ?? ""), {method: "HEAD"})
-          if (r.status < 400) new Texture({name: textureName}).fromDataURL(await getBase64FromUrl(`https://beta.wynem.com/assets/images/minecraft/entities/${modelID}${idx || ""}.png` + (data?.appendToURL ?? ""))).add()
+          const r = await fetch(`https://wynem.com/assets/images/minecraft/entities/${modelID}${idx || ""}.png` + (data?.appendToURL ?? ""), {method: "HEAD"})
+          if (r.status < 400) new Texture({name: textureName}).fromDataURL(await getBase64FromUrl(`https://wynem.com/assets/images/minecraft/entities/${modelID}${idx || ""}.png` + (data?.appendToURL ?? ""))).add()
           else throw new Exception
         }
       } catch {
@@ -337,12 +337,12 @@
         click: async () => {
           for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
           MenuBar.removeAction("tools.cem_template_loader")
-          if (await setupPlugin("https://beta.wynem.com/assets/json/cem_template_models.json?rnd=" + Math.random())) Blockbench.showQuickMessage("Reconnected sucessfully", 2000)
+          if (await setupPlugin("https://wynem.com/assets/json/cem_template_models.json?rnd=" + Math.random())) Blockbench.showQuickMessage("Reconnected sucessfully", 2000)
           else{
             new Dialog({
               id: "cem_template_loader_connection_failure_dialog",
               title: name,
-              lines: ['<h2>Connection failed</h2><span>Please check your internet connection and make sure that you can access <a href="https://beta.wynem.com/cem/">wynem.com</a></span>'],
+              lines: ['<h2>Connection failed</h2><span>Please check your internet connection and make sure that you can access <a href="https://wynem.com/cem/">wynem.com</a></span>'],
               "buttons": ["Okay"]
             }).show()
           }
@@ -1196,7 +1196,7 @@
       if (!docShown) {
         let docData
         try {
-          const r = await fetch("https://beta.wynem.com/assets/json/cem_animation_doc.json")
+          const r = await fetch("https://wynem.com/assets/json/cem_animation_doc.json")
           if (r.status !== 200) throw Error
           docData = await r.json()
         } catch (err) {
@@ -1204,7 +1204,7 @@
           return new Dialog({
             id: "cem_template_loader_connection_failure_dialog",
             title: "CEM Animation Documentation",
-            lines: ['<h2>Connection failed</h2><span>Please check your internet connection and make sure that you can access <a href="https://beta.wynem.com/cem/">wynem.com</a></span>'],
+            lines: ['<h2>Connection failed</h2><span>Please check your internet connection and make sure that you can access <a href="https://wynem.com/cem/">wynem.com</a></span>'],
             buttons: ["Okay"]
           }).show()
         }
@@ -1636,7 +1636,7 @@
     async onload() {
       addStyles()
       addAbout()
-      await setupPlugin("https://beta.wynem.com/assets/json/cem_template_models.json")
+      await setupPlugin("https://wynem.com/assets/json/cem_template_models.json")
       reloadButton = new Action("cem_template_loader_reload", {
         name: `Reload CEM Templates`,
         description: "Reload the CEM Template Loader models",
@@ -1645,7 +1645,7 @@
           for (let action of generatorActions) if (typeof action.delete === "function") action.delete()
           MenuBar.removeAction("tools.cem_template_loader")
           loader.delete()
-          const result = await setupPlugin("https://beta.wynem.com/assets/json/cem_template_models.json", {
+          const result = await setupPlugin("https://wynem.com/assets/json/cem_template_models.json", {
             appendToURL: `?rnd=${Math.random()}`
           })
           if (result) Blockbench.showQuickMessage("Reloaded CEM Templates", 2000)
