@@ -131,11 +131,11 @@
 	},
 	"mod_utils": {
 		"title": "Mod Utils",
-		"author": "JTK222 (Maintainer) & Wither (For the original Techne importer)",
+		"author": "JTK222 (Maintainer), Wither (For the original Techne importer), Ocraftyone (VoxelShape improvements)",
 		"icon": "fa-cubes",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.7",
+		"version": "1.7.1",
 		"variant": "desktop"
 	},
 	"structure_importer": {
