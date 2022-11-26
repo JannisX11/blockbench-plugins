@@ -25,9 +25,7 @@ SOFTWARE.
 (function() {
 
 var mappingsKey = "mod_utils.has_mappings";
-var selectedMojMapsMappingsKey = "mod_utils.selected_mappings.mojmaps";
-var selectedMCPMappingsKey = "mod_utils.selected_mappings.mcp";
-var selectedYarnMappingsKey = "mod_utils.selected_mappings.yarn";
+var omitVoxelShapesGroup = "mod_utils.omitVoxelShapesGroup";
 
 function isValidVersion(){
 	var versions = Blockbench.version.split(".");
@@ -111,24 +109,32 @@ var AxisEnum = {
 	}
 }
 
-var Mappings = {
-	mojmaps: {
-		createCube: "Block.box",
-		combine: "VoxelShapes.join",
-		booleanFunction: "IBooleanFunction",
-	},
-	mcp: {
-		createCube: "Block.makeCuboidShape",
-		combine: "VoxelShapes.combineAndSimplify",
-		booleanFunction: "IBooleanFunction",
-	},
-	yarn: {
-		createCube: "Block.createCuboidShape",
-		combine: "VoxelShapes.combineAndSimplify",
-		booleanFunction: "BooleanBiFunction",
-	}
-}
-
+    var Mappings = {
+        mojmaps: {
+            createCube: "Block.box",
+            combine: "VoxelShapes.join",
+            booleanFunction: "IBooleanFunction",
+            key: "mod_utils.selected_mappings.mojmaps",
+        },
+        mcp: {
+            createCube: "Block.makeCuboidShape",
+            combine: "VoxelShapes.combineAndSimplify",
+            booleanFunction: "IBooleanFunction",
+            key: "mod_utils.selected_mappings.mcp",
+        },
+        yarn: {
+            createCube: "Block.createCuboidShape",
+            combine: "VoxelShapes.combineAndSimplify",
+            booleanFunction: "BooleanBiFunction",
+            key: "mod_utils.selected_mappings.yarn",
+        },
+        parchment: {
+            createCube: "Block.box",
+            combine: "Shapes.join",
+            booleanFunction: "BooleanOp",
+            key: "mod_utils.selected_mappings.parchment",
+        },
+    };
 
 /** ---------- Help ---------- */
 
@@ -137,7 +143,103 @@ var helpDialog = new Dialog({
 	title: 'Help - Mod Utils',
 	width: 800,
 	lines: [
-		'<style> .modUtilHelpTabs { position: relative; min-height: 200px; /* This part sucks */ clear: both; margin: 25px 0; } .modUtilsHelpTab { float: left; } .modUtilsHelpTab label { background: var(--color-ui); padding: 10px; border: 1px solid #ccc; margin-left: -1px; position: relative; left: 1px; } .modUtilsHelpTab [type=radio] { display: none; } .modUtilsContent { position: absolute; top: 28px; left: 0; background: var(--color-ui); right: 0; bottom: 0; padding: 20px; border: 1px solid #ccc; height: auto; overflow: auto; } [type=radio]:checked ~ label { background: var(--color-button); border-bottom: 1px solid white; z-index: 2; } [type=radio]:checked ~ label ~ .modUtilsContent { z-index: 1; } </style> <div class="modUtilHelpTabs"> <div class="modUtilsHelpTab"> <input type="radio" id="tab-1" name="tab-group-1" checked> <label for="tab-1">VoxelShapes</label> <div class="modUtilsContent"> <p> In order to use the VoxelShape exporter, you first need to create a new Group, called "VoxelShapes". All cubes that you create within this group, will be added to the voxelShape trough the OR BooleanFunction. Additionally you can add sub groups with the name equaling the BooleanFunctions shown in the image bellow. The first cube in such a group does represent the red cube, all other ones will be combined with an OR BooleanFunction first. </p> <img src="https://raw.githubusercontent.com/JannisX11/blockbench-plugins/master/src/mod_utils/voxel_shape_guide.png" width="100%" height="auto" /> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-2" name="tab-group-1"> <label for="tab-2">Tabula Import</label> <div class="modUtilsContent"> <p>In order to import a Tabula Model, you need to create a new Modded Entity. Now the Point "Import Tabula Model (.tbl)" should be available in your import menu.</p> </div> </div> <div class="modUtilsHelpTab"> <input type="radio" id="tab-3" name="tab-group-1"> <label for="tab-3">Techne Import</label> <div class="modUtilsContent"> <p>Techne Import is only Available in Modded Entity Mode. A new Menu entry under "File > Import > Import Techne Model (.tcn)" should be available.</p> </div> </div> </div>'
+		`<style>
+		.modUtilHelpTabs {
+			position: relative;
+			min-height: 400px; /* This part sucks */
+			clear: both;
+			margin: 25px 0;
+		}
+		.modUtilsHelpTab {
+			float: left;
+		}
+		.modUtilsHelpTab label {
+			background: var(--color-ui);
+			padding: 10px;
+			border: 1px solid #ccc;
+			margin-left: -1px;
+			position: relative;
+			left: 1px;
+		}
+		.modUtilsHelpTab [type="radio"] {
+			display: none;
+		}
+		.modUtilsContent {
+			position: absolute;
+			top: 28px;
+			left: 0;
+			background: var(--color-ui);
+			right: 0;
+			bottom: 0;
+			padding: 20px;
+			border: 1px solid #ccc;
+			height: auto;
+			overflow: auto;
+		}
+		[type="radio"]:checked ~ label {
+			background: var(--color-button);
+			border-bottom: 1px solid white;
+			z-index: 2;
+		}
+		[type="radio"]:checked ~ label ~ .modUtilsContent {
+			z-index: 1;
+		}
+	</style>
+	<div class="modUtilHelpTabs">
+		<div class="modUtilsHelpTab">
+			<input type="radio" id="tab-1" name="tab-group-1" checked />
+			<label for="tab-1">VoxelShapes</label>
+			<div class="modUtilsContent">
+				<p>
+					In order to use the VoxelShape exporter, you first need to
+					create a new Group, called "VoxelShapes". All cubes that you
+					create within this group, will be added to the voxelShape trough
+					the OR BooleanFunction. Additionally you can add sub groups with
+					the name equaling a "$" and a BooleanFunction as shown in the image
+					bellow (Ex: $and). The first cube in such a group represents the red
+					cube, all other ones will be combined with an OR BooleanFunction
+					first.
+				</p>
+				<p>
+					There is an advanced settings menu for the VoxelShape exporter that
+					allows you to disable the requirement of the "VoxelShapes" group.
+					This option is only designed to be used for rapid prototyping and should
+					not be used in production. For the best performance, you should be creating a
+					representation of your VoxelShape in a separate model and use the BooleanFunctions
+					to create the proper shape rather than ORing all of the cubes in your model together.
+					If not using BooleanFunctions, use the "VoxelShapes" group to make sure that only
+					the cubes you need are being used for the VoxelShape. The less cubes, the better.
+				</p>
+				<img
+					src="https://raw.githubusercontent.com/JannisX11/blockbench-plugins/master/src/mod_utils/voxel_shape_guide.png"
+					width="100%"
+					height="auto"
+				/>
+			</div>
+		</div>
+		<div class="modUtilsHelpTab">
+			<input type="radio" id="tab-2" name="tab-group-1" />
+			<label for="tab-2">Tabula Import</label>
+			<div class="modUtilsContent">
+				<p>
+					In order to import a Tabula Model, you need to create a new
+					Modded Entity. Now the Point "Import Tabula Model (.tbl)" should
+					be available in your import menu.
+				</p>
+			</div>
+		</div>
+		<div class="modUtilsHelpTab">
+			<input type="radio" id="tab-3" name="tab-group-1" />
+			<label for="tab-3">Techne Import</label>
+			<div class="modUtilsContent">
+				<p>
+					Techne Import is only Available in Modded Entity Mode. A new
+					Menu entry under "File > Import > Import Techne Model (.tcn)"
+					should be available.
+				</p>
+			</div>
+		</div>
+	</div>`
 	],
 	singleButton: true
 });
@@ -361,7 +463,7 @@ var importTabula2Obj = (function (){
 		if(version != 2){
 			Blockbench.showMessageBox({
 				title: "Warning",
-				message: "You are importing an unsuported version of Tabula files, if you experience any issues, please report them and provide your model file so we can try to fix them."
+				message: "You are importing an unsupported version of Tabula files, if you experience any issues, please report them and provide your model file so we can try to fix them."
 			});
 		}
 		Project.name = json.modelName;
@@ -465,148 +567,280 @@ ImportTypeEnum.TBL2.import = importTabula2Obj.baseFunc;
 
 /** ---------- Export - VoxelShape ---------- */
 
-var exportVoxelShapeAction = new Action({
-	id: 'export_voxelshape',
-	name: 'Export Voxelshape (1.14+ Modded Minecraft)',
-	icon: 'flip_to_back',
-	description: 'Export a VoxelShape (Block Hitbox 1.14+ Modded only)',
-	category: 'file',
-	condition: () => Format.id === Formats.java_block.id,
-	click: function (event) {
-		if(!Blockbench.hasFlag(mappingsKey))
-			exportVoxelShapeDialog.show();
-		else
-			exportVoxelShape();
-	}
-});
+    var exportVoxelShapeAction = new Action({
+        id: "export_voxelshape",
+        name: "Export Voxelshape (1.14+ Modded Minecraft)",
+        icon: "flip_to_back",
+        description: "Export a VoxelShape (Block Hitbox 1.14+ Modded only)",
+        category: "file",
+        condition: () => Format.id === Formats.java_block.id,
+        click: function (event) {
+            if (event.shiftKey || !Blockbench.hasFlag(mappingsKey)) {
+                resetFlags();
+                exportVoxelShapeDialog.show();
+            } else exportVoxelShape(undefined);
+        },
+    });
 
-var exportVoxelShapeDialog = new Dialog({
-	id: 'export_voxelshape',
-	title: 'VoxelShape Exporter',
-	form: {
-			mappings: {label: 'Mappings', type: 'select', options: {
-				mojmaps: 'MojMaps (Mojang\'s Offical Mappings)',
-				mcp: 'MCP',
-				yarn: 'Yarn'
-			}, default: 'mojmaps'}
-	},
-	onConfirm: function(formData) {
-		this.hide();
-		Blockbench.addFlag(mappingsKey);
-		switch(formData.mappings) {
-			case "mojmaps":
-				Blockbench.addFlag(selectedMojMapsMappingsKey);
-				break;
-			case "mcp":
-				Blockbench.addFlag(selectedMCPMappingsKey);
-				break;
-			case "yarn":
-				Blockbench.addFlag(selectedYarnMappingsKey)
-				break;
+    var exportVoxelShapeDialog = new Dialog({
+        id: "export_voxelshape",
+        title: "VoxelShape Exporter",
+		buttons: ["Confirm", "Cancel", "Advanced Settings"],
+		confirmIndex: 0,
+		cancelIndex: 1,
+        form: {
+            mappings: {
+                label: "Mappings",
+                type: "select",
+                options: {
+                    mojmaps: "MojMaps (Mojang's Official Mappings)",
+                    mcp: "MCP",
+                    yarn: "Yarn",
+                    parchment: "Parchment",
+                },
+                value: "mojmaps",
+				description: "Select the mappings being used by your development environment",
+            },
+            rememberSettings: {
+                label: "Remember settings",
+                type: "checkbox",
+                value: true,
+                description:
+                    "This will remember these settings and you won't be prompted again.\nTo access this menu again, hold shift while selecting the export option.",
+            },
+        },
+        onConfirm: function (formData) {
+            this.hide();
+
+            if (formData.rememberSettings) {
+                Blockbench.addFlag(mappingsKey);
+                Blockbench.addFlag(Mappings[formData.mappings].key);
+            }
+
+            exportVoxelShape(Mappings[formData.mappings]);
+        },
+		onButton(index, event) {
+			if (index !== 2) return;
+			
+			var advancedSettingsDialog = new Dialog({
+				id: "voxelshape_advanced_settings",
+				title: "Advanced Settings",
+				lines: [
+					`
+					<style>
+						h1, p {
+							margin: 0%;
+						}
+					</style>
+					<h1>WARNING</h1>
+					<p>Disabling this setting can and will severely harm your model's performance. This setting should only be used for basic models and/or for prototyping. For the proper way of doing this, please look at the help section.</p>
+					<br>
+					`,
+				],
+				form: {
+					onlyIncludeVoxelShapesGroup: {
+						label: '"VoxelShapes" required',
+						type: "checkbox",
+						value: !Blockbench.hasFlag(omitVoxelShapesGroup),
+						description: 'Only the cubes in the group named "VoxelShapes" will be used.\nIf not enabled, all cubes in the project will be used.',
+					},
+				},
+				part_order: ["lines", "form", "component"],
+				onConfirm(formData) {
+					if (!formData.onlyIncludeVoxelShapesGroup) Blockbench.addFlag(omitVoxelShapesGroup); else Blockbench.removeFlag(omitVoxelShapesGroup);
+					exportVoxelShapeDialog.show();
+				},
+				onCancel() {
+					exportVoxelShapeDialog.show();
+				}
+			})
+			advancedSettingsDialog.show()
+		}
+    });
+
+    function exportVoxelShape(mappings) {
+        if (mappings === undefined) {
+            if (Blockbench.hasFlag(Mappings.mojmaps.key)) {
+                mappings = Mappings.mojmaps;
+            } else if (Blockbench.hasFlag(Mappings.mcp.key)) {
+                mappings = Mappings.mcp;
+            } else if (Blockbench.hasFlag(Mappings.yarn.key)) {
+                mappings = Mappings.yarn;
+            } else if (Blockbench.hasFlag(Mappings.parchment.key)) {
+                mappings = Mappings.parchment;
+            } else {
+                exportVoxelShapeDialog.show();
+                return;
+            }
+        }
+
+		var output;
+        if (!Blockbench.hasFlag(omitVoxelShapesGroup)) {
+			var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
+            if (voxelShapeGroup === undefined) {
+                Blockbench.showMessageBox({
+                    buttons: ["ok"],
+                    confirm: 0,
+                    title: "Error - VoxelShape Export",
+                    message:
+                        'You are missing the "VoxelShapes" group,\nwhich is required to export a voxel Shape.\nCheck out the Help menu for further instructions.',
+                });
+				resetFlags()
+                return;
+            }
+			output = generateShape(voxelShapeGroup, mappings);
+        } else {
+			output = generateShape(undefined, mappings)
 		}
 		
-		exportVoxelShape();
-	}
-});
-
-function exportVoxelShape(){
-	var mappings;
-
-	if (Blockbench.hasFlag(selectedMojMapsMappingsKey)) {
-		mappings = Mappings.mojmaps;
-	} else if (Blockbench.hasFlag(selectedMCPMappingsKey)) {
-		mappings = Mappings.mcp;
-	} else if (Blockbench.hasFlag(selectedYarnMappingsKey)) {
-		mappings = Mappings.yarn;
-	} else {
-		exportVoxelShapeDialog.show();
-		return;
-	}
-
-	var voxelShapeGroup = searchVoxelShapeGroup(Outliner.elements);
-
-	if(voxelShapeGroup === undefined) {
-		Blockbench.showMessageBox({
-			buttons: ["ok"],
-			confirm: 0,
-			title: "Error - VoxelShape Export",
-			message: "You are missing the \"VoxelShapes\" group,\nwhich is required to export a voxel Shape.\nCheck out the Help menu for further instructions."
-		})
-		return;
-	};
-
-	var output = generateShape(voxelShapeGroup, mappings);
-	
-	var path = Blockbench.export({
-		extensions: ['java', 'txt'],
-		name: 'VoxelShape',
-		content: output,
-	})
-	Blockbench.showQuickMessage('The VoxelShape was successfully exportet!', 1000);
-}
-
-function generateShape(group, mappings){
-	var operation = group.name.toUpperCase();
-	if(operation === "VOXELSHAPES"){
-		operation = "OR";
-	}
-	
-	var method = [];
-	
-	for(var i = 0; i < group.children.length; i++){
-		var child = group.children[i];
-		if(child instanceof Group){
-			method.push(generateShape(child, mappings));
-		}else{
-			method.push(mappings.createCube + "(" + child.from[0] + ", " + child.from[1] + ", " + child.from[2] + ", " + child.to[0] + ", " + child.to[1] + ", " + child.to[2] + ")");
-		}
-	}
-	
-	var useStream = operation === "OR" && group.children.length > 2;
-	
-	if(useStream){
-		var output = "Stream.of(\n";
-		
-		for(var i = 0; i < method.length; i++){
-			if(i == method.length -1){
-				output = output + method[i] + "\n";
-			}else{
-				output = output + method[i] + ",\n";
+		//code repurposed from CodeView plugin
+		outputViewDialog = new Dialog({
+			title: 'VoxelShape Output',
+			id: 'output_view',
+			resizable: true,
+			width: 650,
+			singleButton: true,
+			component: {
+				components: {VuePrismEditor},
+				data: {
+					text: ''
+				},
+				methods: {
+					copyText() {
+						navigator.clipboard.writeText(this.text);
+						Blockbench.showQuickMessage(
+							"Copied!",
+							1000
+						);
+					},
+					exportFile() {
+						var path = Blockbench.export({
+							extensions: ["java", "txt"],
+							name: "VoxelShape",
+							content: output,
+						});
+						Blockbench.showQuickMessage(
+							"The VoxelShape was successfully exported!",
+							1000
+						);
+					}
+				},
+				template: `
+					<div>
+						<vue-prism-editor id="code-view-output" v-model="text" language="java" style="height: 25em;" :line-numbers="true" />
+						<button @click="copyText()" style="width: 49%; margin: 0 auto; display: inline;">Copy</button>
+						<button @click="exportFile()" style="width: 49%; margin: 0 auto; display: inline;">Export</button>
+					</div>
+				`
 			}
-		}
-		
-		output = output + ").reduce((v1, v2) -> " + mappings.combine + "(v1, v2, " + mappings.booleanFunction + "." + operation + ")).get();";
-		
-		return output;
-	}else{
-		var output = method[method.length - 1];
-		for(var i = method.length - 2; i >= 0; i--){
-			output = mappings.combine + "(" + method[i] + ", " + output+ ", " + mappings.booleanFunction + "." + operation + ")";
-		}
-		return output;
-	}
-}
+        });
+        outputViewDialog.component.data.text = output;
+		outputViewDialog.show();
+    }
 
-function searchVoxelShapeGroup(elements){
-	var rGroup;
-	Group.all.forEach(
-		group => {
-			if(group.name === "VoxelShapes")
-			rGroup = group;
-		}
-	)
-	return rGroup;
-}
+    function generateShape(group, mappings) {
+		var elements = []
+		elements = group === undefined ? Outliner.elements : group.children;
+        var operation = group.name[0] === '$' ? group.name.substring(1).toUpperCase() : "OR";
+        if (operation === "VOXELSHAPES" || group === undefined) {
+            operation = "OR";
+        }
+
+        var method = [];
+
+        for (var i = 0; i < elements.length; i++) {
+            var child = elements[i];
+            if (child instanceof Group) {
+                method.push(generateShape(child, mappings));
+            } else {
+                method.push(
+                    mappings.createCube +
+                        "(" +
+                        child.from[0] +
+                        ", " +
+                        child.from[1] +
+                        ", " +
+                        child.from[2] +
+                        ", " +
+                        child.to[0] +
+                        ", " +
+                        child.to[1] +
+                        ", " +
+                        child.to[2] +
+                        ")"
+                );
+            }
+        }
+
+        var useStream = operation === "OR" && elements.length > 2;
+
+        if (useStream) {
+            var output = "Stream.of(\n";
+
+            for (var i = 0; i < method.length; i++) {
+                if (i == method.length - 1) {
+                    output = output + method[i] + "\n";
+                } else {
+                    output = output + method[i] + ",\n";
+                }
+            }
+
+            output =
+                output +
+                ").reduce((v1, v2) -> " +
+                mappings.combine +
+                "(v1, v2, " +
+                mappings.booleanFunction +
+                "." +
+                operation +
+                ")).get();";
+
+            return output;
+        } else {
+            var output = method[method.length - 1];
+            for (var i = method.length - 2; i >= 0; i--) {
+                output =
+                    mappings.combine +
+                    "(" +
+                    method[i] +
+                    ", " +
+                    output +
+                    ", " +
+                    mappings.booleanFunction +
+                    "." +
+                    operation +
+                    ")";
+            }
+            return output;
+        }
+    }
+
+    function searchVoxelShapeGroup(elements) {
+        var rGroup;
+        Group.all.forEach((group) => {
+            if (group.name === "VoxelShapes") rGroup = group;
+        });
+        return rGroup;
+    }
+
+    function resetFlags() {
+        Blockbench.removeFlag(mappingsKey);
+        Blockbench.removeFlag(Mappings.mojmaps.key);
+        Blockbench.removeFlag(Mappings.mcp.key);
+        Blockbench.removeFlag(Mappings.yarn.key);
+        Blockbench.removeFlag(Mappings.parchment.key);
+        Blockbench.removeFlag(omitVoxelShapesGroup);
+    }
 
 // var helpMenu;
 
 Plugin.register('mod_utils', {
 	title: 'Mod Utils',
-	author: 'JTK222 (Maintainer) & Wither (For the original Techne importer)',
+	author: 'JTK222 (Maintainer), Wither (For the original Techne importer), Ocraftyone (VoxelShape improvements)',
 	icon: 'fa-cubes',
 	description: 'Allows importing Tabula files, and exporting VoxelShapes',
     tags: ["Minecraft: Java Edition"],
-	version: '1.7',
+	version: '1.7.1',
 	variant: 'desktop',
 
 	onload() {

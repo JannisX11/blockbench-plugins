@@ -131,11 +131,11 @@
 	},
 	"mod_utils": {
 		"title": "Mod Utils",
-		"author": "JTK222 (Maintainer) & Wither (For the original Techne importer)",
+		"author": "JTK222 (Maintainer), Wither (For the original Techne importer), Ocraftyone (VoxelShape improvements)",
 		"icon": "fa-cubes",
 		"description": "Allows importing Tabula files, and exporting VoxelShapes",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.7",
+		"version": "1.7.1",
 		"variant": "desktop"
 	},
 	"structure_importer": {
@@ -200,7 +200,7 @@
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "6.6.4",
+		"version": "6.6.5",
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
@@ -653,6 +653,15 @@
 		"min_version": "4.4.0",
 		"variant": "both",
 		"tags": ["Paint", "Customization", "Interface"]
+	},
+	"pluginstats": {
+		"title": "Plugin Statistics",
+		"icon": "trending_up",
+		"author": "Malik12tree",
+		"description": "View download statistics of your blockbench plugin",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Blockbench", "Plugins", "Development"]
 	},
 	"repeat_it": {
 		"title": "Repeat It",

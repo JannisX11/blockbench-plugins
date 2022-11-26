@@ -258,6 +258,7 @@ class Brush {
 		Brushes[data.id] = this;
 		this.icon = data.icon;
 		this.id = data.id;
+		this.custom = data.custom;
 
 		this.brushview = new BrushViewerOption({
 			id: this.id,
@@ -300,17 +301,23 @@ class ImageBrush extends Brush {
 		this.image.onload = () => {
 			dummyCanvas.width = this.width;
 			dummyCanvas.height = this.height;
-			dummyCtx.drawImage(this.image, 0, 0);
-
+			dummyCtx.drawImage(this.image, 0, 0, this.width, this.height);
+			
 			this.data = dummyCtx.getImageData(0,0, this.width, this.height).data;
+			if (!data.save) return;
+
+			this.custom = true;
+			const base64 = dummyCanvas.toDataURL();
+			addBrush(this.id, base64);
+			BrushViewer.add(this.brushview)
 		}
 		this.image.src = this.icon;
 	}
 	get width() {
-		return this.image.width;
+		return Math.clamp(this.image.width, 0, 50);
 	}
 	get height() {
-		return this.image.height;
+		return Math.clamp(this.image.height, 0, 50);
 	}
 	/**
 	 * @param {typeof drawOpts} data 
@@ -564,7 +571,7 @@ new ImageBrush({
 	icon: 'data:image/png;base64,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'
 })
 
-const save = JSON.parse(localStorage.getItem('brp_settings') ?? '{"brushes": {}}');
+const save = JSON.parse(localStorage.getItem('brp_settings') ?? '{}');
 const savedata = save;
 function saveItem(name, value) {
 	if (name) {
@@ -572,13 +579,72 @@ function saveItem(name, value) {
 	}
 	localStorage.setItem('brp_settings', JSON.stringify(savedata));
 }
-for (const name in savedata.brushes) {
-	const path = savedata.brushes[name];
-	new ImageBrush({
-		id: name,
-		icon: path,
-	})
+
+const requestStorage = ({success = null, fail = null}) => {
+	const request = indexedDB.open("brush_plus_settings", 2);
+	request.onerror = fail;
+	request.onblocked = fail;
+	request.onupgradeneeded = () => {
+		const brushDB = request.result;
+		if (!brushDB.objectStoreNames.contains('data')) {
+			brushDB.createObjectStore('data', {keyPath: 'id'});
+		}
+	}
+
+	request.onsuccess = () => {
+		if (!success) return;
+		const brushDB = request.result;
+
+		const transaction = brushDB.transaction("data", "readwrite");
+		const data = transaction.objectStore("data");
+		success(data);
+	}
 }
+// Load Brushes
+requestStorage({
+	fail: console.warn,
+	async success(data) {			
+		if (savedata.brushes) {
+			// migration from localStorage to indexedDB
+			for (const brushId in savedata.brushes) {
+				let brushData = savedata.brushes[brushId];
+				if (isApp && !brushData.startsWith('data:image/')) {
+					brushData = `data:image/${pathToExtension(brushData)};base64,` + fs.readFileSync(brushData, {encoding: 'base64'});
+				}
+				await addBrush(brushId, brushData);
+			}
+
+
+			delete savedata.brushes;
+			saveItem();
+		}
+
+		const allBrushes = data.getAll();
+		allBrushes.onsuccess = () => 
+			allBrushes.result.forEach(datapoint => BrushViewer.add( new ImageBrush({...datapoint, custom: true}).brushview ));
+		
+		allBrushes.onerror = () => 
+			Blockbench.showMessageBox('Failed to load saved brushes!');
+	}
+});
+const addBrush = (id, icon) => new Promise((resolve, reject) => 
+	requestStorage({
+		fail: reject,
+		success(data) {
+			const addRequest = data.add({id, icon});
+			addRequest.onsuccess = resolve;
+			addRequest.onerror = reject;
+		}
+}));
+const deleteBrush = (id) => new Promise((resolve, reject) => 
+	requestStorage({
+		fail: reject,
+		success(data) {
+			const addRequest = data.delete(id);
+			addRequest.onsuccess = resolve;
+			addRequest.onerror = reject;
+		}
+}));
 
 const DynamicsCheckList = {
 	structure: Object.entries(Dynamics),
@@ -647,7 +713,7 @@ BrushViewer.init()
  */
 const showErrorInDialog = message => {
 	Blockbench.showQuickMessage(message, 2000);
-	throw new Error('')
+	throw new Error(message)
 }
 let brushp;
 BBPlugin.register('brush', {
@@ -692,15 +758,15 @@ BBPlugin.register('brush', {
 				},
 				file: {
 					type: 'file',
-					extensions: ['image/*'],
+					extensions: ['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'tif', 'gif'],
 					label: "Texture",
 					readtype: "image",
 				},
 			},
-			lines: ['<span class="subtle" >Blockbench\'s maximum brush size is 50 meaning images with dimensions greater than 50x50 would lose detail.</span>'],
+			lines: ['<span class="subtle" >Blockbench\'s maximum brush size is 50 meaning images with dimensions greater than 50x50 would lose detail.<br>Black/Transparent -> White/Opaque represents base opacity of the brush.</span>'],
 			form_first: true,
 			onConfirm({file, name})  {
-				if (!name || name in savedata.brushes) {
+				if (!name || name in Brushes) {
 					showErrorInDialog('Please provide a unique name!');
 				}
 				else if (!file) {
@@ -711,29 +777,9 @@ BBPlugin.register('brush', {
 					new ImageBrush({
 						id: name,
 						icon: file,
+						save: true
 					}).brushview
 				);
-				savedata.brushes[name] = file;
-				saveItem();
-			}
-		})
-		new Action('add_custom_brush', {
-			icon: 'fa-plus-circle',
-			name: 'Add Custom Brush',
-			click() {
-				customBrushDialog.show();
-			}
-		})
-		new Action('remove_custom_brush', {
-			icon: 'fa-circle-minus',
-			name: 'Remove Custom Brush',
-			click() {
-				if (BrushViewer.value in savedata.brushes) {
-					delete savedata.brushes[BrushViewer.value];
-					BrushViewer.remove(BrushViewer.value);
-
-					saveItem();
-				}
 			}
 		})
 		new Panel ({
@@ -746,11 +792,6 @@ BBPlugin.register('brush', {
 				float_position: [0, 0],
 				float_size: [300, 400],
 				height: 400,
-			},
-			toolbars: {
-				head: new Toolbar({
-					children: ['add_custom_brush', 'remove_custom_brush']
-				})
 			},
 			component: {
 				methods: {
@@ -777,6 +818,22 @@ BBPlugin.register('brush', {
 							title: 'Preserve Pixels ?',
 							message: 'When enabled, overlapping pixels of opacity in the same stroke remain intact; resulting in a flat stroke color.<br/>Blockbench\'s default brush uses this behavior.',
 						});
+					},
+					addCustomBrush() {
+						customBrushDialog.show();
+					},
+					removeCustomBrush() {
+						const selected = BrushViewer.value;
+						if (!Brushes[selected].custom) return;
+
+						deleteBrush(selected)
+						.then(() => {
+							BrushViewer.remove(selected);
+							BrushViewer.remove(selected);
+							delete Brushes[selected];
+							Blockbench.showQuickMessage(`Succesfully removed '${selected}'!`, 2000)
+						})
+						.catch(() => Blockbench.showQuickMessage('Failed to remove brush!', 2000));
 					}
 				},
 				data() {
@@ -788,6 +845,10 @@ BBPlugin.register('brush', {
 				},
 				template: `
 				<div style="overflow-y:auto;">
+					<div class="toolbar">
+						<div @click="addCustomBrush" class="tool add_custom_brush"><div class="tooltip">Add Custom Brush<label class="keybinding_label"></label></div><i class="fa_big icon fa fa-plus-circle"></i></div>
+						<div @click="removeCustomBrush" class="tool remove_custom_brush"><div class="tooltip" style="margin-left: 0px;">Remove Custom Brush<label class="keybinding_label"></label></div><i class="fa_big icon fa fa-circle-minus"></i></div>
+					</div>
 					<div class='mt-tool-settings' id='mt-brushshape-target'>
 						<p class="panel_toolbar_label">Aspect</p>
 						<input type='range'  @input="setAspect" min="0" max="100" :value="aspect" />
@@ -936,6 +997,8 @@ BBPlugin.register('brush', {
 	},
 	onuninstall() {
 		localStorage.removeItem('brp_settings');
+		indexedDB.deleteDatabase('brush_plus_settings');
 	}
 });
+
 })();
