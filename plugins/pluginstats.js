@@ -377,14 +377,18 @@ async function initializeAllDownloadData() {
 	}
 	sessionStorage.setItem(KEY_STORAGE, JSON.stringify(downloadData));
 }
-function dateSinceWeeks(numberOfWeeks) {
-    const date = new Date();
-    
-    date.setDate(
-        date.getDate() - numberOfWeeks * 7
-    );
-	
-    return date.toLocaleDateString('en-GB');
+function dateSinceWeeks(numberOfWeeks, exclusive) {
+	const date = new Date();
+	const dayOfTheWeek = date.getDay();
+
+	let offset = date.getDate() - numberOfWeeks * 7;
+	offset -= dayOfTheWeek; // offset date to sunday of the week
+	offset += 4;            // offset date to thursday of the week. apparently thursday is the start of the week
+	if (exclusive) offset --;
+
+	date.setDate(offset);
+
+	return date.toLocaleDateString('en-GB');
 }
 const format = Intl.NumberFormat('en').format;
 
@@ -422,27 +426,17 @@ function updateHTML(id) {
 	graph.update();
 }
 
+const dialogOptions = {}
 const dialog = new Dialog({
 	width: 600,
 	id: 'plugin_stats',
-	title: 'Plugin Stats',
+	title: 'Plugin Statistics',
 	part_order: ['form', 'lines'],
 	buttons: ['dialog.ok'],
 	resizable: false,
 
 	form: {
-		plugin: {
-			label: 'Plugin', type: 'select', options: (function () {
-				const data = {}
-				Plugins.all.forEach(plugin => {
-					if (plugin.source != STORE) return;
-					
-					data[plugin.id] = plugin.title;
-				});
-
-				return data;
-			})()
-		}
+		plugin: { label: 'Plugin', type: 'select', options: dialogOptions }
 	},
 	onFormChange(data) {
 		updateHTML(data.plugin);
@@ -476,9 +470,8 @@ const dialog = new Dialog({
 	<span class="ps-graph-info"></span>
 	<span class="ps-label" y>Downloads</span>
 	<span class="ps-label" x>Weeks</span>
-	<span style="grid-area=holder"></span>
+	<span style="grid-area:holder"></span>
 </div>
-<span class="subtle">${KEY_STORAGE in sessionStorage ? '*This graph data was loaded from the last reload. Reopening blockbench reloads this data.': ''}</span>
 <style>
 #plugin_stats .dialog_content {
 	overflow-x: hidden;
@@ -554,9 +547,10 @@ const graph = new Graph({
     },
     onValue({index, value}) {
 		const downloadsSince = format(value);
-		const downloads = downloadsSince <= 0 ? 'Plugin unreleased': downloadsSince;
-		const from = dateSinceWeeks(MAX_WEEKS - index);
-		const to = dateSinceWeeks(MAX_WEEKS - index - 1);
+		const downloads = downloadsSince <= 0 ? 'unreleased': downloadsSince;
+		const numberOfWeeks = MAX_WEEKS - index - 1;
+		const from = dateSinceWeeks(numberOfWeeks);
+		const to = dateSinceWeeks(numberOfWeeks - 1, true);
 		get('.ps-graph-info').innerText = `${from} to ${to} ≈ ${downloads}`;
 	},
 	onCancel() {
@@ -578,7 +572,7 @@ const meta = {
 	"icon": "trending_up",
 	"author": "Malik12tree",
 	"description": "View download statistics of your blockbench plugin",
-	"version": "1.0.0",
+	"version": "1.2.0",
 	"variant": "both",
 	"tags": ["Blockbench", "Plugins", "Development"]
 }
@@ -616,6 +610,21 @@ BBPlugin.register('pluginstats', {
 
 		initializeAllDownloadData().then(() => {
 			if (isPluginStateDead) return;
+
+			// sort if not sorted
+			if (!Object.values(Plugins.download_stats).length) {
+				Plugins.download_stats = downloadData[1];
+				Plugins.sort();
+			}
+			// 
+			// setup options
+			Plugins.all.forEach(plugin => {
+				if (plugin.source != STORE) return;
+				
+				dialogOptions[plugin.id] = plugin.title;
+			});
+			//
+
 			loadingAction.delete();
 			MenuBar.addAction(action, 'tools');
 		});
