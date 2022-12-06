@@ -14,7 +14,7 @@
 		title: name,
 		icon,
 		author,
-		description: "Adds a button that centers the image viewport in an Image format.",
+		description: "Adds a button and a keybind that centers the image viewport in an Image format.",
 		about: "This plugin adds a button that allows you to reset your viewport in the Image format.\n## How to use\nTo use this plugin, go to the brush toolbar (top of the image mode) and click the `Center Image Viewport` button. If it doesn't show up, make sure you are in the Image format. If you are, you can add the tool using the `Customize Toolbar` option. There will be a confirmation message displayed on-screen once you center the viewport.\n\nPlease report any bugs or suggestions you may have.",
 		tags: ["Format: Image", "UX"],
 		version: "1.1.0",
@@ -146,7 +146,7 @@
 					<p>- You need to be in the Image format for this plugin to work.</p>
 					<p>- You can add or remove the button from the toolbar using the<b> Customize Toolbar</b> button.</p>
 					<h4>How to use:</h4>
-					<p>To use this plugin, go to the brush toolbar (top of the image mode) and click the <b>Center Image Viewport</b> button. There will be a confirmation message displayed on-screen once you center the viewport.</p>
+					<p>To use this plugin, go to the brush toolbar (top of the image mode) and click the <b>Center Image Viewport</b> button. There will be a confirmation message displayed on-screen once you center the viewport. You can also use the <b>c</b> keybind.</p>
 					<br>
 					<div class="socials">
 						<a href="${links["twitter"]}" class="open-in-browser">
