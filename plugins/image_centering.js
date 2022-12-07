@@ -27,11 +27,11 @@
 			document.addEventListener("keydown", keyAction)
 			
 			button = new Action("image_center_button", {
-				name: 'Center Image Viewport',
-				icon: 'center_focus_strong',
-				description: 'Center the viewport of your image',
+				name: "Center Image Viewport",
+				icon: icon,
+				description: "Center the viewport of your image",
 				condition: () => Format?.id == "image",
-				click: () => Center()
+				click: () => center()
 			})
 
 			Toolbars.brush.add(button);
@@ -49,20 +49,18 @@
 	function keyAction(event) {
 		const keyName = event.key;
 		
-		if (Format?.id === "image") {
-			if (keyName === "c") Center();
-		}
+		if (Format?.id === "image" && keyName === "c") center();
 	}
 
 	// Resets everything - calls the function that resets the position and the zoom
-	function Center() {
-		SetViewport();
-		SetZoom();			
+	function center() {
+		setViewport();
+		setZoom();			
 		Blockbench.showQuickMessage("Centered viewport!", 2000);
 	}
 
 	// Resets the viewport position
-	function SetViewport() {
+	function setViewport() {
 		let uv_viewport = UVEditor.vue.$refs.viewport;
 		if (!uv_viewport) return;
 		UVEditor.setZoom(Project.uv_viewport.zoom);
@@ -73,7 +71,7 @@
 	}
 
 	// Resets the zoom of the viewport
-	function SetZoom(zoom) {
+	function setZoom(zoom) {
 		let max_zoom = Math.round((UVEditor.vue.texture ? UVEditor.vue.texture.height : Project.texture_width) * 32 / UVEditor.width);
 		zoom = Math.clamp(zoom, 0.85, Math.clamp(max_zoom, 16, 64));
 		UVEditor.vue.zoom = zoom;
@@ -81,8 +79,6 @@
 		Vue.nextTick(() => {
 			if (Painter.selection.overlay) UVEditor.updatePastingOverlay();
 		})
-
-		return UVEditor;
 	}
 
 	// Adds an about button for more plugin information
