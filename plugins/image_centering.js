@@ -45,22 +45,23 @@
 		}
 	})
 
+	// Detects the c keybind
 	function keyAction(event) {
 		const keyName = event.key;
 		
 		if (Format?.id === "image") {
-			if (keyName === "c") {
-				Center();
-			}
+			if (keyName === "c") Center();
 		}
 	}
 
+	// Resets everything - calls the function that resets the position and the zoom
 	function Center() {
 		SetViewport();
 		SetZoom();			
 		Blockbench.showQuickMessage("Centered viewport!", 2000);
 	}
 
+	// Resets the viewport position
 	function SetViewport() {
 		let uv_viewport = UVEditor.vue.$refs.viewport;
 		if (!uv_viewport) return;
@@ -71,6 +72,7 @@
 		})
 	}
 
+	// Resets the zoom of the viewport
 	function SetZoom(zoom) {
 		let max_zoom = Math.round((UVEditor.vue.texture ? UVEditor.vue.texture.height : Project.texture_width) * 32 / UVEditor.width);
 		zoom = Math.clamp(zoom, 0.85, Math.clamp(max_zoom, 16, 64));
@@ -83,6 +85,7 @@
 		return UVEditor;
 	}
 
+	// Adds an about button for more plugin information
 	function addAboutButton() {
 		let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins");
 		if (!about) {
@@ -103,6 +106,7 @@
 		about.children.push(aboutAction);
 	}
 
+	// Shows the about dialog
 	function showAbout(banner) {
 		const infoBox = new Dialog({
 			id: "about",
