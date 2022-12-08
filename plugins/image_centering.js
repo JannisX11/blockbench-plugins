@@ -24,14 +24,14 @@
 		onload() {
 			addAboutButton();
 			Blockbench.showQuickMessage("Successfully installed Image Centering plugin!", 2000);
-			document.addEventListener("keydown", keyAction)
 			
 			button = new Action("image_center_button", {
 				name: "Center Image Viewport",
 				icon: icon,
 				description: "Center the viewport of your image",
 				condition: () => Format?.id == "image",
-				click: () => center()
+				click: () => center(),
+				keybind: new Keybind({key: 'c', shift: false})
 			})
 
 			Toolbars.brush.add(button);
@@ -41,16 +41,8 @@
 			button.delete();
 			MenuBar.removeAction(`help.about_plugins.about_${id}`);
 			Blockbench.showQuickMessage("Uninstalled Image Centering plugin", 2000);
-			document.removeEventListener("keydown", keyAction)
 		}
 	})
-
-	// Detects the c keybind
-	function keyAction(event) {
-		const keyName = event.key;
-		
-		if (Format?.id === "image" && keyName === "c") center();
-	}
 
 	// Resets everything - calls the function that resets the position and the zoom
 	function center() {
