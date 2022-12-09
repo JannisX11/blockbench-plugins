@@ -23,7 +23,7 @@
 		oninstall: () => showAbout(true),
 		onload() {
 			addAboutButton();
-			Blockbench.showQuickMessage("Successfully installed Image Centering plugin!", 2000);
+			Blockbench.showQuickMessage("Successfully installed Image Centering plugin!", 1500);
 			
 			button = new Action("image_center_button", {
 				name: "Center Image Viewport",
