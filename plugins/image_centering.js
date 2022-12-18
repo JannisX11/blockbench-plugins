@@ -23,7 +23,6 @@
 		oninstall: () => showAbout(true),
 		onload() {
 			addAboutButton();
-			Blockbench.showQuickMessage("Successfully installed Image Centering plugin!", 1500);
 			
 			button = new Action("image_center_button", {
 				name: "Center Image Viewport",
@@ -48,7 +47,7 @@
 	function center() {
 		setViewport();
 		setZoom();			
-		Blockbench.showQuickMessage("Centered viewport!", 2000);
+		Blockbench.showQuickMessage("Centered viewport!", 1500);
 	}
 
 	// Resets the viewport position
