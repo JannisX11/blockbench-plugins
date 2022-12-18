@@ -13,7 +13,7 @@
     icon,
     author: "Ewan Howell",
     description: "Add a new scene recorder where you can record your model in a large variety of formats.",
-    about: "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the toolbar above the viewport.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
+    about: "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
     tags: ["Recording", "Media"],
     version: "1.0.0",
     min_version: "4.5.2",
@@ -288,7 +288,7 @@
                 if (formData.format === "mp4") {
                   name = "MP4 Video"
                   extension = "mp4"
-                  command = ["-c:v", formData.mp4Codec, "-pix_fmt", "yuv444p", "-an"]
+                  command = ["-c:v", formData.mp4Codec, "-pix_fmt", "yuv420p", "-vf", "scale=floor(iw/2)*2:floor(ih/2)*2", "-an"]
                 } else if (formData.format === "gif") {
                   name = "Animated PNG"
                   extension = "gif"
@@ -345,7 +345,7 @@
         click: () => dialog.show(),
         condition: () => Project
       })
-      Toolbars.main_tools.add(action)
+      MenuBar.addAction(action, "view.screenshot")
     },
     onunload() {
       action?.delete()
@@ -362,12 +362,15 @@
     return p
   }
 
-  function ffmpeg(frames, args) {
+  async function ffmpeg(frames, args) {
     const p = spawn(ffmpegPath, args, {
       stdio: ["pipe", "ignore", "pipe"]
     })
     for (const frame of frames) p.stdin.write(frame)
     p.stdin.end()
+    let out = ""
+    for await (const chunk of p.stderr) out += chunk
+    console.log(out)
     return p.promise
   }
 
