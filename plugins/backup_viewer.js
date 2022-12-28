@@ -59,6 +59,14 @@
         .backup-item > i {
           display: none;
         }
+        .backup-item > div {
+          font-size: 16px;
+          color: var(--color-subtle_text);
+          position: relative;
+        }
+        .backup-item:hover > div {
+          color: var(--color-bright_ui_text);
+        }
         .backup-item-hidden {
           display: none!important;
         }
@@ -86,11 +94,6 @@
         }
         .backup-list-display-list span {
           flex: 1;
-        }
-        .backup-list-display-list div {
-          font-size: 16px;
-          color: var(--color-subtle_text);
-          position: relative;
         }
         .backup-list-display-list div::before {
           content: "";
