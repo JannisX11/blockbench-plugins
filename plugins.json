@@ -281,6 +281,17 @@
 		"min_version": "4.5.2",
 		"variant": "desktop"
 	},
+  "backup_viewer": {
+    "title": "Backup Viewer",
+    "icon": "fa-archive",
+    "author": "Ewan Howell",
+    "description": "View the project backups from within Blockbench",
+    "about": "Add a backup tab to the Blockbench start screen that allows you to view a list of the project backups from within Blockbench.",
+    "tags": ["Backups", "Blockbench"],
+    "version": "1.0.0",
+    "min_version": "4.5.2",
+    "variant": "desktop"
+  },
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
