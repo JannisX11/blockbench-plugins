@@ -17,18 +17,18 @@
         #backup-tabs {
           background-color: var(--color-ui);
           position: absolute;
-          top: -1px;
+          top: -6px;
           display: flex;
           gap: 2px;
         }
         .backup-tab {
-          border-top: 3px solid transparent;
+          border-bottom: 3px solid transparent;
           cursor: pointer;
-          padding: 0 20px 4px;
+          padding: 4px 20px 0;
           font-size: 1.75rem;
         }
         .backup-tab-active {
-          border-top: 3px solid var(--color-accent);
+          border-bottom: 3px solid var(--color-accent);
           cursor: initial;
         }
         .backup-tab:hover {
