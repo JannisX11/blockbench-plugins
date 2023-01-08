@@ -1,5 +1,4 @@
 (function() {
-    var electron = require("electron");
     var button;
     var lastOptions = {};
     var sides = {
@@ -55,7 +54,7 @@
             {
                 groups[object.name] = createModelGroup(object, groups);
             }
-            else
+            else if (object.type == "cube")
             {
                 cubes.push(createCube(object));
             }
@@ -332,7 +331,7 @@
                     data = compile();
                 }
 
-                electron.clipboard.writeText(autoStringify(data));
+                Clipbench.setText(autoStringify(data));
             }
             else
             {
