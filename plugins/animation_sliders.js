@@ -2,16 +2,16 @@
 
 (function() {
 
-	var tween_slider, amplify_slider, easing_slider, axis_selector, key_column, select_column, updateSliders;
+	var tween_slider, amplify_slider, easing_slider, axis_selector, key_column, select_column, normalize_keyframes, updateSliders;
 
 	Plugin.register('animation_sliders', {
 		title: 'Animation Sliders',
 		icon: 'fas.fa-bezier-curve',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
-		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead`,
+		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.`,
 		tags: ['Animation'],
-		version: '0.2.1',
+		version: '0.3.0',
 		min_version: '3.7.0',
 		variant: 'both',
 		onload() {
@@ -31,7 +31,7 @@
 				} else if (event.ctrlOrCmd || Pressing.overrides.ctrl) {
 					return 0.5;
 				} else {
-					return 5;
+					return 1;
 				}
 			}
 			let channels = ['rotation', 'position', 'scale'];
@@ -116,9 +116,7 @@
 				category: 'animation',
 				condition: () => Animator.open && Timeline.selected.length,
 				settings: {show_bar: true, limit: false, min: 0, max: 100},
-				getInterval(event) {
-					return 5
-				},
+				getInterval,
 				get: function() {
 					return tween_value;
 				},
@@ -175,9 +173,7 @@
 				category: 'animation',
 				condition: () => Animator.open && Timeline.selected.length,
 				settings: {show_bar: true, limit: false, min: 0, max: 200},
-				getInterval(event) {
-					return 5
-				},
+				getInterval,
 				get: function() {
 					return amplify_value;
 				},
@@ -334,6 +330,39 @@
 				}
 			})
 
+			normalize_keyframes = new Action('normalize_keyframes', {
+				name: 'Normalize Keyframes',
+				description: 'Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.',
+				icon: 'equalizer',
+				click() {
+					Undo.initEdit({keyframes: Timeline.selected})
+
+					Timeline.animators.forEach(animator => {
+						if (animator instanceof BoneAnimator) {
+							channels.forEach(channel => {
+								let closest_selected = animator[channel].filter(kf => kf.selected).sort((a, b) => Math.abs(Timeline.time - a.time) - Math.abs(Timeline.time - b.time))[0];
+								if (!closest_selected) return;
+
+								let values = calcKeyframeValues(closest_selected);
+								animator[channel].forEach(kf => {
+									if (kf.selected) {
+										function offsetAxis(axis) {
+											kf.offset(getAxisLetter(axis), -values[axis]);
+										}
+										if (selected_axes.x) offsetAxis(0);
+										if (selected_axes.y) offsetAxis(1);
+										if (selected_axes.z) offsetAxis(2);
+									}
+								})
+							})
+						}
+					})
+					Animator.preview()
+					Undo.finishEdit('Normalize keyframes')
+				}
+			})
+			MenuBar.menus.keyframe.addAction(normalize_keyframes)
+
 			updateSliders = function() {
 				tween_slider.update();
 				amplify_slider.update();
@@ -351,6 +380,7 @@
 			axis_selector.delete();
 			key_column.delete();
 			select_column.delete();
+			normalize_keyframes.delete();
 			Blockbench.removeListener('update_keyframe_selection', updateSliders);
 		}
 	});

@@ -422,9 +422,9 @@
 		"icon": "fas.fa-bezier-curve",
 		"author": "JannisX11",
 		"description": "Adds multiple sliders to tweak keyframes",
-		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.",
 		"tags": ["Animation"],
-		"version": "0.2.1",
+		"version": "0.3.0",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
