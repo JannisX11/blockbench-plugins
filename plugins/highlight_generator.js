@@ -74,7 +74,7 @@ function generateFile(){
             output += `        [${datum[0]}, ${datum[1]}, ${datum[2]}, ${datum[3]}, ${datum[4]}, ${datum[5]}],\n`
         }
     }
-    return output.substr(0, output.length - 2) + `\n    \n}`;
+    return output.substr(0, output.length - 2) + `\n    ]\n}`;
 }
 
 function createHorizontalEdges(vertices) {
