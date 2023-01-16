@@ -649,7 +649,7 @@
                 }
                 return []
               }
-              const groups = Group.all.map(e => e.name).concat("var", "varb", "render")
+              const groups = Group.all.map(e => e.name).concat("var", "varb")
               return filterAndSortList(groups.map(e => `${e}.`).concat(vars), beginning, null, Object.assign(Object.fromEntries(groups.map(e => [`${e}.`, e])), varLabels))
             }
             if (beginning.includes(".")) {
