@@ -1,5 +1,5 @@
 (async function () {
-  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, loader
+  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, loader, aboutAction
   const id = "cem_template_loader"
   const name = "CEM Template Loader"
   const icon = "keyboard_capslock"
@@ -458,6 +458,31 @@
     death_time: [0, false],
     swing_progress: [0, false]
   }
+  const boolList = new Set([
+    "is_aggressive",
+    "is_alive",
+    "is_burning",
+    "is_child",
+    "is_glowing",
+    "is_hurt",
+    "is_in_hand",
+    "is_in_item_frame",
+    "is_in_ground",
+    "is_in_gui",
+    "is_in_lava",
+    "is_in_water",
+    "is_invisible",
+    "is_on_ground",
+    "is_on_head",
+    "is_on_shoulder",
+    "is_ridden",
+    "is_riding",
+    "is_sitting",
+    "is_sneaking",
+    "is_sprinting",
+    "is_tamed",
+    "is_wet"
+  ])
   const enabledBooleans = new Set([
     "is_alive", "is_on_ground"
   ])
@@ -485,7 +510,10 @@
     anim = anim.trim()
     if (anim.length === 0) return ""
     const boolsMatch = anim.matchAll(/(?<=[\s\n(!&|=,]|^)is_[a-z_]+(?=[\s\n)!&|=,]|$)/g)
-    for (const bool of boolsMatch) boolMap.set(bool[0], bools.get(bool[0]) ?? enabledBooleans.has(bool[0]) ? true : false)
+    for (const bool of boolsMatch) {
+      if (!boolList.has(bool[0])) throw [`Unknown boolean: "<span style="font-weight:600">${bool[0]}</span>" is not a supported boolean`]
+      boolMap.set(bool[0], bools.get(bool[0]) ?? enabledBooleans.has(bool[0]) ? true : false)
+    }
     const check = anim.match(/[^a-z0-9_,\+\-\*\/%!&\|>=<\(\)\[\]:\.\s]/gi)
     if (check) throw [`Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
     const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--|\.\.\.|(?<![$\u200c\u200d\p{ID_Continue}])\d+n|[$\u200c\u200d\p{ID_Continue}]+\.[$\u200c\u200d\p{ID_Continue}]+[\.\(]|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>>?|\*\*/ui)
@@ -607,7 +635,35 @@
               pauseButton.text("play_arrow").attr("title", "Resume the animations")
             }
           },
-          showDoc: () => showDocumentation()
+          showDoc: () => showDocumentation(),
+          autocomplete(text, position) {
+            const before = text.substring(0, position)
+            if (before.match(/"/g)?.length % 2 !== 1) return []
+            const beginning = text.substring(0, position).split(/[^a-zA-Z_.]\.*/g).last()
+            if (reInValue.test(before)) {
+              if (beginning.includes(".")) {
+                const [prefix, str] = beginning.split(".")
+                if (!prefix.match(/\d+/)) {
+                  if (["var", "varb"].includes(prefix)) return []
+                  return filterAndSortList(boneVars, str)
+                }
+                return []
+              }
+              const groups = Group.all.map(e => e.name).concat("var", "varb", "render")
+              return filterAndSortList(groups.map(e => `${e}.`).concat(vars), beginning, null, Object.assign(Object.fromEntries(groups.map(e => [`${e}.`, e])), varLabels))
+            }
+            if (beginning.includes(".")) {
+              const [prefix, str] = beginning.split(".")
+              if (!prefix.match(/\d+/)) {
+                if (["var", "varb"].includes(prefix)) return []
+                if (prefix === "render") return filterAndSortList(renderVars, str)
+                return filterAndSortList(boneVars, str)
+              }
+              return []
+            }
+            const groups = Group.all.map(e => e.name).concat("var", "varb", "render")
+            return filterAndSortList(groups.map(e => `${e}.`), beginning, null, Object.fromEntries(groups.map(e => [`${e}.`, e])))
+          }
         },
         template: `
           <div>
@@ -622,7 +678,7 @@
                 </span>
               </div>
               <div id="cem_animation_editor_container">
-                <vue-prism-editor id="cem_animation_editor" v-model="text" language="json" line-numbers @change="change()" />
+                <vue-prism-editor id="cem_animation_editor" v-model="text" language="json" line-numbers @change="change()" :autocomplete="autocomplete"/>
               </div>
               <div class="cem_animation_bar" style="margin-top:8px">
                 <div id="cem_animation_status_success" class="cem_animation_status">
@@ -651,6 +707,113 @@
         `
       }
     })
+    const reInValue = /:[\s\n]*"[^"]*$/
+    const boneVars = ["tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz", "visible", "visible_boxes"]
+    const renderVars = ["shadow_size", "shadow_opacity", "shadow_offset_x", "shadow_offset_z", "leash_offset_x", "leash_offset_y", "leash_offset_z"]
+    const vars = [
+      "pi",
+      "true",
+      "false",
+      "time",
+      "limb_swing",
+      "limb_speed",
+      "age",
+      "head_pitch",
+      "head_yaw",
+      "player_pos_x",
+      "player_pos_y",
+      "player_pos_z",
+      "player_rot_x",
+      "player_rot_y",
+      "frame_time",
+      "dimension",
+      "rule_index",
+      "health",
+      "hurt_time",
+      "death_time",
+      "anger_time",
+      "max_health",
+      "pos_x",
+      "pos_y",
+      "pos_z",
+      "rot_x",
+      "rot_y",
+      "swing_progress",
+      "id",
+      "sin()",
+      "cos()",
+      "asin()",
+      "acos()",
+      "tan()",
+      "atan()",
+      "atan2()",
+      "torad()",
+      "todeg()",
+      "min()",
+      "max()",
+      "clamp()",
+      "abs()",
+      "floor()",
+      "ceil()",
+      "exp()",
+      "frac()",
+      "log()",
+      "pow()",
+      "random()",
+      "round()",
+      "signum()",
+      "sqrt()",
+      "fmod()",
+      "lerp()",
+      "if()",
+      "print()",
+      "printb()",
+      "between()",
+      "equals()",
+      "in()",
+      ...boolList
+    ]
+    const varLabels = {
+      "sin()": "sin(x)",
+      "cos()": "cos(x)",
+      "asin()": "asin(x)",
+      "acos()": "acos(x)",
+      "tan()": "tan(x)",
+      "atan()": "atan(x)",
+      "atan2()": "atan2(y, x)",
+      "torad()": "torad(deg)",
+      "todeg()": "todeg(rad)",
+      "min()": "min(x, y, …)",
+      "max()": "max(x, y, …)",
+      "clamp()": "clamp(x, min, max)",
+      "abs()": "abs(x)",
+      "floor()": "floor(x)",
+      "ceil()": "ceil(x)",
+      "exp()": "exp(x)",
+      "frac()": "frac(x)",
+      "log()": "log(x)",
+      "pow()": "pow(x, y)",
+      "random()": "random(seed)",
+      "round()": "round(x)",
+      "signum()": "signum(x)",
+      "sqrt()": "sqrt(x)",
+      "fmod()": "fmod(x, y)",
+      "lerp()": "lerp(t, x, y)",
+      "if()": "if(c, v, [c2, v2, …,] v_else)",
+      "print()": "print(id, n, x)",
+      "printb()": "printb(id, n, x)",
+      "between()": "between(x, min, max)",
+      "equals()": "equals(x, y, epsilon)",
+      "in()": "in(x, val1, val2, …)"
+    }
+    function filterAndSortList(list, match, blacklist, labels) {
+      let result = list.filter(f => f.startsWith(match))
+      list.forEach(f => {
+        if (!result.includes(f) && f.includes(match)) result.push(f)
+      })
+      if (blacklist) blacklist.forEach(black => result.remove(black))
+      return result.map(text => ({text, label: labels && labels[text], overlap: match.length}))
+    }
     const partName = $("#cem_animation_part_name")
     const placeholder = $("#cem_animation_placeholder")
     const content = $("#cem_animation_content")
@@ -1222,10 +1385,10 @@
               #cem_doc {
                 margin: 16px;
               }
-              #cem_doc>div {
+              #cem_doc > div {
                 display: none;
               }
-              #cem_doc>div.selected {
+              #cem_doc > div.selected {
                 display: block;
               }
               #cem_doc * {
@@ -1234,7 +1397,7 @@
               #cem_doc h2 {
                 font-size: 25px;
               }
-              #cem_doc>div>:first-child {
+              #cem_doc > div > :first-child {
                 margin-top: -8px;
               }
               #cem_doc h2:not(:first-child) {
@@ -1267,13 +1430,13 @@
                 top: 0;
                 border-bottom: 4px solid var(--color-ui);
               }
-              #cem_doc_tabs>div {
+              #cem_doc_tabs > div {
                 padding: 4px 12px;
                 cursor: pointer;
                 border-top: 2px solid transparent;
                 background-color: var(--color-back);
               }
-              #cem_doc_tabs>div.selected {
+              #cem_doc_tabs > div.selected {
                 background-color: var(--color-ui);
                 border-top-color: var(--color-accent);
                 cursor: default;
@@ -1285,7 +1448,7 @@
                 list-style: inside;
                 font-family: var(--font-code);
               }
-              .cem_doc_tab_link {
+              .cem-doc-tab-link {
                 text-decoration: underline;
                 cursor: pointer;
                 color: var(--color-accent);
@@ -1338,8 +1501,8 @@
           $(`#cem_doc_page_${evt.target.textContent}`).addClass("selected")
           $("#cem_animation_documentation .dialog_content")[0].scrollTo(0, 0)
         })
-        if (Blockbench.isWeb) $(".cem_doc_display_desktop").css("display", "none")
-        else $(".cem_doc_display_web").css("display", "none")
+        if (Blockbench.isWeb) $(".cem-doc-display-desktop").css("display", "none")
+        else $(".cem-doc-display-web").css("display", "none")
         doc.append(
           E("hr"),
           E("p").html(`Documentation version:   <span style="font-family:var(--font-code)">v${docData.version}</span>\nUpdated to:   <span style="font-family:var(--font-code)">OptiFine ${docData.optifineVersion}</span>`)
@@ -1416,6 +1579,7 @@
         flex: 1;
         max-height: calc(100% - 40px);
         min-height: 3.5em;
+        display: flex;
       }
       #cem_animation_controller_container {
         flex: 1;
@@ -1629,8 +1793,8 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.6.5",
-    min_version: "4.3.0",
+    version: "6.11.0",
+    min_version: "4.6.0",
     variant: "both",
     oninstall: () => showAbout(true),
     async onload() {
@@ -1679,6 +1843,7 @@
       MenuBar.removeAction("help.about_plugins.about_cem_template_loader")
       animationEditorPanel.delete()
       animationControlPanel.delete()
+      aboutAction.delete()
       styles.delete()
       resizeWindow()
     }
