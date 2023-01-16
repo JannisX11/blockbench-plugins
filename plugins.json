@@ -422,9 +422,9 @@
 		"icon": "fas.fa-bezier-curve",
 		"author": "JannisX11",
 		"description": "Adds multiple sliders to tweak keyframes",
-		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead",
+		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.",
 		"tags": ["Animation"],
-		"version": "0.2.1",
+		"version": "0.3.0",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -472,7 +472,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},
@@ -714,5 +714,23 @@
 		"version": "1.1.0",
 		"min_version": "4.4.0",
 		"variant": "both"
+	},
+	"bbs_exporter": {
+		"title": "BBS model exporter",
+		"icon": "fa-file-export",
+		"author": "McHorse",
+		"description": "Adds a model exporter which allows to export models in BBS model format",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Exporter"]
+	},
+	"highlight_generator": {
+		"title": "Highlight Mod Shape Generator",
+		"icon": "fa-cube",
+		"author": "ThatGravyBoat",
+		"description": "Generates Shape JSONs for the Highlight mod. Mod can be found at: https://links.resourcefulbees.com/highlight",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
 	}
 }
