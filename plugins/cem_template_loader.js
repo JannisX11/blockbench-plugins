@@ -639,11 +639,12 @@
           autocomplete(text, position) {
             const before = text.substring(0, position)
             if (before.match(/"/g)?.length % 2 !== 1) return []
-            const beginning = text.substring(0, position).split(/[^a-zA-Z_.]\.*/g).last()
+            const beginning = text.substring(0, position).split(/[^a-zA-Z0-9_.]\.*/g).last()
+            console.log(beginning)
             if (reInValue.test(before)) {
               if (beginning.includes(".")) {
                 const [prefix, str] = beginning.split(".")
-                if (!prefix.match(/\d+/)) {
+                if (!prefix.match(/^\d+$/)) {
                   if (["var", "varb"].includes(prefix)) return []
                   return filterAndSortList(boneVars, str)
                 }
@@ -654,7 +655,7 @@
             }
             if (beginning.includes(".")) {
               const [prefix, str] = beginning.split(".")
-              if (!prefix.match(/\d+/)) {
+              if (!prefix.match(/^\d+$/)) {
                 if (["var", "varb"].includes(prefix)) return []
                 if (prefix === "render") return filterAndSortList(renderVars, str)
                 return filterAndSortList(boneVars, str)
@@ -1793,7 +1794,7 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.11.0",
+    version: "6.11.1",
     min_version: "4.6.0",
     variant: "both",
     oninstall: () => showAbout(true),
