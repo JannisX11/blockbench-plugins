@@ -640,7 +640,6 @@
             const before = text.substring(0, position)
             if (before.match(/"/g)?.length % 2 !== 1) return []
             const beginning = text.substring(0, position).split(/[^a-zA-Z0-9_.]\.*/g).last()
-            console.log(beginning)
             if (reInValue.test(before)) {
               if (beginning.includes(".")) {
                 const [prefix, str] = beginning.split(".")
