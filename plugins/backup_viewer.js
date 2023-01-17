@@ -6,7 +6,7 @@
     title: "Backup Viewer",
     icon: "fa-archive",
     author: "Ewan Howell",
-    description: "View the project backups from within Blockbench",
+    description: "View the project backups from within Blockbench.",
     about: "Add a backup tab to the Blockbench start screen that allows you to view a list of the project backups from within Blockbench.",
     tags: ["Backups", "Blockbench"],
     version: "1.0.0",
