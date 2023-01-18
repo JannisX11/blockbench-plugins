@@ -10,7 +10,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	about: 'Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.',
-	version: '1.0.0',
+	version: '1.0.1',
 	min_version: '4.6.0',
 	variant: 'desktop',
 	onload() {
@@ -152,8 +152,17 @@ BBPlugin.register('explorer', {
 
 					file_menu: new Menu([
 						{
+							id: 'load_as',
+							name: 'Load As...',
+							icon: 'add_photo_alternate',
+							condition: (file) => file.name.toLowerCase().endsWith('png'),
+							click(file) {
+								loadImages([{path: file.path, name: file.name}])
+							}
+						},
+						{
 							id: 'open',
-							name: 'Open',
+							name: 'Open in Default Program',
 							icon: 'open_in_new',
 							condition: (file) => file.type == 'file',
 							click(file) {
@@ -220,13 +229,10 @@ BBPlugin.register('explorer', {
 						if (open_timeout == file.path) return;
 						open_timeout = file.path;
 						setTimeout(() => (open_timeout = ''), 360);
+						
+						this.selected.replace([file.path]);
 
-						if (file.type == 'folder') {
-							this.path = file.path;
-							this.updateList();
-
-						} else {
-							this.selected.replace([file.path]);
+						if (file.type != 'folder') {
 							if (Project?.save_path == file.path || Project?.export_path == file.path) return;
 
 							let project_before = Project;
@@ -241,8 +247,13 @@ BBPlugin.register('explorer', {
 						}
 					},
 					dblClickFile(file) {
-						temp_tab = null;
-						explorer.hide();
+						if (file.type == 'folder') {
+							this.path = file.path;
+							this.updateList();
+						} else {
+							temp_tab = null;
+							explorer.confirm();
+						}
 					},
 					openContextMenu(file, event) {
 						this.file_menu.open(event, file);
@@ -313,7 +324,7 @@ BBPlugin.register('explorer', {
 						new Menu('sidebar_explorer_new_file', arr).show(event.target);
 					},
 					close(e) {
-						explorer.close(0, e);
+						explorer.cancel();
 					}
 				},
 				computed: {
@@ -393,7 +404,6 @@ BBPlugin.register('explorer', {
 		sidebar_button.addEventListener('click', event => {
 			explorer.show();
 		})
-		console.log(sidebar_button)
 		let tab_bar = document.getElementById('tab_bar');
 		tab_bar.prepend(sidebar_button);
 
