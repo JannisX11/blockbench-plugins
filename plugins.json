@@ -462,7 +462,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.1",
+		"version": "1.1.2",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -472,7 +472,7 @@
 		"icon": "fas.fa-hat-wizard",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.1",
+		"version": "1.1.2",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},
