@@ -10,7 +10,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	about: 'Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.',
-	version: '1.0.1',
+	version: '1.0.2',
 	min_version: '4.6.0',
 	variant: 'desktop',
 	onload() {
@@ -183,9 +183,9 @@ BBPlugin.register('explorer', {
 							icon: 'delete',
 							condition: (file) => file.type == 'file',
 							click: (file) => {
-								let result = confirm(`Are you sure you want to delete '${file.name}'?`);
+								let result = confirm(`Are you sure you want to move '${file.name}' to trash?`);
 								if (result) {
-									fs.unlinkSync(file.path);
+									shell.trashItem(file.path);
 									this.updateList();
 								}
 							}
@@ -248,25 +248,30 @@ BBPlugin.register('explorer', {
 					},
 					dblClickFile(file) {
 						if (file.type == 'folder') {
-							this.path = file.path;
-							this.updateList();
+							this.goTo(file.path);
 						} else {
 							temp_tab = null;
 							explorer.confirm();
 						}
 					},
 					openContextMenu(file, event) {
+						this.selected.replace([file.path]);
 						this.file_menu.open(event, file);
 					},
-					directoryUp() {
-						this.path = PathModule.dirname(this.path);
+
+					goTo(path) {
+						this.path = path;
+						this.search_term = '';
 						this.updateList();
 					},
+					directoryUp() {
+						this.goTo(PathModule.dirname(this.path));
+					},
 					navigateBackTo(index) {
+						if (!index) return;
 						let arr = this.path.split(/[/\\]+/)
 						arr = arr.slice(0, -Math.min(index, arr.length-2));
-						this.path = PathModule.join(...arr);
-						this.updateList();
+						this.goTo(PathModule.join(...arr));
 					},
 					createFile(event) {
 						let arr = [];
@@ -351,13 +356,13 @@ BBPlugin.register('explorer', {
 							<search-bar id="sidebar_explorer_search_bar" v-model="search_term" style="flex-grow: 1; margin-left: 6px;" />
 							<div class="tool" @click="close($event)"><i class="material-icons">clear</i></div>
 						</div>
+						<div class="bar flex sidebar_explorer_location">
+							<span v-for="(directory, i) in path_array" @click="navigateBackTo(i)">{{ directory }}</span>
+						</div>
 						<div class="bar flex">
 							<div class="tool" @click="directoryUp()" title="Navigate Back"><i class="material-icons">arrow_back</i></div>
 							<div class="tool" @click="updateList()" title="Refresh"><i class="material-icons">refresh</i></div>
 							<div class="tool" @click="createFile($event)" title="New File"><i class="material-icons">note_add</i></div>
-						</div>
-						<div class="bar flex sidebar_explorer_location">
-							<span v-for="(directory, i) in path_array" @click="navigateBackTo(i)">{{ directory }}</span>
 						</div>
 						<ul class="list">
 							<li 
@@ -379,7 +384,7 @@ BBPlugin.register('explorer', {
 				let current_file = Project && (Project.export_path || Project.save_path);
 				if (!this.content_vue.path || true) {
 					if (current_file) {
-						this.content_vue.path = PathModule.dirname(current_file);
+						this.content_vue.goTo(PathModule.dirname(current_file));
 					}
 				}
 				this.content_vue.updateList();
