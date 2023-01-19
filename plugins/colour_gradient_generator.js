@@ -15,149 +15,147 @@
     description: "Generate hue shifted gradient palettes from a single colour.",
     about: "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">\nOutput gradient\n<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon to generate a colour gradient.",
     tags: ["Paint", "Palette", "Color"],
-    version: "1.1.0",
+    version: "1.2.0",
     min_version: "4.2.0",
     variant: "both",
     oninstall: () => showAbout(true),
     onload() {
       addAbout()
+      const steps = localStorage.getItem("colour_gradient_steps") ?? 9
+      const angle = localStorage.getItem("colour_gradient_angle") ?? 90
+      const timeout = {
+        step: null,
+        angle: null
+      }
+      const dialog = new Dialog({
+        title: "Generate Colour Gradient",
+        id: "generate_gradient_dialog",
+        width: 780,
+        lines: [`
+          <style>
+            dialog#generate_gradient_dialog .disabled {
+              text-decoration: none!important;
+              opacity: 0.5;
+            }
+            dialog#generate_gradient_dialog .disabled:hover {
+              background-color: var(--color-button);
+              color: var(--color-text)!important;
+              cursor: default;
+            }
+            dialog#generate_gradient_dialog .bar {
+              display: flex;
+              align-items: center;
+              margin: 0!important;
+              height: 30px;
+              box-sizing: content-box;
+              overflow: hidden;
+            }
+            dialog#generate_gradient_dialog input[type=range] {
+              flex-grow: 1;
+              margin-left: 20px;
+            }
+            dialog#generate_gradient_dialog input[type=number] {
+              margin: 0 8px 0 2px;
+            }
+            dialog#generate_gradient_dialog i {
+              cursor: pointer;
+              transition: .2s;
+            }
+            dialog#generate_gradient_dialog i:hover {
+              color: var(--color-light);
+            }
+          </style>
+        `],
+        component: {
+          template: `
+            <div>
+              <p>The number of colours to include in the gradient.</p>
+              <div class="bar slider_input_combo">
+                <p>Colour count:</p>
+                <input id="step_slider" type="range" min="3" max="256" value="${steps}" @input="changeSlider('step')"></input>
+                <input id="step_number" type="number" class="tool" min="3" max="256" value="${steps}" @input="changeNumber('step', 3, 256, 9)"></input>
+                <i class="material-icons icon" title="Reset" @click="reset('step', 9)">refresh</i>
+              </div>
+              <br>
+              <p>The number of degrees for the hue shifting to occur over.</p>
+              <div class="bar slider_input_combo">
+                <p>Hue shifting angle:</p>
+                <input id="angle_slider" type="range" min="-360" max="360" value="${angle}" @input="changeSlider('angle')"></input>
+                <input id="angle_number" type="number" class="tool" min="-360" max="360" value="${angle}" @input="changeNumber('angle', -360, 360, 90)"></input>
+                <i class="material-icons icon" title="Reset" @click="reset('angle', 90)">refresh</i>
+              </div>
+              <br>
+              <div style="display:flex;gap:8px">
+                <label class="name_space_left" for="replace">Replace existing palette:</label>
+                <input type="checkbox" class="focusable_input" id="replace">
+                <span style="flex-grow:1"></span>
+                <button id="create_gradient" @click="create()">Create</button>
+                <button @click="close()">Cancel</button>
+              </div>
+            </div>
+          `,
+          methods: {
+            reset(type, num) {
+              $(`dialog#generate_gradient_dialog #${type}_slider`).val(num)
+              $(`dialog#generate_gradient_dialog #${type}_number`).val(num)
+              clearTimeout(timeout[type])
+            },
+            changeSlider(type) {
+              const slider = $(`dialog#generate_gradient_dialog #${type}_slider`)
+              const number = $(`dialog#generate_gradient_dialog #${type}_number`)
+              const num = parseInt(slider.val())
+              number.val(slider.val())
+            },
+            changeNumber(type, min, max, num) {
+              const slider = $(`dialog#generate_gradient_dialog #${type}_slider`)
+              const number = $(`dialog#generate_gradient_dialog #${type}_number`)
+              const clamped = Math.min(max, Math.max(min, parseInt(number.val())))
+              slider.val(number.val())
+              clearTimeout(timeout[type])
+              timeout[type] = setTimeout(() => {
+                if (isNaN(clamped)) {
+                  number.val(num)
+                  slider.val(num)
+                } else {
+                  number.val(clamped)
+                  slider.val(clamped)
+                }
+              }, 1000)
+            },
+            create() {
+              const steps = parseInt($("dialog#generate_gradient_dialog #step_slider").val())
+              const angle = parseFloat($("dialog#generate_gradient_dialog #angle_slider").val())
+              localStorage.setItem("colour_gradient_steps", steps)
+              localStorage.setItem("colour_gradient_angle", angle)
+              if ($("dialog#generate_gradient_dialog #replace").is(":checked")) ColorPanel.palette.length = 0
+              const colour = tinycolor(ColorPanel.get())
+              const lightness = colour.toHsl().l
+              const darker = Math.floor(steps * (lightness))
+              const lighter = steps - darker - 1
+              for (let x = darker - 1; x >= 0; x--) {
+                const col = colour.toHsl()
+                col.l = lerp(lightness, 0, (x + 1) / (darker + 1))
+                col.h = toPositiveAngle(col.h + lerp(0, -angle / 2, (x + 1) / (darker + 1)))
+                addToPalette(tinycolor(col).toHexString())
+              }
+              addToPalette(tinycolor(colour).toHexString())
+              for (let x = lighter - 1; x >= 0; x--) {
+                const col = colour.toHsl()
+                col.l = lerp(1, lightness, (x + 1) / (lighter + 1))
+                col.h = toPositiveAngle(col.h + lerp(angle / 2, 0, (x + 1) / (lighter + 1)))
+                addToPalette(tinycolor(col).toHexString())
+              }
+              this.close()
+            },
+            close: () => dialog.cancel()
+          }
+        },
+        buttons: []
+      })
       generate = new Action("generate_gradient", {
         name: "Generate Colour Gradient",
         icon,
-        click() {
-          const steps = localStorage.getItem("colour_gradient_steps") ?? 9
-          const angle = localStorage.getItem("colour_gradient_angle") ?? 90
-          const timeout = {
-            step: null,
-            angle: null
-          }
-          const dialog = new Dialog({
-            title: "Generate Colour Gradient",
-            id: "generate_gradient_dialog",
-            width: 780,
-            lines: [`
-              <style>
-                dialog#generate_gradient_dialog .disabled {
-                  text-decoration: none!important;
-                  opacity: 0.5;
-                }
-                dialog#generate_gradient_dialog .disabled:hover {
-                  background-color: var(--color-button);
-                  color: var(--color-text)!important;
-                  cursor: default;
-                }
-                dialog#generate_gradient_dialog .bar {
-                  display: flex;
-                  align-items: center;
-                  margin: 0!important;
-                  height: 30px;
-                  box-sizing: content-box;
-                  overflow: hidden;
-                }
-                dialog#generate_gradient_dialog input[type=range] {
-                  flex-grow: 1;
-                  margin-left: 20px;
-                }
-                dialog#generate_gradient_dialog input[type=number] {
-                  margin: 0 8px 0 2px;
-                }
-                dialog#generate_gradient_dialog i {
-                  cursor: pointer;
-                  transition: .2s;
-                }
-                dialog#generate_gradient_dialog i:hover {
-                  color: var(--color-light);
-                  transform: rotate(180deg);
-                }
-              </style>
-            `],
-            component: {
-              template: `
-                <div>
-                  <p>The number of colours to include in the gradient.</p>
-                  <div class="bar slider_input_combo">
-                    <p>Colour count:</p>
-                    <input id="step_slider" type="range" min="3" max="256" value="${steps}" @input="changeSlider('step')"></input>
-                    <input id="step_number" type="number" class="tool" min="3" max="256" value="${steps}" @input="changeNumber('step', 3, 256, 9)"></input>
-                    <i class="material-icons icon" title="Reset" @click="reset('step', 9)">refresh</i>
-                  </div>
-                  <br>
-                  <p>The number of degrees for the hue shifting to occur over.</p>
-                  <div class="bar slider_input_combo">
-                    <p>Hue shifting angle:</p>
-                    <input id="angle_slider" type="range" min="-360" max="360" value="${angle}" @input="changeSlider('angle')"></input>
-                    <input id="angle_number" type="number" class="tool" min="-360" max="360" value="${angle}" @input="changeNumber('angle', -360, 360, 90)"></input>
-                    <i class="material-icons icon" title="Reset" @click="reset('angle', 90)">refresh</i>
-                  </div>
-                  <br>
-                  <div style="display:flex;gap:8px">
-                    <label class="name_space_left" for="replace">Replace existing palette:</label>
-                    <input type="checkbox" class="focusable_input" id="replace">
-                    <span style="flex-grow:1"></span>
-                    <button id="create_gradient" @click="create()">Create</button>
-                    <button @click="close()">Cancel</button>
-                  </div>
-                </div>
-              `,
-              methods: {
-                reset(type, num) {
-                  $(`dialog#generate_gradient_dialog #${type}_slider`).val(num)
-                  $(`dialog#generate_gradient_dialog #${type}_number`).val(num)
-                  clearTimeout(timeout[type])
-                },
-                changeSlider(type) {
-                  const slider = $(`dialog#generate_gradient_dialog #${type}_slider`)
-                  const number = $(`dialog#generate_gradient_dialog #${type}_number`)
-                  const num = parseInt(slider.val())
-                  number.val(slider.val())
-                },
-                changeNumber(type, min, max, num) {
-                  const slider = $(`dialog#generate_gradient_dialog #${type}_slider`)
-                  const number = $(`dialog#generate_gradient_dialog #${type}_number`)
-                  const clamped = Math.min(max, Math.max(min, parseInt(number.val())))
-                  slider.val(number.val())
-                  clearTimeout(timeout[type])
-                  timeout[type] = setTimeout(() => {
-                    if (isNaN(clamped)) {
-                      number.val(num)
-                      slider.val(num)
-                    } else {
-                      number.val(clamped)
-                      slider.val(clamped)
-                    }
-                  }, 1000)
-                },
-                create() {
-                  const steps = parseInt($("dialog#generate_gradient_dialog #step_slider").val())
-                  const angle = parseFloat($("dialog#generate_gradient_dialog #angle_slider").val())
-                  localStorage.setItem("colour_gradient_steps", steps)
-                  localStorage.setItem("colour_gradient_angle", angle)
-                  if ($("dialog#generate_gradient_dialog #replace").is(":checked")) ColorPanel.palette.length = 0
-                  const colour = tinycolor(ColorPanel.get())
-                  const lightness = colour.toHsl().l
-                  const darker = Math.floor(steps * (lightness))
-                  const lighter = steps - darker - 1
-                  for (let x = darker - 1; x >= 0; x--) {
-                    const col = colour.toHsl()
-                    col.l = lerp(lightness, 0, (x + 1) / (darker + 1))
-                    col.h = toPositiveAngle(col.h + lerp(0, -angle / 2, (x + 1) / (darker + 1)))
-                    addToPalette(tinycolor(col).toHexString())
-                  }
-                  addToPalette(tinycolor(colour).toHexString())
-                  for (let x = lighter - 1; x >= 0; x--) {
-                    const col = colour.toHsl()
-                    col.l = lerp(1, lightness, (x + 1) / (lighter + 1))
-                    col.h = toPositiveAngle(col.h + lerp(angle / 2, 0, (x + 1) / (lighter + 1)))
-                    addToPalette(tinycolor(col).toHexString())
-                  }
-                  this.close()
-                },
-                close: () => dialog.cancel()
-              }
-            },
-            buttons: []
-          }).show()
-        }
+        click: () => dialog.show()
       })
       Toolbars.palette.add(generate)
     },
