@@ -1,5 +1,5 @@
 (() => {
-  let oldDialog
+  let oldDialog, open
   Plugin.register("plugin_loader_2.0", {
     title: "Plugin Loader 2.0",
     icon: "extension",
@@ -7,11 +7,12 @@
     description: "Replace the default Blockbench Plugin Loader interface with an improved and redesigned Plugin Loader interface.",
     about: "This plugin replaces the built in Blockbench Plugin Loader interface with a new and improved Plugin Loader.\n\n## Plugin Pages\nEach plugin now gets its own page where you can view all of its information, as well as install/uninstall/reload it.\n\n## Plugin Tabs\nAll of the tags used across the plugins are now shown as a list of tabs up the side of the Plugin Loader, allowing you to quickly and easily browse and filter by the tags.",
     tags: ["Plugins", "Blockbench"],
-    version: "1.0.0",
+    version: "1.1.0",
     min_version: "4.4.2",
     variant: "both",
     oninstall: () => Plugins.dialog.show(),
     onload() {
+      Plugins.dialog.close()
       oldDialog = Plugins.dialog
       const dialog = new Dialog({
         id: "plugins",
@@ -408,7 +409,7 @@
                       <i class="material-icons">refresh</i>
                       <span class="tl">${tl('dialog.plugins.reload')}</span>
                     </button>
-                    <button type="button" v-on:click="uninstall(plugin)" v-if="plugin.installed">
+                    <button type="button" v-on:click="uninstall(plugin);detailsVisible = null" v-if="plugin.installed">
                       <i class="material-icons">delete</i>
                       <span class="tl">${tl('dialog.plugins.uninstall')}</span>
                     </button>
@@ -448,15 +449,20 @@
               </div>
             </div>
           `
+        },
+        onOpen: () => open = true,
+        onCancel() {
+          dialog.content_vue.detailsVisible = null
+          open = false
         }
       })
-      dialog.close = () => {
-        dialog.content_vue.detailsVisible = null
-        dialog.hide()
-      }
       Plugins.dialog = dialog
     },
     onunload() {
+      if (open) {
+        Plugins.dialog.close()
+        oldDialog.show()
+      }
       Plugins.dialog = oldDialog
     }
   })
