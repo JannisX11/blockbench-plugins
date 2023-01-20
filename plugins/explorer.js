@@ -89,6 +89,7 @@ BBPlugin.register('explorer', {
 				overflow: hidden;
 				white-space: nowrap;
 				cursor: inherit;
+				direction: initial;
 			}
 			li.sidebar_explorer_file i {
 				height: 24px;
@@ -382,12 +383,11 @@ BBPlugin.register('explorer', {
 			onOpen() {
 				temp_tab = null;
 				let current_file = Project && (Project.export_path || Project.save_path);
-				if (!this.content_vue.path || true) {
-					if (current_file) {
-						this.content_vue.goTo(PathModule.dirname(current_file));
-					}
+				if (current_file) {
+					this.content_vue.goTo(PathModule.dirname(current_file));
+				} else if (!this.content_vue.path) {
+					this.content_vue.goTo(electron.app.getPath('desktop'));
 				}
-				this.content_vue.updateList();
 				this.content_vue.selected.replace(current_file ? [current_file] : []);
 				setTimeout(() => {
 					this.object.classList.add('visible');

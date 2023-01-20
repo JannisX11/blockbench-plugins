@@ -101,16 +101,6 @@
 		"variant": "both",
 		"version": "1.2.1"
 	},
-	"texture_editor": {
-		"title": "Texture Editor",
-		"author": "JannisX11",
-		"description": "Adds basic image manipulation functions - like contrast and saturation - to textures",
-		"about": "To edit a texture, right click it and enter the Texture Editor menu. Select what you want to edit from the menu.",
-		"icon": "photo_filter",
-		"tags": ["Deprecated"],
-		"min_version": "2.0.0",
-		"variant": "both"
-	},
 	"player_statue_generator": {
 		"title": "Player Statue Generator",
 		"author": "Wither, dragonmaster95 and 3XH6R",
@@ -402,7 +392,7 @@
 		"title": "Bedrock Pivot Fix 2",
 		"icon": "gps_fixed",
 		"author": "JannisX11",
-		"description": "Rotated cubes are broken in custom-block models in Minecraft: Bedrock Edition. Use this plugin to fix them.",
+		"description": "Rotated cubes are broken in custom-block models in older versions of Minecraft: Bedrock Edition. Use this plugin to fix them.",
 		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"version": "2.0.1",
