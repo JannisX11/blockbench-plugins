@@ -108,23 +108,19 @@
 						align-items: center;
 						gap: 10px;
 					}
-
 					dialog#about .dialog_content {
 						text-align: left!important;
 						margin: 0!important;
 					}
-
 					dialog#about .socials {
 						padding: 0!important;
 					}
-
 					dialog#about #banner {
 						background-color: var(--color-accent);
 						color: var(--color-accent_text);
 						width: 100%;
 						padding: 0 8px
 					}
-
 					dialog#about #content {
 						margin: 24px;
 					}
@@ -150,11 +146,11 @@
 						</a>
 					</div>
 				</div>
-            `]
+            		`]
 		}).show()
 		$("dialog#about .dialog_title").html(`
-    		<i class="icon material-icons">${icon}</i>
-    		${name}
-    	`)
+    			<i class="icon material-icons">${icon}</i>
+    			${name}
+    		`)
 	}
 })()
