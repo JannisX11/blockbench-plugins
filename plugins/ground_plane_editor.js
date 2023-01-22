@@ -4,6 +4,7 @@
     const name = "Ground Plane Editor"
     const icon = "icon-format_free"
     const author = "SirJain"
+
     const links = {
         twitter: "https://www.twitter.com/SirJain2",
         discordlink: "https://discord.gg/wM4CKTbFVN"
@@ -17,7 +18,7 @@
         description: "Edits the opacity and color of the ground plane feature in Blockbench.",
         about: "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
         tags: ["Ground Plane", "Animation", "Customization"],
-        version: "1.0.1",
+        version: "1.1.0",
         min_version: "4.2.0",
         variant: "both",
 
@@ -32,8 +33,9 @@
             addAbout()
             action = new Action({
                 id,
-                name,
+                name: "Edit Ground Plane",
                 icon,
+                condition: () => Format?.id !== "image",
                 click() {
                     const timeout = {
                         example: null
@@ -43,7 +45,6 @@
                     const dialog = new Dialog({
                         title: "Edit Ground Plane",
                         id: "edit_ground_plane_dialog",
-                        width: 780,
                         lines: [`
                             <style>
                                 dialog#edit_ground_plane_dialog .bar {
@@ -71,12 +72,10 @@
                             mounted() {
                                 this.$nextTick().then(() => {
                                     let opacityScaled = Math.floor(Canvas.ground_plane.material.opacity * 255);
-                                    console.log(opacityScaled);
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(opacityScaled);
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_slider").val(opacityScaled);
 
                                     let planeColor = '#' + Canvas.ground_plane.material.color.getHexString()
-                                    console.log(planeColor);
                                     $("dialog#edit_ground_plane_dialog .color_picker input").val(planeColor);
                                 });
                             },
@@ -94,6 +93,7 @@
                                     </div>
                                         <br>
                                         <div style="display:flex;gap:8px">
+                                        <button @click="revert()">Reset Values</button>
                                         <span style="flex-grow:3"></span>
                                         <button @click="create()">Done</button>
                                         <button @click="close()">Cancel</button>
@@ -135,6 +135,12 @@
 
                                     this.close()
                                     Blockbench.showQuickMessage("Updated successfully", 3000)
+                                },
+                                
+                                revert() {
+                                    $("dialog#edit_ground_plane_dialog .color_picker input").val("#21252B");
+                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(255);
+                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_slider").val(255);
                                 },
 
                                 close: () => dialog.cancel()
