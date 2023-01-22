@@ -2,7 +2,7 @@
 
     // Global variables
     let aboutAction
-    let textLength, textGroup, xOffset, randNum
+    let textLength, textGroup, xOffset, randNum, letterGroup
 
     // Plugin information variables
     const id = "mc_text_generator"
@@ -512,6 +512,7 @@
                         textGroup = new Group('text_' + formData.input).init()
 
                         for (const char of formData.input.toLowerCase()) {
+                            letterGroup = new Group('character_' + char).init()
 
                             // Check for an invalid character
                             if (!charMap.hasOwnProperty(char)) {
@@ -528,7 +529,7 @@
                                     from: [cube[0] + offset, cube[1], cube[2]],
                                     to: [cube[3] + offset, cube[4], cube[5]],
                                     color: randNum
-                                }).addTo(textGroup).init()
+                                }).addTo(letterGroup).init()
 
                                 textCube.flip(0, 2.0, true)
 
@@ -538,7 +539,7 @@
                                         name: "text_" + formData.input + "_layer",
                                         from: [cube[0] + 0.2 + offset, cube[1] - 0.2, cube[2] + 0.2],
                                         to: [cube[3] + offset + 0.2, cube[4] - 0.2, cube[5] + 0.2]
-                                    }).addTo(textGroup).init()
+                                    }).addTo(letterGroup).init()
 
                                     layerCube.flip(0, 2.0, true)
                                 }
@@ -546,10 +547,18 @@
 
                             offset += charMap[char].width + formData.letterSpace
                             textLength += charMap[char].width + formData.letterSpace
+
+                            letterGroup.addTo(textGroup)
                         }
+
+                        textGroup.children.forEach(group => {
+                            group.children.forEach(cube => {
+                                cube.moveVector(textLength / 2 - 4, 0)
+                            })
+                        })
                         
-                        formatText()
-                        Canvas.updateView({groups: [Group.selected], transform: true});
+                        editBone()
+                        Canvas.updateView({groups: [textGroup, Group.selected], transform: true});
                         Undo.finishEdit("Generated Text", {elements: selected});
                     }
 
@@ -595,17 +604,9 @@
         }
     })
 
-    // Helper function that formats text
-    function formatText() {
-        xOffset = textLength / 2 - 4
+    // Helper function that edits the bone
+    function editBone() {
         textGroup.openUp().select()
-
-        Group.selected.origin[0] = xOffset
-
-        textGroup.children.forEach(cube => {
-            cube.from[0] += xOffset;
-            cube.to[0]   += xOffset;                        
-        });
     }
 
     function getRandomInt(max) {
