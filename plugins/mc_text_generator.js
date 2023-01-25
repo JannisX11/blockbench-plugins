@@ -33,7 +33,7 @@
             addAboutButton()
 
             // Define the dialog
-            const generateTextDialog = new Blockbench.Dialog({
+            const generateTextDialog = new Blockbench.Dialog("generate_text_dialog", {
                 name: "Generate Text",
                 icon: icon,
                 buttons: ["Generate", "Cancel"],
