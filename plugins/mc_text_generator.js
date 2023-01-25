@@ -37,10 +37,18 @@
                 name: "Generate Text",
                 icon: icon,
                 buttons: ["Generate", "Cancel"],
+                lines: [`
+                    <style>
+                    input#input {
+                        text-transform: uppercase;
+                    }
+                    </style>
+                `],
                 form: {
                     input: {
                         label: "Enter Text",
                         type: "text",
+                        full_width: true,
                         value: "",
                         description: "Blockbench will take this and generate 3D text."
                     },
