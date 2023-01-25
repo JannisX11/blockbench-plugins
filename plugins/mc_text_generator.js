@@ -559,7 +559,7 @@
                         
                         editBone()
                         Canvas.updateView({groups: [textGroup, Group.selected], transform: true});
-                        Undo.finishEdit("Generated Text", {elements: selected});
+                        Undo.finishEdit("Generated Text", {elements: selected, group: textGroup, outliner: true});
                     }
 
                     // Check for format restrictions
