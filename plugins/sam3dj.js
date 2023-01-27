@@ -1,11 +1,6 @@
-//require('blockbench-types')
-
-// const { fstat } = require("fs");
-
 /** sam3DJ | aka. Sammy's .3DJ (format implementation)
  *  ==================================================
  *  Author:     Sammy L. Koch (1Turtle)
- *  GitHub:     1Turtle/sam3dj
  *  Licence:    Apache-2.0 (see https://www.apache.org/licenses/LICENSE-2.0.txt)
 */
 (function() {    
