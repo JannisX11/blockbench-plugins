@@ -6,7 +6,7 @@
 		"version": "1.0.0",
     		"variant": "both",
     		"description": "Export models to the .3DJ format!",
-		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the \`3D Printer\` from the **CC-Peripherals** Java Edition mod.  \n  \n> **Note:** _The format does not support the following atributes:_\n> * Rotated cubes\n> * One cube with multible textures\n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*\n  \nTry to avoid those things, or else you might run into weird results.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)\n",
+		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **CC-Peripherals** Java Edition mod.  \n  \n> **Note:** _The format does not support the following atributes:_\n> * Rotated cubes\n> * One cube with multible textures\n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*\n  \nTry to avoid those things, or else you might run into weird results.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)\n",
 		"icon": "print",
 	},
 	"armor_stand_animator": {
