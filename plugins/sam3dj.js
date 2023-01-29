@@ -16,9 +16,9 @@
       \n
     **Tip:** Cubes in a 'state_on' folder will be _only_ displayed whenever the model is toggled on!  
       \n
-    > **Note:** _The format does not support the following atributes:_  \n
+    > **Note:** _The format does not support the following attributes:_  \n
     > * Rotated cubes  \n
-    > * One cube with multible textures  \n
+    > * One cube with multiple textures  \n
     > * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n
       \n
     Try to avoid those things, or else you might run into weird results.  \n
@@ -61,7 +61,7 @@
         return {
             texture: texture,
             missingTexture: missing,
-            multibleTexture: (faces > 1),
+            multipleTexture: (faces > 1),
         };
     }
     
@@ -91,7 +91,7 @@
         return {
             shape: shape,
             missingTexture: result.missingTexture,
-            multibleTexture: result.multibleTexture,
+            multipleTexture: result.multipleTexture,
         };
     }
     
@@ -123,7 +123,7 @@
                 else
                     shapeOFF.push(result.shape);
     
-                if (result.missingTexture || result.multibleTexture)
+                if (result.missingTexture || result.multipleTexture)
                     Blockbench.showQuickMessage('Some cubes got a blank texture', 4000);
             }
     
@@ -261,7 +261,7 @@
                             || cube.rotation[2] !== 0);
     
                 if (!texture)
-                    texture = (getSingleTexture(cube).multibleTexture);
+                    texture = (getSingleTexture(cube).multipleTexture);
     
                 if (!border) {
                     function checkNum(num) {
@@ -319,7 +319,7 @@
                 if (result.texture)
                     warning.form.texture = {
                         type: 'info',
-                        text: '... use multible textures',
+                        text: '... use multiple textures',
                     }
                 if (result.border)
                     warning.form.border = {
