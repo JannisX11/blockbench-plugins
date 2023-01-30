@@ -7,22 +7,11 @@
     const pluginProperties = {
         title: 'sam3DJ',
         author: '1Turtle',
-        tags: ['Minecraft: Java Edition', 'format', '3dj'],
+        tags: ['Minecraft: Java Edition', 'Format', 'Exporter'],
         version: '1.0.0',
         variant: 'both',
-        description: 'Export models to the .3DJ format!',
-        about: `This plugin allows you to **export a model into the .3DJ format**.  \n
-    The .3DJ format is _mostly_ used with the \`3D Printer\` from the **CC-Peripherals** Java Edition mod.  \n
-      \n
-    **Tip:** Cubes in a 'state_on' folder will be _only_ displayed whenever the model is toggled on!  
-      \n
-    > **Note:** _The format does not support the following attributes:_  \n
-    > * Rotated cubes  \n
-    > * One cube with multiple textures  \n
-    > * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n
-      \n
-    Try to avoid those things, or else you might run into weird results.  \n
-    > For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n`,
+        description: 'Generate 3D prints in MC (Java Edition) via .3DJ format within the CC-Peripherals mod!',
+        about: "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **CC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a 'state_on' folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
         icon: 'print',
         onload() {
             MenuBar.addAction(btnExport, 'file.export');
@@ -112,7 +101,7 @@
         let shapeON = [];
     
         for (const cube of elements)
-            if (cube.visibility) {
+            if (cube instanceof Cube && cube.visibility) {
                 let stateON = false;
                 if (typeof cube.parent === 'object')
                     stateON = isStateON(cube.parent)
@@ -252,33 +241,36 @@
         let rotation = false;
         let texture = false;
         let border = false;
+        let mesh = false;
     
         for (const cube of elements) {
-            if (cube.visibility) {
-                if (!rotation)
-                    rotation =(cube.rotation[0] !== 0
-                            || cube.rotation[1] !== 0
-                            || cube.rotation[2] !== 0);
-    
-                if (!texture)
-                    texture = (getSingleTexture(cube).multipleTexture);
-    
-                if (!border) {
-                    function checkNum(num) {
-                        if (!border)
-                            border = (num < 0 || num > 16);
+            if (cube instanceof Cube) {
+                if (cube.visibility) {
+                    if (!rotation)
+                        rotation =(cube.rotation[0] !== 0
+                                || cube.rotation[1] !== 0
+                                || cube.rotation[2] !== 0);
+                        
+                    if (!texture)
+                        texture = (getSingleTexture(cube).multipleTexture);
+                        
+                    if (!border) {
+                        function checkNum(num) {
+                            if (!border)
+                                border = (num < 0 || num > 16);
+                        }
+                        cube.from.forEach(checkNum)
+                        cube.to.forEach(checkNum)
                     }
-                    cube.from.forEach(checkNum)
-                    cube.to.forEach(checkNum)
+                
+                    // We are done here
+                    if (rotation && texture && border)
+                        break
                 }
-    
-                // We are done here
-                if (rotation && texture && border)
-                    break
-            }
+            } else { mesh = true; }
         }
     
-        return {rotation: rotation, texture: texture, border: border};
+        return {rotation: rotation, texture: texture, border: border, mesh: mesh};
     }
     
     const btnExport = new Action('export_3dj', {
@@ -290,9 +282,9 @@
         click() {
             // Check for stuff we dont want
             const result = checkCubes(Project.elements);
-    
-            // Generate warnign
-            if ( result.rotation || result.texture || result.border) {
+
+            // Generate warnings
+            if ( result.rotation || result.texture || result.border || result.mesh) {
                 let warning = new Dialog({
                     id: 'popWarn_3dj',
                     title: "Holdup..",
@@ -325,6 +317,11 @@
                     warning.form.border = {
                         type: 'info',
                         text: '... are out of bounce (16x16x16 Grid / 1x1x1 Block)',
+                    }
+                if (result.mesh)
+                    warning.form.border = {
+                        type: 'info',
+                        text: '... are actually a Mesh and not a Cube',
                     }
     
                 warning.form.nextstep = {
