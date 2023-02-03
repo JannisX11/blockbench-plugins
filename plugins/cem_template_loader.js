@@ -1,5 +1,5 @@
-(async function () {
-  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, loader, aboutAction
+(() => {
+  let generatorActions, reloadButton, entitySelector, loaderShown, entityData, entityCategories, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, styles, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, loader, aboutAction, editCheck, originalJEMFormat
   const id = "cem_template_loader"
   const name = "CEM Template Loader"
   const icon = "keyboard_capslock"
@@ -186,7 +186,7 @@
         title: name,
         buttons: ["Okay"],
         lines: [
-          (entity.popup_width ? `<style>#cem_template_loader_popup{max-width:min(${entity.popup_width}px, 100%)!important}</style>` : "") + entity.popup
+          `<div></div>` + (entity.popup_width ? `<style>#cem_template_loader_popup{max-width:min(${entity.popup_width}px, 100%)!important}</style>` : "") + entity.popup
         ]
       }
       if (entity.popup_width) options.width = parseInt(entity.popup_width)
@@ -194,6 +194,7 @@
     }
   }
   function loadInterface(categoryID, data) {
+    categoryID ??= "supported"
     entitySelector.show()
     if (!loaderShown) {
       loaderShown = true
@@ -220,15 +221,14 @@
   async function setupPlugin(url, data) {
     try {
       entityData = await fetch(url + (data?.appendToURL ?? "")).then(e => e.json())
-      // const fs = require("fs")
-      // entityData = JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynemGithub/bot_assets/json/cem_template_models.json", "UTF-8"))
+      // entityData = JSON.parse(fs.readFileSync("F:/Programming/GitHub/wynemCode/src/assets/json/cem_template_models.json", "UTF-8"))
       entitySelector = new Dialog({
         id: "cem_template_selector",
         title: name,
         width: 980,
         buttons: [],
         lines: [
-          '<style>.dialog_content{margin:0!important}#cem_template_wrapper{display:flex;min-height:541px;min-width:100%;--color-subtle_text:#91949c;overflow-y:auto}#cem_template_selector{max-width:100%!important}#cem_template_selector>.dialog_handle{margin-bottom:0}#cem_template_sidebar{background-color:var(--color-back);flex:0 0 160px;padding:16px 0;position:relative}#cem_template_sidebar li{width:100%;padding:6px 20px;border-left:4px solid transparent;cursor:pointer}#cem_template_sidebar li:hover{color:var(--color-light)}#cem_template_sidebar li.selected{background-color:var(--color-ui);border-left:4px solid var(--color-accent)}#cem_template_sidebar li .icon_wrapper{margin:0 10px 0 -10px}@media (max-device-width:640px){#cem_template_sidebar{display:none}}ul.cem_template_list{max-height:384px;width:100%;overflow-y:auto}ul.cem_template_list>li{display:flex;flex-direction:column;position:relative;float:left;width:124px;height:92px;margin:2px;background-color:var(--color-back);cursor:pointer;box-sizing:border-box;padding:2px 2px 20px;border:2px solid transparent}ul.cem_template_list>li:hover{background-color:var(--color-selected);color:var(--color-light)}ul.cem_template_list>li.selected{border-color:var(--color-accent);background-color:var(--color-button)}ul.cem_template_list>li.selected:hover{background-color:var(--color-selected)}ul.cem_template_list>li .cem_template_image{height:86px;background-size:contain;background-position:50%;background-repeat:no-repeat;image-rendering:auto;cursor:pointer}ul.cem_template_list>li label{position:absolute;bottom:0;text-align:center;width:100%;pointer-events:none;text-transform:capitalize}#cem_template_page{display:flex;flex-direction:column;flex-grow:1;padding:5px 12px 45px 20px;position:relative;background-color:var(--color-ui)}#cem_template_page>content{flex-grow:1}#cem_template_buttons{flex:40px 0 0;padding:8px 8px 8px 20px;display:flex;position:absolute;bottom:0;right:0;left:0}#cem_template_buttons .bar_spacer{flex-grow:1}#cem_template_check_wrapper{display:flex;align-items:center;align-self:stretch}#cem_template_check_wrapper label{margin:0 16px 0 8px}#cem_template_project_check{margin-left:8px}#cem_template_load_button{background-color:var(--color-accent);color:var(--color-light);width:112px;margin-right:4px}#cem_template_discord{display:flex;position:absolute;bottom:12px;left:0;right:0;justify-content:center;gap:5px;text-decoration:none;cursor:pointer}#cem_template_discord:hover{color:var(--color-light)}#cem_template_discord span{text-decoration:underline}</style><div id="cem_template_wrapper"><ul id="cem_template_sidebar"><a id="cem_template_discord"><i class="material-icons">bug_report</i><span>Report issues</span></a></ul><div id="cem_template_page"><div id="cem_template_buttons"><div id="cem_template_check_wrapper"><input class="focusable_input" id="cem_template_texture_check" type="checkbox"><label for="cem_template_texture_check">Load vanilla texture</label><input class="focusable_input" id="cem_template_project_check" type="checkbox"><label for="cem_template_project_check">Load into current project</label></div><div class="bar_spacer"></div><button class="confirm_btn" id="cem_template_load_button">Load</button><button class="cancel_btn">Cancel</button></div></div></div>'
+          '<div id="cem_template_wrapper"><ul id="cem_template_sidebar"><a id="cem_template_discord"><i class="material-icons">bug_report</i><span>Report issues</span></a></ul><div id="cem_template_page"><div id="cem_template_buttons"><div id="cem_template_check_wrapper"><input class="focusable_input" id="cem_template_texture_check" type="checkbox"><label for="cem_template_texture_check">Load vanilla texture</label><input class="focusable_input" id="cem_template_project_check" type="checkbox"><label for="cem_template_project_check">Load into current project</label></div><div class="bar_spacer"></div><button class="confirm_btn" id="cem_template_load_button">Load</button><button class="cancel_btn">Cancel</button></div></div></div>'
         ]
       })
       loaderShown = false
@@ -1307,7 +1307,7 @@
       if (Project.format?.id === "optifine_entity") {
         const toggle = $(".outliner_toggle")
         if (toggle.hasClass("enabled")) {
-          const toggles = $("#cubes_list [toggle='autouv']")
+          const toggles = $("#cubes_list .group [toggle='autouv']")
           if (toggles.length) {
             groupObserver.disconnect()
             toggles.each((i, e) => {
@@ -1377,83 +1377,6 @@
           title: "CEM Animation Documentation",
           width: 780,
           lines: [`
-            <style>
-              #cem_animation_documentation .dialog_content {
-                margin: 0;
-                position: relative;
-              }
-              #cem_doc {
-                margin: 16px;
-              }
-              #cem_doc > div {
-                display: none;
-              }
-              #cem_doc > div.selected {
-                display: block;
-              }
-              #cem_doc * {
-                white-space: pre-wrap;
-              }
-              #cem_doc h2 {
-                font-size: 25px;
-              }
-              #cem_doc > div > :first-child {
-                margin-top: -8px;
-              }
-              #cem_doc h2:not(:first-child) {
-                padding-top: 16px;
-              }
-              #cem_doc td:not(:last-child) {
-                padding-right: 16px;
-              }
-              #cem_doc code, #cem_doc pre {
-                background-color: var(--color-back);
-                padding: 0 4px;
-                border: 1px solid var(--color-border);
-                user-select: text;
-                cursor: text;
-                font-family: var(--font-code)
-              }
-              #cem_doc pre {
-                margin-bottom: 16px;
-              }
-              #cem_doc img {
-                margin: 8px;
-                box-shadow: 0 3px 10px rgb(0 0 0 / 31%);
-              }
-              #cem_doc_tabs {
-                background-color: var(--color-frame);
-                display: flex;
-                gap: 2px;
-                padding: 4px 4px 0;
-                position: sticky;
-                top: 0;
-                border-bottom: 4px solid var(--color-ui);
-              }
-              #cem_doc_tabs > div {
-                padding: 4px 12px;
-                cursor: pointer;
-                border-top: 2px solid transparent;
-                background-color: var(--color-back);
-              }
-              #cem_doc_tabs > div.selected {
-                background-color: var(--color-ui);
-                border-top-color: var(--color-accent);
-                cursor: default;
-              }
-              .cem_doc_table_list td:first-child {
-                font-weight: 600;
-                white-space: nowrap!important;
-                display: list-item;
-                list-style: inside;
-                font-family: var(--font-code);
-              }
-              .cem-doc-tab-link {
-                text-decoration: underline;
-                cursor: pointer;
-                color: var(--color-accent);
-              }
-            </style>
             <div id="cem_doc_tabs"></div>
             <div id="cem_doc_container"><div id="cem_doc"></div></div>
           `],
@@ -1550,6 +1473,147 @@
         border: 1px solid var(--color-border);
         user-select: text;
         font-family: var(--font-code);
+      }
+      #cem_template_selector .dialog_content {
+        margin: 0!important
+      }
+      #cem_template_wrapper {
+        display: flex;
+        min-height: 541px;
+        min-width: 100%;
+        --color-subtle_text: #91949c;
+        overflow-y: auto
+      }
+      #cem_template_selector {
+        max-width: 100%!important
+      }
+      #cem_template_selector > .dialog_handle {
+        margin-bottom: 0
+      }
+      #cem_template_sidebar {
+        background-color: var(--color-back);
+        flex: 0 0 160px;
+        padding: 16px 0;
+        position: relative
+      }
+      #cem_template_sidebar li {
+        width: 100%;
+        padding: 6px 20px;
+        border-left: 4px solid transparent;
+        cursor: pointer
+      }
+      #cem_template_sidebar li:hover {
+        color: var(--color-light)
+      }
+      #cem_template_sidebar li.selected {
+        background-color: var(--color-ui);
+        border-left: 4px solid var(--color-accent)
+      }
+      #cem_template_sidebar li .icon_wrapper {
+        margin: 0 10px 0 -10px
+      }
+      .cem_template_list {
+        max-height: 384px;
+        width: 100%;
+        overflow-y: auto
+      }
+      .cem_template_list > li {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        float: left;
+        width: 124px;
+        height: 92px;
+        margin: 2px;
+        background-color: var(--color-back);
+        cursor: pointer;
+        box-sizing: border-box;
+        padding: 2px 2px 20px;
+        border: 2px solid transparent
+      }
+      .cem_template_list > li:hover {
+        background-color: var(--color-selected);
+        color: var(--color-light)
+      }
+      .cem_template_list > li.selected {
+        border-color: var(--color-accent);
+        background-color: var(--color-button)
+      }
+      .cem_template_list > li.selected:hover {
+        background-color: var(--color-selected)
+      }
+      .cem_template_image {
+        height: 86px;
+        background-size: contain;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        image-rendering: auto;
+        cursor: pointer
+      }
+      .cem_template_list > li label {
+        position: absolute;
+        bottom: 0;
+        text-align: center;
+        width: 100%;
+        pointer-events: none;
+        text-transform: capitalize
+      }
+      #cem_template_page {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        padding: 5px 12px 45px 20px;
+        position: relative;
+        background-color: var(--color-ui)
+      }
+      #cem_template_page > content {
+        flex-grow: 1
+      }
+      #cem_template_buttons {
+        flex: 40px 0 0;
+        padding: 8px 8px 8px 20px;
+        display: flex;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        left: 0
+      }
+      #cem_template_buttons .bar_spacer {
+        flex-grow: 1
+      }
+      #cem_template_check_wrapper {
+        display: flex;
+        align-items: center;
+        align-self: stretch
+      }
+      #cem_template_check_wrapper label {
+        margin: 0 16px 0 8px
+      }
+      #cem_template_project_check {
+        margin-left: 8px
+      }
+      #cem_template_load_button {
+        background-color: var(--color-accent);
+        color: var(--color-light);
+        width: 112px;
+        margin-right: 4px
+      }
+      #cem_template_discord {
+        display: flex;
+        position: absolute;
+        bottom: 12px;
+        left: 0;
+        right: 0;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        cursor: pointer
+      }
+      #cem_template_discord:hover {
+        color: var(--color-light)
+      }
+      #cem_template_discord span {
+        text-decoration: underline
       }
       #panel_cem_animation .panel_vue_wrapper {
         flex: 1;
@@ -1784,6 +1848,81 @@
       #cem_animation_doc_button:hover {
         color: var(--color-light);
       }
+      #cem_animation_documentation .dialog_content {
+        margin: 0;
+        position: relative;
+      }
+      #cem_doc {
+        margin: 16px;
+      }
+      #cem_doc > div {
+        display: none;
+      }
+      #cem_doc > div.selected {
+        display: block;
+      }
+      #cem_doc * {
+        white-space: pre-wrap;
+      }
+      #cem_doc h2 {
+        font-size: 25px;
+      }
+      #cem_doc > div > :first-child {
+        margin-top: -8px;
+      }
+      #cem_doc h2:not(:first-child) {
+        padding-top: 16px;
+      }
+      #cem_doc td:not(:last-child) {
+        padding-right: 16px;
+      }
+      #cem_doc code, #cem_doc pre {
+        background-color: var(--color-back);
+        padding: 0 4px;
+        border: 1px solid var(--color-border);
+        user-select: text;
+        cursor: text;
+        font-family: var(--font-code)
+      }
+      #cem_doc pre {
+        margin-bottom: 16px;
+      }
+      #cem_doc img {
+        margin: 8px;
+        box-shadow: 0 3px 10px rgb(0 0 0 / 31%);
+      }
+      #cem_doc_tabs {
+        background-color: var(--color-frame);
+        display: flex;
+        gap: 2px;
+        padding: 4px 4px 0;
+        position: sticky;
+        top: 0;
+        border-bottom: 4px solid var(--color-ui);
+      }
+      #cem_doc_tabs > div {
+        padding: 4px 12px;
+        cursor: pointer;
+        border-top: 2px solid transparent;
+        background-color: var(--color-back);
+      }
+      #cem_doc_tabs > div.selected {
+        background-color: var(--color-ui);
+        border-top-color: var(--color-accent);
+        cursor: default;
+      }
+      .cem_doc_table_list td:first-child {
+        font-weight: 600;
+        white-space: nowrap!important;
+        display: list-item;
+        list-style: inside;
+        font-family: var(--font-code);
+      }
+      .cem-doc-tab-link {
+        text-decoration: underline;
+        cursor: pointer;
+        color: var(--color-accent);
+      }
     `)
   }
   Plugin.register(id, {
@@ -1793,7 +1932,7 @@
     description: description + " Also includes an animation editor, so that you can create custom entity animations.",
     about: "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-    version: "6.11.1",
+    version: "7.0.0",
     min_version: "4.6.0",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -1823,6 +1962,56 @@
       })
       MenuBar.addAction(reloadButton, "help.developer.1")
       setupAnimationPanel()
+      new Setting("jem_restrictions", {
+        value: false,
+        category: "edit",
+        name: "Remove OptiFine Entity Restrictions",
+        description: "Remove the root group restrictions on the OptiFine Entity format. WARNING: You can easily break models with restrictions removed."
+      })
+      function editCheckProcess(entry) {
+        if (entry.before.outliner) {
+          for (const group of entry.before.outliner) {
+            const postGroup = entry.post.outliner.find(e => e.uuid === group.uuid)
+            if (!postGroup) return "You cannot remove root cubes/groups!"
+            if (!group.origin.reduce((a, e, x) => a && e === postGroup.origin[x], true)) {
+              return "You cannot move root groups!"
+            } else if (group.name !== postGroup.name) {
+              return "You cannot rename root groups!"
+            }
+          }
+        }
+        if (entry.post.outliner) {
+          for (const group of entry.post.outliner) {
+            const beforeGroup = entry.before.outliner.find(e => e.uuid === group.uuid)
+            if (!beforeGroup) return "You cannot add new root cubes/groups!"
+          }
+        }
+        if (entry.before.group && entry.post.group && Outliner.root.find(node => node instanceof Group && node.uuid == entry.before.group.uuid)) {
+          if (!entry.before.group.rotation.reduce((a, e, x) => a && e === entry.post.group.rotation[x], true)) {
+            return "You cannot rotate root groups!"
+          } else if (!entry.before.group.origin.reduce((a, e, x) => a && e === entry.post.group.origin[x], true)) {
+            return "You cannot move root group pivots!"
+          }
+        }
+      }
+      editCheck = () => {
+        if (!settings.jem_restrictions.value && Format.id === "optifine_entity") {
+          const entry = Undo.history[Undo.history.length-1]
+          const check = editCheckProcess(entry)
+          if (check) {
+            Blockbench.showQuickMessage(check, 1200)
+            Undo.loadSave(entry.before, entry.post)
+            Undo.history.pop()
+            Undo.index = Undo.history.length
+          }
+        }
+      }
+      Blockbench.on("finished_edit", editCheck)
+      originalJEMFormat = Formats.optifine_entity.new
+      Formats.optifine_entity.new = () => {
+        if (settings.jem_restrictions.value) originalJEMFormat.bind(Formats.optifine_entity)()
+        else loadInterface()
+      }
       if (Blockbench.isWeb) {
         const params = (new URL(location.href)).searchParams
         if (params.has("plugins") && params.get("plugins").split(",").includes("cem_template_loader") && params.has("model") && params.get("model") !== "") loadModel(params.get("model").toLowerCase(), null, params.has("texture"))
@@ -1832,6 +2021,7 @@
       stopAnimations(true)
       Blockbench.removeListener("update_selection", updateSelection)
       Blockbench.removeListener("select_project", tabChange)
+      Blockbench.removeListener("finished_edit", editCheck)
       $("#cem_animation_editor_container>div")[0].removeEventListener("keydown", editorKeybinds)
       groupObserver.disconnect()
       loader.delete()
@@ -1845,6 +2035,7 @@
       animationControlPanel.delete()
       aboutAction.delete()
       styles.delete()
+      Formats.optifine_entity.new = originalJEMFormat
       resizeWindow()
     }
   })
@@ -1872,6 +2063,7 @@
       width: 780,
       buttons: [],
       lines: [`
+        <div></div>
         <style>
           dialog#about .dialog_title {
             padding-left: 0;
