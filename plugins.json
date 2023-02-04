@@ -547,7 +547,7 @@
 		"author": "SirJain",
 		"description": "Flashes cubes less than 1 unit on any axis on demand.",
 		"icon": "lightbulb",
-		"version": "1.2.3",
+		"version": "1.2.4",
 		"variant": "both",
 		"min_version": "4.2.0",
 		"tags": ["Textures", "BoxUV", "Modded Entity"],
@@ -600,7 +600,7 @@
 		"description": "Flags meshes in a project on demand.",
 		"about": "The **Generic model format** is the only format that supports meshes. If you convert to another format with meshes in your project, the meshes will disappear. You can choose to flag all meshes in the project through one click with this plugin. This lets you know what you are losing by converting your project, in case you looked over any.\n\n## How to use\nTo use this plugin, go to `File > Plugins > Available` and search for `Mesh Flagger`. Click install, then use `Tools > Flag Meshes` and click one of the options. Clicking the first option causes the plugin to flag all meshes in a project. The second option allows Blockbench to flag all meshes with six faces. This includes cuboid-meshes, but keep in mind it can flag non-cuboid meshes with six faces too!\n\n\nIt would be appreciated to report any bugs and suggestions!",
 		"tags": ["Format: Generic Model", "Per-Face UV", "Meshes"],
-		"version": "1.0.3",
+		"version": "1.0.4",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -632,7 +632,7 @@
 		"description": "Allows users to add their own marker colors.",
 		"about" : "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
 		"tags": ["Marker Color", "Customize", "UX"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -701,7 +701,7 @@
 		"tags": ["Format: Image", "UX"],
 		"description": "Adds a button and a keybind that centers the image viewport in an Image format.",
 		"about": "This plugin adds a button that allows you to reset your viewport in the Image format.\n## How to use\nTo use this plugin, go to the brush toolbar (top of the image mode) and click the `Center Image Viewport` button. If it doesn't show up, make sure you are in the Image format. If you are, you can add the tool using the `Customize Toolbar` option. There will be a confirmation message displayed on-screen once you center the viewport.\n\nPlease report any bugs or suggestions you may have.",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},
