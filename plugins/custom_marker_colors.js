@@ -1,10 +1,13 @@
 (async function() {
     let aboutAction, defaultColourFunction
+
     const E = s => $(document.createElement(s))
+    const defaultMarkerArray = markerColors.map(e => e.id)
     const errorTitle = "Invalid Marker!"
     const duplicateIDErrorTitle = "This ID already exists!"
     const errorMessage = "You have made an invalid marker color because you have empty fields. Make sure that you leave no fields blank."
     const duplicateIDErrorMessage = "The ID of your marker color is already taken by a default marker color. Please enter a name which does not have the same ID as the default colors\n\nNote: Marker color IDs are derived from your marker color name but lowercase and with `_` instead of spaces."
+
     const id = "custom_marker_colors"
     const name = "Custom Marker Colors"
     const icon = "colorize"
@@ -13,13 +16,13 @@
     // Local Storage
     const customMarkers = JSON.parse(localStorage.getItem("customMarkers") ?? "{}")
 
-    const defaultMarkerArray = markerColors.map(e => e.id)
+    // Used in about dialog
     const links = {
-        // Twitter & Discord
         twitter: "https://www.twitter.com/SirJain2",
         twittergeode: "https://twitter.com/GeodeModels",
         discord: "https://discord.gg/wM4CKTbFVN"
     }
+
     Plugin.register(id, {
         title: name,
         icon,
@@ -27,7 +30,7 @@
         description: "Allows users to add their own marker colors.",
         about: "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
         tags: ["Marker Color", "Customize", "UX"],
-        version: "1.0.2",
+        version: "1.1.0",
         min_version: "4.2.0",
         variant: "both",
         oninstall() {
@@ -98,12 +101,13 @@
             title: "Add Marker Color",
             buttons: ["Add Marker", "Cancel"],
             lines: [`
+                <li></li>
                 <style>
                     input#id {
                         text-transform: lowercase;
                     }
                 </style>
-             `],
+            `],
             form: {
                 name: {
                     label: "Enter Name",
@@ -282,7 +286,6 @@
             width: 780,
             buttons: [],
             lines: [`
-                <li></li>
                 <style>
                     dialog#about .dialog_title {
                         padding-left: 0;
