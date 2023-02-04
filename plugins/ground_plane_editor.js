@@ -46,6 +46,7 @@
                         title: "Edit Ground Plane",
                         id: "edit_ground_plane_dialog",
                         lines: [`
+                            <li></li>
                             <style>
                                 dialog#edit_ground_plane_dialog .bar {
                                     display: flex;
@@ -136,7 +137,7 @@
                                     this.close()
                                     Blockbench.showQuickMessage("Updated successfully", 3000)
                                 },
-                                
+
                                 revert() {
                                     $("dialog#edit_ground_plane_dialog .color_picker input").val("#21252B");
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(255);
@@ -189,6 +190,7 @@
             width: 780,
             buttons: [],
             lines: [`
+                <li></li>
                 <style>
                     dialog#about .dialog_title {
                         padding-left: 0;
@@ -229,14 +231,14 @@
                     <p>Please report any bugs or suggestions you may have to make this plugin more enjoyable for everyone.</p>
                     <br>
                     <div class="socials">
-                    <a href="${links["twitter"]}" class="open-in-browser">
-                        <i class="fa-brands fa-twitter" style="color:#00acee"></i>
-                        <label>By ${author}</label>
-                    </a>
-                    <a href="${links["discordlink"]}" class="open-in-browser">
-                        <i class="fa-brands fa-discord" style="color:#5865F2"></i>
-                        <label>Discord Server</label>
-                    </a>
+                        <a href="${links["twitter"]}" class="open-in-browser">
+                            <i class="fa-brands fa-twitter" style="color:#00acee"></i>
+                            <label>By ${author}</label>
+                        </a>
+                        <a href="${links["discordlink"]}" class="open-in-browser">
+                            <i class="fa-brands fa-discord" style="color:#5865F2"></i>
+                            <label>Discord Server</label>
+                        </a>
                     </div>
                 </div>
             `]

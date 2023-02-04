@@ -39,9 +39,9 @@
                 buttons: ["Generate", "Cancel"],
                 lines: [`
                     <style>
-                    input#input {
-                        text-transform: uppercase;
-                    }
+                        input#input {
+                            text-transform: uppercase;
+                        }
                     </style>
                 `],
                 form: {
@@ -660,6 +660,7 @@
             width: 780,
             buttons: [],
             lines: [`
+                <li></li>
                 <style>
                     dialog#about .dialog_title {
                         padding-left: 0;
