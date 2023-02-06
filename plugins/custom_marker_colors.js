@@ -30,7 +30,7 @@
         description: "Allows users to add their own marker colors.",
         about: "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
         tags: ["Marker Color", "Customize", "UX"],
-        version: "1.0.3",
+        version: "1.0.2",
         min_version: "4.2.0",
         variant: "both",
         oninstall() {
