@@ -33,6 +33,7 @@
     {
         var group = {};
         var cubes = [];
+        var meshes = [];
 
         group.origin = o.origin.slice();
 
@@ -54,15 +55,24 @@
             {
                 groups[object.name] = createModelGroup(object, groups);
             }
-            else if (object.type == "cube")
+            else if (object.type === "cube")
             {
                 cubes.push(createCube(object));
+            }
+            else if (object.type === "mesh")
+            {
+                meshes.push(createMesh(object));
             }
         }
 
         if (cubes.length > 0)
         {
             group.cubes = cubes;
+        }
+
+        if (meshes.length > 0)
+        {
+            group.meshes = meshes;
         }
 
         return group;
@@ -116,6 +126,62 @@
         }
 
         return cube;
+    }
+
+    function createMesh(c)
+    {
+        var mesh = {};
+        var vertices = [];
+        var uvs = [];
+
+        var pushVertexKey = (k, f) =>
+        {
+            var v = c.vertices[k];
+            var u = face.uv[k];
+
+            vertices.push(v[0]);
+            vertices.push(v[1]);
+            vertices.push(v[2]);
+            uvs.push(u[0]);
+            uvs.push(u[1]);
+        };
+
+        mesh.origin = c.origin.slice();
+
+        if (!c.rotation.allEqual(0))
+        {
+            mesh.rotate = c.rotation.slice();
+        }
+
+        for (var key in c.faces)
+        {
+            var face = c.faces[key];
+            var vertexKeys = face.vertices;
+
+            if (vertexKeys.length == 3)
+            {
+                for (var i = 0; i < vertexKeys.length; i++)
+                {
+                    pushVertexKey(vertexKeys[i], face);
+                }
+            }
+            else if (vertexKeys.length == 4)
+            {
+                /* Triangulate a quad */
+                pushVertexKey(vertexKeys[0], face);
+                pushVertexKey(vertexKeys[1], face);
+                pushVertexKey(vertexKeys[2], face);
+
+                pushVertexKey(vertexKeys[3], face);
+                pushVertexKey(vertexKeys[2], face);
+                pushVertexKey(vertexKeys[1], face);
+            }
+        }
+
+        mesh.vertices = vertices;
+        mesh.uvs = uvs;
+
+        return mesh;
     }
 
     /* Animation exporting code */
@@ -345,7 +411,7 @@
         author: "McHorse",
         description: "Adds a model exporter which allows to export models in BBS model format",
         icon: "fa-file-export",
-        version: "1.0.0",
+        version: "1.1.0",
         variant: "both",
         onload() {
             button = new Action("bbs_exporter", {
