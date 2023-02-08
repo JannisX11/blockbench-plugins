@@ -43,7 +43,7 @@
     description: "Adds a new format that allows you to create OptiFine player models.",
     about: "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.3.1",
+    version: "1.3.2",
     min_version: "4.2.0",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -64,6 +64,7 @@
             type: "PlayerItem",
             credit: Project.credit || settings.credit.value
           }
+          if (Project.use_player_texture) entityModel.usePlayerTexture = true
           entityModel.textureSize = [Project.texture_width, Project.texture_height]
           entityModel.models = []
           Outliner.root.forEach(g => {
@@ -221,7 +222,7 @@
             Project.texture_width = parseInt(model.textureSize[0]) || 64
             Project.texture_height = parseInt(model.textureSize[1]) || 64
           }
-          if (model.usePlayerTexture === true) Project.use_player_texture = true
+          if (model.usePlayerTexture) Project.use_player_texture = true
           let empty_face = {uv: [0, 0, 0, 0], texture: null}
           if (model.models) {
             model.models.forEach(b => {
