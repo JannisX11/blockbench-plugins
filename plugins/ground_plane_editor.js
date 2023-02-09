@@ -135,9 +135,9 @@
                                     Canvas.ground_plane.material.opacity = parseInt(opacity) / 255;
 
                                     this.close()
-                                    Blockbench.showQuickMessage("Updated successfully", 3000)
+                                    Blockbench.showQuickMessage("Updated successfully", 2000)
                                 },
-
+                                
                                 revert() {
                                     $("dialog#edit_ground_plane_dialog .color_picker input").val("#21252B");
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(255);
@@ -147,7 +147,10 @@
                                 close: () => dialog.cancel()
                             }
                         },
-                        buttons: []
+                        buttons: [],
+                        onConfirm() {
+                            this.content_vue.create();
+                        }
                     }).show()
                 }
             })
