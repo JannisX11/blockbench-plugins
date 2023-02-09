@@ -32,7 +32,7 @@
 
             // Highlighter
             const highlighter = {
-                i: 0,
+                i: 1,
                 running: false,
 
                 start: (cubes, material) => {
@@ -46,7 +46,7 @@
                     };
 
                     clearInterval(highlighter.interval)
-                    highlighter.i = 0
+                    highlighter.i = 1
                     highlighter.interval = setInterval(() => highlighter.flash(cubes, material), 1500)
                     highlighter.flash(cubes, material)
                 },
