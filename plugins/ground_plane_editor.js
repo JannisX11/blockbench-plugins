@@ -5,6 +5,13 @@
     const icon = "icon-format_free"
     const author = "SirJain"
 
+    // Store the ground plane material in a dialog
+    let groundPlane = Canvas.ground_plane.material
+
+    // localStorage variables
+    let localStorageColor = localStorage.getItem("groundPlaneColor")
+    let localStorageOpacity = localStorage.getItem("groundPlaneOpacity")
+
     const links = {
         twitter: "https://www.twitter.com/SirJain2",
         discordlink: "https://discord.gg/wM4CKTbFVN"
@@ -31,6 +38,17 @@
         },
         onload() {
             addAbout()
+
+            // Handles the ground plane on loading the plugin
+            groundPlane.transparent = true;
+
+            if (localStorageColor) groundPlane.color.setHex(JSON.parse(localStorageColor))
+            else groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
+
+            if (localStorageOpacity) groundPlane.opacity = localStorageOpacity
+            else groundPlane.opacity = 1
+
+            // Defines the Menu action
             action = new Action({
                 id,
                 name: "Edit Ground Plane",
@@ -72,11 +90,11 @@
                             // Method runs when the dialog is opened
                             mounted() {
                                 this.$nextTick().then(() => {
-                                    let opacityScaled = Math.floor(Canvas.ground_plane.material.opacity * 255);
+                                    let opacityScaled = Math.floor(groundPlane.opacity * 255);
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(opacityScaled);
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_slider").val(opacityScaled);
 
-                                    let planeColor = '#' + Canvas.ground_plane.material.color.getHexString()
+                                    let planeColor = '#' + groundPlane.color.getHexString()
                                     $("dialog#edit_ground_plane_dialog .color_picker input").val(planeColor);
                                 });
                             },
@@ -84,16 +102,16 @@
                                 <div>
                                     <div class="bar slider_input_combo">
                                         <p>Edit Opacity:</p>
-                                        <input id="opacity_slider" type="range" min="60" max="255" value="255" @input="changeSlider('opacity')"></input>
-                                        <input id="opacity_number" type="number" class="tool" min="60" max="255" value="255" @input="changeNumber('opacity', 1, 255, 255)"></input>
+                                        <input id="opacity_slider" type="range" min="30" max="255" value="255" @input="changeSlider('opacity')"></input>
+                                        <input id="opacity_number" type="number" class="tool" min="30" max="255" value="255" @input="changeNumber('opacity', 1, 255, 255)"></input>
                                     </div>
                                     <br>
                                     <div class="color_picker">
                                         <p>Edit Color:</p>
                                         <input type="color" value="#4a4a4a">
                                     </div>
-                                        <br>
-                                        <div style="display:flex;gap:8px">
+                                    <br>
+                                    <div style="display:flex;gap:8px">
                                         <button @click="revert()">Reset Values</button>
                                         <span style="flex-grow:3"></span>
                                         <button @click="create()">Done</button>
@@ -127,12 +145,18 @@
                                 },
 
                                 create() {
-                                    let hexString = $("dialog#edit_ground_plane_dialog .color_picker input").val();
-                                    Canvas.ground_plane.material.color.setHex(parseInt(hexString.substring(1), 16));
 
+                                    // Handle the color
+                                    let hexString = $("dialog#edit_ground_plane_dialog .color_picker input").val();
+                                    let parsedIntColor = parseInt(hexString.substring(1), 16)
+                                    groundPlane.color.setHex(parsedIntColor)
+                                    localStorage.setItem("groundPlaneColor", parsedIntColor)
+
+                                    // Hande the opacity
                                     let opacity = $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val();
-                                    Canvas.ground_plane.material.transparent = true;
-                                    Canvas.ground_plane.material.opacity = parseInt(opacity) / 255;
+                                    let parsedOpacity = parseInt(opacity) / 255
+                                    groundPlane.opacity = parsedOpacity;
+                                    localStorage.setItem("groundPlaneOpacity", parsedOpacity)
 
                                     this.close()
                                     Blockbench.showQuickMessage("Updated successfully", 2000)
@@ -160,6 +184,13 @@
         onunload() {
             aboutAction.delete()
             action.delete()
+
+            // Reset values if plugin is uninstalled
+            localStorage.removeItem("groundPlaneColor")
+            localStorage.removeItem("groundPlaneOpacity")
+            groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
+            groundPlane.opacity = 1
+
             MenuBar.removeAction(`help.about_plugins.about_${id}`)
         }
     })
