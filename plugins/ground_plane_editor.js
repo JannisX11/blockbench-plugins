@@ -102,8 +102,8 @@
                                 <div>
                                     <div class="bar slider_input_combo">
                                         <p>Edit Opacity:</p>
-                                        <input id="opacity_slider" type="range" min="30" max="255" value="255" @input="changeSlider('opacity')"></input>
-                                        <input id="opacity_number" type="number" class="tool" min="30" max="255" value="255" @input="changeNumber('opacity', 1, 255, 255)"></input>
+                                        <input id="opacity_slider" type="range" min="60" max="255" value="255" @input="changeSlider('opacity')"></input>
+                                        <input id="opacity_number" type="number" class="tool" min="60" max="255" value="255" @input="changeNumber('opacity', 60, 255, 255)"></input>
                                     </div>
                                     <br>
                                     <div class="color_picker">
@@ -161,7 +161,7 @@
                                     this.close()
                                     Blockbench.showQuickMessage("Updated successfully", 2000)
                                 },
-                                
+
                                 revert() {
                                     $("dialog#edit_ground_plane_dialog .color_picker input").val("#21252B");
                                     $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(255);
