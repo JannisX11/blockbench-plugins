@@ -17,7 +17,7 @@
 		description: "Adds a button and a keybind that centers the image viewport in an Image format.",
 		about: "This plugin adds a button that allows you to reset your viewport in the Image format.\n## How to use\nTo use this plugin, go to the brush toolbar (top of the image mode) and click the `Center Image Viewport` button. If it doesn't show up, make sure you are in the Image format. If you are, you can add the tool using the `Customize Toolbar` option. There will be a confirmation message displayed on-screen once you center the viewport.\n\nPlease report any bugs or suggestions you may have.",
 		tags: ["Format: Image", "UX"],
-		version: "1.1.0",
+		version: "1.1.1",
 		min_version: "4.4.0",
 		variant: "both",
 		oninstall: () => showAbout(true),
@@ -101,6 +101,7 @@
 			width: 780,
 			buttons: [],
 			lines: [`
+			    <li></li>
 				<style>
 					dialog#about .dialog_title {
 						padding-left: 0;
@@ -108,23 +109,19 @@
 						align-items: center;
 						gap: 10px;
 					}
-
 					dialog#about .dialog_content {
 						text-align: left!important;
 						margin: 0!important;
 					}
-
 					dialog#about .socials {
 						padding: 0!important;
 					}
-
 					dialog#about #banner {
 						background-color: var(--color-accent);
 						color: var(--color-accent_text);
 						width: 100%;
 						padding: 0 8px
 					}
-
 					dialog#about #content {
 						margin: 24px;
 					}
@@ -150,11 +147,11 @@
 						</a>
 					</div>
 				</div>
-            `]
+            		`]
 		}).show()
 		$("dialog#about .dialog_title").html(`
-    		<i class="icon material-icons">${icon}</i>
-    		${name}
-    	`)
+    			<i class="icon material-icons">${icon}</i>
+    			${name}
+    		`)
 	}
 })()
