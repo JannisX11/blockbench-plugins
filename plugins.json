@@ -733,6 +733,17 @@
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
+	"obj_animation_export": {
+		"title": "OBJ Animation Exporter",
+		"icon": "icon-objects",
+		"author": "JannisX11",
+		"description": "Exports an animation to OBJ as an OBJ file sequence",
+		"about": "To export, right click an animation and click Export OBJ Sequence.",
+		"version": "0.1.0",
+		"min_version": "4.0.0",
+		"variant": "both",
+		"tags": ["Exporter"]
+	},
 	"explorer": {
 		"title": "Explorer",
 		"icon": "fas.fa-folder-open",
