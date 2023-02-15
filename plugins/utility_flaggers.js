@@ -78,7 +78,6 @@
             registerDialogs()
             registerActions()
             MenuBar.addAction(flaggersParent, "tools")
-            console.log(Format?.id)
         },
 
         onunload() {
