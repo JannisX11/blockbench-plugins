@@ -160,7 +160,7 @@
                     })
                 }
             },
-            onCancel: () => this.close()
+            onCancel: () => createMarkersDialog.hide()
         }).show()
     }
 
