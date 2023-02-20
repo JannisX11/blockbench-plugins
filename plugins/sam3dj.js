@@ -87,8 +87,6 @@
     function isStateON(group) {
         if (group.name === 'state_on')
             return true
-        else if (typeof group.parent === 'object')
-            return isStateON(group)
     }
     
     /**
