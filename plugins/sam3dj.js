@@ -36,7 +36,19 @@
             let tmp = cube.faces[dir].getTexture();
     
             if (!tmp) {
-                missing = true;
+                if (typeof cube.parent === 'object' && cube.parent.name.includes(":block/")) {
+                    texture = cube.parent.name;
+                    tmp = true;
+                }
+
+                if (cube.name.includes(":block/")) {
+                    texture = cube.name;
+                    tmp = true;
+                }
+
+                if (!tmp) {
+                    missing = true;
+                }
             } else {
                 // Generate actual ID
                 let id = tmp.namespace + ':' + tmp.folder + '/' + (tmp.name.replace(/\.[^/.]+$/, ""))
@@ -85,10 +97,11 @@
     }
     
     function isStateON(group) {
-        if (group.name === 'state_on')
-            return true
-        else if (typeof group.parent === 'object')
-            return isStateON(group)
+        if (group.name === 'state_on') {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
