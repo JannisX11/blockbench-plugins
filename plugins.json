@@ -3,7 +3,7 @@
 		"title": "sam3DJ",
 		"author": "1Turtle",
 		"tags": ["Minecraft: Java Edition", "Format", "Exporter"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"variant": "both",
 		"description": "Generate 3D prints in MC (Java Edition) via the .3DJ format within the SC-Peripherals mod!",
 		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
@@ -150,9 +150,9 @@
 		"title": "Seat Position + Hitbox",
 		"icon": "event_seat",
 		"author": "JannisX11",
-		"description": "Preview seat positions and hitboxes for custom MC Bedrock entities",
+		"description": "Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.2.1",
+		"version": "1.3.0",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -698,7 +698,7 @@
 		"icon": "fa-file-export",
 		"author": "McHorse",
 		"description": "Adds a model exporter which allows to export models in BBS model format",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"variant": "both",
 		"tags": ["Exporter"]
 	},
@@ -753,6 +753,17 @@
 		"tags": ["Utility", "BoxUV", "Format: Generic Model"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
+    "variant": "both"
+  },
+	"skin_mirror": {
+		"title": "Skin Mirror",
+		"icon": "icon-mirror_x",
+		"author": "oectway",
+		"description": "Tool that allows you to mirror the arms and legs of existing skins to the other side.",
+		"about": "This plugin adds a button under the `Tools` menu that allows you to mirror the arms and legs of existing skins to the other side. Select the type of the skin: Alek (3 Pixel Arm, customSlim) or Steve (4 Pixel Arm, custom). Next, choose whether you want to mirror from left to right, or the other way around. If everything is correct, click \"Confirm\".",
+		"tags": ["Minecraft", "Skins"],
+		"version": "1.0.0",
+		"min_version": "4.6.0",
 		"variant": "both"
 	}
 }

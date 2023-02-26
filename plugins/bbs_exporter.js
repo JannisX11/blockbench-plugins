@@ -168,13 +168,15 @@
             else if (vertexKeys.length == 4)
             {
                 /* Triangulate a quad */
-                pushVertexKey(vertexKeys[0], face);
-                pushVertexKey(vertexKeys[1], face);
-                pushVertexKey(vertexKeys[2], face);
+                var sorted = face.getSortedVertices();
+                
+                pushVertexKey(sorted[0], face);
+                pushVertexKey(sorted[1], face);
+                pushVertexKey(sorted[2], face);
 
-                pushVertexKey(vertexKeys[3], face);
-                pushVertexKey(vertexKeys[2], face);
-                pushVertexKey(vertexKeys[1], face);
+                pushVertexKey(sorted[0], face);
+                pushVertexKey(sorted[2], face);
+                pushVertexKey(sorted[3], face);
             }
         }
 
@@ -411,7 +413,7 @@
         author: "McHorse",
         description: "Adds a model exporter which allows to export models in BBS model format",
         icon: "fa-file-export",
-        version: "1.1.0",
+        version: "1.1.1",
         variant: "both",
         onload() {
             button = new Action("bbs_exporter", {

@@ -8,7 +8,7 @@
         title: 'sam3DJ',
         author: '1Turtle',
         tags: ['Minecraft: Java Edition', 'Format', 'Exporter'],
-        version: '1.0.1',
+        version: '1.0.2',
         variant: 'both',
         description: 'Generate 3D prints in MC (Java Edition) via the .3DJ format within the SC-Peripherals mod!',
         about: "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
@@ -36,7 +36,19 @@
             let tmp = cube.faces[dir].getTexture();
     
             if (!tmp) {
-                missing = true;
+                if (typeof cube.parent === 'object' && cube.parent.name.includes(":block/")) {
+                    texture = cube.parent.name;
+                    tmp = true;
+                }
+
+                if (cube.name.includes(":block/")) {
+                    texture = cube.name;
+                    tmp = true;
+                }
+
+                if (!tmp) {
+                    missing = true;
+                }
             } else {
                 // Generate actual ID
                 let id = tmp.namespace + ':' + tmp.folder + '/' + (tmp.name.replace(/\.[^/.]+$/, ""))
@@ -85,10 +97,11 @@
     }
     
     function isStateON(group) {
-        if (group.name === 'state_on')
-            return true
-        else if (typeof group.parent === 'object')
-            return isStateON(group)
+        if (group.name === 'state_on') {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
