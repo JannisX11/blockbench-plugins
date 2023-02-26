@@ -753,8 +753,8 @@
 		"tags": ["Utility", "BoxUV", "Format: Generic Model"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
-    "variant": "both"
-  },
+    		"variant": "both"
+  	},
 	"skin_mirror": {
 		"title": "Skin Mirror",
 		"icon": "icon-mirror_x",
