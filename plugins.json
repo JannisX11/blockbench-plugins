@@ -630,7 +630,7 @@
 		"description": "Export your java models and texture into a resourcepack",
 		"icon": "fa-file-zipper",
 		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},

@@ -1,6 +1,6 @@
 {
   "name": "resourcepack_packager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Export your java models and texture into a resourcepack",
   "scripts": {
     "build": "npm run lint && webpack --mode production",
