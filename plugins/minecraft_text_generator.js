@@ -5,7 +5,7 @@
     let textLength, textGroup, xOffset, randNum, letterGroup
 
     // Plugin information variables
-    const id = "mc_text_generator"
+    const id = "minecraft_text_generator"
     const name = "Minecraft Text Generator"
     const icon = "text_format"
     const author = "SirJain"
