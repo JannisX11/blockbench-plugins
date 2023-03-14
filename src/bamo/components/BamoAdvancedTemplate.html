@@ -1,0 +1,359 @@
+<div id="BAMO">
+    <div class="wizardWrapper">
+        <ul id="BAMOsideBar">
+            <li v-bind:class="{selected: step =='start'}" @click.prevent="changePage($event, 'start')">
+                Start
+            </li>
+            <li class="sideBarHeader">Blocks</li>
+            <li v-bind:class="{selected: step =='types'}" @click.prevent="changePage($event, 'types')">
+                Block Types
+            </li>
+            <li v-bind:class="{selected: step =='custom'}" v-if="parentData.properties.types.custom" @click.prevent="changePage($event, 'custom')">
+                Custom Block
+            </li>
+            <li v-bind:class="{selected: step =='variant'}" v-if="parentData.properties.types.block" @click.prevent="changePage($event, 'variant')">
+                Variants
+            </li>
+            <li class="sideBarHeader">Properties</li>
+            <li v-bind:class="{selected: step == 'physical'}" @click.prevent="changePage($event, 'physical')">
+                Physical
+            </li>
+            <li v-bind:class="{selected: step == 'advPhys'}" @click.prevent="changePage($event, 'advPhys')">
+                Adv Physical
+            </li>
+            <li v-bind:class="{selected: step == 'particles'}" @click.prevent="changePage($event, 'particles')">
+                Particles
+            </li>
+            <li v-bind:class="{selected: step == 'datapack'}" @click.prevent="changePage($event, 'datapack')">
+                Datapack
+            </li>
+            <li v-bind:class="{selected: step == 'other'}" @click.prevent="changePage($event, 'other')">
+                Other
+            </li>
+            <li class="sideBarHeader" v-if="false">Adv. Options</li>
+            <li v-bind:class="{selected: step == 'settings'}" v-if="false" @click.prevent="changePage($event, 'settings')">
+                BAMO settings
+            </li>
+        </ul>
+
+        <!-- Start -->
+        <div class="wizardPage" v-if="step=='start'">
+            <h1 style="padding:0; text-align: center;">BAMO Exporter</h1>
+            <p align=center>Click "Export" at any time to export the model. Any unmodified properties will be set to the default values for a dirt block. Changes will persist until Blockbench is closed.</p>
+
+            <ul class="settingsList">
+                <li>
+                    <div class="headerLabel">Display Name</div>
+                    <p class="headerDescription">The (unique) name of the block as will be seen in Minecraft</p>
+                    <p v-if="error=='name'" style="color:red">Block display name cannot be blank</p>
+                    <input type="text" class="dark_bordered" v-model="$parent.$data.properties.displayName" placeholder="Name of the Block">
+                </li>
+            </ul><br>
+            
+            <button @click.prevent="changePage($event, 'types')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Block Types -->
+        <div class="wizardPage" v-if="step=='types'">
+            <h1 style="padding:0; text-align: center;">Block Types</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.types.custom" v-on:change="toggleType($event, 'custom')">
+                    <div class = "headerLabel">Custom Block</div>
+                    <p class="headerDescription">Block with a custom model and hitbox</p>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.custom">
+                    <div class = "headerLabel">Custom Block Type</div>
+                    <select class="dark_bordered" v-model = "$parent.$data.properties.types.customType">
+                        <option v-for="op in customTypeOptions" v-bind:key="op">{{op}}</option>
+                    </select>
+                </li>
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.types.block" v-on:change="toggleType($event, 'block')">
+                    <div class = "headerLabel">Standard Block</div>
+                    <p class="headerDescription">1x1 block with identical textures on all faces</p>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.block">
+                    <div class = "headerLabel">Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.default.all" >
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+            </ul><br>
+
+            <button @click.prevent="changePage($event, 'start')">Previous</button>
+            <button @click.prevent="changePage($event, 'physical')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Custom Block Settings -->
+        <div class="wizardPage" v-if="step=='custom'">
+            <h1 style="padding:0; text-align: center;">Custom Block Properties</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.bufferedHitbox">
+                    <div class = "headerLabel">Simplified Hitbox</div>
+                    <p class="headerDescription">Reduces the hitbox of the block to a single box encompasing the entire block. Use this if your model has rotated blocks, is mostly planes, or who's hitbox is otherwise messy</p>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.bufferedHitbox">
+                    <input type="number" class="dark_bordered" v-model.number="$parent.$data.properties.hitboxBuffer" min=0 max=16 step=0.1>
+                    <div class = "headerLabel">Hitbox Buffer</div>
+                    <p class="headerDescription">Closest distance of hitbox to model edge</p>
+                </li>
+            </ul><br>
+
+            <button @click.prevent="changePage($event, 'start')">Previous</button>
+            <button @click.prevent="changePage($event, 'physical')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Variant Block -->
+        <div class="wizardPage" v-if="step=='variant'">
+            <h1 style="padding:0; text-align: center;">Variant Blocks</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.types.stair">
+                    <div class = "headerLabel">Create Stair Block</div>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.stair">
+                    <div class = "headerLabel">Top Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.stair.top" >
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.stair"> 
+                    <div class = "headerLabel">Bottom Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.stair.bottom">
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.stair"> 
+                    <div class = "headerLabel">Side Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.stair.side">
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+                
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.types.slab">
+                    <div class = "headerLabel">Create Slab Block</div>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.slab">
+                    <div class = "headerLabel">Top Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.slab.top" >
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.slab"> 
+                    <div class = "headerLabel">Bottom Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.slab.bottom">
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.slab"> 
+                    <div class = "headerLabel">Side Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.slab.side">
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.types.wall">
+                    <div class = "headerLabel">Create Wall Block</div>
+                </li>
+                <li style="padding-left: 20px" v-if="$parent.$data.properties.types.wall">
+                    <div class = "headerLabel">Wall Texture</div>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.variant.wall.wall" >
+                        <option v-for="op in Textures()" v-bind:key="op">{{op.name}}</option>
+                    </select>
+                </li>
+            </ul><br>
+            <button @click.prevent="changePage($event, 'types')">Previous</button>
+            <button @click.prevent="changePage($event, 'physical')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Physical Properties -->
+        <div class="wizardPage" v-if="step=='physical'">
+            <h1 style="padding:0; text-align: center;">Physical Properties</h1>
+            <ul class="settingsList">
+                <li>
+                    <div class = "headerLabel">Material</div>
+                    <p class="headerDescription">Sets default properties to match those of the listed block. For a list of properties each block has, see the <a href="https://minecraft.fandom.com/wiki/Materials">Minecraft wiki</a></p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.material"><option v-for="op in materialOptions" v-bind:key="op">{{ op }}</option></select>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">Block Sounds</div>
+                    <p class="headerDescription">Sets the sounds made when the custom block is stepped on/broken/etc to match the listed block</p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.sounds"><option v-for="op in soundOptions" v-bind:key="op">{{ op }}</option></select>
+                </li>
+
+                <li>
+                    <div class="headerLabel">Transparency</div>
+                    <p class="headerDescription">The transparency style of the block. Models with partially transparent textures should be set to Cutout</p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.transparency"><option v-for="tr in transparencyOptions" v-bind:key="tr">{{ tr }}</option></select>
+                </li>
+                
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.gravity">
+                    <div class = "headerLabel">Gravity</div>
+                    <p class="headerDescription">Determines if the block falls due to gravity (No effect for non-default custom blocks)</p>
+                </li>
+            </ul>
+            <button @click.prevent="changePage($event, 'types')">Previous</button>
+            <button @click.prevent="changePage($event, 'advPhys')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Adv Physical Properties -->
+        <div class="wizardPage" v-if="step=='advPhys'">
+            <h1 style="padding:0; text-align: center;">Advanced Physical Properties</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="number" class="dark_bordered" v-model.number="$parent.$data.properties.lum" min=0 max=15>
+                    <div class = "headerLabel">Luminance</div>
+                    <p class="headerDescription">The light level of the block. Ranges from 0 to 15. Torches default at 14</p>
+                </li>
+
+                <li>
+                    <input type="number" class="dark_bordered" v-model.number="$parent.$data.properties.blastRes" min=0>
+                    <div class = "headerLabel">Blast Resistance</div>
+                    <p class="headerDescription">How resistant the block is to explosions. Most blocks fall between 0.1 and 9</p>
+                </li>
+
+                <li>
+                    <input type="number" class="dark_bordered" v-model.number="$parent.$data.properties.slip" min=0 step="0.1">
+                    <div class = "headerLabel">Slipperiness</div>
+                    <p class="headerDescription">How much you slide when crossing the block. Default is 0.6 and reaches 0.989 for blue ice</p>
+                </li>
+
+                <li>
+                    <input type="checkbox" v-model="$parent.$data.properties.fireproof">
+                    <div class = "headerLabel">Fireproof</div>
+                    <p class="headerDescription">Determines if the block will burn</p>
+                </li>
+            </ul>
+            <button @click.prevent="changePage($event, 'physical')">Previous</button>
+            <button @click.prevent="changePage($event, 'particles')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Particles-->
+        <div class="wizardPage" v-if="step=='particles'">
+            <h1 style="padding:0; text-align: center;">Particles</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="checkbox" v-model="parentData.properties.particles">
+                    <div class = "headerLabel">Emit Particles (WIP)</div>
+                    <p class="headerDescription">Enables particle emission. Still in active development</p>
+                </li>
+                <li v-if= "parentData.properties.particles">
+                    <div class = "headerLabel">Particle</div>
+                    <p class="headerDescription">Which particle will be emitted</p>
+                    <select class="dark_bordered" v-model="parentData.properties.particleType"><option v-for="op in particleOptions" v-bind:key="op">{{ op }}</option></select>
+                </li>
+                <li v-if= "parentData.properties.particles">
+                    <div class = "headerLabel">Particle Spawn Position</div>
+                    <p class="headerDescription">Spawn point of the particles (between 0 and 16)</p>
+                    <input type="number" v-model="parentData.properties.particlePos.x" min="0" max="16">
+                    <input type="number" v-model="parentData.properties.particlePos.y" min="0" max="16">
+                    <input type="number" v-model="parentData.properties.particlePos.z" min="0" max="16">
+                </li>
+                <li v-if= "parentData.properties.particles">
+                    <div class = "headerLabel">Particle Spread</div>
+                    <p class="headerDescription">Spread of particles in blocks</p>
+                    <input type="number" v-model="parentData.properties.particleSpread.x" min="0">
+                    <input type="number" v-model="parentData.properties.particleSpread.y" min="0">
+                    <input type="number" v-model="parentData.properties.particleSpread.z" min="0">
+                </li>
+                <li v-if= "parentData.properties.particles">
+                    <div class = "headerLabel">Particle Velocity</div>
+                    <p class="headerDescription">Velocity of particles in blocks per tick</p>
+                    <input type="number" v-model="parentData.properties.particleVel.x">
+                    <input type="number" v-model="parentData.properties.particleVel.y">
+                    <input type="number" v-model="parentData.properties.particleVel.z">
+                </li>
+            </ul>
+            <br>
+            <button @click.prevent="changePage($event, 'advPhys')">Previous</button>
+            <button @click.prevent="changePage($event, 'datapack')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Datapack Settings -->
+        <div class="wizardPage" v-if="step=='datapack'">
+            <h1 style="padding:0; text-align: center;">Datapack Properties</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="checkbox" v-model="parentData.properties.genScRecipe">
+                    <div class = "headerLabel">Generate BAMO Crate recipe</div>
+                    <p class="headerDescription">Creates a stonecutter recipe for turning the BAMO Crate into this block</p>
+                </li>
+                <li style="padding-left: 20px">
+                    <input type="checkbox" v-model="parentData.properties.genReversableScRecipe">
+                    <div class = "headerLabel">Make recipe reverseable</div>
+                    <p class="headerDescription">Allows the stonecutter to turn this block back into a BAMO Crate</p>
+                </li>
+            </ul>
+            <br>
+            <button @click.prevent="changePage($event, 'particles')">Previous</button>
+            <button @click.prevent="changePage($event, 'other')">Continue</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <!-- Other Properties -->
+        <div class="wizardPage" v-if="step=='other'">
+            <h1 style="padding:0; text-align: center;">Other Properties</h1>
+            <ul class="settingsList">
+                <li>
+                    <input type="number" class="dark_bordered" v-model.number="$parent.$data.properties.maxStack" min=0>
+                    <div class = "headerLabel">Max Stack Size</div>
+                    <p class="headerDescription">The maximum number the block in a stack</p>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">Creative Tab</div>
+                    <p class="headerDescription">Which tab on the creative inventory menu the block will be added to</p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.creativeTab"><option v-for="op in tabOptions" v-bind:key="op">{{ op }}</option></select>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">Rotation Type</div>
+                    <p class="headerDescription">if y_axis, faces the player when placed</p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.rotType"><option v-for="op in rotationTypes" v-bind:key="op">{{ op }}</option></select>
+                </li>
+            </ul>
+            <br>
+            <button @click.prevent="changePage($event, 'datapack')">Previous</button>
+            <button @click.prevent="createJSON" style = "float: right;">Export</button>
+        </div>
+
+        <div class="wizardPage" v-if="step=='settings'">
+            <h1 style="padding:0; text-align: center;">BAMO Export Settings</h1>
+            <ul class="settingsList">
+                <li>
+                    <div class = "headerLabel">Set Namespace</div>
+                    <p class="headerDescription">WIP</p>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">Only export textures currently used</div>
+                    <p class="headerDescription">WIP</p>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">reuse model file</div>
+                    <p class="headerDescription">WIP</p>
+                </li>
+
+                <li>
+                    <div class = "headerLabel">show warning if model with same name exists</div>
+                    <p class="headerDescription">WIP</p>
+                    <div class = "headerLabel" style="padding-left: 40px;">Only do this if file is closed/new file loaded</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
