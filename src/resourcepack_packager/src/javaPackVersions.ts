@@ -7,7 +7,8 @@ const javaPackVersions = {
   '1.16.2-1.16.5': 6,
   '1.17.17.1': 7,
   '1.18-1.18.2': 8,
-  '1.19-1.19.2': 9
+  '1.19-1.19.2': 9,
+  '1.19.3': 12
 };
 
 export default javaPackVersions;
