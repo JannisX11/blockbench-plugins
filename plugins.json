@@ -765,5 +765,16 @@
 		"version": "1.1.0",
 		"min_version": "4.6.0",
 		"variant": "both"
-	}
+	},
+	"axis_color_customizer": {
+		"title": "Axis Color Customizer",
+		"icon": "line_axis",
+		"author": "SirJain",
+		"description": "Customizes the colors of X, Y, and Z axes.",
+		"about": "This plugin allows you to customize the colors of the X, Y, and Z axis.\n## How to use\nTo use this plugin, go to `Tools > Change Axis Colors`. Configure the colors how you like and then press `Confirm`.",
+		"tags": ["Axis", "3D", "Color"],
+		"version": "1.0.0",
+		"min_version": "4.2.0",
+    		"variant": "both"
+  	},
 }
