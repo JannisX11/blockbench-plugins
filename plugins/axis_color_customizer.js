@@ -1,5 +1,3 @@
-// To do: Change colors of Canvas gizmos and Orbit Gizmo.
-
 (async function() {
     let aboutAction, axisAction, axisDialog
     const id = "axis_color_customizer"
@@ -21,6 +19,8 @@
     const xColor = localStorage.getItem("x_color");
     const yColor = localStorage.getItem("y_color");
     const zColor = localStorage.getItem("z_color");
+
+    let styles1, styles2, styles3
 
     // Register plugin
     Plugin.register(id, {
@@ -114,43 +114,98 @@
             MenuBar.removeAction(`tools.change_axis_color`);
 
             // Reset all values
-            updateAxisColors("#ff1242", "#23d400", "#0894ed");
-            localStorage.removeItem("x_color");
-            localStorage.removeItem("y_color");
-            localStorage.removeItem("z_color");
+            cleanUp();
+
+            Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="x"], .orbit_gizmo > svg path[axis="x"] {
+                    background-color: var(--color-axis-x);
+                    stroke: var(--color-axis-x);
+                }
+            `)
+
+            Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="y"], .orbit_gizmo > svg path[axis="y"] {
+                    background-color: var(--color-axis-y);
+                    stroke: var(--color-axis-y);
+                }
+            `)
+
+            Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="z"], .orbit_gizmo > svg path[axis="z"] {
+                    background-color: var(--color-axis-z);
+                    stroke: var(--color-axis-z);
+                }
+            `)
 
             Blockbench.showQuickMessage("Uninstalled Axis Color Customizer")
         }
     })
+
+    function cleanUp() {
+        updateAxisColors("#ff1242", "#23d400", "#0894ed");
+        deleteStyles();
+        removeLocalStorage();
+    }
+
+    function deleteStyles() {
+        styles1.delete();
+        styles2.delete();
+        styles3.delete();
+    }
+
+    function removeLocalStorage() {
+        localStorage.removeItem("x_color");
+        localStorage.removeItem("y_color");
+        localStorage.removeItem("z_color");
+    }
 
     // Update colors of all axes
     function updateAxisColors(colorX, colorY, colorZ) {
         updateAxisColorX(colorX);
         updateAxisColorY(colorY);
         updateAxisColorZ(colorZ);
-
         Canvas.updateAll();
+
+        Blockbench.showQuickMessage("Updated Axis Colors")
     }
 
     // Update colors of individual axes 
     function updateAxisColorX(color) {
-        body.style.setProperty("--color-axis-x", color);
         if (color != null) {
+            body.style.setProperty("--color-axis-x", color);
             gizmo_colors.r.set(parseInt(color.substring(1), 16))
+            styles1 = Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="x"], .orbit_gizmo > svg path[axis="x"] {
+                    background-color: ${color};
+                    stroke: ${color};
+                }
+            `)
         }
     }
 
     function updateAxisColorY(color) {
-        body.style.setProperty("--color-axis-y", color);
         if (color != null) {
+            body.style.setProperty("--color-axis-y", color);
             gizmo_colors.g.set(parseInt(color.substring(1), 16))
+            styles2 = Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="y"], .orbit_gizmo > svg path[axis="y"] {
+                    background-color: ${color};
+                    stroke: ${color};
+                }
+            `)
         }
     }
 
     function updateAxisColorZ(color) {
-        body.style.setProperty("--color-axis-z", color);
         if (color != null) {
+            body.style.setProperty("--color-axis-z", color);
             gizmo_colors.b.set(parseInt(color.substring(1), 16))
+            styles3 = Blockbench.addCSS(`
+                .orbit_gizmo_side[axis="z"], .orbit_gizmo > svg path[axis="z"] {
+                    background-color: ${color};
+                    stroke: ${color};
+                }
+            `)
         }
     }
 
