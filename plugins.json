@@ -733,7 +733,7 @@
 		"min_version": "4.6.0",
 		"variant": "desktop"
 	},
-	"minecraft_text_generator": {
+	"mc_text_generator": {
 		"title": "Minecraft Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
