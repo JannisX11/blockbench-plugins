@@ -586,16 +586,12 @@
 
                         textGroup.children.forEach(group => {
                             group.children.forEach(cube => {
-                                if (formData.generateLayer == false || formData.depth != 0) {
-                                    cube.moveVector(textLength / 2 - 4, 0)
+                                if (cube instanceof Group) {
+                                    cube.children.forEach(sub_cube => {
+                                        sub_cube.moveVector(textLength / 2 - 4, 0)
+                                    })
                                 } else {
-                                    if (cube instanceof Group) {
-                                        cube.children.forEach(sub_cube => {
-                                            sub_cube.moveVector(textLength / 2 - 4, 0)
-                                        })
-                                    } else {
-                                        cube.moveVector(textLength / 2 - 4, 0)
-                                    }
+                                    cube.moveVector(textLength / 2 - 4, 0)
                                 }
                             })
                         })
@@ -715,7 +711,7 @@
                     dialog#about .socials {
                         padding: 0!important;
                     }
-                    
+
                     dialog#about #banner {
                         background-color: var(--color-accent);
                         color: var(--color-accent_text);
