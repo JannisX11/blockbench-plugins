@@ -2,7 +2,7 @@
 
     // Global variables
     let aboutAction
-    let textLength, textGroup, xOffset, randNum, letterGroup
+    let textLength, textGroup, randNum, letterGroup
 
     // Plugin information variables
     const id = "mc_text_generator"
@@ -13,7 +13,8 @@
     // Links used in about dialog
     const links = {
         twitter: "https://twitter.com/SirJain2",
-        discord: "https://discord.gg/wM4CKTbFVN"
+        discord: "https://discord.gg/wM4CKTbFVN",
+        website: "https://sirjain0.github.io/"
     }
 
     // Register the plugin
@@ -24,7 +25,7 @@
         description: "Generates Minecraft-styled text in cubes.",
         about: "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
         tags: ["Minecraft", "Font", "Generator"],
-        version: "1.0.0",
+        version: "1.1.0",
         min_version: "4.2.0",
         variant: "both",
 
@@ -75,6 +76,15 @@
                         max: 8,
                         description: "The thickness of the letters. If 0, the letters will appear flat."
                     },
+                    rotation: {
+                        label: "Rotation",
+                        type: "number",
+                        min: -45,
+                        value: 0,
+                        max: 45,
+                        step: 22.5,
+                        description: "The thickness of the letters. If 0, the letters will appear flat."
+                    },
                     generateLayer: {
                         label: "Generate Layer",
                         type: "checkbox",
@@ -110,7 +120,6 @@
 
                     // Run if everything is okay
                     else {
-                        Blockbench.showQuickMessage("Generated text: '" + formData.input + "'")
                         generateTextDialog.hide()
                         
                         // Character maps - each array in the 'cubes' component represents a cube.
@@ -272,9 +281,9 @@
                                     [0, 0, 0, 2, 8, formData.depth],
                                     [2, 6, 0, 3, 8, formData.depth],
                                     [2, 3, 0, 3, 5, formData.depth],
-                                    [3, 4.5, 0, 5, 8, formData.depth],
-                                    [3, 0, 0, 5, 3.5, formData.depth],
-                                    [3, 3.5, 0, 4, 4.5, formData.depth],
+                                    [3, 4, 0, 5, 8, formData.depth],
+                                    [3, 0, 0, 5, 3, formData.depth],
+                                    [3, 3, 0, 4, 4, formData.depth],
                                 ]
                             },
                             s: {
@@ -305,10 +314,10 @@
                             v: {
                                 width: 5.75,
                                 cubes: [
-                                    [0, 2, 0, 2, 8, formData.depth],
-                                    [3.75, 2, 0, 5.75, 8, formData.depth],
-                                    [0.75, 1, 0, 5, 2, formData.depth],
-                                    [1.75, 0, 0, 4, 1, formData.depth],
+                                    [0, 4, 0, 2, 8, formData.depth],
+                                    [3.75, 4, 0, 5.75, 8, formData.depth],
+                                    [0.75, 2, 0, 5, 4, formData.depth],
+                                    [1.75, 0, 0, 3.75, 2, formData.depth],
                                 ]
                             },
                             w: {
@@ -332,13 +341,11 @@
                                 ]
                             },
                             y: {
-                                width: 7,
+                                width: 5,
                                 cubes: [
                                     [0, 4, 0, 2, 8, formData.depth],
-                                    [1, 3, 0, 3, 6, formData.depth],
-                                    [5, 4, 0, 7, 8, formData.depth],
-                                    [4, 3, 0, 6, 6, formData.depth],
-                                    [2.25, 0, 0, 4.75, 5, formData.depth],
+                                    [3, 4, 0, 5, 8, formData.depth],
+                                    [1.25, 0, 0, 3.75, 5, formData.depth],
                                 ]
                             },
                             z: {
@@ -515,27 +522,38 @@
                         let offset = 0
                         let textCube, layerCube
                         textLength = 0
+                        let invalidCubeCount = 0
     
                         Undo.initEdit({group: textGroup, elements: [], outliner: true})
-                        textGroup = new Group('text_' + formData.input).init()
+                        textGroup = new Group({name: 'text_' + formData.input}).init()
+                        layerBaseGroup = new Group('layer_base')
+
+                        /*
+                        Double for-loop that handles the generation of text.
+                        Outer for loop iterates through each character.
+                        Inner for loop iterates through each cube array in the char map.
+                        */
 
                         for (const char of formData.input.toLowerCase()) {
                             letterGroup = new Group('character_' + char).init()
+                            layerGroup = new Group('layer_character_' + char)
 
                             // Check for an invalid character
                             if (!charMap.hasOwnProperty(char)) {
-                                console.log(char)
+                                console.log("Invalid Character Detected: " + char)
+                                Blockbench.showQuickMessage("Invalid Character(s) Detected", 1300)
+                                invalidCubeCount++
                                 continue
                             }
 
                             randNum = getRandomInt(8)
 
-                            // Generate cubes based on letter
                             for (const cube of charMap[char].cubes) {
                                 textCube = new Cube({
                                     name: "text_" + formData.input,
                                     from: [cube[0] + offset, cube[1], cube[2]],
                                     to: [cube[3] + offset, cube[4], cube[5]],
+                                    rotation: [formData.rotation, 0, 0],
                                     color: randNum
                                 }).addTo(letterGroup).init()
 
@@ -543,13 +561,20 @@
 
                                 // Generate layer if user checked the box
                                 if (formData.generateLayer == true && formData.depth == 0) {
+                                    layerGroup.init()
+                                    layerBaseGroup.init()
+
                                     layerCube = new Cube({
                                         name: "text_" + formData.input + "_layer",
                                         from: [cube[0] + 0.2 + offset, cube[1] - 0.2, cube[2] + 0.2],
-                                        to: [cube[3] + offset + 0.2, cube[4] - 0.2, cube[5] + 0.2]
-                                    }).addTo(letterGroup).init()
+                                        to: [cube[3] + offset + 0.2, cube[4] - 0.2, cube[5] + 0.2],
+                                        rotation: [formData.rotation, 0, 0],
+                                        color: randNum
+                                    }).addTo(layerGroup).init()
 
                                     layerCube.flip(0, 2.0, true)
+                                    layerGroup.addTo(layerBaseGroup)
+                                    layerBaseGroup.addTo(textGroup)
                                 }
                             }
 
@@ -561,13 +586,30 @@
 
                         textGroup.children.forEach(group => {
                             group.children.forEach(cube => {
-                                cube.moveVector(textLength / 2 - 4, 0)
+                                if (formData.generateLayer == false || formData.depth != 0) {
+                                    cube.moveVector(textLength / 2 - 4, 0)
+                                } else {
+                                    if (cube instanceof Group) {
+                                        cube.children.forEach(sub_cube => {
+                                            sub_cube.moveVector(textLength / 2 - 4, 0)
+                                        })
+                                    } else {
+                                        cube.moveVector(textLength / 2 - 4, 0)
+                                    }
+                                }
                             })
                         })
                         
-                        editBone()
+                        textGroup.openUp().select()
                         Canvas.updateView({groups: [textGroup, Group.selected], transform: true});
                         Undo.finishEdit("Generated Text", {elements: selected, group: textGroup, outliner: true});
+
+                        // Alter quick message based on if there are invalid cubes
+                        if (invalidCubeCount == 0) {
+                            Blockbench.showQuickMessage("Generated text: '" + formData.input + "'")
+                        } else {
+                            Blockbench.showQuickMessage("Generated text: '" + formData.input + "'. Skipped over invalid character(s).")
+                        }
                     }
 
                     // Check for format restrictions
@@ -612,11 +654,7 @@
         }
     })
 
-    // Helper function that edits the bone
-    function editBone() {
-        textGroup.openUp().select()
-    }
-
+    // Generate random int (called for marker colors)
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
     }
@@ -677,7 +715,7 @@
                     dialog#about .socials {
                         padding: 0!important;
                     }
-
+                    
                     dialog#about #banner {
                         background-color: var(--color-accent);
                         color: var(--color-accent_text);
@@ -693,13 +731,17 @@
                 <div id="content">
                     <h1 style="margin-top:-10px">${name}</h1>
                     <p>Generates Minecraft-styled text in cubes.</p>
-					<h4>Worth noting:</h4>
-					<p>- Some formats may break the look of the text because of size restrictions.</p>
-					<p>- Text generated by this plugin is NOT from official Minecraft font files, but simply a replica. Fonts may not be completely accurate to the original Minecraft font.</p>
-					<h4>How to use:</h4>
-					<p>To use this plugin, go to <b>Tools > Generate Text</b>. Simply enter some text, configure your settings how you like, and press <b>Generate</b>!</p>
-					<br>
+		    <h4>Worth noting:</h4>
+		    <p>- Some formats may break the look of the text because of size restrictions.</p>
+		    <p>- Text generated by this plugin is NOT from official Minecraft font files, but simply a replica. Fonts may not be completely accurate to the original Minecraft font.</p>
+		    <h4>How to use:</h4>
+		    <p>To use this plugin, go to <b>Tools > Generate Text</b>. Simply enter some text, configure your settings how you like, and press <b>Generate</b>!</p>
+		    <br>
                     <div class="socials">
+                        <a href="${links["website"]}" class="open-in-browser">
+                            <i class="icon material-icons" style="color:#33E38E">language</i>
+                            <label>More By SirJain</label>
+                        </a>
                         <a href="${links["twitter"]}" class="open-in-browser">
                             <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
                             <label>By ${author}</label>
