@@ -14,7 +14,7 @@ Plugin.register('csmodel', {
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
 	tags: ["CraftStudio"],
-	version: '0.1.1',
+	version: '0.1.2',
 	min_version: '3.8.0',
 	variant: 'both',
 	onload() {
@@ -489,7 +489,8 @@ Plugin.register('csmodel', {
 							name,
 							origin: pos.toArray(),
 							from, to,
-							rotation
+							rotation,
+							box_uv: false
 						}).init();
 						nodes[id] = cube;
 						face_info[cube.uuid] = faces;
