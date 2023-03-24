@@ -2,7 +2,7 @@
 
     // Global variables
     let aboutAction
-    let textLength, textGroup, randNum, letterGroup
+    let textLength, textGroup, randNum, letterGroup, yOffset, numLines
 
     // Plugin information variables
     const id = "mc_text_generator"
@@ -25,7 +25,7 @@
         description: "Generates Minecraft-styled text in cubes.",
         about: "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
         tags: ["Minecraft", "Font", "Generator"],
-        version: "1.1.0",
+        version: "2.0.0",
         min_version: "4.2.0",
         variant: "both",
 
@@ -78,7 +78,7 @@
                     },
                     rotation: {
                         label: "Rotation",
-                        type: "number",
+                        type: "range",
                         min: -45,
                         value: 0,
                         max: 45,
@@ -552,9 +552,11 @@
                         }
                         
                         let offset = 0
+                        yOffset = 0
                         let textCube, layerCube
                         textLength = 0
                         let invalidCubeCount = 0
+                        numLines = 1
     
                         Undo.initEdit({group: textGroup, elements: [], outliner: true})
                         textGroup = new Group({name: 'text_' + formData.input}).init()
@@ -567,24 +569,32 @@
                         */
 
                         for (const char of formData.input.toLowerCase()) {
-                            letterGroup = new Group('character_' + char).init()
-                            layerGroup = new Group('layer_character_' + char)
-
                             // Check for an invalid character
-                            if (!charMap.hasOwnProperty(char)) {
-                                console.log("Invalid Character Detected: " + char)
+                            if (!charMap.hasOwnProperty(char) && char !== "\\") {
+                                // console.log("Invalid Character Detected: " + char)
                                 Blockbench.showQuickMessage("Invalid Character(s) Detected", 1300)
                                 invalidCubeCount++
                                 continue
                             }
+
+                            if (char === "\\") {
+                                yOffset += 10
+                                offset = 0
+                                console.log(char)
+                                numLines++
+                                continue
+                            }
+
+                            letterGroup = new Group('character_' + char).init()
+                            layerGroup = new Group('layer_character_' + char)
 
                             randNum = getRandomInt(8)
 
                             for (const cube of charMap[char].cubes) {
                                 textCube = new Cube({
                                     name: "text_" + formData.input,
-                                    from: [cube[0] + offset, cube[1], cube[2]],
-                                    to: [cube[3] + offset, cube[4], cube[5]],
+                                    from: [cube[0] + offset, cube[1] - yOffset, cube[2]],
+                                    to: [cube[3] + offset, cube[4] - yOffset, cube[5]],
                                     rotation: [formData.rotation, 0, 0],
                                     color: randNum
                                 }).addTo(letterGroup).init()
@@ -598,8 +608,8 @@
 
                                     layerCube = new Cube({
                                         name: "text_" + formData.input + "_layer",
-                                        from: [cube[0] + 0.2 + offset, cube[1] - 0.2, cube[2] + 0.2],
-                                        to: [cube[3] + offset + 0.2, cube[4] - 0.2, cube[5] + 0.2],
+                                        from: [cube[0] + 0.2 + offset, cube[1] - 0.2 - yOffset, cube[2] + 0.2],
+                                        to: [cube[3] + offset + 0.2, cube[4] - 0.2 - yOffset, cube[5] + 0.2],
                                         rotation: [formData.rotation, 0, 0],
                                         color: randNum
                                     }).addTo(layerGroup).init()
@@ -615,20 +625,10 @@
 
                             letterGroup.addTo(textGroup)
                         }
-
-                        textGroup.children.forEach(group => {
-                            group.children.forEach(cube => {
-                                if (cube instanceof Group) {
-                                    cube.children.forEach(sub_cube => {
-                                        sub_cube.moveVector(textLength / 2 - 4, 0)
-                                    })
-                                } else {
-                                    cube.moveVector(textLength / 2 - 4, 0)
-                                }
-                            })
-                        })
                         
                         textGroup.openUp().select()
+                        centerText()
+
                         Canvas.updateView({groups: [textGroup, Group.selected], transform: true});
                         Undo.finishEdit("Generated Text", {elements: selected, group: textGroup, outliner: true});
 
@@ -644,14 +644,14 @@
                     if (
                         Format?.id === "java_block" && 
                         formData.javaCheckbox == true && 
-                        textLength - formData.letterSpace >= 48
-                    ) showRestrictionWarning("48x48x48")
+                        (textLength - formData.letterSpace >= 48 || 9*numLines >= 48)
+                    ) showRestrictionWarning("`48x48x48`")
 
                     else if (
                         Format?.id === "bedrock_block" && 
                         formData.bedrockCheckbox == true && 
-                        textLength - formData.letterSpace >= 30
-                    ) showRestrictionWarning("30x30x30")
+                        (textLength - formData.letterSpace >= 30 || 9*numLines >= 48)
+                    ) showRestrictionWarning("`30x30x30`")
 
                     // Check if user wanted to generate a layer but the depth was not 0
                     else if (formData.generateLayer == true && formData.depth !== 0) {
@@ -685,6 +685,13 @@
     // Generate random int (called for marker colors)
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
+    }
+
+    // Center selected elements on all axes
+    function centerText() {
+        centerElements(0)
+        centerElements(1)
+        centerElements(2)
     }
 
     // Add about button
@@ -734,13 +741,16 @@
                         align-items: center;
                         gap: 10px;
                     }
+
                     dialog#about .dialog_content {
                         text-align: left!important;
                         margin: 0!important;
                     }
+
                     dialog#about .socials {
                         padding: 0!important;
                     }
+
                     dialog#about #banner {
                         background-color: var(--color-accent);
                         color: var(--color-accent_text);
@@ -759,6 +769,7 @@
 		    <h4>Worth noting:</h4>
 		    <p>- Some formats may break the look of the text because of size restrictions.</p>
 		    <p>- Text generated by this plugin is NOT from official Minecraft font files, but simply a replica. Fonts may not be completely accurate to the original Minecraft font.</p>
+		    <p>- <b>To make new lines:</b> Type <b>\\</b></p>
 		    <h4>How to use:</h4>
 		    <p>To use this plugin, go to <b>Tools > Generate Text</b>. Simply enter some text, configure your settings how you like, and press <b>Generate</b>!</p>
 		    <br>
@@ -769,7 +780,7 @@
                         </a>
                         <a href="${links["twitter"]}" class="open-in-browser">
                             <i class="fa-brands fa-twitter" style="color:#1DA1F2"></i>
-                            <label>By ${author}</label>
+                            <label>Twitter</label>
                         </a>
                         <a href="${links["discord"]}" class="open-in-browser">
                             <i class="fa-brands fa-discord" style="color:#5865F2"></i>
