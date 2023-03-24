@@ -61,7 +61,7 @@
 		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
 		"version": "0.2.4",
 		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation", "Armor Stand"]
+		"tags": ["Minecraft: Java Edition", "Animation","Armor Stand"]
 	},
 	"optimize": {
 		"title": "Optimize",
@@ -97,10 +97,10 @@
 	"outline_creator": {
 		"title": "Outline Creator",
 		"author": "Wither and SirJain",
-		"version": "1.0.3",
 		"description": "Creates stylistic outlines for cubes using negative scale values.",
 		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>",
 		"icon": "crop_square",
+		"version": "1.0.3",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -566,14 +566,14 @@
 		"about": "Tint Preview is a tool to help designers who work with the tint face feature of Java Block/Item models. It features the ability to quickly preview a color on tint enabled faces. Tint Preview adds two new actions to the Tools menu that allows you to toggle tinting and change the tint color.\n**Important:** This plugin is designed for Java Block/Item models only and will not work for other formats."
 	},
 	"pie_menu": {
-		"title": "Pie Menus",
-		"icon": "fas.fa-chart-pie",
-		"author": "Malik12tree",
-		"description": "Add pie shaped menus for faster work.",
+		"title":"Pie Menus",
+		"icon":"fas.fa-chart-pie",
+		"author":"Malik12tree",
+		"description":"Add pie shaped menus for faster work.",
 		"about": "<style>.piePrivate p{width: fit-content;display: inline;margin-left: 10px !important;}.piePrivate tr td:nth-child(2){padding-left:10px}.piePrivate2 td, .piePrivate2 th{padding:0 10px}</style><h1>Built-in Pies</h1><table class=piePrivate><tr>    <td>Add Pie</td>    <td>Keybind: </td>    <td><p><code>ctrl + shift + a</code></p></td></tr><tr>    <td>Import Pie</td>    <td>Keybind: </td>    <td><p><code>shift + q</code></p></td></tr><tr>    <td>Export Pie</td>    <td>Keybind: </td>    <td><p><code>shift + w</code></p></td></tr><tr>    <td>Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + tab (web: shift + x)</code></p></td></tr><tr>    <td>View Mode Pie</td>    <td>Keybind: </td>    <td><p><code>alt + z</code></p></td></tr><tr>    <td>Toolbox Pie</td>    <td>Keybind: </td>    <td><p><code>shift + t</code></p></td></tr><tr>    <td>New Pie</td>    <td>Keybind: </td>    <td><p><code>shift + n</code></p></td></tr><tr>    <td>Preferences Pie</td>    <td>Keybind: </td>    <td><p><code>shift + o</code></p></td></tr><tr>    <td>Rotate Pie</td>    <td>Keybind: </td>    <td><p><code>shift + r</code></p></td></tr><tr>    <td>Flip Pie</td>    <td>Keybind: </td>    <td><p><code>shift + f</code></p></td></tr><tr>    <td>Center Pie</td>    <td>Keybind: </td>    <td><p><code>shift + c</code></p></td></tr><tr>    <td>Properties Pie</td>    <td>Keybind: </td>    <td><p><code>shift + p</code></p></td></tr></table><h1>API</h1><h2>CSS Variables</h2><table class=piePrivate2><tr><th>Name</th><th>Default</th><th>Description</th></tr><tr><td>--pie-dir_idct_size</td><td>10%</td><td>sets the angle indicator size</td></tr><tr><td>--pie-major_radius</td><td>30px</td><td>sets the center pie's radius</td></tr><tr><td>--pie-major_thickness</td><td>22px</td><td>sets the center pie's thickness</td></tr></table>",
-		"version": "1.0.0",
-		"variant": "both",
-		"tags": ["Interface"]
+		"version":"1.0.0",
+		"variant":"both",
+		"tags":["Interface"]
 	},
 	"quick_box_uv_layout": {
 		"title": "Quick Box-UV Layout",
@@ -599,7 +599,7 @@
 		"icon": "fa-exchange",
 		"author": "Tschipp",
 		"description": "Attempts to extract root motion from an animation",
-		"about": "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
+		"about" : "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
 		"tags": ["Minecraft: Bedrock Edition", "Animation", "Root Motion"],
 		"version": "1.1.0",
 		"variant": "both"
@@ -609,7 +609,7 @@
 		"icon": "icon-format_free",
 		"author": "SirJain",
 		"description": "Edits the opacity and color of the ground plane feature in Blockbench.",
-		"about": "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
+		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Ground Plane", "Animation", "Customization"],
 		"version": "1.1.0",
 		"min_version": "4.2.0",
@@ -620,7 +620,7 @@
 		"icon": "colorize",
 		"author": "SirJain and Geode",
 		"description": "Allows users to add their own marker colors.",
-		"about": "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
+		"about" : "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
 		"tags": ["Marker Color", "Customize", "UX"],
 		"version": "1.1.0",
 		"min_version": "4.2.0",
@@ -742,7 +742,7 @@
 		"description": "Generates Minecraft-styled text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Minecraft", "Font", "Generator"],
-		"version": "1.1.0",
+		"version": "2.0.0",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -755,8 +755,8 @@
 		"tags": ["Utility", "BoxUV", "Format: Generic Model"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
-		"variant": "both"
-	},
+    		"variant": "both"
+  	},
 	"skin_mirror": {
 		"title": "Skin Mirror",
 		"icon": "icon-mirror_x",
