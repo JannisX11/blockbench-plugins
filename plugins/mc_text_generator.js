@@ -569,9 +569,9 @@
                         */
 
                         for (const char of formData.input.toLowerCase()) {
+
                             // Check for an invalid character
                             if (!charMap.hasOwnProperty(char) && char !== "\\") {
-                                // console.log("Invalid Character Detected: " + char)
                                 Blockbench.showQuickMessage("Invalid Character(s) Detected", 1300)
                                 invalidCubeCount++
                                 continue
@@ -580,7 +580,6 @@
                             if (char === "\\") {
                                 yOffset += 10
                                 offset = 0
-                                console.log(char)
                                 numLines++
                                 continue
                             }
