@@ -513,6 +513,38 @@
                                     [2, 5, 0, 4, 6, formData.depth]
                                 ]
                             },
+                            "[": {
+                                width: 3,
+                                cubes: [
+                                    [0, 0, 0, 2, 8, formData.depth],
+                                    [2, 6, 0, 3, 8, formData.depth],
+                                    [2, 0, 0, 3, 2, formData.depth]
+                                ]
+                            },
+                            "(": {
+                                width: 3,
+                                cubes: [
+                                    [0, 1, 0, 2, 7, formData.depth],
+                                    [1, 6, 0, 3, 8, formData.depth],
+                                    [1, 0, 0, 3, 2, formData.depth]
+                                ]
+                            },
+                            "]": {
+                                width: 3,
+                                cubes: [
+                                    [1, 0, 0, 3, 8, formData.depth],
+                                    [0, 6, 0, 1, 8, formData.depth],
+                                    [0, 0, 0, 1, 2, formData.depth]
+                                ]
+                            },
+                            ")": {
+                                width: 3,
+                                cubes: [
+                                    [1, 1, 0, 3, 7, formData.depth],
+                                    [0, 6, 0, 2, 8, formData.depth],
+                                    [0, 0, 0, 2, 2, formData.depth]
+                                ]
+                            },
                             " ": {
                                 width: formData.wordSpace,
                                 cubes: []
@@ -702,16 +734,13 @@
                         align-items: center;
                         gap: 10px;
                     }
-
                     dialog#about .dialog_content {
                         text-align: left!important;
                         margin: 0!important;
                     }
-
                     dialog#about .socials {
                         padding: 0!important;
                     }
-
                     dialog#about #banner {
                         background-color: var(--color-accent);
                         color: var(--color-accent_text);
