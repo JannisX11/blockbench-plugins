@@ -649,7 +649,7 @@
                     else if (
                         Format?.id === "bedrock_block" && 
                         formData.bedrockCheckbox == true && 
-                        (textLength - formData.letterSpace >= 30 || 9*numLines >= 48)
+                        (textLength - formData.letterSpace >= 30 || 9*numLines >= 30)
                     ) showRestrictionWarning("`30x30x30`")
 
                     // Check if user wanted to generate a layer but the depth was not 0
