@@ -4,10 +4,10 @@ Plugin.register('outline_creator', {
     icon: 'crop_square',
     title: 'Outline Creator',
     description: 'Creates stylistic outlines for cubes using negative scale values.',
-    about: 'To use the plugin, select an element you want to create an outline for, go to the Filter menu and click on the Create Outline option.',
-    author: 'Wither',
-    version: '1.0.2',
-    min_version: '3.0.0',
+    about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>',
+    author: 'Wither and SirJain',
+    version: '1.0.3',
+    min_version: '4.2.0',
     variant: 'both',
 
     onload() {
@@ -16,34 +16,46 @@ Plugin.register('outline_creator', {
             name: 'Create Outline',
             icon: 'crop_square',
             description: 'Create an outline for selected cubes',
-            click: function(ev) {
-                if(selected.length != 0) {
-                    outlineSettings.show();
-                }
-                else {
+            click(ev) {
+                if (selected.length === 0) {
                     Blockbench.showMessageBox({
-                        title: 'Error!',
+                        title: 'No elements selected',
                         icon: 'error',
                         message: 'You must select at least one cube!',
                         buttons: ['OK']
-            
                     });
+                }
+
+                else if (!selected.find(el => el instanceof Cube)) {
+                    Blockbench.showMessageBox({
+                        title: 'Invalid elements',
+                        icon: 'error',
+                        message: 'You can only add outlines to cubes!',
+                        buttons: ['OK']
+                    });
+                }
+
+                else {
+                    outlineSettings.show();
                 }
             }
         });
-        MenuBar.addAction(createOutlineAction, 'filter');
+        MenuBar.addAction(createOutlineAction, 'tools');
     },
     onunload() {
-        this.onuninstall();
-    },
-    onuninstall() {
         createOutlineAction.delete();
     }
 })
 
 function createOutline(outline_thickness) {
     Undo.initEdit({elements: Outliner.elements, outliner: true});
-    selected.forEach(element => {
+
+    for (const element of selected) {
+        if (!(element instanceof Cube)) {
+            Blockbench.showQuickMessage("Skipped over invalid element(s)...", 1500)
+            continue;
+        }
+
         var outline = new Cube({
             name: `${element.name}_outline`, 
             from:[element.to[0] + outline_thickness, element.to[1] + outline_thickness, element.to[2] + outline_thickness], 
@@ -89,7 +101,7 @@ function createOutline(outline_thickness) {
                 }
             }
         }).init();
-    });
+    };
     Undo.finishEdit('Created outlines');
 }
 
