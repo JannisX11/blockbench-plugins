@@ -63,13 +63,10 @@
 						namespace = parents[0]
 						parents.shift()
 
-						if (scan) {
-						logOutput = "Exporting " + cube.name + " in " + namespace + "/" + parents.join("/") + " as " + namespace + ":" + cube.name
-						}
-						id = namespace + ":" + cube.name
+						logOutput = "Exporting " + cube.name + " in " + namespace + "/" + parents.join("/") + " as " + namespace + ":" + parents.join("/") + "/" + cube.name
+						id = namespace + ":" + parents.join("/") + "/" + cube.name
 					} else {
 						if (cube.name.includes(":")) {
-							
 							logOutput = "Exporting " + cube.name + " as " + cube.name
 							id = cube.name
 						} else if (cube.name.includes("/")) {
@@ -88,7 +85,7 @@
 			if (scan && logOutput !== "") {
 				console.log(logOutput)
 			}
-		
+
 			if (texture !== id) {
 				faces++;
 				texture = id;
