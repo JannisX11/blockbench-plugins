@@ -27,70 +27,74 @@
 	 * @param {*} cube The cube, which holds the wanted texture.
 	 * @returns The wanted texture, fitting to the cube. (+ some booleans) in a object.
 	 */
-	function getSingleTexture(cube) {
+	function getSingleTexture(cube, scan) {
 		let faces = 0;
 		let missing = false;
 		let texture = SC_TEXTURE_BLANK;
 
 		for (let dir in cube.faces) { //in ['north', 'east', 'south', 'west', 'up', 'down']
 			let tmp = cube.faces[dir].getTexture();
-			if (!tmp) {
-				if (typeof cube.parent === 'object' && cube.parent.name.includes(":block/")) {
-					texture = cube.parent.name;
-					tmp = true;
-				}
-
-				if (cube.name.includes(":block/")) {
-					texture = cube.name;
-					tmp = true;
-				}
-
-				if (!tmp) {
-					missing = true;
-				}
-			} else {
-				let id = ""
-				// if cube is titled <group>:<path>, use that as texture
+			if (tmp === undefined) {
+				missing = true;
+				continue;
+			}
+			let logOutput = ""
+			// texture: <namespace>:<path>
+			let namespace = ""
+			let id = ""
+			if (tmp.name.includes(":")) {
+				id = tmp.name
+			} else if (tmp.name.includes("/")) {
+				id = "minecraft:" + tmp.name
+			}
+			if (id === "") {
 				if (cube.name.includes(":")) {
 					id = cube.name.replace(/\.[^/.]+$/, "")
+					logOutput = "Exporting " + cube.name + " as " + id
 				} else {
-					// if cube is in a group, use root group as namepsace
-					// use the rest of the path as texture name
 					if (typeof cube.parent === 'object') {
-						// get all parents
 						let parents = []
 						let parent = cube.parent
-						while (typeof parent.parent === 'object') {
+						while (typeof parent === 'object') {
 							parents.push(parent.name)
 							parent = parent.parent
 						}
-						parents.push(parent.name)
 						parents.reverse()
-						// use the first parent as group
-						let group = parents[0]
+						namespace = parents[0]
 						parents.shift()
-						// if the group is not a folder, use the cube name as texture name
-						if (!group.includes(":")) {
-							parents.push(cube.name.replace(/\.[^/.]+$/, ""))
+
+						if (scan) {
+						logOutput = "Exporting " + cube.name + " in " + namespace + "/" + parents.join("/") + " as " + namespace + ":" + cube.name
 						}
-
-						// set id to group:path/to/cube
-						id = group + ":" + parents.join("/") //+ "/" + cube.name.replace(/\.[^/.]+$/, "")
-
-
+						id = namespace + ":" + cube.name
 					} else {
-						// if cube is not in a group, use the cube name as texture name
-						id = "minecraft:" + tmp.name.replace(/\.[^/.]+$/, "")
-						console.log(id + " has no parent")
+						if (cube.name.includes(":")) {
+							
+							logOutput = "Exporting " + cube.name + " as " + cube.name
+							id = cube.name
+						} else if (cube.name.includes("/")) {
+							logOutput = "Exporting " + cube.name + " as minecraft:" + cube.name
+							id = "minecraft:" + cube.name
+						} else {
+							logOutput = "Exporting " + cube.name + " as minecraft:block/" + cube.name
+							id = "minecraft:block/" + cube.name
+						}
 					}
 				}
+			} else {
+				logOutput = "Exporting " + cube.name + " as " + id
+			}
 
-				console.log("Exporting " + cube.name + " as " + id)
-				if (texture !== id)
-					faces++;
+			if (scan && logOutput !== "") {
+				console.log(logOutput)
+			}
+		
+			if (texture !== id) {
+				faces++;
 				texture = id;
 			}
 		}
+
 
 		return {
 			texture: texture,
@@ -98,6 +102,7 @@
 			multipleTexture: (faces > 1),
 		};
 	}
+
 
 	/**
 	 * Converts a given element to a shape in .3DJ format.
@@ -297,7 +302,7 @@
 							|| cube.rotation[2] !== 0);
 
 					if (!texture)
-						texture = (getSingleTexture(cube).multipleTexture);
+						texture = (getSingleTexture(cube, true).multipleTexture);
 
 					if (!border) {
 						// NOTE: If you can find a better way to do this, please do so.
