@@ -62,19 +62,22 @@
 						parents.reverse()
 						namespace = parents[0]
 						parents.shift()
-
-						logOutput = "Exporting " + cube.name + " in " + namespace + "/" + parents.join("/") + " as " + namespace + ":" + parents.join("/") + "/" + cube.name
-						id = namespace + ":" + parents.join("/") + "/" + cube.name
+						path = parents.join("/")
+						if (path !== "") {
+							path += "/"
+						}
+						id = namespace + ":" + path + cube.name
+						logOutput = "Exporting " + cube.name + " in " + namespace + "/" + path + " as " + id
 					} else {
 						if (cube.name.includes(":")) {
-							logOutput = "Exporting " + cube.name + " as " + cube.name
 							id = cube.name
+							logOutput = "Exporting " + cube.name + " as " + id
 						} else if (cube.name.includes("/")) {
-							logOutput = "Exporting " + cube.name + " as minecraft:" + cube.name
 							id = "minecraft:" + cube.name
+							logOutput = "Exporting " + cube.name + " as " + id
 						} else {
-							logOutput = "Exporting " + cube.name + " as minecraft:block/" + cube.name
 							id = "minecraft:block/" + cube.name
+							logOutput = "Exporting " + cube.name + " as " + id
 						}
 					}
 				}
