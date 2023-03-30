@@ -5,7 +5,7 @@ Plugin.register('outline_creator', {
     title: 'Outline Creator',
     description: 'Creates stylistic outlines for cubes using negative scale values.',
     about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>',
-    author: 'Wither and SirJain',
+    author: 'Wither',
     version: '1.0.3',
     min_version: '4.2.0',
     variant: 'both',
