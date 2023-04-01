@@ -74,6 +74,10 @@
         default: 0,
         exposed: false
       })
+      ModelProject.all.forEach(e => {
+        e.activity_tracker = 0
+        e.activity_tracker_session = 0
+      })
       importDialog = new Dialog({
         id: `${id}_import`,
         title: `${name} Import`,
