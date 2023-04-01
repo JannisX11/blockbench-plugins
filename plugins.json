@@ -767,5 +767,14 @@
 		"version": "1.1.0",
 		"min_version": "4.6.0",
 		"variant": "both"
+	},
+	"animation_to_jsonea": {
+		"title": "Animation to JsonEA Converter",
+		"author": "Gaming32",
+		"description": "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+		"icon": "fa-cube",
+		"tags": ["Animation", "Minecraft: Java Edition"],
+		"variant": "both",
+		"version": "1.0.0"
 	}
 }
