@@ -710,8 +710,8 @@
 		"title": "BBS model exporter",
 		"icon": "fa-file-export",
 		"author": "McHorse",
-		"description": "Adds a model exporter which allows to export models in BBS model format",
-		"version": "1.1.1",
+		"description": "Export model as a BBS (.bbs.json) model",
+		"version": "1.1.2",
 		"variant": "both",
 		"tags": ["Exporter"]
 	},
