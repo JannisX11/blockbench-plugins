@@ -1,0 +1,376 @@
+{
+  "meta": {
+    "format_version": "3.2",
+    "model_format": "animated_entity_model",
+    "box_uv": true
+  },
+  "name": "CustomArmor",
+  "geo_name": "CustomArmor",
+  "resolution": {
+    "width": 64,
+    "height": 64
+  },
+  "elements": [
+    {
+      "name": "dontTouch",
+      "from": [
+        -4,
+        24,
+        -4
+      ],
+      "to": [
+        4,
+        32,
+        4
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "uuid": "9675593e-b27d-b70e-e1ea-1fc29f46a294"
+    },
+    {
+      "name": "dontTouch",
+      "from": [
+        -4,
+        12,
+        -2
+      ],
+      "to": [
+        4,
+        24,
+        2
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        0,
+        24,
+        0
+      ],
+      "uuid": "fa43156a-2a62-948c-082f-483d525f6d1f"
+    },
+    {
+      "name": "dontTouch",
+      "from": [
+        4,
+        12,
+        -2
+      ],
+      "to": [
+        8,
+        24,
+        2
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        4,
+        22,
+        0
+      ],
+      "uuid": "aa51170c-8b32-fb62-71f1-58ac0b7785a8"
+    },
+    {
+      "name": "dontTouch",
+      "from": [
+        -8,
+        12,
+        -2
+      ],
+      "to": [
+        -4,
+        24,
+        2
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        4,
+        22,
+        0
+      ],
+      "uuid": "bf2c2539-20e3-cfcc-94c0-491734019889"
+    },
+    {
+      "name": "dontTouch",
+      "from": [
+        -4,
+        0,
+        -2
+      ],
+      "to": [
+        0,
+        12,
+        2
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        4,
+        22,
+        0
+      ],
+      "uuid": "17b9bae0-356a-9bba-fad9-4672e2671191"
+    },
+    {
+      "name": "dontTouch",
+      "from": [
+        0,
+        0,
+        -2
+      ],
+      "to": [
+        4,
+        12,
+        2
+      ],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "origin": [
+        4,
+        22,
+        0
+      ],
+      "uuid": "7b31bac4-dc40-2b93-1204-7bbdcfe7d924"
+    }
+  ],
+  "outliner": [
+    {
+      "name": "bipedHead",
+      "uuid": "d340b6fa-56aa-9c0f-3560-7a067643b77d",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        0,
+        24,
+        0
+      ],
+      "children": [
+        "9675593e-b27d-b70e-e1ea-1fc29f46a294",
+        {
+          "name": "armorHead",
+          "uuid": "6ab88dea-c816-d2bb-6be9-05ed7838da97",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            0,
+            24,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedBody",
+      "uuid": "ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        0,
+        24,
+        0
+      ],
+      "children": [
+        "fa43156a-2a62-948c-082f-483d525f6d1f",
+        {
+          "name": "armorBody",
+          "uuid": "282fcdbb-8ea9-4a13-4154-f2ed20d696c8",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            0,
+            24,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedLeftArm",
+      "uuid": "d8113cc7-7e10-0930-259e-b8e4211ce9da",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        4,
+        22,
+        0
+      ],
+      "children": [
+        "aa51170c-8b32-fb62-71f1-58ac0b7785a8",
+        {
+          "name": "armorLeftArm",
+          "uuid": "c5300e23-fd2f-b56c-3552-45d6650e11c6",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            4,
+            22,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedRightArm",
+      "uuid": "3b8901e8-3420-0834-51eb-76d64ff2ae8f",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        -4,
+        22,
+        0
+      ],
+      "children": [
+        "bf2c2539-20e3-cfcc-94c0-491734019889",
+        {
+          "name": "armorRightArm",
+          "uuid": "b0d41a53-f4ce-53c1-f899-5a2048c90ac2",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            -4,
+            22,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedLeftLeg",
+      "uuid": "37231be7-a8ef-22ca-7fea-40aed58003bb",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        2,
+        12,
+        0
+      ],
+      "children": [
+        "17b9bae0-356a-9bba-fad9-4672e2671191",
+        {
+          "name": "armorLeftLeg",
+          "uuid": "e4b19746-2d17-1f56-befe-00718165ae50",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            2,
+            12,
+            0
+          ],
+          "children": [
+            
+          ]
+        },
+        {
+          "name": "armorLeftBoot",
+          "uuid": "9fe26b9a-ad66-9e6b-2fa2-4168e333b4be",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            2,
+            12,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedRightLeg",
+      "uuid": "45c031a5-b6be-e0a7-5454-b45d07f28429",
+      "export": false,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        -2,
+        12,
+        0
+      ],
+      "children": [
+        "7b31bac4-dc40-2b93-1204-7bbdcfe7d924",
+        {
+          "name": "armorRightLeg",
+          "uuid": "60238f18-e74b-c863-cb45-2e2f162221bd",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            -2,
+            12,
+            0
+          ],
+          "children": [
+            
+          ]
+        },
+        {
+          "name": "armorRightBoot",
+          "uuid": "eb3db34b-ccfe-dae9-ac4d-4e22c3222f70",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            -2,
+            12,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    }
+  ],
+  "textures": [
+    
+  ]
+}
