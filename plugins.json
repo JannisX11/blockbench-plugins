@@ -710,7 +710,7 @@
 		"title": "BBS model exporter",
 		"icon": "fa-file-export",
 		"author": "McHorse",
-		"description": "Export model as a BBS (.bbs.json) model",
+		"description": "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
 		"version": "1.1.2",
 		"variant": "both",
 		"tags": ["Exporter"]

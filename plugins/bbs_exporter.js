@@ -429,7 +429,7 @@
             button = new Action("bbs_exporter", {
                 name: "Export BBS model",
                 category: "file",
-                description: "Export model as a BBS (.bbs.json) model",
+                description: "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
                 icon: "fa-file-export",
                 click() {
                     exportDialog.show();
