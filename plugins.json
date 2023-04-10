@@ -294,6 +294,17 @@
 		"min_version": "4.5.2",
 		"variant": "desktop"
 	},
+	"activity_tracker": {
+		"title": "Activity Tracker",
+		"icon": "trending_up",
+		"author": "Ewan Howell",
+		"description": "Track how long you spend using Blockbench and working on each project.",
+		"about": "This plugin allows you to keep track of how much time you spend using Blockbench and how long you spend working on each project.\n\nTo view your activity stats, go to `Tools > Activity Tracker`. From here you can see all your stats for both Blockbench and the current project.",
+		"tags": ["Tracking", "Stats", "Utility"],
+		"version": "1.0.0",
+		"min_version": "4.6.5",
+		"variant": "both"
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
@@ -776,5 +787,16 @@
 		"tags": ["Animation", "Minecraft: Java Edition"],
 		"variant": "both",
 		"version": "1.0.0"
+  },
+	"azurelibsl_utils": {
+		"title": "AzureLib Utils",
+		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
+		"icon": "icon-zombie",
+		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"await_loading": true,
+		"variant": "both"
 	}
 }
