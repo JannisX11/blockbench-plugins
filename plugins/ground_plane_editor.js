@@ -91,20 +91,12 @@
                     min: 60,
                     max: 255,
                     step: 1
-                }
-            },
-
-            component: {
-                template: `
-                    <div>
-                        <div style="display:flex;gap:8px">
-                            <button @click="resetPlaneValues()" style="margin-top: 15px;">Reset Values</button>
-                        </div>
-                    </div>
-                `,
-                methods: {
-                    resetPlaneValues() {
-                        groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
+                },
+                actions: {
+                    type: 'buttons', 
+                    buttons: ['Reset Values'], 
+                    click() {
+					    groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
                         groundPlane.opacity = 1
                         groundPlaneDialog.hide()
                 
@@ -112,7 +104,7 @@
                         localStorage.setItem("groundPlaneOpacity", groundPlane.opacity)
 
                         Blockbench.showQuickMessage("Reset ground plane values!", 1500)
-                    }
+			    	}
                 }
             },
 
