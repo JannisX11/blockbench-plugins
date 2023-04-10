@@ -1,5 +1,5 @@
 (async function() {
-    let aboutAction, action
+    let aboutAction, groundPlaneAction, groundPlaneDialog;
     const id = "ground_plane_editor"
     const name = "Ground Plane Editor"
     const icon = "icon-format_free"
@@ -25,7 +25,7 @@
         description: "Edits the opacity and color of the ground plane feature in Blockbench.",
         about: "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
         tags: ["Ground Plane", "Animation", "Customization"],
-        version: "1.1.0",
+        version: "1.1.1",
         min_version: "4.2.0",
         variant: "both",
 
@@ -45,145 +45,23 @@
             if (localStorageColor) groundPlane.color.setHex(JSON.parse(localStorageColor))
             else groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
 
-            if (localStorageOpacity) groundPlane.opacity = localStorageOpacity
+            if (localStorageOpacity) groundPlane.opacity = localStorageOpacity / 255
             else groundPlane.opacity = 1
-
-            // Defines the Menu action
-            action = new Action({
-                id,
+    
+            groundPlaneAction = new Action({
                 name: "Edit Ground Plane",
-                icon,
+                id: "edit_ground_plane_action",
+                icon: icon,
                 condition: () => Format?.id !== "image",
-                click() {
-                    const timeout = {
-                        example: null
-                    }
-
-                    // Dialog to edit ground plane
-                    const dialog = new Dialog({
-                        title: "Edit Ground Plane",
-                        id: "edit_ground_plane_dialog",
-                        lines: [`
-                            <li></li>
-                            <style>
-                                dialog#edit_ground_plane_dialog .bar {
-                                    display: flex;
-                                    align-items: center;
-                                    margin: 0!important;
-                                    height: 30px;
-                                    box-sizing: content-box;
-                                    overflow: hidden;
-                                }
-
-                                dialog#edit_ground_plane_dialog input[type=range] {
-                                    flex-grow: 1;
-                                    margin-left: 50px;
-                                }
-
-                                dialog#edit_ground_plane_dialog input[type=number] {
-                                    margin: 0 8px 0 2px;
-                                }
-                            </style>
-                        `],
-                        component: {
-
-                            // Method runs when the dialog is opened
-                            mounted() {
-                                this.$nextTick().then(() => {
-                                    let opacityScaled = Math.floor(groundPlane.opacity * 255);
-                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(opacityScaled);
-                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_slider").val(opacityScaled);
-
-                                    let planeColor = '#' + groundPlane.color.getHexString()
-                                    $("dialog#edit_ground_plane_dialog .color_picker input").val(planeColor);
-                                });
-                            },
-                            template: `
-                                <div>
-                                    <div class="bar slider_input_combo">
-                                        <p>Edit Opacity:</p>
-                                        <input id="opacity_slider" type="range" min="60" max="255" value="255" @input="changeSlider('opacity')"></input>
-                                        <input id="opacity_number" type="number" class="tool" min="60" max="255" value="255" @input="changeNumber('opacity', 60, 255, 255)"></input>
-                                    </div>
-                                    <br>
-                                    <div class="color_picker">
-                                        <p>Edit Color:</p>
-                                        <input type="color" value="#4a4a4a">
-                                    </div>
-                                    <br>
-                                    <div style="display:flex;gap:8px">
-                                        <button @click="revert()">Reset Values</button>
-                                        <span style="flex-grow:3"></span>
-                                        <button @click="create()">Done</button>
-                                        <button @click="close()">Cancel</button>
-                                    </div>
-                                </div>
-                            `,
-                            methods: {
-                                changeSlider(type) {
-                                    const slider = $(`dialog#edit_ground_plane_dialog #${type}_slider`)
-                                    const number = $(`dialog#edit_ground_plane_dialog #${type}_number`)
-                                    const num = parseInt(slider.val())
-                                    number.val(slider.val())
-                                },
-
-                                changeNumber(type, min, max, num) {
-                                    const slider = $(`dialog#ground_plane_editor_dialog #${type}_slider`)
-                                    const number = $(`dialog#edit_ground_plane_dialog #${type}_number`)
-                                    const clamped = Math.min(max, Math.max(min, parseInt(number.val())))
-                                    slider.val(number.val())
-                                    clearTimeout(timeout[type])
-                                    timeout[type] = setTimeout(() => {
-                                        if (isNaN(clamped)) {
-                                            number.val(num)
-                                            slider.val(num)
-                                        } else {
-                                            number.val(clamped)
-                                            slider.val(clamped)
-                                        }
-                                    }, 1000)
-                                },
-
-                                create() {
-
-                                    // Handle the color
-                                    let hexString = $("dialog#edit_ground_plane_dialog .color_picker input").val();
-                                    let parsedIntColor = parseInt(hexString.substring(1), 16)
-                                    groundPlane.color.setHex(parsedIntColor)
-                                    localStorage.setItem("groundPlaneColor", parsedIntColor)
-
-                                    // Hande the opacity
-                                    let opacity = $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val();
-                                    let parsedOpacity = parseInt(opacity) / 255
-                                    groundPlane.opacity = parsedOpacity;
-                                    localStorage.setItem("groundPlaneOpacity", parsedOpacity)
-
-                                    this.close()
-                                    Blockbench.showQuickMessage("Updated successfully", 2000)
-                                },
-
-                                revert() {
-                                    $("dialog#edit_ground_plane_dialog .color_picker input").val("#21252B");
-                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_number").val(255);
-                                    $("dialog#edit_ground_plane_dialog .slider_input_combo #opacity_slider").val(255);
-                                },
-
-                                close: () => dialog.cancel()
-                            }
-                        },
-                        buttons: [],
-                        onConfirm() {
-                            this.content_vue.create();
-                        }
-                    }).show()
-                }
+                click: () => openDialog()
             })
-            MenuBar.addAction(action, "tools")
+
+            MenuBar.addAction(groundPlaneAction, "tools")
         },
 
         onunload() {
             aboutAction.delete()
-            action.delete()
+            groundPlaneAction.delete()
 
             // Reset values if plugin is uninstalled
             localStorage.removeItem("groundPlaneColor")
@@ -194,6 +72,72 @@
             MenuBar.removeAction(`help.about_plugins.about_${id}`)
         }
     })
+
+    function openDialog() {
+        groundPlaneDialog = new Dialog("ground_plane_dialog", {
+            name: "Edit Ground Plane",
+            part_order: ["form", "lines", "component"],
+
+            form: {
+                color: {
+                    label: "Color",
+                    value: getPlaneColor(),
+                    type: "color"
+                },
+                opacity: {
+                    label: "Opacity", 
+                    value: getPlaneOpacity(),
+                    type: "range",
+                    min: 60,
+                    max: 255,
+                    step: 1
+                }
+            },
+
+            component: {
+                template: `
+                    <div>
+                        <div style="display:flex;gap:8px">
+                            <button @click="resetPlaneValues()" style="margin-top: 15px;">Reset Values</button>
+                        </div>
+                    </div>
+                `,
+                methods: {
+                    resetPlaneValues() {
+                        groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
+                        groundPlane.opacity = 1
+                        groundPlaneDialog.hide()
+                
+                        localStorage.setItem("groundPlaneColor", groundPlane.color)
+                        localStorage.setItem("groundPlaneOpacity", groundPlane.opacity)
+
+                        Blockbench.showQuickMessage("Reset ground plane values!", 1500)
+                    }
+                }
+            },
+
+            onConfirm(formData) {
+                const planeColor = parseInt(formData.color.toHexString().substring(1), 16)
+
+                groundPlane.color.setHex(planeColor)
+                groundPlane.opacity = formData.opacity / 255
+
+                localStorage.setItem("groundPlaneColor", planeColor)
+                localStorage.setItem("groundPlaneOpacity", formData.opacity)
+
+                console.log(groundPlane.color)
+                Blockbench.showQuickMessage("Updated ground plane values!", 1500)
+            }
+        }).show()
+    }
+
+    function getPlaneColor() {
+        return '#' + groundPlane.color.getHexString()
+    }
+
+    function getPlaneOpacity() {
+        return groundPlane.opacity * 255;
+    }
 
     // Adds about dialog
     function addAbout() {
