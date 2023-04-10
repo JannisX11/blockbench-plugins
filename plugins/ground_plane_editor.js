@@ -96,15 +96,15 @@
                     type: 'buttons', 
                     buttons: ['Reset Values'], 
                     click() {
-					    groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
+                        groundPlane.color.setHex(parseInt("#21252B".substring(1), 16))
                         groundPlane.opacity = 1
                         groundPlaneDialog.hide()
-                
+
                         localStorage.setItem("groundPlaneColor", groundPlane.color)
                         localStorage.setItem("groundPlaneOpacity", groundPlane.opacity)
 
                         Blockbench.showQuickMessage("Reset ground plane values!", 1500)
-			    	}
+                    }
                 }
             },
 
