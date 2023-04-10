@@ -9,6 +9,15 @@
 		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
 		"icon": "print"
 	},
+	"animated_java": {
+		"title": "Animated Java",
+		"author": "Titus Evans (SnaveSutit)",
+		"icon": "icon-armor_stand",
+		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
+		"version": "0.3.6",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"]
+	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
 		"author": "DoubleFelix",
@@ -53,15 +62,6 @@
 		"tags": ["Minecraft: Java Edition"],
 		"version": "1.0.0",
 		"variant": "both"
-	},
-	"animated_java": {
-		"title": "Animated Java",
-		"author": "SnaveSutit & FetchBot",
-		"icon": "icon-armor_stand",
-		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
-		"version": "0.2.4",
-		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation", "Armor Stand"]
 	},
 	"optimize": {
 		"title": "Optimize",
