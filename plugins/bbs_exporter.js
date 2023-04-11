@@ -421,7 +421,7 @@
     Plugin.register("bbs_exporter", {
         title: "BBS model exporter",
         author: "McHorse",
-        description: "Adds a model exporter which allows to export models in BBS model format",
+        description: "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
         icon: "fa-file-export",
         version: "1.1.2",
         variant: "both",
@@ -429,7 +429,7 @@
             button = new Action("bbs_exporter", {
                 name: "Export BBS model",
                 category: "file",
-                description: "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
+                description: "Export model as a BBS (.bbs.json) model",
                 icon: "fa-file-export",
                 click() {
                     exportDialog.show();
