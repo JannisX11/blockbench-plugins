@@ -226,6 +226,11 @@
 
     function createAnimationKeyframes(g)
     {
+        if (!g)
+        {
+            return [];
+        }
+
         var keyframes = [];
 
         for (let i = 0; i < g.length; i++)
@@ -351,6 +356,11 @@
         remember: false,
         compile(options) {
             return autoStringify(compile());
+        },
+        fileName() {
+            var name = Project.name || "model";
+
+            return name.endsWith("bbs") ? name : name + ".bbs";
         }
     });
 
@@ -411,15 +421,15 @@
     Plugin.register("bbs_exporter", {
         title: "BBS model exporter",
         author: "McHorse",
-        description: "Adds a model exporter which allows to export models in BBS model format",
+        description: "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
         icon: "fa-file-export",
-        version: "1.1.1",
+        version: "1.1.2",
         variant: "both",
         onload() {
             button = new Action("bbs_exporter", {
                 name: "Export BBS model",
                 category: "file",
-                description: "Export model as a BBS (.json) model",
+                description: "Export model as a BBS (.bbs.json) model",
                 icon: "fa-file-export",
                 click() {
                     exportDialog.show();
