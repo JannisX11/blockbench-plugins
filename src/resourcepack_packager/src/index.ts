@@ -27,7 +27,7 @@ import pluginEmitter from './pluginEmitter';
     icon: 'fa-file-zipper',
     tags: ['Minecraft: Java Edition', 'Resourcepack', 'Exporter'],
     variant: 'both',
-    version: '1.0.0',
+    version: '1.0.1',
     oninstall: () => {
       pluginEmitter.emit('install');
     },
