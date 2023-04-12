@@ -111,7 +111,6 @@ export default {
                 return;
             }
 
-            var JSZip = require("jszip");
             var zip = new JSZip();
 
             // Trim invalid chars from the name
