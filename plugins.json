@@ -539,7 +539,8 @@
 		"icon": "fas.fa-vector-square",
 		"author": "Malik12tree",
 		"description": "Adds helpful Mesh Modeling Tools, Operators and Generators!",
-		"version": "1.0.5",
+		"version": "1.0.6",
+		"min_version": "4.7.0",
 		"about": "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</p><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr><td>Laplacian Smooth</td><td>Smoothes selected vertices by averaging the position of neighboring vertices</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected meshes</p><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the tool menu. For procedural mesh generatation</p><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> Generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td>Generates a p-q torus knot with custom settings</td></tr></table>",
 		"variant": "both",
 		"tags": ["Format: Generic Model", "Edit"]
@@ -672,7 +673,7 @@
 		"icon": "trending_up",
 		"author": "Malik12tree",
 		"description": "View download statistics of your blockbench plugin",
-		"version": "1.2.0",
+		"version": "1.3.0",
 		"variant": "both",
 		"tags": ["Blockbench", "Plugins", "Development"]
 	},
