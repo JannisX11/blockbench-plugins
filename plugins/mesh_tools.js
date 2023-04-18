@@ -9,7 +9,7 @@ BBPlugin.register('mesh_tools', {
 	description: 'Adds helpful Mesh Modeling Tools, Operators and Generators!',
 	about,
 	version: '1.0.6',
-	minVersion: '4.7.0',
+	min_version: '4.7.0',
 	variant: "both",
 	tags: ["Format: Generic Model", "Edit"],
 	oninstall() {
