@@ -627,7 +627,7 @@ const meta = {
 	"icon": "trending_up",
 	"author": "Malik12tree",
 	"description": "View download statistics of your blockbench plugin",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"variant": "both",
 	"tags": ["Blockbench", "Plugins", "Development"]
 }
