@@ -1,3 +1,4 @@
+// old code ok
 (function () {
 const about = "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</p><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr><td>Laplacian Smooth</td><td>Smoothes selected vertices by averaging the position of neighboring vertices</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected meshes</p><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the tool menu. For procedural mesh generatation</p><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> Generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td>Generates a p-q torus knot with custom settings</td></tr></table>"
 
@@ -7,7 +8,8 @@ BBPlugin.register('mesh_tools', {
 	author: 'Malik12tree',
 	description: 'Adds helpful Mesh Modeling Tools, Operators and Generators!',
 	about,
-	version: '1.0.5',
+	version: '1.0.6',
+	minVersion: '4.7.0',
 	variant: "both",
 	tags: ["Format: Generic Model", "Edit"],
 	oninstall() {
@@ -684,7 +686,7 @@ BBPlugin.register('mesh_tools', {
 			name: "Poke Faces",
 			description: "Creates a fan out of a face",
 			icon: "control_camera",
-			condition,
+			condition: { modes: ['edit'], features: ['meshes'], method: () => Mesh.selected.length && BarItems['selection_mode'].value == "face" },
 			click: function() {
 				function runEdit(amended, depth = 0){
 					Undo.initEdit({elements: Mesh.selected, selection: true}, amended);
@@ -698,7 +700,7 @@ BBPlugin.register('mesh_tools', {
 							/* center vertex creation */
 							const am = face.getNormal(true).V3_multiply(depth);
 							const centerVertex = mesh.addVertices(face.getCenter().V3_add(am))[0];
-							Project.selected_vertices[mesh.uuid].push(centerVertex);
+
 
 							/* faces creation */
 							const vertices = face.getSortedVertices();
@@ -713,7 +715,8 @@ BBPlugin.register('mesh_tools', {
 									]
 								});
 								new_face.uv[centerVertex] = getFaceUVCenter(face);
-								Project.selected_faces.push(mesh.addFaces(new_face));
+
+								mesh.addFaces(new_face);
 							}
 							delete mesh.faces[key];
 
@@ -748,7 +751,7 @@ BBPlugin.register('mesh_tools', {
 			name: "Triangles To Quad",
 			description: "Trys to dissolve adjacent triangles into a quad",
 			icon: `fas.fa-external-link-square-alt`,
-			condition,
+			condition: { modes: ['edit'], features: ['meshes'], method: () => Mesh.selected.length && BarItems['selection_mode'].value == "face" },
 			click: function() {
 				Undo.initEdit({elements: Mesh.selected, selection: true});
 				/* selected meshes */
@@ -888,7 +891,7 @@ BBPlugin.register('mesh_tools', {
 			name: "Triangulate Faces",
 			description: "Cuttes a face into triangles",
 			icon: "pie_chart_outline",
-			condition,
+			condition: { modes: ['edit'], features: ['meshes'], method: () => Mesh.selected.length && BarItems['selection_mode'].value == "face" },
 			click: function() {
 				Undo.initEdit({elements: Mesh.selected, selection: true});
 				/* selected meshes */
@@ -919,9 +922,8 @@ BBPlugin.register('mesh_tools', {
 			}
 		})
 
-		function WorldToScreen(x, y, z, camera, width, height) {
+		function WorldToScreen(p, camera, width, height) {
 			// https://stackoverflow.com/a/27448966/16079500
-			var p = new THREE.Vector3(x, y, z);
 			var vector = p.project(camera);
 	
 			vector.x = (vector.x + 1) / 2 * width;
@@ -945,12 +947,12 @@ BBPlugin.register('mesh_tools', {
 						const face = mesh.faces[key];
 
 						face.vertices.forEach(vkey => {
-							const vertex = mesh.vertices[vkey];
+							const vertex = mesh.mesh.localToWorld(mesh.vertices[vkey].V3_toThree());
 
-							const xy = WorldToScreen(vertex[0], vertex[1], vertex[2], camera, width, height);
+							const screenCoordinate = WorldToScreen(vertex, camera, width, height);
 							face.uv[vkey] = [
-								xy.x / width * Project.texture_width,
-								xy.y / height * Project.texture_height * clampedAspect
+								screenCoordinate.x / width * Project.texture_width,
+								screenCoordinate.y / height * Project.texture_height * clampedAspect
 							]
 						})
 					});
@@ -1059,11 +1061,13 @@ BBPlugin.register('mesh_tools', {
 			],
 			condition,
 		})
+
+		// const selectVertices
 		new Action("expand_selection", {
 			name: "Expand Selection",
 			icon: "unfold_more_double",
 			keybind: new Keybind({key: 'l', ctrl: true}),
-			condition: condition,
+			condition: { modes: ['edit'], features: ['meshes'], method: () => (Mesh.selected.length && BarItems['selection_mode'].value =="vertex") },
 			click() {
 				// Undo.initEdit({elements: Mesh.selected, selection:true});
 				Mesh.selected.forEach(mesh => {
@@ -1073,7 +1077,7 @@ BBPlugin.register('mesh_tools', {
 					
 					for (let vertexKey of vertices) {
 						const neighbors = neighborMap[vertexKey];
-						Project.selected_vertices[mesh.uuid].safePush(...neighbors);
+						Project.mesh_selection[mesh.uuid].vertices.safePush(...neighbors);
 					}
 				})
 				// Undo.finishEdit('Mtools: Expand selection');
@@ -1084,7 +1088,7 @@ BBPlugin.register('mesh_tools', {
 			name: "Shrink Selection",
 			icon: "unfold_less_double",
 			keybind: new Keybind({key: 'k', ctrl: true}),
-			condition: condition,
+			condition: { modes: ['edit'], features: ['meshes'], method: () => (Mesh.selected.length && BarItems['selection_mode'].value == "vertex") },
 			click() {
 				// Undo.initEdit({elements: Mesh.selected, selection:true});
 				Mesh.selected.forEach(mesh => {
@@ -1103,7 +1107,7 @@ BBPlugin.register('mesh_tools', {
 						}
 
 						if (atleastOneNeighborIsNotSelected) {
-							Project.selected_vertices[mesh.uuid].remove(vertexKey);
+							Project.mesh_selection[mesh.uuid].vertices.remove(vertexKey);
 						}
 					}
 				})
@@ -1833,12 +1837,12 @@ BBPlugin.register('mesh_tools', {
 						}
 						</style>`,
 						//<i class="material-icons">spellcheck</i>
-						`<a id="mt_typeface" class=""><span style="text-decoration: underline;">TypeFace converter</span></a>`,
+						`<a id="mt_typeface" class=""><span style="text-decoration: underline;">Go to TypeFace converter</span></a>`,
 						`<p class="small_text subtle" style="display: inline;">when converting a font into a typeface font using the link above, make sure to disable "Reverse font direction".</p>`
 						
 					],
 					form: {
-						text: {label:"Text", type:'textarea', value:"My text"},
+						text: {label:"Text", type:'textarea', value: "Hello, World!"},
 						file: {label:"OpenType Font (Optional)", type:'file', extensions: ['json'],filetype: 'JSON', readtype:"text"},
 						size: {label:"Size", type:"number", value:8,min:0},
 						height: {label:"Thickness", type:"number", value:2,min:0},
@@ -1960,7 +1964,7 @@ BBPlugin.register('mesh_tools', {
 		// 				  and the presets of the addon, at: https://github.com/elfnor/blender_XYZ_surface_presets
 		// :)
 		const xyzpresets = {
-			TwistedTorus:		{x:"-cos(p.u)*(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))",y:"-(6-(5./4. + sin(3*p.v))*sin(p.v-3*p.u))*sin(p.u)",z:"cos(p.v-3*p.u)*(5./4.+sin(3*p.v))",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
+			TwistedTorus:		{x:"-cos(p.u)*(6-(5/4 + sin(3*p.v))*sin(p.v-3*p.u))",y:"-(6-(5/4 + sin(3*p.v))*sin(p.v-3*p.u))*sin(p.u)",z:"cos(p.v-3*p.u)*(5/4+sin(3*p.v))",scale:1,uRange:[0,6.2831854820251465],uDivs:32,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
 			Bonbon:				{x:"(p.u-3.3379)",y:"cos(p.u)*sin(p.v)",z:"cos(p.u)*cos(p.v)",scale:2,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
 			Boy:				{x:"(sq2 * cos(2*p.u)*pow(cos(p.v),2) + cos(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",y:"(sq2 * sin(2*p.u)*pow(cos(p.v),2) - sin(p.u)*sin(2*p.v)) / (2 - alpha *sq2*sin(3*p.u)*sin(2*p.v))",z:"(3*pow(cos(p.v),2)) / (2 - alpha*sq2*sin(3*p.u)*sin(2*p.v))",scale:4,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:16,uWrap:!1,vRange:[0,3.1415927410125732],vDivs:32,vWrap:!1,vClose:!1,variables:"sq2 = 1.4142135623730951\nalpha=1"},
 			Hexahedron:			{x:"pow(cos(p.v),3)*pow(cos(p.u),3)",y:"pow(sin(p.u),3)",z:"pow(sin(p.v),3)*pow(cos(p.u),3)",scale:8,uRange:[-1.2999999523162842,1.2999999523162842],uDivs:16,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!1,vClose:!1},
@@ -1984,7 +1988,7 @@ BBPlugin.register('mesh_tools', {
 			PseudoSphere:		{x:"cos(p.u)*cos(p.v)+sin((sin(p.u)+1)*2*pi)",y:"4*sin(p.u)",z:"cos(p.u)*sin(p.v)+cos((sin(p.u)+1)*2*pi)",scale:2,uRange:[-1.5707963705062866,1.5707963705062866],uDivs:32,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:8,vWrap:!1,vClose:!1},
 			Sine:				{x:"sin(p.u)",y:"sin(p.v)",z:"sin(p.u+p.v)",scale:8,uRange:[0,6.2831854820251465],uDivs:16,uWrap:!0,vRange:[0,6.2831854820251465],vDivs:16,vWrap:!0,vClose:!0},
 			Snake:				{x:"1.2*(1 -p.v/(2*pi))*cos(3*p.v)*(1 + cos(p.u)) + 3*cos(3*p.v)",y:"9*p.v/(2*pi) + 1.2*(1 - p.v/(2*pi))*sin(p.u)",z:"1.2*(1 -p.v/(2*pi))*sin(3*p.v)*(1 + cos(p.u)) + 3*sin(3*p.v)",scale:1,uRange:[0,6.2831854820251465],uDivs:7,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:42,vWrap:!1,vClose:!1},
-			SteroSphere:		{x:"(2.*p.u/(p.u*p.u+p.v*p.v+1.))",y:"((p.u*p.u+p.v*p.v-1.)/(p.u*p.u+p.v*p.v+1.))",z:"(2*p.v/(p.u*p.u+p.v*p.v+1))",scale:8,uRange:[-2,2],uDivs:16,uWrap:!1,vRange:[-2,2],vDivs:16,vWrap:!1,vClose:!1},
+			SteroSphere:		{x:"(2*p.u/(p.u*p.u+p.v*p.v+1))",y:"((p.u*p.u+p.v*p.v-1)/(p.u*p.u+p.v*p.v+1))",z:"(2*p.v/(p.u*p.u+p.v*p.v+1))",scale:8,uRange:[-2,2],uDivs:16,uWrap:!1,vRange:[-2,2],vDivs:16,vWrap:!1,vClose:!1},
 			Torus:				{x:"(1+0.5*cos(p.u))*cos(p.v)",y:"0.5*sin(p.u)",z:"(1+0.5*cos(p.u))*sin(p.v)",scale:6,uRange:[0,6.2831854820251465],uDivs:8,uWrap:!1,vRange:[0,6.2831854820251465],vDivs:12,vWrap:!1,vClose:!1}
 		};
 		new Action("xyzmathsurfacefunction", {

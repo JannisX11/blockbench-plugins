@@ -1,6 +1,6 @@
 ;(function () {
 const STORE = "store";
-const MAX_WEEKS = 26; // half year
+const MAX_WEEKS = 52; // year
 const URL = 'https://blckbn.ch/api/stats/plugins?weeks=';
 const KEY_STORAGE = 'ps-data';
 
@@ -264,8 +264,12 @@ return class Graph {
 	computeMinMax() {
 		if (typeof this.minmax != 'object') this.minmax = [];
 		
-		this.minmax[0] = Math.min(...this.datapoints);
-		this.minmax[1] = Math.max(...this.datapoints);
+		this.minmax[0] = Infinity;
+		this.minmax[1] = -Infinity;
+		for (const y of this.datapoints) {
+			this.minmax[0] = Math.min(this.minmax[0], y);
+			this.minmax[1] = Math.max(this.minmax[1], y);
+		}
 		return this;
 	}
 	updateSVGOrigin() {
@@ -390,39 +394,71 @@ function dateSinceWeeks(numberOfWeeks, exclusive) {
 
 	return date.toLocaleDateString('en-GB');
 }
+function ordinalize(number) {
+	const lastDigit = number % 10;
+	const secondLastDigit = Math.floor(number / 10) % 10;
+
+	if (secondLastDigit == 1) return number + "th";
+
+	if (lastDigit == 1) return number + "st";
+	if (lastDigit == 2) return number + "nd";
+	if (lastDigit == 3) return number + "rd";
+
+	return number + "th";
+}
+
 const format = Intl.NumberFormat('en').format;
 
 const get = selector => dialog.object.querySelector(selector);
 
-function updateHTML(id) {
+function updateHTML(id, perWeek = true) {
+	get('#ps-graph [y]').innerText = perWeek ? 'Downloads Per Week': 'Downloads';
+
 	const plugin = pluginMap[id];
 	
-	get('#ps-rank').innerText = Plugins.all.indexOf(plugin) + 1;
+	get('#ps-rank').innerText = ordinalize(Plugins.all.indexOf(plugin) + 1);
 	const authorElement = get('#ps-author');
 	const versionElement = get('#ps-version');
 	const weeklyElement = get('#ps-weekly');
 	const yearlyElement = get('#ps-yearly');
-	const peakElement = get('#ps-peak');
 
 	authorElement.innerText = plugin.author;
 	versionElement.innerText = plugin.version;
 
-	weeklyElement.innerText = format(downloadData[0][id]);
+	weeklyElement.innerText = format(downloadData[1][id]);
 	yearlyElement.innerText = format(downloadData.at(-1)[id]);
 
 	const downloadDataLength = downloadData.length;
+	graph.datapoints = [];
+
 	let maximumValue = 0;
+	let isInfant = true;
+	let infantOffset = 0;
 	for (let i = 0; i < downloadDataLength; i++) {
-		const index = downloadDataLength - i - 1;	
+		const index = downloadDataLength - i - 1;
 		const weekDownloads = downloadData[index]?.[id] ?? 0;
 		const nextWeekDownloads = downloadData[index - 1]?.[id] ?? 0;
 
-		graph.datapoints[i] = weekDownloads - nextWeekDownloads;
-		maximumValue = Math.max(maximumValue, graph.datapoints[i]);
-	}
-	peakElement.innerText = format(maximumValue);
+		if (isInfant && weekDownloads - nextWeekDownloads > 0) isInfant = false;
 
-	graph.minmax[1] = maximumValue / 0.95;
+		if (isInfant) {
+			infantOffset++;
+			continue;
+		}
+
+		const realIndex = i - infantOffset;
+		graph.datapoints[realIndex] = weekDownloads;
+		if (perWeek) graph.datapoints[realIndex] -= nextWeekDownloads;
+
+		maximumValue = Math.max(maximumValue, graph.datapoints[realIndex]);
+	}
+
+	if (graph.datapoints.length <= 1) {
+		dialog.object.classList.add('ps-not_enough_data');
+		return;
+	}
+	dialog.object.classList.remove('ps-not_enough_data');
+	graph.minmax[1] = maximumValue / 0.9;
 	graph.update();
 }
 
@@ -436,10 +472,11 @@ const dialog = new Dialog({
 	resizable: false,
 
 	form: {
-		plugin: { label: 'Plugin', type: 'select', options: dialogOptions }
+		plugin: { label: 'Plugin', type: 'select', options: dialogOptions },
+		per_week: { label: 'Per Week', type: 'checkbox', value: true }
 	},
 	onFormChange(data) {
-		updateHTML(data.plugin);
+		updateHTML(data.plugin, data.per_week);
 	},
 	lines: [
 `
@@ -458,21 +495,33 @@ const dialog = new Dialog({
 		<span id="ps-weekly">??</span>
 	</div>
 	<div class="ps-stat">
-		<h3>Half-Yearly Downloads</h3>
+		<h3>Yearly Downloads</h3>
 		<span id="ps-yearly">??</span>
-	</div>
-	<div class="ps-stat">
-		<h3>Peak</h3>
-		<span id="ps-peak">??</span>
 	</div>
 </div>
 <div id="ps-graph">
 	<span class="ps-graph-info"></span>
-	<span class="ps-label" y>Downloads</span>
+	<span class="ps-label" y>??</span>
 	<span class="ps-label" x>Weeks</span>
 	<span style="grid-area:holder"></span>
 </div>
 <style>
+.ps-not_enough_data #ps-graph {
+	display: none;
+}
+.ps-not_enough_data > .dialog_wrapper > .dialog_content:after {
+	content: 'no enough data to show graph.';
+    
+    display: block;
+	width: 100%;
+	padding-top: 20px;
+	
+    color: var(--color-subtle_text);
+    text-align: center;
+	font-style: italic;
+}
+
+
 #plugin_stats .dialog_content {
 	overflow-x: hidden;
 }
@@ -548,10 +597,16 @@ const graph = new Graph({
     onValue({index, value}) {
 		const downloadsSince = format(value);
 		const downloads = downloadsSince <= 0 ? 'unreleased': downloadsSince;
-		const numberOfWeeks = MAX_WEEKS - index - 1;
+		const numberOfWeeks = graph.datapoints.length - index - 1;
 		const from = dateSinceWeeks(numberOfWeeks);
 		const to = dateSinceWeeks(numberOfWeeks - 1, true);
-		get('.ps-graph-info').innerText = `${from} to ${to} ≈ ${downloads}`;
+		const perWeek = get('#plugin_stats #per_week').checked;
+
+		if (perWeek) {
+			get('.ps-graph-info').innerText = `${from} to ${to} ≈ ${downloads}`;
+			return;
+		}
+		get('.ps-graph-info').innerText = `since ${from} ≈ ${downloads}`;
 	},
 	onCancel() {
 		get('.ps-graph-info').innerText = '';
