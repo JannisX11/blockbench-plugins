@@ -15,7 +15,7 @@
     description: "Add a new scene recorder where you can record your model in a large variety of formats.",
     about: "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
     tags: ["Recording", "Media"],
-    version: "1.0.0",
+    version: "1.1.0",
     min_version: "4.5.2",
     variant: "desktop",
     async onload() {
@@ -49,6 +49,7 @@
             },
             condition: form => ["mp4"].includes(form.format)
           },
+          "_1": "_",
           lengthMode: {
             label: "dialog.create_gif.length_mode",
             type: "select",
@@ -63,7 +64,7 @@
           length: {
             label: "dialog.create_gif.length",
             type: "number",
-            value: 10,
+            value: 5,
             min: 0.1,
             max: 24000,
             step: 0.25,
@@ -73,20 +74,37 @@
             label: "dialog.create_gif.fps",
             type: "number",
             value: 24,
-            min: 0.1,
-            max: 30
+            min: 0.5,
+            max: 120
+          },
+          "_2": "_",
+          pixelate: {
+            label: "dialog.create_gif.pixelate",
+            type: "range",
+            value: 1,
+            min: 1,
+            max: 8,
+            step: 1
           },
           color:  {
             label: "dialog.create_gif.color",
             type: "color",
             value: "#00000000"
           },
+          bg_image: {
+            label: "dialog.create_gif.bg_image",
+            type: "file",
+            extensions: ["png"],
+            readtype: "image",
+            filetype: "PNG"
+          },
           turn: {
             label: "dialog.create_gif.turn",
             type: "number",
             value: 0,
-            min: -10,
-            max: 10
+            min: -90,
+            max: 90,
+            description: "dialog.create_gif.turn.desc"
           },
           play:   {
             label: "dialog.create_gif.play",
@@ -110,6 +128,13 @@
           let loop = null
           let crop = Screencam.gif_crop
           let canvases = []
+
+          let backgroundImage
+          if (formData.bg_image) {
+            backgroundImage = new Image()
+            backgroundImage.src = formData.bg_image
+            backgroundImage.onerror = () => backgroundImage = null
+          }
 
           function getProgress() {
             switch (lengthMode) {
@@ -211,7 +236,7 @@
 
             const width = Math.clamp((preview.width - crop.left - crop.right) * window.devicePixelRatio, 24, 4000)
             const height = Math.clamp((preview.height - crop.top - crop.bottom) * window.devicePixelRatio, 24, 4000)
-        
+
             if (formData.turn) {
               preview.controls.autoRotate = true
               preview.controls.autoRotateSpeed = formData.turn
@@ -227,6 +252,13 @@
             } else if (lengthMode == "animation") {
               lengthMode = "seconds"
             }
+
+            const NoAAPreview = Screencam.NoAAPreview
+            NoAAPreview.resize(
+              preview.width * window.devicePixelRatio / formData.pixelate,
+              preview.height * window.devicePixelRatio / formData.pixelate
+            )
+            NoAAPreview.setProjectionMode(preview.isOrtho)
         
             Blockbench.setStatusBarText("Recording...")
 
@@ -243,9 +275,27 @@
                 ctx.fillStyle = background
                 ctx.fillRect(0, 0, canvas.width, canvas.height)
               }
+              if (backgroundImage) ctx.drawImage(backgroundImage, 0, 0, width, height)
               Canvas.withoutGizmos(() => {
-                preview.render()
-                ctx.drawImage(preview.canvas, Math.round(-crop.left * window.devicePixelRatio), Math.round(-crop.top * window.devicePixelRatio), preview.canvas.width, preview.canvas.height)
+                NoAAPreview.controls.target.copy(preview.controls.target)
+                NoAAPreview.camera.position.copy(preview.camera.position)
+                if (NoAAPreview.isOrtho) {
+                  NoAAPreview.camera.zoom = preview.camera.zoom
+                  NoAAPreview.camera.top = preview.camera.top
+                  NoAAPreview.camera.bottom = preview.camera.bottom
+                  NoAAPreview.camera.right = preview.camera.right
+                  NoAAPreview.camera.left = preview.camera.left
+                  NoAAPreview.camOrtho.updateProjectionMatrix()
+                }
+
+                NoAAPreview.render()
+                ctx.drawImage(
+                  NoAAPreview.canvas,
+                  Math.round(-crop.left * window.devicePixelRatio),
+                  Math.round(-crop.top * window.devicePixelRatio),
+                  Math.round(NoAAPreview.canvas.width * formData.pixelate),
+                  Math.round(NoAAPreview.canvas.height * formData.pixelate)
+                )
                 canvases.push(canvas)
               })
               Blockbench.setProgress(getProgress())
@@ -345,7 +395,7 @@
         click: () => dialog.show(),
         condition: () => Project
       })
-      MenuBar.addAction(action, "view.screenshot")
+      MenuBar.addAction(action, "view")
     },
     onunload() {
       action?.delete()
