@@ -788,8 +788,8 @@
 		"tags": ["Animation", "Minecraft: Java Edition"],
 		"variant": "both",
 		"version": "1.0.0"
-  },
-	"azurelibsl_utils": {
+	},
+	"azurelib_utils": {
 		"title": "AzureLib Utils",
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
 		"icon": "icon-zombie",
