@@ -2,16 +2,16 @@
 
 (function() {
 
-	var tween_slider, amplify_slider, easing_slider, axis_selector, key_column, select_column, normalize_keyframes, updateSliders;
+	var tween_slider, amplify_slider, easing_slider, axis_selector, normalize_keyframes, updateSliders;
 
 	Plugin.register('animation_sliders', {
 		title: 'Animation Sliders',
 		icon: 'fas.fa-bezier-curve',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
-		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.`,
+		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.`,
 		tags: ['Animation'],
-		version: '0.3.0',
+		version: '0.3.1',
 		min_version: '3.7.0',
 		variant: 'both',
 		onload() {
@@ -58,54 +58,6 @@
 				},
 				click(event) {
 					new Menu(this.children()).open(event.target);
-				}
-			})
-			
-			key_column = new Action('keyframe_column_create', {
-				name: 'Create Keyframe Column',
-				description: 'Key all channels in the timeline at the current timecode, if they already have keyframes',
-				icon: 'more_vert',
-				condition: () => Animator.open,
-				click() {
-					Timeline.selected.empty();
-					let new_keyframes = [];
-					Undo.initEdit({keyframes: new_keyframes})
-					Timeline.animators.forEach(animator => {
-						if (animator instanceof BoneAnimator == false) return;
-						channels.forEach(channel => {
-							if (Timeline.vue.channels[channel] !== false && animator[channel] && animator[channel].length) {
-								let kf = animator.createKeyframe(null, Timeline.time, channel, false, false);
-								new_keyframes.push(kf)
-								Timeline.selected.push(kf);
-								kf.selected = true;
-							}
-						})
-					})
-					updateKeyframeSelection();
-					Undo.finishEdit('Create keyframe column');
-				}
-			})
-			select_column = new Action('keyframe_column_select', {
-				name: 'Select Keyframe Column',
-				description: 'Select all keyframes in the timeline along a column below the playhead',
-				icon: 'fa-sort-alpha-down',
-				condition: () => Animator.open,
-				click() {
-					Timeline.selected.empty();
-					Timeline.animators.forEach(animator => {
-						if (animator instanceof BoneAnimator == false) return;
-						channels.forEach(channel => {
-							if (Timeline.vue.channels[channel] !== false && animator[channel] && animator[channel].length) {
-								animator[channel].forEach(kf => {
-									if (Math.epsilon(kf.time, Timeline.time, 1e-5) && Timeline.vue.channels[kf.channel] !== false) {
-										Timeline.selected.push(kf);
-										kf.selected = true;
-									}
-								})
-							}
-						})
-					})
-					updateKeyframeSelection();
 				}
 			})
 
@@ -378,8 +330,6 @@
 			easing_slider.delete();
 			retime_slider.delete();
 			axis_selector.delete();
-			key_column.delete();
-			select_column.delete();
 			normalize_keyframes.delete();
 			Blockbench.removeListener('update_keyframe_selection', updateSliders);
 		}
