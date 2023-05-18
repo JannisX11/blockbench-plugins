@@ -598,12 +598,12 @@
 	},
 	"animation_to_java": {
 		"title": "Animation to Java Converter",
-		"author": "MG,Vincent_Huto(PR),DailyCraft(PR)",
-		"description": "Converts Blockbench animations to Java code for the new 1.19 keyframe system",
+		"author": "MG, Vincent_Huto(PR), DailyCraft(PR), MarcusSlover(PR)",
+		"description": "Converts Blockbench animations to Java code for the new 1.19+ keyframe system.",
 		"icon": "fa-cube",
-		"version": "1.1.2",
+		"version": "1.2.0",
 		"variant": "both",
-		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
+		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
 		"tags": ["Minecraft: Java Edition"]
 	},
 	"root_motion_extractor": {
