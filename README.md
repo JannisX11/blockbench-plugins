@@ -18,6 +18,7 @@ To install a plugin, go to File > Plugins... and switch to the available tab. Fi
 
 * Plugin IDs should be snake_case and must be consistent across all properties and file names.
 * Indentation for common files must be Tab character. Individual plugin files can follow own personal preferences.
+* Use simple semver for plugin versioning: MAJOR.MINOR.PATCH, e. g. "1.2.11". You need to increase the version number for each update that is published.
 
 ## Development
 
@@ -37,6 +38,8 @@ In order to submit your plugin, you need to meet a few requirements:
 	(Keep in mind that artists from many different areas use Blockbench, so provide some context in the meta data)
 * In total, you can provide up to three plugin tags
 * The plugin meta data needs to be the same in the plugin file itself and in the file `plugins.json`.
+* Plugins should not be larger than 2 MB
+* Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * This list of plugins is curated to some extends. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
 * While it is the goal to keep the plugin API compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
 
