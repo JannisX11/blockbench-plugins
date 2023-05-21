@@ -5,7 +5,7 @@ Plugin.register('sphere', {
     description: 'A plugin to create pixelated spheres, since minecraft does not allow real spheres due to something to do with rotation. Also I needed a sphere that I could do pixel art on to make it look like a planet. (Feel free to update or republish this plugin if you\'d like since I probably won\'t do mayor updates to it anymore.)',
     version: '1.0.0',
     variant: 'both',
-    tags: 'Minecraft: Java Edition',
+    tags: ['Minecraft: Java Edition'],
     onload() {
         var button = new Action('generate_sphere', {
             name: 'New Sphere',
