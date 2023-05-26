@@ -145,12 +145,20 @@
 					SetupHitboxHelper.object.scale.x = SetupHitboxHelper.object.scale.z = size_entity[0] || 0.01;
 					SetupHitboxHelper.object.scale.y = size_entity[1] || 0.01;
 					SetupHitboxHelper.object.position.fromArray(offset_entity).multiplyScalar(16);
-					SetupHitboxHelper.object.position.set(-offset_entity[0] * 16, offset_entity[1] * 16, -offset_entity[2] * 16);
+					SetupHitboxHelper.object.position.set(
+						-offset_entity[0] * 16,
+						offset_entity[1] * 16,
+						-offset_entity[2] * 16
+					);
 				} else {
 					SetupHitboxHelper.object.scale.x = size_block[0]/16 || 0.01;
 					SetupHitboxHelper.object.scale.z = size_block[2]/16 || 0.01;
 					SetupHitboxHelper.object.scale.y = size_block[1]/16 || 0.01;
-					SetupHitboxHelper.object.position.set(offset_block[0] - offset_block[0]/2,offset_block[1] - offset_block[1]/2, offset_block[2] - offset_block[2]/2);
+					SetupHitboxHelper.object.position.set(
+						offset_block[0],
+						offset_block[1],
+						offset_block[2]
+					);
 				}
 
 				let result_string;
@@ -237,7 +245,7 @@
 		author: 'JannisX11',
 		description: 'Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks',
 		tags: ["Minecraft: Bedrock Edition"],
-		version: '1.3.0',
+		version: '1.3.1',
 		variant: 'both',
 		onload() {
 			seat_pos_action = new Action('open_seat_position', {
@@ -254,6 +262,7 @@
 			})
 			hitbox_action = new Action('open_hitbox_setup', {
 				name: 'Setup Hitbox',
+				description: 'Set up an entity or block collision, hitbox, or selection box',
 				icon: 'view_in_ar',
 				condition: _ => Format.bone_rig,
 				click: () => {
