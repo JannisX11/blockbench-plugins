@@ -799,5 +799,14 @@
 		"min_version": "4.0.0",
 		"await_loading": true,
 		"variant": "both"
+	},
+	"cube_inverter": {
+		"title": "Cube Inverter",
+		"author": "SirJain",
+		"icon": "swap_horiz",
+		"description": "Adds a button that inverts selected cube sizes.",
+		"version": "1.0.0",
+		"min_version": "4.2.0",
+		"variant": "both"
 	}
 }
