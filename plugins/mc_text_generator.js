@@ -25,7 +25,7 @@
         description: "Generates Minecraft-styled text in cubes.",
         about: "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
         tags: ["Minecraft", "Font", "Generator"],
-        version: "2.0.0",
+        version: "2.0.1",
         min_version: "4.2.0",
         variant: "both",
 
@@ -51,7 +51,7 @@
                         type: "text",
                         full_width: true,
                         value: "",
-                        description: "Blockbench will take this and generate 3D text."
+                        description: "The text that will be converted into 3D geometry."
                     },
                     divider: "_",
                     letterSpace: {
@@ -59,7 +59,7 @@
                         type: "number",
                         min: 0,
                         value: 0.3,
-                        description: "The amount of space between letters."
+                        description: "The amount of space between each letter."
                     },
                     wordSpace: {
                         label: "Word Spacing",
@@ -83,13 +83,14 @@
                         value: 0,
                         max: 45,
                         step: 22.5,
-                        description: "The rotation of the cubes of the text."
+                        description: "The rotation of the text."
                     },
                     generateLayer: {
                         label: "Generate Layer",
                         type: "checkbox",
                         value: false,
-                        description: "Generates a second layer to the text which can be used for stuff like dropshadows. Note: Your depth field needs to be 0 in order for the setting to work."
+                        condition: formData => formData.depth === 0,
+                        description: "Generates a second layer to the text which can be used for stuff like dropshadows."
                     },
                     checkboxSpacer: "_",
                     javaCheckbox: {
