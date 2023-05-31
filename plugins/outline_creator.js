@@ -3,10 +3,10 @@ var createOutlineAction;
 Plugin.register('outline_creator', {
     icon: 'crop_square',
     title: 'Outline Creator',
-    description: 'Creates stylistic outlines for cubes using negative scale values.',
-    about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>',
+    description: 'Creates stylistic outlines for cubes and meshes using negative scale values.',
+    about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.',
     author: 'Wither',
-    version: '1.0.3',
+    version: '1.1.0',
     min_version: '4.2.0',
     variant: 'both',
 
@@ -15,22 +15,22 @@ Plugin.register('outline_creator', {
             id: 'create_outline',
             name: 'Create Outline',
             icon: 'crop_square',
-            description: 'Create an outline for selected cubes',
+            description: 'Create an outline for selected elements',
             click(ev) {
                 if (selected.length === 0) {
                     Blockbench.showMessageBox({
-                        title: 'No elements selected',
+                        title: 'No valid elements selected',
                         icon: 'error',
-                        message: 'You must select at least one cube!',
+                        message: 'You must select at least one cube or mesh!',
                         buttons: ['OK']
                     });
                 }
 
-                else if (!selected.find(el => el instanceof Cube)) {
+                else if (!selected.find(el => el instanceof Cube || el instanceof Mesh)) {
                     Blockbench.showMessageBox({
                         title: 'Invalid elements',
                         icon: 'error',
-                        message: 'You can only add outlines to cubes!',
+                        message: 'You can only add outlines to cubes and meshes!',
                         buttons: ['OK']
                     });
                 }
@@ -50,12 +50,8 @@ Plugin.register('outline_creator', {
 function createOutline(outline_thickness) {
     Undo.initEdit({elements: Outliner.elements, outliner: true});
 
-    for (const element of selected) {
-        if (!(element instanceof Cube)) {
-            Blockbench.showQuickMessage("Skipped over invalid element(s)...", 1500)
-            continue;
-        }
-
+    // Cube handling
+    for (const element of Cube.selected) {
         var outline = new Cube({
             name: `${element.name}_outline`, 
             from:[element.to[0] + outline_thickness, element.to[1] + outline_thickness, element.to[2] + outline_thickness], 
@@ -101,7 +97,28 @@ function createOutline(outline_thickness) {
                 }
             }
         }).init();
-    };
+    }
+
+    // Mesh handling
+    for (const mesh of Mesh.selected) {
+        mesh.duplicate();
+        mesh.oldVertices = {};
+
+        for (const key in mesh.vertices) {
+            mesh.oldVertices[key] = mesh.vertices[key].slice();
+        }
+
+        mesh.forAllFaces(face => {
+            face.invert();
+        })
+
+        mesh.resize(outline_thickness * 2, 0, false, false, true);
+        mesh.resize(outline_thickness, 1, false, false, true);
+        mesh.resize(outline_thickness * 2, 2, false, false, true);
+        mesh.name = mesh.name + "_outline";
+    }
+
+    Canvas.updateAll();
     Undo.finishEdit('Created outlines');
 }
 
