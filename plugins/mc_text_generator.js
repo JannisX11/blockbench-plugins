@@ -296,6 +296,18 @@
                                     [0, 5, 0, 2, 6, formData.depth],
                                 ]
                             },
+                            "$": {
+                                width: 5,
+                                cubes: [
+                                    [0, 0, 0, 5, 2, formData.depth],
+                                    [0, 3, 0, 5, 5, formData.depth],
+                                    [0, 6, 0, 5, 8, formData.depth],
+                                    [1.5, 8, 0, 3.5, 9, formData.depth],
+                                    [1.5, -1, 0, 3.5, 0, formData.depth],
+                                    [3, 2, 0, 5, 3, formData.depth],
+                                    [0, 5, 0, 2, 6, formData.depth],
+                                ]
+                            },
                             t: {
                                 width: 5,
                                 cubes: [
