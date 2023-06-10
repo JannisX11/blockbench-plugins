@@ -557,6 +557,15 @@
                                     [0, 0, 0, 2, 2, formData.depth]
                                 ]
                             },
+                            "/": {
+                                width: 6,
+                                cubes: [
+                                    [0, 0, 0, 3, 2, formData.depth],
+                                    [1, 2, 0, 4, 4, formData.depth],
+                                    [2, 4, 0, 5, 6, formData.depth],
+                                    [3, 6, 0, 6, 8, formData.depth],
+                                ]
+                            },
                             " ": {
                                 width: formData.wordSpace,
                                 cubes: []
