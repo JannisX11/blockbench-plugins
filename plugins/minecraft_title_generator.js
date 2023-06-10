@@ -90,7 +90,7 @@
     oninstall: () => showAbout(true),
     async onload() {
       styles = Blockbench.addCSS(`
-        #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) {
+        body:not(.is_mobile) #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) {
           grid-template-columns: 0px auto 0 !important;
         }
         #panel_minecraft_title_render_panel > .panel_handle, #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) > .resizer.vertical {
@@ -98,6 +98,10 @@
         }
         #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) > #center {
           margin-bottom: calc(4px - var(--toolbar-height));
+        }
+        #panel_minecraft_title_render_panel {
+          width: 0px !important; 
+          height: 0px !important;
         }
         #minecraft-title-render-controls-container {
           position: absolute;
@@ -254,6 +258,9 @@
         .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row * {
           cursor: pointer;
         }
+        #format_page_minecraft_title {
+          padding-bottom: 0;
+        }
       `)
       let shadeState
       BarItems.toggle_shading.condition = () => Project.format?.id !== format.id
@@ -307,7 +314,7 @@
                 <div class="spacer"></div>
                 ${aboutLinks}
                 <div class="button_bar">
-                  <button id="create_new_model_button" style="margin-top:20px" @click="create">
+                  <button id="create_new_model_button" style="margin-top:20px;margin-bottom:24px;" @click="create">
                     <i class="material-icons">${icon}</i>
                     Create New Minecraft Title
                   </button>
@@ -351,6 +358,7 @@
       Interface.Panels.outliner.menu.addAction(action, 0)
       panel = new Panel("minecraft_title_render_panel", {
         name: "Render Controls",
+        icon: "photo_camera",
         condition: {
           modes: ["minecraft_title_render"]
         },
