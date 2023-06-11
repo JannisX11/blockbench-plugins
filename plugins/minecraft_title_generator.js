@@ -1098,7 +1098,9 @@
             customTexture: null,
             smoothGradient: true,
             lastTextureSource: null,
-            textureSearch: ""
+            textureSearch: "",
+            colourOpacity: 100,
+            overlayOpacity: 100
           },
           mounted() {
             $(this.$refs.colour).spectrum(colourInput(dialog, "colour")),
@@ -1161,6 +1163,7 @@
                 this.overlay = Object.keys(fonts["minecraft-ten"].overlays)[0]
                 this.overlayBlend = "overlay"
                 this.overlayColourBlend = "multiply"
+                this.overlayOpacity = 100
                 this.overlayColour = "#ffffff"
                 $(this.$refs.overlayColour).spectrum("set", "#ffffff")
               }
@@ -1173,6 +1176,7 @@
                 this.customBorder = false
                 this.fadeToBorder = false
                 this.customEdge = false
+                this.colourOpacity = 100
                 this.colour = "#ffffff"
                 this.customBorderColour = "#000000"
                 this.customEdgeColour = "#000000"
@@ -1643,6 +1647,8 @@
                       }
                       if (args.overlayBlend) settings.overlayBlend = args.overlayBlend
                       if (args.overlayColourBlend) settings.overlayColourBlend = args.overlayColourBlend
+                      if (args.overlayOpacity !== undefined) settings.overlayOpacity = args.overlayOpacity
+                      if (args.colourOpacity !== undefined) settings.colourOpacity = args.colourOpacity
                       if (args.hue) settings.hue = args.hue
                       if (args.saturation !== undefined) settings.saturation = args.saturation
                       if (args.brightness !== undefined) settings.brightness = args.brightness
@@ -2049,6 +2055,12 @@
                 <p>The blend method to use when applying the colour</p>
                 <select-input v-model="overlayColourBlend" :options="blends" @input="updatePreview" />
                 <br>
+                <h2>Overlay Opacity</h2>
+                <p>The opacity to apply the overlay at</p>
+                <div class="bar slider_input_combo">
+                  <input type="range" class="tool disp_range" v-model.number="overlayOpacity" min="0" max="100" step="1" @input="updatePreview" />
+                  <input type="number" class="tool disp_text" v-model.number="overlayOpacity" step="1" @input="updatePreview" />
+                </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 3 }">
                 <h2>Filters</h2>
@@ -2079,6 +2091,11 @@
                 <input ref="colour" />
                 <p>The blend method to use when applying the colour</p>
                 <select-input v-model="blend" :options="blends" @input="updatePreview" />
+                <p style="margin:15px 0 -5px">The opacity to apply the colour at</p>
+                <div class="bar slider_input_combo">
+                  <input type="range" class="tool disp_range" v-model.number="colourOpacity" min="0" max="100" step="1" @input="updatePreview" />
+                  <input type="number" class="tool disp_text" v-model.number="colourOpacity" step="1" @input="updatePreview" />
+                </div>
                 <br>
                 <h2>Border</h2>
                 <div class="checkbox-row">
@@ -2571,7 +2588,9 @@
     ctx.filter ="hue-rotate(0deg) saturate(100%) brightness(100%) contrast(100%)"
     ctx.globalCompositeOperation = args.blend
     ctx.fillStyle = args.colour
+    ctx.globalAlpha = args.colourOpacity / 100
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = 1
     ctx.globalCompositeOperation = "destination-in"
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
     if (args.customEdge) {
@@ -2601,7 +2620,9 @@
       }
       ctx.globalCompositeOperation = args.overlayBlend
       ctx.imageSmoothingEnabled = false
+      ctx.globalAlpha = args.overlayOpacity / 100
       ctx.drawImage(overlayCanvas.canvas, 0, 0, canvas.width, canvas.height)
+      ctx.globalAlpha = 1
     }
     if (args.customBorder) {
       ctx.globalCompositeOperation = "source-atop"
@@ -2993,6 +3014,8 @@
       overlayColourBlend: vue.overlayColourBlend,
       overlayColour: vue.overlayColour,
       smoothGradient: vue.smoothGradient,
+      colourOpacity: vue.colourOpacity,
+      overlayOpacity: vue.overlayOpacity,
       three
     }
   }
