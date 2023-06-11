@@ -2362,6 +2362,7 @@
     },
     onunload() {
       Blockbench.removeListener("update_selection", selectHandler)
+      MenuBar.removeAction("help.about_plugins.about_minecraft_title_generator")
       format.delete()
       action.delete()
       mode.delete()
