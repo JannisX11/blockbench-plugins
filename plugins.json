@@ -312,7 +312,7 @@
 		"description": "Create Minecraft-styled title models!",
 		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.7.2",
 		"variant": "both"
 	},

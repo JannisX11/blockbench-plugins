@@ -84,7 +84,7 @@
     description,
     about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.0.0",
+    version: "1.0.1",
     min_version: "4.7.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -1864,7 +1864,7 @@
           },
           template: `
             <div id="${id}">
-              <div class="dialog_close_button" style="right:30px;z-index:3" @click="reset" title="Reset values back to their defaults">
+              <div class="dialog_close_button" style="right:30px;z-index:3" @click="reset()" title="Reset values back to their defaults">
                 <i class="material-icons">replay</i>
               </div>
               <div class="dialog_close_button" style="right:60px;z-index:3" @click="presets" title="Load and save presets">
