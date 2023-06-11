@@ -2003,11 +2003,10 @@
                       </div>
                     </div>
                   </div>
-                  <br>
-                  <div class="checkbox-row">
+                  <label class="checkbox-row" style="margin-top: 10px">
                     <input type="checkbox" :checked="smoothGradient" v-model="smoothGradient" @input="updatePreview">
                     <div>Smooth gradient</div>
-                  </div>
+                  </label>
                 </div>
                 <div :class="{ hidden: textureSource !== 'file' }" id="minecraft-title-custom-texture" class="minecraft-title-file">
                   <canvas class="checkerboard" width="500" height="160"  @click="selectCustomTexture" />
@@ -2098,26 +2097,26 @@
                 </div>
                 <br>
                 <h2>Border</h2>
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="customBorder" v-model="customBorder" @input="updatePreview">
                   <div>Use a custom colour for the text border</div>
-                </div>
+                </label>
                 <input ref="customBorderColour" :class="{ hidden: !customBorder }" />
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="fadeToBorder" v-model="fadeToBorder" @input="updatePreview">
                   <div>Fade the top and bottom of the text into the border colour</div>
-                </div>
+                </label>
                 <br>
                 <h2>Edges</h2>
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="customEdge" v-model="customEdge" @input="updatePreview">
                   <div>Use a custom colour for the top and bottom faces</div>
-                </div>
+                </label>
                 <input ref="customEdgeColour" :class="{ hidden: !customEdge }" />
-                <div v-if="!fonts[font].forcedTerminators" class="checkbox-row">
+                <label v-if="!fonts[font].forcedTerminators" class="checkbox-row">
                   <input type="checkbox" :checked="terminators" v-model="terminators" @input="makePreview">
                   <div>Enable line terminators</div>
-                </div>
+                </label>
                 <p v-if="!fonts[font].forcedTerminators">Line terminators are special characters that appear at the start and end of the text</p>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 4 }">
