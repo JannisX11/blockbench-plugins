@@ -84,7 +84,7 @@
     description,
     about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.0.1",
+    version: "1.0.2",
     min_version: "4.7.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -255,7 +255,7 @@
         .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
           color: var(--color-light);
         }
-        .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row * {
+        .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row *, .minecraft-title-links * {
           cursor: pointer;
         }
         #format_page_minecraft_title {
@@ -304,10 +304,10 @@
                   <p class="markdown">
                     <ul>
                       <li>This format is designed to create Minecraft styled title models.</li>
-                      <li>New text can be added with the <strong>Add Minecraft Title Text</strong> button (<i class="icon material-icons" style="font-size:20px">text_fields</i>).</li>
+                      <li>New text can be added with the <strong>Add Minecraft Title Text</strong> button <i class="icon material-icons" style="font-size:20px">text_fields</i>.</li>
                       <li>There are automatic presets for text positions and text angles, so make sure to check out all of the text options!</li>
                       <li>To render your title, you can use the <strong>Render</strong> mode found at the top right.</li>
-                      <li>The camera can be automatically positioned in the render mode using the <strong>Position camera</strong> button (<i class="icon material-icons" style="font-size:20px">auto_mode</i>).</li>
+                      <li>The camera can be automatically positioned in the render mode using the <strong>Position camera</strong> button <i class="icon material-icons" style="font-size:20px">auto_mode</i>.</li>
                     </ul>
                   </p>
                 </content>
@@ -2909,9 +2909,9 @@
           <p>${about}</p>
           <br>
           <h2>Getting started</h2>
-          <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong>. You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button (<i class="icon material-icons" style="translate:0 5px">text_fields</i>) in the outliner.</p>
+          <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong>. You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button <i class="icon material-icons" style="translate:0 5px">text_fields</i> in the outliner.</p>
           <br>
-          <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button (<i class="icon material-icons" style="translate:0 5px">auto_mode</i>) will set the camera angle for you.</p>
+          <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button <i class="icon material-icons" style="translate:0 5px">auto_mode</i> will set the camera angle for you.</p>
           ${aboutLinks}
         </div>
       `]
