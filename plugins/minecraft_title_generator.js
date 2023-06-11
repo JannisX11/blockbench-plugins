@@ -2311,7 +2311,8 @@
                 customBorder: false,
                 spacerWidth: fonts[this.content_vue.font].width - 1,
                 name: texture[1] ?? texture[0],
-                ignoreStats: true
+                ignoreStats: true,
+                ignoreTextureCheck: true
               })
             }
           } else {
@@ -2399,7 +2400,7 @@
     })
     let texture = await makeTexture(args)
     let match
-    if (!args.debug) for (const image of Texture.all) {
+    if (!args.ignoreTextureCheck) for (const image of Texture.all) {
       if (image.img.src === texture.img.src) {
         match = true
         texture = image
