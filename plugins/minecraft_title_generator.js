@@ -2580,7 +2580,7 @@
         if (typeof fonts[args.font].overlay === "boolean") {
           fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `https://raw.githubusercontent.com/${repo}/main/fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
         }
-        ctx.drawImage(fonts[args.font].overlay, 0, 0)
+        ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
       }
     }
     ctx.globalCompositeOperation = "copy"
