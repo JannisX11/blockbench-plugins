@@ -84,7 +84,7 @@
     description,
     about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.0.1",
+    version: "1.0.2",
     min_version: "4.7.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -255,7 +255,7 @@
         .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
           color: var(--color-light);
         }
-        .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row * {
+        .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row *, .minecraft-title-links * {
           cursor: pointer;
         }
         #format_page_minecraft_title {
@@ -304,10 +304,10 @@
                   <p class="markdown">
                     <ul>
                       <li>This format is designed to create Minecraft styled title models.</li>
-                      <li>New text can be added with the <strong>Add Minecraft Title Text</strong> button (<i class="icon material-icons" style="font-size:20px">text_fields</i>).</li>
+                      <li>New text can be added with the <strong>Add Minecraft Title Text</strong> button <i class="icon material-icons" style="font-size:20px">text_fields</i>.</li>
                       <li>There are automatic presets for text positions and text angles, so make sure to check out all of the text options!</li>
                       <li>To render your title, you can use the <strong>Render</strong> mode found at the top right.</li>
-                      <li>The camera can be automatically positioned in the render mode using the <strong>Position camera</strong> button (<i class="icon material-icons" style="font-size:20px">auto_mode</i>).</li>
+                      <li>The camera can be automatically positioned in the render mode using the <strong>Position camera</strong> button <i class="icon material-icons" style="font-size:20px">auto_mode</i>.</li>
                     </ul>
                   </p>
                 </content>
@@ -1098,7 +1098,9 @@
             customTexture: null,
             smoothGradient: true,
             lastTextureSource: null,
-            textureSearch: ""
+            textureSearch: "",
+            colourOpacity: 100,
+            overlayOpacity: 100
           },
           mounted() {
             $(this.$refs.colour).spectrum(colourInput(dialog, "colour")),
@@ -1161,6 +1163,7 @@
                 this.overlay = Object.keys(fonts["minecraft-ten"].overlays)[0]
                 this.overlayBlend = "overlay"
                 this.overlayColourBlend = "multiply"
+                this.overlayOpacity = 100
                 this.overlayColour = "#ffffff"
                 $(this.$refs.overlayColour).spectrum("set", "#ffffff")
               }
@@ -1173,6 +1176,7 @@
                 this.customBorder = false
                 this.fadeToBorder = false
                 this.customEdge = false
+                this.colourOpacity = 100
                 this.colour = "#ffffff"
                 this.customBorderColour = "#000000"
                 this.customEdgeColour = "#000000"
@@ -1643,6 +1647,8 @@
                       }
                       if (args.overlayBlend) settings.overlayBlend = args.overlayBlend
                       if (args.overlayColourBlend) settings.overlayColourBlend = args.overlayColourBlend
+                      if (args.overlayOpacity !== undefined) settings.overlayOpacity = args.overlayOpacity
+                      if (args.colourOpacity !== undefined) settings.colourOpacity = args.colourOpacity
                       if (args.hue) settings.hue = args.hue
                       if (args.saturation !== undefined) settings.saturation = args.saturation
                       if (args.brightness !== undefined) settings.brightness = args.brightness
@@ -1909,7 +1915,7 @@
                 </div>
                 <h2>Text Type / Angle</h2>
                 <p>The type of text to add</p>
-                <a href="#0" id="text-type-input">
+                <a href="javascript:void(0)" id="text-type-input" @click="event.stopPropagation()">
                   <select-input v-model="textType" :options="textTypes" />
                 </a>
                 <br>
@@ -1997,11 +2003,10 @@
                       </div>
                     </div>
                   </div>
-                  <br>
-                  <div class="checkbox-row">
+                  <label class="checkbox-row" style="margin-top: 10px">
                     <input type="checkbox" :checked="smoothGradient" v-model="smoothGradient" @input="updatePreview">
                     <div>Smooth gradient</div>
-                  </div>
+                  </label>
                 </div>
                 <div :class="{ hidden: textureSource !== 'file' }" id="minecraft-title-custom-texture" class="minecraft-title-file">
                   <canvas class="checkerboard" width="500" height="160"  @click="selectCustomTexture" />
@@ -2049,6 +2054,12 @@
                 <p>The blend method to use when applying the colour</p>
                 <select-input v-model="overlayColourBlend" :options="blends" @input="updatePreview" />
                 <br>
+                <h2>Overlay Opacity</h2>
+                <p>The opacity to apply the overlay at</p>
+                <div class="bar slider_input_combo">
+                  <input type="range" class="tool disp_range" v-model.number="overlayOpacity" min="0" max="100" step="1" @input="updatePreview" />
+                  <input type="number" class="tool disp_text" v-model.number="overlayOpacity" step="1" @input="updatePreview" />
+                </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 3 }">
                 <h2>Filters</h2>
@@ -2079,28 +2090,33 @@
                 <input ref="colour" />
                 <p>The blend method to use when applying the colour</p>
                 <select-input v-model="blend" :options="blends" @input="updatePreview" />
+                <p style="margin:15px 0 -5px">The opacity to apply the colour at</p>
+                <div class="bar slider_input_combo">
+                  <input type="range" class="tool disp_range" v-model.number="colourOpacity" min="0" max="100" step="1" @input="updatePreview" />
+                  <input type="number" class="tool disp_text" v-model.number="colourOpacity" step="1" @input="updatePreview" />
+                </div>
                 <br>
                 <h2>Border</h2>
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="customBorder" v-model="customBorder" @input="updatePreview">
                   <div>Use a custom colour for the text border</div>
-                </div>
+                </label>
                 <input ref="customBorderColour" :class="{ hidden: !customBorder }" />
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="fadeToBorder" v-model="fadeToBorder" @input="updatePreview">
                   <div>Fade the top and bottom of the text into the border colour</div>
-                </div>
+                </label>
                 <br>
                 <h2>Edges</h2>
-                <div class="checkbox-row">
+                <label class="checkbox-row">
                   <input type="checkbox" :checked="customEdge" v-model="customEdge" @input="updatePreview">
                   <div>Use a custom colour for the top and bottom faces</div>
-                </div>
+                </label>
                 <input ref="customEdgeColour" :class="{ hidden: !customEdge }" />
-                <div v-if="!fonts[font].forcedTerminators" class="checkbox-row">
+                <label v-if="!fonts[font].forcedTerminators" class="checkbox-row">
                   <input type="checkbox" :checked="terminators" v-model="terminators" @input="makePreview">
                   <div>Enable line terminators</div>
-                </div>
+                </label>
                 <p v-if="!fonts[font].forcedTerminators">Line terminators are special characters that appear at the start and end of the text</p>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 4 }">
@@ -2295,7 +2311,8 @@
                 customBorder: false,
                 spacerWidth: fonts[this.content_vue.font].width - 1,
                 name: texture[1] ?? texture[0],
-                ignoreStats: true
+                ignoreStats: true,
+                ignoreTextureCheck: true
               })
             }
           } else {
@@ -2345,6 +2362,7 @@
     },
     onunload() {
       Blockbench.removeListener("update_selection", selectHandler)
+      MenuBar.removeAction("help.about_plugins.about_minecraft_title_generator")
       format.delete()
       action.delete()
       mode.delete()
@@ -2383,7 +2401,7 @@
     })
     let texture = await makeTexture(args)
     let match
-    if (!args.debug) for (const image of Texture.all) {
+    if (!args.ignoreTextureCheck) for (const image of Texture.all) {
       if (image.img.src === texture.img.src) {
         match = true
         texture = image
@@ -2562,7 +2580,7 @@
         if (typeof fonts[args.font].overlay === "boolean") {
           fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `https://raw.githubusercontent.com/${repo}/main/fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
         }
-        ctx.drawImage(fonts[args.font].overlay, 0, 0)
+        ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
       }
     }
     ctx.globalCompositeOperation = "copy"
@@ -2571,7 +2589,9 @@
     ctx.filter ="hue-rotate(0deg) saturate(100%) brightness(100%) contrast(100%)"
     ctx.globalCompositeOperation = args.blend
     ctx.fillStyle = args.colour
+    ctx.globalAlpha = args.colourOpacity / 100
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = 1
     ctx.globalCompositeOperation = "destination-in"
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
     if (args.customEdge) {
@@ -2601,7 +2621,9 @@
       }
       ctx.globalCompositeOperation = args.overlayBlend
       ctx.imageSmoothingEnabled = false
+      ctx.globalAlpha = args.overlayOpacity / 100
       ctx.drawImage(overlayCanvas.canvas, 0, 0, canvas.width, canvas.height)
+      ctx.globalAlpha = 1
     }
     if (args.customBorder) {
       ctx.globalCompositeOperation = "source-atop"
@@ -2909,9 +2931,9 @@
           <p>${about}</p>
           <br>
           <h2>Getting started</h2>
-          <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong>. You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button (<i class="icon material-icons" style="translate:0 5px">text_fields</i>) in the outliner.</p>
+          <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong>. You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button <i class="icon material-icons" style="translate:0 5px">text_fields</i> in the outliner.</p>
           <br>
-          <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button (<i class="icon material-icons" style="translate:0 5px">auto_mode</i>) will set the camera angle for you.</p>
+          <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button <i class="icon material-icons" style="translate:0 5px">auto_mode</i> will set the camera angle for you.</p>
           ${aboutLinks}
         </div>
       `]
@@ -2993,6 +3015,8 @@
       overlayColourBlend: vue.overlayColourBlend,
       overlayColour: vue.overlayColour,
       smoothGradient: vue.smoothGradient,
+      colourOpacity: vue.colourOpacity,
+      overlayOpacity: vue.overlayOpacity,
       three
     }
   }
