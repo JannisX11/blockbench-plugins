@@ -1915,7 +1915,7 @@
                 </div>
                 <h2>Text Type / Angle</h2>
                 <p>The type of text to add</p>
-                <a href="#0" id="text-type-input">
+                <a href="javascript:void(0)" id="text-type-input" @click="event.stopPropagation()">
                   <select-input v-model="textType" :options="textTypes" />
                 </a>
                 <br>
