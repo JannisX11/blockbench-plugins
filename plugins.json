@@ -758,6 +758,16 @@
 		"min_version": "4.6.0",
 		"variant": "desktop"
 	},
+	"performance_audit": {
+		"title": "Performance Audit",
+		"icon": "network_check",
+		"author": "JannisX11",
+		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
+		"about": "You can run a performance audit via Help > Audit Performance.",
+		"version": "1.0.0",
+		"min_version": "3.0.0",
+		"variant": "both"
+	},
 	"mc_text_generator": {
 		"title": "Minecraft Text Generator",
 		"icon": "text_format",
