@@ -24,7 +24,7 @@
         author,
         description: "Generates Minecraft-styled text in cubes.",
         about: "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
-        tags: ["Minecraft", "Font", "Generator"],
+        tags: ["Deprecated", "Minecraft", "Font"],
         version: "2.0.1",
         min_version: "4.2.0",
         variant: "both",
