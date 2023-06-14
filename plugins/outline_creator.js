@@ -124,9 +124,9 @@ function createOutline(outline_thickness) {
     }
 
     Canvas.updateView({
-		elements: newElements,
-		element_aspects: {transform: true, geometry: true},
-	})
+	elements: newElements,
+	element_aspects: {transform: true, geometry: true},
+    })
 
     Undo.finishEdit('Created outlines');
 }
