@@ -47,7 +47,6 @@
 
         function invertCubes() {
                 Undo.initEdit({elements: Cube.selected, outliner: true});
-                let invertedElements = [];
 
                 for (const cube of Cube.selected) {
 
@@ -81,13 +80,11 @@
                         cube.faces.down.cullface = cube.faces.up.cullface
                         cube.faces.up.rotation += (cube.faces.up.rotation + 180) % 360
                         cube.faces.down.rotation += (cube.faces.down.rotation + 180) % 360
-
-                        invertedElements.push(cube)
                 }
 
                 Canvas.updateView({
-                    elements: invertedElements,
-                    element_aspects: {transform: true, geometry: true},
+                        elements: Cube.selected,
+                        element_aspects: {transform: true, geometry: true},
                 })
 
                 Undo.finishEdit("Inverted cube values", {elements: Cube.selected, outliner: true});
