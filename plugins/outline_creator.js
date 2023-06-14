@@ -49,6 +49,7 @@ Plugin.register('outline_creator', {
 
 function createOutline(outline_thickness) {
     Undo.initEdit({elements: Outliner.elements, outliner: true});
+    let newElements = [];
 
     // Cube handling
     for (const element of Cube.selected) {
@@ -97,6 +98,8 @@ function createOutline(outline_thickness) {
                 }
             }
         }).init();
+
+        newElements.push(outline);
     }
 
     // Mesh handling
@@ -116,9 +119,15 @@ function createOutline(outline_thickness) {
         mesh.resize(outline_thickness, 1, false, false, true);
         mesh.resize(outline_thickness * 2, 2, false, false, true);
         mesh.name = mesh.name + "_outline";
+        
+        newElements.push(mesh);
     }
 
-    Canvas.updateAll();
+    Canvas.updateView({
+		elements: newElements,
+		element_aspects: {transform: true, geometry: true},
+	})
+
     Undo.finishEdit('Created outlines');
 }
 
