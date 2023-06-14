@@ -60,8 +60,8 @@
                         cube.faces.south.texture = cube.faces.north.texture
                         cube.faces.north.cullface = cube.faces.south.cullface 
                         cube.faces.south.cullface = cube.faces.north.cullface
-                        cube.faces.north.rotation += 180
-                        cube.faces.south.rotation += 180
+                        cube.faces.north.rotation += (cube.faces.north.rotation + 180) % 360
+                        cube.faces.south.rotation += (cube.faces.south.rotation + 180) % 360
 
                         cube.faces.east.uv = cube.faces.west.uv
                         cube.faces.west.uv = cube.faces.east.uv
@@ -69,8 +69,8 @@
                         cube.faces.west.texture = cube.faces.east.texture
                         cube.faces.east.cullface = cube.faces.west.cullface 
                         cube.faces.west.cullface = cube.faces.east.cullface
-                        cube.faces.east.rotation += 180
-                        cube.faces.west.rotation += 180
+                        cube.faces.east.rotation += (cube.faces.east.rotation + 180) % 360
+                        cube.faces.west.rotation += (cube.faces.west.rotation + 180) % 360
 
                         cube.faces.up.uv = cube.faces.down.uv
                         cube.faces.down.uv = cube.faces.up.uv
@@ -78,8 +78,8 @@
                         cube.faces.down.texture = cube.faces.up.texture
                         cube.faces.up.cullface = cube.faces.down.cullface 
                         cube.faces.down.cullface = cube.faces.up.cullface
-                        cube.faces.up.rotation += 180
-                        cube.faces.down.rotation += 180
+                        cube.faces.up.rotation += (cube.faces.up.rotation + 180) % 360
+                        cube.faces.down.rotation += (cube.faces.down.rotation + 180) % 360
                 }
 
                 Canvas.updateAll()
