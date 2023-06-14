@@ -84,7 +84,7 @@
     description,
     about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.0.2",
+    version: "1.0.3",
     min_version: "4.7.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -303,7 +303,7 @@
                   <h3 class="markdown">Good to know:</h3>
                   <p class="markdown">
                     <ul>
-                      <li>This format is designed to create Minecraft styled title models.</li>
+                      <li>This format is designed to create Minecraft-styled title models.</li>
                       <li>New text can be added with the <strong>Add Minecraft Title Text</strong> button <i class="icon material-icons" style="font-size:20px">text_fields</i>.</li>
                       <li>There are automatic presets for text positions and text angles, so make sure to check out all of the text options!</li>
                       <li>To render your title, you can use the <strong>Render</strong> mode found at the top right.</li>
@@ -2166,7 +2166,7 @@
           this.content_vue.$el.querySelector("#minecraft-title-text-input").focus()
         },
         onConfirm() {
-          const text = this.content_vue.text.replace(/A/g, "😳").replace(/(?<=\s|^)'/g, "😩").replace(/(?<=\s|^)"/g, "😩😩").replace(/"/g, "''").toLowerCase().trim()
+          const text = this.content_vue.text.replace(/A/g, "😳").replace(/(\s|^)'/g, "$1😩").replace(/(\s|^)"/g, "$1😩😩").replace(/"/g, "''").toLowerCase().trim()
           if (!text) {
             this.content_vue.tab = 0
             Blockbench.showQuickMessage("Please provide some text")
