@@ -84,7 +84,7 @@
     description,
     about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.0.4",
+    version: "1.1.0",
     min_version: "4.7.2",
     variant: "both",
     oninstall: () => showAbout(true),
@@ -1373,14 +1373,14 @@
               }
 
               if ((this.terminators || fonts[this.font].forcedTerminators) && fonts[this.font].terminatorSpace) {
-                addText("┫ ex😳mple ┣", {})
-                addText("┫ text ┣", { type: "bottom" })
+                addText(`┫ ${fonts[this.font].example?.[0] ?? "ex😳mple"} ┣`, {})
+                addText(`┫ ${fonts[this.font].example?.[1] ?? "text"} ┣`, { type: "bottom" })
               } else if (this.terminators || fonts[this.font].forcedTerminators) {
-                addText("┫ex😳mple┣", {})
-                addText("┫text┣", { type: "bottom" })
+                addText(`┫${fonts[this.font].example?.[0] ?? "ex😳mple"}┣`, {})
+                addText(`┫${fonts[this.font].example?.[1] ?? "text"}┣`, { type: "bottom" })
               } else {
-                addText("ex😳mple", {})
-                addText("text", { type: "bottom" })
+                addText(fonts[this.font].example?.[0] ?? "ex😳mple", {})
+                addText(fonts[this.font].example?.[1] ?? "text", { type: "bottom" })
               }
 
               this.renderer = new THREE.WebGLRenderer({
@@ -2466,7 +2466,7 @@
       max = Math.max(max, cube.from[0], cube.to[0])
     }
     let width = (max - min) / 2
-    if (fonts[args.font].autoBorder) width -= 2 * (args.scale[0] + args.scale[1]) / 2 * (args.type === "bottom" ? 0.75 : args.type === "small" ? 0.38 : 1)
+    if (fonts[args.font].autoBorder) width -= 2 * (args.scale[0] + args.scale[1]) / 2 * (args.type === "bottom" ? 0.75 : args.type === "small" ? 0.35 : 1)
     for (const cube of Cube.selected) {
       cube.from[0] += width
       cube.to[0] += width
@@ -2679,7 +2679,7 @@
         maxY = Math.max(maxY, cube.from[1], cube.to[1])
         maxZ = Math.max(maxZ, cube.from[2], cube.to[2])
       }
-      const size = 2 * (args.scale[0] + args.scale[1]) / 2 * (args.type === "bottom" ? 0.75 : args.type === "small" ? 0.38 : 1)
+      const size = 2 * (args.scale[0] + args.scale[1]) / 2 * (args.type === "bottom" ? 0.75 : args.type === "small" ? 0.35 : 1)
       const border = new Cube({
         name: "border",
         from: [maxX + size, maxY + size, maxZ + size],
@@ -2776,14 +2776,14 @@
       } else if (args.type === "small") {
         cube.to[2] -= (maxZ - minZ)
         cube.from[2] -= (maxZ - minZ)
-        cube.to[0] *= 0.38
-        cube.from[0] *= 0.38
-        cube.to[1] *= 0.38
-        cube.from[1] *= 0.38
-        cube.to[2] *= 0.38
-        cube.from[2] *= 0.38
-        cube.to[1] -= args.row * (heightOffset * 0.38) + args.rowSpacing * args.row + heightOffset * 0.38
-        cube.from[1] -= args.row * (heightOffset * 0.38) + args.rowSpacing * args.row + heightOffset * 0.38
+        cube.to[0] *= 0.35
+        cube.from[0] *= 0.35
+        cube.to[1] *= 0.35
+        cube.from[1] *= 0.35
+        cube.to[2] *= 0.35
+        cube.from[2] *= 0.35
+        cube.to[1] -= args.row * (heightOffset * 0.35) + args.rowSpacing * args.row + heightOffset * 0.35
+        cube.from[1] -= args.row * (heightOffset * 0.35) + args.rowSpacing * args.row + heightOffset * 0.35
       } else {
         cube.to[2] -= (maxZ - minZ) / 2
         cube.from[2] -= (maxZ - minZ) / 2
