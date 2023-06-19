@@ -1,5 +1,5 @@
 (async function () {
-  let styles, splashArtStyles, galleryImages
+  let styles, splashArtStyles, galleryImages, customSplash, dialog, settingsDialog
   const id = "splash_art_customiser"
   const title = "Splash Art Customiser"
   const E = s => $(document.createElement(s))
@@ -16,8 +16,8 @@
     description: "Customise the start screen's splash art, by adding your own!",
     about: "This plugin allows you to customise the start screen's splash art by adding your own! If you add multiple splash art images, you can set it to pick a random one every time your launch Blockbench.\n\n## How to use\nOn the top left corner of the splash art, you will find a gear icon. From here you can manage your custom splash arts.\n\n## Splash art types\n- URL - A splash art can be loaded from a URL (faster loading)\n- File - A splash art can be loaded from a file (slower loading)\n- Gallery - Pick an image from the [Blockbench Gallery](https://www.blockbench.net/gallery)\n\n## Supported file types\n- PNG\n- JPG/JPEG\n- GIF\n- WebP\n- SVG",
     tags: ["Splash art", "Start screen", "Blockbench"],
-    version: "1.0.0",
-    min_version: "4.4.3",
+    version: "1.1.0",
+    min_version: "4.7.0",
     variant: "both",
     onload() {
       if (!Blockbench.flags.after_update) setSplashArt()
@@ -167,12 +167,12 @@
       `)
       setTimeout(() => {
         $("#splash_screen").append(
-          E("i").attr("id", "customise-splash-art").addClass("material-icons icon").text("settings").on("click", async e => {
+          E("i").attr("id", "customise-splash-art").addClass("material-icons icon custom-splash").text("settings").on("click", async e => {
             const transaction = db.result.transaction("images", "readonly")
             const get = transaction.objectStore("images").getAll()
             let images = await new Promise(fulfil => get.onsuccess = () => fulfil(get.result))
             if (!galleryImages) galleryImages = await fetch("https://api.github.com/repos/JannisX11/blockbench.net/contents/assets/gallery").then(e => e.json()).then(e => e.map(e => e.download_url)).catch(() => {})
-            const dialog = new Dialog({
+            dialog = new Dialog({
               id,
               title,
               buttons: [],
@@ -216,8 +216,8 @@
                     setSplashArt()
                   },
                   addSplashArt,
-                  setCurrentSplashArt(image) {
-                    setSplashArt(image)
+                  async setCurrentSplashArt(image) {
+                    const data = await setSplashArt(image)
                     Blockbench.showQuickMessage("Applied splash art")
                     if (localStorage.getItem("splash-art-randomisation-disabled")) {
                       const transaction = db.result.transaction("images", "readwrite")
@@ -225,9 +225,13 @@
                       const index = store.index("applied")
                       const get = index.get(["true"])
                       get.onsuccess = () => {
-                        if (get.result) store.put({image: get.result.image})
+                        if (get.result) {
+                          delete get.result.applied
+                          store.put(get.result)
+                        }
                         const transaction = db.result.transaction("images", "readwrite")
-                        store.put({image, applied: "true"})
+                        data.applied = "true"
+                        store.put(data)
                       }
                       this.images.forEach(e => e.applied = false)
                       this.images.find(e => e.image === image).applied = true
@@ -329,11 +333,15 @@
           })
         )
       }, 100)
+      $(".start_screen_close_button").addClass("custom-splash")
     },
     onunload() {
       styles.delete()
       splashArtStyles?.delete()
       $("#customise-splash-art").remove()
+      customSplash.remove()
+      dialog?.close()
+      settingsDialog?.close()
     },
     onuninstall() {
       const transaction = db.result.transaction("images", "readwrite")
@@ -366,7 +374,8 @@
       "Space",
       "Round"
     ]
-    const dialog = new Dialog({
+    dialog?.close()
+    settingsDialog = new Dialog({
       id: "splash_art_settings",
       title: "Splash art settings",
       lines: [`
@@ -421,10 +430,10 @@
     }).show()
     const preview = $("dialog#splash_art_settings #splash-art-settings-preview")
     const updatePreview = () => preview.css({
-      aspectRatio: aspectRatios[parseInt(dialog.form.aspectRatio.bar.find("bb-select").attr("value"))].replace(":", " / "),
-      imageRendering: imageRenderers[parseInt(dialog.form.imageRendering.bar.find("bb-select").attr("value"))].toLowerCase(),
-      backgroundSize: backgroundSizes[parseInt(dialog.form.backgroundSize.bar.find("bb-select").attr("value"))].toLowerCase(),
-      backgroundRepeat: backgroundRepeats[parseInt(dialog.form.backgroundRepeat.bar.find("bb-select").attr("value"))].toLowerCase().replace(" ", "-")
+      aspectRatio: aspectRatios[parseInt(settingsDialog.form.aspectRatio.bar.find("bb-select").attr("value"))].replace(":", " / "),
+      imageRendering: imageRenderers[parseInt(settingsDialog.form.imageRendering.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundSize: backgroundSizes[parseInt(settingsDialog.form.backgroundSize.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundRepeat: backgroundRepeats[parseInt(settingsDialog.form.backgroundRepeat.bar.find("bb-select").attr("value"))].toLowerCase().replace(" ", "-")
     })
     updatePreview()
     const observer = new MutationObserver(updatePreview)
@@ -464,17 +473,25 @@
       })
     }
     if (image) setBackgroundImage(image)
+    return image
   }
   function setBackgroundImage(data) {
+    if (!customSplash) customSplash = E("div").attr("id", "custom-spash-art").addClass("custom-splash").appendTo("#splash_screen")
     splashArtStyles = Blockbench.addCSS(`
-      #splash_screen > .graphic {
+      #splash_screen {
+        aspect-ratio: ${data.aspectRatio ?? "64 / 27"}!important;
+      }
+
+      #custom-spash-art {
         background-image: url("${data.image}")!important;
         aspect-ratio: ${data.aspectRatio ?? "64 / 27"}!important;
         image-rendering: ${data.imageRendering ?? "initial"}!important;
         background-size: ${data.backgroundSize ?? "cover"}!important;
         background-repeat: ${data.backgroundRepeat ?? "no-repeat"}!important;
+        background-position: 50% 50%;
       }
-      #splash_screen > .graphic > p {
+
+      #splash_screen > *:not(.custom-splash) {
         display: none;
       }
     `)

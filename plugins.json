@@ -9,6 +9,15 @@
 		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
 		"icon": "print"
 	},
+	"animated_java": {
+		"title": "Animated Java",
+		"author": "Titus Evans (SnaveSutit)",
+		"icon": "icon-armor_stand",
+		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
+		"version": "0.3.9a",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"]
+	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
 		"author": "DoubleFelix",
@@ -54,15 +63,6 @@
 		"version": "1.0.0",
 		"variant": "both"
 	},
-	"animated_java": {
-		"title": "Animated Java",
-		"author": "SnaveSutit & FetchBot",
-		"icon": "icon-armor_stand",
-		"description": "Generates smooth animations for vanilla java edition using a data pack, a resource pack, and lots of armor stands.\n\"Let the java mobs dance too!\"",
-		"version": "0.2.4",
-		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation","Armor Stand"]
-	},
 	"optimize": {
 		"title": "Optimize",
 		"author": "Krozi",
@@ -97,11 +97,11 @@
 	"outline_creator": {
 		"title": "Outline Creator",
 		"author": "Wither",
-		"description": "Creates stylistic outlines for cubes using negative scale values.",
-		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>",
+		"description": "Creates stylistic outlines for cubes and meshes using negative scale values.",
+		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.",
 		"icon": "crop_square",
-		"version": "1.0.3",
-		"min_version": "3.0.0",
+		"version": "1.1.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"vox_importer": {
@@ -153,7 +153,7 @@
 		"author": "JannisX11",
 		"description": "Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.3.0",
+		"version": "1.3.1",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -183,7 +183,7 @@
 		"icon": "keyboard",
 		"author": "JannisX11",
 		"description": "Displays the key combinations you press on screen. Useful for tutorial videos.",
-		"version": "0.1.1",
+		"version": "0.2.0",
 		"variant": "both",
 		"min_version": "3.2.1"
 	},
@@ -268,8 +268,8 @@
 		"description": "Customise the start screen's splash art, by adding your own!",
 		"about": "This plugin allows you to customise the start screen's splash art by adding your own! If you add multiple splash art images, you can set it to pick a random one every time your launch Blockbench.\n\n## How to use\nOn the top left corner of the splash art, you will find a gear icon. From here you can manage your custom splash arts.\n\n## Splash art types\n- URL - A splash art can be loaded from a URL (faster loading)\n- File - A splash art can be loaded from a file (slower loading)\n- Gallery - Pick an image from the [Blockbench Gallery](https://www.blockbench.net/gallery)\n\n## Supported file types\n- PNG\n- JPG/JPEG\n- GIF\n- WebP\n- SVG",
 		"tags": ["Splash art", "Start screen", "Blockbench"],
-		"version": "1.0.0",
-		"min_version": "4.4.3",
+		"version": "1.1.0",
+		"min_version": "4.7.0",
 		"variant": "both"
 	},
 	"scene_recorder": {
@@ -279,7 +279,7 @@
 		"description": "Add a new scene recorder where you can record your model in a large variety of formats.",
 		"about": "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
 		"tags": ["Recording", "Media"],
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"min_version": "4.5.2",
 		"variant": "desktop"
 	},
@@ -303,6 +303,17 @@
 		"tags": ["Tracking", "Stats", "Utility"],
 		"version": "1.0.0",
 		"min_version": "4.6.5",
+		"variant": "both"
+	},
+	"minecraft_title_generator": {
+		"title": "Minecraft Title Generator",
+		"icon": "text_fields",
+		"author": "Ewan Howell",
+		"description": "Create Minecraft-styled title models!",
+		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
+		"tags": ["Minecraft", "Title", "Logo"],
+		"version": "1.0.4",
+		"min_version": "4.7.2",
 		"variant": "both"
 	},
 	"threecore_exporter": {
@@ -407,7 +418,7 @@
 		"icon": "storefront",
 		"author": "JannisX11",
 		"description": "Bakes complex animations into simple linear keyframes",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -437,7 +448,7 @@
 		"description": "Adds multiple sliders to tweak keyframes",
 		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.",
 		"tags": ["Animation"],
-		"version": "0.3.0",
+		"version": "0.3.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -539,8 +550,9 @@
 		"icon": "fas.fa-vector-square",
 		"author": "Malik12tree",
 		"description": "Adds helpful Mesh Modeling Tools, Operators and Generators!",
-		"version": "1.0.5",
-		"about": "<style>.mtools_private td:nth-child(2) {padding-left: 20px}</style><h2>Modeling Tools</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</p><table class=\"mtools_private\"><tr><td>To Sphere</td><td>Casts selected vertices into a sphere based on an influence</td></tr><tr><td>Laplacian Smooth</td><td>Smoothes selected vertices by averaging the position of neighboring vertices</td></tr><tr></tr><tr><td>Poke Faces</td><td> Creates a Fan out of selected faces</td></tr><tr><td>Triangles To Quads</td><td> Trys to dissolve adjacent triangles into a quad</td></tr><tr><td>Triangulate Faces</td><td> Cuttes a face into triangles</td></tr><tr><td>Project From View</td><td> Creates a UV map based on the vertice's position on the screen from the camera</td></tr><tr><td>Cubic Projection</td><td> Creates a UV map based on the sides of a cube</td></tr></table><h2>Modeling Operators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the mesh menu. For applying modifications on selected meshes</p><table class=\"mtools_private\"><tr><td>Subdivide</td><td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td></tr><tr><td>Split Edges</td><td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges</td></tr><tr><td>Scatter</td><td> Scatters selected meshes on the active mesh</td></tr><tr><td>Array</td><td> Creates an array of copies of the base object, with each copy being offset from the previous one</td></tr></table><h2>Mesh Generators</h2><p class='small_text subtle' style='display: inline;'>Accessed from the tool menu. For procedural mesh generatation</p><table class=\"mtools_private\"><tr><td>Terrain</td><td> Generates Terrains procedurally with fully customized settings</td></tr><tr><td>Text Mesh</td><td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenType Font is a format for scalable comuter fonts that are stored in JSON files, a good converter is http://gero3.github.io/facetype.js/</i></td></tr><tr><td>XYZ Math Surface Function</td><td> Creates an xyz surface based on given inputs. Also contains already-made 23 presets!\n</td></tr><tr><td>Polyhedron Primitive</td><td> Generate the basic 4 regular polyhedron with custom detail</td></tr><tr><td>Torus Knot Primitive</td><td>Generates a p-q torus knot with custom settings</td></tr></table>",
+		"version": "1.0.7",
+		"min_version": "4.7.0",
+		"about": "<div class=\"mtools_private\"> <style> .mtools_private td:nth-child(2) { padding-left: 20px }  .mtools_private summary { color: var(--color-subtle_text); } .mtools_private details[open] summary { color: white; }  .mtools_private summary::before { content: 'chevron_right'; font-family: Material Icons; } .mtools_private details[open] summary::before { content: 'expand_more'; } </style><details> <summary>Modeling Tools</summary> <table> <caption class='small_text subtle'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</caption> <tr> <td>To Sphere</td> <td>Casts selected vertices into a sphere based on an influence</td> </tr> <tr> <td>Laplacian Smooth</td> <td>Smoothens selected vertices by averaging the position of neighboring vertices</td> </tr> <tr></tr> <tr> <td>Poke Faces</td> <td> Creates a Fan out of selected faces</td> </tr> <tr> <td>Triangles To Quads</td> <td> Trys to dissolve adjacent triangles into a quad</td> </tr> <tr> <td>Triangulate Faces</td> <td> Cuts a face into triangles</td> </tr> <tr> <td>Project From View</td> <td> Creates a UV map based on the vertices' position on the screen from the camera</td> </tr> <tr> <td>Cubic Projection</td> <td> Creates a UV map based on the sides of a cube</td> </tr> </table> </details> <details> <summary>Modeling Operators</summary> <table> <caption class='small_text subtle'>Accessed from the mesh menu. For applying modifications on selected meshes</caption> <tr> <td>Subdivide</td> <td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td> </tr> <tr> <td>Split Edges</td> <td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges </td> </tr> <tr> <td>Scatter</td> <td> Scatters selected meshes on the active mesh</t<d> </tr> <tr> <td>Array</td> <td> Creates an array of copies of the base object, with each copy being offset from the previous one </td> </tr> </table> </details> <details> <summary>Mesh Generators</summary> <table> <caption class='small_text subtle'>Accessed from the tool menu. For procedural mesh generation</caption> <tr> <td>Terrain</td> <td> Generates Terrains procedurally with fully customized settings</td> </tr> <tr> <td>Text Mesh</td> <td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenTypeFont is a format for scalable computer fonts that are stored in JSON files, a good converter is <a href=\"http://gero3.github.io/facetype.js/\">gero3.github.io/facetype.js</a></i></td> </tr> <tr> <td>XYZ Math Surface Function</td> <td> Creates an xyz surface based on given inputs containing 23 already-made presets!</td> </tr> <tr> <td>Polyhedron Primitive</td> <td> Generate the basic 4 regular polyhedron with custom detail</td> </tr> <tr> <td>Torus Knot Primitive</td> <td>Generates a p-q torus knot with custom settings</td> </tr> </table> </details> </div>",
 		"variant": "both",
 		"tags": ["Format: Generic Model", "Edit"]
 	},
@@ -577,14 +589,14 @@
 		"about": "Tint Preview is a tool to help designers who work with the tint face feature of Java Block/Item models. It features the ability to quickly preview a color on tint enabled faces. Tint Preview adds two new actions to the Tools menu that allows you to toggle tinting and change the tint color.\n**Important:** This plugin is designed for Java Block/Item models only and will not work for other formats."
 	},
 	"pie_menu": {
-		"title":"Pie Menus",
-		"icon":"fas.fa-chart-pie",
-		"author":"Malik12tree",
-		"description":"Add pie shaped menus for faster work.",
+		"title": "Pie Menus",
+		"icon": "fas.fa-chart-pie",
+		"author": "Malik12tree",
+		"description": "Add pie shaped menus for faster work.",
 		"about": "<style>.piePrivate p{width: fit-content;display: inline;margin-left: 10px !important;}.piePrivate tr td:nth-child(2){padding-left:10px}.piePrivate2 td, .piePrivate2 th{padding:0 10px}</style><h1>Built-in Pies</h1><table class=piePrivate><tr>    <td>Add Pie</td>    <td>Keybind: </td>    <td><p><code>ctrl + shift + a</code></p></td></tr><tr>    <td>Import Pie</td>    <td>Keybind: </td>    <td><p><code>shift + q</code></p></td></tr><tr>    <td>Export Pie</td>    <td>Keybind: </td>    <td><p><code>shift + w</code></p></td></tr><tr>    <td>Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + tab (web: shift + x)</code></p></td></tr><tr>    <td>View Mode Pie</td>    <td>Keybind: </td>    <td><p><code>alt + z</code></p></td></tr><tr>    <td>Toolbox Pie</td>    <td>Keybind: </td>    <td><p><code>shift + t</code></p></td></tr><tr>    <td>New Pie</td>    <td>Keybind: </td>    <td><p><code>shift + n</code></p></td></tr><tr>    <td>Preferences Pie</td>    <td>Keybind: </td>    <td><p><code>shift + o</code></p></td></tr><tr>    <td>Rotate Pie</td>    <td>Keybind: </td>    <td><p><code>shift + r</code></p></td></tr><tr>    <td>Flip Pie</td>    <td>Keybind: </td>    <td><p><code>shift + f</code></p></td></tr><tr>    <td>Center Pie</td>    <td>Keybind: </td>    <td><p><code>shift + c</code></p></td></tr><tr>    <td>Properties Pie</td>    <td>Keybind: </td>    <td><p><code>shift + p</code></p></td></tr></table><h1>API</h1><h2>CSS Variables</h2><table class=piePrivate2><tr><th>Name</th><th>Default</th><th>Description</th></tr><tr><td>--pie-dir_idct_size</td><td>10%</td><td>sets the angle indicator size</td></tr><tr><td>--pie-major_radius</td><td>30px</td><td>sets the center pie's radius</td></tr><tr><td>--pie-major_thickness</td><td>22px</td><td>sets the center pie's thickness</td></tr></table>",
-		"version":"1.0.0",
-		"variant":"both",
-		"tags":["Interface"]
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Interface"]
 	},
 	"quick_box_uv_layout": {
 		"title": "Quick Box-UV Layout",
@@ -597,12 +609,12 @@
 	},
 	"animation_to_java": {
 		"title": "Animation to Java Converter",
-		"author": "MG,Vincent_Huto(PR),DailyCraft(PR)",
-		"description": "Converts Blockbench animations to Java code for the new 1.19 keyframe system",
+		"author": "MG, Vincent_Huto(PR), DailyCraft(PR), MarcusSlover(PR)",
+		"description": "Converts Blockbench animations to Java code for the new 1.19+ keyframe system.",
 		"icon": "fa-cube",
-		"version": "1.1.2",
+		"version": "1.2.0",
 		"variant": "both",
-		"about": "This plugin exports your blockbench animations as java code to be used for the new 1.19 keyframe system. Please note that this system does not support Molang or step interpolation",
+		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
 		"tags": ["Minecraft: Java Edition"]
 	},
 	"root_motion_extractor": {
@@ -610,7 +622,7 @@
 		"icon": "fa-exchange",
 		"author": "Tschipp",
 		"description": "Attempts to extract root motion from an animation",
-		"about" : "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
+		"about": "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
 		"tags": ["Minecraft: Bedrock Edition", "Animation", "Root Motion"],
 		"version": "1.1.0",
 		"variant": "both"
@@ -620,9 +632,9 @@
 		"icon": "icon-format_free",
 		"author": "SirJain",
 		"description": "Edits the opacity and color of the ground plane feature in Blockbench.",
-		"about" : "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
+		"about": "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Ground Plane", "Animation", "Customization"],
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -631,7 +643,7 @@
 		"icon": "colorize",
 		"author": "SirJain and Geode",
 		"description": "Allows users to add their own marker colors.",
-		"about" : "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
+		"about": "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
 		"tags": ["Marker Color", "Customize", "UX"],
 		"version": "1.1.0",
 		"min_version": "4.2.0",
@@ -672,7 +684,7 @@
 		"icon": "trending_up",
 		"author": "Malik12tree",
 		"description": "View download statistics of your blockbench plugin",
-		"version": "1.2.0",
+		"version": "1.3.0",
 		"variant": "both",
 		"tags": ["Blockbench", "Plugins", "Development"]
 	},
@@ -691,7 +703,7 @@
 		"author": "JannisX11",
 		"description": "Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.",
 		"about": "Cameras can be added through the Edit menu. Enabling Quad View from View > Toggle Quad View is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.5.0",
 		"variant": "both"
 	},
@@ -746,14 +758,24 @@
 		"min_version": "4.6.0",
 		"variant": "desktop"
 	},
+	"performance_audit": {
+		"title": "Performance Audit",
+		"icon": "network_check",
+		"author": "JannisX11",
+		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
+		"about": "You can run a performance audit via Help > Audit Performance.",
+		"version": "1.1.0",
+		"min_version": "3.0.0",
+		"variant": "both"
+	},
 	"mc_text_generator": {
 		"title": "Minecraft Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
 		"description": "Generates Minecraft-styled text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
-		"tags": ["Minecraft", "Font", "Generator"],
-		"version": "2.0.0",
+		"tags": ["Deprecated", "Minecraft", "Font"],
+		"version": "2.0.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -764,10 +786,10 @@
 		"description": "Flashes elements based on template conditions.",
 		"about": "This plugin allows you to flash elements that meet certain preset conditions on-screen.\\n## How to use\\nTo use this plugin, simply go to `Tools -> Utility Flaggers`. Pick a preset option, fill out your preferred settings, and press `Flag`!",
 		"tags": ["Utility", "BoxUV", "Format: Generic Model"],
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"min_version": "4.2.0",
-    		"variant": "both"
-  	},
+		"variant": "both"
+	},
 	"skin_mirror": {
 		"title": "Skin Mirror",
 		"icon": "icon-mirror_x",
@@ -779,16 +801,26 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
+
 	"bamo":{
 		"title": "BAMO Exporter",
 		"author": "Ryytikki",
 		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
 		"icon": "bar_chart",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "0.4.3",
+		"version": "0.5.0",
 		"variant": "desktop"
   },
-	"azurelibsl_utils": {
+	"animation_to_jsonea": {
+		"title": "Animation to JsonEA Converter",
+		"author": "Gaming32",
+		"description": "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+		"icon": "fa-cube",
+		"tags": ["Animation", "Minecraft: Java Edition"],
+		"variant": "both",
+		"version": "1.0.0"
+	},
+	"azurelib_utils": {
 		"title": "AzureLib Utils",
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
 		"icon": "icon-zombie",
@@ -797,6 +829,16 @@
 		"version": "1.0.0",
 		"min_version": "4.0.0",
 		"await_loading": true,
+		"variant": "both"
+	},
+	"cube_inverter": {
+		"title": "Cube Inverter",
+		"author": "SirJain",
+		"icon": "swap_horiz",
+		"description": "Adds a button that inverts selected cube sizes.",
+		"about": "This plugin adds a button that inverts the size values of each selected cube.\n## How to use\nTo use this plugin, go to the toolbar at the top of the screen (the one with the move, resize, and rotation tools) and click the `Invert Cubes` button. If you don't see the button, make sure to select some cubes. The button is also keybinded with a default of `Shift + I`.\n\nPlease report any bugs or suggestions you may have.",
+		"version": "1.0.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	}
 }

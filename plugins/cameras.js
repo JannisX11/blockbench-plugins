@@ -8,7 +8,7 @@ BBPlugin.register('cameras', {
 	author: 'JannisX11',
 	description: 'Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.',
 	about: 'Cameras can be added through the Edit menu. Enabling Quad View from View > Toggle Quad View is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
-	version: '1.0.0',
+	version: '1.0.1',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -164,7 +164,7 @@ BBPlugin.register('cameras', {
 				this.dispatchEvent('setup', {element});
 			},
 			updateTransform(element) {
-				NodePreviewController.prototype.updateTransform(element);
+				NodePreviewController.prototype.updateTransform.call(this, element);
 				element.mesh.fix_position.copy(element.mesh.position);
 				element.mesh.fix_rotation.copy(element.mesh.rotation);
 
