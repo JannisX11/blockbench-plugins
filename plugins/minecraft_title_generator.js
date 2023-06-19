@@ -2651,7 +2651,10 @@
       texture.magFilter = THREE.NearestFilter
       return texture
     }
-    return new Texture({ name: `${args.name ?? makeName(args.text)}.png` }).fromDataURL(canvas.toDataURL())
+    return new Texture({
+      name: `${args.name ?? makeName(args.text)}.png`,
+      render_sides: "front"
+    }).fromDataURL(canvas.toDataURL())
   }
 
   function makeWord(text, offset, parent, args) {
