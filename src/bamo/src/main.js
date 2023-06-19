@@ -14,7 +14,7 @@ Plugin.register('bamo', {
 	description: 'Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on',
 	icon: 'bar_chart',
 	tags: ['Minecraft: Java Edition'],
-	version: '0.4.3',
+	version: '0.5.0',
 	variant: 'desktop',
 	
 	onload() {

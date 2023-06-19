@@ -1,19 +1,9 @@
-export function imageNameToTexture(namespace, type, image){
-    var nm = ""
-    if (image.name){
-        nm = cleanFileName(image.name.split(".")[0])
-    }else{
-        nm = cleanFileName(image.split(".")[0])
-    }
-    return namespace + ":" + type + "/" + nm
-}
-
-export function dictFromTexture(image, ns){
+export function dictFromTexture(image, ns, name){
     var ret = ""
     Texture.all.forEach(function(tx){
         if ((tx.name == image) || (image == "particle" && tx.particle == true)){
             if (tx.namespace == ""){
-                ret = ns + ":blocks/" + cleanFileName(tx.name.split(".")[0])
+                ret = ns + ":blocks/" + name + "_" + cleanFileName(tx.name.split(".")[0])
             }else{
                 ret = tx.namespace + ":" + tx.folder + "/" + cleanFileName(tx.name.split(".")[0])
             }
