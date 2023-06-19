@@ -272,6 +272,7 @@ BBPlugin.register('explorer', {
 						if (!index) return;
 						let arr = this.path.split(/[/\\]+/)
 						arr = arr.slice(0, -Math.min(index, arr.length-2));
+						if (arr[0].length === 0) arr[0] = PathModule.sep;
 						this.goTo(PathModule.join(...arr));
 					},
 					createFile(event) {
@@ -366,7 +367,6 @@ BBPlugin.register('explorer', {
 							<div class="tool" @click="createFile($event)" title="New File"><i class="material-icons">note_add</i></div>
 						</div>
 						<ul class="list">
-							<li 
 							<li v-for="file in files" :key="file.path"
 								class="sidebar_explorer_file" :class="{selected: selected.includes(file.path), unsupported: file.icon.textContent == 'insert_drive_file'}"
 								@click="clickFile(file)" @dblclick="dblClickFile(file)" @contextmenu.stop="openContextMenu(file, $event)"

@@ -98,8 +98,9 @@
 		"title": "Outline Creator",
 		"author": "Wither",
 		"description": "Creates stylistic outlines for cubes using negative scale values.",
-		"about": "To use the plugin, select an element you want to create an outline for, go to the Filter tab and click on the Create Outline option.",
+		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>",
 		"icon": "crop_square",
+		"version": "1.0.3",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -174,6 +175,7 @@
 		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
 		"tags": ["CraftStudio"],
 		"variant": "both",
+		"version": "0.1.2",
 		"min_version": "3.2.0"
 	},
 	"screencast_keys": {
@@ -291,6 +293,17 @@
 		"version": "1.0.0",
 		"min_version": "4.5.2",
 		"variant": "desktop"
+	},
+	"activity_tracker": {
+		"title": "Activity Tracker",
+		"icon": "trending_up",
+		"author": "Ewan Howell",
+		"description": "Track how long you spend using Blockbench and working on each project.",
+		"about": "This plugin allows you to keep track of how much time you spend using Blockbench and how long you spend working on each project.\n\nTo view your activity stats, go to `Tools > Activity Tracker`. From here you can see all your stats for both Blockbench and the current project.",
+		"tags": ["Tracking", "Stats", "Utility"],
+		"version": "1.0.0",
+		"min_version": "4.6.5",
+		"variant": "both"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
@@ -630,7 +643,7 @@
 		"description": "Export your java models and texture into a resourcepack",
 		"icon": "fa-file-zipper",
 		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.4.0",
 		"variant": "both"
 	},
@@ -697,8 +710,8 @@
 		"title": "BBS model exporter",
 		"icon": "fa-file-export",
 		"author": "McHorse",
-		"description": "Adds a model exporter which allows to export models in BBS model format",
-		"version": "1.1.1",
+		"description": "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
+		"version": "1.1.2",
 		"variant": "both",
 		"tags": ["Exporter"]
 	},
@@ -740,7 +753,7 @@
 		"description": "Generates Minecraft-styled text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Minecraft", "Font", "Generator"],
-		"version": "1.0.0",
+		"version": "2.0.0",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -774,5 +787,16 @@
 		"tags": ["Minecraft: Java Edition"],
 		"version": "0.4.3",
 		"variant": "desktop"
+  },
+	"azurelibsl_utils": {
+		"title": "AzureLib Utils",
+		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
+		"icon": "icon-zombie",
+		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"await_loading": true,
+		"variant": "both"
 	}
 }
