@@ -453,10 +453,10 @@
 		"variant": "both"
 	},
 	"voxel_shape_generator": {
-		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
+		"title": "VoxelShape Generators",
 		"icon": "fa-cubes",
 		"author": "Spectre0987",
-		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
+		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
 		"version": "0.1.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
