@@ -7,7 +7,7 @@
 (function() {    
     const pluginProperties = {
         
-        title: 'sam3DJTINT',
+        title: 'sam3DJ',
         author: '1Turtle',
         tags: ['Minecraft: Java Edition', 'Format', 'Exporter'],
         version: '1.0.2',
@@ -331,8 +331,8 @@
     }
     
     const btnExport = new Action('export_3dj', {
-        name: 'Export 3DJ Model TINTINSERT',
-        description: 'Export model as a .3DJ TINT (.json) file for 3D Printers',
+        name: 'Export 3DJ Model',
+        description: 'Export model as a .3DJ (.json) file for 3D Printers',
         icon: 'print',
         category: 'file',
         condition: () => (Project !== 0),
@@ -393,5 +393,5 @@
         }
     });
     
-    Plugin.register('sam3djTINTINSERT', pluginProperties);
+    Plugin.register('sam3dj', pluginProperties);
     })();
