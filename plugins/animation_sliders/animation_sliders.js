@@ -6,12 +6,13 @@
 
 	Plugin.register('animation_sliders', {
 		title: 'Animation Sliders',
-		icon: 'fas.fa-bezier-curve',
+		icon: 'icon.png',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
 		tags: ['Animation'],
 		version: '0.3.1',
 		min_version: '3.7.0',
+		new_repository_format: true,
 		variant: 'both',
 		onload() {
 
