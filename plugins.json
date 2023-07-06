@@ -97,11 +97,11 @@
 	"outline_creator": {
 		"title": "Outline Creator",
 		"author": "Wither",
-		"description": "Creates stylistic outlines for cubes using negative scale values.",
-		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.\n<b>Note: This plugin only works on cubes!</b>",
+		"description": "Creates stylistic outlines for cubes and meshes using negative scale values.",
+		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.",
 		"icon": "crop_square",
-		"version": "1.0.3",
-		"min_version": "3.0.0",
+		"version": "1.1.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	},
 	"vox_importer": {
@@ -305,6 +305,17 @@
 		"min_version": "4.6.5",
 		"variant": "both"
 	},
+	"minecraft_title_generator": {
+		"title": "Minecraft Title Generator",
+		"icon": "text_fields",
+		"author": "Ewan Howell",
+		"description": "Create Minecraft-styled title models!",
+		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
+		"tags": ["Minecraft", "Title", "Logo"],
+		"version": "1.1.1",
+		"min_version": "4.7.2",
+		"variant": "both"
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
@@ -442,10 +453,10 @@
 		"variant": "both"
 	},
 	"voxel_shape_generator": {
-		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
+		"title": "VoxelShape Generators",
 		"icon": "fa-cubes",
 		"author": "Spectre0987",
-		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
+		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
 		"version": "0.1.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
@@ -747,14 +758,24 @@
 		"min_version": "4.6.0",
 		"variant": "desktop"
 	},
+	"performance_audit": {
+		"title": "Performance Audit",
+		"icon": "network_check",
+		"author": "JannisX11",
+		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
+		"about": "You can run a performance audit via Help > Audit Performance.",
+		"version": "1.1.0",
+		"min_version": "3.0.0",
+		"variant": "both"
+	},
 	"mc_text_generator": {
 		"title": "Minecraft Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
 		"description": "Generates Minecraft-styled text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
-		"tags": ["Minecraft", "Font", "Generator"],
-		"version": "2.0.0",
+		"tags": ["Deprecated", "Minecraft", "Font"],
+		"version": "2.0.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -798,6 +819,16 @@
 		"version": "1.0.0",
 		"min_version": "4.0.0",
 		"await_loading": true,
+		"variant": "both"
+	},
+	"cube_inverter": {
+		"title": "Cube Inverter",
+		"author": "SirJain",
+		"icon": "swap_horiz",
+		"description": "Adds a button that inverts selected cube sizes.",
+		"about": "This plugin adds a button that inverts the size values of each selected cube.\n## How to use\nTo use this plugin, go to the toolbar at the top of the screen (the one with the move, resize, and rotation tools) and click the `Invert Cubes` button. If you don't see the button, make sure to select some cubes. The button is also keybinded with a default of `Shift + I`.\n\nPlease report any bugs or suggestions you may have.",
+		"version": "1.0.0",
+		"min_version": "4.2.0",
 		"variant": "both"
 	}
 }
