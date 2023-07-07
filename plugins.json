@@ -769,7 +769,7 @@
 		"variant": "both"
 	},
 	"mc_text_generator": {
-		"title": "Minecraft Text Generator",
+		"title": "Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
 		"description": "Generates Minecraft-styled text in cubes.",

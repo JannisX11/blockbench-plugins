@@ -6,7 +6,7 @@
 
     // Plugin information variables
     const id = "mc_text_generator"
-    const name = "Minecraft Text Generator"
+    const name = "Text Generator"
     const icon = "text_format"
     const author = "SirJain"
 
