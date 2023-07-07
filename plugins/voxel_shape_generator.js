@@ -8,7 +8,7 @@
         author: 'Spectre0987',
         description: 'Generates Voxel Shapes (Supports Mojang Mappings and MCP)',
         icon: 'bar_chart',
-        version: '0.0.1',
+        version: '0.1.0',
         variant: 'both',
         tags: ["Minecraft: Java Edition"],
         onload(){

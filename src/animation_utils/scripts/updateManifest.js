@@ -16,4 +16,4 @@ fs.writeFileSync(PACKAGE_MANIFEST_PATH, eol.crlf(JSON.stringify(manifest, null, 
 
 // console.log('manifest', manifest);
 
-console.log(`Wrote manifest to ${PACKAGE_MANIFEST_PATH}.`);
+// console.log(`Wrote manifest to ${PACKAGE_MANIFEST_PATH}.`);

@@ -450,13 +450,14 @@
 		"tags": ["Animation"],
 		"version": "0.3.1",
 		"min_version": "3.7.0",
+		"new_repository_format": true,
 		"variant": "both"
 	},
 	"voxel_shape_generator": {
-		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
+		"title": "VoxelShape Generators",
 		"icon": "fa-cubes",
 		"author": "Spectre0987",
-		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
+		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
 		"version": "0.1.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
