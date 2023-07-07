@@ -163,7 +163,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
             let finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
 
             if (finalEasing != currentEasing) {
-              console.log("Changed from " + currentEasing + " to " + finalEasing);
+            //   console.log("Changed from " + currentEasing + " to " + finalEasing);
               updateKeyframeEasing(finalEasing);
             }
           };
