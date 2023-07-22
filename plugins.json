@@ -765,7 +765,7 @@
 		"author": "JannisX11",
 		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
 		"about": "You can run a performance audit via Help > Audit Performance.",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
