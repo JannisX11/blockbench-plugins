@@ -770,10 +770,10 @@
 		"variant": "both"
 	},
 	"mc_text_generator": {
-		"title": "Minecraft Text Generator",
+		"title": "Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
-		"description": "Generates Minecraft-styled text in cubes.",
+		"description": "Generates blocky text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Deprecated", "Minecraft", "Font"],
 		"version": "2.0.1",
