@@ -3,8 +3,10 @@
  *  Author:     Sammy L. Koch (1Turtle)
  *  Licence:    Apache-2.0 (see https://www.apache.org/licenses/LICENSE-2.0.txt)
 */
+
 (function() {    
     const pluginProperties = {
+        
         title: 'sam3DJ',
         author: '1Turtle',
         tags: ['Minecraft: Java Edition', 'Format', 'Exporter'],
@@ -20,6 +22,7 @@
             MenuBar.removeAction('file.export.export_3dj');
         }
     };
+    
     const SC_TEXTURE_BLANK = 'sc-peripherals:block/white';
     
     /**
@@ -27,10 +30,35 @@
      * @param {*} cube The cube, which holds the wanted texture.
      * @returns The wanted texture, fitting to the cube. (+ some booleans) in a object.
      */
+    
+
+    function getTint(cube) {  //Get Tint function
+        let tmp = cube.faces['up'].getTexture();  //Gets texture for top face
+        targetRectangle = cube.faces['up'].getBoundingRect();  
+        
+        targetCanvas = Painter.getCanvas(tmp);
+        targetContext = targetCanvas.getContext('2d');
+        buffer = targetContext.getImageData(targetRectangle.ax, targetRectangle.ay, 1, 1);
+        
+        var hex = [  //converts RGB to hex value and adds to array
+            Math.round(buffer.data[0]).toString(16),
+            Math.round(buffer.data[1]).toString(16),
+            Math.round(buffer.data[2]).toString(16)
+        ];
+        for (var i = 0; i < hex.length; i++) {  //standardises values to 2, by adding zero if not long enough
+            if (hex[i].length === 1) {
+                hex[i] = '0' + hex[i];
+            }
+        }
+
+        return hex.join("");
+    }
+
     function getSingleTexture(cube) {
         let faces = 0;
         let missing = false;
         let texture = SC_TEXTURE_BLANK;
+        let Tint = getTint(cube);  //Calls to get Cube Top Face colour
     
         for (let dir in cube.faces) { //in ['north', 'east', 'south', 'west', 'up', 'down']
             let tmp = cube.faces[dir].getTexture();
@@ -58,9 +86,10 @@
                 texture = id;
             }
         }
-    
+        
         return {
             texture: texture,
+            textureTint: Tint,
             missingTexture: missing,
             multipleTexture: (faces > 1),
         };
@@ -71,8 +100,11 @@
      * @param {*} obj The given element (e.g. Cube).
      * @returns The fianl shape (+ some booleans) in a object.
      */
-    function genShape(cube, raw = false) {
+    function genShape(cube, raw = false, useTint = false) {
+        
+
         let result = getSingleTexture(cube);
+        
         let shape = {
             bounds: [
                 cube.from[0],
@@ -87,13 +119,20 @@
         };
     
         if (!raw)
-            shape.tint = 'FFFFFF';
+            if (useTint){  //if Use Tint checkbox then assign as Tint, remove Texture
+                shape.tint = result.textureTint;  
+                shape.texture = SC_TEXTURE_BLANK;
+            } else{  //default behaviour
+                shape.tint = 'FFFFFF';
+            }
+            
     
         return {
             shape: shape,
             missingTexture: result.missingTexture,
             multipleTexture: result.multipleTexture,
         };
+        
     }
     
     function isStateON(group) {
@@ -109,17 +148,17 @@
      * @param {*} objects Contains all elements.
      * @returns The final shapes (+ some booleans) in a object.
      */
-    function genModel(elements, raw = false) {
+    function genModel(elements, raw = false, useTint) {
         let shapeOFF = [];
         let shapeON = [];
-    
+        
         for (const cube of elements)
             if (cube instanceof Cube && cube.visibility) {
                 let stateON = false;
                 if (typeof cube.parent === 'object')
                     stateON = isStateON(cube.parent)
-    
-                let result = genShape(cube, raw);
+                    
+                let result = genShape(cube, raw, useTint);
                 if (stateON)
                     shapeON.push(result.shape);
                 else
@@ -158,8 +197,8 @@
             output.lightLevel       =  options.lightLvl;
             output.redstoneLevel    =  options.redstoneLvl;
         }
-    
-        const shapes = genModel(Project.elements, options.raw);
+        
+        const shapes = genModel(Project.elements, options.raw, options.useTint);
         output.shapesOff = shapes.off;
         output.shapesOn = shapes.on;
     
@@ -238,6 +277,11 @@
                 label: 'Collision (ON state)',
                 type: 'checkbox',
                 value: true,
+            },
+            useTint: {
+                label: 'Use Colour for Tint',
+                type: 'checkbox',
+                value: false,
             },
         },
         onConfirm(formData) {
