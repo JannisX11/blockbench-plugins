@@ -28,13 +28,12 @@
       terminatorSpace: true
     }
   }
-  let format, action, dialog, mode, panel, styles, preview, debug, aboutAction, stats
+  let format, action, dialog, mode, panel, styles, preview, debug, stats
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
   const author = "Ewan Howell"
   const description = "Create Minecraft-styled title models!"
-  const about = "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality."
   const links = {
     website: {
       text: "By Ewan Howell",
@@ -64,7 +63,7 @@
   const aboutLinks = `<div class="minecraft-title-links">${Object.values(links).map(e => `
     <a href="${e.link}">
       ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
-      <label>${e.text}</label>
+      <p>${e.text}</p>
     </a>
   `).join("")}</div>`
   const stopConfigs = [
@@ -79,15 +78,14 @@
   ]
   Plugin.register(id, {
     title: name,
-    icon,
+    icon: "icon.png",
     author,
     description,
-    about,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.1.1",
-    min_version: "4.7.2",
+    version: "1.2.0",
+    min_version: "4.8.0",
     variant: "both",
-    oninstall: () => showAbout(true),
+    creation_date: "2023-06-10",
     async onload() {
       styles = Blockbench.addCSS(`
         body:not(.is_mobile) #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) {
@@ -249,6 +247,11 @@
         .minecraft-title-links > a:hover > i {
           color: var(--color-light) !important;
         }
+        .minecraft-title-links > a > p {
+          flex: 1;
+          display: flex;
+          align-items: center;
+        }
         .spacer, #minecraft_title_generator .sp-preview, #minecraft_title_generator .form_inline_select > li {
           flex: 1;
         }
@@ -276,6 +279,9 @@
         uv_rotation: true,
         bone_rig: true,
         centered_grid: true,
+        onSetup() {
+          loadRenderAngle()
+        },
         new() {
           newProject(this)
           Project.texture_width = 1000
@@ -438,13 +444,98 @@
                       Blockbench.showQuickMessage("Copied to clipboard")
                     },
                     save() {
-                      Blockbench.export({
-                        extensions: ["png"],
-                        type: tl("data.image"),
-                        savetype: "image",
-                        name: Project.name || "minecraft_title",
-                        content: this.render
-                      })
+                      const exportDialog = new Dialog({
+                        id: "minecraft-title-export-types",
+                        title: "Minecraft Title Export Type",
+                        buttons: [],
+                        component: {
+                          methods: {
+                            normal: () => Blockbench.export({
+                              extensions: ["png"],
+                              type: tl("data.image"),
+                              savetype: "image",
+                              name: Project.name || "minecraft_title",
+                              content: this.render
+                            }, () => exportDialog.close()),
+                            titleNew: async () => {
+                              const img = await loadMinecraftTitleTexture(this.render)
+                              const canvas = new CanvasFrame(1024, 256, true)
+                              const scaleFactor = Math.min(1024 / img.width, 176 / img.height)
+                              const newWidth = img.width * scaleFactor
+                              const newHeight = img.height * scaleFactor
+                              const x = (1024 - newWidth) / 2
+                              const y = (176 - newHeight) / 2
+                              if (newWidth > img.width) canvas.ctx.imageSmoothingEnabled = false
+                              canvas.ctx.drawImage(img.canvas, x, y, newWidth, newHeight)
+                              Blockbench.export({
+                                extensions: ["png"],
+                                type: tl("data.image"),
+                                savetype: "image",
+                                name: "minecraft",
+                                content: canvas.canvas.toDataURL()
+                              }, () => exportDialog.close())
+                            },
+                            titleOld: async () => {
+                              const img = await loadMinecraftTitleTexture(this.render)
+                              const base = await loadImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABAMAAACuXLVVAAAAJ1BMVEUAAAD///8AAAACAQEeHB8jHh5FQkNTUFODfHylnJmon5yvpKDIw79IVPQIAAAAAnRSTlMAAHaTzTgAAAgfSURBVHhe7M6xAAAAAAKwFPKXDaNnI1h6dg8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjBUzaG7buOK4Kn6RDNC0VOQDiweQmolOBWl3JjqVppSZ6iRGtGeiU2ibqq0T2ZhwyZOmaYiKJ1/SSjqpjS1pcZJkiTT3Q/X/3i5BR5kRZjT8H4CHh8Xub997Cyy5AOUIKqQGpSrkaA4q/CYLYLHRaGwTA6zDcos4hEGr1WoWco9wCostq+e0MTW3/NYTa9Lvp85nHnxG9cAYL1qtzzIBAqXUO2KSnlJn7l9w2VxR6vC/hdy354dH1fz54aE6PFJH7+mlOleidqDeiHGkaPlIGfc7r8ennrkvOj1QYSZACQAnnAPiJ9xvcazmYb6l3CvY4ZKyek+4NtoPVGysX98fgODEg2FompkAS0pP2kQLVExnQcs8C1q0ttU76qUAvhpYs55XiZ6gD8AjehBi8zO6OWP7lWpnAeT+FEXR8yqR/3C3p/7nHXEevlLn7HsUDSfulzyrCPpe4CLWd746VaetngE4dfLK+1wpafpj9Bz90dfRa1ycP4o6f8gCkLjtE+HcQy4wWpc4D+rSA8tAptUmlgBUSQQAk65mCcB5uJWiLySbVjwVBSMrAosHCmqSd8AA7WKaTMBMpCjOj3D7NkAysgXbwRNuMa56EgylrlIAiU82gI9RVBISj9bj+UgGbaUBgJ5GBynAUCcW4GkXAGtKCbK+dlY1B0MqxUrC2Ml+D5QUy3E+j/71791uuGRjD7V/l0Zjy4Fc7+AsigyANzmLDpxVqccJUHg4Gz6HBQetShQXsgAwopSWWdfuA16A6BM6+zvsa4nGf+J/xvE/kKXkI4mAmExiXP/RRegSAGwaFtbpRIqGe74qZAHk1lSikySZaI2Oxu4mLtpFbYQ7H7z+ROPuSOsr7xi+0ADABU0QEA8GOe6qnlx4OmHnONEXACjpib7JBtjTn+iG+LJZYrPWZ8+llwjLyJopgGXsdhjrz8dXy0w41II11B8AEMAcf5YFsIhnZsJ8YVTzqakxK9GYAd7cBpB2Q2Acj15pfU1gZvX1DUOymVkDPhMfYBI9Jrk0Dy3Ppn5CfHwTD97E++amSOYa93C4NqCz+J2pH1+qn1wiuVHPApBoO309djZhvRUe5DOd+r54TGXbKbEEYCtvR7UauZuM7PzWk1UgOO0sgPzgGLlLLH2naPuRkVlSkB9dYt0GqK9wa9oRgJT8knwyknlkvAdyqyjZEx+pTLsEy1O8+5vkbhwMDNLYANAnAP1BHNdLgrsj005zd01TBU/j+IcsgL2RnnDVX5DpIS2/Jud5ZFbE6FMAkddHm2YxHmDlrknCetPqvUk3VhsJ+DIAFoc3cUTFKNoqmhim5VcnnEa6XopRIA1WXQDE/MbrDyVhs2eOzwfdsDQN1wIAfL6t3bsBSKMjlyq1xysmnGn5heTBocMltBD1uSqsrokB2maEBzZqlkinANJP9W6Aku7hg0dBrfalqegJ+g1MNxhvjKQYgNNDnQKMDYB1uMvpWtgnQec9bm66Vjt3AyzpifoZtOXampZX2VhehBNEljAdhfkZgETAjEYA2MOM35rxlthFs9jVEQABEKiTuwFkpRAhBHumgxtZCgnXHRLaBwAO0DHmAoCIx7kBwCs7nq08lKKpBJ4zFSyATOruHdFKFEV1gmpfw9qi6Nku1+RG9D2gomjjNZWiRgQ94Q9x1N0OdiO0+Rs9xLnu7T6Pumj3epfb8dLlXqr210ZofHcDUA0iKHgM4zFVcKxapzkFtW9qRiEc2xVuhiYV41jnFnCnDogWWES+ubobIBfwiCGBV1D89SkGfHLyLYAFs6a9J9BBCu2LWbAAgVxlbckIXYQMMO1nGxhiph6rcjg118Vr24XCQsLi+2U4UgAflJlbMoSgsQ0AoNg+QWFU8MUycI/ZKJcrtTJUEYAy+WXQYwU1qjDLTNiQDNgUMH/2lowkjCQo6NQHgDfd1oWwRGSdblAjPgKgIUhSPxWYIt9kQJQzkSlkAuRMHAUF4+Ox6qrZaQDgK6Xwy/DwJyqH+Rhq+xXvr3Ez4GzU/SgCYnc3rIS++SlKMqQFsAHIAIA4egKQE4PKtCkAFw6JZb4vzhdstF3eZnR8wkNE8r5OdB1Xdj8gPVkAk8ZsAGlpsMlqLx12Zr08ZmP8AwO0yUhr/Azj72axq0Wu7WkGsJANcFuy2Xjfau3xhx2bO/lVyNYoivr6gwAUhNsD0RWHRV7aiewVbut+ABpS2gz28fzIJfolwD4DkACMZNsYaP3kRaPhUGEuAKRFgw4SbAPLKKJPAeSu+ZbYDMwHIFfUorM25pgCHBvnNQOcWIChRu439SWRI/vCF/X5AKwgAUpxaEkKTwD0FIAAQCKgvNd6ldcrrZlYzAdgWWvHcbTucG67Leg7Bmg7zpoBuJZdGVsXjvOAfZUatKOv5gPwQI9kjTWppKdZ9piHNnm2/dki5fRL69Q3F4A17hyFUKeVOwBGKQBytGPysz0XANrDMDw20dItgB0GGKYAiDkREuaaEsDVfABm8isVuxXxGo2Q6GGjTrTeEG0jSnwZNBqu/bPy2XxeRDm6t+4BMF+ChbkAQHQvFRbmBADdb/w5AkgaCnRLv3LkssIvAP9vz44FAAAAAIT5W2cQwSLYn2NyAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEmBOKRi4Y7csAAAAASUVORK5CYII=")
+                              let preCanvas
+                              if (img.width / img.height < 137 / 22) {
+                                preCanvas = new CanvasFrame(Math.floor((img.height / 22) * 137), img.height)
+                                preCanvas.ctx.drawImage(img.canvas, Math.floor((preCanvas.width - img.width) / 2), 0)
+                              } else if (img.width / img.height > 137 / 22) {
+                                preCanvas = new CanvasFrame(img.width, Math.floor((img.width / 137) * 22))
+                                preCanvas.ctx.drawImage(img.canvas, 0, Math.floor((preCanvas.height - img.height) / 2))
+                              } else preCanvas = img
+                              const canvas = new CanvasFrame(Math.floor((preCanvas.width / 137) * 128), Math.floor((preCanvas.width / 137) * 128), true, 1024)
+                              canvas.ctx.imageSmoothingEnabled = false
+                              canvas.ctx.drawImage(base, 0, 0, canvas.width, canvas.height)
+                              const width = Math.floor((preCanvas.width / 274) * 155)
+                              canvas.ctx.drawImage(preCanvas.canvas, 0, 0, width, preCanvas.height, 0, 0, width, preCanvas.height)
+                              canvas.ctx.drawImage(preCanvas.canvas, width, 0, preCanvas.width - width, preCanvas.height, 0, Math.floor(preCanvas.height / 44 * 45), preCanvas.width - width, preCanvas.height)
+                              Blockbench.export({
+                                extensions: ["png"],
+                                type: tl("data.image"),
+                                savetype: "image",
+                                name: "minecraft",
+                                content: canvas.canvas.toDataURL()
+                              }, () => exportDialog.close())
+                            },
+                            mojang: async () => {
+                              const img = await loadMinecraftTitleTexture(this.render)
+                              let canvas
+                              if (img.width < img.height * 4) {
+                                canvas = new CanvasFrame(img.height * 4 + 8, img.height + 2)
+                                canvas.ctx.drawImage(img.canvas, Math.floor((img.height * 4 - img.width) / 2) + 4, 1)
+                              } else if (img.width > img.height * 4) {
+                                canvas = new CanvasFrame(img.width + 8, Math.floor(img.width / 4) + 2)
+                                canvas.ctx.drawImage(img.canvas, 4, Math.floor((canvas.height - img.height) / 2))
+                              } else {
+                                canvas = new CanvasFrame(img.width + 8, img.height + 4)
+                                canvas.ctx.drawImage(img.canvas, 4, 1)
+                              }
+                              const converted = new CanvasFrame(Math.floor(canvas.width / 2), Math.floor(canvas.width / 2))
+                              converted.ctx.drawImage(canvas.canvas, 0, 0)
+                              converted.ctx.drawImage(canvas.canvas, Math.floor(-canvas.width / 2), Math.floor(canvas.width / 4))
+                              Blockbench.export({
+                                extensions: ["png"],
+                                type: tl("data.image"),
+                                savetype: "image",
+                                name: "mojangstudios",
+                                content: converted.canvas.toDataURL()
+                              }, () => exportDialog.close())
+                            }
+                          },
+                          template: `
+                            <div style="display:flex;flex-direction:column;text-align:center;gap:10px">
+                              <h2>Select export type</h2>
+                              <button @click="normal">Normal</button>
+                              <button @click="titleNew">Minecraft 1.20+ Title Texture</button>
+                              <button @click="titleOld">Minecraft 1.19- Title Texture</button>
+                              <button @click="mojang">Mojang Studios Texture</button>
+                            </div>
+                          `
+                        }
+                      }).show()
                     }
                   },
                   template: `
@@ -683,10 +774,7 @@
               })
               dialog.show()
             },
-            position: () => Preview.selected.loadAnglePreset({
-              position: [0, -170, -320],
-              target: [0, 0, 0]
-            }),
+            position: loadRenderAngle,
             custom() {
               new Dialog({
                 id: "custom_resolution",
@@ -2358,7 +2446,6 @@
       })
       MenuBar.addAction(debug, "help.developer.1")
       Blockbench.on("update_selection", selectHandler)
-      addAbout()
     },
     onunload() {
       Blockbench.removeListener("update_selection", selectHandler)
@@ -2370,7 +2457,6 @@
       styles.delete()
       preview.delete()
       debug.delete()
-      aboutAction.delete()
       dialog.close()
       debugDialog.close()
     }
@@ -2880,73 +2966,6 @@
     }
   }
 
-  function addAbout() {
-    let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
-    if (!about) {
-      about = new Action("about_plugins", {
-        name: "About Plugins...",
-        icon: "info",
-        children: []
-      })
-      MenuBar.addAction(about, "help")
-    }
-    aboutAction = new Action(`about_${id}`, {
-      name: `About ${name}...`,
-      icon,
-      click: () => showAbout()
-    })
-    about.children.push(aboutAction)
-  }
-
-  function showAbout(banner) {
-    new Dialog({
-      id: `about-${id}`,
-      title: name,
-      width: 780,
-      buttons: [],
-      lines: [`
-        <style>
-          #about-${id} .dialog_title {
-            margin-left: 16px;
-          }
-          #about-${id}-icon {
-            position: absolute;
-            top: 4px;
-            left: 8px;
-            pointer-events: none;
-          }
-          #about-${id} .dialog_content {
-            margin: 0;
-          }
-          #about-${id}-banner {
-            background-color: var(--color-accent);
-            color: var(--color-accent_text);
-            padding: 0 8px;
-          }
-          #about-${id}-content {
-            margin: 24px;
-          }
-        </style>
-        <i id="about-${id}-icon" class="icon material-icons">${icon}</i>
-        ${banner ? `<div id="about-${id}-banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
-        <div id="about-${id}-content">
-          <h1 style="margin-top:-10px">${name}</h1>
-          <p>${about}</p>
-          <br>
-          <h2>Getting started</h2>
-          <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong>. You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button <i class="icon material-icons" style="translate:0 5px">text_fields</i> in the outliner.</p>
-          <br>
-          <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button <i class="icon material-icons" style="translate:0 5px">auto_mode</i> will set the camera angle for you.</p>
-          ${aboutLinks}
-        </div>
-      `]
-    }).show()
-    $("#about .dialog_title").html(`
-      <i class="icon material-icons">${icon}</i>
-      ${name}
-    `)
-  }
-
   async function getTextureFromFile() {
     try {
       let texture
@@ -3030,5 +3049,51 @@
     if (keys1.length !== keys2.length) return false
     for (let key of keys1) if (!obj2.hasOwnProperty(key) || obj1[key].toString() !== obj2[key].toString()) return false
     return true
+  }
+
+  function loadImage(b64) {
+    const img = new Image()
+    return new Promise(fulfil => {
+      img.onload = fulfil(img)
+      img.src = b64
+    })
+  }
+
+  async function loadMinecraftTitleTexture(src) {
+    const img = await loadImage(src)
+    const aspect = img.width / img.height
+    let w, h
+    if (img.width > 1024 || img.height > 1024) {
+      if (aspect > 1) {
+        w = 1024
+        h = Math.floor(1024 / aspect)
+      } else {
+        h = 1024
+        w = Math.floor(1024 * aspect)
+      }
+    } else if (img.width < 64 || img.height < 64) {
+      if (aspect > 1) {
+        w = 64
+        h = Math.floor(64 / aspect)
+      } else {
+        h = 64
+        w = Math.floor(64 * aspect)
+      }
+    } else {
+      w = img.width
+      h = img.height
+    }
+    const canvas = new CanvasFrame(w, h)
+    if (img.width < 64 || img.height < 64) canvas.ctx.imageSmoothingEnabled = false
+    canvas.ctx.drawImage(img, 0, 0, w, h)
+    canvas.autoCrop()
+    return canvas
+  }
+
+  function loadRenderAngle() {
+    Preview.selected.loadAnglePreset({
+      position: [0, -170, -320],
+      target: [0, 0, 0]
+    })
   }
 })()
