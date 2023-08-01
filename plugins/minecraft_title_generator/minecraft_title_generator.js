@@ -273,9 +273,7 @@
         uv_rotation: true,
         bone_rig: true,
         centered_grid: true,
-        onSetup() {
-          loadRenderAngle()
-        },
+        onSetup: loadRenderAngle,
         new() {
           newProject(this)
           Project.texture_width = 1000
