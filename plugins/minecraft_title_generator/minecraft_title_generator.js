@@ -60,12 +60,6 @@
       colour: "#FF4444"
     }
   }
-  const aboutLinks = `<div class="minecraft-title-links">${Object.values(links).map(e => `
-    <a href="${e.link}">
-      ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
-      <p>${e.text}</p>
-    </a>
-  `).join("")}</div>`
   const stopConfigs = [
     [0.5],
     [0.4, 0.8],
@@ -318,7 +312,12 @@
                   </p>
                 </content>
                 <div class="spacer"></div>
-                ${aboutLinks}
+                <div class="minecraft-title-links">${Object.values(links).map(e => `
+                  <a href="${e.link}">
+                    ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
+                    <p>${e.text}</p>
+                  </a>
+                `).join("")}</div>
                 <div class="button_bar">
                   <button id="create_new_model_button" style="margin-top:20px;margin-bottom:24px;" @click="create">
                     <i class="material-icons">${icon}</i>
