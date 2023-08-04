@@ -307,14 +307,14 @@
 	},
 	"minecraft_title_generator": {
 		"title": "Minecraft Title Generator",
-		"icon": "text_fields",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
-		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.1.1",
-		"min_version": "4.7.2",
-		"variant": "both"
+		"version": "1.2.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-06-10"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
