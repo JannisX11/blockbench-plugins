@@ -6,18 +6,17 @@
   let ffmpegPath
   const id = "scene_recorder"
   const name = "Scene Recorder"
-  const icon = "video_camera_back"
   const E = s => $(document.createElement(s))
   Plugin.register(id, {
     title: name,
-    icon,
+    icon: "icon.png",
     author: "Ewan Howell",
     description: "Add a new scene recorder where you can record your model in a large variety of formats.",
-    about: "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
     tags: ["Recording", "Media"],
-    version: "1.1.0",
-    min_version: "4.5.2",
+    version: "1.2.0",
+    min_version: "4.8.0",
     variant: "desktop",
+    creation_date: "2022-12-14",
     async onload() {
       if (await checkFFmpeg()) return
       dialog = new Dialog({
@@ -75,7 +74,7 @@
             type: "number",
             value: 24,
             min: 0.5,
-            max: 120
+            max: 60
           },
           "_2": "_",
           pixelate: {
@@ -119,7 +118,7 @@
           const background = formData.color.toHex8String() != "#00000000" ? formData.color.toHexString() : undefined
           const lengthMode = formData.lengthMode
           const length = limitNumber(formData.length, 0.1, 24000) ?? 10
-          const fps = limitNumber(formData.fps, 0.1, 30) ?? 24
+          const fps = limitNumber(formData.fps, 0.1, formData.format === "gif" ? 30 : 60) ?? 24
           const interval = fps ? (1000 / fps) : 100
           const preview = Preview.selected
           const animation = Animation.selected
@@ -361,7 +360,7 @@
                     name,
                     extensions: [extension]
                   }],
-                  defaultPath: `${Project.name}.${extension}`
+                  defaultPath: `${Project.name || "scene"}.${extension}`
                 })
                 if (!file) return
                 Blockbench.showQuickMessage("Processing...")
@@ -391,7 +390,7 @@
       })
       action = new Action("fmpeg-action", {
         name: "Record Scene...",
-        icon,
+        icon: "video_camera_back",
         click: () => dialog.show(),
         condition: () => Project
       })
@@ -420,7 +419,6 @@
     p.stdin.end()
     let out = ""
     for await (const chunk of p.stderr) out += chunk
-    console.log(out)
     return p.promise
   }
 
