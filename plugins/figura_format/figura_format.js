@@ -52,7 +52,7 @@
 		title: "Figura Model Format",
 		author: "Katt (KitCat962)",
 		icon: "icon.svg",
-		description: "Create models for the Figura mod without unusable Blockbench features getting in the way.",
+		description: "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
 		tags: ["Minecraft: Java Edition", "Figura"],
 		version: "0.1.1",
 		min_version: "4.8.0",
