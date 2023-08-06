@@ -6,7 +6,7 @@
 
     // Plugin information variables
     const id = "mc_text_generator"
-    const name = "Minecraft Text Generator"
+    const name = "Text Generator"
     const icon = "text_format"
     const author = "SirJain"
 
@@ -22,10 +22,10 @@
         title: name,
         icon,
         author,
-        description: "Generates Minecraft-styled text in cubes.",
+        description: "Generates blocky text in cubes.",
         about: "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
-        tags: ["Minecraft", "Font", "Generator"],
-        version: "2.0.0",
+        tags: ["Deprecated", "Minecraft", "Font"],
+        version: "2.0.1",
         min_version: "4.2.0",
         variant: "both",
 
@@ -51,7 +51,7 @@
                         type: "text",
                         full_width: true,
                         value: "",
-                        description: "Blockbench will take this and generate 3D text."
+                        description: "The text that will be converted into 3D geometry."
                     },
                     divider: "_",
                     letterSpace: {
@@ -59,7 +59,7 @@
                         type: "number",
                         min: 0,
                         value: 0.3,
-                        description: "The amount of space between letters."
+                        description: "The amount of space between each letter."
                     },
                     wordSpace: {
                         label: "Word Spacing",
@@ -72,8 +72,7 @@
                         label: "Depth",
                         type: "number",
                         min: 0,
-                        value: 2,
-                        max: 8,
+                        value: 4,
                         description: "The thickness of the letters. If 0, the letters will appear flat."
                     },
                     rotation: {
@@ -83,13 +82,14 @@
                         value: 0,
                         max: 45,
                         step: 22.5,
-                        description: "The rotation of the cubes of the text."
+                        description: "The rotation of the text."
                     },
                     generateLayer: {
                         label: "Generate Layer",
                         type: "checkbox",
                         value: false,
-                        description: "Generates a second layer to the text which can be used for stuff like dropshadows. Note: Your depth field needs to be 0 in order for the setting to work."
+                        condition: formData => formData.depth === 0,
+                        description: "Generates a second layer to the text which can be used for stuff like dropshadows."
                     },
                     checkboxSpacer: "_",
                     javaCheckbox: {
@@ -112,7 +112,7 @@
                     if (formData.input == "") {
                         Blockbench.showMessageBox({
                             title: "No valid text",
-                            message: "Make sure you don't leave the field blank."
+                            message: "Make sure you don't leave the text field blank."
                         })
 
                         generateTextDialog.hide()
@@ -292,6 +292,18 @@
                                     [0, 0, 0, 5, 2, formData.depth],
                                     [0, 3, 0, 5, 5, formData.depth],
                                     [0, 6, 0, 5, 8, formData.depth],
+                                    [3, 2, 0, 5, 3, formData.depth],
+                                    [0, 5, 0, 2, 6, formData.depth],
+                                ]
+                            },
+                            "$": {
+                                width: 5,
+                                cubes: [
+                                    [0, 0, 0, 5, 2, formData.depth],
+                                    [0, 3, 0, 5, 5, formData.depth],
+                                    [0, 6, 0, 5, 8, formData.depth],
+                                    [1.5, 8, 0, 3.5, 9, formData.depth],
+                                    [1.5, -1, 0, 3.5, 0, formData.depth],
                                     [3, 2, 0, 5, 3, formData.depth],
                                     [0, 5, 0, 2, 6, formData.depth],
                                 ]
@@ -545,6 +557,15 @@
                                     [0, 0, 0, 2, 2, formData.depth]
                                 ]
                             },
+                            "/": {
+                                width: 6,
+                                cubes: [
+                                    [0, 0, 0, 3, 2, formData.depth],
+                                    [1, 2, 0, 4, 4, formData.depth],
+                                    [2, 4, 0, 5, 6, formData.depth],
+                                    [3, 6, 0, 6, 8, formData.depth],
+                                ]
+                            },
                             " ": {
                                 width: formData.wordSpace,
                                 cubes: []
@@ -651,14 +672,6 @@
                         formData.bedrockCheckbox == true && 
                         (textLength - formData.letterSpace >= 30 || 9*numLines >= 30)
                     ) showRestrictionWarning("`30x30x30`")
-
-                    // Check if user wanted to generate a layer but the depth was not 0
-                    else if (formData.generateLayer == true && formData.depth !== 0) {
-                        Blockbench.showMessageBox({
-                            title: "Incompatible settings",
-                            message: "If you want to generate a layer, please make sure the 'depth' field is 0."
-                        })
-                    }
                 }
             })
 
@@ -764,7 +777,7 @@
                 ${banner ? `<div id="banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
                 <div id="content">
                     <h1 style="margin-top:-10px">${name}</h1>
-                    <p>Generates Minecraft-styled text in cubes.</p>
+                    <p>Generates blocky text in cubes.</p>
                     <h4>Worth noting:</h4>
                     <p>- Some formats may break the look of the text because of size restrictions.</p>
                     <p>- Text generated by this plugin is NOT from official Minecraft font files, but simply a replica. Fonts may not be completely accurate to the original Minecraft font.</p>

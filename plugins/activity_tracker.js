@@ -13,7 +13,7 @@
     description,
     about: "This plugin allows you to keep track of how much time you spend using Blockbench and how long you spend working on each project.\n\nTo view your activity stats, go to `Tools > Activity Tracker`. From here you can see all your stats for both Blockbench and the current project.",
     tags: ["Tracking", "Stats", "Utility"],
-    version: "1.0.0",
+    version: "1.0.1",
     min_version: "4.6.5",
     variant: "both",
     onload() {
@@ -218,7 +218,7 @@
       MenuBar.addAction(action, "tools")
       window.addEventListener("focus", focus)
       window.addEventListener("blur", blur)
-      document.addEventListener("visibilitychange", visibilityChange)
+      if (Blockbench.isWeb) document.addEventListener("visibilitychange", visibilityChange)
       Blockbench.on("select_project", selectProject)
       selectProject()
       focus()
@@ -226,7 +226,7 @@
     onunload() {
       window.removeEventListener("focus", focus)
       window.removeEventListener("blur", blur)
-      document.addEventListener("visibilitychange", visibilityChange)
+      if (Blockbench.isWeb) document.removeEventListener("visibilitychange", visibilityChange)
       Blockbench.removeListener("select_project", selectProject)
       clearTimeout(timeout)
       clearInterval(interval)

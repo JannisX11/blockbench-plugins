@@ -1,4 +1,4 @@
-/// <reference path="../types/index.d.ts" />
+/// <reference path="../../types/index.d.ts" />
 
 (function() {
 
@@ -6,13 +6,13 @@
 
 	Plugin.register('animation_sliders', {
 		title: 'Animation Sliders',
-		icon: 'fas.fa-bezier-curve',
+		icon: 'icon.png',
 		author: 'JannisX11',
 		description: 'Adds multiple sliders to tweak keyframes',
-		about: `Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.`,
 		tags: ['Animation'],
 		version: '0.3.1',
 		min_version: '3.7.0',
+		new_repository_format: true,
 		variant: 'both',
 		onload() {
 

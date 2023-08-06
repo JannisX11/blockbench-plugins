@@ -7,8 +7,8 @@ BBPlugin.register('cameras', {
 	icon: 'videocam',
 	author: 'JannisX11',
 	description: 'Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.',
-	about: 'Cameras can be added through the Edit menu. Enabling Quad View from View > Toggle Quad View is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
-	version: '1.0.0',
+	about: 'Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
+	version: '1.1.0',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -80,6 +80,10 @@ BBPlugin.register('cameras', {
 
 					preview.camera.position.copy(this.getWorldCenter());
 					this.mesh.getWorldQuaternion(preview.camera.quaternion);
+					// Update controls target in case camera is controlled by controls
+					preview.controls.target.copy(preview.camera.position);
+					let offset = Reusable.vec1.set(0, 0, -16).applyQuaternion(preview.camera.quaternion);
+					preview.controls.target.add(offset);
 				}
 			}
 		}
@@ -99,6 +103,7 @@ BBPlugin.register('cameras', {
 			CameraElement.prototype.needsUniqueName = true;
 			CameraElement.prototype.menu = new Menu([
 				'link_camera_to_preview',
+				'camera_to_view',
 				'_',
 				...Outliner.control_menu_group,
 				'_',
@@ -164,7 +169,7 @@ BBPlugin.register('cameras', {
 				this.dispatchEvent('setup', {element});
 			},
 			updateTransform(element) {
-				NodePreviewController.prototype.updateTransform(element);
+				NodePreviewController.prototype.updateTransform.call(this, element);
 				element.mesh.fix_position.copy(element.mesh.position);
 				element.mesh.fix_rotation.copy(element.mesh.rotation);
 
@@ -245,6 +250,26 @@ BBPlugin.register('cameras', {
 		})
 		Preview.prototype.menu.addAction(link_action, -3);
 
+		let snap_action = new Action('camera_to_view', {
+			name: 'Move Camera to View',
+			icon: 'fas.fa-video',
+			category: 'edit',
+			condition: () => CameraElement.selected.length && Modes.edit,
+			click() {
+				let position = Preview.selected.camera.position.toArray();
+				let rotation_euler = new THREE.Euler().copy(Preview.selected.camera.rotation).reorder('ZYX');
+				let rotation = rotation_euler.toArray().map(v => Math.radToDeg(v));
+				Undo.initEdit({elements: CameraElement.selected});
+				CameraElement.selected.forEach(cam => {
+					cam.position.V3_set(position);
+					cam.rotation.V3_set(rotation);
+					cam.preview_controller.updateTransform(cam);
+				})
+				Undo.finishEdit('Move camera to view')
+				updateSelection();
+			}
+		})
+		deletables.push(snap_action);
 
 		class CameraAnimator extends BoneAnimator {
 			constructor(uuid, animation, name) {

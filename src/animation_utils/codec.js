@@ -39,7 +39,7 @@ function onProjectParse(e) {
 }
 
 function onBedrockCompile(e) {
-    console.log('onBedrockCompile e:', e);
+    // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
 
