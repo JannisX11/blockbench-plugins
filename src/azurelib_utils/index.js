@@ -65,7 +65,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
               id: 'project',
               title: 'AzureLib Model Settings',
               width: 540,
-              lines: [`<b class="tl"><a href="https://AzureLib.com">AzureLib</a> Animation Utils v${version}</b>`],
+              lines: [`<b class="tl"><a href="https://www.azuredoom.com">AzureLib</a> Animation Utils v${version}</b>`],
               form: {
                 objectType: {label: 'Object Type', type: 'select', default: azurelibSettings.objectType, options: OBJ_TYPE_OPTIONS},
                 // modSDK: {label: 'Modding SDK', type: 'select', default: azurelibSettings.modSDK, options: MOD_SDK_OPTIONS},
