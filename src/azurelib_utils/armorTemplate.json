@@ -26,6 +26,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         0,
         0,
@@ -48,6 +49,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         0,
         24,
@@ -70,6 +72,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         4,
         22,
@@ -92,6 +95,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         4,
         22,
@@ -114,6 +118,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         4,
         22,
@@ -136,6 +141,7 @@
       "autouv": 1,
       "color": 0,
       "export": false,
+      "locked": true,
       "origin": [
         4,
         22,
@@ -148,7 +154,7 @@
     {
       "name": "bipedHead",
       "uuid": "d340b6fa-56aa-9c0f-3560-7a067643b77d",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
@@ -180,7 +186,7 @@
     {
       "name": "bipedBody",
       "uuid": "ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
@@ -212,7 +218,7 @@
     {
       "name": "bipedLeftArm",
       "uuid": "d8113cc7-7e10-0930-259e-b8e4211ce9da",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
@@ -244,7 +250,7 @@
     {
       "name": "bipedRightArm",
       "uuid": "3b8901e8-3420-0834-51eb-76d64ff2ae8f",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
@@ -276,7 +282,7 @@
     {
       "name": "bipedLeftLeg",
       "uuid": "37231be7-a8ef-22ca-7fea-40aed58003bb",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
@@ -324,7 +330,7 @@
     {
       "name": "bipedRightLeg",
       "uuid": "45c031a5-b6be-e0a7-5454-b45d07f28429",
-      "export": false,
+      "export": true,
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
