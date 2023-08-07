@@ -815,13 +815,14 @@
 	"azurelib_utils": {
 		"title": "AzureLib Utils",
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
-		"icon": "icon-zombie",
+		"icon": "azurelib/icon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
 		"version": "1.0.2",
 		"min_version": "4.0.0",
 		"await_loading": true,
-		"variant": "both"
+		"variant": "both",
+		"creation_date": "2023-04-04"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",
