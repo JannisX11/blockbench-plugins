@@ -818,7 +818,7 @@
 		"icon": "icon-zombie",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
+		"version": "1.0.2",
 		"min_version": "4.0.0",
 		"await_loading": true,
 		"variant": "both"
