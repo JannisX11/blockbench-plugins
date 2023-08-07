@@ -29,8 +29,8 @@
   "devDependencies": {
     "eol": "0.9.1",
     "eslint": "8.46.0",
-    "webpack": "4.43.0",
-    "webpack-cli": "3.3.12"
+    "webpack": "5.88.2",
+    "webpack-cli": "5.1.4"
   },
   "dependencies": {
 	"metro-core": "0.77.0",
@@ -39,7 +39,7 @@
     "@expo/webpack-config": "^18.1.2",
     "lodash": "^4.17.21",
     "react-dom": "18.2.0",
-    "react-native-web": "~0.18.10",
-    "semver": "7.5.2"
+    "react-native-web": "0.19.7",
+    "semver": "7.5.4"
   }
 }
