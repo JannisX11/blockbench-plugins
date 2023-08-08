@@ -1,6 +1,6 @@
 This plugin adds a workspaces system that allows you to store your recent projects in separate workspaces.
 
-This could be used to separate your personal models from your work / comissioned models, or to separate models based on the projecst they are part of.
+This could be used to separate your personal models from your work / commissioned models, or to separate models based on the projects they are part of.
 
 To view workspaces, you can click the workspaces button <i class="icon material-icons" style="translate:0 5px">table_restaurant</i> that appears below your recent projects. You can also access workspaces by going to **File > Workspaces** while on the start screen.
 <div style="flex:1"></div>
