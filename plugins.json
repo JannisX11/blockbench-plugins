@@ -281,7 +281,7 @@
 		"version": "1.2.0",
 		"min_version": "4.8.0",
 		"variant": "desktop",
-    "creation_date": "2022-12-14"
+		"creation_date": "2022-12-14"
 	},
 	"backup_viewer": {
 		"title": "Backup Viewer",
@@ -315,6 +315,17 @@
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-06-10"
+	},
+	"workspaces": {
+		"title": "Workspaces",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Organise your recent projects into workspaces that you can switch between.",
+		"tags": ["Files", "Management", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "desktop",
+		"creation_date": "2023-08-08"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
