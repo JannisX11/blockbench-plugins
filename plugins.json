@@ -325,17 +325,14 @@
 	},
 	"scene_recorder": {
 		"title": "Scene Recorder",
-		"icon": "video_camera_back",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Add a new scene recorder where you can record your model in a large variety of formats.",
-		"about": "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
-		"tags": [
-			"Recording",
-			"Media"
-		],
-		"version": "1.1.0",
-		"min_version": "4.5.2",
-		"variant": "desktop"
+		"tags": ["Recording", "Media"],
+		"version": "1.2.0",
+		"min_version": "4.8.0",
+		"variant": "desktop",
+    "creation_date": "2022-12-14"
 	},
 	"backup_viewer": {
 		"title": "Backup Viewer",
@@ -368,18 +365,14 @@
 	},
 	"minecraft_title_generator": {
 		"title": "Minecraft Title Generator",
-		"icon": "text_fields",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
-		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
-		"tags": [
-			"Minecraft",
-			"Title",
-			"Logo"
-		],
-		"version": "1.1.1",
-		"min_version": "4.7.2",
-		"variant": "both"
+		"tags": ["Minecraft", "Title", "Logo"],
+		"version": "1.2.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-06-10"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
@@ -833,8 +826,8 @@
 		"icon": "videocam",
 		"author": "JannisX11",
 		"description": "Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.",
-		"about": "Cameras can be added through the Edit menu. Enabling Quad View from View > Toggle Quad View is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
-		"version": "1.0.1",
+		"about": "Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
+		"version": "1.1.0",
 		"min_version": "4.5.0",
 		"variant": "both"
 	},
@@ -992,15 +985,13 @@
 	"figura_format": {
 		"title": "Figura Model Format",
 		"author": "Katt (KitCat962)",
-		"icon": "change_history",
-		"description": "Adds a project format used for the Figura mod that removes features that Figura does not support and makes minor changes to clarify weird Figura behavior.",
-		"tags": [
-			"Minecraft: Java Edition",
-			"Figura"
-		],
-		"version": "0.1.0",
-		"min_version": "4.7.0",
+		"icon": "icon.svg",
+		"description": "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
+		"tags": ["Minecraft: Java Edition", "Figura"],
+		"version": "0.1.1",
+		"min_version": "4.8.0",
 		"variant": "both",
-		"await_loading": true
+		"await_loading": true,
+		"creation_date": "2023-07-22"
 	}
 }

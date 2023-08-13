@@ -49,50 +49,23 @@
 	}
 
 	BBPlugin.register('figura_format', {
-		title: 'Figura Model Format',
-		author: 'Katt (KitCat962)',
-		icon: 'change_history',
-		description: "Adds a project format used for the Figura mod that removes features that Figura does not support and makes minor changes to clarify weird Figura behavior.",
-		tags: ['Minecraft: Java Edition', 'Figura'],
-		version: '0.1.0',
-		min_version: '4.7.0',
-		variant: 'both',
+		title: "Figura Model Format",
+		author: "Katt (KitCat962)",
+		icon: "icon.svg",
+		description: "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
+		tags: ["Minecraft: Java Edition", "Figura"],
+		version: "0.1.1",
+		min_version: "4.8.0",
+		variant: "both",
 		await_loading: true,
+		creation_date: "2023-07-22",
 		onload() {
 			let callback
+			let particle = EffectAnimator.prototype.channels.particle, sound = EffectAnimator.prototype.channels.sound
 			format = new ModelFormat('figura', {
 				icon: 'change_history',
-				name: 'Figura',
+				name: 'Figura Model',
 				description: 'Model for the Figura mod.',
-				format_page: {
-					content: [
-						{
-							text:
-								`Figura uses Blockbench for it's modeling, but some features of Blockbench will not be parsed by Figura.
-						
-						This Plugin adds a Project Format that will remove the following features from Blockbench:
-						* Animated Textures (Figura parses them as normal textures)
-						* Model Identifier (What even is this anyways? Regardless, Figura doesnt use it)
-						* Locators (Figura does not load them, and IK is not supported)
-						* Group Name Limitations (Duplicate names and arbitrary characters are now allowed)
-						* Molang Errors (Figura uses lua, not molang)
-						* Texture Render Mode (Figura uses a more advanced system for emissive textures)
-						
-						The Plugin makes the following changes to improve clarity:
-						* Particle and Sound keyframes have been renamed to \`"N/A"\` as they are not used by Figura
-						* New Animations will be named \`new\` instead of the confusing name \`animation.model.new\`
-						* Instruction keyframes have been renamed to Lua Script keyframes
-						* The Anim Time Update property has been renamed to Start Offset, as that is how that property is used in Figura
-						* Override has been renamed to Override Vanilla Animations
-						* The Export Animations action has been removed
-						
-						Additionally, the Figura Project Format adds these features:
-						* The "Match Project UV with Texture Size" Toggle under Tools, which will automatically set the Project UV to match the current texture to prevent the texture behaving weird in the preview (Not available with BoxUV)
-						* The "Cycle Face Vertices action", which will allow you to change the triangulation of non-flat faces (You may need to use this multiple times, and/or invert the face for correct normals)`
-									.replace(/\t+/g, '')
-						}
-					]
-				},
 				category: 'low_poly',
 				target: ['Figura'],
 				show_on_start_screen: true,
@@ -131,24 +104,20 @@
 					Language.addTranslations('en', {
 						['menu.animation.anim_time_update']: "Start Offset",
 						['menu.animation.override']: "Override Vanilla Animations",
-						['timeline.particle']: "N/A",
-						['timeline.sound']: "N/A",
-						['timeline.timeline']: "Lua Script",
 					})
-					for (const [type, data] of Object.entries(EffectAnimator.prototype.channels))
-						data.name = tl(`timeline.${type}`)
+					delete EffectAnimator.prototype.channels.particle
+					delete EffectAnimator.prototype.channels.sound
+					EffectAnimator.prototype.channels.timeline.name = "Lua Script"
 				},
 				onDeactivation() {
 					callback.delete()
 					Language.addTranslations('en', {
 						['menu.animation.anim_time_update']: "Anim Time Update",
 						['menu.animation.override']: "Override",
-						['timeline.particle']: "Particle",
-						['timeline.sound']: "Sound",
-						['timeline.timeline']: "Instructions",
 					})
-					for (const [type, data] of Object.entries(EffectAnimator.prototype.channels))
-						data.name = tl(`timeline.${type}`)
+					EffectAnimator.prototype.channels.particle = particle
+					EffectAnimator.prototype.channels.sound = sound
+					EffectAnimator.prototype.channels.timeline.name = tl('timeline.timeline')
 				}
 			})
 
@@ -205,6 +174,12 @@
 			Dialog.prototype.build = function () {
 				if (Format === format && this.id == 'texture_edit') delete this.form.render_mode
 				DialogBuild.call(this)
+			}
+
+			let displayFrame = EffectAnimator.prototype.displayFrame
+			EffectAnimator.prototype.displayFrame = function(){
+				if (Format === format) return
+				displayFrame.call(this)
 			}
 		},
 		onunload() {
