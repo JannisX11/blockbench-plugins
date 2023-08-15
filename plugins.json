@@ -336,14 +336,15 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse, AzureDoom",
+		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
 		"icon": "movie_filter",
-		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
+		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "3.0.2",
+		"version": "3.0.6",
 		"min_version": "4.0.0",
 		"await_loading": true,
-		"variant": "both"
+		"variant": "both",
+		"max_version": "5.0.0"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
