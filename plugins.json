@@ -815,7 +815,7 @@
 	"azurelib_utils": {
 		"title": "AzureLib Utils",
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
-		"icon": "azurelib/icon.png",
+		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
 		"version": "1.0.2",
