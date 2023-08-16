@@ -1,6 +1,6 @@
 {
   "name": "azurelib_utils",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "AzureLib Utils",
   "main": "index.js",
@@ -17,23 +17,24 @@
   "blockbenchConfig": {
     "title": "AzureLib Utils",
     "author": "AzureDoom, Eliot Lash, Gecko, McHorse",
-    "icon": "icon-zombie",
+    "icon": "azureicon.png",
     "description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
     "min_version": "4.0.0",
     "max_version": "5.0.0",
-    "variant": "both"
+    "variant": "both",
+    "creation_date": "2023-04-04"
   },
   "sideEffects": [
     "./index.js"
   ],
   "devDependencies": {
     "eol": "0.9.1",
-    "eslint": "7.7.0",
-    "webpack": "4.43.0",
-    "webpack-cli": "3.3.12"
+    "eslint": "8.46.0",
+    "webpack": "5.88.2",
+    "webpack-cli": "5.1.4"
   },
   "dependencies": {
     "lodash": "^4.17.21",
-    "semver": "7.3.2"
+    "semver": "7.5.4"
   }
 }
