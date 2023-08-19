@@ -20,7 +20,6 @@ export const loadAnimationUI = () => {
   holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
     .children.find(x => x.name === 'menu.animation.loop.hold');
   holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 export const unloadAnimationUI = () => {
