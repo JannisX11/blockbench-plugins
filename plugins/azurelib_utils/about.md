@@ -15,7 +15,7 @@ To add to your code, please do the following:
 
 ```
 repositories {
-		// The Maven with the mods source
+        // The Maven with the mods source
         maven { url 'https://dl.cloudsmith.io/public/azuredoom-mods/azurelib/maven/' }
 
 }
