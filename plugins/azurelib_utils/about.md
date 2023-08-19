@@ -21,18 +21,13 @@ repositories {
 }
 
 dependencies {
-
         //Fabric or Quilt
-
         modImplementation 'mod.azure.azurelib:azurelib-fabric-MCVERSION:MODVERSION'
 
         //Forge
-
         implementation fg.deobf('mod.azure.azurelib:azurelib-forge-MCVERSION:MODVERSION')
 		
         //NeoForge
-
         implementation fg.deobf('mod.azure.azurelib:azurelib-neo-MCVERSION:MODVERSION')
-
 }
 ```
