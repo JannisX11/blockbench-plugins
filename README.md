@@ -20,6 +20,24 @@ To install a plugin, go to File > Plugins... and switch to the available tab. Fi
 * Indentation for common files must be Tab character. Individual plugin files can follow own personal preferences.
 * Use simple semver for plugin versioning: MAJOR.MINOR.PATCH, e. g. "1.2.11". You need to increase the version number for each update that is published.
 
+## File Structure
+Blockbench supports two file structure systems.
+
+### Legacy structure
+The legacy format, where plugin Javascript files are saved directly in the plugins directory, was used by Blockbench 4.7 and older, and will continue to be supported for already existing plugins.
+
+### Current structure
+The new structure utilizes a separate directory per plugin in the plugins directory, which contains the plugin Javascript file, as well as other optional files.
+The new structure will be used by Blockbench if A: the `"min_version"` is set to 4.8.0 or higher, or B: if the field `"new_repository_format"` in plugins.json is set to `true`.
+The new structure is recommended for new plugins.
+
+These are the files that can be added to the plugin directory
+* `plugins/plugin_id/plugin_id.js`- The plugin Javascript file itself
+* `plugins/plugin_id/about.md`: Markdown file containing the plugin about + instructions.
+* `plugins/plugin_id/icon.png` or `icon.svg`: The plugin icon. Icons can be either PNG files with a resolution of 48x48, or they can be SVG files. To register an icon, set the icon field in the plugin meta data to the file name of the icon.
+* `plugins/plugin_id/members.yml`: This file allows you to list Github users who have your permission to do changes to your model, without me having to check back with you. You can add two types of members: `maintainers` Can do anything with the plugin, including removing it entirely or modifying the members list. `developers` can contribute new versions of the plugin.
+* `plugins/plugin_id/src/**`: Use this directory to store the plugin source, if using a bundler.
+
 ## Development
 
 * To develop a plugin, fork and clone the repository. Make sure [NodeJS](https://nodejs.org/en/) is installed and run `npm install` in the repository. This will install the Blockbench types that make it easier to use the Blockbench API.
