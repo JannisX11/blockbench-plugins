@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="172.2795mm"
+   height="171.511mm"
+   viewBox="0 0 172.2795 171.511"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.75116101"
+     inkscape:cx="5.9907263"
+     inkscape:cy="380.0783"
+     inkscape:window-width="1920"
+     inkscape:window-height="1007"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showgrid="false">
+    <inkscape:grid
+       id="grid4"
+       units="mm"
+       originx="29.146723"
+       originy="31.448164"
+       spacingx="0.99999998"
+       spacingy="0.99999996"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="gears"
+       id="path-effect5"
+       is_visible="true"
+       lpeversion="1"
+       teeth="10"
+       phi="5"
+       min_radius="5" />
+    <inkscape:path-effect
+       effect="powerstroke"
+       id="path-effect4"
+       is_visible="true"
+       lpeversion="1.3"
+       scale_width="1.5"
+       interpolator_type="CentripetalCatmullRom"
+       interpolator_beta="0.2"
+       start_linecap_type="zerowidth"
+       end_linecap_type="zerowidth"
+       offset_points="5.7441084,8.7308865"
+       linejoin_type="bevel"
+       miter_limit="4"
+       not_jump="false"
+       sort_points="true"
+       message="&lt;b&gt;Ctrl + click&lt;/b&gt; on existing node and move it" />
+    <inkscape:path-effect
+       effect="simplify"
+       id="path-effect3"
+       is_visible="true"
+       lpeversion="1.3"
+       threshold="5"
+       steps="1"
+       smooth_angles="360"
+       helper_size="10"
+       simplify_individual_paths="false"
+       simplify_just_coalesce="false" />
+    <inkscape:path-effect
+       effect="knot"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1"
+       switcher_size="15"
+       interruption_width="3"
+       prop_to_stroke_width="true"
+       add_stroke_width="inkscape_1.0_and_up"
+       both="false"
+       inverse_width="false"
+       add_other_stroke_width="inkscape_1.0_and_up"
+       crossing_points_vector="" />
+    <inkscape:path-effect
+       effect="powerstroke"
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1.3"
+       scale_width="0.74906367"
+       interpolator_type="CentripetalCatmullRom"
+       interpolator_beta="0.17977528"
+       start_linecap_type="zerowidth"
+       end_linecap_type="zerowidth"
+       offset_points="1,0 | 0,0 | 2.5501981,29.116368"
+       linejoin_type="bevel"
+       miter_limit="4"
+       not_jump="false"
+       sort_points="false"
+       message="&lt;b&gt;Ctrl + click&lt;/b&gt; on existing node and move it" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(11.051507,11.890192)">
+    <path
+       id="path1"
+       d="m 92.917172,75.668588 v 0 z M 70.02131,95.830246 C 62.996584,98.238002 51.400449,99.849271 38.929143,95.171031 31.116146,92.118137 23.704105,86.606305 18.395692,79.036739 c -4.586366,-6.600404 -7.242708,-14.423563 -7.64222,-22.22849 -0.450676,-8.067371 1.495124,-15.860543 4.968875,-22.295865 2.828727,-5.268813 6.71821,-9.658812 10.937872,-13.081923 1.485997,-1.205483 3.082065,-2.348049 4.785775,-3.392695 5.178147,-3.201219 11.60771,-5.613549 18.828698,-6.26003 6.732104,-0.605726 13.991251,0.494409 20.768422,3.527472 7.835984,3.653607 14.55796,9.886132 18.971719,17.512886 3.588962,5.408755 5.798961,11.38065 6.820341,17.178692 l 7e-6,0.01026 c 1.474721,10.850632 -1.245609,20.075714 -3.918009,25.661546 3.639038,-4.985781 8.851988,-13.531486 10.247648,-25.67563 l 10e-6,0.01026 c 1.0245,-6.525278 0.95609,-14.234893 -1.27701,-22.305745 C 98.346018,16.899011 91.181026,6.534142 80.810519,-0.82787506 72.054574,-7.1933027 61.423056,-11.09826 50.372039,-11.775689 38.803616,-12.497223 27.58111,-9.7780432 18.255813,-4.4863632 15.281969,-2.7918155 12.538533,-0.87895807 10.041362,1.1852549 2.9568824,7.0414322 -3.1102909,14.925841 -6.8886766,24.333968 -11.424808,35.689202 -12.293344,48.408114 -9.2996601,60.277169 -6.371255,71.734956 -0.03357297,81.576102 7.9873205,88.643749 17.104161,96.71426 27.722387,100.82056 37.280372,101.98175 52.176763,103.9604 63.753237,99.246303 70.02131,95.830246 Z"
+       style="fill:#b6b6be;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:original-d="M 92.917172,75.668588 C 87.617045,84.543306 79.484001,91.665628 70.02131,95.830246 m 0,0 C 60.065223,100.21201 48.670933,101.1343 38.104758,98.576392 28.584834,96.271763 19.832372,91.035052 13.191508,83.840246 6.725609,76.835 2.3524028,67.939382 0.72690575,58.542709 -0.96584557,48.757253 0.33776294,38.484701 4.4168375,29.423171 8.6599439,19.997249 15.932087,11.99858 24.850904,6.775701 32.527705,2.2801486 41.42927,-0.03573548 50.323364,0.00102372 59.303958,0.03814042 68.243049,2.58671 75.926819,7.2386678 84.770105,12.592628 91.856626,20.76358 95.951325,30.257778 98.630885,36.470758 100.00687,43.23526 100,50 c 0.02,8.987808 -2.473493,17.950557 -7.082828,25.668588"
+       inkscape:path-effect="#path-effect4"
+       sodipodi:nodetypes="cccsssssssscc"
+       transform="translate(28.713364,28.58517)" />
+  </g>
+</svg>
