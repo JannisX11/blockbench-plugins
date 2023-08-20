@@ -484,12 +484,14 @@ function onBedrockCompile(e) {
 
 function animatorBuildFile() {
     const res = _utils__WEBPACK_IMPORTED_MODULE_2__["Original"].get(Animator).buildFile.apply(this, arguments);
-    Object.assign(
-        res,
-        {
-            'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_1__["default"].formatVersion,
-        }
-    );
+    if (Format.id === "animated_entity_model") {
+        Object.assign(
+            res,
+            {
+                'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_1__["default"].formatVersion,
+            }
+        );
+    }
     // console.log('animatorBuildFile res:', res);
     return res;
 }

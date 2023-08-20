@@ -45,12 +45,14 @@ function onBedrockCompile(e) {
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-    Object.assign(
-        res,
-        {
-            'geckolib_format_version': geckoSettings.formatVersion,
-        }
-    );
+    if (Format.id === "animated_entity_model") {
+        Object.assign(
+            res,
+            {
+                'geckolib_format_version': geckoSettings.formatVersion,
+            }
+        );
+    }
     // console.log('animatorBuildFile res:', res);
     return res;
 }
