@@ -45,12 +45,14 @@ function onBedrockCompile(e) {
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-    Object.assign(
-        res,
-        {
-            'azurelib_format_version': azurelibSettings.formatVersion,
-        }
-    );
+	if (Format.id === "animated_entity_model") {
+        Object.assign(
+            res,
+            {
+                'azurelib_format_version': azurelibSettings.formatVersion,
+            }
+        );
+    }
     // console.log('animatorBuildFile res:', res);
     return res;
 }
