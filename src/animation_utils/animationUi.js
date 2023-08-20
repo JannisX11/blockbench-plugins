@@ -4,9 +4,6 @@ import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } f
 
 const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 
-let holdMenu;
-let holdMenuConditionOriginal;
-
 export const loadAnimationUI = () => {
   Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
@@ -17,16 +14,11 @@ export const loadAnimationUI = () => {
     Format.id !== "animated_entity_model" && Original.get(BarItems.keyframe_interpolation).condition()
   );
 
-  holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
-    .children.find(x => x.name === 'menu.animation.loop.hold');
-  holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 export const unloadAnimationUI = () => {
   Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
-  holdMenu.condition = holdMenuConditionOriginal;
 };
 
 //#region Global Animation UI Handlers
