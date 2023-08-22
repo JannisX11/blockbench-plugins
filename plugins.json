@@ -418,10 +418,8 @@
 		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
 		"icon": "movie_filter",
 		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki",
-		"tags": [
-			"Minecraft: Java Edition"
-		],
-		"version": "3.0.6",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "3.0.7",
 		"min_version": "4.0.0",
 		"await_loading": true,
 		"variant": "both",
@@ -985,11 +983,10 @@
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
-		"tags": [
-			"Minecraft: Java Edition"
-		],
-		"version": "1.0.2",
-		"min_version": "4.0.0",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0.3",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
 		"await_loading": true,
 		"variant": "both",
 		"creation_date": "2023-04-04"
