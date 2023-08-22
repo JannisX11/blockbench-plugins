@@ -215,7 +215,7 @@
       action.delete()
       styles.delete()
       dialog.close()
-      newDialog.close()
+      newDialog?.close()
       editDialog?.close()
       $("#workspace-details").remove()
     }
