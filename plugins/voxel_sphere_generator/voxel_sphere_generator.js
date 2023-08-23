@@ -211,8 +211,3 @@
 		}
 	}
 })();
-
-onUninstall = function () {
-	//Removing entries
-	Blockbench.removeMenuEntry("Generate Sphere");
-};
