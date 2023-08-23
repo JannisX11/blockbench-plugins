@@ -1,5 +1,6 @@
 import { Original, addMonkeypatch, hasArgs } from './utils';
 import { easingFunctions, EASING_DEFAULT, getEasingArgDefault } from './easing';
+import Keyframe = Blockbench.Keyframe;
 
 //#region Keyframe Mixins
 export function loadKeyframeOverrides() {

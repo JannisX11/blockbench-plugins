@@ -1,6 +1,19 @@
 import omit from 'lodash/omit';
 import geckoSettings, {GECKO_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
+import type { EasingKey } from './easing';
+
+interface GeckolibKeyframeOptions extends KeyframeOptions {
+  easing: EasingKey
+  easingArgs: number[] | null | undefined
+}
+
+// This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
+class GeckolibBoneAnimator extends BoneAnimator {
+    public addKeyframe(data: GeckolibKeyframeOptions, uuid?: string): _Keyframe {
+        return super.addKeyframe(data, uuid);
+    }
+}
 
 /* eslint-disable no-useless-escape */
 
@@ -16,19 +29,19 @@ export function loadCodec() {
 }
 
 export function unloadCodec() {
-    Codecs.project.events.compile.remove(onProjectCompile)
-    Codecs.project.events.parse.remove(onProjectParse)
-    Codecs.bedrock.events.compile.remove(onBedrockCompile)
+    Codecs.project.removeListener('compile', onProjectCompile);
+    Codecs.project.removeListener('parse', onProjectParse);
+    Codecs.bedrock.removeListener('compile', onBedrockCompile);
     format.delete();
 }
 
-function onProjectCompile(e) {
+function onProjectCompile(e: any) {
     if (Format.id !== "animated_entity_model") return;
     e.model.geckoSettings = geckoSettings;
     // console.log(`compileCallback model:`, e.model);
 }
 
-function onProjectParse(e) {
+function onProjectParse(e: any) {
     // console.log(`onProjectParse:`, e);
     if (e.model && typeof e.model.geckoSettings === 'object') {
         Object.assign(geckoSettings, omit(e.model.geckoSettings, ['formatVersion']));
@@ -38,7 +51,7 @@ function onProjectParse(e) {
     onSettingsChanged();
 }
 
-function onBedrockCompile(e) {
+function onBedrockCompile(e: any) {
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
@@ -57,6 +70,33 @@ function animatorBuildFile() {
     return res;
 }
 
+function getKeyframeDataPoints(source: any) {
+    if (source instanceof Array) {
+        return [{
+            x: source[0],
+            y: source[1],
+            z: source[2],
+        }]
+    } else if (['number', 'string'].includes(typeof source)) {
+        return [{
+            x: source, y: source, z: source
+        }]
+    } else if (typeof source == 'object') {
+        if(source.vector)
+        {
+            return getKeyframeDataPoints(source.vector);
+        }
+        let points = [];
+        if (source.pre) {
+            points.push(getKeyframeDataPoints(source.pre)[0])
+        }
+        if (source.post) {
+            points.push(getKeyframeDataPoints(source.post)[0])
+        }
+        return points;
+    }
+}
+
 function animatorLoadFile(file, animation_filter) {
     // Currently no modifications are needed
     // eslint-disable-next-line no-undef
@@ -68,10 +108,12 @@ function animatorLoadFile(file, animation_filter) {
             if (animation_filter && !animation_filter.includes(ani_name)) continue;
             //Animation
             var a = json.animations[ani_name]
-            var animation = new Animation({
+            var animation = new Blockbench.Animation({
                 name: ani_name,
                 path,
-                loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
+                // TODO: Make sure it's OK to disable this line
+                // loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
+                loop: a.loop,
                 override: a.override_previous_animation,
                 anim_time_update: (typeof a.anim_time_update == 'string'
                     ? a.anim_time_update.replace(/;(?!$)/, ';\n')
@@ -83,40 +125,14 @@ function animatorLoadFile(file, animation_filter) {
             }).add()
             //Bones
             if (a.bones) {
-                // eslint-disable-next-line no-inner-declarations
-                function getKeyframeDataPoints(source) {
-                    if (source instanceof Array) {
-                        return [{
-                            x: source[0],
-                            y: source[1],
-                            z: source[2],
-                        }]
-                    } else if (['number', 'string'].includes(typeof source)) {
-                        return [{
-                            x: source, y: source, z: source
-                        }]
-                    } else if (typeof source == 'object') {
-                        if(source.vector)
-                        {
-                            return getKeyframeDataPoints(source.vector);
-                        }
-                        let points = [];
-                        if (source.pre) {
-                            points.push(getKeyframeDataPoints(source.pre)[0])
-                        }
-                        if (source.post) {
-                            points.push(getKeyframeDataPoints(source.post)[0])
-                        }
-                        return points;
-                    }
-                }
                 for (var bone_name in a.bones) {
                     var b = a.bones[bone_name]
                     let lowercase_bone_name = bone_name.toLowerCase();
                     var group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name)
                     let uuid = group ? group.uuid : guid();
+                    var ga : GeneralAnimator;
 
-                    var ba = new BoneAnimator(uuid, animation, bone_name);
+                    var ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
                     animation.animators[uuid] = ba;
                     //Channels
                     for (var channel in b) {
@@ -200,7 +216,7 @@ function animatorLoadFile(file, animation_filter) {
                 }
             }
             animation.calculateSnappingFromKeyframes();
-            if (!Animation.selected && Animator.open) {
+            if (!Blockbench.Animation.selected && Animator.open) {
                 animation.select()
             }
             new_animations.push(animation)
@@ -212,7 +228,7 @@ function animatorLoadFile(file, animation_filter) {
 //#endregion Codec Helpers / Export Settings
 
 //#region Codec / ModelFormat
-export function maybeExportItemJson(options = {}, as) {
+export function maybeExportItemJson(options = {}) {
     function checkExport(key, condition) {
         key = options[key]
         if (key === undefined) {
@@ -222,7 +238,9 @@ export function maybeExportItemJson(options = {}, as) {
         }
     }
 
-    const blockmodel = {}
+    if (!Project) return;
+
+    const blockmodel: any = {}
     if (checkExport('comment', settings.credit.value)) {
         blockmodel.credit = settings.credit.value
     }
