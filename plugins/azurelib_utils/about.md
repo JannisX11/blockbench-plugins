@@ -30,3 +30,8 @@ dependencies {
         implementation fg.deobf('mod.azure.azurelib:azurelib-neo-MCVERSION:MODVERSION')
 }
 ```
+<style>
+  #plugin_browser_page pre {
+    overflow-x: auto;
+  }
+</style>
