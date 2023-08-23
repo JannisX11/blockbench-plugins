@@ -1,7 +1,7 @@
 const fs = require('fs');
 const eol = require('eol');
 const { version, blockbenchConfig } = require('../package.json');
-const PACKAGE_MANIFEST_PATH = '../../plugins.json';
+const PACKAGE_MANIFEST_PATH = '../../../plugins.json';
 const manifest = require(`../${PACKAGE_MANIFEST_PATH}`);
 
 // console.log({ version, blockbenchConfig });

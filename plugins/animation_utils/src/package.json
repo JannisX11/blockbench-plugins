@@ -10,7 +10,8 @@
     "start": "webpack --watch --mode=development",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "pretest": "npm run lint",
+    "tsc": "tsc --noEmit",
+    "pretest": "npm run lint && npm run tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Eliot Lash, Gecko, McHorse, AzureDoom",
@@ -18,9 +19,9 @@
   "blockbenchConfig": {
     "title": "GeckoLib Animation Utils",
     "author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
-    "icon": "movie_filter",
-    "description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://github.com/bernie-g/geckolib/wiki",
-    "min_version": "4.0.0",
+    "icon": "icon.png",
+    "description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
+    "min_version": "4.8.0",
     "max_version": "5.0.0",
     "variant": "both"
   },
