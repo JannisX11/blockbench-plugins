@@ -5,8 +5,8 @@
   "description": "GeckoLib Animation Utils",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
-    "build_and_update_manifest": "webpack && node scripts/updateManifest.js",
+    "build": "webpack && npm run update_manifest",
+    "update_manifest": "node scripts/updateManifest.mjs",
     "start": "webpack --watch --mode=development",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -33,6 +33,7 @@
     "blockbench-types": "^4.8.0",
     "eol": "0.9.1",
     "eslint": "7.7.0",
+    "indent-string": "^5.0.0",
     "ts-loader": "^9.4.4",
     "typescript": "^4.9.5",
     "webpack": "^5.88.2",

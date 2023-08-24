@@ -1,3 +1,3 @@
-GeckoLib 4.0 is a powerful animation library for Minecraft Java Edition available for Forge 1.20, Fabric 1.12, and Quilt 1.19.3+. Older versions are also available. Out of the box support for easings, math-based animations, resource pack overloading, and animation stacking. This plugin allows you to create animated assets for use in your GeckoLib Java Edition mods.
+GeckoLib is a powerful animation library for Minecraft Java Edition available for Forge and Fabric. Out of the box support for easings, math-based animations, resource pack overloading, and animation stacking. This plugin allows you to create animated assets for use in your GeckoLib mods.
 
 See the [GeckoLib wiki](https://github.com/bernie-g/geckolib/wiki) for help using the plugin and library.
