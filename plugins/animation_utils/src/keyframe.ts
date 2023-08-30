@@ -1,5 +1,7 @@
+import groupBy from 'lodash/groupBy';
+import mapValues from 'lodash/mapValues';
 import { Original, addMonkeypatch, hasArgs } from './utils';
-import { easingFunctions, EASING_DEFAULT, getEasingArgDefault } from './easing';
+import { easingFunctions, EASING_DEFAULT, getEasingArgDefault, GeckolibKeyframe } from './easing';
 import Keyframe = Blockbench.Keyframe;
 
 //#region Keyframe Mixins
@@ -9,7 +11,7 @@ export function loadKeyframeOverrides() {
   addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
   addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
 
-  addMonkeypatch(BarItems.reverse_keyframes, null, "condition", reverseKeyframesCondition);
+  addMonkeypatch(BarItems.reverse_keyframes, null, "click", onReverseKeyframes);
 }
 
 export function unloadKeyframeOverrides() {
@@ -96,10 +98,39 @@ function keyframeExtend(dataIn) {
   return result;
 }
 
-function reverseKeyframesCondition() {
-  const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
-  // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
-  return res;
+// function reverseKeyframesCondition() {
+//   const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
+//   // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
+//   return res;
+// }
+
+function onReverseKeyframes() {
+  Original.get(BarItems.reverse_keyframes).click.apply(this, arguments);
+  console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
+  // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
+  Undo.initEdit({keyframes: Timeline.selected})
+  const kfByAnimator = groupBy(Timeline.selected, kf => kf.animator.uuid);
+  const kfByAnimatorAndChannel = mapValues(
+    kfByAnimator,
+    keyframesForAnimator => groupBy(keyframesForAnimator, kf => kf.channel)
+  );
+  Object.keys(kfByAnimatorAndChannel).forEach(animatorUuid => {
+    const animatorChannelGroups = kfByAnimatorAndChannel[animatorUuid];
+    Object.keys(animatorChannelGroups).forEach(channel => {
+      const channelKeyframes = animatorChannelGroups[channel];
+      // Ensure keyframes are in temporal order. Not sure if this is already the case, but it couldn't hurt
+      channelKeyframes.sort((kfA, kfB) => kfA.time - kfB.time);
+      const easingData = channelKeyframes.map((kf: GeckolibKeyframe) => ({ easing: kf.easing, easingArgs: kf.easingArgs }));
+      console.log('@@@ animator:', animatorUuid, 'channel:', channel, 'easingData:', easingData);
+    });
+  });
+  console.log('@@@ kfByAnimator:', kfByAnimator, "\nkfByAnimatorAndChannel:", kfByAnimatorAndChannel);
+  // Timeline.selected.forEach((kf: GeckolibKeyframe) => {
+  //   kf.animator
+  // });
+  Undo.finishEdit('Reverse keyframe easing')
+  updateKeyframeSelection();
+  Animator.preview();
 }
 
 //#endregion Keyframe Mixins
