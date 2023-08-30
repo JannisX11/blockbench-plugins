@@ -2,4 +2,4 @@ GeckoLib is a powerful animation library for Minecraft Java Edition available fo
 
 See the [GeckoLib wiki](https://github.com/bernie-g/geckolib/wiki) for help using the plugin and library.
 
-[Changelog (patch notes)](https://github.com/fadookie/geckolib-plugin/blob/geckolib-typescript/plugins/animation_utils/CHANGELOG.md)
+[Changelog (patch notes)](https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/animation_utils/CHANGELOG.md)
