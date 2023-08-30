@@ -4,7 +4,7 @@ This readme is intended for developers wishing to work on the GeckoLib plugin.
 
 # Environment setup
 ## Windows
-Inspect the contents of [.nvmrc](./.nvmrc) - this specifies the recommended version of Node.JS to use for plugin development. You can [download the corresponding version of Node.JS here](https://nodejs.org/en/download/releases).
+Inspect the contents of [.nvmrc](./src/.nvmrc) - this specifies the recommended version of Node.JS to use for plugin development. You can [download the corresponding version of Node.JS here](https://nodejs.org/en/download/releases).
 
 
 ## macOS and Unix
@@ -42,7 +42,7 @@ First, start the development webpack bundler:
 ```
 npm start
 ```
-The development bundler will watch the filesystem for changes and automatically re-build the plugin to [../animation_utils.js](../animation_utils.js).
+The development bundler will watch the filesystem for changes and automatically re-build the plugin to [animation_utils.js](./animation_utils.js).
 
 Then, you can load the plugin in Blockbench from `File` -> `Plugins` and selecting the `Load Plugin from File` button. Every time you make a change to the plugin source code, the bundler will automatically rebuild the plugin, but you still need to reload it in Blockbench in order for the changes to take effect. You can do this by selecting `Help` -> `Developer` -> `Reload Plugins`. In some cases if the global state has been messed up, you may need to reload the entire application using `Help` -> `Developer` -> `Reload Blockbench`. It's also recommended to select `Open Dev Tools` from this menu as it can be very helpful to explore the Blockbench API using the console and inspect error logs and debug breakpoints.
 
@@ -60,12 +60,12 @@ npm run
 ```
 
 ## Building a release of the plugin
-First, inspect [package.json](./package.json) to make sure all the properties are correct. If you are making a release of the plugin, you should bump the `version` property to be one minor version up for a bugfix, minor version for new features, or major version for backwards-incompatible breaking changes.
+First, inspect [package.json](./src/package.json) to make sure all the properties are correct. If you are making a release of the plugin, you should bump the `version` property to be one minor version up for a bugfix, minor version for new features, or major version for backwards-incompatible breaking changes.
 Then, check the `blockbenchConfig`. `min_version` should be the lowest version of Blockbench the plugin is known to work with and `max_version` should be the first version the plugin is expected to not work with that's higher than the versions it was tested on. When the metadata is ready, run:
 ```
 npm run build
 ```
-This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../../plugins.json) manifest with your settings. Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
+This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../plugins.json) manifest with your settings. Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
 
 Note that it is possible to skip pre-build scripts by running:
 ```
@@ -86,7 +86,7 @@ The plugin is now written using a loose version of [TypeScript](https://www.type
    ```typescript
     let easingBar: HTMLElement = document.createElement('div'); // Otherwise this would be an HTMLDivElement
    ```
-   * Subclassing a blockbench type (for an example of this see usage of the `GeckolibBoneAnimator` in [codec.ts](./codec.ts)).
+   * Subclassing a blockbench type (for an example of this see usage of the `GeckolibBoneAnimator` in [codec.ts](./src/codec.ts)).
    * Performing [type narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html).
    * There are other options, such as [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#handbook-content).
 1. The nuclear option when all else fails: slap a `// @ts-ignore` comment above the problematic line(s). This is a bit dangerous as it shuts off ALL type checking on on that line, but sometimes this is necessary if you need to just force the compiler to ignore a problematic area of the code.
@@ -104,4 +104,4 @@ Some lint errors can be fixed automatically by running:
 npm run lint:fix
 ```
 
-It's best to fix errors by changing the source code when possible. There are some cases in which certain lint rules might get in the way of particular things we might need to do in the plugin. In this case, [the rules can be disabled for different scopes](https://eslint.org/docs/latest/use/configure/rules). It's best to keep the scope as small as possible, so disabling individual rules per-line is the best way to start, or if it's needed in a larger area, disabling individual rules for a block of code, then lastly a whole file. You can search the code for `eslint-disable` to find examples. In some cases it may be necessary to disable a rule for the entire codebase, this can be done in the `rules` block of the [.eslintrc.cjs](./.eslintrc.cjs) file.
+It's best to fix errors by changing the source code when possible. There are some cases in which certain lint rules might get in the way of particular things we might need to do in the plugin. In this case, [the rules can be disabled for different scopes](https://eslint.org/docs/latest/use/configure/rules). It's best to keep the scope as small as possible, so disabling individual rules per-line is the best way to start, or if it's needed in a larger area, disabling individual rules for a block of code, then lastly a whole file. You can search the code for `eslint-disable` to find examples. In some cases it may be necessary to disable a rule for the entire codebase, this can be done in the `rules` block of the [.eslintrc.cjs](./src/.eslintrc.cjs) file.
