@@ -65,7 +65,11 @@ Then, check the `blockbenchConfig`. `min_version` should be the lowest version o
 ```
 npm run build
 ```
-This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../plugins.json) manifest with your settings. Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
+This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../plugins.json) manifest with your settings.
+
+Then, update the [CHANGELOG](./CHANGELOG.md) to add patch notes for the new version.
+
+Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
 
 Note that it is possible to skip pre-build scripts by running:
 ```
