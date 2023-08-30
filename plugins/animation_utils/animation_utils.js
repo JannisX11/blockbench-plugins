@@ -8227,14 +8227,14 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
     var addPrePostButton = document.querySelector('#keyframe_type_label > div');
     if (addPrePostButton)
         addPrePostButton.hidden = Format.id === "animated_entity_model";
-    var multi_channel = false;
+    var multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
     var channel = false;
     Timeline.selected.forEach(function (kf) {
         if (channel === false) {
             channel = kf.channel;
         }
         else if (channel !== kf.channel) {
-            multi_channel = true; //eslint-disable-line no-unused-vars
+            multi_channel = true;
         }
     });
     var getMultiSelectValue = function (selector, defaultValue, conflictValue) {
@@ -8517,6 +8517,7 @@ function onProjectParse(e) {
     }
     (0,_settings__WEBPACK_IMPORTED_MODULE_2__.onSettingsChanged)();
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onBedrockCompile(e) {
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
@@ -8587,12 +8588,14 @@ function animatorLoadFile(file, animation_filter) {
             }).add();
             //Bones
             if (a.bones) {
-                var _loop_1 = function () {
-                    b = a.bones[bone_name];
+                var _loop_1 = function (bone_name) {
+                    var b = a.bones[bone_name];
                     var lowercase_bone_name = bone_name.toLowerCase();
-                    group = Group.all.find(function (group) { return group.name.toLowerCase() == lowercase_bone_name; });
+                    var group = Group.all.find(function (group) { return group.name.toLowerCase() == lowercase_bone_name; });
                     var uuid = group ? group.uuid : guid();
-                    ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
+                    var ga = // eslint-disable-line @typescript-eslint/no-unused-vars
+                     void 0; // eslint-disable-line @typescript-eslint/no-unused-vars
+                    var ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
                     animation.animators[uuid] = ba;
                     //Channels
                     for (var channel in b) {
@@ -8631,9 +8634,8 @@ function animatorLoadFile(file, animation_filter) {
                         }
                     }
                 };
-                var b, group, ga, ba;
                 for (var bone_name in a.bones) {
-                    _loop_1();
+                    _loop_1(bone_name);
                 }
             }
             if (a.sound_effects) {
@@ -8732,6 +8734,7 @@ function maybeExportItemJson(options) {
         var entries = 0;
         for (var i in DisplayMode.slots) {
             var key = DisplayMode.slots[i];
+            // eslint-disable-next-line no-prototype-builtins
             if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
                 new_display[key] = Project.display_settings[key].export();
                 entries++;
@@ -9178,7 +9181,7 @@ function unloadKeyframeOverrides() {
 function lerp(start, stop, amt) {
     return amt * (stop - start) + start;
 }
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
     var easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     if (Format.id !== "animated_entity_model") {
@@ -9271,7 +9274,6 @@ function onReverseKeyframes() {
             // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
             // Shift easing data to the right by one keyframe
             channelKeyframes.forEach(function (kf, i) {
-                debugger;
                 if (i == 0) {
                     kf.easing = undefined;
                     kf.easingArgs = undefined;
@@ -9432,7 +9434,7 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.0.7","private":true,"description":"GeckoLib Animation Utils","main":"index.js","scripts":{"build":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","blockbench-types":"^4.8.0","eol":"0.9.1","eslint":"7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"3.1.0","private":true,"description":"GeckoLib Animation Utils","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.8.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ })
 
