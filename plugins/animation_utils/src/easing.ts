@@ -288,12 +288,14 @@ export const EASING_OPTIONS = Object.freeze(Object.fromEntries(
 ) as { [Property in EasingKey]: string });
 export const EASING_DEFAULT = 'linear';
 
-export interface GeckolibKeyframe extends _Keyframe  {
-  easing: string | null | undefined;
+export interface EasingProperties {
+  easing?: EasingKey | null;
   easingArgs?: number[];
 }
 
-export const getEasingArgDefault = (kf: GeckolibKeyframe) => {
+export type GeckolibKeyframe = _Keyframe & EasingProperties;
+
+export const getEasingArgDefault = (kf: GeckolibKeyframe): number => {
   switch (kf.easing) {
     case EASING_OPTIONS.easeInBack:
     case EASING_OPTIONS.easeOutBack:
@@ -331,3 +333,11 @@ export const parseEasingArg = (kf: GeckolibKeyframe, value: string) => {
       return parseInt(value, 10);
   }
 };
+
+export function reverseEasing(easing?: EasingKey): EasingKey {
+  if (!easing) return easing;
+  if (easing.startsWith("easeInOut")) return easing;
+  if (easing.startsWith("easeIn")) return easing.replace("easeIn", "easeOut") as EasingKey;
+  if (easing.startsWith("easeOut")) return easing.replace("easeOut", "easeIn") as EasingKey;
+  return easing;
+}
