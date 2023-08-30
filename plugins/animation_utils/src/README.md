@@ -48,13 +48,30 @@ Then, you can load the plugin in Blockbench from `File` -> `Plugins` and selecti
 
 As every time you load the plugin, it's considered by the JS interpreter to be a different source file, any breakpoints set on the previously loaded file will be lost. You can work around this by adding a `debugger;` statement inside the source code where you want to set a breakpoint, which will force the JS interpreter to break on that line.
 
+If a TypeScript compiler error is encountered, it will be logged to the terminal window, but the JS bundle will still be generated.
+
+To check for errors, you can run:
+```
+npm run test
+```
+This will run all pretest scripts (eslint and TypeScript type check) as well as unit tests. It's also possible to run pretest separately, or the individual checks by themselves. To see all available npm scripts, run:
+```
+npm run
+```
+
 ## Building a release of the plugin
 First, inspect [package.json](./package.json) to make sure all the properties are correct. If you are making a release of the plugin, you should bump the `version` property to be one minor version up for a bugfix, minor version for new features, or major version for backwards-incompatible breaking changes.
 Then, check the `blockbenchConfig`. `min_version` should be the lowest version of Blockbench the plugin is known to work with and `max_version` should be the first version the plugin is expected to not work with that's higher than the versions it was tested on. When the metadata is ready, run:
 ```
 npm run build
 ```
-This will build the plugin and automatically update the [plugins.json](../../../plugins.json) manifest with your settings. Double-check everything looks right, then commit and make a PR to this repo to release the plugin.
+This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../../plugins.json) manifest with your settings. Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
+
+Note that it is possible to skip pre-build scripts by running:
+```
+npm run build:only
+```
+This is dangerous and shouldn't be done to make a full release, it's better to fix any errors from tests, lint, and compiler before publishing changes.
 
 ## Using TypeScript
 The plugin is now written using a loose version of [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html). Blockbench types are supplied by the [blockbench-types](https://github.com/JannisX11/blockbench-types) package. Note that these types are hand-written and may contain errors or be missing certain APIs. So just because you see an error message in your IDE or the bundler output doesn't neccessarily mean your code is wrong, it's possible it could be an issue with the type definitions. TypeScript errors won't prevent the plugin from being built so you can always test your code manually and/or inspect the [Blockbench source code](https://github.com/JannisX11/blockbench) to confirm the code is correct. If there's an error in the types, there are a few ways of fixing it:
@@ -75,3 +92,16 @@ The plugin is now written using a loose version of [TypeScript](https://www.type
 1. The nuclear option when all else fails: slap a `// @ts-ignore` comment above the problematic line(s). This is a bit dangerous as it shuts off ALL type checking on on that line, but sometimes this is necessary if you need to just force the compiler to ignore a problematic area of the code.
 
 Some places that are good to look for help with TypeScript are the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html), [TypeScript Discord](https://discord.com/invite/typescript), or you can ping Eliot on the GeckoLib Discord.
+
+# Working with ESLint
+[ESLint](https://eslint.org) is a tool for checking the code for common errors or problematic coding styles. It can be integrated into IDEs via plugins, and can be run from the terminal like so:
+```
+npm run lint
+```
+
+Some lint errors can be fixed automatically by running:
+```
+npm run lint:fix
+```
+
+It's best to fix errors by changing the source code when possible. There are some cases in which certain lint rules might get in the way of particular things we might need to do in the plugin. In this case, [the rules can be disabled for different scopes](https://eslint.org/docs/latest/use/configure/rules). It's best to keep the scope as small as possible, so disabling individual rules per-line is the best way to start, or if it's needed in a larger area, disabling individual rules for a block of code, then lastly a whole file. You can search the code for `eslint-disable` to find examples. In some cases it may be necessary to disable a rule for the entire codebase, this can be done in the `rules` block of the [.eslintrc.cjs](./.eslintrc.cjs) file.

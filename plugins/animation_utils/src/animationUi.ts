@@ -61,13 +61,13 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     const addPrePostButton = document.querySelector<HTMLElement>('#keyframe_type_label > div');
     if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
 
-    var multi_channel = false;
-    var channel: boolean | string | number = false;
+    let multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
+    let channel: boolean | string | number = false;
     Timeline.selected.forEach((kf) => {
       if (channel === false) {
         channel = kf.channel
       } else if (channel !== kf.channel) {
-        multi_channel = true //eslint-disable-line no-unused-vars
+        multi_channel = true
       }
     })
 
@@ -124,13 +124,13 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           let finalEasing = 'ease';
 
           if (inputEasingOrType === "in" || inputEasingOrType === "out" || inputEasingOrType === "inout") {
-              let finalEasingType = easingTypeToTypeId(inputEasingOrType)
+              const finalEasingType = easingTypeToTypeId(inputEasingOrType)
 
               finalEasing += finalEasingType + easing.substring(0, 1).toUpperCase() + easing.substring(1);
             } else if (inputEasingOrType === "linear" || inputEasingOrType == "step") {
               finalEasing = inputEasingOrType;
             } else {
-              let finalEasingType = easingTypeToTypeId(easingType);
+              const finalEasingType = easingTypeToTypeId(easingType);
 
               finalEasing += finalEasingType + inputEasingOrType.substring(0, 1).toUpperCase() + inputEasingOrType.substring(1);
             }
@@ -139,20 +139,20 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         };
 
         const addEasingTypeIcons = (bar, easingType, title) => {
-          var div = document.createElement("div");
+          const div = document.createElement("div");
           div.innerHTML = getIcon(easingType);
           div.id = "kf_easing_type_" + easingType;
           div.setAttribute("style", "stroke:var(--color-text);margin:0px;padding:3px;width:30px;height:30px");
           div.setAttribute("title", title);
           div.onclick = () => {
-            let selectedEasing = $(".selected_kf_easing");
-            let selectedEasingType = $(".selected_kf_easing_type");
+            const selectedEasing = $(".selected_kf_easing");
+            const selectedEasingType = $(".selected_kf_easing_type");
 
-            let keySelectedEasing = selectedEasing.attr("id").substring(15);
-            let keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
+            const keySelectedEasing = selectedEasing.attr("id").substring(15);
+            const keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
 
-            let currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
-            let finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
+            const currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
+            const finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
 
             if (finalEasing != currentEasing) {
             //   console.log("Changed from " + currentEasing + " to " + finalEasing);
@@ -183,8 +183,8 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
         addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
 
-        let keyEasing = getEasingInterpolation(displayedEasing);
-        let keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
+        const keyEasing = getEasingInterpolation(displayedEasing);
+        const keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
 
         keyEasingElement.style.stroke = "var(--color-accent)";
         keyEasingElement.classList.add('selected_kf_easing');
@@ -201,8 +201,8 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
           addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
 
-          let keyEasingType = getEasingType(displayedEasing);
-          let keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
+          const keyEasingType = getEasingType(displayedEasing);
+          const keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
 
           keyEasingTypeElement.style.stroke = "var(--color-accent)";
           keyEasingTypeElement.classList.add('selected_kf_easing_type');
@@ -246,7 +246,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
 };
 
 const getEasingInterpolation = (name: string) => {
-  var matches = name.match(easingRegExp);
+  const matches = name.match(easingRegExp);
 
   if (matches) {
     return matches[2].toLowerCase();
@@ -256,7 +256,7 @@ const getEasingInterpolation = (name: string) => {
 };
 
 const getEasingType = (name: string) => {
-  var matches = name.match(easingRegExp);
+  const matches = name.match(easingRegExp);
 
   if (matches) {
     return matches[1].toLowerCase();

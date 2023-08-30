@@ -31,7 +31,7 @@ export type GeckoSettings = typeof GECKO_SETTINGS_DEFAULT & {
   itemModelPath?: string;
 }
 
-let geckoSettings: GeckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
+const geckoSettings: GeckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 
 export function onSettingsChanged() {
   if(Format.id === "animated_entity_model") {

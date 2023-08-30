@@ -39,9 +39,9 @@ function findIntervalBorderIndex(point: number, intervals: number[], useRightBor
     return intervals.length - 1
   //If point is inside interval
   //Start searching on a full range of intervals
-  var indexOfNumberToCompare = 0;
-  var leftBorderIndex = 0;
-  var rightBorderIndex = intervals.length - 1
+  let indexOfNumberToCompare = 0;
+  let leftBorderIndex = 0;
+  let rightBorderIndex = intervals.length - 1
   //Reduce searching range till it find an interval point belongs to using binary search
   while (rightBorderIndex - leftBorderIndex !== 1) {
     indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2)

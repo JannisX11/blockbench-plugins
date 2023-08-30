@@ -29,7 +29,7 @@ function lerp(start: number, stop: number, amt: number) {
   return amt * (stop - start) + start;
 }
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
   const easing = other.easing || EASING_DEFAULT;
   if (Format.id !== "animated_entity_model") {
@@ -126,7 +126,6 @@ function onReverseKeyframes() {
       // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
       // Shift easing data to the right by one keyframe
       channelKeyframes.forEach((kf: GeckolibKeyframe, i: number) => {
-        debugger;
         if (i == 0) {
           kf.easing = undefined;
           kf.easingArgs = undefined;

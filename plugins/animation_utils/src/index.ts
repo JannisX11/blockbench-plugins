@@ -61,7 +61,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           icon: 'info',
           condition: () => Format.id === "animated_entity_model",
           click: function () {
-            var dialog = new Dialog({
+            const dialog = new Dialog({
               id: 'project',
               title: 'GeckoLib Model Settings',
               width: 540,
