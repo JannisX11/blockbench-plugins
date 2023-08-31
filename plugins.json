@@ -325,7 +325,7 @@
 		"version": "1.0.0",
 		"min_version": "4.8.0",
 		"variant": "desktop",
-		"creation_date": "2023-08-08"
+		"creation_date": "2023-08-31"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
