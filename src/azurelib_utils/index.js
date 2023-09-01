@@ -4,7 +4,7 @@ import { version, blockbenchConfig } from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
-import azurelibSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged, OBJ_TYPE_BLOCK_ITEM } from './settings';
+import azurelibSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
 import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
 
 const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;

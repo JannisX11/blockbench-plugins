@@ -30,9 +30,6 @@ Object.freeze(AZURELIB_SETTINGS_DEFAULT);
 let azurelibSettings = Object.assign({}, AZURELIB_SETTINGS_DEFAULT);
 
 export function onSettingsChanged() {
-  if(Format.id === "animated_entity_model") {
-    Format.display_mode = azurelibSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
-  }
   Modes.selected.select();
   switch(azurelibSettings.objectType) {
     case OBJ_TYPE_ARMOR: {
