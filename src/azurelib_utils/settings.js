@@ -11,16 +11,16 @@ export const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
 export const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
 export const OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
 export const OBJ_TYPE_OPTIONS = {
-  [OBJ_TYPE_ENTITY]: 'Entity',
+  [OBJ_TYPE_ENTITY]: 'Entity/Block/Item',
   [OBJ_TYPE_ARMOR]: 'Armor',
-  [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item',
+  [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item', //Will be deprecated in the future, kept to kept existing bbmodels working. Merged into OBJ_TYPE_ENTITY
 };
 
 export const AZURELIB_SETTINGS_DEFAULT = {
   formatVersion: 2,
   modSDK: MOD_SDK_1_15_FORGE,
   objectType: OBJ_TYPE_ENTITY,
-  entityType: 'Entity',
+  entityType: 'Entity/Block/Item',
   javaPackage: 'com.example.mod',
   animFileNamespace: 'MODID',
   animFilePath: 'animations/ANIMATIONFILE.json',

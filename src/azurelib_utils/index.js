@@ -31,10 +31,10 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         console.log("Loaded AzureLib plugin")
         exportAction = new Action({
           id: "export_AzureLib_model",
-          name: "Export AzureLib Model",
+          name: "Export AzureLib .geo Model",
           icon: "archive",
           description:
-            "Export your java animated model as a model for AzureLib.",
+            "Export your .geo model for AzureLib.",
           category: "file",
           condition: () => Format.id === "animated_entity_model",
           click: function () {
@@ -48,16 +48,16 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           name: "Export AzureLib Display Settings",
           icon: "icon-bb_interface",
           description:
-            "Export your java animated model display settings for AzureLib.",
+            "Export your display settings file for AzureLib Item/Blocks.",
           category: "file",
-          condition: () => Format.id === "animated_entity_model" && azurelibSettings.objectType === OBJ_TYPE_BLOCK_ITEM,
+          condition: () => Format.id === "animated_entity_model",
           click: maybeExportItemJson,
         });
         MenuBar.addAction(exportDisplayAction, "file.export");
 
         button = new Action('azurelib_settings', {
-          name: 'AzureLib Model Settings...',
-          description: 'Configure animated model.',
+          name: 'AzureLib Model Settings',
+          description: 'Change model type.',
           icon: 'info',
           condition: () => Format.id === "animated_entity_model",
           click: function () {
