@@ -2,6 +2,8 @@ Create animated blocks, items, entity, and armor using the AzureLib library and 
 
 Download the mod library here on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/azurelib) and [Modrinth](https://modrinth.com/mod/azurelib). 
 
+Wiki found here: https://wiki.azuredoom.com/
+
 Supported Minecraft versions: 
 - **1.16.5 Forge/Fabric**
 - **1.17.1 Forge/Fabric**
