@@ -105,15 +105,9 @@
             {
                 var uv = face.uv.slice();
 
-                if (key === "up" || key === "down")
+                if (face.rotation !== 0)
                 {
-                    var newUv = uv.slice();
-
-                    newUv[0] = uv[2];
-                    newUv[1] = uv[3];
-                    newUv[2] = uv[0];
-                    newUv[3] = uv[1];
-                    uv = newUv;
+                    uv.push(face.rotation);
                 }
 
                 uvs[sides[key]] = uv;
@@ -275,77 +269,46 @@
     function compile()
     {
         var output = {
-             animations: {}
-         };
+            version: "0.7.2",
+            animations: {}
+        };
 
-         if (lastOptions.model)
-         {
-             output.model = {
-                 groups: createHierarchy(Outliner.root),
-                 texture: [Project.texture_width, Project.texture_height]
-             };
-         }
+        if (lastOptions.model)
+        {
+            output.model = {
+                groups: createHierarchy(Outliner.root),
+                texture: [Project.texture_width, Project.texture_height]
+            };
+        }
 
-         if (lastOptions.animations)
-         {
-             Animation.all.forEach(animation =>
-             {
-                 output.animations[animation.name] = createAnimation(animation);
-             });
-         }
+        if (lastOptions.animations)
+        {
+            Animation.all.forEach(animation =>
+            {
+                output.animations[animation.name] = createAnimation(animation);
+            });
+        }
 
-         return output;
+        return output;
     }
 
     function compileFirstCubes()
     {
-        var createCubes;
+        var group = Group.selected;
+        var cubes = [];
 
-        createCubes = function (objects)
+        if (group)
         {
-            var groups = [];
-            var cubes = [];
-
-            for (let i = 0; i < objects.length; i++)
+            for (var child of group.children)
             {
-                var object = objects[i];
-
-                if (object.type === "group")
+                if (child.type === "cube")
                 {
-                    groups.push(object);
-                }
-                else if (object.type === "cube")
-                {
-                    cubes.push(object);
+                    cubes.push(createCube(child));
                 }
             }
-
-            if (cubes.length > 0)
-            {
-                var result = [];
-
-                for (let i = 0; i < cubes.length; i++)
-                {
-                    result.push(createCube(cubes[i]));
-                }
-
-                return result;
-            }
-
-            for (let i = 0; i < groups.length; i++)
-            {
-                var result = createCubes(groups[i].children);
-
-                if (result)
-                {
-                    return result;
-                }
-            }
-
-            return false;
         }
 
-        return createCubes(Outliner.root);
+        return cubes;
     }
 
     /* Bootstrap */
@@ -384,7 +347,7 @@
                 value: false
             },
             copyOnlyFirst: {
-                label: "Copy first group",
+                label: "Copy first selected group",
                 description: "When enabled, copies to the buffer only cubes from the first found group. This option is ignored when Copy to buffer option is disabled!",
                 type: "checkbox",
                 value: false
