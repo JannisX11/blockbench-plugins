@@ -15,19 +15,19 @@ To add to your code, please do the following:
 
 ```gradle
 repositories {
- // The Maven with the mods source
- maven { url 'https://dl.cloudsmith.io/public/azuredoom-mods/azurelib/maven/' }
+  // The Maven with the mods source
+  maven { url 'https://libs.azuredoom.com:4443/mods' }
 }
 
 dependencies {
- //Fabric or Quilt
- modImplementation "mod.azure.azurelib:azurelib-fabric-MCVERSION:MODVERSION"
+  //Fabric or Quilt
+  modImplementation "mod.azure.azurelib:azurelib-fabric-MCVER:MODVER"
  
- //Forge
- implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVERSION:MODVERSION")
+  //Forge
+  implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
  
- //NeoForge
- implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVERSION:MODVERSION")
+  //NeoForge
+  implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
 }
 ```
 <style>
