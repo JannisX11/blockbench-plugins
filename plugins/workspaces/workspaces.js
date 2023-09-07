@@ -1,5 +1,4 @@
 (() => {
-  const path = require("node:path")
   let dialog, action, styles, newDialog, editDialog
   const id = "workspaces"
   const name = "Workspaces"
@@ -11,9 +10,6 @@
     projects: recent_projects,
     active: true
   })
-  const thumbnailDir = path.join(app.getPath("userData"), "thumbnails")
-  const thumbnailCache = path.join(app.getPath("userData"), "plugindata", id)
-  fs.mkdirSync(thumbnailCache, { recursive: true })
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
@@ -23,8 +19,9 @@
     version: "1.0.0",
     min_version: "4.8.0",
     variant: "desktop",
-    creation_date: "2023-08-31",
+    creation_date: "2023-09-07",
     onload() {
+      Blockbench.on("update_recent_project_thumbnail", recentThumbnails)
       styles = Blockbench.addCSS(`
         #workspace-details {
           position: absolute;
@@ -139,15 +136,6 @@
                     if (workspace.active) $("#active-workspace").text(form.name)
                     if (message) message += " and updated workspace name"
                     else message = "Updated workspace name"
-                    const oldPath = path.join(thumbnailCache, name)
-                    const newPath = path.join(thumbnailCache, form.name)
-                    if (fs.existsSync(newPath)) {
-                      fs.rmSync(newPath, { recursive: true, force: true })
-                    }
-                    if (fs.existsSync(oldPath)) {
-                      fs.cpSync(oldPath, newPath, { recursive: true })
-                      fs.rmSync(oldPath, { recursive: true, force: true })
-                    }
                   }
                   if (message) {
                     localStorage.setItem("workspaces", JSON.stringify(workspaces))
@@ -168,10 +156,6 @@
                   if (workspaces.find(f => f.name === target.dataset.name).active) switchToWorkspace("Default")
                   workspaces.splice(workspaces.findIndex(i => i.name === target.dataset.name), 1)
                   localStorage.setItem("workspaces", JSON.stringify(workspaces))
-                  const oldPath = path.join(thumbnailCache, target.dataset.name)
-                  if (fs.existsSync(oldPath)) {
-                    fs.rmSync(oldPath, { recursive: true, force: true })
-                  }
                 }
               })
             }
@@ -212,6 +196,7 @@
       )
     },
     onunload() {
+      Blockbench.removeListener("update_recent_project_thumbnail", recentThumbnails)
       action.delete()
       styles.delete()
       dialog.close()
@@ -220,6 +205,7 @@
       $("#workspace-details").remove()
     }
   })
+
   function switchToWorkspace(name) {
     const old = workspaces.find(e => e.active)
     old.projects = recent_projects.slice()
@@ -229,20 +215,17 @@
     recent_projects.length = 0
     recent_projects.push(...active.projects)
     localStorage.setItem("workspaces", JSON.stringify(workspaces))
-    const oldPath = path.join(thumbnailCache, old.name)
-    const activePath = path.join(thumbnailCache, active.name)
-    if (fs.existsSync(oldPath)) {
-      fs.rmSync(oldPath, { recursive: true, force: true })
-    }
-    fs.cpSync(thumbnailDir, oldPath, { recursive: true })
-    fs.rmSync(thumbnailDir, { recursive: true, force: true })
-    if (fs.existsSync(activePath)) {
-      fs.cpSync(activePath, thumbnailDir, { recursive: true })
-    } else {
-      fs.mkdirSync(thumbnailDir)
-    }
     updateRecentProjects()
     StartScreen.vue.updateThumbnails()
     $("#active-workspace").text(active.name)
+  }
+
+  function recentThumbnails() {
+    const recents = recent_projects.slice()
+    recent_projects.push(...workspaces.filter(e => !e.active).map(e => e.projects).flat())
+    setTimeout(() => {
+      recent_projects.length = 0
+      recent_projects.push(...recents)
+    }, 1)
   }
 })()
