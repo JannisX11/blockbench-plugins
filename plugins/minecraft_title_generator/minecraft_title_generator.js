@@ -2965,7 +2965,7 @@
     } else {
       fonts[font].textures = {}
     }
-    if (!fonts[font].overlays.none) fonts[font].overlays = { none: { name: "None" } }
+    if (!fonts[font].overlays?.none) fonts[font].overlays = { none: { name: "None" } }
     const data = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures.json`).then(e => e.json()).catch(() => {
       connection.failed = true
       return { textures: {}, overlays: {} }
