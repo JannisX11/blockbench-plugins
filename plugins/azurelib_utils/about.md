@@ -1,6 +1,6 @@
-Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.
-
 Download the mod library here on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/azurelib) and [Modrinth](https://modrinth.com/mod/azurelib). 
+
+Wiki found here: https://wiki.azuredoom.com/
 
 Supported Minecraft versions: 
 - **1.16.5 Forge/Fabric**
@@ -15,19 +15,19 @@ To add to your code, please do the following:
 
 ```gradle
 repositories {
-        // The Maven with the mods source
-        maven { url 'https://dl.cloudsmith.io/public/azuredoom-mods/azurelib/maven/' }
+  // The Maven with the mods source
+  maven { url 'https://libs.azuredoom.com:4443/mods' }
 }
 
 dependencies {
-        //Fabric or Quilt
-        modImplementation 'mod.azure.azurelib:azurelib-fabric-MCVERSION:MODVERSION'
-
-        //Forge
-        implementation fg.deobf('mod.azure.azurelib:azurelib-forge-MCVERSION:MODVERSION')
-		
-        //NeoForge
-        implementation fg.deobf('mod.azure.azurelib:azurelib-neo-MCVERSION:MODVERSION')
+  //Fabric or Quilt
+  modImplementation "mod.azure.azurelib:azurelib-fabric-MCVER:MODVER"
+ 
+  //Forge
+  implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
+ 
+  //NeoForge
+  implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
 }
 ```
 <style>
