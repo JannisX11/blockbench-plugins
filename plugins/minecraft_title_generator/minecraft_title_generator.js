@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   const repo = "ewanhowell5195/MinecraftTitleGenerator"
   const thumbnail = "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvX8AKEBcw//M///MfgAe2jSQp2iSPOr+nSXPHOng7ov8TUKa/ZLlkuWT5VVyOy1FKKXNFRBwtJ0mU3YktcTmu31JKKVPklPlPZXoA"
   const fonts = {
@@ -34,8 +34,15 @@
       terminatorSpace: true
     }
   }
-  const connection = {}
-  let format, action, dialog, mode, panel, styles, preview, debug, stats
+  const connection = {
+    roots: [
+      `https://raw.githubusercontent.com/${repo}/main`,
+      `https://cdn.jsdelivr.net/gh/${repo}`
+    ],
+    rootIndex: 0
+  }
+  let root = connection.roots[0]
+  let format, action, dialog, mode, panel, styles, preview, debug
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
@@ -77,13 +84,15 @@
     [0.2, 0.4, 0.7],
     [0.2, 0.4, 0.6, 0.8]
   ]
+  const stats = []
+  await getFontTextures("minecraft-ten", true)
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.2.1",
+    version: "1.2.2",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -189,6 +198,7 @@
           cursor: pointer;
           flex: 1;
           position: relative;
+          min-width: 150px;
         }
         .minecraft-title-item:hover {
           background-color: var(--color-button);
@@ -1977,7 +1987,7 @@
             connectionInfo() {
               Blockbench.showMessageBox({
                 title: "Failed to load textures and fonts",
-                message: `Minecraft Title Generator was unable to load the textures and fonts. You will only be able to use the built-in texture and font.\n\nPlease make sure you are connected to the internet, and can access this <a href="https://cdn.jsdelivr.net/gh/${repo}/fonts.json">fonts.json</a> file.\n\nIf you are unable to access the fonts.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.`
+                message: `Minecraft Title Generator was unable to load the textures and fonts. You will only be able to use the built-in texture and font.\n\nPlease make sure you are connected to the internet, and can access this <a href="${root}/fonts.json">fonts.json</a> file.\n\nIf you are unable to access the fonts.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.`
               })
             }
           },
@@ -2047,7 +2057,7 @@
                 <p>The font to use for the text</p>
                 <div class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; variant = null; updateFont()" :class="{ selected: font === id }">
-                    <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + id + '/thumbnails/flat.png'" />
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2088,7 +2098,7 @@
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
-                      <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                      <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                       <div>{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
                         <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2102,7 +2112,7 @@
                     <h2>Texture Variants</h2>
                     <div class="minecraft-title-list" ref="textureVariants">
                       <div class="minecraft-title-item" @click="variant = null; updatePreview()" :class="{ selected: !variant }">
-                        <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
                         <div>{{ fonts[font].textures[texture].name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[font].textures[texture].author">person</i>
@@ -2110,7 +2120,7 @@
                         </div>
                       </div>
                       <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id; updatePreview()" :class="{ selected: variant === id }">
-                        <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                         <div>{{ data.name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? fonts[font].textures[texture].author)">person</i>
@@ -2173,7 +2183,7 @@
                 </ul>
                 <div v-if="overlaySource === 'premade'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data, type] of overlays" v-if="font === type" @click="overlay = id; updatePreview()" :class="{ selected: overlay === id }">
-                    <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2323,22 +2333,18 @@
           addText(text, getArgs(this.content_vue))
         },
         async onBuild() {
-          stats = await fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", { headers: { source: "blockbench" } }).then(e => e.json()).catch(() => [])
+          stats.push(...await fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", { headers: { source: "blockbench" } }).then(e => e.json()).catch(() => []))
           const ten = stats.find(e => e.id === "minecraft-ten")
           if (ten) ten.count = Infinity
           else stats.push({
             id: "minecraft-ten",
             count: Infinity
           })
-          await getFontTextures("minecraft-ten", true)
-          const fontData = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts.json`).then(e => e.json()).catch(() => {
-            connection.failed = true
-            return []
-          })
+          const fontData = await fetchData("fonts.json", () => [])
           for (const font of fontData) {
             font.name ??= titleCase(font.id)
-            font.characters = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font.id}/characters.json`
-            font.textures = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font.id}/textures.json`
+            font.characters = `fonts/${font.id}/characters.json`
+            font.textures = `fonts/${font.id}/textures.json`
             fonts[font.id] = font
           }
           this.content_vue.fontList = Object.entries(fonts)
@@ -2402,7 +2408,7 @@
               <h2>Font</h2>
               <div class="minecraft-title-list small">
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts)" @click="selectFont(id)" :class="{ selected: font === id }">
-                  <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + id + '/thumbnails/flat.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
                   <div>{{ data.name }}</div>
                 </div>
               </div>
@@ -2413,7 +2419,7 @@
                   <div>All</div>
                 </div>
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures)" v-if="fonts[font].textures[id]" @click="texture = id; variant = null" :class="{ selected: texture === id }">
-                  <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                   <div>{{ data.category ?? data.name }}</div>
                   <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 9 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
                 </div>
@@ -2423,11 +2429,11 @@
                 <h2>Texture Variants</h2>
                 <div class="minecraft-title-list">
                   <div class="minecraft-title-item" @click="variant = null" :class="{ selected: !variant }">
-                    <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
                     <div>{{ fonts[font].textures[texture].name }}</div>
                   </div>
                   <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id" :class="{ selected: variant === id }">
-                    <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                     <div>{{ data.name }}</div>
                   </div>
                 </div>
@@ -2524,12 +2530,34 @@
     }
   })
 
+  async function fetchData(path, fallback) {
+    try {
+      const r = await fetch(`${root}/${path}`)
+      if (r.status !== 200) throw new Error
+      if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+      return r
+    } catch {
+      for (let x = connection.rootIndex + 1; x < connection.roots.length; x++) {
+        connection.rootIndex = x
+        try {
+          const r = await fetch(`${connection.roots[x]}/${path}`)
+          if (r.status !== 200) throw new Error
+          root = connection.roots[x]
+          if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+          return r
+        } catch {}
+      }
+      connection.failed = true
+      return fallback ? fallback() : {}
+    }
+  }
+
   async function getTexture(object, texture, variant, direct) {
     if (!direct && ((variant && object[texture].variants[variant]?.texture.startsWith("data:image/png;base64,")) || (!variant && object[texture].texture.startsWith("data:image/png;base64,")))) return variant ? object[texture].variants[variant].texture : object[texture].texture
     const data = await new Promise(async fulfil => {
       const reader = new FileReader()
       reader.onload = e => fulfil(e.target.result)
-      reader.readAsDataURL(new Blob([await fetch(direct ?? (variant ? object[texture].variants[variant].texture : object[texture].texture)).then(e => e.arrayBuffer())], { type: "image/png" }))
+      reader.readAsDataURL(new Blob([await fetchData(direct ?? (variant ? object[texture].variants[variant].texture : object[texture].texture)).then(e => e.arrayBuffer())], { type: "image/png" }))
     }).catch(() => {})
     if (!direct) {
       if (variant) object[texture].variants[variant].texture = data
@@ -2726,7 +2754,7 @@
       }
       if (fonts[args.font].overlay) {
         if (typeof fonts[args.font].overlay === "boolean") {
-          fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `https://cdn.jsdelivr.net/gh/${repo}/fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
+          fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
         }
         ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
       }
@@ -2966,22 +2994,19 @@
       fonts[font].textures = {}
     }
     if (!fonts[font].overlays?.none) fonts[font].overlays = { none: { name: "None" } }
-    const data = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures.json`).then(e => e.json()).catch(() => {
-      connection.failed = true
-      return { textures: {}, overlays: {} }
-    })
+    const data = await fetchData(`fonts/${font}/textures.json`, () => ({ textures: {}, overlays: {} }))
     for (const [id, texture] of Object.entries(data.textures)) {
       texture.name ??= titleCase(id)
-      texture.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures/${id}.png`
+      texture.texture = `fonts/${font}/textures/${id}.png`
       if (texture.variants) for (const [id, variant] of Object.entries(texture.variants)) {
         variant.name ??= titleCase(id)
-        variant.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures/${id}.png`
+        variant.texture = `fonts/${font}/textures/${id}.png`
       }
       fonts[font].textures[id] = texture
     }
     for (const [id, overlay] of Object.entries(data.overlays)) {
       overlay.name ??= titleCase(id)
-      overlay.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/overlays/${id}.png`
+      overlay.texture = `fonts/${font}/overlays/${id}.png`
       fonts[font].overlays[id] = overlay
     }
     const flat = stats.find(e => e.id === `${font}.flat`)
@@ -3007,10 +3032,7 @@
 
   async function getFontCharacters(id) {
     if (typeof fonts[id].characters === "object") return
-    fonts[id].characters = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts/${id}/characters.json`).then(e => e.json()).catch(() => {
-      connection.failed = true
-      return {}
-    })
+    fonts[id].characters = await fetchData(`fonts/${id}/characters.json`)
   }
 
   function titleCase(str) {
