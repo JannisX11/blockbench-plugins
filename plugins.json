@@ -520,7 +520,7 @@
 		"icon": "icon.png",
 		"description": "Create custom items for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-09-19"
