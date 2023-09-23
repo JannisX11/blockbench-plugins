@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   const repo = "ewanhowell5195/MinecraftTitleGenerator"
   const thumbnail = "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvX8AKEBcw//M///MfgAe2jSQp2iSPOr+nSXPHOng7ov8TUKa/ZLlkuWT5VVyOy1FKKXNFRBwtJ0mU3YktcTmu31JKKVPklPlPZXoA"
   const fonts = {
@@ -34,8 +34,16 @@
       terminatorSpace: true
     }
   }
-  const connection = {}
-  let format, action, dialog, mode, panel, styles, preview, debug, stats
+  const fontData = []
+  const connection = {
+    roots: [
+      `https://raw.githubusercontent.com/${repo}/dev`,
+      `https://cdn.jsdelivr.net/gh/${repo}@dev`
+    ],
+    rootIndex: 0
+  }
+  let root = connection.roots[0]
+  let format, action, dialog, mode, panel, styles, preview, debug
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
@@ -77,13 +85,15 @@
     [0.2, 0.4, 0.7],
     [0.2, 0.4, 0.6, 0.8]
   ]
+  const stats = []
+  await getFontTextures("minecraft-ten", true)
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.2.1",
+    version: "1.3.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -189,6 +199,7 @@
           cursor: pointer;
           flex: 1;
           position: relative;
+          min-width: 150px;
         }
         .minecraft-title-item:hover {
           background-color: var(--color-button);
@@ -199,11 +210,21 @@
           display: flex;
           object-fit: contain;
         }
-        .minecraft-title-item > div {
+        .minecraft-title-item > div:first-child {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          margin-bottom: 5px;
+        }
+        .minecraft-title-item > div:nth-child(2) {
           text-align: center;
           flex: 1;
           display: flex;
           align-items: center;
+          max-height: 24px;
+          min-height: 24px;
+          line-height: 16px;
+          margin: -2px 0 2px;
         }
         .minecraft-title-item.selected {
           outline: 2px solid var(--color-accent);
@@ -1063,13 +1084,17 @@
           #gradient-colours input.disabled + div .sp-preview-inner {
             filter: grayscale(1);
           }
+          .minecraft-title-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+          }
           .github-link, .github-link > a {
             display: flex;
             gap: 5px;
             justify-content: flex-end;
             align-items: center;
             text-decoration: none;
-            margin-top: 5px;
           }
           .github-link > a:hover > div {
             text-decoration: underline;
@@ -1163,6 +1188,18 @@
           #minecraft-title-connection-warning-underline {
             text-decoration: underline;
           }
+          .minecraft-title-toggleable {
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          .minecraft-title-toggleable > svg {
+            fill: var(--color-text);
+            width: 30px;
+            height: 30px;
+          }
         </style>`],
         component: {
           data: {
@@ -1170,6 +1207,9 @@
             tab: 0,
             text: "",
             font: Object.keys(fonts)[0],
+            baseFont: Object.keys(fonts)[0],
+            fontVariant: null,
+            fontVariantsVisible: false,
             fonts,
             fontList: [],
             textType: "top",
@@ -1597,6 +1637,8 @@
               setTimeout(() => {
                 if (this.$refs.textureVariants) {
                   this.$refs.textureVariants.scrollIntoView({ behavior: "smooth" })
+                } else if (this.$refs.fontVariants) {
+                  this.$refs.fontVariants.scrollIntoView({ behavior: "smooth" })
                 }
               }, 0)
             },
@@ -1742,6 +1784,8 @@
                           settings.overlay = args.overlay
                         }
                       }
+                      if (fonts[args?.baseFont]) settings.baseFont = args.baseFont
+                      if (fonts[args?.fontVariant]) settings.fontVariant = args.fontVariant
                       if (args.type) settings.textType = args.type
                       if (args.row) settings.row = args.row
                       if (args.textureSource) settings.textureSource = args.textureSource
@@ -1977,7 +2021,7 @@
             connectionInfo() {
               Blockbench.showMessageBox({
                 title: "Failed to load textures and fonts",
-                message: `Minecraft Title Generator was unable to load the textures and fonts. You will only be able to use the built-in texture and font.\n\nPlease make sure you are connected to the internet, and can access this <a href="https://cdn.jsdelivr.net/gh/${repo}/fonts.json">fonts.json</a> file.\n\nIf you are unable to access the fonts.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.`
+                message: `Minecraft Title Generator was unable to load the textures and fonts. You will only be able to use the built-in texture and font.\n\nPlease make sure you are connected to the internet, and can access this <a href="${root}/fonts.json">fonts.json</a> file.\n\nIf you are unable to access the fonts.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.`
               })
             }
           },
@@ -2043,23 +2087,50 @@
                   <i class="material-icons" title="More info" @click="textInfo">info</i>
                 </div>
                 <br>
-                <h2>Font</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Font</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit fonts</div>
+                    </a>
+                  </div>
+                </div>
                 <p>The font to use for the text</p>
                 <div class="minecraft-title-list small">
-                  <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; variant = null; updateFont()" :class="{ selected: font === id }">
-                    <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + id + '/thumbnails/flat.png'" />
-                    <div>{{ data.name }}</div>
+                  <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; baseFont = id; fontVariant = null; variant = null; updateFont()" :class="{ selected: baseFont === id }">
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
+                    <div :style="{ maxWidth: data.variants ? '78%' : null }">{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
                     </div>
+                    <i v-if="data.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (data.variants.length + 1) + ' variants'">filter_{{ data.variants.length > 9 ? '9_plus' : data.variants.length + 1 }}</i>
                   </div>
                 </div>
-                <div class="github-link">
-                  <a href="${links.github.link}">
-                    <i class="icon fab fa-github"></i>
-                    <div>Submit fonts</div>
-                  </a>
+                <div v-if="fonts[font].variants">
+                  <br>
+                  <h2 class="minecraft-title-toggleable" @click="fontVariantsVisible = !fontVariantsVisible">
+                    Font Variants
+                    <svg :style="{ rotate: fontVariantsVisible ? '180deg' : '0deg' }" viewBox="0 0 24 24"><path d="M7.41 8.58L12 13.17l4.59-4.59L18 10l-6 6-6-6 1.41-1.42z"/></svg>
+                  </h2>
+                  <div v-if="fontVariantsVisible" class="minecraft-title-list small" ref="fontVariants">
+                    <div class="minecraft-title-item" @click="font = baseFont; fontVariant = null; variant = null; updateFont()" :class="{ selected: !fontVariant }">
+                      <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" />
+                      <div>{{ fonts[baseFont].name }}</div>
+                      <div class="minecraft-title-item-buttons">
+                        <i v-if="fonts[baseFont].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[baseFont].author">person</i>
+                      </div>
+                    </div>
+                    <div class="minecraft-title-item" v-for="data of fonts[baseFont].variants" @click="font = data.id; fontVariant = data.id, variant = null; updateFont()" :class="{ selected: fontVariant === data.id }">
+                      <img :src="'${root}/fonts/' + data.id + '/thumbnails/flat.png'" />
+                      <div>{{ data.name }}</div>
+                      <div class="minecraft-title-item-buttons">
+                        <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <br>
                 <h2>Text Type / Angle</h2>
                 <p>The type of text to add</p>
                 <a href="javascript:void(0)" id="text-type-input" @click="event.stopPropagation()">
@@ -2074,7 +2145,15 @@
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 1 }">
-                <h2>Texture</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Texture</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit textures</div>
+                    </a>
+                  </div>
+                </div>
                 <p>The texture to apply to the text</p>
                 <ul class="form_inline_select">
                   <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Pre-made</li>
@@ -2088,8 +2167,8 @@
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
-                      <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
-                      <div>{{ data.category ?? data.name }}</div>
+                      <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                      <div :style="{ maxWidth: fonts[font].textures[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
                         <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
                         <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'textures', id)">save</i>
@@ -2102,7 +2181,7 @@
                     <h2>Texture Variants</h2>
                     <div class="minecraft-title-list" ref="textureVariants">
                       <div class="minecraft-title-item" @click="variant = null; updatePreview()" :class="{ selected: !variant }">
-                        <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
                         <div>{{ fonts[font].textures[texture].name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[font].textures[texture].author">person</i>
@@ -2110,7 +2189,7 @@
                         </div>
                       </div>
                       <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id; updatePreview()" :class="{ selected: variant === id }">
-                        <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                         <div>{{ data.name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? fonts[font].textures[texture].author)">person</i>
@@ -2118,12 +2197,6 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="github-link">
-                    <a href="${links.github.link}">
-                      <i class="icon fab fa-github"></i>
-                      <div>Submit textures</div>
-                    </a>
                   </div>
                 </div>
                 <div :class="{ hidden: textureSource !== 'gradient' }" id="custom-gradient">
@@ -2165,7 +2238,15 @@
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 2 }">
-                <h2>Overlay Texture</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Overlay Texture</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit overlays</div>
+                    </a>
+                  </div>
+                </div>
                 <p>A texture to overlay onto the text</p>
                 <ul class="form_inline_select">
                   <li @click="overlaySource = 'premade'; updatePreview()" :class="{ selected: overlaySource === 'premade' }">Pre-made</li>
@@ -2173,7 +2254,7 @@
                 </ul>
                 <div v-if="overlaySource === 'premade'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data, type] of overlays" v-if="font === type" @click="overlay = id; updatePreview()" :class="{ selected: overlay === id }">
-                    <img :src="data.thumbnail ?? 'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2181,12 +2262,7 @@
                     </div>
                   </div>
                 </div>
-                <div v-if="overlaySource === 'premade'" class="github-link">
-                  <a href="${links.github.link}">
-                    <i class="icon fab fa-github"></i>
-                    <div>Submit overlays</div>
-                  </a>
-                </div>
+                <br>
                 <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
                   <canvas class="checkerboard" width="500" height="160" />
                   <button>Select file</button>
@@ -2323,25 +2399,36 @@
           addText(text, getArgs(this.content_vue))
         },
         async onBuild() {
-          stats = await fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", { headers: { source: "blockbench" } }).then(e => e.json()).catch(() => [])
+          stats.push(...await fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", { headers: { source: "blockbench" } }).then(e => e.json()).catch(() => []))
           const ten = stats.find(e => e.id === "minecraft-ten")
           if (ten) ten.count = Infinity
           else stats.push({
             id: "minecraft-ten",
             count: Infinity
           })
-          await getFontTextures("minecraft-ten", true)
-          const fontData = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts.json`).then(e => e.json()).catch(() => {
-            connection.failed = true
-            return []
-          })
-          for (const font of fontData) {
-            font.name ??= titleCase(font.id)
-            font.characters = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font.id}/characters.json`
-            font.textures = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font.id}/textures.json`
-            fonts[font.id] = font
+          fontData.push(...await fetchData("fonts.json", () => []))
+          for (let [i, font] of fontData.entries()) {
+            if (fonts[font.id]) {
+              fonts[font.id] = Object.assign(fonts[font.id], font)
+              font = fonts[font.id]
+              fontData[i] = font
+            } else {
+              font.name ??= titleCase(font.id)
+              font.characters = `fonts/${font.id}/characters.json`
+              font.textures = `fonts/${font.id}/textures.json`
+              fonts[font.id] = font
+            }
+            if (font.variants) for (const [j, v] of font.variants.entries()) {
+              const variant = Object.assign({}, font, v)
+              variant.name ??= titleCase(variant.id)
+              variant.characters = `fonts/${variant.id}/characters.json`
+              variant.textures = `fonts/${variant.id}/textures.json`
+              delete variant.overlays
+              fonts[variant.id] = variant
+              font.variants[j] = variant
+            }
           }
-          this.content_vue.fontList = Object.entries(fonts)
+          this.content_vue.fontList = fontData.map(e => [e.id, e])
           this.content_vue.textures = Object.entries(fonts["minecraft-ten"].textures).map(e => e.concat(["minecraft-ten"]))
           this.content_vue.overlays = Object.entries(fonts["minecraft-ten"].overlays).map(e => e.concat(["minecraft-ten"]))
           if (Object.keys(fonts["minecraft-ten"].textures)[1]) this.content_vue.texture = Object.keys(fonts["minecraft-ten"].textures)[1]
@@ -2402,7 +2489,7 @@
               <h2>Font</h2>
               <div class="minecraft-title-list small">
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts)" @click="selectFont(id)" :class="{ selected: font === id }">
-                  <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + id + '/thumbnails/flat.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
                   <div>{{ data.name }}</div>
                 </div>
               </div>
@@ -2413,7 +2500,7 @@
                   <div>All</div>
                 </div>
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures)" v-if="fonts[font].textures[id]" @click="texture = id; variant = null" :class="{ selected: texture === id }">
-                  <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                   <div>{{ data.category ?? data.name }}</div>
                   <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 9 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
                 </div>
@@ -2423,11 +2510,11 @@
                 <h2>Texture Variants</h2>
                 <div class="minecraft-title-list">
                   <div class="minecraft-title-item" @click="variant = null" :class="{ selected: !variant }">
-                    <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
                     <div>{{ fonts[font].textures[texture].name }}</div>
                   </div>
                   <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id" :class="{ selected: variant === id }">
-                    <img :src="'https://cdn.jsdelivr.net/gh/${repo}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
                     <div>{{ data.name }}</div>
                   </div>
                 </div>
@@ -2524,12 +2611,34 @@
     }
   })
 
+  async function fetchData(path, fallback) {
+    try {
+      const r = await fetch(`${root}/${path}`)
+      if (r.status !== 200) throw new Error
+      if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+      return r
+    } catch {
+      for (let x = connection.rootIndex + 1; x < connection.roots.length; x++) {
+        connection.rootIndex = x
+        try {
+          const r = await fetch(`${connection.roots[x]}/${path}`)
+          if (r.status !== 200) throw new Error
+          root = connection.roots[x]
+          if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+          return r
+        } catch {}
+      }
+      connection.failed = true
+      return fallback ? fallback() : {}
+    }
+  }
+
   async function getTexture(object, texture, variant, direct) {
     if (!direct && ((variant && object[texture].variants[variant]?.texture.startsWith("data:image/png;base64,")) || (!variant && object[texture].texture.startsWith("data:image/png;base64,")))) return variant ? object[texture].variants[variant].texture : object[texture].texture
     const data = await new Promise(async fulfil => {
       const reader = new FileReader()
       reader.onload = e => fulfil(e.target.result)
-      reader.readAsDataURL(new Blob([await fetch(direct ?? (variant ? object[texture].variants[variant].texture : object[texture].texture)).then(e => e.arrayBuffer())], { type: "image/png" }))
+      reader.readAsDataURL(new Blob([await fetchData(direct ?? (variant ? object[texture].variants[variant].texture : object[texture].texture)).then(e => e.arrayBuffer())], { type: "image/png" }))
     }).catch(() => {})
     if (!direct) {
       if (variant) object[texture].variants[variant].texture = data
@@ -2726,7 +2835,7 @@
       }
       if (fonts[args.font].overlay) {
         if (typeof fonts[args.font].overlay === "boolean") {
-          fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `https://cdn.jsdelivr.net/gh/${repo}/fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
+          fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
         }
         ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
       }
@@ -2966,22 +3075,19 @@
       fonts[font].textures = {}
     }
     if (!fonts[font].overlays?.none) fonts[font].overlays = { none: { name: "None" } }
-    const data = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures.json`).then(e => e.json()).catch(() => {
-      connection.failed = true
-      return { textures: {}, overlays: {} }
-    })
+    const data = await fetchData(`fonts/${font}/textures.json`, () => ({ textures: {}, overlays: {} }))
     for (const [id, texture] of Object.entries(data.textures)) {
       texture.name ??= titleCase(id)
-      texture.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures/${id}.png`
+      texture.texture = `fonts/${font}/textures/${id}.png`
       if (texture.variants) for (const [id, variant] of Object.entries(texture.variants)) {
         variant.name ??= titleCase(id)
-        variant.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/textures/${id}.png`
+        variant.texture = `fonts/${font}/textures/${id}.png`
       }
       fonts[font].textures[id] = texture
     }
     for (const [id, overlay] of Object.entries(data.overlays)) {
       overlay.name ??= titleCase(id)
-      overlay.texture = `https://cdn.jsdelivr.net/gh/${repo}/fonts/${font}/overlays/${id}.png`
+      overlay.texture = `fonts/${font}/overlays/${id}.png`
       fonts[font].overlays[id] = overlay
     }
     const flat = stats.find(e => e.id === `${font}.flat`)
@@ -3007,10 +3113,7 @@
 
   async function getFontCharacters(id) {
     if (typeof fonts[id].characters === "object") return
-    fonts[id].characters = await fetch(`https://cdn.jsdelivr.net/gh/${repo}/fonts/${id}/characters.json`).then(e => e.json()).catch(() => {
-      connection.failed = true
-      return {}
-    })
+    fonts[id].characters = await fetchData(`fonts/${id}/characters.json`)
   }
 
   function titleCase(str) {
@@ -3074,6 +3177,8 @@
   function getArgs(vue, three) {
     return {
       font: vue.font,
+      baseFont: vue.baseFont,
+      fontVariant: vue.fontVariant,
       type: vue.textType,
       row: vue.row,
       texture: vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient") ? "flat" : vue.texture,
