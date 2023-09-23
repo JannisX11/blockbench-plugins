@@ -34,10 +34,11 @@
       terminatorSpace: true
     }
   }
+  const fontData = []
   const connection = {
     roots: [
-      `https://raw.githubusercontent.com/${repo}/main`,
-      `https://cdn.jsdelivr.net/gh/${repo}`
+      `https://raw.githubusercontent.com/${repo}/dev`,
+      `https://cdn.jsdelivr.net/gh/${repo}@dev`
     ],
     rootIndex: 0
   }
@@ -92,7 +93,7 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.2.2",
+    version: "1.3.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -209,11 +210,21 @@
           display: flex;
           object-fit: contain;
         }
-        .minecraft-title-item > div {
+        .minecraft-title-item > div:first-child {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          margin-bottom: 5px;
+        }
+        .minecraft-title-item > div:nth-child(2) {
           text-align: center;
           flex: 1;
           display: flex;
           align-items: center;
+          max-height: 24px;
+          min-height: 24px;
+          line-height: 16px;
+          margin: -2px 0 2px;
         }
         .minecraft-title-item.selected {
           outline: 2px solid var(--color-accent);
@@ -1073,13 +1084,17 @@
           #gradient-colours input.disabled + div .sp-preview-inner {
             filter: grayscale(1);
           }
+          .minecraft-title-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+          }
           .github-link, .github-link > a {
             display: flex;
             gap: 5px;
             justify-content: flex-end;
             align-items: center;
             text-decoration: none;
-            margin-top: 5px;
           }
           .github-link > a:hover > div {
             text-decoration: underline;
@@ -1173,6 +1188,18 @@
           #minecraft-title-connection-warning-underline {
             text-decoration: underline;
           }
+          .minecraft-title-toggleable {
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          .minecraft-title-toggleable > svg {
+            fill: var(--color-text);
+            width: 30px;
+            height: 30px;
+          }
         </style>`],
         component: {
           data: {
@@ -1180,6 +1207,9 @@
             tab: 0,
             text: "",
             font: Object.keys(fonts)[0],
+            baseFont: Object.keys(fonts)[0],
+            fontVariant: null,
+            fontVariantsVisible: false,
             fonts,
             fontList: [],
             textType: "top",
@@ -1607,6 +1637,8 @@
               setTimeout(() => {
                 if (this.$refs.textureVariants) {
                   this.$refs.textureVariants.scrollIntoView({ behavior: "smooth" })
+                } else if (this.$refs.fontVariants) {
+                  this.$refs.fontVariants.scrollIntoView({ behavior: "smooth" })
                 }
               }, 0)
             },
@@ -1752,6 +1784,8 @@
                           settings.overlay = args.overlay
                         }
                       }
+                      if (fonts[args?.baseFont]) settings.baseFont = args.baseFont
+                      if (fonts[args?.fontVariant]) settings.fontVariant = args.fontVariant
                       if (args.type) settings.textType = args.type
                       if (args.row) settings.row = args.row
                       if (args.textureSource) settings.textureSource = args.textureSource
@@ -2053,23 +2087,50 @@
                   <i class="material-icons" title="More info" @click="textInfo">info</i>
                 </div>
                 <br>
-                <h2>Font</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Font</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit fonts</div>
+                    </a>
+                  </div>
+                </div>
                 <p>The font to use for the text</p>
                 <div class="minecraft-title-list small">
-                  <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; variant = null; updateFont()" :class="{ selected: font === id }">
+                  <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; baseFont = id; fontVariant = null; variant = null; updateFont()" :class="{ selected: baseFont === id }">
                     <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
-                    <div>{{ data.name }}</div>
+                    <div :style="{ maxWidth: data.variants ? '78%' : null }">{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
                     </div>
+                    <i v-if="data.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (data.variants.length + 1) + ' variants'">filter_{{ data.variants.length > 9 ? '9_plus' : data.variants.length + 1 }}</i>
                   </div>
                 </div>
-                <div class="github-link">
-                  <a href="${links.github.link}">
-                    <i class="icon fab fa-github"></i>
-                    <div>Submit fonts</div>
-                  </a>
+                <div v-if="fonts[font].variants">
+                  <br>
+                  <h2 class="minecraft-title-toggleable" @click="fontVariantsVisible = !fontVariantsVisible">
+                    Font Variants
+                    <svg :style="{ rotate: fontVariantsVisible ? '180deg' : '0deg' }" viewBox="0 0 24 24"><path d="M7.41 8.58L12 13.17l4.59-4.59L18 10l-6 6-6-6 1.41-1.42z"/></svg>
+                  </h2>
+                  <div v-if="fontVariantsVisible" class="minecraft-title-list small" ref="fontVariants">
+                    <div class="minecraft-title-item" @click="font = baseFont; fontVariant = null; variant = null; updateFont()" :class="{ selected: !fontVariant }">
+                      <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" />
+                      <div>{{ fonts[baseFont].name }}</div>
+                      <div class="minecraft-title-item-buttons">
+                        <i v-if="fonts[baseFont].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[baseFont].author">person</i>
+                      </div>
+                    </div>
+                    <div class="minecraft-title-item" v-for="data of fonts[baseFont].variants" @click="font = data.id; fontVariant = data.id, variant = null; updateFont()" :class="{ selected: fontVariant === data.id }">
+                      <img :src="'${root}/fonts/' + data.id + '/thumbnails/flat.png'" />
+                      <div>{{ data.name }}</div>
+                      <div class="minecraft-title-item-buttons">
+                        <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <br>
                 <h2>Text Type / Angle</h2>
                 <p>The type of text to add</p>
                 <a href="javascript:void(0)" id="text-type-input" @click="event.stopPropagation()">
@@ -2084,7 +2145,15 @@
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 1 }">
-                <h2>Texture</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Texture</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit textures</div>
+                    </a>
+                  </div>
+                </div>
                 <p>The texture to apply to the text</p>
                 <ul class="form_inline_select">
                   <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Pre-made</li>
@@ -2099,7 +2168,7 @@
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
                       <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
-                      <div>{{ data.category ?? data.name }}</div>
+                      <div :style="{ maxWidth: fonts[font].textures[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
                         <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
                         <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'textures', id)">save</i>
@@ -2128,12 +2197,6 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="github-link">
-                    <a href="${links.github.link}">
-                      <i class="icon fab fa-github"></i>
-                      <div>Submit textures</div>
-                    </a>
                   </div>
                 </div>
                 <div :class="{ hidden: textureSource !== 'gradient' }" id="custom-gradient">
@@ -2175,7 +2238,15 @@
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 2 }">
-                <h2>Overlay Texture</h2>
+                <div class="minecraft-title-header-row">
+                  <h2>Overlay Texture</h2>
+                  <div class="github-link">
+                    <a href="${links.github.link}">
+                      <i class="icon fab fa-github"></i>
+                      <div>Submit overlays</div>
+                    </a>
+                  </div>
+                </div>
                 <p>A texture to overlay onto the text</p>
                 <ul class="form_inline_select">
                   <li @click="overlaySource = 'premade'; updatePreview()" :class="{ selected: overlaySource === 'premade' }">Pre-made</li>
@@ -2191,12 +2262,7 @@
                     </div>
                   </div>
                 </div>
-                <div v-if="overlaySource === 'premade'" class="github-link">
-                  <a href="${links.github.link}">
-                    <i class="icon fab fa-github"></i>
-                    <div>Submit overlays</div>
-                  </a>
-                </div>
+                <br>
                 <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
                   <canvas class="checkerboard" width="500" height="160" />
                   <button>Select file</button>
@@ -2340,14 +2406,29 @@
             id: "minecraft-ten",
             count: Infinity
           })
-          const fontData = await fetchData("fonts.json", () => [])
-          for (const font of fontData) {
-            font.name ??= titleCase(font.id)
-            font.characters = `fonts/${font.id}/characters.json`
-            font.textures = `fonts/${font.id}/textures.json`
-            fonts[font.id] = font
+          fontData.push(...await fetchData("fonts.json", () => []))
+          for (let [i, font] of fontData.entries()) {
+            if (fonts[font.id]) {
+              fonts[font.id] = Object.assign(fonts[font.id], font)
+              font = fonts[font.id]
+              fontData[i] = font
+            } else {
+              font.name ??= titleCase(font.id)
+              font.characters = `fonts/${font.id}/characters.json`
+              font.textures = `fonts/${font.id}/textures.json`
+              fonts[font.id] = font
+            }
+            if (font.variants) for (const [j, v] of font.variants.entries()) {
+              const variant = Object.assign({}, font, v)
+              variant.name ??= titleCase(variant.id)
+              variant.characters = `fonts/${variant.id}/characters.json`
+              variant.textures = `fonts/${variant.id}/textures.json`
+              delete variant.overlays
+              fonts[variant.id] = variant
+              font.variants[j] = variant
+            }
           }
-          this.content_vue.fontList = Object.entries(fonts)
+          this.content_vue.fontList = fontData.map(e => [e.id, e])
           this.content_vue.textures = Object.entries(fonts["minecraft-ten"].textures).map(e => e.concat(["minecraft-ten"]))
           this.content_vue.overlays = Object.entries(fonts["minecraft-ten"].overlays).map(e => e.concat(["minecraft-ten"]))
           if (Object.keys(fonts["minecraft-ten"].textures)[1]) this.content_vue.texture = Object.keys(fonts["minecraft-ten"].textures)[1]
@@ -3096,6 +3177,8 @@
   function getArgs(vue, three) {
     return {
       font: vue.font,
+      baseFont: vue.baseFont,
+      fontVariant: vue.fontVariant,
       type: vue.textType,
       row: vue.row,
       texture: vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient") ? "flat" : vue.texture,
