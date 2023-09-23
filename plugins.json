@@ -311,7 +311,7 @@
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.3.0",
+		"version": "1.3.1",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-06-10"
