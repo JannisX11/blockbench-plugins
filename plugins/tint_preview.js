@@ -226,7 +226,7 @@ var blockColorOptions = {
 	'water_wooded_badlands': 'Water (Wooded Badlands)'
 }
 
-// Color values sourced from https://minecraft.fandom.com/wiki/Block_colors
+// Color values sourced from https://minecraft.wiki/w/Block_colors
 var blockColorValues = {
 	'foilage_badlands': '#9e814d',
 	'foilage_bamboo_jungle': '#30bb0b',
