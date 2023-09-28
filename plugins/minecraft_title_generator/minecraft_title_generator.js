@@ -37,8 +37,8 @@
   const fontData = []
   const connection = {
     roots: [
-      `https://raw.githubusercontent.com/${repo}/dev`,
-      `https://cdn.jsdelivr.net/gh/${repo}@dev`
+      `https://raw.githubusercontent.com/${repo}/main`,
+      `https://cdn.jsdelivr.net/gh/${repo}`
     ],
     rootIndex: 0
   }
@@ -93,7 +93,7 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.0",
+    version: "1.3.1",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -1637,8 +1637,6 @@
               setTimeout(() => {
                 if (this.$refs.textureVariants) {
                   this.$refs.textureVariants.scrollIntoView({ behavior: "smooth" })
-                } else if (this.$refs.fontVariants) {
-                  this.$refs.fontVariants.scrollIntoView({ behavior: "smooth" })
                 }
               }, 0)
             },
@@ -2113,7 +2111,7 @@
                     Font Variants
                     <svg :style="{ rotate: fontVariantsVisible ? '180deg' : '0deg' }" viewBox="0 0 24 24"><path d="M7.41 8.58L12 13.17l4.59-4.59L18 10l-6 6-6-6 1.41-1.42z"/></svg>
                   </h2>
-                  <div v-if="fontVariantsVisible" class="minecraft-title-list small" ref="fontVariants">
+                  <div v-if="fontVariantsVisible" class="minecraft-title-list small">
                     <div class="minecraft-title-item" @click="font = baseFont; fontVariant = null; variant = null; updateFont()" :class="{ selected: !fontVariant }">
                       <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" />
                       <div>{{ fonts[baseFont].name }}</div>
