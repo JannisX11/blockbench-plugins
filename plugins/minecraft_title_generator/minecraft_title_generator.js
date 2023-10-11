@@ -93,7 +93,7 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.1",
+    version: "1.3.2",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -3241,14 +3241,6 @@
       } else {
         h = 1024
         w = Math.floor(1024 * aspect)
-      }
-    } else if (img.width < 64 || img.height < 64) {
-      if (aspect > 1) {
-        w = 64
-        h = Math.floor(64 / aspect)
-      } else {
-        h = 64
-        w = Math.floor(64 * aspect)
       }
     } else {
       w = img.width
