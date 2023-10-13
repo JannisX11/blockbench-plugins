@@ -93,7 +93,7 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.2",
+    version: "1.3.3",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -1418,7 +1418,7 @@
                     min = Math.min(min, cube.from[0], cube.to[0])
                     max = Math.max(max, cube.from[0], cube.to[0])
 
-                    if (args.type === "bottom") {
+                    if (args.type === "bottom" && !fonts[this.font].flat) {
                       if (cube.to[2] > cube.from[2]) {
                         cube.to[2] += 20
                       } else {
@@ -1539,7 +1539,11 @@
                   group.scale.setZ(0.75)
                   group.rotation.fromArray([Math.degToRad(-90), 0, 0])
                   group.position.z += fonts[this.font].height + 49
-                  group.position.y -= 25 - fonts[this.font].ends[0][1]
+                  if (fonts[this.font].flat) {
+                    group.position.y -= 18
+                  } else {
+                    group.position.y -= 25 - fonts[this.font].ends[0][1]
+                  }
                 }
 
                 this.scene.add(group)
@@ -3026,10 +3030,12 @@
         cube.from = cube.from.map(e => e * 0.75)
         cube.to[2] -= 8
         cube.from[2] -= 8
-        if (cube.to[2] > cube.from[2]) {
-          cube.to[2] += 24
-        } else {
-          cube.from[2] += 24
+        if (!fonts[args.font].flat) {
+          if (cube.to[2] > cube.from[2]) {
+            cube.to[2] += 24
+          } else {
+            cube.from[2] += 24
+          }
         }
       } else if (args.type === "small") {
         cube.to[2] -= (maxZ - minZ)
