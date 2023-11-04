@@ -93,10 +93,11 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.3",
+    version: "1.3.4",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
+    await_loading: true,
     async onload() {
       styles = Blockbench.addCSS(`
         body:not(.is_mobile) #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) {

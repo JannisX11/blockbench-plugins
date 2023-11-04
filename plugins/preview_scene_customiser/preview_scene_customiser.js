@@ -43,10 +43,11 @@
     author,
     description,
     tags: ["Preview Scenes", "Blockbench"],
-    version: "1.1.0",
+    version: "1.1.1",
     min_version: "4.8.3",
     variant: "both",
     creation_date: "2022-10-14",
+    await_loading: true,
     onload() {
       styles = Blockbench.addCSS(`
         #format_page_preview_scene_model .socials {
