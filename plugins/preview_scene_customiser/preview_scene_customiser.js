@@ -50,45 +50,6 @@
     await_loading: true,
     onload() {
       styles = Blockbench.addCSS(`
-        #format_page_preview_scene_model .socials {
-          padding: 0!important;
-          display: flex;
-          max-width: 540px;
-          margin: auto;
-          width: 100%;
-        }
-        #format_page_preview_scene_model .socials a {
-          text-align: center;
-          flex-basis: 0;
-          flex-grow: 1;
-          text-decoration: none;
-          padding: 6px;
-          padding-top: 10px;
-        }
-        #format_page_preview_scene_model .socials a i {
-          display: block;
-          font-size: 2em;
-          max-width: none;
-          pointer-events: none;
-        }
-        #format_page_preview_scene_model .socials a label {
-          color: var(--color-subtle_text);
-          cursor: inherit;
-          pointer-events: none;
-        }
-        #format_page_preview_scene_model .socials a:hover {
-          background-color: var(--color-accent);
-        }
-        #format_page_preview_scene_model .socials a:hover * {
-          color: var(--color-light)!important;
-        }
-        #format_page_preview_scene_model code {
-          padding: 0 2px;
-          background-color: var(--color-back);
-          border: 1px solid var(--color-border);
-          user-select: text;
-          font-family: var(--font-code);
-        }
         .preview-scene-links {
           display: flex;
           justify-content: space-around;
