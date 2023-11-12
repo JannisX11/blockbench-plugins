@@ -1,24 +1,23 @@
 Figura uses Blockbench for it's modeling, but some features of Blockbench will not be parsed by Figura.
 
-This Plugin adds a Project Format that will remove the following features from Blockbench:
-* Animated Textures
-* Model Identifier
-* Locators (Figura does not load them, and IK is not supported)
-* Group Name Limitations (Duplicate names and arbitrary characters are now allowed)
-* Molang Errors (Figura uses Lua in keyframes)
-* Texture Render Mode (Figura uses a more advanced system for emissive textures)
-* Particle and Sound keyframes
-
-The Plugin makes the following changes to improve clarity:
-* New Animations will be named `new` instead of the confusing name `animation.model.new`
-* Instruction keyframes have been renamed to Lua Script keyframes
-* The Anim Time Update property has been renamed to Start Offset, as that is how that property is used in Figura
-* Override has been renamed to Override Vanilla Animations
-* The Export Animations action has been removed
-
-Additionally, the Figura Project Format adds these features:
-* The "Match Project UV with Texture Size" Toggle under Tools, which will automatically set the Project UV to match the current texture to prevent the texture behaving weird in the preview (Not available with BoxUV)
-* The "Cycle Face Vertices action", which will allow you to change the triangulation of non-flat faces (You may need to use this multiple times, and/or invert the face for correct normals)
+This Plugin adds a Project Format that will make the following changes to Blockbench:
+* New Animations will be named `new` instead of `animation.model.new`.
+* The "Anim Time Update" Animation property has been renamed to "Start Offset" to reflect how the property is parsed by Figura.
+* The "Override" Animation property has been renamed to "Override Vanilla Animations" to better reflect how the property is used by Figura.
+* Added "Copy ModelPart Path" under the Right Click context menu for Cubes, Groups, and Meshes.
+  * Copies the full script path of the ModelPart as dictated by Figura's scripting API.
+* Added "Match Project UV with Texture Size" under Edit.
+  * When enabled and in PerFaceUV Mode, the ProjectUV will be changed to match the current active texture making using Textures of different sizes less of a pain.
+* Added "Bake IK into Animations" under Animation when in the Animate tab.
+  * Bakes Inverse Kinematics to raw keyframes. Figura cannot parse IK, so baking it to raw rotation keyframes is required to use IK in Figura.
+* Added "Cycle Vertex Order" as one of the mesh editing buttons when at least one Face is selected.
+  * Cycles the vertices of a Quad in order to change how textures are rendered on it when triangulated.
+  * Will invert the face. Use the "Invert Face" button to fix this.
+* Removed Blockbench Animated Textures.
+* Removed Model Identifier.
+* Removed Molang Errors.
+* Removed Texture Render Mode from the Texture Properties.
+* Removed Particle and Sound keyframes.
 
 <i style="pointer-events: none;color: black;opacity: 0.1;font-size: 700px;height: 614px;width: 584px;position: absolute;bottom: 0;right: 0;
 overflow: hidden;max-width: unset;" class="material-icons">change_history</i>
