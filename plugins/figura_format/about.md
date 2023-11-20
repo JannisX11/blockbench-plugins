@@ -8,6 +8,9 @@ This Plugin adds a Project Format that will make the following changes to Blockb
   * Copies the full script path of the ModelPart as dictated by Figura's scripting API.
 * Added "Match Project UV with Texture Size" under Edit.
   * When enabled and in PerFaceUV Mode, the ProjectUV will be changed to match the current active texture making using Textures of different sizes less of a pain.
+* Added "Add Animations..." under Animation.
+  * Allows you to select a bbmodel and imports all animations you select, replacing old animations.
+  * Intended to replace "Export Animations to file, then import file" workflow.
 * Added "Bake IK into Animations" under Animation when in the Animate tab.
   * Bakes Inverse Kinematics to raw keyframes. Figura cannot parse IK, so baking it to raw rotation keyframes is required to use IK in Figura.
 * Added "Cycle Vertex Order" as one of the mesh editing buttons when at least one Face is selected.

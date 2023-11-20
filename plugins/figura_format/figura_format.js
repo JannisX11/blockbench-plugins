@@ -253,6 +253,90 @@
 					}
 				}), '#editing_mode')
 			MenuBar.menus.animation.addAction(
+				new Action('figura_import_animations', {
+					name: "Import Animations...",
+					description: "Import animations from another bbmodel",
+					icon: "fa-file-import",
+					condition: { modes: ['animate'], method: () => Format === format },
+					click() {
+						Blockbench.import({
+							resource_id: 'model',
+							extensions: ['bbmodel'],
+							type: 'Model',
+							readtype: 'text',
+							multiple: false
+						}, function (files) {
+							let file = files[0]
+							if (!file) return
+
+							// get the animation data in JSON form via opening the project file and generating the json from the current file.
+							let currentProject = Project
+							let close = !(isApp && ModelProject.all.find(project => (
+								project.save_path == file.path || project.export_path == file.path
+							)))
+							loadModelFile(file);
+							let loadedProject = Project
+							let animJson = Animator.buildFile()
+							currentProject.select()
+							if (close) loadedProject.close()
+
+							// load the animations into the current project, deleting the originals if desired.
+							// stolen from function importFile at line 1525 of animation.js
+							let form = {};
+							let keys = [];
+							for (var key in animJson.animations) {
+								form[key.hashCode()] = { label: key, type: 'checkbox', value: true, nocolon: true };
+								keys.push(key)
+							}
+							if (keys.length == 0) {
+								Blockbench.showQuickMessage('message.no_animation_to_import');
+							} else {
+								let dialog = new Dialog({
+									id: 'figura_animation_import',
+									title: 'dialog.animation_import.title',
+									form,
+									onConfirm(form_result) {
+										let names = [];
+										let animsToRemove = [];
+										for (var key of keys) {
+											if (form_result[key.hashCode()]) {
+												names.push(key);
+												let a = Animation.all.find(anim => anim.name == key)
+												if (a) animsToRemove.push(a)
+											}
+										}
+										Undo.initEdit({ animations: animsToRemove })
+										if (form_result.replace_animations)
+											animsToRemove.forEach(anim => anim.remove(false))
+										let new_animations = Animator.loadFile({ json: animJson, path: null }, names);
+										Undo.finishEdit('Figura Import animations', { animations: new_animations })
+									},
+									onCancel() {
+									}
+								});
+								form.select_all_none = {
+									type: 'buttons',
+									buttons: ['generic.select_all', 'generic.select_none'],
+									click(index) {
+										let values = {};
+										keys.forEach(key => values[key.hashCode()] = (index == 0));
+										dialog.setFormValues(values);
+									}
+								}
+								form.properties_break = '_'
+								form.replace_animations = {
+									label: "Replace Animations?",
+									description: "If enabled, the imported animations will replace the old ones",
+									type: 'checkbox',
+									value: true,
+									nocolon: true
+								};
+								dialog.show();
+							}
+						})
+					}
+				}), '#file')
+			MenuBar.menus.animation.addAction(
 				new Action('figura_bake_ik', {
 					name: "Bake IK into Animations",
 					description: "Bakes Inverse Kinematics into raw Keyframes for use in Figura",
@@ -372,6 +456,7 @@
 			BarItems.figura_copy_path?.delete()
 			BarItems.figura_cycle_vertex_order?.delete()
 			BarItems.figura_match_texture_size?.delete()
+			BarItems.figura_import_animations?.delete()
 			BarItems.figura_bake_ik?.delete()
 			Validator.checks.find(element => element.id == 'figura_mesh_face_rule')?.delete()
 			format.delete()
