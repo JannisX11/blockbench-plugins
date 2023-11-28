@@ -278,7 +278,7 @@
         .spacer, #minecraft_title_generator .sp-preview, #minecraft_title_generator .form_inline_select > li {
           flex: 1;
         }
-        .form_inline_select > .disabled {
+        #minecraft_title_generator .form_inline_select > .disabled {
           cursor: not-allowed;
           color: inherit !important;
           text-decoration: line-through;
