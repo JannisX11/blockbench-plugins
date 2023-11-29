@@ -1995,10 +1995,10 @@
                 }
               }).show()
             },
-            textInfo(font = this.font) {
+            textInfo(font, parent) {
               new Blockbench.Dialog({
                 id: "minecraft_title_info",
-                title: `${fonts[font].name} Font Info`,
+                title: `${parent && parent !== font ? `${fonts[parent].name} ` : ""}${fonts[font].name} Info`,
                 lines: [`<style>
                   #minecraft_title_info .code, #minecraft_title_info code {
                     padding: 0 2px;
@@ -2010,6 +2010,7 @@
                 </style>`],
                 component: { template: `
                   <div>
+                    ${fonts[font].description ? `<p>${fonts[font].description.replace(/`(.*?)`/g, "<code>$1</code>")}</p>` : ""}
                     <h2>Available Characters</h2>
                     <div class="code">${Object.keys(fonts[font].characters).sort((a, b) => {
                       const isALetter = /[a-zA-Z]/.test(a)
@@ -2101,7 +2102,7 @@
                 <p>The text you want to add to the scene</p>
                 <div class="text-input-row">
                   <input id="minecraft-title-text-input" class="dark_bordered" v-model="text" placeholder="Minecraft"/>
-                  <i class="fa fa-circle-info" title="More info" @click="textInfo()"></i>
+                  <i class="fa fa-circle-info" title="More info" @click="textInfo(font, baseFont)"></i>
                 </div>
                 <br>
                 <div class="minecraft-title-header-row">
@@ -2143,7 +2144,7 @@
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
-                      <i class="fa fa-circle-info" title="More info" @click="textInfo(data.id)"></i>
+                      <i class="fa fa-circle-info" title="More info" @click="textInfo(data.id, baseFont)"></i>
                     </div>
                   </div>
                 </div>
