@@ -6,7 +6,7 @@
 			south: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAABlBMVEVHcEz///+flKJDAAAAAXRSTlMAQObYZgAAABJJREFUCNdjKGBwYChgEGAoAAAIigGhv1KChwAAAABJRU5ErkJggg",
 			west : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKAQMAAAC3/F3+AAAABlBMVEVHcEz///+flKJDAAAAAXRSTlMAQObYZgAAABhJREFUCNdjYGBgOHAAhM4gIWMGEGJgAACnnQmX+CnbdwAAAABJRU5ErkJggg"
 		},
-		buildGridCopy = buildGrid;
+		buildGridCopy = Canvas.buildGrid;
 
 	Plugin.register("cardinal", {
 		title: "Cardinal",
@@ -14,10 +14,10 @@
 		description: "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
 		about: "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
 		icon: "border_outer",
-		version: "1.0.0",
+		version: "1.0.1",
 		variant: "both",
 		onload() {
-			window.buildGrid = function() {
+			Canvas.buildGrid = function() {
 				// Default grid
 				buildGridCopy();
 
@@ -30,10 +30,14 @@
 				addMark(images.south, [ 0.0,  9.5 ]);
 				addMark(images.west,  [-9.5,  0.0 ]);
 			};
-			buildGrid();
+			window.buldGrid = Canvas.buildGrid;
+			Canvas.buildGrid();
 		},
-		onunload() { window.buildGrid = buildGridCopy },
-		onuninstall() { buildGrid() }
+		onunload() { 
+			Canvas.buildGrid = buildGridCopy;
+			window.buldGrid = Canvas.buildGrid;
+		},
+		onuninstall() { Canvas.buildGrid() }
 	});
 
 	function addMark(src, pos) {
