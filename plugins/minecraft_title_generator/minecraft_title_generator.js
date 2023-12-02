@@ -93,7 +93,7 @@
     author,
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.5",
+    version: "1.3.6",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -2439,6 +2439,7 @@
             font.parsed = true
             if (font.variants) for (const [j, v] of font.variants.entries()) {
               const variant = Object.assign({}, font, v)
+              delete variant.thumbnail
               variant.name ??= titleCase(variant.id)
               variant.characters = `fonts/${variant.id}/characters.json`
               variant.textures = `fonts/${variant.id}/textures.json`
@@ -2530,7 +2531,7 @@
                 </div>
               </div>
               <div v-if="fonts[font].textures[texture]?.variants">
-              <br>
+                <br>
                 <h2>Texture Variants</h2>
                 <div class="minecraft-title-list">
                   <div class="minecraft-title-item" @click="variant = null" :class="{ selected: !variant }">
@@ -2570,7 +2571,7 @@
                 colour: "#fff",
                 scale,
                 customBorder: false,
-                spacerWidth: fonts[this.content_vue.font].width - 1,
+                spacerWidth: 31,
                 name: texture[1] ?? texture[0],
                 ignoreStats: true,
                 ignoreTextureCheck: true
@@ -2603,7 +2604,7 @@
                 colour: "#fff",
                 scale,
                 customBorder: false,
-                spacerWidth: fonts[this.content_vue.font].width - 1,
+                spacerWidth: 31,
                 name: this.content_vue.variant ?? this.content_vue.texture,
                 ignoreStats: true
               })
