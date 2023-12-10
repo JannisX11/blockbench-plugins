@@ -10,14 +10,14 @@
         about: `The animation is activated using "/scoreboard players set @s animation 0".
 To use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation`,
         icon: 'compare',
-        version: '1.0.0',
+        version: '1.0.1',
         variant: 'both',
         onload() {
             types = ['thirdperson_righthand', 'thirdperson_lefthand', 'firstperson_righthand', 'firstperson_lefthand', 'gui', 'head', 'ground', 'fixed'];
             button = new Action('save_start', {
                 name: 'Save Starting Model',
                 description: 'Saves the current model as the starting model for the animation',
-                icon: 'filter_cetner_focus',
+                icon: 'filter_center_focus',
                 click: function() {
 					start = JSON.parse(JSON.stringify(Codecs.java_block.compile({raw: true})));
                 }
@@ -137,13 +137,13 @@ To use click Filter -> Save starting model the save the first model, and then cl
         var zip = JSZip();
         zip.file("resourcepack/pack.mcmeta", `{
   "pack": {
-    "pack_format": 5,
+    "pack_format": 18,
     "description": "This is an animated resource pack generated using Command Master's generator."
   }
 }`);
         zip.file("datapack/pack.mcmeta", `{
   "pack": {
-    "pack_format": 5,
+    "pack_format": 18,
     "description": "This is a datapack for an animation generated using Command Master's generator."
   }
 }`);
