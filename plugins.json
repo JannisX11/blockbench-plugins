@@ -502,7 +502,7 @@
 		"icon": "icon.png",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.3.1",
+		"version": "1.3.2",
 		"min_version": "3.7.0",
 		"new_repository_format": true,
 		"variant": "both"
@@ -513,7 +513,7 @@
 		"icon": "icon.png",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"min_version": "4.8.0",
 		"variant": "both"
 	},
@@ -523,7 +523,7 @@
 		"icon": "icon.png",
 		"description": "Create custom items for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.0.2",
+		"version": "1.0.3",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-09-19"
