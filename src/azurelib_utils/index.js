@@ -36,7 +36,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           description:
             "Export your .geo model for AzureLib.",
           category: "file",
-          condition: () => Format.id === "animated_entity_model",
+          condition: () => Format.id === "azure_model",
           click: function () {
             codec.export();
           },
@@ -50,7 +50,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           description:
             "Export your display settings file for AzureLib Item/Blocks.",
           category: "file",
-          condition: () => Format.id === "animated_entity_model",
+          condition: () => Format.id === "azure_model",
           click: maybeExportItemJson,
         });
         MenuBar.addAction(exportDisplayAction, "file.export");
@@ -59,7 +59,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           name: 'AzureLib Model Settings',
           description: 'Change model type.',
           icon: 'info',
-          condition: () => Format.id === "animated_entity_model",
+          condition: () => Format.id === "azure_model",
           click: function () {
             var dialog = new Dialog({
               id: 'project',

@@ -22,7 +22,7 @@ function lerp(start, stop, amt) {
 // eslint-disable-next-line no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
   const easing = other.easing || EASING_DEFAULT;
-  if (Format.id !== "animated_entity_model") {
+  if (Format.id !== "azure_model") {
     return Original.get(Keyframe).getLerp.apply(this, arguments);
   }
   let easingFunc = easingFunctions[easing];
@@ -47,7 +47,7 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
 function keyframeGetArray() {
   const { easing, easingArgs } = this;
   let result = Original.get(Keyframe).getArray.apply(this, arguments);
-  if (Format.id === "animated_entity_model") {
+  if (Format.id === "azure_model") {
     result = { vector: result, easing };
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
@@ -58,7 +58,7 @@ function keyframeGetArray() {
 function keyframeGetUndoCopy() {
   const { easing, easingArgs } = this;
   const result = Original.get(Keyframe).getUndoCopy.apply(this, arguments);
-  if (Format.id === "animated_entity_model") {
+  if (Format.id === "azure_model") {
     Object.assign(result, { easing });
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
@@ -69,7 +69,7 @@ function keyframeGetUndoCopy() {
 function keyframeExtend(dataIn) {
   const data = Object.assign({}, dataIn);
   console.log('keyframeExtend 1 arguments:', arguments);
-  if (Format.id === "animated_entity_model") {
+  if (Format.id === "azure_model") {
     if (typeof data.values === 'object') {
       if (data.values.easing !== undefined) {
         Merge.string(this, data.values, 'easing');
@@ -96,7 +96,7 @@ function keyframeExtend(dataIn) {
 }
 
 function reverseKeyframesCondition() {
-  const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "animated_entity_model";
+  const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "azure_model";
   // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
   return res;
 }

@@ -23,7 +23,7 @@ export function unloadCodec() {
 }
 
 function onProjectCompile(e) {
-    if (Format.id !== "animated_entity_model") return;
+    if (Format.id !== "azure_model") return;
     e.model.azurelibSettings = azurelibSettings;
     // console.log(`compileCallback model:`, e.model);
 }
@@ -45,7 +45,7 @@ function onBedrockCompile(e) {
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-	if (Format.id === "animated_entity_model") {
+	if (Format.id === "azure_model") {
         Object.assign(
             res,
             {
@@ -279,7 +279,7 @@ export function maybeExportItemJson(options = {}, as) {
 var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
-    id: "animated_entity_model",
+    id: "azure_model",
     name: "AzureLib Animated Model",
     category: "minecraft",
     description: "Animated Model for Java mods using AzureLib",

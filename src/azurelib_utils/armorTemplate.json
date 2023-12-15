@@ -1,7 +1,7 @@
 {
   "meta": {
     "format_version": "3.2",
-    "model_format": "animated_entity_model",
+    "model_format": "azure_model",
     "box_uv": true
   },
   "name": "CustomArmor",
