@@ -570,7 +570,7 @@
 		"icon": "border_outer",
 		"description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
 		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"variant": "both"
 	},
 	"mesh_tools": {
