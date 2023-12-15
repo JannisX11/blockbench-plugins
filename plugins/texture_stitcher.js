@@ -261,6 +261,11 @@
         Project.texture_width = Project.box_uv ? w / mx : w;
         Project.texture_height = Project.box_uv ? h / my : h;
 
+        if (Format.per_texture_uv_size) {
+            texture.uv_width = Project.texture_width;
+            texture.uv_height = Project.texture_height;
+        }
+
         Undo.finishEdit('finished stitching');
     }
 
@@ -269,7 +274,7 @@
         author: 'McHorse',
         description: 'Adds a menu item to textures editor that stitches multiple textures into one',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.1',
+        version: '1.0.2',
         variant: 'both',
         onload() 
         {
