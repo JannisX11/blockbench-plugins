@@ -438,6 +438,9 @@
                                 }
                             })
                         }
+                        Object.keys(boneAnimators).forEach(function (key) {
+                            boneAnimators[key].addToTimeline()
+                        });
                     }
 
                     function parseElement(element, group, parentPositionOrigin, new_elements, new_textures) {
