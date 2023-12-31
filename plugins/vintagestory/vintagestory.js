@@ -422,23 +422,19 @@
                                     newAnimation.animators[uuid] = boneAnimator
                                 }
                                 else {
-                                    console.log("already exists")
+                                    console.log(bonename + " already exists")
                                 }
 
                                 var frame = modelKf.frame / 29 // is this an off-by-one error in the export?
                                 var modelBone = modelKf.elements[bonename]
 
                                 if (modelBone.offsetX != undefined) {
-                                    var val = [modelBone.offsetX, modelBone.offsetY, modelBone.offsetZ]
-                                    console.log("position " + val)
+                                    var val = { x: modelBone.offsetX, y: modelBone.offsetY, z: modelBone.offsetZ }
                                     var kf = boneAnimator.createKeyframe(val, frame, "position", false, false)
-                                    kf.data_points = val
                                 }
                                 if (modelBone.rotationX != undefined) {
-                                    var val = [modelBone.rotationX, modelBone.rotationY, modelBone.rotationZ]
-                                    console.log("rotation " + val)
+                                    var val = { x: modelBone.rotationX, y: modelBone.rotationY, z: modelBone.rotationZ }
                                     var kf = boneAnimator.createKeyframe(val, frame, "rotation", false, false)
-                                    kf.data_points = val
                                 }
                             })
                         }
