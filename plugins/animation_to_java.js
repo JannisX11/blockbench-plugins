@@ -11,7 +11,7 @@
         variant: "both",
         about:
             "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
-        tags: ["Minecraft: Java Edition"],
+        tags: ["Deprecated", "Minecraft: Java Edition"],
         onload() {
             Formats.modded_entity.animation_mode = true
             menuButton = new Action("export_animation_to_java", {
