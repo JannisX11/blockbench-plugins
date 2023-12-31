@@ -427,13 +427,13 @@
 
                                 var frame = modelKf.frame / 29 // is this an off-by-one error in the export?
                                 var modelBone = modelKf.elements[bonename]
-
+                                
                                 if (modelBone.offsetX != undefined) {
-                                    var val = { x: modelBone.offsetX, y: modelBone.offsetY, z: modelBone.offsetZ }
+                                    var val = { x: modelBone.offsetX * -1, y: modelBone.offsetY, z: modelBone.offsetZ }
                                     var kf = boneAnimator.createKeyframe(val, frame, "position", false, false)
                                 }
                                 if (modelBone.rotationX != undefined) {
-                                    var val = { x: modelBone.rotationX, y: modelBone.rotationY, z: modelBone.rotationZ }
+                                    var val = { x: modelBone.rotationX * -1, y: modelBone.rotationY * -1, z: modelBone.rotationZ }
                                     var kf = boneAnimator.createKeyframe(val, frame, "rotation", false, false)
                                 }
                             })
