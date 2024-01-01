@@ -448,6 +448,7 @@
                                 if (boneAnimator == undefined) {
                                     let uuid = guid();
                                     boneAnimator = new BoneAnimator(uuid, newAnimation, bonename)
+                                    boneAnimator.type = "bone"
                                     boneAnimators[bonename] = boneAnimator
                                     newAnimation.animators[uuid] = boneAnimator
                                 }
