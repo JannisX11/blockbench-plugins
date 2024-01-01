@@ -443,17 +443,14 @@
 
                         for (let modelKf of modelAni.keyframes) {
                             Object.keys(modelKf.elements).forEach((bonename) => {
-
                                 var boneAnimator = boneAnimators[bonename]
                                 if (boneAnimator == undefined) {
-                                    let uuid = guid();
+                                    var group = Project.groups.find(e => e.name == bonename)
+                                    let uuid = group.uuid
                                     boneAnimator = new BoneAnimator(uuid, newAnimation, bonename)
                                     boneAnimator.type = "bone"
                                     boneAnimators[bonename] = boneAnimator
-                                    newAnimation.animators[uuid] = boneAnimator
-                                }
-                                else {
-                                    console.log(bonename + " already exists")
+                                    newAnimation.animators[group.uuid] = boneAnimator
                                 }
 
                                 var frame = modelKf.frame / 30 // is this an off-by-one error in the export?
