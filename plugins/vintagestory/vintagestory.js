@@ -182,8 +182,26 @@
                             // TODO: check for child cube with the same name so it can be collapsed
                             // or just take the first cube, it doesnt matter?
 
-                            let element = {
-                                name: obj.name,
+                            // POSITION
+                            let position_element = {
+                                name: obj.name + "_position",
+                                from: [0, 0, 0],
+                                to: [0, 0, 0],
+                                rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
+                                faces: {
+                                    north: { texture: "#null", uv: [0, 0, 0, 0] },
+                                    east: { texture: "#null", uv: [0, 0, 0, 0] },
+                                    south: { texture: "#null", uv: [0, 0, 0, 0] },
+                                    west: { texture: "#null", uv: [0, 0, 0, 0] },
+                                    up: { texture: "#null", uv: [0, 0, 0, 0] },
+                                    down: { texture: "#null", uv: [0, 0, 0, 0] }
+                                },
+                                children: []
+                            };
+
+                            // ROTATION
+                            let rotation_element = {
+                                name: obj.name + "_rotation",
                                 from: [0, 0, 0],
                                 to: [0, 0, 0],
                                 rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
@@ -199,17 +217,21 @@
                             };
 
                             if (obj.rotation[0] != 0)
-                                element.rotationX = obj.rotation[0]
+                                rotation_element.rotationX = obj.rotation[0]
                             if (obj.rotation[1] != 0)
-                                element.rotationY = obj.rotation[1]
+                                rotation_element.rotationY = obj.rotation[1]
                             if (obj.rotation[2] != 0)
-                                element.rotationZ = obj.rotation[2]
+                                rotation_element.rotationZ = obj.rotation[2]
 
-                            elements.push(element);
+                            position_element.children.push(rotation_element);
+
+                            elements.push(position_element);
 
                             for (let child of obj.children) {
-                                createElement(element.children, child);
+                                createElement(rotation_element.children, child);
                             }
+
+
                         }
                     }
 
@@ -229,7 +251,7 @@
                             code: (animation.name).toLowerCase().replace(" ", "_"),
                             onActivityStopped: "EaseOut",
                             onAnimationEnd: "Repeat",
-                            quantityframes: (animation.length * 30).toFixed() * 1 + 1,
+                            quantityframes: (animation.length * 30).toFixed() * 1,
                             keyframes: [
                             ],
                         }
@@ -275,6 +297,7 @@
 
                                 for (let g = 0; g < groupC.length; g++) {
                                     let elemA = {};
+                                    let elemB = {};
 
                                     if (animator.keyframes.length > 0) {
                                         frame.forEach(kf => {
@@ -287,14 +310,21 @@
                                                 if (kf.channel == "rotation" && a != "z")
                                                     mult = -1
 
-                                                elemA[kf.channel.replace("position", "offset").replace("scale", "stretch") + a.toUpperCase()] = kf.data_points[0][a] * mult;
+                                                if (kf.channel == "position")
+                                                    elemA[kf.channel.replace("position", "offset").replace("scale", "stretch") + a.toUpperCase()] = kf.data_points[0][a] * mult;
+                                                else if (kf.channel == "rotation")
+                                                    elemB[kf.channel.replace("position", "offset").replace("scale", "stretch") + a.toUpperCase()] = kf.data_points[0][a] * mult;
+                                                else
+                                                    console.log("Can't handle scaling just yet")
                                             });
                                         });
                                         // 30 is fps VS uses for anims
                                         if (anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1) !== undefined) {
-                                            anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1).elements[groupC[g].name] = elemA;
+                                            anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1).elements[groupC[g].name + "_position"] = elemA;
+                                            anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1).elements[groupC[g].name + "_rotation"] = elemB;
                                         } else {
-                                            keyframe.elements[groupC[g].name] = elemA;
+                                            keyframe.elements[groupC[g].name + "_position"] = elemA;
+                                            keyframe.elements[groupC[g].name + "_rotation"] = elemB;
                                         }
                                     }
                                 }
@@ -400,6 +430,7 @@
                     for (let modelAni of model.animations) {
                         var newAnimation = new Animation()
                         newAnimation.name = modelAni.name
+                        newAnimation.snapping = 30
                         newAnimation.length = modelAni.quantityframes / 30
                         if (modelAni.onAnimationEnd === "Stop")
                             newAnimation.loop = "once"
@@ -415,7 +446,6 @@
 
                                 var boneAnimator = boneAnimators[bonename]
                                 if (boneAnimator == undefined) {
-                                    console.log("adding new boneanimator " + bonename + " to " + newAnimation.name)
                                     let uuid = guid();
                                     boneAnimator = new BoneAnimator(uuid, newAnimation, bonename)
                                     boneAnimators[bonename] = boneAnimator
@@ -425,9 +455,9 @@
                                     console.log(bonename + " already exists")
                                 }
 
-                                var frame = modelKf.frame / 30
+                                var frame = modelKf.frame / 30 // is this an off-by-one error in the export?
                                 var modelBone = modelKf.elements[bonename]
-                                
+
                                 if (modelBone.offsetX != undefined) {
                                     var val = { x: modelBone.offsetX * -1, y: modelBone.offsetY, z: modelBone.offsetZ }
                                     var kf = boneAnimator.createKeyframe(val, frame, "position", false, false)
