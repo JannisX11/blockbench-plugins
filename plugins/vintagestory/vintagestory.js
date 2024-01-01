@@ -229,7 +229,7 @@
                             code: (animation.name).toLowerCase().replace(" ", "_"),
                             onActivityStopped: "EaseOut",
                             onAnimationEnd: "Repeat",
-                            quantityframes: (animation.length * 30).toFixed() * 1,
+                            quantityframes: (animation.length * 30).toFixed() * 1 + 1,
                             keyframes: [
                             ],
                         }
@@ -267,7 +267,7 @@
 
                             newKfs.forEach((frame, indexf) => {
                                 let keyframe = {
-                                    frame: ((frame[0].time * 29).toFixed() * 1),
+                                    frame: ((frame[0].time * 30).toFixed() * 1),
                                     elements: {
                                     }
                                 }
@@ -291,14 +291,14 @@
                                             });
                                         });
                                         // 30 is fps VS uses for anims
-                                        if (anim.keyframes.find(e => e.frame === (frame[0].time * 29).toFixed() * 1) !== undefined) {
-                                            anim.keyframes.find(e => e.frame === (frame[0].time * 29).toFixed() * 1).elements[groupC[g].name] = elemA;
+                                        if (anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1) !== undefined) {
+                                            anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1).elements[groupC[g].name] = elemA;
                                         } else {
                                             keyframe.elements[groupC[g].name] = elemA;
                                         }
                                     }
                                 }
-                                if (anim.keyframes.find(e => e.frame === (frame[0].time * 29).toFixed() * 1) === undefined) {
+                                if (anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1) === undefined) {
                                     anim.keyframes.push(keyframe);
                                 }
                             });
@@ -425,7 +425,7 @@
                                     console.log(bonename + " already exists")
                                 }
 
-                                var frame = modelKf.frame / 29 // is this an off-by-one error in the export?
+                                var frame = modelKf.frame / 30
                                 var modelBone = modelKf.elements[bonename]
                                 
                                 if (modelBone.offsetX != undefined) {
