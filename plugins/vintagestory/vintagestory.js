@@ -453,7 +453,7 @@
                                     newAnimation.animators[group.uuid] = boneAnimator
                                 }
 
-                                var frame = modelKf.frame / 30 // is this an off-by-one error in the export?
+                                var frame = modelKf.frame / 30
                                 var modelBone = modelKf.elements[bonename]
 
                                 if (modelBone.offsetX != undefined) {
@@ -469,6 +469,8 @@
                         Object.keys(boneAnimators).forEach(function (key) {
                             boneAnimators[key].addToTimeline()
                         });
+
+                        Animator.preview()
                     }
 
                     function parseElement(element, group, parentPositionOrigin, new_elements, new_textures) {
@@ -560,6 +562,7 @@
 
                             // Done
                             new_cube.init().addTo(parent_group)
+
                             new_elements.push(new_cube)
                         }
                     }
