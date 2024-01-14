@@ -118,13 +118,9 @@
                     let animatedBoneNames = new Set();
                     Animation.all.forEach(animation => {
                         Object.keys(animation.animators).forEach(key => {
-                            console.log(key)
-                            console.log(animation.animators[key].name)
                             animatedBoneNames.add(animation.animators[key].name)
                         })
                     })
-                    console.log(animatedBoneNames.values())
-
 
                     // Elements 
                     for (let obj of Outliner.root) {
