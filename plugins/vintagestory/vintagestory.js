@@ -131,10 +131,14 @@
                         createElement(vs_model_json.elements, obj);
                     }
 
-                    function createElement(elements, obj) {
+                    function createElement(elements, obj, excludeCubeName = null) {
                         if (!obj.export) return;
 
                         if (obj.type === "cube") {
+                            // Already exported in place of the folder
+                            if (obj.name === excludeCubeName)
+                                return;
+
                             let element = {
                                 name: obj.name,
                                 from: [obj.from[0], obj.from[1], obj.from[2]],
@@ -148,6 +152,7 @@
                                     up: { texture: "#null", uv: [0, 0, 0, 0] },
                                     down: { texture: "#null", uv: [0, 0, 0, 0] }
                                 },
+                                children: []
                             };
 
                             if (obj.rotation[0] != 0)
@@ -180,6 +185,8 @@
                             };
 
                             elements.push(element);
+
+                            return element
                         }
                         else if (obj.type == "group") {
                             // Don't export empty groups
@@ -190,9 +197,6 @@
 
                             if (!hasChildren)
                                 return;
-
-                            // TODO: check for child cube with the same name so it can be collapsed
-                            // or just take the first cube, it doesnt matter?
 
                             if (animatedBoneNames.has(obj.name)) {
                                 // POSITION
@@ -246,8 +250,15 @@
                             }
                             else {
                                 // Unanimated group but still has children.
+                                let nextChildren = elements
                                 for (let child of obj.children) {
-                                    createElement(elements, child);
+                                    if (child.name === obj.name) {
+                                        nextChildren = createElement(elements, child, null).children
+                                    }
+                                }
+
+                                for (let child of obj.children) {
+                                    createElement(nextChildren, child, obj.name)
                                 }
                             }
                         }
