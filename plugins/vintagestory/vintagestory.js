@@ -114,6 +114,18 @@
                         }
                     }
 
+                    // Fetch all target bones
+                    let animatedBoneNames = new Set();
+                    Animation.all.forEach(animation => {
+                        Object.keys(animation.animators).forEach(key => {
+                            console.log(key)
+                            console.log(animation.animators[key].name)
+                            animatedBoneNames.add(animation.animators[key].name)
+                        })
+                    })
+                    console.log(animatedBoneNames.values())
+
+
                     // Elements 
                     for (let obj of Outliner.root) {
                         createElement(vs_model_json.elements, obj);
@@ -182,63 +194,67 @@
                             // TODO: check for child cube with the same name so it can be collapsed
                             // or just take the first cube, it doesnt matter?
 
-                            // POSITION
-                            let position_element = {
-                                name: obj.name + "_position",
-                                from: [0, 0, 0],
-                                to: [0, 0, 0],
-                                rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
-                                faces: {
-                                    north: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    east: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    south: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    west: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    up: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    down: { texture: "#null", uv: [0, 0, 0, 0] }
-                                },
-                                children: []
-                            };
+                            if (animatedBoneNames.has(obj.name)) {
+                                // POSITION
+                                let position_element = {
+                                    name: obj.name + "_position",
+                                    from: [0, 0, 0],
+                                    to: [0, 0, 0],
+                                    rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
+                                    faces: {
+                                        north: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        east: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        south: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        west: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        up: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        down: { texture: "#null", uv: [0, 0, 0, 0] }
+                                    },
+                                    children: []
+                                };
 
-                            // ROTATION
-                            let rotation_element = {
-                                name: obj.name + "_rotation",
-                                from: [0, 0, 0],
-                                to: [0, 0, 0],
-                                rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
-                                faces: {
-                                    north: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    east: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    south: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    west: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    up: { texture: "#null", uv: [0, 0, 0, 0] },
-                                    down: { texture: "#null", uv: [0, 0, 0, 0] }
-                                },
-                                children: []
-                            };
+                                // ROTATION
+                                let rotation_element = {
+                                    name: obj.name + "_rotation",
+                                    from: [0, 0, 0],
+                                    to: [0, 0, 0],
+                                    rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
+                                    faces: {
+                                        north: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        east: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        south: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        west: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        up: { texture: "#null", uv: [0, 0, 0, 0] },
+                                        down: { texture: "#null", uv: [0, 0, 0, 0] }
+                                    },
+                                    children: []
+                                };
 
-                            if (obj.rotation[0] != 0)
-                                rotation_element.rotationX = obj.rotation[0]
-                            if (obj.rotation[1] != 0)
-                                rotation_element.rotationY = obj.rotation[1]
-                            if (obj.rotation[2] != 0)
-                                rotation_element.rotationZ = obj.rotation[2]
+                                if (obj.rotation[0] != 0)
+                                    rotation_element.rotationX = obj.rotation[0]
+                                if (obj.rotation[1] != 0)
+                                    rotation_element.rotationY = obj.rotation[1]
+                                if (obj.rotation[2] != 0)
+                                    rotation_element.rotationZ = obj.rotation[2]
 
-                            position_element.children.push(rotation_element);
+                                position_element.children.push(rotation_element);
 
-                            elements.push(position_element);
+                                elements.push(position_element);
 
-                            for (let child of obj.children) {
-                                createElement(rotation_element.children, child);
+                                for (let child of obj.children) {
+                                    createElement(rotation_element.children, child);
+                                }
                             }
-
-
+                            else {
+                                // Unanimated group but still has children.
+                                for (let child of obj.children) {
+                                    createElement(elements, child);
+                                }
+                            }
                         }
                     }
 
                     //Animation
-                    for (let i = 0; i < Animation.all.length; i++) {
-                        let animation = Animation.all[i];
-
+                    Animation.all.forEach(animation => {
                         const snap_time = (1 / Math.clamp(animation.snapping, 1, 120)).toFixed(4) * 1;
 
                         let animators = []
@@ -318,6 +334,7 @@
                                                     console.log("Can't handle scaling just yet")
                                             });
                                         });
+
                                         // 30 is fps VS uses for anims
                                         if (anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1) !== undefined) {
                                             anim.keyframes.find(e => e.frame === (frame[0].time * 30).toFixed() * 1).elements[groupC[g].name + "_position"] = elemA;
@@ -336,7 +353,7 @@
 
                         anim.keyframes.sort((a, b) => a.frame - b.frame);
                         vs_model_json.animations.push(anim);
-                    }
+                    })
 
                     return autoStringify(vs_model_json);
                 },
