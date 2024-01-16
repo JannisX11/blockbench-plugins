@@ -11,11 +11,11 @@
 
     BBPlugin.register('vintagestory', {
         title: "Vintage Story",
-        author: "Malik12tree",
+        author: "Malik12tree,Crabb",
         icon: "park",
         description: "Export and import of Vintage Story shapes",
         tags: ["Vintage Story"],
-        version: "1.0.1",
+        version: "1.0.2",
         min_version: "4.9.2",
         variant: "both",
         await_loading: true,
@@ -127,7 +127,7 @@
                         createElement(vs_model_json.elements, obj);
                     }
 
-                    function createElement(elements, obj, excludeCubeName = null) {
+                    function createElement(elements, obj, excludeCubeName = null, parentPos = [0, 0, 0], parentRot = [0, 0, 0]) {
                         if (!obj.export) return;
 
                         if (obj.type === "cube") {
@@ -137,8 +137,8 @@
 
                             let element = {
                                 name: obj.name,
-                                from: [obj.from[0], obj.from[1], obj.from[2]],
-                                to: [obj.to[0], obj.to[1], obj.to[2]],
+                                from: [obj.from[0] - parentPos[0], obj.from[1] - parentPos[1], obj.from[2] - parentPos[2]],
+                                to: [obj.to[0] - parentPos[0], obj.to[1] - parentPos[1], obj.to[2] - parentPos[2]],
                                 rotationOrigin: [obj.origin[0], obj.origin[1], obj.origin[2]],
                                 faces: {
                                     north: { texture: "#null", uv: [0, 0, 0, 0] },
@@ -151,12 +151,9 @@
                                 children: []
                             };
 
-                            if (obj.rotation[0] != 0)
-                                element.rotationX = obj.rotation[0]
-                            if (obj.rotation[1] != 0)
-                                element.rotationY = obj.rotation[1]
-                            if (obj.rotation[2] != 0)
-                                element.rotationZ = obj.rotation[2]
+                            element.rotationX = obj.rotation[0] + parentRot[0]
+                            element.rotationY = obj.rotation[1] + parentRot[1]
+                            element.rotationZ = obj.rotation[2] + parentRot[2]
 
                             // Handle faces
                             for (let face of faces) {
@@ -229,12 +226,9 @@
                                     children: []
                                 };
 
-                                if (obj.rotation[0] != 0)
-                                    rotation_element.rotationX = obj.rotation[0]
-                                if (obj.rotation[1] != 0)
-                                    rotation_element.rotationY = obj.rotation[1]
-                                if (obj.rotation[2] != 0)
-                                    rotation_element.rotationZ = obj.rotation[2]
+                                rotation_element.rotationX = obj.rotation[0]
+                                rotation_element.rotationY = obj.rotation[1]
+                                rotation_element.rotationZ = obj.rotation[2]
 
                                 position_element.children.push(rotation_element);
 
@@ -247,14 +241,21 @@
                             else {
                                 // Unanimated group but still has children.
                                 let nextChildren = elements
+                                let parentFrom = obj.from
+                                let parentRot = obj.rotation
+
+
                                 for (let child of obj.children) {
                                     if (child.name === obj.name) {
-                                        nextChildren = createElement(elements, child, null).children
+                                        let promotedChild = createElement(elements, child, null, parentFrom, parentRot)
+                                        nextChildren = promotedChild.children
+                                        parentFrom = child.from
+                                        parentRot = child.rotation
                                     }
                                 }
 
                                 for (let child of obj.children) {
-                                    createElement(nextChildren, child, obj.name)
+                                    createElement(nextChildren, child, obj.name, parentFrom)
                                 }
                             }
                         }
