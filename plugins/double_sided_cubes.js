@@ -25,7 +25,7 @@
 					Undo.initEdit({elements:[]});
 					let cubes = [];
 					Cube.selected.forEach((cube) => {
-						const new_cube = new Cube({...cube}).init();
+						const new_cube = cube.duplicate();
 						new_cube.name = new_cube.name + " inverted";
 						if (cube.parent !== "root") {
 							new_cube.addTo(cube.parent);
