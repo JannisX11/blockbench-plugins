@@ -1,7 +1,7 @@
 <div id="about-content">
   <p>This plugin adds a way to edit both plugin and theme files in a text editor of your choice, and have them automatically update inside Blockbench upon you saving the file.</p>
   <p>When a plugin file is being watched for changes, it's <code>about.md</code> file will be automatically watched for changes too.</p>
-  <p>Theme files support both <code>.bbmodel</code> and <code>.css</code> files being watched.</p>
+  <p>Theme files support both <code>.bbtheme</code> and <code>.css</code> files being watched.</p>
   <h2>How to use</h2>
   <h3>Watching files</h3>
   <p>To watch a file, have a theme or plugin file ready, then go to <strong>Help > Developer > Live Dev Reloader</strong>. From here, select <strong>Watch plugin or theme file</strong>, then select your plugin or theme file.</p>
