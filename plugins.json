@@ -60,7 +60,7 @@
 		"icon": "flip_to_back",
 		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"variant": "both"
 	},
 	"optimize": {

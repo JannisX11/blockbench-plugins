@@ -8,7 +8,7 @@
 		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.',
         tags: ["Minecraft: Java Edition"],
 		icon: 'flip_to_back',
-		version: '1.0.0',
+		version: '1.0.1',
 		variant: 'both',
 		onload() {
 			cube_action = new Action({
