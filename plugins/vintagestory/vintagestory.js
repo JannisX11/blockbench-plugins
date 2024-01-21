@@ -17,27 +17,29 @@
         tags: ["Vintage Story"],
         version: "1.0.2",
         min_version: "4.9.2",
-        variant: "desktop",
+        variant: "both",
         await_loading: true,
         creation_date: "2023-12-22",
         onload() {
-            if (Blockbench.operating_system === "Windows") {
-                setting_gamepath = new Setting('vs_gamepath', {
-                    name: 'Vintage Story game textures folder',
-                    description: 'Set this to the base game texture folder',
-                    category: 'defaults',
-                    value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory/assets/survival/textures',
-                    type: 'text',
-                });
-            }
-            else {
-                setting_gamepath = new Setting('vs_gamepath', {
-                    name: 'Vintage Story game textures folder',
-                    description: 'Set this to the base game texture folder',
-                    category: 'defaults',
-                    value: '',
-                    type: 'text',
-                });
+            if (isApp) {
+                if (Blockbench.operating_system === "Windows") {
+                    setting_gamepath = new Setting('vs_gamepath', {
+                        name: 'Vintage Story game textures folder',
+                        description: 'Set this to the base game texture folder',
+                        category: 'defaults',
+                        value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory/assets/survival/textures',
+                        type: 'text',
+                    });
+                }
+                else {
+                    setting_gamepath = new Setting('vs_gamepath', {
+                        name: 'Vintage Story game textures folder',
+                        description: 'Set this to the base game texture folder',
+                        category: 'defaults',
+                        value: '',
+                        type: 'text',
+                    });
+                }
             }
 
             var format = new ModelFormat('vintagestory', {
@@ -419,7 +421,8 @@
                             texture.id = key
 
                             // Update game namespace from settings
-                            namespace["game"] = settings.vs_gamepath.value
+                            if (isApp)
+                                namespace["game"] = settings.vs_gamepath.value
 
                             // Update blank/relative namespace if we're in an assets folder
                             if (path.includes("assets")) {

@@ -543,7 +543,7 @@
 		"icon": "park",
 		"description": "Allows to export and import VintageStory models.",
 		"version": "1.0.2",
-		"variant": "desktop"
+		"variant": "both"
 	},
 	"endimations_exporter": {
 		"title": "Endimator Animations Exporter",
