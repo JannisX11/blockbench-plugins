@@ -21,13 +21,24 @@
         await_loading: true,
         creation_date: "2023-12-22",
         onload() {
-            setting_gamepath = new Setting('vs_gamepath', {
-                name: 'Vintage Story game folder',
-                description: 'Set this to the install path',
-                category: 'defaults',
-                value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory',
-                type: 'text',
-            });
+            if (Blockbench.operating_system === "Windows") {
+                setting_gamepath = new Setting('vs_gamepath', {
+                    name: 'Vintage Story game textures folder',
+                    description: 'Set this to the base game texture folder',
+                    category: 'defaults',
+                    value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory/assets/survival/textures',
+                    type: 'text',
+                });
+            }
+            else {
+                setting_gamepath = new Setting('vs_gamepath', {
+                    name: 'Vintage Story game textures folder',
+                    description: 'Set this to the base game texture folder',
+                    category: 'defaults',
+                    value: '',
+                    type: 'text',
+                });
+            }
 
             var format = new ModelFormat('vintagestory', {
                 id: "vintagestorymodel",
@@ -408,7 +419,7 @@
                             texture.id = key
 
                             // Update game namespace from settings
-                            namespace["game"] = settings.vs_gamepath.value.replaceAll('\\', '/') + "/assets/survival/textures"
+                            namespace["game"] = settings.vs_gamepath.value
 
                             // Update blank/relative namespace if we're in an assets folder
                             if (path.includes("assets")) {
