@@ -8,7 +8,7 @@
 		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.',
         tags: ["Minecraft: Java Edition"],
 		icon: 'flip_to_back',
-		version: '1.0.0',
+		version: '1.0.1',
 		variant: 'both',
 		onload() {
 			cube_action = new Action({
@@ -25,7 +25,7 @@
 					Undo.initEdit({elements:[]});
 					let cubes = [];
 					Cube.selected.forEach((cube) => {
-						const new_cube = new Cube({...cube}).init();
+						const new_cube = cube.duplicate();
 						new_cube.name = new_cube.name + " inverted";
 						if (cube.parent !== "root") {
 							new_cube.addTo(cube.parent);
