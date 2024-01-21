@@ -21,25 +21,23 @@
         await_loading: true,
         creation_date: "2023-12-22",
         onload() {
-            if (isApp) {
-                if (Blockbench.operating_system === "Windows") {
-                    setting_gamepath = new Setting('vs_gamepath', {
-                        name: 'Vintage Story game textures folder',
-                        description: 'Set this to the base game texture folder',
-                        category: 'defaults',
-                        value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory/assets/survival/textures',
-                        type: 'text',
-                    });
-                }
-                else {
-                    setting_gamepath = new Setting('vs_gamepath', {
-                        name: 'Vintage Story game textures folder',
-                        description: 'Set this to the base game texture folder',
-                        category: 'defaults',
-                        value: '',
-                        type: 'text',
-                    });
-                }
+            if (isApp && Blockbench.operating_system === "Windows") {
+                setting_gamepath = new Setting('vs_gamepath', {
+                    name: 'Vintage Story game textures folder',
+                    description: 'Set this to the base game texture folder',
+                    category: 'defaults',
+                    value: process.env.APPDATA.replaceAll('\\', '/') + '/Vintagestory/assets/survival/textures',
+                    type: 'text',
+                });
+            }
+            else {
+                setting_gamepath = new Setting('vs_gamepath', {
+                    name: 'Vintage Story game textures folder',
+                    description: 'Set this to the base game texture folder',
+                    category: 'defaults',
+                    value: '',
+                    type: 'text',
+                });
             }
 
             var format = new ModelFormat('vintagestory', {
@@ -270,7 +268,7 @@
 
                                         console.log("child origin = " + [child.origin[0], child.origin[1], child.origin[2]])
                                         console.log("group origin = " + [obj.origin[0], obj.origin[1], obj.origin[2]])
-                                        
+
                                     }
                                 }
 
@@ -524,15 +522,15 @@
                     function parseElement(element, group, new_elements, new_textures, parentPositionOrigin = [0, 0, 0], parentRotation = [0, 0, 0]) {
                         // From/to
                         let from = [
-                                element.from[0] + parentPositionOrigin[0],
-                                element.from[1] + parentPositionOrigin[1],
-                                element.from[2] + parentPositionOrigin[2]
-                            ];
+                            element.from[0] + parentPositionOrigin[0],
+                            element.from[1] + parentPositionOrigin[1],
+                            element.from[2] + parentPositionOrigin[2]
+                        ];
                         let to = [
-                                element.to[0] + parentPositionOrigin[0],
-                                element.to[1] + parentPositionOrigin[1],
-                                element.to[2] + parentPositionOrigin[2]
-                            ]
+                            element.to[0] + parentPositionOrigin[0],
+                            element.to[1] + parentPositionOrigin[1],
+                            element.to[2] + parentPositionOrigin[2]
+                        ]
 
                         // Rotation origin
                         let rotationOrigin = [parentPositionOrigin[0], parentPositionOrigin[1], parentPositionOrigin[2]]
@@ -562,8 +560,8 @@
                         if (hasChildren) {
                             parent_group = new Group().extend({
                                 name: element.name,
-                                origin: [0,0,0],
-                                rotation: [0,0,0]
+                                origin: [0, 0, 0],
+                                rotation: [0, 0, 0]
                             }).init().addTo(group);
 
                             new_elements.push(parent_group)
