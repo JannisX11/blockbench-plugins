@@ -11,13 +11,13 @@
 
     BBPlugin.register('vintagestory', {
         title: "Vintage Story",
-        author: "Malik12tree,Crabb",
+        author: "Malik12tree, Crabb",
         icon: "park",
         description: "Export and import of Vintage Story shapes",
         tags: ["Vintage Story"],
         version: "1.0.2",
         min_version: "4.9.2",
-        variant: "both",
+        variant: "desktop",
         await_loading: true,
         creation_date: "2023-12-22",
         onload() {
@@ -46,8 +46,8 @@
                 icon: 'park',
                 image_editor: false,
                 integer_size: false,
-                java_face_properties: true,
-                locators: true,
+                java_face_properties: false,
+                locators: false,
                 meshes: false,
                 model_identifier: false,
                 optional_box_uv: false,
@@ -249,13 +249,20 @@
                                     if (child.name === obj.name) {
                                         let promotedChild = createElement(elements, child, null, parentFrom, parentRot)
                                         nextChildren = promotedChild.children
+                                        console.log("name = " + child.name)
+                                        console.log("parent rot = " + parentRot)
                                         parentFrom = child.from
                                         parentRot = child.rotation
+                                        console.log("child rot = " + parentRot)
+
+                                        console.log("child origin = " + [child.origin[0], child.origin[1], child.origin[2]])
+                                        console.log("group origin = " + [obj.origin[0], obj.origin[1], obj.origin[2]])
+                                        
                                     }
                                 }
 
                                 for (let child of obj.children) {
-                                    createElement(nextChildren, child, obj.name, parentFrom)
+                                    createElement(nextChildren, child, obj.name, parentFrom)//, parentRot)
                                 }
                             }
                         }
@@ -448,76 +455,86 @@
 
                     // Resolve elements
                     for (let element of model.elements) {
-                        parseElement(element, root_group, [0, 0, 0], new_elements, new_textures);
+                        parseElement(element, root_group, new_elements, new_textures);
                     }
 
                     // Read animations
-                    for (let modelAni of model.animations) {
-                        var newAnimation = new Animation()
-                        newAnimation.name = modelAni.name
-                        newAnimation.snapping = 30
-                        newAnimation.length = modelAni.quantityframes / 30
-                        if (modelAni.onAnimationEnd === "Stop")
-                            newAnimation.loop = "once"
-                        else if (modelAni.onAnimationEnd === "Hold")
-                            newAnimation.loop = "hold"
-                        newAnimation.add()
-                        Animation.selected = newAnimation
+                    if (model.animations) {
+                        for (let modelAni of model.animations) {
+                            var newAnimation = new Animation()
+                            newAnimation.name = modelAni.name
+                            newAnimation.snapping = 30
+                            newAnimation.length = modelAni.quantityframes / 30
+                            if (modelAni.onAnimationEnd === "Stop")
+                                newAnimation.loop = "once"
+                            else if (modelAni.onAnimationEnd === "Hold")
+                                newAnimation.loop = "hold"
+                            newAnimation.add()
+                            Animation.selected = newAnimation
 
-                        let boneAnimators = {}
+                            let boneAnimators = {}
 
-                        for (let modelKf of modelAni.keyframes) {
-                            Object.keys(modelKf.elements).forEach((bonename) => {
-                                var boneAnimator = boneAnimators[bonename]
-                                if (boneAnimator == undefined) {
-                                    var group = Project.groups.find(e => e.name == bonename)
-                                    let uuid = group.uuid
-                                    boneAnimator = new BoneAnimator(uuid, newAnimation, bonename)
-                                    boneAnimator.type = "bone"
-                                    boneAnimators[bonename] = boneAnimator
-                                    newAnimation.animators[group.uuid] = boneAnimator
-                                }
+                            for (let modelKf of modelAni.keyframes) {
+                                Object.keys(modelKf.elements).forEach((bonename) => {
+                                    var boneAnimator = boneAnimators[bonename]
+                                    if (boneAnimator == undefined) {
+                                        var group = Project.groups.find(e => e.name == bonename)
+                                        let uuid = group.uuid
+                                        boneAnimator = new BoneAnimator(uuid, newAnimation, bonename)
+                                        boneAnimator.type = "bone"
+                                        boneAnimators[bonename] = boneAnimator
+                                        newAnimation.animators[group.uuid] = boneAnimator
+                                    }
 
-                                var frame = modelKf.frame / 30
-                                var modelBone = modelKf.elements[bonename]
+                                    var frame = modelKf.frame / 30
+                                    var modelBone = modelKf.elements[bonename]
 
-                                if (modelBone.offsetX != undefined) {
-                                    var val = { x: modelBone.offsetX * -1, y: modelBone.offsetY, z: modelBone.offsetZ }
-                                    var kf = boneAnimator.createKeyframe(val, frame, "position", false, false)
-                                }
-                                if (modelBone.rotationX != undefined) {
-                                    var val = { x: modelBone.rotationX * -1, y: modelBone.rotationY * -1, z: modelBone.rotationZ }
-                                    var kf = boneAnimator.createKeyframe(val, frame, "rotation", false, false)
-                                }
-                            })
+                                    if (modelBone.offsetX != undefined) {
+                                        var val = { x: modelBone.offsetX * -1, y: modelBone.offsetY, z: modelBone.offsetZ }
+                                        var kf = boneAnimator.createKeyframe(val, frame, "position", false, false)
+                                    }
+                                    if (modelBone.rotationX != undefined) {
+                                        var val = { x: modelBone.rotationX * -1, y: modelBone.rotationY * -1, z: modelBone.rotationZ }
+                                        var kf = boneAnimator.createKeyframe(val, frame, "rotation", false, false)
+                                    }
+                                })
+                            }
+                            Object.keys(boneAnimators).forEach(function (key) {
+                                boneAnimators[key].addToTimeline()
+                            });
+
+                            Animator.preview()
                         }
-                        Object.keys(boneAnimators).forEach(function (key) {
-                            boneAnimators[key].addToTimeline()
-                        });
-
-                        Animator.preview()
                     }
 
-                    function parseElement(element, group, parentPositionOrigin, new_elements, new_textures) {
+                    function parseElement(element, group, new_elements, new_textures, parentPositionOrigin = [0, 0, 0], parentRotation = [0, 0, 0]) {
                         // From/to
-                        let from = [element.from[0] + parentPositionOrigin[0], element.from[1] + parentPositionOrigin[1], element.from[2] + parentPositionOrigin[2]];
-                        let to = [element.to[0] + parentPositionOrigin[0], element.to[1] + parentPositionOrigin[1], element.to[2] + parentPositionOrigin[2]];
+                        let from = [
+                                element.from[0] + parentPositionOrigin[0],
+                                element.from[1] + parentPositionOrigin[1],
+                                element.from[2] + parentPositionOrigin[2]
+                            ];
+                        let to = [
+                                element.to[0] + parentPositionOrigin[0],
+                                element.to[1] + parentPositionOrigin[1],
+                                element.to[2] + parentPositionOrigin[2]
+                            ]
 
                         // Rotation origin
-                        let rotationOrigin = [0, 0, 0]
+                        let rotationOrigin = [parentPositionOrigin[0], parentPositionOrigin[1], parentPositionOrigin[2]]
                         if (element.rotationOrigin) {
                             rotationOrigin = [
-                                element.rotationOrigin[0],
-                                element.rotationOrigin[1],
-                                element.rotationOrigin[2]
+                                element.rotationOrigin[0] + parentPositionOrigin[0],
+                                element.rotationOrigin[1] + parentPositionOrigin[1],
+                                element.rotationOrigin[2] + parentPositionOrigin[2]
                             ];
                         }
 
                         // Rotation
                         let rotation = [
-                            element.rotationX == undefined ? 0 : element.rotationX,
-                            element.rotationY == undefined ? 0 : element.rotationY,
-                            element.rotationZ == undefined ? 0 : element.rotationZ
+                            (element.rotationX == undefined ? 0 : element.rotationX) + parentRotation[0],
+                            (element.rotationY == undefined ? 0 : element.rotationY) + parentRotation[1],
+                            (element.rotationZ == undefined ? 0 : element.rotationZ) + parentRotation[2]
                         ];
 
                         // Check for children
@@ -526,26 +543,27 @@
                             element.children != null &&
                             element.children.length > 0;
 
-                        var isZeroSize =
-                            from[0] == to[0] &&
-                            from[1] == to[1] &&
-                            from[2] == to[2];
-
                         // Create group and descend children if required
                         var parent_group = group;
                         if (hasChildren) {
                             parent_group = new Group().extend({
                                 name: element.name,
-                                origin: rotationOrigin,
-                                rotation: rotation
+                                origin: [0,0,0],
+                                rotation: [0,0,0]
                             }).init().addTo(group);
 
                             new_elements.push(parent_group)
 
                             for (let child_element of element.children) {
-                                parseElement(child_element, parent_group, from, new_elements, new_textures);
+                                parseElement(child_element, parent_group, new_elements, new_textures, from, rotation);
                             }
                         }
+
+                        // Check for zero size
+                        var isZeroSize =
+                            from[0] == to[0] &&
+                            from[1] == to[1] &&
+                            from[2] == to[2];
 
                         // If the cube is a dummy for animations, ignore it.
                         if (!isZeroSize) {

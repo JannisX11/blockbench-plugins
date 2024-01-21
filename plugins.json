@@ -539,11 +539,11 @@
 	},
 	"vintagestory_models": {
 		"title": "Vintage Story Models",
-		"author": "Malik12tree",
+		"author": "Malik12tree, Crabb",
 		"icon": "park",
 		"description": "Allows to export VintageStory models.",
-		"version": "1.0.0",
-		"variant": "both"
+		"version": "1.0.2",
+		"variant": "desktop"
 	},
 	"endimations_exporter": {
 		"title": "Endimator Animations Exporter",
