@@ -252,17 +252,6 @@
 		"creation_date": "2022-10-14",
 		"await_loading": true
 	},
-	"plugin_loader_2.0": {
-		"title": "Plugin Loader 2.0",
-		"icon": "extension",
-		"author": "Ewan Howell",
-		"description": "Replace the default Blockbench Plugin Loader interface with an improved and redesigned Plugin Loader interface.",
-		"about": "This plugin replaces the built in Blockbench Plugin Loader interface with a new and improved Plugin Loader.\n\n## Plugin Pages\nEach plugin now gets its own page where you can view all of its information, as well as install/uninstall/reload it.\n\n## Plugin Tabs\nAll of the tags used across the plugins are now shown as a list of tabs up the side of the Plugin Loader, allowing you to quickly and easily browse and filter by the tags.",
-		"tags": ["Deprecated", "Plugins", "Blockbench"],
-		"version": "1.1.0",
-		"min_version": "4.2.0",
-		"variant": "both"
-	},
 	"splash_art_customiser": {
 		"title": "Splash Art Customiser",
 		"icon": "palette",
@@ -342,7 +331,7 @@
 		"website": "https://ewanhowell.com/plugins/live-dev-reloader",
 		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
 		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues",
-		"creation_date": "2024-11-01"
+		"creation_date": "2024-01-20"
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
