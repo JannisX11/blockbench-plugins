@@ -14,7 +14,7 @@
 		description: "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
 		about: "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
 		icon: "border_outer",
-		version: "1.0.1",
+		version: "1.0.2",
 		variant: "both",
 		onload() {
 			Canvas.buildGrid = function() {
@@ -22,7 +22,8 @@
 				buildGridCopy();
 
 				// Hide default north mark
-				three_grid.children.find(c => c.material === Canvas.northMarkMaterial).visible = false;
+				let north_mark = three_grid.children.find(c => c.material === Canvas.northMarkMaterial);
+				if (north_mark) north_mark.visible = false;
 
 				// Generate other marks
 				addMark(images.north, [ 0.0, -9.5 ]);
