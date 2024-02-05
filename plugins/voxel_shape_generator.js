@@ -5,10 +5,10 @@
 
     Plugin.register('voxel_shape_generator', {
         title: 'VoxelShape Generators',
-        author: 'Spectre0987',
-        description: 'Generates Voxel Shapes (Supports Mojang Mappings and MCP)',
+        author: 'Spectre0987, Nyfaria',
+        description: 'Generates Voxel Shapes (Supports MojMaps, MCP and Yarn)',
         icon: 'bar_chart',
-        version: '0.1.0',
+        version: '0.2.0',
         variant: 'both',
         tags: ["Minecraft: Java Edition"],
         onload(){
