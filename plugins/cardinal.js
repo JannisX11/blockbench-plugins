@@ -12,27 +12,20 @@
 		title: "Cardinal",
 		author: "Bug1312",
 		description: "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
-		about: "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
+		about: "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color! The scale can be changed from within the settings.",
 		icon: "border_outer",
-		version: "1.0.2",
+		version: "1.1.0",
 		variant: "both",
 		onload() {
-			Canvas.buildGrid = function() {
-				// Default grid
-				buildGridCopy();
-
-				// Hide default north mark
-				let north_mark = three_grid.children.find(c => c.material === Canvas.northMarkMaterial);
-				if (north_mark) north_mark.visible = false;
-
-				// Generate other marks
-				addMark(images.north, [ 0.0, -9.5 ]);
-				addMark(images.east,  [ 9.5,  0.0 ]);
-				addMark(images.south, [ 0.0,  9.5 ]);
-				addMark(images.west,  [-9.5,  0.0 ]);
-			};
-			window.buildGrid = Canvas.buildGrid;
-			Canvas.buildGrid();
+			new Setting("cardinal_scale", {
+				value: 1,
+				category: "preview",
+				name: "Cardinal Direction Scale",
+				description: "Change the scale of the cardinal directions",
+				type: "number",
+				onChange: build
+			});
+			build();
 		},
 		onunload() { 
 			Canvas.buildGrid = buildGridCopy;
@@ -40,6 +33,25 @@
 		},
 		onuninstall() { Canvas.buildGrid() }
 	});
+
+	function build() {
+		Canvas.buildGrid = function() {
+			// Default grid
+			buildGridCopy();
+
+			// Hide default north mark
+			let north_mark = three_grid.children.find(c => c.material === Canvas.northMarkMaterial);
+			if (north_mark) north_mark.visible = false;
+
+			// Generate other marks
+			addMark(images.north, [ 0.0, -9.5 ]);
+			addMark(images.east,  [ 9.5,  0.0 ]);
+			addMark(images.south, [ 0.0,  9.5 ]);
+			addMark(images.west,  [-9.5,  0.0 ]);
+		};
+		window.buildGrid = Canvas.buildGrid;
+		Canvas.buildGrid();
+	}
 
 	function addMark(src, pos) {
 		let img = new Image(),
@@ -61,7 +73,7 @@
 		img.onload = function() { this.tex.needsUpdate = true };
 
 		// Setup cardinal mark
-		let geometry = new THREE.PlaneGeometry(2.4, 2.4),
+		let geometry = new THREE.PlaneGeometry(2.4 * settings.cardinal_scale.value, 2.4 * settings.cardinal_scale.value),
 			material = new THREE.MeshBasicMaterial({
 				map: tex,
 				transparent: true,
@@ -75,7 +87,7 @@
 		mark.material.depthWrite = false;
 
 		// Look at camera
-		mark.onBeforeRender = function() { this.lookAt(main_preview.camera.position) };
+		mark.onBeforeRender = function() { this.rotation.set(main_preview.camera.rotation.x, main_preview.camera.rotation.y, main_preview.camera.rotation.z) };
 
 		// Move marks based on grid positioning
 		if (Format.centered_grid) mark.position.set(pos[0], 0, pos[1]);
