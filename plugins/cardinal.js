@@ -20,8 +20,8 @@
 			new Setting("cardinal_scale", {
 				value: 1,
 				category: "preview",
-				name: "Cardinal Direction Scale",
-				description: "Change the scale of the cardinal directions",
+				name: "Cardinal Scale",
+				description: "Change the scale of the cardinals",
 				type: "number",
 				onChange: build
 			});
