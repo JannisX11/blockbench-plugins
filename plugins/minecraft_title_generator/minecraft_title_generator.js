@@ -550,8 +550,8 @@
                     backgroundColour2: "#c7ecff",
                     backgroundColourEnabled: false,
                     backgroundColour2Enabled: false,
-                    lastUpdated: 0,
-                    updateTimeout: null,
+                    updating: false,
+                    tabToUpdate: false,
                     padding: 0
                   },
                   mounted() {
@@ -718,18 +718,18 @@
                       this[v] = c.toHexString()
                       this.update(this.tab)
                     },
-                    update(tab) {
-                      const now = performance.now()
-                      if (now - this.lastUpdated > 50) {
-                        this.lastUpdated = now
-                        this.tabChange(tab)
-                        return clearTimeout(this.updateTimeout)
+                    async update(tab) {
+                      if (this.updating) {
+                        this.tabToUpdate = tab
+                        return
                       }
-                      clearTimeout(this.updateTimeout)
-                      this.updateTimeout = setTimeout(() => {
-                        this.lastUpdated = performance.now()
-                        this.tabChange(tab)
-                      }, 50)
+                      this.updating = true
+                      await this.tabChange(tab)
+                      this.updating = false
+                      if (this.tabToUpdate) {
+                        this.update(this.tabToUpdate)
+                        this.tabToUpdate = false
+                      }
                     }
                   },
                   template: `
@@ -1868,7 +1868,7 @@
 
               this.renderer.render(this.scene, this.camera)
             },
-            async updatePreview() {
+            updatePreview() {
               setTimeout(async () => {
                 if (this.updating) {
                   this.update = true
