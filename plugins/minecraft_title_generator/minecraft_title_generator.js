@@ -2522,7 +2522,7 @@
                     <i class="material-icons">search</i>
                   </div>
                   <div class="minecraft-title-list">
-                    <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
+                    <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
                       <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                       <div :style="{ maxWidth: fonts[font].textures[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
@@ -2677,8 +2677,8 @@
                 <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
                   <canvas class="checkerboard" width="500" height="160" />
                   <button>Select file</button>
-                  <br>
                 </div>
+                <br>
                 <p>The blend method to use when applying the overlay</p>
                 <select-input v-model="overlayBlend" :options="blends" @input="updatePreview" />
                 <br>
