@@ -52,7 +52,6 @@
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
-  const author = "Ewan Howell"
   const description = "Create Minecraft-styled title models!"
   const links = {
     website: {
@@ -94,7 +93,7 @@
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
-    author,
+    author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
     version: "1.4.0",
@@ -2459,7 +2458,7 @@
                 </ul>
                 <div v-if="fontTab === 'fonts'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; baseFont = id; fontVariant = null; variant = null; updateFont()" :class="{ selected: baseFont === id }">
-                    <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" loading="lazy" />
                     <div :style="{ maxWidth: data.variants ? '78%' : null }">{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2470,7 +2469,7 @@
                 </div>
                 <div v-if="fonts[font].variants && fontTab === 'variants'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" @click="font = baseFont; fontVariant = null; variant = null; updateFont()" :class="{ selected: !fontVariant }">
-                    <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" />
+                    <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" loading="lazy" />
                     <div>Default</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="fonts[baseFont].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[baseFont].author">person</i>
@@ -2478,7 +2477,7 @@
                     </div>
                   </div>
                   <div class="minecraft-title-item" v-for="data of fonts[baseFont].variants" @click="font = data.id; fontVariant = data.id, variant = null; updateFont()" :class="{ selected: fontVariant === data.id }">
-                    <img :src="'${root}/fonts/' + data.id + '/thumbnails/flat.png'" />
+                    <img :src="'${root}/fonts/' + data.id + '/thumbnails/flat.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2524,7 +2523,7 @@
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
-                      <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                      <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                       <div :style="{ maxWidth: fonts[font].textures[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
                         <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2538,7 +2537,7 @@
                     <h2>Variants</h2>
                     <div class="minecraft-title-list" ref="textureVariants">
                       <div class="minecraft-title-item" @click="variant = null; updatePreview()" :class="{ selected: !variant }">
-                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" loading="lazy" />
                         <div>{{ fonts[font].textures[texture].name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[font].textures[texture].author">person</i>
@@ -2546,7 +2545,7 @@
                         </div>
                       </div>
                       <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id; updatePreview()" :class="{ selected: variant === id }">
-                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                         <div>{{ data.name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="data.author ?? fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? fonts[font].textures[texture].author)">person</i>
@@ -2667,7 +2666,7 @@
                 </ul>
                 <div v-if="overlaySource === 'premade'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data, type] of overlays" v-if="font === type" @click="overlay = id; updatePreview()" :class="{ selected: overlay === id }">
-                    <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2965,7 +2964,7 @@
               <h2>Font</h2>
               <div class="minecraft-title-list small">
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts)" @click="selectFont(id)" :class="{ selected: font === id }">
-                  <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" loading="lazy" />
                   <div>{{ data.name }}</div>
                 </div>
               </div>
@@ -2976,7 +2975,7 @@
                   <div>All</div>
                 </div>
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures)" v-if="fonts[font].textures[id]" @click="texture = id; variant = null" :class="{ selected: texture === id }">
-                  <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                  <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                   <div>{{ data.category ?? data.name }}</div>
                   <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 8 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
                 </div>
@@ -2986,11 +2985,11 @@
                 <h2>Texture Variants</h2>
                 <div class="minecraft-title-list">
                   <div class="minecraft-title-item" @click="variant = null" :class="{ selected: !variant }">
-                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" loading="lazy" />
                     <div>{{ fonts[font].textures[texture].name }}</div>
                   </div>
                   <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id" :class="{ selected: variant === id }">
-                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                   </div>
                 </div>
