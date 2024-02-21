@@ -35,6 +35,11 @@
     }
   }
   const fontData = []
+  let tileables = {
+    cobblestone: {
+      texture: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAElBMVEW1tbWmpqaIh4hubW1hYWFSUlLm8qFQAAAAcUlEQVR42gVAARGDMAz8MAMjh4CSLwIWIgDSIGAD/1p2iPk5pTfFOW3QLR3nGrrGQxSLTL1wp2TJ3PF6W/yaOjSV9eEB2y3a4omQPSerG4f6biMXkP0a8X2DMdpytQkuIWuY49CuziJmclhoIcsjUvgH41gVHD61kt4AAAAASUVORK5CYII="
+    }
+  }
   const connection = {
     roots: [
       `https://raw.githubusercontent.com/${repo}/main`,
@@ -47,7 +52,6 @@
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
-  const author = "Ewan Howell"
   const description = "Create Minecraft-styled title models!"
   const links = {
     website: {
@@ -86,14 +90,13 @@
     [0.2, 0.4, 0.6, 0.8]
   ]
   const stats = []
-  await getFontTextures("minecraft-ten", true)
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
-    author,
+    author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.3.6",
+    version: "1.4.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -332,7 +335,10 @@
         format_page: {
           component: {
             methods: { 
-              create: () => format.new()
+              async create() {
+                if (!await MinecraftEULA.promptUser(id)) return
+                format.new()
+              }
             },
             template: `
               <div style="display:flex;flex-direction:column;height:100%">
@@ -425,19 +431,22 @@
                 title: "Rendering…",
                 buttons: [],
                 lines: [`<style>
+                  #minecraft_title_render_result .hidden {
+                    display: none;
+                  }
                   #minecraft_title_render_result .dialog_content {
                     margin: 0;
                   }
                   #minecraft-title-output {
                     max-width: 100%;
-                    max-height: calc(100vh - 180px - 24px - 40px - 20px - 40px);
                     min-height: 32px;
                     border: 1px solid var(--color-accent);
+                    object-fit: contain;
                   }
                   #minecraft-title-render-content {
                     margin: 20px;
                   }
-                  #minecraft-title-render-content, #minecraft-title-render-output, #minecraft-title-render-image {
+                  #minecraft-title-render-content, #minecraft-title-render-output {
                     display: flex;
                     align-items: center;
                     flex-direction: column;
@@ -446,6 +455,7 @@
                     width: 100%;
                     display: flex;
                     gap: 10px;
+                    flex-wrap: wrap;
                   }
                   #minecraft-title-render-button-row > button {
                     flex: 1;
@@ -465,127 +475,324 @@
                     justify-content: space-between;
                     width: 100%;
                     gap: 10px;
-                    margin: 10px 0;
+                  }
+                  #minecraft-title-render-output {
+                    gap: 10px;
+                    width: 100%;
+                    height: calc(100vh - 180px - 40px);
+                  }
+                  #minecraft-title-render-output > .form_inline_select {
+                    width: 100%;
+                    flex-grow: initial;
+                  }
+                  .minecraft-output-options {
+                    display: flex;
+                    gap: 10px;
+                    width: 100%;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                  }
+                  .minecraft-output-options.disabled {
+                    pointer-events: none;
+                    opacity: 0.5;
+                  }
+                  .minecraft-output-options.disabled .sp-preview-inner {
+                    filter: grayscale();
+                  }
+                  .minecraft-output-options.disabled .sp-preview::after {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(to top right, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)), linear-gradient(to top left, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px));
+                  }
+                  .minecraft-output-label {
+                    font-size: 1.25em;
+                  }
+                  .minecraft-output-options bb-select {
+                    flex: 1;
+                    cursor: pointer;
+                  }
+                  .minecraft-output-options > div {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                  }
+                  .minecraft-output-options input:not([type='checkbox']) {
+                    width: 60px;
+                  }
+                  .minecraft-output-options input[type='checkbox'] {
+                    cursor: pointer;
                   }
                 </style>`],
                 component: {
                   data: {
                     rendering: true,
-                    render: null,
+                    image: null,
                     dimensions: null,
-                    size: null
+                    size: null,
+                    canvas: null,
+                    tab: "normal",
+                    resolutionWidth: 1920,
+                    resolutionHeight: 1080,
+                    aspectWidth: 16,
+                    aspectHeight: 9,
+                    lastChanged: "width",
+                    linked: true,
+                    minecraftMode: "1.20",
+                    minecraftModes: {
+                      "1.20": "1.20+ Title Texture",
+                      "1.19": "1.19- Title Texture",
+                      mojang: "Mojang Studios Texture"
+                    },
+                    backgroundColour: "#78b8ff",
+                    backgroundColour2: "#c7ecff",
+                    backgroundColourEnabled: false,
+                    backgroundColour2Enabled: false,
+                    updating: false,
+                    tabToUpdate: false,
+                    padding: 0
+                  },
+                  mounted() {
+                    $(this.$refs.backgroundColour).spectrum(this.colourInput("backgroundColour")),
+                    $(this.$refs.backgroundColour2).spectrum(this.colourInput("backgroundColour2"))
                   },
                   methods: {
                     async copy() {
-                      const r = await fetch(this.render)
+                      const r = await fetch(this.canvas.toDataURL())
                       navigator.clipboard.write([new ClipboardItem({ "image/png": await r.blob() })])
                       Blockbench.showQuickMessage("Copied to clipboard")
                     },
                     save() {
-                      const exportDialog = new Dialog({
-                        id: "minecraft-title-export-types",
-                        title: "Minecraft Title Export Type",
-                        buttons: [],
-                        component: {
-                          methods: {
-                            normal: () => Blockbench.export({
-                              extensions: ["png"],
-                              type: tl("data.image"),
-                              savetype: "image",
-                              name: Project.name || "minecraft_title",
-                              content: this.render
-                            }, () => exportDialog.close()),
-                            titleNew: async () => {
-                              const img = await loadMinecraftTitleTexture(this.render)
-                              const canvas = new CanvasFrame(1024, 256, true)
-                              const scaleFactor = Math.min(1024 / img.width, 176 / img.height)
-                              const newWidth = img.width * scaleFactor
-                              const newHeight = img.height * scaleFactor
-                              const x = (1024 - newWidth) / 2
-                              const y = (176 - newHeight) / 2
-                              if (newWidth > img.width) canvas.ctx.imageSmoothingEnabled = false
-                              canvas.ctx.drawImage(img.canvas, x, y, newWidth, newHeight)
-                              Blockbench.export({
-                                extensions: ["png"],
-                                type: tl("data.image"),
-                                savetype: "image",
-                                name: "minecraft",
-                                content: canvas.canvas.toDataURL()
-                              }, () => exportDialog.close())
-                            },
-                            titleOld: async () => {
-                              const img = await loadMinecraftTitleTexture(this.render)
-                              const base = await loadImage("data:image/png;base64,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")
-                              let preCanvas
-                              if (img.width / img.height < 137 / 22) {
-                                preCanvas = new CanvasFrame(Math.floor((img.height / 22) * 137), img.height)
-                                preCanvas.ctx.drawImage(img.canvas, Math.floor((preCanvas.width - img.width) / 2), 0)
-                              } else if (img.width / img.height > 137 / 22) {
-                                preCanvas = new CanvasFrame(img.width, Math.floor((img.width / 137) * 22))
-                                preCanvas.ctx.drawImage(img.canvas, 0, Math.floor((preCanvas.height - img.height) / 2))
-                              } else preCanvas = img
-                              const canvas = new CanvasFrame(Math.floor((preCanvas.width / 137) * 128), Math.floor((preCanvas.width / 137) * 128), true, 1024)
-                              canvas.ctx.imageSmoothingEnabled = false
-                              canvas.ctx.drawImage(base, 0, 0, canvas.width, canvas.height)
-                              const width = Math.floor((preCanvas.width / 274) * 155)
-                              canvas.ctx.drawImage(preCanvas.canvas, 0, 0, width, preCanvas.height, 0, 0, width, preCanvas.height)
-                              canvas.ctx.drawImage(preCanvas.canvas, width, 0, preCanvas.width - width, preCanvas.height, 0, Math.floor(preCanvas.height / 44 * 45), preCanvas.width - width, preCanvas.height)
-                              Blockbench.export({
-                                extensions: ["png"],
-                                type: tl("data.image"),
-                                savetype: "image",
-                                name: "minecraft",
-                                content: canvas.canvas.toDataURL()
-                              }, () => exportDialog.close())
-                            },
-                            mojang: async () => {
-                              const img = await loadMinecraftTitleTexture(this.render)
-                              let canvas
-                              if (img.width < img.height * 4) {
-                                canvas = new CanvasFrame(img.height * 4 + 8, img.height + 2)
-                                canvas.ctx.drawImage(img.canvas, Math.floor((img.height * 4 - img.width) / 2) + 4, 1)
-                              } else if (img.width > img.height * 4) {
-                                canvas = new CanvasFrame(img.width + 8, Math.floor(img.width / 4) + 2)
-                                canvas.ctx.drawImage(img.canvas, 4, Math.floor((canvas.height - img.height) / 2))
-                              } else {
-                                canvas = new CanvasFrame(img.width + 8, img.height + 4)
-                                canvas.ctx.drawImage(img.canvas, 4, 1)
-                              }
-                              const converted = new CanvasFrame(Math.floor(canvas.width / 2), Math.floor(canvas.width / 2))
-                              converted.ctx.drawImage(canvas.canvas, 0, 0)
-                              converted.ctx.drawImage(canvas.canvas, Math.floor(-canvas.width / 2), Math.floor(canvas.width / 4))
-                              Blockbench.export({
-                                extensions: ["png"],
-                                type: tl("data.image"),
-                                savetype: "image",
-                                name: "mojangstudios",
-                                content: converted.canvas.toDataURL()
-                              }, () => exportDialog.close())
-                            }
-                          },
-                          template: `
-                            <div style="display:flex;flex-direction:column;text-align:center;gap:10px">
-                              <h2>Select export type</h2>
-                              <button @click="normal">Normal</button>
-                              <button @click="titleNew">Minecraft 1.20+ Title Texture</button>
-                              <button @click="titleOld">Minecraft 1.19- Title Texture</button>
-                              <button @click="mojang">Mojang Studios Texture</button>
-                            </div>
-                          `
+                      Blockbench.export({
+                        extensions: ["png"],
+                        type: tl("data.image"),
+                        savetype: "image",
+                        name: Project.name || "minecraft_title",
+                        content: this.canvas.toDataURL()
+                      }, () => Blockbench.showQuickMessage("Saved title"))
+                    },
+                    async tabChange(tab) {
+                      this.tab = tab
+                      let canvas, ctx
+                      if (tab === "normal") {
+                        ({ canvas, ctx } = new CanvasFrame(this.image.width, this.image.height))
+                        ctx.drawImage(this.image, 0, 0)
+                      } else if (tab === "square") {
+                        const max = Math.max(this.image.width, this.image.height);
+                        ({ canvas, ctx } = new CanvasFrame(max, max))
+                        ctx.drawImage(this.image, Math.floor(max / 2 - this.image.width / 2), Math.floor(max / 2 - this.image.height / 2))
+                      } else if (tab === "custom") {
+                        ({ canvas, ctx } = new CanvasFrame(this.resolutionWidth, this.resolutionHeight))
+                        const aspect = this.image.width / this.image.height
+                        const ratio = Math.min(canvas.width / this.image.width, canvas.height / this.image.height)
+                        const w = Math.floor(this.image.width * ratio)
+                        const h = Math.floor(this.image.height * ratio)
+                        ctx.drawImage(this.image, Math.floor(canvas.width / 2 - w / 2), Math.floor(canvas.height / 2 - h / 2), w, h)
+                      } else if (tab === "minecraft") {
+                        const aspect = this.image.width / this.image.height
+                        let w, h
+                        if (this.image.width > 1024 || this.image.height > 1024) {
+                          if (aspect > 1) {
+                            w = 1024
+                            h = Math.floor(1024 / aspect)
+                          } else {
+                            h = 1024
+                            w = Math.floor(1024 * aspect)
+                          }
+                        } else {
+                          w = this.image.width
+                          h = this.image.height
                         }
-                      }).show()
+                        const capped = new CanvasFrame(w, h)
+                        if (this.image.width < 64 || this.image.height < 64) capped.ctx.imageSmoothingEnabled = false
+                        capped.ctx.drawImage(this.image, 0, 0, w, h)
+                        capped.autoCrop()
+                        if (this.minecraftMode === "1.20") {
+                          ({ canvas, ctx } = new CanvasFrame(1024, 256))
+                          const scaleFactor = Math.min(1024 / capped.width, 176 / capped.height)
+                          const newWidth = capped.width * scaleFactor
+                          const newHeight = capped.height * scaleFactor
+                          const x = (1024 - newWidth) / 2
+                          const y = (176 - newHeight) / 2
+                          if (newWidth > capped.width) ctx.imageSmoothingEnabled = false
+                          ctx.drawImage(capped.canvas, x, y, newWidth, newHeight)
+                        } else if (this.minecraftMode === "1.19") {
+                          const base = await loadImage("data:image/png;base64,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")
+                          let preCanvas
+                          if (capped.width / capped.height < 137 / 22) {
+                            preCanvas = new CanvasFrame(Math.floor((capped.height / 22) * 137), capped.height)
+                            preCanvas.ctx.drawImage(capped.canvas, Math.floor((preCanvas.width - capped.width) / 2), 0)
+                          } else if (capped.width / capped.height > 137 / 22) {
+                            preCanvas = new CanvasFrame(capped.width, Math.floor((capped.width / 137) * 22))
+                            preCanvas.ctx.drawImage(capped.canvas, 0, Math.floor((preCanvas.height - capped.height) / 2))
+                          } else preCanvas = capped;
+                          ({ canvas, ctx } = new CanvasFrame(Math.floor((preCanvas.width / 137) * 128), Math.floor((preCanvas.width / 137) * 128), true, 1024))
+                          ctx.imageSmoothingEnabled = false
+                          ctx.drawImage(base, 0, 0, canvas.width, canvas.height)
+                          const width = Math.floor((preCanvas.width / 274) * 155)
+                          ctx.drawImage(preCanvas.canvas, 0, 0, width, preCanvas.height, 0, 0, width, preCanvas.height)
+                          ctx.drawImage(preCanvas.canvas, width, 0, preCanvas.width - width, preCanvas.height, 0, Math.floor(preCanvas.height / 44 * 45), preCanvas.width - width, preCanvas.height)
+                        } else if (this.minecraftMode === "mojang") {
+                          let preCanvas
+                          if (capped.width < capped.height * 4) {
+                            preCanvas = new CanvasFrame(capped.height * 4 + 8, capped.height + 2)
+                            preCanvas.ctx.drawImage(capped.canvas, Math.floor((capped.height * 4 - capped.width) / 2) + 4, 1)
+                          } else if (capped.width > capped.height * 4) {
+                            preCanvas = new CanvasFrame(capped.width + 8, Math.floor(capped.width / 4) + 2)
+                            preCanvas.ctx.drawImage(capped.canvas, 4, Math.floor((preCanvas.height - capped.height) / 2))
+                          } else {
+                            preCanvas = new CanvasFrame(capped.width + 8, capped.height + 4)
+                            preCanvas.ctx.drawImage(capped.canvas, 4, 1)
+                          }
+                          ({ canvas, ctx } = new CanvasFrame(Math.floor(preCanvas.width / 2), Math.floor(preCanvas.width / 2)))
+                          ctx.drawImage(preCanvas.canvas, 0, 0)
+                          ctx.drawImage(preCanvas.canvas, Math.floor(-preCanvas.width / 2), Math.floor(preCanvas.width / 4))
+                        }
+                      }
+                      const padding = tab === "minecraft" ? 0 : this.padding
+                      this.canvas.width = canvas.width + padding * 2
+                      this.canvas.height = canvas.height + padding * 2
+                      if (this.tab !== "minecraft" && this.backgroundColourEnabled) {
+                        if (this.backgroundColour2Enabled) {
+                          const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height)
+                          gradient.addColorStop(0, this.backgroundColour)
+                          gradient.addColorStop(1, this.backgroundColour2)
+                          this.ctx.fillStyle = gradient
+                        } else {
+                          this.ctx.fillStyle = this.backgroundColour
+                        }
+                        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+                      }
+                      this.ctx.drawImage(canvas, padding, padding)
+                      const size = this.canvas.toDataURL().slice(22).length * 0.75
+                      this.dimensions = `${this.canvas.width} x ${this.canvas.height}`
+                      this.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
+                    },
+                    changeResolution(changed) {
+                      this.lastChanged = changed
+                      if (this.linked) {
+                        if (changed === "width") {
+                          this.resolutionHeight = Math.max(1, Math.floor((this.resolutionWidth * this.aspectHeight) / this.aspectWidth))
+                        } else {
+                          this.resolutionWidth = Math.max(1, Math.floor((this.resolutionHeight * this.aspectWidth) / this.aspectHeight))
+                        }
+                        if (this.resolutionWidth > 4096 || this.resolutionHeight > 4096) {
+                          const aspect = this.resolutionWidth / this.resolutionHeight
+                          if (aspect > 1) {
+                            this.resolutionWidth = 4096
+                            this.resolutionHeight = Math.floor(4096 / aspect)
+                          } else {
+                            this.resolutionHeight = 4096
+                            this.resolutionWidth = Math.floor(4096 * aspect)
+                          }
+                        }
+                      } else {
+                        this.resolutionWidth = Math.max(1, parseInt(this.resolutionWidth))
+                        this.resolutionHeight = Math.max(1, parseInt(this.resolutionHeight))
+                        const [aW, aH] = getAspectRatio(this.resolutionWidth, this.resolutionHeight)
+                        this.aspectWidth = aW
+                        this.aspectHeight = aH
+                      }
+                      this.update("custom")
+                    },
+                    changeAspect() {
+                      this.aspectWidth = Math.max(1, parseInt(this.aspectWidth))
+                      this.aspectHeight = Math.max(1, parseInt(this.aspectHeight))
+                      const [w, h] = getFromAspect(this.aspectWidth, this.aspectHeight, this.resolutionWidth, this.resolutionHeight, this.lastChanged === "width")
+                      this.resolutionWidth = w
+                      this.resolutionHeight = h
+                      this.update("custom")
+                    },
+                    colourInput: v => ({
+                      preferredFormat: "hex",
+                      color: dialog.component.data[v],
+                      showAlpha: false,
+                      showInput: true,
+                      move: c => dialog.content_vue.updateColour(v, c),
+                      change: c => dialog.content_vue.updateColour(v, c),
+                      hide: c => dialog.content_vue.updateColour(v, c)
+                    }),
+                    updateColour(v, c) {
+                      this[v] = c.toHexString()
+                      this.update(this.tab)
+                    },
+                    async update(tab) {
+                      if (this.updating) {
+                        this.tabToUpdate = tab
+                        return
+                      }
+                      this.updating = true
+                      await this.tabChange(tab)
+                      this.updating = false
+                      if (this.tabToUpdate) {
+                        this.update(this.tabToUpdate)
+                        this.tabToUpdate = false
+                      }
                     }
                   },
                   template: `
                     <div id="minecraft-title-render-content">
                       <h1 v-if="rendering" style="text-align:center">Rendering…</h1>
-                      <div v-if="!rendering" id="minecraft-title-render-output">
-                        <div id="minecraft-title-render-image">
-                          <img id="minecraft-title-output" class="checkerboard" :src="render" />
-                          <div id="render-detail-row">
-                            <div>{{ dimensions }}</div>
-                            <div>{{ size }}</div>
+                      <div id="minecraft-title-render-output" :style="{ display: rendering ? 'none' : 'flex' }">
+                        <ul class="form_inline_select">
+                          <li @click="update('normal')" :class="{ selected: tab === 'normal' }">Normal</li>
+                          <li @click="update('square')" :class="{ selected: tab === 'square' }">Square</li>
+                          <li @click="update('custom')" :class="{ selected: tab === 'custom' }">Custom</li>
+                          <li @click="update('minecraft')" :class="{ selected: tab === 'minecraft' }">Minecraft</li>
+                        </ul>
+                        <div class="minecraft-output-options" :style="{ display: tab === 'custom' ? 'flex' : 'none' }">
+                          <div>
+                            <div class="minecraft-output-label">Resolution:</div>
+                            <numeric-input v-model="resolutionWidth" step="1" :min="1" :max="4096" @input="changeResolution('width')" />
+                            <div class="minecraft-output-label" style="margin: 0 -5px">⨉</div>
+                            <numeric-input v-model="resolutionHeight" step="1" :min="1" :max="4096" @input="changeResolution('height')" />
+                            <div class="tool" :class="{ enabled: linked }" @click="linked = !linked">
+                              <div class="tooltip" style="margin-left: 0px;">Link width and height</div>
+                              <i class="fa_big icon fas fa-link"></i>
+                            </div>
                           </div>
+                          <div>
+                            <div class="minecraft-output-label">Aspect Ratio:</div>
+                            <numeric-input v-model="aspectWidth" step="1" :min="1" :max="4096" @input="changeAspect" />
+                            <div class="minecraft-output-label" style="margin: 0 -5px">:</div>
+                            <numeric-input v-model="aspectHeight" step="1" :min="1" :max="4096" @input="changeAspect" />
+                          </div>
+                        </div>
+                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
+                          <div>
+                            <div class="minecraft-output-label">Background Colour:</div>
+                            <input type="checkbox" :checked="backgroundColourEnabled" v-model="backgroundColourEnabled" @input="backgroundColourEnabled = !backgroundColourEnabled; update(tab)" />
+                            <div :class="{ hidden: !backgroundColourEnabled }">
+                              <input ref="backgroundColour" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="minecraft-output-options" :class="{ hidden: tab === 'minecraft', disabled: !backgroundColourEnabled }">
+                          <div>
+                            <div class="minecraft-output-label">Second Background Colour:</div>
+                            <input type="checkbox" :checked="backgroundColour2Enabled" v-model="backgroundColour2Enabled" @input="backgroundColour2Enabled = !backgroundColour2Enabled; update(tab)" />
+                            <div :class="{ hidden: !backgroundColour2Enabled }">
+                              <input ref="backgroundColour2" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
+                          <div>
+                            <div class="minecraft-output-label">Padding:</div>
+                            <numeric-input v-model="padding" step="1" :min="0" :max="1024" @input="update(tab)" />
+                          </div>
+                        </div>
+                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'flex' : 'none' }">
+                          <div class="minecraft-output-label">Texture mode:</div>
+                          <select-input v-model="minecraftMode" :options="minecraftModes" @input="update('minecraft')" />
+                        </div>
+                        <div class="spacer"></div>
+                        <canvas id="minecraft-title-output" class="checkerboard" />
+                        <div class="spacer"></div>
+                        <div id="render-detail-row">
+                          <div>{{ dimensions }}</div>
+                          <div>{{ size }}</div>
                         </div>
                         <div id="minecraft-title-render-button-row">
                           <button @click="copy">
@@ -594,7 +801,7 @@
                           </button>
                           <button @click="save">
                             <i class="material-icons icon">save</i>
-                            <div>Export render</div>
+                            <div>Save render</div>
                           </button>
                         </div>
                       </div>
@@ -798,15 +1005,25 @@
                     } else {
                       out = img
                     }
-                    this.content_vue.render = out.canvas.toDataURL()
-                    const size = this.content_vue.render.slice(22).length * 0.75
-                    this.content_vue.dimensions = `${out.canvas.width} x ${out.canvas.height}`
-                    this.content_vue.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
                     args.rendering = false
                     this.content_vue.rendering = false
+                    this.content_vue.image = out.canvas
+                    const size = out.canvas.toDataURL().slice(22).length * 0.75
+                    this.content_vue.dimensions = `${out.canvas.width} x ${out.canvas.height}`
+                    this.content_vue.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
                     dialog.object.style.width = `${Math.max(450, out.canvas.width)}px`
                     dialog.object.querySelector(".dialog_title").textContent = "Minecraft Title Render"
                     dialog.object.style.left = `${Math.clamp((window.innerWidth - dialog.object.clientWidth) / 2, 0, 2000)}px`
+                    dialog.object.addEventListener("keydown", e => {
+                      if (e.key === "Enter") return e.stopPropagation()
+                    })
+                    setTimeout(() => {
+                      this.content_vue.canvas = dialog.object.querySelector("#minecraft-title-output")
+                      this.content_vue.canvas.width = this.content_vue.image.width
+                      this.content_vue.canvas.height = this.content_vue.image.height
+                      this.content_vue.ctx = this.content_vue.canvas.getContext("2d")
+                      this.content_vue.ctx.drawImage(this.content_vue.image, 0, 0)
+                    }, 0)
                   }), 10)
                 }
               })
@@ -950,6 +1167,13 @@
           }
           .minecraft-title-contents .checkbox-row {
             display: flex;
+            cursor: pointer;
+          }
+          .minecraft-title-contents .checkbox-row * {
+            cursor: pointer;
+          }
+          .minecraft-title-contents bb-select {
+            cursor: pointer;
           }
           #minecraft_title_generator {
             padding-bottom: 72px;
@@ -1038,7 +1262,6 @@
             margin: 10px 0;
           }
           .minecraft-title-file > canvas {
-            max-width: 500px;
             max-height: 160px;
             object-fit: contain;
             cursor: pointer;
@@ -1047,13 +1270,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-          }
-          .minecraft-title-file > div {
-            display: flex;
-            gap: 10px;
-          }
-          .minecraft-title-file > div > button {
-            flex: 1;
           }
           #custom-gradient-customiser {
             display: flex;
@@ -1200,6 +1416,44 @@
           #minecraft-title-connection-warning-underline {
             text-decoration: underline;
           }
+          .tileable-preview {
+            width: calc(100% - 34px);
+            min-height: 48px;
+            overflow: hidden;
+          }
+          .tileable-preview > div {
+            scale: 3;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+          }
+          .radio-row {
+            display: flex;
+            align-items: center;
+            gap: 20px !important;
+          }
+          .radio-row > label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+          }
+          .radio-row > label * {
+            cursor: pointer;
+          }
+          .minecraft-title-button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+          }
+          .minecraft-title-button-row > button {
+            flex: 1;
+            min-height: 32px;
+            height: initial;
+            line-height: 110%;
+            padding-top: 6px;
+            padding-bottom: 6px;
+          }
         </style>`],
         component: {
           data: {
@@ -1221,22 +1475,26 @@
             row: 0,
             texture: Object.keys(fonts["minecraft-ten"].textures)[1] ?? Object.keys(fonts["minecraft-ten"].textures)[0],
             textures: [],
+            tileable: Object.keys(tileables)[0],
+            tileables,
+            tileablesList: [],
             overlay: Object.keys(fonts["minecraft-ten"].overlays)[0],
             overlays: [],
             variant: null,
+            tileableVariant: null,
             hue: 0,
             saturation: 100,
             brightness: 100,
             contrast: 100,
-            colour: "#ffffff",
-            customBorderColour: "#000000",
-            customEdgeColour: "#000000",
+            colour: "#fff",
+            customBorderColour: "#000",
+            customEdgeColour: "#000",
             gradientColour0: "#FFCF76",
             gradientColour1: "#FFA3A3",
             gradientColour2: "#F4C1A4",
             gradientColour3: "#E19A3E",
             gradientColour4: "#DA371E",
-            overlayColour: "#ffffff",
+            overlayColour: "#fff",
             blend: "multiply",
             blends: {
               multiply: "Multiply",
@@ -1257,6 +1515,8 @@
             scaleX: 1,
             scaleY: 1,
             scaleZ: 1,
+            building: false,
+            build: false,
             updating: false,
             update: false,
             terminators: false,
@@ -1269,11 +1529,21 @@
             overlayBlend: "overlay",
             overlayColourBlend: "multiply",
             customTexture: null,
+            customTextureType: "texture",
             smoothGradient: true,
             lastTextureSource: null,
             textureSearch: "",
             colourOpacity: 100,
-            overlayOpacity: 100
+            overlayOpacity: 100,
+            tileableScale: 2,
+            tileableXOffset: 0,
+            tileableYOffset: 0,
+            tileableWidth: 0,
+            tileableHeight: 0,
+            tileableRandomRotations: false,
+            tileableRandomMirroring: false,
+            tileableTextureResolution: 1000,
+            edgeBrightness: 35
           },
           mounted() {
             $(this.$refs.colour).spectrum(colourInput(dialog, "colour")),
@@ -1299,6 +1569,8 @@
               if (force || this.tab === 1) {
                 this.texture = Object.keys(fonts[this.font].textures)[1] ?? Object.keys(fonts[this.font].textures)[0]
                 this.variant = null
+                this.tileable = Object.keys(tileables)[0]
+                this.tileableVariant = null
                 this.textureSource = "premade"
                 this.gradientColour1Enabled = false
                 this.gradientColour2Enabled = false
@@ -1309,6 +1581,8 @@
                 this.gradientColour2 = "#F4C1A4"
                 this.gradientColour3 = "#E19A3E"
                 this.gradientColour4 = "#DA371E"
+                this.customTexture = null
+                this.customTextureType = "texture"
                 $(this.$refs.gradientColour0).spectrum("set", "#FFCF76")
                 $(this.$refs.gradientColour1).spectrum("set", "#FFA3A3")
                 $(this.$refs.gradientColour2).spectrum("set", "#F4C1A4")
@@ -1329,7 +1603,7 @@
                 this.scaleZ = 1
               }
               this.resetTexture(force)
-              if (!ignoreUpdate) this.makePreview()
+              if (!ignoreUpdate) this.buildPreview()
             },
             resetTexture(force) {
               if (force || this.tab === 2) {
@@ -1337,10 +1611,16 @@
                 this.overlayBlend = "overlay"
                 this.overlayColourBlend = "multiply"
                 this.overlayOpacity = 100
-                this.overlayColour = "#ffffff"
-                $(this.$refs.overlayColour).spectrum("set", "#ffffff")
+                this.overlayColour = "#fff"
+                $(this.$refs.overlayColour).spectrum("set", "#fff")
               }
               if (force || this.tab === 3) {
+                this.tileableScale = 2
+                this.tileableXOffset = 0
+                this.tileableYOffset = 0
+                this.tileableRandomRotations = false
+                this.tileableRandomMirroring = false
+                this.tileableTextureResolution = 1000
                 this.hue = 0
                 this.saturation = 100
                 this.brightness = 100
@@ -1350,12 +1630,12 @@
                 this.fadeToBorder = false
                 this.customEdge = false
                 this.colourOpacity = 100
-                this.colour = "#ffffff"
-                this.customBorderColour = "#000000"
-                this.customEdgeColour = "#000000"
-                $(this.$refs.colour).spectrum("set", "#ffffff")
-                $(this.$refs.customBorderColour).spectrum("set", "#000000")
-                $(this.$refs.customEdgeColour).spectrum("set", "#000000")
+                this.colour = "#fff"
+                this.customBorderColour = "#000"
+                this.customEdgeColour = "#000"
+                $(this.$refs.colour).spectrum("set", "#fff")
+                $(this.$refs.customBorderColour).spectrum("set", "#000")
+                $(this.$refs.customEdgeColour).spectrum("set", "#000")
               }
             },
             finish: () => dialog.onConfirm(),
@@ -1379,7 +1659,26 @@
               }
               this.texture = Object.keys(fonts[this.font].textures)[1] ?? Object.keys(fonts[this.font].textures)[0]
               this.overlay = Object.keys(fonts[this.font].overlays)[0]
-              if (!ignoreUpdate) this.makePreview()
+              if (!ignoreUpdate) this.buildPreview()
+            },
+            buildPreview() {
+              let finish
+              setTimeout(async () => {
+                if (this.building) {
+                  this.build = true
+                  finish()
+                  return
+                }
+                this.building = true
+                await this.makePreview()
+                this.building = false
+                if (this.build) {
+                  this.update = false
+                  await this.buildPreview()
+                }
+                finish()
+              }, 0)
+              return new Promise(fulfil => finish = fulfil)
             },
             async makePreview() {
               this.scene.remove(...this.scene.children)
@@ -1568,7 +1867,7 @@
 
               this.renderer.render(this.scene, this.camera)
             },
-            async updatePreview() {
+            updatePreview() {
               setTimeout(async () => {
                 if (this.updating) {
                   this.update = true
@@ -1579,6 +1878,15 @@
                 this.material.map = texture
                 this.material.needsUpdate = true
                 this.renderer.render(this.scene, this.camera)
+                if (this.textureSource === "tileable" || this.textureSource === "file" && this.customTexture && this.customTextureType === "tileable") {
+                  let img
+                  if (this.textureSource === "file") img = await loadImage(this.customTexture)
+                  else img = await loadImage(await getTileable(this.tileable, this.tileableVariant))
+                  this.tileableWidth = img.width - 1
+                  this.tileableHeight = img.height - 1
+                  this.tileableXOffset = Math.min(this.tileableXOffset, img.width - 1)
+                  this.tileableYOffset = Math.min(this.tileableYOffset, img.height - 1)
+                }
                 this.updating = false
                 if (this.update) {
                   this.update = false
@@ -1599,18 +1907,21 @@
             async selectCustomTexture() {
               const texture = await getTextureFromFile()
               if (!texture) return
-              this.customTextureCanvas.width = texture.image.width
-              this.customTextureCanvas.height = texture.image.height
-              this.customTextureCanvas.getContext("2d").drawImage(texture.image, 0, 0, this.customTextureCanvas.width, this.customTextureCanvas.height)
+              if (texture.width / texture.height === 3.125) this.customTextureType = "texture"
+              else this.customTextureType = "tileable"
+              globalThis.texture = texture
+              this.customTextureCanvas.width = texture.width
+              this.customTextureCanvas.height = texture.height
+              this.customTextureCanvas.getContext("2d").drawImage(texture, 0, 0, this.customTextureCanvas.width, this.customTextureCanvas.height)
               this.customTexture = this.customTextureCanvas.toDataURL()
               this.updatePreview()
             },
             async selectCustomOverlay() {
               const texture = await getTextureFromFile()
               if (!texture) return
-              this.customOverlayCanvas.width = texture.image.width
-              this.customOverlayCanvas.height = texture.image.height
-              this.customOverlayCanvas.getContext("2d").drawImage(texture.image, 0, 0, this.customOverlayCanvas.width, this.customOverlayCanvas.height)
+              this.customOverlayCanvas.width = texture.width
+              this.customOverlayCanvas.height = texture.height
+              this.customOverlayCanvas.getContext("2d").drawImage(texture, 0, 0, this.customOverlayCanvas.width, this.customOverlayCanvas.height)
               this.customOverlay = this.customOverlayCanvas.toDataURL()
               this.updatePreview()
             },
@@ -1623,8 +1934,16 @@
               type: "PNG Texture",
               extensions: ["png"],
               name: variant ?? texture,
-              content: await getTexture(fonts[font][type], texture, variant),
+              content: type === "tileables" ? await getTileable(texture, variant) : await getTexture(fonts[font][type], texture, variant),
               savetype: "image"
+            }, () => {
+              Blockbench.showQuickMessage("Exported texture")
+              sendStats({
+                font,
+                texture: type === "textures" ? texture : undefined,
+                tileable: type === "tileables" ? texture : undefined,
+                overlay: type === "overlays" ? texture : undefined
+              })
             }),
             async importTexture() {
               const textures = []
@@ -1636,6 +1955,7 @@
               textures.push(texture)
               Undo.finishEdit("Add Minecraft title texture")
               dialog.close()
+              sendStats(args)
             },
             scrollToVariants() {
               setTimeout(() => {
@@ -1652,21 +1972,7 @@
               }, async button => {
                 if (button === 0) {
                   const args = getArgs(this)
-                  const chosenTexture = args.customTexture || args.gradientColour0 ? undefined : args.texture
-                  const chosenOverlay = args.customOverlay || args.overlay === "none" ? undefined : args.overlay
-                  if (chosenTexture || chosenOverlay) fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", {
-                    method: "POST",
-                    headers: {
-                      source: "blockbench",
-                      "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                      font: args.font,
-                      ignoreFont: true,
-                      texture: chosenTexture,
-                      overlay: chosenOverlay
-                    })
-                  }).catch(() => {})
+                  sendStats(args)
                   args.canvas = true
                   const texture = await makeTexture(args)
                   this.customTextureCanvas.width = texture.width
@@ -1735,7 +2041,7 @@
                       if (args.textureSource === "file" || args.overlaySource === "file") {
                         return Blockbench.showQuickMessage("Custom textures are not supported for presets", 3000)
                       }
-                      const filtered = Object.fromEntries(Object.entries(args).filter(e => e[1]))
+                      const filtered = Object.fromEntries(Object.entries(args).filter(e => e[1] !== null && e[1] !== false))
                       for (const [key, obj] of Object.entries(this.presets)) {
                         if (areObjectsEqual(filtered, obj.settings)) {
                           return Blockbench.showQuickMessage(`Current settings are already saved under the preset "${key}"`, 3000)
@@ -1765,9 +2071,18 @@
                       }).show()
                     },
                     deletePreset(event, name) {
-                      delete this.presets[name]
-                      localStorage.setItem("minecraft_title_presets", JSON.stringify(this.presets))
-                      this.$forceUpdate()
+                      Blockbench.showMessageBox({
+                        title: "Delete preset",
+                        message: `Are you sure you want to delete the preset "${name}"?\n\nThis action cannot be undone.`,
+                        buttons: ["dialog.confirm", "dialog.cancel"]
+                      }, async button => {
+                        if (button === 0) {
+                          delete this.presets[name]
+                          localStorage.setItem("minecraft_title_presets", JSON.stringify(this.presets))
+                          this.$forceUpdate()
+                          Blockbench.showQuickMessage("Deleted preset")
+                        }
+                      })
                     },
                     async load(event, name) {
                       if (event.target.classList.contains("material-icons")) return
@@ -1791,11 +2106,23 @@
                       if (args.type) settings.textType = args.type
                       if (args.row) settings.row = args.row
                       if (args.textureSource) settings.textureSource = args.textureSource
+                      if (args.tileable && tileables[args.tileable]) {
+                        settings.tileable = args.tileable
+                        if (args.tileableVariant && tileable[args.tileable].variants?.[args.tileableVariant]) {
+                          settings.tileableVariant = args.tileableVariant
+                        }
+                        if (args.tileableXOffset || args.tileableYOffset) {
+                          const img = await loadImage(await getTileable(args.tileable, args.tileableVariant))
+                          if (args.tileableXOffset) settings.tileableXOffset = Math.min(img.width - 1, args.tileableXOffset)
+                          if (args.tileableYOffset) settings.tileableYOffset = Math.min(img.height - 1, args.tileableYOffset)
+                        }
+                      }
+                      if (args.tileableVariant) settings.tileableVariant = args.tileableVariant
                       if (args.overlaySource) settings.overlaySource = args.overlaySource
                       if (args.gradientColour1Enabled) settings.gradientColour1Enabled = args.gradientColour1Enabled
                       if (args.gradientColour2Enabled) settings.gradientColour2Enabled = args.gradientColour2Enabled
                       if (args.gradientColour3Enabled) settings.gradientColour3Enabled = args.gradientColour3Enabled
-                      if (args.smoothGradient) settings.smoothGradient = args.smoothGradient
+                      if (args.smoothGradient) settings.smoothGradient = true
                       if (args.gradientColour0) {
                         settings.gradientColour0 = args.gradientColour0
                         $(settings.$refs.gradientColour0).spectrum("set", args.gradientColour0)
@@ -1828,14 +2155,19 @@
                       if (args.overlayColourBlend) settings.overlayColourBlend = args.overlayColourBlend
                       if (args.overlayOpacity !== undefined) settings.overlayOpacity = args.overlayOpacity
                       if (args.colourOpacity !== undefined) settings.colourOpacity = args.colourOpacity
+                      if (args.tileableScale !== undefined) settings.tileableScale = args.tileableScale
+                      if (args.tileableRandomRotations) settings.tileableRandomRotations = true
+                      if (args.tileableRandomMirroring) settings.tileableRandomMirroring = true
+                      if (args.tileableTextureResolution) settings.tileableTextureResolution = args.tileableTextureResolution
                       if (args.hue) settings.hue = args.hue
                       if (args.saturation !== undefined) settings.saturation = args.saturation
                       if (args.brightness !== undefined) settings.brightness = args.brightness
                       if (args.contrast !== undefined) settings.contrast = args.contrast
                       if (args.blend) settings.blend = args.blend
-                      if (args.customBorder) settings.customBorder = args.customBorder
-                      if (args.fadeToBorder) settings.fadeToBorder = args.fadeToBorder
-                      if (args.customEdge) settings.customEdge = args.customEdge
+                      if (args.customBorder) settings.customBorder = true
+                      if (args.fadeToBorder) settings.fadeToBorder = true
+                      if (args.customEdge) settings.customEdge = true
+                      if (args.edgeBrightness !== undefined) settings.edgeBrightness = args.edgeBrightness
                       if (args.colour) {
                         settings.colour = args.colour
                         $(settings.$refs.colour).spectrum("set", args.colour)
@@ -1852,7 +2184,8 @@
                         settings.overlayColour = args.overlayColour
                         $(settings.$refs.overlayColour).spectrum("set", args.overlayColour)
                       }
-                      settings.makePreview()
+                      settings.buildPreview().then(settings.updatePreview)
+                      globalThis.testtest = settings
                       presetDialog.close()
                       Blockbench.showQuickMessage(`Preset "${name}" loaded`, 3000)
                     },
@@ -1909,7 +2242,7 @@
                       })
                     },
                     exportPreset(event, name) {
-                      new Dialog({
+                      const dialog = new Dialog({
                         id: "minecraft_title_preset_export",
                         title: "Minecraft Title Preset Export",
                         buttons: [],
@@ -1952,12 +2285,16 @@
                             copy() {
                               navigator.clipboard.writeText(JSON.stringify(this.preset))
                               Blockbench.showQuickMessage("Copied to clipboard")
+                              dialog.close()
                             },
                             save() {
                               Blockbench.export({
                                 extensions: ["json"],
                                 name: `${name.replace(/\s/g, "_")}.json`,
                                 content: JSON.stringify(this.preset, null, 2)
+                              }, () => {
+                                Blockbench.showQuickMessage("Exported preset")
+                                dialog.close()
                               })
                             }
                           },
@@ -1966,7 +2303,7 @@
                               <div id="minecraft-title-preset-export-text">{{ JSON.stringify(preset) }}</div>
                               <div id="minecraft-title-preset-export-buttons">
                                 <button @click="copy">Copy</button>
-                                <button @click="save">Save</button>
+                                <button @click="save">Export</button>
                               </div>
                             </div>
                           `
@@ -2121,7 +2458,7 @@
                 </ul>
                 <div v-if="fontTab === 'fonts'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data] of fontList" @click="font = id; baseFont = id; fontVariant = null; variant = null; updateFont()" :class="{ selected: baseFont === id }">
-                    <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
+                    <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + id + '/thumbnails/flat.png'" loading="lazy" />
                     <div :style="{ maxWidth: data.variants ? '78%' : null }">{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2132,7 +2469,7 @@
                 </div>
                 <div v-if="fonts[font].variants && fontTab === 'variants'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" @click="font = baseFont; fontVariant = null; variant = null; updateFont()" :class="{ selected: !fontVariant }">
-                    <img :src="'${root}/fonts/' + baseFont + '/thumbnails/flat.png'" />
+                    <img :src="connection.roots[connection.rootIndex] + '/fonts/' + baseFont + '/thumbnails/flat.png'" loading="lazy" />
                     <div>Default</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="fonts[baseFont].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[baseFont].author">person</i>
@@ -2140,7 +2477,7 @@
                     </div>
                   </div>
                   <div class="minecraft-title-item" v-for="data of fonts[baseFont].variants" @click="font = data.id; fontVariant = data.id, variant = null; updateFont()" :class="{ selected: fontVariant === data.id }">
-                    <img :src="'${root}/fonts/' + data.id + '/thumbnails/flat.png'" />
+                    <img :src="connection.roots[connection.rootIndex] + '/fonts/' + data.id + '/thumbnails/flat.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2159,7 +2496,7 @@
                 <p>The vertical row that the text will appear on</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="row" min="-10" max="10" step="1" />
-                  <input type="number" class="tool disp_text" v-model.number="row" step="1" />
+                  <numeric-input class="tool disp_text" v-model.number="row" :min="-10" :max="10" :step="1" />
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 1 }">
@@ -2174,32 +2511,33 @@
                 </div>
                 <p>The texture to apply to the text</p>
                 <ul class="form_inline_select">
-                  <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Pre-made</li>
+                  <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Textures</li>
+                  <li @click="textureSource = 'tileable'; updatePreview()" :class="{ selected: textureSource === 'tileable' }">Tileables</li>
                   <li @click="textureSource = 'gradient'; updatePreview()" :class="{ selected: textureSource === 'gradient' }">Gradient</li>
                   <li @click="lastTextureSource = textureSource; textureSource = 'file'; updatePreview()" :class="{ selected: textureSource === 'file' }">File</li>
                 </ul>
-                <div v-if="textureSource === 'premade'" >
+                <div v-if="textureSource === 'premade'">
                   <div v-if="textures.filter(e => e[2] === font).length > 16" class="minecraft-texture-search">
                     <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
                     <i class="material-icons">search</i>
                   </div>
                   <div class="minecraft-title-list">
-                    <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || id === texture || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
-                      <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
+                      <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                       <div :style="{ maxWidth: fonts[font].textures[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
                       <div class="minecraft-title-item-buttons">
                         <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
                         <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'textures', id)">save</i>
                       </div>
-                      <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 9 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
+                      <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 8 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
                     </div>
                   </div>
                   <div v-if="fonts[font].textures[texture]?.variants">
                     <br>
-                    <h2>Texture Variants</h2>
+                    <h2>Variants</h2>
                     <div class="minecraft-title-list" ref="textureVariants">
                       <div class="minecraft-title-item" @click="variant = null; updatePreview()" :class="{ selected: !variant }">
-                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                        <img :src="connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + texture + '.png'" loading="lazy" />
                         <div>{{ fonts[font].textures[texture].name }}</div>
                         <div class="minecraft-title-item-buttons">
                           <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + fonts[font].textures[texture].author">person</i>
@@ -2207,11 +2545,56 @@
                         </div>
                       </div>
                       <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id; updatePreview()" :class="{ selected: variant === id }">
-                        <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                        <img :src="connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                         <div>{{ data.name }}</div>
                         <div class="minecraft-title-item-buttons">
-                          <i v-if="fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? fonts[font].textures[texture].author)">person</i>
+                          <i v-if="data.author ?? fonts[font].textures[texture].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? fonts[font].textures[texture].author)">person</i>
                           <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'textures', texture, id)">save</i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="textureSource === 'tileable'">
+                  <div v-if="tileablesList.length > 16" class="minecraft-texture-search">
+                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
+                    <i class="material-icons">search</i>
+                  </div>
+                  <div class="minecraft-title-list">
+                    <div class="minecraft-title-item" v-for="[id, data] of tileablesList" v-if="tileablesList.length <= 16 || id.includes(textureSearch) || id === tileable || Object.keys(tileables[id]?.variants ?? {}).some(e => e.includes(textureSearch))" @click="tileable = id; tileableVariant = null; updatePreview(); scrollToVariants()" :class="{ selected: tileable === id }">
+                      <div class="tileable-preview">
+                        <div :style="{ backgroundImage: 'url(' + (data.texture ?? connection.roots[connection.rootIndex] + '/tileables/' + (data.path ? data.path + '/' : '') + id + '.png') + ')' }" />
+                      </div>
+                      <div :style="{ maxWidth: tileables[id]?.variants ? '78%' : null }">{{ data.category ?? data.name }}</div>
+                      <div class="minecraft-title-item-buttons">
+                        <i class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
+                        <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'tileables', id)">save</i>
+                      </div>
+                      <i v-if="tileables[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(tileables[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(tileables[id].variants).length > 8 ? '9_plus' : Object.keys(tileables[id].variants).length + 1 }}</i>
+                    </div>
+                  </div>
+                  <div v-if="tileables[tileable]?.variants">
+                    <br>
+                    <h2>Variants</h2>
+                    <div class="minecraft-title-list" ref="textureVariants">
+                      <div class="minecraft-title-item" @click="tileableVariant = null; updatePreview()" :class="{ selected: !tileableVariant }">
+                        <div class="tileable-preview">
+                          <div :style="{ backgroundImage: 'url(' + (tileables[tileable].texture ?? connection.roots[connection.rootIndex] + '/tileables/' + (tileables[tileable].path ? tileables[tileable].path + '/' : '') + tileable + '.png') + ')' }" />
+                        </div>
+                        <div>{{ tileables[tileable].name }}</div>
+                        <div class="minecraft-title-item-buttons">
+                          <i v-if="tileables[tileable].author" class="minecraft-title-item-author material-icons" :data-author="'By ' + tileables[tileable].author">person</i>
+                          <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'tileables', tileable)">save</i>
+                        </div>
+                      </div>
+                      <div class="minecraft-title-item" v-for="[id, data] of Object.entries(tileables[tileable].variants)" @click="tileableVariant = id; updatePreview()" :class="{ selected: tileableVariant === id }">
+                        <div class="tileable-preview">
+                          <div :style="{ backgroundImage: 'url(' + (data.texture ?? connection.roots[connection.rootIndex] + '/tileables/' + (tileables[tileable].path ? tileables[tileable].path + '/' : '') + id + '.png') + ')' }" />
+                        </div>
+                        <div>{{ data.name }}</div>
+                        <div class="minecraft-title-item-buttons">
+                          <i class="minecraft-title-item-author material-icons" :data-author="'By ' + (data.author ?? tileables[tileable].author)">person</i>
+                          <i class="material-icons" title="Save Texture" @click="saveTexture(font, 'tileables', tileable, id)">save</i>
                         </div>
                       </div>
                     </div>
@@ -2249,9 +2632,20 @@
                 <div :class="{ hidden: textureSource !== 'file' }" id="minecraft-title-custom-texture" class="minecraft-title-file">
                   <canvas class="checkerboard" width="500" height="160"  @click="selectCustomTexture" />
                   <i v-if="customTexture" class="material-icons" title="Delete custom texture" @click="deleteCustomTexture">delete</i>
-                  <div>
+                  <div class="minecraft-title-button-row">
                     <button @click="selectCustomTexture">Select file</button>
                     <button @click="importTextureAsFile" title="Import the current selected texture as a custom texture, with its overlay and styles applied">Import current texture as file</button>
+                  </div>
+                  <div class="radio-row">
+                    <div>Texture Type:</div>
+                    <label for="custom-texture-type-texture">
+                      <input type="radio" id="custom-texture-type-texture" value="texture" v-model="customTextureType" @input="updatePreview" />
+                      <div>Texture</div>
+                    </label>
+                    <label for="custom-texture-type-tileable">
+                      <input type="radio" id="custom-texture-type-tileable" value="tileable" v-model="customTextureType" @input="updatePreview" />
+                      <div>Tileable</div>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -2267,12 +2661,12 @@
                 </div>
                 <p>A texture to overlay onto the text</p>
                 <ul class="form_inline_select">
-                  <li @click="overlaySource = 'premade'; updatePreview()" :class="{ selected: overlaySource === 'premade' }">Pre-made</li>
+                  <li @click="overlaySource = 'premade'; updatePreview()" :class="{ selected: overlaySource === 'premade' }">Textures</li>
                   <li @click="overlaySource = 'file'; updatePreview()" :class="{ selected: overlaySource === 'file' }">File</li>
                 </ul>
                 <div v-if="overlaySource === 'premade'" class="minecraft-title-list small">
                   <div class="minecraft-title-item" v-for="[id, data, type] of overlays" v-if="font === type" @click="overlay = id; updatePreview()" :class="{ selected: overlay === id }">
-                    <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                     <div class="minecraft-title-item-buttons">
                       <i v-if="data.author" class="minecraft-title-item-author material-icons" :data-author="'By ' + data.author">person</i>
@@ -2280,12 +2674,11 @@
                     </div>
                   </div>
                 </div>
-                <br>
                 <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
                   <canvas class="checkerboard" width="500" height="160" />
                   <button>Select file</button>
-                  <br>
                 </div>
+                <br>
                 <p>The blend method to use when applying the overlay</p>
                 <select-input v-model="overlayBlend" :options="blends" @input="updatePreview" />
                 <br>
@@ -2299,31 +2692,64 @@
                 <p>The opacity to apply the overlay at</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="overlayOpacity" min="0" max="100" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="overlayOpacity" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="overlayOpacity" :min="0" :max="100" :step="1" @input="updatePreview" />
                 </div>
               </div>
               <div class="minecraft-title-contents" :class="{ visible: tab === 3 }">
+                <div v-if="textureSource === 'tileable' || textureSource === 'file' && customTexture && customTextureType === 'tileable'">
+                  <h2>Configuration</h2>
+                  <p>Configure the tileable texture</p>
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label" style="width: 60px;">Scale:</div>
+                    <input type="range" class="tool disp_range" v-model.number="tileableScale" min="1" max="8" step="1" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="tileableScale" :min="1" :max="8" :step="1" @input="updatePreview" />
+                  </div>
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label" style="width: 60px;">X Offset:</div>
+                    <input type="range" class="tool disp_range" v-model.number="tileableXOffset" min="0" :max="tileableWidth" step="1" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="tileableXOffset" :min="0" :max="tileableWidth" :step="1" @input="updatePreview" />
+                  </div>
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label" style="width: 60px;">Y Offset:</div>
+                    <input type="range" class="tool disp_range" v-model.number="tileableYOffset" min="0" :max="tileableHeight" step="1" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="tileableYOffset" :min="0" :max="tileableHeight" :step="1" @input="updatePreview" />
+                  </div>
+                  <label class="checkbox-row">
+                    <input type="checkbox" :checked="tileableRandomRotations" v-model="tileableRandomRotations" @input="updatePreview">
+                    <div>Random Rotations</div>
+                  </label>
+                  <label class="checkbox-row">
+                    <input type="checkbox" :checked="tileableRandomMirroring" v-model="tileableRandomMirroring" @input="updatePreview">
+                    <div>Random Mirroring</div>
+                  </label>
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label">Texture Resolution:</div>
+                    <input type="range" class="tool disp_range" v-model.number="tileableTextureResolution" min="1000" :max="4000" step="1000" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="tileableTextureResolution" :min="1000" :max="4000" :step="1000" @input="updatePreview" />
+                  </div>
+                  <br>
+                </div>
                 <h2>Filters</h2>
                 <p>Apply some filters to the chosen texture</p>
                 <div class="bar slider_input_combo">
-                  <div class="slider-label" style="width:70px">Hue</div>
+                  <div class="slider-label" style="width: 70px">Hue</div>
                   <input type="range" class="tool disp_range" v-model.number="hue" min="0" max="359" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="hue" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="hue" :min="0" :max="359" :step="1" @input="updatePreview" />
                 </div>
                 <div class="bar slider_input_combo">
-                  <div class="slider-label" style="width:70px">Saturation</div>
+                  <div class="slider-label" style="width: 70px">Saturation</div>
                   <input type="range" class="tool disp_range" v-model.number="saturation" min="0" max="200" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="saturation" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="saturation" :min="0" :max="200" :step="1" @input="updatePreview" />
                 </div>
                 <div class="bar slider_input_combo">
-                  <div class="slider-label" style="width:70px">Brightness</div>
+                  <div class="slider-label" style="width: 70px">Brightness</div>
                   <input type="range" class="tool disp_range" v-model.number="brightness" min="0" max="200" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="brightness" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="brightness" :min="0" :max="200" :step="1" @input="updatePreview" />
                 </div>
                 <div class="bar slider_input_combo">
-                  <div class="slider-label" style="width:70px">Contrast</div>
+                  <div class="slider-label" style="width: 70px">Contrast</div>
                   <input type="range" class="tool disp_range" v-model.number="contrast" min="0" max="200" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="contrast" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="contrast" :min="0" :max="200" :step="1" @input="updatePreview" />
                 </div>
                 <br>
                 <h2>Colour</h2>
@@ -2334,7 +2760,7 @@
                 <p style="margin:15px 0 -5px">The opacity to apply the colour at</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="colourOpacity" min="0" max="100" step="1" @input="updatePreview" />
-                  <input type="number" class="tool disp_text" v-model.number="colourOpacity" step="1" @input="updatePreview" />
+                  <numeric-input class="tool disp_text" v-model.number="colourOpacity" :min="0" :max="100" :step="1" @input="updatePreview" />
                 </div>
                 <br>
                 <h2>Border</h2>
@@ -2354,8 +2780,15 @@
                   <div>Use a custom colour for the top and bottom faces</div>
                 </label>
                 <input ref="customEdgeColour" :class="{ hidden: !customEdge }" />
+                <div :class="{ hidden: !(!customEdge && (textureSource === 'tileable' || textureSource === 'gradient' || textureSource === 'file' && customTexture && customTextureType === 'tileable')) }">
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label">Edge brightness:</div>
+                    <input type="range" class="tool disp_range" v-model.number="edgeBrightness" min="0" max="100" step="1" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="edgeBrightness" :min="0" :max="100" :step="1" @input="updatePreview" />
+                  </div>
+                </div>
                 <label v-if="!fonts[font].forcedTerminators" class="checkbox-row">
-                  <input type="checkbox" :checked="terminators" v-model="terminators" @input="makePreview">
+                  <input type="checkbox" :checked="terminators" v-model="terminators" @input="buildPreview">
                   <div>Enable line terminators</div>
                 </label>
                 <p v-if="!fonts[font].forcedTerminators">Line terminators are special characters that appear at the start and end of the text</p>
@@ -2365,32 +2798,32 @@
                 <p>Add a space between each character</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="characterSpacing" min="0" max="20" step="1" />
-                  <input type="number" class="tool disp_text" v-model.number="characterSpacing" step="1" />
+                  <numeric-input class="tool disp_text" v-model.number="characterSpacing" :min="0" :max="20" :step="1" />
                 </div>
                 <br>
                 <h2>Row Spacing</h2>
                 <p>Change the spacing between the vertical rows of text</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="rowSpacing" min="-4" max="20" step="1" />
-                  <input type="number" class="tool disp_text" v-model.number="rowSpacing" step="1" />
+                  <numeric-input class="tool disp_text" v-model.number="rowSpacing" :min="-4" :max="20" :step="1" />
                 </div>
                 <br>
                 <h2>Text Scale</h2>
                 <p>The scale to render the text<br>For advanced scaling, use <strong>Transform > Scale</strong> after adding the text</p>
                 <div class="bar slider_input_combo">
                   <div class="slider-label">X</div>
-                  <input type="range" class="tool disp_range" v-model.number="scaleX" min="0.05" max="4" step="0.05" value="{{ scaleX }}" style="--color-thumb:var(--color-axis-x)" />
-                  <input type="number" class="tool disp_text" v-model.number="scaleX" step="1" />
+                  <input type="range" class="tool disp_range" v-model.number="scaleX" min="0.05" max="4" step="0.05" style="--color-thumb:var(--color-axis-x)" />
+                  <numeric-input class="tool disp_text" v-model.number="scaleX" :min="0.05" :max="4" :step="0.05" />
                 </div>
                 <div class="bar slider_input_combo">
                   <div class="slider-label">Y</div>
-                  <input type="range" class="tool disp_range" v-model.number="scaleY" min="0.05" max="4" step="0.05" value="{{ scaleY }}" style="--color-thumb:var(--color-axis-y)" />
-                  <input type="number" class="tool disp_text" v-model.number="scaleY" step="1" />
+                  <input type="range" class="tool disp_range" v-model.number="scaleY" min="0.05" max="4" step="0.05" style="--color-thumb:var(--color-axis-y)" />
+                  <numeric-input class="tool disp_text" v-model.number="scaleY" :min="0.05" :max="4" :step="0.05" />
                 </div>
                 <div class="bar slider_input_combo">
                   <div class="slider-label">Z</div>
-                  <input type="range" class="tool disp_range" v-model.number="scaleZ" min="0" max="4" step="0.05" value="{{ scaleZ }}" style="--color-thumb:var(--color-axis-z)" />
-                  <input type="number" class="tool disp_text" v-model.number="scaleZ" step="1" />
+                  <input type="range" class="tool disp_range" v-model.number="scaleZ" min="0.05" max="4" step="0.05" style="--color-thumb:var(--color-axis-z)" />
+                  <numeric-input class="tool disp_text" v-model.number="scaleZ" :min="0.05" :max="4" :step="0.05" />
                 </div>
               </div>
               <div id="minecraft-title-buttons">
@@ -2417,6 +2850,7 @@
           addText(text, getArgs(this.content_vue))
         },
         async onBuild() {
+          await getFontTextures("minecraft-ten", true)
           stats.push(...await fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", { headers: { source: "blockbench" } }).then(e => e.json()).catch(() => []))
           const ten = stats.find(e => e.id === "minecraft-ten")
           if (ten) ten.count = Infinity
@@ -2453,8 +2887,19 @@
             font[1].id = font[0]
             fontData.push(font[1])
           }
+          tileables = Object.assign(tileables, await fetchData("tileables.json"))
+          for (const [id, tileable] of Object.entries(tileables)) {
+            tileable.name ??= titleCase(id)
+            tileable.author ??= "Mojang"
+            tileable.path ??= "minecraft"
+            if (tileable.variants) for (const [id, variant] of Object.entries(tileable.variants)) {
+              variant.name ??= titleCase(id)
+              variant.path ??= tileable.path
+            }
+          }
           this.content_vue.fontList = fontData.map(e => [e.id, e])
           this.content_vue.textures = Object.entries(fonts["minecraft-ten"].textures).map(e => e.concat(["minecraft-ten"]))
+          this.content_vue.tileablesList = Object.entries(tileables)
           this.content_vue.overlays = Object.entries(fonts["minecraft-ten"].overlays).map(e => e.concat(["minecraft-ten"]))
           if (Object.keys(fonts["minecraft-ten"].textures)[1]) this.content_vue.texture = Object.keys(fonts["minecraft-ten"].textures)[1]
           this.content_vue.fontList.sort((a, b) => {
@@ -2465,6 +2910,11 @@
           this.content_vue.textures.sort((a, b) => {
             const statsA = stats.find(e => e.id === `${a[2]}.${a[0]}`)?.count ?? 0
             const statsB = stats.find(e => e.id === `${a[2]}.${b[0]}`)?.count ?? 0
+            return statsB - statsA
+          })
+          this.content_vue.tileablesList.sort((a, b) => {
+            const statsA = stats.find(e => e.id === `tileable.${a[0]}`)?.count ?? 0
+            const statsB = stats.find(e => e.id === `tileable.${b[0]}`)?.count ?? 0
             return statsB - statsA
           })
           this.content_vue.overlays.sort((a, b) => {
@@ -2488,7 +2938,7 @@
 
           this.content_vue.scene = new THREE.Scene()
 
-          this.content_vue.makePreview()
+          this.content_vue.buildPreview()
         }
       })
       debugDialog = new Dialog({
@@ -2496,6 +2946,7 @@
         title: "Load Debug Minecraft Title Text",
         component: {
           data: {
+            connection,
             font: Object.keys(fonts)[0],
             fonts,
             texture: Object.keys(fonts["minecraft-ten"].textures)[1] ?? Object.keys(fonts["minecraft-ten"].textures)[0],
@@ -2514,7 +2965,7 @@
               <h2>Font</h2>
               <div class="minecraft-title-list small">
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts)" @click="selectFont(id)" :class="{ selected: font === id }">
-                  <img :src="data.thumbnail ?? '${root}/fonts/' + id + '/thumbnails/flat.png'" />
+                  <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + id + '/thumbnails/flat.png'" loading="lazy" />
                   <div>{{ data.name }}</div>
                 </div>
               </div>
@@ -2525,9 +2976,9 @@
                   <div>All</div>
                 </div>
                 <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures)" v-if="fonts[font].textures[id]" @click="texture = id; variant = null" :class="{ selected: texture === id }">
-                  <img :src="data.thumbnail ?? '${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                  <img :src="data.thumbnail ?? connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                   <div>{{ data.category ?? data.name }}</div>
-                  <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 9 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
+                  <i v-if="fonts[font].textures[id]?.variants" class="minecraft-title-item-has-variants material-icons" :title="'Has ' + (Object.keys(fonts[font].textures[id].variants).length + 1) + ' variants'">filter_{{ Object.keys(fonts[font].textures[id].variants).length > 8 ? '9_plus' : Object.keys(fonts[font].textures[id].variants).length + 1 }}</i>
                 </div>
               </div>
               <div v-if="fonts[font].textures[texture]?.variants">
@@ -2535,11 +2986,11 @@
                 <h2>Texture Variants</h2>
                 <div class="minecraft-title-list">
                   <div class="minecraft-title-item" @click="variant = null" :class="{ selected: !variant }">
-                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + texture + '.png'" />
+                    <img :src="connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + texture + '.png'" loading="lazy" />
                     <div>{{ fonts[font].textures[texture].name }}</div>
                   </div>
                   <div class="minecraft-title-item" v-for="[id, data] of Object.entries(fonts[font].textures[texture].variants)" @click="variant = id" :class="{ selected: variant === id }">
-                    <img :src="'${root}/fonts/' + font + '/thumbnails/' + id + '.png'" />
+                    <img :src="connection.roots[connection.rootIndex] + '/fonts/' + font + '/thumbnails/' + id + '.png'" loading="lazy" />
                     <div>{{ data.name }}</div>
                   </div>
                 </div>
@@ -2658,6 +3109,29 @@
     }
   }
 
+  function sendStats(args, font) {
+    let chosenTexture, chosenTileable
+    if (!args.gradientColour0 && !args.customTexture) {
+      if (args.tileable) chosenTileable = args.tileable
+      else chosenTexture = args.texture
+    }
+    const chosenOverlay = args.customOverlay || args.overlay === "none" ? undefined : args.overlay
+    if (font || chosenTexture || chosenTileable || chosenOverlay) fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", {
+      method: "POST",
+      headers: {
+        source: "blockbench",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        font: args.font,
+        ignoreFont: !font,
+        texture: chosenTexture,
+        tileable: chosenTileable,
+        overlay: chosenOverlay
+      })
+    }).catch(() => {})
+  }
+
   async function getTexture(object, texture, variant, direct) {
     if (!direct && ((variant && object[texture].variants[variant]?.texture.startsWith("data:image/png;base64,")) || (!variant && object[texture].texture.startsWith("data:image/png;base64,")))) return variant ? object[texture].variants[variant].texture : object[texture].texture
     const data = await new Promise(async fulfil => {
@@ -2762,28 +3236,16 @@
     })
     Undo.finishEdit("Add Minecraft title text")
     updateSelection()
-    if (!args.ignoreStats) fetch("https://api.wynem.com/blockbench/minecrafttitlegenerator/stats", {
-      method: "POST",
-      headers: {
-        source: "blockbench",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        font: args.font,
-        texture: args.customTexture || args.gradientColour0 ? undefined : args.texture,
-        overlay: args.customOverlay || args.overlay === "none" ? undefined : args.overlay
-      })
-    }).catch(() => {})
+    if (!args.ignoreStats) sendStats(args, true)
   }
 
   async function makeTexture(args) {
-    const img = (await new Promise(async fulfill => new THREE.TextureLoader().load(args.customTexture ?? await getTexture(fonts[args.font].textures, args.texture, args.variant), fulfill, null, fulfill))).image
-    let canvas = document.createElement("canvas")
-    canvas.width = img.width
-    canvas.height = img.height
+    const img = await loadImage(args.customTexture && args.customTextureType === "texture" ? args.customTexture : await getTexture(fonts[args.font].textures, args.texture, args.variant))
+    const res = args.tileable || args.customTexture && args.customTextureType === "tileable" ? args.tileableTextureResolution / 1000 : 1
+    let { canvas, ctx } = new CanvasFrame(img.width * res, img.height * res)
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
     let m = canvas.width / 1000
-    let ctx = canvas.getContext("2d")
-    ctx.drawImage(img, 0, 0)
     if (args.gradientColour0) {
       if (args.smoothGradient) {
         const colours = [
@@ -2853,21 +3315,142 @@
           ctx.fillRect(0, (face[2] ?? end[2]), canvas.width, end[3] - (face[2] ?? end[2]))
         }
       }
-      ctx.fillStyle = "#0006"
+      ctx.fillStyle = `rgba(0, 0, 0, ${(100 - args.edgeBrightness) / 100})`
       for (const end of fonts[args.font].ends) {
         ctx.fillRect(0, end[0] * m, canvas.width, end[1] * m - end[0] * m)
         ctx.fillRect(0, end[2] * m, canvas.width, end[3] * m - end[2] * m)
       }
       if (fonts[args.font].overlay) {
-        if (typeof fonts[args.font].overlay === "boolean") {
-          fonts[args.font].overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(await getTexture(null, null, null, `fonts/${args.font}/textures/overlay.png`), fulfill, null, fulfill))).image
-        }
+        await loadOverlay(args.font)
         ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
+      }
+    } else if (args.tileable || args.customTexture && args.customTextureType === "tileable") {
+      let base
+      if (args.customTexture) base = await loadImage(args.customTexture)
+      else base = await loadImage(await getTileable(args.tileable, args.tileableVariant))
+      const { canvas: texture, ctx: tctx } = new CanvasFrame(base.width, base.height)
+      tctx.drawImage(base, -args.tileableXOffset, -args.tileableYOffset)
+      if (args.tileableXOffset) tctx.drawImage(base, base.width - args.tileableXOffset, -args.tileableYOffset)
+      if (args.tileableYOffset) tctx.drawImage(base, -args.tileableXOffset, base.height - args.tileableYOffset)
+      if (args.tileableXOffset && args.tileableYOffset) tctx.drawImage(base, base.width - args.tileableXOffset, base.height - args.tileableYOffset)
+      const width = Math.max(1, Math.round(texture.width * args.tileableScale))
+      const height = Math.max(1, Math.round(texture.height * args.tileableScale))
+      ctx.globalCompositeOperation = "source-atop"
+      const uvScaleW = canvas.width / 16
+      const uvScaleH = canvas.height / 16
+      await getFontCharacters(args.font)
+      for (const [i, char] of Object.values(fonts[args.font].characters).entries()) {
+        let faceUV, topUV, bottomUV
+        for (const cube of char) {
+          for (const face of Object.values(cube.faces)) {
+            const mapped = (face?.uv ?? face).map((e, i) => i % 2 ? e * uvScaleH : e * uvScaleW)
+            const middle = fonts[args.font].faces.find(e => mapped[1] >= e[0] * res && mapped[1] <= e[e.length - 1] * res && mapped[3] >= e[0] * res && mapped[3] <= e[e.length - 1] * res)
+            if (middle) {
+              if (!faceUV) {
+                faceUV = [Math.min(mapped[0], mapped[2]), middle[0] * res, Math.max(mapped[0], mapped[2]), middle[middle.length - 1] * res, middle.length === 4 ? (middle[1] - middle[0]) * res : null]
+              } else {
+                faceUV[0] = Math.min(faceUV[0], mapped[0], mapped[2])
+                faceUV[2] = Math.max(faceUV[2], mapped[0], mapped[2])
+              }
+            } else {
+              const top = fonts[args.font].ends.find(e => mapped[1] >= e[0] * res && mapped[1] <= e[1] * res && mapped[3] >= e[0] * res && mapped[3] <= e[1] * res)
+              if (top) {
+                if (!topUV) {
+                  topUV = [Math.min(mapped[0], mapped[2]), top[0] * res, Math.max(mapped[0], mapped[2]), top[1] * res]
+                } else {
+                  topUV[0] = Math.min(topUV[0], mapped[0], mapped[2])
+                  topUV[2] = Math.max(topUV[2], mapped[0], mapped[2])
+                }
+              } else {
+                const bottom = fonts[args.font].ends.find(e => mapped[1] >= e[2] * res && mapped[1] <= e[3] * res && mapped[3] >= e[2] * res && mapped[3] <= e[3] * res)
+                if (bottom) {
+                  if (!bottomUV) {
+                    bottomUV = [Math.min(mapped[0], mapped[2]), bottom[2] * res, Math.max(mapped[0], mapped[2]), bottom[3] * res]
+                  } else {
+                    bottomUV[0] = Math.min(bottomUV[0], mapped[0], mapped[2])
+                    bottomUV[2] = Math.max(bottomUV[2], mapped[0], mapped[2])
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (faceUV) {
+          const area = new CanvasFrame(faceUV[2] - faceUV[0], faceUV[3] - faceUV[1])
+          area.ctx.imageSmoothingEnabled = false
+          const start = faceUV[4] ?? 0
+          for (let y = start; y < area.height; y += height) {
+            for (let x = 0; x < area.width; x += width) {
+              if (args.tileableRandomRotations || args.tileableRandomMirroring) {
+                drawRotatedMirrored(area.ctx, texture, x, y, width, height, Math.floor(random(i, x, y) * 4) * 90 * args.tileableRandomRotations, random(i + 400, x, y) < 0.5 && args.tileableRandomMirroring)
+              } else {
+                area.ctx.drawImage(texture, x, y, width, height)
+              }
+            }
+          }
+          if (start !== 0) {
+            for (let y = start; y > 0; y -= height) {
+              for (let x = 0; x < area.width; x += width) {
+                if (args.tileableRandomRotations || args.tileableRandomMirroring) {
+                  drawRotatedMirrored(area.ctx, texture, x, y - height, width, height, Math.floor(random(i + 100, x, y) * 4) * 90 * args.tileableRandomRotations, random(i + 400, x, y) < 0.5 && args.tileableRandomMirroring)
+                } else {
+                  area.ctx.drawImage(texture, x, y - height, width, height)
+                }
+              }
+            }
+          }
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(faceUV[0], faceUV[1], area.width, area.height)
+          ctx.drawImage(area.canvas, faceUV[0], faceUV[1])
+        }
+        if (topUV) {
+          const area = new CanvasFrame(topUV[2] - topUV[0], topUV[3] - topUV[1])
+          area.ctx.imageSmoothingEnabled = false
+          for (let y = area.height; y > 0; y -= height) {
+            for (let x = 0; x < area.width; x += width) {
+              if (args.tileableRandomRotations || args.tileableRandomMirroring) {
+                drawRotatedMirrored(area.ctx, texture, x, y - height, width, height, Math.floor(random(i + 200, x, y) * 4) * 90 * args.tileableRandomRotations, random(i + 400, x, y) < 0.5 && args.tileableRandomMirroring)
+              } else {
+                area.ctx.drawImage(texture, x, y - height, width, height)
+              }
+            }
+          }
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(topUV[0], topUV[1], area.width, area.height)
+          ctx.drawImage(area.canvas, topUV[0], topUV[1])
+          ctx.fillStyle = `rgba(0, 0, 0, ${(100 - args.edgeBrightness) / 100})`
+          ctx.fillRect(topUV[0], topUV[1], area.width, area.height)
+        }
+        if (bottomUV) {
+          const area = new CanvasFrame(bottomUV[2] - bottomUV[0], bottomUV[3] - bottomUV[1])
+          area.ctx.imageSmoothingEnabled = false
+          for (let y = 0; y < area.height; y += height) {
+            for (let x = 0; x < area.width; x += width) {
+              if (args.tileableRandomRotations || args.tileableRandomMirroring) {
+                drawRotatedMirrored(area.ctx, texture, x, y, width, height, Math.floor(random(i + 300, x, y) * 4) * 90 * args.tileableRandomRotations, random(i + 400, x, y) < 0.5 && args.tileableRandomMirroring)
+              } else {
+                area.ctx.drawImage(texture, x, y, width, height)
+              }
+            }
+          }
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(bottomUV[0], bottomUV[1], area.width, area.height)
+          ctx.drawImage(area.canvas, bottomUV[0], bottomUV[1])
+          ctx.fillStyle = `rgba(0, 0, 0, ${(100 - args.edgeBrightness) / 100})`
+          ctx.fillRect(bottomUV[0], bottomUV[1], area.width, area.height)
+        }
+      }
+      if (fonts[args.font].overlay) {
+        ctx.globalCompositeOperation = "destination-out"
+        await loadOverlay(args.font)
+        ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
+        ctx.globalCompositeOperation = "destination-over"
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       }
     }
     ctx.globalCompositeOperation = "copy"
     ctx.filter =`hue-rotate(${args.hue}deg) saturate(${args.saturation}%) brightness(${args.brightness}%) contrast(${args.contrast}%`
-    ctx.drawImage(canvas, 0, 0)
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height)
     ctx.filter ="hue-rotate(0deg) saturate(100%) brightness(100%) contrast(100%)"
     ctx.globalCompositeOperation = args.blend
     ctx.fillStyle = args.colour
@@ -2885,7 +3468,7 @@
       }
     }
     if (args.customOverlay || (args.overlay && args.overlay !== "none")) {
-      const overlay = (await new Promise(async fulfill => new THREE.TextureLoader().load(args.customOverlay ?? await getTexture(fonts[args.font].overlays, args.overlay), fulfill, null, fulfill))).image
+      const overlay = await loadImage(args.customOverlay ?? await getTexture(fonts[args.font].overlays, args.overlay))
       const overlayCanvas = new CanvasFrame(overlay.width, overlay.height)
       overlayCanvas.ctx.drawImage(overlay, 0, 0)
       overlayCanvas.ctx.globalCompositeOperation = args.overlayColourBlend
@@ -3085,9 +3668,7 @@
     return [character, maxX - minX + args.characterSpacing * args.scale[0]]
   }
 
-  function makeName(str) {
-    return str.replace(/\s/g, "_").replace(/😳/g, "a").replace(/😩/g, "'").replace(/┫|┣|\u200b/g, "")
-  }
+  const makeName = str => str.replace(/\s/g, "_").replace(/😳/g, "a").replace(/😩/g, "'").replace(/┫|┣|\u200b/g, "")
 
   function selectHandler() {
     if (Mode.selected.id === "minecraft_title_render") Canvas.scene.traverseVisible(e => {
@@ -3149,20 +3730,18 @@
 
   function updateColour(dialog, v, c) {
     dialog.component.data[v] = c.toHexString()
-    dialog.component.methods.updatePreview.bind(dialog.content_vue)()
+    dialog.content_vue.updatePreview()
   }
 
-  function colourInput(dialog, v) {
-    return {
-      preferredFormat: "hex",
-      color: dialog.component.data[v],
-      showAlpha: false,
-      showInput: true,
-      move: c => updateColour(dialog, v, c),
-      change: c => updateColour(dialog, v, c),
-      hide: c => updateColour(dialog, v, c)
-    }
-  }
+  const colourInput = (dialog, v) => ({
+    preferredFormat: "hex",
+    color: dialog.component.data[v],
+    showAlpha: false,
+    showInput: true,
+    move: c => updateColour(dialog, v, c),
+    change: c => updateColour(dialog, v, c),
+    hide: c => updateColour(dialog, v, c)
+  })
 
   async function getTextureFromFile() {
     try {
@@ -3175,7 +3754,7 @@
           }]
         })
         if (!file) return
-        texture = await new Promise(fulfill => new THREE.TextureLoader().load(file[0], fulfill, null, fulfill))
+        texture = await loadImage(file[0])
       } else {
         const input = document.createElement("input")
         let file
@@ -3193,7 +3772,7 @@
           fr.onload = () => fulfil(fr.result)
           fr.readAsDataURL(file[0])
         })
-        texture = await new Promise(fulfill => new THREE.TextureLoader().load(data, fulfill, null, fulfill))
+        texture = await loadImage(data)
       }
       return texture
     } catch {
@@ -3201,47 +3780,53 @@
     }
   }
 
-  function getArgs(vue, three) {
-    return {
-      font: vue.font,
-      baseFont: vue.baseFont,
-      fontVariant: vue.fontVariant,
-      type: vue.textType,
-      row: vue.row,
-      texture: vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient") ? "flat" : vue.texture,
-      variant: vue.textureSource === "premade" ? vue.variant : null,
-      characterSpacing: vue.characterSpacing,
-      rowSpacing: vue.rowSpacing,
-      scale: [vue.scaleX, vue.scaleY, vue.scaleZ],
-      colour: vue.colour,
-      blend: vue.blend,
-      hue: vue.hue,
-      saturation: vue.saturation,
-      brightness: vue.brightness,
-      contrast: vue.contrast,
-      customBorder: vue.customBorder,
-      customBorderColour: vue.customBorderColour,
-      fadeToBorder: vue.fadeToBorder,
-      terminators: vue.terminators,
-      customEdge: vue.customEdge,
-      customEdgeColour: vue.customEdgeColour,
-      customTexture: vue.textureSource === "file" ? vue.customTexture : null,
-      customOverlay: vue.overlaySource === "file" ? vue.customOverlay : null,
-      gradientColour0: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) ? vue.gradientColour0 : null,
-      gradientColour1: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour1Enabled ? vue.gradientColour1 : null,
-      gradientColour2: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour2Enabled ? vue.gradientColour2 : null,
-      gradientColour3: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour3Enabled ? vue.gradientColour3 : null,
-      gradientColour4: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) ? vue.gradientColour4 : null,
-      overlay: vue.overlay,
-      overlayBlend: vue.overlayBlend,
-      overlayColourBlend: vue.overlayColourBlend,
-      overlayColour: vue.overlayColour,
-      smoothGradient: vue.smoothGradient,
-      colourOpacity: vue.colourOpacity,
-      overlayOpacity: vue.overlayOpacity,
-      three
-    }
-  }
+  const getArgs = (vue, three) => ({
+    font: vue.font,
+    type: vue.textType,
+    row: vue.row,
+    texture: vue.textureSource === "gradient" || vue.textureSource === "tileable" || (vue.textureSource === "file" && vue.customTexture) || (!vue.customTexture && vue.textureSource === "file" && ["gradient", "tileable"].includes(vue.lastTextureSource)) ? "flat" : vue.texture,
+    variant: vue.textureSource === "premade" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "premade") ? vue.variant : null,
+    tileable: vue.textureSource === "tileable" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "tileable") ? vue.tileable : null,
+    tileableVariant: vue.textureSource === "tileable" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "tileable") ? vue.tileableVariant : null,
+    characterSpacing: vue.characterSpacing,
+    rowSpacing: vue.rowSpacing,
+    scale: [vue.scaleX, vue.scaleY, vue.scaleZ],
+    colour: vue.colour,
+    blend: vue.blend,
+    hue: vue.hue,
+    saturation: vue.saturation,
+    brightness: vue.brightness,
+    contrast: vue.contrast,
+    customBorder: vue.customBorder,
+    customBorderColour: vue.customBorderColour,
+    fadeToBorder: vue.fadeToBorder,
+    terminators: vue.terminators,
+    customEdge: vue.customEdge,
+    customEdgeColour: vue.customEdgeColour,
+    customTexture: vue.textureSource === "file" ? vue.customTexture : null,
+    customTextureType: vue.customTextureType,
+    customOverlay: vue.overlaySource === "file" ? vue.customOverlay : null,
+    gradientColour0: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) ? vue.gradientColour0 : null,
+    gradientColour1: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour1Enabled ? vue.gradientColour1 : null,
+    gradientColour2: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour2Enabled ? vue.gradientColour2 : null,
+    gradientColour3: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) && vue.gradientColour3Enabled ? vue.gradientColour3 : null,
+    gradientColour4: (vue.textureSource === "gradient" || (!vue.customTexture && vue.textureSource === "file" && vue.lastTextureSource === "gradient")) ? vue.gradientColour4 : null,
+    overlay: vue.overlay,
+    overlayBlend: vue.overlayBlend,
+    overlayColourBlend: vue.overlayColourBlend,
+    overlayColour: vue.overlayColour,
+    smoothGradient: vue.smoothGradient,
+    colourOpacity: vue.colourOpacity,
+    overlayOpacity: vue.overlayOpacity,
+    tileableScale: vue.tileableScale,
+    tileableXOffset: vue.tileableXOffset,
+    tileableYOffset: vue.tileableYOffset,
+    tileableRandomRotations: vue.tileableRandomRotations,
+    tileableRandomMirroring: vue.tileableRandomMirroring,
+    tileableTextureResolution: vue.tileableTextureResolution,
+    edgeBrightness: vue.edgeBrightness,
+    three
+  })
 
   function areObjectsEqual(obj1, obj2) {
     const keys1 = Object.keys(obj1)
@@ -3253,33 +3838,11 @@
 
   function loadImage(b64) {
     const img = new Image()
-    return new Promise(fulfil => {
-      img.onload = fulfil(img)
+    return new Promise((fulfil, reject) => {
+      img.onload = () => fulfil(img)
+      img.onerror = reject
       img.src = b64
     })
-  }
-
-  async function loadMinecraftTitleTexture(src) {
-    const img = await loadImage(src)
-    const aspect = img.width / img.height
-    let w, h
-    if (img.width > 1024 || img.height > 1024) {
-      if (aspect > 1) {
-        w = 1024
-        h = Math.floor(1024 / aspect)
-      } else {
-        h = 1024
-        w = Math.floor(1024 * aspect)
-      }
-    } else {
-      w = img.width
-      h = img.height
-    }
-    const canvas = new CanvasFrame(w, h)
-    if (img.width < 64 || img.height < 64) canvas.ctx.imageSmoothingEnabled = false
-    canvas.ctx.drawImage(img, 0, 0, w, h)
-    canvas.autoCrop()
-    return canvas
   }
 
   function loadRenderAngle() {
@@ -3287,5 +3850,69 @@
       position: [0, -170, -320],
       target: [0, 0, 0]
     })
+  }
+
+  const gcd = (a, b) => b === 0 ? a : gcd(b, a % b)
+
+  function getAspectRatio(w, h) {
+    const divisor = gcd(w, h)
+    return [w / divisor, h / divisor]
+  }
+
+  function getFromAspect(aW, aH, w, h, isWidth) {
+    let width, height
+    if (isWidth) {
+      width = w
+      height = Math.floor(w * aH / aW)
+      if (height > 4096) {
+        height = 4096
+        width = Math.floor(4096 * aW / aH)
+      }
+    } else {
+      height = h
+      width = Math.floor(h * aW / aH)
+      if (width > 4096) {
+        width = 4096
+        height = Math.floor(4096 * aH / aW)
+      }
+    }
+    return [width, height]
+  }
+
+  async function getTileable(id, variant) {
+    const data = variant ? tileables[id].variants[variant] : tileables[id]
+    if (!data.texture) {
+      data.texture = await new Promise(async fulfil => {
+        const reader = new FileReader()
+        reader.onload = e => fulfil(e.target.result)
+        reader.readAsDataURL(new Blob([await fetchData(`/tileables/${data.path ? data.path + "/" : ""}${variant ?? id}.png`).then(e => e.arrayBuffer())], { type: "image/png" }))
+      }).catch(() => {})
+    }
+    return data.texture
+  }
+
+  async function loadOverlay(id) {
+    if (typeof fonts[id].overlay === "boolean") {
+      fonts[id].overlay = await loadImage(await getTexture(null, null, null, `fonts/${id}/textures/overlay.png`))
+    }
+  }
+
+  function drawRotatedMirrored(ctx, img, x, y, w, h, r, mirror) {
+    ctx.save()
+    ctx.translate(x + w / 2, y + h / 2)
+    ctx.rotate(Math.degToRad(r))
+    if (mirror) ctx.scale(-1, 1)
+    ctx.drawImage(img, -(w / 2), -(h / 2), w, h)
+    ctx.restore()
+  }
+
+  const fract = n => n - Math.floor(n)
+
+  function random(x, y, z) {
+    x = fract(x * 0.1031)
+    y = fract(y * 0.1031)
+    z = fract(z * 0.1031)
+    const res = x * (z + 31.32) + y * (y + 31.32) + z * (x + 31.32)
+    return fract((x + y + res * 2) * (z + res))
   }
 })()
