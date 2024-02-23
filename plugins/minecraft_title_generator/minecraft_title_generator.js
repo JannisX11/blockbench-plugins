@@ -96,7 +96,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.4.0",
+    version: "1.4.1",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -334,11 +334,8 @@
         },
         format_page: {
           component: {
-            methods: { 
-              async create() {
-                if (!await MinecraftEULA.promptUser(id)) return
-                format.new()
-              }
+            methods: {
+              create: () => format.new()
             },
             template: `
               <div style="display:flex;flex-direction:column;height:100%">
@@ -2836,8 +2833,11 @@
           `
         },
         onOpen() {
-          this.content_vue.tab = 0
-          this.content_vue.$el.querySelector("#minecraft-title-text-input").focus()
+          setTimeout(async () => {
+            this.content_vue.tab = 0
+            this.content_vue.$el.querySelector("#minecraft-title-text-input").focus()
+            if (!await MinecraftEULA.promptUser(id)) return dialog.close()
+          }, 0)
         },
         onConfirm() {
           const text = this.content_vue.text.replace(/A/g, "😳").replace(/(\s|^)'/g, "$1😩").replace(/(\s|^)"/g, "$1😩😩").replace(/"/g, "''").toLowerCase().trim()
