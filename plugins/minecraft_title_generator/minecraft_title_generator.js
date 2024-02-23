@@ -2375,6 +2375,11 @@
                 title: "Failed to load textures and fonts",
                 message: `Minecraft Title Generator was unable to load the textures and fonts. You will only be able to use the built-in texture and font.\n\nPlease make sure you are connected to the internet, and can access this <a href="${root}/fonts.json">fonts.json</a> file.\n\nIf you are unable to access the fonts.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.`
               })
+            },
+            tabChange(tab) {
+              this.tab = tab
+              document.querySelector("#new_minecraft_title_text .dialog_content").scrollTop = 0
+              if (!tab) setTimeout(() => this.$el.querySelector("#minecraft-title-text-input").focus(), 0)
             }
           },
           computed: {
@@ -2420,11 +2425,11 @@
                 </div>
               </div>
               <div id="minecraft-title-tabs">
-                <div @click="tab = 0" :class="{ selected: tab === 0 }">Text</div>
-                <div @click="tab = 1" :class="{ selected: tab === 1 }">Texture</div>
-                <div @click="tab = 2" :class="{ selected: tab === 2 }">Overlay</div>
-                <div @click="tab = 3" :class="{ selected: tab === 3 }">Style</div>
-                <div @click="tab = 4" :class="{ selected: tab === 4 }">Settings</div>
+                <div @click="tabChange(0)" :class="{ selected: tab === 0 }">Text</div>
+                <div @click="tabChange(1)" :class="{ selected: tab === 1 }">Texture</div>
+                <div @click="tabChange(2)" :class="{ selected: tab === 2 }">Overlay</div>
+                <div @click="tabChange(3)" :class="{ selected: tab === 3 }">Style</div>
+                <div @click="tabChange(4)" :class="{ selected: tab === 4 }">Settings</div>
               </div>
               <div id="minecraft-title-preview-container" :class="{ visible: [1, 2, 3].includes(tab) }">
                 <canvas @click="expandCanvas" id="minecraft-title-preview" class="checkerboard" width="2160" height="600"></canvas>
@@ -2824,9 +2829,9 @@
                 </div>
               </div>
               <div id="minecraft-title-buttons">
-                <button v-if="tab > 0" @click="tab--">Back</button>
+                <button v-if="tab > 0" @click="tabChange(tab - 1)">Back</button>
                 <div class="spacer"></div>
-                <button v-if="tab < 4" @click="tab++">Next</button>
+                <button v-if="tab < 4" @click="tabChange(tab + 1)">Next</button>
                 <button @click="finish">Finish</button>
               </div>
             </div>
