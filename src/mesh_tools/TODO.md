@@ -1,0 +1,14 @@
+- [x] Modularize
+- [ ] Better about description
+- [ ] MTools Generate:
+	- [ ] Allow loading .ttf files for the Text Mesh generator
+	- [ ] Optimize the Terrain generator.
+- [ ] MTools Tools:
+	- [ ] Poke Faces: Add new and old vertices to selection.
+	- [ ] Triangles To Quads: Rewrite + Preserve selection.
+	- [ ] Triangulate Faces: Preserve selection.
+	- [ ] Expand/Shrink Selection: Enable for face and edge modes.
+	- [ ] New UV-Preserving Inset.
+- [ ] MTools Operators:
+	- [ ] New Decimate Operator
+- [ ] Create an attractive logo
