@@ -1,10 +1,10 @@
 import { action } from "../../actions.js";
 import * as ThreeJSInteroperability from "../../utils/threejs_interoperability.js";
 
-function runEdit(s, amended = false) {
+function runEdit(selected, s, amended = false) {
   let elements = [];
   Undo.initEdit({ elements, selection: true }, amended);
-  const geometry = new THREE[out.select + "BufferGeometry"](
+  const geometry = new THREE[selected + "BufferGeometry"](
     s.radius,
     s.detail - 1
   );
@@ -40,14 +40,14 @@ const dialog = new Dialog({
     },
   },
   onConfirm(out) {
-    runEdit(out);
+    runEdit(out.select, out);
     Undo.amendEdit(
       {
         radius: { label: "Radius", value: out.radius },
         detail: { label: "Detail", value: out.detail, min: 1, max: 6 },
       },
       (form) => {
-        runEdit(form, true);
+        runEdit(out.select, form, true);
       }
     );
   },
