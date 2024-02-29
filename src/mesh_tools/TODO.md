@@ -1,7 +1,9 @@
 - [x] Modularize
-- [ ] Better about description
+- [ ] Better about description + Descriptive actions' descriptions
+- [ ] Better English
 - [ ] MTools Generate:
-	- [ ] Allow loading .ttf files for the Text Mesh generator
+	- [x] Allow loading font files for the Text Mesh generator
+	- [ ] Use a math parser for XYZ surface generator.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.
@@ -11,4 +13,5 @@
 	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
 	- [ ] New Decimate Operator
+	- [ ] Unite MTEdge and CMEdge
 - [ ] Create an attractive logo
