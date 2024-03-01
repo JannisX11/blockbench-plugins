@@ -1,5 +1,7 @@
 import "./tools/index.js";
+import "./operators/index.js";
 import "./generators/index.js";
+import { ACTIONS, qualifyName } from "./actions.js";
 
 BBPlugin.register("mesh_tools", {
   new_repository_format: true,
@@ -12,28 +14,14 @@ BBPlugin.register("mesh_tools", {
   variant: "both",
   tags: ["Format: Generic Model", "Edit"],
   onload() {
-    Mesh.prototype.menu.structure.unshift("meshtools");
+    Mesh.prototype.menu.structure.unshift("@meshtools/tools");
+    Mesh.prototype.menu.structure.unshift("@meshtools/operators");
     MenuBar.addAction("@meshtools/generators", "filter");
   },
   onunload() {
-    const forceRemove = (id, array) => {
-      if (!array) return;
-
-      let action = array.find((e) => e.id == id);
-      while (action) {
-        array.remove(action);
-        action = array.find((e) => e.id == id);
-      }
-    };
-
-    BarItems["quickprimitives"]?.children?.forEach?.((e) => BarItems[e]?.delete());
-    BarItems["@meshtools/uv_mapping"]?.children?.forEach?.((e) =>
-      BarItems[e]?.delete()
-    );
-    BarItems["meshtools"]?.children?.forEach?.((e) => BarItems[e]?.delete());
-    BarItems["@meshtools/generators"]?.children?.forEach?.((e) => BarItems[e]?.delete());
-
-    forceRemove("@meshtools/generators", MenuBar.menues.tools.structure);
-    forceRemove("meshtools", Mesh.prototype.menu.structure);
+    for (const actionId in ACTIONS) {
+      const id = qualifyName(actionId);
+      BarItems[id]?.delete();
+    } 
   },
 });

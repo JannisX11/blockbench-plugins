@@ -14,66 +14,51 @@ const NON_OBJECT_MODE_CONDITION = {
   method: () =>
     Mesh.selected.length && BarItems["selection_mode"].value != "object",
 };
-const FACE_MODE_CONDITION = {
-  modes: ["edit"],
-  features: ["meshes"],
-  method: () =>
-    Mesh.selected.length && BarItems["selection_mode"].value == "face",
-};
-const VERTEX_MODE_CONDITION = {
-  modes: ["edit"],
-  features: ["meshes"],
-  method: () =>
-    Mesh.selected.length && BarItems["selection_mode"].value == "vertex",
-};
 
-const ACTIONS = /** @type {const}  */ ({
+export const ACTIONS = /** @type {const}  */ ({
   laplacian_smooth: {
     name: "Laplacian Smooth",
     icon: "blur_on",
     description:
       "Smoothens selected vertices by averaging the position of neighboring vertices.",
-    condition: NON_OBJECT_MODE_CONDITION,
   },
   to_sphere: {
     name: "To Sphere",
     icon: "change_circle",
     description:
       "Casts selected vertices into a smooth, spherical shape with adjustable influence.",
-    condition: NON_OBJECT_MODE_CONDITION,
   },
   poke: {
     name: "Poke Faces",
-    description: "Generates a fan out of a face.",
     icon: "control_camera",
-    condition: FACE_MODE_CONDITION,
+    description: "Generates a fan out of a face.",
+    selection_mode: "face",
   },
   tris_to_quad: {
     name: "Triangles To Quadrilaterals",
-    description: "Attempts to merge adjacent triangles into quadrilaterals.",
     icon: `fas.fa-external-link-square-alt`,
-    condition: FACE_MODE_CONDITION,
+    description: "Attempts to merge adjacent triangles into quadrilaterals.",
+    selection_mode: "face",
   },
   triangulate: {
     name: "Triangulate Faces",
-    description: "Splits selected faces into triangles.",
     icon: "pie_chart_outline",
-    condition: FACE_MODE_CONDITION,
+    description: "Splits selected faces into triangles.",
+    selection_mode: "face",
   },
   uv_project_view: {
     name: "Project From View",
-    description: "Projects the selected faces to the UV map from the camera.",
     icon: "view_in_ar",
+    description: "Projects the selected faces to the UV map from the camera.",
   },
   uv_turnaround_projection: {
     name: "Cubic Projection",
-    description: "Unwraps the UV map from the 6 sides of a cube.",
     icon: "open_with",
+    description: "Unwraps the UV map from the 6 sides of a cube.",
   },
   uv_mapping: {
     name: "UV Mapping",
     icon: "map",
-    condition: NON_OBJECT_MODE_CONDITION,
     children: ["uv_project_view", "uv_turnaround_projection"],
   },
   expand_selection: {
@@ -81,18 +66,19 @@ const ACTIONS = /** @type {const}  */ ({
     icon: "unfold_more_double",
     description: "Expands the selection with neighboring vertices.",
     keybind: { key: "l", ctrl: true },
-    condition: VERTEX_MODE_CONDITION,
+    selection_mode: "vertex",
   },
   shrink_selection: {
     name: "Shrink Selection",
     icon: "unfold_less_double",
     description: "Shrinks the selection with neighboring vertices.",
     keybind: { key: "k", ctrl: true },
-    condition: VERTEX_MODE_CONDITION,
+    selection_mode: "vertex",
   },
-  "": {
+  tools: {
     name: "MTools",
     icon: "fas.fa-vector-square",
+    condition: NON_OBJECT_MODE_CONDITION,
     children: [
       "to_sphere",
       "laplacian_smooth",
@@ -105,48 +91,42 @@ const ACTIONS = /** @type {const}  */ ({
       "_",
       "expand_selection",
       "shrink_selection",
-
-      //
-
-      "subdivide",
-      "split_edges",
-      "_",
-      "scatter",
-      "array_elements",
     ],
   },
-
+  operators: {
+    name: "MTools",
+    icon: "fas.fa-vector-square",
+    condition: OBJECT_MODE_CONDITION,
+    children: ["subdivide", "split_edges", "_", "scatter", "array_elements"],
+  },
   subdivide: {
     name: "Subdivide",
     icon: "content_cut",
     description:
       "Splits the faces of a mesh into smaller faces, giving it a smooth appearance.",
-    condition: OBJECT_MODE_CONDITION,
   },
   split_edges: {
     name: "Split Edges",
     icon: "vertical_split",
     description:
       "Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges.",
-    condition: OBJECT_MODE_CONDITION,
   },
   scatter: {
     name: "Scatter",
     description: "Scatters selected meshes on the active mesh.",
     icon: "scatter_plot",
-    condition: OBJECT_MODE_CONDITION,
   },
   array_elements: {
     name: "Array",
     icon: "fas.fa-layer-group",
     description:
       "Generates an array of copies of the base object, with each copy being offset from the previous one.",
-    condition: OBJECT_MODE_CONDITION,
   },
   /*  */
   generators: {
     name: "MTools Generate",
     icon: "fas.fa-vector-square",
+    condition: MESH_CONDITION,
     children: [
       "terrain_action",
       "terrainse",
@@ -155,19 +135,18 @@ const ACTIONS = /** @type {const}  */ ({
       "xyzmathsurfacefunction",
       "quickprimitives",
     ],
-    condition: MESH_CONDITION,
   },
   terrain_action: {
     name: "Terrain",
+    icon: "terrain",
     description:
       "Generates terrains procedurally with fully customized settings.",
-    icon: "terrain",
   },
   terrainse: {
     name: "Terrain Style Editor",
+    icon: "draw",
     description:
       "Configure the Custom color gradient style of the terrain generator.",
-    icon: "draw",
   },
   textmesh: {
     name: "Text Mesh",
@@ -199,7 +178,7 @@ const ACTIONS = /** @type {const}  */ ({
   },
 });
 
-const qualifyName = (id) => (id == "" ? "meshtools" : `@meshtools/${id}`);
+export const qualifyName = (id) => (id == "_" ? id : `@meshtools/${id}`);
 
 /**
  *
@@ -214,6 +193,13 @@ export function action(id, click) {
   if (options.children) {
     // TODO qualify with parents
     options.children = options.children.map(qualifyName);
+  }
+  if (options.selection_mode) {
+    const oldCondition = options.condition;
+    options.condition = () =>
+      Mesh.selected.length &&
+      BarItems["selection_mode"].value == options.selection_mode &&
+      Condition(oldCondition);
   }
   if (options.keybind) {
     options.keybind = new Keybind(options.keybind);
