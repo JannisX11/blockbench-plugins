@@ -1,96 +1,10 @@
-import xyzpresets from '../../assets/xyz_presets.jsonc';
+import xyzpresets from "../../assets/xyz_presets.jsonc";
 import { action } from "../actions.js";
-let mtMolangParser;
-let currentMTVariablesTextContent = "";
-let molangScript = $('script[src="lib/molang.umd.js"]')[0];
-//https://stackoverflow.com/questions/148441/how-can-i-get-the-content-of-the-file-specified-as-the-src-of-a-script-tag
-function printScriptTextContent(script, cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", script.src);
-  xhr.onreadystatechange = (_) => {
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200)
-      cb(xhr.responseText);
-  };
-  xhr.send();
-}
-// this is so stupid
-// just an add-in of more functions
-printScriptTextContent(molangScript, function (f) {
-  eval(
-    f
-      .replace("Molang", "_Molang_")
-      .replace(
-        `case"random_integer":return new u(125,s[0],s[1],s[2])`,
-        `case"random_integer":return new u(125,s[0],s[1],s[2]);case 'acosh':return new u(126, s[0]);case 'asinh':return new u(127, s[0]);case 'atanh':return new u(128, s[0]);case 'cosh':return new u(129, s[0]);case 'sinh':return new u(130, s[0]);case 'tan':return new u(131, s[0]);case'tanh':return new u(132, s[0])`
-      )
-      .replace(
-        "case 125:return r.randomInt(v(n.a),v(n.b))",
-        "case 125:return r.randomInt(v(n.a),v(n.b));case 126:return Math.acosh(v(n.a));case 127:return Math.asinh(v(n.a));case 128:return Math.atanh(v(n.a));case 129:return Math.cosh(v(n.a));case 130:return Math.sinh(v(n.a));case 131:return Math.tan(v(n.a));case 132:return Math.tanh(v(n.a))"
-      )
-  );
-  mtMolangParser = new _Molang_();
-  mtMolangParser.use_radians = true;
-
-  // stolen from Animator.MolangParser.variableHandler;
-  mtMolangParser.variableHandler = function (variable) {
-    var inputs = currentMTVariablesTextContent.split(`\n`);
-    var i = 0;
-    while (i < inputs.length) {
-      let key, val;
-      [key, val] = inputs[i].split(/=(.+)/);
-      key = key.replace(/[\s;]/g, "");
-      if (key === variable && val !== undefined) {
-        val = val.trim();
-        return val[0] == `'` ? val : mtMolangParser.parse(val);
-      }
-      i++;
-    }
-  };
+import { create, all } from "mathjs";
+const math = create(all);
+math.import({
+  ln: math.log
 });
-const mathFuncs = [
-  "abs",
-  "acos",
-  "asin",
-  "atan",
-  "atan2",
-  "ceil",
-  "clamp",
-  "cos",
-  "die_roll",
-  "die_roll_integer",
-  "exp",
-  "floor",
-  "hermite_blend",
-  "lerp",
-  "lerprotate",
-  "ln",
-  "max",
-  "min",
-  "min_angle",
-  "mod",
-  "pi",
-  "pow",
-  "random",
-  "random_integer",
-  "round",
-  "sin",
-  "sqrt",
-  "trunc",
-  "acosh",
-  "asinh",
-  "atanh",
-  "cosh",
-  "sinh",
-  "tan",
-  "tanh",
-];
-function mtParse(string) {
-  mathFuncs.forEach((f) => {
-    if (f == "pi") string = string.replaceAll(f, "math." + f);
-    else string = string.replaceAll(f + "(", "math." + f + "(");
-  });
-  return string.replaceAll("amath.", "a");
-}
 
 export default action("xyzmathsurfacefunction", () => {
   let options = {};
@@ -169,10 +83,18 @@ export default action("xyzmathsurfacefunction", () => {
       },
     },
     onConfirm(out) {
-      out.x = mtParse(out.x);
-      out.y = mtParse(out.y);
-      out.z = mtParse(out.z);
-      currentMTVariablesTextContent = mtParse(out.variables);
+      const declarations = out.variables.split(`\n`);
+      const declarationsMap = {};
+      for (const declaration of declarations) {
+        let [key, val] = declaration.split(/=(.+)/);
+        key = key.replace(/[\s;]/g, "");
+
+        if (val !== undefined) {
+          val = val.trim();
+          declarationsMap[key] = val;
+        }
+      }
+
       function runEdit(s, amended = false) {
         let elements = [];
         Undo.initEdit({ elements, selection: true }, amended);
@@ -198,11 +120,21 @@ export default action("xyzmathsurfacefunction", () => {
           for (let i = 0; i < uRange; i++) {
             let u = umin + i * uinc;
 
-            mtMolangParser.global_variables = { "p.u": u, "p.v": v };
+            const context = {};
+            context["p"] = { u, v };
+            // Disable overwriting
+            Object.defineProperty(context, "p", { configurable: false, writable: false });
+            Object.defineProperty(context.p, "u", { configurable: false, writable: false });
+            Object.defineProperty(context.p, "v", { configurable: false, writable: false });
 
-            let x = mtMolangParser.parse(out.x) * out.scale;
-            let y = mtMolangParser.parse(out.y) * out.scale;
-            let z = mtMolangParser.parse(out.z) * out.scale;
+            for (const key in declarationsMap) {
+              const rawValue = declarationsMap[key];
+              context[key] = math.evaluate(rawValue, context);
+            }
+
+            let x = +math.evaluate(out.x, context) * out.scale;
+            let y = +math.evaluate(out.y, context) * out.scale;
+            let z = +math.evaluate(out.z, context) * out.scale;
             if (isNaN(x) || Math.abs(x) === Infinity) {
               x = 0;
             }

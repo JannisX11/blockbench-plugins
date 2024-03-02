@@ -4,7 +4,7 @@
 - [x] Better English
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator
-	- [ ] Use a math parser for XYZ surface generator.
+	- [x] Use a math parser for XYZ surface generator.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.

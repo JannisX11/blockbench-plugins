@@ -1,5 +1,5 @@
 
-This plugin adds **powerful** modeling tools, operators, and generators into to your Blockbench.
+This plugin adds **powerful** mesh modeling tools, operators, and generators into to your Blockbench.
 By installing the plugin, you get:
 <div style="display: flex;flex-direction: column;">
 <a style="padding-inline-start: 0px" href="#mesh_tools-action-to_sphere"><div style="display: inline-flex;align-items:center;gap: 5px;">
