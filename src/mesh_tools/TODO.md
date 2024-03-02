@@ -1,17 +1,19 @@
 - [x] Modularize
-- [ ] Better about description + Descriptive actions' descriptions
-- [ ] Better English
+- [x] Better about description + Descriptive actions' descriptions
+- [ ] Implement checkboxes for amend menus that had used numbers. 
+- [x] Better English
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator
 	- [ ] Use a math parser for XYZ surface generator.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.
-	- [ ] Triangles To Quads: Rewrite + Preserve selection.
+- [ ] Triangles To Quads: Rewrite + Preserve selection.
 	- [ ] Triangulate Faces: Preserve selection.
 	- [ ] Expand/Shrink Selection: Enable for face and edge modes.
 	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
+	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge
 - [ ] Create an attractive logo

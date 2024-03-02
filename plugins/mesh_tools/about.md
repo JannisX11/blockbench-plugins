@@ -1,111 +1,466 @@
-<div class="mtools_private">
-	<style>
-		.mtools_private td:nth-child(2) {
-			padding-left: 20px;
-		}
-		.mtools_private summary {
-			color: var(--color-subtle_text);
-		}
-		.mtools_private details[open] summary {
-			color: white;
-		}
-		.mtools_private summary::before {
-			content: 'chevron_right';
-			font-family: Material Icons;
-		}
-		.mtools_private details[open] summary::before {
-			content: 'expand_more';
-		}
-	</style>
-	<details>
-		<summary>Modeling Tools</summary>
-		<table>
-			<caption class='small_text subtle'>
-				Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces
-			</caption>
-			<tr>
-				<td>To Sphere</td>
-				<td>Casts selected vertices into a sphere based on an influence</td>
-			</tr>
-			<tr>
-				<td>Laplacian Smooth</td>
-				<td>Smoothens selected vertices by averaging the position of neighboring vertices</td>
-			</tr>
-			<tr></tr>
-			<tr>
-				<td>Poke Faces</td>
-				<td> Creates a Fan out of selected faces</td>
-			</tr>
-			<tr>
-				<td>Triangles To Quads</td>
-				<td> Trys to dissolve adjacent triangles into a quad</td>
-			</tr>
-			<tr>
-				<td>Triangulate Faces</td>
-				<td> Cuts a face into triangles</td>
-			</tr>
-			<tr>
-				<td>Project From View</td>
-				<td> Creates a UV map based on the vertices' position on the screen from the camera</td>
-			</tr>
-			<tr>
-				<td>Cubic Projection</td>
-				<td> Creates a UV map based on the sides of a cube</td>
-			</tr>
-		</table>
-	</details>
-	<details>
-		<summary>Modeling Operators</summary>
-		<table>
-			<caption class='small_text subtle'>Accessed from the mesh menu. For applying modifications on selected
-				meshes</caption>
-			<tr>
-				<td>Subdivide</td>
-				<td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td>
-			</tr>
-			<tr>
-				<td>Split Edges</td>
-				<td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges
-				</td>
-			</tr>
-			<tr>
-				<td>Scatter</td>
-				<td> Scatters selected meshes on the active mesh</t<d>
-			</tr>
-			<tr>
-				<td>Array</td>
-				<td> Creates an array of copies of the base object, with each copy being offset from the previous one
-				</td>
-			</tr>
-		</table>
-	</details>
-	<details>
-		<summary>Mesh Generators</summary>
-		<table>
-			<caption class='small_text subtle'>Accessed from the tool menu. For procedural mesh generation</caption>
-			<tr>
-				<td>Terrain</td>
-				<td> Generates Terrains procedurally with fully customized settings</td>
-			</tr>
-			<tr>
-				<td>Text Mesh</td>
-				<td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An
-						OpenTypeFont is a format for scalable computer fonts that are stored in JSON files, a good
-						converter is <a href="http://gero3.github.io/facetype.js/">gero3.github.io/facetype.js</a></i>
-				</td>
-			</tr>
-			<tr>
-				<td>XYZ Math Surface Function</td>
-				<td> Creates an xyz surface based on given inputs containing 23 already-made presets!</td>
-			</tr>
-			<tr>
-				<td>Polyhedron Primitive</td>
-				<td> Generate the basic 4 regular polyhedron with custom detail</td>
-			</tr>
-			<tr>
-				<td>Torus Knot Primitive</td>
-				<td>Generates a p-q torus knot with custom settings</td>
-			</tr>
-		</table>
-	</details>
+
+This plugin adds **powerful** modeling tools, operators, and generators into to your Blockbench.
+By installing the plugin, you get:
+<div style="display: flex;flex-direction: column;">
+<a style="padding-inline-start: 0px" href="#mesh_tools-action-to_sphere"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-laplacian_smooth"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-poke"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-tris_to_quad"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-external-link-square-alt"></i> <b>Triangles To Quadrilaterals</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-triangulate"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">pie_chart_outline</i> <b>Triangulate Faces</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-uv_mapping"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
+  </div></a><a style="padding-inline-start: 24px" href="#mesh_tools-action-uv_project_view"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
+  </div></a><a style="padding-inline-start: 24px" href="#mesh_tools-action-uv_turnaround_projection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">open_with</i> <b>Cubic Projection</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-expand_selection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">unfold_more_double</i> <b>Expand Selection</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-shrink_selection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">unfold_less_double</i> <b>Shrink Selection</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-subdivide"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">content_cut</i> <b>Subdivide</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-split_edges"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">vertical_split</i> <b>Split Edges</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-scatter"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">scatter_plot</i> <b>Scatter</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-array_elements"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-layer-group"></i> <b>Array</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-terrain_action"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-terrainse"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">draw</i> <b>Terrain Style Editor</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-textmesh"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">format_size</i> <b>Text Mesh</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-xyzmathsurfacefunction"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-brain"></i> <b>XYZ Math Surface</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-quickprimitives"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
+  </div></a><a style="padding-inline-start: 24px" href="#mesh_tools-action-polyhedron"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">offline_bolt</i> <b>Polyhedron</b>
+  </div></a><a style="padding-inline-start: 24px" href="#mesh_tools-action-torusknot"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">offline_bolt</i> <b>Torus Knot</b>
+  </div></a>
 </div>
+
+### Modeling Tools
+For applying modifications on selected vertices, edges or faces. (accessed from the mesh menu)
+
+<section id="mesh_tools-action-to_sphere">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Casts selected vertices into a smooth, spherical shape with adjustable influence.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/to_sphere_1_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/to_sphere_1_after.png" />
+<figcaption>After</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/to_sphere_2_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/to_sphere_2_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-laplacian_smooth">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Smoothens selected vertices by averaging the position of neighboring vertices.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/laplacian_smooth_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/laplacian_smooth_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-poke">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Generates a fan out of a face.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/poke_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/poke_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-tris_to_quad">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-external-link-square-alt"></i> <b>Triangles To Quadrilaterals</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Attempts to merge adjacent triangles into quadrilaterals.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/tris_to_quad_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/tris_to_quad_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-triangulate">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">pie_chart_outline</i> <b>Triangulate Faces</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Splits selected faces into triangles.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/triangulate_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/triangulate_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-uv_project_view">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
+  </div>
+</span>
+<p>Projects the selected faces to the UV map from the camera.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/uv_project_view_solid.png" />
+<figcaption>Mesh</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/uv_project_view_uv.png" />
+<figcaption>Uv</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-uv_turnaround_projection">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">open_with</i> <b>Cubic Projection</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
+  </div>
+</span>
+<p>Unwraps the UV map from the 6 sides of a cube.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/uv_turnaround_projection_solid.png" />
+<figcaption>Mesh</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/uv_turnaround_projection_uv.png" />
+<figcaption>Uv</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-expand_selection">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">unfold_more_double</i> <b>Expand Selection</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Expands the selection with neighboring vertices.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+
+</div>
+</section>
+
+<section id="mesh_tools-action-shrink_selection">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">unfold_less_double</i> <b>Shrink Selection</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>Shrinks the selection with neighboring vertices.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+
+</div>
+</section>
+
+
+### Modeling Operators
+For applying modifications on selected meshes. (accessed from the mesh menu)
+
+<section id="mesh_tools-action-subdivide">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">content_cut</i> <b>Subdivide</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
+  </div>
+</span>
+<p>Splits the faces of a mesh into smaller faces, giving it a smooth appearance.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/subdivide_before.png" />
+<figcaption>Before</figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/subdivide_after.png" />
+<figcaption>After</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-split_edges">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">vertical_split</i> <b>Split Edges</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
+  </div>
+</span>
+<p>Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/split_edges.png" />
+<figcaption></figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-scatter">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">scatter_plot</i> <b>Scatter</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
+  </div>
+</span>
+<p>Scatters selected meshes on the active mesh.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/scatter.png" />
+<figcaption></figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-array_elements">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-layer-group"></i> <b>Array</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
+  </div>
+</span>
+<p>Generates an array of copies of the base object, with each copy being offset from the previous one.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/array.png" />
+<figcaption></figcaption>
+</figure>
+</div>
+</section>
+
+
+### Mesh Generators
+For procedural mesh generation (accessed from the tools menu)
+
+<section id="mesh_tools-action-terrain_action">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div>
+</span>
+<p>Generates terrains procedurally with fully customized settings.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/terrain_solid.png" />
+<figcaption></figcaption>
+</figure>
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/terrain_wire.png" />
+<figcaption></figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-terrainse">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">draw</i> <b>Terrain Style Editor</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div>
+</span>
+<p>Configure the Custom color gradient style of the terrain generator.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+
+</div>
+</section>
+
+<section id="mesh_tools-action-textmesh">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">format_size</i> <b>Text Mesh</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div>
+</span>
+<p>Converts text into a 3D object, ideal for creating signs or logos.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/text.png" />
+<figcaption>"Butcher" expressed in Chinese</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-xyzmathsurfacefunction">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-brain"></i> <b>XYZ Math Surface</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div>
+</span>
+<p>Generates an xyz surface based on mathematical equations containing 23 pre-built presets!</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/xyz.png" />
+<figcaption>Twisted Torus Preset</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-polyhedron">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">offline_bolt</i> <b>Polyhedron</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
+  </div>
+</span>
+<p>Generate a polyhedron such as an Icosahedron, a Dodecahedron, an Octahedron or a Tetrahedron.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/polyhedron.png" />
+<figcaption>Icosahedron</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-torusknot">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">offline_bolt</i> <b>Torus Knot</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
+  </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
+  </div>
+</span>
+<p>Generate a Torus Knot with fully customized settings.</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="http://127.0.0.1:5500/src/mesh_tools/assets/actions/torus_knot.png" />
+<figcaption></figcaption>
+</figure>
+</div>
+</section>
+
+
+&minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209?v=4"> Malik12tree

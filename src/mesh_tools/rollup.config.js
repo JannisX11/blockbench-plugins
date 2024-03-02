@@ -1,9 +1,12 @@
 // import terser from "@rollup/plugin-terser";
 import jsonc from "rollup-plugin-jsonc";
-import copy from "rollup-plugin-copy";
 import globImport from "rollup-plugin-glob-import";
-import nodeResolve from 'rollup-plugin-node-resolve';
+import nodeResolve from "rollup-plugin-node-resolve";
+import aboutPlugin from "./builders/about.plugin.js";
 
+/**
+ * @type {import("rollup").RollupOptions}
+ */
 export default {
   input: "src/index.js",
   output: [
@@ -16,9 +19,6 @@ export default {
     nodeResolve(),
     jsonc(),
     globImport(),
-    // terser(),
-    copy({
-      targets: [{ src: "src/about.md", dest: "../../plugins/mesh_tools" }],
-    }),
+    aboutPlugin,
   ],
 };
