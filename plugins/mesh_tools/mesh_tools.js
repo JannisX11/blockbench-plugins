@@ -892,7 +892,7 @@
 
   action("uv_mapping");
 
-  function runEdit$7(preview, preseveAspect, amend) {
+  function runEdit$7(preview, preserveAspect, amend) {
     const { width, height, camera } = preview;
 
     Undo.initEdit(
@@ -905,7 +905,7 @@
       amend
     );
 
-    const aspect = preseveAspect
+    const aspect = preserveAspect
       ? height / width
       : Math.max(width, height) / Math.min(width, height);
 
@@ -943,11 +943,9 @@
     Undo.amendEdit(
       {
         preserve_aspect: {
-          type: "number",
-          value: 1,
+          type: "checkbox",
+          value: true,
           label: "Preserve Aspect",
-          min: 0,
-          max: 1,
         },
       },
       (form) => runEdit$7(preview, form.preserve_aspect, true)
@@ -1074,7 +1072,7 @@
           min: 0,
           max: 100,
         },
-        split: { type: "number", label: "Split", value: 1, min: 0, max: 1 },
+        split: { type: "checkbox", label: "Split", value: true },
       },
       (form) => {
         runEdit$6(form.margin, form.split, true);

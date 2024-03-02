@@ -121,7 +121,7 @@ export default action("uv_turnaround_projection", () => {
         min: 0,
         max: 100,
       },
-      split: { type: "number", label: "Split", value: 1, min: 0, max: 1 },
+      split: { type: "checkbox", label: "Split", value: true },
     },
     (form) => {
       runEdit(form.margin, form.split, true);

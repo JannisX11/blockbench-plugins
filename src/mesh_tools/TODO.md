@@ -1,6 +1,6 @@
 - [x] Modularize
 - [x] Better about description + Descriptive actions' descriptions
-- [ ] Implement checkboxes for amend menus that had used numbers. 
+- [x] Implement checkboxes for amend menus that simulated numbers as toggles. 
 - [x] Better English
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator

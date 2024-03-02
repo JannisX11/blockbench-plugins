@@ -1,7 +1,7 @@
 import { action } from "../../actions.js";
 import { worldToScreen } from "../../utils/utils.js";
 
-function runEdit(preview, preseveAspect, amend) {
+function runEdit(preview, preserveAspect, amend) {
   const { width, height, camera } = preview;
 
   Undo.initEdit(
@@ -14,7 +14,7 @@ function runEdit(preview, preseveAspect, amend) {
     amend
   );
 
-  const aspect = preseveAspect
+  const aspect = preserveAspect
     ? height / width
     : Math.max(width, height) / Math.min(width, height);
 
@@ -52,11 +52,9 @@ export default action("uv_project_view", () => {
   Undo.amendEdit(
     {
       preserve_aspect: {
-        type: "number",
-        value: 1,
+        type: "checkbox",
+        value: true,
         label: "Preserve Aspect",
-        min: 0,
-        max: 1,
       },
     },
     (form) => runEdit(preview, form.preserve_aspect, true)
