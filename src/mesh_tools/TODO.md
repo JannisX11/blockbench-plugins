@@ -6,7 +6,8 @@
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator
 	- [x] Use a math parser for XYZ surface generator.
-	- [ ] XYZ surface generator: Include variables as sliders.
+	- [x] XYZ surface generator: Include variables as sliders.
+	- [ ] XYZ surface generator: Ability to save multiple presets.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.

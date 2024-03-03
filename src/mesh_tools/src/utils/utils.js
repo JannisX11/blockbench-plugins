@@ -294,3 +294,8 @@ export function freezeProperty(object, key) {
   Object.defineProperty(object, key, { configurable: false, writable: false });
   return object;
 }
+export function snakeToPascal(subject) {
+  return subject.split(/[_\s]+/g)
+    .map(word => word[0].toUpperCase() + word.slice(1))
+    .join(' ');
+}

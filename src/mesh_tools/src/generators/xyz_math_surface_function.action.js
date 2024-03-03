@@ -1,7 +1,7 @@
 import xyzpresets from "../../assets/xyz_presets.jsonc";
 import { action } from "../actions.js";
-import { Parser } from "expr-eval";
-import { freezeProperty } from "../utils/utils.js";
+import { Parser, Expression } from "expr-eval";
+import { freezeProperty, snakeToPascal } from "../utils/utils.js";
 const mathParser = new Parser({
   allowMemberAccess: true,
 });
@@ -10,6 +10,7 @@ mathParser.consts = {
   e: Math.E,
   PI: Math.PI,
   pi: Math.PI,
+  sq2: Math.SQRT2
 };
 
 export default action("xyzmathsurfacefunction", () => {
@@ -90,6 +91,10 @@ export default action("xyzmathsurfacefunction", () => {
     },
     onConfirm(out) {
       const declarations = out.variables.split(`\n`);
+
+      /**
+       * @type {{[P in string]: Expression }}
+       */
       const declarationsMap = {};
       for (const declaration of declarations) {
         let [key, val] = declaration.split(/=(.+)/);
@@ -97,11 +102,29 @@ export default action("xyzmathsurfacefunction", () => {
 
         if (val !== undefined) {
           val = val.trim();
-          declarationsMap[key] = val;
+          declarationsMap[key] = mathParser.parse(val);
+        }
+      }
+      /**
+       * Declarations that do not depend on other variable declarations.
+       * Examples of static declarations:
+       * ```
+       * a = 2; 
+       * b = 2 * pi;
+       * c = a * pi; // non static declaration
+       * ```
+       */
+      const staticDeclarations = [];
+      for (const key in declarationsMap) {
+        const variables = declarationsMap[key].variables();
+        if (variables.length == 0) {
+          staticDeclarations.push(key);
         }
       }
 
-      function runEdit(s, amended = false) {
+      function runEdit(s, overrideVariables = {}, amended = false) {
+        const declarationValues = {};
+
         let elements = [];
         Undo.initEdit({ elements, selection: true }, amended);
         let mesh = new Mesh({ vertices: {} });
@@ -142,8 +165,12 @@ export default action("xyzmathsurfacefunction", () => {
             freezeProperty(context.p, "v");
 
             for (const key in declarationsMap) {
-              const rawValue = declarationsMap[key];
-              context[key] = mathParser.evaluate(rawValue, context);
+              if (key in overrideVariables) {
+                declarationValues[key] = context[key] = overrideVariables[key];
+                continue;
+              }
+              const expression = declarationsMap[key];
+              declarationValues[key] = context[key] = expression.evaluate(context);
             }
 
             let x = +mathParser.evaluate(out.x, context) * out.scale;
@@ -234,15 +261,29 @@ export default action("xyzmathsurfacefunction", () => {
         elements.push(mesh);
         mesh.select();
         Undo.finishEdit("MTools: Generate Mesh");
+
+        return declarationValues;
       }
-      runEdit(out);
+      const declarationValues = runEdit(out);
       Undo.amendEdit(
         {
           uDivs: { label: "U divisions", value: out.uDivs, min: 2 },
           vDivs: { label: "V divisions", value: out.vDivs, min: 2 },
+
+          ...Object.fromEntries(staticDeclarations.map(key => ['@value/' +key, {
+            label: snakeToPascal(key),
+            value: declarationValues[key],
+            step: 0.1
+          }])),
         },
         (form) => {
-          runEdit(form, true);
+          const variables = {};
+          for (const key in form) {
+            if (key.startsWith('@value/')) {
+              variables[key.substring('@value/'.length)] = form[key];
+            }
+          }
+          runEdit(form, variables, true);
         }
       );
     },
