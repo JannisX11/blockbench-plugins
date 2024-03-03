@@ -1,6 +1,7 @@
 import { action } from "../actions.js";
 import { TerrainGen } from "../utils/terrain_gen.js";
-import { compileRGB, easeInOutSine, perlin } from "../utils/utils.js";
+import { parseRGB, easeInOutSine } from "../utils/utils.js";
+import { perlin } from "../utils/perlin.js";
 
 new TerrainGen({
   name: "Open Terrain",
@@ -256,7 +257,7 @@ export default action("terrain_action", () => {
           );
 
         const customStyle = JSON.parse(customStyleString);
-        customStyle.forEach((h) => (h.color = compileRGB(h.col)));
+        customStyle.forEach((h) => (h.color = parseRGB(h.col)));
         style = customStyle;
       }
       let terrain = TerrainGen.all.find((e) => e.codeName == _out.terrain);

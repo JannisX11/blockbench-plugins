@@ -1,6 +1,11 @@
 import { action } from "../actions.js";
-import { Triangulate } from "../utils/utils.js";
+import { triangulate } from "../utils/utils.js";
 
+/**
+ * ! I'm very aware that BlockBench only supports quadrilaterals and triangles for faces.
+ * ! However, this action is kept for the future if higher vertex polygons are implemented.
+ * ! 
+ */
 export default action("triangulate", () => {
   Undo.initEdit({ elements: Mesh.selected, selection: true });
   /* selected meshes */
@@ -10,7 +15,7 @@ export default action("triangulate", () => {
       let face = mesh.faces[key];
       let SortedV = face.getSortedVertices();
       if (!(SortedV.length <= 3)) {
-        let triangles = Triangulate(
+        let triangles = triangulate(
           SortedV.map((a) => {
             return mesh.vertices[a];
           }),

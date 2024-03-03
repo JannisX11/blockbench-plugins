@@ -1,5 +1,5 @@
 import { action } from "../actions.js";
-import { normalOfTri, rotationFromDir } from "../utils/utils.js";
+import { computeTriangleNormal, rotationFromDirection } from "../utils/utils.js";
 
 function runEdit(mesh,selected, group, density, amend = false) {
   const meshes = [];
@@ -52,12 +52,12 @@ function runEdit(mesh,selected, group, density, amend = false) {
     otherMesh.parent = "root";
     Outliner.root.push(otherMesh);
 
-    const normal = normalOfTri(t0, t1, t2);
+    const normal = computeTriangleNormal(t0, t1, t2);
 
-    const rotation = rotationFromDir(normal);
-    otherMesh.rotation[0] = Math.radToDeg(rotation[0]);
-    otherMesh.rotation[1] = Math.radToDeg(rotation[1]);
-    otherMesh.rotation[2] = Math.radToDeg(rotation[2]);
+    const rotation = rotationFromDirection(normal, Reusable.euler1);
+    otherMesh.rotation[0] = Math.radToDeg(rotation.x);
+    otherMesh.rotation[1] = Math.radToDeg(rotation.y);
+    otherMesh.rotation[2] = Math.radToDeg(rotation.z);
 
     otherMesh.origin = pointF.toArray();
 

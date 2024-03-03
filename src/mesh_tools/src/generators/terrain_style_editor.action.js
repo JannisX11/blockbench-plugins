@@ -1,6 +1,6 @@
 import { action } from "../actions.js";
 import { TerrainGen } from "../utils/terrain_gen.js";
-import { compileRGB, gradient256 } from "../utils/utils.js";
+import { parseRGB, gradient256 } from "../utils/utils.js";
 
 // wtf.
 // TODO clean the code.
@@ -163,7 +163,7 @@ export default action("terrainse", () => {
       customStyle.push({
         height: currentHeight / 100,
         col: currentColor,
-        color: compileRGB(currentColor),
+        color: parseRGB(currentColor),
         blend: currentBlend / 100,
       });
     }

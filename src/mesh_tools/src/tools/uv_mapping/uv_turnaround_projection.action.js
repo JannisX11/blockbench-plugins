@@ -1,5 +1,5 @@
 import { action } from "../../actions.js";
-import { getEqualRes } from "../../utils/utils.js";
+import { getMinProjectTextureSize } from "../../utils/utils.js";
 
 function runEdit(margin, split, amend) {
   /* selected meshes */
@@ -60,7 +60,7 @@ function runEdit(margin, split, amend) {
         selectionBound.min[i] = positions.last()[i] - positions[0][i] + 0.0001;
       }
       let x = 0;
-      let S_res = getEqualRes();
+      let S_res = getMinProjectTextureSize();
       let _margin = 1 - margin / 100;
       for (const key in gatheredDirs) {
         x++;

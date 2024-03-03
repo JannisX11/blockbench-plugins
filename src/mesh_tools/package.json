@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"author": "Malik12tree",
 	"description": "Mesh Tools Plugin",
-	"private": true,
+	"main": "src/index.js",
 	"type": "module",
 	"scripts": {
 		"build": "rollup --config rollup.config.js",
@@ -13,6 +13,7 @@
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-terser": "^0.4.4",
+		"blockbench-types": "^4.9.0",
 		"fast-glob": "^3.3.2",
 		"rollup-plugin-copy": "^3.5.0",
 		"rollup-plugin-copy-watch": "^0.0.1",
