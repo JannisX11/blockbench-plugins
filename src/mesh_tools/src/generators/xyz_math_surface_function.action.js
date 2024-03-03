@@ -1,10 +1,16 @@
 import xyzpresets from "../../assets/xyz_presets.jsonc";
 import { action } from "../actions.js";
-import { create, all } from "mathjs";
-const math = create(all);
-math.import({
-  ln: math.log
+import { Parser } from "expr-eval";
+import { freezeProperty } from "../utils/utils.js";
+const mathParser = new Parser({
+  allowMemberAccess: true,
 });
+mathParser.consts = {
+  E: Math.E,
+  e: Math.E,
+  PI: Math.PI,
+  pi: Math.PI,
+};
 
 export default action("xyzmathsurfacefunction", () => {
   let options = {};
@@ -120,21 +126,29 @@ export default action("xyzmathsurfacefunction", () => {
           for (let i = 0; i < uRange; i++) {
             let u = umin + i * uinc;
 
-            const context = {};
-            context["p"] = { u, v };
+            const context = {
+              u,
+              v,
+              /**
+               * Backwards compatibility for p.u and p.v
+               */
+              p: { u, v },
+            };
             // Disable overwriting
-            Object.defineProperty(context, "p", { configurable: false, writable: false });
-            Object.defineProperty(context.p, "u", { configurable: false, writable: false });
-            Object.defineProperty(context.p, "v", { configurable: false, writable: false });
+            freezeProperty(context, "u");
+            freezeProperty(context, "v");
+            freezeProperty(context, "p");
+            freezeProperty(context.p, "u");
+            freezeProperty(context.p, "v");
 
             for (const key in declarationsMap) {
               const rawValue = declarationsMap[key];
-              context[key] = math.evaluate(rawValue, context);
+              context[key] = mathParser.evaluate(rawValue, context);
             }
 
-            let x = +math.evaluate(out.x, context) * out.scale;
-            let y = +math.evaluate(out.y, context) * out.scale;
-            let z = +math.evaluate(out.z, context) * out.scale;
+            let x = +mathParser.evaluate(out.x, context) * out.scale;
+            let y = +mathParser.evaluate(out.y, context) * out.scale;
+            let z = +mathParser.evaluate(out.z, context) * out.scale;
             if (isNaN(x) || Math.abs(x) === Infinity) {
               x = 0;
             }

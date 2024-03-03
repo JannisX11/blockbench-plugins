@@ -2,12 +2,15 @@
 - [x] Better about description + Descriptive actions' descriptions
 - [x] Implement checkboxes for amend menus that simulated numbers as toggles. 
 - [x] Better English
+- [ ] Better utilities
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator
 	- [x] Use a math parser for XYZ surface generator.
+	- [ ] XYZ surface generator: Include variables as sliders.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.
+	- [ ] New Bridge Loops
 - [ ] Triangles To Quads: Rewrite + Preserve selection.
 	- [ ] Triangulate Faces: Preserve selection.
 	- [ ] Expand/Shrink Selection: Enable for face and edge modes.

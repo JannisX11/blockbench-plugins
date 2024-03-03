@@ -3,7 +3,7 @@ import { ACTIONS } from "../src/actions.js";
 
 export default {
   buildStart: async function () {
-    const ASSETS_URL = "http://127.0.0.1:5500/src/mesh_tools";
+    const getURL = e => "https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/" + e + "?raw=true";
 
     const tableOfContents = [];
     function iter(renders, parents, node) {
@@ -44,7 +44,7 @@ ${
         .map(
           ({ src, caption = "" }) =>
             `<figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="${ASSETS_URL}/assets/actions/${src}" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="${getURL(`assets/actions/${src}`)}" />
 <figcaption>${caption}</figcaption>
 </figure>`
         )

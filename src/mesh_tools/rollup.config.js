@@ -1,4 +1,4 @@
-// import terser from "@rollup/plugin-terser";
+import terser from "@rollup/plugin-terser";
 import jsonc from "rollup-plugin-jsonc";
 import globImport from "rollup-plugin-glob-import";
 import nodeResolve from "@rollup/plugin-node-resolve";
@@ -19,8 +19,9 @@ export default {
   plugins: [
     globImport(),
     jsonc(),
-    commonjs(),
+    commonjs({sourceMap: false}),
     nodeResolve(),
+    terser(),
     aboutPlugin,
   ],
 };

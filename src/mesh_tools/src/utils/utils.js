@@ -289,3 +289,8 @@ export function getFaceUVCenter(face) {
 export function utoa(data) {
   return btoa(unescape(encodeURIComponent(data)));
 }
+
+export function freezeProperty(object, key) {
+  Object.defineProperty(object, key, { configurable: false, writable: false });
+  return object;
+}
