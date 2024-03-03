@@ -12,11 +12,12 @@
 - [ ] MTools Tools:
 	- [ ] Poke Faces: Add new and old vertices to selection.
 	- [ ] New Bridge Loops
-- [ ] Triangles To Quads: Rewrite + Preserve selection.
+	- [ ] Triangles To Quads: Rewrite + Preserve selection.
 	- [ ] Triangulate Faces: Preserve selection.
 	- [ ] Expand/Shrink Selection: Enable for face and edge modes.
 	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
+	- [ ] Scatter: Improve scattered mesh rotation to accurately follow face
 	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge

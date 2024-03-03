@@ -1,10 +1,22 @@
 export const gradient256 = {};
 for (let x = 0; x < 256; x++) gradient256[[x, 0]] = x / 255;
 
-const _m_ = new THREE.Mesh();
-export function rotationFromDir(vector) {
-  _m_.lookAt(vector);
-  return _m_.rotation;
+/**
+ * 
+ * @param {THREE.Vector3} vector 
+ * @returns {THREE.Euler}
+ */
+const reusableObject = new THREE.Object3D();
+reusableObject.rotation.order = 'XYZ';
+export function rotationFromDir(target) {
+  reusableObject.lookAt(target);
+  reusableObject.rotateX(Math.degToRad(90)); 
+
+  return [
+    reusableObject.rotation.x,
+    reusableObject.rotation.y,
+    reusableObject.rotation.z,
+  ];
 }
 export function normalOfTri(A, B, C) {
   const { vec1, vec2, vec3, vec4 } = Reusable;

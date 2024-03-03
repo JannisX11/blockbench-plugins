@@ -1,19 +1,20 @@
 import { action } from "../actions.js";
 import { normalOfTri, rotationFromDir } from "../utils/utils.js";
 
-function runEdit(mesh, group, density, amend = false) {
+function runEdit(mesh,selected, group, density, amend = false) {
   const meshes = [];
   Undo.initEdit({ elements: meshes, selection: true, group }, amend);
-
+  /**
+   * @type {THREE.Mesh}
+   */
   const tmesh = mesh.mesh; // threejs mesh
 
   const faces = tmesh.geometry.getIndex();
   const vertices = tmesh.geometry.getAttribute("position");
   const l = faces.count;
 
-  let selected = Mesh.selected;
   for (let d = 0; d < density; d++) {
-    const i = Math.round((Math.random() * l) / 3) * 3; // random face index
+    const i = Math.floor((Math.random() * l) / 3) * 3; // random face index
     const t0 = new THREE.Vector3(
       vertices.getX(faces.getX(i)),
       vertices.getY(faces.getX(i)),
@@ -54,9 +55,9 @@ function runEdit(mesh, group, density, amend = false) {
     const normal = normalOfTri(t0, t1, t2);
 
     const rotation = rotationFromDir(normal);
-    otherMesh.rotation[0] = Math.radToDeg(rotation.x);
-    otherMesh.rotation[1] = Math.radToDeg(rotation.y);
-    otherMesh.rotation[2] = Math.radToDeg(rotation.z);
+    otherMesh.rotation[0] = Math.radToDeg(rotation[0]);
+    otherMesh.rotation[1] = Math.radToDeg(rotation[1]);
+    otherMesh.rotation[2] = Math.radToDeg(rotation[2]);
 
     otherMesh.origin = pointF.toArray();
 
@@ -78,7 +79,8 @@ export default action("scatter", function () {
   const group = new Group({ name: "instances_on_" + mesh.name });
   group.init();
 
-  runEdit(mesh, group, 3);
+  const selected = Mesh.selected.slice();
+  runEdit(mesh, selected, group, 3);
 
   Undo.amendEdit(
     {
@@ -91,7 +93,7 @@ export default action("scatter", function () {
       },
     },
     (form) => {
-      runEdit(mesh, group, form.density, true);
+      runEdit(mesh, selected, group, form.density, true);
     }
   );
 });

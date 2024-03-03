@@ -21,7 +21,7 @@ export default {
     jsonc(),
     commonjs({sourceMap: false}),
     nodeResolve(),
-    terser(),
+    // terser(),
     aboutPlugin,
   ],
 };
