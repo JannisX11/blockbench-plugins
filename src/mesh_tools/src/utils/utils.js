@@ -155,8 +155,8 @@ export function triangulate(polygon, normal) {
       const pointA = vertices[c].clone().sub(vertices[a]);
       const pointB = vertices[b].clone().sub(vertices[a]);
 
-      const dot = pointA.x * pointB.x + pointA.z * pointB.z;
-      const isConcave = dot < 0;
+      const cross = pointA.x * pointB.z - pointA.z * pointB.x;
+      const isConcave = cross > 0;
       if (isConcave) continue;
 
       let someVertexLiesInsideEar = false;
@@ -224,4 +224,80 @@ export function snakeToPascal(subject) {
     .split(/[_\s]+/g)
     .map((word) => word[0].toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+export function minIndex(array) {
+  let minI = -1;
+  let minValue = Infinity;
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i];
+
+    if (value <= minValue) {
+      minValue = value;
+      minI = i;
+    }
+  }
+  return minI;
+}
+/**
+ *
+ * @param {ArrayVector3[]} points
+ * @returns {boolean}
+ */
+export function isValidQuad(points) {
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      if (
+        points[i][0] === points[j][0] &&
+        points[i][1] === points[j][1] &&
+        points[i][2] === points[j][2]
+      ) {
+        return false;
+      }
+    }
+  }
+
+  let prevIsConcave = undefined;
+  for (let i = 0; i < points.length; i++) {
+    const prev = points[(i - 1 + points.length) % points.length];
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+
+    const edge1 = prev.V3_toThree().sub(current.V3_toThree());
+    const edge2 = next.V3_toThree().sub(current.V3_toThree());
+
+    const cross = edge1.cross(edge2);
+    const isConcave = cross.x - cross.y - cross.z > 0;
+    if (prevIsConcave !== undefined && isConcave !== prevIsConcave) {
+      return false;
+    }
+    prevIsConcave = isConcave;
+  }
+  return true;
+}
+
+export function permute(arr) {
+  const results = [];
+
+  // Base cases:
+  if (arr.length === 1) {
+    return [arr];
+  } else if (arr.length === 0) {
+    return [];
+  }
+
+  for (let i = 0; i < arr.length; i++) {
+    // Remove the current element from the array
+    const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+
+    // Get permutations of the remaining elements
+    const remainingPermutations = permute(remaining);
+
+    // Prepend the current element to each permutation
+    for (const permutation of remainingPermutations) {
+      results.push([arr[i]].concat(permutation));
+    }
+  }
+
+  return results;
 }

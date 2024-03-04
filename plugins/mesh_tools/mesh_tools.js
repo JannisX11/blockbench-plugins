@@ -328,21 +328,6 @@
     string = string.split(",");
     return new THREE.Color(string[0] / 255, string[1] / 255, string[2] / 255);
   }
-  function roundVector(vec) {
-    return vec.map((e) => Math.roundTo(e, 5));
-  }
-  function areVectorsCollinear(v1, v2) {
-    v1 = roundVector(v1);
-    v2 = roundVector(v2);
-
-    const cross = Reusable.vec1.fromArray(v1).cross(Reusable.vec2.fromArray(v2));
-    for (let i = 0; i < 3; i++) {
-      if (!Math.isBetween(cross[getAxisLetter(i)], -0.005, 0.005)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   function easeInOutSine(x) {
     return -(Math.cos(Math.PI * x) - 1) / 2;
@@ -441,8 +426,8 @@
         const pointA = vertices[c].clone().sub(vertices[a]);
         const pointB = vertices[b].clone().sub(vertices[a]);
 
-        const dot = pointA.x * pointB.x + pointA.z * pointB.z;
-        const isConcave = dot < 0;
+        const cross = pointA.x * pointB.z - pointA.z * pointB.x;
+        const isConcave = cross > 0;
         if (isConcave) continue;
 
         let someVertexLiesInsideEar = false;
@@ -512,6 +497,56 @@
       .join(" ");
   }
 
+  function minIndex(array) {
+    let minI = -1;
+    let minValue = Infinity;
+    for (let i = 0; i < array.length; i++) {
+      const value = array[i];
+
+      if (value <= minValue) {
+        minValue = value;
+        minI = i;
+      }
+    }
+    return minI;
+  }
+  /**
+   *
+   * @param {ArrayVector3[]} points
+   * @returns {boolean}
+   */
+  function isValidQuad(points) {
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        if (
+          points[i][0] === points[j][0] &&
+          points[i][1] === points[j][1] &&
+          points[i][2] === points[j][2]
+        ) {
+          return false;
+        }
+      }
+    }
+
+    let prevIsConcave = undefined;
+    for (let i = 0; i < points.length; i++) {
+      const prev = points[(i - 1 + points.length) % points.length];
+      const current = points[i];
+      const next = points[(i + 1) % points.length];
+
+      const edge1 = prev.V3_toThree().sub(current.V3_toThree());
+      const edge2 = next.V3_toThree().sub(current.V3_toThree());
+
+      const cross = edge1.cross(edge2);
+      const isConcave = cross.x - cross.y - cross.z > 0;
+      if (prevIsConcave !== undefined && isConcave !== prevIsConcave) {
+        return false;
+      }
+      prevIsConcave = isConcave;
+    }
+    return true;
+  }
+
   action("expand_selection", () => {
     Mesh.selected.forEach((mesh) => {
       const neighborMap = computeVertexNeighborhood(mesh);
@@ -526,7 +561,7 @@
     Canvas.updateView({ elements: Mesh.selected, selection: true });
   });
 
-  function runEdit$a(amend = false, influence = 1, iterations = 1) {
+  function runEdit$b(amend = false, influence = 1, iterations = 1) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
     Mesh.selected.forEach((mesh) => {
@@ -568,7 +603,7 @@
   }
 
   action("laplacian_smooth", () => {
-    runEdit$a();
+    runEdit$b();
     Undo.amendEdit(
       {
         influence: {
@@ -586,11 +621,11 @@
           max: 10,
         },
       },
-      (form) => runEdit$a(true, form.influence / 100, form.iterations)
+      (form) => runEdit$b(true, form.influence / 100, form.iterations)
     );
   });
 
-  function runEdit$9(amended, depth = 0) {
+  function runEdit$a(amended, depth = 0) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amended);
     /* selected meshes */
     Mesh.selected.forEach((mesh) => {
@@ -627,13 +662,13 @@
   }
 
   action("poke", () => {
-    runEdit$9(false);
+    runEdit$a(false);
     Undo.amendEdit(
       {
         depth: { type: "number", value: 0, label: "Depth" },
       },
       (form) => {
-        runEdit$9(true, form.depth);
+        runEdit$a(true, form.depth);
       }
     );
   });
@@ -662,7 +697,7 @@
     Canvas.updateView({ elements: Mesh.selected, selection: true });
   });
 
-  function runEdit$8(amend, influence = 100) {
+  function runEdit$9(amend, influence = 100) {
     influence /= 100;
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
     /* selected meshes */
@@ -711,7 +746,7 @@
   }
 
   action("to_sphere", () => {
-    runEdit$8(false, 100);
+    runEdit$9(false, 100);
     Undo.amendEdit(
       {
         influence: {
@@ -723,7 +758,7 @@
         },
       },
       (form) => {
-        runEdit$8(true, form.influence);
+        runEdit$9(true, form.influence);
       }
     );
   });
@@ -771,62 +806,108 @@
     });
   });
 
-  action("tris_to_quad", () => {
-    Undo.initEdit({ elements: Mesh.selected, selection: true });
+  function runEdit$8(maxAngle, ignoreDisjointUVs = true, amend = false) {
+    Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
     /* selected meshes */
     Mesh.selected.forEach((mesh) =>
       /* selected faces */
-      mesh.getSelectedFaces().forEach((_face) => {
-        const face = mesh.faces[_face];
+      mesh.getSelectedFaces().forEach((faceKey) => {
+        const face = mesh.faces[faceKey];
 
         if (!face || face.vertices.length != 3) return;
 
+        const vertices = face.getSortedVertices().slice();
+        const faceNormal = face.getNormal(true);
+
+        const adjacentFacesEdges = [];
         const adjacentFaces = [];
-        const vertices = face.getSortedVertices();
-        const faceNormal = face.getNormal();
-
+        const adjacentFaceKeys = [];
+        const adjacentFacesIndices = [];
         for (let i = 0; i < 3; i++) {
-          const currentAjcFaceData = face.getAdjacentFace(i);
-          if (!currentAjcFaceData) continue;
+          const currentAdjacentFaceData = face.getAdjacentFace(i);
 
-          const currentAjcFaceKey = currentAjcFaceData.key;
-          const currentAjcFace = currentAjcFaceData.face;
+          if (!currentAdjacentFaceData) continue;
 
-          adjacentFaces.push(currentAjcFaceKey);
+          const currentAdjacentFace = currentAdjacentFaceData.face;
+          const currentAdjacentFaceKey = currentAdjacentFaceData.key;
+          const currentAdjacentFaceEdge = currentAdjacentFaceData.edge;
 
-          if (currentAjcFace?.vertices?.length != 3) continue;
-          if (i != 0 && adjacentFaces.last() == adjacentFaces[i]) break;
-
-          // Check Normals
+          if (currentAdjacentFace.vertices.length != 3) continue;
           if (
-            !currentAjcFace.isSelected() ||
-            !areVectorsCollinear(currentAjcFace.getNormal(), faceNormal)
+            adjacentFaces.length > 1 &&
+            adjacentFaces.last() == adjacentFaces[i]
           )
-            continue;
+            break;
+          if (!currentAdjacentFace.isSelected()) continue;
 
-          const currentVertices = currentAjcFace.getSortedVertices();
-          const uniqueVertex = vertices.find(
-            (key) => !currentVertices.includes(key)
-          );
-          const uniqueUvKey = currentVertices.find(
-            (key) => !vertices.includes(key)
-          );
-          currentVertices.push(uniqueVertex);
-
-          const new_quad = new MeshFace(mesh, {
-            vertices: currentVertices,
-          });
-
-          if (!areVectorsCollinear(new_quad.getNormal(), faceNormal)) continue;
-
-          new_quad.uv = face.uv;
-          new_quad.uv[uniqueUvKey] = currentAjcFace.uv[uniqueUvKey];
-          new_quad.texture = face.texture;
-          mesh.addFaces(new_quad);
-          delete mesh.faces[currentAjcFaceKey];
-          delete mesh.faces[_face];
-          break;
+          adjacentFaces.push(currentAdjacentFace);
+          adjacentFacesEdges.push(currentAdjacentFaceEdge);
+          adjacentFaceKeys.push(currentAdjacentFaceKey);
+          adjacentFacesIndices.push(i);
         }
+        const angles = adjacentFaces.map((e) => face.getAngleTo(e));
+        const minAngledFaceIndex = minIndex(angles);
+        if (minAngledFaceIndex == -1) return;
+        const minAngle = angles[minAngledFaceIndex];
+        const adjacentFace = adjacentFaces[minAngledFaceIndex];
+        const adjacentFaceKey = adjacentFaceKeys[minAngledFaceIndex];
+        const adjacentEdge = adjacentFacesEdges[minAngledFaceIndex];
+        if (minAngle > maxAngle) {
+          return;
+        }
+        const adjacentVertices = adjacentFace.getSortedVertices().slice();
+        const uniqueVertex = vertices.find(
+          (key) => !adjacentVertices.includes(key)
+        );
+        if (!uniqueVertex) {
+          return;
+        }
+
+        adjacentVertices.splice(
+          adjacentFacesIndices[minAngledFaceIndex] + 1,
+          0,
+          uniqueVertex
+        );
+
+        const newQuad = new MeshFace(mesh, {
+          vertices: adjacentVertices,
+        });
+        const newFaceNormal = newQuad.getNormal(true);
+        if (
+          !isValidQuad(newQuad.getSortedVertices().map((e) => mesh.vertices[e]))
+        ) {
+          return;
+        }
+        if (newFaceNormal.V3_toThree().dot(faceNormal.V3_toThree()) < 0) {
+          newQuad.invert();
+        }
+
+        if (ignoreDisjointUVs) {
+          for (const edgeVertex of adjacentEdge) {
+            const areUVsJoint =
+              Math.roundTo(face.uv[edgeVertex][0], 5) ==
+                Math.roundTo(adjacentFace.uv[edgeVertex][0], 5) &&
+              Math.roundTo(face.uv[edgeVertex][1], 5) ==
+                Math.roundTo(adjacentFace.uv[edgeVertex][1], 5);
+
+            if (!areUVsJoint) {
+              return;
+            }
+          }
+        }
+
+        newQuad.uv = adjacentFace.uv;
+        if (face.uv[uniqueVertex] instanceof Array) {
+          newQuad.uv[uniqueVertex] = face.uv[uniqueVertex];
+        }
+        for (const key of newQuad.vertices) {
+          newQuad.uv[key] ??= [0, 0];
+        }
+
+        newQuad.texture = face.texture;
+        mesh.addFaces(newQuad);
+        delete mesh.faces[adjacentFaceKey];
+        delete mesh.faces[faceKey];
       })
     );
     Undo.finishEdit("MTools: Convert selected Triangles to Quads");
@@ -835,6 +916,26 @@
       element_aspects: { geometry: true, uv: true, faces: true },
       selection: true,
     });
+  }
+  action("tris_to_quad", () => {
+    runEdit$8(45);
+    Undo.amendEdit(
+      {
+        max_angle: {
+          label: "Max Angle",
+          value: 45,
+          min: 0,
+          max: 180,
+          type: "number",
+        },
+        ignore_disjoint_uvs: {
+          label: "Ignore Disjoint UVS",
+          value: true,
+          type: "checkbox",
+        },
+      },
+      (out) => runEdit$8(out.max_angle, out.ignore_disjoint_uvs, true)
+    );
   });
 
   action("uv_mapping");
