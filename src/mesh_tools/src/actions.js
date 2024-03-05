@@ -117,14 +117,12 @@ export const ACTIONS = /** @type {const}  */ ({
       key: "l",
       ctrl: true,
     },
-    selection_mode: "vertex",
   },
   shrink_selection: {
     name: "Shrink Selection",
     icon: "unfold_less_double",
     description: "Shrinks the selection with neighboring vertices.",
     keybind: { key: "k", ctrl: true },
-    selection_mode: "vertex",
   },
   tools: {
     name: "MTools",

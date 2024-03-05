@@ -120,14 +120,12 @@
         key: "l",
         ctrl: true,
       },
-      selection_mode: "vertex",
     },
     shrink_selection: {
       name: "Shrink Selection",
       icon: "unfold_less_double",
       description: "Shrinks the selection with neighboring vertices.",
       keybind: { key: "k", ctrl: true },
-      selection_mode: "vertex",
     },
     tools: {
       name: "MTools",
@@ -547,16 +545,67 @@
     return true;
   }
 
+  /**
+   * @param {Mesh} mesh
+   * @param {Set<string>} vertexSet
+   */
+  function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
+    const selectedFaces = [];
+    const selectedEdges = [];
+
+    for (const faceKey in mesh.faces) {
+      const face = mesh.faces[faceKey];
+      if (face.vertices.length < 2) continue;
+
+      const areAllVerticesSelected = !face.vertices.some(
+        (e) => !vertexSet.has(e)
+      );
+      if (areAllVerticesSelected) {
+        selectedFaces.push(faceKey);
+      }
+
+      const sortedVertices = face.getSortedVertices();
+      for (let i = 0; i < sortedVertices.length; i += 2) {
+        const vertexA = sortedVertices[i];
+        const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
+        if (vertexSet.has(vertexB) && vertexSet.has(vertexB)) {
+          selectedEdges.push([vertexA, vertexB]);
+        }
+      }
+    }
+    return { edges: selectedEdges, faces: selectedFaces };
+  }
+
+  /**
+   * Note: The caller is responsible for calling `Canvas.updateView()`
+   * @param {Mesh} mesh
+   * @param {Set<string>} vertexSet
+   */
+  function selectFacesAndEdgesByVertices(mesh, vertexSet) {
+    if (!Project) {
+      throw new Error('selectFacesAndEdgesByVertices(): An open project is required before calling!');
+    }
+    const { edges, faces } = getSelectedFacesAndEdgesByVertices(mesh, vertexSet);
+    const vertices = Array.from(vertexSet);
+
+    mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
+    mesh.getSelectedEdges().splice(0, Infinity, ...edges);
+    mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+  }
+
   action("expand_selection", () => {
     Mesh.selected.forEach((mesh) => {
       const neighborMap = computeVertexNeighborhood(mesh);
 
-      const vertices = mesh.getSelectedVertices().slice();
-
-      for (let vertexKey of vertices) {
+      const selectedVertices = mesh.getSelectedVertices();
+      const selectedVertexSet = new Set(selectedVertices);
+      for (const vertexKey of selectedVertices) {
         const neighbors = neighborMap[vertexKey];
-        Project.mesh_selection[mesh.uuid].vertices.safePush(...neighbors);
+        for (const neighbor of neighbors) {
+          selectedVertexSet.add(neighbor);
+        }
       }
+      selectFacesAndEdgesByVertices(mesh, selectedVertexSet);
     });
     Canvas.updateView({ elements: Mesh.selected, selection: true });
   });
@@ -677,22 +726,21 @@
     Mesh.selected.forEach((mesh) => {
       const neighborMap = computeVertexNeighborhood(mesh);
 
-      const vertices = mesh.getSelectedVertices().slice();
-
-      for (let vertexKey of vertices) {
+      const selectedVertices = mesh.getSelectedVertices();
+      const selectedVertexSet = new Set(selectedVertices);
+      for (const vertexKey of selectedVertices) {
         const neighbors = neighborMap[vertexKey];
-        let atleastOneNeighborIsNotSelected = false;
 
-        for (const neigbor of neighbors) {
-          atleastOneNeighborIsNotSelected = !vertices.includes(neigbor);
+        for (const neighbor of neighbors) {
+          const isNotSelected = !selectedVertexSet.has(neighbor);
 
-          if (atleastOneNeighborIsNotSelected) break;
-        }
-
-        if (atleastOneNeighborIsNotSelected) {
-          Project.mesh_selection[mesh.uuid].vertices.remove(vertexKey);
+          if (isNotSelected) {
+            selectedVertexSet.delete(vertexKey);
+            break;
+          }
         }
       }
+      selectFacesAndEdgesByVertices(mesh, selectedVertexSet);
     });
     Canvas.updateView({ elements: Mesh.selected, selection: true });
   });

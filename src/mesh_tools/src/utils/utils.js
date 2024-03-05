@@ -276,28 +276,50 @@ export function isValidQuad(points) {
   return true;
 }
 
-export function permute(arr) {
-  const results = [];
+/**
+ * @param {Mesh} mesh
+ * @param {Set<string>} vertexSet
+ */
+export function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
+  const selectedFaces = [];
+  const selectedEdges = [];
 
-  // Base cases:
-  if (arr.length === 1) {
-    return [arr];
-  } else if (arr.length === 0) {
-    return [];
-  }
+  for (const faceKey in mesh.faces) {
+    const face = mesh.faces[faceKey];
+    if (face.vertices.length < 2) continue;
 
-  for (let i = 0; i < arr.length; i++) {
-    // Remove the current element from the array
-    const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+    const areAllVerticesSelected = !face.vertices.some(
+      (e) => !vertexSet.has(e)
+    );
+    if (areAllVerticesSelected) {
+      selectedFaces.push(faceKey);
+    }
 
-    // Get permutations of the remaining elements
-    const remainingPermutations = permute(remaining);
-
-    // Prepend the current element to each permutation
-    for (const permutation of remainingPermutations) {
-      results.push([arr[i]].concat(permutation));
+    const sortedVertices = face.getSortedVertices();
+    for (let i = 0; i < sortedVertices.length; i += 2) {
+      const vertexA = sortedVertices[i];
+      const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
+      if (vertexSet.has(vertexB) && vertexSet.has(vertexB)) {
+        selectedEdges.push([vertexA, vertexB]);
+      }
     }
   }
+  return { edges: selectedEdges, faces: selectedFaces };
+}
 
-  return results;
+/**
+ * Note: The caller is responsible for calling `Canvas.updateView()`
+ * @param {Mesh} mesh
+ * @param {Set<string>} vertexSet
+ */
+export function selectFacesAndEdgesByVertices(mesh, vertexSet) {
+  if (!Project) {
+    throw new Error('selectFacesAndEdgesByVertices(): An open project is required before calling!');
+  }
+  const { edges, faces } = getSelectedFacesAndEdgesByVertices(mesh, vertexSet);
+  const vertices = Array.from(vertexSet);
+
+  mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
+  mesh.getSelectedEdges().splice(0, Infinity, ...edges);
+  mesh.getSelectedFaces().splice(0, Infinity, ...faces);
 }
