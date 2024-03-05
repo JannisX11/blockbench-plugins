@@ -96,21 +96,21 @@ export function getAdjacentElements(arr, index) {
 /**
  * Determines on which side of a line a point lies.
  *
- * @param {THREE.Vector3} p
- * @param {THREE.Vector3} p1
- * @param {THREE.Vector3} p2
+ * @param {THREE.Vector2} p
+ * @param {THREE.Vector2} p1
+ * @param {THREE.Vector2} p2
  * @returns {-1 | 0 | 1} 1 if the point is on the left side, -1 if on the right side, and 0 if on the line.
  */
 function lineSide(p, p1, p2) {
-  return Math.sign((p.x - p2.x) * (p1.z - p2.z) - (p1.x - p2.x) * (p.z - p2.z));
+  return Math.sign((p.x - p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p.y - p2.y));
 }
 
 /**
  *
- * @param {THREE.Vector3} point
- * @param {THREE.Vector3} point1
- * @param {THREE.Vector3} point2
- * @param {THREE.Vector3} point3
+ * @param {THREE.Vector2} point
+ * @param {THREE.Vector2} point1
+ * @param {THREE.Vector2} point2
+ * @param {THREE.Vector2} point3
  * @returns {boolean}
  */
 export function isPointInTriangle(point, point1, point2, point3) {
@@ -122,28 +122,54 @@ export function isPointInTriangle(point, point1, point2, point3) {
 
   return !(hasNegative && hasPositive);
 }
-
+/**
+ * Note: If the polygon length is less than 3, true is returned.
+ * @param {ArrayVector3[]} polygon
+ * @returns {boolean}
+ */
+function isPolygonClockWise(polygon) {
+  if (polygon.length <= 2) {
+    return true;
+  }
+  let sum = 0;
+  for (let i = 0; i < polygon.length; i++) {
+    const vertexA = polygon[i];
+    const vertexB = polygon[(i + 1) % polygon.length];
+    sum +=
+      (vertexB[0] - vertexA[0]) *
+      (vertexB[1] - vertexA[1]) *
+      (vertexB[2] - vertexA[2]);
+  }
+  return sum >= 0;
+}
 /**
  * Triangulates a polygon into a set of triangles.
  *
  * @param {ArrayVector3[]} polygon
  * @param {ArrayVector3} normal The normal vector of the polygon.
- * @returns {Array<[number, number, number]>} An array of triangles. Each triangle is represented
- *   as an array of three
+ * @returns {Array<ArrayVector3>} An array of triangles. Each triangle is represented
+ *   as an ArrayVector3
  */
 export function triangulate(polygon, normal) {
-  const vertices = polygon.map((v) => v.V3_toThree());
-  const indices = Array.from(Array(vertices.length).keys());
+  const isClockWise = isPolygonClockWise(polygon);
+
+  const vertices3d = polygon.map((v) => v.V3_toThree());
+  const indices = Array.from(Array(vertices3d.length).keys());
   const triangles = [];
 
   const plane = new THREE.Plane();
-  plane.setFromCoplanarPoints(vertices[0], vertices[1], vertices[2]);
+  plane.setFromCoplanarPoints(vertices3d[0], vertices3d[1], vertices3d[2]);
 
   const euler = rotationFromDirection(normal.V3_toThree(), Reusable.euler1);
-  for (let i = 0; i < vertices.length; i++) {
-    const coplanarVertex = vertices[i].clone().applyEuler(euler);
-    vertices[i].copy(coplanarVertex);
-    vertices[i].y = 0;
+  /**
+   * @type {THREE.Vector2[]}
+   */
+  const vertices = [];
+  for (let i = 0; i < vertices3d.length; i++) {
+    const coplanarVertex = plane
+      .projectPoint(vertices3d[i], Reusable.vec1)
+      .applyEuler(euler);
+    vertices.push(new THREE.Vector2(coplanarVertex.x, coplanarVertex.z));
   }
 
   const SAFETY_LIMIT = 1000;
@@ -152,11 +178,11 @@ export function triangulate(polygon, normal) {
     for (let i = 0; i < indices.length; i++) {
       const [a, b, c] = getAdjacentElements(indices, i);
 
-      const pointA = vertices[c].clone().sub(vertices[a]);
-      const pointB = vertices[b].clone().sub(vertices[a]);
+      const vecAC = vertices[c].clone().sub(vertices[a]);
+      const vecAB = vertices[b].clone().sub(vertices[a]);
 
-      const cross = pointA.x * pointB.z - pointA.z * pointB.x;
-      const isConcave = cross > 0;
+      const cross = vecAC.x * vecAB.z - vecAC.z * vecAB.x;
+      const isConcave = isClockWise ? cross <= 0 : cross >= 0;
       if (isConcave) continue;
 
       let someVertexLiesInsideEar = false;
@@ -257,7 +283,7 @@ export function isValidQuad(points) {
     }
   }
 
-  let prevIsConcave = undefined;
+  let prevCurvature = undefined;
   for (let i = 0; i < points.length; i++) {
     const prev = points[(i - 1 + points.length) % points.length];
     const current = points[i];
@@ -267,11 +293,11 @@ export function isValidQuad(points) {
     const edge2 = next.V3_toThree().sub(current.V3_toThree());
 
     const cross = edge1.cross(edge2);
-    const isConcave = cross.x - cross.y - cross.z > 0;
-    if (prevIsConcave !== undefined && isConcave !== prevIsConcave) {
+    const curvature = cross.x - cross.y - cross.z > 0;
+    if (prevCurvature !== undefined && curvature !== prevCurvature) {
       return false;
     }
-    prevIsConcave = isConcave;
+    prevCurvature = curvature;
   }
   return true;
 }
@@ -314,7 +340,9 @@ export function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
  */
 export function selectFacesAndEdgesByVertices(mesh, vertexSet) {
   if (!Project) {
-    throw new Error('selectFacesAndEdgesByVertices(): An open project is required before calling!');
+    throw new Error(
+      "selectFacesAndEdgesByVertices(): An open project is required before calling!"
+    );
   }
   const { edges, faces } = getSelectedFacesAndEdgesByVertices(mesh, vertexSet);
   const vertices = Array.from(vertexSet);

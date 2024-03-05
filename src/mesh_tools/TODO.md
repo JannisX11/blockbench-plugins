@@ -15,10 +15,10 @@
 	- [ ] New Bridge Loops
 	- [x] Triangles To Quads: Improved Algorithm
 	- [ ] Triangulate Faces: Preserve selection.
-	- [ ] Expand/Shrink Selection: Enable for face and edge modes.
+	- [x] Expand/Shrink Selection: Enable for face and edge modes.
 	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
-	- [ ] Scatter: Improve scattered mesh rotation to accurately follow face
+	- [x] Scatter: Improve scattered mesh rotation to accurately follow face
 	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge

@@ -4,7 +4,7 @@ import { triangulate } from "../utils/utils.js";
 /**
  * ! I'm very aware that BlockBench only supports quadrilaterals and triangles for faces.
  * ! However, this action is kept for the future if higher vertex polygons are implemented.
- * ! 
+ * !
  */
 export default action("triangulate", () => {
   Undo.initEdit({ elements: Mesh.selected, selection: true });
@@ -12,25 +12,23 @@ export default action("triangulate", () => {
   Mesh.selected.forEach((mesh) => {
     /* selected faces */
     mesh.getSelectedFaces().forEach((key) => {
-      let face = mesh.faces[key];
-      let SortedV = face.getSortedVertices();
-      if (!(SortedV.length <= 3)) {
-        let triangles = triangulate(
-          SortedV.map((a) => {
-            return mesh.vertices[a];
-          }),
+      const face = mesh.faces[key];
+      const vertices = face.getSortedVertices();
+      if (!(vertices.length <= 3)) {
+        const triangles = triangulate(
+          vertices.map((key) => mesh.vertices[key]),
           face.getNormal(true)
         );
         // create faces
         for (let i = 0; i < triangles.length; i++) {
-          let new_face = new MeshFace(mesh, face).extend({
+          const newTri = new MeshFace(mesh, face).extend({
             vertices: [
-              SortedV[triangles[i][0]],
-              SortedV[triangles[i][2]],
-              SortedV[triangles[i][1]],
+              vertices[triangles[i][0]],
+              vertices[triangles[i][2]],
+              vertices[triangles[i][1]],
             ],
           });
-          mesh.addFaces(new_face);
+          mesh.addFaces(newTri);
         }
         delete mesh.faces[key];
       }
