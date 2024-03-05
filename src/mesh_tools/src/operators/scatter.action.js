@@ -1,6 +1,7 @@
 import { action } from "../actions.js";
 import { computeTriangleNormal, rotationFromDirection } from "../utils/utils.js";
 
+const reusableEuler1 = new THREE.Euler();
 function runEdit(mesh,selected, group, density, amend = false) {
   const meshes = [];
   Undo.initEdit({ elements: meshes, selection: true, group }, amend);
@@ -54,7 +55,7 @@ function runEdit(mesh,selected, group, density, amend = false) {
 
     const normal = computeTriangleNormal(t0, t1, t2);
 
-    const rotation = rotationFromDirection(normal, Reusable.euler1);
+    const rotation = rotationFromDirection(normal, reusableEuler1);
     otherMesh.rotation[0] = Math.radToDeg(rotation.x);
     otherMesh.rotation[1] = Math.radToDeg(rotation.y);
     otherMesh.rotation[2] = Math.radToDeg(rotation.z);

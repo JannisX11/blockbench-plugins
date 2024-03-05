@@ -293,6 +293,12 @@
     return new Action(qualifyName(id), options);
   }
 
+  const reusableVec1 = new THREE.Vector3();
+  const reusableEuler1$1 = new THREE.Euler();
+  const reusableVec2 = new THREE.Vector3();
+  const reusableVec3 = new THREE.Vector3();
+  const reusableVec4 = new THREE.Vector3();
+
   const gradient256 = {};
   for (let x = 0; x < 256; x++) gradient256[[x, 0]] = x / 255;
 
@@ -312,11 +318,10 @@
     return targetEuler;
   }
   function computeTriangleNormal(A, B, C) {
-    const { vec1, vec2, vec3, vec4 } = Reusable;
-    vec1.set(A.x, A.y, A.z);
-    vec2.set(B.x, B.y, B.z);
-    vec3.set(C.x, C.y, C.z);
-    return vec4.crossVectors(vec2.sub(vec1), vec3.sub(vec1)).clone();
+    reusableVec1.set(A.x, A.y, A.z);
+    reusableVec2.set(B.x, B.y, B.z);
+    reusableVec3.set(C.x, C.y, C.z);
+    return reusableVec4.crossVectors(reusableVec2.sub(reusableVec1), reusableVec3.sub(reusableVec1)).clone();
   }
   function parseRGB(s) {
     let string = "";
@@ -429,14 +434,14 @@
     const plane = new THREE.Plane();
     plane.setFromCoplanarPoints(vertices3d[0], vertices3d[1], vertices3d[2]);
 
-    const euler = rotationFromDirection(normal.V3_toThree(), Reusable.euler1);
+    const euler = rotationFromDirection(normal.V3_toThree(), reusableEuler1$1);
     /**
      * @type {THREE.Vector2[]}
      */
     const vertices = [];
     for (let i = 0; i < vertices3d.length; i++) {
       const coplanarVertex = plane
-        .projectPoint(vertices3d[i], Reusable.vec1)
+        .projectPoint(vertices3d[i], reusableVec1)
         .applyEuler(euler);
       vertices.push(new THREE.Vector2(coplanarVertex.x, coplanarVertex.z));
     }
@@ -1257,6 +1262,7 @@
     );
   });
 
+  const reusableEuler1 = new THREE.Euler();
   function runEdit$4(mesh,selected, group, density, amend = false) {
     const meshes = [];
     Undo.initEdit({ elements: meshes, selection: true, group }, amend);
@@ -1310,7 +1316,7 @@
 
       const normal = computeTriangleNormal(t0, t1, t2);
 
-      const rotation = rotationFromDirection(normal, Reusable.euler1);
+      const rotation = rotationFromDirection(normal, reusableEuler1);
       otherMesh.rotation[0] = Math.radToDeg(rotation.x);
       otherMesh.rotation[1] = Math.radToDeg(rotation.y);
       otherMesh.rotation[2] = Math.radToDeg(rotation.z);
