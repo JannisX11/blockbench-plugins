@@ -368,8 +368,19 @@ export function selectFacesAndEdgesByVertices(mesh, vertexSet) {
   const vertices = Array.from(vertexSet);
 
   mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
-  mesh.getSelectedEdges().splice(0, Infinity, ...edges);
-  mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+  switch (BarItems['selection_mode'].value) {
+    case 'vertex':
+      break;
+    case 'edge':
+      mesh.getSelectedEdges().splice(0, Infinity, ...edges);
+      mesh.getSelectedFaces().splice(0, Infinity);
+      break;
+    case 'cluster':
+    case 'face':
+      mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+      mesh.getSelectedEdges().splice(0, Infinity);
+      break;
+  }
 }
 
 function gatherConnectedVertices(

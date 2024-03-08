@@ -9,8 +9,10 @@ export default action("expand_selection", () => {
     const selectedVertexSet = new Set(selectedVertices);
     for (const vertexKey of selectedVertices) {
       const neighbors = neighborMap[vertexKey];
-      for (const neighbor of neighbors) {
-        selectedVertexSet.add(neighbor);
+      if (neighbors) {
+        for (const neighbor of neighbors) {
+          selectedVertexSet.add(neighbor);
+        }
       }
     }
     selectFacesAndEdgesByVertices(mesh, selectedVertexSet);

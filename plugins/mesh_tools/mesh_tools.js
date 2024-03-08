@@ -647,8 +647,19 @@
     const vertices = Array.from(vertexSet);
 
     mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
-    mesh.getSelectedEdges().splice(0, Infinity, ...edges);
-    mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+    switch (BarItems['selection_mode'].value) {
+      case 'vertex':
+        break;
+      case 'edge':
+        mesh.getSelectedEdges().splice(0, Infinity, ...edges);
+        mesh.getSelectedFaces().splice(0, Infinity);
+        break;
+      case 'cluster':
+      case 'face':
+        mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+        mesh.getSelectedEdges().splice(0, Infinity);
+        break;
+    }
   }
 
   function gatherConnectedVertices(
@@ -883,8 +894,10 @@
       const selectedVertexSet = new Set(selectedVertices);
       for (const vertexKey of selectedVertices) {
         const neighbors = neighborMap[vertexKey];
-        for (const neighbor of neighbors) {
-          selectedVertexSet.add(neighbor);
+        if (neighbors) {
+          for (const neighbor of neighbors) {
+            selectedVertexSet.add(neighbor);
+          }
         }
       }
       selectFacesAndEdgesByVertices(mesh, selectedVertexSet);
