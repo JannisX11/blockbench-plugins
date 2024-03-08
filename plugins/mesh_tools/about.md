@@ -6,6 +6,8 @@ By installing the plugin, you get:
   <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
   </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-laplacian_smooth"><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
+  </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-bridge_edge_loops"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
   </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-poke"><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
   </div></a><a style="padding-inline-start: 0px" href="#mesh_tools-action-tris_to_quad"><div style="display: inline-flex;align-items:center;gap: 5px;">
@@ -101,6 +103,22 @@ Access From:
 <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/laplacian_smooth_after.png?raw=true" />
 <figcaption>After</figcaption>
 </figure>
+</div>
+</section>
+
+<section id="mesh_tools-action-bridge_edge_loops">
+<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
+  </div></p>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
+  </div>
+</span>
+<p>???</p>
+<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
+
 </div>
 </section>
 

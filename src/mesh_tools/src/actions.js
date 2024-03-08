@@ -46,6 +46,15 @@ export const ACTIONS = /** @type {const}  */ ({
     description:
       "Casts selected vertices into a smooth, spherical shape with adjustable influence.",
   },
+  bridge_edge_loops: {
+    docs: {
+      images: [],
+    },
+    name: "Bridge Edge Loops",
+    icon: "hub",
+    description: "???",
+    selection_mode: "edge",
+  },
   poke: {
     docs: {
       images: [
@@ -131,6 +140,7 @@ export const ACTIONS = /** @type {const}  */ ({
     children: [
       "to_sphere",
       "laplacian_smooth",
+      "bridge_edge_loops",
       "_",
       "poke",
       "tris_to_quad",

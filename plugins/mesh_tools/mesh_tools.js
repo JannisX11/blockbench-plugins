@@ -49,6 +49,15 @@
       description:
         "Casts selected vertices into a smooth, spherical shape with adjustable influence.",
     },
+    bridge_edge_loops: {
+      docs: {
+        images: [],
+      },
+      name: "Bridge Edge Loops",
+      icon: "hub",
+      description: "???",
+      selection_mode: "edge",
+    },
     poke: {
       docs: {
         images: [
@@ -134,6 +143,7 @@
       children: [
         "to_sphere",
         "laplacian_smooth",
+        "bridge_edge_loops",
         "_",
         "poke",
         "tris_to_quad",
@@ -293,11 +303,14 @@
     return new Action(qualifyName(id), options);
   }
 
-  const reusableVec1 = new THREE.Vector3();
   const reusableEuler1$1 = new THREE.Euler();
+  const reusableQuat1 = new THREE.Quaternion();
+  const reusableVec1 = new THREE.Vector3();
   const reusableVec2 = new THREE.Vector3();
   const reusableVec3 = new THREE.Vector3();
   const reusableVec4 = new THREE.Vector3();
+  const reusable2dVec1 = new THREE.Vector2();
+  new THREE.Vector2(1, 0);
 
   const gradient256 = {};
   for (let x = 0; x < 256; x++) gradient256[[x, 0]] = x / 255;
@@ -321,7 +334,12 @@
     reusableVec1.set(A.x, A.y, A.z);
     reusableVec2.set(B.x, B.y, B.z);
     reusableVec3.set(C.x, C.y, C.z);
-    return reusableVec4.crossVectors(reusableVec2.sub(reusableVec1), reusableVec3.sub(reusableVec1)).clone();
+    return reusableVec4
+      .crossVectors(
+        reusableVec2.sub(reusableVec1),
+        reusableVec3.sub(reusableVec1)
+      )
+      .clone();
   }
   function parseRGB(s) {
     let string = "";
@@ -409,44 +427,50 @@
     for (let i = 0; i < polygon.length; i++) {
       const vertexA = polygon[i];
       const vertexB = polygon[(i + 1) % polygon.length];
-      sum +=
-        (vertexB[0] - vertexA[0]) *
-        (vertexB[1] - vertexA[1]) *
-        (vertexB[2] - vertexA[2]);
+      sum += (vertexB.x - vertexA.x) * (vertexB.y - vertexA.y);
     }
     return sum >= 0;
   }
+
+  /**
+   * @param {THREE.Vector3[]} polygon
+   * @return {THREE.Vector2[]}
+   * @throws When `polygon.length` is less than 3
+   */
+  function projectIntoOwnPlane(polygon) {
+    if (polygon.length < 3) {
+      throw new Error(
+        "projectIntoOwnPlane(): Polygon should have 3 or more vertices!"
+      );
+    }
+    const plane = new THREE.Plane();
+    plane.setFromCoplanarPoints(polygon[0], polygon[1], polygon[2]);
+
+    const euler = rotationFromDirection(plane.normal, reusableEuler1$1);
+    const quat = reusableQuat1.setFromEuler(euler);
+    quat.invert();
+    return polygon.map((e) => {
+      e.applyQuaternion(quat);
+      return new THREE.Vector2(e.x, e.z);
+    });
+  }
+
   /**
    * Triangulates a polygon into a set of triangles.
    *
    * @param {ArrayVector3[]} polygon
-   * @param {ArrayVector3} normal The normal vector of the polygon.
    * @returns {Array<ArrayVector3>} An array of triangles. Each triangle is represented
    *   as an ArrayVector3
    */
-  function triangulate(polygon, normal) {
-    const isClockWise = isPolygonClockWise(polygon);
-
+  function triangulate(polygon) {
     const vertices3d = polygon.map((v) => v.V3_toThree());
     const indices = Array.from(Array(vertices3d.length).keys());
     const triangles = [];
 
-    const plane = new THREE.Plane();
-    plane.setFromCoplanarPoints(vertices3d[0], vertices3d[1], vertices3d[2]);
+    const vertices = projectIntoOwnPlane(vertices3d);
+    const isClockWise = isPolygonClockWise(vertices);
 
-    const euler = rotationFromDirection(normal.V3_toThree(), reusableEuler1$1);
-    /**
-     * @type {THREE.Vector2[]}
-     */
-    const vertices = [];
-    for (let i = 0; i < vertices3d.length; i++) {
-      const coplanarVertex = plane
-        .projectPoint(vertices3d[i], reusableVec1)
-        .applyEuler(euler);
-      vertices.push(new THREE.Vector2(coplanarVertex.x, coplanarVertex.z));
-    }
-
-    const SAFETY_LIMIT = 1000;
+    const SAFETY_LIMIT = 100;
     let safetyIndex = 0;
     while (indices.length > 3 && safetyIndex <= SAFETY_LIMIT) {
       for (let i = 0; i < indices.length; i++) {
@@ -463,6 +487,7 @@
         for (let j = 0; j < vertices.length; j++) {
           if (j === a || j === b || j === c) continue;
 
+          // console.log(vertices[j], vertices[a], vertices[b], vertices[c]);
           someVertexLiesInsideEar = isPointInTriangle(
             vertices[j],
             vertices[a],
@@ -625,6 +650,230 @@
     mesh.getSelectedEdges().splice(0, Infinity, ...edges);
     mesh.getSelectedFaces().splice(0, Infinity, ...faces);
   }
+
+  function gatherConnectedVertices(
+    vertex,
+    { neighborhoodCondition, processedVertices, neighborhood, mesh } = {}
+  ) {
+    if (!neighborhood && !mesh) {
+      throw new Error(
+        `gatherConnectedVertices(): Must call with either a neighborhood map or a mesh.`
+      );
+    }
+    if (!neighborhood) {
+      neighborhood = computeVertexNeighborhood(mesh);
+    }
+
+    const connected = new Set([vertex]);
+    if (!neighborhood[vertex]) {
+      return connected;
+    }
+
+    for (const currentConnected of connected) {
+      processedVertices && processedVertices.add(currentConnected);
+      for (const neighbor of neighborhood[currentConnected]) {
+        if (connected.has(neighbor)) {
+          continue;
+        }
+        if (neighborhoodCondition && neighborhoodCondition(neighbor)) {
+          connected.add(neighbor);
+        }
+      }
+    }
+    return connected;
+  }
+  function sortVerticesByAngle(mesh, vertexKeys) {
+    const vertices = vertexKeys.map((e) => mesh.vertices[e].V3_toThree());
+    const vertices2d = projectIntoOwnPlane(vertices);
+
+    const centroid = new THREE.Vector2();
+    for (const vertex of vertices2d) {
+      centroid.add(vertex);
+    }
+    centroid.divideScalar(vertices2d.length);
+
+    const sorted = vertices2d
+      .map((e, i) => {
+        const dir = reusable2dVec1.subVectors(e, centroid);
+
+        let angle = dir.angle();
+        if (angle < 0) {
+          angle += 2 * Math.PI;
+        }
+
+        return [angle, vertexKeys[i]];
+      })
+      .sort(([a], [b]) => a - b)
+      .map(([, e]) => e);
+    return {
+      sorted,
+      centroid,
+    };
+  }
+  /**
+   * @param {Mesh} mesh
+   */
+  function gatherSelectedEdgeLoops(mesh) {
+    const groups = groupConnectedSelectedVertices(mesh);
+    const edgeLoops = [];
+    for (const group of groups) {
+      const { sorted: sortedLoop, centroid } = sortVerticesByAngle(
+        mesh,
+        Array.from(group)
+      );
+
+      edgeLoops.push({ edges: groupElementsCollided(sortedLoop, 2), centroid });
+    }
+
+    return edgeLoops;
+  }
+  function groupConnectedSelectedVertices(mesh) {
+    const selectedVerticesSet = new Set(mesh.getSelectedVertices());
+    const neighborhood = computeVertexNeighborhood(mesh);
+    const processedVertices = new Set();
+    const edgeLoops = [];
+
+    for (const current of mesh.getSelectedEdges()) {
+      const [a, _b] = current;
+      if (!processedVertices.has(a)) {
+        edgeLoops.push(
+          gatherConnectedVertices(a, {
+            neighborhood,
+            processedVertices,
+            neighborhoodCondition: (neighbor) =>
+              selectedVerticesSet.has(neighbor),
+          })
+        );
+      }
+    }
+    return edgeLoops;
+  }
+
+  function lerp3(a, b, t) {
+    return a.map((e, i) => Math.lerp(e, b[i], t));
+  }
+
+  function groupElementsCollided(array, every = 2) {
+    const newArray = [];
+    for (let i = 0; i < array.length; i++) {
+      const sub = [];
+      for (let j = 0; j < every; j++) {
+        const element = array[(i + j) % array.length];
+        sub.push(element);
+      }
+      newArray.push(sub);
+    }
+    return newArray;
+  }
+
+  function runEdit$c(amend, numberOfCuts, twist) {
+    Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
+
+    /**
+     *
+     * @param {Mesh} mesh
+     * @param {*} edgeLoopA
+     * @param {*} edgeLoopB
+     */
+    function bridgeSingle(mesh, edgeLoopA, edgeLoopB) {
+      for (let i = 0; i < edgeLoopA.length; i++) {
+        let realI = i + twist;
+        while (realI < 0) realI += edgeLoopA.length;
+        while (realI >= edgeLoopA.length) realI -= edgeLoopA.length;
+
+        const edgeA = edgeLoopA[realI];
+        const edgeB = edgeLoopB[Math.min(i, edgeLoopB.length - 1)];
+
+        let vertexA = edgeA[0];
+        let vertexB = edgeA[1];
+        let vertexC = edgeB[1];
+        let vertexD = edgeB[0];
+        const face = new MeshFace(mesh, {
+          vertices: [vertexB, vertexA, vertexD, vertexC],
+        });
+        mesh.addFaces(face);
+      }
+    }
+    /**
+     *
+     * @param {Mesh} mesh
+     * @param {*} edgeLoopA
+     * @param {*} edgeLoopB
+     */
+    function bridge(mesh, edgeLoopA, edgeLoopB) {
+      const subEdgeLoops = [];
+      for (let i = 0; i < numberOfCuts; i++) {
+        const t = i / (numberOfCuts - 1);
+
+        const subEdgeLoop = [];
+        for (let j = 0; j < edgeLoopA.length; j++) {
+          const edgeA = edgeLoopA[j];
+          const edgeB = edgeLoopB[Math.min(j, edgeLoopB.length - 1)];
+
+          if (i == 0) {
+            subEdgeLoop.push(edgeA[0]);
+          } else if (i == numberOfCuts - 1) {
+            subEdgeLoop.push(edgeB[0]);
+          } else {
+            const vertex = lerp3(
+              mesh.vertices[edgeA[0]],
+              mesh.vertices[edgeB[0]],
+              t
+            );
+            subEdgeLoop.push(mesh.addVertices(vertex)[0]);
+          }
+        }
+
+        subEdgeLoops.push(groupElementsCollided(subEdgeLoop, 2));
+      }
+
+      for (let i = 0; i < subEdgeLoops.length - 1; i++) {
+        const fromEdgeLoop = subEdgeLoops[i];
+        const intoEdgeLoop = subEdgeLoops[i + 1];
+        bridgeSingle(mesh, fromEdgeLoop, intoEdgeLoop);
+      }
+    }
+    for (const mesh of Mesh.selected) {
+      const edgeLoops = gatherSelectedEdgeLoops(mesh);
+      if (edgeLoops.length < 2) continue;
+
+      edgeLoops.sort((a, b) => {
+        if (a.centroid.x != b.centroid.x) {
+          return a.centroid.x - b.centroid.x;
+        }
+        if (a.centroid.y != b.centroid.y) {
+          return a.centroid.y - b.centroid.y;
+        }
+        return a.centroid.z - b.centroid.z;
+      });
+      for (let i = 0; i < edgeLoops.length - 1; i++) {
+        const fromEdgeLoop = edgeLoops[i];
+        const intoEdgeLoop = edgeLoops[i + 1];
+        bridge(mesh, fromEdgeLoop.edges, intoEdgeLoop.edges);
+      }
+    }
+    Canvas.updatePositions();
+    Undo.finishEdit("MTools: Bridged Edge Loops.");
+  }
+  action("bridge_edge_loops", () => {
+    runEdit$c(false, 2, 0);
+    Undo.amendEdit(
+      {
+        num_cuts: {
+          type: "number",
+          label: "Number Of Cuts",
+          min: 1,
+          value: 1,
+        },
+        twist: {
+          type: "number",
+          label: "Twist",
+          value: 0,
+        },
+      },
+      (form) => runEdit$c(true, form.num_cuts + 1, form.twist)
+    );
+  });
 
   action("expand_selection", () => {
     Mesh.selected.forEach((mesh) => {
@@ -21523,6 +21772,11 @@
 
   action("generators");
 
+  const deletables = [];
+  /**
+   * @type {Array<THREE.Object3D>}
+   */
+  const meshToolTips = [];
   BBPlugin.register("mesh_tools", {
     new_repository_format: true,
     title: "MTools",
@@ -21534,15 +21788,23 @@
     variant: "both",
     tags: ["Format: Generic Model", "Edit"],
     onload() {
+
       Mesh.prototype.menu.structure.unshift("@meshtools/tools");
       Mesh.prototype.menu.structure.unshift("@meshtools/operators");
       MenuBar.addAction("@meshtools/generators", "filter");
     },
     onunload() {
+      for (const deletable of deletables) {
+        deletable.delete();
+      }
+      for (const object of meshToolTips) {
+        scene.remove(object);
+      }
+
       for (const actionId in ACTIONS) {
         const id = qualifyName(actionId);
         BarItems[id]?.delete();
-      } 
+      }
     },
   });
 

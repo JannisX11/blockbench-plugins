@@ -1,8 +1,11 @@
-const reusableVec1 = new THREE.Vector3();
 const reusableEuler1 = new THREE.Euler();
+const reusableQuat1 = new THREE.Quaternion();
+const reusableVec1 = new THREE.Vector3();
 const reusableVec2 = new THREE.Vector3();
 const reusableVec3 = new THREE.Vector3();
 const reusableVec4 = new THREE.Vector3();
+const reusable2dVec1 = new THREE.Vector2();
+const Normal2dX = new THREE.Vector2(1, 0);
 
 export const gradient256 = {};
 for (let x = 0; x < 256; x++) gradient256[[x, 0]] = x / 255;
@@ -26,7 +29,12 @@ export function computeTriangleNormal(A, B, C) {
   reusableVec1.set(A.x, A.y, A.z);
   reusableVec2.set(B.x, B.y, B.z);
   reusableVec3.set(C.x, C.y, C.z);
-  return reusableVec4.crossVectors(reusableVec2.sub(reusableVec1), reusableVec3.sub(reusableVec1)).clone();
+  return reusableVec4
+    .crossVectors(
+      reusableVec2.sub(reusableVec1),
+      reusableVec3.sub(reusableVec1)
+    )
+    .clone();
 }
 export function parseRGB(s) {
   let string = "";
@@ -140,44 +148,50 @@ function isPolygonClockWise(polygon) {
   for (let i = 0; i < polygon.length; i++) {
     const vertexA = polygon[i];
     const vertexB = polygon[(i + 1) % polygon.length];
-    sum +=
-      (vertexB[0] - vertexA[0]) *
-      (vertexB[1] - vertexA[1]) *
-      (vertexB[2] - vertexA[2]);
+    sum += (vertexB.x - vertexA.x) * (vertexB.y - vertexA.y);
   }
   return sum >= 0;
 }
+
+/**
+ * @param {THREE.Vector3[]} polygon
+ * @return {THREE.Vector2[]}
+ * @throws When `polygon.length` is less than 3
+ */
+function projectIntoOwnPlane(polygon) {
+  if (polygon.length < 3) {
+    throw new Error(
+      "projectIntoOwnPlane(): Polygon should have 3 or more vertices!"
+    );
+  }
+  const plane = new THREE.Plane();
+  plane.setFromCoplanarPoints(polygon[0], polygon[1], polygon[2]);
+
+  const euler = rotationFromDirection(plane.normal, reusableEuler1);
+  const quat = reusableQuat1.setFromEuler(euler);
+  quat.invert();
+  return polygon.map((e) => {
+    e.applyQuaternion(quat);
+    return new THREE.Vector2(e.x, e.z);
+  });
+}
+
 /**
  * Triangulates a polygon into a set of triangles.
  *
  * @param {ArrayVector3[]} polygon
- * @param {ArrayVector3} normal The normal vector of the polygon.
  * @returns {Array<ArrayVector3>} An array of triangles. Each triangle is represented
  *   as an ArrayVector3
  */
-export function triangulate(polygon, normal) {
-  const isClockWise = isPolygonClockWise(polygon);
-
+export function triangulate(polygon) {
   const vertices3d = polygon.map((v) => v.V3_toThree());
   const indices = Array.from(Array(vertices3d.length).keys());
   const triangles = [];
 
-  const plane = new THREE.Plane();
-  plane.setFromCoplanarPoints(vertices3d[0], vertices3d[1], vertices3d[2]);
+  const vertices = projectIntoOwnPlane(vertices3d);
+  const isClockWise = isPolygonClockWise(vertices);
 
-  const euler = rotationFromDirection(normal.V3_toThree(), reusableEuler1);
-  /**
-   * @type {THREE.Vector2[]}
-   */
-  const vertices = [];
-  for (let i = 0; i < vertices3d.length; i++) {
-    const coplanarVertex = plane
-      .projectPoint(vertices3d[i], reusableVec1)
-      .applyEuler(euler);
-    vertices.push(new THREE.Vector2(coplanarVertex.x, coplanarVertex.z));
-  }
-
-  const SAFETY_LIMIT = 1000;
+  const SAFETY_LIMIT = 100;
   let safetyIndex = 0;
   while (indices.length > 3 && safetyIndex <= SAFETY_LIMIT) {
     for (let i = 0; i < indices.length; i++) {
@@ -194,6 +208,7 @@ export function triangulate(polygon, normal) {
       for (let j = 0; j < vertices.length; j++) {
         if (j === a || j === b || j === c) continue;
 
+        // console.log(vertices[j], vertices[a], vertices[b], vertices[c]);
         someVertexLiesInsideEar = isPointInTriangle(
           vertices[j],
           vertices[a],
@@ -355,4 +370,186 @@ export function selectFacesAndEdgesByVertices(mesh, vertexSet) {
   mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
   mesh.getSelectedEdges().splice(0, Infinity, ...edges);
   mesh.getSelectedFaces().splice(0, Infinity, ...faces);
+}
+
+function gatherConnectedVertices(
+  vertex,
+  { neighborhoodCondition, processedVertices, neighborhood, mesh } = {}
+) {
+  if (!neighborhood && !mesh) {
+    throw new Error(
+      `gatherConnectedVertices(): Must call with either a neighborhood map or a mesh.`
+    );
+  }
+  if (!neighborhood) {
+    neighborhood = computeVertexNeighborhood(mesh);
+  }
+
+  const connected = new Set([vertex]);
+  if (!neighborhood[vertex]) {
+    return connected;
+  }
+
+  for (const currentConnected of connected) {
+    processedVertices && processedVertices.add(currentConnected);
+    for (const neighbor of neighborhood[currentConnected]) {
+      if (connected.has(neighbor)) {
+        continue;
+      }
+      if (neighborhoodCondition && neighborhoodCondition(neighbor)) {
+        connected.add(neighbor);
+      }
+    }
+  }
+  return connected;
+}
+function sortVerticesByAngle(mesh, vertexKeys) {
+  const vertices = vertexKeys.map((e) => mesh.vertices[e].V3_toThree());
+  const vertices2d = projectIntoOwnPlane(vertices);
+
+  const centroid = new THREE.Vector2();
+  for (const vertex of vertices2d) {
+    centroid.add(vertex);
+  }
+  centroid.divideScalar(vertices2d.length);
+
+  const sorted = vertices2d
+    .map((e, i) => {
+      const dir = reusable2dVec1.subVectors(e, centroid);
+
+      let angle = dir.angle();
+      if (angle < 0) {
+        angle += 2 * Math.PI;
+      }
+
+      return [angle, vertexKeys[i]];
+    })
+    .sort(([a], [b]) => a - b)
+    .map(([, e]) => e);
+  return {
+    sorted,
+    centroid,
+  };
+}
+/**
+ * @param {Mesh} mesh
+ */
+export function gatherSelectedEdgeLoops(mesh) {
+  const groups = groupConnectedSelectedVertices(mesh);
+  const edgeLoops = [];
+  for (const group of groups) {
+    const { sorted: sortedLoop, centroid } = sortVerticesByAngle(
+      mesh,
+      Array.from(group)
+    );
+
+    edgeLoops.push({ edges: groupElementsCollided(sortedLoop, 2), centroid });
+  }
+
+  return edgeLoops;
+}
+export function groupConnectedSelectedVertices(mesh) {
+  const selectedVerticesSet = new Set(mesh.getSelectedVertices());
+  const neighborhood = computeVertexNeighborhood(mesh);
+  const processedVertices = new Set();
+  const edgeLoops = [];
+
+  for (const current of mesh.getSelectedEdges()) {
+    const [a, _b] = current;
+    if (!processedVertices.has(a)) {
+      edgeLoops.push(
+        gatherConnectedVertices(a, {
+          neighborhood,
+          processedVertices,
+          neighborhoodCondition: (neighbor) =>
+            selectedVerticesSet.has(neighbor),
+        })
+      );
+    }
+  }
+  return edgeLoops;
+}
+
+export function createTextMesh(text, options = {}) {
+  const defaults = {
+    fontSize: 50,
+    fontFamily: "Arial",
+    fillStyle: "red",
+    textAlign: "center",
+  };
+  const mergedOptions = Object.assign({}, defaults, options);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  const font = `${mergedOptions.fontSize}px ${mergedOptions.fontFamily}`;
+  const fontSize = mergedOptions.fontSize;
+  context.font = font;
+  canvas.width = context.measureText(text).width + fontSize * 0.2;
+  canvas.height = fontSize * 1.5;
+
+  context.font = font;
+  context.fillStyle = mergedOptions.fillStyle;
+  context.textAlign = mergedOptions.textAlign;
+  context.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize / 3);
+
+  const texture = new THREE.Texture(canvas);
+  texture.needsUpdate = true;
+
+  const material = new THREE.SpriteMaterial({ map: texture });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(canvas.width / 100, canvas.height / 100, 1);
+
+  return sprite;
+}
+/**
+ *
+ * @param {Mesh} mesh
+ * @param {string} vertexKey
+ * @returns {MeshFace[]}
+ */
+export function getVertexConnectedFaces(mesh, vertexKey) {
+  const faces = [];
+  for (const faceKey in mesh.faces) {
+    const face = mesh.faces[faceKey];
+    if (face.vertices.includes(vertexKey)) {
+      faces.push(face);
+    }
+  }
+  return faces;
+}
+/**
+ *
+ * @param {Mesh} mesh
+ * @param {string} vertexKey
+ */
+export function vertexNormal(mesh, vertexKey) {
+  const faces = getVertexConnectedFaces(mesh, vertexKey);
+  if (faces.length == 0) return null;
+
+  const avgNormal = new THREE.Vector3();
+  for (const face of faces) {
+    const normal = face.getNormal(true);
+    avgNormal.x += normal[0];
+    avgNormal.y += normal[1];
+    avgNormal.z += normal[2];
+  }
+  avgNormal.divideScalar(faces.length);
+  return avgNormal;
+}
+
+export function lerp3(a, b, t) {
+  return a.map((e, i) => Math.lerp(e, b[i], t));
+}
+
+export function groupElementsCollided(array, every = 2) {
+  const newArray = [];
+  for (let i = 0; i < array.length; i++) {
+    const sub = [];
+    for (let j = 0; j < every; j++) {
+      const element = array[(i + j) % array.length];
+      sub.push(element);
+    }
+    newArray.push(sub);
+  }
+  return newArray;
 }

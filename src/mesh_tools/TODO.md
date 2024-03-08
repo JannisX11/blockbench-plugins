@@ -3,7 +3,7 @@
 - [x] Implement checkboxes for amend menus that simulated numbers as toggles. 
 - [x] Better English
 - [x] Rewrite utilities
-- [ ] Make use of reusable ThreeJS objects scoped for each action file.
+- [x] Make use of reusable ThreeJS objects scoped for each action file.
 - [ ] MTools Generate:
 	- [x] Allow loading font files for the Text Mesh generator
 	- [x] Use a math parser for XYZ surface generator.
@@ -11,10 +11,11 @@
 	- [ ] XYZ surface generator: Ability to save multiple presets.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
-	- [ ] Poke Faces: Add new and old vertices to selection.
-	- [ ] New Bridge Loops
+	- [ ] New Bridge Loops Action
+		- [x] Ability to bridge edge loops
+		- [ ] Detect face holes
+		- [ ] Detect face holes
 	- [x] Triangles To Quads: Improved Algorithm
-	- [ ] Triangulate Faces: Preserve selection.
 	- [x] Expand/Shrink Selection: Enable for face and edge modes.
 	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
