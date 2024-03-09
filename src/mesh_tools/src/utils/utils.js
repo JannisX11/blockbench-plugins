@@ -522,10 +522,7 @@ export function gatherEdgeLoopsIncluding(mesh, verticesSet) {
       continue;
     }
 
-    const sortedLoop = sortVerticesByAngle(
-      mesh,
-      groupArr
-    );
+    const sortedLoop = sortVerticesByAngle(mesh, groupArr);
 
     edgeLoops.push(groupElementsCollided(sortedLoop, 2));
   }

@@ -26,12 +26,21 @@ function zKey(obj) {
   return null;
 }
 
+export function getX(obj) {
+  return obj[xKey(obj)];
+}
+export function getY(obj) {
+  return obj[yKey(obj)];
+}
+export function getZ(obj) {
+  return obj[zKey(obj)] ?? 0;
+}
 /**
  * @typedef {THREE.Vector3 | ArrayVector3} Vector3
- * 
+ *
  * @template T
- * @param {T} a 
- * @param {Vector3} b 
+ * @param {T} a
+ * @param {Vector3} b
  * @returns {T}
  */
 export function addVectors(target, source) {
@@ -42,9 +51,9 @@ export function addVectors(target, source) {
 }
 /**
  * @template T
- * @param {Vector3} a 
- * @param {Vector3} b 
- * @param {T} three 
+ * @param {Vector3} a
+ * @param {Vector3} b
+ * @param {T} three
  * @returns {T extends true ? THREE.Vector3: ArrayVector3}
  */
 export function addedVectors(a, b, three = true) {
@@ -55,4 +64,11 @@ export function addedVectors(a, b, three = true) {
     return new THREE.Vector3(x, y, z);
   }
   return [x, y, z];
+}
+/**
+ * @param {Vector3} a
+ * @param {Vector3} b
+ */
+export function distanceBetween(a, b) {
+  return Math.hypot(getX(a) - getX(b), getY(a) - getY(b), getZ(a) - getZ(b));
 }

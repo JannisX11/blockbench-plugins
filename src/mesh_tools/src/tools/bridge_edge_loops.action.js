@@ -9,6 +9,7 @@ import {
   selectFacesAndEdgesByVertices,
   computeCentroid,
 } from "../utils/utils.js";
+import { distanceBetween } from "../utils/vector.js";
 
 /**
  *
@@ -25,8 +26,23 @@ function bridgeLoops(mesh, edgeLoopA, edgeLoopB) {
     let vertexB = edgeA[1];
     let vertexC = edgeB[1];
     let vertexD = edgeB[0];
+
+    const width = distanceBetween(
+      mesh.vertices[vertexB],
+      mesh.vertices[vertexA]
+    );
+    const height = distanceBetween(
+      mesh.vertices[vertexA],
+      mesh.vertices[vertexD]
+    );
     const face = new MeshFace(mesh, {
       vertices: [vertexB, vertexA, vertexD, vertexC],
+      uv: {
+        [vertexB]: [0, 0],
+        [vertexA]: [width, 0],
+        [vertexD]: [width, height],
+        [vertexC]: [0, height],
+      },
     });
     mesh.addFaces(face);
   }
@@ -44,8 +60,8 @@ function bridgeLoopsConfigured(
   { twist, numberOfCuts }
 ) {
   const subEdgeLoops = [];
-  while (twist < 0) twist += edgeLoopA.length;
-  while (twist >= edgeLoopA.length) twist -= edgeLoopA.length;
+  while (twist < 0) twist += edgeLoopB.length;
+  while (twist >= edgeLoopB.length) twist -= edgeLoopB.length;
 
   const sub = edgeLoopB.splice(0, twist);
   edgeLoopB.push(...sub.reverse());

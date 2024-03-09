@@ -1,9 +1,79 @@
 import { promises as fs } from "fs";
-import { ACTIONS } from "../src/actions.js";
+import path from "path";
 
+const LanguageDefinitions = {
+  "word.before": "Input",
+  "word.after": "Result",
+  "word.mesh": "Mesh",
+  "word.uv": "UV",
+};
+function getLanguage() {
+  return LanguageDefinitions;
+}
+function translate(subject) {
+  return subject.replace(/[a-zA-Z_][a-zA-Z0-9_\.]+/g, (key) => {
+    return getLanguage(LanguageDefinitions)[key] ?? key;
+  });
+}
+const getURL = (e) =>
+  `http://127.0.0.1:5500/src/mesh_tools/${e}`;
+  // `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+function renderImage({ src, caption = "" }) {
+  return `
+<figure>
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="${getURL(
+    `assets/actions/${src}`
+  )}" />
+<figcaption>${translate(caption)}</figcaption>
+</figure>
+`;
+}
+function renderInsetRow({ items }) {
+  return `
+  <table style="border-collapse: collapse;">
+    <tr>
+      ${items
+        .map(
+          (e) =>
+            `<td style="border: 1px solid var(--color-dark);">${renderLine(
+              e
+            )}</td>`
+        )
+        .join("\n")}
+    </tr>
+  </table>
+  `;
+}
+function renderLine(options) {
+  if (typeof options == "string") return options;
+
+  switch (options.type) {
+    case "image":
+      return renderImage(options);
+    case "inset_row":
+      return renderInsetRow(options);
+    default:
+      throw new Error(`Unknown line type: ${options.type}`);
+      break;
+  }
+}
+
+let lastRawActions = "";
 export default {
-  buildStart: async function () {
-    const getURL = e => "https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/" + e + "?raw=true";
+  buildStart: async function (aa) {
+    const rawActions = await fs.readFile(path.resolve("assets/actions.json"), {
+      encoding: "utf-8",
+    });
+    if (rawActions == lastRawActions) {
+      return;
+    }
+    lastRawActions = rawActions;
+    console.log("Writing about.md!");
+    const ACTIONS = JSON.parse(rawActions);
+    for (const id in ACTIONS) {
+      const action = ACTIONS[id];
+      action.id = id;
+    }
 
     const tableOfContents = [];
     function iter(renders, parents, node) {
@@ -37,20 +107,8 @@ Access From:
 ${parents.map(getActionRaw).join(getIconRaw("fas.fa-chevron-right"))}
 </span>
 <p>${node.description ?? ""}</p>
-<div style="display:flex;align-items:center;gap: 10px;flex-wrap: wrap;">
-${
-  node?.docs?.images
-    ? node.docs.images
-        .map(
-          ({ src, caption = "" }) =>
-            `<figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="${getURL(`assets/actions/${src}`)}" />
-<figcaption>${caption}</figcaption>
-</figure>`
-        )
-        .join("\n")
-    : ""
-}
+<div style="display:flex;flex-direction:column;gap: 5px;">
+${node?.docs?.lines ? node.docs.lines.map(renderLine).join("\n") : ""}
 </div>
 </section>
 `);
@@ -74,22 +132,24 @@ ${
 This plugin adds **powerful** mesh modeling tools, operators, and generators into to your Blockbench.
 By installing the plugin, you get:
 <div style="display: flex;flex-direction: column;">
-${tableOfContents.join("")}
+${tableOfContents.join("\n")}
 </div>
 
 ### Modeling Tools
-For applying modifications on selected vertices, edges or faces. (accessed from the mesh menu)
-${toolsRender.join("")}
+For applying modifications on selected vertices, edges or faces.
+${toolsRender.join("\n")}
 
 ### Modeling Operators
-For applying modifications on selected meshes. (accessed from the mesh menu)
-${operatorsRender.join("")}
+For applying modifications on selected meshes.
+${operatorsRender.join("\n")}
 
 ### Mesh Generators
-For procedural mesh generation (accessed from the tools menu)
-${generatorsRender.join("")}
+For procedural mesh generation
+${generatorsRender.join("\n")}
 
-&minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209?v=4"> Malik12tree
+<div style="display: flex; gap: 5px;">
+  &minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209"> Malik12tree
+</div>
 `;
     await fs.writeFile("../../plugins/mesh_tools/about.md", content);
   },

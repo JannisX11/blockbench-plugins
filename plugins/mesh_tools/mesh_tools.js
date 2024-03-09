@@ -1,278 +1,512 @@
 (function () {
   'use strict';
 
-  const MESH_CONDITION = {
-    modes: ["edit"],
-    features: ["meshes"],
+  var laplacian_smooth = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "laplacian_smooth_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "laplacian_smooth_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Laplacian Smooth",
+  	icon: "blur_on",
+  	description: "Smoothens selected vertices by averaging the position of neighboring vertices."
   };
-  const OBJECT_MODE_CONDITION = {
-    modes: ["edit"],
-    features: ["meshes"],
-    method: () =>
-      Mesh.selected.length && BarItems["selection_mode"].value == "object",
+  var to_sphere = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "to_sphere_1_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "to_sphere_1_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			},
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "to_sphere_2_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "to_sphere_2_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "To Sphere",
+  	icon: "change_circle",
+  	description: "Casts selected vertices into a smooth, spherical shape with adjustable influence."
   };
-  const NON_OBJECT_MODE_CONDITION = {
-    modes: ["edit"],
-    features: ["meshes"],
-    method: () =>
-      Mesh.selected.length && BarItems["selection_mode"].value != "object",
+  var bridge_edge_loops = {
+  	docs: {
+  		lines: [
+  		]
+  	},
+  	name: "Bridge Edge Loops",
+  	icon: "hub",
+  	description: "Connects multiple edge loops with faces.",
+  	selection_mode: [
+  		"edge",
+  		"face"
+  	]
+  };
+  var poke = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "poke_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "poke_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Poke Faces",
+  	icon: "control_camera",
+  	description: "Generates a fan out of a face.",
+  	selection_mode: "face"
+  };
+  var tris_to_quad = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "tris_to_quad_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "tris_to_quad_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Triangles To Quadrilaterals",
+  	icon: "fas.fa-external-link-square-alt",
+  	description: "Attempts to merge adjacent triangles into quadrilaterals.",
+  	selection_mode: "face"
+  };
+  var triangulate$1 = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "triangulate_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "triangulate_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Triangulate Faces",
+  	icon: "pie_chart_outline",
+  	description: "Splits selected faces into triangles.",
+  	selection_mode: "face"
+  };
+  var uv_project_view = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "uv_project_view_solid.png",
+  						caption: "word.mesh"
+  					},
+  					{
+  						type: "image",
+  						src: "uv_project_view_uv.png",
+  						caption: "word.uv"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Project From View",
+  	icon: "view_in_ar",
+  	description: "Projects the selected faces to the UV map from the camera."
+  };
+  var uv_turnaround_projection = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "uv_turnaround_projection_solid.png",
+  						caption: "word.mesh"
+  					},
+  					{
+  						type: "image",
+  						src: "uv_turnaround_projection_uv.png",
+  						caption: "word.uv"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Cubic Projection",
+  	icon: "open_with",
+  	description: "Unwraps the UV map from the 6 sides of a cube."
+  };
+  var uv_mapping = {
+  	name: "UV Mapping",
+  	icon: "map",
+  	children: [
+  		"uv_project_view",
+  		"uv_turnaround_projection"
+  	]
+  };
+  var expand_selection = {
+  	name: "Expand Selection",
+  	icon: "unfold_more_double",
+  	description: "Expands the selection with neighboring vertices.",
+  	keybind: {
+  		key: "l",
+  		ctrl: true
+  	}
+  };
+  var shrink_selection = {
+  	name: "Shrink Selection",
+  	icon: "unfold_less_double",
+  	description: "Shrinks the selection with neighboring vertices.",
+  	keybind: {
+  		key: "k",
+  		ctrl: true
+  	}
+  };
+  var tools = {
+  	name: "MTools",
+  	icon: "fas.fa-vector-square",
+  	condition: "NON_OBJECT_MODE",
+  	children: [
+  		"to_sphere",
+  		"laplacian_smooth",
+  		"bridge_edge_loops",
+  		"_",
+  		"poke",
+  		"tris_to_quad",
+  		"triangulate",
+  		"_",
+  		"uv_mapping",
+  		"_",
+  		"expand_selection",
+  		"shrink_selection"
+  	]
+  };
+  var operators = {
+  	name: "MTools Operators",
+  	icon: "fas.fa-vector-square",
+  	condition: "OBJECT_MODE",
+  	children: [
+  		"subdivide",
+  		"split_edges",
+  		"_",
+  		"scatter",
+  		"array_elements"
+  	]
+  };
+  var subdivide = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "subdivide_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "subdivide_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Subdivide",
+  	icon: "content_cut",
+  	description: "Splits the faces of a mesh into smaller faces, giving it a smooth appearance."
+  };
+  var split_edges = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "split_edges.png"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Split Edges",
+  	icon: "vertical_split",
+  	description: "Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges."
+  };
+  var scatter = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "scatter.png"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Scatter",
+  	description: "Scatters selected meshes on the active mesh.",
+  	icon: "scatter_plot"
+  };
+  var array_elements = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "array.png"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Array",
+  	icon: "fas.fa-layer-group",
+  	description: "Generates an array of copies of the base object, with each copy being offset from the previous one."
+  };
+  var generators = {
+  	name: "MTools Generate",
+  	icon: "fas.fa-vector-square",
+  	condition: "MESH",
+  	children: [
+  		"terrain_action",
+  		"terrainse",
+  		"_",
+  		"textmesh",
+  		"xyzmathsurfacefunction",
+  		"quickprimitives"
+  	]
+  };
+  var terrain_action = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "terrain_solid.png"
+  					},
+  					{
+  						type: "image",
+  						src: "terrain_wire.png"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Terrain",
+  	icon: "terrain",
+  	description: "Generates terrains procedurally with fully customized settings."
+  };
+  var terrainse = {
+  	name: "Terrain Style Editor",
+  	icon: "draw",
+  	description: "Configure the Custom color gradient style of the terrain generator."
+  };
+  var textmesh = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "text.png",
+  						caption: "\"Butcher\" expressed in Chinese"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Text Mesh",
+  	icon: "format_size",
+  	description: "Converts text into a 3D object, ideal for creating signs or logos."
+  };
+  var xyzmathsurfacefunction = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "xyz.png",
+  						caption: "Twisted Torus Preset"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "XYZ Math Surface",
+  	icon: "fas.fa-brain",
+  	description: "Generates an xyz surface based on mathematical equations containing 23 pre-built presets!"
+  };
+  var quickprimitives = {
+  	name: "Quick Primitives",
+  	icon: "fas.fa-shapes",
+  	children: [
+  		"polyhedron",
+  		"torusknot"
+  	]
+  };
+  var polyhedron = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "polyhedron.png",
+  						caption: "Icosahedron"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Polyhedron",
+  	icon: "offline_bolt",
+  	description: "Generate a polyhedron such as an Icosahedron, a Dodecahedron, an Octahedron or a Tetrahedron."
+  };
+  var torusknot = {
+  	docs: {
+  		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "torus_knot.png"
+  					}
+  				]
+  			}
+  		]
+  	},
+  	name: "Torus Knot",
+  	icon: "offline_bolt",
+  	description: "Generate a Torus Knot with fully customized settings."
+  };
+  var _ACTIONS = {
+  	laplacian_smooth: laplacian_smooth,
+  	to_sphere: to_sphere,
+  	bridge_edge_loops: bridge_edge_loops,
+  	poke: poke,
+  	tris_to_quad: tris_to_quad,
+  	triangulate: triangulate$1,
+  	uv_project_view: uv_project_view,
+  	uv_turnaround_projection: uv_turnaround_projection,
+  	uv_mapping: uv_mapping,
+  	expand_selection: expand_selection,
+  	shrink_selection: shrink_selection,
+  	tools: tools,
+  	operators: operators,
+  	subdivide: subdivide,
+  	split_edges: split_edges,
+  	scatter: scatter,
+  	array_elements: array_elements,
+  	generators: generators,
+  	terrain_action: terrain_action,
+  	terrainse: terrainse,
+  	textmesh: textmesh,
+  	xyzmathsurfacefunction: xyzmathsurfacefunction,
+  	quickprimitives: quickprimitives,
+  	polyhedron: polyhedron,
+  	torusknot: torusknot
   };
 
-  const LANG_BEFORE = "Before";
-  const LANG_AFTER = "After";
-  const LANG_MESH = "Mesh";
-  const LANG_UV = "Uv";
-  const ACTIONS = /** @type {const}  */ ({
-    laplacian_smooth: {
-      docs: {
-        images: [
-          { src: "laplacian_smooth_before.png", caption: LANG_BEFORE },
-          { src: "laplacian_smooth_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "Laplacian Smooth",
-      icon: "blur_on",
-      description:
-        "Smoothens selected vertices by averaging the position of neighboring vertices.",
+  const ACTIONS = _ACTIONS;
+
+  const CONDITIONS = {
+    MESH: {
+      modes: ["edit"],
+      features: ["meshes"],
     },
-    to_sphere: {
-      docs: {
-        images: [
-          { src: "to_sphere_1_before.png", caption: LANG_BEFORE },
-          { src: "to_sphere_1_after.png", caption: LANG_AFTER },
-          { src: "to_sphere_2_before.png", caption: LANG_BEFORE },
-          { src: "to_sphere_2_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "To Sphere",
-      icon: "change_circle",
-      description:
-        "Casts selected vertices into a smooth, spherical shape with adjustable influence.",
+    OBJECT_MODE: {
+      modes: ["edit"],
+      features: ["meshes"],
+      method: () =>
+        Mesh.selected.length && BarItems["selection_mode"].value == "object",
     },
-    bridge_edge_loops: {
-      docs: {
-        images: [],
-      },
-      name: "Bridge Edge Loops",
-      icon: "hub",
-      description: "Connects multiple edge loops with faces.",
-      selection_mode: ["edge", "face"],
+    NON_OBJECT_MODE: {
+      modes: ["edit"],
+      features: ["meshes"],
+      method: () =>
+        Mesh.selected.length && BarItems["selection_mode"].value != "object",
     },
-    poke: {
-      docs: {
-        images: [
-          { src: "poke_before.png", caption: LANG_BEFORE },
-          { src: "poke_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "Poke Faces",
-      icon: "control_camera",
-      description: "Generates a fan out of a face.",
-      selection_mode: "face",
-    },
-    tris_to_quad: {
-      docs: {
-        images: [
-          { src: "tris_to_quad_before.png", caption: LANG_BEFORE },
-          { src: "tris_to_quad_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "Triangles To Quadrilaterals",
-      icon: `fas.fa-external-link-square-alt`,
-      description: "Attempts to merge adjacent triangles into quadrilaterals.",
-      selection_mode: "face",
-    },
-    triangulate: {
-      docs: {
-        images: [
-          { src: "triangulate_before.png", caption: LANG_BEFORE },
-          { src: "triangulate_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "Triangulate Faces",
-      icon: "pie_chart_outline",
-      description: "Splits selected faces into triangles.",
-      selection_mode: "face",
-    },
-    uv_project_view: {
-      docs: {
-        images: [
-          { src: "uv_project_view_solid.png", caption: LANG_MESH },
-          { src: "uv_project_view_uv.png", caption: LANG_UV },
-        ],
-      },
-      name: "Project From View",
-      icon: "view_in_ar",
-      description: "Projects the selected faces to the UV map from the camera.",
-    },
-    uv_turnaround_projection: {
-      docs: {
-        images: [
-          { src: "uv_turnaround_projection_solid.png", caption: LANG_MESH },
-          { src: "uv_turnaround_projection_uv.png", caption: LANG_UV },
-        ],
-      },
-      name: "Cubic Projection",
-      icon: "open_with",
-      description: "Unwraps the UV map from the 6 sides of a cube.",
-    },
-    uv_mapping: {
-      name: "UV Mapping",
-      icon: "map",
-      children: ["uv_project_view", "uv_turnaround_projection"],
-    },
-    expand_selection: {
-      name: "Expand Selection",
-      icon: "unfold_more_double",
-      description: "Expands the selection with neighboring vertices.",
-      keybind: {
-        key: "l",
-        ctrl: true,
-      },
-    },
-    shrink_selection: {
-      name: "Shrink Selection",
-      icon: "unfold_less_double",
-      description: "Shrinks the selection with neighboring vertices.",
-      keybind: { key: "k", ctrl: true },
-    },
-    tools: {
-      name: "MTools",
-      icon: "fas.fa-vector-square",
-      condition: NON_OBJECT_MODE_CONDITION,
-      children: [
-        "to_sphere",
-        "laplacian_smooth",
-        "bridge_edge_loops",
-        "_",
-        "poke",
-        "tris_to_quad",
-        "triangulate",
-        "_",
-        "uv_mapping",
-        "_",
-        "expand_selection",
-        "shrink_selection",
-      ],
-    },
-    operators: {
-      name: "MTools Operators",
-      icon: "fas.fa-vector-square",
-      condition: OBJECT_MODE_CONDITION,
-      children: ["subdivide", "split_edges", "_", "scatter", "array_elements"],
-    },
-    subdivide: {
-      docs: {
-        images: [
-          { src: "subdivide_before.png", caption: LANG_BEFORE },
-          { src: "subdivide_after.png", caption: LANG_AFTER },
-        ],
-      },
-      name: "Subdivide",
-      icon: "content_cut",
-      description:
-        "Splits the faces of a mesh into smaller faces, giving it a smooth appearance.",
-    },
-    split_edges: {
-      docs: {
-        images: [{ src: "split_edges.png" }],
-      },
-      name: "Split Edges",
-      icon: "vertical_split",
-      description:
-        "Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges.",
-    },
-    scatter: {
-      docs: {
-        images: [{ src: "scatter.png" }],
-      },
-      name: "Scatter",
-      description: "Scatters selected meshes on the active mesh.",
-      icon: "scatter_plot",
-    },
-    array_elements: {
-      docs: {
-        images: [{ src: "array.png" }],
-      },
-      name: "Array",
-      icon: "fas.fa-layer-group",
-      description:
-        "Generates an array of copies of the base object, with each copy being offset from the previous one.",
-    },
-    /*  */
-    generators: {
-      name: "MTools Generate",
-      icon: "fas.fa-vector-square",
-      condition: MESH_CONDITION,
-      children: [
-        "terrain_action",
-        "terrainse",
-        "_",
-        "textmesh",
-        "xyzmathsurfacefunction",
-        "quickprimitives",
-      ],
-    },
-    terrain_action: {
-      docs: {
-        images: [{ src: "terrain_solid.png" }, { src: "terrain_wire.png" }],
-      },
-      name: "Terrain",
-      icon: "terrain",
-      description:
-        "Generates terrains procedurally with fully customized settings.",
-    },
-    terrainse: {
-      name: "Terrain Style Editor",
-      icon: "draw",
-      description:
-        "Configure the Custom color gradient style of the terrain generator.",
-    },
-    textmesh: {
-      docs: {
-        images: [{ src: "text.png", caption: `"Butcher" expressed in Chinese` }],
-      },
-      name: "Text Mesh",
-      icon: "format_size",
-      description:
-        "Converts text into a 3D object, ideal for creating signs or logos.",
-    },
-    xyzmathsurfacefunction: {
-      docs: {
-        images: [{ src: "xyz.png", caption: `Twisted Torus Preset` }],
-      },
-      name: "XYZ Math Surface",
-      icon: "fas.fa-brain",
-      description:
-        "Generates an xyz surface based on mathematical equations containing 23 pre-built presets!",
-    },
-    quickprimitives: {
-      name: "Quick Primitives",
-      icon: "fas.fa-shapes",
-      children: ["polyhedron", "torusknot"],
-    },
-    polyhedron: {
-      docs: {
-        images: [{ src: "polyhedron.png", caption: `Icosahedron` }],
-      },
-      name: "Polyhedron",
-      icon: "offline_bolt",
-      description:
-        "Generate a polyhedron such as an Icosahedron, a Dodecahedron, an Octahedron or a Tetrahedron.",
-    },
-    torusknot: {
-      docs: {
-        images: [{ src: "torus_knot.png" }],
-      },
-      name: "Torus Knot",
-      icon: "offline_bolt",
-      description: "Generate a Torus Knot with fully customized settings.",
-    },
-  });
-  for (const id in ACTIONS) {
-    const action = ACTIONS[id];
-    action.id = id;
-  }
+  };
+
 
   const qualifyName = (id) => (id == "_" ? id : `@meshtools/${id}`);
 
@@ -289,6 +523,9 @@
     if (options.children) {
       // TODO qualify with parents
       options.children = options.children.map(qualifyName);
+    }
+    if (typeof options.condition == 'string') {
+      options.condition = CONDITIONS[options.condition];
     }
     if (options.selection_mode) {
       const oldCondition = options.condition;
@@ -333,12 +570,21 @@
     return null;
   }
 
+  function getX(obj) {
+    return obj[xKey(obj)];
+  }
+  function getY(obj) {
+    return obj[yKey(obj)];
+  }
+  function getZ(obj) {
+    return obj[zKey(obj)] ?? 0;
+  }
   /**
    * @typedef {THREE.Vector3 | ArrayVector3} Vector3
-   * 
+   *
    * @template T
-   * @param {T} a 
-   * @param {Vector3} b 
+   * @param {T} a
+   * @param {Vector3} b
    * @returns {T}
    */
   function addVectors(target, source) {
@@ -346,6 +592,13 @@
     target[yKey(target)] += source[yKey(source)];
     target[zKey(target)] += source[zKey(source)];
     return target;
+  }
+  /**
+   * @param {Vector3} a
+   * @param {Vector3} b
+   */
+  function distanceBetween(a, b) {
+    return Math.hypot(getX(a) - getX(b), getY(a) - getY(b), getZ(a) - getZ(b));
   }
 
   const reusableEuler1$1 = new THREE.Euler();
@@ -844,10 +1097,7 @@
         continue;
       }
 
-      const sortedLoop = sortVerticesByAngle(
-        mesh,
-        groupArr
-      );
+      const sortedLoop = sortVerticesByAngle(mesh, groupArr);
 
       edgeLoops.push(groupElementsCollided(sortedLoop, 2));
     }
@@ -929,8 +1179,23 @@
       let vertexB = edgeA[1];
       let vertexC = edgeB[1];
       let vertexD = edgeB[0];
+
+      const width = distanceBetween(
+        mesh.vertices[vertexB],
+        mesh.vertices[vertexA]
+      );
+      const height = distanceBetween(
+        mesh.vertices[vertexA],
+        mesh.vertices[vertexD]
+      );
       const face = new MeshFace(mesh, {
         vertices: [vertexB, vertexA, vertexD, vertexC],
+        uv: {
+          [vertexB]: [0, 0],
+          [vertexA]: [width, 0],
+          [vertexD]: [width, height],
+          [vertexC]: [0, height],
+        },
       });
       mesh.addFaces(face);
     }
@@ -948,8 +1213,8 @@
     { twist, numberOfCuts }
   ) {
     const subEdgeLoops = [];
-    while (twist < 0) twist += edgeLoopA.length;
-    while (twist >= edgeLoopA.length) twist -= edgeLoopA.length;
+    while (twist < 0) twist += edgeLoopB.length;
+    while (twist >= edgeLoopB.length) twist -= edgeLoopB.length;
 
     const sub = edgeLoopB.splice(0, twist);
     edgeLoopB.push(...sub.reverse());
