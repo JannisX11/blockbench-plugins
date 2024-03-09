@@ -11,10 +11,9 @@
 	- [ ] XYZ surface generator: Ability to save multiple presets.
 	- [ ] Optimize the Terrain generator.
 - [ ] MTools Tools:
-	- [ ] New Bridge Loops Action
+	- [x] New Bridge Loops Action
 		- [x] Ability to bridge edge loops
-		- [ ] Detect face holes
-		- [ ] Detect face holes
+		- [x] Detect face holes
 	- [x] Triangles To Quads: Improved Algorithm
 	- [x] Expand/Shrink Selection: Enable for face and edge modes.
 	- [ ] New UV-Preserving Inset.

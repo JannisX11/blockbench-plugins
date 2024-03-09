@@ -55,8 +55,8 @@
       },
       name: "Bridge Edge Loops",
       icon: "hub",
-      description: "???",
-      selection_mode: "edge",
+      description: "Connects multiple edge loops with faces.",
+      selection_mode: ["edge", "face"],
     },
     poke: {
       docs: {
@@ -294,13 +294,58 @@
       const oldCondition = options.condition;
       options.condition = () =>
         Mesh.selected.length &&
-        BarItems["selection_mode"].value == options.selection_mode &&
+        (options.selection_mode instanceof Array
+          ? options.selection_mode.includes(BarItems["selection_mode"].value)
+          : BarItems["selection_mode"].value == options.selection_mode) &&
         Condition(oldCondition);
     }
     if (options.keybind) {
       options.keybind = new Keybind(options.keybind);
     }
     return new Action(qualifyName(id), options);
+  }
+
+  function xKey(obj) {
+    if (obj instanceof THREE.Vector3 || obj instanceof THREE.Vector2) {
+      return "x";
+    }
+    if (obj instanceof Array) {
+      return 0;
+    }
+    return null;
+  }
+  function yKey(obj) {
+    if (obj instanceof THREE.Vector3 || obj instanceof THREE.Vector2) {
+      return "y";
+    }
+    if (obj instanceof Array) {
+      return 1;
+    }
+    return null;
+  }
+  function zKey(obj) {
+    if (obj instanceof THREE.Vector3) {
+      return "z";
+    }
+    if (obj instanceof Array) {
+      return 2;
+    }
+    return null;
+  }
+
+  /**
+   * @typedef {THREE.Vector3 | ArrayVector3} Vector3
+   * 
+   * @template T
+   * @param {T} a 
+   * @param {Vector3} b 
+   * @returns {T}
+   */
+  function addVectors(target, source) {
+    target[xKey(target)] += source[xKey(source)];
+    target[yKey(target)] += source[yKey(source)];
+    target[zKey(target)] += source[zKey(source)];
+    return target;
   }
 
   const reusableEuler1$1 = new THREE.Euler();
@@ -487,7 +532,6 @@
         for (let j = 0; j < vertices.length; j++) {
           if (j === a || j === b || j === c) continue;
 
-          // console.log(vertices[j], vertices[a], vertices[b], vertices[c]);
           someVertexLiesInsideEar = isPointInTriangle(
             vertices[j],
             vertices[a],
@@ -608,6 +652,7 @@
   function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
     const selectedFaces = [];
     const selectedEdges = [];
+    const foundEdges = new Set();
 
     for (const faceKey in mesh.faces) {
       const face = mesh.faces[faceKey];
@@ -621,10 +666,16 @@
       }
 
       const sortedVertices = face.getSortedVertices();
-      for (let i = 0; i < sortedVertices.length; i += 2) {
+      for (let i = 0; i < sortedVertices.length; i++) {
         const vertexA = sortedVertices[i];
         const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
-        if (vertexSet.has(vertexB) && vertexSet.has(vertexB)) {
+        const edgeKey = getEdgeKey(vertexA, vertexB);
+        if (foundEdges.has(edgeKey)) {
+          continue;
+        }
+        foundEdges.add(edgeKey);
+
+        if (vertexSet.has(vertexA) && vertexSet.has(vertexB)) {
           selectedEdges.push([vertexA, vertexB]);
         }
       }
@@ -647,21 +698,26 @@
     const vertices = Array.from(vertexSet);
 
     mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
-    switch (BarItems['selection_mode'].value) {
-      case 'vertex':
+    switch (BarItems["selection_mode"].value) {
+      case "vertex":
         break;
-      case 'edge':
+      case "edge":
         mesh.getSelectedEdges().splice(0, Infinity, ...edges);
         mesh.getSelectedFaces().splice(0, Infinity);
         break;
-      case 'cluster':
-      case 'face':
+      case "cluster":
+      case "face":
         mesh.getSelectedFaces().splice(0, Infinity, ...faces);
         mesh.getSelectedEdges().splice(0, Infinity);
         break;
     }
   }
 
+  /**
+   *
+   * @param {string} vertex
+   * @returns
+   */
   function gatherConnectedVertices(
     vertex,
     { neighborhoodCondition, processedVertices, neighborhood, mesh } = {}
@@ -716,43 +772,100 @@
       })
       .sort(([a], [b]) => a - b)
       .map(([, e]) => e);
-    return {
-      sorted,
-      centroid,
-    };
+    return sorted;
+  }
+  function getEdgeKey(a, b) {
+    if (b < a) {
+      const tmp = a;
+      a = b;
+      b = tmp;
+    }
+    return `${a}_${b}`;
+  }
+  function extractEdgeKey(edgeKey) {
+    return edgeKey.split("_");
+  }
+  function getSelectedEdgesConnectedCountMap(mesh) {
+    const { edges } = getSelectedFacesAndEdgesByVertices(
+      mesh,
+      new Set(mesh.getSelectedVertices())
+    );
+    const selectedConnectedCount = {};
+    const connectedCount = {};
+
+    const neighborhood = computeEdgeFacesNeighborhood(mesh);
+
+    for (const [a, b] of edges) {
+      const edgeKey = getEdgeKey(a, b);
+      selectedConnectedCount[edgeKey] ??= 0;
+      connectedCount[edgeKey] ??= 0;
+      if (!(edgeKey in neighborhood)) {
+        continue;
+      }
+      connectedCount[edgeKey] = neighborhood[edgeKey].length;
+      for (const connectedFace of neighborhood[edgeKey]) {
+        if (connectedFace.isSelected()) {
+          selectedConnectedCount[edgeKey] += 1;
+        }
+      }
+    }
+    return { connectedCount, selectedConnectedCount };
+  }
+  /**
+   *
+   * @param {Mesh} mesh
+   * @returns {{[edgeKey: string]: MeshFace[]}}
+   */
+  function computeEdgeFacesNeighborhood(mesh) {
+    const neighborhood = {};
+    for (const key in mesh.faces) {
+      const face = mesh.faces[key];
+      const vertices = face.getSortedVertices();
+
+      for (let i = 0; i < vertices.length; i++) {
+        const vertexCurr = vertices[i];
+        const vertexNext = vertices[(i + 1) % vertices.length];
+        const edgeKey = getEdgeKey(vertexCurr, vertexNext);
+        neighborhood[edgeKey] ??= [];
+        neighborhood[edgeKey].safePush(face);
+      }
+    }
+    return neighborhood;
   }
   /**
    * @param {Mesh} mesh
    */
-  function gatherSelectedEdgeLoops(mesh) {
-    const groups = groupConnectedSelectedVertices(mesh);
+  function gatherEdgeLoopsIncluding(mesh, verticesSet) {
+    const groups = groupConnectedVerticesIncluding(mesh, verticesSet);
     const edgeLoops = [];
     for (const group of groups) {
-      const { sorted: sortedLoop, centroid } = sortVerticesByAngle(
+      const groupArr = Array.from(group);
+      if (groupArr.length < 3) {
+        continue;
+      }
+
+      const sortedLoop = sortVerticesByAngle(
         mesh,
-        Array.from(group)
+        groupArr
       );
 
-      edgeLoops.push({ edges: groupElementsCollided(sortedLoop, 2), centroid });
+      edgeLoops.push(groupElementsCollided(sortedLoop, 2));
     }
 
     return edgeLoops;
   }
-  function groupConnectedSelectedVertices(mesh) {
-    const selectedVerticesSet = new Set(mesh.getSelectedVertices());
+  function groupConnectedVerticesIncluding(mesh, verticesSet) {
     const neighborhood = computeVertexNeighborhood(mesh);
     const processedVertices = new Set();
     const edgeLoops = [];
 
-    for (const current of mesh.getSelectedEdges()) {
-      const [a, _b] = current;
-      if (!processedVertices.has(a)) {
+    for (const vertex of verticesSet) {
+      if (!processedVertices.has(vertex)) {
         edgeLoops.push(
-          gatherConnectedVertices(a, {
+          gatherConnectedVertices(vertex, {
             neighborhood,
             processedVertices,
-            neighborhoodCondition: (neighbor) =>
-              selectedVerticesSet.has(neighbor),
+            neighborhoodCondition: (neighbor) => verticesSet.has(neighbor),
           })
         );
       }
@@ -777,97 +890,190 @@
     return newArray;
   }
 
-  function runEdit$c(amend, numberOfCuts, twist) {
-    Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
+  function findMin(array, map = (x) => x) {
+    let minElement = null;
+    let minValue = Infinity;
 
-    /**
-     *
-     * @param {Mesh} mesh
-     * @param {*} edgeLoopA
-     * @param {*} edgeLoopB
-     */
-    function bridgeSingle(mesh, edgeLoopA, edgeLoopB) {
-      for (let i = 0; i < edgeLoopA.length; i++) {
-        let realI = i + twist;
-        while (realI < 0) realI += edgeLoopA.length;
-        while (realI >= edgeLoopA.length) realI -= edgeLoopA.length;
+    for (const element of array) {
+      const value = map(element);
 
-        const edgeA = edgeLoopA[realI];
-        const edgeB = edgeLoopB[Math.min(i, edgeLoopB.length - 1)];
-
-        let vertexA = edgeA[0];
-        let vertexB = edgeA[1];
-        let vertexC = edgeB[1];
-        let vertexD = edgeB[0];
-        const face = new MeshFace(mesh, {
-          vertices: [vertexB, vertexA, vertexD, vertexC],
-        });
-        mesh.addFaces(face);
+      if (value <= minValue) {
+        minElement = element;
+        minValue = value;
       }
     }
-    /**
-     *
-     * @param {Mesh} mesh
-     * @param {*} edgeLoopA
-     * @param {*} edgeLoopB
-     */
-    function bridge(mesh, edgeLoopA, edgeLoopB) {
-      const subEdgeLoops = [];
-      for (let i = 0; i < numberOfCuts; i++) {
-        const t = i / (numberOfCuts - 1);
 
-        const subEdgeLoop = [];
-        for (let j = 0; j < edgeLoopA.length; j++) {
-          const edgeA = edgeLoopA[j];
-          const edgeB = edgeLoopB[Math.min(j, edgeLoopB.length - 1)];
+    return minElement;
+  }
+  function computeCentroid(polygon) {
+    const centroid = new THREE.Vector3();
+    for (const vertex of polygon) {
+      addVectors(centroid, vertex);
+    }
+    centroid.divideScalar(polygon.length);
+    return centroid;
+  }
 
-          if (i == 0) {
-            subEdgeLoop.push(edgeA[0]);
-          } else if (i == numberOfCuts - 1) {
-            subEdgeLoop.push(edgeB[0]);
-          } else {
-            const vertex = lerp3(
-              mesh.vertices[edgeA[0]],
-              mesh.vertices[edgeB[0]],
-              t
-            );
-            subEdgeLoop.push(mesh.addVertices(vertex)[0]);
+  /**
+   *
+   * @param {Mesh} mesh
+   * @param {*} edgeLoopA
+   * @param {*} edgeLoopB
+   */
+  function bridgeLoops(mesh, edgeLoopA, edgeLoopB) {
+    for (let i = 0; i < edgeLoopA.length; i++) {
+      const edgeA = edgeLoopA[i];
+      const edgeB = edgeLoopB[Math.min(i, edgeLoopB.length - 1)];
+
+      let vertexA = edgeA[0];
+      let vertexB = edgeA[1];
+      let vertexC = edgeB[1];
+      let vertexD = edgeB[0];
+      const face = new MeshFace(mesh, {
+        vertices: [vertexB, vertexA, vertexD, vertexC],
+      });
+      mesh.addFaces(face);
+    }
+  }
+  /**
+   *
+   * @param {Mesh} mesh
+   * @param {*} edgeLoopA
+   * @param {*} edgeLoopB
+   */
+  function bridgeLoopsConfigured(
+    mesh,
+    edgeLoopA,
+    edgeLoopB,
+    { twist, numberOfCuts }
+  ) {
+    const subEdgeLoops = [];
+    while (twist < 0) twist += edgeLoopA.length;
+    while (twist >= edgeLoopA.length) twist -= edgeLoopA.length;
+
+    const sub = edgeLoopB.splice(0, twist);
+    edgeLoopB.push(...sub.reverse());
+
+    for (let i = 0; i < numberOfCuts; i++) {
+      const t = i / (numberOfCuts - 1);
+
+      const subEdgeLoop = [];
+      for (let j = 0; j < edgeLoopA.length; j++) {
+        const edgeA = edgeLoopA[j];
+        const edgeB = edgeLoopB[Math.min(j, edgeLoopB.length - 1)];
+
+        if (i == 0) {
+          subEdgeLoop.push(edgeA[0]);
+        } else if (i == numberOfCuts - 1) {
+          subEdgeLoop.push(edgeB[0]);
+        } else {
+          const vertex = lerp3(
+            mesh.vertices[edgeA[0]],
+            mesh.vertices[edgeB[0]],
+            t
+          );
+          subEdgeLoop.push(mesh.addVertices(vertex)[0]);
+        }
+      }
+
+      subEdgeLoops.push(groupElementsCollided(subEdgeLoop, 2));
+    }
+
+    for (let i = 0; i < subEdgeLoops.length - 1; i++) {
+      const fromEdgeLoop = subEdgeLoops[i];
+      const intoEdgeLoop = subEdgeLoops[i + 1];
+      bridgeLoops(mesh, fromEdgeLoop, intoEdgeLoop);
+    }
+  }
+
+  function runEdit$c(amend, numberOfCuts, twist, cutHoles) {
+    Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
+
+    for (const mesh of Mesh.selected) {
+      // Delete selected faces and keep outer edges
+      let keptVerticesSet;
+      if (BarItems["selection_mode"].value == "face") {
+        keptVerticesSet = new Set();
+        const keptEdges = new Set();
+        const {
+          selectedConnectedCount: edgesConnectedCount,
+          connectedCount: edgesAllConnectedCount,
+        } = getSelectedEdgesConnectedCountMap(mesh);
+
+        for (const edge in edgesConnectedCount) {
+          const [a, b] = extractEdgeKey(edge);
+          const count = edgesConnectedCount[edge];
+          const allCount = edgesAllConnectedCount[edge];
+
+          if (count == 1) {
+            keptEdges.add(edge);
+            keptVerticesSet.add(a);
+            keptVerticesSet.add(b);
+
+            if (allCount == 1 && cutHoles) {
+              mesh.addFaces(
+                new MeshFace(mesh, {
+                  vertices: [a, b],
+                })
+              );
+            }
           }
         }
 
-        subEdgeLoops.push(groupElementsCollided(subEdgeLoop, 2));
+        if (cutHoles) {
+          const leftVerticesSet = new Set();
+          for (const vertexKey of mesh.getSelectedVertices()) {
+            if (!keptVerticesSet.has(vertexKey)) {
+              leftVerticesSet.add(vertexKey);
+            }
+          }
+          for (const vertexKey of leftVerticesSet) {
+            delete mesh.vertices[vertexKey];
+          }
+          for (const faceKey of mesh.getSelectedFaces()) {
+            delete mesh.faces[faceKey];
+          }
+        }
+        selectFacesAndEdgesByVertices(mesh, keptVerticesSet);
+      } else {
+        keptVerticesSet = new Set(mesh.getSelectedVertices());
       }
-
-      for (let i = 0; i < subEdgeLoops.length - 1; i++) {
-        const fromEdgeLoop = subEdgeLoops[i];
-        const intoEdgeLoop = subEdgeLoops[i + 1];
-        bridgeSingle(mesh, fromEdgeLoop, intoEdgeLoop);
-      }
-    }
-    for (const mesh of Mesh.selected) {
-      const edgeLoops = gatherSelectedEdgeLoops(mesh);
+      const edgeLoops = gatherEdgeLoopsIncluding(mesh, keptVerticesSet);
       if (edgeLoops.length < 2) continue;
+      for (let i = 0; i < edgeLoops.length; i++) {
+        edgeLoops[i] = {
+          edges: edgeLoops[i],
+          centroid: computeCentroid(edgeLoops[i].map((e) => mesh.vertices[e[0]])),
+        };
+      }
 
-      edgeLoops.sort((a, b) => {
-        if (a.centroid.x != b.centroid.x) {
-          return a.centroid.x - b.centroid.x;
-        }
-        if (a.centroid.y != b.centroid.y) {
-          return a.centroid.y - b.centroid.y;
-        }
-        return a.centroid.z - b.centroid.z;
-      });
-      for (let i = 0; i < edgeLoops.length - 1; i++) {
-        const fromEdgeLoop = edgeLoops[i];
-        const intoEdgeLoop = edgeLoops[i + 1];
-        bridge(mesh, fromEdgeLoop.edges, intoEdgeLoop.edges);
+      const sortedEdgeLoops = [edgeLoops.pop()];
+      while (edgeLoops.length) {
+        const currEdgeLoop = sortedEdgeLoops.last();
+        const closestLoop = findMin(edgeLoops, (e) =>
+          e.centroid.distanceToSquared(currEdgeLoop.centroid)
+        );
+
+        sortedEdgeLoops.push(closestLoop);
+        edgeLoops.remove(closestLoop);
+      }
+      for (let i = 0; i < sortedEdgeLoops.length - 1; i++) {
+        const fromEdgeLoop = sortedEdgeLoops[i];
+        const intoEdgeLoop = sortedEdgeLoops[i + 1];
+        bridgeLoopsConfigured(mesh, fromEdgeLoop.edges, intoEdgeLoop.edges, {
+          twist,
+          numberOfCuts,
+        });
       }
     }
-    Canvas.updatePositions();
+    Canvas.updateView({
+      elements: Mesh.selected,
+      element_aspects: { geometry: true, uv: true, faces: true },
+    });
     Undo.finishEdit("MTools: Bridged Edge Loops.");
   }
   action("bridge_edge_loops", () => {
-    runEdit$c(false, 2, 0);
+    runEdit$c(false, 2, 0, true);
     Undo.amendEdit(
       {
         num_cuts: {
@@ -881,8 +1087,14 @@
           label: "Twist",
           value: 0,
         },
+        cut_holes: {
+          type: "checkbox",
+          label: "Cut Holes",
+          value: true,
+          condition: () => BarItems["selection_mode"].value == "face",
+        },
       },
-      (form) => runEdit$c(true, form.num_cuts + 1, form.twist)
+      (form) => runEdit$c(true, form.num_cuts + 1, form.twist, form.cut_holes)
     );
   });
 

@@ -1,3 +1,5 @@
+import { addVectors } from "./vector.js";
+
 const reusableEuler1 = new THREE.Euler();
 const reusableQuat1 = new THREE.Quaternion();
 const reusableVec1 = new THREE.Vector3();
@@ -208,7 +210,6 @@ export function triangulate(polygon) {
       for (let j = 0; j < vertices.length; j++) {
         if (j === a || j === b || j === c) continue;
 
-        // console.log(vertices[j], vertices[a], vertices[b], vertices[c]);
         someVertexLiesInsideEar = isPointInTriangle(
           vertices[j],
           vertices[a],
@@ -329,6 +330,7 @@ export function isValidQuad(points) {
 export function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
   const selectedFaces = [];
   const selectedEdges = [];
+  const foundEdges = new Set();
 
   for (const faceKey in mesh.faces) {
     const face = mesh.faces[faceKey];
@@ -342,10 +344,16 @@ export function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
     }
 
     const sortedVertices = face.getSortedVertices();
-    for (let i = 0; i < sortedVertices.length; i += 2) {
+    for (let i = 0; i < sortedVertices.length; i++) {
       const vertexA = sortedVertices[i];
       const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
-      if (vertexSet.has(vertexB) && vertexSet.has(vertexB)) {
+      const edgeKey = getEdgeKey(vertexA, vertexB);
+      if (foundEdges.has(edgeKey)) {
+        continue;
+      }
+      foundEdges.add(edgeKey);
+
+      if (vertexSet.has(vertexA) && vertexSet.has(vertexB)) {
         selectedEdges.push([vertexA, vertexB]);
       }
     }
@@ -368,21 +376,26 @@ export function selectFacesAndEdgesByVertices(mesh, vertexSet) {
   const vertices = Array.from(vertexSet);
 
   mesh.getSelectedVertices().splice(0, Infinity, ...vertices);
-  switch (BarItems['selection_mode'].value) {
-    case 'vertex':
+  switch (BarItems["selection_mode"].value) {
+    case "vertex":
       break;
-    case 'edge':
+    case "edge":
       mesh.getSelectedEdges().splice(0, Infinity, ...edges);
       mesh.getSelectedFaces().splice(0, Infinity);
       break;
-    case 'cluster':
-    case 'face':
+    case "cluster":
+    case "face":
       mesh.getSelectedFaces().splice(0, Infinity, ...faces);
       mesh.getSelectedEdges().splice(0, Infinity);
       break;
   }
 }
 
+/**
+ *
+ * @param {string} vertex
+ * @returns
+ */
 function gatherConnectedVertices(
   vertex,
   { neighborhoodCondition, processedVertices, neighborhood, mesh } = {}
@@ -437,43 +450,100 @@ function sortVerticesByAngle(mesh, vertexKeys) {
     })
     .sort(([a], [b]) => a - b)
     .map(([, e]) => e);
-  return {
-    sorted,
-    centroid,
-  };
+  return sorted;
+}
+export function getEdgeKey(a, b) {
+  if (b < a) {
+    const tmp = a;
+    a = b;
+    b = tmp;
+  }
+  return `${a}_${b}`;
+}
+export function extractEdgeKey(edgeKey) {
+  return edgeKey.split("_");
+}
+export function getSelectedEdgesConnectedCountMap(mesh) {
+  const { edges } = getSelectedFacesAndEdgesByVertices(
+    mesh,
+    new Set(mesh.getSelectedVertices())
+  );
+  const selectedConnectedCount = {};
+  const connectedCount = {};
+
+  const neighborhood = computeEdgeFacesNeighborhood(mesh);
+
+  for (const [a, b] of edges) {
+    const edgeKey = getEdgeKey(a, b);
+    selectedConnectedCount[edgeKey] ??= 0;
+    connectedCount[edgeKey] ??= 0;
+    if (!(edgeKey in neighborhood)) {
+      continue;
+    }
+    connectedCount[edgeKey] = neighborhood[edgeKey].length;
+    for (const connectedFace of neighborhood[edgeKey]) {
+      if (connectedFace.isSelected()) {
+        selectedConnectedCount[edgeKey] += 1;
+      }
+    }
+  }
+  return { connectedCount, selectedConnectedCount };
+}
+/**
+ *
+ * @param {Mesh} mesh
+ * @returns {{[edgeKey: string]: MeshFace[]}}
+ */
+export function computeEdgeFacesNeighborhood(mesh) {
+  const neighborhood = {};
+  for (const key in mesh.faces) {
+    const face = mesh.faces[key];
+    const vertices = face.getSortedVertices();
+
+    for (let i = 0; i < vertices.length; i++) {
+      const vertexCurr = vertices[i];
+      const vertexNext = vertices[(i + 1) % vertices.length];
+      const edgeKey = getEdgeKey(vertexCurr, vertexNext);
+      neighborhood[edgeKey] ??= [];
+      neighborhood[edgeKey].safePush(face);
+    }
+  }
+  return neighborhood;
 }
 /**
  * @param {Mesh} mesh
  */
-export function gatherSelectedEdgeLoops(mesh) {
-  const groups = groupConnectedSelectedVertices(mesh);
+export function gatherEdgeLoopsIncluding(mesh, verticesSet) {
+  const groups = groupConnectedVerticesIncluding(mesh, verticesSet);
   const edgeLoops = [];
   for (const group of groups) {
-    const { sorted: sortedLoop, centroid } = sortVerticesByAngle(
+    const groupArr = Array.from(group);
+    if (groupArr.length < 3) {
+      continue;
+    }
+
+    const sortedLoop = sortVerticesByAngle(
       mesh,
-      Array.from(group)
+      groupArr
     );
 
-    edgeLoops.push({ edges: groupElementsCollided(sortedLoop, 2), centroid });
+    edgeLoops.push(groupElementsCollided(sortedLoop, 2));
   }
 
   return edgeLoops;
 }
-export function groupConnectedSelectedVertices(mesh) {
-  const selectedVerticesSet = new Set(mesh.getSelectedVertices());
+export function groupConnectedVerticesIncluding(mesh, verticesSet) {
   const neighborhood = computeVertexNeighborhood(mesh);
   const processedVertices = new Set();
   const edgeLoops = [];
 
-  for (const current of mesh.getSelectedEdges()) {
-    const [a, _b] = current;
-    if (!processedVertices.has(a)) {
+  for (const vertex of verticesSet) {
+    if (!processedVertices.has(vertex)) {
       edgeLoops.push(
-        gatherConnectedVertices(a, {
+        gatherConnectedVertices(vertex, {
           neighborhood,
           processedVertices,
-          neighborhoodCondition: (neighbor) =>
-            selectedVerticesSet.has(neighbor),
+          neighborhoodCondition: (neighbor) => verticesSet.has(neighbor),
         })
       );
     }
@@ -563,4 +633,28 @@ export function groupElementsCollided(array, every = 2) {
     newArray.push(sub);
   }
   return newArray;
+}
+
+export function findMin(array, map = (x) => x) {
+  let minElement = null;
+  let minValue = Infinity;
+
+  for (const element of array) {
+    const value = map(element);
+
+    if (value <= minValue) {
+      minElement = element;
+      minValue = value;
+    }
+  }
+
+  return minElement;
+}
+export function computeCentroid(polygon) {
+  const centroid = new THREE.Vector3();
+  for (const vertex of polygon) {
+    addVectors(centroid, vertex);
+  }
+  centroid.divideScalar(polygon.length);
+  return centroid;
 }

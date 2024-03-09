@@ -52,8 +52,8 @@ export const ACTIONS = /** @type {const}  */ ({
     },
     name: "Bridge Edge Loops",
     icon: "hub",
-    description: "???",
-    selection_mode: "edge",
+    description: "Connects multiple edge loops with faces.",
+    selection_mode: ["edge", "face"],
   },
   poke: {
     docs: {
@@ -291,7 +291,9 @@ export function action(id, click) {
     const oldCondition = options.condition;
     options.condition = () =>
       Mesh.selected.length &&
-      BarItems["selection_mode"].value == options.selection_mode &&
+      (options.selection_mode instanceof Array
+        ? options.selection_mode.includes(BarItems["selection_mode"].value)
+        : BarItems["selection_mode"].value == options.selection_mode) &&
       Condition(oldCondition);
   }
   if (options.keybind) {
