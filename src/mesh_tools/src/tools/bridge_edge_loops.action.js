@@ -159,7 +159,7 @@ function runEdit(amend, numberOfCuts, twist, cutHoles) {
     } else {
       keptVerticesSet = new Set(mesh.getSelectedVertices());
     }
-    // const loops = groupLoopsIncluding(mesh, keptVerticesSet);
+
     const loops = [];
     const { edges } = getSelectedFacesAndEdgesByVertices(mesh, keptVerticesSet);
 
@@ -190,6 +190,15 @@ function runEdit(amend, numberOfCuts, twist, cutHoles) {
         visitedEdges.add(connectedEdge);
         currentLoop.push(connectedEdge);
       }
+      // Organize unorganized loops
+      for (let i = 0; i < currentLoop.length; i++) {
+        const currEdge = currentLoop[i];
+        const nextEdge = currentLoop[(i + 1) % currentLoop.length];
+        if (currEdge[1] != nextEdge[0]) {
+          nextEdge.reverse();
+        }
+      }
+
       loops.push(currentLoop);
     }
 
