@@ -1,13 +1,14 @@
 import { action } from "../actions.js";
 import {
+  computeCentroid,
   extractEdgeKey,
-  gatherEdgeLoopsIncluding,
   findMin,
   getSelectedEdgesConnectedCountMap,
+  getSelectedFacesAndEdgesByVertices,
   groupElementsCollided,
   lerp3,
+  offsetArray,
   selectFacesAndEdgesByVertices,
-  computeCentroid,
 } from "../utils/utils.js";
 import { distanceBetween } from "../utils/vector.js";
 
@@ -47,6 +48,15 @@ function bridgeLoops(mesh, edgeLoopA, edgeLoopB) {
     mesh.addFaces(face);
   }
 }
+function edgeLoopsBridgeLength(mesh, edgeLoopA, edgeLoopB) {
+  let length = 0;
+  for (let i = 0; i < edgeLoopA.length; i++) {
+    const [vertexA0] = edgeLoopA[i];
+    const [vertexB0] = edgeLoopB[Math.min(i, edgeLoopB.length - 1)];
+    length += distanceBetween(mesh.vertices[vertexA0], mesh.vertices[vertexB0]);
+  }
+  return length;
+}
 /**
  *
  * @param {Mesh} mesh
@@ -59,12 +69,11 @@ function bridgeLoopsConfigured(
   edgeLoopB,
   { twist, numberOfCuts }
 ) {
-  const subEdgeLoops = [];
-  while (twist < 0) twist += edgeLoopB.length;
-  while (twist >= edgeLoopB.length) twist -= edgeLoopB.length;
+  edgeLoopA = edgeLoopA.map((e) => e.slice());
+  edgeLoopB = edgeLoopB.map((e) => e.slice());
 
-  const sub = edgeLoopB.splice(0, twist);
-  edgeLoopB.push(...sub.reverse());
+  const subEdgeLoops = [];
+  offsetArray(edgeLoopB, twist);
 
   for (let i = 0; i < numberOfCuts; i++) {
     const t = i / (numberOfCuts - 1);
@@ -150,29 +159,66 @@ function runEdit(amend, numberOfCuts, twist, cutHoles) {
     } else {
       keptVerticesSet = new Set(mesh.getSelectedVertices());
     }
-    const edgeLoops = gatherEdgeLoopsIncluding(mesh, keptVerticesSet);
-    if (edgeLoops.length < 2) continue;
-    for (let i = 0; i < edgeLoops.length; i++) {
-      edgeLoops[i] = {
-        edges: edgeLoops[i],
-        centroid: computeCentroid(edgeLoops[i].map((e) => mesh.vertices[e[0]])),
+    // const loops = groupLoopsIncluding(mesh, keptVerticesSet);
+    const loops = [];
+    const { edges } = getSelectedFacesAndEdgesByVertices(mesh, keptVerticesSet);
+
+    const visitedEdges = new Set();
+    for (const edge of edges) {
+      if (visitedEdges.has(edge)) continue;
+      visitedEdges.add(edge);
+
+      const currentLoop = [edge];
+      while (true) {
+        const targetEdge = currentLoop.last();
+        let connectedEdge;
+        for (const otherEdge of edges) {
+          if (
+            !currentLoop.includes(otherEdge) &&
+            (otherEdge[0] == targetEdge[0] ||
+              otherEdge[1] == targetEdge[0] ||
+              otherEdge[1] == targetEdge[1] ||
+              otherEdge[0] == targetEdge[1])
+          ) {
+            connectedEdge = otherEdge;
+            break;
+          }
+        }
+        if (!connectedEdge) break;
+        if (visitedEdges.has(connectedEdge)) break;
+
+        visitedEdges.add(connectedEdge);
+        currentLoop.push(connectedEdge);
+      }
+      loops.push(currentLoop);
+    }
+
+    if (loops.length < 2) continue;
+    for (let i = 0; i < loops.length; i++) {
+      loops[i] = {
+        loop: loops[i],
+        centroid: computeCentroid(loops[i].map((e) => mesh.vertices[e[0]])),
       };
     }
 
-    const sortedEdgeLoops = [edgeLoops.pop()];
-    while (edgeLoops.length) {
+    const sortedEdgeLoops = [loops.pop()];
+    while (loops.length) {
       const currEdgeLoop = sortedEdgeLoops.last();
-      const closestLoop = findMin(edgeLoops, (e) =>
+      const closestLoop = findMin(loops, (e) =>
         e.centroid.distanceToSquared(currEdgeLoop.centroid)
       );
 
       sortedEdgeLoops.push(closestLoop);
-      edgeLoops.remove(closestLoop);
+      loops.remove(closestLoop);
     }
     for (let i = 0; i < sortedEdgeLoops.length - 1; i++) {
-      const fromEdgeLoop = sortedEdgeLoops[i];
-      const intoEdgeLoop = sortedEdgeLoops[i + 1];
-      bridgeLoopsConfigured(mesh, fromEdgeLoop.edges, intoEdgeLoop.edges, {
+      const fromEdgeLoop = sortedEdgeLoops[i].loop.slice();
+      const intoEdgeLoop = sortedEdgeLoops[i + 1].loop.slice();
+
+      let bestOffset = bestEdgeLoopsOffset(intoEdgeLoop, fromEdgeLoop, mesh);
+      offsetArray(intoEdgeLoop, bestOffset);
+
+      bridgeLoopsConfigured(mesh, fromEdgeLoop, intoEdgeLoop, {
         twist,
         numberOfCuts,
       });
@@ -209,3 +255,37 @@ export default action("bridge_edge_loops", () => {
     (form) => runEdit(true, form.num_cuts + 1, form.twist, form.cut_holes)
   );
 });
+/**
+ * Returns the best offset applied on {@linkcode intoEdgeLoop} when connected with {@linkcode fromEdgeLoop}
+ * @param {*} fromEdgeLoop
+ * @param {*} intoEdgeLoop
+ * @param {Mesh} mesh
+ * @returns {number}
+ */
+function bestEdgeLoopsOffset(fromEdgeLoop, intoEdgeLoop, mesh) {
+  let bestOffset = 0;
+  let minLength = Infinity;
+  outer: for (let i = 0; i < intoEdgeLoop.length; i++) {
+    let length = 0;
+    for (let i = 0; i < fromEdgeLoop.length; i++) {
+      const [vertexA0] = fromEdgeLoop[i];
+      const [vertexB0] = intoEdgeLoop[Math.min(i, intoEdgeLoop.length - 1)];
+      length += distanceBetween(
+        mesh.vertices[vertexA0],
+        mesh.vertices[vertexB0]
+      );
+
+      // Optimization
+      if (length > minLength) {
+        offsetArray(intoEdgeLoop, 1);
+        continue outer;
+      }
+    }
+    if (length <= minLength) {
+      bestOffset = i;
+      minLength = length;
+    }
+    offsetArray(intoEdgeLoop, 1);
+  }
+  return bestOffset;
+}

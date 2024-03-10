@@ -1,4 +1,4 @@
-import { addVectors } from "./vector.js";
+import { addVectors, getX, getY, getZ } from "./vector.js";
 
 const reusableEuler1 = new THREE.Euler();
 const reusableQuat1 = new THREE.Quaternion();
@@ -142,7 +142,7 @@ export function isPointInTriangle(point, point1, point2, point3) {
  * @param {ArrayVector3[]} polygon
  * @returns {boolean}
  */
-function isPolygonClockWise(polygon) {
+export function isPolygon3ClockWise(polygon) {
   if (polygon.length <= 2) {
     return true;
   }
@@ -150,7 +150,27 @@ function isPolygonClockWise(polygon) {
   for (let i = 0; i < polygon.length; i++) {
     const vertexA = polygon[i];
     const vertexB = polygon[(i + 1) % polygon.length];
-    sum += (vertexB.x - vertexA.x) * (vertexB.y - vertexA.y);
+    sum +=
+      (getX(vertexB) - getX(vertexA)) *
+      (getY(vertexB) - getY(vertexA)) *
+      (getZ(vertexB) - getZ(vertexA));
+  }
+  return sum >= 0;
+}
+/**
+ * Note: If the polygon length is less than 3, true is returned.
+ * @param {ArrayVector2[]} polygon
+ * @returns {boolean}
+ */
+export function isPolygonClockWise(polygon) {
+  if (polygon.length <= 2) {
+    return true;
+  }
+  let sum = 0;
+  for (let i = 0; i < polygon.length; i++) {
+    const vertexA = polygon[i];
+    const vertexB = polygon[(i + 1) % polygon.length];
+    sum += (getX(vertexB) - getX(vertexA)) * (getY(vertexB) - getY(vertexA));
   }
   return sum >= 0;
 }
@@ -347,6 +367,7 @@ export function getSelectedFacesAndEdgesByVertices(mesh, vertexSet) {
     for (let i = 0; i < sortedVertices.length; i++) {
       const vertexA = sortedVertices[i];
       const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
+      if (vertexA == vertexB) continue;
       const edgeKey = getEdgeKey(vertexA, vertexB);
       if (foundEdges.has(edgeKey)) {
         continue;
@@ -420,7 +441,7 @@ function gatherConnectedVertices(
       if (connected.has(neighbor)) {
         continue;
       }
-      if (neighborhoodCondition && neighborhoodCondition(neighbor)) {
+      if (!neighborhoodCondition || neighborhoodCondition(neighbor)) {
         connected.add(neighbor);
       }
     }
@@ -513,30 +534,31 @@ export function computeEdgeFacesNeighborhood(mesh) {
 /**
  * @param {Mesh} mesh
  */
-export function gatherEdgeLoopsIncluding(mesh, verticesSet) {
+export function groupLoopsIncluding(mesh, verticesSet) {
   const groups = groupConnectedVerticesIncluding(mesh, verticesSet);
-  const edgeLoops = [];
+
+  const loops = [];
   for (const group of groups) {
     const groupArr = Array.from(group);
     if (groupArr.length < 3) {
       continue;
     }
 
-    const sortedLoop = sortVerticesByAngle(mesh, groupArr);
+    const sortedGroup = sortVerticesByAngle(mesh, groupArr);
 
-    edgeLoops.push(groupElementsCollided(sortedLoop, 2));
+    loops.push(sortedGroup);
   }
 
-  return edgeLoops;
+  return loops;
 }
 export function groupConnectedVerticesIncluding(mesh, verticesSet) {
   const neighborhood = computeVertexNeighborhood(mesh);
   const processedVertices = new Set();
-  const edgeLoops = [];
+  const groups = [];
 
   for (const vertex of verticesSet) {
     if (!processedVertices.has(vertex)) {
-      edgeLoops.push(
+      groups.push(
         gatherConnectedVertices(vertex, {
           neighborhood,
           processedVertices,
@@ -545,7 +567,7 @@ export function groupConnectedVerticesIncluding(mesh, verticesSet) {
       );
     }
   }
-  return edgeLoops;
+  return groups;
 }
 
 export function createTextMesh(text, options = {}) {
@@ -654,4 +676,16 @@ export function computeCentroid(polygon) {
   }
   centroid.divideScalar(polygon.length);
   return centroid;
+}
+
+export function offsetArray(array, offset) {
+  while (offset < 0) offset += array.length;
+  while (offset >= array.length) offset -= array.length;
+
+  const newArr = [];
+  for (let i = 0; i < array.length; i++) {
+    newArr[(i + offset) % array.length] = array[i];
+  }
+
+  array.splice(0, Infinity, ...newArr);
 }

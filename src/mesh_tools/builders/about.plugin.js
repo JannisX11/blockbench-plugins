@@ -16,8 +16,8 @@ function translate(subject) {
   });
 }
 const getURL = (e) =>
-  `http://127.0.0.1:5500/src/mesh_tools/${e}`;
-  // `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+  // `http://127.0.0.1:5500/src/mesh_tools/${e}`;
+  `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
 function renderImage({ src, caption = "" }) {
   return `
 <figure>

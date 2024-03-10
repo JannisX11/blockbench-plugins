@@ -607,7 +607,7 @@
   const reusableVec2 = new THREE.Vector3();
   const reusableVec3 = new THREE.Vector3();
   const reusableVec4 = new THREE.Vector3();
-  const reusable2dVec1 = new THREE.Vector2();
+  new THREE.Vector2();
   new THREE.Vector2(1, 0);
 
   const gradient256 = {};
@@ -714,7 +714,7 @@
   }
   /**
    * Note: If the polygon length is less than 3, true is returned.
-   * @param {ArrayVector3[]} polygon
+   * @param {ArrayVector2[]} polygon
    * @returns {boolean}
    */
   function isPolygonClockWise(polygon) {
@@ -725,7 +725,7 @@
     for (let i = 0; i < polygon.length; i++) {
       const vertexA = polygon[i];
       const vertexB = polygon[(i + 1) % polygon.length];
-      sum += (vertexB.x - vertexA.x) * (vertexB.y - vertexA.y);
+      sum += (getX(vertexB) - getX(vertexA)) * (getY(vertexB) - getY(vertexA));
     }
     return sum >= 0;
   }
@@ -922,6 +922,7 @@
       for (let i = 0; i < sortedVertices.length; i++) {
         const vertexA = sortedVertices[i];
         const vertexB = sortedVertices[(i + 1) % sortedVertices.length];
+        if (vertexA == vertexB) continue;
         const edgeKey = getEdgeKey(vertexA, vertexB);
         if (foundEdges.has(edgeKey)) {
           continue;
@@ -964,68 +965,6 @@
         mesh.getSelectedEdges().splice(0, Infinity);
         break;
     }
-  }
-
-  /**
-   *
-   * @param {string} vertex
-   * @returns
-   */
-  function gatherConnectedVertices(
-    vertex,
-    { neighborhoodCondition, processedVertices, neighborhood, mesh } = {}
-  ) {
-    if (!neighborhood && !mesh) {
-      throw new Error(
-        `gatherConnectedVertices(): Must call with either a neighborhood map or a mesh.`
-      );
-    }
-    if (!neighborhood) {
-      neighborhood = computeVertexNeighborhood(mesh);
-    }
-
-    const connected = new Set([vertex]);
-    if (!neighborhood[vertex]) {
-      return connected;
-    }
-
-    for (const currentConnected of connected) {
-      processedVertices && processedVertices.add(currentConnected);
-      for (const neighbor of neighborhood[currentConnected]) {
-        if (connected.has(neighbor)) {
-          continue;
-        }
-        if (neighborhoodCondition && neighborhoodCondition(neighbor)) {
-          connected.add(neighbor);
-        }
-      }
-    }
-    return connected;
-  }
-  function sortVerticesByAngle(mesh, vertexKeys) {
-    const vertices = vertexKeys.map((e) => mesh.vertices[e].V3_toThree());
-    const vertices2d = projectIntoOwnPlane(vertices);
-
-    const centroid = new THREE.Vector2();
-    for (const vertex of vertices2d) {
-      centroid.add(vertex);
-    }
-    centroid.divideScalar(vertices2d.length);
-
-    const sorted = vertices2d
-      .map((e, i) => {
-        const dir = reusable2dVec1.subVectors(e, centroid);
-
-        let angle = dir.angle();
-        if (angle < 0) {
-          angle += 2 * Math.PI;
-        }
-
-        return [angle, vertexKeys[i]];
-      })
-      .sort(([a], [b]) => a - b)
-      .map(([, e]) => e);
-    return sorted;
   }
   function getEdgeKey(a, b) {
     if (b < a) {
@@ -1085,43 +1024,6 @@
     }
     return neighborhood;
   }
-  /**
-   * @param {Mesh} mesh
-   */
-  function gatherEdgeLoopsIncluding(mesh, verticesSet) {
-    const groups = groupConnectedVerticesIncluding(mesh, verticesSet);
-    const edgeLoops = [];
-    for (const group of groups) {
-      const groupArr = Array.from(group);
-      if (groupArr.length < 3) {
-        continue;
-      }
-
-      const sortedLoop = sortVerticesByAngle(mesh, groupArr);
-
-      edgeLoops.push(groupElementsCollided(sortedLoop, 2));
-    }
-
-    return edgeLoops;
-  }
-  function groupConnectedVerticesIncluding(mesh, verticesSet) {
-    const neighborhood = computeVertexNeighborhood(mesh);
-    const processedVertices = new Set();
-    const edgeLoops = [];
-
-    for (const vertex of verticesSet) {
-      if (!processedVertices.has(vertex)) {
-        edgeLoops.push(
-          gatherConnectedVertices(vertex, {
-            neighborhood,
-            processedVertices,
-            neighborhoodCondition: (neighbor) => verticesSet.has(neighbor),
-          })
-        );
-      }
-    }
-    return edgeLoops;
-  }
 
   function lerp3(a, b, t) {
     return a.map((e, i) => Math.lerp(e, b[i], t));
@@ -1162,6 +1064,18 @@
     }
     centroid.divideScalar(polygon.length);
     return centroid;
+  }
+
+  function offsetArray(array, offset) {
+    while (offset < 0) offset += array.length;
+    while (offset >= array.length) offset -= array.length;
+
+    const newArr = [];
+    for (let i = 0; i < array.length; i++) {
+      newArr[(i + offset) % array.length] = array[i];
+    }
+
+    array.splice(0, Infinity, ...newArr);
   }
 
   /**
@@ -1212,12 +1126,11 @@
     edgeLoopB,
     { twist, numberOfCuts }
   ) {
-    const subEdgeLoops = [];
-    while (twist < 0) twist += edgeLoopB.length;
-    while (twist >= edgeLoopB.length) twist -= edgeLoopB.length;
+    edgeLoopA = edgeLoopA.map((e) => e.slice());
+    edgeLoopB = edgeLoopB.map((e) => e.slice());
 
-    const sub = edgeLoopB.splice(0, twist);
-    edgeLoopB.push(...sub.reverse());
+    const subEdgeLoops = [];
+    offsetArray(edgeLoopB, twist);
 
     for (let i = 0; i < numberOfCuts; i++) {
       const t = i / (numberOfCuts - 1);
@@ -1303,29 +1216,66 @@
       } else {
         keptVerticesSet = new Set(mesh.getSelectedVertices());
       }
-      const edgeLoops = gatherEdgeLoopsIncluding(mesh, keptVerticesSet);
-      if (edgeLoops.length < 2) continue;
-      for (let i = 0; i < edgeLoops.length; i++) {
-        edgeLoops[i] = {
-          edges: edgeLoops[i],
-          centroid: computeCentroid(edgeLoops[i].map((e) => mesh.vertices[e[0]])),
+      // const loops = groupLoopsIncluding(mesh, keptVerticesSet);
+      const loops = [];
+      const { edges } = getSelectedFacesAndEdgesByVertices(mesh, keptVerticesSet);
+
+      const visitedEdges = new Set();
+      for (const edge of edges) {
+        if (visitedEdges.has(edge)) continue;
+        visitedEdges.add(edge);
+
+        const currentLoop = [edge];
+        while (true) {
+          const targetEdge = currentLoop.last();
+          let connectedEdge;
+          for (const otherEdge of edges) {
+            if (
+              !currentLoop.includes(otherEdge) &&
+              (otherEdge[0] == targetEdge[0] ||
+                otherEdge[1] == targetEdge[0] ||
+                otherEdge[1] == targetEdge[1] ||
+                otherEdge[0] == targetEdge[1])
+            ) {
+              connectedEdge = otherEdge;
+              break;
+            }
+          }
+          if (!connectedEdge) break;
+          if (visitedEdges.has(connectedEdge)) break;
+
+          visitedEdges.add(connectedEdge);
+          currentLoop.push(connectedEdge);
+        }
+        loops.push(currentLoop);
+      }
+
+      if (loops.length < 2) continue;
+      for (let i = 0; i < loops.length; i++) {
+        loops[i] = {
+          loop: loops[i],
+          centroid: computeCentroid(loops[i].map((e) => mesh.vertices[e[0]])),
         };
       }
 
-      const sortedEdgeLoops = [edgeLoops.pop()];
-      while (edgeLoops.length) {
+      const sortedEdgeLoops = [loops.pop()];
+      while (loops.length) {
         const currEdgeLoop = sortedEdgeLoops.last();
-        const closestLoop = findMin(edgeLoops, (e) =>
+        const closestLoop = findMin(loops, (e) =>
           e.centroid.distanceToSquared(currEdgeLoop.centroid)
         );
 
         sortedEdgeLoops.push(closestLoop);
-        edgeLoops.remove(closestLoop);
+        loops.remove(closestLoop);
       }
       for (let i = 0; i < sortedEdgeLoops.length - 1; i++) {
-        const fromEdgeLoop = sortedEdgeLoops[i];
-        const intoEdgeLoop = sortedEdgeLoops[i + 1];
-        bridgeLoopsConfigured(mesh, fromEdgeLoop.edges, intoEdgeLoop.edges, {
+        const fromEdgeLoop = sortedEdgeLoops[i].loop.slice();
+        const intoEdgeLoop = sortedEdgeLoops[i + 1].loop.slice();
+
+        let bestOffset = bestEdgeLoopsOffset(intoEdgeLoop, fromEdgeLoop, mesh);
+        offsetArray(intoEdgeLoop, bestOffset);
+
+        bridgeLoopsConfigured(mesh, fromEdgeLoop, intoEdgeLoop, {
           twist,
           numberOfCuts,
         });
@@ -1362,6 +1312,40 @@
       (form) => runEdit$c(true, form.num_cuts + 1, form.twist, form.cut_holes)
     );
   });
+  /**
+   * Returns the best offset applied on {@linkcode intoEdgeLoop} when connected with {@linkcode fromEdgeLoop}
+   * @param {*} fromEdgeLoop
+   * @param {*} intoEdgeLoop
+   * @param {Mesh} mesh
+   * @returns {number}
+   */
+  function bestEdgeLoopsOffset(fromEdgeLoop, intoEdgeLoop, mesh) {
+    let bestOffset = 0;
+    let minLength = Infinity;
+    outer: for (let i = 0; i < intoEdgeLoop.length; i++) {
+      let length = 0;
+      for (let i = 0; i < fromEdgeLoop.length; i++) {
+        const [vertexA0] = fromEdgeLoop[i];
+        const [vertexB0] = intoEdgeLoop[Math.min(i, intoEdgeLoop.length - 1)];
+        length += distanceBetween(
+          mesh.vertices[vertexA0],
+          mesh.vertices[vertexB0]
+        );
+
+        // Optimization
+        if (length > minLength) {
+          offsetArray(intoEdgeLoop, 1);
+          continue outer;
+        }
+      }
+      if (length <= minLength) {
+        bestOffset = i;
+        minLength = length;
+      }
+      offsetArray(intoEdgeLoop, 1);
+    }
+    return bestOffset;
+  }
 
   action("expand_selection", () => {
     Mesh.selected.forEach((mesh) => {
