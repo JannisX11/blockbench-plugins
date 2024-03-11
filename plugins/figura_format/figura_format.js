@@ -146,14 +146,18 @@
 				icon: "fa-clipboard",
 				condition: () => Format === format && (Texture.selected !== null),
 				click() {
-					let texture = PathModule.parse(Texture.selected.path)
-					let project = PathModule.parse(Project.save_path)
-					let relative = PathModule.relative(project.dir, texture.dir)
 					let path
-					if (texture.dir == '' || relative.startsWith(`..`))
+					if (!isApp)
 						path = `textures["${Project.name}.${Texture.selected.name.replace(/\.png$/, "")}"]`
-					else
-						path = `textures["${relative.replace(`\\${PathModule.sep}`, '.')}${relative == '' ? '' : '.'}${texture.name}"]`
+					else {
+						let texture = PathModule.parse(Texture.selected.path)
+						let project = PathModule.parse(Project.save_path)
+						let relative = PathModule.relative(project.dir, texture.dir)
+						if (texture.dir == '' || relative.startsWith(`..`))
+							path = `textures["${Project.name}.${Texture.selected.name.replace(/\.png$/, "")}"]`
+						else
+							path = `textures["${relative.replace(`\\${PathModule.sep}`, '.')}${relative == '' ? '' : '.'}${texture.name}"]`
+					}
 					navigator.clipboard.writeText(path)
 					Blockbench.showQuickMessage(`Coppied "${path}" to the clipboard`)
 				}
