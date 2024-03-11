@@ -36,19 +36,6 @@
 		return isValidLuaIdentifier(str) ? `.${str}` : `["${str}"]`
 	}
 
-	// Stolen from line 92 of timeline_animators.js
-	function getOrMakeKeyframe(animator, channel, time, snapping = 24) {
-		let before;
-		let epsilon = (1 / Math.clamp(snapping, 1, 120)) / 2 || 0.01;
-
-		for (let kf of animator[channel]) {
-			if (Math.abs(kf.time - time) <= epsilon) {
-				before = kf;
-			}
-		}
-		return before ? before : animator.createKeyframe(null, time, channel, false, false);
-	}
-
 	BBPlugin.register('figura_format', {
 		title: "Figura Model Format",
 		author: "Katt (KitCat962)",
@@ -468,9 +455,7 @@
 			Texture.prototype.menu.addAction(copyPathTextures, '#properties');
 			MenuBar.menus.uv.addAction(recalculateUV)
 			MenuBar.menus.animation.addAction(importAnimations, '#file')
-			MenuBar.menus.animation.addAction(bakeIK, '#edit')
 			MenuBar.menus.tools.addAction(optimizeModel)
-			Toolbars.main_tools.add(cycleVertexOrder)
 
 			toDelete.push(
 				copyPathModelPart,
