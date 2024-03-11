@@ -7,14 +7,9 @@ This Plugin adds a Project Format that will make the following changes to Blockb
 * Added "Copy X Path" under the Right Click context menu for Cubes, Groups, Meshes, Animations, and Textures.
   * Copies the full script path as dictated by Figura's scripting API.
   * Assumes the bbmodel is at the root of the avatar.
-* Added "Add Animations..." under Animation.
+* Added "Add Animations from .bbmodel..." under Animation.
   * Allows you to select a bbmodel and imports all animations you select, replacing old animations.
   * Intended to replace "Export Animations to file, then import file" workflow.
-* Added "Bake IK into Animations" under Animation when in the Animate tab.
-  * Bakes Inverse Kinematics to raw keyframes. Figura cannot parse IK, so baking it to raw rotation keyframes is required to use IK in Figura.
-* Added "Cycle Vertex Order" as one of the mesh editing buttons when at least one Face is selected.
-  * Cycles the vertices of a Quad in order to change how textures are rendered on it when triangulated.
-  * Will invert the face. Use the "Invert Face" button to fix this.
 * Added "Allow Duplicate Names" which can be found in the Figura Plugin Settings (File->Plugins->Figura Format->Settings)
   * Enabling this bypasses the group name restrictions, such as duplicate group names and special characters in group names.
   * Will break certain Blockbench Animation features. Use at own risk.

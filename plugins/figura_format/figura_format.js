@@ -1,5 +1,4 @@
 (function () {
-	const Path = require('path')
 	const toDelete = []
 
 	function isValidLuaIdentifier(str) {
@@ -67,7 +66,7 @@
 				icon: 'change_history',
 				name: 'Figura Model',
 				description: 'Model for the Figura mod.',
-				category: 'low_poly',
+				category: 'minecraft',
 				target: ['Figura'],
 				show_on_start_screen: true,
 				box_uv: false,
@@ -135,7 +134,9 @@
 					path.unshift(Project.name || "modelName")
 					path = path.map(getValidLuaIndex)
 					path.unshift('models')
-					navigator.clipboard.writeText(path.join(""))
+					let pathString = path.join("")
+					navigator.clipboard.writeText(pathString)
+					Blockbench.showQuickMessage(`Coppied "${pathString}" to the clipboard`)
 				}
 			})
 			const copyPathAnimation = new Action('figura_copy_path_animation', {
@@ -147,7 +148,9 @@
 					let path = [Project.name || "modelName", Animation.selected.name]
 					path = path.map(getValidLuaIndex)
 					path.unshift('animations')
-					navigator.clipboard.writeText(path.join(""))
+					let pathString = path.join("")
+					navigator.clipboard.writeText(pathString)
+					Blockbench.showQuickMessage(`Coppied "${pathString}" to the clipboard`)
 				}
 			})
 			const copyPathTextures = new Action('figura_copy_path_texture', {
@@ -156,15 +159,16 @@
 				icon: "fa-clipboard",
 				condition: () => Format === format && (Texture.selected !== null),
 				click() {
-					let texture = Path.parse(Texture.selected.path)
-					let project = Path.parse(Project.save_path)
-					let relative = Path.relative(project.dir, texture.dir)
+					let texture = PathModule.parse(Texture.selected.path)
+					let project = PathModule.parse(Project.save_path)
+					let relative = PathModule.relative(project.dir, texture.dir)
 					let path
 					if (texture.dir == '' || relative.startsWith(`..`))
 						path = `textures["${Project.name}.${Texture.selected.name.replace(/\.png$/, "")}"]`
 					else
-						path = `textures["${relative.replace(`\\${Path.sep}`, '.')}${relative == '' ? '' : '.'}${texture.name}"]`
+						path = `textures["${relative.replace(`\\${PathModule.sep}`, '.')}${relative == '' ? '' : '.'}${texture.name}"]`
 					navigator.clipboard.writeText(path)
+					Blockbench.showQuickMessage(`Coppied "${path}" to the clipboard`)
 				}
 			})
 			const recalculateUV = new Action('figura_recalculate_uv', {
@@ -269,7 +273,7 @@
 				}
 			})
 			const importAnimations = new Action('figura_import_animations', {
-				name: "Import Animations...",
+				name: "Import Animations from .bbmodel...",
 				description: "Import animations from another bbmodel",
 				icon: "fa-file-import",
 				condition: { modes: ['animate'], method: () => Format === format },
@@ -349,70 +353,6 @@
 							dialog.show();
 						}
 					})
-				}
-			})
-			const bakeIK = new Action('figura_bake_ik', {
-				name: "Bake IK into Animations",
-				description: "Bakes Inverse Kinematics into raw Keyframes for use in Figura",
-				icon: "fa-bone",
-				condition: { modes: ['animate'], method: () => Format === format && Animation.selected },
-				click() {
-					new Dialog({
-						id: "figura_confirm_bake_ik",
-						title: "Confirm Bake Inverse Kinematics",
-						lines: [
-							"<p>This bakes the IK of all NullObjects onto the keyframes of the groups themselves, allowing it to be visible in Figura</p>",
-							"<p>However, NullObjects <strong>override</strong> the keyframes of the affected groups while it is present</p>",
-							"<p>Leaving the NullObject in the model has no effect on Figura, so just leave it incase you want to rebake the IK later</p>"
-						],
-						form: {
-							"all_animations": {
-								type: 'checkbox',
-								label: 'Bake all Animations?',
-								description: "This Action will normally only bake the selected Animation. Do you want to bake all Animations in one swoop?",
-								value: false,
-								full_width: false
-							}
-						},
-						onConfirm() {
-							const animations = this.getFormResult().all_animations ? Animator.animations : [Animation.selected]
-							for (const animation of animations) {
-								let animators = animation.animators
-
-								// Inverse Kinematics
-								let ik_samples = animation.sampleIK();
-								for (let uuid in ik_samples) {
-									//let group = OutlinerNode.uuids[uuid];
-									ik_samples[uuid].forEach((rotation, i) => {
-										let timecode = i / animation.snapping
-										let kf = getOrMakeKeyframe(animators[uuid], 'rotation', timecode, animation.snapping)
-										kf.set('x', rotation.array[0])
-										kf.set('y', rotation.array[1])
-										kf.set('z', rotation.array[2])
-									})
-								}
-							}
-						}
-					}).show()
-				}
-			})
-			const cycleVertexOrder = new Action('figura_cycle_vertex_order', {
-				name: 'Cycle Vertex Order',
-				icon: 'fa-sync',
-				category: 'edit',
-				condition: { modes: ['edit'], features: ['meshes'], method: () => Format === format && (Mesh.selected[0] && Mesh.selected[0].getSelectedFaces().length) },
-				click() {
-					Undo.initEdit({ elements: Mesh.selected });
-					Mesh.selected.forEach(mesh => {
-						for (const face of mesh.faces) {
-							if (face.isSelected()) {
-								if (face.vertices.length < 3) continue;
-								[face.vertices[0], face.vertices[1], face.vertices[2], face.vertices[3]] = [face.vertices[1], face.vertices[2], face.vertices[3], face.vertices[0]];
-							}
-						}
-					})
-					Undo.finishEdit('Cycle face vertices');
-					Canvas.updateView({ elements: Mesh.selected, element_aspects: { geometry: true, uv: true, faces: true } });
 				}
 			})
 			const optimizeModel = new Action('figura_optimize_model', {
@@ -538,8 +478,6 @@
 				copyPathTextures,
 				recalculateUV,
 				importAnimations,
-				bakeIK,
-				cycleVertexOrder,
 				validateFaces,
 				validateTextureNames,
 				arbitraryGroupNames,
