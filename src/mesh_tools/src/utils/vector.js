@@ -51,6 +51,18 @@ export function addVectors(target, source) {
 }
 /**
  * @template T
+ * @param {T} a
+ * @param {Vector3} b
+ * @returns {T}
+ */
+export function subtractVectors(target, source) {
+  target[xKey(target)] -= source[xKey(source)];
+  target[yKey(target)] -= source[yKey(source)];
+  target[zKey(target)] -= source[zKey(source)];
+  return target;
+}
+/**
+ * @template T
  * @param {Vector3} a
  * @param {Vector3} b
  * @param {T} three
@@ -71,4 +83,10 @@ export function addedVectors(a, b, three = true) {
  */
 export function distanceBetween(a, b) {
   return Math.hypot(getX(a) - getX(b), getY(a) - getY(b), getZ(a) - getZ(b));
+}
+/**
+ * @param {Vector3} vector
+ */
+export function isZeroVector(vector) {
+  return getX(vector) === 0 && getY(vector) === 0 && getZ(vector) === 0;
 }

@@ -64,7 +64,42 @@
   },
   "bridge_edge_loops": {
     "docs": {
-      "lines": []
+      "tags": [
+        "New"
+      ],
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        "Results with Blend Path enabled.",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
     },
     "name": "Bridge Edge Loops",
     "icon": "hub",
@@ -228,9 +263,9 @@
     "icon": "fas.fa-vector-square",
     "condition": "NON_OBJECT_MODE",
     "children": [
+      "bridge_edge_loops",
       "to_sphere",
       "laplacian_smooth",
-      "bridge_edge_loops",
       "_",
       "poke",
       "tris_to_quad",

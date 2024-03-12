@@ -16,12 +16,23 @@ function translate(subject) {
   });
 }
 const getURL = (e) =>
-  // `http://127.0.0.1:5500/src/mesh_tools/${e}`;
-  `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+  `http://127.0.0.1:5500/${e}`;
+  // `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+
+function renderPill(title) {
+  return `<span style="
+  border: max(1px, 0.0625rem) solid var(--color-accent);
+  color: var(--color-accent);
+  border-radius: 2em;
+  font-size: .75rem;
+  font-weight: 500;
+  padding: 0 7px;
+  white-space: nowrap;">${title.toString().toUpperCase()}</span>`
+}
 function renderImage({ src, caption = "" }) {
   return `
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;" src="${getURL(
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="${getURL(
     `assets/actions/${src}`
   )}" />
 <figcaption>${translate(caption)}</figcaption>
@@ -30,18 +41,16 @@ function renderImage({ src, caption = "" }) {
 }
 function renderInsetRow({ items }) {
   return `
-  <table style="border-collapse: collapse;">
-    <tr>
+  <div style="display: flex;flex-wrap:wrap;">
       ${items
         .map(
           (e) =>
-            `<td style="border: 1px solid var(--color-dark);">${renderLine(
+            `<div style="border: 1px solid var(--color-dark);background: var(--color-back);">${renderLine(
               e
-            )}</td>`
+            )}</div>`
         )
         .join("\n")}
-    </tr>
-  </table>
+  </div>
   `;
 }
 function renderLine(options) {
@@ -147,7 +156,7 @@ ${operatorsRender.join("\n")}
 For procedural mesh generation
 ${generatorsRender.join("\n")}
 
-<div style="display: flex; gap: 5px;">
+<div style="display: flex; gap: 5px;padding-top:10px">
   &minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209"> Malik12tree
 </div>
 `;
@@ -182,5 +191,7 @@ function getIconRaw(icon) {
 function getActionRaw(node) {
   return `<div style="display: inline-flex;align-items:center;gap: 5px;">
   ${getIconRaw(node.icon)} <b>${node.name}</b>
+
+  ${node?.docs?.tags ? node.docs.tags.map(renderPill).join("\n") : ""}
   </div>`;
 }

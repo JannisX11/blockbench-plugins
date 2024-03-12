@@ -9,17 +9,20 @@
 	- [x] Use a math parser for XYZ surface generator.
 	- [x] XYZ surface generator: Include variables as sliders.
 	- [ ] XYZ surface generator: Ability to save multiple presets.
-	- [ ] Optimize the Terrain generator.
+	- [ ] Terrain generator
+		- [ ] Optimize Code
+		- [ ] Add world scale option
+		- [ ] Add texture dithering option
 - [ ] MTools Tools:
 	- [x] New Bridge Loops Action
 		- [x] Ability to bridge edge loops
 		- [x] Detect face holes
+		- [x] Support path blending
 	- [x] Triangles To Quads: Improved Algorithm
 	- [x] Expand/Shrink Selection: Enable for face and edge modes.
-	- [ ] New UV-Preserving Inset.
 - [ ] MTools Operators:
 	- [x] Scatter: Improve scattered mesh rotation to accurately follow face
 	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge
-- [ ] Create an attractive logo
+- [ ] Create an attractive logo 🤔

@@ -1,4 +1,4 @@
-import { addVectors, getX, getY, getZ } from "./vector.js";
+import { addVectors, getX, getY, getZ, isZeroVector } from "./vector.js";
 
 const reusableEuler1 = new THREE.Euler();
 const reusableQuat1 = new THREE.Quaternion();
@@ -6,6 +6,7 @@ const reusableVec1 = new THREE.Vector3();
 const reusableVec2 = new THREE.Vector3();
 const reusableVec3 = new THREE.Vector3();
 const reusableVec4 = new THREE.Vector3();
+const reusableVec5 = new THREE.Vector3();
 const reusable2dVec1 = new THREE.Vector2();
 const Normal2dX = new THREE.Vector2(1, 0);
 
@@ -27,10 +28,17 @@ export function rotationFromDirection(target, targetEuler = new THREE.Euler()) {
   targetEuler.copy(reusableObject.rotation);
   return targetEuler;
 }
+/**
+ *
+ * @param {import("./vector.js").Vector3} A
+ * @param {import("./vector.js").Vector3} B
+ * @param {import("./vector.js").Vector3} C
+ * @returns {THREE.Vector3}
+ */
 export function computeTriangleNormal(A, B, C) {
-  reusableVec1.set(A.x, A.y, A.z);
-  reusableVec2.set(B.x, B.y, B.z);
-  reusableVec3.set(C.x, C.y, C.z);
+  reusableVec1.set(getX(A), getY(A), getZ(A));
+  reusableVec2.set(getX(B), getY(B), getZ(B));
+  reusableVec3.set(getX(C), getY(C), getZ(C));
   return reusableVec4
     .crossVectors(
       reusableVec2.sub(reusableVec1),
@@ -180,7 +188,7 @@ export function isPolygonClockWise(polygon) {
  * @return {THREE.Vector2[]}
  * @throws When `polygon.length` is less than 3
  */
-function projectIntoOwnPlane(polygon) {
+export function projectIntoOwnPlane(polygon) {
   if (polygon.length < 3) {
     throw new Error(
       "projectIntoOwnPlane(): Polygon should have 3 or more vertices!"
@@ -188,14 +196,37 @@ function projectIntoOwnPlane(polygon) {
   }
   const plane = new THREE.Plane();
   plane.setFromCoplanarPoints(polygon[0], polygon[1], polygon[2]);
-
+  return projectOnPlane(polygon, plane);
+}
+/**
+ * @overload
+ * @param {THREE.Vector3} point
+ * @return {THREE.Vector2}
+ */
+/**
+ * @overload
+ * @param {THREE.Vector3[]} polygon
+ * @return {THREE.Vector2[]}
+ */
+/**
+ * @param {THREE.Vector3 | THREE.Vector3[]} polygon
+ * @return {THREE.Vector2 | THREE.Vector2[]}
+ */
+export function projectOnPlane(polygonOrPoint, plane) {
   const euler = rotationFromDirection(plane.normal, reusableEuler1);
   const quat = reusableQuat1.setFromEuler(euler);
   quat.invert();
-  return polygon.map((e) => {
-    e.applyQuaternion(quat);
-    return new THREE.Vector2(e.x, e.z);
-  });
+
+  if (polygonOrPoint instanceof Array) {
+    return polygon.map((e) => {
+      reusableVec5.copy(e);
+      reusableVec5.applyQuaternion(quat);
+      return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
+    });
+  }
+  reusableVec5.copy(polygonOrPoint);
+  reusableVec5.applyQuaternion(quat);
+  return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
 }
 
 /**
@@ -637,6 +668,13 @@ export function vertexNormal(mesh, vertexKey) {
   return avgNormal;
 }
 
+/**
+ * 
+ * @param {ArrayVector3} a 
+ * @param {ArrayVector3} b 
+ * @param {number} t 
+ * @returns {ArrayVector3}
+ */
 export function lerp3(a, b, t) {
   return a.map((e, i) => Math.lerp(e, b[i], t));
 }
@@ -688,4 +726,62 @@ export function offsetArray(array, offset) {
   }
 
   array.splice(0, Infinity, ...newArr);
+}
+
+/**
+ *
+ * @param {THREE.Vector3} rClose
+ * @param {THREE.Vector3} p
+ * @param {THREE.Vector3} rayOrigin
+ * @param {THREE.Vector3} rayDir
+ * @returns
+ */
+export function closestToRay(rClose, p, rayOrigin, rayDir) {
+  if (isZeroVector(rayDir)) {
+    rClose.copy(rayOrigin);
+    return 0.0;
+  }
+
+  const h = new THREE.Vector3();
+  h.subVectors(p, rayOrigin);
+
+  const lambda = h.dot(rayDir) / rayDir.dot(rayDir);
+
+  rClose.copy(rayOrigin).addScaledVector(rayDir, lambda);
+
+  return lambda;
+}
+/**
+ * Returns a point on ({@linkcode l1}{@linkcode l2}) closest point to {@linkcode p}.
+ * @param {*} rClose
+ * @param {*} p
+ * @param {*} l1
+ * @param {*} l2
+ * @returns
+ */
+export function closestToLine(rClose, p, l1, l2) {
+  const ray = new THREE.Vector3();
+  ray.subVectors(l2, l1);
+
+  return closestToRay(rClose, p, l1, ray);
+}
+
+export function CubicBezier(t, p0, p1, p2, p3) {
+  t = Math.clamp(t, 0, 1);
+
+  return (
+    (1 - t) ** 3 * p0 +
+    3 * (1 - t) ** 2 * t * p1 +
+    3 * (1 - t) * t ** 2 * p2 +
+    t ** 3 * p3
+  );
+}
+export function CubicBezierTangent(t, p0, p1, p2, p3) {
+  t = Math.clamp(t, 0, 1);
+
+  return (
+    3 * (1 - t) ** 2 * (p1 - p0) +
+    6 * (1 - t) * t * (p2 - p1) +
+    3 * t ** 2 * (p3 - p2)
+  );
 }

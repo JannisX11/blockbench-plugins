@@ -66,7 +66,41 @@
   };
   var bridge_edge_loops = {
   	docs: {
+  		tags: [
+  			"New"
+  		],
   		lines: [
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "bridge_edge_loops_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "bridge_edge_loops_1_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			},
+  			"Results with Blend Path enabled.",
+  			{
+  				type: "inset_row",
+  				items: [
+  					{
+  						type: "image",
+  						src: "bridge_edge_loops_before.png",
+  						caption: "word.before"
+  					},
+  					{
+  						type: "image",
+  						src: "bridge_edge_loops_2_after.png",
+  						caption: "word.after"
+  					}
+  				]
+  			}
   		]
   	},
   	name: "Bridge Edge Loops",
@@ -231,9 +265,9 @@
   	icon: "fas.fa-vector-square",
   	condition: "NON_OBJECT_MODE",
   	children: [
+  		"bridge_edge_loops",
   		"to_sphere",
   		"laplacian_smooth",
-  		"bridge_edge_loops",
   		"_",
   		"poke",
   		"tris_to_quad",
@@ -594,11 +628,29 @@
     return target;
   }
   /**
+   * @template T
+   * @param {T} a
+   * @param {Vector3} b
+   * @returns {T}
+   */
+  function subtractVectors(target, source) {
+    target[xKey(target)] -= source[xKey(source)];
+    target[yKey(target)] -= source[yKey(source)];
+    target[zKey(target)] -= source[zKey(source)];
+    return target;
+  }
+  /**
    * @param {Vector3} a
    * @param {Vector3} b
    */
   function distanceBetween(a, b) {
     return Math.hypot(getX(a) - getX(b), getY(a) - getY(b), getZ(a) - getZ(b));
+  }
+  /**
+   * @param {Vector3} vector
+   */
+  function isZeroVector(vector) {
+    return getX(vector) === 0 && getY(vector) === 0 && getZ(vector) === 0;
   }
 
   const reusableEuler1$1 = new THREE.Euler();
@@ -607,6 +659,7 @@
   const reusableVec2 = new THREE.Vector3();
   const reusableVec3 = new THREE.Vector3();
   const reusableVec4 = new THREE.Vector3();
+  const reusableVec5 = new THREE.Vector3();
   new THREE.Vector2();
   new THREE.Vector2(1, 0);
 
@@ -628,10 +681,17 @@
     targetEuler.copy(reusableObject.rotation);
     return targetEuler;
   }
+  /**
+   *
+   * @param {import("./vector.js").Vector3} A
+   * @param {import("./vector.js").Vector3} B
+   * @param {import("./vector.js").Vector3} C
+   * @returns {THREE.Vector3}
+   */
   function computeTriangleNormal(A, B, C) {
-    reusableVec1.set(A.x, A.y, A.z);
-    reusableVec2.set(B.x, B.y, B.z);
-    reusableVec3.set(C.x, C.y, C.z);
+    reusableVec1.set(getX(A), getY(A), getZ(A));
+    reusableVec2.set(getX(B), getY(B), getZ(B));
+    reusableVec3.set(getX(C), getY(C), getZ(C));
     return reusableVec4
       .crossVectors(
         reusableVec2.sub(reusableVec1),
@@ -743,14 +803,37 @@
     }
     const plane = new THREE.Plane();
     plane.setFromCoplanarPoints(polygon[0], polygon[1], polygon[2]);
-
+    return projectOnPlane(polygon, plane);
+  }
+  /**
+   * @overload
+   * @param {THREE.Vector3} point
+   * @return {THREE.Vector2}
+   */
+  /**
+   * @overload
+   * @param {THREE.Vector3[]} polygon
+   * @return {THREE.Vector2[]}
+   */
+  /**
+   * @param {THREE.Vector3 | THREE.Vector3[]} polygon
+   * @return {THREE.Vector2 | THREE.Vector2[]}
+   */
+  function projectOnPlane(polygonOrPoint, plane) {
     const euler = rotationFromDirection(plane.normal, reusableEuler1$1);
     const quat = reusableQuat1.setFromEuler(euler);
     quat.invert();
-    return polygon.map((e) => {
-      e.applyQuaternion(quat);
-      return new THREE.Vector2(e.x, e.z);
-    });
+
+    if (polygonOrPoint instanceof Array) {
+      return polygon.map((e) => {
+        reusableVec5.copy(e);
+        reusableVec5.applyQuaternion(quat);
+        return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
+      });
+    }
+    reusableVec5.copy(polygonOrPoint);
+    reusableVec5.applyQuaternion(quat);
+    return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
   }
 
   /**
@@ -1025,6 +1108,13 @@
     return neighborhood;
   }
 
+  /**
+   * 
+   * @param {ArrayVector3} a 
+   * @param {ArrayVector3} b 
+   * @param {number} t 
+   * @returns {ArrayVector3}
+   */
   function lerp3(a, b, t) {
     return a.map((e, i) => Math.lerp(e, b[i], t));
   }
@@ -1080,6 +1170,101 @@
 
   /**
    *
+   * @param {THREE.Vector3} rClose
+   * @param {THREE.Vector3} p
+   * @param {THREE.Vector3} rayOrigin
+   * @param {THREE.Vector3} rayDir
+   * @returns
+   */
+  function closestToRay(rClose, p, rayOrigin, rayDir) {
+    if (isZeroVector(rayDir)) {
+      rClose.copy(rayOrigin);
+      return 0.0;
+    }
+
+    const h = new THREE.Vector3();
+    h.subVectors(p, rayOrigin);
+
+    const lambda = h.dot(rayDir) / rayDir.dot(rayDir);
+
+    rClose.copy(rayOrigin).addScaledVector(rayDir, lambda);
+
+    return lambda;
+  }
+  /**
+   * Returns a point on ({@linkcode l1}{@linkcode l2}) closest point to {@linkcode p}.
+   * @param {*} rClose
+   * @param {*} p
+   * @param {*} l1
+   * @param {*} l2
+   * @returns
+   */
+  function closestToLine(rClose, p, l1, l2) {
+    const ray = new THREE.Vector3();
+    ray.subVectors(l2, l1);
+
+    return closestToRay(rClose, p, l1, ray);
+  }
+
+  function CubicBezier(t, p0, p1, p2, p3) {
+    t = Math.clamp(t, 0, 1);
+
+    return (
+      (1 - t) ** 3 * p0 +
+      3 * (1 - t) ** 2 * t * p1 +
+      3 * (1 - t) * t ** 2 * p2 +
+      t ** 3 * p3
+    );
+  }
+
+  /**
+   * !
+   * ! Big thanks to Blender for inspiration.
+   * ! Special thanks to this code that came in clutch when i was about to give up on path interpolation option.
+   * ! https://github.com/blender/blender/blob/703353b5dafc344ac4080d280312ef3aa496b6de/source/blender/bmesh/operators/bmo_subdivide_edgering.cc#L67
+   * !
+   */
+
+  // +
+  /**
+   *
+   * @param {THREE.Vector3} coordinateA
+   * @param {THREE.Vector3} normalA
+   * @param {THREE.Vector3} coordinateB
+   * @param {THREE.Vector3} normalB
+   * @returns {number}
+   */
+  function bezierHandleCalcLength(coordinateA, normalA, coordinateB, normalB) {
+    const dot = normalA.dot(normalB);
+    /* gives closest approx at a circle with 2 parallel handles */
+    let fac = 1.333333;
+    let len;
+    if (dot < 0.0) {
+      /* Scale down to 0.666 if we point directly at each other rough but ok. */
+      /* TODO: current blend from dot may not be optimal but its also a detail. */
+      const t = 1.0 + dot;
+      fac = fac * t + 0.75 * (1.0 - t);
+    }
+
+    /* 2d length projected on plane of normals */
+    {
+      let co_a_ofs = new THREE.Vector3().crossVectors(normalA, normalB);
+
+      if (co_a_ofs.lengthSq() > Number.MIN_VALUE) {
+        co_a_ofs.add(coordinateA);
+        closestToLine(co_a_ofs, coordinateB, coordinateA, co_a_ofs);
+      } else {
+        co_a_ofs.copy(coordinateA);
+      }
+      len = co_a_ofs.distanceTo(coordinateB);
+    }
+
+    return len * 0.5 * fac;
+  }
+  // +
+
+  /**
+   *
    * @param {Mesh} mesh
    * @param {*} edgeLoopA
    * @param {*} edgeLoopB
@@ -1114,20 +1299,69 @@
       mesh.addFaces(face);
     }
   }
+
   /**
    *
    * @param {Mesh} mesh
    * @param {*} edgeLoopA
    * @param {*} edgeLoopB
+   * @param {THREE.Vector3} centroidA
+   * @param {THREE.Vector3} centroidB
    */
   function bridgeLoopsConfigured(
     mesh,
     edgeLoopA,
     edgeLoopB,
-    { twist, numberOfCuts }
+    centroidA,
+    centroidB,
+    { twist, numberOfCuts, blendPath, blendInfluence }
   ) {
     edgeLoopA = edgeLoopA.map((e) => e.slice());
     edgeLoopB = edgeLoopB.map((e) => e.slice());
+    const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
+    offsetArray(edgeLoopB, bestOffset);
+
+
+    let handleA;
+    let handleB;
+    let direction;
+    if (blendPath) {
+      // +
+      direction = new THREE.Vector3().subVectors(centroidB, centroidA);
+      const edgeLoopANormal = computeTriangleNormal(
+        mesh.vertices[edgeLoopA[0][0]],
+        mesh.vertices[edgeLoopA[1][0]],
+        mesh.vertices[edgeLoopA[2][0]]
+      ).normalize();
+      const edgeLoopBNormal = computeTriangleNormal(
+        mesh.vertices[edgeLoopB[0][0]],
+        mesh.vertices[edgeLoopB[1][0]],
+        mesh.vertices[edgeLoopB[2][0]]
+      ).normalize();
+
+      // Normals should be facing each other
+      if (direction.dot(edgeLoopANormal) < 0) {
+        edgeLoopANormal.negate();
+      }
+      if (direction.dot(edgeLoopBNormal) > 0) {
+        edgeLoopBNormal.negate();
+      }
+      // +
+
+      const handleLength =
+        bezierHandleCalcLength(
+          centroidA,
+          edgeLoopANormal,
+          centroidB,
+          edgeLoopBNormal
+        ) * blendInfluence;
+      handleA = edgeLoopANormal.clone();
+      handleA.setLength(handleLength);
+      handleA.add(centroidA);
+      handleB = edgeLoopBNormal.clone();
+      handleB.setLength(handleLength);
+      handleB.add(centroidB);
+    }
 
     const subEdgeLoops = [];
     offsetArray(edgeLoopB, twist);
@@ -1136,6 +1370,10 @@
       const t = i / (numberOfCuts - 1);
 
       const subEdgeLoop = [];
+      // TODO ??
+      const centroid = lerp3(centroidA.toArray(), centroidB.toArray(), t);
+      lerp3(centroidA.toArray(), centroidB.toArray(), t);
+
       for (let j = 0; j < edgeLoopA.length; j++) {
         const edgeA = edgeLoopA[j];
         const edgeB = edgeLoopB[Math.min(j, edgeLoopB.length - 1)];
@@ -1150,6 +1388,41 @@
             mesh.vertices[edgeB[0]],
             t
           );
+          if (handleA && handleB) {
+            const v3Vertex = vertex.V3_toThree();
+            subtractVectors(v3Vertex, centroid);
+
+            // const smoothenedTangent = [
+            //   CBTangent(t, centroidA.x, handleA.x, handleB.x, centroidB.x),
+            //   CBTangent(t, centroidA.y, handleA.y, handleB.y, centroidB.y),
+            //   CBTangent(t, centroidA.z, handleA.z, handleB.z, centroidB.z),
+            // ].V3_toThree();
+            // const eulerInitial = rotationFromDirection(direction);
+            // const eulerTarget = rotationFromDirection(smoothenedTangent);
+            // const matrix4Initial = new THREE.Matrix4().makeRotationFromEuler(
+            //   eulerInitial
+            // );
+            // const matrix4Target = new THREE.Matrix4().makeRotationFromEuler(
+            //   eulerTarget
+            // );
+            // const matrix = matrix4Initial
+            //   .clone()
+            //   .transpose()
+            //   .multiply(matrix4Target);
+            // v3Vertex.applyMatrix4(matrix);
+
+            const smoothenedCentroid = [
+              CubicBezier(t, centroidA.x, handleA.x, handleB.x, centroidB.x),
+              CubicBezier(t, centroidA.y, handleA.y, handleB.y, centroidB.y),
+              CubicBezier(t, centroidA.z, handleA.z, handleB.z, centroidB.z),
+            ];
+
+            addVectors(v3Vertex, smoothenedCentroid);
+            vertex[0] = v3Vertex.x;
+            vertex[1] = v3Vertex.y;
+            vertex[2] = v3Vertex.z;
+          }
+
           subEdgeLoop.push(mesh.addVertices(vertex)[0]);
         }
       }
@@ -1164,7 +1437,14 @@
     }
   }
 
-  function runEdit$c(amend, numberOfCuts, twist, cutHoles) {
+  function runEdit$c(
+    amend,
+    numberOfCuts,
+    twist,
+    cutHoles,
+    blendPath,
+    blendInfluence
+  ) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
     for (const mesh of Mesh.selected) {
@@ -1278,16 +1558,23 @@
         loops.remove(closestLoop);
       }
       for (let i = 0; i < sortedEdgeLoops.length - 1; i++) {
-        const fromEdgeLoop = sortedEdgeLoops[i].loop.slice();
-        const intoEdgeLoop = sortedEdgeLoops[i + 1].loop.slice();
+        const { centroid: fromCentroid, loop: fromEdgeLoop } = sortedEdgeLoops[i];
+        const { centroid: intoCentroid, loop: intoEdgeLoop } =
+          sortedEdgeLoops[i + 1];
 
-        let bestOffset = bestEdgeLoopsOffset(intoEdgeLoop, fromEdgeLoop, mesh);
-        offsetArray(intoEdgeLoop, bestOffset);
-
-        bridgeLoopsConfigured(mesh, fromEdgeLoop, intoEdgeLoop, {
-          twist,
-          numberOfCuts,
-        });
+        bridgeLoopsConfigured(
+          mesh,
+          fromEdgeLoop,
+          intoEdgeLoop,
+          fromCentroid,
+          intoCentroid,
+          {
+            twist,
+            numberOfCuts,
+            blendPath,
+            blendInfluence,
+          }
+        );
       }
     }
     Canvas.updateView({
@@ -1297,9 +1584,22 @@
     Undo.finishEdit("MTools: Bridged Edge Loops.");
   }
   action("bridge_edge_loops", () => {
-    runEdit$c(false, 2, 0, true);
+    runEdit$c(false, 2, 0, true, true, 1);
+
     Undo.amendEdit(
       {
+        blend_path: {
+          type: "checkbox",
+          label: "Blend Path",
+          value: true,
+        },
+        blend_influence: {
+          type: "number",
+          label: "Smoothness",
+          value: 100,
+          min: -200,
+          max: 200,
+        },
         num_cuts: {
           type: "number",
           label: "Number Of Cuts",
@@ -1318,7 +1618,16 @@
           condition: () => BarItems["selection_mode"].value == "face",
         },
       },
-      (form) => runEdit$c(true, form.num_cuts + 1, form.twist, form.cut_holes)
+      (form) => {
+        runEdit$c(
+          true,
+          form.num_cuts + 1,
+          form.twist,
+          form.cut_holes,
+          form.blend_path,
+          form.blend_influence / 100
+        );
+      }
     );
   });
   /**
