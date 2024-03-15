@@ -218,7 +218,7 @@ export function projectOnPlane(polygonOrPoint, plane) {
   quat.invert();
 
   if (polygonOrPoint instanceof Array) {
-    return polygon.map((e) => {
+    return polygonOrPoint.map((e) => {
       reusableVec5.copy(e);
       reusableVec5.applyQuaternion(quat);
       return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
@@ -669,10 +669,10 @@ export function vertexNormal(mesh, vertexKey) {
 }
 
 /**
- * 
- * @param {ArrayVector3} a 
- * @param {ArrayVector3} b 
- * @param {number} t 
+ *
+ * @param {ArrayVector3} a
+ * @param {ArrayVector3} b
+ * @param {number} t
  * @returns {ArrayVector3}
  */
 export function lerp3(a, b, t) {
@@ -784,4 +784,14 @@ export function CubicBezierTangent(t, p0, p1, p2, p3) {
     6 * (1 - t) * t * (p2 - p1) +
     3 * t ** 2 * (p3 - p2)
   );
+}
+/**
+ * 
+ * @param {string} message 
+ * @param {?number} timeout 
+ * @returns {never}
+ */
+export function throwQuickMessage(message, timeout) {
+  Blockbench.showQuickMessage(message, timeout);
+  throw message;
 }

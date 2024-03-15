@@ -708,6 +708,17 @@
     return new THREE.Color(string[0] / 255, string[1] / 255, string[2] / 255);
   }
 
+  function sm(v) {
+    let a = 3;
+    let b = 2.7;
+    return Math.pow(v, a) / (Math.pow(v, a) + Math.pow(b - b * v, a));
+  }
+  function falloffMap(i, j, width, height, v) {
+    let x = (i / width) * 2 - 1;
+    let y = (j / height) * 2 - 1;
+    return sm(Math.max(Math.abs(x), Math.abs(y)));
+  }
+
   function easeInOutSine(x) {
     return -(Math.cos(Math.PI * x) - 1) / 2;
   }
@@ -825,7 +836,7 @@
     quat.invert();
 
     if (polygonOrPoint instanceof Array) {
-      return polygon.map((e) => {
+      return polygonOrPoint.map((e) => {
         reusableVec5.copy(e);
         reusableVec5.applyQuaternion(quat);
         return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
@@ -1109,10 +1120,10 @@
   }
 
   /**
-   * 
-   * @param {ArrayVector3} a 
-   * @param {ArrayVector3} b 
-   * @param {number} t 
+   *
+   * @param {ArrayVector3} a
+   * @param {ArrayVector3} b
+   * @param {number} t
    * @returns {ArrayVector3}
    */
   function lerp3(a, b, t) {
@@ -1216,6 +1227,16 @@
       t ** 3 * p3
     );
   }
+  /**
+   * 
+   * @param {string} message 
+   * @param {?number} timeout 
+   * @returns {never}
+   */
+  function throwQuickMessage(message, timeout) {
+    Blockbench.showQuickMessage(message, timeout);
+    throw message;
+  }
 
   /**
    * !
@@ -1316,11 +1337,13 @@
     centroidB,
     { twist, numberOfCuts, blendPath, blendInfluence }
   ) {
+    if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
+      return;
+    }
     edgeLoopA = edgeLoopA.map((e) => e.slice());
     edgeLoopB = edgeLoopB.map((e) => e.slice());
     const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
     offsetArray(edgeLoopB, bestOffset);
-
 
     let handleA;
     let handleB;
@@ -2236,7 +2259,7 @@
         margin: {
           type: "number",
           value: 0,
-          label: "margin",
+          label: "Margin",
           min: 0,
           max: 100,
         },
@@ -2945,7 +2968,7 @@
     name: "Open Terrain",
     settings: {
       time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-      scale: { label: "Scale", type: "number", min: 0, value: 25 },
+      scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
       octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
       persistance: {
         label: "Persistancy",
@@ -3030,7 +3053,7 @@
     name: "Valley",
     settings: {
       time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-      scale: { label: "Scale", type: "number", min: 0, value: 25 },
+      scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
       octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
       persistance: {
         label: "Persistancy",
@@ -3055,7 +3078,7 @@
     name: "Mesa",
     settings: {
       time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-      scale: { label: "Scale", type: "number", min: 0, value: 25 },
+      scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
       octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
       persistance: {
         label: "Persistancy",
@@ -3082,7 +3105,7 @@
     name: "River",
     settings: {
       time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-      scale: { label: "Scale", type: "number", min: 0, value: 25 },
+      scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
       octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
       persistance: {
         label: "Persistancy",
@@ -3125,18 +3148,24 @@
     style: { label: "Style", type: "select", options: styleOptions },
     terrain: { label: "Terrain Type", type: "select" },
     width: {
-      label: "Width",
+      label: "Resolution X",
       type: "number",
       value: 32,
       min: 1,
       max: 255,
     },
     height: {
-      label: "Length",
+      label: "Resolution Y",
       type: "number",
       value: 32,
       min: 1,
       max: 255,
+    },
+    size: {
+      label: "Size",
+      type: "number",
+      value: 16,
+      min: 16,
     },
     suggested: {
       label: "Update Suggested Settings",
@@ -3225,8 +3254,8 @@
           let vertexIndex = 0;
           for (let j = height - 1; j >= 0; j--) {
             for (let i = width - 1; i >= 0; i--) {
-              let x = i + topLeftX;
-              let y = j + topLeftY;
+              let x = (out.size * (i + topLeftX)) / width;
+              let y = (out.size * (j + topLeftY)) / height;
               let z = map[[i, j]] * out.multiplier + 1;
 
               let vertex = [x, z, y];
@@ -3333,6 +3362,7 @@
 
         amendForm.width = form.width;
         amendForm.height = form.height;
+        amendForm.size = form.size;
         amendForm.multiplier = form.multiplier;
         for (const key in terrain.settings) {
           const c = {};
@@ -19533,8 +19563,10 @@
       for (const unicode of unicodes) {
         var token = {};
         token.ha = Math.round(glyph.advanceWidth * scale);
-        token.x_min = Math.round(glyph.xMin * scale);
-        token.x_max = Math.round(glyph.xMax * scale);
+
+        const { x1: xMin, y1: xMax } = temp1.getPath().getBoundingBox();
+        token.x_min = Math.round(xMin * scale);
+        token.x_max = Math.round(xMax * scale);
         token.o = "";
         glyph.path.commands.forEach(function (command, i) {
           if (command.type.toLowerCase() === "c") {
@@ -19667,17 +19699,23 @@
   function runEdit$2(text, font, s, amended = false) {
     let elements = [];
     Undo.initEdit({ elements, selection: true }, amended);
-    const geometry = new THREE.TextGeometry(text, {
-      font: font,
-      size: s.size,
-      height: s.height,
-      curveSegments: s.curveSegments,
-      bevelEnabled: s.bevelThickness > 0,
-      bevelThickness: s.bevelThickness / 16,
-      bevelSize: s.bevelSize / 16,
-      bevelOffset: s.bevelOffset / 16,
-      bevelSegments: s.bevelSegments,
-    });
+    let geometry;
+    try {
+      geometry = new THREE.TextGeometry(text, {
+        font: font,
+        size: s.size,
+        height: s.height,
+        curveSegments: s.curveSegments,
+        bevelEnabled: s.bevelThickness > 0,
+        bevelThickness: s.bevelThickness / 16,
+        bevelSize: s.bevelSize / 16,
+        bevelOffset: s.bevelOffset / 16,
+        bevelSegments: s.bevelSegments,
+      });
+    } catch (error) {
+      Blockbench.showQuickMessage("Invalid OpenType font!");
+      throw error;
+    }
     let mesh = nonIndexed(geometry);
 
     mesh.init();
@@ -19703,7 +19741,7 @@
         label: "Resolution",
         type: "number",
         value: 1,
-        min: 0,
+        min: 1,
       },
       _: "_",
       bevelThickness: {
@@ -19738,6 +19776,14 @@
           throw err;
         }
       }
+      for (const char of out.text) {
+        if (!(char in content.glyphs)) {
+          throwQuickMessage(
+            `Character "${char}" doesn't exist on the provided font!`,
+            2000
+          );
+        }
+      }
       const font = new THREE.Font(content);
       runEdit$2(out.text, font, out);
 
@@ -19759,7 +19805,7 @@
             label: "Resolution",
             type: "number",
             value: out.curveSegments,
-            min: 0,
+            min: 1,
           },
           bevelThickness: {
             label: "Bevel Thickness",
@@ -22576,7 +22622,7 @@
     author: "Malik12tree",
     description: "Adds powerful mesh modeling tools, operators and generators!",
     version: "2.0.0",
-    minVersion: "4.9.4",
+    min_version: "4.9.4",
     variant: "both",
     tags: ["Format: Generic Model", "Edit"],
     onload() {

@@ -117,7 +117,7 @@ export default action("uv_turnaround_projection", () => {
       margin: {
         type: "number",
         value: 0,
-        label: "margin",
+        label: "Margin",
         min: 0,
         max: 100,
       },

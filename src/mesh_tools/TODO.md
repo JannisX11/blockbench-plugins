@@ -8,10 +8,13 @@
 	- [x] Allow loading font files for the Text Mesh generator
 	- [x] Use a math parser for XYZ surface generator.
 	- [x] XYZ surface generator: Include variables as sliders.
-	- [ ] XYZ surface generator: Ability to save multiple presets.
+	- [ ] XYZ surface generator: Allow to save multiple presets.
 	- [ ] Terrain generator
+		- [ ] Style Editor
+			- [ ] Better controls
+			- [ ] Allow to save multiple presets
 		- [ ] Optimize Code
-		- [ ] Add world scale option
+		- [x] Add world scale option
 		- [ ] Add texture dithering option
 - [ ] MTools Tools:
 	- [x] New Bridge Loops Action

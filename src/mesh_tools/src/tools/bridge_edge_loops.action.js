@@ -19,7 +19,7 @@ import {
   groupElementsCollided,
   lerp3,
   offsetArray,
-  selectFacesAndEdgesByVertices
+  selectFacesAndEdgesByVertices,
 } from "../utils/utils.js";
 import {
   addVectors,
@@ -118,11 +118,13 @@ function bridgeLoopsConfigured(
   centroidB,
   { twist, numberOfCuts, blendPath, blendInfluence }
 ) {
+  if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
+    return;
+  }
   edgeLoopA = edgeLoopA.map((e) => e.slice());
   edgeLoopB = edgeLoopB.map((e) => e.slice());
   const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
   offsetArray(edgeLoopB, bestOffset);
-
 
   let handleA;
   let handleB;

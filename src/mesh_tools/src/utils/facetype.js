@@ -26,8 +26,10 @@ export function convertOpenTypeToThreeJS(font) {
     for (const unicode of unicodes) {
       var token = {};
       token.ha = Math.round(glyph.advanceWidth * scale);
-      token.x_min = Math.round(glyph.xMin * scale);
-      token.x_max = Math.round(glyph.xMax * scale);
+
+      const { x1: xMin, y1: xMax } = temp1.getPath().getBoundingBox();
+      token.x_min = Math.round(xMin * scale);
+      token.x_max = Math.round(xMax * scale);
       token.o = "";
       glyph.path.commands.forEach(function (command, i) {
         if (command.type.toLowerCase() === "c") {

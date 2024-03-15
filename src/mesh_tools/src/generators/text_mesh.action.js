@@ -2,21 +2,28 @@ import RobotoRegular from "../../assets/roboto_regular.json";
 import { action } from "../actions.js";
 import { convertOpenTypeBufferToThreeJS } from "../utils/facetype.js";
 import * as ThreeJSInteroperability from "../utils/threejs_interoperability.js";
+import { throwQuickMessage } from "../utils/utils.js";
 
 function runEdit(text, font, s, amended = false) {
   let elements = [];
   Undo.initEdit({ elements, selection: true }, amended);
-  const geometry = new THREE.TextGeometry(text, {
-    font: font,
-    size: s.size,
-    height: s.height,
-    curveSegments: s.curveSegments,
-    bevelEnabled: s.bevelThickness > 0,
-    bevelThickness: s.bevelThickness / 16,
-    bevelSize: s.bevelSize / 16,
-    bevelOffset: s.bevelOffset / 16,
-    bevelSegments: s.bevelSegments,
-  });
+  let geometry;
+  try {
+    geometry = new THREE.TextGeometry(text, {
+      font: font,
+      size: s.size,
+      height: s.height,
+      curveSegments: s.curveSegments,
+      bevelEnabled: s.bevelThickness > 0,
+      bevelThickness: s.bevelThickness / 16,
+      bevelSize: s.bevelSize / 16,
+      bevelOffset: s.bevelOffset / 16,
+      bevelSegments: s.bevelSegments,
+    });
+  } catch (error) {
+    Blockbench.showQuickMessage("Invalid OpenType font!");
+    throw error;
+  }
   let mesh = ThreeJSInteroperability.nonIndexed(geometry);
 
   mesh.init();
@@ -42,7 +49,7 @@ const dialog = new Dialog({
       label: "Resolution",
       type: "number",
       value: 1,
-      min: 0,
+      min: 1,
     },
     _: "_",
     bevelThickness: {
@@ -77,6 +84,14 @@ const dialog = new Dialog({
         throw err;
       }
     }
+    for (const char of out.text) {
+      if (!(char in content.glyphs)) {
+        throwQuickMessage(
+          `Character "${char}" doesn't exist on the provided font!`,
+          2000
+        );
+      }
+    }
     const font = new THREE.Font(content);
     runEdit(out.text, font, out);
 
@@ -98,7 +113,7 @@ const dialog = new Dialog({
           label: "Resolution",
           type: "number",
           value: out.curveSegments,
-          min: 0,
+          min: 1,
         },
         bevelThickness: {
           label: "Bevel Thickness",

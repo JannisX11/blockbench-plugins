@@ -1,13 +1,13 @@
 import { action } from "../actions.js";
 import { TerrainGen } from "../utils/terrain_gen.js";
-import { parseRGB, easeInOutSine } from "../utils/utils.js";
+import { parseRGB, easeInOutSine, falloffMap } from "../utils/utils.js";
 import { perlin } from "../utils/perlin.js";
 
 new TerrainGen({
   name: "Open Terrain",
   settings: {
     time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-    scale: { label: "Scale", type: "number", min: 0, value: 25 },
+    scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
     octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
     persistance: {
       label: "Persistancy",
@@ -92,7 +92,7 @@ new TerrainGen({
   name: "Valley",
   settings: {
     time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-    scale: { label: "Scale", type: "number", min: 0, value: 25 },
+    scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
     octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
     persistance: {
       label: "Persistancy",
@@ -117,7 +117,7 @@ new TerrainGen({
   name: "Mesa",
   settings: {
     time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-    scale: { label: "Scale", type: "number", min: 0, value: 25 },
+    scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
     octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
     persistance: {
       label: "Persistancy",
@@ -144,7 +144,7 @@ new TerrainGen({
   name: "River",
   settings: {
     time: { label: "Time", type: "number", min: 0, value: 0, step: 1 },
-    scale: { label: "Scale", type: "number", min: 0, value: 25 },
+    scale: { label: "Noise Scale", type: "number", min: 0, value: 25 },
     octaves: { label: "Octaves", type: "number", min: 0, value: 2 },
     persistance: {
       label: "Persistancy",
@@ -187,18 +187,24 @@ const form = {
   style: { label: "Style", type: "select", options: styleOptions },
   terrain: { label: "Terrain Type", type: "select" },
   width: {
-    label: "Width",
+    label: "Resolution X",
     type: "number",
     value: 32,
     min: 1,
     max: 255,
   },
   height: {
-    label: "Length",
+    label: "Resolution Y",
     type: "number",
     value: 32,
     min: 1,
     max: 255,
+  },
+  size: {
+    label: "Size",
+    type: "number",
+    value: 16,
+    min: 16,
   },
   suggested: {
     label: "Update Suggested Settings",
@@ -287,8 +293,8 @@ export default action("terrain_action", () => {
         let vertexIndex = 0;
         for (let j = height - 1; j >= 0; j--) {
           for (let i = width - 1; i >= 0; i--) {
-            let x = i + topLeftX;
-            let y = j + topLeftY;
+            let x = (out.size * (i + topLeftX)) / width;
+            let y = (out.size * (j + topLeftY)) / height;
             let z = map[[i, j]] * out.multiplier + 1;
 
             let vertex = [x, z, y];
@@ -395,6 +401,7 @@ export default action("terrain_action", () => {
 
       amendForm.width = form.width;
       amendForm.height = form.height;
+      amendForm.size = form.size;
       amendForm.multiplier = form.multiplier;
       for (const key in terrain.settings) {
         const c = {};
