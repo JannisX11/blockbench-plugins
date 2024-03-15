@@ -22616,15 +22616,15 @@
    */
   const meshToolTips = [];
   BBPlugin.register("mesh_tools", {
-    new_repository_format: true,
-    title: "MTools",
-    icon: "icon.png",
-    author: "Malik12tree",
-    description: "Adds powerful mesh modeling tools, operators and generators!",
-    version: "2.0.0",
-    min_version: "4.9.4",
-    variant: "both",
-    tags: ["Format: Generic Model", "Edit"],
+    "new_repository_format": true,
+    "title": "MTools",
+    "author": "Malik12tree",
+    "icon": "icon.png",
+    "description": "Adds powerful mesh modeling tools, operators and generators!",
+    "version": "2.0.0",
+    "min_version": "4.9.4",
+    "variant": "both",
+    "tags": ["Format: Generic Model", "Mesh", "Tool"],
     onload() {
 
       Mesh.prototype.menu.structure.unshift("@meshtools/tools");

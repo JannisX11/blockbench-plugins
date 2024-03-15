@@ -579,13 +579,13 @@
 	"mesh_tools": {
 		"new_repository_format": true,
 		"title": "MTools",
-		"icon": "fas.fa-vector-square",
 		"author": "Malik12tree",
+		"icon": "icon.png",
 		"description": "Adds powerful mesh modeling tools, operators and generators!",
 		"version": "2.0.0",
-		"minVersion": "4.7.0",
+		"min_version": "4.9.4",
 		"variant": "both",
-		"tags": ["Format: Generic Model", "Edit"]
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]	  
 	},
 	"wasd_controls": {
 		"title": "WASD Controls",
