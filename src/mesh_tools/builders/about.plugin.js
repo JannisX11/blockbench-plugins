@@ -16,8 +16,8 @@ function translate(subject) {
   });
 }
 const getURL = (e) =>
-  `http://127.0.0.1:5500/${e}`;
-  // `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+  // `http://127.0.0.1:5500/${e}`;
+  `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
 
 function renderPill(title) {
   return `<span style="
@@ -138,6 +138,8 @@ ${node?.docs?.lines ? node.docs.lines.map(renderLine).join("\n") : ""}
     );
 
     const content = `
+<div>
+
 This plugin adds **powerful** mesh modeling tools, operators, and generators into to your Blockbench.
 By installing the plugin, you get:
 <div style="display: flex;flex-direction: column;">
@@ -158,6 +160,7 @@ ${generatorsRender.join("\n")}
 
 <div style="display: flex; gap: 5px;padding-top:10px">
   &minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209"> Malik12tree
+</div>
 </div>
 `;
     await fs.writeFile("../../plugins/mesh_tools/about.md", content);

@@ -25,4 +25,4 @@
 	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge
-- [ ] Create an attractive logo 🤔
+- [x] Create an attractive logo 🤔

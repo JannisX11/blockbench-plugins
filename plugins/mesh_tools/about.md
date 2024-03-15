@@ -1,4 +1,6 @@
 
+<div>
+
 This plugin adds **powerful** mesh modeling tools, operators, and generators into to your Blockbench.
 By installing the plugin, you get:
 <div style="display: flex;flex-direction: column;">
@@ -151,13 +153,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/bridge_edge_loops_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/bridge_edge_loops_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/bridge_edge_loops_1_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/bridge_edge_loops_1_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -168,13 +170,13 @@ Results with Blend Path enabled.
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/bridge_edge_loops_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/bridge_edge_loops_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/bridge_edge_loops_2_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/bridge_edge_loops_2_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -204,13 +206,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/to_sphere_1_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/to_sphere_1_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/to_sphere_1_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/to_sphere_1_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -220,13 +222,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/to_sphere_2_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/to_sphere_2_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/to_sphere_2_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/to_sphere_2_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -256,13 +258,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/laplacian_smooth_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/laplacian_smooth_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/laplacian_smooth_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/laplacian_smooth_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -292,13 +294,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/poke_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/poke_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/poke_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/poke_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -328,13 +330,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/tris_to_quad_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/tris_to_quad_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/tris_to_quad_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/tris_to_quad_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -364,13 +366,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/triangulate_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/triangulate_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/triangulate_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/triangulate_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -404,13 +406,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/uv_project_view_solid.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/uv_project_view_solid.png?raw=true" />
 <figcaption>Mesh</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/uv_project_view_uv.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/uv_project_view_uv.png?raw=true" />
 <figcaption>UV</figcaption>
 </figure>
 </div>
@@ -444,13 +446,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/uv_turnaround_projection_solid.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/uv_turnaround_projection_solid.png?raw=true" />
 <figcaption>Mesh</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/uv_turnaround_projection_uv.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/uv_turnaround_projection_uv.png?raw=true" />
 <figcaption>UV</figcaption>
 </figure>
 </div>
@@ -525,13 +527,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/subdivide_before.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/subdivide_before.png?raw=true" />
 <figcaption>Input</figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/subdivide_after.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/subdivide_after.png?raw=true" />
 <figcaption>Result</figcaption>
 </figure>
 </div>
@@ -561,7 +563,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/split_edges.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/split_edges.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
@@ -591,7 +593,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/scatter.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/scatter.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
@@ -621,7 +623,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/array.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/array.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
@@ -654,13 +656,13 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/terrain_solid.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/terrain_solid.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
 <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/terrain_wire.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/terrain_wire.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
@@ -711,7 +713,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/text.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/text.png?raw=true" />
 <figcaption>"Butcher" expressed in Chinese</figcaption>
 </figure>
 </div>
@@ -741,7 +743,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/xyz.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/xyz.png?raw=true" />
 <figcaption>Twisted Torus Preset</figcaption>
 </figure>
 </div>
@@ -775,7 +777,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/polyhedron.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/polyhedron.png?raw=true" />
 <figcaption>Icosahedron</figcaption>
 </figure>
 </div>
@@ -809,7 +811,7 @@ Access From:
   <div style="display: flex;flex-wrap:wrap;">
       <div style="border: 1px solid var(--color-dark);background: var(--color-back);">
 <figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="http://127.0.0.1:5500/assets/actions/torus_knot.png" />
+<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/torus_knot.png?raw=true" />
 <figcaption></figcaption>
 </figure>
 </div>
@@ -821,4 +823,5 @@ Access From:
 
 <div style="display: flex; gap: 5px;padding-top:10px">
   &minus; &nbsp; <img width="25" src="https://avatars.githubusercontent.com/u/82341209"> Malik12tree
+</div>
 </div>

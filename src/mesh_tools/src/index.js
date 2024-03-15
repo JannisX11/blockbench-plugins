@@ -12,11 +12,11 @@ const meshToolTips = [];
 BBPlugin.register("mesh_tools", {
   new_repository_format: true,
   title: "MTools",
-  icon: "fas.fa-vector-square",
+  icon: "icon.png",
   author: "Malik12tree",
   description: "Adds powerful mesh modeling tools, operators and generators!",
   version: "2.0.0",
-  minVersion: "4.7.0",
+  minVersion: "4.9.4",
   variant: "both",
   tags: ["Format: Generic Model", "Edit"],
   onload() {

@@ -1,5 +1,6 @@
 import terser from "@rollup/plugin-terser";
 import jsonc from "rollup-plugin-jsonc";
+import copy from "rollup-plugin-copy";
 import globImport from "rollup-plugin-glob-import";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import aboutPlugin from "./builders/about.plugin.js";
@@ -21,6 +22,11 @@ export default {
     jsonc(),
     commonjs({sourceMap: false}),
     nodeResolve(),
+    copy({
+      targets: [
+        { src: 'assets/icon.png', dest: '../../plugins/mesh_tools' }
+      ]
+    }),
     // terser(),
     aboutPlugin,
   ],
