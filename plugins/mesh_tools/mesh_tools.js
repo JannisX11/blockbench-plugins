@@ -1335,15 +1335,53 @@
     edgeLoopB,
     centroidA,
     centroidB,
-    { twist, numberOfCuts, blendPath, blendInfluence }
+    { twist, numberOfCuts, blendPath, blendInfluence, reverse }
   ) {
     if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
       return;
     }
     edgeLoopA = edgeLoopA.map((e) => e.slice());
     edgeLoopB = edgeLoopB.map((e) => e.slice());
+
     const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
     offsetArray(edgeLoopB, bestOffset);
+
+    // TODO: Detect `reverse` automatically.
+    if (reverse) {
+      edgeLoopB.forEach((e) => e.reverse());
+      edgeLoopB.reverse();
+
+      const bestOffset2 = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
+
+      // Negation of `bestOffset2` since the array is reversed,
+      // Does it make ANY sense?
+      // It doesn't!
+      // It just happens to work.
+      offsetArray(edgeLoopB, -bestOffset2);
+    }
+
+    // const firstNLength = distanceBetween(
+    //   mesh.vertices[edgeLoopA[0][0]],
+    //   mesh.vertices[edgeLoopB[0][0]]
+    // );
+    // const lastNLength = distanceBetween(
+    //   mesh.vertices[edgeLoopA.last()[0]],
+    //   mesh.vertices[edgeLoopB.last()[0]]
+    // );
+    // const firstRLength = distanceBetween(
+    //   mesh.vertices[edgeLoopA[0][0]],
+    //   mesh.vertices[edgeLoopB.last()[0]]
+    // );
+    // const lastRLength = distanceBetween(
+    //   mesh.vertices[edgeLoopA.last()[0]],
+    //   mesh.vertices[edgeLoopB[0][0]]
+    // );
+    // console.log(
+    //   firstNLength,
+    //   lastNLength ,
+    //   firstRLength,
+    //   lastRLength ,
+    // );
 
     let handleA;
     let handleB;
@@ -1466,7 +1504,8 @@
     twist,
     cutHoles,
     blendPath,
-    blendInfluence
+    blendInfluence,
+    reverse
   ) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
@@ -1596,6 +1635,7 @@
             numberOfCuts,
             blendPath,
             blendInfluence,
+            reverse,
           }
         );
       }
@@ -1607,13 +1647,21 @@
     Undo.finishEdit("MTools: Bridged Edge Loops.");
   }
   action("bridge_edge_loops", () => {
-    runEdit$c(false, 2, 0, true, true, 1);
+    runEdit$c(false, 2, 0, true, true, 1, false);
 
     Undo.amendEdit(
       {
         blend_path: {
           type: "checkbox",
           label: "Blend Path",
+          value: true,
+        },
+        /**
+         * TODO: convert into a single field "reversed" when [#2231](https://github.com/JannisX11/blockbench/issues/2231) gets fixed.
+         */
+        order: {
+          type: "checkbox",
+          label: "[Ordered]/[Reversed]",
           value: true,
         },
         blend_influence: {
@@ -1648,7 +1696,8 @@
           form.twist,
           form.cut_holes,
           form.blend_path,
-          form.blend_influence / 100
+          form.blend_influence / 100,
+          !form.order
         );
       }
     );
