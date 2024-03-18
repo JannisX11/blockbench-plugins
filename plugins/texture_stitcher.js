@@ -190,8 +190,8 @@
 
                 if (rect != null)
                 {
-                    cube.uv_offset[0] += rect.x / mx;
-                    cube.uv_offset[1] += rect.y / my;
+                    cube.uv_offset[0] += rect.x / rect.mx;
+                    cube.uv_offset[1] += rect.y / rect.my;
                 }
 
                 toApplySides = north.texture !== false;
@@ -205,10 +205,10 @@
 
                     if (rect !== null)
                     {
-                        face.uv[0] = face.uv[0] * mx + rect.x;
-                        face.uv[1] = face.uv[1] * my + rect.y;
-                        face.uv[2] = face.uv[2] * mx + rect.x;
-                        face.uv[3] = face.uv[3] * my + rect.y;
+                        face.uv[0] = face.uv[0] * rect.mx + rect.x;
+                        face.uv[1] = face.uv[1] * rect.my + rect.y;
+                        face.uv[2] = face.uv[2] * rect.mx + rect.x;
+                        face.uv[3] = face.uv[3] * rect.my + rect.y;
 
                         if (face.texture !== false)
                         {
@@ -244,8 +244,8 @@
                     {
                         var uv = face.uv[key];
 
-                        uv[0] = uv[0] * mx + rect.x;
-                        uv[1] = uv[1] * my + rect.y;
+                        uv[0] = uv[0] * rect.mx + rect.x;
+                        uv[1] = uv[1] * rect.my + rect.y;
 
                         applied = true;
                     });
@@ -274,7 +274,7 @@
         author: 'McHorse',
         description: 'Adds a menu item to textures editor that stitches multiple textures into one',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.2',
+        version: '1.0.3',
         variant: 'both',
         onload() 
         {
