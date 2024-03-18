@@ -136,6 +136,9 @@ function setTemplate() {
 			`// Made with Blockbench %(bb_version)
 			// Exported for Minecraft version 1.17+ for Yarn
 			// Paste this class into your mod and generate all required imports
+
+			${header}
+   
 			public class %(identifier) extends EntityModel<${entity}> {
 				%(fields)
 				public %(identifier)(ModelPart root) {
