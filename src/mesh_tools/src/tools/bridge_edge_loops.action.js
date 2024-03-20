@@ -116,7 +116,7 @@ function bridgeLoopsConfigured(
   edgeLoopB,
   centroidA,
   centroidB,
-  { twist, numberOfCuts, blendPath, blendInfluence, reverse }
+  { twist, numberOfCuts, blendPath, blendInfluence }
 ) {
   if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
     return;
@@ -127,42 +127,24 @@ function bridgeLoopsConfigured(
   const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
   offsetArray(edgeLoopB, bestOffset);
 
-  // TODO: Detect `reverse` automatically.
-  if (reverse) {
-    edgeLoopB.forEach((e) => e.reverse());
-    edgeLoopB.reverse();
+  const reversedEdgeLoopB = edgeLoopB.map((e) => e.slice().reverse()).reverse();
 
-    const bestOffset2 = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
-
-    // Negation of `bestOffset2` since the array is reversed,
-    // Does it make ANY sense?
-    // It doesn't!
-    // It just happens to work.
-    offsetArray(edgeLoopB, -bestOffset2);
+  const bestOffsetReversed = bestEdgeLoopsOffset(
+    reversedEdgeLoopB,
+    edgeLoopA,
+    mesh
+  );
+  // Negation of `bestOffset2` since the array is reversed,
+  // Does it make ANY sense?
+  // It doesn't!
+  // It just happens to work.
+  offsetArray(reversedEdgeLoopB, -bestOffsetReversed);
+  if (
+    edgeLoopsLength(mesh, edgeLoopA, edgeLoopB) >
+    edgeLoopsLength(mesh, edgeLoopA, reversedEdgeLoopB)
+  ) {
+    edgeLoopB = reversedEdgeLoopB;
   }
-
-  // const firstNLength = distanceBetween(
-  //   mesh.vertices[edgeLoopA[0][0]],
-  //   mesh.vertices[edgeLoopB[0][0]]
-  // );
-  // const lastNLength = distanceBetween(
-  //   mesh.vertices[edgeLoopA.last()[0]],
-  //   mesh.vertices[edgeLoopB.last()[0]]
-  // );
-  // const firstRLength = distanceBetween(
-  //   mesh.vertices[edgeLoopA[0][0]],
-  //   mesh.vertices[edgeLoopB.last()[0]]
-  // );
-  // const lastRLength = distanceBetween(
-  //   mesh.vertices[edgeLoopA.last()[0]],
-  //   mesh.vertices[edgeLoopB[0][0]]
-  // );
-  // console.log(
-  //   firstNLength,
-  //   lastNLength ,
-  //   firstRLength,
-  //   lastRLength ,
-  // );
 
   let handleA;
   let handleB;
@@ -286,7 +268,6 @@ function runEdit(
   cutHoles,
   blendPath,
   blendInfluence,
-  reverse
 ) {
   Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
@@ -339,7 +320,6 @@ function runEdit(
     } else {
       keptVerticesSet = new Set(mesh.getSelectedVertices());
     }
-
     const loops = [];
     const { edges } = getSelectedFacesAndEdgesByVertices(mesh, keptVerticesSet);
 
@@ -416,7 +396,6 @@ function runEdit(
           numberOfCuts,
           blendPath,
           blendInfluence,
-          reverse,
         }
       );
     }
@@ -435,14 +414,6 @@ export default action("bridge_edge_loops", () => {
       blend_path: {
         type: "checkbox",
         label: "Blend Path",
-        value: true,
-      },
-      /**
-       * TODO: convert into a single field "reversed" when [#2231](https://github.com/JannisX11/blockbench/issues/2231) gets fixed.
-       */
-      order: {
-        type: "checkbox",
-        label: "[Ordered]/[Reversed]",
         value: true,
       },
       blend_influence: {
@@ -478,7 +449,6 @@ export default action("bridge_edge_loops", () => {
         form.cut_holes,
         form.blend_path,
         form.blend_influence / 100,
-        !form.order
       );
     }
   );

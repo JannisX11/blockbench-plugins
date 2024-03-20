@@ -1335,7 +1335,7 @@
     edgeLoopB,
     centroidA,
     centroidB,
-    { twist, numberOfCuts, blendPath, blendInfluence, reverse }
+    { twist, numberOfCuts, blendPath, blendInfluence }
   ) {
     if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
       return;
@@ -1346,42 +1346,24 @@
     const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
     offsetArray(edgeLoopB, bestOffset);
 
-    // TODO: Detect `reverse` automatically.
-    if (reverse) {
-      edgeLoopB.forEach((e) => e.reverse());
-      edgeLoopB.reverse();
+    const reversedEdgeLoopB = edgeLoopB.map((e) => e.slice().reverse()).reverse();
 
-      const bestOffset2 = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
-
-      // Negation of `bestOffset2` since the array is reversed,
-      // Does it make ANY sense?
-      // It doesn't!
-      // It just happens to work.
-      offsetArray(edgeLoopB, -bestOffset2);
+    const bestOffsetReversed = bestEdgeLoopsOffset(
+      reversedEdgeLoopB,
+      edgeLoopA,
+      mesh
+    );
+    // Negation of `bestOffset2` since the array is reversed,
+    // Does it make ANY sense?
+    // It doesn't!
+    // It just happens to work.
+    offsetArray(reversedEdgeLoopB, -bestOffsetReversed);
+    if (
+      edgeLoopsLength(mesh, edgeLoopA, edgeLoopB) >
+      edgeLoopsLength(mesh, edgeLoopA, reversedEdgeLoopB)
+    ) {
+      edgeLoopB = reversedEdgeLoopB;
     }
-
-    // const firstNLength = distanceBetween(
-    //   mesh.vertices[edgeLoopA[0][0]],
-    //   mesh.vertices[edgeLoopB[0][0]]
-    // );
-    // const lastNLength = distanceBetween(
-    //   mesh.vertices[edgeLoopA.last()[0]],
-    //   mesh.vertices[edgeLoopB.last()[0]]
-    // );
-    // const firstRLength = distanceBetween(
-    //   mesh.vertices[edgeLoopA[0][0]],
-    //   mesh.vertices[edgeLoopB.last()[0]]
-    // );
-    // const lastRLength = distanceBetween(
-    //   mesh.vertices[edgeLoopA.last()[0]],
-    //   mesh.vertices[edgeLoopB[0][0]]
-    // );
-    // console.log(
-    //   firstNLength,
-    //   lastNLength ,
-    //   firstRLength,
-    //   lastRLength ,
-    // );
 
     let handleA;
     let handleB;
@@ -1505,7 +1487,6 @@
     cutHoles,
     blendPath,
     blendInfluence,
-    reverse
   ) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
@@ -1558,7 +1539,6 @@
       } else {
         keptVerticesSet = new Set(mesh.getSelectedVertices());
       }
-
       const loops = [];
       const { edges } = getSelectedFacesAndEdgesByVertices(mesh, keptVerticesSet);
 
@@ -1635,7 +1615,6 @@
             numberOfCuts,
             blendPath,
             blendInfluence,
-            reverse,
           }
         );
       }
@@ -1647,21 +1626,13 @@
     Undo.finishEdit("MTools: Bridged Edge Loops.");
   }
   action("bridge_edge_loops", () => {
-    runEdit$c(false, 2, 0, true, true, 1, false);
+    runEdit$c(false, 2, 0, true, true, 1);
 
     Undo.amendEdit(
       {
         blend_path: {
           type: "checkbox",
           label: "Blend Path",
-          value: true,
-        },
-        /**
-         * TODO: convert into a single field "reversed" when [#2231](https://github.com/JannisX11/blockbench/issues/2231) gets fixed.
-         */
-        order: {
-          type: "checkbox",
-          label: "[Ordered]/[Reversed]",
           value: true,
         },
         blend_influence: {
@@ -1697,11 +1668,19 @@
           form.cut_holes,
           form.blend_path,
           form.blend_influence / 100,
-          !form.order
         );
       }
     );
   });
+  function edgeLoopsLength(mesh, fromEdgeLoop, intoEdgeLoop) {
+    let length = 0;
+    for (let i = 0; i < fromEdgeLoop.length; i++) {
+      const [vertexA0] = fromEdgeLoop[i];
+      const [vertexB0] = intoEdgeLoop[Math.min(i, intoEdgeLoop.length - 1)];
+      length += distanceBetween(mesh.vertices[vertexA0], mesh.vertices[vertexB0]);
+    }
+    return length;
+  }
   /**
    * Returns the best offset applied on {@linkcode intoEdgeLoop} when connected with {@linkcode fromEdgeLoop}
    * @param {*} fromEdgeLoop
