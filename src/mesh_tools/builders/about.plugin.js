@@ -95,11 +95,11 @@ export default {
         return;
       }
 
-      // I'm Very aware that this anchor element doesn't behave correctly in the plugin viewer.
       tableOfContents.push(
-        `<a style="padding-inline-start: ${
+        `<div
+        style="padding-inline-start: ${
           24 * (parents.length - 1)
-        }px" href="#mesh_tools-action-${node.id}">${getActionRaw(node)}</a>`
+        }px" >${getActionRaw(node)}</div>`
       );
       if (node.children) {
         parents.push(node);
@@ -110,7 +110,7 @@ export default {
 
       renders.push(`
 <section id="mesh_tools-action-${node.id}">
-<p>${getActionRaw(node)}</p>
+${getActionRaw(node)}
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 ${parents.map(getActionRaw).join(getIconRaw("fas.fa-chevron-right"))}
@@ -194,7 +194,6 @@ function getIconRaw(icon) {
 function getActionRaw(node) {
   return `<div style="display: inline-flex;align-items:center;gap: 5px;">
   ${getIconRaw(node.icon)} <b>${node.name}</b>
-
   ${node?.docs?.tags ? node.docs.tags.map(renderPill).join("\n") : ""}
   </div>`;
 }

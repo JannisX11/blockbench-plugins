@@ -4,9 +4,9 @@
 This plugin adds **powerful** mesh modeling tools, operators, and generators into to your Blockbench.
 By installing the plugin, you get:
 <div style="display: flex;flex-direction: column;">
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-bridge_edge_loops"><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
-
   <span style="
   border: max(1px, 0.0625rem) solid var(--color-accent);
   color: var(--color-accent);
@@ -15,121 +15,120 @@ By installing the plugin, you get:
   font-weight: 500;
   padding: 0 7px;
   white-space: nowrap;">NEW</span>
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-to_sphere"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-laplacian_smooth"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-poke"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-tris_to_quad"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-external-link-square-alt"></i> <b>Triangles To Quadrilaterals</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-triangulate"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">pie_chart_outline</i> <b>Triangulate Faces</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-uv_mapping"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 24px" href="#mesh_tools-action-uv_project_view"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 24px" href="#mesh_tools-action-uv_turnaround_projection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">open_with</i> <b>Cubic Projection</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-expand_selection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_more_double</i> <b>Expand Selection</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-shrink_selection"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_less_double</i> <b>Shrink Selection</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-subdivide"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">content_cut</i> <b>Subdivide</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-split_edges"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">vertical_split</i> <b>Split Edges</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-scatter"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">scatter_plot</i> <b>Scatter</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-array_elements"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-layer-group"></i> <b>Array</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-terrain_action"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-terrainse"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">draw</i> <b>Terrain Style Editor</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-textmesh"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">format_size</i> <b>Text Mesh</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-xyzmathsurfacefunction"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-brain"></i> <b>XYZ Math Surface</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 0px" href="#mesh_tools-action-quickprimitives"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 24px" href="#mesh_tools-action-polyhedron"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Polyhedron</b>
-
   
-  </div></a>
-<a style="padding-inline-start: 24px" href="#mesh_tools-action-torusknot"><div style="display: inline-flex;align-items:center;gap: 5px;">
+  </div></div>
+<div
+        style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Torus Knot</b>
-
   
-  </div></a>
+  </div></div>
 </div>
 
 ### Modeling Tools
 For applying modifications on selected vertices, edges or faces.
 
 <section id="mesh_tools-action-bridge_edge_loops">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
-
   <span style="
   border: max(1px, 0.0625rem) solid var(--color-accent);
   color: var(--color-accent);
@@ -138,12 +137,11 @@ For applying modifications on selected vertices, edges or faces.
   font-weight: 500;
   padding: 0 7px;
   white-space: nowrap;">NEW</span>
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -187,16 +185,14 @@ Results with Blend Path enabled.
 
 
 <section id="mesh_tools-action-to_sphere">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -239,16 +235,14 @@ Access From:
 
 
 <section id="mesh_tools-action-laplacian_smooth">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -275,16 +269,14 @@ Access From:
 
 
 <section id="mesh_tools-action-poke">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -311,16 +303,14 @@ Access From:
 
 
 <section id="mesh_tools-action-tris_to_quad">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-external-link-square-alt"></i> <b>Triangles To Quadrilaterals</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -347,16 +337,14 @@ Access From:
 
 
 <section id="mesh_tools-action-triangulate">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">pie_chart_outline</i> <b>Triangulate Faces</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -383,20 +371,17 @@ Access From:
 
 
 <section id="mesh_tools-action-uv_project_view">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
-
   
   </div>
 </span>
@@ -423,20 +408,17 @@ Access From:
 
 
 <section id="mesh_tools-action-uv_turnaround_projection">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">open_with</i> <b>Cubic Projection</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">map</i> <b>UV Mapping</b>
-
   
   </div>
 </span>
@@ -463,16 +445,14 @@ Access From:
 
 
 <section id="mesh_tools-action-expand_selection">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_more_double</i> <b>Expand Selection</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -484,16 +464,14 @@ Access From:
 
 
 <section id="mesh_tools-action-shrink_selection">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_less_double</i> <b>Shrink Selection</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools</b>
-
   
   </div>
 </span>
@@ -508,16 +486,14 @@ Access From:
 For applying modifications on selected meshes.
 
 <section id="mesh_tools-action-subdivide">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">content_cut</i> <b>Subdivide</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
-
   
   </div>
 </span>
@@ -544,16 +520,14 @@ Access From:
 
 
 <section id="mesh_tools-action-split_edges">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">vertical_split</i> <b>Split Edges</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
-
   
   </div>
 </span>
@@ -574,16 +548,14 @@ Access From:
 
 
 <section id="mesh_tools-action-scatter">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">scatter_plot</i> <b>Scatter</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
-
   
   </div>
 </span>
@@ -604,16 +576,14 @@ Access From:
 
 
 <section id="mesh_tools-action-array_elements">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-layer-group"></i> <b>Array</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
-
   
   </div>
 </span>
@@ -637,16 +607,14 @@ Access From:
 For procedural mesh generation
 
 <section id="mesh_tools-action-terrain_action">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div>
 </span>
@@ -673,16 +641,14 @@ Access From:
 
 
 <section id="mesh_tools-action-terrainse">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">draw</i> <b>Terrain Style Editor</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div>
 </span>
@@ -694,16 +660,14 @@ Access From:
 
 
 <section id="mesh_tools-action-textmesh">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">format_size</i> <b>Text Mesh</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div>
 </span>
@@ -724,16 +688,14 @@ Access From:
 
 
 <section id="mesh_tools-action-xyzmathsurfacefunction">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-brain"></i> <b>XYZ Math Surface</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div>
 </span>
@@ -754,20 +716,17 @@ Access From:
 
 
 <section id="mesh_tools-action-polyhedron">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Polyhedron</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
-
   
   </div>
 </span>
@@ -788,20 +747,17 @@ Access From:
 
 
 <section id="mesh_tools-action-torusknot">
-<p><div style="display: inline-flex;align-items:center;gap: 5px;">
+<div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Torus Knot</b>
-
   
-  </div></p>
+  </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-vector-square"></i> <b>MTools Generate</b>
-
   
   </div><i class="fa_big fas fa-chevron-right"></i><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-shapes"></i> <b>Quick Primitives</b>
-
   
   </div>
 </span>
