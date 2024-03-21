@@ -518,7 +518,7 @@
 		"icon": "icon.png",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"min_version": "4.8.0",
 		"variant": "both"
 	},
