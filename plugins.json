@@ -507,10 +507,10 @@
 		"icon": "icon.png",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.3.1",
-		"min_version": "3.7.0",
-		"new_repository_format": true,
-		"variant": "both"
+		"version": "1.3.2",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2021-08-04"
 	},
 	"minecraft_block_wizard": {
 		"title": "Minecraft Block Wizard",
@@ -520,7 +520,8 @@
 		"tags": ["Minecraft: Bedrock Edition"],
 		"version": "1.2.2",
 		"min_version": "4.8.0",
-		"variant": "both"
+		"variant": "both",
+		"creation_date": "2022-10-25"
 	},
 	"minecraft_item_wizard": {
 		"title": "Minecraft Item Wizard",
