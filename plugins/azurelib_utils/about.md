@@ -26,8 +26,11 @@ dependencies {
   //Forge
   implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
  
-  //NeoForge
+  //NeoForge 1.20.1
   implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
+  
+  //NeoForge 1.20.4+
+  implementation "mod.azure.azurelib:azurelib-neo-MCVER:MODVER"
 }
 ```
 <style>
