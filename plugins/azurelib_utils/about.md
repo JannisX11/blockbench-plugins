@@ -7,9 +7,9 @@ Supported Minecraft versions:
 - **1.17.1 Forge/Fabric**
 - **1.18.2 Forge/Fabric**
 - **1.19.2 Forge/Fabric**
-- **1.19.3 Forge/Fabric**
 - **1.19.4 Forge/Fabric**
 - **1.20.1 Forge/NeoForge/Fabric**
+- **1.20.4 NeoForge/Fabric**
 
 To add to your code, please do the following: 
 
@@ -26,8 +26,11 @@ dependencies {
   //Forge
   implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
  
-  //NeoForge
+  //NeoForge 1.20.1
   implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
+  
+  //NeoForge 1.20.4+
+  implementation "mod.azure.azurelib:azurelib-neo-MCVER:MODVER"
 }
 ```
 <style>
