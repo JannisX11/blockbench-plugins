@@ -8,7 +8,7 @@
     author: "CyberStefNef",
     description: "Generates Voxel Shapes for Fabric",
     icon: "bar_chart",
-    version: "0.0.1",
+    version: "1.0.0",
     variant: "both",
     tags: ["Minecraft: Java Edition"],
     onload() {
@@ -35,19 +35,25 @@
   });
 
   function generateFabricFile(centered) {
-    var data =
-      "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n";
+    var data = "public static VoxelShape makeShape() {\n\treturn ";
 
-    for (var i = 0; i < Cube.all.length; ++i) {
-      var cube = Cube.all[i];
-
-      data += "\tshape = VoxelShapes.union(shape, VoxelShapes.cuboid("
-        .concat(formatVec3(cube.from, centered))
-        .concat(", ")
-        .concat(formatVec3(cube.to, centered))
-        .concat("));\n");
+    if (Cube.all.length < 1) {
+      data += "VoxelShapes.empty()";
+    } else {
+      data += "VoxelShapes.union(\n";
+      for (var i = 0; i < Cube.all.length; ++i) {
+        if (i > 0) data += ",\n";
+        const cube = Cube.all[i];
+        data += "\t\tVoxelShapes.cuboid("
+            .concat(formatVec3(cube.from, centered))
+            .concat(", ")
+            .concat(formatVec3(cube.to, centered))
+            .concat(")");
+      }
+      data += "\n\t)";
     }
-    data += "\n\treturn shape;\n}";
+
+    data += ";\n}";
     return data;
   }
 
