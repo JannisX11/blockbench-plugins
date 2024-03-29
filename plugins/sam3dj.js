@@ -198,6 +198,7 @@
             output.collideWhenOff   =  options.collideOff;
             output.lightLevel       =  options.lightLvl;
             output.redstoneLevel    =  options.redstoneLvl;
+            if (options.isSeat) output.seatPos = options.seatPos;
         }
         
         const shapes = genModel(Project.elements, options.raw, options.useTint);
@@ -285,6 +286,19 @@
                 type: 'checkbox',
                 value: false,
             },
+            isSeat: {
+                label: 'Is a seat? (OFF = ignore position)',
+                type: 'checkbox',
+                value: false,
+            },
+            seatPos: {
+                label: 'The position of the seat',
+                type: 'vector',
+                value: [0.5,0.5,0.5],
+                min: 0.1,
+                max: 0.9,
+                step: 0.1,
+            }
         },
         onConfirm(formData) {
             codec3dj.export(formData);
