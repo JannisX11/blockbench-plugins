@@ -412,7 +412,7 @@
 		icon: "icon.png",
 		description: "The rainbow road racing minigame from April fools day 2024! Turn your model into a race car and take it for a spin!",
 		tags: ["Minigame"],
-		version: "0.1.0",
+		version: "0.1.1",
 		min_version: "4.8.0",
 		variant: "both",
 		creation_date: "2024-04-1",
@@ -427,7 +427,7 @@
 			buttons[0].onclick = RainbowRace.start;
 			buttons[1].onclick = RainbowRace.stop;
 
-			Blockbench.addCSS(`
+			let css = Blockbench.addCSS(`
 				#rainbow_game_controls {
 					width: 64px;
 					height: 30px;
@@ -467,6 +467,7 @@
 		onunload() {
 			controls.remove();
 			css.delete();
+			highscore_action.delete();
 		}
 	});
 	
