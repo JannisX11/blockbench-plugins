@@ -878,5 +878,16 @@
 		"variant": "both",
 		"await_loading": true,
 		"creation_date": "2023-07-22"
+	},
+	"rainbow_road_game": {
+		"title": "Rainbow Road Game",
+		"author": "JannisX11",
+		"icon": "icon.png",
+		"description": "The rainbow road racing minigame from April fools day 2024! Turn your model into a race car and take it for a spin!",
+		"tags": ["Minigame"],
+		"version": "0.1.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-1"
 	}
 }
