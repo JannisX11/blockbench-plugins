@@ -16,7 +16,7 @@ function sumArrays(a, b){
       title: name,
       icon: "icon.png",
       author: "Z. Hoeshin",
-      description: "A plugin that allows to create models for the game Cosmic Reach.",
+      description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: [],
       version: "1.1.0",
       creation_date: "2024-03-09",
