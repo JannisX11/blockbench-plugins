@@ -17,7 +17,7 @@
       onload() {
 	originalJavaBlockCond = Codec.java_block.load_filter.condition
         Codecs.java_block.load_filter.condition = (model) => {
-			return (model.parent || model.elements || model.textures) && (!model.cuboids);
+			return !model.cuboids && originalJavaBlockCond(model);
 		}
 
         dialog = new Dialog("cosmic_reach_model_errormessage", {
