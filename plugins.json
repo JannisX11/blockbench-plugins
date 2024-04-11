@@ -369,7 +369,7 @@
 		"icon": "icon-format_java",
 		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "0.2.1",
+		"version": "0.2.2",
 		"min_version": "3.6.6",
 		"variant": "both"
 	},
