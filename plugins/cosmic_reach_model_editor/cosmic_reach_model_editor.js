@@ -1,14 +1,5 @@
-
-function sumArrays(a, b){
-    s = []
-    for(let i = 0; i < Math.min(a.length, b.length); i++){
-        s.push(a[i] + b[i])
-    }
-    return s
-}
-
 (() => {
-    let codec, format, export_action, import_action, dialog, properties
+    let codec, format, export_action, import_action, dialog, properties, originalJavaBlockCond
     const id = "cosmic_reach_model_editor"
     const name = "Cosmic Reach Model Editor"
     const icon = "icon.png"
@@ -17,10 +8,14 @@ function sumArrays(a, b){
       icon: "icon.png",
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
-      tags: [],
-      version: "1.1.0",
+      tags: ["Cosmic Reach"],
+      version: "1.1.1",
+      min_version: "4.8.0",
       creation_date: "2024-03-09",
+      variant: "both",
+      new_repository_format: true,
       onload() {
+	originalJavaBlockCond = Codec.java_block.load_filter.condition
         Codecs.java_block.load_filter.condition = (model) => {
 			return (model.parent || model.elements || model.textures) && (!model.cuboids);
 		}
@@ -38,7 +33,6 @@ function sumArrays(a, b){
             remember: false,
             load_filter: {type: "json", extensions: ["json"],
               condition: (model) => {
-                  console.warn(model)
                   return model.cuboids || model.textures;
               }
             },
@@ -281,7 +275,7 @@ function sumArrays(a, b){
       onunload() {
 		import_action.delete();
 		export_action.delete();
-
+                Codec.java_block.load_filter.condition = originalJavaBlockCond
       }
     })
   })()
