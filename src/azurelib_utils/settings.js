@@ -42,6 +42,9 @@ export function onSettingsChanged() {
     } case AZURE_ITEM_BLOCK: {
       Project.parent = 'builtin/entity';
       break;
+    } case AZURE_ENTITY: {
+      Project.parent = 'builtin/entity';
+      break;
     }
   }
 }
