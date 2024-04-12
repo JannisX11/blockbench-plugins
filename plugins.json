@@ -14,7 +14,7 @@
 		"author": "Titus Evans (SnaveSutit)",
 		"icon": "icon.svg",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "0.4.7",
+		"version": "0.4.8",
 		"min_version": "4.9.4",
 		"variant": "desktop",
 		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
@@ -589,7 +589,7 @@
 		"version": "2.0.0",
 		"min_version": "4.9.4",
 		"variant": "both",
-		"tags": ["Format: Generic Model", "Mesh", "Tool"]	  
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]
 	},
 	"wasd_controls": {
 		"title": "WASD Controls",
