@@ -55,10 +55,22 @@ In order to submit your plugin, you need to meet a few requirements:
 * If your plugin is designed for anything related to Minecraft, add one of the tags `Minecraft: Java Edition`, `Minecraft: Bedrock Edition` (or `Minecraft`). The same applies if it's designed for another specific game.
 	(Keep in mind that artists from many different areas use Blockbench, so provide some context in the meta data)
 * In total, you can provide up to three plugin tags
-* The plugin meta data needs to be the same in the plugin file itself and in the file `plugins.json`.
+* **The plugin meta data needs to be the same** in the plugin file itself and in the file `plugins.json`.
 * Plugins should not be larger than 2 MB
 * Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * This list of plugins is curated to some extends. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
 * While it is the goal to keep the plugin API compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
 
 Once you are ready to submit your plugin, create a pull request.
+
+
+## Third party contributions
+
+As explained above, you can add approved contributors in the `members.yml` file.
+
+For contributions from third parties, the original creator or maintainer of the plugin will be pinged in the respective Pull Request for permission.
+
+If you have a preference, you can specify in `membery.yml` under `abandoned` what you would like to happen if you no longer contribute to the plugin and no longer approval third party contributions.
+If unspecified, if you haven't replied within 4 weeks and are no longer active on Github, or if you haven't replied in 8 weeks despite being active, we may test and merge the contribution.
+
+Some small changes like fixes for changed Blockbench APIs may be merged without asking for permission of the original creator.
