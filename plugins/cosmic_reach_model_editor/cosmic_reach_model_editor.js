@@ -15,7 +15,7 @@
       variant: "both",
       new_repository_format: true,
       onload() {
-	originalJavaBlockCond = Codec.java_block.load_filter.condition
+	originalJavaBlockCond = Codecs.java_block.load_filter.condition
         Codecs.java_block.load_filter.condition = (model) => {
 			return !model.cuboids && originalJavaBlockCond(model);
 		}
@@ -275,7 +275,7 @@
       onunload() {
 		import_action.delete();
 		export_action.delete();
-                Codec.java_block.load_filter.condition = originalJavaBlockCond
+                Codecs.java_block.load_filter.condition = originalJavaBlockCond
       }
     })
   })()
