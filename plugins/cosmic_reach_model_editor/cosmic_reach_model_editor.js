@@ -11,7 +11,7 @@
       tags: ["Cosmic Reach"],
       version: "1.1.1",
       min_version: "4.8.0",
-      creation_date: "2024-03-09",
+      creation_date: "2024-04-19",
       variant: "both",
       new_repository_format: true,
       onload() {
@@ -38,7 +38,7 @@
             },
             format: new ModelFormat("cosmic_reach_model", {
                 id: "cosmic_reach_model",
-                icon: null,
+                icon: "icon.png",
                 name: "Cosmic Reach Model",
                 description: "Model format used by the game Cosmic Reach",
                 show_on_start_screen: true,
@@ -225,7 +225,7 @@
         import_action = new Action('import_cosmic_reach_model', {
             name: 'Import Cosmic Reach Model',
             description: '',
-            icon: null,
+            icon: "icon.png",
             category: 'file',
             click() {
                 Blockbench.import({
@@ -251,7 +251,7 @@
         export_action = new Action('export_cosmic_reach_model', {
             name: 'Export Cosmic Reach Model',
             description: '',
-            icon: null,
+            icon: "icon.png",
             category: 'file',
             click() {
                 try{
