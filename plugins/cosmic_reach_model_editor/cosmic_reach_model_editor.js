@@ -3,6 +3,7 @@
     const id = "cosmic_reach_model_editor"
     const name = "Cosmic Reach Model Editor"
     const icon = "icon.png"
+    const icon64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAATxJREFUWIXtV6EOwjAQvREUAYFCowlBIkhm2LegMXwFho/gM8DMTS/T0ygEBDvE8pL1saNlWdIKnlmvaa+9d+/WNlqtd5WIyHgSSxPTUSJ94v66GPbzkYqIyKDXVTog2iTnqtnBkS/mM8OOl98dprlpF+XNsJkJ7wwM0UDkiBiRrrftE48n0z7s28dn19ofmCnKeh0w4Z8BqBEM2CIHbFoA2E9RirGefwbQQO55x8i1LeLsatrIOWsjzet1UB3hMKDBVRNdEQ4DrqrWNME514B5qIZwGABsqv9VE6gOMMR+vTPw38CHBljF2h+OgX7WBmx82V84DGgRMLQ6d60KZjAcBjRoOXedZ2MmHAZwPuMOh51rOWc1a+rn8XxL9s8Av4g451oOXcfxWQAEcyv+v4wi7XWM90Jf0Px7Z+ANxOF3G0qPE9EAAAAASUVORK5CYII="
     Plugin.register(id, {
       title: name,
       icon: "icon.png",
@@ -38,7 +39,7 @@
             },
             format: new ModelFormat("cosmic_reach_model", {
                 id: "cosmic_reach_model",
-                icon: "icon.png",
+                icon: icon64,
                 name: "Cosmic Reach Model",
                 description: "Model format used by the game Cosmic Reach",
                 show_on_start_screen: true,
@@ -225,7 +226,7 @@
         import_action = new Action('import_cosmic_reach_model', {
             name: 'Import Cosmic Reach Model',
             description: '',
-            icon: "icon.png",
+            icon: icon64,
             category: 'file',
             click() {
                 Blockbench.import({
@@ -251,7 +252,7 @@
         export_action = new Action('export_cosmic_reach_model', {
             name: 'Export Cosmic Reach Model',
             description: '',
-            icon: "icon.png",
+            icon: icon64,
             category: 'file',
             click() {
                 try{
