@@ -892,5 +892,14 @@
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-1"
+	},
+	"cpm_plugin": {
+		"title": "Customizable Player Models Plugin",
+		"author": "tom5454",
+		"tags": [ "Minecraft: Java Edition", "Modded" ],
+		"version": "0.6.16_pre2",
+		"variant": "both",
+		"description": "Customizable Player Models Project (.cpmproject) support for Blockbench.",
+		"icon": "icon-player"
 	}
 }
