@@ -85,7 +85,8 @@
 		"author": "JannisX11",
 		"description": "Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps",
 		"icon": "healing",
-		"min_version": "3.0.0",
+		"min_version": "3.0.5",
+		"version": "1.1.0",
 		"variant": "both"
 	},
 	"shape_generator": {
