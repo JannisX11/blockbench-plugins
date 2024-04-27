@@ -1,0 +1,16 @@
+{
+	"1.4.0": {
+		"title": "1.4.0",
+		"date": "2024-04-11",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Sniffer preset",
+					"Added Camel preset"
+				]
+			}
+		]
+	}
+}

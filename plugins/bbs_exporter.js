@@ -1,5 +1,5 @@
 (function() {
-    var button;
+    var exportAction, importAction;
     var lastOptions = {};
     var sides = {
         north: "front",
@@ -8,6 +8,14 @@
         east: "right",
         up: "top",
         down: "bottom"
+    };
+    var sidesInverse = {
+        front: "north",
+        back: "south",
+        left: "west",
+        right: "east",
+        top: "up",
+        bottom: "down"
     };
 
     /* Model exporter code */
@@ -105,15 +113,9 @@
             {
                 var uv = face.uv.slice();
 
-                if (key === "up" || key === "down")
+                if (face.rotation !== 0)
                 {
-                    var newUv = uv.slice();
-
-                    newUv[0] = uv[2];
-                    newUv[1] = uv[3];
-                    newUv[2] = uv[0];
-                    newUv[3] = uv[1];
-                    uv = newUv;
+                    uv.push(face.rotation);
                 }
 
                 uvs[sides[key]] = uv;
@@ -137,7 +139,7 @@
         var pushVertexKey = (k, f) =>
         {
             var v = c.vertices[k];
-            var u = face.uv[k];
+            var u = f.uv[k];
 
             vertices.push(v[0]);
             vertices.push(v[1]);
@@ -275,77 +277,237 @@
     function compile()
     {
         var output = {
-             animations: {}
-         };
+            version: "0.7.2",
+            animations: {}
+        };
 
-         if (lastOptions.model)
-         {
-             output.model = {
-                 groups: createHierarchy(Outliner.root),
-                 texture: [Project.texture_width, Project.texture_height]
-             };
-         }
+        if (lastOptions.model)
+        {
+            output.model = {
+                groups: createHierarchy(Outliner.root),
+                texture: [Project.texture_width, Project.texture_height]
+            };
+        }
 
-         if (lastOptions.animations)
-         {
-             Animation.all.forEach(animation =>
-             {
-                 output.animations[animation.name] = createAnimation(animation);
-             });
-         }
+        if (lastOptions.animations)
+        {
+            Animation.all.forEach(animation =>
+            {
+                output.animations[animation.name] = createAnimation(animation);
+            });
+        }
 
-         return output;
+        return output;
     }
 
     function compileFirstCubes()
     {
-        var createCubes;
+        var group = Group.selected;
+        var cubes = [];
 
-        createCubes = function (objects)
+        if (group)
         {
-            var groups = [];
-            var cubes = [];
-
-            for (let i = 0; i < objects.length; i++)
+            for (var child of group.children)
             {
-                var object = objects[i];
-
-                if (object.type === "group")
+                if (child.type === "cube")
                 {
-                    groups.push(object);
-                }
-                else if (object.type === "cube")
-                {
-                    cubes.push(object);
+                    cubes.push(createCube(child));
                 }
             }
-
-            if (cubes.length > 0)
-            {
-                var result = [];
-
-                for (let i = 0; i < cubes.length; i++)
-                {
-                    result.push(createCube(cubes[i]));
-                }
-
-                return result;
-            }
-
-            for (let i = 0; i < groups.length; i++)
-            {
-                var result = createCubes(groups[i].children);
-
-                if (result)
-                {
-                    return result;
-                }
-            }
-
-            return false;
         }
 
-        return createCubes(Outliner.root);
+        return cubes;
+    }
+
+    /* Import */
+
+    function importBBS(json)
+    {
+        Undo.initEdit({
+            outliner: true,
+            animations: []
+        });
+
+        try
+        {
+            if (json.model) importModel(json.model);
+            if (json.animations) importAnimations(json.animations);
+        }
+        catch (e)
+        {
+            console.log(e);
+        }
+
+        Undo.finishEdit("Finished importing a BBS model");
+        Canvas.updateAll();
+    }
+
+    function importAnimations(animations)
+    {
+        for (var key in animations)
+        {
+            var animationObject = animations[key];
+            var data = {
+                name: key,
+                length: animationObject.duration
+            };
+
+            var animation = new Animation(data).add();
+            var groupKeys = Object.keys(animationObject.groups);
+
+            groupKeys.forEach(k => importGroup(k, animationObject.groups[k], animation));
+        }
+    }
+
+    function importGroup(key, groupObject, animation)
+    {
+        var group = Group.all.find(o => o.name === key);
+
+        if (!group)
+        {
+            return;
+        }
+
+        var animator = new BoneAnimator(group.uuid, animation, key);
+
+        animation.animators[group.uuid] = animator;
+
+        if (groupObject.translate) importChannel(animator, "position", groupObject.translate);
+        if (groupObject.rotate) importChannel(animator, "rotation", groupObject.rotate);
+        if (groupObject.scale) importChannel(animator, "scale", groupObject.scale);
+    }
+
+    function importChannel(animator, name, channel)
+    {
+        channel.forEach(kf => 
+        {
+            animator.addKeyframe({
+                channel: name,
+                time: kf[0],
+                interpolation: kf[1],
+                data_points: [{x: kf[2], y: kf[3], z: kf[4]}]
+            });
+        });
+    }
+
+    function importModel(model)
+    {
+        var texture = model.texture;
+        var relations = {};
+        var groups = {};
+
+        Project.texture_width = texture[0];
+        Project.texture_height = texture[1];
+
+        for (var key in model.groups)
+        {
+            var groupObject = model.groups[key];
+            var data = {
+                name: key
+            };
+
+            if (groupObject.rotate) data.rotation = groupObject.rotate;
+            if (groupObject.origin) data.origin = groupObject.origin;
+
+            var group = new Group(data);
+
+            group.init();
+
+            if (groupObject.parent) relations[key] = groupObject.parent;
+            if (groupObject.cubes) groupObject.cubes.forEach(v => importCube(v, group));
+            if (groupObject.meshes) groupObject.meshes.forEach(v => importMesh(v, group));
+
+            groups[key] = group;
+        }
+
+        for (var key in relations)
+        {
+            groups[key].addTo(groups[relations[key]]);
+        }
+    }
+
+    function importCube(cubeObject, group)
+    {
+        var cube = new Cube({
+            origin: cubeObject.origin || [0, 0, 0],
+            from: cubeObject.from,
+            to: [
+                cubeObject.from[0] + cubeObject.size[0],
+                cubeObject.from[1] + cubeObject.size[1],
+                cubeObject.from[2] + cubeObject.size[2]
+            ],
+            rotation: cubeObject.rotate || [0, 0, 0],
+            inflate: cubeObject.offset || 0
+        });
+
+        Object.keys(cubeObject.uvs).forEach(key =>
+        {
+            var uv = cubeObject.uvs[key];
+            var face = cube.faces[sidesInverse[key]];
+
+            face.uv = uv.slice(0, 4);
+
+            if (uv.length >= 5)
+            {
+                face.rotation = uv[4];
+            }
+        });
+
+        cube.init();
+        cube.addTo(group);
+    }
+
+    function importMesh(meshObject, group)
+    {
+        var vertices = {};
+        var faces = {};
+
+        for (var i = 0, c = meshObject.vertices.length / 9; i < c; i++)
+        {
+            var a1 = [
+                meshObject.vertices[i * 9],
+                meshObject.vertices[i * 9 + 1],
+                meshObject.vertices[i * 9 + 2]
+            ];
+            var a2 = [
+                meshObject.vertices[i * 9 + 3],
+                meshObject.vertices[i * 9 + 4],
+                meshObject.vertices[i * 9 + 5]
+            ];
+            var a3 = [
+                meshObject.vertices[i * 9 + 6],
+                meshObject.vertices[i * 9 + 7],
+                meshObject.vertices[i * 9 + 8]
+            ];
+            var key1 = bbuid(6);
+            var key2 = bbuid(6);
+            var key3 = bbuid(6);
+
+            vertices[key1] = a1;
+            vertices[key2] = a2;
+            vertices[key3] = a3;
+
+            var face = {
+                uv: {},
+                vertices: [key1, key2, key3]
+            };
+
+            face.uv[key1] = [meshObject.uvs[i * 6], meshObject.uvs[i * 6 + 1]];
+            face.uv[key2] = [meshObject.uvs[i * 6 + 2], meshObject.uvs[i * 6 + 3]];
+            face.uv[key3] = [meshObject.uvs[i * 6 + 4], meshObject.uvs[i * 6 + 5]];
+
+            faces[bbuid(6)] = face;
+        }
+
+        var mesh = new Mesh({
+            origin: meshObject.origin || [0, 0, 0],
+            rotation: meshObject.rotate || [0, 0, 0],
+            vertices: vertices,
+            faces: faces
+        });
+
+        mesh.init();
+        mesh.addTo(group);
     }
 
     /* Bootstrap */
@@ -384,7 +546,7 @@
                 value: false
             },
             copyOnlyFirst: {
-                label: "Copy first group",
+                label: "Copy first selected group",
                 description: "When enabled, copies to the buffer only cubes from the first found group. This option is ignored when Copy to buffer option is disabled!",
                 type: "checkbox",
                 value: false
@@ -419,14 +581,14 @@
     });
 
     Plugin.register("bbs_exporter", {
-        title: "BBS model exporter",
+        title: "BBS Model Ex/importer",
         author: "McHorse",
-        description: "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
+        description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
         icon: "fa-file-export",
-        version: "1.1.2",
+        version: "1.2.0",
         variant: "both",
         onload() {
-            button = new Action("bbs_exporter", {
+            exportAction = new Action("bbs_exporter", {
                 name: "Export BBS model",
                 category: "file",
                 description: "Export model as a BBS (.bbs.json) model",
@@ -436,10 +598,28 @@
                 }
             });
 
-            MenuBar.addAction(button, "file.export");
+            importAction = new Action("bbs_importer", {
+                name: "Import BBS model",
+                category: "file",
+                description: "Import a BBS model (.bbs.json) model",
+                icon: "fa-file-import",
+                click() {
+                    Blockbench.import({
+                        extensions: ['bbs.json'],
+                        type: 'BBS model',
+                        readtype: 'text',
+                    }, (files) => {
+                        importBBS(JSON.parse(files[0].content));
+                    });
+                }
+            });
+
+            MenuBar.addAction(exportAction, "file.export");
+            MenuBar.addAction(importAction, "file.import");
         },
         onunload() {
-            button.delete();
+            exportAction.delete();
+            importAction.delete();
         }
     });
 })();

@@ -23,7 +23,7 @@ export function unloadCodec() {
 }
 
 function onProjectCompile(e) {
-    if (Format.id !== "animated_entity_model") return;
+    if (Format.id !== "azure_model") return;
     e.model.azurelibSettings = azurelibSettings;
     // console.log(`compileCallback model:`, e.model);
 }
@@ -45,7 +45,7 @@ function onBedrockCompile(e) {
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-	if (Format.id === "animated_entity_model") {
+	if (Format.id === "azure_model") {
         Object.assign(
             res,
             {
@@ -227,7 +227,7 @@ export function maybeExportItemJson(options = {}, as) {
         blockmodel.credit = settings.credit.value
     }
     if (checkExport('parent', Project.parent != '')) {
-        blockmodel.parent = Project.parent
+        blockmodel.parent = 'builtin/entity'
     }
     if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
         blockmodel.ambientocclusion = false
@@ -279,7 +279,7 @@ export function maybeExportItemJson(options = {}, as) {
 var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
-    id: "animated_entity_model",
+    id: "azure_model",
     name: "AzureLib Animated Model",
     category: "minecraft",
     description: "Animated Model for Java mods using AzureLib",
@@ -295,7 +295,7 @@ var format = new ModelFormat({
     animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
-    display_mode: false, // This may be dynamically turned on by settings
+    display_mode: true, // This may be dynamically turned on by settings
     onActivation: function () {
     }
 })

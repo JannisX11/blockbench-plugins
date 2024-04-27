@@ -10,7 +10,7 @@
         title: 'sam3DJ',
         author: '1Turtle',
         tags: ['Minecraft: Java Edition', 'Format', 'Exporter'],
-        version: '1.0.2',
+        version: '1.1.0',
         variant: 'both',
         description: 'Generate 3D prints in MC (Java Edition) via the .3DJ format within the SC-Peripherals mod!',
         about: "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
@@ -26,32 +26,33 @@
     const SC_TEXTURE_BLANK = 'sc-peripherals:block/white';
     
     /**
-     * Returns a fitting texture for a given cube.
-     * @param {*} cube The cube, which holds the wanted texture.
-     * @returns The wanted texture, fitting to the cube. (+ some booleans) in a object.
+     * Returns a fitting tint color for the given cube. (and with fitting we mean the first pixel we can find...)
+     * @param {*} cube The cube which holds the wanted texture.
+     * @returns The hex code for the tint color of the texture.
      */
-    
-
     function getTint(cube) {  //Get Tint function
         let tmp = cube.faces['up'].getTexture();  //Gets texture for top face
-        targetRectangle = cube.faces['up'].getBoundingRect();  
+        if (tmp) {
+            targetRectangle = cube.faces['up'].getBoundingRect();  
         
-        targetCanvas = Painter.getCanvas(tmp);
-        targetContext = targetCanvas.getContext('2d');
-        buffer = targetContext.getImageData(targetRectangle.ax, targetRectangle.ay, 1, 1);
+            targetCanvas = Painter.getCanvas(tmp);
+            targetContext = targetCanvas.getContext('2d');
+            buffer = targetContext.getImageData(targetRectangle.ax, targetRectangle.ay, 1, 1);
         
-        var hex = [  //converts RGB to hex value and adds to array
-            Math.round(buffer.data[0]).toString(16),
-            Math.round(buffer.data[1]).toString(16),
-            Math.round(buffer.data[2]).toString(16)
-        ];
-        for (var i = 0; i < hex.length; i++) {  //standardises values to 2, by adding zero if not long enough
-            if (hex[i].length === 1) {
-                hex[i] = '0' + hex[i];
+            var hex = [  //converts RGB to hex value and adds to array
+                Math.round(buffer.data[0]).toString(16),
+                Math.round(buffer.data[1]).toString(16),
+                Math.round(buffer.data[2]).toString(16)
+            ];
+            for (var i = 0; i < hex.length; i++) {  //standardises values to 2, by adding zero if not long enough
+                if (hex[i].length === 1) {
+                    hex[i] = '0' + hex[i];
+                }
             }
-        }
 
-        return hex.join("");
+            return hex.join("");
+        }
+        return "000000"; // Has no texture and therefore no tint
     }
 
     function getSingleTexture(cube) {
@@ -118,21 +119,22 @@
             texture: result.texture,
         };
     
-        if (!raw)
-            if (useTint){  //if Use Tint checkbox then assign as Tint, remove Texture
+        if (!raw) {
+            if (useTint) {
+                // Use Tint color of texture instead of the textures name.
                 shape.tint = result.textureTint;  
                 shape.texture = SC_TEXTURE_BLANK;
-            } else{  //default behaviour
+            } else {
+                //default behaviour
                 shape.tint = 'FFFFFF';
             }
-            
+        }
     
         return {
             shape: shape,
             missingTexture: result.missingTexture,
             multipleTexture: result.multipleTexture,
         };
-        
     }
     
     function isStateON(group) {
@@ -196,6 +198,7 @@
             output.collideWhenOff   =  options.collideOff;
             output.lightLevel       =  options.lightLvl;
             output.redstoneLevel    =  options.redstoneLvl;
+            if (options.isSeat) output.seatPos = options.seatPos;
         }
         
         const shapes = genModel(Project.elements, options.raw, options.useTint);
@@ -279,10 +282,23 @@
                 value: true,
             },
             useTint: {
-                label: 'Use Colour for Tint',
+                label: 'Use texture for color tint instead of the textures name.',
                 type: 'checkbox',
                 value: false,
             },
+            isSeat: {
+                label: 'Is a seat? (OFF = ignore position)',
+                type: 'checkbox',
+                value: false,
+            },
+            seatPos: {
+                label: 'The position of the seat',
+                type: 'vector',
+                value: [0.5,0.5,0.5],
+                min: 0.1,
+                max: 0.9,
+                step: 0.1,
+            }
         },
         onConfirm(formData) {
             codec3dj.export(formData);

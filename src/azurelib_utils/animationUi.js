@@ -11,7 +11,7 @@ export const loadAnimationUI = () => {
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
   addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
-    Format.id !== "animated_entity_model" && Original.get(BarItems.keyframe_interpolation).condition()
+    Format.id !== "azure_model" && Original.get(BarItems.keyframe_interpolation).condition()
   );
 };
 
@@ -58,7 +58,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing_arg1').remove()
 
     const addPrePostButton = document.querySelector('#keyframe_type_label > div');
-    if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
+    if (addPrePostButton) addPrePostButton.hidden = Format.id === "azure_model";
 
     var multi_channel = false;
     var channel = false;
@@ -103,7 +103,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
 
     const isFirstInChannel = kf => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
 
-    if (Timeline.selected.length && Format.id === "animated_entity_model") {
+    if (Timeline.selected.length && Format.id === "azure_model") {
       if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
         const displayedEasing = getMultiSelectValue('easing', EASING_DEFAULT, 'null');
 

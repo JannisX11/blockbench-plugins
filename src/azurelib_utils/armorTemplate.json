@@ -1,7 +1,7 @@
 {
   "meta": {
     "format_version": "3.2",
-    "model_format": "animated_entity_model",
+    "model_format": "azure_model",
     "box_uv": true
   },
   "name": "CustomArmor",
@@ -216,7 +216,7 @@
       ]
     },
     {
-      "name": "bipedLeftArm",
+      "name": "bipedRightArm",
       "uuid": "d8113cc7-7e10-0930-259e-b8e4211ce9da",
       "export": true,
       "isOpen": true,
@@ -230,7 +230,7 @@
       "children": [
         "aa51170c-8b32-fb62-71f1-58ac0b7785a8",
         {
-          "name": "armorLeftArm",
+          "name": "armorRightArm",
           "uuid": "c5300e23-fd2f-b56c-3552-45d6650e11c6",
           "export": true,
           "isOpen": true,
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "name": "bipedRightArm",
+      "name": "bipedLeftArm",
       "uuid": "3b8901e8-3420-0834-51eb-76d64ff2ae8f",
       "export": true,
       "isOpen": true,
@@ -262,7 +262,7 @@
       "children": [
         "bf2c2539-20e3-cfcc-94c0-491734019889",
         {
-          "name": "armorRightArm",
+          "name": "armorLeftArm",
           "uuid": "b0d41a53-f4ce-53c1-f899-5a2048c90ac2",
           "export": true,
           "isOpen": true,
@@ -280,7 +280,7 @@
       ]
     },
     {
-      "name": "bipedLeftLeg",
+      "name": "bipedRightLeg",
       "uuid": "37231be7-a8ef-22ca-7fea-40aed58003bb",
       "export": true,
       "isOpen": true,
@@ -294,7 +294,7 @@
       "children": [
         "17b9bae0-356a-9bba-fad9-4672e2671191",
         {
-          "name": "armorLeftLeg",
+          "name": "armorRightLeg",
           "uuid": "e4b19746-2d17-1f56-befe-00718165ae50",
           "export": true,
           "isOpen": true,
@@ -310,7 +310,7 @@
           ]
         },
         {
-          "name": "armorLeftBoot",
+          "name": "armorRightBoot",
           "uuid": "9fe26b9a-ad66-9e6b-2fa2-4168e333b4be",
           "export": true,
           "isOpen": true,
@@ -328,7 +328,7 @@
       ]
     },
     {
-      "name": "bipedRightLeg",
+      "name": "bipedLeftLeg",
       "uuid": "45c031a5-b6be-e0a7-5454-b45d07f28429",
       "export": true,
       "isOpen": true,
@@ -342,7 +342,7 @@
       "children": [
         "7b31bac4-dc40-2b93-1204-7bbdcfe7d924",
         {
-          "name": "armorRightLeg",
+          "name": "armorLeftLeg",
           "uuid": "60238f18-e74b-c863-cb45-2e2f162221bd",
           "export": true,
           "isOpen": true,
@@ -358,7 +358,7 @@
           ]
         },
         {
-          "name": "armorRightBoot",
+          "name": "armorLeftBoot",
           "uuid": "eb3db34b-ccfe-dae9-ac4d-4e22c3222f70",
           "export": true,
           "isOpen": true,

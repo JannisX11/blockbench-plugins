@@ -1,49 +1,59 @@
-This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.
-
-Using this plugin is very similar to using the built-in GIF Recorder.
-
-You can find the **Record Scene...** button <i class="icon material-icons" style="translate:0 5px">video_camera_back</i> in the **View > Screenshot** menu.
-
-## Formats
-<table>
-  <tr>
-    <td>GIF</td>
-    <td>Record animated GIFs in higher quality than the built-in GIF Recorder</td>
-  </tr>
-  <tr>
-    <td>MP4</td>
-    <td>Record an MP4 video</td>
-  </tr>
-  <tr>
-    <td>WebM</td>
-    <td>Record a WebM video</td>
-  </tr>
-  <tr>
-    <td>WebP</td>
-    <td>Record an animated WebP image</td>
-  </tr>
-  <tr>
-    <td>APNG</td>
-    <td>Record an animated PNG image</td>
-  </tr>
-  <tr>
-    <td>PNG Image Sequence</td>
-    <td>Output each frame as an individual PNG image</td>
-  </tr>
-</table>
+<div id="about-content">
+  <p>This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.</p>
+  <p>Using this plugin is very similar to using the built-in GIF Recorder.</p>
+  <p>You can find the <strong>Record Scene</strong> button <i class="icon material-icons" style="translate:0 5px">video_camera_back</i> in the <strong>View > Screenshot</strong> menu.</p>
+  <h2>Formats</h2>
+  <table>
+    <tr>
+      <td>GIF</td>
+      <td>Record animated GIFs in higher quality than the built-in GIF Recorder</td>
+    </tr>
+    <tr>
+      <td>MP4</td>
+      <td>Record an MP4 video</td>
+    </tr>
+    <tr>
+      <td>WebM</td>
+      <td>Record a WebM video</td>
+    </tr>
+    <tr>
+      <td>WebP</td>
+      <td>Record an animated WebP image</td>
+    </tr>
+    <tr>
+      <td>APNG</td>
+      <td>Record an animated PNG image</td>
+    </tr>
+    <tr>
+      <td>PNG Image Sequence</td>
+      <td>Output each frame as an individual PNG image</td>
+    </tr>
+  </table>
+</div>
 <style>
-  .about.markdown {
+  .about {
     height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
   }
-  .about.markdown tr:first-child td {
+  .about table {
+    width: 100%;
+  }
+  .about tr:first-child td {
     border-top: none;
   }
-  .about.markdown td:first-child {
+  .about td:first-child {
     font-weight: 700;
   }
-  .about-markdown-links > a {
+  #about {
+    display: none;
+  }
+  #about-content {
+    overflow-y: auto;
+    min-height: 128px;
+  }
+  #about-markdown-links > a {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -55,32 +65,28 @@ You can find the **Record Scene...** button <i class="icon material-icons" style
     color: var(--color-subtle_text);
     text-align: center;
   }
-  .about-markdown-links > a:hover {
+  #about-markdown-links > a:hover {
     background-color: var(--color-accent);
     color: var(--color-light);
   }
-  .about-markdown-links > a > i {
+  #about-markdown-links > a > i {
     font-size: 32px;
     width: 100%;
     max-width: initial;
     height: 32px;
     text-align: center;
   }
-  .about-markdown-links > a:hover > i {
+  #about-markdown-links > a:hover > i {
     color: var(--color-light) !important;
   }
-  .about-markdown-links > a:hover path {
-    stroke: var(--color-light) !important;
-  }
-  .about-markdown-links > a > p {
+  #about-markdown-links > a > p {
     flex: 1;
     display: flex;
     align-items: center;
     margin: 0;
   }
 </style>
-<div style="flex:1"></div>
-<div class="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
+<div id="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
   <a href="https://ewanhowell.com/">
     <i class="material-icons icon" style="color:rgb(51, 227, 142)">language</i>
     <p>By Ewan Howell</p>

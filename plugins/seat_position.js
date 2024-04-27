@@ -155,7 +155,7 @@
 					SetupHitboxHelper.object.scale.z = size_block[2]/16 || 0.01;
 					SetupHitboxHelper.object.scale.y = size_block[1]/16 || 0.01;
 					SetupHitboxHelper.object.position.set(
-						offset_block[0],
+						-offset_block[0],
 						offset_block[1],
 						offset_block[2]
 					);
@@ -245,7 +245,7 @@
 		author: 'JannisX11',
 		description: 'Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks',
 		tags: ["Minecraft: Bedrock Edition"],
-		version: '1.3.1',
+		version: '1.3.2',
 		variant: 'both',
 		onload() {
 			seat_pos_action = new Action('open_seat_position', {
