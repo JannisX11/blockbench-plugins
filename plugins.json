@@ -892,5 +892,15 @@
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-1"
+	},
+	"bunch_o_snapshots": {
+    "title": "Bunch o' Snapshots",
+    "author": "0Key",
+    "description": "Take screenshots of all your models by just pressing one button (or hotkey!)",
+    "tags": ["Screenshots", "Automation"],
+    "version": "0.0.2",
+    "min_version": "4.9.0",
+    "variant": "desktop",
+		"creation_date": "2024-04-28"
 	}
 }
