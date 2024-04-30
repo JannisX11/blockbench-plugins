@@ -892,5 +892,17 @@
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-1"
+	},
+	"cosmic_reach_model_editor": {
+		"title": "Cosmic Reach Model Editor",
+		"author": "Z. Hoeshin",
+		"icon": "icon.png",
+		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
+		"tags": ["Cosmic Reach"],
+		"version": "1.1.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-19",
+		"new_repository_format": true
 	}
 }
