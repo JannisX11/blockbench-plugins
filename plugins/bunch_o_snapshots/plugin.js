@@ -7,7 +7,15 @@
     console.log(`[BoS] ${str}`);
   };
   var pluginData = {
-    name: "Bunch o' Screenshots",
+    title: "Bunch o' Screenshots",
+    author: "0Key",
+    description:
+      "Take screenshots of all your models by just pressing one button (or hotkey!)",
+    tags: ["Screenshots", "Automation"],
+    version: "0.0.2",
+    min_version: "4.9.0",
+    variant: "desktop",
+    creation_date: "2024-04-28",
   };
   const fs = require("fs");
   const os = require("os");
@@ -16,16 +24,16 @@
   var BosSettings;
 
   var currentSettings;
-	const defaultSettings = {
-		devMode: false,
-		outputDirectory: null,
-		saveMode: "direct",
-	};
+  const defaultSettings = {
+    devMode: false,
+    outputDirectory: null,
+    saveMode: "direct",
+  };
 
   function deleteSettings() {
-		delete Settings.structure["BoSetings"];
-		delete Settings.dialog.sidebar.pages["BoSetings"];
-		Settings.dialog.sidebar.build();
+    delete Settings.structure["BoSetings"];
+    delete Settings.dialog.sidebar.pages["BoSetings"];
+    Settings.dialog.sidebar.build();
     for (const name in BosSettings) {
       BosSettings[name]?.delete?.();
       doLog(`Deleted setting: ${name}`);
@@ -65,7 +73,8 @@
           }
         } else {
           if (stats.isDirectory()) {
-            currentSettings.outputDirectory = BosSettings["BoSoutputDirectory"].value;
+            currentSettings.outputDirectory =
+              BosSettings["BoSoutputDirectory"].value;
           } else {
             invalidDirectoryFallback(currentSettings.outputDirectory);
             doLog("Path exists, but it is not a directory.");
@@ -76,18 +85,19 @@
   }
 
   function loadSettings() {
-		currentSettings = {
-			devMode: currentSettings?.devMode || defaultSettings.devMode,
-			outputDirectory: currentSettings?.outputDirectory || defaultSettings.outputDirectory,
-			saveMode: currentSettings?.saveMode || defaultSettings.saveMode
-		};
+    currentSettings = {
+      devMode: currentSettings?.devMode || defaultSettings.devMode,
+      outputDirectory:
+        currentSettings?.outputDirectory || defaultSettings.outputDirectory,
+      saveMode: currentSettings?.saveMode || defaultSettings.saveMode,
+    };
     Settings.openDialog();
     Settings.dialog.close(0);
 
     Settings.addCategory(
       "BoSetings",
       (data = {
-        name: pluginData.name,
+        name: pluginData.title,
       })
     );
     if (BosSettings == null) {
@@ -170,15 +180,14 @@
 
   // When updating, apply meta data changes to plugins.json entry!
   BBPlugin.register("plugin", {
-    title: pluginData.name,
-    icon: "icon.png",
-    author: "0Key",
-    description:
-      "Take screenshots of all your models by just pressing one button (or hotkey!)",
-    tags: ["screenshots", "automation"],
-    version: "0.0.2",
-    min_version: "4.9.0",
-    variant: "both",
+    title: pluginData.title,
+    icon: pluginData.variant,
+    author: pluginData.author,
+    description: pluginData.description,
+    tags: pluginData.tags,
+    version: pluginData.version,
+    min_version: pluginData.min_version,
+    variant: pluginData.variant,
     onload() {
       loadSettings();
       allSaves = [];
