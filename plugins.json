@@ -761,7 +761,7 @@
 		"icon": "fa-file-export",
 		"author": "McHorse",
 		"description": "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"variant": "both",
 		"tags": ["Exporter"]
 	},
