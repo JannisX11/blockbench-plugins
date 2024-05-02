@@ -758,12 +758,13 @@
 	},
 	"bbs_exporter": {
 		"title": "BBS Model Ex/importer",
-		"icon": "fa-file-export",
+		"icon": "icon.png",
 		"author": "McHorse",
 		"description": "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"variant": "both",
-		"tags": ["Exporter"]
+		"tags": ["Exporter", "Importer"],
+		"has_changelog": true
 	},
 	"highlight_generator": {
 		"title": "Highlight Mod Shape Generator",

@@ -109,7 +109,7 @@
         {
             var face = c.faces[key];
 
-            if (face && face.texture)
+            if (face && face.texture !== null)
             {
                 var uv = face.uv.slice();
 
@@ -585,8 +585,9 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
         icon: "fa-file-export",
-        version: "1.2.1",
+        version: "1.2.2",
         variant: "both",
+        has_changelog: true,
         onload() {
             exportAction = new Action("bbs_exporter", {
                 name: "Export BBS model",
