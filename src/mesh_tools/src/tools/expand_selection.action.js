@@ -1,9 +1,10 @@
 import { action } from "../actions.js";
-import { computeVertexNeighborhood, selectFacesAndEdgesByVertices } from "../utils/utils.js";
+import Neighborhood from "../utils/mesh/neighborhood.js";
+import { selectFacesAndEdgesByVertices } from "../utils/utils.js";
 
 export default action("expand_selection", () => {
   Mesh.selected.forEach((mesh) => {
-    const neighborMap = computeVertexNeighborhood(mesh);
+    const neighborMap = Neighborhood.VertexVertices(mesh);
 
     const selectedVertices = mesh.getSelectedVertices();
     const selectedVertexSet = new Set(selectedVertices);
