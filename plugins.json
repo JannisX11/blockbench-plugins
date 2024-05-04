@@ -45,6 +45,7 @@
 		"author": "Geenium",
 		"description": "Loads Bedrock vanilla entity models up to version 1.13",
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
+		"deprecation_note": "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 		"icon": "pets",
 		"variant": "both"
 	},
@@ -445,17 +446,6 @@
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
-	"bedrock_pivot_fix": {
-		"title": "Bedrock Pivot Fix 2",
-		"icon": "gps_fixed",
-		"author": "JannisX11",
-		"description": "Rotated cubes are broken in custom-block models in older versions of Minecraft: Bedrock Edition. Use this plugin to fix them.",
-		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
-		"version": "2.0.1",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
 	"simplify": {
 		"title": "Simplify Models",
 		"icon": "build",
@@ -653,6 +643,7 @@
 		"version": "1.2.0",
 		"variant": "both",
 		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
+		"deprecation_note": "This feature is now built into Blockbench, the plugin is no longer required.",
 		"tags": ["Deprecated", "Minecraft: Java Edition"]
 	},
 	"root_motion_extractor": {
