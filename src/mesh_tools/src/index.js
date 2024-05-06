@@ -19,6 +19,7 @@ BBPlugin.register(PLUGIN_ID, {
   version: "2.0.1",
   min_version: "4.9.4",
   variant: "both",
+  creation_date: "2022-04-09",
   tags: ["Format: Generic Model", "Mesh", "Tool"],
   onload() {
     function debug(element) {
