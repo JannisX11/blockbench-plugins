@@ -586,6 +586,7 @@
         description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
         icon: "fa-file-export",
         version: "1.2.2",
+        min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
         onload() {
