@@ -44,8 +44,7 @@ function openMappingsBox(){
                     momap: 'Mojang Mappings',
                     mcp: 'MCP',
                     yarn: 'Yarn'
-                },
-                default: 'Mojang Mappings'
+                }
             }
         },
         onConfirm: function(form){
