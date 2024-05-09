@@ -894,7 +894,7 @@
 		"icon": "icon.png",
 		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
 		"tags": ["Cosmic Reach"],
-		"version": "1.1.1",
+		"version": "1.1.2",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-19",
