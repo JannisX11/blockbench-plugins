@@ -1,0 +1,23 @@
+{
+  "1.5.0": {
+    "title": "1.5.0",
+    "date": "2024-05-10",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Made the position camera button a main button with a new icon",
+          "Render buttons now have tooltips"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed render controls disappearing for some people",
+          "Fixed render controls missing in Blockbench v4.10.0"
+        ]
+      }
+    ]
+  }
+}

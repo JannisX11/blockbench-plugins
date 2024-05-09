@@ -306,11 +306,16 @@
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.4.1",
+		"version": "1.5.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-06-10",
-		"await_loading": true
+		"await_loading": true,
+		"contributes": {
+			"formats": ["minectaft_title"]
+		},
+		"has_changelog": true,
+		"website": "https://ewanhowell.com/plugins/minecraft-title-generator/"
 	},
 	"workspaces": {
 		"title": "Workspaces",
@@ -582,7 +587,7 @@
 		"version": "2.0.0",
 		"min_version": "4.9.4",
 		"variant": "both",
-		"tags": ["Format: Generic Model", "Mesh", "Tool"]	  
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]
 	},
 	"wasd_controls": {
 		"title": "WASD Controls",
