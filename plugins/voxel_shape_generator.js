@@ -5,10 +5,10 @@
 
     Plugin.register('voxel_shape_generator', {
         title: 'VoxelShape Generators',
-        author: 'Spectre0987',
-        description: 'Generates Voxel Shapes (Supports Mojang Mappings and MCP)',
+        author: 'Spectre0987, Nyfaria',
+        description: 'Generates Voxel Shapes (Supports MojMaps, MCP and Yarn)',
         icon: 'bar_chart',
-        version: '0.1.0',
+        version: '0.2.0',
         variant: 'both',
         tags: ["Minecraft: Java Edition"],
         onload(){
@@ -42,9 +42,9 @@ function openMappingsBox(){
                 type: 'select',
                 options: {
                     momap: 'Mojang Mappings',
-                    mcp: 'MCP'
-                },
-                default: 'MCP'
+                    mcp: 'MCP',
+                    yarn: 'Yarn'
+                }
             }
         },
         onConfirm: function(form){
@@ -55,6 +55,8 @@ function openMappingsBox(){
                 file = generateMomapFile(Format.centered_grid);
             else if(form.mappings === 'mcp'){
                 file = generateMCPFile(Format.centered_grid);
+            } else if(form.mappings === 'yarn') {
+                file = generateYarnFile(Format.centered_grid);
             }
 
             this.hide();
@@ -71,6 +73,23 @@ function openMappingsBox(){
 }
 
 function generateMomapFile(centered){
+    var data = "public VoxelShape makeShape(){\n\tVoxelShape shape = Shapes.empty();\n";
+    for(var i = 0; i< Cube.all.length; ++i){
+        var cube = Cube.all[i];
+        
+        var from = cube.from;
+        var to = cube.to;
+
+        data += "\tshape = Shapes.join(shape, Shapes.box("
+            .concat(formatVec3(from, centered)).concat(", ")
+            .concat(formatVec3(to, centered))
+            .concat("), BooleanOp.OR);\n");
+    }
+    data += "\n\treturn shape;\n}";
+    return data;
+}
+
+function generateYarnFile(centered){
     var data = "public VoxelShape makeShape(){\n\tVoxelShape shape = VoxelShapes.empty();\n";
     for(var i = 0; i< Cube.all.length; ++i){
         var cube = Cube.all[i];
@@ -78,10 +97,10 @@ function generateMomapFile(centered){
         var from = cube.from;
         var to = cube.to;
 
-        data += "\tshape = VoxelShapes.join(shape, VoxelShapes.box("
+        data += "\tshape = VoxelShapes.combine(shape, VoxelShapes.cuboid("
             .concat(formatVec3(from, centered)).concat(", ")
             .concat(formatVec3(to, centered))
-            .concat("), IBooleanFunction.OR);\n");
+            .concat("), BooleanBiFunction.OR);\n");
     }
     data += "\n\treturn shape;\n}";
     return data;
@@ -100,7 +119,6 @@ function generateMCPFile(centered){
     }
     data += "\n\treturn shape;\n}"
     return data;
-
 }
 
 function convertToBlockPercent(pixel){
