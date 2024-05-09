@@ -480,7 +480,7 @@
 		"icon": "bar_chart",
 		"author": "CyberStefNef",
 		"description": "Generates Voxel Shapes for Fabric",
-		"version": "0.0.1",
+		"version": "1.0.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
