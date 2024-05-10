@@ -24,7 +24,16 @@
 	- [x] Triangles To Quads: Improved Algorithm
 	- [x] Expand/Shrink Selection: Enable for face and edge modes.
 - [ ] MTools Operators:
-	- [x] Scatter: Improve scattered mesh rotation to accurately follow face
+	- [x] Scatter
+		- [x] Improve scattered mesh rotation to accurately follow face
+		- [x] Add More Settings
+			- [x] `Max Density`
+			- [x] `Min Distance`
+			- [x] `Scale`
+			- [x] `Min Scale`
+			- [x] `Scale Randomness`
+			- [x] `Max Rotation`
+			- [x] `Rotation Randomness`
 	- [ ] Array operator: add more controls like rotation and scale
 	- [ ] New Decimate Operator
 	- [ ] Unite MTEdge and CMEdge

@@ -85,6 +85,17 @@ export function distanceBetween(a, b) {
   return Math.hypot(getX(a) - getX(b), getY(a) - getY(b), getZ(a) - getZ(b));
 }
 /**
+ * @param {Vector3} a
+ * @param {Vector3} b
+ */
+export function distanceBetweenSq(a, b) {
+  return (
+    (getX(a) - getX(b)) ** 2 +
+    (getY(a) - getY(b)) ** 2 +
+    (getZ(a) - getZ(b)) ** 2
+  );
+}
+/**
  * @param {Vector3} vector
  */
 export function isZeroVector(vector) {

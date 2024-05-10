@@ -1,4 +1,15 @@
 {
+  "bevel": {
+    "docs": {
+      "private": true
+    },
+    "name": "Bevel",
+    "icon": "rounded_corner",
+    "description": "Chamfers selected edges",
+    "selection_mode": [
+      "edge"
+    ]
+  },
   "laplacian_smooth": {
     "docs": {
       "lines": [

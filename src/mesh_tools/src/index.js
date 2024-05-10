@@ -3,22 +3,24 @@ import "./operators/index.js";
 import "./generators/index.js";
 import { ACTIONS, qualifyName } from "./actions.js";
 import { createTextMesh, vertexNormal } from "./utils/utils.js";
+import { PLUGIN_ID, storage } from "./globals.js";
 
 const deletables = [];
 /**
  * @type {Array<THREE.Object3D>}
  */
 const meshToolTips = [];
-BBPlugin.register("mesh_tools", {
-  "new_repository_format": true,
-  "title": "MTools",
-  "author": "Malik12tree",
-  "icon": "icon.png",
-  "description": "Adds powerful mesh modeling tools, operators and generators!",
-  "version": "2.0.0",
-  "min_version": "4.9.4",
-  "variant": "both",
-  "tags": ["Format: Generic Model", "Mesh", "Tool"],
+BBPlugin.register(PLUGIN_ID, {
+  new_repository_format: true,
+  title: "MTools",
+  author: "Malik12tree",
+  icon: "icon.png",
+  description: "Adds powerful mesh modeling tools, operators and generators!",
+  version: "2.0.1",
+  min_version: "4.9.4",
+  variant: "both",
+  creation_date: "2022-04-09",
+  tags: ["Format: Generic Model", "Mesh", "Tool"],
   onload() {
     function debug(element) {
       for (const object of meshToolTips) {
@@ -40,7 +42,6 @@ BBPlugin.register("mesh_tools", {
 
         mesh.position.copy(center);
         if (normal) {
-
           mesh.position.add(normal.multiplyScalar(0.5));
         }
 
@@ -70,7 +71,7 @@ BBPlugin.register("mesh_tools", {
     }
 
     // TODO move to separate plugin
-    const isDebug =false && this.source == "file";
+    const isDebug = false && this.source == "file";
     if (isDebug) {
       deletables.push(
         Mesh.prototype.preview_controller.on("update_geometry", ({ element }) =>
@@ -82,9 +83,12 @@ BBPlugin.register("mesh_tools", {
       }
     }
 
-    Mesh.prototype.menu.structure.unshift("@meshtools/tools");
-    Mesh.prototype.menu.structure.unshift("@meshtools/operators");
-    MenuBar.addAction("@meshtools/generators", "filter");
+    Mesh.prototype.menu.structure.unshift(qualifyName("tools"));
+    Mesh.prototype.menu.structure.unshift(qualifyName("operators"));
+    MenuBar.addAction(qualifyName("generators"), "filter");
+  },
+  onuninstall() {
+    storage.clear();
   },
   onunload() {
     for (const deletable of deletables) {

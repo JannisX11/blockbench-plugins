@@ -1,75 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-
-const LanguageDefinitions = {
-  "word.before": "Input",
-  "word.after": "Result",
-  "word.mesh": "Mesh",
-  "word.uv": "UV",
-};
-function getLanguage() {
-  return LanguageDefinitions;
-}
-function translate(subject) {
-  return subject.replace(/[a-zA-Z_][a-zA-Z0-9_\.]+/g, (key) => {
-    return getLanguage(LanguageDefinitions)[key] ?? key;
-  });
-}
-const getURL = (e) =>
-  // `http://127.0.0.1:5500/${e}`;
-  `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
-
-function renderPill(title) {
-  return `<span style="
-  border: max(1px, 0.0625rem) solid var(--color-accent);
-  color: var(--color-accent);
-  border-radius: 2em;
-  font-size: .75rem;
-  font-weight: 500;
-  padding: 0 7px;
-  white-space: nowrap;">${title.toString().toUpperCase()}</span>`
-}
-function renderImage({ src, caption = "" }) {
-  return `
-<figure>
-<img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="${getURL(
-    `assets/actions/${src}`
-  )}" />
-<figcaption>${translate(caption)}</figcaption>
-</figure>
-`;
-}
-function renderInsetRow({ items }) {
-  return `
-  <div style="display: flex;flex-wrap:wrap;">
-      ${items
-        .map(
-          (e) =>
-            `<div style="border: 1px solid var(--color-dark);background: var(--color-back);">${renderLine(
-              e
-            )}</div>`
-        )
-        .join("\n")}
-  </div>
-  `;
-}
-function renderLine(options) {
-  if (typeof options == "string") return options;
-
-  switch (options.type) {
-    case "image":
-      return renderImage(options);
-    case "inset_row":
-      return renderInsetRow(options);
-    default:
-      throw new Error(`Unknown line type: ${options.type}`);
-      break;
-  }
-}
+import { renderLine, renderPill } from "../src/utils/docs.js";
 
 let lastRawActions = "";
 export default {
-  buildStart: async function (aa) {
+  buildStart: async function () {
     const rawActions = await fs.readFile(path.resolve("assets/actions.json"), {
       encoding: "utf-8",
     });
@@ -82,6 +17,7 @@ export default {
     for (const id in ACTIONS) {
       const action = ACTIONS[id];
       action.id = id;
+      if (ACTIONS[id]?.docs?.private) delete ACTIONS[id];
     }
 
     const tableOfContents = [];
