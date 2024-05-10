@@ -48,7 +48,7 @@
     rootIndex: 0
   }
   let root = connection.roots[0]
-  let format, action, dialog, mode, panel, styles, preview, debug
+  let format, action, dialog, mode, styles, preview, debug, controls
   const id = "minecraft_title_generator"
   const name = "Minecraft Title Generator"
   const icon = "text_fields"
@@ -96,93 +96,18 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.4.1",
+    version: "1.5.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
     await_loading: true,
+    contributes: {
+      formats: ["minectaft_title"]
+    },
+    has_changelog: true,
+    website: "https://ewanhowell.com/plugins/minecraft-title-generator/",
     async onload() {
       styles = Blockbench.addCSS(`
-        body:not(.is_mobile) #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) {
-          grid-template-columns: 0px auto 0 !important;
-        }
-        #panel_minecraft_title_render_panel > .panel_handle, #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) > .resizer.vertical {
-          display: none !important;
-        }
-        #work_screen:has(#panel_minecraft_title_render_panel:not(.hidden)) > #center {
-          margin-bottom: calc(4px - var(--toolbar-height));
-        }
-        #panel_minecraft_title_render_panel {
-          width: 0px !important; 
-          height: 0px !important;
-        }
-        #minecraft-title-render-controls-container {
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 50px;
-          display: flex;
-          justify-content: center;
-        }
-        #minecraft-title-render-controls {
-          background-color: var(--color-ui);
-          z-index: 2;
-          padding: 10px;
-          box-shadow: 0 5px 10px #0006;
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          flex-direction: column;
-        }
-        .minecraft-title-render-controls-row {
-          display: flex;
-          gap: 20px;
-          align-items: center;
-        }
-        #minecraft-title-render-button {
-          background-color: var(--color-close);
-          color: var(--color-light);
-          padding: 10px 30px 1px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: filter .15s;
-        }
-        #minecraft-title-render-button:hover {
-          filter: brightness(1.25) hue-rotate(5deg);
-        }
-        #minecraft-title-render-button.disabled {
-          background-color: var(--color-button);
-          cursor: not-allowed;
-        }
-        minecraft-title-render-button.disabled:hover {
-          filter: initial;
-        }
-        .minecraft-title-button {
-          cursor: pointer;
-          border-radius: 4px;
-        }
-        .minecraft-title-button.selected {
-          background-color: var(--color-accent);
-          color: var(--color-accent_text);
-        }
-        .minecraft-title-button.selected > svg {
-          fill: var(--color-accent_text);
-        }
-        #resolutions {
-          display: flex;
-          background-color: var(--color-button);
-          padding: 4px;
-        }
-        .resolution {
-          width: 32px;
-          height: 32px;
-        }
-        .resolution > i {
-          font-size: 32px;
-        }
-        .resolution > svg {
-          fill: var(--color-text);
-        }
         .minecraft-title-list {
           display: flex;
           max-height: 384px;
@@ -403,576 +328,631 @@
       Toolbars.outliner.add(action, 0)
       MenuBar.menus.edit.addAction(action, 4)
       Interface.Panels.outliner.menu.addAction(action, 0)
-      panel = new Panel("minecraft_title_render_panel", {
-        name: "Render Controls",
-        icon: "photo_camera",
-        condition: {
-          modes: ["minecraft_title_render"]
-        },
-        component: {
-          methods: {
-            render() {
-              if (Preview.selected.camera instanceof THREE.OrthographicCamera) return Blockbench.showMessageBox({
-                title: "Orthographic not supported",
-                message: "Orthographic perspectives are not supported for render mode.\n\nIf you wish to render with an orthographic perspective, use the built-in Blockbench screenshot options.",
-                buttons: ["Disable orthographic perspective", "dialog.close"],
-                width: 500
-              }, async button => {
-                if (button === 0) Preview.selected.setProjectionMode(false)
-              })
-              if (this.rendering) return
-              this.rendering = true
-              const args = this
-              const dialog = new Dialog({
-                id: "minecraft_title_render_result",
-                title: "Rendering…",
-                buttons: [],
-                lines: [`<style>
-                  #minecraft_title_render_result .hidden {
-                    display: none;
-                  }
-                  #minecraft_title_render_result .dialog_content {
-                    margin: 0;
-                  }
-                  #minecraft-title-output {
-                    max-width: 100%;
-                    min-height: 32px;
-                    border: 1px solid var(--color-accent);
-                    object-fit: contain;
-                  }
-                  #minecraft-title-render-content {
-                    margin: 20px;
-                  }
-                  #minecraft-title-render-content, #minecraft-title-render-output {
-                    display: flex;
-                    align-items: center;
-                    flex-direction: column;
-                  }
-                  #minecraft-title-render-button-row {
-                    width: 100%;
-                    display: flex;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                  }
-                  #minecraft-title-render-button-row > button {
-                    flex: 1;
-                    display: flex;
-                    gap: 10px;
-                    justify-content: center;
-                    align-items: center;
-                    text-decoration: none;
-                    height: 40px;
-                    min-width: 200px;
-                  }
-                  #minecraft-title-render-button-row > button:focus > div {
-                    text-decoration: underline;
-                  }
-                  #render-detail-row {
-                    display: flex;
-                    justify-content: space-between;
-                    width: 100%;
-                    gap: 10px;
-                  }
-                  #minecraft-title-render-output {
-                    gap: 10px;
-                    width: 100%;
-                    height: calc(100vh - 180px - 40px);
-                  }
-                  #minecraft-title-render-output > .form_inline_select {
-                    width: 100%;
-                    flex-grow: initial;
-                  }
-                  .minecraft-output-options {
-                    display: flex;
-                    gap: 10px;
-                    width: 100%;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    justify-content: space-between;
-                  }
-                  .minecraft-output-options.disabled {
-                    pointer-events: none;
-                    opacity: 0.5;
-                  }
-                  .minecraft-output-options.disabled .sp-preview-inner {
-                    filter: grayscale();
-                  }
-                  .minecraft-output-options.disabled .sp-preview::after {
-                    content: "";
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(to top right, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)), linear-gradient(to top left, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px));
-                  }
-                  .minecraft-output-label {
-                    font-size: 1.25em;
-                  }
-                  .minecraft-output-options bb-select {
-                    flex: 1;
-                    cursor: pointer;
-                  }
-                  .minecraft-output-options > div {
-                    display: flex;
-                    gap: 10px;
-                    align-items: center;
-                  }
-                  .minecraft-output-options input:not([type='checkbox']) {
-                    width: 60px;
-                  }
-                  .minecraft-output-options input[type='checkbox'] {
-                    cursor: pointer;
-                  }
-                </style>`],
-                component: {
-                  data: {
-                    rendering: true,
-                    image: null,
-                    dimensions: null,
-                    size: null,
-                    canvas: null,
-                    tab: "normal",
-                    resolutionWidth: 1920,
-                    resolutionHeight: 1080,
-                    aspectWidth: 16,
-                    aspectHeight: 9,
-                    lastChanged: "width",
-                    linked: true,
-                    minecraftMode: "1.20",
-                    minecraftModes: {
-                      "1.20": "1.20+ Title Texture",
-                      "1.19": "1.19- Title Texture",
-                      mojang: "Mojang Studios Texture"
-                    },
-                    backgroundColour: "#78b8ff",
-                    backgroundColour2: "#c7ecff",
-                    backgroundColourEnabled: false,
-                    backgroundColour2Enabled: false,
-                    updating: false,
-                    tabToUpdate: false,
-                    padding: 0
+      controls = document.createElement("div")
+      controls.id = "minecraft-title-render-controls-container"
+      document.getElementById("center").append(controls)
+      const controlsStyles = document.createElement("style")
+      controlsStyles.innerHTML = `
+        #minecraft-title-render-controls {
+          position: absolute;
+          bottom: 50px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: var(--color-ui);
+          flex-direction: column;
+          box-shadow: 0 5px 10px #0006;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          display: none;
+          z-index: 1;
+        }
+
+        body[mode="minecraft_title_render"] {
+          #minecraft-title-render-controls {
+            display: flex;
+          }
+
+          #center {
+            margin-bottom: calc(4px - var(--toolbar-height));
+          }
+        }
+
+        .minecraft-title-render-controls-row {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+        }
+
+        #minecraft-title-render-buttons {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+
+          > div {
+            padding: 5px 30px;
+            cursor: pointer;
+            width: initial;
+            height: initial;
+            position: relative;
+
+            &::before {
+              content: "";
+              position: absolute;
+              inset: 0;
+              background-color: var(--color-error);
+              border-radius: 8px;
+              z-index: -1;
+              transition: filter .15s;
+            }
+
+            &:first-child::before {
+              background-color: var(--color-accent);
+            }
+
+            &:hover::before {
+              filter: brightness(1.25) hue-rotate(5deg);
+            }
+
+            &.disabled {
+              cursor: not-allowed;
+
+              &::before {
+                background-color: var(--color-button);
+                filter: initial !important;
+              }
+            }
+
+            > i {
+              color: var(--color-light);
+              padding: 0;
+            }
+
+            .tooltip {
+              transform: translate(calc(11px - 50%), 10px)
+            }
+          }
+        }
+
+        #resolutions {
+          display: flex;
+          background-color: var(--color-button);
+          padding: 4px;
+        }
+
+        .resolution {
+          width: 32px;
+          height: 32px;
+          cursor: pointer;
+          border-radius: 4px;
+
+          > i {
+            font-size: 32px;
+            max-width: 32px;
+          }
+
+          > svg {
+            fill: var(--color-text);
+          }
+
+          &.selected {
+            background-color: var(--color-accent);
+            color: var(--color-accent_text);
+
+            > svg {
+              fill: var(--color-accent_text);
+            }
+          }
+        }
+      `
+      controls.append(controlsStyles)
+      const vue = document.createElement("div")
+      controls.append(vue)
+      new Vue({
+        methods: {
+          render() {
+            if (Preview.selected.camera instanceof THREE.OrthographicCamera) return Blockbench.showMessageBox({
+              title: "Orthographic not supported",
+              message: "Orthographic perspectives are not supported for render mode.\n\nIf you wish to render with an orthographic perspective, use the built-in Blockbench screenshot options.",
+              buttons: ["Disable orthographic perspective", "dialog.close"],
+              width: 500
+            }, async button => {
+              if (button === 0) Preview.selected.setProjectionMode(false)
+            })
+            if (this.rendering) return
+            this.rendering = true
+            const args = this
+            const dialog = new Dialog({
+              id: "minecraft_title_render_result",
+              title: "Rendering…",
+              buttons: [],
+              lines: [`<style>
+                #minecraft_title_render_result .hidden {
+                  display: none;
+                }
+                #minecraft_title_render_result .dialog_content {
+                  margin: 0;
+                }
+                #minecraft-title-output {
+                  max-width: 100%;
+                  min-height: 32px;
+                  border: 1px solid var(--color-accent);
+                  object-fit: contain;
+                }
+                #minecraft-title-render-content {
+                  margin: 20px;
+                }
+                #minecraft-title-render-content, #minecraft-title-render-output {
+                  display: flex;
+                  align-items: center;
+                  flex-direction: column;
+                }
+                #minecraft-title-render-button-row {
+                  width: 100%;
+                  display: flex;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                }
+                #minecraft-title-render-button-row > button {
+                  flex: 1;
+                  display: flex;
+                  gap: 10px;
+                  justify-content: center;
+                  align-items: center;
+                  text-decoration: none;
+                  height: 40px;
+                  min-width: 200px;
+                }
+                #minecraft-title-render-button-row > button:focus > div {
+                  text-decoration: underline;
+                }
+                #render-detail-row {
+                  display: flex;
+                  justify-content: space-between;
+                  width: 100%;
+                  gap: 10px;
+                }
+                #minecraft-title-render-output {
+                  gap: 10px;
+                  width: 100%;
+                  height: calc(100vh - 180px - 40px);
+                }
+                #minecraft-title-render-output > .form_inline_select {
+                  width: 100%;
+                  flex-grow: initial;
+                }
+                .minecraft-output-options {
+                  display: flex;
+                  gap: 10px;
+                  width: 100%;
+                  align-items: center;
+                  flex-wrap: wrap;
+                  justify-content: space-between;
+                }
+                .minecraft-output-options.disabled {
+                  pointer-events: none;
+                  opacity: 0.5;
+                }
+                .minecraft-output-options.disabled .sp-preview-inner {
+                  filter: grayscale();
+                }
+                .minecraft-output-options.disabled .sp-preview::after {
+                  content: "";
+                  position: absolute;
+                  inset: 0;
+                  background: linear-gradient(to top right, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)), linear-gradient(to top left, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px));
+                }
+                .minecraft-output-label {
+                  font-size: 1.25em;
+                }
+                .minecraft-output-options bb-select {
+                  flex: 1;
+                  cursor: pointer;
+                }
+                .minecraft-output-options > div {
+                  display: flex;
+                  gap: 10px;
+                  align-items: center;
+                }
+                .minecraft-output-options input:not([type='checkbox']) {
+                  width: 60px;
+                }
+                .minecraft-output-options input[type='checkbox'] {
+                  cursor: pointer;
+                }
+              </style>`],
+              component: {
+                data: {
+                  rendering: true,
+                  image: null,
+                  dimensions: null,
+                  size: null,
+                  canvas: null,
+                  tab: "normal",
+                  resolutionWidth: 1920,
+                  resolutionHeight: 1080,
+                  aspectWidth: 16,
+                  aspectHeight: 9,
+                  lastChanged: "width",
+                  linked: true,
+                  minecraftMode: "1.20",
+                  minecraftModes: {
+                    "1.20": "1.20+ Title Texture",
+                    "1.19": "1.19- Title Texture",
+                    mojang: "Mojang Studios Texture"
                   },
-                  mounted() {
-                    $(this.$refs.backgroundColour).spectrum(this.colourInput("backgroundColour")),
-                    $(this.$refs.backgroundColour2).spectrum(this.colourInput("backgroundColour2"))
+                  backgroundColour: "#78b8ff",
+                  backgroundColour2: "#c7ecff",
+                  backgroundColourEnabled: false,
+                  backgroundColour2Enabled: false,
+                  updating: false,
+                  tabToUpdate: false,
+                  padding: 0
+                },
+                mounted() {
+                  $(this.$refs.backgroundColour).spectrum(this.colourInput("backgroundColour")),
+                  $(this.$refs.backgroundColour2).spectrum(this.colourInput("backgroundColour2"))
+                },
+                methods: {
+                  async copy() {
+                    const r = await fetch(this.canvas.toDataURL())
+                    navigator.clipboard.write([new ClipboardItem({ "image/png": await r.blob() })])
+                    Blockbench.showQuickMessage("Copied to clipboard")
                   },
-                  methods: {
-                    async copy() {
-                      const r = await fetch(this.canvas.toDataURL())
-                      navigator.clipboard.write([new ClipboardItem({ "image/png": await r.blob() })])
-                      Blockbench.showQuickMessage("Copied to clipboard")
-                    },
-                    save() {
-                      Blockbench.export({
-                        extensions: ["png"],
-                        type: tl("data.image"),
-                        savetype: "image",
-                        name: Project.name || "minecraft_title",
-                        content: this.canvas.toDataURL()
-                      }, () => Blockbench.showQuickMessage("Saved title"))
-                    },
-                    async tabChange(tab) {
-                      this.tab = tab
-                      let canvas, ctx
-                      if (tab === "normal") {
-                        ({ canvas, ctx } = new CanvasFrame(this.image.width, this.image.height))
-                        ctx.drawImage(this.image, 0, 0)
-                      } else if (tab === "square") {
-                        const max = Math.max(this.image.width, this.image.height);
-                        ({ canvas, ctx } = new CanvasFrame(max, max))
-                        ctx.drawImage(this.image, Math.floor(max / 2 - this.image.width / 2), Math.floor(max / 2 - this.image.height / 2))
-                      } else if (tab === "custom") {
-                        ({ canvas, ctx } = new CanvasFrame(this.resolutionWidth, this.resolutionHeight))
-                        const aspect = this.image.width / this.image.height
-                        const ratio = Math.min(canvas.width / this.image.width, canvas.height / this.image.height)
-                        const w = Math.floor(this.image.width * ratio)
-                        const h = Math.floor(this.image.height * ratio)
-                        ctx.drawImage(this.image, Math.floor(canvas.width / 2 - w / 2), Math.floor(canvas.height / 2 - h / 2), w, h)
-                      } else if (tab === "minecraft") {
-                        const aspect = this.image.width / this.image.height
-                        let w, h
-                        if (this.image.width > 1024 || this.image.height > 1024) {
-                          if (aspect > 1) {
-                            w = 1024
-                            h = Math.floor(1024 / aspect)
-                          } else {
-                            h = 1024
-                            w = Math.floor(1024 * aspect)
-                          }
+                  save() {
+                    Blockbench.export({
+                      extensions: ["png"],
+                      type: tl("data.image"),
+                      savetype: "image",
+                      name: Project.name || "minecraft_title",
+                      content: this.canvas.toDataURL()
+                    }, () => Blockbench.showQuickMessage("Saved title"))
+                  },
+                  async tabChange(tab) {
+                    this.tab = tab
+                    let canvas, ctx
+                    if (tab === "normal") {
+                      ({ canvas, ctx } = new CanvasFrame(this.image.width, this.image.height))
+                      ctx.drawImage(this.image, 0, 0)
+                    } else if (tab === "square") {
+                      const max = Math.max(this.image.width, this.image.height);
+                      ({ canvas, ctx } = new CanvasFrame(max, max))
+                      ctx.drawImage(this.image, Math.floor(max / 2 - this.image.width / 2), Math.floor(max / 2 - this.image.height / 2))
+                    } else if (tab === "custom") {
+                      ({ canvas, ctx } = new CanvasFrame(this.resolutionWidth, this.resolutionHeight))
+                      const aspect = this.image.width / this.image.height
+                      const ratio = Math.min(canvas.width / this.image.width, canvas.height / this.image.height)
+                      const w = Math.floor(this.image.width * ratio)
+                      const h = Math.floor(this.image.height * ratio)
+                      ctx.drawImage(this.image, Math.floor(canvas.width / 2 - w / 2), Math.floor(canvas.height / 2 - h / 2), w, h)
+                    } else if (tab === "minecraft") {
+                      const aspect = this.image.width / this.image.height
+                      let w, h
+                      if (this.image.width > 1024 || this.image.height > 1024) {
+                        if (aspect > 1) {
+                          w = 1024
+                          h = Math.floor(1024 / aspect)
                         } else {
-                          w = this.image.width
-                          h = this.image.height
-                        }
-                        const capped = new CanvasFrame(w, h)
-                        if (this.image.width < 64 || this.image.height < 64) capped.ctx.imageSmoothingEnabled = false
-                        capped.ctx.drawImage(this.image, 0, 0, w, h)
-                        capped.autoCrop()
-                        if (this.minecraftMode === "1.20") {
-                          ({ canvas, ctx } = new CanvasFrame(1024, 256))
-                          const scaleFactor = Math.min(1024 / capped.width, 176 / capped.height)
-                          const newWidth = capped.width * scaleFactor
-                          const newHeight = capped.height * scaleFactor
-                          const x = (1024 - newWidth) / 2
-                          const y = (176 - newHeight) / 2
-                          if (newWidth > capped.width) ctx.imageSmoothingEnabled = false
-                          ctx.drawImage(capped.canvas, x, y, newWidth, newHeight)
-                        } else if (this.minecraftMode === "1.19") {
-                          const base = await loadImage("data:image/png;base64,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")
-                          let preCanvas
-                          if (capped.width / capped.height < 137 / 22) {
-                            preCanvas = new CanvasFrame(Math.floor((capped.height / 22) * 137), capped.height)
-                            preCanvas.ctx.drawImage(capped.canvas, Math.floor((preCanvas.width - capped.width) / 2), 0)
-                          } else if (capped.width / capped.height > 137 / 22) {
-                            preCanvas = new CanvasFrame(capped.width, Math.floor((capped.width / 137) * 22))
-                            preCanvas.ctx.drawImage(capped.canvas, 0, Math.floor((preCanvas.height - capped.height) / 2))
-                          } else preCanvas = capped;
-                          ({ canvas, ctx } = new CanvasFrame(Math.floor((preCanvas.width / 137) * 128), Math.floor((preCanvas.width / 137) * 128), true, 1024))
-                          ctx.imageSmoothingEnabled = false
-                          ctx.drawImage(base, 0, 0, canvas.width, canvas.height)
-                          const width = Math.floor((preCanvas.width / 274) * 155)
-                          ctx.drawImage(preCanvas.canvas, 0, 0, width, preCanvas.height, 0, 0, width, preCanvas.height)
-                          ctx.drawImage(preCanvas.canvas, width, 0, preCanvas.width - width, preCanvas.height, 0, Math.floor(preCanvas.height / 44 * 45), preCanvas.width - width, preCanvas.height)
-                        } else if (this.minecraftMode === "mojang") {
-                          let preCanvas
-                          if (capped.width < capped.height * 4) {
-                            preCanvas = new CanvasFrame(capped.height * 4 + 8, capped.height + 2)
-                            preCanvas.ctx.drawImage(capped.canvas, Math.floor((capped.height * 4 - capped.width) / 2) + 4, 1)
-                          } else if (capped.width > capped.height * 4) {
-                            preCanvas = new CanvasFrame(capped.width + 8, Math.floor(capped.width / 4) + 2)
-                            preCanvas.ctx.drawImage(capped.canvas, 4, Math.floor((preCanvas.height - capped.height) / 2))
-                          } else {
-                            preCanvas = new CanvasFrame(capped.width + 8, capped.height + 4)
-                            preCanvas.ctx.drawImage(capped.canvas, 4, 1)
-                          }
-                          ({ canvas, ctx } = new CanvasFrame(Math.floor(preCanvas.width / 2), Math.floor(preCanvas.width / 2)))
-                          ctx.drawImage(preCanvas.canvas, 0, 0)
-                          ctx.drawImage(preCanvas.canvas, Math.floor(-preCanvas.width / 2), Math.floor(preCanvas.width / 4))
-                        }
-                      }
-                      const padding = tab === "minecraft" ? 0 : this.padding
-                      this.canvas.width = canvas.width + padding * 2
-                      this.canvas.height = canvas.height + padding * 2
-                      if (this.tab !== "minecraft" && this.backgroundColourEnabled) {
-                        if (this.backgroundColour2Enabled) {
-                          const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height)
-                          gradient.addColorStop(0, this.backgroundColour)
-                          gradient.addColorStop(1, this.backgroundColour2)
-                          this.ctx.fillStyle = gradient
-                        } else {
-                          this.ctx.fillStyle = this.backgroundColour
-                        }
-                        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-                      }
-                      this.ctx.drawImage(canvas, padding, padding)
-                      const size = this.canvas.toDataURL().slice(22).length * 0.75
-                      this.dimensions = `${this.canvas.width} x ${this.canvas.height}`
-                      this.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
-                    },
-                    changeResolution(changed) {
-                      this.lastChanged = changed
-                      if (this.linked) {
-                        if (changed === "width") {
-                          this.resolutionHeight = Math.max(1, Math.floor((this.resolutionWidth * this.aspectHeight) / this.aspectWidth))
-                        } else {
-                          this.resolutionWidth = Math.max(1, Math.floor((this.resolutionHeight * this.aspectWidth) / this.aspectHeight))
-                        }
-                        if (this.resolutionWidth > 4096 || this.resolutionHeight > 4096) {
-                          const aspect = this.resolutionWidth / this.resolutionHeight
-                          if (aspect > 1) {
-                            this.resolutionWidth = 4096
-                            this.resolutionHeight = Math.floor(4096 / aspect)
-                          } else {
-                            this.resolutionHeight = 4096
-                            this.resolutionWidth = Math.floor(4096 * aspect)
-                          }
+                          h = 1024
+                          w = Math.floor(1024 * aspect)
                         }
                       } else {
-                        this.resolutionWidth = Math.max(1, parseInt(this.resolutionWidth))
-                        this.resolutionHeight = Math.max(1, parseInt(this.resolutionHeight))
-                        const [aW, aH] = getAspectRatio(this.resolutionWidth, this.resolutionHeight)
-                        this.aspectWidth = aW
-                        this.aspectHeight = aH
+                        w = this.image.width
+                        h = this.image.height
                       }
-                      this.update("custom")
-                    },
-                    changeAspect() {
-                      this.aspectWidth = Math.max(1, parseInt(this.aspectWidth))
-                      this.aspectHeight = Math.max(1, parseInt(this.aspectHeight))
-                      const [w, h] = getFromAspect(this.aspectWidth, this.aspectHeight, this.resolutionWidth, this.resolutionHeight, this.lastChanged === "width")
-                      this.resolutionWidth = w
-                      this.resolutionHeight = h
-                      this.update("custom")
-                    },
-                    colourInput: v => ({
-                      preferredFormat: "hex",
-                      color: dialog.component.data[v],
-                      showAlpha: false,
-                      showInput: true,
-                      move: c => dialog.content_vue.updateColour(v, c),
-                      change: c => dialog.content_vue.updateColour(v, c),
-                      hide: c => dialog.content_vue.updateColour(v, c)
-                    }),
-                    updateColour(v, c) {
-                      this[v] = c.toHexString()
-                      this.update(this.tab)
-                    },
-                    async update(tab) {
-                      if (this.updating) {
-                        this.tabToUpdate = tab
-                        return
-                      }
-                      this.updating = true
-                      await this.tabChange(tab)
-                      this.updating = false
-                      if (this.tabToUpdate) {
-                        this.update(this.tabToUpdate)
-                        this.tabToUpdate = false
+                      const capped = new CanvasFrame(w, h)
+                      if (this.image.width < 64 || this.image.height < 64) capped.ctx.imageSmoothingEnabled = false
+                      capped.ctx.drawImage(this.image, 0, 0, w, h)
+                      capped.autoCrop()
+                      if (this.minecraftMode === "1.20") {
+                        ({ canvas, ctx } = new CanvasFrame(1024, 256))
+                        const scaleFactor = Math.min(1024 / capped.width, 176 / capped.height)
+                        const newWidth = capped.width * scaleFactor
+                        const newHeight = capped.height * scaleFactor
+                        const x = (1024 - newWidth) / 2
+                        const y = (176 - newHeight) / 2
+                        if (newWidth > capped.width) ctx.imageSmoothingEnabled = false
+                        ctx.drawImage(capped.canvas, x, y, newWidth, newHeight)
+                      } else if (this.minecraftMode === "1.19") {
+                        const base = await loadImage("data:image/png;base64,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")
+                        let preCanvas
+                        if (capped.width / capped.height < 137 / 22) {
+                          preCanvas = new CanvasFrame(Math.floor((capped.height / 22) * 137), capped.height)
+                          preCanvas.ctx.drawImage(capped.canvas, Math.floor((preCanvas.width - capped.width) / 2), 0)
+                        } else if (capped.width / capped.height > 137 / 22) {
+                          preCanvas = new CanvasFrame(capped.width, Math.floor((capped.width / 137) * 22))
+                          preCanvas.ctx.drawImage(capped.canvas, 0, Math.floor((preCanvas.height - capped.height) / 2))
+                        } else preCanvas = capped;
+                        ({ canvas, ctx } = new CanvasFrame(Math.floor((preCanvas.width / 137) * 128), Math.floor((preCanvas.width / 137) * 128), true, 1024))
+                        ctx.imageSmoothingEnabled = false
+                        ctx.drawImage(base, 0, 0, canvas.width, canvas.height)
+                        const width = Math.floor((preCanvas.width / 274) * 155)
+                        ctx.drawImage(preCanvas.canvas, 0, 0, width, preCanvas.height, 0, 0, width, preCanvas.height)
+                        ctx.drawImage(preCanvas.canvas, width, 0, preCanvas.width - width, preCanvas.height, 0, Math.floor(preCanvas.height / 44 * 45), preCanvas.width - width, preCanvas.height)
+                      } else if (this.minecraftMode === "mojang") {
+                        let preCanvas
+                        if (capped.width < capped.height * 4) {
+                          preCanvas = new CanvasFrame(capped.height * 4 + 8, capped.height + 2)
+                          preCanvas.ctx.drawImage(capped.canvas, Math.floor((capped.height * 4 - capped.width) / 2) + 4, 1)
+                        } else if (capped.width > capped.height * 4) {
+                          preCanvas = new CanvasFrame(capped.width + 8, Math.floor(capped.width / 4) + 2)
+                          preCanvas.ctx.drawImage(capped.canvas, 4, Math.floor((preCanvas.height - capped.height) / 2))
+                        } else {
+                          preCanvas = new CanvasFrame(capped.width + 8, capped.height + 4)
+                          preCanvas.ctx.drawImage(capped.canvas, 4, 1)
+                        }
+                        ({ canvas, ctx } = new CanvasFrame(Math.floor(preCanvas.width / 2), Math.floor(preCanvas.width / 2)))
+                        ctx.drawImage(preCanvas.canvas, 0, 0)
+                        ctx.drawImage(preCanvas.canvas, Math.floor(-preCanvas.width / 2), Math.floor(preCanvas.width / 4))
                       }
                     }
+                    const padding = tab === "minecraft" ? 0 : this.padding
+                    this.canvas.width = canvas.width + padding * 2
+                    this.canvas.height = canvas.height + padding * 2
+                    if (this.tab !== "minecraft" && this.backgroundColourEnabled) {
+                      if (this.backgroundColour2Enabled) {
+                        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height)
+                        gradient.addColorStop(0, this.backgroundColour)
+                        gradient.addColorStop(1, this.backgroundColour2)
+                        this.ctx.fillStyle = gradient
+                      } else {
+                        this.ctx.fillStyle = this.backgroundColour
+                      }
+                      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+                    }
+                    this.ctx.drawImage(canvas, padding, padding)
+                    const size = this.canvas.toDataURL().slice(22).length * 0.75
+                    this.dimensions = `${this.canvas.width} x ${this.canvas.height}`
+                    this.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
                   },
-                  template: `
-                    <div id="minecraft-title-render-content">
-                      <h1 v-if="rendering" style="text-align:center">Rendering…</h1>
-                      <div id="minecraft-title-render-output" :style="{ display: rendering ? 'none' : 'flex' }">
-                        <ul class="form_inline_select">
-                          <li @click="update('normal')" :class="{ selected: tab === 'normal' }">Normal</li>
-                          <li @click="update('square')" :class="{ selected: tab === 'square' }">Square</li>
-                          <li @click="update('custom')" :class="{ selected: tab === 'custom' }">Custom</li>
-                          <li @click="update('minecraft')" :class="{ selected: tab === 'minecraft' }">Minecraft</li>
-                        </ul>
-                        <div class="minecraft-output-options" :style="{ display: tab === 'custom' ? 'flex' : 'none' }">
-                          <div>
-                            <div class="minecraft-output-label">Resolution:</div>
-                            <numeric-input v-model="resolutionWidth" step="1" :min="1" :max="4096" @input="changeResolution('width')" />
-                            <div class="minecraft-output-label" style="margin: 0 -5px">⨉</div>
-                            <numeric-input v-model="resolutionHeight" step="1" :min="1" :max="4096" @input="changeResolution('height')" />
-                            <div class="tool" :class="{ enabled: linked }" @click="linked = !linked">
-                              <div class="tooltip" style="margin-left: 0px;">Link width and height</div>
-                              <i class="fa_big icon fas fa-link"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <div class="minecraft-output-label">Aspect Ratio:</div>
-                            <numeric-input v-model="aspectWidth" step="1" :min="1" :max="4096" @input="changeAspect" />
-                            <div class="minecraft-output-label" style="margin: 0 -5px">:</div>
-                            <numeric-input v-model="aspectHeight" step="1" :min="1" :max="4096" @input="changeAspect" />
-                          </div>
-                        </div>
-                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
-                          <div>
-                            <div class="minecraft-output-label">Background Colour:</div>
-                            <input type="checkbox" :checked="backgroundColourEnabled" v-model="backgroundColourEnabled" @input="backgroundColourEnabled = !backgroundColourEnabled; update(tab)" />
-                            <div :class="{ hidden: !backgroundColourEnabled }">
-                              <input ref="backgroundColour" />
-                            </div>
-                          </div>
-                        </div>
-                        <div class="minecraft-output-options" :class="{ hidden: tab === 'minecraft', disabled: !backgroundColourEnabled }">
-                          <div>
-                            <div class="minecraft-output-label">Second Background Colour:</div>
-                            <input type="checkbox" :checked="backgroundColour2Enabled" v-model="backgroundColour2Enabled" @input="backgroundColour2Enabled = !backgroundColour2Enabled; update(tab)" />
-                            <div :class="{ hidden: !backgroundColour2Enabled }">
-                              <input ref="backgroundColour2" />
-                            </div>
-                          </div>
-                        </div>
-                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
-                          <div>
-                            <div class="minecraft-output-label">Padding:</div>
-                            <numeric-input v-model="padding" step="1" :min="0" :max="1024" @input="update(tab)" />
-                          </div>
-                        </div>
-                        <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'flex' : 'none' }">
-                          <div class="minecraft-output-label">Texture mode:</div>
-                          <select-input v-model="minecraftMode" :options="minecraftModes" @input="update('minecraft')" />
-                        </div>
-                        <div class="spacer"></div>
-                        <canvas id="minecraft-title-output" class="checkerboard" />
-                        <div class="spacer"></div>
-                        <div id="render-detail-row">
-                          <div>{{ dimensions }}</div>
-                          <div>{{ size }}</div>
-                        </div>
-                        <div id="minecraft-title-render-button-row">
-                          <button @click="copy">
-                            <i class="material-icons icon">file_copy</i>
-                            <div>Copy render</div>
-                          </button>
-                          <button @click="save">
-                            <i class="material-icons icon">save</i>
-                            <div>Save render</div>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  `
-                },
-                onOpen() {
-                  setTimeout(() => Canvas.withoutGizmos(() => {
-                    let minX = Infinity
-                    let maxX = -Infinity
-                    let minY = Infinity
-                    let maxY = -Infinity
-                    const direction = Preview.selected.controls.target.clone().sub(Preview.selected.camera.position).normalize()
-                    Canvas.scene.traverseVisible(cube => {
-                      if (cube.type === "cube") {
-                        for (let i = 0; i < 72; i += 3) {
-                          const vertex = new THREE.Vector3(...cube.geometry.attributes.position.array.slice(i, i + 3))
-                          if (direction.dot(vertex.clone().sub(Preview.selected.camera.position).normalize()) <= 0) continue
-                          const vec = vertex.applyMatrix4(cube.matrixWorld).project(Preview.selected.camera)
-                          const x = (vec.x + 1) / 2
-                          const y = (-vec.y + 1) / 2
-                          minX = Math.min(minX, x)
-                          maxX = Math.max(maxX, x)
-                          minY = Math.min(minY, y)
-                          maxY = Math.max(maxY, y)
+                  changeResolution(changed) {
+                    this.lastChanged = changed
+                    if (this.linked) {
+                      if (changed === "width") {
+                        this.resolutionHeight = Math.max(1, Math.floor((this.resolutionWidth * this.aspectHeight) / this.aspectWidth))
+                      } else {
+                        this.resolutionWidth = Math.max(1, Math.floor((this.resolutionHeight * this.aspectWidth) / this.aspectHeight))
+                      }
+                      if (this.resolutionWidth > 4096 || this.resolutionHeight > 4096) {
+                        const aspect = this.resolutionWidth / this.resolutionHeight
+                        if (aspect > 1) {
+                          this.resolutionWidth = 4096
+                          this.resolutionHeight = Math.floor(4096 / aspect)
+                        } else {
+                          this.resolutionHeight = 4096
+                          this.resolutionWidth = Math.floor(4096 * aspect)
                         }
                       }
-                    })
-                    if (minX === Infinity) {
-                      dialog.close()
-                      Blockbench.showQuickMessage("Nothing in frame")
-                      args.rendering = false
-                      return
-                    }
-                    minX = Math.max(minX, 0)
-                    maxX = Math.min(maxX, 1)
-                    minY = Math.max(minY, 0)
-                    maxY = Math.min(maxY, 1)
-                    if (minX === maxX || minY === maxY) {
-                      dialog.close()
-                      Blockbench.showQuickMessage("Nothing in frame")
-                      args.rendering = false
-                      return
-                    }
-                    const aspect = (maxX - minX) / ((maxY - minY) * Preview.selected.height / Preview.selected.width)
-                    let outWidth, outHeight
-                    const resolution = args.antialias ? Math.min(args.resolution * 2, 4096) : args.resolution
-                    if (aspect > 1) {
-                      outWidth = resolution
-                      outHeight = resolution / aspect
                     } else {
-                      outWidth = resolution * aspect
-                      outHeight = resolution
+                      this.resolutionWidth = Math.max(1, parseInt(this.resolutionWidth))
+                      this.resolutionHeight = Math.max(1, parseInt(this.resolutionHeight))
+                      const [aW, aH] = getAspectRatio(this.resolutionWidth, this.resolutionHeight)
+                      this.aspectWidth = aW
+                      this.aspectHeight = aH
                     }
-                    preview.resize(outWidth, outHeight)
-                    preview.controls.target.copy(Preview.selected.controls.target)
-                    preview.camera.position.copy(Preview.selected.camera.position)
-                    const fullWidth = outWidth / (maxX - minX)
-                    const fullHeight = outHeight / (maxY - minY)
-                    preview.camera.setViewOffset(fullWidth, fullHeight, minX * fullWidth, minY * fullHeight, outWidth, outHeight)
-                    preview.render()
-                    const img = new CanvasFrame(preview.canvas)
-                    img.autoCrop()
-                    const imageData = img.ctx.getImageData(0, 0, img.width, img.height)
-                    const data = imageData.data
-                    const length = data.length
-                    const width = img.width
-                    const height = img.height
-                    const width1 = width - 1
-                    const height1 = height - 1
-                    for (let i = length - 4; i >= 0; i -= 4) {
-                      const x = i / 4 % img.width
-                      const y = Math.floor(i / (4 * height))
-                      if (data[i + 3] === 0) {
-                        if (
-                          (x === 0 || data[i - 1] !== 0) &&
-                          (x === width1 || data[i + 7] !== 0) &&
-                          (y === 0 || data[i - width * 4 + 3] !== 0) &&
-                          (y === height1 || data[i + width * 4 + 3] !== 0)
-                        ) {
-                          let count = 0
-                          let sr, sg, sb, sa
-                          sr = sg = sb = sa = 0
-                          if (x !== 0) {
-                            count++
-                            sr += data[i - 4]
-                            sg += data[i - 3]
-                            sb += data[i - 2]
-                            sa += data[i - 1]
-                          }
-                          if (x !== width1) {
-                            count++
-                            sr += data[i + 4]
-                            sg += data[i + 5]
-                            sb += data[i + 6]
-                            sa += data[i + 7]
-                          }
-                          if (y !== 0) {
-                            count++
-                            sr += data[i - width * 4]
-                            sg += data[i - width * 4 + 1]
-                            sb += data[i - width * 4 + 2]
-                            sa += data[i - width * 4 + 3]
-                          }
-                          if (y !== height1) {
-                            count++
-                            sr += data[i + width * 4]
-                            sg += data[i + width * 4 + 1]
-                            sb += data[i + width * 4 + 2]
-                            sa += data[i + width * 4 + 3]
-                          }
-                          data[i] = sr / count
-                          data[i + 1] = sg / count
-                          data[i + 2] = sb / count
-                          data[i + 3] = sa / count
-                        } else {
-                          const store = []
-                          const queue = [i]
-                          while (store.length < 6 && queue.length !== 0) {
-                            const j = queue.shift()
-                            store.push(j)
-                            const x = j / 4 % img.width
-                            if (x !== 0 && data[j - 1] === 0 && !store.includes(j - 4)) queue.push(j - 4)
-                            if (x !== width1 && data[j + 7] === 0 && !store.includes(j + 4)) queue.push(j + 4)
-                            if (Math.floor(j / (4 * height)) !== 0 && data[j - width * 4 + 3] === 0 && !store.includes(j - width * 4)) queue.push(j - width * 4)
-                          }
-                          if (store.length >= 6) continue
-                          for (const j of store) {
-                            const x = j / 4 % img.width
-                            const y = Math.floor(j / (4 * height))
-                            let count = 0
-                            let sr, sg, sb, sa
-                            sr = sg = sb = sa = 0
-                            if (x !== 0 && data[j - 1] !== 0) {
-                              count++
-                              sr += data[j - 4]
-                              sg += data[j - 3]
-                              sb += data[j - 2]
-                              sa += data[j - 1]
-                            }
-                            if (x !== width1 && data[j + 7] !== 0) {
-                              count++
-                              sr += data[j + 4]
-                              sg += data[j + 5]
-                              sb += data[j + 6]
-                              sa += data[j + 7]
-                            }
-                            if (y !== 0 && data[j - width * 4 + 3] !== 0) {
-                              count++
-                              sr += data[j - width * 4]
-                              sg += data[j - width * 4 + 1]
-                              sb += data[j - width * 4 + 2]
-                              sa += data[j - width * 4 + 3]
-                            }
-                            if (y !== height1 && data[j + width * 4 + 3] !== 0) {
-                              count++
-                              sr += data[j + width * 4]
-                              sg += data[j + width * 4 + 1]
-                              sb += data[j + width * 4 + 2]
-                              sa += data[j + width * 4 + 3]
-                            }
-                            data[j] = sr / count
-                            data[j + 1] = sg / count
-                            data[j + 2] = sb / count
-                            data[j + 3] = sa / count
-                          }
-                        } 
-                      } else if (
-                        (x === 0 || data[i - 1] === 0) &&
-                        (x === width1 || data[i + 7] === 0) &&
-                        (y === 0 || data[i - width * 4 + 3] === 0) &&
-                        (y === height1 || data[i + width * 4 + 3] === 0)
+                    this.update("custom")
+                  },
+                  changeAspect() {
+                    this.aspectWidth = Math.max(1, parseInt(this.aspectWidth))
+                    this.aspectHeight = Math.max(1, parseInt(this.aspectHeight))
+                    const [w, h] = getFromAspect(this.aspectWidth, this.aspectHeight, this.resolutionWidth, this.resolutionHeight, this.lastChanged === "width")
+                    this.resolutionWidth = w
+                    this.resolutionHeight = h
+                    this.update("custom")
+                  },
+                  colourInput: v => ({
+                    preferredFormat: "hex",
+                    color: dialog.component.data[v],
+                    showAlpha: false,
+                    showInput: true,
+                    move: c => dialog.content_vue.updateColour(v, c),
+                    change: c => dialog.content_vue.updateColour(v, c),
+                    hide: c => dialog.content_vue.updateColour(v, c)
+                  }),
+                  updateColour(v, c) {
+                    this[v] = c.toHexString()
+                    this.update(this.tab)
+                  },
+                  async update(tab) {
+                    if (this.updating) {
+                      this.tabToUpdate = tab
+                      return
+                    }
+                    this.updating = true
+                    await this.tabChange(tab)
+                    this.updating = false
+                    if (this.tabToUpdate) {
+                      this.update(this.tabToUpdate)
+                      this.tabToUpdate = false
+                    }
+                  }
+                },
+                template: `
+                  <div id="minecraft-title-render-content">
+                    <h1 v-if="rendering" style="text-align:center">Rendering…</h1>
+                    <div id="minecraft-title-render-output" :style="{ display: rendering ? 'none' : 'flex' }">
+                      <ul class="form_inline_select">
+                        <li @click="update('normal')" :class="{ selected: tab === 'normal' }">Normal</li>
+                        <li @click="update('square')" :class="{ selected: tab === 'square' }">Square</li>
+                        <li @click="update('custom')" :class="{ selected: tab === 'custom' }">Custom</li>
+                        <li @click="update('minecraft')" :class="{ selected: tab === 'minecraft' }">Minecraft</li>
+                      </ul>
+                      <div class="minecraft-output-options" :style="{ display: tab === 'custom' ? 'flex' : 'none' }">
+                        <div>
+                          <div class="minecraft-output-label">Resolution:</div>
+                          <numeric-input v-model="resolutionWidth" step="1" :min="1" :max="4096" @input="changeResolution('width')" />
+                          <div class="minecraft-output-label" style="margin: 0 -5px">⨉</div>
+                          <numeric-input v-model="resolutionHeight" step="1" :min="1" :max="4096" @input="changeResolution('height')" />
+                          <div class="tool" :class="{ enabled: linked }" @click="linked = !linked">
+                            <div class="tooltip" style="margin-left: 0px;">Link width and height</div>
+                            <i class="fa_big icon fas fa-link"></i>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="minecraft-output-label">Aspect Ratio:</div>
+                          <numeric-input v-model="aspectWidth" step="1" :min="1" :max="4096" @input="changeAspect" />
+                          <div class="minecraft-output-label" style="margin: 0 -5px">:</div>
+                          <numeric-input v-model="aspectHeight" step="1" :min="1" :max="4096" @input="changeAspect" />
+                        </div>
+                      </div>
+                      <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
+                        <div>
+                          <div class="minecraft-output-label">Background Colour:</div>
+                          <input type="checkbox" :checked="backgroundColourEnabled" v-model="backgroundColourEnabled" @input="backgroundColourEnabled = !backgroundColourEnabled; update(tab)" />
+                          <div :class="{ hidden: !backgroundColourEnabled }">
+                            <input ref="backgroundColour" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="minecraft-output-options" :class="{ hidden: tab === 'minecraft', disabled: !backgroundColourEnabled }">
+                        <div>
+                          <div class="minecraft-output-label">Second Background Colour:</div>
+                          <input type="checkbox" :checked="backgroundColour2Enabled" v-model="backgroundColour2Enabled" @input="backgroundColour2Enabled = !backgroundColour2Enabled; update(tab)" />
+                          <div :class="{ hidden: !backgroundColour2Enabled }">
+                            <input ref="backgroundColour2" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'none' : 'flex' }">
+                        <div>
+                          <div class="minecraft-output-label">Padding:</div>
+                          <numeric-input v-model="padding" step="1" :min="0" :max="1024" @input="update(tab)" />
+                        </div>
+                      </div>
+                      <div class="minecraft-output-options" :style="{ display: tab === 'minecraft' ? 'flex' : 'none' }">
+                        <div class="minecraft-output-label">Texture mode:</div>
+                        <select-input v-model="minecraftMode" :options="minecraftModes" @input="update('minecraft')" />
+                      </div>
+                      <div class="spacer"></div>
+                      <canvas id="minecraft-title-output" class="checkerboard" />
+                      <div class="spacer"></div>
+                      <div id="render-detail-row">
+                        <div>{{ dimensions }}</div>
+                        <div>{{ size }}</div>
+                      </div>
+                      <div id="minecraft-title-render-button-row">
+                        <button @click="copy">
+                          <i class="material-icons icon">file_copy</i>
+                          <div>Copy render</div>
+                        </button>
+                        <button @click="save">
+                          <i class="material-icons icon">save</i>
+                          <div>Save render</div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `
+              },
+              onOpen() {
+                setTimeout(() => Canvas.withoutGizmos(() => {
+                  let minX = Infinity
+                  let maxX = -Infinity
+                  let minY = Infinity
+                  let maxY = -Infinity
+                  const direction = Preview.selected.controls.target.clone().sub(Preview.selected.camera.position).normalize()
+                  Canvas.scene.traverseVisible(cube => {
+                    if (cube.type === "cube") {
+                      for (let i = 0; i < 72; i += 3) {
+                        const vertex = new THREE.Vector3(...cube.geometry.attributes.position.array.slice(i, i + 3))
+                        if (direction.dot(vertex.clone().sub(Preview.selected.camera.position).normalize()) <= 0) continue
+                        const vec = vertex.applyMatrix4(cube.matrixWorld).project(Preview.selected.camera)
+                        const x = (vec.x + 1) / 2
+                        const y = (-vec.y + 1) / 2
+                        minX = Math.min(minX, x)
+                        maxX = Math.max(maxX, x)
+                        minY = Math.min(minY, y)
+                        maxY = Math.max(maxY, y)
+                      }
+                    }
+                  })
+                  if (minX === Infinity) {
+                    dialog.close()
+                    Blockbench.showQuickMessage("Nothing in frame")
+                    args.rendering = false
+                    return
+                  }
+                  minX = Math.max(minX, 0)
+                  maxX = Math.min(maxX, 1)
+                  minY = Math.max(minY, 0)
+                  maxY = Math.min(maxY, 1)
+                  if (minX === maxX || minY === maxY) {
+                    dialog.close()
+                    Blockbench.showQuickMessage("Nothing in frame")
+                    args.rendering = false
+                    return
+                  }
+                  const aspect = (maxX - minX) / ((maxY - minY) * Preview.selected.height / Preview.selected.width)
+                  let outWidth, outHeight
+                  const resolution = args.antialias ? Math.min(args.resolution * 2, 4096) : args.resolution
+                  if (aspect > 1) {
+                    outWidth = resolution
+                    outHeight = resolution / aspect
+                  } else {
+                    outWidth = resolution * aspect
+                    outHeight = resolution
+                  }
+                  preview.resize(outWidth, outHeight)
+                  preview.controls.target.copy(Preview.selected.controls.target)
+                  preview.camera.position.copy(Preview.selected.camera.position)
+                  const fullWidth = outWidth / (maxX - minX)
+                  const fullHeight = outHeight / (maxY - minY)
+                  preview.camera.setViewOffset(fullWidth, fullHeight, minX * fullWidth, minY * fullHeight, outWidth, outHeight)
+                  preview.render()
+                  const img = new CanvasFrame(preview.canvas)
+                  img.autoCrop()
+                  const imageData = img.ctx.getImageData(0, 0, img.width, img.height)
+                  const data = imageData.data
+                  const length = data.length
+                  const width = img.width
+                  const height = img.height
+                  const width1 = width - 1
+                  const height1 = height - 1
+                  for (let i = length - 4; i >= 0; i -= 4) {
+                    const x = i / 4 % img.width
+                    const y = Math.floor(i / (4 * height))
+                    if (data[i + 3] === 0) {
+                      if (
+                        (x === 0 || data[i - 1] !== 0) &&
+                        (x === width1 || data[i + 7] !== 0) &&
+                        (y === 0 || data[i - width * 4 + 3] !== 0) &&
+                        (y === height1 || data[i + width * 4 + 3] !== 0)
                       ) {
-                        data[i + 3] = 0
+                        let count = 0
+                        let sr, sg, sb, sa
+                        sr = sg = sb = sa = 0
+                        if (x !== 0) {
+                          count++
+                          sr += data[i - 4]
+                          sg += data[i - 3]
+                          sb += data[i - 2]
+                          sa += data[i - 1]
+                        }
+                        if (x !== width1) {
+                          count++
+                          sr += data[i + 4]
+                          sg += data[i + 5]
+                          sb += data[i + 6]
+                          sa += data[i + 7]
+                        }
+                        if (y !== 0) {
+                          count++
+                          sr += data[i - width * 4]
+                          sg += data[i - width * 4 + 1]
+                          sb += data[i - width * 4 + 2]
+                          sa += data[i - width * 4 + 3]
+                        }
+                        if (y !== height1) {
+                          count++
+                          sr += data[i + width * 4]
+                          sg += data[i + width * 4 + 1]
+                          sb += data[i + width * 4 + 2]
+                          sa += data[i + width * 4 + 3]
+                        }
+                        data[i] = sr / count
+                        data[i + 1] = sg / count
+                        data[i + 2] = sb / count
+                        data[i + 3] = sa / count
                       } else {
                         const store = []
                         const queue = [i]
@@ -980,119 +960,181 @@
                           const j = queue.shift()
                           store.push(j)
                           const x = j / 4 % img.width
-                          if (x !== 0 && data[j - 1] !== 0 && !store.includes(j - 4)) queue.push(j - 4)
-                          if (x !== width1 && data[j + 7] !== 0 && !store.includes(j + 4)) queue.push(j + 4)
-                          if (Math.floor(j / (4 * height)) !== 0 && data[j - width * 4 + 3] !== 0 && !store.includes(j - width * 4)) queue.push(j - width * 4)
+                          if (x !== 0 && data[j - 1] === 0 && !store.includes(j - 4)) queue.push(j - 4)
+                          if (x !== width1 && data[j + 7] === 0 && !store.includes(j + 4)) queue.push(j + 4)
+                          if (Math.floor(j / (4 * height)) !== 0 && data[j - width * 4 + 3] === 0 && !store.includes(j - width * 4)) queue.push(j - width * 4)
                         }
                         if (store.length >= 6) continue
                         for (const j of store) {
-                          data[j + 3] = 0
+                          const x = j / 4 % img.width
+                          const y = Math.floor(j / (4 * height))
+                          let count = 0
+                          let sr, sg, sb, sa
+                          sr = sg = sb = sa = 0
+                          if (x !== 0 && data[j - 1] !== 0) {
+                            count++
+                            sr += data[j - 4]
+                            sg += data[j - 3]
+                            sb += data[j - 2]
+                            sa += data[j - 1]
+                          }
+                          if (x !== width1 && data[j + 7] !== 0) {
+                            count++
+                            sr += data[j + 4]
+                            sg += data[j + 5]
+                            sb += data[j + 6]
+                            sa += data[j + 7]
+                          }
+                          if (y !== 0 && data[j - width * 4 + 3] !== 0) {
+                            count++
+                            sr += data[j - width * 4]
+                            sg += data[j - width * 4 + 1]
+                            sb += data[j - width * 4 + 2]
+                            sa += data[j - width * 4 + 3]
+                          }
+                          if (y !== height1 && data[j + width * 4 + 3] !== 0) {
+                            count++
+                            sr += data[j + width * 4]
+                            sg += data[j + width * 4 + 1]
+                            sb += data[j + width * 4 + 2]
+                            sa += data[j + width * 4 + 3]
+                          }
+                          data[j] = sr / count
+                          data[j + 1] = sg / count
+                          data[j + 2] = sb / count
+                          data[j + 3] = sa / count
                         }
+                      } 
+                    } else if (
+                      (x === 0 || data[i - 1] === 0) &&
+                      (x === width1 || data[i + 7] === 0) &&
+                      (y === 0 || data[i - width * 4 + 3] === 0) &&
+                      (y === height1 || data[i + width * 4 + 3] === 0)
+                    ) {
+                      data[i + 3] = 0
+                    } else {
+                      const store = []
+                      const queue = [i]
+                      while (store.length < 6 && queue.length !== 0) {
+                        const j = queue.shift()
+                        store.push(j)
+                        const x = j / 4 % img.width
+                        if (x !== 0 && data[j - 1] !== 0 && !store.includes(j - 4)) queue.push(j - 4)
+                        if (x !== width1 && data[j + 7] !== 0 && !store.includes(j + 4)) queue.push(j + 4)
+                        if (Math.floor(j / (4 * height)) !== 0 && data[j - width * 4 + 3] !== 0 && !store.includes(j - width * 4)) queue.push(j - width * 4)
+                      }
+                      if (store.length >= 6) continue
+                      for (const j of store) {
+                        data[j + 3] = 0
                       }
                     }
-                    img.ctx.putImageData(imageData, 0, 0)
-                    img.autoCrop()
-                    let out
-                    if (args.antialias) {
-                      const canvas = new CanvasFrame(img.width, img.height)
-                      canvas.ctx.filter = "blur(0.75px)"
-                      canvas.ctx.drawImage(img.canvas, 0, 0)
-                      out = new CanvasFrame(Math.floor(img.width / 2), Math.floor(img.height / 2))
-                      out.ctx.drawImage(canvas.canvas, 0, 0, out.width, out.height)
-                    } else {
-                      out = img
-                    }
-                    args.rendering = false
-                    this.content_vue.rendering = false
-                    this.content_vue.image = out.canvas
-                    const size = out.canvas.toDataURL().slice(22).length * 0.75
-                    this.content_vue.dimensions = `${out.canvas.width} x ${out.canvas.height}`
-                    this.content_vue.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
-                    dialog.object.style.width = `${Math.max(450, out.canvas.width)}px`
-                    dialog.object.querySelector(".dialog_title").textContent = "Minecraft Title Render"
-                    dialog.object.style.left = `${Math.clamp((window.innerWidth - dialog.object.clientWidth) / 2, 0, 2000)}px`
-                    dialog.object.addEventListener("keydown", e => {
-                      if (e.key === "Enter") return e.stopPropagation()
-                    })
-                    setTimeout(() => {
-                      this.content_vue.canvas = dialog.object.querySelector("#minecraft-title-output")
-                      this.content_vue.canvas.width = this.content_vue.image.width
-                      this.content_vue.canvas.height = this.content_vue.image.height
-                      this.content_vue.ctx = this.content_vue.canvas.getContext("2d")
-                      this.content_vue.ctx.drawImage(this.content_vue.image, 0, 0)
-                    }, 0)
-                  }), 10)
-                }
-              })
-              dialog.show()
-            },
-            position: loadRenderAngle,
-            custom() {
-              new Dialog({
-                id: "custom_resolution",
-                title: "Custom Resolution",
-                form: {
-                  resolution: {
-                    label: "Resolution",
-                    type: "number",
-                    value: this.resolution,
-                    min: 1,
-                    max: 4096
-                  },
-                  info: {
-                    type: "info",
-                    text: "The resolution determines the width or height of the render, depending on which one is larger. The chosen resolution may not exactly match the render size"
-                  },
-                  info2: {
-                    type: "info",
-                    text: "If antialiasing is enabled, the render size is capped at 2048 pixels"
                   }
+                  img.ctx.putImageData(imageData, 0, 0)
+                  img.autoCrop()
+                  let out
+                  if (args.antialias) {
+                    const canvas = new CanvasFrame(img.width, img.height)
+                    canvas.ctx.filter = "blur(0.75px)"
+                    canvas.ctx.drawImage(img.canvas, 0, 0)
+                    out = new CanvasFrame(Math.floor(img.width / 2), Math.floor(img.height / 2))
+                    out.ctx.drawImage(canvas.canvas, 0, 0, out.width, out.height)
+                  } else {
+                    out = img
+                  }
+                  args.rendering = false
+                  this.content_vue.rendering = false
+                  this.content_vue.image = out.canvas
+                  const size = out.canvas.toDataURL().slice(22).length * 0.75
+                  this.content_vue.dimensions = `${out.canvas.width} x ${out.canvas.height}`
+                  this.content_vue.size = `${size > 1048576 ? `${Math.roundTo(size / 1048576, 2)} MB` : `${Math.round(size / 1024)} KB`}`
+                  dialog.object.style.width = `${Math.max(450, out.canvas.width)}px`
+                  dialog.object.querySelector(".dialog_title").textContent = "Minecraft Title Render"
+                  dialog.object.style.left = `${Math.clamp((window.innerWidth - dialog.object.clientWidth) / 2, 0, 2000)}px`
+                  dialog.object.addEventListener("keydown", e => {
+                    if (e.key === "Enter") return e.stopPropagation()
+                  })
+                  setTimeout(() => {
+                    this.content_vue.canvas = dialog.object.querySelector("#minecraft-title-output")
+                    this.content_vue.canvas.width = this.content_vue.image.width
+                    this.content_vue.canvas.height = this.content_vue.image.height
+                    this.content_vue.ctx = this.content_vue.canvas.getContext("2d")
+                    this.content_vue.ctx.drawImage(this.content_vue.image, 0, 0)
+                  }, 0)
+                }), 10)
+              }
+            })
+            dialog.show()
+          },
+          position: loadRenderAngle,
+          custom() {
+            new Dialog({
+              id: "custom_resolution",
+              title: "Custom Resolution",
+              form: {
+                resolution: {
+                  label: "Resolution",
+                  type: "number",
+                  value: this.resolution,
+                  min: 1,
+                  max: 4096
                 },
-                onConfirm: result => this.resolution = this.antialias ? Math.min(result.resolution, 2048) : result.resolution
-              }).show()
-            }
-          },
-          data: {
-            resolution: 1024,
-            antialias: true,
-            rendering: false
-          },
-          template: `
-            <div id="minecraft-title-render-controls-container">
-              <div id="minecraft-title-render-controls">
-                <div id="minecraft-title-render-button" @click="render" title="Render Minecraft title" :class="{ disabled: rendering }">
-                  <i class="material-icons icon">photo_camera</i>
-                </div>
-                <div class="minecraft-title-render-controls-row">
-                  <i style="margin-left:10px" class="material-icons icon minecraft-title-button" title="Position camera" @click="position">auto_mode</i>
-                  <div id="resolutions">
-                    <div class="resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
-                      <i class="material-icons icon">sd</i>
-                    </div>
-                    <div class="resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
-                      <i class="material-icons icon">hd</i>
-                    </div>
-                    <div class="resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
-                      <svg width="32" height="32" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2M8.808 15h-1.5v-2h-2v2h-1.5V9h1.5v2.5h2V9h1.5v6m.948-6h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4V9m1.5 4.5h2v-3h-2zm8.937-2.25v1.5h-1.5v1.5h-1.5v-1.5h-1.5v-1.5h1.5v-1.5h1.5v1.5"/></svg>
-                    </div>
-                    <div class="resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
-                      <i class="material-icons icon">2k</i>
-                    </div>
-                    <div v-if="!antialias" class="resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
-                      <i class="material-icons icon">4k</i>
-                    </div>
-                    <div class="resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
-                      <i style="font-size:24px;margin-left:-3px" class="material-icons icon">tag</i>
-                    </div>
-                  </div>
-                  <div style="margin-right:-20px">Antialiasing:</div>
-                  <input type="checkbox" :checked="antialias" v-model="antialias" @input="if (resolution > 2048) resolution = 2048">
-                </div>
+                info: {
+                  type: "info",
+                  text: "The resolution determines the width or height of the render, depending on which one is larger. The chosen resolution may not exactly match the render size"
+                },
+                info2: {
+                  type: "info",
+                  text: "If antialiasing is enabled, the render size is capped at 2048 pixels"
+                }
+              },
+              onConfirm: result => this.resolution = this.antialias ? Math.min(result.resolution, 2048) : result.resolution
+            }).show()
+          }
+        },
+        data: {
+          resolution: 1024,
+          antialias: true,
+          rendering: false
+        },
+        template: `
+          <div id="minecraft-title-render-controls">
+            <div id="minecraft-title-render-buttons">
+              <div @click="position" class="tool">
+                <div class="tooltip">Position camera<div class="tooltip_description">Position the camera at the correct angle for rendering a Minecraft Title</div></div>
+                <i class="material-icons icon">text_rotation_angleup</i>
+              </div>
+              <div @click="render" class="tool" :class="{ disabled: rendering }">
+                <div class="tooltip">Render Minecraft Title<div class="tooltip_description">Render the Minecraft Title as an image</div></div>
+                <i class="material-icons icon">photo_camera</i>
               </div>
             </div>
-          `
-        }
-      })
+            <div class="minecraft-title-render-controls-row">
+              <div id="resolutions">
+                <div class="resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
+                  <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M160-80.01c-22 0-40.833-7.823-56.5-23.49S80-137.99 80-159.99l.01-640.02c0-22 7.823-40.823 23.49-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.5 34.49 23.5 56.49l-.01 640.02c0 22-7.823 40.823-23.49 56.49S822-80.01 800-80.01zM280-360h120c11.333 0 20.833-3.833 28.5-11.5S440-388.667 440-400v-60c0-11.333-3.833-20.833-11.5-28.5S411.333-500 400-500H300v-40h80v20h60v-40c0-11.333-3.833-20.833-11.5-28.5S411.333-600 400-600H280c-11.333 0-20.833 3.833-28.5 11.5S240-571.333 240-560v60c0 11.333 3.833 20.833 11.5 28.5S268.667-460 280-460h100v40h-80v-20h-60v40c0 11.333 3.833 20.833 11.5 28.5S268.667-360 280-360zm240 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120z"/></svg>
+                </div>
+                <div class="resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
+                  <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M240-360h60v-80h80v80h60v-240h-60v100h-80v-100h-60zm280 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120zM160-80.01c-22 0-40.833-7.823-56.5-23.49s-23.495-34.49-23.495-56.49l.01-640.02c0-22 7.818-40.823 23.485-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.49 34.49 23.49 56.49v640.02c0 22-7.823 40.823-23.49 56.49s-34.49 23.49-56.49 23.49z"/></svg>
+                </div>
+                <div class="resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
+                  <i class="material-icons icon">1k</i>
+                </div>
+                <div class="resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
+                  <i class="material-icons icon">2k</i>
+                </div>
+                <div v-if="!antialias" class="resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
+                  <i class="material-icons icon">4k</i>
+                </div>
+                <div class="resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
+                  <i style="font-size:24px;margin-left:-3px" class="material-icons icon">tag</i>
+                </div>
+              </div>
+              <div style="margin-right:-20px">Antialiasing:</div>
+              <input type="checkbox" :checked="antialias" v-model="antialias" @input="if (resolution > 2048) resolution = 2048">
+            </div>
+          </div>
+        `
+      }).$mount(vue)
       preview = new Preview({
         id: "minecraft_title_preview",
         antialias: false,
@@ -3083,12 +3125,12 @@
       format.delete()
       action.delete()
       mode.delete()
-      panel.delete()
       styles.delete()
       preview.delete()
       debug.delete()
       dialog.close()
       debugDialog.close()
+      controls.remove()
     }
   })
 
