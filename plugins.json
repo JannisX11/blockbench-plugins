@@ -45,6 +45,7 @@
 		"author": "Geenium",
 		"description": "Loads Bedrock vanilla entity models up to version 1.13",
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
+		"deprecation_note": "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 		"icon": "pets",
 		"variant": "both"
 	},
@@ -305,11 +306,16 @@
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.4.1",
+		"version": "1.5.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-06-10",
-		"await_loading": true
+		"await_loading": true,
+		"contributes": {
+			"formats": ["minectaft_title"]
+		},
+		"has_changelog": true,
+		"website": "https://ewanhowell.com/plugins/minecraft-title-generator/"
 	},
 	"workspaces": {
 		"title": "Workspaces",
@@ -445,17 +451,6 @@
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
-	"bedrock_pivot_fix": {
-		"title": "Bedrock Pivot Fix 2",
-		"icon": "gps_fixed",
-		"author": "JannisX11",
-		"description": "Rotated cubes are broken in custom-block models in older versions of Minecraft: Bedrock Edition. Use this plugin to fix them.",
-		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
-		"version": "2.0.1",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
 	"simplify": {
 		"title": "Simplify Models",
 		"icon": "build",
@@ -479,9 +474,9 @@
 	"voxel_shape_generator": {
 		"title": "VoxelShape Generators",
 		"icon": "fa-cubes",
-		"author": "Spectre0987",
+		"author": "Spectre0987, Nyfaria",
 		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
-		"version": "0.1.0",
+		"version": "0.2.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
@@ -490,7 +485,7 @@
 		"icon": "bar_chart",
 		"author": "CyberStefNef",
 		"description": "Generates Voxel Shapes for Fabric",
-		"version": "0.0.1",
+		"version": "1.0.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
@@ -654,6 +649,7 @@
 		"version": "1.2.0",
 		"variant": "both",
 		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
+		"deprecation_note": "This feature is now built into Blockbench, the plugin is no longer required.",
 		"tags": ["Deprecated", "Minecraft: Java Edition"]
 	},
 	"root_motion_extractor": {
@@ -759,12 +755,14 @@
 	},
 	"bbs_exporter": {
 		"title": "BBS Model Ex/importer",
-		"icon": "fa-file-export",
+		"icon": "icon.png",
 		"author": "McHorse",
 		"description": "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"variant": "both",
-		"tags": ["Exporter"]
+		"tags": ["Exporter", "Importer"],
+		"min_version": "4.8.0",
+		"has_changelog": true
 	},
 	"highlight_generator": {
 		"title": "Highlight Mod Shape Generator",
