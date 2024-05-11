@@ -23061,6 +23061,7 @@
     min_version: "4.9.4",
     variant: "both",
     creation_date: "2022-04-09",
+    has_changelog: true,
     tags: ["Format: Generic Model", "Mesh", "Tool"],
     onload() {
 
