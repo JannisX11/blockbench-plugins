@@ -449,7 +449,7 @@
             </div>
             <div v-if="connection" v-for="[name, c] of Object.entries(categories)" class="cem-models" :class="{ hidden: category !== name }">
               <div v-for="model of c.entities" :class="{ selected: entity === model.name, hidden: !model.name.includes(search) }" @click="entity = model.name">
-                <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders2/' + model.name + '.webp'" loading="lazy">
+                <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
                 <div>{{ model.display_name ?? model.name.replace(/_/g, " ") }}</div>
               </div>
             </div>
