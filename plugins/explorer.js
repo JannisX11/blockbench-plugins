@@ -13,6 +13,7 @@ BBPlugin.register('explorer', {
 	version: '1.0.2',
 	min_version: '4.6.0',
 	variant: 'desktop',
+	tags: ['Files'],
 	onload() {
 
 		function getFileIcon(dirent) {

@@ -3,10 +3,10 @@
 	let cube_action;
 
 	Plugin.register('double_sided_cubes', {
-		title: 'Double Sided Cubes',
+		title: 'Double Sided Cube Generator',
 		author: 'SnaveSutit',
-		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.',
-        tags: ["Minecraft: Java Edition"],
+		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.',
+    tags: ["Minecraft: Java Edition"],
 		icon: 'flip_to_back',
 		version: '1.0.1',
 		variant: 'both',

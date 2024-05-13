@@ -430,7 +430,8 @@
 		author: 'Arcaniax',
 		description: 'Helps making new Bedrock blocks (requires experimental mode)',
 		version: '0.1.1',
-		variant: 'both',
+		variant: 'desktop',
+		tags: ['Minecraft: Bedrock Edition'],
 
 		onload() {
 			export_action = new Action({

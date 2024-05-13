@@ -8,11 +8,7 @@ Plugin.register('csmodel', {
 	icon: 'star',
 	author: 'JannisX11',
 	description: 'Allows to import and export CraftStudio Models (.csmodel).',
-	about: `To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file.
-		Open this file in an archive manager (like 7zip) and extract the model file.
-		Import the file into Blockbench using the import menu.
-		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
-		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
+	about: 'To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file.\nOpen this file in an archive manager (like 7zip) and extract the model file.\nImport the file into Blockbench using the import menu.\n\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.\nMake sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.',
 	tags: ["CraftStudio"],
 	version: '0.1.3',
 	min_version: '3.8.0',

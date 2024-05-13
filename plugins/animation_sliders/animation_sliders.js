@@ -12,7 +12,6 @@
 		tags: ['Animation'],
 		version: '0.3.1',
 		min_version: '3.7.0',
-		new_repository_format: true,
 		variant: 'both',
 		onload() {
 

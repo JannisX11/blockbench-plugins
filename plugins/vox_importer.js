@@ -9,7 +9,7 @@ BBPlugin.register('vox_importer', {
 	title: 'Voxel Importer',  
 	icon: 'view_module',
 	author: 'JannisX11',
-	description: 'Import MagicaVoxel .vox files',
+	description: 'Import voxel (.vox) files',
 	version: '1.2.1',
 	variant: 'both',
 	onload() {

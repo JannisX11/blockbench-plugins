@@ -44,8 +44,10 @@
         icon: "fa-exchange",
         author: "Tschipp",
         description: "Attempts to extract root motion from an animation",
+        about: "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
         version: "1.1.0",
-        tags: ["Minecraft: Bedrock Edition"],
+        tags: ["Minecraft: Bedrock Edition", "Animation", "Root Motion"],
+        variant: "both",
         onload() {
             Blockbench.on("select_mode", (event) => {
                 if (event.mode.name != "Animate")

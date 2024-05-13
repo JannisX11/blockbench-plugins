@@ -584,11 +584,12 @@
         title: "BBS Model Ex/importer",
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
-        icon: "fa-file-export",
+        icon: "icon.png",
         version: "1.2.2",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
+        tags: ["Exporter", "Importer"],
         onload() {
             exportAction = new Action("bbs_exporter", {
                 name: "Export BBS model",

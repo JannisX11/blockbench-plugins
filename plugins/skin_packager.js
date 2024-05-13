@@ -695,7 +695,7 @@
 			`You can also create new skins via **New** > **Minecraft Skin**, in the File menu or on the start screen.\n`+
 			`Export a skin pack via **File** > **Export** > **Export Skin Pack**.`,
 		version: "0.2.0",
-		min_version: '3.7.0',
+		min_version: '4.2.3',
 		variant: 'desktop',
 		await_loading: true,
 		onload() {

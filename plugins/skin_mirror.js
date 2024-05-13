@@ -143,8 +143,10 @@
 		icon: 'icon-mirror_x',
 		author: 'oectway',
 		description: 'Tool that allows you to mirror the arms and legs of existing skins to the other side.',
-		tags: ["Minecraft", "Skins"],
+		about: 'This plugin adds a button under the `Tools` menu that allows you to mirror the arms and legs of existing skins to the other side. Select the type of the skin: Alek (3 Pixel Arm, customSlim) or Steve (4 Pixel Arm, custom). Next, choose whether you want to mirror from left to right, or the other way around. If everything is correct, click "Confirm".',
+		tags: ['Minecraft', 'Skins'],
 		version: '1.1.0',
+		min_version: '4.6.0',
 		variant: 'both',
 		onload() {
 			skin_mirror_action = new Action('open_skin_mirror', {
