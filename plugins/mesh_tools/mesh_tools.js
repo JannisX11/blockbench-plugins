@@ -20002,7 +20002,7 @@
         var token = {};
         token.ha = Math.round(glyph.advanceWidth * scale);
 
-        const { x1: xMin, y1: xMax } = temp1.getPath().getBoundingBox();
+        const { x1: xMin, y1: xMax } = glyph.getPath().getBoundingBox();
         token.x_min = Math.round(xMin * scale);
         token.x_max = Math.round(xMax * scale);
         token.o = "";
@@ -23057,10 +23057,11 @@
     author: "Malik12tree",
     icon: "icon.png",
     description: "Adds powerful mesh modeling tools, operators and generators!",
-    version: "2.0.1",
+    version: "2.0.2",
     min_version: "4.9.4",
     variant: "both",
     creation_date: "2022-04-09",
+    has_changelog: true,
     tags: ["Format: Generic Model", "Mesh", "Tool"],
     onload() {
 
