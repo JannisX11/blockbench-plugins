@@ -10,7 +10,7 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "1.1.1",
+      version: "1.1.2",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
@@ -157,7 +157,15 @@
 
                 let allTexturesSpecified = false
 
-                let data = rawJSONstring instanceof String ? JSON.parse(rawJSONstring) : rawJSONstring
+                let data
+                if(typeof rawJSONstring === 'string'){
+                    data = JSON.parse(rawJSONstring)
+                }else if(rawJSONstring instanceof Object && !(rawJSONstring instanceof Array)){
+                    data = rawJSONstring
+                }else{
+                    throw "Unable to convert file data to Object"
+                }
+
 
                 if(data.textures == undefined){
                     data.textures = {}
@@ -194,7 +202,6 @@
                 if(data.cuboids == undefined){
                     throw Error(`No cuboids found in file ${path}`)
                 }
-
                 for(let cuboid of data.cuboids){
                     let from = cuboid.localBounds.slice(0, 3)
                     let to = cuboid.localBounds.slice(3, 6)
