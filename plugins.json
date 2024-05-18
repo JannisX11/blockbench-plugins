@@ -436,7 +436,9 @@
 		"icon": "fa-compress-arrows-alt",
 		"author": "McHorse",
 		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
-		"version": "1.0.3",
+		"version": "1.0.4",
+		"min_version": "4.8.0",
+		"tags": ["Texture"],
 		"variant": "both"
 	},
 	"arcaniax_block_exporter": {

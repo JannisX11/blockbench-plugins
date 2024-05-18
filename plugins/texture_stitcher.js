@@ -1,71 +1,122 @@
 (function() {
     var button;
+    var createRect = (x, y, w, h) => { return {x, y, w, h}; };
 
-    function calculateRects()
+    function packBoxes(boxes, padding)
     {
-        var width = 0;
-        var height = 0;
-        var rects = [];
-        var x = 0;
-        var t = [];
+        var areas = [];
+        var w = getInitialWidth(boxes, padding);
+        var finalW = 0;
+        var finalH = 0;
 
-        var ts = Texture.all;
+        boxes.sort((a, b) => b.h - a.h);
+        areas.push(createRect(0, 0, w, Number.MAX_VALUE));
 
-        t.push(...ts);
-        t.sort((a, b) => (a.width + a.height) - (b.width + b.height));
-
-        /* Calculate max width and height */
-        var maxW = Project.texture_width;
-        var maxH = Project.texture_height;
-
-        t.forEach(t => 
+        boxes.forEach(box =>
         {
-            maxW = Math.max(maxW, t.width);
-            maxH = Math.max(maxH, t.height);
-        });
-
-        var h = 0;
-        var y = 0;
-        var rows = Math.max(Math.ceil(Math.sqrt(ts.length)), 1);
-
-        t.forEach((texture, i) => 
-        {
-            var multX = maxW / texture.width;
-            var multY = maxH / texture.height;
-            var rect = {
-                texture: texture,
-                x: x,
-                y: y,
-                w: multX * texture.width,
-                h: multY * texture.height,
-                mx: multX,
-                my: multY
-            };
-
-            rects.push(rect);
-
-            x += rect.w;
-            h = Math.max(h, rect.h);
-
-            if ((i + 1) % rows == 0)
+            for (var i = areas.length - 1; i >= 0; i--)
             {
-                y += h;
-                h = 0;
-                x = 0;
+                var area = areas[i];
+
+                if (box.w > area.w || box.h > area.h)
+                {
+                    continue;
+                }
+
+                box.x = area.x;
+                box.y = area.y;
+
+                finalH = Math.max(finalH, box.y + box.h);
+                finalW = Math.max(finalW, box.x + box.w);
+
+                if (box.w == area.w && box.h == area.h)
+                {
+                    var last = areas.pop();
+
+                    if (i < areas.length)
+                    {
+                        areas.set(i, last);
+                    }
+                }
+                else if (box.h == area.h)
+                {
+                    area.x += box.w;
+                    area.w -= box.w;
+
+                }
+                else if (box.w == area.w)
+                {
+                    area.y += box.h;
+                    area.h -= box.h;
+
+                }
+                else
+                {
+                    areas.push(createRect(area.x + box.w, area.y, area.w - box.w, box.h));
+
+                    area.y += box.h;
+                    area.h -= box.h;
+                }
+
+                break;
             }
         });
 
-        rects.forEach(rect => 
+        /* Remove padding from boxes and add them to the final area */
+        if (padding != 0)
         {
-            width = Math.max(width, rect.x + rect.w);
-            height = Math.max(height, rect.y + rect.h);
+            boxes.forEach(glyph =>
+            {
+                glyph.w -= padding;
+                glyph.h -= padding;
+                glyph.x += padding;
+                glyph.y += padding;
+            });
+
+            finalW += padding;
+            finalH += padding;
+        }
+
+        return [finalW, finalH];
+    }
+
+    function getInitialWidth(glyphs, padding)
+    {
+        var totalArea = 0;
+        var maxW = 0;
+
+        glyphs.forEach(box =>
+        {
+            box.w += padding;
+            box.h += padding;
+
+            totalArea += box.w * box.h;
+            maxW = Math.max(maxW, box.w);
         });
+
+        return Math.max(Math.ceil(Math.sqrt(totalArea)), maxW);
+    }
+
+    function calculateRects()
+    {
+        var rects = [];
+
+        Texture.all.forEach(t =>
+        {
+            var rect = createRect(0, 0, t.width, t.height);
+
+            rect.texture = t;
+
+            rects.push(rect);
+        });
+
+        var size = packBoxes(rects, 1);
+        var width = size[0];
+        var height = size[1];
 
         return {
             w: width,
             h: height,
-            mx: maxW / Project.texture_width,
-            my: maxH / Project.texture_height,
             rects: rects
         };
     }
@@ -76,10 +127,9 @@
         const rects = data.rects;
 
         const offscreen = new OffscreenCanvas(data.w, data.h);
-        const tmp = new OffscreenCanvas(10, 10);
         const c = offscreen.getContext('2d');
 
-        rects.forEach(rect => drawToCanvas(c, tmp, rect));
+        rects.forEach(rect => drawToCanvas(c, rect));
 
         const config = {
             type: 'image/png' 
@@ -89,54 +139,16 @@
             var reader = new FileReader();
             
             reader.readAsDataURL(blob);
-            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h, data.mx, data.my);
+            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h);
         });
     }
 
-    function drawToCanvas(c, tmp, rect)
+    function drawToCanvas(c, rect)
     {
-        if (rect.mx === 1 && rect.my === 1)
-        {
-            c.drawImage(rect.texture.img, rect.x, rect.y);
-
-            return;
-        }
-
-        const getIndex = (x, y, width) =>
-        {
-            return y * (width * 4) + x * 4;
-        };
-
-        tmp.width = rect.texture.width;
-        tmp.height = rect.texture.height;
-
-        var ct = tmp.getContext('2d');
-
-        ct.clearRect(0, 0, tmp.width, tmp.height);
-        ct.drawImage(rect.texture.img, 0, 0);
-
-        var data = ct.getImageData(0, 0, tmp.width, tmp.height);
-
-        for (var x = 0; x < rect.w; x++)
-        {
-            for (var y = 0; y < rect.h; y++)
-            {
-                var ix = Math.floor(x / rect.mx);
-                var iy = Math.floor(y / rect.my);
-
-                var index = getIndex(ix, iy, data.width);
-                var r = data.data[index];
-                var g = data.data[index + 1];
-                var b = data.data[index + 2];
-                var a = data.data[index + 3] / 255;
-
-                c.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-                c.fillRect(rect.x + x, rect.y + y, 1, 1);
-            }
-        }
+        c.drawImage(rect.texture.img, rect.x, rect.y);
     }
 
-    function replaceTextures(rects, data, w, h, mx, my)
+    function replaceTextures(rects, data, w, h)
     {
         const getRect = texture_uuid =>
         {
@@ -178,45 +190,36 @@
         newTextures.forEach(t => t.remove(true));
 
         texture.fromDataURL(data).add(false).select();
+        texture.uv_width = w;
+        texture.uv_height = h;
+
+        console.log(texture, texture.uv_width, texture.uv_height, data.w, data.h);
 
         Cube.all.forEach(cube => 
         {
             var toApplySides = [];
 
-            if (Project.box_uv)
+            sides.forEach(side =>
             {
-                var north = cube.faces['north'];
-                var rect = getRect(north.texture);
+                var face = cube.faces[side];
+                var rect = getRect(face.texture);
 
-                if (rect != null)
+                if (rect !== null)
                 {
-                    cube.uv_offset[0] += rect.x / rect.mx;
-                    cube.uv_offset[1] += rect.y / rect.my;
-                }
+                    var mx = rect.texture.width / rect.texture.uv_width;
+                    var my = rect.texture.height / rect.texture.uv_height;
 
-                toApplySides = north.texture !== false;
-            }
-            else
-            {
-                sides.forEach(side =>
-                {
-                    var face = cube.faces[side];
-                    var rect = getRect(face.texture);
+                    face.uv[0] = face.uv[0] * mx + rect.x;
+                    face.uv[1] = face.uv[1] * my + rect.y;
+                    face.uv[2] = face.uv[2] * mx + rect.x;
+                    face.uv[3] = face.uv[3] * my + rect.y;
 
-                    if (rect !== null)
+                    if (face.texture !== false)
                     {
-                        face.uv[0] = face.uv[0] * rect.mx + rect.x;
-                        face.uv[1] = face.uv[1] * rect.my + rect.y;
-                        face.uv[2] = face.uv[2] * rect.mx + rect.x;
-                        face.uv[3] = face.uv[3] * rect.my + rect.y;
-
-                        if (face.texture !== false)
-                        {
-                            toApplySides.push(side);
-                        }
+                        toApplySides.push(side);
                     }
-                });
-            }
+                }
+            });
 
             if (toApplySides !== false)
             {
@@ -243,9 +246,11 @@
                     Object.keys(face.uv).forEach(key => 
                     {
                         var uv = face.uv[key];
+                        var mx = rect.texture.width / rect.texture.uv_width;
+                        var my = rect.texture.height / rect.texture.uv_height;
 
-                        uv[0] = uv[0] * rect.mx + rect.x;
-                        uv[1] = uv[1] * rect.my + rect.y;
+                        uv[0] = uv[0] * mx + rect.x;
+                        uv[1] = uv[1] * my + rect.y;
 
                         applied = true;
                     });
@@ -258,14 +263,6 @@
             });
         }
 
-        Project.texture_width = Project.box_uv ? w / mx : w;
-        Project.texture_height = Project.box_uv ? h / my : h;
-
-        if (Format.per_texture_uv_size) {
-            texture.uv_width = Project.texture_width;
-            texture.uv_height = Project.texture_height;
-        }
-
         Undo.finishEdit('finished stitching');
     }
 
@@ -274,7 +271,9 @@
         author: 'McHorse',
         description: 'Adds a menu item to textures editor that stitches multiple textures into one',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.3',
+        version: '1.0.4',
+        min_version: "4.8.0",
+        tags: ["Texture"],
         variant: 'both',
         onload() 
         {
