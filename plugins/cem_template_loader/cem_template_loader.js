@@ -195,7 +195,7 @@
             openLoader
           },
           template: `
-            <div style="display:flex;flex-direction:column;height:100%">
+            <div class="ewan-format-page" style="display:flex;flex-direction:column;height:100%">
               <p class="format_description">${description}</p>
               <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition with OptiFine</span> <span>Texturing Templates</span></p>
               <content>
