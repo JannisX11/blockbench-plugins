@@ -162,8 +162,9 @@
             author: "strajabot, Kastle, & simplyme",
             icon: "announcement",
             version: "1.1.3",
-            description: "Show a rich presence status in Discord",
+            description: "Show a rich presence status in Discord.",
             variant: "desktop",
+            min_version: "3.2.0",
             onload() {
                 async function r() {
                     if (!s) return;

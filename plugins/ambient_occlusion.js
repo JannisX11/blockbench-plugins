@@ -1306,8 +1306,9 @@ Plugin.register('ambient_occlusion', {
 	icon: 'gradient',
 	author: 'JannisX11',
 	description: 'Adds a screen space ambient occlusion shader',
+	about: 'Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.',
 	version: '1.0.3',
-	min_version: '3.2.0',
+	min_version: '3.4.0',
 	variant: 'both',
 	onload() {
 

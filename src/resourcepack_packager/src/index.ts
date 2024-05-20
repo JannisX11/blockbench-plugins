@@ -28,6 +28,7 @@ import pluginEmitter from './pluginEmitter';
     tags: ['Minecraft: Java Edition', 'Resourcepack', 'Exporter'],
     variant: 'both',
     version: '1.0.1',
+    min_version: '4.4.0',
     oninstall: () => {
       pluginEmitter.emit('install');
     },

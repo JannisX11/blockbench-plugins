@@ -23052,7 +23052,6 @@
    */
   const meshToolTips = [];
   BBPlugin.register(PLUGIN_ID, {
-    new_repository_format: true,
     title: "MTools",
     author: "Malik12tree",
     icon: "icon.png",

@@ -5,6 +5,8 @@ Plugin.register("optimize", {
 "icon": "border_outer",
 "version": "1.2.7",
 "description": "Hide concealed faces for better performance!",
+"min_version": "2.0.2",
+"variant": "both",
 onload() {
 	
 MenuBar.addAction(new Action({

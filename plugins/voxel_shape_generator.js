@@ -7,7 +7,7 @@
         title: 'VoxelShape Generators',
         author: 'Spectre0987, Nyfaria',
         description: 'Generates Voxel Shapes (Supports MojMaps, MCP and Yarn)',
-        icon: 'bar_chart',
+        icon: 'fa-cubes',
         version: '0.2.0',
         variant: 'both',
         tags: ["Minecraft: Java Edition"],

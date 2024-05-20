@@ -14,7 +14,6 @@
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
-      new_repository_format: true,
       onload() {
 	originalJavaBlockCond = Codecs.java_block.load_filter.condition
         Codecs.java_block.load_filter.condition = (model) => {

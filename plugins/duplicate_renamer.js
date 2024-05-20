@@ -4,7 +4,7 @@
         title: 'Duplicate Bone Renamer',
         author: 'Gecko',
         icon: 'fa-font',
-        description: 'This plugin renames duplicate bones so they work in bedrock and GeckoLib',
+        description: 'This plugin renames duplicate bones so they work in bedrock and GeckoLib models',
         about: 'Simply go to Edit -> Rename Duplicates. All duplicate bones will get renamed to {bone}_{number}',
         version: '1.0.0',
         variant: 'both',

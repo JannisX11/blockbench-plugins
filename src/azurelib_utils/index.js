@@ -21,7 +21,6 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
     {},
     blockbenchConfig,
     {
-      name: blockbenchConfig.title,
       version,
       await_loading: true,
       onload() {

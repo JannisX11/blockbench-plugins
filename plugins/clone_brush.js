@@ -9,6 +9,7 @@ Plugin.register('clone_brush', {
 	description: 'Clone Cubes',
 	version: '1.1.1',
 	variant: 'both',
+	min_version: '3.0.0',
 	onload() {
 		clone_brush_tool = new Tool({
 			id: 'clone_brush',

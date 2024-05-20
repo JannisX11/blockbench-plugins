@@ -9,7 +9,7 @@ BBPlugin.register('cameras', {
 	description: 'Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.',
 	about: 'Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
 	version: '1.1.0',
-	min_version: '4.3.0',
+	min_version: '4.5.0',
 	variant: 'both',
 	onload() {
 		

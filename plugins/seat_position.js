@@ -246,6 +246,7 @@
 		description: 'Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks',
 		tags: ["Minecraft: Bedrock Edition"],
 		version: '1.3.2',
+		min_version: '3.0.0',
 		variant: 'both',
 		onload() {
 			seat_pos_action = new Action('open_seat_position', {
