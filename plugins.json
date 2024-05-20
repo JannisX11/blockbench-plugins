@@ -859,7 +859,12 @@
 		"new_repository_format": true,
 		"await_loading": true,
 		"variant": "both",
-		"creation_date": "2023-04-04"
+		"creation_date": "2023-04-04",
+		"contributes": {
+			"formats": ["azure_model"]
+		},
+		"has_changelog": true,
+		"website": "https://wiki.azuredoom.com/readme-1"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",
