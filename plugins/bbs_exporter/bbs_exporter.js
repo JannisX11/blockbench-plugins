@@ -20,17 +20,41 @@
 
     /* Model exporter code */
 
+    function areThereObjects(objects)
+    {
+        for (let i = 0; i < objects.length; i++) 
+        {
+            if (objects[i].type === "group")
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     function createHierarchy(objects)
     {
         var groups = {};
+        var createAnchor = !areThereObjects(objects);
 
-        for (let i = 0; i < objects.length; i++)
+        if (createAnchor)
         {
-            var object = objects[i];
+            var group = new Group();
 
-            if (object.type === "group")
+            group.children = objects;
+            groups.anchor = createModelGroup(group, groups);
+        }
+        else
+        {
+            for (let i = 0; i < objects.length; i++)
             {
-                groups[object.name] = createModelGroup(object, groups);
+                var object = objects[i];
+    
+                if (object.type === "group")
+                {
+                    groups[object.name] = createModelGroup(object, groups);
+                }
             }
         }
 
@@ -584,8 +608,8 @@
         title: "BBS Model Ex/importer",
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
-        icon: "fa-file-export",
-        version: "1.2.2",
+        icon: "icon.png",
+        version: "1.2.3",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
