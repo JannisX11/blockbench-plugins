@@ -288,7 +288,7 @@ var format = new ModelFormat({
     single_texture: true,
     bone_rig: true,
     centered_grid: true,
-    animated_textures: false,
+    animated_textures: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
