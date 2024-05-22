@@ -226,9 +226,7 @@ export function maybeExportItemJson(options = {}, as) {
     if (checkExport('comment', settings.credit.value)) {
         blockmodel.credit = settings.credit.value
     }
-    if (checkExport('parent', Project.parent != '')) {
-        blockmodel.parent = 'builtin/entity'
-    }
+    blockmodel.parent = 'builtin/entity'
     if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
         blockmodel.ambientocclusion = false
     }
