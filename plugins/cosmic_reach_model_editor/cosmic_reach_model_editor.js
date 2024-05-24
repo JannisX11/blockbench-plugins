@@ -169,10 +169,6 @@
 
                 let root = lastOccuranceOfSequenceInArray(patharr, ["models", "blocks"])
 
-                if(patharr.length > 1){
-                    patharr = [...patharr.slice(0, patharr.length - 2), "textures", patharr.pop()]
-                }
-
                 let facenamesbb = ["up", "down", "north", "south", "east", "west"]
                 let facenamescr = ["localPosY", "localNegY", "localNegZ", "localPosZ", "localPosX", "localNegX"]
 
