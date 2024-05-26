@@ -12,7 +12,7 @@
       tags: ["Cosmic Reach"],
       version: "1.2.0",
       min_version: "4.8.0",
-      creation_date: "2024-05-24",
+      creation_date: "2024-04-19",
       variant: "both",
       new_repository_format: true,
       has_changelog: true,
