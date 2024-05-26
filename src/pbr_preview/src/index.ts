@@ -878,7 +878,7 @@ interface IChannel {
               heightmap?: string;
             };
           } = {
-            format_version: "1.16.200",
+            format_version: "1.16.100",
             "minecraft:texture_set": {
               color:
                 (projectColorMap
