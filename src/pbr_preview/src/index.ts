@@ -693,7 +693,6 @@ interface IChannel {
     materialParams?: THREE.MeshStandardMaterialParameters,
   ) => {
     // Don't overwrite placeholder material in Edit and Paint mode
-      (Texture.all.length === 0 && Modes.id !== `${PLUGIN_ID}_mode`)
     if (!Project || Texture.all.length === 0) {
       return;
     }
@@ -1261,7 +1260,7 @@ interface IChannel {
       description: "Toggle PBR Preview",
       icon: "panorama_photosphere",
       category: "view",
-      condition: () => (Project && Project.textures.length > 0) === true,
+      // condition: () => (Project && Project.textures.length > 0) === true,
       linked_setting: "pbr_active",
       default: false,
       click() {},
