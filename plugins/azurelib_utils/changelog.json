@@ -20,5 +20,19 @@
 				]
 			}
 		]
+	},
+	"1.0.7": {
+		"title": "1.0.7",
+		"date": "2024-05-21",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Makes builtin/entity always be part of the display export for AzureLib Projects",
+					"Enables animated texture support for format"
+				]
+			}
+		]
 	}
 }
