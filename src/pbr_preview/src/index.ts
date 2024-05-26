@@ -1113,7 +1113,7 @@ interface IChannel {
       name: "Export MER",
       description:
         "Exports a texture map from the metalness, emissive, and roughness channels. (For use in Bedrock resource packs.)",
-      condition: () => Format.id == "bedrock",
+      // condition: () => Format.id == "bedrock",
       click() {
         exportMer();
       },
@@ -1124,7 +1124,7 @@ interface IChannel {
       name: "Decode MER",
       description:
         "Decodes a MER texture map into metalness, emissive, and roughness channels",
-      condition: () => Format.id == "bedrock",
+      // condition: () => Format.id == "bedrock",
       click() {
         const projectTextures = getProjectTextures();
         const selected =
@@ -1168,7 +1168,7 @@ interface IChannel {
       icon: "layers",
       description:
         "Creates a texture set JSON file. Generates a MER when metalness, emissive, or roughness channels are set.",
-      condition: () => Format.id == "bedrock",
+      // condition: () => Format.id == "bedrock",
       click() {
         createTextureSetDialog();
       },
