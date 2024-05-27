@@ -48,6 +48,8 @@ interface IChannel {
   let exposureSetting: Setting;
   let correctLightsSetting: Setting;
   let tonemappingSetting: Setting;
+  let globalMetalnessSetting: Setting;
+  let globalRoughnessSetting: Setting;
   let pbrMaterialsProp: Property;
   let projectMaterialsProp: Property;
   let projectPbrModeProp: Property;
@@ -180,9 +182,9 @@ interface IChannel {
         normalMap: this.getTexture(CHANNELS.normal),
         bumpMap: this.getTexture(CHANNELS.height),
         metalnessMap,
-        metalness: metalnessMap ? 1 : 0,
+        metalness: metalnessMap ? Settings.get("global_metalness") : 0,
         roughnessMap,
-        roughness: roughnessMap ? 1 : 0,
+        roughness: roughnessMap ? Settings.get("global_roughness") : 0,
         emissiveMap,
         emissiveIntensity: emissiveMap ? 1 : 0,
         emissive: emissiveMap ? 0xffffff : 0,
@@ -1069,6 +1071,30 @@ interface IChannel {
       },
     });
 
+    globalMetalnessSetting = new Setting("global_metalness", {
+      category: "preview",
+      name: "Global Metalness",
+      description: "Adjusts the base metalness of the scene",
+      type: "number",
+      default_value: 0,
+      icon: "iron",
+      step: 0.01,
+      min: 0,
+      max: 1,
+    });
+
+    globalRoughnessSetting = new Setting("global_roughness", {
+      category: "preview",
+      name: "Global Roughness",
+      description: "Adjusts the base roughness of the scene",
+      type: "number",
+      default_value: 0,
+      icon: "iron",
+      step: 0.01,
+      min: 0,
+      max: 1,
+    });
+
     //
     // Actions
     //
@@ -1455,11 +1481,12 @@ interface IChannel {
     toggleCorrectLights?.delete();
     correctLightsSetting?.delete();
     tonemappingSetting?.delete();
-    deactivatePbr?.delete();
     unassignChannel?.delete();
     projectMaterialsProp?.delete();
     pbrMaterialsProp?.delete();
     projectPbrModeProp?.delete();
+    globalMetalnessSetting?.delete();
+    globalRoughnessSetting?.delete();
   };
 
   //
