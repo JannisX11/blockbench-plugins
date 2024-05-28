@@ -27,6 +27,7 @@ interface IChannel {
   map: string;
   id: string;
   icon?: string;
+  default?: THREE.Color;
 }
 
 (() => {
@@ -35,6 +36,7 @@ interface IChannel {
   let generateMer: Action;
   let generateNormal: Action;
   let unassignChannel: Action;
+  let createMaterialTexture: Action;
   let togglePbr: Toggle;
   let pbrDisplaySetting: Setting;
   let displaySettingsPanel: Panel;
@@ -66,6 +68,7 @@ interface IChannel {
       description: "The color of the material",
       map: "map",
       icon: "tonality",
+      default: new THREE.Color(0xffffff),
     },
     metalness: {
       id: "metalness",
@@ -73,6 +76,7 @@ interface IChannel {
       description: "The material's metalness map",
       map: "metalnessMap",
       icon: "brightness_6",
+      default: new THREE.Color(0),
     },
     emissive: {
       id: "emissive",
@@ -80,6 +84,7 @@ interface IChannel {
       description: "The material's emissive map",
       map: "emissiveMap",
       icon: "wb_twilight",
+      default: new THREE.Color(0),
     },
     roughness: {
       id: "roughness",
@@ -87,6 +92,7 @@ interface IChannel {
       description: "The material's roughness map",
       map: "roughnessMap",
       icon: "grain",
+      default: new THREE.Color(0xffffff),
     },
     height: {
       id: "height",
@@ -94,6 +100,7 @@ interface IChannel {
       description: "The material's height map",
       map: "bumpMap",
       icon: "landscape",
+      default: new THREE.Color(0xffffff),
     },
     normal: {
       id: "normal",
@@ -101,6 +108,7 @@ interface IChannel {
       description: "The material's normal map",
       map: "normalMap",
       icon: "looks",
+      default: new THREE.Color("rgb(128, 128, 255)"),
     },
     ao: {
       id: "ao",
@@ -108,6 +116,7 @@ interface IChannel {
       description: "The material's ambient occlusion map",
       map: "aoMap",
       icon: "motion_mode",
+      default: new THREE.Color(0xffffff),
     },
   };
 
@@ -516,8 +525,16 @@ interface IChannel {
         return null;
       }
 
-      const width = Math.max(texture.img.width ?? texture.canvas.width, 16);
-      const height = Math.max(texture.img.height ?? texture.canvas.height, 16);
+      const width = Math.max(
+        texture.img.width ?? texture.canvas.width,
+        Project ? Project.texture_width : 0,
+        16,
+      );
+      const height = Math.max(
+        texture.img.height ?? texture.canvas.height,
+        Project ? Project.texture_height : 0,
+        16,
+      );
 
       const { data: textureData } = textureCtx.getImageData(
         0,
@@ -586,7 +603,8 @@ interface IChannel {
           },
           texture.texture,
         );
-        texture.texture.layers.push(normalMapLayer);
+
+        normalMapLayer.addForEditing();
 
         return normalMapLayer;
       }
@@ -595,11 +613,11 @@ interface IChannel {
         name,
         saved: false,
         particle: false,
-        keep_size: true,
+        keep_size: false,
       }).fromDataURL(dataUrl);
 
       if (Project) {
-        Project.textures.push(normalMapTexture);
+        normalMapTexture.add();
       }
 
       return normalMapTexture;
@@ -776,6 +794,26 @@ interface IChannel {
 
     Project.pbr_active = false;
     Canvas.updateAll();
+  };
+
+  const colorDataUrl = (color: THREE.Color, src?: HTMLCanvasElement) => {
+    const canvas = src ?? document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return null;
+    }
+
+    const width = Math.max(Project ? Project.texture_width : 16, 16);
+    const height = Math.max(Project ? Project.texture_height : 16, 16);
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`;
+    ctx.fillRect(0, 0, width, height);
+
+    return canvas.toDataURL();
   };
 
   //
@@ -1200,6 +1238,62 @@ interface IChannel {
       },
     });
 
+    createMaterialTexture = new Action(`${PLUGIN_ID}_create_material_texture`, {
+      icon: "stacks",
+      name: "Create Material Texture",
+      description: "Creates a new texture for a PBR material",
+      click() {
+        if (!Project) {
+          return;
+        }
+
+        const texture = new Texture({
+          name: "New Material",
+          saved: false,
+          particle: false,
+          keep_size: false,
+          layers_enabled: true,
+        });
+
+        const filler = colorDataUrl(new THREE.Color(0x808080));
+
+        if (!filler) {
+          return;
+        }
+
+        texture.fromDataURL(filler).add().select();
+        // texture.activateLayers(false);
+
+        // Create PBR channels as texture layers for the new texture
+        Object.keys(CHANNELS).forEach((key) => {
+          const channel = CHANNELS[key];
+
+          const layer = new TextureLayer(
+            {
+              name: channel.label,
+              visible: true,
+            },
+            texture,
+          );
+
+          layer.setSize(texture.width, texture.height);
+
+          const data = colorDataUrl(
+            channel.default ?? new THREE.Color(0),
+            layer.canvas,
+          );
+
+          if (data) {
+            layer.texture.fromDataURL(data);
+          }
+
+          layer.extend({ channel: key });
+          texture.layers.push(layer);
+          // layer.addForEditing();
+        });
+      },
+    });
+
     Object.entries(CHANNELS).forEach(([key, channel]) => {
       channelActions[key] = new Action(`${PLUGIN_ID}_assign_channel_${key}`, {
         icon: channel.icon ?? "tv_options_edit_channels",
@@ -1407,6 +1501,7 @@ interface IChannel {
             "toggle_pbr",
             `${PLUGIN_ID}_correct_lights`,
             `${PLUGIN_ID}_show_channel_menu`,
+            `${PLUGIN_ID}_create_material_texture`,
           ],
           name: "PBR",
         }),
@@ -1468,6 +1563,7 @@ interface IChannel {
     displaySettingsPanel?.delete();
     textureSetDialog?.delete();
     pbrDisplaySetting?.delete();
+    createMaterialTexture?.delete();
     generateMer?.delete();
     generateNormal?.delete();
     togglePbr?.delete();

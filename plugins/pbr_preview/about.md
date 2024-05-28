@@ -54,13 +54,17 @@ This plugin adds the _PBR Settings_ panel, which controls enabling and disabling
 
 ### Channel Management
 
-Control which textures or texture layers are used for PBR channels using the following methods:W
+Control which textures or texture layers are used for PBR channels using the following methods:
+
+#### Create Material Texture
+
+- Use the _Create Material Texture_ action to create a blank texture with PBR material layers initialized.
 
 #### Channel Naming Convention
 
 The plugin will assume that textures and layers which end in an underscore and a channel name are intended to be used as that channel. For example, `texture_roughness` will be used as the roughness map unless the channel has been manually assigned a texture.
 
-#### Supported Channels
+##### Supported Channels
 | Channel   | Description | Colorspace |
 |-----------|-------------|------------|
 | `ao`      | Ambient Occlusion | __BW__ |
@@ -79,6 +83,17 @@ Create a Texture Layer in Blockbench to enable channel assignment in PBR preview
 
 Channels can be disabled by hiding or deleting the layer, or un-assigning the channel in the menu. Texture layers cannot be assigned to more than one channel. Assigning a layer to a new channel will clear the layer's current channel.
 
+### Global Settings
+
+The following Blockbench settings are added by this plugin:
+
+#### Global Metalness / Roughness
+
+- Adjusts the metalness or roughness multiplier used in the PBR Preview scene.
+
+---
+
 ## Roadmap
 - Java project support
 - labPBR texture exports
+- Preview scene PostFX
