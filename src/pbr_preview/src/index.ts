@@ -128,7 +128,7 @@ interface IChannel {
     }
 
     return allTextures
-      .filter((t: Texture) => t.layers.length > 0)
+      .filter((t: Texture) => t.layers_enabled && t.layers.length > 0)
       .flatMap((t: Texture) => t.layers);
   };
 
@@ -189,11 +189,12 @@ interface IChannel {
           ),
         aoMap: this.getTexture(CHANNELS.ao),
         normalMap: this.getTexture(CHANNELS.normal),
+        normalScale: new THREE.Vector2(1, 1),
         bumpMap: this.getTexture(CHANNELS.height),
         metalnessMap,
-        metalness: metalnessMap ? Settings.get("global_metalness") : 0,
+        metalness: metalnessMap ? Settings.get("global_metalness") : undefined,
         roughnessMap,
-        roughness: roughnessMap ? Settings.get("global_roughness") : 0,
+        roughness: roughnessMap ? Settings.get("global_roughness") : undefined,
         emissiveMap,
         emissiveIntensity: emissiveMap ? 1 : 0,
         emissive: emissiveMap ? 0xffffff : 0,
@@ -657,7 +658,9 @@ interface IChannel {
    * @returns void
    */
   const exportMer = (cb?: (filePath: string) => void) => {
-    const selected = Texture.all.find((t) => t.selected);
+    const selected = Project
+      ? Project.selected_texture
+      : Texture.all.find((t) => t.selected);
 
     if (!selected) {
       return;
@@ -1127,7 +1130,7 @@ interface IChannel {
       description: "Adjusts the base roughness of the scene",
       type: "number",
       default_value: 0,
-      icon: "iron",
+      icon: "grain",
       step: 0.01,
       min: 0,
       max: 1,
