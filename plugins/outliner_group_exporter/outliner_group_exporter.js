@@ -2,7 +2,6 @@
     var separator;
     var actionExportGroup;
     var originalExportFunction;
-    var originalGroupOpenContext;
     BBPlugin.register('outliner_group_exporter', {
         title: 'Group Exporter',
         author: 'MrCrayfish',
@@ -24,7 +23,10 @@
                 icon: 'insert_drive_file',
                 category: 'export',
                 // Only allow on java_block format or custom formats that can support it (e.g. ones that use Cubes)
-                condition: () => Format.id === 'java_block' || Format.allowOutlinerGroupExporting
+                condition: () => Format.id === 'java_block' || Format.allowOutlinerGroupExporting,
+                children() {
+                    return MenuBar.menus.file.structure.find(menu => menu.id === 'export')?.children;
+                }
             });
 
             // Append the separator and action to group menu
@@ -73,26 +75,10 @@
                 originalExportFunction.call(this);
                 resetCubes(restrict);
             };
-
-            // Patch the context menu to include export options. Have to do this lazily
-            let patchedMenu = false;
-            originalGroupOpenContext = Group.prototype.showContextMenu;
-            Group.prototype.showContextMenu = function(event) {
-                if(!patchedMenu) {
-                    MenuBar.menus.file.structure.forEach(menu => {
-                        if(menu.id === 'export') {
-                            actionExportGroup.children = menu.children.slice(0);
-                        }
-                    });
-                    patchedMenu = true;
-                }
-                originalGroupOpenContext.call(this, event);
-            }
         },
         onunload() {
             // Clean up
             Codec.prototype.export = originalExportFunction;
-            Group.prototype.showContextMenu = originalGroupOpenContext;
             Group.prototype.menu.removeAction(separator);
             Group.prototype.menu.removeAction(actionExportGroup);
             actionExportGroup.delete();
