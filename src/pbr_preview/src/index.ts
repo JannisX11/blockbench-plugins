@@ -199,7 +199,7 @@ interface IChannel {
           PbrMaterial.makePixelatedCanvas(
             TextureLayer.selected?.canvas ??
               Texture.all.find((t) => t.selected)?.canvas ??
-              Texture.all[0].canvas,
+              Texture.getDefault().canvas,
           ),
         aoMap: this.getTexture(CHANNELS.ao),
         normalMap: this.getTexture(CHANNELS.normal),
@@ -1130,7 +1130,6 @@ interface IChannel {
       type: "toggle",
       default_value: false,
       icon: "light_mode",
-      condition: () => !!Project,
       onChange(value) {
         Preview.selected.renderer.physicallyCorrectLights = value;
 
@@ -1172,15 +1171,13 @@ interface IChannel {
       step: 0.1,
       min: -2,
       max: 2,
-      // condition: () =>
-      //   Project &&
-      //   Project.pbr_active &&
-      //   Preview.selected.renderer.toneMapping !== THREE.NoToneMapping,
       onChange(value) {
         Preview.selected.renderer.toneMappingExposure = Math.max(
           -2,
           Math.min(2, Number(value)),
         );
+
+        applyPbrMaterial();
       },
     });
 
@@ -1307,9 +1304,12 @@ interface IChannel {
       icon: "layers",
       description:
         "Creates a texture set JSON file. Generates a MER when metalness, emissive, or roughness channels are set.",
-      // condition: () => Format.id == "bedrock",
       click() {
         createTextureSetDialog();
+      },
+      condition: {
+        formats: ["bedrock"],
+        project: true,
       },
     });
 
@@ -1362,9 +1362,9 @@ interface IChannel {
             layer.texture.fromDataURL(data);
           }
 
-          layer.extend({ channel: key });
-          texture.layers.push(layer);
-          // layer.addForEditing();
+          layer.extend({ channel: channel.id });
+
+          layer.addForEditing();
         });
       },
     });
@@ -1455,7 +1455,6 @@ interface IChannel {
       description: "Toggle PBR Preview",
       icon: "panorama_photosphere",
       category: "view",
-      // condition: () => (Project && Project.textures.length > 0) === true,
       linked_setting: "pbr_active",
       default: false,
       click() {},
@@ -1483,26 +1482,6 @@ interface IChannel {
       click() {},
     });
 
-    exposureSlider = new BarSlider(`${PLUGIN_ID}_exposure`, {
-      category: "preview",
-      name: "Exposure",
-      description: "Adjusts the exposure of the scene",
-      icon: "exposure",
-      min: -2,
-      max: 2,
-      step: 0.1,
-      value: Settings.get("display_settings_exposure") ?? 1,
-      display_condition: {
-        modes: ["edit", "paint", "animate"],
-        project: true,
-      },
-      onChange({ value }) {
-        exposureSetting.set(value);
-      },
-    });
-
-    exposureSlider.addLabel(true, exposureSlider);
-
     channelMenu = new Menu(
       `${PLUGIN_ID}_channel_menu`,
       [
@@ -1529,42 +1508,6 @@ interface IChannel {
       },
     });
 
-    tonemappingSelect = new BarSelect(`${PLUGIN_ID}_tonemapping`, {
-      category: "preview",
-      name: "Tone Mapping",
-      description: "Select the tone mapping function",
-      icon: "palette",
-      value: THREE.NoToneMapping,
-      linked_setting: "display_settings_tone_mapping",
-      options: {
-        [THREE.NoToneMapping]: {
-          name: "No Tone Mapping",
-          icon: "invert_colors_off",
-        },
-        [THREE.LinearToneMapping]: {
-          name: "Linear",
-          icon: "linear_scale",
-        },
-        [THREE.ReinhardToneMapping]: {
-          name: "Reinhard",
-          icon: "brightness_medium",
-        },
-        [THREE.CineonToneMapping]: {
-          name: "Cineon",
-          icon: "brightness_high",
-        },
-        [THREE.ACESFilmicToneMapping]: {
-          name: "ACES",
-          icon: "brightness_auto",
-        },
-      },
-      onChange({ value }) {
-        tonemappingSetting.set(value);
-
-        applyPbrMaterial();
-      },
-    });
-
     //
     // Tools
     //
@@ -1577,8 +1520,8 @@ interface IChannel {
         min: 0,
         max: 1,
         step: 0.01,
+        default: 0,
       },
-      value: 0,
     });
 
     brushRoughnessSlider = new NumSlider("slider_brush_roughness", {
@@ -1589,8 +1532,8 @@ interface IChannel {
         min: 0,
         max: 1,
         step: 0.01,
+        default: 1,
       },
-      value: 1,
     });
 
     brushEmissiveColor = new ColorPicker("brush_emissive_color", {
@@ -1608,8 +1551,8 @@ interface IChannel {
         min: 0,
         max: 1,
         step: 0.01,
+        default: 0.5,
       },
-      value: 0.5,
     });
 
     materialBrushTool = new Tool("material_brush", {
@@ -1688,12 +1631,6 @@ interface IChannel {
           ],
           name: "PBR",
         }),
-        new Toolbar(`${PLUGIN_ID}_display_settings_toolbar`, {
-          id: `${PLUGIN_ID}_display_settings_toolbar`,
-          children: [`${PLUGIN_ID}_tonemapping`, `${PLUGIN_ID}_exposure`],
-          // condition: () => Project && Project.pbr_active,
-          name: "Display Settings",
-        }),
       ],
       display_condition: {
         modes: ["edit", "paint", "animate"],
@@ -1713,8 +1650,7 @@ interface IChannel {
         folded: false,
       },
       insert_after: "textures",
-      insert_before: "paint",
-      condition: () => !!Project && Project.textures.length > 0,
+      insert_before: "color",
     });
 
     materialBrushPanel = new Panel(`${PLUGIN_ID}_material_brush_panel`, {
@@ -1733,10 +1669,7 @@ interface IChannel {
           name: "Material Brush",
         }),
       ],
-      display_condition: {
-        modes: ["paint"],
-        project: true,
-      },
+      condition: () => Modes.paint,
       component: {},
       expand_button: true,
       growable: false,
@@ -1752,7 +1685,6 @@ interface IChannel {
       },
       insert_after: "color",
       insert_before: "outliner",
-      condition: () => !!Project && Project.textures.length > 0,
     });
 
     MenuBar.addAction(generateMer, "file.export");
