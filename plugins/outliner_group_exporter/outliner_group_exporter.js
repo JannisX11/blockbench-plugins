@@ -14,7 +14,7 @@
         onload() {
             // Add translations
             window.Language.addTranslations('en', {
-                'action.export_outliner_group': "Export..."
+                'action.export_outliner_group': "Export"
             });
 
             // Setup action and separator
