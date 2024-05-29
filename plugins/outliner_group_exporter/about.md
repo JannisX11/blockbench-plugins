@@ -1,5 +1,3 @@
-# Group Exporter
-
 Group Exporter is a simple plugin that allows you to export groups from the outliner as a model. Only the cubes that are contained within the group will be exported. This plugin is only for the Java Block/Item format, and supporting custom formats.
 
 ## How to use Group Exporter
