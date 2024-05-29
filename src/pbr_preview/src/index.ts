@@ -55,6 +55,13 @@ interface IChannel {
   let pbrMaterialsProp: Property;
   let projectMaterialsProp: Property;
   let projectPbrModeProp: Property;
+  let materialBrushPanel: Panel;
+  let materialBrushTool: Tool;
+  let setBrushMaterial: Action;
+  let brushMetalnessSlider: NumSlider;
+  let brushRoughnessSlider: NumSlider;
+  let brushEmissiveColor: ColorPicker;
+  let brushHeightSlider: NumSlider;
 
   const channelActions: Record<IChannel["id"], Action> = {};
 
@@ -136,6 +143,13 @@ interface IChannel {
   // Classes
   //
 
+  /**
+   * ### PBR Material
+   * Class for handling PBR materials in Blockbench
+   *
+   * Uses a texture's layers to generate a PBR material,
+   * or a project's textures if no layers are available.
+   */
   class PbrMaterial {
     private _scope: Array<Texture | TextureLayer>;
     private _materialUuid: string;
@@ -625,6 +639,65 @@ interface IChannel {
     }
   }
 
+  /**
+   * ### Material Brush
+   * Class for painting across multiple TextureLayers in a Texture
+   * Used to iterate over PBR channels and apply a brush value to each layer
+   * at the same UV coordinates
+   */
+  class MaterialBrush {
+    private _colors: Record<IChannel["id"], THREE.Color>;
+
+    constructor({ colors }: { colors?: Record<IChannel["id"], THREE.Color> }) {
+      this._colors = {
+        ...Object.fromEntries(
+          Object.keys(CHANNELS).map((key) => [
+            key,
+            CHANNELS[key].default ?? new THREE.Color(0xffffff00),
+          ]),
+        ),
+        ...colors,
+      };
+    }
+
+    get colors() {
+      return this._colors;
+    }
+
+    set colors(colors: Record<IChannel["id"], THREE.Color>) {
+      this._colors = { ...this._colors, ...colors };
+    }
+
+    getChannel(channel: IChannel["id"]) {
+      return this._colors[channel];
+    }
+
+    static makeLinearColor(value: number) {
+      const clamped = Math.min(1, Math.max(0, value));
+      return new THREE.Color(clamped, clamped, clamped).convertSRGBToLinear();
+    }
+
+    static fromSettings() {
+      const metalnessValue = Number(brushMetalnessSlider.get());
+      const roughnessValue = Number(brushRoughnessSlider.get());
+      const emissiveValue = brushEmissiveColor.get().toString();
+      const heightValue = Number(brushHeightSlider.get());
+      const currentColor = ColorPanel.get();
+
+      const colors = {
+        [CHANNELS.albedo.id]: new THREE.Color(currentColor),
+        [CHANNELS.metalness.id]: MaterialBrush.makeLinearColor(metalnessValue),
+        [CHANNELS.roughness.id]: MaterialBrush.makeLinearColor(roughnessValue),
+        [CHANNELS.emissive.id]: new THREE.Color(emissiveValue ?? "#000000"),
+        [CHANNELS.height.id]: MaterialBrush.makeLinearColor(heightValue),
+        [CHANNELS.normal.id]:
+          CHANNELS.normal.default ?? new THREE.Color("#8080ff"),
+      };
+
+      return new MaterialBrush({ colors });
+    }
+  }
+
   channelProp = new Property(TextureLayer, "enum", "channel", {
     default: NA_CHANNEL,
     values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
@@ -1039,7 +1112,6 @@ interface IChannel {
       type: "toggle",
       default_value: false,
       icon: "tonality",
-      launch_setting: true,
       onChange(value) {
         if (value) {
           applyPbrMaterial();
@@ -1493,6 +1565,114 @@ interface IChannel {
       },
     });
 
+    //
+    // Tools
+    //
+
+    brushMetalnessSlider = new NumSlider("slider_brush_metalness", {
+      category: "paint",
+      name: "Metalness",
+      description: "Adjust the metalness of the brush",
+      settings: {
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      value: 0,
+    });
+
+    brushRoughnessSlider = new NumSlider("slider_brush_roughness", {
+      category: "paint",
+      name: "Roughness",
+      description: "Adjust the roughness of the brush",
+      settings: {
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      value: 1,
+    });
+
+    brushEmissiveColor = new ColorPicker("brush_emissive_color", {
+      category: "paint",
+      name: "Emissive",
+      description: "Adjust the emissive color of the brush",
+      value: "#000000",
+    });
+
+    brushHeightSlider = new NumSlider("slider_brush_height", {
+      category: "paint",
+      name: "Height",
+      description: "Adjust the height of the brush",
+      settings: {
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      value: 0.5,
+    });
+
+    materialBrushTool = new Tool("material_brush", {
+      name: "Material Brush",
+      description: "Paints across multiple texture layers",
+      icon: "view_in_ar",
+      paintTool: true,
+      cursor: "cell",
+      condition: {
+        project: true,
+        modes: ["paint"],
+      },
+      brush: {
+        blend_modes: false,
+        shapes: true,
+        size: true,
+        softness: true,
+        opacity: true,
+        offset_even_radius: true,
+        floor_coordinates: true,
+        changePixel(x, y, px, alpha, { size, softness, texture }) {
+          const mat = MaterialBrush.fromSettings();
+
+          texture.layers
+            .filter(
+              ({ visible, channel }) =>
+                visible && channel && channel !== NA_CHANNEL,
+            )
+            .forEach((layer) => {
+              const fill = mat.getChannel(layer.channel);
+
+              if (!fill) {
+                return;
+              }
+
+              layer.ctx.fillStyle = fill.getStyle();
+              layer.ctx.fillRect(size * x, size * y, size, size);
+            });
+
+          texture.updateChangesAfterEdit();
+
+          Canvas.updateAllFaces(texture);
+
+          return px;
+        },
+      },
+      onCanvasClick(data) {
+        Painter.startPaintToolCanvas(data, data.event);
+      },
+      onSelect() {
+        applyPbrMaterial();
+      },
+      click() {
+        applyPbrMaterial();
+      },
+    });
+
+    MenuBar.addAction(materialBrushTool, "tools.0");
+
+    //
+    // UI
+    //
+
     displaySettingsPanel = new Panel(`${PLUGIN_ID}_display_settings`, {
       name: "PBR Settings",
       id: `${PLUGIN_ID}_display_settings_panel`,
@@ -1534,6 +1714,45 @@ interface IChannel {
       },
       insert_after: "textures",
       insert_before: "paint",
+      condition: () => !!Project && Project.textures.length > 0,
+    });
+
+    materialBrushPanel = new Panel(`${PLUGIN_ID}_material_brush_panel`, {
+      name: "Material Brush",
+      id: `${PLUGIN_ID}_material_brush_panel`,
+      icon: "view_in_ar",
+      toolbars: [
+        new Toolbar(`${PLUGIN_ID}_material_brush_toolbar`, {
+          id: `${PLUGIN_ID}_material_brush_toolbar`,
+          children: [
+            "slider_brush_metalness",
+            "slider_brush_roughness",
+            "brush_emissive_color",
+            "slider_brush_height",
+          ],
+          name: "Material Brush",
+        }),
+      ],
+      display_condition: {
+        modes: ["paint"],
+        project: true,
+      },
+      component: {},
+      expand_button: true,
+      growable: false,
+      onFold() {},
+      onResize() {},
+      default_side: "right",
+      default_position: {
+        slot: "right_bar",
+        float_position: [0, 0],
+        float_size: [400, 300],
+        height: 300,
+        folded: false,
+      },
+      insert_after: "color",
+      insert_before: "outliner",
+      condition: () => !!Project && Project.textures.length > 0,
     });
 
     MenuBar.addAction(generateMer, "file.export");
@@ -1542,6 +1761,7 @@ interface IChannel {
     MenuBar.addAction(createTextureSet, "file.export");
     MenuBar.addAction(togglePbr, "view");
     MenuBar.addAction(toggleCorrectLights, "preview");
+    MenuBar.addAction(createMaterialTexture, "tools");
 
     Object.entries(channelActions).forEach(([key, action], idx) => {
       MenuBar.addAction(action, `image.${idx}`);
@@ -1586,6 +1806,13 @@ interface IChannel {
     projectPbrModeProp?.delete();
     globalMetalnessSetting?.delete();
     globalRoughnessSetting?.delete();
+    materialBrushTool?.delete();
+    materialBrushPanel?.delete();
+    setBrushMaterial?.delete();
+    brushMetalnessSlider?.delete();
+    brushRoughnessSlider?.delete();
+    brushEmissiveColor?.delete();
+    brushHeightSlider?.delete();
   };
 
   //
