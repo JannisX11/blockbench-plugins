@@ -40,17 +40,14 @@ This plugin adds the _PBR Settings_ panel, which controls enabling and disabling
 
 - Use the _PBR Preview_ toggle to toggle or refresh the PBR preview. Also found in the _View_ menu.
 
+> <details>
+> <summary>Usage Tip</summary>
+> Toggling the PBR preview off and on may solve any texture discrepancies. Allowing the scene to render again will ensure all textures are up-to-date in the preview.
+> </details>
+
 #### Toggle Corrected Lighting
 
 - Use the _Correct Lights_ toggle to enable or disable physically-corrected lighting in the preview scene. This may improve the appearance of reflective and emissive materials in the preview scene, but will dim the albedo/base color texture.
-
-#### Tone Mapping
-
-- The _Tone Mapping_ setting will apply various tone mapping techniques to the preview scene. Use the _Linear_ option to match the tone map used by most Bedrock shaders.
-
-#### Exposure
-
-- The scene exposure can be adjusted once a tone map technique is selected. Values range from -2.0 to 2.0.
 
 ### Channel Management
 
@@ -83,13 +80,29 @@ Create a Texture Layer in Blockbench to enable channel assignment in PBR preview
 
 Channels can be disabled by hiding or deleting the layer, or un-assigning the channel in the menu. Texture layers cannot be assigned to more than one channel. Assigning a layer to a new channel will clear the layer's current channel.
 
-### Global Settings
+### Material Brush Tool
+
+Use the _Material Brush Tool_ to paint across multiple PBR channels simultaneously.The controls found in the _Material Brush Panel_
+
+- The current color selected in the main color picker is used as the albedo color.
+- Only visible layers with channels assigned will be updated by the brush.
+
+### Plugin Settings
 
 The following Blockbench settings are added by this plugin:
 
 #### Global Metalness / Roughness
 
 - Adjusts the metalness or roughness multiplier used in the PBR Preview scene.
+
+#### Tone Mapping
+
+- The _Tone Mapping_ setting will apply various tone mapping techniques to the preview scene. Use the _Linear_ option to match the tone map used by most Bedrock shaders.
+
+#### Exposure
+
+- The scene exposure can be adjusted once a tone map technique is selected. Values range from -2.0 to 2.0. (Exposure settings only work when tone mapping is applied.)
+
 
 ---
 

@@ -193,7 +193,7 @@ interface IChannel {
     getMaterial(options: THREE.MeshStandardMaterialParameters = {}) {
       const { emissiveMap, roughnessMap, metalnessMap } = this.merToCanvas();
 
-      return new THREE.MeshStandardMaterial({
+      const mat = new THREE.MeshStandardMaterial({
         map:
           this.getTexture(CHANNELS.albedo) ??
           PbrMaterial.makePixelatedCanvas(
@@ -202,13 +202,11 @@ interface IChannel {
               Texture.getDefault().canvas,
           ),
         aoMap: this.getTexture(CHANNELS.ao),
-        normalMap: this.getTexture(CHANNELS.normal),
-        normalScale: new THREE.Vector2(1, 1),
         bumpMap: this.getTexture(CHANNELS.height),
         metalnessMap,
-        metalness: metalnessMap ? Settings.get("global_metalness") : undefined,
+        metalness: metalnessMap ? Settings.get("global_metalness") : 0,
         roughnessMap,
-        roughness: roughnessMap ? Settings.get("global_roughness") : undefined,
+        roughness: roughnessMap ? Settings.get("global_roughness") : 1,
         emissiveMap,
         emissiveIntensity: emissiveMap ? 1 : 0,
         emissive: emissiveMap ? 0xffffff : 0,
@@ -217,9 +215,18 @@ interface IChannel {
         alphaTest: 0.5,
         ...options,
       });
+
+      const normalMap = this.getTexture(CHANNELS.normal);
+
+      if (normalMap) {
+        mat.normalMap = normalMap;
+        mat.normalScale = new THREE.Vector2(1, 1);
+      }
+
+      return mat;
     }
 
-    saveTexture(channel: IChannel, { uuid, extend }: Texture | TextureLayer) {
+    saveTexture(channel: IChannel, texture: Texture | TextureLayer) {
       if (!Project) {
         return;
       }
@@ -232,8 +239,8 @@ interface IChannel {
         Project.pbr_materials[this._materialUuid] = {};
       }
 
-      Project.pbr_materials[this._materialUuid][channel.id] = uuid;
-      extend({ channel: channel.id });
+      Project.pbr_materials[this._materialUuid][channel.id] = texture.uuid;
+      texture.extend({ channel: channel.id });
     }
 
     /**
@@ -1385,7 +1392,7 @@ interface IChannel {
 
           Undo.initEdit({ layers: [layer] });
 
-          layer.extend({ channel: key });
+          layer.extend({ channel: channel.id });
 
           const texture = layer.texture;
 
@@ -1522,6 +1529,23 @@ interface IChannel {
         step: 0.01,
         default: 0,
       },
+      condition: () => {
+        if (!Project) {
+          return false;
+        }
+
+        const texture = Project.selected_texture;
+
+        if (!texture?.layers_enabled) {
+          return false;
+        }
+
+        return (
+          texture.layers.find(
+            ({ channel }) => channel === CHANNELS.metalness.id,
+          ) !== undefined
+        );
+      },
     });
 
     brushRoughnessSlider = new NumSlider("slider_brush_roughness", {
@@ -1534,6 +1558,23 @@ interface IChannel {
         step: 0.01,
         default: 1,
       },
+      condition: () => {
+        if (!Project) {
+          return false;
+        }
+
+        const texture = Project.selected_texture;
+
+        if (!texture?.layers_enabled) {
+          return false;
+        }
+
+        return (
+          texture.layers.find(
+            ({ channel }) => channel === CHANNELS.roughness.id,
+          ) !== undefined
+        );
+      },
     });
 
     brushEmissiveColor = new ColorPicker("brush_emissive_color", {
@@ -1541,6 +1582,23 @@ interface IChannel {
       name: "Emissive",
       description: "Adjust the emissive color of the brush",
       value: "#000000",
+      condition: () => {
+        if (!Project) {
+          return false;
+        }
+
+        const texture = Project.selected_texture;
+
+        if (!texture?.layers_enabled) {
+          return false;
+        }
+
+        return (
+          texture.layers.find(
+            ({ channel }) => channel === CHANNELS.emissive.id,
+          ) !== undefined
+        );
+      },
     });
 
     brushHeightSlider = new NumSlider("slider_brush_height", {
@@ -1552,6 +1610,23 @@ interface IChannel {
         max: 1,
         step: 0.01,
         default: 0.5,
+      },
+      condition: () => {
+        if (!Project) {
+          return false;
+        }
+
+        const texture = Project.selected_texture;
+
+        if (!texture?.layers_enabled) {
+          return false;
+        }
+
+        return (
+          texture.layers.find(
+            ({ channel }) => channel === CHANNELS.height.id,
+          ) !== undefined
+        );
       },
     });
 
@@ -1576,27 +1651,35 @@ interface IChannel {
         changePixel(x, y, px, alpha, { size, softness, texture }) {
           const mat = MaterialBrush.fromSettings();
 
-          texture.layers
-            .filter(
-              ({ visible, channel }) =>
-                visible && channel && channel !== NA_CHANNEL,
-            )
-            .forEach((layer) => {
-              const fill = mat.getChannel(layer.channel);
+          const matChannels = Object.keys(mat.colors);
 
-              if (!fill) {
-                return;
-              }
+          let rgba = px;
 
-              layer.ctx.fillStyle = fill.getStyle();
-              layer.ctx.fillRect(size * x, size * y, size, size);
-            });
+          texture.layers.forEach((layer) => {
+            if (!layer.visible || !matChannels.includes(layer.channel)) {
+              return;
+            }
 
-          texture.updateChangesAfterEdit();
+            const fill = mat.getChannel(layer.channel);
 
-          Canvas.updateAllFaces(texture);
+            if (!fill) {
+              return;
+            }
 
-          return px;
+            layer.ctx.fillStyle = fill.getStyle();
+            layer.ctx.fillRect(size * x, size * y, size, size);
+
+            if (layer.selected) {
+              rgba = {
+                r: fill.r * 255,
+                g: fill.g * 255,
+                b: fill.b * 255,
+                a: alpha * 255,
+              };
+            }
+          });
+
+          return rgba;
         },
       },
       onCanvasClick(data) {
@@ -1609,8 +1692,6 @@ interface IChannel {
         applyPbrMaterial();
       },
     });
-
-    MenuBar.addAction(materialBrushTool, "tools.0");
 
     //
     // UI
@@ -1661,6 +1742,7 @@ interface IChannel {
         new Toolbar(`${PLUGIN_ID}_material_brush_toolbar`, {
           id: `${PLUGIN_ID}_material_brush_toolbar`,
           children: [
+            "material_brush",
             "slider_brush_metalness",
             "slider_brush_roughness",
             "brush_emissive_color",
@@ -1694,6 +1776,7 @@ interface IChannel {
     MenuBar.addAction(togglePbr, "view");
     MenuBar.addAction(toggleCorrectLights, "preview");
     MenuBar.addAction(createMaterialTexture, "tools");
+    MenuBar.addAction(materialBrushTool, "tools.0");
 
     Object.entries(channelActions).forEach(([key, action], idx) => {
       MenuBar.addAction(action, `image.${idx}`);
