@@ -38,20 +38,15 @@ interface IChannel {
   let unassignChannel: Action;
   let createMaterialTexture: Action;
   let togglePbr: Toggle;
-  let pbrDisplaySetting: Setting;
   let displaySettingsPanel: Panel;
   let textureSetDialog: Dialog;
+  let textureChannelProp: Property;
   let channelProp: Property;
   let channelMenu: Menu;
   let showChannelMenu: Action;
   let exposureSlider: BarSlider;
   let tonemappingSelect: BarSelect;
   let toggleCorrectLights: Toggle;
-  let exposureSetting: Setting;
-  let correctLightsSetting: Setting;
-  let tonemappingSetting: Setting;
-  let globalMetalnessSetting: Setting;
-  let globalRoughnessSetting: Setting;
   let pbrMaterialsProp: Property;
   let projectMaterialsProp: Property;
   let projectPbrModeProp: Property;
@@ -62,6 +57,7 @@ interface IChannel {
   let brushRoughnessSlider: NumSlider;
   let brushEmissiveColor: ColorPicker;
   let brushHeightSlider: NumSlider;
+  let openChannelMenu: Action;
 
   const channelActions: Record<IChannel["id"], Action> = {};
 
@@ -204,9 +200,9 @@ interface IChannel {
         aoMap: this.getTexture(CHANNELS.ao),
         bumpMap: this.getTexture(CHANNELS.height),
         metalnessMap,
-        metalness: metalnessMap ? Settings.get("global_metalness") : 0,
+        metalness: metalnessMap ? 1 : 0,
         roughnessMap,
-        roughness: roughnessMap ? Settings.get("global_roughness") : 1,
+        roughness: 1,
         emissiveMap,
         emissiveIntensity: emissiveMap ? 1 : 0,
         emissive: emissiveMap ? 0xffffff : 0,
@@ -270,7 +266,8 @@ interface IChannel {
       Project.pbr_materials ??= {};
       const materialData = Project.pbr_materials[this._materialUuid];
 
-      if (!materialData && inference) {
+      // Don't infer the channel if it has already been assigned to NA_CHANNEL
+      if (!materialData && inference && channel !== NA_CHANNEL) {
         const filenameRegex = new RegExp(`_*${channel}(\.[^.]+)?$`, "i");
         return this._scope.find((t) => filenameRegex.test(t.name)) ?? null;
       }
@@ -358,7 +355,7 @@ interface IChannel {
       return channelCanvas;
     }
 
-    decodeMer(emissiveThreshold = 25.5): {
+    decodeMer(emissiveThreshold = 1): {
       metalness?: HTMLCanvasElement | null;
       emissive?: HTMLCanvasElement | null;
       emissiveLevel?: HTMLCanvasElement | null;
@@ -622,6 +619,7 @@ interface IChannel {
           {
             name,
             data_url: dataUrl,
+            visible: true,
           },
           texture.texture,
         );
@@ -706,6 +704,13 @@ interface IChannel {
   }
 
   channelProp = new Property(TextureLayer, "enum", "channel", {
+    default: NA_CHANNEL,
+    values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
+    label: "PBR Channel",
+    exposed: false,
+  });
+
+  textureChannelProp = new Property(Texture, "enum", "channel", {
     default: NA_CHANNEL,
     values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
     label: "PBR Channel",
@@ -1030,21 +1035,46 @@ interface IChannel {
             );
           }
 
-          const exportTextureSet = () =>
+          const exportDepthMap = (cb: () => void) => {
+            const depthMap =
+              formResult.depthMap === "normal"
+                ? projectNormalMap
+                : projectHeightMap;
+
+            if (!depthMap) {
+              return cb();
+            }
+
             Blockbench.export(
               {
-                content: JSON.stringify(textureSet, null, 2),
-                type: "JSON",
-                name: `${baseName}.texture_set`,
-                extensions: ["json"],
-                resource_id: "texture_set",
+                content: depthMap,
+                type: "PNG",
+                name: `${baseName}_${formResult.depthMap}`,
+                extensions: ["png"],
+                resource_id: formResult.depthMap,
                 startpath: Project.export_path,
               },
-              () => {
-                Blockbench.showQuickMessage("Texture set created", 2000);
-                textureSetDialog.hide();
-              },
+              cb,
             );
+          };
+
+          const exportTextureSet = () =>
+            exportDepthMap(() => {
+              Blockbench.export(
+                {
+                  content: JSON.stringify(textureSet, null, 2),
+                  type: "JSON",
+                  name: `${baseName}.texture_set`,
+                  extensions: ["json"],
+                  resource_id: "texture_set",
+                  startpath: Project.export_path,
+                },
+                () => {
+                  Blockbench.showQuickMessage("Texture set created", 2000);
+                  textureSetDialog.hide();
+                },
+              );
+            });
 
           if (hasMer) {
             exportMer((filePath) => {
@@ -1110,48 +1140,17 @@ interface IChannel {
 
   const onload = () => {
     //
-    // Settings
+    // Controls
     //
-    pbrDisplaySetting = new Setting("pbr_active", {
-      category: "preview",
-      name: "Enable PBR Preview",
-      description: "Enables PBR preview in the editor",
-      type: "toggle",
-      default_value: false,
-      icon: "tonality",
-      onChange(value) {
-        if (value) {
-          applyPbrMaterial();
-          enableListeners();
-          return;
-        }
-        disablePbr();
-        disableListeners();
-      },
-    });
 
-    correctLightsSetting = new Setting("display_settings_correct_lights", {
-      category: "preview",
-      name: "Correct Lights",
-      description: "Corrects the lighting in the preview for PBR materials",
-      type: "toggle",
-      default_value: false,
-      icon: "light_mode",
-      onChange(value) {
-        Preview.selected.renderer.physicallyCorrectLights = value;
-
-        applyPbrMaterial();
-      },
-    });
-
-    tonemappingSetting = new Setting("display_settings_tone_mapping", {
+    tonemappingSelect = new BarSelect("display_settings_tone_mapping", {
       category: "preview",
       name: "Tone Mapping",
       description: "Changes the tone mapping of the preview",
       type: "select",
       default_value: THREE.NoToneMapping,
-      value: THREE.NoToneMapping,
-      icon: "palette",
+      value: Preview.selected.renderer.toneMapping ?? THREE.NoToneMapping,
+      icon: "monochrome_photos",
       options: {
         [THREE.NoToneMapping]: "None",
         [THREE.LinearToneMapping]: "Linear",
@@ -1159,57 +1158,59 @@ interface IChannel {
         [THREE.CineonToneMapping]: "Cineon",
         [THREE.ACESFilmicToneMapping]: "ACES",
       },
-      onChange(value) {
+      onChange({ value }) {
+        const currentExposure = Number(exposureSlider.get());
+        Preview.all.forEach((preview) => {
+          preview.renderer.toneMapping = Number(value) as THREE.ToneMapping;
+          preview.renderer.toneMappingExposure = currentExposure;
+        });
+
         Preview.selected.renderer.toneMapping = Number(
           value,
         ) as THREE.ToneMapping;
+        Preview.selected.renderer.toneMappingExposure = currentExposure;
+
+        Blockbench.showQuickMessage(
+          `Tone mapping set to ${this.getNameFor(value)}`,
+          2000,
+        );
+
+        if (!togglePbr.value) {
+          togglePbr.set(true);
+        }
 
         applyPbrMaterial();
       },
     });
 
-    exposureSetting = new Setting("display_settings_exposure", {
+    exposureSlider = new BarSlider("display_settings_exposure", {
       category: "preview",
       name: "Exposure",
       description: "Adjusts the exposure of the scene",
       type: "number",
-      default_value: 1,
+      value: 1,
       icon: "exposure",
       step: 0.1,
       min: -2,
       max: 2,
-      onChange(value) {
-        Preview.selected.renderer.toneMappingExposure = Math.max(
-          -2,
-          Math.min(2, Number(value)),
-        );
+      // condition: () => Number(tonemappingSelect.get()) !== THREE.NoToneMapping,
+      onBefore() {
+        if (Number(tonemappingSelect.get()) === THREE.NoToneMapping) {
+          tonemappingSelect.change(THREE.LinearToneMapping.toString());
+        }
+        togglePbr.set(true);
+      },
+      onChange({ value }) {
+        const exposureValue = Math.max(-2, Math.min(2, Number(value)));
+        Preview.all.forEach((preview) => {
+          preview.renderer.toneMappingExposure = exposureValue;
+        });
 
+        Preview.selected.renderer.toneMappingExposure = exposureValue;
+      },
+      onAfter() {
         applyPbrMaterial();
       },
-    });
-
-    globalMetalnessSetting = new Setting("global_metalness", {
-      category: "preview",
-      name: "Global Metalness",
-      description: "Adjusts the base metalness of the scene",
-      type: "number",
-      default_value: 0,
-      icon: "iron",
-      step: 0.01,
-      min: 0,
-      max: 1,
-    });
-
-    globalRoughnessSetting = new Setting("global_roughness", {
-      category: "preview",
-      name: "Global Roughness",
-      description: "Adjusts the base roughness of the scene",
-      type: "number",
-      default_value: 0,
-      icon: "grain",
-      step: 0.01,
-      min: 0,
-      max: 1,
     });
 
     //
@@ -1224,19 +1225,20 @@ interface IChannel {
         (TextureLayer.selected || Texture.all.find((t) => t.selected)) !==
         undefined,
       click() {
-        const selected =
-          TextureLayer.selected ?? Texture.all.find((t) => t.selected);
-        const mat = new PbrMaterial(getProjectTextures(), selected.uuid);
-
         const texture =
-          TextureLayer.selected ??
-          Texture.all.find((t) => t.selected) ??
-          mat.findTexture(CHANNELS.height, true);
+          TextureLayer.selected ?? Project
+            ? Project.selected_texture.selected_layer ??
+              Project.selected_texture
+            : Texture.getDefault();
 
         if (!texture) {
-          Blockbench.showQuickMessage("No height map found", 2000);
           return;
         }
+
+        const mat = new PbrMaterial(
+          texture.layers_enabled ? texture.layers : getProjectTextures(),
+          texture.uuid,
+        );
 
         const normalMap = PbrMaterial.createNormalMap(texture);
 
@@ -1267,15 +1269,19 @@ interface IChannel {
       name: "Decode MER",
       description:
         "Decodes a MER texture map into metalness, emissive, and roughness channels",
-      // condition: () => Format.id == "bedrock",
+      condition: () =>
+        !!Project &&
+        Project.selected_texture !== null &&
+        !Project.selected_texture.layers_enabled,
       click() {
-        const projectTextures = getProjectTextures();
         const selected =
-          TextureLayer.selected?.texture ?? Texture.all.find((t) => t.selected);
+          TextureLayer.selected?.texture ??
+          Texture.all.find((t) => t.selected) ??
+          Texture.getDefault();
 
         const mat = new PbrMaterial(
-          projectTextures,
-          (selected ?? projectTextures[0]).uuid,
+          selected.layers_enabled ? selected.layers : [selected],
+          selected.uuid,
         );
 
         const mer = mat.decodeMer();
@@ -1285,11 +1291,18 @@ interface IChannel {
           CHANNELS.roughness,
         ];
 
+        Undo.initEdit({ textures: [selected] });
+        selected.activateLayers(true);
+
         merChannels.forEach((channel) => {
           const key = channel.id as keyof typeof mer;
           const canvas = mer[key];
 
           if (!canvas) {
+            Blockbench.showStatusMessage(
+              `Failed to decode ${channel.label} channel`,
+              3000,
+            );
             return;
           }
 
@@ -1298,11 +1311,15 @@ interface IChannel {
               name: `${selected?.name}_${key}`,
               data_url: canvas.toDataURL(),
             },
-            selected.layers_enabled ? selected.texture : selected,
+            selected,
           );
-          // projectTextures.push(layer);
+
           mat.saveTexture(channel, layer);
+
+          layer.addForEditing();
         });
+
+        Undo.finishEdit("Decode MER");
       },
     });
 
@@ -1344,7 +1361,6 @@ interface IChannel {
         }
 
         texture.fromDataURL(filler).add().select();
-        // texture.activateLayers(false);
 
         // Create PBR channels as texture layers for the new texture
         Object.keys(CHANNELS).forEach((key) => {
@@ -1358,7 +1374,10 @@ interface IChannel {
             texture,
           );
 
-          layer.setSize(texture.width, texture.height);
+          layer.setSize(
+            Project.texture_width ?? texture.width,
+            Project.texture_height ?? texture.height,
+          );
 
           const data = colorDataUrl(
             channel.default ?? new THREE.Color(0),
@@ -1382,9 +1401,14 @@ interface IChannel {
         name: `Assign to ${channel.label.toLocaleLowerCase()} channel`,
         description: `Assign the selected layer to the ${channel.label} channel`,
         category: "textures",
-        condition: () => Modes.paint && TextureLayer.selected,
+        condition: () =>
+          Modes.paint &&
+          (TextureLayer.selected ||
+            (Project && Project.selected_texture !== null)),
         click(e) {
-          const layer = TextureLayer.selected;
+          const layer =
+            TextureLayer.selected ??
+            (Project ? Project.selected_texture : null);
 
           if (!layer || !Project) {
             return;
@@ -1394,7 +1418,7 @@ interface IChannel {
 
           layer.extend({ channel: channel.id });
 
-          const texture = layer.texture;
+          const texture = layer instanceof TextureLayer ? layer.texture : layer;
 
           texture.updateChangesAfterEdit();
 
@@ -1407,6 +1431,7 @@ interface IChannel {
             ([assignedChannel, assignedLayerUuid]) => {
               if (assignedLayerUuid === layer.uuid) {
                 delete Project.pbr_materials[texture.uuid][assignedChannel];
+                layer.channel = NA_CHANNEL;
               }
             },
           );
@@ -1430,8 +1455,32 @@ interface IChannel {
       name: "Unassign Channel",
       description: "Unassign the selected layer from the channel",
       category: "textures",
+      condition: () => {
+        if (!Modes.paint) {
+          return false;
+        }
+
+        if (TextureLayer.selected) {
+          return (
+            TextureLayer.selected.channel !== NA_CHANNEL ||
+            !TextureLayer.selected.channel
+          );
+        }
+
+        if (!Project) {
+          return false;
+        }
+
+        const texture = Project.selected_texture;
+
+        return (
+          texture !== null &&
+          (texture.channel !== NA_CHANNEL || !texture.channel)
+        );
+      },
       click() {
-        const layer = TextureLayer.selected;
+        const layer =
+          TextureLayer.selected ?? (Project ? Project.selected_texture : null);
 
         if (!layer || !Project) {
           return;
@@ -1439,17 +1488,18 @@ interface IChannel {
 
         Undo.initEdit({ layers: [layer] });
 
-        const { texture, channel } = layer;
-
-        texture.updateChangesAfterEdit();
+        const texture = layer instanceof TextureLayer ? layer.texture : layer;
+        const prevChannel = layer.channel;
 
         Project.pbr_materials[texture.uuid] = {};
 
         layer.channel = NA_CHANNEL;
+
+        texture.updateChangesAfterEdit();
         Undo.finishEdit("Unassign channel");
 
         Blockbench.showQuickMessage(
-          `Unassigned "${layer.name}" from ${channel} channel`,
+          `Unassigned "${layer.name}" from ${prevChannel} channel`,
           2000,
         );
 
@@ -1462,14 +1512,21 @@ interface IChannel {
       description: "Toggle PBR Preview",
       icon: "panorama_photosphere",
       category: "view",
-      linked_setting: "pbr_active",
       default: false,
       click() {},
       onChange(value) {
-        Blockbench.showQuickMessage(
-          `PBR Preview is now ${value ? "enabled" : "disabled"}`,
-          2000,
-        );
+        if (value) {
+          applyPbrMaterial();
+          enableListeners();
+
+          Blockbench.showQuickMessage("PBR Preview is now enabled");
+
+          return;
+        }
+        disablePbr();
+        disableListeners();
+
+        Blockbench.showQuickMessage("PBR Preview is now disabled");
       },
     });
 
@@ -1478,41 +1535,26 @@ interface IChannel {
       name: "Correct Lights",
       description: "Corrects the lighting in the preview",
       icon: "fluorescent",
-      linked_setting: "display_settings_correct_lights",
       default: false,
       onChange(value) {
+        Preview.all.forEach((preview) => {
+          preview.renderer.physicallyCorrectLights = value;
+        });
+
+        Preview.selected.renderer.physicallyCorrectLights = value;
+
         Blockbench.showQuickMessage(
           `Physically corrected lighting is now ${value ? "enabled" : "disabled"}`,
           2000,
         );
+
+        if (value) {
+          togglePbr.set(true);
+        }
+
+        applyPbrMaterial();
       },
       click() {},
-    });
-
-    channelMenu = new Menu(
-      `${PLUGIN_ID}_channel_menu`,
-      [
-        ...Object.keys(CHANNELS).map(
-          (key) => `${PLUGIN_ID}_assign_channel_${key}`,
-        ),
-        ...[`${PLUGIN_ID}_unassign_channel`],
-      ],
-      {
-        onOpen() {
-          applyPbrMaterial();
-        },
-      },
-    );
-
-    showChannelMenu = new Action(`${PLUGIN_ID}_show_channel_menu`, {
-      icon: "texture",
-      name: "Assign to PBR Channel",
-      description: "Assign the selected layer to a channel",
-      category: "textures",
-      condition: () => Modes.paint && TextureLayer.selected,
-      click(event) {
-        channelMenu.open(event as MouseEvent);
-      },
     });
 
     //
@@ -1636,10 +1678,11 @@ interface IChannel {
       icon: "view_in_ar",
       paintTool: true,
       cursor: "cell",
-      condition: {
-        project: true,
-        modes: ["paint"],
-      },
+      condition: () =>
+        Modes.paint &&
+        !!Project &&
+        Project.selected_texture &&
+        Project.selected_texture.layers_enabled,
       brush: {
         blend_modes: false,
         shapes: true,
@@ -1665,6 +1708,8 @@ interface IChannel {
             if (!fill) {
               return;
             }
+
+            // TODO: Let softness affect the brush
 
             layer.ctx.fillStyle = fill.getStyle();
             layer.ctx.fillRect(size * x, size * y, size, size);
@@ -1697,6 +1742,44 @@ interface IChannel {
     // UI
     //
 
+    channelMenu = new Menu(
+      `${PLUGIN_ID}_channel_menu`,
+      [
+        ...Object.keys(CHANNELS).map(
+          (key) => `${PLUGIN_ID}_assign_channel_${key}`,
+        ),
+        ...[`${PLUGIN_ID}_unassign_channel`],
+      ],
+      {
+        onOpen() {
+          applyPbrMaterial();
+        },
+      },
+    );
+
+    openChannelMenu = new Action("pbr_channel_menu", {
+      name: "Assign to PBR Channel",
+      icon: "texture",
+      click(event) {
+        channelMenu.open(event as MouseEvent);
+      },
+      children: [...Object.values(channelActions), unassignChannel],
+    });
+
+    showChannelMenu = new Action(`${PLUGIN_ID}_show_channel_menu`, {
+      icon: "texture",
+      name: "Assign to PBR Channel",
+      description: "Assign the selected layer to a channel",
+      category: "textures",
+      condition: () =>
+        Modes.paint &&
+        (TextureLayer.selected ||
+          (Project && Project.selected_texture !== null)),
+      click(event) {
+        channelMenu.open(event as MouseEvent);
+      },
+    });
+
     displaySettingsPanel = new Panel(`${PLUGIN_ID}_display_settings`, {
       name: "PBR Settings",
       id: `${PLUGIN_ID}_display_settings_panel`,
@@ -1711,6 +1794,14 @@ interface IChannel {
             `${PLUGIN_ID}_create_material_texture`,
           ],
           name: "PBR",
+        }),
+        new Toolbar(`${PLUGIN_ID}_display_settings_toolbar`, {
+          id: `${PLUGIN_ID}_display_settings_toolbar`,
+          children: [
+            "display_settings_tone_mapping",
+            "display_settings_exposure",
+          ],
+          name: "Display Settings",
         }),
       ],
       display_condition: {
@@ -1751,7 +1842,10 @@ interface IChannel {
           name: "Material Brush",
         }),
       ],
-      condition: () => Modes.paint,
+      display_condition: {
+        modes: ["paint"],
+        project: true,
+      },
       component: {},
       expand_button: true,
       growable: false,
@@ -1778,11 +1872,7 @@ interface IChannel {
     MenuBar.addAction(createMaterialTexture, "tools");
     MenuBar.addAction(materialBrushTool, "tools.0");
 
-    Object.entries(channelActions).forEach(([key, action], idx) => {
-      MenuBar.addAction(action, `image.${idx}`);
-    });
-
-    enableListeners();
+    MenuBar.addAction(openChannelMenu, "image.0");
   };
 
   //
@@ -1800,27 +1890,22 @@ interface IChannel {
 
     displaySettingsPanel?.delete();
     textureSetDialog?.delete();
-    pbrDisplaySetting?.delete();
     createMaterialTexture?.delete();
     generateMer?.delete();
     generateNormal?.delete();
     togglePbr?.delete();
     decodeMer?.delete();
     createTextureSet?.delete();
+    textureChannelProp?.delete();
     channelProp?.delete();
     showChannelMenu?.delete();
-    exposureSetting?.delete();
     exposureSlider?.delete();
     tonemappingSelect?.delete();
     toggleCorrectLights?.delete();
-    correctLightsSetting?.delete();
-    tonemappingSetting?.delete();
     unassignChannel?.delete();
     projectMaterialsProp?.delete();
     pbrMaterialsProp?.delete();
     projectPbrModeProp?.delete();
-    globalMetalnessSetting?.delete();
-    globalRoughnessSetting?.delete();
     materialBrushTool?.delete();
     materialBrushPanel?.delete();
     setBrushMaterial?.delete();
@@ -1828,6 +1913,7 @@ interface IChannel {
     brushRoughnessSlider?.delete();
     brushEmissiveColor?.delete();
     brushHeightSlider?.delete();
+    openChannelMenu?.delete();
   };
 
   //

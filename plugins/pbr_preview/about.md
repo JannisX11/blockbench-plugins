@@ -9,7 +9,7 @@ __Create textures for Bedrock shaders with PBR support (Deferred Rendering / RTX
 > _PBR:_ Physically based rendering
 
 #### Auto-Updated Preview
-- PBR materials are updated with every edit to provide a <small>(nearly)</small> live painting preview of the material in Blockbench.
+- PBR materials are updated with every edit to provide a live painting preview of the material in Blockbench.
 
 ### MER Maps
 > _MER:_ Metallic, emissive, and roughness maps assigned to red, green, and blue channels respectively. It is the format used in Bedrock texture sets.
@@ -28,7 +28,7 @@ __Create textures for Bedrock shaders with PBR support (Deferred Rendering / RTX
 ### Export Texture Set
 - Create a `.texture_set.json` file for the project textures.
 - Dialog allows defining values which can not be inferred from project.
-- Exports MER in the process.
+- Exports MER and normal maps in the process.
 
 ## Usage
 
@@ -48,6 +48,14 @@ This plugin adds the _PBR Settings_ panel, which controls enabling and disabling
 #### Toggle Corrected Lighting
 
 - Use the _Correct Lights_ toggle to enable or disable physically-corrected lighting in the preview scene. This may improve the appearance of reflective and emissive materials in the preview scene, but will dim the albedo/base color texture.
+
+#### Tone Mapping
+
+- The _Tone Mapping_ select will apply various tone mapping techniques to the preview scene. Use the _Linear_ option to match the tone map used by most Bedrock shaders.
+
+#### Exposure
+
+- The scene exposure can be adjusted once a tone map technique is selected. Values range from -2.0 to 2.0.
 
 ### Channel Management
 
@@ -84,25 +92,11 @@ Channels can be disabled by hiding or deleting the layer, or un-assigning the ch
 
 Use the _Material Brush Tool_ to paint across multiple PBR channels simultaneously.The controls found in the _Material Brush Panel_
 
+- Set the metallic, roughness and height values on a scale of 0% - 100%
+- Use the color picker in the _Material Brush Panel_ to set the emissive color.
 - The current color selected in the main color picker is used as the albedo color.
 - Only visible layers with channels assigned will be updated by the brush.
-
-### Plugin Settings
-
-The following Blockbench settings are added by this plugin:
-
-#### Global Metalness / Roughness
-
-- Adjusts the metalness or roughness multiplier used in the PBR Preview scene.
-
-#### Tone Mapping
-
-- The _Tone Mapping_ setting will apply various tone mapping techniques to the preview scene. Use the _Linear_ option to match the tone map used by most Bedrock shaders.
-
-#### Exposure
-
-- The scene exposure can be adjusted once a tone map technique is selected. Values range from -2.0 to 2.0. (Exposure settings only work when tone mapping is applied.)
-
+- Blockbench's paint brush size and smoothness settings control the material brush's settings as well.
 
 ---
 
