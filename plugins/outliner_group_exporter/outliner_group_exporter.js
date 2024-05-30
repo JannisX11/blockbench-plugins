@@ -12,14 +12,11 @@
         min_version: '4.10.1',
         variant: 'both',
         onload() {
-            // Add translations
-            window.Language.addTranslations('en', {
-                'action.export_outliner_group': "Export"
-            });
-
             // Setup action and separator
             separator = new MenuSeparator('export');
-            actionExportGroup = new Action('export_outliner_group', {
+            actionExportGroup = {
+                name: "Export",
+                id: 'export_outliner_group',
                 icon: 'insert_drive_file',
                 category: 'export',
                 // Only allow on java_block format or custom formats that can support it (e.g. ones that use Cubes)
@@ -27,7 +24,7 @@
                 children() {
                     return MenuBar.menus.file.structure.find(menu => menu.id === 'export')?.children;
                 }
-            });
+            };
 
             // Append the separator and action to group menu
             Group.prototype.menu.addAction(separator);
@@ -70,7 +67,7 @@
             originalExportFunction = Codec.prototype.export;
             Codec.prototype.export = async function () {
                 // Check if the menu is open. Is this okay for web/mobile app?
-                let restrict = actionExportGroup.menu_node.classList.contains("opened");
+                let restrict = Group.prototype.menu == Menu.open;
                 restrictCubes(restrict); 
                 originalExportFunction.call(this);
                 resetCubes(restrict);
@@ -80,8 +77,7 @@
             // Clean up
             Codec.prototype.export = originalExportFunction;
             Group.prototype.menu.removeAction(separator);
-            Group.prototype.menu.removeAction(actionExportGroup);
-            actionExportGroup.delete();
+            Group.prototype.menu.removeAction('export_outliner_group');
         }
     });
 })()
