@@ -511,7 +511,7 @@
 		"icon": "icon.png",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.4.0",
+		"version": "1.5.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2021-08-04",
@@ -590,11 +590,12 @@
 		"author": "Malik12tree",
 		"icon": "icon.png",
 		"description": "Adds powerful mesh modeling tools, operators and generators!",
-		"version": "2.0.1",
+		"version": "2.0.2",
 		"min_version": "4.9.4",
 		"variant": "both",
 		"creation_date": "2022-04-09",
-		"tags": ["Format: Generic Model", "Mesh", "Tool"]
+		"has_changelog": true,
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]	  
 	},
 	"wasd_controls": {
 		"title": "WASD Controls",
@@ -859,12 +860,17 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.6",
+		"version": "1.0.7",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
 		"variant": "both",
-		"creation_date": "2023-04-04"
+		"creation_date": "2023-04-04",
+		"contributes": {
+			"formats": ["azure_model"]
+		},
+		"has_changelog": true,
+		"website": "https://wiki.azuredoom.com/readme-1"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",
@@ -906,10 +912,11 @@
 		"icon": "icon.png",
 		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
 		"tags": ["Cosmic Reach"],
-		"version": "1.1.1",
+		"version": "1.2.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-19",
-		"new_repository_format": true
+		"new_repository_format": true,
+		"has_changelog": true
 	}
 }

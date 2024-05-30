@@ -16,10 +16,11 @@ BBPlugin.register(PLUGIN_ID, {
   author: "Malik12tree",
   icon: "icon.png",
   description: "Adds powerful mesh modeling tools, operators and generators!",
-  version: "2.0.1",
+  version: "2.0.2",
   min_version: "4.9.4",
   variant: "both",
   creation_date: "2022-04-09",
+  has_changelog: true,
   tags: ["Format: Generic Model", "Mesh", "Tool"],
   onload() {
     function debug(element) {

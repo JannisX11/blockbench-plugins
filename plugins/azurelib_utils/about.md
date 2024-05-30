@@ -10,6 +10,7 @@ Supported Minecraft versions:
 - **1.19.4 Forge/Fabric**
 - **1.20.1 Forge/NeoForge/Fabric**
 - **1.20.4 NeoForge/Fabric**
+- **1.20.6 NeoForge/Fabric**
 
 To add to your code, please do the following: 
 
@@ -20,17 +21,21 @@ repositories {
 }
 
 dependencies {
-  //Fabric or Quilt
-  modImplementation "mod.azure.azurelib:azurelib-fabric-MCVER:MODVER"
- 
-  //Forge
-  implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
- 
-  //NeoForge 1.20.1
-  implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
+    //Common 1.20.1+ Latest Only
+    compileOnly "mod.azure.azurelib:azurelib-common-MCVERSION:MODVERSION"
   
-  //NeoForge 1.20.4+
-  implementation "mod.azure.azurelib:azurelib-neo-MCVER:MODVER"
+    //Fabric or Quilt and older
+    modImplementation "mod.azure.azurelib:azurelib-fabric-MCVERSION:MODVERSION"
+    modApi "com.terraformersmc:modmenu:VERSION" // Fabric bug is requiring this
+
+    //Forge 1.20.1 and older (Forge is no longer supported)
+    implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVERSION:MODVERSION")
+  
+    //NeoForge 1.20.1
+    implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")
+  
+    //NeoForge 1.20.4+
+    implementation "mod.azure.azurelib:azurelib-neo-MCVER:MODVER"
 }
 ```
 <style>

@@ -12,5 +12,19 @@
 				]
 			}
 		]
+	},
+	"1.5.0": {
+		"title": "1.5.0",
+		"date": "2024-05-23",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Armadillo preset",
+					"Added link to Dialogue Designer for NPC entities"
+				]
+			}
+		]
 	}
 }

@@ -1,5 +1,5 @@
 (() => {
-    let codec, format, export_action, import_action, dialog, properties, originalJavaBlockCond
+    let codec, export_action_minimized, export_action_maximized, import_action, dialog, originalJavaBlockCond, lastOccuranceOfSequenceInArray
     const id = "cosmic_reach_model_editor"
     const name = "Cosmic Reach Model Editor"
     const icon = "icon.png"
@@ -10,11 +10,12 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "1.1.1",
+      version: "1.2.0",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
       new_repository_format: true,
+      has_changelog: true,
       onload() {
 	originalJavaBlockCond = Codecs.java_block.load_filter.condition
         Codecs.java_block.load_filter.condition = (model) => {
@@ -22,7 +23,7 @@
 		}
 
         dialog = new Dialog("cosmic_reach_model_errormessage", {
-            id: "cosmic_reach_model_dialog",
+            id: "cosmic_reach_model_dialog_error",
             title: "Something went wrong...",
             buttons: [],
             lines: [],
@@ -60,7 +61,22 @@
                     Project.texture_height = 16
                 }
             }),
-            compile(options={}){
+            async export(options = {}) {
+                if (Object.keys(this.export_options).length) {
+                    let result = await this.promptExportOptions();
+                    if (result === null) return;
+                }
+                Blockbench.export({
+                    resource_id: 'model',
+                    type: this.name,
+                    extensions: [this.extension],
+                    name: this.fileName(),
+                    startpath: this.startPath(),
+                    content: this.compile(options),
+                    custom_writer: isApp ? (a, b) => this.write(a, b) : null,
+                }, path => this.afterDownload(path))
+            },
+            compile(options={maximize: false}){
                 let facenamesbb = ["up", "down", "north", "south", "east", "west"]
                 let facenamescr = ["localPosY", "localNegY", "localNegZ", "localPosZ", "localPosX", "localNegX"]
             
@@ -139,31 +155,73 @@
                     textures[name] = { "fileName": name }
                 }
 
-                return JSON.stringify({"textures": textures, "cuboids": cuboids})
+                if(options.parent !== undefined){
+                    return JSON.stringify({"textures": textures, "parent": options.parent}, undefined, 4)
+                }
+                return JSON.stringify({"textures": textures, "cuboids": cuboids}, undefined, options.maximize ? 4 : undefined)
             },
 
-            parse(rawJSONstring, path){
+            parse(rawJSONstring, path, cuboidsOnly = false){
                 let loadedTextures = {}
 
                 let patharr = path.split(/[\\\/]/g)
                 patharr = patharr.slice(0, patharr.length - 1)
 
-                if(patharr.length > 1){
-                    patharr = [...patharr.slice(0, patharr.length - 2), "textures", patharr.pop()]
-                }
+                let root = lastOccuranceOfSequenceInArray(patharr, ["models", "blocks"])
 
                 let facenamesbb = ["up", "down", "north", "south", "east", "west"]
                 let facenamescr = ["localPosY", "localNegY", "localNegZ", "localPosZ", "localPosX", "localNegX"]
 
                 let allTexturesSpecified = false
 
-                let data = rawJSONstring instanceof String ? JSON.parse(rawJSONstring) : rawJSONstring
+                let data
+                if(typeof rawJSONstring === 'string'){
+                    data = JSON.parse(rawJSONstring)
+                }else if(rawJSONstring instanceof Object && !(rawJSONstring instanceof Array)){
+                    data = rawJSONstring
+                }else{
+                    throw "Unable to convert file data to Object"
+                }
 
-                if(data.textures == undefined){
+                if(cuboidsOnly){
+                    if(data.cuboids === undefined){
+                        if(data.parent === undefined){
+                            return []
+                        }else{
+                            let p = data.parent
+                            Blockbench.read([...patharr.slice(undefined, root - 1), "models", "blocks", p + (/\.json$/gui.test(p) ? "" : ".json")].join("/"), {
+                                extensions: ['json'],
+                                type: 'Cosmic Reach Model',
+                                readtype: 'text',
+                                resource_id: 'json'
+                            }, files => {
+                                try{
+                                    let cuboids = codec.parse(files[0].content, files[0].path, true);
+                                    if(data.cuboids === undefined){
+                                        data.cuboids = []
+                                    }
+                                    if(cuboids !== undefined){
+                                        for(let c of cuboids){
+                                            data.cuboids.push(c)
+                                        }
+                                    }
+                                    return data.cuboids
+                                }catch(error){
+                                    return []
+                                }
+                            })
+                        }
+                    }
+                    return data.cuboids
+                }
+
+                if(data.textures === undefined){
                     data.textures = {}
                 }
+
                 for(let t of Object.keys(data.textures)){
-                    let newtexture = new Texture().fromPath([...patharr, data.textures[t].fileName].join("/"))
+                    let newtexture = new Texture().fromPath([...patharr.slice(undefined, root - 1), "textures", "blocks", data.textures[t].fileName].join("/"))
+                    newtexture.name = data.textures[t].fileName
                     loadedTextures[t] = newtexture.add()
                 }
                 
@@ -172,6 +230,43 @@
                         Project.texture_width = Texture.all[0].width
                         Project.texture_height = Texture.all[0].height
                     }, 50);
+                }
+
+                if(data.cuboids === undefined){
+                    if(data.parent === undefined){
+                        throw Error(`No cuboids found in file ${path}`)
+                    }else{
+                        let p = data.parent
+                        Blockbench.read([...patharr.slice(undefined, root - 1), "models", "blocks", p + (/\.json$/gui.test(p) ? "" : ".json")].join("/"), {
+                            extensions: ['json'],
+                            type: 'Cosmic Reach Model',
+                            readtype: 'text',
+                            resource_id: 'json'
+                        }, files => {
+                            try{
+                                let cuboids = codec.parse(files[0].content, files[0].path, true);
+                                if(data.cuboids === undefined){
+                                    data.cuboids = []
+                                }
+                                if(cuboids !== undefined){
+                                    for(let c of cuboids){
+                                        data.cuboids.push(c)
+                                    }
+                                }
+                                dialog.lines = `<div>
+                                    <h1>Model is a child of '${p}'.</h1>
+                                    <p>Loaded parent with textures from the model file</p>
+                                </div>`.split("\n")
+                                dialog.show()
+                            }catch(error){
+                                dialog.lines = `<div>
+                                    <h1>Unable to import parent of the model.</h1>
+                                    <p>${error}</p>
+                                </div>`.split("\n")
+                                dialog.show()
+                            }
+                        })
+                    }
                 }
 
                 if(data.textures["all"] != undefined){
@@ -191,10 +286,6 @@
                     cube.faces[facenamebb].texture = Texture.all.filter((x) => {return x.name == texture.fileName})[0]
                 }
 
-                if(data.cuboids == undefined){
-                    throw Error(`No cuboids found in file ${path}`)
-                }
-
                 for(let cuboid of data.cuboids){
                     let from = cuboid.localBounds.slice(0, 3)
                     let to = cuboid.localBounds.slice(3, 6)
@@ -202,15 +293,15 @@
                     let cube = new Cube({from: from, to: to})
                     for(let i = 0; i < 6; i++){
                         try{
+                            let texture = loadedTextures[allTexturesSpecified ? "all" : cuboid.faces[facenamescr[i]].texture]
                             setUVforFace(cube, cuboid, facenamesbb[i], facenamescr[i])
-                            cube.faces[facenamesbb[i]].texture = loadedTextures[cuboid.faces[facenamescr[i]].texture]
+                            cube.faces[facenamesbb[i]].texture = texture
                         }catch(error){
-
+                            console.error(error)
                         }
                         cube.faces[facenamesbb[i]].cullface = cuboid.faces[facenamescr[i]].cullFace ? facenamesbb[i] : ""
                         cube.faces[facenamesbb[i]].tint = cuboid.faces[facenamescr[i]].ambientocclusion ? 0 : -1
                     }
-
                     cube.addTo(Group.all.last()).init()
                 }
                 
@@ -249,14 +340,60 @@
             }
         })
 
-        export_action = new Action('export_cosmic_reach_model', {
-            name: 'Export Cosmic Reach Model',
+        export_action_minimized = new Action('export_cosmic_reach_model_minimized', {
+                    name: 'Export Cosmic Reach Model (minimized)',
+                    description: '',
+                    icon: icon64,
+                    category: 'file',
+                    click() {
+                        try{
+                            codec.export({maximize: false, parent: undefined});
+                        }catch(error){
+                            dialog.lines = `<div>
+                                <h1>Unable to export file.</h1>
+                                <p>${error}</p>
+                            </div>`.split("\n")
+                            dialog.show()
+                        }
+                    }
+                })
+        export_action_maximized = new Action('export_cosmic_reach_model_maximized', {
+                    name: 'Export Cosmic Reach Model (maximized)',
+                    description: '',
+                    icon: icon64,
+                    category: 'file',
+                    click() {
+                        try{
+                            codec.export({maximize: true, parent: undefined});
+                        }catch(error){
+                            dialog.lines = `<div>
+                                <h1>Unable to export file.</h1>
+                                <p>${error}</p>
+                            </div>`.split("\n")
+                            dialog.show()
+                        }
+                    }
+                })
+        export_action_aschild = new Action('export_cosmic_reach_model_aschild', {
+            name: 'Export Cosmic Reach Model (Child)',
             description: '',
             icon: icon64,
             category: 'file',
             click() {
                 try{
-                    codec.export();
+                    new Dialog("cosmic_reach_model_exportaschildmodeldialog", {
+                        id: "cosmic_reach_model_dialog_aschild",
+                        title: "Export model as a child",
+                        form: {
+                            name: {
+                                label: "Parent name",
+                                value: Project._name
+                            }
+                        },
+                        onConfirm: result => {
+                            codec.export({maximize: true, parent: result.name});
+                        }
+                    }).show()
                 }catch(error){
                     dialog.lines = `<div>
                         <h1>Unable to export file.</h1>
@@ -268,15 +405,31 @@
         })
 
         MenuBar.addAction(import_action, 'file.import')
-        MenuBar.addAction(export_action, 'file.export')
+        MenuBar.addAction(export_action_minimized, 'file.export')
+        MenuBar.addAction(export_action_maximized, 'file.export')
+        MenuBar.addAction(export_action_aschild, 'file.export')
 
-        
 
+        lastOccuranceOfSequenceInArray = (array, sequence) => {
+            let count = 0
+            
+            for(let i = array.length - 1; i >= 0; i--) {
+                if(array[i] === sequence[sequence.length - count - 1]){
+                    count ++
+                    if(count === sequence.length - 1){
+                        return i
+                    }
+                }
+            }
+            return -1
+        }
       },
       onunload() {
 		import_action.delete();
-		export_action.delete();
-                Codecs.java_block.load_filter.condition = originalJavaBlockCond
+		export_action_maximized.delete();
+		export_action_minimized.delete();
+		export_action_aschild.delete();
+        Codecs.java_block.load_filter.condition = originalJavaBlockCond
       }
     })
   })()

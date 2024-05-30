@@ -1,0 +1,58 @@
+{
+	"2.0.0": {
+		"title": "2.0.0",
+		"date": "2024-03-21",
+		"author": "Malik12tree",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added new Bridge Edge Loops action"
+				]
+			},
+			{
+				"title": "Changes",
+				"list": [
+					"Triangles To Quadrilaterals: Improved algorithm",
+					"Scatter: Scattered elements more accurately follow surface rotation",
+					"Expand/Shrink Selection: Extend functionality in face and edge selection modes",
+					"Text Mesh: Support loading OpenType font files",
+					"XYZ Surface Generator: Include variables as sliders"
+				]
+			}
+		]
+	},
+	"2.0.1": {
+		"title": "2.0.1",
+		"date": "2024-05-10",
+		"author": "Malik12tree",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Scatter: Added additional scatter settings"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Scatter: Fixed issue with undoing group creation",
+					"Bridge Edge Loops: Fix issue with choosing best followup twist offset"
+				]
+			}
+		]
+	},
+	"2.0.2": {
+		"title": "2.0.2",
+		"date": "2024-05-11",
+		"author": "Malik12tree",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Text Mesh: Fixed issue where fonts wouldn't load"
+				]
+			}
+		]
+	}
+}

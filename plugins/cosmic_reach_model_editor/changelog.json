@@ -1,0 +1,49 @@
+{
+    "1.0.0": {
+        "title": "1.0.0",
+        "date": "2024-03-09",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Plugin created"
+                ]
+            }
+        ]
+    },
+    "1.1.1": {
+        "title": "1.1.1",
+        "date": "2024-04-19",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Bug Fixes",
+                "list": [
+                    "Fixed the bug that would cause Cosmic Reach models be loaded as Java Block Models"
+                ]
+            }
+        ]
+    },
+    "1.2.0": {
+        "title": "1.2.0",
+        "date": "2024-05-25",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Added control over whether the output JSON file is minimized or not",
+                    "Added option to export model as a child of another model (saves only textures and the name of the parent model specified",
+                    "Made it possible to load a child model (parent model will be loaded too)"
+                ]
+            },
+            {
+                "title": "Bug Fixes",
+                "list": [
+                    "Texture names now load properly"
+                ]
+            }
+        ]
+    }
+}

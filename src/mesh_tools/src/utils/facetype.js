@@ -27,7 +27,7 @@ export function convertOpenTypeToThreeJS(font) {
       var token = {};
       token.ha = Math.round(glyph.advanceWidth * scale);
 
-      const { x1: xMin, y1: xMax } = temp1.getPath().getBoundingBox();
+      const { x1: xMin, y1: xMax } = glyph.getPath().getBoundingBox();
       token.x_min = Math.round(xMin * scale);
       token.x_max = Math.round(xMax * scale);
       token.o = "";
