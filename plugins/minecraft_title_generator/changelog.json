@@ -20,7 +20,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix resetting all tabs"
+          "Fixed resetting all tabs"
         ]
       }
     ]
@@ -46,11 +46,11 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix missing pointer cursors",
-          "Fix debug mode duplicating textures",
-          "Fix plugin about action not getting removed on plugin unload",
-          "Fix anchor links in Blockbench webapp",
-          "Fix gradient overlay scaling"
+          "Fixed missing pointer cursors",
+          "Fixed debug mode duplicating textures",
+          "Fixed plugin about action not getting removed on plugin unload",
+          "Fixed anchor links in Blockbench webapp",
+          "Fixed gradient overlay scaling"
         ]
       }
     ]
@@ -63,7 +63,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix for Safari versions older than version 16.4"
+          "Fixed for Safari versions older than version 16.4"
         ]
       }
     ]
@@ -76,7 +76,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix the \"V\" character in the built-in font"
+          "Fixed the \"V\" character in the built-in font"
         ]
       }
     ]
@@ -224,7 +224,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix fonts that are flat"
+          "Fixed fonts that are flat"
         ]
       }
     ]
@@ -273,7 +273,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix debug mode thumbnails"
+          "Fixed debug mode thumbnails"
         ]
       }
     ]
@@ -302,7 +302,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix backup CDN for if a CDN goes down after you have opened Blockbench and used the plugin"
+          "Fixed backup CDN for if a CDN goes down after you have opened Blockbench and used the plugin"
         ]
       }
     ]
@@ -315,7 +315,7 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix ability to bypass EULA agreement"
+          "Fixed ability to bypass EULA agreement"
         ]
       }
     ]
@@ -335,8 +335,8 @@
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix render controls disappearing for some people",
-          "Fix render controls missing in Blockbench v4.10.0"
+          "Fixed render controls disappearing for some people",
+          "Fixed render controls missing in Blockbench v4.10.0"
         ]
       }
     ]

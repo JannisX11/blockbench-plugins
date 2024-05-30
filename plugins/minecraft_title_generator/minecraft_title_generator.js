@@ -106,6 +106,8 @@
     },
     has_changelog: true,
     website: "https://ewanhowell.com/plugins/minecraft-title-generator/",
+    repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/minecraft-title-generator",
+    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Minecraft Title Generator]",
     async onload() {
       styles = Blockbench.addCSS(`
         .minecraft-title-list {
