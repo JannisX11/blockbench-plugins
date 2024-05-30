@@ -1,4 +1,5 @@
 import _ACTIONS from '../assets/actions.json';
+import { PLUGIN_ID } from './globals.js';
 export const ACTIONS = _ACTIONS;
 
 const CONDITIONS = {
@@ -21,7 +22,7 @@ const CONDITIONS = {
 }
 
 
-export const qualifyName = (id) => (id == "_" ? id : `@meshtools/${id}`);
+export const qualifyName = (id) => (id == "_" ? id : `@${PLUGIN_ID}/${id}`);
 
 /**
  *

@@ -226,9 +226,7 @@ export function maybeExportItemJson(options = {}, as) {
     if (checkExport('comment', settings.credit.value)) {
         blockmodel.credit = settings.credit.value
     }
-    if (checkExport('parent', Project.parent != '')) {
-        blockmodel.parent = 'builtin/entity'
-    }
+    blockmodel.parent = 'builtin/entity'
     if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
         blockmodel.ambientocclusion = false
     }
@@ -290,7 +288,7 @@ var format = new ModelFormat({
     single_texture: true,
     bone_rig: true,
     centered_grid: true,
-    animated_textures: false,
+    animated_textures: true,
     animation_mode: true,
     animation_files: true,
     locators: true,

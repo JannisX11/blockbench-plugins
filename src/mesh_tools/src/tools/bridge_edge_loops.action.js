@@ -8,17 +8,19 @@
 
 import { action } from "../actions.js";
 import {
+  findMin,
+  groupElementsCollided,
+  lerp3,
+  offsetArray,
+} from "../utils/array.js";
+import {
   CubicBezier as CB,
   closestToLine,
   computeCentroid,
   computeTriangleNormal,
   extractEdgeKey,
-  findMin,
   getSelectedEdgesConnectedCountMap,
   getSelectedFacesAndEdgesByVertices,
-  groupElementsCollided,
-  lerp3,
-  offsetArray,
   selectFacesAndEdgesByVertices,
 } from "../utils/utils.js";
 import {
@@ -116,7 +118,7 @@ function bridgeLoopsConfigured(
   edgeLoopB,
   centroidA,
   centroidB,
-  { twist, numberOfCuts, blendPath, blendInfluence }
+  { twist, numberOfCuts, blendPath, blendInfluence, reverse }
 ) {
   if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
     return;
@@ -124,24 +126,20 @@ function bridgeLoopsConfigured(
   edgeLoopA = edgeLoopA.map((e) => e.slice());
   edgeLoopB = edgeLoopB.map((e) => e.slice());
 
-  const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
+  const bestOffset = bestEdgeLoopsOffset(edgeLoopA, edgeLoopB, mesh);
   offsetArray(edgeLoopB, bestOffset);
 
   const reversedEdgeLoopB = edgeLoopB.map((e) => e.slice().reverse()).reverse();
 
   const bestOffsetReversed = bestEdgeLoopsOffset(
-    reversedEdgeLoopB,
     edgeLoopA,
+    reversedEdgeLoopB,
     mesh
   );
-  // Negation of `bestOffset2` since the array is reversed,
-  // Does it make ANY sense?
-  // It doesn't!
-  // It just happens to work.
-  offsetArray(reversedEdgeLoopB, -bestOffsetReversed);
+  offsetArray(reversedEdgeLoopB, bestOffsetReversed);
   if (
-    edgeLoopsLength(mesh, edgeLoopA, edgeLoopB) >
-    edgeLoopsLength(mesh, edgeLoopA, reversedEdgeLoopB)
+    edgeLoopsLength(mesh, edgeLoopA, reverse ? edgeLoopB : reversedEdgeLoopB) <
+    edgeLoopsLength(mesh, edgeLoopA, reverse ? reversedEdgeLoopB : edgeLoopB)
   ) {
     edgeLoopB = reversedEdgeLoopB;
   }
@@ -268,6 +266,7 @@ function runEdit(
   cutHoles,
   blendPath,
   blendInfluence,
+  reverse
 ) {
   Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
@@ -370,7 +369,11 @@ function runEdit(
       };
     }
 
-    const sortedEdgeLoops = [loops.pop()];
+    const furthestLoop = findMin(loops, e => e.centroid.length());
+    loops.remove(furthestLoop);
+
+    const sortedEdgeLoops = [furthestLoop];
+    mesh.addVertices(sortedEdgeLoops[0].centroid.toArray())
     while (loops.length) {
       const currEdgeLoop = sortedEdgeLoops.last();
       const closestLoop = findMin(loops, (e) =>
@@ -396,6 +399,7 @@ function runEdit(
           numberOfCuts,
           blendPath,
           blendInfluence,
+          reverse
         }
       );
     }
@@ -411,11 +415,11 @@ export default action("bridge_edge_loops", () => {
 
   Undo.amendEdit(
     {
-      blend_path: {
-        type: "checkbox",
-        label: "Blend Path",
-        value: true,
-      },
+      // reverse: {
+      //   type: "checkbox",
+      //   label: "Reverse Winding",
+      //   value: false,
+      // },
       blend_influence: {
         type: "number",
         label: "Smoothness",
@@ -434,6 +438,11 @@ export default action("bridge_edge_loops", () => {
         label: "Twist",
         value: 0,
       },
+      blend_path: {
+        type: "checkbox",
+        label: "Blend Path",
+        value: true,
+      },
       cut_holes: {
         type: "checkbox",
         label: "Cut Holes",
@@ -449,6 +458,7 @@ export default action("bridge_edge_loops", () => {
         form.cut_holes,
         form.blend_path,
         form.blend_influence / 100,
+        form.reverse
       );
     }
   );

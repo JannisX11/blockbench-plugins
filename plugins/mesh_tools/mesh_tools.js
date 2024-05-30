@@ -1,6 +1,17 @@
 (function () {
   'use strict';
 
+  var bevel = {
+  	docs: {
+  		"private": true
+  	},
+  	name: "Bevel",
+  	icon: "rounded_corner",
+  	description: "Chamfers selected edges",
+  	selection_mode: [
+  		"edge"
+  	]
+  };
   var laplacian_smooth = {
   	docs: {
   		lines: [
@@ -493,6 +504,7 @@
   	description: "Generate a Torus Knot with fully customized settings."
   };
   var _ACTIONS = {
+  	bevel: bevel,
   	laplacian_smooth: laplacian_smooth,
   	to_sphere: to_sphere,
   	bridge_edge_loops: bridge_edge_loops,
@@ -520,6 +532,119 @@
   	torusknot: torusknot
   };
 
+  const KEYS_KEY = "<keys>";
+  const SUBS_KEY = "<subs>";
+  class BasicQualifiedStorage {
+    constructor(id) {
+      this.id = id;
+    }
+    #isQualified() {
+      return this.id.startsWith("@");
+    }
+    qualifyKey(key) {
+      if (this.#isQualified()) {
+        return `${this.id}/${key}`;
+      }
+      return `@${this.id}/${key}`;
+    }
+    set(key, value) {
+      key = this.qualifyKey(key);
+
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+    delete(key) {
+      key = this.qualifyKey(key);
+
+      localStorage.removeItem(key);
+    }
+    has(key) {
+      key = this.qualifyKey(key);
+
+      return localStorage.hasOwnProperty(key);
+    }
+    get(key) {
+      key = this.qualifyKey(key);
+
+      const rawValue = localStorage.getItem(key);
+      if (rawValue != null) {
+        return JSON.parse(rawValue);
+      }
+      return null;
+    }
+    update(key, callback, defaultValue) {
+      const value = this.get(key) ?? defaultValue;
+      const newValue = callback(value);
+      return this.set(key, newValue);
+    }
+  }
+
+  const keysStorage = new BasicQualifiedStorage(KEYS_KEY);
+  const subStoragesStorage = new BasicQualifiedStorage(SUBS_KEY);
+  class QualifiedStorage extends BasicQualifiedStorage {
+    
+    in(key) {
+      subStoragesStorage.update(this.id, (keys) => {
+        keys.safePush(key);
+        return keys;
+      }, []);
+      return new QualifiedStorage(this.qualifyKey(key));
+    }
+
+    constructor(id) {
+      console.assert(
+        id != KEYS_KEY,
+        `QualifiedStorage: id cannot be equal to ${JSON.stringify(KEYS_KEY)}`
+      );
+
+      super(id);
+    }
+    set(key, value) {
+      keysStorage.update(
+        this.id,
+        (keys) => {
+          keys.safePush(key);
+          return keys;
+        },
+        []
+      );
+
+      super.set(key, value);
+    }
+    delete(key) {
+      keysStorage.update(
+        this.id,
+        (keys) => {
+          const index = keys.indexOf(key);
+          if (index != -1) {
+            keys.splice(index, 1);
+          }
+
+          return keys;
+        },
+        []
+      );
+
+      super.delete(key);
+    }
+    getAllKeys() {
+      return keysStorage.get(this.id) ?? [];
+    }
+    clear() {
+      for (const key of this.getAllKeys()) {
+        super.delete(key);
+      }
+      const subKeys = subStoragesStorage.get(this.id) ?? [];
+      for (const subKey of subKeys) {
+        new QualifiedStorage(this.qualifyKey(subKey)).clear();
+      }
+      keysStorage.delete(this.id);
+      subStoragesStorage.delete(this.id);
+    }
+  }
+
+  const PLUGIN_ID = "mesh_tools";
+  const storage = new QualifiedStorage(PLUGIN_ID);
+
   const ACTIONS = _ACTIONS;
 
   const CONDITIONS = {
@@ -542,7 +667,7 @@
   };
 
 
-  const qualifyName = (id) => (id == "_" ? id : `@meshtools/${id}`);
+  const qualifyName = (id) => (id == "_" ? id : `@${PLUGIN_ID}/${id}`);
 
   /**
    *
@@ -574,6 +699,176 @@
       options.keybind = new Keybind(options.keybind);
     }
     return new Action(qualifyName(id), options);
+  }
+
+  /**
+   * @template {V}
+   * @template {K}
+   * @param {V[]} arr
+   * @param {(value: V, currentIndex: number, array: V[]) => K[]} callback
+   * @returns {{[k: K]: V[]}}
+   */
+
+  function minIndex(array) {
+    let minI = -1;
+    let minValue = Infinity;
+    for (let i = 0; i < array.length; i++) {
+      const value = array[i];
+
+      if (value <= minValue) {
+        minValue = value;
+        minI = i;
+      }
+    }
+    return minI;
+  }
+  function findMin(array, map = (x) => x) {
+    if (array.length == 1) return array[0];
+    if (array.length == 0) return null;
+
+    let minElement = null;
+    let minValue = Infinity;
+
+    for (const element of array) {
+      const value = map(element);
+
+      if (value <= minValue) {
+        minElement = element;
+        minValue = value;
+      }
+    }
+
+    return minElement;
+  }
+
+  /**
+   *
+   * @param {ArrayVector3} a
+   * @param {ArrayVector3} b
+   * @param {number} t
+   * @returns {ArrayVector3}
+   */
+  function lerp3(a, b, t) {
+    return a.map((e, i) => Math.lerp(e, b[i], t));
+  }
+  function groupElementsCollided(array, every = 2) {
+    const newArray = [];
+    for (let i = 0; i < array.length; i++) {
+      const sub = [];
+      for (let j = 0; j < every; j++) {
+        const element = array[(i + j) % array.length];
+        sub.push(element);
+      }
+      newArray.push(sub);
+    }
+    return newArray;
+  }
+
+  function offsetArray(array, offset) {
+    while (offset < 0) offset += array.length;
+    while (offset >= array.length) offset -= array.length;
+
+    const newArr = [];
+    for (let i = 0; i < array.length; i++) {
+      newArr[(i + offset) % array.length] = array[i];
+    }
+
+    array.splice(0, Infinity, ...newArr);
+  }
+
+  class Neighborhood {
+    /**
+     *
+     * @param {Mesh} mesh
+     * @returns {{[vertexKey: string]: string[]}}
+     */
+    static VertexVertices(mesh) {
+      const map = {};
+
+      for (const key in mesh.faces) {
+        const face = mesh.faces[key];
+
+        face.vertices.forEach((vkey) => {
+          if (!(vkey in map)) {
+            map[vkey] = [];
+          }
+
+          face.vertices.forEach((neighborkey) => {
+            if (neighborkey == vkey) return;
+
+            map[vkey].safePush(neighborkey);
+          });
+        });
+      }
+
+      return map;
+    }
+
+    /**
+     *
+     * @param {Mesh} mesh
+     * @returns {{[vertexKey: string]: MeshFace[]}}
+     */
+    static VertexFaces(mesh) {
+      const neighborhood = {};
+
+      for (const key in mesh.faces) {
+        const face = mesh.faces[key];
+
+        for (const vertexKey of face.vertices) {
+          neighborhood[vertexKey] ??= [];
+          neighborhood[vertexKey].safePush(face);
+        }
+      }
+
+      return neighborhood;
+    }
+
+    /**
+     *
+     * @param {Mesh} mesh
+     * @returns {{[edgeKey: string]: MeshFace[]}}
+     */
+    static EdgeFaces(mesh) {
+      const neighborhood = {};
+      for (const key in mesh.faces) {
+        const face = mesh.faces[key];
+        const vertices = face.getSortedVertices();
+
+        for (let i = 0; i < vertices.length; i++) {
+          const vertexCurr = vertices[i];
+          const vertexNext = vertices[(i + 1) % vertices.length];
+          const edgeKey = getEdgeKey(vertexCurr, vertexNext);
+          neighborhood[edgeKey] ??= [];
+          neighborhood[edgeKey].safePush(face);
+        }
+      }
+      return neighborhood;
+    }
+
+    /**
+     *
+     * @param {Mesh} mesh
+     * @returns {{[vertexKey: string]: string[]}}
+     */
+    static VertexEdges(mesh) {
+      const neighborhood = {};
+      for (const key in mesh.faces) {
+        const face = mesh.faces[key];
+        const vertices = face.getSortedVertices();
+
+        for (let i = 0; i < vertices.length; i++) {
+          const vertexCurr = vertices[i];
+          const vertexNext = vertices[(i + 1) % vertices.length];
+          const edgeKey = getEdgeKey(vertexCurr, vertexNext);
+          neighborhood[vertexCurr] ??= [];
+          neighborhood[vertexNext] ??= [];
+          neighborhood[vertexCurr].safePush(edgeKey);
+          neighborhood[vertexNext].safePush(edgeKey);
+        }
+      }
+      return neighborhood;
+    }
   }
 
   function xKey(obj) {
@@ -655,11 +950,11 @@
 
   const reusableEuler1$1 = new THREE.Euler();
   const reusableQuat1 = new THREE.Quaternion();
-  const reusableVec1 = new THREE.Vector3();
-  const reusableVec2 = new THREE.Vector3();
-  const reusableVec3 = new THREE.Vector3();
-  const reusableVec4 = new THREE.Vector3();
-  const reusableVec5 = new THREE.Vector3();
+  const reusableVec1$1 = new THREE.Vector3();
+  const reusableVec2$1 = new THREE.Vector3();
+  const reusableVec3$1 = new THREE.Vector3();
+  const reusableVec4$1 = new THREE.Vector3();
+  const reusableVec5$1 = new THREE.Vector3();
   new THREE.Vector2();
   new THREE.Vector2(1, 0);
 
@@ -674,9 +969,16 @@
    */
   const reusableObject = new THREE.Object3D();
   reusableObject.rotation.order = "XYZ";
-  function rotationFromDirection(target, targetEuler = new THREE.Euler()) {
+  function rotationFromDirection(
+    target,
+    targetEuler = new THREE.Euler(),
+    { rotateX = 0, rotateY = 0, rotateZ = 0 } = {}
+  ) {
     reusableObject.lookAt(target);
     reusableObject.rotateX(Math.degToRad(90));
+    reusableObject.rotateX(rotateX);
+    reusableObject.rotateY(rotateY);
+    reusableObject.rotateZ(rotateZ);
 
     targetEuler.copy(reusableObject.rotation);
     return targetEuler;
@@ -689,13 +991,13 @@
    * @returns {THREE.Vector3}
    */
   function computeTriangleNormal(A, B, C) {
-    reusableVec1.set(getX(A), getY(A), getZ(A));
-    reusableVec2.set(getX(B), getY(B), getZ(B));
-    reusableVec3.set(getX(C), getY(C), getZ(C));
-    return reusableVec4
+    reusableVec1$1.set(getX(A), getY(A), getZ(A));
+    reusableVec2$1.set(getX(B), getY(B), getZ(B));
+    reusableVec3$1.set(getX(C), getY(C), getZ(C));
+    return reusableVec4$1
       .crossVectors(
-        reusableVec2.sub(reusableVec1),
-        reusableVec3.sub(reusableVec1)
+        reusableVec2$1.sub(reusableVec1$1),
+        reusableVec3$1.sub(reusableVec1$1)
       )
       .clone();
   }
@@ -721,29 +1023,6 @@
 
   function easeInOutSine(x) {
     return -(Math.cos(Math.PI * x) - 1) / 2;
-  }
-
-  /** @param {Mesh} mesh */
-  function computeVertexNeighborhood(mesh) {
-    const map = {};
-
-    for (const key in mesh.faces) {
-      const face = mesh.faces[key];
-
-      face.vertices.forEach((vkey) => {
-        if (!(vkey in map)) {
-          map[vkey] = [];
-        }
-
-        face.vertices.forEach((neighborkey) => {
-          if (neighborkey == vkey) return;
-
-          map[vkey].safePush(neighborkey);
-        });
-      });
-    }
-
-    return map;
   }
 
   function getAdjacentElements(arr, index) {
@@ -837,22 +1116,21 @@
 
     if (polygonOrPoint instanceof Array) {
       return polygonOrPoint.map((e) => {
-        reusableVec5.copy(e);
-        reusableVec5.applyQuaternion(quat);
-        return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
+        reusableVec5$1.copy(e);
+        reusableVec5$1.applyQuaternion(quat);
+        return new THREE.Vector2(reusableVec5$1.x, reusableVec5$1.z);
       });
     }
-    reusableVec5.copy(polygonOrPoint);
-    reusableVec5.applyQuaternion(quat);
-    return new THREE.Vector2(reusableVec5.x, reusableVec5.z);
+    reusableVec5$1.copy(polygonOrPoint);
+    reusableVec5$1.applyQuaternion(quat);
+    return new THREE.Vector2(reusableVec5$1.x, reusableVec5$1.z);
   }
 
   /**
    * Triangulates a polygon into a set of triangles.
    *
    * @param {ArrayVector3[]} polygon
-   * @returns {Array<ArrayVector3>} An array of triangles. Each triangle is represented
-   *   as an ArrayVector3
+   * @returns {Array<ArrayVector3>} An array of triangles.
    */
   function triangulate(polygon) {
     const vertices3d = polygon.map((v) => v.V3_toThree());
@@ -940,20 +1218,6 @@
       .split(/[_\s]+/g)
       .map((word) => word[0].toUpperCase() + word.slice(1))
       .join(" ");
-  }
-
-  function minIndex(array) {
-    let minI = -1;
-    let minValue = Infinity;
-    for (let i = 0; i < array.length; i++) {
-      const value = array[i];
-
-      if (value <= minValue) {
-        minValue = value;
-        minI = i;
-      }
-    }
-    return minI;
   }
   /**
    *
@@ -1068,6 +1332,11 @@
     }
     return `${a}_${b}`;
   }
+  /**
+   *
+   * @param {string} edgeKey
+   * @returns {[string, string]}
+   */
   function extractEdgeKey(edgeKey) {
     return edgeKey.split("_");
   }
@@ -1079,7 +1348,7 @@
     const selectedConnectedCount = {};
     const connectedCount = {};
 
-    const neighborhood = computeEdgeFacesNeighborhood(mesh);
+    const neighborhood = Neighborhood.EdgeFaces(mesh);
 
     for (const [a, b] of edges) {
       const edgeKey = getEdgeKey(a, b);
@@ -1097,67 +1366,7 @@
     }
     return { connectedCount, selectedConnectedCount };
   }
-  /**
-   *
-   * @param {Mesh} mesh
-   * @returns {{[edgeKey: string]: MeshFace[]}}
-   */
-  function computeEdgeFacesNeighborhood(mesh) {
-    const neighborhood = {};
-    for (const key in mesh.faces) {
-      const face = mesh.faces[key];
-      const vertices = face.getSortedVertices();
 
-      for (let i = 0; i < vertices.length; i++) {
-        const vertexCurr = vertices[i];
-        const vertexNext = vertices[(i + 1) % vertices.length];
-        const edgeKey = getEdgeKey(vertexCurr, vertexNext);
-        neighborhood[edgeKey] ??= [];
-        neighborhood[edgeKey].safePush(face);
-      }
-    }
-    return neighborhood;
-  }
-
-  /**
-   *
-   * @param {ArrayVector3} a
-   * @param {ArrayVector3} b
-   * @param {number} t
-   * @returns {ArrayVector3}
-   */
-  function lerp3(a, b, t) {
-    return a.map((e, i) => Math.lerp(e, b[i], t));
-  }
-
-  function groupElementsCollided(array, every = 2) {
-    const newArray = [];
-    for (let i = 0; i < array.length; i++) {
-      const sub = [];
-      for (let j = 0; j < every; j++) {
-        const element = array[(i + j) % array.length];
-        sub.push(element);
-      }
-      newArray.push(sub);
-    }
-    return newArray;
-  }
-
-  function findMin(array, map = (x) => x) {
-    let minElement = null;
-    let minValue = Infinity;
-
-    for (const element of array) {
-      const value = map(element);
-
-      if (value <= minValue) {
-        minElement = element;
-        minValue = value;
-      }
-    }
-
-    return minElement;
-  }
   function computeCentroid(polygon) {
     const centroid = new THREE.Vector3();
     for (const vertex of polygon) {
@@ -1167,17 +1376,6 @@
     return centroid;
   }
 
-  function offsetArray(array, offset) {
-    while (offset < 0) offset += array.length;
-    while (offset >= array.length) offset -= array.length;
-
-    const newArr = [];
-    for (let i = 0; i < array.length; i++) {
-      newArr[(i + offset) % array.length] = array[i];
-    }
-
-    array.splice(0, Infinity, ...newArr);
-  }
 
   /**
    *
@@ -1226,16 +1424,6 @@
       3 * (1 - t) * t ** 2 * p2 +
       t ** 3 * p3
     );
-  }
-  /**
-   * 
-   * @param {string} message 
-   * @param {?number} timeout 
-   * @returns {never}
-   */
-  function throwQuickMessage(message, timeout) {
-    Blockbench.showQuickMessage(message, timeout);
-    throw message;
   }
 
   /**
@@ -1335,7 +1523,7 @@
     edgeLoopB,
     centroidA,
     centroidB,
-    { twist, numberOfCuts, blendPath, blendInfluence }
+    { twist, numberOfCuts, blendPath, blendInfluence, reverse }
   ) {
     if (edgeLoopA.length < 3 || edgeLoopB.length < 3) {
       return;
@@ -1343,24 +1531,20 @@
     edgeLoopA = edgeLoopA.map((e) => e.slice());
     edgeLoopB = edgeLoopB.map((e) => e.slice());
 
-    const bestOffset = bestEdgeLoopsOffset(edgeLoopB, edgeLoopA, mesh);
+    const bestOffset = bestEdgeLoopsOffset(edgeLoopA, edgeLoopB, mesh);
     offsetArray(edgeLoopB, bestOffset);
 
     const reversedEdgeLoopB = edgeLoopB.map((e) => e.slice().reverse()).reverse();
 
     const bestOffsetReversed = bestEdgeLoopsOffset(
-      reversedEdgeLoopB,
       edgeLoopA,
+      reversedEdgeLoopB,
       mesh
     );
-    // Negation of `bestOffset2` since the array is reversed,
-    // Does it make ANY sense?
-    // It doesn't!
-    // It just happens to work.
-    offsetArray(reversedEdgeLoopB, -bestOffsetReversed);
+    offsetArray(reversedEdgeLoopB, bestOffsetReversed);
     if (
-      edgeLoopsLength(mesh, edgeLoopA, edgeLoopB) >
-      edgeLoopsLength(mesh, edgeLoopA, reversedEdgeLoopB)
+      edgeLoopsLength(mesh, edgeLoopA, reverse ? edgeLoopB : reversedEdgeLoopB) <
+      edgeLoopsLength(mesh, edgeLoopA, reverse ? reversedEdgeLoopB : edgeLoopB)
     ) {
       edgeLoopB = reversedEdgeLoopB;
     }
@@ -1487,6 +1671,7 @@
     cutHoles,
     blendPath,
     blendInfluence,
+    reverse
   ) {
     Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
 
@@ -1589,7 +1774,11 @@
         };
       }
 
-      const sortedEdgeLoops = [loops.pop()];
+      const furthestLoop = findMin(loops, e => e.centroid.length());
+      loops.remove(furthestLoop);
+
+      const sortedEdgeLoops = [furthestLoop];
+      mesh.addVertices(sortedEdgeLoops[0].centroid.toArray());
       while (loops.length) {
         const currEdgeLoop = sortedEdgeLoops.last();
         const closestLoop = findMin(loops, (e) =>
@@ -1615,6 +1804,7 @@
             numberOfCuts,
             blendPath,
             blendInfluence,
+            reverse
           }
         );
       }
@@ -1626,15 +1816,15 @@
     Undo.finishEdit("MTools: Bridged Edge Loops.");
   }
   action("bridge_edge_loops", () => {
-    runEdit$c(false, 2, 0, true, true, 1);
+    runEdit$c(false, 2, 0, true, true, 1, false);
 
     Undo.amendEdit(
       {
-        blend_path: {
-          type: "checkbox",
-          label: "Blend Path",
-          value: true,
-        },
+        // reverse: {
+        //   type: "checkbox",
+        //   label: "Reverse Winding",
+        //   value: false,
+        // },
         blend_influence: {
           type: "number",
           label: "Smoothness",
@@ -1653,6 +1843,11 @@
           label: "Twist",
           value: 0,
         },
+        blend_path: {
+          type: "checkbox",
+          label: "Blend Path",
+          value: true,
+        },
         cut_holes: {
           type: "checkbox",
           label: "Cut Holes",
@@ -1668,6 +1863,7 @@
           form.cut_holes,
           form.blend_path,
           form.blend_influence / 100,
+          form.reverse
         );
       }
     );
@@ -1718,7 +1914,7 @@
 
   action("expand_selection", () => {
     Mesh.selected.forEach((mesh) => {
-      const neighborMap = computeVertexNeighborhood(mesh);
+      const neighborMap = Neighborhood.VertexVertices(mesh);
 
       const selectedVertices = mesh.getSelectedVertices();
       const selectedVertexSet = new Set(selectedVertices);
@@ -1742,7 +1938,7 @@
       if (!influence || !iterations) return; //
 
       const { vertices } = mesh;
-      const neighborMap = computeVertexNeighborhood(mesh);
+      const neighborMap = Neighborhood.VertexVertices(mesh);
 
       const selectedVertices = mesh.getSelectedVertices();
 
@@ -1849,7 +2045,7 @@
 
   action("shrink_selection", () => {
     Mesh.selected.forEach((mesh) => {
-      const neighborMap = computeVertexNeighborhood(mesh);
+      const neighborMap = Neighborhood.VertexVertices(mesh);
 
       const selectedVertices = mesh.getSelectedVertices();
       const selectedVertexSet = new Set(selectedVertices);
@@ -2354,10 +2550,131 @@
     );
   });
 
+  const LanguageDefinitions = {
+    "word.before": "Input",
+    "word.after": "Result",
+    "word.mesh": "Mesh",
+    "word.uv": "UV",
+  };
+  function getLanguage() {
+    return LanguageDefinitions;
+  }
+  function translate(subject) {
+    return subject.replace(/[a-zA-Z_][a-zA-Z0-9_\.]+/g, (key) => {
+      return getLanguage()[key] ?? key;
+    });
+    
+  }
+  const getURL = (e) =>
+      // `http://127.0.0.1:5500/${e}?t=${Math.random()}`;
+    `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
+  function renderImage({ src, caption = "" }) {
+    return `
+  <figure>
+  <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="${getURL(
+    `assets/actions/${src}`
+  )}" />
+  <figcaption>${translate(caption)}</figcaption>
+  </figure>
+  `;
+  }
+  function renderOverflow(children) {
+    return `<content>${children}</content>`;
+  }
+  function renderInsetRow({ items }) {
+    return `<div style="display: flex;flex-wrap:wrap;">
+		${items
+      .map(
+        (e) =>
+          `<div style="border: 1px solid var(--color-dark);background: var(--color-back);">${renderLine(
+            e
+          )}</div>`
+      )
+      .join("\n")}
+	</div>
+	`;
+  }
+  function renderLine(options) {
+    if (typeof options == "string") return options;
+
+    switch (options.type) {
+      case "image":
+        return renderImage(options);
+      case "overflow":
+        return renderOverflow(options);
+      case "inset_row":
+        return renderInsetRow(options);
+      default:
+        throw new Error(`Unknown line type: ${options.type}`);
+    }
+  }
+
+  const dontShowAgainInfoStorage = storage.in("dont_show_again_info_storage");
+  function dontShowAgainInfo(id, title, message) {
+    if (dontShowAgainInfoStorage.has(id)) {
+      return;
+    }
+
+    const messageBox = Blockbench.showMessageBox(
+      {
+        title,
+        message,
+        icon: "info",
+        checkboxes: {
+          dont_show_again: { value: false, text: "dialog.dontshowagain" },
+        },
+        buttons: ["dialog.ok"],
+      },
+      (_, { dont_show_again: dontShowAgain }) => {
+        if (dontShowAgain) {
+          dontShowAgainInfoStorage.set(id, true);
+        }
+      }
+    );
+    messageBox.object.querySelector(".dialog_content").style.overflow = "auto";
+  }
+
+  /**
+   *
+   * @param {string} message
+   * @param {?number} timeout
+   * @returns {never}
+   */
+  function throwQuickMessage(message, timeout) {
+    Blockbench.showQuickMessage(message, timeout);
+    throw message;
+  }
+
   const reusableEuler1 = new THREE.Euler();
-  function runEdit$4(mesh,selected, group, density, amend = false) {
+  const reusableVec1 = new THREE.Vector3();
+  const reusableVec2 = new THREE.Vector3();
+  const reusableVec3 = new THREE.Vector3();
+  const reusableVec4 = new THREE.Vector3();
+  const reusableVec5 = new THREE.Vector3();
+  // const reusableVec6 = new THREE.Vector3();
+  function runEdit$4(
+    mesh,
+    selected,
+    {
+      density = 3,
+      min_distance: minDistance = 0,
+      scale = 100,
+      min_scale: minScale = 100,
+      scale_factor: scaleFactor = 50,
+      rotation = 0,
+      rotation_factor: rotationFactor = 0,
+    },
+    amend = false
+  ) {
     const meshes = [];
-    Undo.initEdit({ elements: meshes, selection: true, group }, amend);
+    scale /= 100;
+    minScale /= 100;
+    scaleFactor /= 100;
+    rotationFactor /= 100;
+    const minDistanceSquared = minDistance ** 2;
+
+    Undo.initEdit({ outliner: true, elements: [], selection: true }, amend);
+
     /**
      * @type {THREE.Mesh}
      */
@@ -2367,19 +2684,20 @@
     const vertices = tmesh.geometry.getAttribute("position");
     const l = faces.count;
 
+    const points = [];
     for (let d = 0; d < density; d++) {
       const i = Math.floor((Math.random() * l) / 3) * 3; // random face index
-      const t0 = new THREE.Vector3(
+      const t0 = reusableVec1.set(
         vertices.getX(faces.getX(i)),
         vertices.getY(faces.getX(i)),
         vertices.getZ(faces.getX(i))
       );
-      const t1 = new THREE.Vector3(
+      const t1 = reusableVec2.set(
         vertices.getX(faces.getY(i)),
         vertices.getY(faces.getY(i)),
         vertices.getZ(faces.getY(i))
       );
-      const t2 = new THREE.Vector3(
+      const t2 = reusableVec3.set(
         vertices.getX(faces.getZ(i)),
         vertices.getY(faces.getZ(i)),
         vertices.getZ(faces.getZ(i))
@@ -2390,64 +2708,156 @@
       tmesh.localToWorld(t2);
 
       // f*ed up midpoint theroem
-      const pointA = new THREE.Vector3().lerpVectors(t0, t1, Math.random());
-      const pointB = new THREE.Vector3().lerpVectors(t0, t2, Math.random());
-      const pointF = new THREE.Vector3().lerpVectors(
+      const pointA = reusableVec4.lerpVectors(t0, t1, Math.random());
+      const pointB = reusableVec5.lerpVectors(t0, t2, Math.random());
+
+      const point = new THREE.Vector3().lerpVectors(
         pointA,
         pointB,
         Math.random()
       );
-
+      if (points.find((e) => e.distanceToSquared(point) < minDistanceSquared)) {
+        continue;
+      }
+      points.push(point);
       // scatter on points
+      /**
+       * @type {Mesh}
+       */
       const otherMesh =
         selected[Math.floor(selected.length * Math.random())].duplicate();
 
       otherMesh.removeFromParent();
       otherMesh.parent = "root";
-      Outliner.root.push(otherMesh);
+
+      const currentScale = Math.lerp(
+        scale,
+        Math.lerp(minScale, 1, Math.random()) * scale,
+        scaleFactor
+      );
+
+      const currentRotation = rotationFactor * (Math.random() * 2 - 1) * rotation;
+
+      for (const key in otherMesh.vertices) {
+        otherMesh.vertices[key].V3_multiply(currentScale);
+      }
 
       const normal = computeTriangleNormal(t0, t1, t2);
 
-      const rotation = rotationFromDirection(normal, reusableEuler1);
-      otherMesh.rotation[0] = Math.radToDeg(rotation.x);
-      otherMesh.rotation[1] = Math.radToDeg(rotation.y);
-      otherMesh.rotation[2] = Math.radToDeg(rotation.z);
+      const euler = rotationFromDirection(normal, reusableEuler1, {
+        rotateY: Math.degToRad(currentRotation),
+      });
+      otherMesh.rotation[0] = Math.radToDeg(euler.x);
+      otherMesh.rotation[1] = Math.radToDeg(euler.y);
+      otherMesh.rotation[2] = Math.radToDeg(euler.z);
 
-      otherMesh.origin = pointF.toArray();
+      otherMesh.origin = point.toArray();
 
-      otherMesh.addTo(group);
       meshes.push(otherMesh);
     }
-    Undo.finishEdit("MTools: Scatter meshes");
-    Canvas.updatePositions();
+    const group = new Group({ name: "instances_on_" + mesh.name });
+    meshes.forEach((e) => {
+      // Outliner.root.push(otherMesh);
+      e.addTo(group);
+    });
+    group.init();
+
+    Undo.finishEdit("MTools: Scatter meshes", {
+      outliner: true,
+      elements: meshes,
+      selection: true,
+    });
+    Canvas.updateAll();
   }
   action("scatter", function () {
     if (Mesh.selected.length < 2) {
       Blockbench.showQuickMessage("At least two meshes must be selected");
       return;
     }
+    dontShowAgainInfo(
+      "scatter_pivot",
+      "Good To Know",
+      [
+        "Scattered meshes are <b>relative</b> to their <u>pivot points</u> on the target surface.",
+
+        renderLine({
+          type: "inset_row",
+          items: [
+            {
+              type: "image",
+              src: "scatter_pivot_1.png",
+              caption: "Pivot point located on the bottom",
+            },
+            {
+              type: "image",
+              src: "scatter_pivot_2.png",
+              caption: "Pivot point located far down",
+            },
+          ],
+        }),
+      ].join("\n")
+    );
 
     const mesh = Mesh.selected.last();
     mesh.unselect();
 
-    const group = new Group({ name: "instances_on_" + mesh.name });
-    group.init();
-
     const selected = Mesh.selected.slice();
-    runEdit$4(mesh, selected, group, 3);
+    runEdit$4(mesh, selected, {});
 
     Undo.amendEdit(
       {
         density: {
           type: "number",
           value: 3,
-          label: "Density",
+          label: "Max Density",
+          min: 0,
+          max: 100,
+        },
+        min_distance: {
+          type: "number",
+          value: 0,
+          label: "Min Distance",
+          min: 0,
+        },
+        scale: {
+          type: "number",
+          value: 100,
+          label: "Scale",
+          min: 0,
+          max: 100,
+        },
+        min_scale: {
+          type: "number",
+          value: 100,
+          label: "Min Scale",
+          min: 0,
+          max: 100,
+        },
+        scale_factor: {
+          type: "number",
+          value: 50,
+          label: "Scale Randomness",
+          min: 0,
+          max: 100,
+        },
+
+        rotation: {
+          type: "number",
+          value: 0,
+          label: "Max Rotation",
+          min: 0,
+          max: 180,
+        },
+        rotation_factor: {
+          type: "number",
+          value: 0,
+          label: "Rotation Randomness",
           min: 0,
           max: 100,
         },
       },
       (form) => {
-        runEdit$4(mesh, selected, group, form.density, true);
+        runEdit$4(mesh, selected, form, true);
       }
     );
   });
@@ -19592,7 +20002,7 @@
         var token = {};
         token.ha = Math.round(glyph.advanceWidth * scale);
 
-        const { x1: xMin, y1: xMax } = temp1.getPath().getBoundingBox();
+        const { x1: xMin, y1: xMax } = glyph.getPath().getBoundingBox();
         token.x_min = Math.round(xMin * scale);
         token.x_max = Math.round(xMax * scale);
         token.o = "";
@@ -19805,7 +20215,7 @@
         }
       }
       for (const char of out.text) {
-        if (!(char in content.glyphs)) {
+        if (char != '\n' && !(char in content.glyphs)) {
           throwQuickMessage(
             `Character "${char}" doesn't exist on the provided font!`,
             2000
@@ -22531,7 +22941,6 @@
     elements.push(mesh);
     mesh.select();
     UVEditor.setAutoSize(null, true, Object.keys(mesh.faces));
-    UVEditor.selected_faces.empty();
     Undo.finishEdit("MTools: Generate Mesh");
   }
   const dialog$1 = new Dialog({
@@ -22592,7 +23001,6 @@
     elements.push(mesh);
     mesh.select();
     UVEditor.setAutoSize(null, true, Object.keys(mesh.faces));
-    UVEditor.selected_faces.empty();
     Undo.finishEdit("MTools: Generate Mesh");
   }
   const dialog = new Dialog({
@@ -22643,21 +23051,26 @@
    * @type {Array<THREE.Object3D>}
    */
   const meshToolTips = [];
-  BBPlugin.register("mesh_tools", {
-    "new_repository_format": true,
-    "title": "MTools",
-    "author": "Malik12tree",
-    "icon": "icon.png",
-    "description": "Adds powerful mesh modeling tools, operators and generators!",
-    "version": "2.0.0",
-    "min_version": "4.9.4",
-    "variant": "both",
-    "tags": ["Format: Generic Model", "Mesh", "Tool"],
+  BBPlugin.register(PLUGIN_ID, {
+    new_repository_format: true,
+    title: "MTools",
+    author: "Malik12tree",
+    icon: "icon.png",
+    description: "Adds powerful mesh modeling tools, operators and generators!",
+    version: "2.0.2",
+    min_version: "4.9.4",
+    variant: "both",
+    creation_date: "2022-04-09",
+    has_changelog: true,
+    tags: ["Format: Generic Model", "Mesh", "Tool"],
     onload() {
 
-      Mesh.prototype.menu.structure.unshift("@meshtools/tools");
-      Mesh.prototype.menu.structure.unshift("@meshtools/operators");
-      MenuBar.addAction("@meshtools/generators", "filter");
+      Mesh.prototype.menu.structure.unshift(qualifyName("tools"));
+      Mesh.prototype.menu.structure.unshift(qualifyName("operators"));
+      MenuBar.addAction(qualifyName("generators"), "filter");
+    },
+    onuninstall() {
+      storage.clear();
     },
     onunload() {
       for (const deletable of deletables) {

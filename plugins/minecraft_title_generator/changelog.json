@@ -1,0 +1,344 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2023-06-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2023-06-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed resetting all tabs"
+        ]
+      }
+    ]
+  },
+  "1.0.2": {
+    "title": "1.0.2",
+    "date": "2023-06-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added overlay opacity slider",
+          "Added colour opacity slider"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Checkbox containers are now labels"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed missing pointer cursors",
+          "Fixed debug mode duplicating textures",
+          "Fixed plugin about action not getting removed on plugin unload",
+          "Fixed anchor links in Blockbench webapp",
+          "Fixed gradient overlay scaling"
+        ]
+      }
+    ]
+  },
+  "1.0.3": {
+    "title": "1.0.3",
+    "date": "2023-06-14",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed for Safari versions older than version 16.4"
+        ]
+      }
+    ]
+  },
+  "1.0.4": {
+    "title": "1.0.4",
+    "date": "2023-06-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"V\" character in the built-in font"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2023-06-21",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Tweak the \"Small\" text size"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Fonts can now change the example text"
+        ]
+      }
+    ]
+  },
+  "1.1.1": {
+    "title": "1.1.1",
+    "date": "2023-06-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Optimise the models in the built-in font"
+        ]
+      }
+    ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2023-08-04",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added new Minecraft Title texture preset export options"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "The plugin now has an image icon",
+          "The Minecraft Title angle is now automatically loaded on project creation"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Update to new plugin repository format"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "The built-in font and overlay will now have a working thumbnail when there is no internet connection"
+        ]
+      }
+    ]
+  },
+  "1.2.1": {
+    "title": "1.2.1",
+    "date": "2023-09-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added a warning when there is no internet connection"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Switch to jsDelivr CDN"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "The built-in font and overlay will now have a working thumbnail when there is no internet connection"
+        ]
+      }
+    ]
+  },
+  "1.3.0": {
+    "title": "1.3.0",
+    "date": "2023-09-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added font variants"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Added CDN url fallback system",
+          "Font variants are a breaking change so the sources have been moved to a temporary dev branch"
+        ]
+      }
+    ]
+  },
+  "1.3.1": {
+    "title": "1.3.1",
+    "date": "2023-09-28",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Switch back to main branch"
+        ]
+      }
+    ]
+  },
+  "1.3.2": {
+    "title": "1.3.2",
+    "date": "2023-10-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Aspect ratio calculation fix"
+        ]
+      }
+    ]
+  },
+  "1.3.3": {
+    "title": "1.3.3",
+    "date": "2023-10-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed fonts that are flat"
+        ]
+      }
+    ]
+  },
+  "1.3.4": {
+    "title": "1.3.4",
+    "date": "2023-11-04",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Blockbench will now wait for Minecraft Title Generator to load before finishing loading"
+        ]
+      }
+    ]
+  },
+  "1.3.5": {
+    "title": "1.3.5",
+    "date": "2023-12-01",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Fonts can now list their available characters",
+          "Font variants now have their own tab",
+          "Added more info button on fonts",
+          "Fonts can now have descriptions",
+          "Increased max font list height"
+        ]
+      }
+    ]
+  },
+  "1.3.6": {
+    "title": "1.3.6",
+    "date": "2023-12-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Removed font \"width\" property"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed debug mode thumbnails"
+        ]
+      }
+    ]
+  },
+  "1.4.0": {
+    "title": "1.4.0",
+    "date": "2024-02-21",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added new \"Tileables\"",
+          "Added new render output Dialog with more customisation options"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Added required EULA agreement",
+          "Added confirmation check for deleting presets",
+          "Updated number sliders to use Blockbench numeric inputs",
+          "Font and texture thumbnails now lazy load"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed backup CDN for if a CDN goes down after you have opened Blockbench and used the plugin"
+        ]
+      }
+    ]
+  },
+  "1.4.1": {
+    "title": "1.4.1",
+    "date": "2024-02-26",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed ability to bypass EULA agreement"
+        ]
+      }
+    ]
+  },
+  "1.5.0": {
+    "title": "1.5.0",
+    "date": "2024-05-10",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Made the position camera button a main button with a new icon",
+          "Render buttons now have tooltips"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed render controls disappearing for some people",
+          "Fixed render controls missing in Blockbench v4.10.0"
+        ]
+      }
+    ]
+  }
+}

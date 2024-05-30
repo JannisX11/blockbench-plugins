@@ -1,8 +1,8 @@
 import RobotoRegular from "../../assets/roboto_regular.json";
 import { action } from "../actions.js";
 import { convertOpenTypeBufferToThreeJS } from "../utils/facetype.js";
+import { throwQuickMessage } from "../utils/info.js";
 import * as ThreeJSInteroperability from "../utils/threejs_interoperability.js";
-import { throwQuickMessage } from "../utils/utils.js";
 
 function runEdit(text, font, s, amended = false) {
   let elements = [];
@@ -85,7 +85,7 @@ const dialog = new Dialog({
       }
     }
     for (const char of out.text) {
-      if (!(char in content.glyphs)) {
+      if (char != '\n' && !(char in content.glyphs)) {
         throwQuickMessage(
           `Character "${char}" doesn't exist on the provided font!`,
           2000

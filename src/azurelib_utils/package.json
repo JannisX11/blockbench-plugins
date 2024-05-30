@@ -1,6 +1,6 @@
 {
   "name": "azurelib_utils",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "AzureLib Animator",
   "main": "index.js",
@@ -23,7 +23,12 @@
     "max_version": "5.0.0",
 	"new_repository_format": "true",
     "variant": "both",
-    "creation_date": "2023-04-04"
+    "creation_date": "2023-04-04",
+    "contributes": {
+        "formats": ["azure_model"]
+    },
+    "has_changelog": true,
+    "website": "https://wiki.azuredoom.com/readme-1"
   },
   "sideEffects": [
     "./index.js"

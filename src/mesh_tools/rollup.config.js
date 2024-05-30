@@ -24,7 +24,7 @@ export default {
     nodeResolve(),
     copy({
       targets: [
-        { src: 'assets/icon.png', dest: '../../plugins/mesh_tools' }
+        { src: 'meta/*', dest: '../../plugins/mesh_tools' }
       ]
     }),
     // terser(),

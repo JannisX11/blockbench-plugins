@@ -1,0 +1,38 @@
+{
+	"1.0.6": {
+		"title": "1.0.6",
+		"date": "2024-03-27",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Updates about.md for supported versions",
+					"Updates about.md for NeoForge 1.20.4 vs 1.20.1 dependencies",
+					"Adds bvanseg as maintainer for any bug fixes/upcoming rewrites.",
+					"Bumps version to 1.0.6"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes builtin/entity not being added to display exports."
+				]
+			}
+		]
+	},
+	"1.0.7": {
+		"title": "1.0.7",
+		"date": "2024-05-21",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Makes builtin/entity always be part of the display export for AzureLib Projects",
+					"Enables animated texture support for format"
+				]
+			}
+		]
+	}
+}
