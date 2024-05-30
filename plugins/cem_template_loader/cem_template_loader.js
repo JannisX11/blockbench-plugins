@@ -2055,7 +2055,7 @@
                 const rotateToggle = E("i").attr({
                   title: "Disable this group rotating while playing animations",
                   toggle: "cem_animation_disable_rotations"
-                }).addClass("material-icons icon_off").text("sync_disabled").on("click", evt => {
+                }).addClass("outliner_toggle material-icons icon_off").text("sync_disabled").on("click", evt => {
                   evt.stopPropagation()
                   const partName = toggle.parent().find("input").val()
                   const part = Project.groups.find(e => e.name === partName)
