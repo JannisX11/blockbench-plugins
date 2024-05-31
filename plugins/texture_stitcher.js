@@ -100,24 +100,34 @@
     function calculateRects()
     {
         var rects = [];
+        var maxScale = 1;
 
         Texture.all.forEach(t =>
         {
-            var rect = createRect(0, 0, t.width, t.height);
+            maxScale = Math.max(maxScale, Math.round(t.width / t.uv_width));
+        });
+
+        Texture.all.forEach(t =>
+        {
+            var tScale = Math.round(t.width / t.uv_width);
+            var scale = Math.round(1 / (tScale / maxScale));
+            var rect = createRect(0, 0, Math.floor(t.width * scale), Math.floor(t.height * scale));
 
             rect.texture = t;
+            rect.scale = scale;
 
             rects.push(rect);
         });
 
-        var size = packBoxes(rects, 1);
+        var size = packBoxes(rects, maxScale);
         var width = size[0];
         var height = size[1];
 
         return {
             w: width,
             h: height,
-            rects: rects
+            rects: rects,
+            max_scale: maxScale
         };
     }
 
@@ -127,9 +137,10 @@
         const rects = data.rects;
 
         const offscreen = new OffscreenCanvas(data.w, data.h);
+        const tmp = new OffscreenCanvas(10, 10);
         const c = offscreen.getContext('2d');
 
-        rects.forEach(rect => drawToCanvas(c, rect));
+        rects.forEach(rect => drawToCanvas(c, tmp, rect));
 
         const config = {
             type: 'image/png' 
@@ -139,16 +150,56 @@
             var reader = new FileReader();
             
             reader.readAsDataURL(blob);
-            reader.onloadend = () => replaceTextures(rects, reader.result, data.w, data.h);
+            reader.onloadend = () => replaceTextures(rects, reader.result, data.w / data.max_scale, data.h / data.max_scale, data.max_scale);
         });
     }
 
-    function drawToCanvas(c, rect)
+    function drawToCanvas(c, tmp, rect)
     {
-        c.drawImage(rect.texture.img, rect.x, rect.y);
+        var scale = rect.scale;
+        
+        if (scale > 1)
+        {
+            const getIndex = (x, y, width) =>
+            {
+                return y * (width * 4) + x * 4;
+            };
+    
+            tmp.width = rect.texture.width;
+            tmp.height = rect.texture.height;
+    
+            var ct = tmp.getContext('2d');
+    
+            ct.clearRect(0, 0, tmp.width, tmp.height);
+            ct.drawImage(rect.texture.img, 0, 0);
+    
+            var data = ct.getImageData(0, 0, tmp.width, tmp.height);
+    
+            for (var x = 0; x < rect.w; x++)
+            {
+                for (var y = 0; y < rect.h; y++)
+                {
+                    var ix = Math.floor(x / scale);
+                    var iy = Math.floor(y / scale);
+    
+                    var index = getIndex(ix, iy, data.width);
+                    var r = data.data[index];
+                    var g = data.data[index + 1];
+                    var b = data.data[index + 2];
+                    var a = data.data[index + 3] / 255;
+    
+                    c.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+                    c.fillRect(rect.x + x, rect.y + y, 1, 1);
+                }
+            }
+        }
+        else
+        {
+            c.drawImage(rect.texture.img, rect.x, rect.y);
+        }
     }
 
-    function replaceTextures(rects, data, w, h)
+    function replaceTextures(rects, data, w, h, maxScale)
     {
         const getRect = texture_uuid =>
         {
@@ -193,33 +244,47 @@
         texture.uv_width = w;
         texture.uv_height = h;
 
-        console.log(texture, texture.uv_width, texture.uv_height, data.w, data.h);
-
         Cube.all.forEach(cube => 
         {
             var toApplySides = [];
 
-            sides.forEach(side =>
+            if (Project.box_uv)
             {
-                var face = cube.faces[side];
-                var rect = getRect(face.texture);
+                var north = cube.faces['north'];
+                var rect = getRect(north.texture);
 
-                if (rect !== null)
+                if (rect != null)
                 {
-                    var mx = rect.texture.width / rect.texture.uv_width;
-                    var my = rect.texture.height / rect.texture.uv_height;
-
-                    face.uv[0] = face.uv[0] * mx + rect.x;
-                    face.uv[1] = face.uv[1] * my + rect.y;
-                    face.uv[2] = face.uv[2] * mx + rect.x;
-                    face.uv[3] = face.uv[3] * my + rect.y;
-
-                    if (face.texture !== false)
-                    {
-                        toApplySides.push(side);
-                    }
+                    cube.uv_offset[0] += rect.x / maxScale;
+                    cube.uv_offset[1] += rect.y / maxScale;
                 }
-            });
+
+                toApplySides = north.texture !== false;
+            }
+            else
+            {
+                sides.forEach(side =>
+                {
+                    var face = cube.faces[side];
+                    var rect = getRect(face.texture);
+    
+                    if (rect !== null)
+                    {
+                        var mx = rect.texture.width / rect.texture.uv_width;
+                        var my = rect.texture.height / rect.texture.uv_height;
+    
+                        face.uv[0] = face.uv[0] * mx + rect.x;
+                        face.uv[1] = face.uv[1] * my + rect.y;
+                        face.uv[2] = face.uv[2] * mx + rect.x;
+                        face.uv[3] = face.uv[3] * my + rect.y;
+    
+                        if (face.texture !== false)
+                        {
+                            toApplySides.push(side);
+                        }
+                    }
+                });
+            }
 
             if (toApplySides !== false)
             {
