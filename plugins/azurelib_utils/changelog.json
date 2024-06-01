@@ -34,5 +34,25 @@
 				]
 			}
 		]
+	},
+	"1.0.8": {
+		"title": "1.0.8",
+		"date": "2024-06-01",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Disables some logging that isn't needed.",
+					"Now include a license with plugin info, sourced MIT"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes issue with easing and keyframes."
+				]
+			}
+		]
 	}
 }

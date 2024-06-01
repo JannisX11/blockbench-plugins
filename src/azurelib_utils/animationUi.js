@@ -22,15 +22,10 @@ export const unloadAnimationUI = () => {
 
 //#region Global Animation UI Handlers
 export const displayAnimationFrameCallback = (/*...args*/) => {
-  // const keyframe = $('#keyframe');
-  // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
 
 export function updateKeyframeEasing(value) {
   Undo.initEdit({keyframes: Timeline.selected}) 
-  // var axis = $(obj).attr('axis');
-  // const value = $(obj).val();
-  // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
   if (value === "-") return;
   Timeline.selected.forEach((kf) => {
     kf.easing = value;
@@ -43,11 +38,9 @@ export function updateKeyframeEasing(value) {
 export function updateKeyframeEasingArg(obj) {
   Undo.initEdit({keyframes: Timeline.selected}) 
   if ($(obj).val() === "-") return;
-  // console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
   Timeline.selected.forEach((kf) => {
     const value = parseEasingArg(kf, $(obj).val().trim());
     kf.easingArgs = [value];
-    // obj.value = value;
   })
   Undo.finishEdit('edit keyframe easing argument')
 }
@@ -88,7 +81,6 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     };
 
     const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
-      // Dear god I miss lodash
       if (!acc.has(kf.animator)) acc.set(kf.animator, {});
       const animatorChannels = acc.get(kf.animator);
       if (!animatorChannels[kf.channel]) animatorChannels[kf.channel] = [];
@@ -238,8 +230,6 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           </div>`;
           scaleBar = document.getElementById('keyframe_bar_easing_arg1');
         }
-
-        // console.log('easingBar:', easingBar, 'keyframe:', keyframe);
     }
   }
 };
