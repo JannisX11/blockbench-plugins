@@ -30,14 +30,12 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
     const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
       ? other.easingArgs[0]
       : getEasingArgDefault(other);
-    // console.log(`keyframeGetLerp arg1: ${arg1}`);
     easingFunc = easingFunc.bind(null, arg1);
   }
   const easedAmount = easingFunc(amount); 
   const start = this.calc(axis);
   const stop = other.calc(axis);
   const result = lerp(start, stop, easedAmount);
-  // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
   if (Number.isNaN(result)) {
     throw new Error('batman');
   }
@@ -102,13 +100,11 @@ function keyframeGetUndoCopy() {
     Object.assign(result, { easing });
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
-  // console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function keyframeExtend(dataIn) {
   const data = Object.assign({}, dataIn);
-  // console.log('keyframeExtend 1 arguments:', arguments);
   if (Format.id === "azure_model") {
     if (typeof data.values === 'object') {
       if (data.values.easing !== undefined) {
@@ -131,13 +127,11 @@ function keyframeExtend(dataIn) {
     }
   }
   const result = Original.get(Keyframe).extend.apply(this, arguments);
-  // console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function reverseKeyframesCondition() {
   const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "azure_model";
-  // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
   return res;
 }
 

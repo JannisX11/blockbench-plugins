@@ -68,11 +68,6 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
               lines: [`<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animation Utils v${version}</b>`],
               form: {
                 objectType: {label: 'Object Type', type: 'select', default: azurelibSettings.objectType, options: OBJ_TYPE_OPTIONS},
-                // modSDK: {label: 'Modding SDK', type: 'select', default: azurelibSettings.modSDK, options: MOD_SDK_OPTIONS},
-                // entityType: {label: 'Entity Type', value: azurelibSettings.entityType},
-                // javaPackage: {label: 'Java Package', value: azurelibSettings.javaPackage},
-                // animFileNamespace: {label: 'Animation File Namespace', value: azurelibSettings.animFileNamespace},
-                // animFilePath: {label: 'Animation File Path', value: azurelibSettings.animFilePath},
               },
               onConfirm: function(formResult) {
                 Object.assign(azurelibSettings, formResult);
