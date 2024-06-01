@@ -4,7 +4,7 @@ import { easingFunctions, EASING_DEFAULT, getEasingArgDefault } from './easing';
 //#region Keyframe Mixins
 export function loadKeyframeOverrides() {
   addMonkeypatch(Keyframe, "prototype", "getLerp", keyframeGetLerp);
-  addMonkeypatch(Keyframe, "prototype", "getArray", keyframeGetArray);
+  addMonkeypatch(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
   addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
   addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
 
@@ -30,29 +30,67 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
     const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
       ? other.easingArgs[0]
       : getEasingArgDefault(other);
-    // console.log(`keyframeGetLerp arg1: ${arg1}`);
     easingFunc = easingFunc.bind(null, arg1);
   }
   const easedAmount = easingFunc(amount); 
   const start = this.calc(axis);
   const stop = other.calc(axis);
   const result = lerp(start, stop, easedAmount);
-  // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
   if (Number.isNaN(result)) {
     throw new Error('batman');
   }
   return result;
 }
 
-function keyframeGetArray() {
-  const { easing, easingArgs } = this;
-  let result = Original.get(Keyframe).getArray.apply(this, arguments);
-  if (Format.id === "azure_model") {
-    result = { vector: result, easing };
-    if (hasArgs(easing)) result.easingArgs = easingArgs;
-  }
-  console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
-  return result;
+function azurelibGetArray(data_point = 0) {
+    const { easing, easingArgs, getArray } = this;
+    let result = getArray.call(this, data_point);
+
+    if (Format.id === "azure_model") {
+        result = { vector: result, easing };
+        if (hasArgs(easing)) {
+            result.easingArgs = easingArgs;
+        }
+    }
+
+    return result;
+}
+
+function keyframeCompileBedrock() {
+    if (Format.id !== "azure_model" || !this.transform) {
+        return Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+    }
+
+    const previousKeyframe = this.getPreviousKeyframe.bind(this);
+
+    if (this.interpolation === 'catmullrom') {
+        const previous = previousKeyframe();
+        const includePre = (!previous && this.time > 0) || (previous && previous.interpolation !== 'catmullrom');
+
+        return {
+            pre: includePre ? azurelibGetArray.call(this, 0) : undefined,
+            post: azurelibGetArray.call(this, includePre ? 1 : 0),
+            lerp_mode: this.interpolation,
+        };
+    }
+
+    if (this.data_points.length === 1) {
+        const previous = previousKeyframe();
+
+        if (previous && previous.interpolation === 'step') {
+            return new oneLiner({
+                pre: azurelibGetArray.call(previous, 1),
+                post: azurelibGetArray.call(this),
+            });
+        } else {
+            return azurelibGetArray.call(this);
+        }
+    }
+
+    return new oneLiner({
+        pre: azurelibGetArray.call(this, 0),
+        post: azurelibGetArray.call(this, 1),
+    });
 }
 
 function keyframeGetUndoCopy() {
@@ -62,13 +100,11 @@ function keyframeGetUndoCopy() {
     Object.assign(result, { easing });
     if (hasArgs(easing)) result.easingArgs = easingArgs;
   }
-  console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function keyframeExtend(dataIn) {
   const data = Object.assign({}, dataIn);
-  console.log('keyframeExtend 1 arguments:', arguments);
   if (Format.id === "azure_model") {
     if (typeof data.values === 'object') {
       if (data.values.easing !== undefined) {
@@ -91,13 +127,11 @@ function keyframeExtend(dataIn) {
     }
   }
   const result = Original.get(Keyframe).extend.apply(this, arguments);
-  console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
   return result;
 }
 
 function reverseKeyframesCondition() {
   const res = Original.get(BarItems.reverse_keyframes).condition() && Format.id !== "azure_model";
-  // console.log('reverseKeyframesCondition original:',Original.get(BarItems.reverse_keyframes).condition(), 'res:', res);
   return res;
 }
 

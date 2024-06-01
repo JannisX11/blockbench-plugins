@@ -25,11 +25,9 @@ export function unloadCodec() {
 function onProjectCompile(e) {
     if (Format.id !== "azure_model") return;
     e.model.azurelibSettings = azurelibSettings;
-    // console.log(`compileCallback model:`, e.model);
 }
 
 function onProjectParse(e) {
-    // console.log(`onProjectParse:`, e);
     if (e.model && typeof e.model.azurelibSettings === 'object') {
         Object.assign(azurelibSettings, omit(e.model.azurelibSettings, ['formatVersion']));
     } else {
@@ -40,7 +38,6 @@ function onProjectParse(e) {
 
 function onBedrockCompile(e) {
     console.log('onBedrockCompile e:', e);
-    // maybeExportItemJson(e.options);
 }
 
 function animatorBuildFile() {
@@ -53,7 +50,6 @@ function animatorBuildFile() {
             }
         );
     }
-    // console.log('animatorBuildFile res:', res);
     return res;
 }
 
@@ -297,9 +293,6 @@ var format = new ModelFormat({
     onActivation: function () {
     }
 })
-
-//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
-// codec.format = format; // This sets the default format for the codec
 
 export default codec; // This is used for plugin "Export Animated Model" menu item
 

@@ -1,11 +1,13 @@
 import semverCoerce from 'semver/functions/coerce';
 import semverSatisfies from 'semver/functions/satisfies';
-import { version, blockbenchConfig } from './package.json';
+import packageJson from './package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
 import geckoSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged, OBJ_TYPE_BLOCK_ITEM } from './settings';
 import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
+
+const { version, blockbenchConfig } = packageJson;
 
 const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
 if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANGE)) {
@@ -13,13 +15,13 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
 }
 
 (function () {
-  let exportAction;
-  let exportDisplayAction;
-  let button;
+  let exportAction: Action;
+  let exportDisplayAction: Action;
+  let button: Action;
 
-  Plugin.register("animation_utils", Object.assign(
+  BBPlugin.register("animation_utils", Object.assign(
     {},
-    blockbenchConfig,
+    blockbenchConfig as typeof blockbenchConfig & { variant: 'both' },
     {
       name: blockbenchConfig.title,
       version,
@@ -29,8 +31,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         loadAnimationUI();
         loadKeyframeOverrides();
         console.log("Loaded GeckoLib plugin")
-        exportAction = new Action({
-          id: "export_geckolib_model",
+        exportAction = new Action("export_geckolib_model", {
           name: "Export GeckoLib Model",
           icon: "archive",
           description:
@@ -43,8 +44,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         });
         MenuBar.addAction(exportAction, "file.export");
 
-        exportDisplayAction = new Action({
-          id: "export_geckolib_display",
+        exportDisplayAction = new Action("export_geckolib_display", {
           name: "Export GeckoLib Display Settings",
           icon: "icon-bb_interface",
           description:
@@ -61,7 +61,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
           icon: 'info',
           condition: () => Format.id === "animated_entity_model",
           click: function () {
-            var dialog = new Dialog({
+            const dialog = new Dialog({
               id: 'project',
               title: 'GeckoLib Model Settings',
               width: 540,

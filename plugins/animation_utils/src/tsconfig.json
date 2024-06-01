@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "'../../plugins",
+    // "noImplicitAny": true,
+    "module": "es6",
+    "target": "ES2017",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    // "typeRoots": ["./node_modules/@types", "./node_modules/blockbench-types"]
+  }
+}

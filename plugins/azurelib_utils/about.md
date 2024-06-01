@@ -22,14 +22,15 @@ repositories {
 
 dependencies {
     //Common 1.20.1+ Latest Only
-    compileOnly "mod.azure.azurelib:azurelib-common-MCVERSION:MODVERSION"
+    compileOnly "mod.azure.azurelib:azurelib-common-MCVER:MODVER"
   
     //Fabric or Quilt and older
-    modImplementation "mod.azure.azurelib:azurelib-fabric-MCVERSION:MODVERSION"
-    modApi "com.terraformersmc:modmenu:VERSION" // Fabric bug is requiring this
+    modImplementation "mod.azure.azurelib:azurelib-fabric-MCVER:MODVER"
+	//Fabric bug is requiring this
+    modApi "com.terraformersmc:modmenu:VERSION"
 
     //Forge 1.20.1 and older (Forge is no longer supported)
-    implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVERSION:MODVERSION")
+    implementation fg.deobf("mod.azure.azurelib:azurelib-forge-MCVER:MODVER")
   
     //NeoForge 1.20.1
     implementation fg.deobf("mod.azure.azurelib:azurelib-neo-MCVER:MODVER")

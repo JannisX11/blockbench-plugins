@@ -30,6 +30,13 @@ interface IChannel {
   default?: THREE.Color;
 }
 
+interface ILightrParams {
+  lightHeight?: number;
+  ambientLight?: [number, number, number];
+  minLightIntensity?: number;
+  lightDiffuse?: [number, number, number];
+}
+
 (() => {
   let decodeMer: Action;
   let createTextureSet: Action;
@@ -37,6 +44,8 @@ interface IChannel {
   let generateNormal: Action;
   let unassignChannel: Action;
   let createMaterialTexture: Action;
+  let bakeTexturesAction: Action;
+  let bakeTexturesDialog: Dialog;
   let togglePbr: Toggle;
   let displaySettingsPanel: Panel;
   let textureSetDialog: Dialog;
@@ -703,6 +712,146 @@ interface IChannel {
     }
   }
 
+  /**
+   * Adapted from Lightr by phosphoer
+   * @see https://github.com/phosphoer/lightr
+   */
+  class Lightr {
+    lightHeight: number;
+    ambientLight: [number, number, number];
+    minLightIntensity: number;
+    lightDiffuse: [number, number, number];
+
+    constructor({
+      lightHeight = 0.66,
+      ambientLight = [0.1, 0.1, 0.1],
+      minLightIntensity = 0.0,
+      lightDiffuse = [1, 1, 1],
+    }: ILightrParams = {}) {
+      this.lightHeight = lightHeight;
+      this.ambientLight = ambientLight;
+      this.minLightIntensity = minLightIntensity;
+      this.lightDiffuse = lightDiffuse;
+    }
+
+    bake(
+      numDirs: number,
+      diffuseMap: HTMLImageElement | HTMLCanvasElement,
+      normalMap: HTMLImageElement | HTMLCanvasElement,
+    ): HTMLCanvasElement[] {
+      const canvasDiffuse =
+        diffuseMap instanceof HTMLCanvasElement
+          ? diffuseMap
+          : this.createCanvas(diffuseMap.width, diffuseMap.height);
+      const canvasNormals =
+        normalMap instanceof HTMLCanvasElement
+          ? normalMap
+          : this.createCanvas(normalMap.width, normalMap.height);
+
+      const contextDiffuse = canvasDiffuse.getContext("2d")!;
+      const contextNormals = canvasNormals.getContext("2d")!;
+
+      contextDiffuse.drawImage(diffuseMap, 0, 0);
+      contextNormals.drawImage(normalMap, 0, 0);
+
+      const bufferDiffuse = contextDiffuse.getImageData(
+        0,
+        0,
+        diffuseMap.width,
+        diffuseMap.height,
+      );
+      const bufferNormals = contextNormals.getImageData(
+        0,
+        0,
+        normalMap.width,
+        normalMap.height,
+      );
+
+      const bakedImages: HTMLCanvasElement[] = [];
+      const normals: [number, number, number][][] = [];
+
+      for (let x = 0; x < bufferNormals.width; ++x) {
+        normals[x] = [];
+        for (let y = 0; y < bufferNormals.height; ++y) {
+          const idx = (x + y * bufferNormals.width) * 4;
+
+          const normal = [
+            (bufferNormals.data[idx + 0] / 255 - 0.5) * 2,
+            (bufferNormals.data[idx + 1] / 255 - 0.5) * 2,
+            (bufferNormals.data[idx + 2] / 255 - 0.5) * 2,
+          ];
+
+          const len = Math.sqrt(
+            normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2,
+          );
+          normals[x][y] = [normal[0] / len, normal[1] / len, normal[2] / len];
+        }
+      }
+
+      const bakeDirection = (dir: number): HTMLCanvasElement => {
+        const canvas = this.createCanvas(diffuseMap.width, diffuseMap.height);
+        const context = canvas.getContext("2d")!;
+        const buffer = context.getImageData(0, 0, canvas.width, canvas.height);
+
+        const lightDir = [Math.cos(dir), Math.sin(dir), this.lightHeight];
+
+        for (let x = 0; x < bufferNormals.width; ++x) {
+          for (let y = 0; y < bufferNormals.height; ++y) {
+            const normal = normals[x][y];
+            const index = (x + y * bufferNormals.width) * 4;
+            const diffuse = [
+              bufferDiffuse.data[index + 0] / 255,
+              bufferDiffuse.data[index + 1] / 255,
+              bufferDiffuse.data[index + 2] / 255,
+              bufferDiffuse.data[index + 3],
+            ];
+
+            let intensity =
+              normal[0] * lightDir[0] +
+              normal[1] * lightDir[1] +
+              normal[2] * lightDir[2];
+            intensity = Math.min(
+              1,
+              Math.max(this.minLightIntensity, intensity),
+            );
+
+            const out = [
+              intensity * diffuse[0] * this.lightDiffuse[0] +
+                this.ambientLight[0],
+              intensity * diffuse[1] * this.lightDiffuse[1] +
+                this.ambientLight[1],
+              intensity * diffuse[2] * this.lightDiffuse[2] +
+                this.ambientLight[2],
+              diffuse[3],
+            ];
+
+            buffer.data[index + 0] = Math.floor(out[0] * 255);
+            buffer.data[index + 1] = Math.floor(out[1] * 255);
+            buffer.data[index + 2] = Math.floor(out[2] * 255);
+            buffer.data[index + 3] = out[3];
+          }
+        }
+
+        context.putImageData(buffer, 0, 0);
+        return canvas;
+      };
+
+      for (let i = 0; i < numDirs; ++i) {
+        const lightDir = ((Math.PI * 2) / numDirs) * i;
+        bakedImages.push(bakeDirection(lightDir));
+      }
+
+      return bakedImages;
+    }
+
+    private createCanvas(width: number, height: number): HTMLCanvasElement {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      return canvas;
+    }
+  }
+
   channelProp = new Property(TextureLayer, "enum", "channel", {
     default: NA_CHANNEL,
     values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
@@ -717,12 +866,14 @@ interface IChannel {
     exposed: false,
   });
 
+  // @ts-expect-error "object" is a valid type for a property
   pbrMaterialsProp = new Property(ModelProject, "object", "pbr_materials", {
     default: {},
     exposed: false,
     label: "PBR Materials",
   });
 
+  // @ts-expect-error "object" is a valid type for a property
   projectMaterialsProp = new Property(ModelProject, "object", "bb_materials", {
     default: {},
     exposed: false,
@@ -736,13 +887,17 @@ interface IChannel {
     label: "PBR Mode",
   });
 
+  //
+  // Functions
+  //
+
   /**
    * ### Export MER map
    * Generates a MER map from the currently selected texture and exports it as a PNG file
    * @param cb Callback function to run after the MER file is exported
    * @returns void
    */
-  const exportMer = (cb?: (filePath: string) => void) => {
+  const exportMer = (baseName?: string, cb?: (filePath: string) => void) => {
     const selected = Project
       ? Project.selected_texture
       : Texture.all.find((t) => t.selected);
@@ -771,7 +926,9 @@ interface IChannel {
 
       const [name, startpath] = Project
         ? [
-            `${selected.name ?? Project.getDisplayName()}_mer`,
+            baseName
+              ? `${baseName}_mer`
+              : `${selected.name ?? Project.getDisplayName()}_mer`,
             Project.export_path,
           ]
         : ["mer"];
@@ -904,6 +1061,109 @@ interface IChannel {
     return canvas.toDataURL();
   };
 
+  const bakeTextures = (
+    params: ILightrParams,
+    directions = 8,
+    blendEmissive = false,
+  ) => {
+    if (!Project) {
+      return;
+    }
+
+    const selected = Project.selected_texture;
+
+    if (!selected) {
+      return;
+    }
+
+    const mat = new PbrMaterial(
+      selected.layers_enabled ? selected.layers : Project.textures,
+      selected.uuid,
+    );
+
+    const texture = mat.findTexture(CHANNELS.albedo);
+    const normalMap = mat.findTexture(CHANNELS.normal);
+
+    if (!texture || !normalMap) {
+      return;
+    }
+
+    const lightr = new Lightr(params);
+    const bakedImages = lightr.bake(
+      directions,
+      texture.canvas,
+      normalMap.canvas,
+    );
+
+    const bakedTexture = new Texture({
+      name: `${texture.name}_baked`,
+      saved: false,
+      particle: false,
+      keep_size: false,
+      layers_enabled: true,
+    }).fromDataURL(bakedImages[0].toDataURL());
+
+    const addEmissive = blendEmissive
+      ? (canvas: HTMLCanvasElement) => {
+          const emissive = mat.findTexture(CHANNELS.emissive);
+
+          if (!emissive) {
+            return canvas;
+          }
+
+          const emissiveCanvas = emissive.canvas;
+          const emissiveCtx = emissiveCanvas.getContext("2d");
+
+          if (!emissiveCtx) {
+            return canvas;
+          }
+
+          const width = Math.max(
+            canvas.width,
+            emissiveCanvas.width,
+            Project ? Project.texture_width : 16,
+          );
+          const height = Math.max(
+            canvas.height,
+            emissiveCanvas.height,
+            Project ? Project.texture_height : 16,
+          );
+
+          const mergedCanvas = document.createElement("canvas");
+          mergedCanvas.width = width;
+          mergedCanvas.height = height;
+
+          const mergedCtx = mergedCanvas.getContext("2d");
+
+          if (!mergedCtx) {
+            return canvas;
+          }
+
+          mergedCtx.drawImage(canvas, 0, 0);
+          mergedCtx.globalCompositeOperation = "screen";
+          mergedCtx.drawImage(emissiveCanvas, 0, 0);
+
+          return mergedCanvas;
+        }
+      : (canvas: HTMLCanvasElement) => canvas;
+
+    bakedImages.forEach((image, idx) => {
+      const layer = new TextureLayer(
+        {
+          name: `baked_${idx + 1}`,
+          data_url: addEmissive(image).toDataURL(),
+        },
+        bakedTexture,
+      );
+
+      layer.addForEditing();
+    });
+
+    bakedTexture.add().select();
+
+    Blockbench.showQuickMessage("Textures baked 🥐", 2000);
+  };
+
   //
   // UI Components
   //
@@ -916,9 +1176,9 @@ interface IChannel {
     Project.textures.forEach((t) => {
       const mat = new PbrMaterial(scope, t.uuid);
 
-      const projectNormalMap = mat.findTexture(CHANNELS.normal, false)?.name;
-      const projectHeightMap = mat.findTexture(CHANNELS.height, false)?.name;
-      const projectColorMap = mat.findTexture(CHANNELS.albedo, false)?.name;
+      const projectNormalMap = mat.findTexture(CHANNELS.normal, false);
+      const projectHeightMap = mat.findTexture(CHANNELS.height, false);
+      const projectColorMap = mat.findTexture(CHANNELS.albedo, false);
       const projectMetalnessMap = mat.findTexture(
         CHANNELS.metalness,
         false,
@@ -971,6 +1231,22 @@ interface IChannel {
         };
       }
 
+      if (projectNormalMap) {
+        form.depthMap = {
+          type: "checkbox",
+          label: "Normal Map",
+          value: "normal",
+        };
+      }
+
+      if (projectHeightMap) {
+        form.depthMap = {
+          type: "checkbox",
+          label: "Height Map",
+          value: "heightmap",
+        };
+      }
+
       if (projectNormalMap && projectHeightMap) {
         form.depthMap = {
           type: "radio",
@@ -1010,7 +1286,7 @@ interface IChannel {
             "minecraft:texture_set": {
               color:
                 (projectColorMap
-                  ? pathToName(projectColorMap, false)
+                  ? baseName // pathToName(projectColorMap.name, false)
                   : formResult.baseColor?.toHexString()) ?? baseName,
               metalness_emissive_roughness: [
                 formResult.metalness ?? 0,
@@ -1020,26 +1296,29 @@ interface IChannel {
             },
           };
 
-          if (formResult.depthMap === "normal" && projectNormalMap) {
-            textureSet["minecraft:texture_set"].normal = pathToName(
-              projectNormalMap,
-              false,
-            );
+          if (
+            (formResult.depthMap === "normal" && projectNormalMap) ||
+            (!projectHeightMap && projectNormalMap)
+          ) {
+            textureSet["minecraft:texture_set"].normal = `${baseName}_normal`;
           } else if (
             (!projectNormalMap || formResult.depthMap === "heightmap") &&
             projectHeightMap
           ) {
-            textureSet["minecraft:texture_set"].heightmap = pathToName(
-              projectHeightMap,
-              false,
-            );
+            textureSet["minecraft:texture_set"].heightmap =
+              `${baseName}_heightmap`;
           }
 
           const exportDepthMap = (cb: () => void) => {
-            const depthMap =
-              formResult.depthMap === "normal"
-                ? projectNormalMap
-                : projectHeightMap;
+            if (!formResult.depthMap) {
+              return cb();
+            }
+
+            const useNormalMap =
+              formResult.depthMap === "normal" ||
+              (formResult.depthMap && !projectHeightMap);
+
+            const depthMap = useNormalMap ? projectNormalMap : projectHeightMap;
 
             if (!depthMap) {
               return cb();
@@ -1047,37 +1326,70 @@ interface IChannel {
 
             Blockbench.export(
               {
-                content: depthMap,
+                content: depthMap.canvas.toDataURL() ?? "",
                 type: "PNG",
-                name: `${baseName}_${formResult.depthMap}`,
+                name: `${baseName}_${useNormalMap ? "normal" : "heightmap"}`,
                 extensions: ["png"],
                 resource_id: formResult.depthMap,
                 startpath: Project.export_path,
+                savetype: "image",
               },
-              cb,
+              (filePath) => {
+                textureSet["minecraft:texture_set"][
+                  useNormalMap ? "normal" : "heightmap"
+                ] = pathToName(filePath, false);
+                cb();
+              },
+            );
+          };
+
+          const exportBaseColor = (cb: () => void) => {
+            if (!projectColorMap) {
+              return cb();
+            }
+
+            Blockbench.export(
+              {
+                content: projectColorMap.canvas.toDataURL(),
+                extensions: ["png"],
+                type: "PNG",
+                name: baseName,
+                startpath: Project.export_path,
+                savetype: "image",
+              },
+              (filePath) => {
+                textureSet["minecraft:texture_set"].color = pathToName(
+                  filePath,
+                  false,
+                );
+                cb();
+              },
             );
           };
 
           const exportTextureSet = () =>
             exportDepthMap(() => {
-              Blockbench.export(
-                {
-                  content: JSON.stringify(textureSet, null, 2),
-                  type: "JSON",
-                  name: `${baseName}.texture_set`,
-                  extensions: ["json"],
-                  resource_id: "texture_set",
-                  startpath: Project.export_path,
-                },
-                () => {
-                  Blockbench.showQuickMessage("Texture set created", 2000);
-                  textureSetDialog.hide();
-                },
-              );
+              exportBaseColor(() => {
+                Blockbench.export(
+                  {
+                    content: JSON.stringify(textureSet, null, 2),
+                    type: "JSON",
+                    name: `${baseName}.texture_set`,
+                    extensions: ["json"],
+                    resource_id: "texture_set",
+                    startpath: Project.export_path,
+                    savetype: "text",
+                  },
+                  () => {
+                    Blockbench.showQuickMessage("Texture set created", 2000);
+                    textureSetDialog.hide();
+                  },
+                );
+              });
             });
 
           if (hasMer) {
-            exportMer((filePath) => {
+            exportMer(baseName, (filePath) => {
               textureSet["minecraft:texture_set"].metalness_emissive_roughness =
                 pathToName(filePath, false);
               exportTextureSet();
@@ -1196,6 +1508,7 @@ interface IChannel {
       // condition: () => Number(tonemappingSelect.get()) !== THREE.NoToneMapping,
       onBefore() {
         if (Number(tonemappingSelect.get()) === THREE.NoToneMapping) {
+          // @ts-expect-error `.change()` does not require an Event for its value
           tonemappingSelect.change(THREE.LinearToneMapping.toString());
         }
         togglePbr.set(true);
@@ -1213,9 +1526,83 @@ interface IChannel {
       },
     });
 
+    bakeTexturesDialog = new Dialog(`${PLUGIN_ID}_bake_textures`, {
+      id: `${PLUGIN_ID}_bake_textures`,
+      title: "Bake Textures",
+      buttons: ["Bake", "Cancel"],
+      form: {
+        ambientLight: {
+          type: "color",
+          label: "Ambient Light",
+          value: "#1f1f1f",
+        },
+        lightDiffuse: {
+          type: "color",
+          label: "Light Diffuse",
+          value: "#ffffff",
+        },
+        lightHeight: {
+          type: "range",
+          label: "Light Height",
+          min: 0,
+          max: 1,
+          step: 0.01,
+          value: 0.66,
+        },
+        minLightIntensity: {
+          type: "range",
+          label: "Minimum Light Intensity",
+          min: 0,
+          max: 1,
+          step: 0.01,
+          value: 0,
+        },
+        directions: {
+          type: "number",
+          label: "Directions",
+          value: 8,
+          min: 1,
+          max: 360,
+          step: 1,
+        },
+        blendEmissive: {
+          type: "checkbox",
+          label: "Blend Emissive",
+          value: false,
+        },
+      },
+      onConfirm(formResult: Record<string, any>) {
+        const ambientLight = new THREE.Color(
+          formResult.ambientLight.toString(),
+        );
+        const lightDiffuse = new THREE.Color(
+          formResult.lightDiffuse.toString(),
+        );
+        bakeTextures(
+          {
+            ambientLight: [ambientLight.r, ambientLight.g, ambientLight.b],
+            lightDiffuse: [lightDiffuse.r, lightDiffuse.g, lightDiffuse.b],
+            lightHeight: Number(formResult.lightHeight),
+            minLightIntensity: Number(formResult.minLightIntensity),
+          },
+          formResult.directions ?? 8,
+          formResult.blendEmissive ?? false,
+        );
+      },
+    });
+
     //
     // Actions
     //
+
+    bakeTexturesAction = new Action(`${PLUGIN_ID}_bake_textures`, {
+      icon: "cake",
+      name: "Bake Textures",
+      description: "Bakes textures for the selected PBR material",
+      click() {
+        bakeTexturesDialog.show();
+      },
+    });
 
     generateNormal = new Action(`${PLUGIN_ID}_generate_normal`, {
       icon: "altitude",
@@ -1225,18 +1612,21 @@ interface IChannel {
         (TextureLayer.selected || Texture.all.find((t) => t.selected)) !==
         undefined,
       click() {
-        const texture =
-          TextureLayer.selected ?? Project
+        const texture: Texture | TextureLayer =
+          TextureLayer.selected ??
+          (!!Project && Project.selected_texture
             ? Project.selected_texture.selected_layer ??
               Project.selected_texture
-            : Texture.getDefault();
+            : Texture.getDefault());
 
         if (!texture) {
           return;
         }
 
         const mat = new PbrMaterial(
-          texture.layers_enabled ? texture.layers : getProjectTextures(),
+          texture instanceof Texture && texture.layers_enabled
+            ? texture.layers
+            : getProjectTextures(),
           texture.uuid,
         );
 
@@ -1258,7 +1648,10 @@ interface IChannel {
       name: "Export MER",
       description:
         "Exports a texture map from the metalness, emissive, and roughness channels. (For use in Bedrock resource packs.)",
-      // condition: () => Format.id == "bedrock",
+      condition: {
+        formats: ["bedrock_block", "bedrock_entity"],
+        project: true,
+      },
       click() {
         exportMer();
       },
@@ -1332,7 +1725,7 @@ interface IChannel {
         createTextureSetDialog();
       },
       condition: {
-        formats: ["bedrock"],
+        formats: ["bedrock_block", "bedrock_entity"],
         project: true,
       },
     });
@@ -1790,8 +2183,8 @@ interface IChannel {
           children: [
             "toggle_pbr",
             `${PLUGIN_ID}_correct_lights`,
-            `${PLUGIN_ID}_show_channel_menu`,
             `${PLUGIN_ID}_create_material_texture`,
+            `${PLUGIN_ID}_show_channel_menu`,
           ],
           name: "PBR",
         }),
@@ -1870,6 +2263,7 @@ interface IChannel {
     MenuBar.addAction(togglePbr, "view");
     MenuBar.addAction(toggleCorrectLights, "preview");
     MenuBar.addAction(createMaterialTexture, "tools");
+    MenuBar.addAction(bakeTexturesAction, "tools");
     MenuBar.addAction(materialBrushTool, "tools.0");
 
     MenuBar.addAction(openChannelMenu, "image.0");
@@ -1895,6 +2289,8 @@ interface IChannel {
     generateNormal?.delete();
     togglePbr?.delete();
     decodeMer?.delete();
+    bakeTexturesAction?.delete();
+    bakeTexturesDialog?.delete();
     createTextureSet?.delete();
     textureChannelProp?.delete();
     channelProp?.delete();

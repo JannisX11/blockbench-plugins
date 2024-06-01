@@ -1,6 +1,6 @@
 import uniq from 'lodash/uniq';
 import { addMonkeypatch, hasArgs, Original } from './utils';
-import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } from './easing';
+import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg, GeckolibKeyframe } from './easing';
 
 const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 
@@ -33,7 +33,7 @@ export function updateKeyframeEasing(value) {
   // const value = $(obj).val();
   // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
   if (value === "-") return;
-  Timeline.selected.forEach((kf) => {
+  Timeline.selected.forEach((kf: GeckolibKeyframe) => {
     kf.easing = value;
   })
   window.updateKeyframeSelection(); // Ensure easingArg display is updated
@@ -45,8 +45,8 @@ export function updateKeyframeEasingArg(obj) {
   Undo.initEdit({keyframes: Timeline.selected}) 
   if ($(obj).val() === "-") return;
   // console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
-  Timeline.selected.forEach((kf) => {
-    const value = parseEasingArg(kf, $(obj).val().trim());
+  Timeline.selected.forEach((kf: GeckolibKeyframe) => {
+    const value = parseEasingArg(kf, ($(obj).val() as string).trim());
     kf.easingArgs = [value];
     // obj.value = value;
   })
@@ -58,16 +58,16 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing_type').remove()
     $('#keyframe_bar_easing_arg1').remove()
 
-    const addPrePostButton = document.querySelector('#keyframe_type_label > div');
+    const addPrePostButton = document.querySelector<HTMLElement>('#keyframe_type_label > div');
     if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
 
-    var multi_channel = false;
-    var channel = false;
+    let multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
+    let channel: boolean | string | number = false;
     Timeline.selected.forEach((kf) => {
       if (channel === false) {
         channel = kf.channel
       } else if (channel !== kf.channel) {
-        multi_channel = true //eslint-disable-line no-unused-vars
+        multi_channel = true
       }
     })
 
@@ -102,7 +102,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
       return acc;
     }, new Map());
 
-    const isFirstInChannel = kf => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
+    const isFirstInChannel = (kf: _Keyframe) => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
 
     if (Timeline.selected.length && Format.id === "animated_entity_model") {
       if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
@@ -124,13 +124,13 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           let finalEasing = 'ease';
 
           if (inputEasingOrType === "in" || inputEasingOrType === "out" || inputEasingOrType === "inout") {
-              let finalEasingType = easingTypeToTypeId(inputEasingOrType)
+              const finalEasingType = easingTypeToTypeId(inputEasingOrType)
 
               finalEasing += finalEasingType + easing.substring(0, 1).toUpperCase() + easing.substring(1);
             } else if (inputEasingOrType === "linear" || inputEasingOrType == "step") {
               finalEasing = inputEasingOrType;
             } else {
-              let finalEasingType = easingTypeToTypeId(easingType);
+              const finalEasingType = easingTypeToTypeId(easingType);
 
               finalEasing += finalEasingType + inputEasingOrType.substring(0, 1).toUpperCase() + inputEasingOrType.substring(1);
             }
@@ -139,20 +139,20 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         };
 
         const addEasingTypeIcons = (bar, easingType, title) => {
-          var div = document.createElement("div");
+          const div = document.createElement("div");
           div.innerHTML = getIcon(easingType);
           div.id = "kf_easing_type_" + easingType;
           div.setAttribute("style", "stroke:var(--color-text);margin:0px;padding:3px;width:30px;height:30px");
           div.setAttribute("title", title);
           div.onclick = () => {
-            let selectedEasing = $(".selected_kf_easing");
-            let selectedEasingType = $(".selected_kf_easing_type");
+            const selectedEasing = $(".selected_kf_easing");
+            const selectedEasingType = $(".selected_kf_easing_type");
 
-            let keySelectedEasing = selectedEasing.attr("id").substring(15);
-            let keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
+            const keySelectedEasing = selectedEasing.attr("id").substring(15);
+            const keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
 
-            let currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
-            let finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
+            const currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
+            const finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
 
             if (finalEasing != currentEasing) {
             //   console.log("Changed from " + currentEasing + " to " + finalEasing);
@@ -163,7 +163,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         };
 
         const keyframe = document.getElementById('panel_keyframe');
-        let easingBar = document.createElement('div');
+        let easingBar: HTMLElement = document.createElement('div');
         keyframe.appendChild(easingBar);
         easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
           <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
@@ -183,14 +183,14 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
         addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
 
-        let keyEasing = getEasingInterpolation(displayedEasing);
-        let keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
+        const keyEasing = getEasingInterpolation(displayedEasing);
+        const keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
 
         keyEasingElement.style.stroke = "var(--color-accent)";
         keyEasingElement.classList.add('selected_kf_easing');
 
         if (!(keyEasing === "linear" || keyEasing == "step")) {
-          let easingTypeBar = document.createElement('div');
+          let easingTypeBar: HTMLElement = document.createElement('div');
           keyframe.appendChild(easingTypeBar);
           easingTypeBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_type">
             <label class="tl" style="font-weight: bolder; min-width: 47px;">Type</label>
@@ -201,14 +201,14 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
           addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
 
-          let keyEasingType = getEasingType(displayedEasing);
-          let keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
+          const keyEasingType = getEasingType(displayedEasing);
+          const keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
 
           keyEasingTypeElement.style.stroke = "var(--color-accent)";
           keyEasingTypeElement.classList.add('selected_kf_easing_type');
         }
 
-        const getEasingArgLabel = (kf) => {
+        const getEasingArgLabel = (kf: GeckolibKeyframe) => {
           switch(kf.easing) {
             case EASING_OPTIONS.easeInBack:
             case EASING_OPTIONS.easeOutBack:
@@ -228,10 +228,10 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           }
         };
         const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
-        if (Timeline.selected.every(kf => hasArgs(kf.easing)) && easingArgLabel !== null) {
+        if (Timeline.selected.every((kf: GeckolibKeyframe) => hasArgs(kf.easing)) && easingArgLabel !== null) {
           const argDefault = getMultiSelectValue(getEasingArgDefault, null, null);
           const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
-          let scaleBar = document.createElement('div');
+          let scaleBar: HTMLElement = document.createElement('div');
           keyframe.appendChild(scaleBar);
           scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_arg1">
             <label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
@@ -245,8 +245,8 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
   }
 };
 
-const getEasingInterpolation = (name) => {
-  var matches = name.match(easingRegExp);
+const getEasingInterpolation = (name: string) => {
+  const matches = name.match(easingRegExp);
 
   if (matches) {
     return matches[2].toLowerCase();
@@ -255,8 +255,8 @@ const getEasingInterpolation = (name) => {
   return name;
 };
 
-const getEasingType = (name) => {
-  var matches = name.match(easingRegExp);
+const getEasingType = (name: string) => {
+  const matches = name.match(easingRegExp);
 
   if (matches) {
     return matches[1].toLowerCase();
@@ -265,7 +265,7 @@ const getEasingType = (name) => {
   return "in";
 };
 
-const getIcon = (name) => {
+const getIcon = (name: string) => {
   switch(name) {
     case "back":
       return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.94165 c 3.17500003,0 4.23333333,2.91041 5.29166663,-4.7625" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
