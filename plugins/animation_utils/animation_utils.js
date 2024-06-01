@@ -9207,19 +9207,8 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
 }
 function geckolibGetArray(data_point) {
     if (data_point === void 0) { data_point = 0; }
-    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
-    var result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getArray.apply(this, data_point);
-    if (Format.id === "animated_entity_model") {
-        result = { vector: result, easing: easing };
-        if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
-            result.easingArgs = easingArgs;
-    }
-    return result;
-}
-function geckolibGetArrayOnKeyframe(keyframe, data_point) {
-    if (data_point === void 0) { data_point = 0; }
-    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
-    var result = this.getArray(data_point);
+    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs, getArray = _a.getArray;
+    var result = getArray.apply(this, [data_point]);
     if (Format.id === "animated_entity_model") {
         result = { vector: result, easing: easing };
         if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
@@ -9228,34 +9217,34 @@ function geckolibGetArrayOnKeyframe(keyframe, data_point) {
     return result;
 }
 function keyframeCompileBedrock() {
-    if (Format.id !== "animated_entity_model" || !_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).transform) {
+    if (Format.id !== "animated_entity_model" || !this.transform) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     }
-    if (_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).interpolation == 'catmullrom') {
-        var previous = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getPreviousKeyframe();
-        var include_pre = (!previous && _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).time > 0) || (previous && previous.interpolation != 'catmullrom');
+    if (this.interpolation == 'catmullrom') {
+        var previous = this.getPreviousKeyframe.apply(this);
+        var include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
         return {
-            pre: include_pre ? geckolibGetArray(0) : undefined,
-            post: geckolibGetArray(include_pre ? 1 : 0),
-            lerp_mode: _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).interpolation,
+            pre: include_pre ? geckolibGetArray.call(this, [0]) : undefined,
+            post: geckolibGetArray.call(this, [include_pre ? 1 : 0]),
+            lerp_mode: this.interpolation,
         };
     }
-    else if (_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).data_points.length == 1) {
-        var previous = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getPreviousKeyframe();
+    else if (this.data_points.length == 1) {
+        var previous = this.getPreviousKeyframe.apply(this);
         if (previous && previous.interpolation == 'step') {
             return new oneLiner({
-                pre: geckolibGetArrayOnKeyframe(previous, 1),
-                post: geckolibGetArray(),
+                pre: geckolibGetArray.call(previous, [1]),
+                post: geckolibGetArray.call(this),
             });
         }
         else {
-            return geckolibGetArray();
+            return geckolibGetArray.call(this);
         }
     }
     else {
         return new oneLiner({
-            pre: geckolibGetArray(0),
-            post: geckolibGetArray(1),
+            pre: geckolibGetArray.call(this, [0]),
+            post: geckolibGetArray.call(this, [1]),
         });
     }
 }

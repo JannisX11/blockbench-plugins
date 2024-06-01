@@ -55,52 +55,44 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
 }
 
 function geckolibGetArray(data_point: number = 0) {
-    const {easing, easingArgs} = this;
-    let result = Original.get(Keyframe).getArray.apply(this, data_point);
+    const {easing, easingArgs, getArray} = this;
+    let result = getArray.apply(this, [data_point]);
     if (Format.id === "animated_entity_model") {
+
         result = {vector: result, easing};
         if (hasArgs(easing)) result.easingArgs = easingArgs;
     }
     return result;
 }
 
-function geckolibGetArrayOnKeyframe(keyframe: Keyframe, data_point: number = 0) {
-    const {easing, easingArgs} = this;
-    let result = this.getArray(data_point);
-    if (Format.id === "animated_entity_model") {
-        result = {vector: result, easing};
-        if (hasArgs(easing)) result.easingArgs = easingArgs;
-    }
-    return result;
-}
 
 function keyframeCompileBedrock() {
-    if (Format.id !== "animated_entity_model" || !Original.get(Keyframe).transform) {
+    if (Format.id !== "animated_entity_model" || !this.transform) {
         return Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     }
 
-    if (Original.get(Keyframe).interpolation == 'catmullrom') {
-        const previous = Original.get(Keyframe).getPreviousKeyframe();
-        const include_pre = (!previous && Original.get(Keyframe).time > 0) || (previous && previous.interpolation != 'catmullrom')
+    if (this.interpolation == 'catmullrom') {
+        const previous = this.getPreviousKeyframe.apply(this)
+        const include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom')
         return {
-            pre: include_pre ? geckolibGetArray(0) : undefined,
-            post: geckolibGetArray(include_pre ? 1 : 0),
-            lerp_mode: Original.get(Keyframe).interpolation,
+            pre: include_pre ? geckolibGetArray.call(this,[0]) : undefined,
+            post: geckolibGetArray.call(this,[include_pre ? 1 : 0]),
+            lerp_mode: this.interpolation,
         }
-    } else if (Original.get(Keyframe).data_points.length == 1) {
-        const previous = Original.get(Keyframe).getPreviousKeyframe();
+    } else if (this.data_points.length == 1) {
+        const previous = this.getPreviousKeyframe.apply(this);
         if (previous && previous.interpolation == 'step') {
             return new oneLiner({
-                pre: geckolibGetArrayOnKeyframe(previous,1),
-                post: geckolibGetArray(),
+                pre: geckolibGetArray.call(previous, [1]),
+                post: geckolibGetArray.call(this),
             })
         } else {
-            return geckolibGetArray();
+            return geckolibGetArray.call(this);
         }
     } else {
         return new oneLiner({
-            pre: geckolibGetArray(0),
-            post: geckolibGetArray(1),
+            pre: geckolibGetArray.call(this,[0]),
+            post: geckolibGetArray.call(this, [1]),
         })
     }
 }
