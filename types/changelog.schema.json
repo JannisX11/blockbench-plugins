@@ -1,0 +1,70 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "changelog.schema",
+    "title": "Changelog",
+    "description": "A plugin changelog. Make sure to add new versions at the bottom of the document!",
+    "type": "object",
+    "propertyNames": {
+        "pattern": "^\\d+.\\d+.\\d+$"
+    },
+    "additionalProperties": {
+        "type": "object",
+        "required": ["title", "author", "date", "categories"],
+        "properties": {
+            "title": {"type": "string"},
+            "date": {"type": "string", "description": "Date as YYYY/MM/DD", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+            "author": {"type": "string"},
+            "categories": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "list": {
+                            "type": "array",
+                            "items": {"type": "string"}
+                        }
+                    },
+                    "defaultSnippets": [
+                        {
+                            "label": "Category",
+                            "description": "A new category or changes",
+                            "body": {
+                                "title": "Changes",
+                                "list": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "defaultSnippets": [
+            {
+                "label": "New Version",
+                "description": "A new version example snippet",
+                "body": {
+                    "title": "1.0.0",
+                    "author": "",
+                    "date": "2017-05-07",
+                    "categories": [
+                        {
+                            "title": "Features",
+                            "list": [
+                                ""
+                            ]
+                        },
+                        {
+                            "title": "Fixes",
+                            "list": [
+                                ""
+                            ]
+                        }
+                    ]
+                    
+                }
+            }
+        ]
+    }
+}
