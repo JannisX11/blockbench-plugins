@@ -8175,22 +8175,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
-var loadAnimationUI = function () {
+const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
+const loadAnimationUI = () => {
     Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
     Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasing", updateKeyframeEasing);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', function () {
-        return Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(BarItems.keyframe_interpolation).condition();
-    });
+    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', () => Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(BarItems.keyframe_interpolation).condition());
 };
-var unloadAnimationUI = function () {
+const unloadAnimationUI = () => {
     Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
     Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
 };
 //#region Global Animation UI Handlers
-var displayAnimationFrameCallback = function ( /*...args*/) {
+const displayAnimationFrameCallback = ( /*...args*/) => {
     // const keyframe = $('#keyframe');
     // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
@@ -8201,7 +8199,7 @@ function updateKeyframeEasing(value) {
     // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
     if (value === "-")
         return;
-    Timeline.selected.forEach(function (kf) {
+    Timeline.selected.forEach((kf) => {
         kf.easing = value;
     });
     window.updateKeyframeSelection(); // Ensure easingArg display is updated
@@ -8213,23 +8211,23 @@ function updateKeyframeEasingArg(obj) {
     if ($(obj).val() === "-")
         return;
     // console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
-    Timeline.selected.forEach(function (kf) {
-        var value = (0,_easing__WEBPACK_IMPORTED_MODULE_2__.parseEasingArg)(kf, $(obj).val().trim());
+    Timeline.selected.forEach((kf) => {
+        const value = (0,_easing__WEBPACK_IMPORTED_MODULE_2__.parseEasingArg)(kf, $(obj).val().trim());
         kf.easingArgs = [value];
         // obj.value = value;
     });
     Undo.finishEdit('edit keyframe easing argument');
 }
-var updateKeyframeSelectionCallback = function ( /*...args*/) {
+const updateKeyframeSelectionCallback = ( /*...args*/) => {
     $('#keyframe_bar_easing').remove();
     $('#keyframe_bar_easing_type').remove();
     $('#keyframe_bar_easing_arg1').remove();
-    var addPrePostButton = document.querySelector('#keyframe_type_label > div');
+    const addPrePostButton = document.querySelector('#keyframe_type_label > div');
     if (addPrePostButton)
         addPrePostButton.hidden = Format.id === "animated_entity_model";
-    var multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
-    var channel = false;
-    Timeline.selected.forEach(function (kf) {
+    let multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
+    let channel = false;
+    Timeline.selected.forEach((kf) => {
         if (channel === false) {
             channel = kf.channel;
         }
@@ -8237,12 +8235,12 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
             multi_channel = true;
         }
     });
-    var getMultiSelectValue = function (selector, defaultValue, conflictValue) {
-        var selectorFunction = typeof selector === 'function'
+    const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
+        const selectorFunction = typeof selector === 'function'
             ? selector
-            : function (x) { return (x[selector] === undefined ? defaultValue : x[selector]); };
+            : x => (x[selector] === undefined ? defaultValue : x[selector]);
         if (Timeline.selected.length > 1) {
-            var uniqSelected = lodash_uniq__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected.map(selectorFunction));
+            const uniqSelected = lodash_uniq__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected.map(selectorFunction));
             if (uniqSelected.length === 1) {
                 return uniqSelected[0];
             }
@@ -8254,15 +8252,15 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
             return selectorFunction(Timeline.selected[0]) || defaultValue;
         }
     };
-    var keyframesByChannel = Timeline.keyframes.reduce(function (acc, kf) {
+    const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
         // Dear god I miss lodash
         if (!acc.has(kf.animator))
             acc.set(kf.animator, {});
-        var animatorChannels = acc.get(kf.animator);
+        const animatorChannels = acc.get(kf.animator);
         if (!animatorChannels[kf.channel])
             animatorChannels[kf.channel] = [];
         animatorChannels[kf.channel].push(kf);
-        animatorChannels[kf.channel].sort(function (a, b) {
+        animatorChannels[kf.channel].sort((a, b) => {
             if (a.time < b.time)
                 return -1;
             if (a.time > b.time)
@@ -8271,13 +8269,13 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
         });
         return acc;
     }, new Map());
-    var isFirstInChannel = function (kf) { return keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1; };
+    const isFirstInChannel = (kf) => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
     if (Timeline.selected.length && Format.id === "animated_entity_model") {
-        if (Timeline.selected.every(function (kf) { return kf.animator instanceof BoneAnimator && !isFirstInChannel(kf); })) {
-            var displayedEasing = getMultiSelectValue('easing', _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_DEFAULT, 'null');
-            var convertEasingTypeToId_1 = function (easing, easingType, inputEasingOrType) {
-                var easingTypeToTypeId = function (type) {
-                    var finalEasingType = "In";
+        if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
+            const displayedEasing = getMultiSelectValue('easing', _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_DEFAULT, 'null');
+            const convertEasingTypeToId = (easing, easingType, inputEasingOrType) => {
+                const easingTypeToTypeId = type => {
+                    let finalEasingType = "In";
                     if (type === "out") {
                         finalEasingType = "Out";
                     }
@@ -8286,33 +8284,33 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
                     }
                     return finalEasingType;
                 };
-                var finalEasing = 'ease';
+                let finalEasing = 'ease';
                 if (inputEasingOrType === "in" || inputEasingOrType === "out" || inputEasingOrType === "inout") {
-                    var finalEasingType = easingTypeToTypeId(inputEasingOrType);
+                    const finalEasingType = easingTypeToTypeId(inputEasingOrType);
                     finalEasing += finalEasingType + easing.substring(0, 1).toUpperCase() + easing.substring(1);
                 }
                 else if (inputEasingOrType === "linear" || inputEasingOrType == "step") {
                     finalEasing = inputEasingOrType;
                 }
                 else {
-                    var finalEasingType = easingTypeToTypeId(easingType);
+                    const finalEasingType = easingTypeToTypeId(easingType);
                     finalEasing += finalEasingType + inputEasingOrType.substring(0, 1).toUpperCase() + inputEasingOrType.substring(1);
                 }
                 return finalEasing;
             };
-            var addEasingTypeIcons = function (bar, easingType, title) {
-                var div = document.createElement("div");
+            const addEasingTypeIcons = (bar, easingType, title) => {
+                const div = document.createElement("div");
                 div.innerHTML = getIcon(easingType);
                 div.id = "kf_easing_type_" + easingType;
                 div.setAttribute("style", "stroke:var(--color-text);margin:0px;padding:3px;width:30px;height:30px");
                 div.setAttribute("title", title);
-                div.onclick = function () {
-                    var selectedEasing = $(".selected_kf_easing");
-                    var selectedEasingType = $(".selected_kf_easing_type");
-                    var keySelectedEasing = selectedEasing.attr("id").substring(15);
-                    var keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
-                    var currentEasing = convertEasingTypeToId_1(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
-                    var finalEasing = convertEasingTypeToId_1(keySelectedEasing, keySelectedEasingType, easingType);
+                div.onclick = () => {
+                    const selectedEasing = $(".selected_kf_easing");
+                    const selectedEasingType = $(".selected_kf_easing_type");
+                    const keySelectedEasing = selectedEasing.attr("id").substring(15);
+                    const keySelectedEasingType = selectedEasingType.length <= 0 ? "in" : selectedEasingType.attr("id").substring(15);
+                    const currentEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, keySelectedEasing);
+                    const finalEasing = convertEasingTypeToId(keySelectedEasing, keySelectedEasingType, easingType);
                     if (finalEasing != currentEasing) {
                         //   console.log("Changed from " + currentEasing + " to " + finalEasing);
                         updateKeyframeEasing(finalEasing);
@@ -8320,10 +8318,12 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
                 };
                 bar.appendChild(div);
             };
-            var keyframe = document.getElementById('panel_keyframe');
-            var easingBar = document.createElement('div');
+            const keyframe = document.getElementById('panel_keyframe');
+            let easingBar = document.createElement('div');
             keyframe.appendChild(easingBar);
-            easingBar.outerHTML = "<div class=\"bar flex\" style=\"flex-wrap: wrap\" id=\"keyframe_bar_easing\">\n          <label class=\"tl\" style=\"font-weight: bolder; min-width: 47px;\">Easing</label>\n        </div>";
+            easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
+          <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
+        </div>`;
             easingBar = document.getElementById('keyframe_bar_easing');
             addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
             addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
@@ -8337,24 +8337,26 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
             addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
             addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
             addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
-            var keyEasing = getEasingInterpolation(displayedEasing);
-            var keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
+            const keyEasing = getEasingInterpolation(displayedEasing);
+            const keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
             keyEasingElement.style.stroke = "var(--color-accent)";
             keyEasingElement.classList.add('selected_kf_easing');
             if (!(keyEasing === "linear" || keyEasing == "step")) {
-                var easingTypeBar = document.createElement('div');
+                let easingTypeBar = document.createElement('div');
                 keyframe.appendChild(easingTypeBar);
-                easingTypeBar.outerHTML = "<div class=\"bar flex\" id=\"keyframe_bar_easing_type\">\n            <label class=\"tl\" style=\"font-weight: bolder; min-width: 47px;\">Type</label>\n          </div>";
+                easingTypeBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_type">
+            <label class="tl" style="font-weight: bolder; min-width: 47px;">Type</label>
+          </div>`;
                 easingTypeBar = document.getElementById('keyframe_bar_easing_type');
                 addEasingTypeIcons(easingTypeBar, "in", "Switch to In easing type");
                 addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
                 addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
-                var keyEasingType = getEasingType(displayedEasing);
-                var keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
+                const keyEasingType = getEasingType(displayedEasing);
+                const keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
                 keyEasingTypeElement.style.stroke = "var(--color-accent)";
                 keyEasingTypeElement.classList.add('selected_kf_easing_type');
             }
-            var getEasingArgLabel = function (kf) {
+            const getEasingArgLabel = (kf) => {
                 switch (kf.easing) {
                     case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBack:
                     case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutBack:
@@ -8373,34 +8375,37 @@ var updateKeyframeSelectionCallback = function ( /*...args*/) {
                         return 'N/A';
                 }
             };
-            var easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
-            if (Timeline.selected.every(function (kf) { return (0,_utils__WEBPACK_IMPORTED_MODULE_1__.hasArgs)(kf.easing); }) && easingArgLabel !== null) {
-                var argDefault = getMultiSelectValue(_easing__WEBPACK_IMPORTED_MODULE_2__.getEasingArgDefault, null, null);
-                var displayedValue = getMultiSelectValue('easingArgs', [argDefault], [argDefault])[0];
-                var scaleBar = document.createElement('div');
+            const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
+            if (Timeline.selected.every((kf) => (0,_utils__WEBPACK_IMPORTED_MODULE_1__.hasArgs)(kf.easing)) && easingArgLabel !== null) {
+                const argDefault = getMultiSelectValue(_easing__WEBPACK_IMPORTED_MODULE_2__.getEasingArgDefault, null, null);
+                const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
+                let scaleBar = document.createElement('div');
                 keyframe.appendChild(scaleBar);
-                scaleBar.outerHTML = "<div class=\"bar flex\" id=\"keyframe_bar_easing_arg1\">\n            <label class=\"tl\" style=\"font-weight: bolder; min-width: 90px;\">".concat(easingArgLabel, "</label>\n            <input type=\"number\" id=\"keyframe_easing_scale\" class=\"dark_bordered code keyframe_input tab_target\" value=\"").concat(displayedValue, "\" oninput=\"updateKeyframeEasingArg(this)\" style=\"flex: 1; margin-right: 9px;\">\n          </div>");
+                scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_arg1">
+            <label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
+            <input type="number" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
+          </div>`;
                 scaleBar = document.getElementById('keyframe_bar_easing_arg1');
             }
             // console.log('easingBar:', easingBar, 'keyframe:', keyframe);
         }
     }
 };
-var getEasingInterpolation = function (name) {
-    var matches = name.match(easingRegExp);
+const getEasingInterpolation = (name) => {
+    const matches = name.match(easingRegExp);
     if (matches) {
         return matches[2].toLowerCase();
     }
     return name;
 };
-var getEasingType = function (name) {
-    var matches = name.match(easingRegExp);
+const getEasingType = (name) => {
+    const matches = name.match(easingRegExp);
     if (matches) {
         return matches[1].toLowerCase();
     }
     return "in";
 };
-var getIcon = function (name) {
+const getIcon = (name) => {
     switch (name) {
         case "back":
             return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.94165 c 3.17500003,0 4.23333333,2.91041 5.29166663,-4.7625" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
@@ -8456,35 +8461,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash_omit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_omit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./settings */ "./settings.ts");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./utils.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 
 
 // This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
-var GeckolibBoneAnimator = /** @class */ (function (_super) {
-    __extends(GeckolibBoneAnimator, _super);
-    function GeckolibBoneAnimator() {
-        return _super !== null && _super.apply(this, arguments) || this;
+class GeckolibBoneAnimator extends BoneAnimator {
+    addKeyframe(data, uuid) {
+        return super.addKeyframe(data, uuid);
     }
-    GeckolibBoneAnimator.prototype.addKeyframe = function (data, uuid) {
-        return _super.prototype.addKeyframe.call(this, data, uuid);
-    };
-    return GeckolibBoneAnimator;
-}(BoneAnimator));
+}
 /* eslint-disable no-useless-escape */
 //#region Codec Helpers / Export Settings
 function loadCodec() {
@@ -8523,7 +8508,7 @@ function onBedrockCompile(e) {
     // maybeExportItemJson(e.options);
 }
 function animatorBuildFile() {
-    var res = _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(Animator).buildFile.apply(this, arguments);
+    const res = _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(Animator).buildFile.apply(this, arguments);
     if (Format.id === "animated_entity_model") {
         Object.assign(res, {
             'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_2__["default"].formatVersion,
@@ -8549,7 +8534,7 @@ function getKeyframeDataPoints(source) {
         if (source.vector) {
             return getKeyframeDataPoints(source.vector);
         }
-        var points = [];
+        const points = [];
         if (source.pre) {
             points.push(getKeyframeDataPoints(source.pre)[0]);
         }
@@ -8562,18 +8547,18 @@ function getKeyframeDataPoints(source) {
 function animatorLoadFile(file, animation_filter) {
     // Currently no modifications are needed
     // eslint-disable-next-line no-undef
-    var json = file.json || autoParseJSON(file.content);
-    var path = file.path;
-    var new_animations = [];
+    const json = file.json || autoParseJSON(file.content);
+    const path = file.path;
+    const new_animations = [];
     if (json && typeof json.animations === 'object') {
-        for (var ani_name in json.animations) {
+        for (const ani_name in json.animations) {
             if (animation_filter && !animation_filter.includes(ani_name))
                 continue;
             //Animation
-            var a = json.animations[ani_name];
-            var animation = new Blockbench.Animation({
+            const a = json.animations[ani_name];
+            const animation = new Blockbench.Animation({
                 name: ani_name,
-                path: path,
+                path,
                 // TODO: Make sure it's OK to disable this line
                 // loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
                 loop: a.loop,
@@ -8588,22 +8573,21 @@ function animatorLoadFile(file, animation_filter) {
             }).add();
             //Bones
             if (a.bones) {
-                var _loop_1 = function (bone_name) {
-                    var b = a.bones[bone_name];
-                    var lowercase_bone_name = bone_name.toLowerCase();
-                    var group = Group.all.find(function (group) { return group.name.toLowerCase() == lowercase_bone_name; });
-                    var uuid = group ? group.uuid : guid();
-                    var ga = // eslint-disable-line @typescript-eslint/no-unused-vars
-                     void 0; // eslint-disable-line @typescript-eslint/no-unused-vars
-                    var ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
+                for (const bone_name in a.bones) {
+                    const b = a.bones[bone_name];
+                    const lowercase_bone_name = bone_name.toLowerCase();
+                    const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
+                    const uuid = group ? group.uuid : guid();
+                    let ga; // eslint-disable-line @typescript-eslint/no-unused-vars
+                    const ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
                     animation.animators[uuid] = ba;
                     //Channels
-                    for (var channel in b) {
+                    for (const channel in b) {
                         if (Animator.possible_channels[channel]) {
                             if (typeof b[channel] === 'string' || typeof b[channel] === 'number' || b[channel] instanceof Array) {
                                 ba.addKeyframe({
                                     time: 0,
-                                    channel: channel,
+                                    channel,
                                     easing: b[channel].easing,
                                     easingArgs: b[channel].easingArgs,
                                     data_points: getKeyframeDataPoints(b[channel]),
@@ -8612,7 +8596,7 @@ function animatorLoadFile(file, animation_filter) {
                             else if (typeof b[channel] === 'object' && b[channel].post) {
                                 ba.addKeyframe({
                                     time: 0,
-                                    channel: channel,
+                                    channel,
                                     easing: b[channel].easing,
                                     easingArgs: b[channel].easingArgs,
                                     interpolation: b[channel].lerp_mode,
@@ -8620,10 +8604,10 @@ function animatorLoadFile(file, animation_filter) {
                                 });
                             }
                             else if (typeof b[channel] === 'object') {
-                                for (var timestamp in b[channel]) {
+                                for (const timestamp in b[channel]) {
                                     ba.addKeyframe({
                                         time: parseFloat(timestamp),
-                                        channel: channel,
+                                        channel,
                                         easing: b[channel][timestamp].easing,
                                         easingArgs: b[channel][timestamp].easingArgs,
                                         interpolation: b[channel][timestamp].lerp_mode,
@@ -8633,17 +8617,14 @@ function animatorLoadFile(file, animation_filter) {
                             }
                         }
                     }
-                };
-                for (var bone_name in a.bones) {
-                    _loop_1(bone_name);
                 }
             }
             if (a.sound_effects) {
                 if (!animation.animators.effects) {
                     animation.animators.effects = new EffectAnimator(animation);
                 }
-                for (var timestamp0 in a.sound_effects) {
-                    var sounds = a.sound_effects[timestamp0];
+                for (const timestamp0 in a.sound_effects) {
+                    let sounds = a.sound_effects[timestamp0];
                     if (sounds instanceof Array === false)
                         sounds = [sounds];
                     animation.animators.effects.addKeyframe({
@@ -8657,11 +8638,11 @@ function animatorLoadFile(file, animation_filter) {
                 if (!animation.animators.effects) {
                     animation.animators.effects = new EffectAnimator(animation);
                 }
-                for (var timestamp1 in a.particle_effects) {
-                    var particles = a.particle_effects[timestamp1];
+                for (const timestamp1 in a.particle_effects) {
+                    let particles = a.particle_effects[timestamp1];
                     if (particles instanceof Array === false)
                         particles = [particles];
-                    particles.forEach(function (particle) {
+                    particles.forEach(particle => {
                         if (particle)
                             particle.script = particle.pre_effect_script;
                     });
@@ -8676,13 +8657,13 @@ function animatorLoadFile(file, animation_filter) {
                 if (!animation.animators.effects) {
                     animation.animators.effects = new EffectAnimator(animation);
                 }
-                for (var timestamp2 in a.timeline) {
-                    var entry = a.timeline[timestamp2];
-                    var script = entry instanceof Array ? entry.join('\n') : entry;
+                for (const timestamp2 in a.timeline) {
+                    const entry = a.timeline[timestamp2];
+                    const script = entry instanceof Array ? entry.join('\n') : entry;
                     animation.animators.effects.addKeyframe({
                         channel: 'timeline',
                         time: parseFloat(timestamp2),
-                        data_points: [{ script: script }]
+                        data_points: [{ script }]
                     });
                 }
             }
@@ -8697,8 +8678,7 @@ function animatorLoadFile(file, animation_filter) {
 }
 //#endregion Codec Helpers / Export Settings
 //#region Codec / ModelFormat
-function maybeExportItemJson(options) {
-    if (options === void 0) { options = {}; }
+function maybeExportItemJson(options = {}) {
     function checkExport(key, condition) {
         key = options[key];
         if (key === undefined) {
@@ -8710,7 +8690,7 @@ function maybeExportItemJson(options) {
     }
     if (!Project)
         return;
-    var blockmodel = {};
+    const blockmodel = {};
     if (checkExport('comment', settings.credit.value)) {
         blockmodel.credit = settings.credit.value;
     }
@@ -8730,10 +8710,10 @@ function maybeExportItemJson(options) {
         blockmodel.overrides = Project.overrides;
     }
     if (checkExport('display', Object.keys(Project.display_settings).length >= 1)) {
-        var new_display = {};
-        var entries = 0;
-        for (var i in DisplayMode.slots) {
-            var key = DisplayMode.slots[i];
+        const new_display = {};
+        let entries = 0;
+        for (const i in DisplayMode.slots) {
+            const key = DisplayMode.slots[i];
             // eslint-disable-next-line no-prototype-builtins
             if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
                 new_display[key] = Project.display_settings[key].export();
@@ -8744,9 +8724,9 @@ function maybeExportItemJson(options) {
             blockmodel.display = new_display;
         }
     }
-    var blockmodelString = JSON.stringify(blockmodel, null, 2);
-    var scope = codec;
-    var path = _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath;
+    const blockmodelString = JSON.stringify(blockmodel, null, 2);
+    const scope = codec;
+    const path = _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath;
     Blockbench.export({
         resource_id: 'model',
         type: Codecs.java_block.name,
@@ -8754,13 +8734,13 @@ function maybeExportItemJson(options) {
         name: scope.fileName().replace(".geo", ".item"),
         startpath: path,
         content: blockmodelString,
-    }, function (real_path) {
+    }, (real_path) => {
         _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath = real_path;
     });
     return this;
 }
-var codec = Codecs.bedrock;
-var format = new ModelFormat({
+const codec = Codecs.bedrock;
+const format = new ModelFormat({
     id: "animated_entity_model",
     name: "GeckoLib Animated Model",
     category: "minecraft",
@@ -8846,9 +8826,9 @@ function findIntervalBorderIndex(point, intervals, useRightBorder) {
         return intervals.length - 1;
     //If point is inside interval
     //Start searching on a full range of intervals
-    var indexOfNumberToCompare = 0;
-    var leftBorderIndex = 0;
-    var rightBorderIndex = intervals.length - 1;
+    let indexOfNumberToCompare = 0;
+    let leftBorderIndex = 0;
+    let rightBorderIndex = intervals.length - 1;
     //Reduce searching range till it find an interval point belongs to using binary search
     while (rightBorderIndex - leftBorderIndex !== 1) {
         indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2);
@@ -8858,14 +8838,13 @@ function findIntervalBorderIndex(point, intervals, useRightBorder) {
     }
     return useRightBorder ? rightBorderIndex : leftBorderIndex;
 }
-function stepRange(steps, stop) {
-    if (stop === void 0) { stop = 1; }
+function stepRange(steps, stop = 1) {
     if (steps < 2)
         throw new Error("steps must be > 2, got:" + steps);
-    var stepLength = stop / steps;
+    const stepLength = stop / steps;
     return Array.from({
         length: steps
-    }, function (_, i) { return i * stepLength; });
+    }, (_, i) => i * stepLength);
 }
 // The MIT license notice below applies to the Easing class
 /**
@@ -8874,30 +8853,28 @@ function stepRange(steps, stop) {
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var Easing = /** @class */ (function () {
-    function Easing() {
-    }
+class Easing {
     /**
      * A stepping function, returns 1 for any positive value of `n`.
      */
-    Easing.step0 = function (n) {
+    static step0(n) {
         return n > 0 ? 1 : 0;
-    };
+    }
     /**
      * A stepping function, returns 1 if `n` is greater than or equal to 1.
      */
-    Easing.step1 = function (n) {
+    static step1(n) {
         return n >= 1 ? 1 : 0;
-    };
+    }
     /**
      * A linear function, `f(t) = t`. Position correlates to elapsed time one to
      * one.
      *
      * http://cubic-bezier.com/#0,0,1,1
      */
-    Easing.linear = function (t) {
+    static linear(t) {
         return t;
-    };
+    }
     /**
      * A simple inertial interaction, similar to an object slowly accelerating to
      * speed.
@@ -8916,51 +8893,51 @@ var Easing = /** @class */ (function () {
      *
      * http://easings.net/#easeInQuad
      */
-    Easing.quad = function (t) {
+    static quad(t) {
         return t * t;
-    };
+    }
     /**
      * A cubic function, `f(t) = t * t * t`. Position equals the cube of elapsed
      * time.
      *
      * http://easings.net/#easeInCubic
      */
-    Easing.cubic = function (t) {
+    static cubic(t) {
         return t * t * t;
-    };
+    }
     /**
      * A power function. Position is equal to the Nth power of elapsed time.
      *
      * n = 4: http://easings.net/#easeInQuart
      * n = 5: http://easings.net/#easeInQuint
      */
-    Easing.poly = function (n) {
-        return function (t) { return Math.pow(t, n); };
-    };
+    static poly(n) {
+        return (t) => Math.pow(t, n);
+    }
     /**
      * A sinusoidal function.
      *
      * http://easings.net/#easeInSine
      */
-    Easing.sin = function (t) {
+    static sin(t) {
         return 1 - Math.cos((t * Math.PI) / 2);
-    };
+    }
     /**
      * A circular function.
      *
      * http://easings.net/#easeInCirc
      */
-    Easing.circle = function (t) {
+    static circle(t) {
         return 1 - Math.sqrt(1 - t * t);
-    };
+    }
     /**
      * An exponential function.
      *
      * http://easings.net/#easeInExpo
      */
-    Easing.exp = function (t) {
+    static exp(t) {
         return Math.pow(2, 10 * (t - 1));
-    };
+    }
     /**
      * A simple elastic interaction, similar to a spring oscillating back and
      * forth.
@@ -8971,11 +8948,10 @@ var Easing = /** @class */ (function () {
      *
      * http://easings.net/#easeInElastic
      */
-    Easing.elastic = function (bounciness) {
-        if (bounciness === void 0) { bounciness = 1; }
-        var p = bounciness * Math.PI;
-        return function (t) { return 1 - Math.pow(Math.cos((t * Math.PI) / 2), 3) * Math.cos(t * p); };
-    };
+    static elastic(bounciness = 1) {
+        const p = bounciness * Math.PI;
+        return (t) => 1 - Math.pow(Math.cos((t * Math.PI) / 2), 3) * Math.cos(t * p);
+    }
     /**
      * Use with `Animated.parallel()` to create a simple effect where the object
      * animates back slightly as the animation starts.
@@ -8984,10 +8960,9 @@ var Easing = /** @class */ (function () {
      *
      * - http://tiny.cc/back_default (s = 1.70158, default)
      */
-    Easing.back = function (s) {
-        if (s === void 0) { s = 1.70158; }
-        return function (t) { return t * t * ((s + 1) * t - s); };
-    };
+    static back(s = 1.70158) {
+        return (t) => t * t * ((s + 1) * t - s);
+    }
     /**
      * Provides a simple bouncing effect.
      *
@@ -8995,14 +8970,13 @@ var Easing = /** @class */ (function () {
      * using min instead of ternaries
      * http://easings.net/#easeInBounce
      */
-    Easing.bounce = function (k) {
-        if (k === void 0) { k = 0.5; }
-        var q = function (x) { return (121 / 16) * x * x; };
-        var w = function (x) { return ((121 / 4) * k) * Math.pow(x - (6 / 11), 2) + 1 - k; };
-        var r = function (x) { return 121 * k * k * Math.pow(x - (9 / 11), 2) + 1 - k * k; };
-        var t = function (x) { return 484 * k * k * k * Math.pow(x - (10.5 / 11), 2) + 1 - k * k * k; };
-        return function (x) { return Math.min(q(x), w(x), r(x), t(x)); };
-    };
+    static bounce(k = 0.5) {
+        const q = (x) => (121 / 16) * x * x;
+        const w = (x) => ((121 / 4) * k) * Math.pow(x - (6 / 11), 2) + 1 - k;
+        const r = (x) => 121 * k * k * Math.pow(x - (9 / 11), 2) + 1 - k * k;
+        const t = (x) => 484 * k * k * k * Math.pow(x - (10.5 / 11), 2) + 1 - k * k * k;
+        return (x) => Math.min(q(x), w(x), r(x), t(x));
+    }
     /**
      * Provides a cubic bezier curve, equivalent to CSS Transitions'
      * `transition-timing-function`.
@@ -9017,45 +8991,38 @@ var Easing = /** @class */ (function () {
     /**
      * Runs an easing function forwards.
      */
-    Easing.in = function (easing) {
+    static in(easing) {
         return easing;
-    };
+    }
     /**
      * Runs an easing function backwards.
      */
-    Easing.out = function (easing) {
-        return function (t) { return 1 - easing(1 - t); };
-    };
+    static out(easing) {
+        return (t) => 1 - easing(1 - t);
+    }
     /**
      * Makes any easing function symmetrical. The easing function will run
      * forwards for half of the duration, then backwards for the rest of the
      * duration.
      */
-    Easing.inOut = function (easing) {
-        return function (t) {
+    static inOut(easing) {
+        return (t) => {
             if (t < 0.5) {
                 return easing(t * 2) / 2;
             }
             return 1 - easing((1 - t) * 2) / 2;
         };
-    };
-    return Easing;
-}());
-var quart = Easing.poly(4);
-var quint = Easing.poly(5);
-var back = function (direction, scalar, t) {
-    return direction(Easing.back(1.70158 * scalar))(t);
-};
-var elastic = function (direction, bounciness, t) {
-    return direction(Easing.elastic(bounciness))(t);
-};
-var bounce = function (direction, bounciness, t) {
-    return direction(Easing.bounce(bounciness))(t);
-};
-var easingFunctions = {
+    }
+}
+const quart = Easing.poly(4);
+const quint = Easing.poly(5);
+const back = (direction, scalar, t) => direction(Easing.back(1.70158 * scalar))(t);
+const elastic = (direction, bounciness, t) => direction(Easing.elastic(bounciness))(t);
+const bounce = (direction, bounciness, t) => direction(Easing.bounce(bounciness))(t);
+const easingFunctions = {
     linear: Easing.linear,
-    step: function (steps, x) {
-        var intervals = stepRange(steps);
+    step(steps, x) {
+        const intervals = stepRange(steps);
         return intervals[findIntervalBorderIndex(x, intervals, false)];
     },
     easeInQuad: Easing.in(Easing.quad),
@@ -9090,9 +9057,9 @@ var easingFunctions = {
     easeInOutBounce: bounce.bind(null, Easing.inOut),
 };
 // Object with the same keys as easingFunctions and values of the stringified key names
-var EASING_OPTIONS = Object.freeze(Object.fromEntries(Object.entries(easingFunctions).map(function (entry) { return ([entry[0], entry[0]]); })));
-var EASING_DEFAULT = 'linear';
-var getEasingArgDefault = function (kf) {
+const EASING_OPTIONS = Object.freeze(Object.fromEntries(Object.entries(easingFunctions).map(entry => ([entry[0], entry[0]]))));
+const EASING_DEFAULT = 'linear';
+const getEasingArgDefault = (kf) => {
     switch (kf.easing) {
         case EASING_OPTIONS.easeInBack:
         case EASING_OPTIONS.easeOutBack:
@@ -9111,7 +9078,7 @@ var getEasingArgDefault = function (kf) {
             return null;
     }
 };
-var parseEasingArg = function (kf, value) {
+const parseEasingArg = (kf, value) => {
     switch (kf.easing) {
         case EASING_OPTIONS.easeInBack:
         case EASING_OPTIONS.easeOutBack:
@@ -9183,34 +9150,33 @@ function lerp(start, stop, amt) {
 }
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
-    var easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
+    const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     if (Format.id !== "animated_entity_model") {
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getLerp.apply(this, arguments);
     }
-    var easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
+    let easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
     if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing)) {
-        var arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
+        const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
             ? other.easingArgs[0]
             : (0,_easing__WEBPACK_IMPORTED_MODULE_3__.getEasingArgDefault)(other);
         // console.log(`keyframeGetLerp arg1: ${arg1}`);
         easingFunc = easingFunc.bind(null, arg1);
     }
-    var easedAmount = easingFunc(amount);
-    var start = this.calc(axis);
-    var stop = other.calc(axis);
-    var result = lerp(start, stop, easedAmount);
+    const easedAmount = easingFunc(amount);
+    const start = this.calc(axis);
+    const stop = other.calc(axis);
+    const result = lerp(start, stop, easedAmount);
     // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
     if (Number.isNaN(result)) {
         throw new Error('batman');
     }
     return result;
 }
-function geckolibGetArray(data_point) {
-    if (data_point === void 0) { data_point = 0; }
-    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs, getArray = _a.getArray;
-    var result = getArray.apply(this, [data_point]);
+function geckolibGetArray(data_point = 0) {
+    const { easing, easingArgs, getArray } = this;
+    let result = getArray.apply(this, [data_point]);
     if (Format.id === "animated_entity_model") {
-        result = { vector: result, easing: easing };
+        result = { vector: result, easing };
         if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
             result.easingArgs = easingArgs;
     }
@@ -9221,8 +9187,8 @@ function keyframeCompileBedrock() {
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     }
     if (this.interpolation == 'catmullrom') {
-        var previous = this.getPreviousKeyframe.apply(this);
-        var include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
+        const previous = this.getPreviousKeyframe.apply(this);
+        const include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
         return {
             pre: include_pre ? geckolibGetArray.call(this, [0]) : undefined,
             post: geckolibGetArray.call(this, [include_pre ? 1 : 0]),
@@ -9230,7 +9196,7 @@ function keyframeCompileBedrock() {
         };
     }
     else if (this.data_points.length == 1) {
-        var previous = this.getPreviousKeyframe.apply(this);
+        const previous = this.getPreviousKeyframe.apply(this);
         if (previous && previous.interpolation == 'step') {
             return new oneLiner({
                 pre: geckolibGetArray.call(previous, [1]),
@@ -9249,10 +9215,10 @@ function keyframeCompileBedrock() {
     }
 }
 function keyframeGetUndoCopy() {
-    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
-    var result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getUndoCopy.apply(this, arguments);
+    const { easing, easingArgs } = this;
+    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getUndoCopy.apply(this, arguments);
     if (Format.id === "animated_entity_model") {
-        Object.assign(result, { easing: easing });
+        Object.assign(result, { easing });
         if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
             result.easingArgs = easingArgs;
     }
@@ -9260,7 +9226,7 @@ function keyframeGetUndoCopy() {
     return result;
 }
 function keyframeExtend(dataIn) {
-    var data = Object.assign({}, dataIn);
+    const data = Object.assign({}, dataIn);
     //   console.log('keyframeExtend 1 arguments:', arguments);
     if (Format.id === "animated_entity_model") {
         if (typeof data.values === 'object') {
@@ -9284,7 +9250,7 @@ function keyframeExtend(dataIn) {
             }
         }
     }
-    var result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).extend.apply(this, arguments);
+    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).extend.apply(this, arguments);
     //   console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
     return result;
 }
@@ -9293,28 +9259,28 @@ function onReverseKeyframes() {
     // console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
     // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
     Undo.initEdit({ keyframes: Timeline.selected });
-    var kfByAnimator = lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected, function (kf) { return kf.animator.uuid; });
-    var kfByAnimatorAndChannel = lodash_mapValues__WEBPACK_IMPORTED_MODULE_1___default()(kfByAnimator, function (keyframesForAnimator) { return lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(keyframesForAnimator, function (kf) { return kf.channel; }); });
-    Object.keys(kfByAnimatorAndChannel).forEach(function (animatorUuid) {
-        var animatorChannelGroups = kfByAnimatorAndChannel[animatorUuid];
-        Object.keys(animatorChannelGroups).forEach(function (channel) {
-            var channelKeyframes = animatorChannelGroups[channel];
+    const kfByAnimator = lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected, kf => kf.animator.uuid);
+    const kfByAnimatorAndChannel = lodash_mapValues__WEBPACK_IMPORTED_MODULE_1___default()(kfByAnimator, keyframesForAnimator => lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(keyframesForAnimator, kf => kf.channel));
+    Object.keys(kfByAnimatorAndChannel).forEach(animatorUuid => {
+        const animatorChannelGroups = kfByAnimatorAndChannel[animatorUuid];
+        Object.keys(animatorChannelGroups).forEach(channel => {
+            const channelKeyframes = animatorChannelGroups[channel];
             // Ensure keyframes are in temporal order. Not sure if this is already the case, but it couldn't hurt
-            channelKeyframes.sort(function (kfA, kfB) { return kfA.time - kfB.time; });
+            channelKeyframes.sort((kfA, kfB) => kfA.time - kfB.time);
             // Reverse easing direction
-            var easingData = channelKeyframes.map(function (kf) { return ({
+            const easingData = channelKeyframes.map((kf) => ({
                 easing: (0,_easing__WEBPACK_IMPORTED_MODULE_3__.reverseEasing)(kf.easing),
                 easingArgs: kf.easingArgs
-            }); });
+            }));
             // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
             // Shift easing data to the right by one keyframe
-            channelKeyframes.forEach(function (kf, i) {
+            channelKeyframes.forEach((kf, i) => {
                 if (i == 0) {
                     kf.easing = undefined;
                     kf.easingArgs = undefined;
                     return;
                 }
-                var newEasingData = easingData[i - 1];
+                const newEasingData = easingData[i - 1];
                 kf.easing = newEasingData.easing;
                 kf.easingArgs = newEasingData.easingArgs;
             });
@@ -9353,22 +9319,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   onSettingsChanged: () => (/* binding */ onSettingsChanged)
 /* harmony export */ });
 /* harmony import */ var _armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./armorTemplate.json */ "./armorTemplate.json");
-var _a;
 
-var makeOptions = function (arr) { return Object.fromEntries(arr.map(function (x) { return [x, x]; })); };
-var MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
-var MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
-var MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-var MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
-var OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
-var OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
-var OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
-var OBJ_TYPE_OPTIONS = (_a = {},
-    _a[OBJ_TYPE_ENTITY] = 'Entity',
-    _a[OBJ_TYPE_ARMOR] = 'Armor',
-    _a[OBJ_TYPE_BLOCK_ITEM] = 'Block/Item',
-    _a);
-var GECKO_SETTINGS_DEFAULT = {
+const makeOptions = (arr) => Object.fromEntries(arr.map(x => [x, x]));
+const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
+const MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
+const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
+const MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
+const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
+const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
+const OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
+const OBJ_TYPE_OPTIONS = {
+    [OBJ_TYPE_ENTITY]: 'Entity',
+    [OBJ_TYPE_ARMOR]: 'Armor',
+    [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item',
+};
+const GECKO_SETTINGS_DEFAULT = {
     formatVersion: 2,
     modSDK: MOD_SDK_1_15_FORGE,
     objectType: OBJ_TYPE_ENTITY,
@@ -9378,7 +9343,7 @@ var GECKO_SETTINGS_DEFAULT = {
     animFilePath: 'animations/ANIMATIONFILE.json',
 };
 Object.freeze(GECKO_SETTINGS_DEFAULT);
-var geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
+const geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 function onSettingsChanged() {
     if (Format.id === "animated_entity_model") {
         Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
@@ -9422,24 +9387,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./easing */ "./easing.ts");
 
-var hasArgs = function (easing) {
-    if (easing === void 0) { easing = ""; }
-    return easing.includes("Back") ||
-        easing.includes("Elastic") ||
-        easing.includes("Bounce") ||
-        easing === _easing__WEBPACK_IMPORTED_MODULE_0__.EASING_OPTIONS.step;
-};
-var Original = new Map();
-var addMonkeypatch = function (symbol, path, functionKey, newFunction) {
-    var pathAccessor = path ? symbol[path] : symbol;
+const hasArgs = (easing = "") => easing.includes("Back") ||
+    easing.includes("Elastic") ||
+    easing.includes("Bounce") ||
+    easing === _easing__WEBPACK_IMPORTED_MODULE_0__.EASING_OPTIONS.step;
+const Original = new Map();
+const addMonkeypatch = (symbol, path, functionKey, newFunction) => {
+    const pathAccessor = path ? symbol[path] : symbol;
     if (!Original.get(symbol))
         Original.set(symbol, { _pathAccessor: pathAccessor });
     Original.get(symbol)[functionKey] = pathAccessor[functionKey];
     pathAccessor[functionKey] = newFunction;
 };
-var removeMonkeypatches = function () {
-    Original.forEach(function (symbol) {
-        Object.keys(symbol).forEach(function (functionKey) {
+const removeMonkeypatches = () => {
+    Original.forEach(symbol => {
+        Object.keys(symbol).forEach(functionKey => {
             if (functionKey.startsWith('_'))
                 return;
             symbol._pathAccessor[functionKey] = symbol[functionKey];
@@ -9579,20 +9541,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var version = _package_json__WEBPACK_IMPORTED_MODULE_2__.version, blockbenchConfig = _package_json__WEBPACK_IMPORTED_MODULE_2__.blockbenchConfig;
-var SUPPORTED_BB_VERSION_RANGE = "".concat(blockbenchConfig.min_version, " - ").concat(blockbenchConfig.max_version);
+const { version, blockbenchConfig } = _package_json__WEBPACK_IMPORTED_MODULE_2__;
+const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
 if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default()(Blockbench.version), SUPPORTED_BB_VERSION_RANGE)) {
-    alert("GeckoLib Animation Utils currently only supports Blockbench ".concat(SUPPORTED_BB_VERSION_RANGE, ". Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior."));
+    alert(`GeckoLib Animation Utils currently only supports Blockbench ${SUPPORTED_BB_VERSION_RANGE}. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.`);
 }
 (function () {
-    var exportAction;
-    var exportDisplayAction;
-    var button;
+    let exportAction;
+    let exportDisplayAction;
+    let button;
     BBPlugin.register("animation_utils", Object.assign({}, blockbenchConfig, {
         name: blockbenchConfig.title,
-        version: version,
+        version,
         await_loading: true,
-        onload: function () {
+        onload() {
             (0,_codec__WEBPACK_IMPORTED_MODULE_3__.loadCodec)();
             (0,_animationUi__WEBPACK_IMPORTED_MODULE_4__.loadAnimationUI)();
             (0,_keyframe__WEBPACK_IMPORTED_MODULE_5__.loadKeyframeOverrides)();
@@ -9602,7 +9564,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
                 icon: "archive",
                 description: "Export your java animated model as a model for GeckoLib.",
                 category: "file",
-                condition: function () { return Format.id === "animated_entity_model"; },
+                condition: () => Format.id === "animated_entity_model",
                 click: function () {
                     _codec__WEBPACK_IMPORTED_MODULE_3__["default"].export();
                 },
@@ -9613,7 +9575,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
                 icon: "icon-bb_interface",
                 description: "Export your java animated model display settings for GeckoLib.",
                 category: "file",
-                condition: function () { return Format.id === "animated_entity_model" && _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType === _settings__WEBPACK_IMPORTED_MODULE_6__.OBJ_TYPE_BLOCK_ITEM; },
+                condition: () => Format.id === "animated_entity_model" && _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType === _settings__WEBPACK_IMPORTED_MODULE_6__.OBJ_TYPE_BLOCK_ITEM,
                 click: _codec__WEBPACK_IMPORTED_MODULE_3__.maybeExportItemJson,
             });
             MenuBar.addAction(exportDisplayAction, "file.export");
@@ -9621,13 +9583,13 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
                 name: 'GeckoLib Model Settings...',
                 description: 'Configure animated model.',
                 icon: 'info',
-                condition: function () { return Format.id === "animated_entity_model"; },
+                condition: () => Format.id === "animated_entity_model",
                 click: function () {
-                    var dialog = new Dialog({
+                    const dialog = new Dialog({
                         id: 'project',
                         title: 'GeckoLib Model Settings',
                         width: 540,
-                        lines: ["<b class=\"tl\"><a href=\"https://geckolib.com\">GeckoLib</a> Animation Utils v".concat(version, "</b>")],
+                        lines: [`<b class="tl"><a href="https://geckolib.com">GeckoLib</a> Animation Utils v${version}</b>`],
                         form: {
                             objectType: { label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_6__.OBJ_TYPE_OPTIONS },
                             // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
@@ -9647,7 +9609,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
             });
             MenuBar.addAction(button, 'file.1');
         },
-        onunload: function () {
+        onunload() {
             exportAction.delete();
             exportDisplayAction.delete();
             button.delete();

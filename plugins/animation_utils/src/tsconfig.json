@@ -3,7 +3,7 @@
     "outDir": "'../../plugins",
     // "noImplicitAny": true,
     "module": "es6",
-    "target": "es5",
+    "target": "ES2017",
     "allowJs": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
