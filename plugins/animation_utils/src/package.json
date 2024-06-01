@@ -2,7 +2,7 @@
   "name": "animation_utils",
   "version": "3.1.0",
   "private": true,
-  "description": "GeckoLib Animation Utils",
+  "description": "GeckoLib",
   "main": "index.js",
   "scripts": {
     "prebuild": "npm run test",

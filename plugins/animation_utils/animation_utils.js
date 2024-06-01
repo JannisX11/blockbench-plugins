@@ -9170,7 +9170,7 @@ var Keyframe = Blockbench.Keyframe;
 //#region Keyframe Mixins
 function loadKeyframeOverrides() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getLerp", keyframeGetLerp);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getArray", keyframeGetArray);
+    (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "extend", keyframeExtend);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(BarItems.reverse_keyframes, null, "click", onReverseKeyframes);
@@ -9205,16 +9205,59 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
     }
     return result;
 }
-function keyframeGetArray() {
+function geckolibGetArray(data_point) {
+    if (data_point === void 0) { data_point = 0; }
     var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
-    var result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getArray.apply(this, arguments);
+    var result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getArray.apply(this, data_point);
     if (Format.id === "animated_entity_model") {
         result = { vector: result, easing: easing };
         if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
             result.easingArgs = easingArgs;
     }
-    //   console.log('keyframeGetArray arguments:', arguments, 'this:', this, 'result:', result);
     return result;
+}
+function geckolibGetArrayOnKeyframe(keyframe, data_point) {
+    if (data_point === void 0) { data_point = 0; }
+    var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
+    var result = this.getArray(data_point);
+    if (Format.id === "animated_entity_model") {
+        result = { vector: result, easing: easing };
+        if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
+            result.easingArgs = easingArgs;
+    }
+    return result;
+}
+function keyframeCompileBedrock() {
+    if (Format.id !== "animated_entity_model" || !_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).transform) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+    }
+    if (_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).interpolation == 'catmullrom') {
+        var previous = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getPreviousKeyframe();
+        var include_pre = (!previous && _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).time > 0) || (previous && previous.interpolation != 'catmullrom');
+        return {
+            pre: include_pre ? geckolibGetArray(0) : undefined,
+            post: geckolibGetArray(include_pre ? 1 : 0),
+            lerp_mode: _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).interpolation,
+        };
+    }
+    else if (_utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).data_points.length == 1) {
+        var previous = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getPreviousKeyframe();
+        if (previous && previous.interpolation == 'step') {
+            return new oneLiner({
+                pre: geckolibGetArrayOnKeyframe(previous, 1),
+                post: geckolibGetArray(),
+            });
+        }
+        else {
+            return geckolibGetArray();
+        }
+    }
+    else {
+        return new oneLiner({
+            pre: geckolibGetArray(0),
+            post: geckolibGetArray(1),
+        });
+    }
 }
 function keyframeGetUndoCopy() {
     var _a = this, easing = _a.easing, easingArgs = _a.easingArgs;
@@ -9270,7 +9313,10 @@ function onReverseKeyframes() {
             // Ensure keyframes are in temporal order. Not sure if this is already the case, but it couldn't hurt
             channelKeyframes.sort(function (kfA, kfB) { return kfA.time - kfB.time; });
             // Reverse easing direction
-            var easingData = channelKeyframes.map(function (kf) { return ({ easing: (0,_easing__WEBPACK_IMPORTED_MODULE_3__.reverseEasing)(kf.easing), easingArgs: kf.easingArgs }); });
+            var easingData = channelKeyframes.map(function (kf) { return ({
+                easing: (0,_easing__WEBPACK_IMPORTED_MODULE_3__.reverseEasing)(kf.easing),
+                easingArgs: kf.easingArgs
+            }); });
             // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
             // Shift easing data to the right by one keyframe
             channelKeyframes.forEach(function (kf, i) {
@@ -9423,7 +9469,7 @@ var removeMonkeypatches = function () {
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorLeftArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedRightArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorRightArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]}],"textures":[]}');
+module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]}],"textures":[]}');
 
 /***/ }),
 
@@ -9434,7 +9480,7 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.1.0","private":true,"description":"GeckoLib Animation Utils","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"3.1.0","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ })
 
