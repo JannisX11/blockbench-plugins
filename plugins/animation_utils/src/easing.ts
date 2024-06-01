@@ -31,7 +31,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @param {Boolean} useRightBorder
  * @returns {Number}
  */
-function findIntervalBorderIndex(point, intervals, useRightBorder) {
+function findIntervalBorderIndex(point: number, intervals: number[], useRightBorder: boolean) {
   //If point is beyond given intervals
   if (point < intervals[0])
     return 0
@@ -39,9 +39,9 @@ function findIntervalBorderIndex(point, intervals, useRightBorder) {
     return intervals.length - 1
   //If point is inside interval
   //Start searching on a full range of intervals
-  var indexOfNumberToCompare = 0;
-  var leftBorderIndex = 0;
-  var rightBorderIndex = intervals.length - 1
+  let indexOfNumberToCompare = 0;
+  let leftBorderIndex = 0;
+  let rightBorderIndex = intervals.length - 1
   //Reduce searching range till it find an interval point belongs to using binary search
   while (rightBorderIndex - leftBorderIndex !== 1) {
     indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2)
@@ -52,13 +52,16 @@ function findIntervalBorderIndex(point, intervals, useRightBorder) {
   return useRightBorder ? rightBorderIndex : leftBorderIndex
 }
 
-function stepRange(steps, stop = 1) {
+function stepRange(steps: number, stop = 1) {
   if (steps < 2) throw new Error("steps must be > 2, got:" + steps);
   const stepLength = stop / steps;
   return Array.from({
     length: steps
   }, (_, i) => i * stepLength);
 }
+
+type EasingFunction = (t: number) => number;
+type EasingDirection = (easing: EasingFunction) => EasingFunction;
 
 // The MIT license notice below applies to the Easing class
 /**
@@ -71,13 +74,13 @@ class Easing {
     /**
      * A stepping function, returns 1 for any positive value of `n`.
      */
-    static step0(n) {
+    static step0(n: number) {
         return n > 0 ? 1 : 0;
     }
     /**
      * A stepping function, returns 1 if `n` is greater than or equal to 1.
      */
-    static step1(n) {
+    static step1(n: number) {
         return n >= 1 ? 1 : 0;
     }
     /**
@@ -86,7 +89,7 @@ class Easing {
      *
      * http://cubic-bezier.com/#0,0,1,1
      */
-    static linear(t) {
+    static linear(t: number) {
         return t;
     }
     /**
@@ -107,7 +110,7 @@ class Easing {
      *
      * http://easings.net/#easeInQuad
      */
-    static quad(t) {
+    static quad(t: number) {
         return t * t;
     }
     /**
@@ -116,7 +119,7 @@ class Easing {
      *
      * http://easings.net/#easeInCubic
      */
-    static cubic(t) {
+    static cubic(t: number) {
         return t * t * t;
     }
     /**
@@ -125,15 +128,15 @@ class Easing {
      * n = 4: http://easings.net/#easeInQuart
      * n = 5: http://easings.net/#easeInQuint
      */
-    static poly(n) {
-        return (t) => Math.pow(t, n);
+    static poly(n: number) {
+        return (t: number) => Math.pow(t, n);
     }
     /**
      * A sinusoidal function.
      *
      * http://easings.net/#easeInSine
      */
-    static sin(t) {
+    static sin(t: number) {
         return 1 - Math.cos((t * Math.PI) / 2);
     }
     /**
@@ -141,7 +144,7 @@ class Easing {
      *
      * http://easings.net/#easeInCirc
      */
-    static circle(t) {
+    static circle(t: number) {
         return 1 - Math.sqrt(1 - t * t);
     }
     /**
@@ -149,7 +152,7 @@ class Easing {
      *
      * http://easings.net/#easeInExpo
      */
-    static exp(t) {
+    static exp(t: number) {
         return Math.pow(2, 10 * (t - 1));
     }
     /**
@@ -164,7 +167,7 @@ class Easing {
      */
     static elastic(bounciness = 1) {
         const p = bounciness * Math.PI;
-        return t => 1 - Math.pow(Math.cos((t * Math.PI) / 2), 3) * Math.cos(t * p);
+        return (t: number) => 1 - Math.pow(Math.cos((t * Math.PI) / 2), 3) * Math.cos(t * p);
     }
     /**
      * Use with `Animated.parallel()` to create a simple effect where the object
@@ -175,7 +178,7 @@ class Easing {
      * - http://tiny.cc/back_default (s = 1.70158, default)
      */
     static back(s = 1.70158) {
-        return t => t * t * ((s + 1) * t - s);
+        return (t: number) => t * t * ((s + 1) * t - s);
     }
     /**
      * Provides a simple bouncing effect.
@@ -185,11 +188,11 @@ class Easing {
      * http://easings.net/#easeInBounce
      */
     static bounce(k = 0.5) {
-      const q = x => (121 / 16) * x * x;
-      const w = x => ((121 / 4) * k) * Math.pow(x - (6 / 11), 2) + 1 - k;
-      const r = x => 121 * k * k * Math.pow(x - (9 / 11), 2) + 1 - k * k;
-      const t = x => 484 * k * k * k * Math.pow(x - (10.5 / 11), 2) + 1 - k * k * k;
-      return x => Math.min(q(x), w(x), r(x), t(x));
+      const q = (x: number) => (121 / 16) * x * x;
+      const w = (x: number) => ((121 / 4) * k) * Math.pow(x - (6 / 11), 2) + 1 - k;
+      const r = (x: number) => 121 * k * k * Math.pow(x - (9 / 11), 2) + 1 - k * k;
+      const t = (x: number) => 484 * k * k * k * Math.pow(x - (10.5 / 11), 2) + 1 - k * k * k;
+      return (x: number) => Math.min(q(x), w(x), r(x), t(x));
     }
 
     /**
@@ -206,22 +209,22 @@ class Easing {
     /**
      * Runs an easing function forwards.
      */
-    static in(easing) {
+    static in(easing: EasingFunction) {
         return easing;
     }
     /**
      * Runs an easing function backwards.
      */
-    static out(easing) {
-        return t => 1 - easing(1 - t);
+    static out(easing: EasingFunction) {
+        return (t: number) => 1 - easing(1 - t);
     }
     /**
      * Makes any easing function symmetrical. The easing function will run
      * forwards for half of the duration, then backwards for the rest of the
      * duration.
      */
-    static inOut(easing) {
-        return t => {
+    static inOut(easing: EasingFunction) {
+        return (t: number) => {
             if (t < 0.5) {
                 return easing(t * 2) / 2;
             }
@@ -232,11 +235,11 @@ class Easing {
 
 const quart = Easing.poly(4);
 const quint = Easing.poly(5);
-const back = (direction, scalar, t) =>
+const back = (direction: EasingDirection, scalar: number, t: number) =>
   direction(Easing.back(1.70158 * scalar))(t);
-const elastic = (direction, bounciness, t) =>
+const elastic = (direction: EasingDirection, bounciness: number, t: number) =>
   direction(Easing.elastic(bounciness))(t);
-const bounce = (direction, bounciness, t) =>
+const bounce = (direction: EasingDirection, bounciness: number, t: number) =>
   direction(Easing.bounce(bounciness))(t);
 
 export const easingFunctions = {
@@ -277,14 +280,22 @@ export const easingFunctions = {
   easeInOutBounce: bounce.bind(null, Easing.inOut),
 };
 
+export type EasingKey = keyof typeof easingFunctions;
+
 // Object with the same keys as easingFunctions and values of the stringified key names
-export const EASING_OPTIONS = Object.fromEntries(
+export const EASING_OPTIONS = Object.freeze(Object.fromEntries(
   Object.entries(easingFunctions).map(entry => ([entry[0], entry[0]]))
-);
-Object.freeze(EASING_OPTIONS);
+) as { [Property in EasingKey]: string });
 export const EASING_DEFAULT = 'linear';
 
-export const getEasingArgDefault = kf => {
+export interface EasingProperties {
+  easing?: EasingKey | null;
+  easingArgs?: number[];
+}
+
+export type GeckolibKeyframe = _Keyframe & EasingProperties;
+
+export const getEasingArgDefault = (kf: GeckolibKeyframe): number => {
   switch (kf.easing) {
     case EASING_OPTIONS.easeInBack:
     case EASING_OPTIONS.easeOutBack:
@@ -304,7 +315,7 @@ export const getEasingArgDefault = kf => {
   }
 };
 
-export const parseEasingArg = (kf, value) => {
+export const parseEasingArg = (kf: GeckolibKeyframe, value: string) => {
   switch(kf.easing) {
     case EASING_OPTIONS.easeInBack:
     case EASING_OPTIONS.easeOutBack:
@@ -322,3 +333,11 @@ export const parseEasingArg = (kf, value) => {
       return parseInt(value, 10);
   }
 };
+
+export function reverseEasing(easing?: EasingKey): EasingKey {
+  if (!easing) return easing;
+  if (easing.startsWith("easeInOut")) return easing;
+  if (easing.startsWith("easeIn")) return easing.replace("easeIn", "easeOut") as EasingKey;
+  if (easing.startsWith("easeOut")) return easing.replace("easeOut", "easeIn") as EasingKey;
+  return easing;
+}
