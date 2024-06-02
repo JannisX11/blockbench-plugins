@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.0.0",
+      version: "8.0.1",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -188,9 +188,6 @@
       onStart: () => openLoader,
       format_page: {
         component: {
-          data: {
-            connection
-          },
           methods: {
             openLoader
           },
@@ -1490,7 +1487,7 @@
         template: `
           <div id="cem_animation_content">
             <div class="cem_animation_bar" style="margin-bottom:8px">
-              <p id="cem_animation_title" class="panel_toolbar_label">Editing animations for part: <span id="cem_animation_part_name" style="font-weight:600"></p>
+              <p id="cem_animation_title" class="panel_toolbar_label">Editing animations for part: <span id="cem_animation_part_name" style="font-weight:600"></span></p>
               <span class="spacer"></span>
               <span id="cem_animation_doc_button" @click="showDoc()" title="Animation documentation">
                 <p>Documentation</p>
