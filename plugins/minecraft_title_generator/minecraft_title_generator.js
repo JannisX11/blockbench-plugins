@@ -767,11 +767,6 @@
                       this.update(this.tabToUpdate)
                       this.tabToUpdate = false
                     }
-                  },
-                  checkResolution() {
-                    if (this.resolution > 2048) {
-                      this.resolution = 2048
-                    }
                   }
                 },
                 template: `
