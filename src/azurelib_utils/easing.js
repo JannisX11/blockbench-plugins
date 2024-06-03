@@ -53,6 +53,7 @@ function findIntervalBorderIndex(point, intervals, useRightBorder) {
 }
 
 function stepRange(steps, stop = 1) {
+  if (!steps) throw new Error("steps must be provided and greater than 2, got: " + steps);
   if (steps < 2) throw new Error("steps must be > 2, got:" + steps);
   const stepLength = stop / steps;
   return Array.from({
