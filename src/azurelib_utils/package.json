@@ -28,7 +28,10 @@
         "formats": ["azure_model"]
     },
     "has_changelog": true,
-    "website": "https://wiki.azuredoom.com/readme-1"
+    "website": "https://wiki.azuredoom.com/readme-1",
+    "tags": [
+      "Minecraft: Java Edition"
+    ]
   },
   "sideEffects": [
     "./index.js"
