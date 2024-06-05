@@ -7,7 +7,7 @@
     "build": "esbuild src/index.ts --bundle --minify --outfile=../../plugins/pbr_preview/pbr_preview.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "esbuild src/index.ts --bundle --sourcemap --outfile=../../plugins/pbr_preview/pbr_preview.js --watch",
-    "format": "prettier --write src/**/*.ts",
+    "format": "prettier --write src/**/*.ts ./*.mjs",
     "dist": "npm run format && npm run build"
   },
   "keywords": [
