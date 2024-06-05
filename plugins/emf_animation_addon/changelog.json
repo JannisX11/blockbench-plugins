@@ -1,0 +1,15 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2024-06-05",
+    "author": "Traben & Ewan Howell",
+    "categories": [
+      {
+        "title": "New Plugin",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  }
+}

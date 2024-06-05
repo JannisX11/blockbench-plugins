@@ -929,6 +929,7 @@
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": ["cem_template_loader"],
-		"creation_date": "2024-04-25"
+		"creation_date": "2024-04-25",
+		"has_changelog": true
 	}
 }
