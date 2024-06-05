@@ -54,5 +54,24 @@
 				]
 			}
 		]
+	},
+	"1.0.9": {
+		"title": "1.0.9",
+		"date": "2024-06-03",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Fixes some plugin meta data inconsistencies, thanks to ewanhowell5195"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes crash if setting steps to 0 or nothing then clicking away, as per the issue #513"
+				]
+			}
+		]
 	}
 }
