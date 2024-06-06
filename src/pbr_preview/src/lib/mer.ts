@@ -25,7 +25,7 @@ export const exportMer = (
         ? Project.textures
         : null,
     selected.uuid,
-  ).createMer(false);
+  ).createMer(true);
 
   if (!mer) {
     return;
