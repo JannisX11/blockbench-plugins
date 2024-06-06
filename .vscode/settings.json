@@ -1,0 +1,16 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "changelog.json"
+            ],
+            "url": "./types/changelog.schema.json"
+        },
+        {
+            "fileMatch": [
+                "plugins.json"
+            ],
+            "url": "./types/plugins.schema.json"
+        }
+    ]
+}

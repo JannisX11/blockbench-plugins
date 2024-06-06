@@ -1,0 +1,98 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "plugins.schema",
+    "title": "plugins.json",
+    "description": "List of all plugins and their store metadata",
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "required": ["title", "author", "version", "icon"],
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "Name of the plugin"
+            },
+            "author": {
+                "type": "string",
+                "description": "Author or authors"
+            },
+            "icon": {
+                "type": "string",
+                "description": "Icon, either an icon resolvable string, or icon.png / icon.svg in the new repo format"
+            },
+            "description": {
+                "type": "string",
+                "description": "Short plugin description"
+            },
+            "tags": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Tags to help categorize the plugin",
+                "maxItems": 3
+            },
+            "version": {
+                "type": "string",
+                "description": "Semver version string"
+            },
+            "min_version": {
+                "type": "string",
+                "description": "Minimum required Blockbench version to run this plugin"
+            },
+            "variant": {
+                "type": "string",
+                "enum": ["both", "desktop", "web"],
+                "description": "Specify if Blockbench can run only on desktop, only in the web app, or on both"
+            },
+            "creation_date": {
+                "type": "string",
+                "description": "Date of when the plugin was first released. As YYYY/MM/DD",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "new_repository_format": {
+                "type": "boolean",
+                "deprecated": true,
+                "description": "Instruct the plugin to use the new repository format, see README.md. This field was only used in the transition period, instead the behavior is now based on a min_version of 4.8.0 or higher."
+            },
+            "has_changelog": {
+                "type": "boolean",
+                "description": "Whether the plugin has a changelog.json file, specifying changes in past updates."
+            },
+            "await_loading": {
+                "type": "boolean",
+                "description": "Set to true if you need the plugin to finish loading when starting Blockbench before loading files"
+            },
+            "contributes": {
+                "type": "object",
+                "properties": {
+                    "formats": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                    }
+                }
+            },
+            "website": {
+                "type": "string",
+                "description": "Link to the plugins website",
+                "pattern": "^https://.+"
+            }
+        },
+        "defaultSnippets": [
+            {
+                "label": "Basic plugin",
+                "description": "A new plugin example",
+                "body": {
+                    "title": "My Plugin",
+                    "author": "Benchbot",
+                    "description": "",
+                    "icon": "icon.png",
+                    "version": "1.0.0",
+                    "min_version": "4.10.0",
+                    "variant": "both"
+                }
+            }
+        ]
+    },
+    "propertyNames": {
+        "pattern": "^[a-z0-9_]{3,64}$"
+    }
+}
