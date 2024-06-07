@@ -27,7 +27,7 @@ export default class PbrMaterial {
 
   constructor(
     scope: Array<Texture | TextureLayer> | null,
-    materialUuid: string,
+    materialUuid: string
   ) {
     this._scope = scope ?? getProjectTextures();
     this._materialUuid = materialUuid;
@@ -72,7 +72,7 @@ export default class PbrMaterial {
         PbrMaterial.makePixelatedCanvas(
           TextureLayer.selected?.canvas ??
             Texture.all.find((t) => t.selected)?.canvas ??
-            Texture.getDefault().canvas,
+            Texture.getDefault().canvas
         ),
       aoMap: this.getTexture(CHANNELS.ao),
       bumpMap: this.getTexture(CHANNELS.height),
@@ -87,7 +87,8 @@ export default class PbrMaterial {
       emissive: emissiveMap ? 0xffffff : 0,
       envMap: PreviewScene.active?.cubemap ?? null,
       envMapIntensity: 0.95,
-      alphaTest: 0.5,
+      alphaTest: 0.1,
+      transparent: true,
       ...options,
     });
   }
@@ -117,14 +118,14 @@ export default class PbrMaterial {
    */
   findTexture(
     name: string | IChannel,
-    inference = true,
+    inference = true
   ): Texture | TextureLayer | null {
     if (!Project) {
       return null;
     }
 
     const materialChannel = this._scope.find(
-      (t) => t.channel && (t.channel === name || t.channel === name.id),
+      (t) => t.channel && (t.channel === name || t.channel === name.id)
     );
 
     if (materialChannel) {
@@ -163,7 +164,7 @@ export default class PbrMaterial {
       undefined,
       undefined,
       THREE.NearestFilter,
-      THREE.NearestFilter,
+      THREE.NearestFilter
     );
 
     texture.needsUpdate = true;
@@ -183,7 +184,7 @@ export default class PbrMaterial {
 
   static extractChannel(
     texture: Texture | TextureLayer,
-    channel: "r" | "g" | "b" | "a",
+    channel: "r" | "g" | "b" | "a"
   ) {
     const canvas = texture.canvas;
     const width = canvas.width;
@@ -279,17 +280,17 @@ export default class PbrMaterial {
       0,
       0,
       emissive.width,
-      emissive.height,
+      emissive.height
     );
     const emissiveLevelData = emissiveLevelCtx.getImageData(
       0,
       0,
       emissive.width,
-      emissive.height,
+      emissive.height
     );
 
     const emissiveData = new Uint8ClampedArray(
-      emissive.width * emissive.height * 4,
+      emissive.width * emissive.height * 4
     );
 
     for (let idx = 0; idx < albedoData.data.length; idx += 4) {
@@ -310,7 +311,7 @@ export default class PbrMaterial {
     emissiveCtx.putImageData(
       new ImageData(emissiveData, emissive.width, emissive.height),
       0,
-      0,
+      0
     );
 
     return {
@@ -333,7 +334,7 @@ export default class PbrMaterial {
       emissive?.img.width ?? 0,
       roughness?.img.width ?? 0,
       Project ? Project.texture_width : 0,
-      16,
+      16
     );
 
     const height = Math.max(
@@ -341,7 +342,7 @@ export default class PbrMaterial {
       emissive?.img.height ?? 0,
       roughness?.img.height ?? 0,
       Project ? Project.texture_height : 0,
-      16,
+      16
     );
 
     const canvas = document.createElement("canvas");
@@ -380,7 +381,7 @@ export default class PbrMaterial {
       new ImageData(
         new Uint8ClampedArray(width * height * 4).fill(255),
         width,
-        height,
+        height
       );
 
     const data = new Uint8ClampedArray(width * height * 4);
@@ -412,7 +413,7 @@ export default class PbrMaterial {
       emissive?.img.width ?? 0,
       roughness?.img.width ?? 0,
       Project ? Project.texture_width : 0,
-      16,
+      16
     );
 
     const height = Math.max(
@@ -420,7 +421,7 @@ export default class PbrMaterial {
       emissive?.img.height ?? 0,
       roughness?.img.height ?? 0,
       Project ? Project.texture_height : 0,
-      16,
+      16
     );
 
     const specularCanvas = document.createElement("canvas");
@@ -474,7 +475,7 @@ export default class PbrMaterial {
       // Convert metalness to F0
       const f0 = Math.min(
         229,
-        Math.max(0, Math.round((metalnessData?.data[idx] ?? smoothness) * 229)),
+        Math.max(0, Math.round((metalnessData?.data[idx] ?? smoothness) * 229))
       );
 
       const porosity = porosityData?.data[idx];
@@ -498,7 +499,7 @@ export default class PbrMaterial {
         (emissiveData?.data[idx] +
           emissiveData?.data[idx + 1] +
           emissiveData?.data[idx + 2]) /
-          3,
+          3
       );
 
       specularData[idx + 3] = emissiveLevel || 255;
@@ -602,7 +603,7 @@ export default class PbrMaterial {
     heightmapCtx.putImageData(
       new ImageData(heightmapData, width, height),
       0,
-      0,
+      0
     );
 
     return {
@@ -723,7 +724,7 @@ export default class PbrMaterial {
     metalnessCtx.putImageData(
       new ImageData(metalnessData, width, height),
       0,
-      0,
+      0
     );
 
     emissiveCtx.putImageData(new ImageData(emissiveData, width, height), 0, 0);
@@ -731,7 +732,7 @@ export default class PbrMaterial {
     roughnessCtx.putImageData(
       new ImageData(roughnessData, width, height),
       0,
-      0,
+      0
     );
 
     sssCtx.putImageData(new ImageData(sssData, width, height), 0, 0);
@@ -794,7 +795,7 @@ export default class PbrMaterial {
    */
   createNormalMap(
     texture: Texture | TextureLayer,
-    heightInAlpha = false,
+    heightInAlpha = false
   ): Texture | TextureLayer | null {
     const textureCtx = texture.canvas.getContext("2d");
 
@@ -805,12 +806,12 @@ export default class PbrMaterial {
     const width = Math.max(
       texture.img.width ?? texture.canvas.width,
       Project ? Project.texture_width : 0,
-      16,
+      16
     );
     const height = Math.max(
       texture.img.height ?? texture.canvas.height,
       Project ? Project.texture_height : 0,
-      16,
+      16
     );
 
     const { data: textureData } = textureCtx.getImageData(0, 0, width, height);
@@ -874,7 +875,7 @@ export default class PbrMaterial {
           data_url: dataUrl,
           visible: true,
         },
-        texture.texture,
+        texture.texture
       );
 
       normalMapLayer.addForEditing();

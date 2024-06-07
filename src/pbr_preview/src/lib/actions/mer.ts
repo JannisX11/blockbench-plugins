@@ -13,7 +13,12 @@ export function setup() {
       project: true,
     },
     click() {
-      exportMer();
+      try {
+        exportMer();
+      } catch (err) {
+        console.error("Failed to export MER map:", err);
+        Blockbench.showStatusMessage("Failed to export MER map", 3000);
+      }
     },
   });
 

@@ -1,4 +1,5 @@
 import PbrMaterial from "./PbrMaterials";
+import { getSelectedTexture } from "./util";
 
 /**
  * ### Export MER map
@@ -10,13 +11,7 @@ export const exportMer = (
   baseName?: string,
   cb?: (filePath: string) => void,
 ) => {
-  const selected = Project
-    ? Project.selected_texture
-    : Texture.all.find((t) => t.selected);
-
-  if (!selected) {
-    return;
-  }
+  const selected = getSelectedTexture();
 
   const mer = new PbrMaterial(
     selected.layers_enabled
@@ -28,12 +23,12 @@ export const exportMer = (
   ).createMer(true);
 
   if (!mer) {
-    return;
+    throw new Error("Failed to generate MER map from selected texture.");
   }
 
   mer.toBlob(async (blob) => {
     if (!blob) {
-      return;
+      throw new Error("Failed to save MER map.");
     }
 
     const [name, startpath] = Project

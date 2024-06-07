@@ -1,6 +1,7 @@
 import { CHANNELS, registry, setups, teardowns } from "../../constants";
 import { exportMer } from "../mer";
 import PbrMaterial from "../PbrMaterials";
+import { getOutputBaseName } from "../util";
 
 const createTextureSetDialog = () => {
   if (!Project) {
@@ -14,12 +15,12 @@ const createTextureSetDialog = () => {
     const projectColorMap = mat.findTexture(CHANNELS.albedo, false);
     const projectMetalnessMap = mat.findTexture(
       CHANNELS.metalness,
-      false,
+      false
     )?.name;
     const projectEmissiveMap = mat.findTexture(CHANNELS.emissive, false)?.name;
     const projectRoughnessMap = mat.findTexture(
       CHANNELS.roughness,
-      false,
+      false
     )?.name;
 
     const form: DialogOptions["form"] = {};
@@ -94,11 +95,9 @@ const createTextureSetDialog = () => {
       title: "Create Texture Set JSON",
       buttons: ["Create", "Cancel"],
       form,
+      cancelIndex: 1,
       onConfirm(formResult: Record<string, any>) {
-        const baseName =
-          Project.model_identifier.length > 0
-            ? Project.model_identifier
-            : Project.getDisplayName();
+        const baseName = getOutputBaseName();
 
         const hasMer =
           projectMetalnessMap || projectEmissiveMap || projectRoughnessMap;
@@ -169,7 +168,7 @@ const createTextureSetDialog = () => {
                 useNormalMap ? "normal" : "heightmap"
               ] = pathToName(filePath, false);
               cb();
-            },
+            }
           );
         };
 
@@ -190,10 +189,10 @@ const createTextureSetDialog = () => {
             (filePath) => {
               textureSet["minecraft:texture_set"].color = pathToName(
                 filePath,
-                false,
+                false
               );
               cb();
-            },
+            }
           );
         };
 
@@ -213,23 +212,27 @@ const createTextureSetDialog = () => {
                 () => {
                   Blockbench.showQuickMessage("Texture set created", 2000);
                   registry.textureSetDialog?.hide();
-                },
+                }
               );
             });
           });
 
         if (hasMer) {
-          exportMer(baseName, (filePath) => {
-            textureSet["minecraft:texture_set"].metalness_emissive_roughness =
-              pathToName(filePath, false);
-            exportTextureSet();
-          });
+          try {
+            exportMer(baseName, (filePath) => {
+              textureSet["minecraft:texture_set"].metalness_emissive_roughness =
+                pathToName(filePath, false);
+              exportTextureSet();
+            });
+          } catch (err) {
+            console.warn("Failed to export MER map:", err);
+            Blockbench.showStatusMessage("Failed to export MER map", 3000);
+          }
           return;
         }
 
         exportTextureSet();
       },
-      cancelIndex: 1,
     });
 
     return registry.textureSetDialog.show();

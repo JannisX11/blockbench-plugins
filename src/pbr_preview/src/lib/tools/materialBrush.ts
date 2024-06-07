@@ -114,7 +114,7 @@ const applyPreset = ({
   if (height !== undefined) {
     registry.brushHeightSlider?.setValue(
       Math.max(0, Math.min(1, height ?? 0.5)),
-      true,
+      true
     );
   }
 
@@ -129,7 +129,6 @@ const userPresetsDialogComponent = Vue.extend({
   data(): {
     userPresets: Record<string, [Record<string, number | string>, string]>;
     channels: typeof CHANNELS;
-    isEditing: boolean;
   } {
     return {
       userPresets: {},
@@ -177,17 +176,17 @@ const userPresetsDialogComponent = Vue.extend({
 
             localStorage.setItem(
               "materialBrushPresets",
-              JSON.stringify(presets),
+              JSON.stringify(presets)
             );
 
             this.userPresets = presets;
 
             Blockbench.showQuickMessage(
               `Preset "${friendlyName}" deleted`,
-              2000,
+              2000
             );
           }
-        },
+        }
       );
     },
     editPreset(preset: string) {
@@ -351,7 +350,7 @@ setups.push(() => {
       return (
         texture.layers.find(
           // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.metalness.id,
+          ({ channel }) => channel === CHANNELS.metalness.id
         ) !== undefined
       );
     },
@@ -381,7 +380,7 @@ setups.push(() => {
       return (
         texture.layers.find(
           // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.roughness.id,
+          ({ channel }) => channel === CHANNELS.roughness.id
         ) !== undefined
       );
     },
@@ -406,7 +405,7 @@ setups.push(() => {
       return (
         texture.layers.find(
           // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.emissive.id,
+          ({ channel }) => channel === CHANNELS.emissive.id
         ) !== undefined
       );
     },
@@ -582,16 +581,16 @@ setups.push(() => {
         onConfirm(formResult) {
           applyPreset({
             metalness: Number(
-              formResult.metalness ?? registry.brushMetalnessSlider?.get(),
+              formResult.metalness ?? registry.brushMetalnessSlider?.get()
             ),
             roughness: Number(
-              formResult.roughness ?? registry.brushRoughnessSlider?.get(),
+              formResult.roughness ?? registry.brushRoughnessSlider?.get()
             ),
             emissive: (
               formResult.emissive ?? registry.brushEmissiveColor?.get()
             ).toString(),
             height: Number(
-              formResult.height ?? registry.brushHeightSlider?.get(),
+              formResult.height ?? registry.brushHeightSlider?.get()
             ),
             albedo: (formResult.albedo ?? ColorPanel.get()).toString(),
           });
