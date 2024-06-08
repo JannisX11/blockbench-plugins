@@ -152,9 +152,11 @@
         console.log(`Plugin reloaded: ${id}`)
       } else {
         let css = fs.readFileSync(watching)
+        let name
         if (watching.endsWith(".bbtheme")) {
           try {
             const data = JSON.parse(css)
+            name = data.name
             css = `body{`
             if (data.main_font) css += `--font-custom-main: ${data.main_font};`
             if (data.headline_font) css += `--font-custom-headline: ${data.headline_font};`
@@ -181,7 +183,7 @@
         }
         styles = Blockbench.addCSS(css)
         resizeWindow()
-        console.log(`Theme reloaded: ${path.basename(watching, ".bbtheme")}`)
+        console.log(`Theme reloaded: ${name ?? path.basename(watching).split(".").slice(0, -1).join(".")}`)
       }
     }
   }
