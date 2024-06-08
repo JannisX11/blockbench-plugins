@@ -10,13 +10,14 @@
     author: "Ewan Howell",
     description: "Edit plugins and themes live in any text editor and have them automatically update in Blockbench.",
     tags: ["Plugins", "Themes", "Blockbench"],
-    version: "1.0.0",
-    min_version: "4.9.3",
+    version: "1.0.1",
+    min_version: "4.10.0",
     variant: "desktop",
-    website: "https://ewanhowell.com/plugins/live-dev-reloader",
+    website: "https://ewanhowell.com/plugins/live-dev-reloader/",
     repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
-    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues",
+    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Live Dev Reloader]",
     creation_date: "2024-01-20",
+    has_changelog: true,
     onload() {
       let toggle
       actions = [
@@ -179,6 +180,7 @@
           }
         }
         styles = Blockbench.addCSS(css)
+        resizeWindow()
         console.log(`Theme reloaded: ${path.basename(watching, ".bbtheme")}`)
       }
     }
