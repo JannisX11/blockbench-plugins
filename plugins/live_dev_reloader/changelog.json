@@ -1,0 +1,29 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2024-01-20",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-06-08",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed reloading themes that change the viewport size causing the viewport to render incorrectly",
+          "Fixed theme name in theme reload logging"
+        ]
+      }
+    ]
+  }
+}
