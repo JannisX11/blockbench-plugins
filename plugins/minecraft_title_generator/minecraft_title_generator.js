@@ -96,7 +96,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.5.1",
+    version: "1.6.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -1405,16 +1405,24 @@
             align-items: center;
             margin-bottom: 10px;
             position: relative;
-          }
-          .minecraft-texture-search > input {
-            flex: 1;
-            padding-right: 30px;
-          }
-          .minecraft-texture-search > i {
-            position: absolute;
-            right: 6px;
-            top: 5px;
-            pointer-events: none;
+
+            > input {
+              flex: 1;
+              padding-right: 32px;
+            }
+
+            > i {
+              position: absolute;
+              right: 6px;
+              top: 50%;
+              transform: translateY(-50%);
+              pointer-events: none;
+
+              &.active {
+                cursor: pointer;
+                pointer-events: initial;
+              }
+            }
           }
           .text-input-row {
             display: flex;
@@ -2424,6 +2432,10 @@
               this.tab = tab
               document.querySelector("#new_minecraft_title_text .dialog_content").scrollTop = 0
               if (!tab) setTimeout(() => this.$el.querySelector("#minecraft-title-text-input").focus(), 0)
+              else if (tab === 1) this.focus()
+            },
+            focus() {
+              setTimeout(() => this.$refs.entry?.focus(), 0)
             }
           },
           computed: {
@@ -2557,15 +2569,15 @@
                 </div>
                 <p>The texture to apply to the text</p>
                 <ul class="form_inline_select">
-                  <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Textures</li>
-                  <li @click="textureSource = 'tileable'; updatePreview()" :class="{ selected: textureSource === 'tileable' }">Tileables</li>
+                  <li @click="textureSource = 'premade'; updatePreview(); focus()" :class="{ selected: textureSource === 'premade' }">Textures</li>
+                  <li @click="textureSource = 'tileable'; updatePreview(); focus()" :class="{ selected: textureSource === 'tileable' }">Tileables</li>
                   <li @click="textureSource = 'gradient'; updatePreview()" :class="{ selected: textureSource === 'gradient' }">Gradient</li>
                   <li @click="lastTextureSource = textureSource; textureSource = 'file'; updatePreview()" :class="{ selected: textureSource === 'file' }">File</li>
                 </ul>
                 <div v-if="textureSource === 'premade'">
                   <div v-if="textures.filter(e => e[2] === font).length > 16" class="minecraft-texture-search">
-                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
-                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch" ref="entry">
+                    <i class="material-icons" :class="{ active: textureSearch }" @click="textureSearch = ''; $refs.entry.focus()">{{ textureSearch ? "clear" : "search" }}</i>
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
@@ -2603,8 +2615,8 @@
                 </div>
                 <div v-if="textureSource === 'tileable'">
                   <div v-if="tileablesList.length > 16" class="minecraft-texture-search">
-                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
-                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch" ref="entry">
+                    <i class="material-icons" :class="{ active: textureSearch }" @click="textureSearch = ''; $refs.entry.focus()">{{ textureSearch ? "clear" : "search" }}</i>
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data] of tileablesList" v-if="tileablesList.length <= 16 || id.includes(textureSearch) || id === tileable || Object.keys(tileables[id]?.variants ?? {}).some(e => e.includes(textureSearch))" @click="tileable = id; tileableVariant = null; updatePreview(); scrollToVariants()" :class="{ selected: tileable === id }">
