@@ -1312,45 +1312,45 @@
             flex-direction: column;
             gap: 10px;
           }
-          #custom-gradient-customiser {
+          #minecraft-title-custom-gradient-customiser {
             display: flex;
             gap: 5px;
           }
-          #gradient-preview {
+          #minecraft-title-gradient-preview {
             flex: 1;
             height: 160px;
           }
-          .minecraft-title-file.hidden, #custom-gradient.hidden {
+          .minecraft-title-file.hidden, #minecraft-title-custom-gradient.hidden {
             display: none;
           }
-          #gradient-colours {
+          #minecraft-title-gradient-colours {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
           }
-          #gradient-colours > div {
+          #minecraft-title-gradient-colours > div {
             display: flex;
             gap: 5px;
             justify-content: flex-end;
           }
-          #gradient-colours .sp-replacer {
+          #minecraft-title-gradient-colours .sp-replacer {
             margin-bottom: 0;
           }
-          #gradient-colours .sp-preview {
+          #minecraft-title-gradient-colours .sp-preview {
             width: 50px;
           }
-          #gradient-colours input.disabled + div {
+          #minecraft-title-gradient-colours input.disabled + div {
             opacity: 0.5;
             pointer-events: none;
             cursor: not-allowed;
           }
-          #gradient-colours input.disabled + div .sp-preview::after {
+          #minecraft-title-gradient-colours input.disabled + div .sp-preview::after {
             content: "";
             position: absolute;
             inset: 0;
             background: linear-gradient(to top right, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)), linear-gradient(to top left, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px));
           }
-          #gradient-colours input.disabled + div .sp-preview-inner {
+          #minecraft-title-gradient-colours input.disabled + div .sp-preview-inner {
             filter: grayscale(1);
           }
           .minecraft-title-header-row {
@@ -2658,10 +2658,10 @@
                     </div>
                   </div>
                 </div>
-                <div :class="{ hidden: textureSource !== 'gradient' }" id="custom-gradient">
-                  <div id="custom-gradient-customiser">
-                    <div id="gradient-preview" :style="{ background: linearGradient }"></div>
-                    <div id="gradient-colours">
+                <div :class="{ hidden: textureSource !== 'gradient' }" id="minecraft-title-custom-gradient">
+                  <div id="minecraft-title-custom-gradient-customiser">
+                    <div id="minecraft-title-gradient-preview" :style="{ background: linearGradient }"></div>
+                    <div id="minecraft-title-gradient-colours">
                       <div>
                         <input ref="gradientColour0" />
                       </div>
