@@ -416,13 +416,13 @@
           }
         }
 
-        #resolutions {
+        #minecraft-title-render-resolutions {
           display: flex;
           background-color: var(--color-button);
           padding: 4px;
         }
 
-        .resolution {
+        .minecraft-title-render-resolution {
           width: 32px;
           height: 32px;
           cursor: pointer;
@@ -1111,23 +1111,23 @@
               </div>
             </div>
             <div class="minecraft-title-render-controls-row">
-              <div id="resolutions">
-                <div class="resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
+              <div id="minecraft-title-render-resolutions">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
                   <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M160-80.01c-22 0-40.833-7.823-56.5-23.49S80-137.99 80-159.99l.01-640.02c0-22 7.823-40.823 23.49-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.5 34.49 23.5 56.49l-.01 640.02c0 22-7.823 40.823-23.49 56.49S822-80.01 800-80.01zM280-360h120c11.333 0 20.833-3.833 28.5-11.5S440-388.667 440-400v-60c0-11.333-3.833-20.833-11.5-28.5S411.333-500 400-500H300v-40h80v20h60v-40c0-11.333-3.833-20.833-11.5-28.5S411.333-600 400-600H280c-11.333 0-20.833 3.833-28.5 11.5S240-571.333 240-560v60c0 11.333 3.833 20.833 11.5 28.5S268.667-460 280-460h100v40h-80v-20h-60v40c0 11.333 3.833 20.833 11.5 28.5S268.667-360 280-360zm240 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120z"/></svg>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
                   <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M240-360h60v-80h80v80h60v-240h-60v100h-80v-100h-60zm280 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120zM160-80.01c-22 0-40.833-7.823-56.5-23.49s-23.495-34.49-23.495-56.49l.01-640.02c0-22 7.818-40.823 23.485-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.49 34.49 23.49 56.49v640.02c0 22-7.823 40.823-23.49 56.49s-34.49 23.49-56.49 23.49z"/></svg>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
                   <i class="material-icons icon">1k</i>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
                   <i class="material-icons icon">2k</i>
                 </div>
-                <div v-if="!antialias" class="resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
+                <div v-if="!antialias" class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
                   <i class="material-icons icon">4k</i>
                 </div>
-                <div class="resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
                   <i style="font-size:24px;margin-left:-3px" class="material-icons icon">tag</i>
                 </div>
               </div>
