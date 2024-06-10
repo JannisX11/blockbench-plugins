@@ -2,6 +2,6 @@
 const three = THREE;
 // @ts-expect-error Vue UMD is OK
 const vue = Vue;
-const bb = Blockbench;
+// const bb = Blockbench;
 
-export { three, bb, vue };
+export { three, vue };

@@ -1,5 +1,5 @@
 import { registry, setups, teardowns } from "../../constants";
-import { applyPbrMaterial } from "../applyPbrMaterial";
+import { debounceApplyPbrMaterial } from "../applyPbrMaterial";
 
 setups.push(() => {
   registry.toggleCorrectLights = new Toggle("correct_lights", {
@@ -25,7 +25,7 @@ setups.push(() => {
         registry.togglePbr?.set(true);
       }
 
-      applyPbrMaterial();
+      debounceApplyPbrMaterial();
     },
     click() {},
   });

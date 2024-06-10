@@ -440,24 +440,6 @@ setups.push(() => {
     },
   });
 
-  registry.materialBrushPresets = new BarSelect("brush_presets", {
-    category: "paint",
-    name: "Material Brush Presets",
-    description: "Select a preset for the material brush",
-    options: {
-      matte: "Matte",
-      gloss: "Gloss",
-      metal: "Dull Metal",
-      polished: "Polished Metal",
-      glowing: "Glowing",
-    },
-    onChange({ value }) {
-      applyPreset(value);
-      registry.materialBrushTool?.select();
-      applyPbrMaterial();
-    },
-  });
-
   registry.materialBrushTool = new Tool("material_brush", {
     name: "Material Brush",
     description: "Paints across multiple texture layers",

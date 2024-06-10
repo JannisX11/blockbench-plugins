@@ -4,7 +4,7 @@ import { registry, setups } from "../../constants";
 
 setups.push(() => {
   registry.displaySettingsPanel = new Panel("display_settings", {
-    name: "PBR Display Settings",
+    name: "PBR Controls",
     id: "display_settings_panel",
     icon: "display_settings",
     toolbars: [
@@ -16,6 +16,7 @@ setups.push(() => {
           "display_settings_tone_mapping",
           "display_settings_exposure",
           "display_settings_reset_exposure",
+          "show_channel_select_menu",
         ],
         name: "Display Settings",
       }),

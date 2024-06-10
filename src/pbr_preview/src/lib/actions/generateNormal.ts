@@ -1,6 +1,7 @@
 import { registry, setups, teardowns } from "../../constants";
 import { CHANNELS } from "../../constants";
 import PbrMaterial from "../PbrMaterials";
+import { getSelectedLayer, getSelectedTexture } from "../util";
 
 setups.push(() => {
   registry.generateNormal = new Action("generate_normal", {
@@ -12,11 +13,7 @@ setups.push(() => {
       undefined,
     click() {
       const texture: Texture | TextureLayer =
-        TextureLayer.selected ??
-        (!!Project && Project.selected_texture
-          ? // @ts-ignore Selected layer does exist on selected_texture property
-            Project.selected_texture.selected_layer ?? Project.selected_texture
-          : Texture.getDefault());
+        getSelectedLayer() ?? getSelectedTexture() ?? Texture.getDefault();
 
       if (!texture) {
         return;
@@ -26,7 +23,7 @@ setups.push(() => {
         texture instanceof Texture && texture.layers_enabled
           ? texture.layers
           : null,
-        texture.uuid,
+        texture.uuid
       );
 
       const normalMap = mat.createNormalMap(texture);
@@ -42,7 +39,61 @@ setups.push(() => {
     },
   });
 
+  registry.generateAo = new Action("generate_ao", {
+    icon: CHANNELS.ao.icon ?? "motion_mode",
+    name: "Generate Ambient Occlusion Map",
+    description: "Generates an ambient occlusion map from the height map",
+    condition: {
+      selected: {
+        texture: true,
+      },
+      project: true,
+    },
+    click() {
+      const texture: Texture | TextureLayer =
+        getSelectedLayer() ?? getSelectedTexture() ?? Texture.getDefault();
+
+      if (!texture) {
+        return;
+      }
+
+      const mat = new PbrMaterial(
+        texture instanceof Texture && texture.layers_enabled
+          ? texture.layers
+          : null,
+        texture.uuid
+      );
+
+      const normalMap =
+        mat.findTexture(CHANNELS.normal) ?? mat.createNormalMap(texture);
+
+      if (!normalMap) {
+        // TODO: Use Validator
+        Blockbench.showQuickMessage(
+          "Unable to generate ambient occlusion map without a normal map",
+          2000
+        );
+        return;
+      }
+
+      const aoMap = mat.createAoMap(normalMap);
+
+      if (aoMap) {
+        mat.saveTexture(CHANNELS.ao, aoMap);
+        aoMap.select();
+        Blockbench.showQuickMessage("Ambient occlusion map generated", 2000);
+        return;
+      }
+
+      Blockbench.showQuickMessage(
+        "Failed to generate ambient occlusion map",
+        2000
+      );
+    },
+  });
+
   MenuBar.addAction(registry.generateNormal, "tools");
+  MenuBar.addAction(registry.generateAo, "tools");
 });
 
 teardowns.push(() => {

@@ -34,18 +34,17 @@ import { disablePbr } from "./lib/disablePbr";
   BBPlugin.register("pbr_preview", {
     // @ts-expect-error Version does exist in PluginOptions
     version: "1.1.0",
-    title: "PBR Features",
+    title: "PBR Tools",
     author: "Jason J. Gardner",
     description:
-      "Create RTX/Deferred Rendering textures in Blockbench. Adds support for previewing PBR materials and exporting them in Minecraft-compatible formats.",
-    tags: ["PBR", "RTX", "Deferred Rendering"],
+      "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+    tags: ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "PBR"],
     icon: "icon.png",
     variant: "both",
     await_loading: true,
-    new_repository_format: true,
     repository: "https://github.com/jasonjgardner/blockbench-plugins",
     has_changelog: true,
-    min_version: "4.10.2",
+    min_version: "4.10.3",
     onload,
     onunload,
   });

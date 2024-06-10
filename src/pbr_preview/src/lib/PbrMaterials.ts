@@ -62,6 +62,7 @@ export default class PbrMaterial {
   }
 
   getMaterial(options: THREE.MeshStandardMaterialParameters = {}) {
+    // TODO: Don't lookup MER in Java projects
     const { emissiveMap, roughnessMap, metalnessMap } = this.merToCanvas();
 
     const normalMap = this.getTexture(CHANNELS.normal);
@@ -895,5 +896,101 @@ export default class PbrMaterial {
     }
 
     return normalMapTexture;
+  }
+
+  createAoMap(texture: Texture | TextureLayer): Texture | TextureLayer | null {
+    const textureCtx = texture.canvas.getContext("2d");
+
+    if (!textureCtx) {
+      return null;
+    }
+
+    const width = Math.max(
+      texture.img.width ?? texture.canvas.width,
+      Project ? Project.texture_width : 0,
+      16
+    );
+    const height = Math.max(
+      texture.img.height ?? texture.canvas.height,
+      Project ? Project.texture_height : 0,
+      16
+    );
+
+    const { data: textureData } = textureCtx.getImageData(0, 0, width, height);
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return null;
+    }
+
+    const getHeight = (x: number, y: number): number => {
+      const idx = (x + y * width) * 4;
+      return textureData[idx] / 255;
+    };
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.drawImage(texture.img, 0, 0, width, height);
+
+    const imageData = ctx.getImageData(0, 0, width, height);
+
+    const data = imageData.data;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const left = getHeight(Math.max(x - 1, 0), y);
+        const right = getHeight(Math.min(x + 1, width - 1), y);
+        const top = getHeight(x, Math.max(y - 1, 0));
+        const bottom = getHeight(x, Math.min(y + 1, height - 1));
+
+        const dx = right - left;
+        const dy = bottom - top;
+
+        const ao = Math.sqrt(dx * dx + dy * dy) * 255;
+
+        const idx = (y * width + x) * 4;
+        data[idx] = ao;
+        data[idx + 1] = ao;
+        data[idx + 2] = ao;
+        data[idx + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    const dataUrl = canvas.toDataURL();
+
+    const name = `${texture.name.replace(/_height(map)?/i, "")}_ao`;
+
+    if (texture instanceof TextureLayer) {
+      const aoMapLayer = new TextureLayer(
+        {
+          name,
+          data_url: dataUrl,
+          visible: true,
+        },
+        texture.texture
+      );
+
+      aoMapLayer.addForEditing();
+
+      return aoMapLayer;
+    }
+
+    const aoMapTexture = new Texture({
+      name,
+      saved: false,
+      particle: false,
+      keep_size: false,
+    }).fromDataURL(dataUrl);
+
+    if (Project) {
+      aoMapTexture.add();
+    }
+
+    return aoMapTexture;
   }
 }

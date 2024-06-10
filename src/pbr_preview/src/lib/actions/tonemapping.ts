@@ -1,9 +1,12 @@
 import { registry, setups } from "../../constants";
 import { three as THREE } from "../../deps";
-import { applyPbrMaterial } from "../applyPbrMaterial";
+import {
+  applyPbrMaterial,
+  debounceApplyPbrMaterial,
+} from "../applyPbrMaterial";
 
 const setPreviewExposure = (value: number) => {
-  const exposureValue = Math.max(-2, Math.min(2, Number(value)));
+  const exposureValue = Math.max(-2, Math.min(2, value));
   Preview.all.forEach((preview) => {
     preview.renderer.toneMappingExposure = exposureValue;
   });
@@ -12,16 +15,19 @@ const setPreviewExposure = (value: number) => {
 };
 
 setups.push(() => {
-  registry.exposureSlider = new BarSlider("display_settings_exposure", {
+  registry.exposureSlider = new NumSlider("display_settings_exposure", {
     category: "preview",
     name: "Exposure",
     description: "Adjusts the exposure of the scene",
     type: "number",
     value: 1,
     icon: "exposure",
-    step: 0.1,
-    min: -2,
-    max: 2,
+    settings: {
+      min: -2,
+      max: 2,
+      step: 0.01,
+      default: 1,
+    },
     // condition: () => Number(tonemappingSelect.get()) !== THREE.NoToneMapping,
     onBefore() {
       if (Number(registry.tonemappingSelect?.get()) === THREE.NoToneMapping) {
@@ -31,11 +37,11 @@ setups.push(() => {
       // @ts-expect-error Set method exists on the toggle
       registry.togglePbr?.set(true);
     },
-    onChange({ value }) {
-      setPreviewExposure(value);
+    onChange(value) {
+      setPreviewExposure(Number(value));
     },
     onAfter() {
-      applyPbrMaterial();
+      debounceApplyPbrMaterial();
     },
   });
 
@@ -49,9 +55,9 @@ setups.push(() => {
       Number(registry.exposureSlider?.get()) !== 1,
     click() {
       setPreviewExposure(1);
-      registry.exposureSlider?.set(1);
+      registry.exposureSlider?.setValue(1, true);
 
-      applyPbrMaterial();
+      debounceApplyPbrMaterial();
     },
   });
 
@@ -68,18 +74,26 @@ setups.push(() => {
       [THREE.LinearToneMapping]: "Linear",
       [THREE.ReinhardToneMapping]: "Reinhard",
       [THREE.CineonToneMapping]: "Cineon",
+      [THREE.NeutralToneMapping]: "Neutral",
       [THREE.ACESFilmicToneMapping]: "ACES",
     },
     onChange({ value }) {
-      const currentExposure = Number(registry.exposureSlider?.get() ?? 1);
+      Preview.selected.renderer.toneMapping = Number(
+        value
+      ) as THREE.ToneMapping;
+
+      let currentExposure = 1;
+      if (Preview.selected.renderer.toneMapping === THREE.NoToneMapping) {
+        registry.exposureSlider?.setValue(currentExposure, true);
+      } else {
+        currentExposure = Number(registry.exposureSlider?.get() ?? 1);
+      }
+
       Preview.all.forEach((preview) => {
         preview.renderer.toneMapping = Number(value) as THREE.ToneMapping;
         preview.renderer.toneMappingExposure = currentExposure;
       });
 
-      Preview.selected.renderer.toneMapping = Number(
-        value,
-      ) as THREE.ToneMapping;
       Preview.selected.renderer.toneMappingExposure = currentExposure;
 
       Blockbench.showQuickMessage(

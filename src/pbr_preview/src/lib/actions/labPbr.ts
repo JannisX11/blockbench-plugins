@@ -1,5 +1,6 @@
 import { registry, setups, teardowns } from "../../constants";
 import PbrMaterial from "../PbrMaterials";
+import { getSelectedTexture } from "../util";
 
 const exportNormalMap = (
   normalMap: HTMLCanvasElement,
@@ -52,14 +53,17 @@ setups.push(() => {
       project: true,
     },
     async click() {
-      const selected = Project.selected_texture;
+      const selected = getSelectedTexture();
+
       if (!selected) {
         return;
       }
+
       const mat = new PbrMaterial(
         selected.layers_enabled ? selected.layers : [selected],
-        selected.uuid,
+        selected.uuid
       );
+
       const outputs = mat.createLabPbrOutput();
 
       if (outputs === null) {
@@ -83,7 +87,13 @@ setups.push(() => {
     name: "Decode labPBR textures",
     description:
       "Decodes the selected texture into a specular or normal map in labPBR format",
-    condition: () => !!Project && Project.selected_texture !== null,
+    condition: {
+      formats: ["java"],
+      project: true,
+      selected: {
+        texture: true,
+      },
+    },
     click() {
       const selected =
         TextureLayer.selected?.texture ??
@@ -95,12 +105,12 @@ setups.push(() => {
         selected.uuid,
       );
 
-      if (selected.name.endsWith("_n") || selected.name.endsWith("_n.png")) {
+      if (pathToName(selected.name).endsWith("_n")) {
         mat.createTexturesFromNormal(selected);
         return;
       }
 
-      if (selected.name.endsWith("_s") || selected.name.endsWith("_s.png")) {
+      if (pathToName(selected.name).endsWith("_s")) {
         mat.createTexturesFromSpecular(selected);
         return;
       }

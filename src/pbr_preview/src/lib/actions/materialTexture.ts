@@ -27,6 +27,10 @@ setups.push(() => {
     icon: "stacks",
     name: "Create Material Texture",
     description: "Creates a new texture for a PBR material",
+    condition: {
+      modes: ["edit", "paint"],
+      project: true,
+    },
     click() {
       if (!Project) {
         return;

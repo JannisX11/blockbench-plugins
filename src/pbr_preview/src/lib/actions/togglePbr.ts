@@ -15,6 +15,8 @@ const subscribeToEvents: EventName[] = [
   "select_preview_scene",
   "change_texture_path",
   "select_project",
+  "load_undo_save",
+  "add_cube",
 ];
 
 /**
@@ -25,9 +27,7 @@ const renderPbrScene = () =>
   Project && Project.pbr_active && applyPbrMaterial();
 
 const enableListeners = () => {
-  subscribeToEvents.forEach((event) => {
-    Blockbench.addListener(event as EventName, renderPbrScene);
-  });
+  Blockbench.on(subscribeToEvents.join(" ") as EventName, renderPbrScene);
 };
 
 const disableListeners = () => {

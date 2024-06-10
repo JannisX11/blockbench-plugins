@@ -9,22 +9,28 @@ setups.push(() => {
       new Toolbar("material_brush_toolbar", {
         id: "material_brush_toolbar",
         children: [
-          "material_brush",
+          "load_brush_preset",
           "slider_brush_metalness",
           "slider_brush_roughness",
           "brush_emissive_color",
           "slider_brush_height",
         ],
-        name: "Material Brush",
+        name: "Material Settings",
+        label: true,
       }),
       new Toolbar("material_brush_presets_toolbar", {
         id: "material_brush_presets_toolbar",
-        children: ["load_brush_preset", "brush_presets"],
-        name: "Brush Presets",
+        children: [
+          "material_brush",
+          "slider_brush_size",
+          "slider_brush_opacity",
+          "slider_brush_softness",
+        ],
+        name: "Brush Settings",
         label: true,
       }),
     ],
-    display_condition: {
+    condition: {
       modes: ["paint"],
       project: true,
     },

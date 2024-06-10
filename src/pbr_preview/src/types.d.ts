@@ -50,10 +50,11 @@ export interface IRegistry {
   createTextureSet: Action;
   decodeMer: Action;
   displaySettingsPanel: Panel;
-  exposureSlider: BarSlider;
+  exposureSlider: NumSlider;
   resetExposure: Action;
   generateMer: Action;
   generateNormal: Action;
+  generateAo: Action;
   generateLabPbr: Action;
   decodeLabPbr: Action;
   materialBrushPanel: Panel;

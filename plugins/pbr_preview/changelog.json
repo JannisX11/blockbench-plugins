@@ -11,5 +11,26 @@
                 ]
             }
         ]
+    },
+    "1.1.0": {
+        "title": "1.1.0",
+        "date": "2024-06-10",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "Java Support",
+                "list": [
+                    "Added labPBR export option",
+                    "Added labPBR texture decoding"
+                ]
+            },
+            {
+                "title": "Material Brush",
+                "list": [
+                    "Added material brush tool",
+                    "Added material brush preset dialog"
+                ]
+            }
+        ]
     }
 }

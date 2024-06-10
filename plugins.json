@@ -918,5 +918,23 @@
 		"creation_date": "2024-04-19",
 		"new_repository_format": true,
 		"has_changelog": true
+	},
+	"pbr_preview": {
+		"title": "PBR Tools",
+		"author": "Jason J. Gardner",
+		"await_loading": true,
+		"creation_date": "2024-06-10",
+		"icon": "icon.png",
+		"description": "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+		"has_changelog": true,
+		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"variant": "both",
+		"version": "1.1.0",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Minecraft: Bedrock Edition",
+			"PBR"
+		],
+		"min_version": "4.10.3"
 	}
 }

@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --minify --outfile=../../plugins/pbr_preview/pbr_preview.js",
+    "build:watch": "esbuild src/index.ts --bundle --minify --outfile=../../plugins/pbr_preview/pbr_preview.js --watch",
     "dev": "esbuild src/index.ts --bundle --sourcemap --outfile=../../plugins/pbr_preview/pbr_preview.js --watch"
   },
   "keywords": [

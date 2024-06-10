@@ -1,5 +1,6 @@
 import { three as THREE } from "../deps";
 import PbrMaterial from "./PbrMaterials";
+import { debounce } from "./util";
 
 /**
  * ### Apply PBR Material
@@ -26,7 +27,7 @@ export const applyPbrMaterial = (
       const face = item.faces[key];
       const texture = face.getTexture();
 
-      if (!texture) {
+      if (!texture || !face.enabled) {
         return;
       }
 
@@ -58,3 +59,6 @@ export const applyPbrMaterial = (
 
   Project.pbr_active = materialsSet;
 };
+
+export const debounceApplyPbrMaterial = (wait = 100) =>
+  debounce(applyPbrMaterial, wait);
