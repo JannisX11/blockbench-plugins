@@ -2,6 +2,11 @@
     var button;
     var createRect = (x, y, w, h) => { return {x, y, w, h}; };
 
+    function isBoxUV()
+    {
+        return Project.box_uv;
+    }
+
     function packBoxes(boxes, padding)
     {
         var areas = [];
@@ -107,10 +112,16 @@
             maxScale = Math.max(maxScale, Math.round(t.width / t.uv_width));
         });
 
+        if (!isBoxUV())
+        {
+            maxScale = 1;
+        }
+
         Texture.all.forEach(t =>
         {
+            /* Scale is only necessary for Box UV mode */
             var tScale = Math.round(t.width / t.uv_width);
-            var scale = Math.round(1 / (tScale / maxScale));
+            var scale = isBoxUV() ? Math.round(1 / (tScale / maxScale)) : 1.0;
             var rect = createRect(0, 0, Math.floor(t.width * scale), Math.floor(t.height * scale));
 
             rect.texture = t;
@@ -158,7 +169,7 @@
     {
         var scale = rect.scale;
         
-        if (scale > 1)
+        if (scale > 1 && isBoxUV())
         {
             const getIndex = (x, y, width) =>
             {
@@ -248,7 +259,7 @@
         {
             var toApplySides = [];
 
-            if (Project.box_uv)
+            if (isBoxUV())
             {
                 var north = cube.faces['north'];
                 var rect = getRect(north.texture);
