@@ -2185,6 +2185,8 @@
 
               pre {
                 width: 100%;
+                text-wrap: initial;
+                word-break: break-word;
               }
 
               .cem-doc-table-list td:first-child {

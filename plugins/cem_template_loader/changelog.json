@@ -876,7 +876,8 @@
         "title": "Bug Fixes",
         "list": [
           "Fixed animation controller sliders going off the edge of the panel",
-          "Fixed project not getting entity name"
+          "Fixed project not getting entity name",
+          "Fixed codeblocks overflowing in the CEM Animation Documentation"
         ]
       }
     ]
