@@ -75,14 +75,12 @@ setups.push(() => {
     name: "PBR Channels",
     id: "channels_panel",
     icon: "gallery_thumbnail",
-    display_condition: {
-      modes: ["paint", "edit"],
-    },
     condition: {
       project: true,
       selected: {
         texture: true,
       },
+      modes: ["paint", "edit"],
     },
     toolbars: [
       new Toolbar("channel_assignment_toolbar", {

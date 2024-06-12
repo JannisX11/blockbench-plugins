@@ -249,7 +249,7 @@ setups.push(() => {
       createTextureSetDialog();
     },
     condition: {
-      formats: ["bedrock"],
+      formats: ["bedrock", "bedrock_block"],
       project: true,
     },
   });
