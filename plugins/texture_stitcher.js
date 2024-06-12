@@ -2,11 +2,6 @@
     var button;
     var createRect = (x, y, w, h) => { return {x, y, w, h}; };
 
-    function isBoxUV()
-    {
-        return Project.box_uv;
-    }
-
     function packBoxes(boxes, padding)
     {
         var areas = [];
@@ -106,39 +101,50 @@
     {
         var rects = [];
         var maxScale = 1;
+        var minScale = 1;
+        var resize = false;
 
-        Texture.all.forEach(t =>
+        Cube.all.forEach(c => 
         {
-            maxScale = Math.max(maxScale, Math.round(t.width / t.uv_width));
+            if (c.box_uv)
+            {
+                resize = true;
+            }
         });
 
-        if (!isBoxUV())
-        {
-            maxScale = 1;
-        }
-
         Texture.all.forEach(t =>
         {
-            /* Scale is only necessary for Box UV mode */
-            var tScale = Math.round(t.width / t.uv_width);
-            var scale = isBoxUV() ? Math.round(1 / (tScale / maxScale)) : 1.0;
-            var rect = createRect(0, 0, Math.floor(t.width * scale), Math.floor(t.height * scale));
+            maxScale = Math.max(maxScale, t.width / t.uv_width);
+            minScale = Math.min(minScale, t.width / t.uv_width);
+        });
 
-            rect.texture = t;
+        maxScale /= minScale;
+        minScale = 1;
+
+        Texture.all.forEach(texture =>
+        {
+            var uv_scale = texture.width / texture.uv_width;
+            var w = texture.width;
+            var h = texture.height;
+            var scale = resize ? 1 / uv_scale * maxScale : 1;
+            var rect = createRect(0, 0, w * scale, h * scale);
+
+            rect.texture = texture;
             rect.scale = scale;
+            rect.uv_scale = uv_scale;
 
             rects.push(rect);
         });
 
-        var size = packBoxes(rects, maxScale);
-        var width = size[0];
-        var height = size[1];
+        var padding = resize ? maxScale : 1;
+        var size = packBoxes(rects, padding);
 
         return {
-            w: width,
-            h: height,
+            w: size[0],
+            h: size[1],
             rects: rects,
-            max_scale: maxScale
+            max_scale: maxScale,
+            resize: resize
         };
     }
 
@@ -148,10 +154,12 @@
         const rects = data.rects;
 
         const offscreen = new OffscreenCanvas(data.w, data.h);
-        const tmp = new OffscreenCanvas(10, 10);
         const c = offscreen.getContext('2d');
 
-        rects.forEach(rect => drawToCanvas(c, tmp, rect));
+        /* Turn off AA */
+        c.imageSmoothingEnabled = false;
+
+        rects.forEach(rect => drawToCanvas(c, rect));
 
         const config = {
             type: 'image/png' 
@@ -161,57 +169,26 @@
             var reader = new FileReader();
             
             reader.readAsDataURL(blob);
-            reader.onloadend = () => replaceTextures(rects, reader.result, data.w / data.max_scale, data.h / data.max_scale, data.max_scale);
+            reader.onloadend = () => replaceTextures(data, reader.result);
         });
     }
 
-    function drawToCanvas(c, tmp, rect)
+    function drawToCanvas(c, rect)
     {
-        var scale = rect.scale;
-        
-        if (scale > 1 && isBoxUV())
-        {
-            const getIndex = (x, y, width) =>
-            {
-                return y * (width * 4) + x * 4;
-            };
-    
-            tmp.width = rect.texture.width;
-            tmp.height = rect.texture.height;
-    
-            var ct = tmp.getContext('2d');
-    
-            ct.clearRect(0, 0, tmp.width, tmp.height);
-            ct.drawImage(rect.texture.img, 0, 0);
-    
-            var data = ct.getImageData(0, 0, tmp.width, tmp.height);
-    
-            for (var x = 0; x < rect.w; x++)
-            {
-                for (var y = 0; y < rect.h; y++)
-                {
-                    var ix = Math.floor(x / scale);
-                    var iy = Math.floor(y / scale);
-    
-                    var index = getIndex(ix, iy, data.width);
-                    var r = data.data[index];
-                    var g = data.data[index + 1];
-                    var b = data.data[index + 2];
-                    var a = data.data[index + 3] / 255;
-    
-                    c.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-                    c.fillRect(rect.x + x, rect.y + y, 1, 1);
-                }
-            }
-        }
-        else
-        {
-            c.drawImage(rect.texture.img, rect.x, rect.y);
-        }
+        c.drawImage(rect.texture.img, rect.x, rect.y, rect.w, rect.h)
     }
 
-    function replaceTextures(rects, data, w, h, maxScale)
+    function replaceTextures(data, imageData)
     {
+        var maxScale = data.max_scale, resize = data.resize;
+        var rects = data.rects, w = data.w, h = data.h;
+
+        if (resize)
+        {
+            w /= maxScale;
+            h /= maxScale;
+        }
+
         const getRect = texture_uuid =>
         {
             for (var i = 0; i < rects.length; i++)
@@ -251,7 +228,7 @@
         ts.forEach(t => newTextures.push(t));
         newTextures.forEach(t => t.remove(true));
 
-        texture.fromDataURL(data).add(false).select();
+        texture.fromDataURL(imageData).add(false).select();
         texture.uv_width = w;
         texture.uv_height = h;
 
@@ -259,7 +236,7 @@
         {
             var toApplySides = [];
 
-            if (isBoxUV())
+            if (cube.box_uv)
             {
                 var north = cube.faces['north'];
                 var rect = getRect(north.texture);
@@ -281,13 +258,13 @@
     
                     if (rect !== null)
                     {
-                        var mx = rect.texture.width / rect.texture.uv_width;
-                        var my = rect.texture.height / rect.texture.uv_height;
+                        var mx = resize ? 1 : rect.uv_scale;
+                        var my = resize ? 1 : rect.uv_scale;
     
-                        face.uv[0] = face.uv[0] * mx + rect.x;
-                        face.uv[1] = face.uv[1] * my + rect.y;
-                        face.uv[2] = face.uv[2] * mx + rect.x;
-                        face.uv[3] = face.uv[3] * my + rect.y;
+                        face.uv[0] = face.uv[0] * mx + rect.x / (resize ? maxScale : 1);
+                        face.uv[1] = face.uv[1] * my + rect.y / (resize ? maxScale : 1);
+                        face.uv[2] = face.uv[2] * mx + rect.x / (resize ? maxScale : 1);
+                        face.uv[3] = face.uv[3] * my + rect.y / (resize ? maxScale : 1);
     
                         if (face.texture !== false)
                         {
@@ -322,11 +299,11 @@
                     Object.keys(face.uv).forEach(key => 
                     {
                         var uv = face.uv[key];
-                        var mx = rect.texture.width / rect.texture.uv_width;
-                        var my = rect.texture.height / rect.texture.uv_height;
+                        var mx = resize ? 1 : rect.uv_scale;
+                        var my = resize ? 1 : rect.uv_scale;
 
-                        uv[0] = uv[0] * mx + rect.x;
-                        uv[1] = uv[1] * my + rect.y;
+                        uv[0] = uv[0] * mx + rect.x / (resize ? maxScale : 1);
+                        uv[1] = uv[1] * my + rect.y / (resize ? maxScale : 1);
 
                         applied = true;
                     });
