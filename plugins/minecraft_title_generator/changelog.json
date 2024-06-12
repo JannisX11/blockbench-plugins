@@ -377,7 +377,7 @@
         "title": "Bug Fixes",
         "list": [
           "Fixed resetting the font selection page",
-          "Fixed resetting textures and overlays when a custom texture is loaded"
+          "Fixed resetting texture and overlay pages when a custom texture is loaded"
         ]
       }
     ]
