@@ -96,7 +96,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.5.1",
+    version: "1.6.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -214,7 +214,7 @@
           text-decoration: line-through;
           opacity: 0.5;
         }
-        .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
+        .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, #minecraft-title-custom-overlay > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
           color: var(--color-light);
         }
         .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row *, .minecraft-title-links * {
@@ -416,13 +416,13 @@
           }
         }
 
-        #resolutions {
+        #minecraft-title-render-resolutions {
           display: flex;
           background-color: var(--color-button);
           padding: 4px;
         }
 
-        .resolution {
+        .minecraft-title-render-resolution {
           width: 32px;
           height: 32px;
           cursor: pointer;
@@ -1111,23 +1111,23 @@
               </div>
             </div>
             <div class="minecraft-title-render-controls-row">
-              <div id="resolutions">
-                <div class="resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
+              <div id="minecraft-title-render-resolutions">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 480" :class="{ selected: resolution === 480 }" title="Around 480 pixels">
                   <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M160-80.01c-22 0-40.833-7.823-56.5-23.49S80-137.99 80-159.99l.01-640.02c0-22 7.823-40.823 23.49-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.5 34.49 23.5 56.49l-.01 640.02c0 22-7.823 40.823-23.49 56.49S822-80.01 800-80.01zM280-360h120c11.333 0 20.833-3.833 28.5-11.5S440-388.667 440-400v-60c0-11.333-3.833-20.833-11.5-28.5S411.333-500 400-500H300v-40h80v20h60v-40c0-11.333-3.833-20.833-11.5-28.5S411.333-600 400-600H280c-11.333 0-20.833 3.833-28.5 11.5S240-571.333 240-560v60c0 11.333 3.833 20.833 11.5 28.5S268.667-460 280-460h100v40h-80v-20h-60v40c0 11.333 3.833 20.833 11.5 28.5S268.667-360 280-360zm240 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120z"/></svg>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 720" :class="{ selected: resolution === 720 }" title="Around 720 pixels">
                   <svg width="32" height="32" viewBox="0 -960 960 960"><path d="M240-360h60v-80h80v80h60v-240h-60v100h-80v-100h-60zm280 0h160c11.333 0 20.833-3.833 28.5-11.5S720-388.667 720-400v-160c0-11.333-3.833-20.833-11.5-28.5S691.333-600 680-600H520zm60-60v-120h80v120zM160-80.01c-22 0-40.833-7.823-56.5-23.49s-23.495-34.49-23.495-56.49l.01-640.02c0-22 7.818-40.823 23.485-56.49s34.49-23.49 56.49-23.49H800c22 0 40.833 7.823 56.5 23.49s23.49 34.49 23.49 56.49v640.02c0 22-7.823 40.823-23.49 56.49s-34.49 23.49-56.49 23.49z"/></svg>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 1024" :class="{ selected: resolution === 1024 }" title="Around 1024 pixels">
                   <i class="material-icons icon">1k</i>
                 </div>
-                <div class="resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 2048" :class="{ selected: resolution === 2048 }" title="Around 2048 pixels">
                   <i class="material-icons icon">2k</i>
                 </div>
-                <div v-if="!antialias" class="resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
+                <div v-if="!antialias" class="minecraft-title-render-resolution minecraft-title-button" @click="resolution = 4096" :class="{ selected: resolution === 4096 }" title="Around 4096 pixels">
                   <i class="material-icons icon">4k</i>
                 </div>
-                <div class="resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
+                <div class="minecraft-title-render-resolution minecraft-title-button" @click="custom" :class="{ selected: ![480, 720, 1024, 2048, 4096].includes(resolution) }" title="Custom size" style="display:flex;align-items:center;justify-content:center">
                   <i style="font-size:24px;margin-left:-3px" class="material-icons icon">tag</i>
                 </div>
               </div>
@@ -1312,45 +1312,45 @@
             flex-direction: column;
             gap: 10px;
           }
-          #custom-gradient-customiser {
+          #minecraft-title-custom-gradient-customiser {
             display: flex;
             gap: 5px;
           }
-          #gradient-preview {
+          #minecraft-title-gradient-preview {
             flex: 1;
             height: 160px;
           }
-          .minecraft-title-file.hidden, #custom-gradient.hidden {
+          .minecraft-title-file.hidden, #minecraft-title-custom-gradient.hidden {
             display: none;
           }
-          #gradient-colours {
+          #minecraft-title-gradient-colours {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
           }
-          #gradient-colours > div {
+          #minecraft-title-gradient-colours > div {
             display: flex;
             gap: 5px;
             justify-content: flex-end;
           }
-          #gradient-colours .sp-replacer {
+          #minecraft-title-gradient-colours .sp-replacer {
             margin-bottom: 0;
           }
-          #gradient-colours .sp-preview {
+          #minecraft-title-gradient-colours .sp-preview {
             width: 50px;
           }
-          #gradient-colours input.disabled + div {
+          #minecraft-title-gradient-colours input.disabled + div {
             opacity: 0.5;
             pointer-events: none;
             cursor: not-allowed;
           }
-          #gradient-colours input.disabled + div .sp-preview::after {
+          #minecraft-title-gradient-colours input.disabled + div .sp-preview::after {
             content: "";
             position: absolute;
             inset: 0;
             background: linear-gradient(to top right, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px)), linear-gradient(to top left, transparent calc(50% - 2px), var(--color-close) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 2px));
           }
-          #gradient-colours input.disabled + div .sp-preview-inner {
+          #minecraft-title-gradient-colours input.disabled + div .sp-preview-inner {
             filter: grayscale(1);
           }
           .minecraft-title-header-row {
@@ -1369,10 +1369,10 @@
             text-decoration: underline;
             cursor: pointer;
           }
-          #minecraft-title-custom-texture {
+          #minecraft-title-custom-texture, #minecraft-title-custom-overlay {
             position: relative;
           }
-          #minecraft-title-custom-texture > i {
+          #minecraft-title-custom-texture > i, #minecraft-title-custom-overlay > i {
             position: absolute;
             top: 7px;
             right: 7px;
@@ -1405,16 +1405,24 @@
             align-items: center;
             margin-bottom: 10px;
             position: relative;
-          }
-          .minecraft-texture-search > input {
-            flex: 1;
-            padding-right: 30px;
-          }
-          .minecraft-texture-search > i {
-            position: absolute;
-            right: 6px;
-            top: 5px;
-            pointer-events: none;
+
+            > input {
+              flex: 1;
+              padding-right: 32px;
+            }
+
+            > i {
+              position: absolute;
+              right: 6px;
+              top: 50%;
+              transform: translateY(-50%);
+              pointer-events: none;
+
+              &.active {
+                cursor: pointer;
+                pointer-events: initial;
+              }
+            }
           }
           .text-input-row {
             display: flex;
@@ -1571,6 +1579,7 @@
             overlayColourBlend: "multiply",
             customTexture: null,
             customTextureType: "texture",
+            customOverlay: null,
             smoothGradient: true,
             lastTextureSource: null,
             textureSearch: "",
@@ -1602,6 +1611,9 @@
               if (force || this.tab === 0) {
                 if (this.font !== Object.keys(fonts)[0]) {
                   this.font = Object.keys(fonts)[0]
+                  this.baseFont = this.font
+                  this.fontTab = "fonts"
+                  this.fontVariant = null
                   await this.updateFont(ignoreUpdate)
                 }
                 this.textType = "top"
@@ -1622,7 +1634,7 @@
                 this.gradientColour2 = "#F4C1A4"
                 this.gradientColour3 = "#E19A3E"
                 this.gradientColour4 = "#DA371E"
-                this.customTexture = null
+                this.deleteCustomTexture()
                 this.customTextureType = "texture"
                 $(this.$refs.gradientColour0).spectrum("set", "#FFCF76")
                 $(this.$refs.gradientColour1).spectrum("set", "#FFA3A3")
@@ -1653,6 +1665,7 @@
                 this.overlayColourBlend = "multiply"
                 this.overlayOpacity = 100
                 this.overlayColour = "#fff"
+                this.deleteCustomOverlay()
                 $(this.$refs.overlayColour).spectrum("set", "#fff")
               }
               if (force || this.tab === 3) {
@@ -1969,6 +1982,11 @@
             deleteCustomTexture() {
               this.customTexture = null
               this.customTextureCanvas.getContext("2d").clearRect(0, 0, this.customTextureCanvas.width, this.customTextureCanvas.height)
+              this.updatePreview()
+            },
+            deleteCustomOverlay() {
+              this.customOverlay = null
+              this.customOverlayCanvas.getContext("2d").clearRect(0, 0, this.customOverlayCanvas.width, this.customOverlayCanvas.height)
               this.updatePreview()
             },
             saveTexture: async (font, type, texture, variant) => Blockbench.export({
@@ -2424,6 +2442,10 @@
               this.tab = tab
               document.querySelector("#new_minecraft_title_text .dialog_content").scrollTop = 0
               if (!tab) setTimeout(() => this.$el.querySelector("#minecraft-title-text-input").focus(), 0)
+              else if (tab === 1) this.focus()
+            },
+            focus() {
+              setTimeout(() => this.$refs.entry?.focus(), 0)
             }
           },
           computed: {
@@ -2557,15 +2579,15 @@
                 </div>
                 <p>The texture to apply to the text</p>
                 <ul class="form_inline_select">
-                  <li @click="textureSource = 'premade'; updatePreview()" :class="{ selected: textureSource === 'premade' }">Textures</li>
-                  <li @click="textureSource = 'tileable'; updatePreview()" :class="{ selected: textureSource === 'tileable' }">Tileables</li>
+                  <li @click="textureSource = 'premade'; updatePreview(); focus()" :class="{ selected: textureSource === 'premade' }">Textures</li>
+                  <li @click="textureSource = 'tileable'; updatePreview(); focus()" :class="{ selected: textureSource === 'tileable' }">Tileables</li>
                   <li @click="textureSource = 'gradient'; updatePreview()" :class="{ selected: textureSource === 'gradient' }">Gradient</li>
                   <li @click="lastTextureSource = textureSource; textureSource = 'file'; updatePreview()" :class="{ selected: textureSource === 'file' }">File</li>
                 </ul>
                 <div v-if="textureSource === 'premade'">
                   <div v-if="textures.filter(e => e[2] === font).length > 16" class="minecraft-texture-search">
-                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
-                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch" ref="entry">
+                    <i class="material-icons" :class="{ active: textureSearch }" @click="textureSearch = ''; $refs.entry.focus()">{{ textureSearch ? "clear" : "search" }}</i>
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data, type] of textures" v-if="font === type && (textures.filter(e => e[2] === font).length <= 16 || id.includes(textureSearch) || Object.keys(fonts[font].textures[id]?.variants ?? {}).some(e => e.includes(textureSearch)))" @click="texture = id; variant = null; updatePreview(); scrollToVariants()" :class="{ selected: texture === id }">
@@ -2603,8 +2625,8 @@
                 </div>
                 <div v-if="textureSource === 'tileable'">
                   <div v-if="tileablesList.length > 16" class="minecraft-texture-search">
-                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch">
-                    <i class="material-icons">search</i>
+                    <input type="text" placeholder="Search…" class="dark_bordered" v-model="textureSearch" ref="entry">
+                    <i class="material-icons" :class="{ active: textureSearch }" @click="textureSearch = ''; $refs.entry.focus()">{{ textureSearch ? "clear" : "search" }}</i>
                   </div>
                   <div class="minecraft-title-list">
                     <div class="minecraft-title-item" v-for="[id, data] of tileablesList" v-if="tileablesList.length <= 16 || id.includes(textureSearch) || id === tileable || Object.keys(tileables[id]?.variants ?? {}).some(e => e.includes(textureSearch))" @click="tileable = id; tileableVariant = null; updatePreview(); scrollToVariants()" :class="{ selected: tileable === id }">
@@ -2646,10 +2668,10 @@
                     </div>
                   </div>
                 </div>
-                <div :class="{ hidden: textureSource !== 'gradient' }" id="custom-gradient">
-                  <div id="custom-gradient-customiser">
-                    <div id="gradient-preview" :style="{ background: linearGradient }"></div>
-                    <div id="gradient-colours">
+                <div :class="{ hidden: textureSource !== 'gradient' }" id="minecraft-title-custom-gradient">
+                  <div id="minecraft-title-custom-gradient-customiser">
+                    <div id="minecraft-title-gradient-preview" :style="{ background: linearGradient }"></div>
+                    <div id="minecraft-title-gradient-colours">
                       <div>
                         <input ref="gradientColour0" />
                       </div>
@@ -2676,7 +2698,7 @@
                   </label>
                 </div>
                 <div :class="{ hidden: textureSource !== 'file' }" id="minecraft-title-custom-texture" class="minecraft-title-file">
-                  <canvas class="checkerboard" width="500" height="160"  @click="selectCustomTexture" />
+                  <canvas class="checkerboard" width="500" height="160" @click="selectCustomTexture" />
                   <i v-if="customTexture" class="material-icons" title="Delete custom texture" @click="deleteCustomTexture">delete</i>
                   <div class="minecraft-title-button-row">
                     <button @click="selectCustomTexture">Select file</button>
@@ -2720,9 +2742,10 @@
                     </div>
                   </div>
                 </div>
-                <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
-                  <canvas class="checkerboard" width="500" height="160" />
-                  <button>Select file</button>
+                <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file">
+                  <canvas class="checkerboard" width="500" height="160" @click="selectCustomOverlay" />
+                  <i v-if="customOverlay" class="material-icons" title="Delete custom overlay" @click="deleteCustomOverlay">delete</i>
+                  <button @click="selectCustomOverlay">Select file</button>
                 </div>
                 <br>
                 <p>The blend method to use when applying the overlay</p>
