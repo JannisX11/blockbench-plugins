@@ -214,7 +214,7 @@
           text-decoration: line-through;
           opacity: 0.5;
         }
-        .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
+        .minecraft-title-item-buttons > i:hover, #minecraft-title-preview-container > i:hover, .minecraft-title-button:hover, #minecraft-title-custom-texture > i:hover, #minecraft-title-custom-overlay > i:hover, .text-input-row > i:hover, .minecraft-title-button:hover > svg {
           color: var(--color-light);
         }
         .minecraft-title-preset > *, .minecraft-title-item *, .text-input-row > i:hover, #minecraft-title-render-button-row *, .minecraft-title-links * {
@@ -1369,10 +1369,10 @@
             text-decoration: underline;
             cursor: pointer;
           }
-          #minecraft-title-custom-texture {
+          #minecraft-title-custom-texture, #minecraft-title-custom-overlay {
             position: relative;
           }
-          #minecraft-title-custom-texture > i {
+          #minecraft-title-custom-texture > i, #minecraft-title-custom-overlay > i {
             position: absolute;
             top: 7px;
             right: 7px;
@@ -1579,6 +1579,7 @@
             overlayColourBlend: "multiply",
             customTexture: null,
             customTextureType: "texture",
+            customOverlay: null,
             smoothGradient: true,
             lastTextureSource: null,
             textureSearch: "",
@@ -1610,6 +1611,9 @@
               if (force || this.tab === 0) {
                 if (this.font !== Object.keys(fonts)[0]) {
                   this.font = Object.keys(fonts)[0]
+                  this.baseFont = this.font
+                  this.fontTab = "fonts"
+                  this.fontVariant = null
                   await this.updateFont(ignoreUpdate)
                 }
                 this.textType = "top"
@@ -1630,7 +1634,7 @@
                 this.gradientColour2 = "#F4C1A4"
                 this.gradientColour3 = "#E19A3E"
                 this.gradientColour4 = "#DA371E"
-                this.customTexture = null
+                this.deleteCustomTexture()
                 this.customTextureType = "texture"
                 $(this.$refs.gradientColour0).spectrum("set", "#FFCF76")
                 $(this.$refs.gradientColour1).spectrum("set", "#FFA3A3")
@@ -1661,6 +1665,7 @@
                 this.overlayColourBlend = "multiply"
                 this.overlayOpacity = 100
                 this.overlayColour = "#fff"
+                this.deleteCustomOverlay()
                 $(this.$refs.overlayColour).spectrum("set", "#fff")
               }
               if (force || this.tab === 3) {
@@ -1977,6 +1982,11 @@
             deleteCustomTexture() {
               this.customTexture = null
               this.customTextureCanvas.getContext("2d").clearRect(0, 0, this.customTextureCanvas.width, this.customTextureCanvas.height)
+              this.updatePreview()
+            },
+            deleteCustomOverlay() {
+              this.customOverlay = null
+              this.customOverlayCanvas.getContext("2d").clearRect(0, 0, this.customOverlayCanvas.width, this.customOverlayCanvas.height)
               this.updatePreview()
             },
             saveTexture: async (font, type, texture, variant) => Blockbench.export({
@@ -2688,7 +2698,7 @@
                   </label>
                 </div>
                 <div :class="{ hidden: textureSource !== 'file' }" id="minecraft-title-custom-texture" class="minecraft-title-file">
-                  <canvas class="checkerboard" width="500" height="160"  @click="selectCustomTexture" />
+                  <canvas class="checkerboard" width="500" height="160" @click="selectCustomTexture" />
                   <i v-if="customTexture" class="material-icons" title="Delete custom texture" @click="deleteCustomTexture">delete</i>
                   <div class="minecraft-title-button-row">
                     <button @click="selectCustomTexture">Select file</button>
@@ -2732,9 +2742,10 @@
                     </div>
                   </div>
                 </div>
-                <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file" @click="selectCustomOverlay">
-                  <canvas class="checkerboard" width="500" height="160" />
-                  <button>Select file</button>
+                <div :class="{ hidden: overlaySource !== 'file' }" id="minecraft-title-custom-overlay" class="minecraft-title-file">
+                  <canvas class="checkerboard" width="500" height="160" @click="selectCustomOverlay" />
+                  <i v-if="customOverlay" class="material-icons" title="Delete custom overlay" @click="deleteCustomOverlay">delete</i>
+                  <button @click="selectCustomOverlay">Select file</button>
                 </div>
                 <br>
                 <p>The blend method to use when applying the overlay</p>
