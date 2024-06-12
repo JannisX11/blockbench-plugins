@@ -615,6 +615,8 @@
     if (!data) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
     const model = modelData.models[data.model ?? data.name]
     newProject(Formats.optifine_entity)
+    Project.name = data.file_name ?? data.name
+    Blockbench.setStatusBarText(data.name)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
     if (loadTexture) {
