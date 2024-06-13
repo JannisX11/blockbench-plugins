@@ -6,7 +6,10 @@ import {
   setups,
   teardowns,
 } from "../../constants";
-import { applyPbrMaterial } from "../applyPbrMaterial";
+import {
+  applyPbrMaterial,
+  debounceApplyPbrMaterial,
+} from "../applyPbrMaterial";
 import { getSelectedTexture } from "../util";
 
 /**
@@ -17,8 +20,8 @@ const channelAssignmentActions: Record<IChannel["id"], Action> = {};
 
 const channelSelectActions: Record<IChannel["id"], Action> = {};
 
-Object.entries(CHANNELS).forEach(([key, channel], idx) => {
-  setups.push(() => {
+setups.push(() => {
+  Object.entries(CHANNELS).forEach(([key, channel]) => {
     channelAssignmentActions[key] = new Action(`assign_channel_${key}`, {
       icon: channel.icon ?? "tv_options_edit_channels",
       name: `Assign to ${channel.label.toLocaleLowerCase()} channel`,
@@ -29,11 +32,11 @@ Object.entries(CHANNELS).forEach(([key, channel], idx) => {
           texture: true,
         },
       },
-      click(e) {
+      click() {
         const layer =
           TextureLayer.selected ?? (Project ? Project.selected_texture : null);
 
-        if (!layer || !Project) {
+        if (!layer) {
           return;
         }
 
@@ -125,11 +128,11 @@ Object.entries(CHANNELS).forEach(([key, channel], idx) => {
 });
 
 teardowns.push(() => {
-  Object.values(channelAssignmentActions).forEach((action) => {
-    action.delete();
-  });
-
-  Object.values(channelSelectActions).forEach((action) => {
+  const actions = [
+    ...Object.values(channelAssignmentActions),
+    ...Object.values(channelSelectActions),
+  ];
+  actions.forEach((action) => {
     action.delete();
   });
 });
@@ -148,18 +151,14 @@ setups.push(() => {
         const layer =
           TextureLayer.selected ?? (Project ? Project.selected_texture : null);
 
-        if (!layer || !Project) {
-          return false;
-        }
-
-        return layer.channel && layer.channel !== NA_CHANNEL;
+        return layer?.channel && layer.channel !== NA_CHANNEL;
       },
     },
     click() {
       const layer =
         TextureLayer.selected ?? (Project ? Project.selected_texture : null);
 
-      if (!layer || !Project) {
+      if (!layer) {
         return;
       }
 
@@ -180,7 +179,7 @@ setups.push(() => {
         2000
       );
 
-      applyPbrMaterial();
+      debounceApplyPbrMaterial();
     },
   });
 
@@ -192,7 +191,7 @@ setups.push(() => {
     ],
     {
       onOpen() {
-        applyPbrMaterial();
+        debounceApplyPbrMaterial();
       },
     }
   );

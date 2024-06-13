@@ -91,25 +91,20 @@ function applyToCube(
 export const applyPbrMaterial = (
   materialParams: THREE.MeshStandardMaterialParameters = {}
 ) => {
-  // Don't overwrite placeholder material in Edit and Paint mode
-  if (!Project || Texture.all.length === 0) {
+  if (!Project) {
     return;
   }
 
-  let materialsSet = false;
-
-  Project.elements.forEach((item) => {
-    if (item instanceof Mesh && applyToMesh(item, materialParams)) {
-      materialsSet = true;
-      return;
-    }
-
-    if (item instanceof Cube && applyToCube(item, materialParams)) {
-      materialsSet = true;
-    }
-  });
-
-  Project.pbr_active = materialsSet;
+  // @ts-expect-error - Property 'pbr_active' does not exist on type 'Project'
+  Project.pbr_active =
+    Texture.all.length > 0 &&
+    Project.elements
+      .map(
+        (item) =>
+          (item instanceof Mesh && applyToMesh(item, materialParams)) ||
+          (item instanceof Cube && applyToCube(item, materialParams))
+      )
+      .filter(Boolean).length > 0;
 };
 
 export const debounceApplyPbrMaterial = (wait = 100) =>

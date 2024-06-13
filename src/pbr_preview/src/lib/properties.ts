@@ -1,16 +1,21 @@
 import { registry, CHANNELS, NA_CHANNEL, setups } from "../constants";
 
+const channelsEnum = [
+  ...Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
+  NA_CHANNEL,
+];
+
 setups.push(() => {
   registry.channelProp = new Property(TextureLayer, "enum", "channel", {
     default: NA_CHANNEL,
-    values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
+    values: channelsEnum,
     label: "PBR Channel",
     exposed: false,
   });
 
   registry.textureChannelProp = new Property(Texture, "enum", "channel", {
     default: NA_CHANNEL,
-    values: Object.keys(CHANNELS).map((key) => CHANNELS[key].id),
+    values: channelsEnum,
     label: "PBR Channel",
     exposed: false,
   });
@@ -24,7 +29,7 @@ setups.push(() => {
       default: {},
       exposed: false,
       label: "PBR Materials",
-    },
+    }
   );
 
   registry.projectMaterialsProp = new Property(
@@ -36,7 +41,7 @@ setups.push(() => {
       default: {},
       exposed: false,
       label: "Project Materials",
-    },
+    }
   );
 
   registry.projectPbrModeProp = new Property(
@@ -45,9 +50,9 @@ setups.push(() => {
     "pbr_active",
     {
       default: false,
-      exposed: true,
+      exposed: false,
       values: [],
       label: "PBR Mode",
-    },
+    }
   );
 });

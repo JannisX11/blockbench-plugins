@@ -9,9 +9,9 @@ import { getSelectedTexture } from "./util";
  */
 export const exportMer = (
   baseName?: string,
-  cb?: (filePath: string) => void,
+  cb?: (filePath: string) => void
 ) => {
-  const selected = getSelectedTexture();
+  const selected = getSelectedTexture() ?? Texture.getDefault();
 
   const mer = new PbrMaterial(
     selected.layers_enabled
@@ -19,7 +19,7 @@ export const exportMer = (
       : Project
         ? Project.textures
         : null,
-    selected.uuid,
+    selected.uuid
   ).createMer(true);
 
   if (!mer) {
@@ -50,7 +50,7 @@ export const exportMer = (
         savetype: "image",
         startpath,
       },
-      cb,
+      cb
     );
   });
 };

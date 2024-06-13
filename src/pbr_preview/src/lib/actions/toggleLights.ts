@@ -1,5 +1,5 @@
 import { registry, setups, teardowns } from "../../constants";
-import { debounceApplyPbrMaterial } from "../applyPbrMaterial";
+import { applyPbrMaterial } from "../applyPbrMaterial";
 
 setups.push(() => {
   registry.toggleCorrectLights = new Toggle("correct_lights", {
@@ -17,7 +17,7 @@ setups.push(() => {
 
       Blockbench.showQuickMessage(
         `Physically corrected lighting is now ${value ? "enabled" : "disabled"}`,
-        2000,
+        2000
       );
 
       if (value) {
@@ -25,7 +25,7 @@ setups.push(() => {
         registry.togglePbr?.set(true);
       }
 
-      debounceApplyPbrMaterial();
+      applyPbrMaterial();
     },
     click() {},
   });

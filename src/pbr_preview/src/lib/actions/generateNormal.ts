@@ -2,16 +2,15 @@ import { registry, setups, teardowns } from "../../constants";
 import { CHANNELS } from "../../constants";
 import PbrMaterial from "../PbrMaterials";
 import { getSelectedLayer, getSelectedTexture } from "../util";
+import { createNormalMap, createAoMap } from "../normalMap";
 
 setups.push(() => {
   registry.generateNormal = new Action("generate_normal", {
-    icon: "altitude",
+    icon: CHANNELS.normal.icon ?? "altitude",
     name: "Generate Normal Map",
     description: "Generates a normal map from the height map",
-    condition: () =>
-      (TextureLayer.selected || Texture.all.find((t) => t.selected)) !==
-      undefined,
-    click() {
+    condition: () => (getSelectedLayer() ?? getSelectedTexture()) !== null,
+    click(e) {
       const texture: Texture | TextureLayer =
         getSelectedLayer() ?? getSelectedTexture() ?? Texture.getDefault();
 
@@ -19,23 +18,23 @@ setups.push(() => {
         return;
       }
 
-      const mat = new PbrMaterial(
+      const normalMap = createNormalMap(texture);
+
+      if (!normalMap) {
+        Blockbench.showQuickMessage("Failed to generate normal map", 2000);
+        return;
+      }
+
+      normalMap.select(e);
+
+      new PbrMaterial(
         texture instanceof Texture && texture.layers_enabled
           ? texture.layers
           : null,
         texture.uuid
-      );
+      ).saveTexture(CHANNELS.normal, normalMap);
 
-      const normalMap = mat.createNormalMap(texture);
-
-      if (normalMap) {
-        mat.saveTexture(CHANNELS.normal, normalMap);
-        normalMap.select();
-        Blockbench.showQuickMessage("Normal map generated", 2000);
-        return;
-      }
-
-      Blockbench.showQuickMessage("Failed to generate normal map", 2000);
+      Blockbench.showQuickMessage("Normal map generated", 2000);
     },
   });
 
@@ -65,7 +64,7 @@ setups.push(() => {
       );
 
       const normalMap =
-        mat.findTexture(CHANNELS.normal) ?? mat.createNormalMap(texture);
+        mat.findTexture(CHANNELS.normal) ?? createNormalMap(texture);
 
       if (!normalMap) {
         // TODO: Use Validator
@@ -76,7 +75,7 @@ setups.push(() => {
         return;
       }
 
-      const aoMap = mat.createAoMap(normalMap);
+      const aoMap = createAoMap(normalMap);
 
       if (aoMap) {
         mat.saveTexture(CHANNELS.ao, aoMap);
