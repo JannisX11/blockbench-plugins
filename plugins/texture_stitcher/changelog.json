@@ -1,0 +1,29 @@
+{
+	"1.0.4": {
+		"title": "1.0.4",
+		"date": "2024-06-13",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Improved the box packing code to pack boxes much better",
+                    "Implemented proper support for mixed Box UV and Per-face UV modes"
+				]
+			}
+		]
+	},
+	"1.0.5": {
+		"title": "1.0.5",
+		"date": "2024-06-14",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Fixed the plugin not loading correctly due to Blockbench 4.8.0 minimal version"
+				]
+			}
+		]
+	}
+}
