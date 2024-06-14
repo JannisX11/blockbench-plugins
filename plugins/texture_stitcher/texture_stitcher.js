@@ -12,7 +12,7 @@
         boxes.sort((a, b) => b.h - a.h);
         areas.push(createRect(0, 0, w, Number.MAX_VALUE));
 
-        boxes.forEach(box =>
+        boxes.forEach((box) =>
         {
             for (var i = areas.length - 1; i >= 0; i--)
             {
@@ -322,9 +322,9 @@
     Plugin.register('texture_stitcher', {
         title: 'Texture Stitcher',
         author: 'McHorse',
-        description: 'Adds a menu item to textures editor that stitches multiple textures into one',
+        description: 'Stitch multiple textures into a single texture',
         icon: 'fa-compress-arrows-alt',
-        version: '1.0.4',
+        version: '1.0.5',
         min_version: "4.8.0",
         tags: ["Texture"],
         variant: 'both',
