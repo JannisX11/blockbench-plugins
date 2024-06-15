@@ -439,7 +439,8 @@
 		"version": "1.0.5",
 		"min_version": "4.8.0",
 		"tags": ["Texture"],
-		"variant": "both"
+		"variant": "both",
+		"has_changelog": true
 	},
 	"arcaniax_block_exporter": {
 		"title": "Bedrock Block Exporter",
