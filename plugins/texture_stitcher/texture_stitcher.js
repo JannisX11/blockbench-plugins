@@ -321,13 +321,14 @@
 
     Plugin.register('texture_stitcher', {
         title: 'Texture Stitcher',
+        icon: 'fa-compress-arrows-alt',
         author: 'McHorse',
         description: 'Stitch multiple textures into a single texture',
-        icon: 'fa-compress-arrows-alt',
         version: '1.0.5',
         min_version: "4.8.0",
         tags: ["Texture"],
         variant: 'both',
+        has_changelog: true,
         onload() 
         {
             button = new Action('texture_stitcher', {
