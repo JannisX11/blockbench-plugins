@@ -26,5 +26,19 @@
 				]
 			}
 		]
+	},
+	"1.5.1": {
+		"title": "1.5.1",
+		"date": "2024-06-16",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Wolf preset no longer working correctly in newer Minecraft version",
+					"Fixed Magma Slime preset not working correctly"
+				]
+			}
+		]
 	}
 }
