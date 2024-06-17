@@ -1,10 +1,5 @@
 import { three as THREE, jszip as JSZip } from "../../deps";
 
-/**
- * USDZ Exporter
- * Based on DragonFly's USDZExporter
- * @see https://github.com/GitHubDragonFly/GitHubDragonFly.github.io/blob/5dcb6d313aa73373d54997e616d5ade8168c408d/viewers/static/js/exporters/USDZExporter.js
- */
 class USDZExporter {
   async parse(scene: THREE.Scene): Promise<Uint8Array> {
     const zip = new JSZip();
