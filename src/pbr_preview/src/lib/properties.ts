@@ -20,6 +20,12 @@ setups.push(() => {
     exposed: false,
   });
 
+  // @ts-expect-error Boolean values not required
+  registry.materialTextureProp = new Property(Texture, "boolean", "material", {
+    default: false,
+    label: "Material Texture",
+  });
+
   registry.pbrMaterialsProp = new Property(
     ModelProject,
     // @ts-expect-error "object" is a valid type for a property

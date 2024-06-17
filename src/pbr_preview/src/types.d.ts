@@ -14,6 +14,7 @@ export interface IChannel {
   id: string;
   icon?: string;
   default?: THREE.Color;
+  regex?: RegExp;
 }
 
 export interface ILightrParams {
@@ -27,14 +28,6 @@ export interface IPbrMaterials {
   [materialUuid: string]: {
     [channelId: string]: string;
   };
-}
-
-// Extend Blockbench Project namespace
-declare module "blockbench-types" {
-  interface Project {
-    pbr_materials: IPbrMaterials;
-    bb_materials: Record<string, THREE.ShaderMaterial>;
-  }
 }
 
 export interface IRegistry {
@@ -59,7 +52,6 @@ export interface IRegistry {
   decodeLabPbr: Action;
   materialBrushPanel: Panel;
   materialBrushTool: Tool;
-  materialBrushPresets: BarSelect;
   openChannelMenu: Action;
   pbrMaterialsProp: Property;
   projectMaterialsProp: Property;

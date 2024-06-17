@@ -10,6 +10,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "map",
     icon: "tonality",
     default: new THREE.Color(0xffffff),
+    regex: new RegExp("(s|_)*(basecolor|color|albedo)", "i"),
   },
   metalness: {
     id: "metalness",
@@ -18,6 +19,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "metalnessMap",
     icon: "brightness_6",
     default: new THREE.Color(0),
+    regex: new RegExp("[ _]*metal(lic|ness)?", "i"),
   },
   emissive: {
     id: "emissive",
@@ -26,6 +28,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "emissiveMap",
     icon: "wb_twilight",
     default: new THREE.Color(0),
+    regex: new RegExp("[ _]*emissive", "i"),
   },
   roughness: {
     id: "roughness",
@@ -34,6 +37,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "roughnessMap",
     icon: "grain",
     default: new THREE.Color(0xffffff),
+    regex: new RegExp("[ _]*rough(ness)?", "i"),
   },
   height: {
     id: "height",
@@ -42,6 +46,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "bumpMap",
     icon: "landscape",
     default: new THREE.Color(0xffffff),
+    regex: new RegExp("[ _]*(height|bump)", "i"),
   },
   normal: {
     id: "normal",
@@ -50,6 +55,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "normalMap",
     icon: "looks",
     default: new THREE.Color("rgb(128, 128, 255)"),
+    regex: new RegExp("[ _]*normal", "i"),
   },
   ao: {
     id: "ao",
@@ -58,6 +64,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "aoMap",
     icon: "motion_mode",
     default: new THREE.Color(0xffffff),
+    regex: new RegExp("[ _]*(ao|ambientocclusion|ambient occlusion)", "i"),
   },
 };
 

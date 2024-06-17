@@ -1,26 +1,17 @@
-import { registry, CHANNELS, setups, teardowns } from "../../constants";
+import {
+  registry,
+  CHANNELS,
+  setups,
+  teardowns,
+  NA_CHANNEL,
+} from "../../constants";
 import { three as THREE } from "../../deps";
 import PbrMaterial from "../PbrMaterials";
-
-const colorDataUrl = (color: THREE.Color, src?: HTMLCanvasElement) => {
-  const canvas = src ?? document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    return null;
-  }
-
-  const width = Math.max(Project ? Project.texture_width : 16, 16);
-  const height = Math.max(Project ? Project.texture_height : 16, 16);
-
-  canvas.width = width;
-  canvas.height = height;
-
-  ctx.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`;
-  ctx.fillRect(0, 0, width, height);
-
-  return canvas.toDataURL();
-};
+import {
+  colorDataUrl,
+  generatePreviewImage,
+  getSelectedTexture,
+} from "../util";
 
 setups.push(() => {
   registry.createMaterialTexture = new Action("create_material_texture", {
@@ -44,22 +35,22 @@ setups.push(() => {
         name: "New Material",
         saved: false,
         particle: false,
-        keep_size: false,
-        layers_enabled: true,
       });
+
+      texture.extend({ material: true });
 
       const scope =
         Texture.all.filter((t) => t.selected || t.multi_selected) ??
         Texture.all;
 
-      const mat = Texture.selected
-        ? new PbrMaterial(scope, Texture.selected.uuid)
-        : null;
+      const selected = getSelectedTexture();
+
+      const mat = selected ? new PbrMaterial(scope, selected.uuid) : null;
 
       try {
         const baseColor =
           mat?.findTexture(CHANNELS.albedo, true)?.canvas.toDataURL() ??
-          Texture.selected?.canvas.toDataURL() ??
+          selected?.canvas.toDataURL() ??
           colorDataUrl(new THREE.Color(0x808080), texture.canvas);
 
         if (!baseColor) {
@@ -73,15 +64,15 @@ setups.push(() => {
             name: channels.albedo.label,
             visible: true,
             data_url: baseColor,
+            keep_size: true,
           },
           texture
         );
 
         layer.extend({ channel: channels.albedo.id });
-
         layer.addForEditing();
         layer.texture.updateChangesAfterEdit();
-
+        mat?.saveTexture(channels.albedo, layer);
         delete channels.albedo;
       } catch (e) {
         console.warn("Failed to create base color texture", e);
@@ -110,11 +101,14 @@ setups.push(() => {
               name: channel.label,
               visible: true,
               data_url: data,
+              keep_size: true,
             },
             texture
           );
 
           layer.extend({ channel: channel.id });
+
+          mat?.saveTexture(channel, layer);
 
           return layer;
         })
@@ -123,7 +117,13 @@ setups.push(() => {
       Undo.initEdit({ textures: Texture.all, layers });
 
       texture.add().select();
-      layers.map((layer) => layer.addForEditing());
+      texture.activateLayers();
+      layers.map((layer) => {
+        layer.addForEditing();
+
+        texture.width = Math.max(texture.width, layer.img.width);
+        texture.height = Math.max(texture.height, layer.img.height);
+      });
       texture.updateChangesAfterEdit();
 
       Undo.finishEdit("Create Material Texture");
@@ -136,4 +136,5 @@ setups.push(() => {
 
 teardowns.push(() => {
   MenuBar.removeAction("tools.create_material_texture");
+  Toolbars.texturelist.remove("tools.create_material_texture");
 });

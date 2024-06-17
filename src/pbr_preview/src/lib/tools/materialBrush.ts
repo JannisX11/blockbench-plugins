@@ -1,3 +1,4 @@
+import type { IChannel } from "../../types";
 import { registry, CHANNELS, setups, teardowns } from "../../constants";
 import {
   applyPbrMaterial,
@@ -5,47 +6,7 @@ import {
 } from "../applyPbrMaterial";
 import { MaterialBrush } from "../MaterialBrush";
 import { vue as Vue, three as THREE } from "../../deps";
-import { getSelectedTexture } from "../util";
-
-const generatePreviewImage = (settings: object) => {
-  const renderer = new THREE.WebGLRenderer({
-    alpha: true,
-    antialias: true,
-  });
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, 96 / 96, 0.1, 1000);
-
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
-  scene.add(ambientLight);
-
-  const pointLight = new THREE.PointLight(0xffffff, 1, 100);
-  pointLight.position.set(5, 5, 5);
-  scene.add(pointLight);
-  const geometry = new THREE.SphereGeometry(1, 32, 32);
-
-  const material = new THREE.MeshStandardMaterial({
-    color: settings.albedo,
-    metalness: settings.metalness ?? 0,
-    roughness: settings.roughness ?? 1,
-    emissive: settings.emissive,
-    bumpScale: settings.height ?? 0,
-    envMap: PreviewScene.active?.cubemap ?? null,
-    envMapIntensity: 0.5,
-  });
-
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
-
-  camera.position.x = 0;
-  camera.position.y = 0;
-  camera.position.z = 2;
-
-  renderer.setSize(96, 96);
-
-  renderer.render(scene, camera);
-
-  return renderer.domElement.toDataURL();
-};
+import { getSelectedTexture, generatePreviewImage } from "../util";
 
 const STORAGE_NAMESPACE = "materialBrushPresets";
 
@@ -127,6 +88,21 @@ const applyPreset = ({
     ColorPanel.set(albedo);
   }
 };
+
+const materialBrushSliderCondition = ({ id }: IChannel) =>
+  Condition({
+    project: true,
+    tools: ["material_brush"],
+    method() {
+      const texture = getSelectedTexture();
+
+      return (
+        (texture?.layers_enabled &&
+          texture.layers.find(({ channel }) => channel && channel === id) !==
+            undefined) === true
+      );
+    },
+  });
 
 const userPresetsDialogComponent = Vue.extend({
   name: "UserPresetsDialog",
@@ -316,78 +292,45 @@ setups.push(() => {
     filter: drop-shadow(0 0 2px var(--color-shadow));
   }
 
-  .delete_preset .material-icons {
-    font-size: 0.825em;
-  }
-
   .delete_preset:hover {
     background: transparent;
     color: var(--color-accent);
   }
 
+  .delete_preset .material-icons {
+    font-size: 0.825em;
+  }
+
   .delete_preset:hover .material-icons {
     color: var(--color-accent);
-  }
-  `);
+  }`);
 
   registry.brushMetalnessSlider = new NumSlider("slider_brush_metalness", {
     category: "paint",
     name: "Metalness",
     description: "Adjust the metalness of the brush",
+    tool_setting: "brush_metalness",
     settings: {
       min: 0,
       max: 1,
       step: 0.01,
       default: 0,
     },
-    condition: () => {
-      if (!Project) {
-        return false;
-      }
-
-      const texture = Project.selected_texture;
-
-      if (!texture?.layers_enabled) {
-        return false;
-      }
-
-      return (
-        texture.layers.find(
-          // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.metalness.id
-        ) !== undefined
-      );
-    },
+    condition: () => materialBrushSliderCondition(CHANNELS.metalness),
   });
 
   registry.brushRoughnessSlider = new NumSlider("slider_brush_roughness", {
     category: "paint",
     name: "Roughness",
     description: "Adjust the roughness of the brush",
+    tool_setting: "brush_roughness",
     settings: {
       min: 0,
       max: 1,
       step: 0.01,
       default: 1,
     },
-    condition: () => {
-      if (!Project) {
-        return false;
-      }
-
-      const texture = Project.selected_texture;
-
-      if (!texture?.layers_enabled) {
-        return false;
-      }
-
-      return (
-        texture.layers.find(
-          // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.roughness.id
-        ) !== undefined
-      );
-    },
+    condition: () => materialBrushSliderCondition(CHANNELS.roughness),
   });
 
   registry.brushEmissiveColor = new ColorPicker("brush_emissive_color", {
@@ -395,53 +338,22 @@ setups.push(() => {
     name: "Emissive",
     description: "Adjust the emissive color of the brush",
     value: "#000000",
-    condition: () => {
-      if (!Project) {
-        return false;
-      }
-
-      const texture = Project.selected_texture;
-
-      if (!texture?.layers_enabled) {
-        return false;
-      }
-
-      return (
-        texture.layers.find(
-          // @ts-expect-error Channel property is an extension of TextureLayer
-          ({ channel }) => channel === CHANNELS.emissive.id
-        ) !== undefined
-      );
-    },
+    tool_setting: "brush_emissive",
+    condition: () => materialBrushSliderCondition(CHANNELS.emissive),
   });
 
   registry.brushHeightSlider = new NumSlider("slider_brush_height", {
     category: "paint",
     name: "Height",
     description: "Adjust the height of the brush",
+    tool_setting: "brush_height",
     settings: {
       min: 0,
       max: 1,
       step: 0.01,
       default: 0.5,
     },
-    condition: () => {
-      if (!Project) {
-        return false;
-      }
-
-      const texture = Project.selected_texture;
-
-      if (!texture?.layers_enabled) {
-        return false;
-      }
-
-      return (
-        // @ts-expect-error Channel property is an extension of TextureLayer
-        texture.layers.find(({ channel }) => channel === CHANNELS.height.id) !==
-        undefined
-      );
-    },
+    condition: () => materialBrushSliderCondition(CHANNELS.height),
   });
 
   registry.materialBrushTool = new Tool("material_brush", {
@@ -463,6 +375,12 @@ setups.push(() => {
       },
     },
     allowed_view_modes: "textured",
+    tool_settings: {
+      brush_metalness: 0,
+      brush_roughness: 1,
+      brush_emissive: "#000000",
+      brush_height: 0.5,
+    },
     brush: {
       blend_modes: false,
       shapes: true,
@@ -471,10 +389,18 @@ setups.push(() => {
       opacity: true,
       offset_even_radius: true,
       floor_coordinates: true,
-      changePixel(x, y, px, alpha, { size, softness, texture }) {
+      changePixel(
+        pxX, // Pixel that is changing
+        pxY,
+        px,
+        alpha,
+        { size, softness, texture, x, y }
+      ) {
         const mat = MaterialBrush.fromSettings();
 
         const matChannels = Object.keys(mat.colors);
+
+        const brushSize = Math.floor(size - (softness * size) / 100);
 
         let rgba = px;
 
@@ -491,10 +417,22 @@ setups.push(() => {
             return;
           }
 
-          // TODO: Let softness affect the brush
+          const distance = Math.sqrt((x - pxX) ** 2 + (y - pxY) ** 2);
+          const fallOff = Math.min(1, distance / brushSize);
+
+          // Transition colors at soft edges
+          if (x % brushSize <= fallOff && y % brushSize <= fallOff) {
+            const currentPixel = layer.ctx.getImageData(pxX, pxY, 1, 1).data;
+            const currentFill = new THREE.Color(
+              `rgb(${currentPixel[0]}, ${currentPixel[1]}, ${currentPixel[2]})`
+            );
+
+            // Set the fill color to the lerp between the current pixel and the new color
+            fill.lerp(currentFill, 1);
+          }
 
           layer.ctx.fillStyle = fill.getStyle();
-          layer.ctx.fillRect(size * x, size * y, size, size);
+          layer.ctx.fillRect(pxX, pxY, 1, 1);
 
           if (layer.selected) {
             rgba = {
@@ -596,6 +534,8 @@ setups.push(() => {
         cancelIndex: 0,
         confirmIndex: 2,
         onButton(idx, event) {
+          registry.materialBrushTool?.select();
+
           if (idx !== 1) {
             return;
           }

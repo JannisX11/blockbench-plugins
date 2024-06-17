@@ -1,6 +1,7 @@
 import type { IChannel } from "../types";
 import { CHANNELS, NA_CHANNEL } from "../constants";
 import { three as THREE } from "../deps";
+import { generatePreviewImage } from "./util";
 
 const getProjectTextures = (layers = true) => {
   const allTextures = Project ? Project.textures ?? Texture.all : Texture.all;
@@ -85,7 +86,7 @@ export default class PbrMaterial {
       aoMap: this.getTexture(CHANNELS.ao),
       bumpMap: this.getTexture(CHANNELS.height),
       normalMap,
-      normalScale: new THREE.Vector2(1, 1),
+      normalScale: new THREE.Vector2(-1, 1),
       metalnessMap,
       metalness: metalnessMap ? 1 : 0,
       roughnessMap,
@@ -99,6 +100,11 @@ export default class PbrMaterial {
       transparent: true,
       ...options,
     });
+  }
+
+  renderMaterialPreview() {
+    const previewImage = generatePreviewImage(this.getMaterial());
+    return previewImage;
   }
 
   saveTexture(channel: IChannel, texture: Texture | TextureLayer) {
@@ -146,8 +152,9 @@ export default class PbrMaterial {
     const materialData = Project.pbr_materials[this._materialUuid];
 
     // Don't infer the channel if it has already been assigned to NA_CHANNEL
-    if (!materialData && inference && channel !== NA_CHANNEL) {
-      const filenameRegex = new RegExp(`_*${channel}(\.[^.]+)?$`, "i");
+    if (inference && !materialData && channel !== NA_CHANNEL) {
+      const filenameRegex =
+        CHANNELS[channel].regex ?? new RegExp(`_*${channel}(\.[^.]+)?$`, "i");
       return this._scope.find((t) => filenameRegex.test(t.name)) ?? null;
     }
 

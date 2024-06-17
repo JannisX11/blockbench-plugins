@@ -16,6 +16,8 @@ function applyToFace(
 
   if (projectMaterial.isShaderMaterial && !Project.bb_materials[texture.uuid]) {
     Project.bb_materials[texture.uuid] = projectMaterial;
+  } else if (projectMaterial.isMeshStandardMaterial) {
+    projectMaterial.dispose();
   }
 
   const material = new PbrMaterial(
@@ -23,9 +25,10 @@ function applyToFace(
       ? texture.layers.filter((layer) => layer.visible) ?? null
       : Project.textures,
     texture.uuid
-  ).getMaterial(materialParams);
-
-  material.side = Canvas.getRenderSide(texture) as THREE.Side;
+  ).getMaterial({
+    side: Canvas.getRenderSide(texture) as THREE.Side,
+    ...materialParams,
+  });
 
   Project.materials[texture.uuid] = THREE.ShaderMaterial.prototype.copy.call(
     material,

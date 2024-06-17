@@ -10,7 +10,7 @@ import {
   applyPbrMaterial,
   debounceApplyPbrMaterial,
 } from "../applyPbrMaterial";
-import { getSelectedTexture } from "../util";
+import { getSelectedLayer, getSelectedTexture } from "../util";
 
 /**
  * Registry of channel actions\
@@ -30,6 +30,13 @@ setups.push(() => {
       condition: {
         selected: {
           texture: true,
+        },
+        project: true,
+        method() {
+          return (
+            getSelectedTexture()?.material === true &&
+            getSelectedLayer() !== null
+          );
         },
       },
       click() {
@@ -204,6 +211,12 @@ setups.push(() => {
   registry.openChannelMenu = new Action("pbr_channel_menu", {
     name: "Assign to PBR Channel",
     icon: "texture",
+    condition: {
+      modes: ["edit", "paint"],
+      selected: {
+        texture: true,
+      },
+    },
     click(event) {
       registry.channelMenu?.open(event as MouseEvent);
     },
