@@ -146,16 +146,17 @@ export default class PbrMaterial {
       return materialChannel;
     }
 
-    const channel = typeof name === "string" ? name : name.id;
+    const [channel, regex] =
+      typeof name === "string"
+        ? [name, new RegExp(`_*${name}(\.[^.]+)?$`, "i")]
+        : [name.id, name.regex ?? new RegExp(`_*${name.id}(\.[^.]+)?$`, "i")];
 
     Project.pbr_materials = Project.pbr_materials ?? {};
     const materialData = Project.pbr_materials[this._materialUuid];
 
     // Don't infer the channel if it has already been assigned to NA_CHANNEL
     if (inference && !materialData && channel !== NA_CHANNEL) {
-      const filenameRegex =
-        CHANNELS[channel].regex ?? new RegExp(`_*${channel}(\.[^.]+)?$`, "i");
-      return this._scope.find((t) => filenameRegex.test(t.name)) ?? null;
+      return this._scope.find((t) => regex?.test(t.name)) ?? null;
     }
 
     const textureUuid = materialData?.[channel];

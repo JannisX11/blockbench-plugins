@@ -28,7 +28,7 @@ export const CHANNELS: Record<IChannel["id"], IChannel> = {
     map: "emissiveMap",
     icon: "wb_twilight",
     default: new THREE.Color(0),
-    regex: new RegExp("[ _]*emissive", "i"),
+    regex: new RegExp("[ _]*(emissive|emission)", "i"),
   },
   roughness: {
     id: "roughness",

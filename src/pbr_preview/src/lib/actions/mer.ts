@@ -85,10 +85,7 @@ setups.push(() => {
           "Decodes a MER texture map into metalness, emissive, and roughness channels into material layers",
         condition: () => getSelectedTexture()?.layers_enabled === true,
         click() {
-          const selected =
-            TextureLayer.selected?.texture ??
-            Texture.all.find((t) => t.selected) ??
-            Texture.getDefault();
+          const selected = getSelectedTexture() ?? Texture.getDefault();
 
           const mat = new PbrMaterial(
             selected.layers_enabled ? selected.layers : [selected],
@@ -103,8 +100,6 @@ setups.push(() => {
           ];
 
           Undo.initEdit({ textures: [selected] });
-
-          const copy = selected.selected.activateLayers(true);
 
           merChannels.forEach((channel) => {
             const key = channel.id as keyof typeof mer;
