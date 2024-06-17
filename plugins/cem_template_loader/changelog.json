@@ -858,5 +858,28 @@
         ]
       }
     ]
+  },
+  "8.1.0": {
+    "title": "8.1.0",
+    "date": "2024-06-08",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "The CEM model search bar can now be cleared with a button",
+          "CEM animation errors now use the \"error\" colour instead of the \"close\" colour",
+          "CEM animation documentation scroll will now reset back to the top when changing tab"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed animation controller sliders going off the edge of the panel",
+          "Fixed project not getting entity name",
+          "Fixed codeblocks overflowing in the CEM Animation Documentation"
+        ]
+      }
+    ]
   }
 }

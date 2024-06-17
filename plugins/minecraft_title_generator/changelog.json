@@ -359,5 +359,27 @@
         ]
       }
     ]
+  },
+  "1.6.0": {
+    "title": "1.6.0",
+    "date": "2024-06-09",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "The texture search bar can now be cleared with a button",
+          "The texture search bar will now be automatically focused when switching tab",
+          "Added the ability to remove the custom overlay texture"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed resetting the font selection page",
+          "Fixed resetting texture and overlay pages when a custom texture is loaded"
+        ]
+      }
+    ]
   }
 }

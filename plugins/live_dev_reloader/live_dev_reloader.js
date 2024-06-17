@@ -10,13 +10,14 @@
     author: "Ewan Howell",
     description: "Edit plugins and themes live in any text editor and have them automatically update in Blockbench.",
     tags: ["Plugins", "Themes", "Blockbench"],
-    version: "1.0.0",
-    min_version: "4.9.3",
+    version: "1.0.1",
+    min_version: "4.10.0",
     variant: "desktop",
-    website: "https://ewanhowell.com/plugins/live-dev-reloader",
+    website: "https://ewanhowell.com/plugins/live-dev-reloader/",
     repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
-    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues",
+    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Live Dev Reloader]",
     creation_date: "2024-01-20",
+    has_changelog: true,
     onload() {
       let toggle
       actions = [
@@ -151,9 +152,11 @@
         console.log(`Plugin reloaded: ${id}`)
       } else {
         let css = fs.readFileSync(watching)
+        let name
         if (watching.endsWith(".bbtheme")) {
           try {
             const data = JSON.parse(css)
+            name = data.name
             css = `body{`
             if (data.main_font) css += `--font-custom-main: ${data.main_font};`
             if (data.headline_font) css += `--font-custom-headline: ${data.headline_font};`
@@ -179,7 +182,8 @@
           }
         }
         styles = Blockbench.addCSS(css)
-        console.log(`Theme reloaded: ${path.basename(watching, ".bbtheme")}`)
+        resizeWindow()
+        console.log(`Theme reloaded: ${name ?? path.basename(watching).split(".").slice(0, -1).join(".")}`)
       }
     }
   }

@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.0.1",
+      version: "8.1.0",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -254,7 +254,6 @@
           overflow: hidden;
           height: 512px;
           display: grid;
-          position: relative;
         }
         #cem_template_loader > .dialog_wrapper:not(.has_sidebar) {
           grid-template-columns: auto;
@@ -312,6 +311,7 @@
           display: flex;
           align-items: center;
           gap: 5px;
+          cursor: pointer;
         }
         #load-texture * {
           cursor: pointer;
@@ -324,7 +324,9 @@
         }
         #cem-buttons > :disabled {
           opacity: 0.5;
-          pointer-events: none;
+          cursor: not-allowed;
+          background: var(--color-button);
+          color: var(--color-text) !important;
         }
         #cem-buttons > :first-child:not(:disabled) {
           background-color: var(--color-accent);
@@ -343,16 +345,25 @@
           display: flex;
           justify-content: end;
           margin-left: auto;
-        }
-        #cem-search > input {
-          width: min(100%, 256px);
-        }
-        #cem-search > i {
-          position: absolute;
-          right: 6px;
-          top: 50%;
-          transform: translateY(-50%);
-          pointer-events: none;
+          height: 30px;
+
+          > input {
+            width: min(100%, 256px);
+            padding-right: 32px;
+          }
+
+          > i {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+
+            &.active {
+              cursor: pointer;
+              pointer-events: initial;
+            }
+          }
         }
         #cem-description {
           min-width: min(100%, 256px);
@@ -365,6 +376,8 @@
           overflow-y: auto;
           padding: 0 8px 0 16px;
           margin-right: 8px;
+          scrollbar-width: initial;
+          scrollbar-color: initial;
         }
         .cem-models > div {
           min-width: 128px;
@@ -400,6 +413,7 @@
           line-height: 16px;
           margin: -2px 0 2px;
           text-transform: capitalize;
+          pointer-events: none;
         }
         .cem-spacer {
           display: flex;
@@ -440,7 +454,7 @@
                 <div id="cem-description">{{ categories[category]?.description }}</div>
                 <div id="cem-search">
                   <input type="text" placeholder="Search…" class="dark_bordered" v-model="search" ref="entry" @input="search = search.toLowerCase()">
-                  <i class="material-icons">search</i>
+                  <i class="material-icons" :class="{ active: search }" @click="search = ''; $refs.entry.focus()">{{ search ? "clear" : "search" }}</i>
                 </div>
               </div>
             </div>
@@ -570,8 +584,8 @@
       click: () => openLoader(e.name)
     }))
     BarItems.cem_template_loader.children.push("_", {
-      name: `v${modelData.version}`,
-      id: "cem_template_loader_version",
+      name: `Models v${modelData.version}`,
+      id: "cem_template_loader_models_version",
       icon: "info",
       click: () => openLoader()
     })
@@ -601,6 +615,8 @@
     if (!data) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
     const model = modelData.models[data.model ?? data.name]
     newProject(Formats.optifine_entity)
+    Project.name = data.file_name ?? data.name
+    Blockbench.setStatusBarText(data.name)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
     if (loadTexture) {
@@ -1165,6 +1181,10 @@
         flex-direction: column;
         max-height: 100%;
         overflow-y: auto;
+
+        .cem_animation_button {
+          height: initial
+        }
       }
       #cem_animation_editor {
         cursor: text;
@@ -1207,7 +1227,7 @@
         color: var(--color-dark);
       }
       #cem_animation_status_error {
-        background-color: var(--color-close);
+        background-color: var(--color-error);
         color: var(--color-light);
         display: none;
       }
@@ -1236,7 +1256,7 @@
         color: #a6e22e;
       }
       .cem_animation_error_line {
-        background-color: var(--color-close) !important;
+        background-color: var(--color-error) !important;
         color: var(--color-light) !important;
         position: relative;
         padding-right: 4px;
@@ -1248,7 +1268,7 @@
         left: 100%;
         border-top: 12px solid transparent;
         border-bottom: 12px solid transparent;
-        border-left: 12px solid var(--color-close);
+        border-left: 12px solid var(--color-error);
       }
       .spacer, .cem_animation_range input {
         flex: 1;
@@ -1267,7 +1287,7 @@
         height: 30px;
         box-sizing: content-box;
       }
-      .cem_animation_range > :nth-child(2) {
+      .cem_animation_range > input:first-of-type {
         flex: 1 1 0px;
         min-width: 40px;
       }
@@ -1314,7 +1334,7 @@
         background-color: var(--color-button);
         color: var(--color-subtle_text) !important;
       }
-      #panel_cem_animation>h3>label, #panel_cem_animation_controller>h3>label {
+      #panel_cem_animation > h3 > label, #panel_cem_animation_controller > h3 > label {
         white-space: nowrap;
         text-overflow: ellipsis;
       }
@@ -1328,7 +1348,7 @@
         flex-direction: column;
         gap: 8px;
       }
-      #cem_animation_controller_variables:not(:empty):before {
+      #cem_animation_controller_variables:not(:empty)::before {
         content: "";
         position: absolute;
         bottom: calc(100% + 10px);
@@ -1342,7 +1362,11 @@
         display: flex;
         align-items: center;
       }
-      #cem_animation_ranges>div{
+      #cem_animation_range_sliders {
+        min-width: 0;
+        flex: 1;
+      }
+      #cem_animation_ranges > div{
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -1686,7 +1710,7 @@
       if (ranges.size) {
         rangesSorted = [...ranges.entries()]
         rangesSorted.sort(((a, b) => b[0] - a[0]))
-        const rangeContainer = E("div").attr("id", "cem_animation_ranges").append(E("div").attr("id", "cem_animation_range_labels"), E("div").css("flex", "1")).css({
+        const rangeContainer = E("div").attr("id", "cem_animation_ranges").append(E("div").attr("id", "cem_animation_range_labels"), E("div").attr("id", "cem_animation_range_sliders")).css({
           display: "flex",
           gap: "8px"
         }).appendTo(controller)
@@ -2113,6 +2137,7 @@
             }])),
             onPageSwitch(page) {
               optifineAnimationDocumentation.dialog.content_vue.page = page
+              optifineAnimationDocumentation.dialog.content_vue.scrollToTop()
             }
           },
           lines: [`<style>
@@ -2121,8 +2146,6 @@
                 grid-template-rows: auto 0px;
                 min-height: min(100vh - 120px, 512px);
                 max-height: calc(100vh - 120px);
-                display: grid;
-                position: relative;
               }
 
               .dialog_content {
@@ -2162,6 +2185,8 @@
 
               pre {
                 width: 100%;
+                text-wrap: initial;
+                word-break: break-word;
               }
 
               .cem-doc-table-list td:first-child {
@@ -2206,13 +2231,16 @@
               page: tabs[0]?.name
             },
             methods: {
+              scrollToTop() {
+                this.container.scrollTop = 0
+              },
               reload() {
                 window.cemTemplateAnimationDocReloaded = true
                 plugin.reload()
               }
             },
             template: `
-              <div id="cem-container">
+              <div id="cem-container" ref="page">
                 <div v-if="connection?.failed" class="cem-overlay">
                   <h1>Connection Failed</h1>
                   <p>Failed to load CEM Animation documentation.</p>
@@ -2233,17 +2261,24 @@
                     </table>
                   </template>
                   <hr>
-                  <p>Documentation version: <span style="font-family:var(--font-code)">{{ version }}<span><br>Updated to: <span style="font-family:var(--font-code)">OptiFine {{ optifineVersion }}<span></p>
+                  <p style="display: grid; grid-template-columns: auto auto; column-gap: 8px;">
+                    <span>Documentation version:</span>
+                    <span style="font-family: var(--font-code);">v{{ version }}</span>
+                    <span>Updated to:</span>
+                    <span style="font-family:var(--font-code);">OptiFine {{ optifineVersion }}</span>
+                  </p>
                 </div>
               </div>
             `
           },
           onBuild() {
+            this.content_vue.container = this.object.querySelector(".dialog_content")
             this.object.querySelector("#cem-container").addEventListener("click", e => {
               if (e.target.classList.contains("cem-doc-tab-link")) {
                 this.content_vue.page = e.target.textContent
                 this.sidebar.page = e.target.textContent
                 this.sidebar.build()
+                this.content_vue.scrollToTop()
               }
             })
           }
