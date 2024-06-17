@@ -4,4 +4,7 @@ const three = THREE;
 const vue = Vue;
 // const bb = Blockbench;
 
-export { three, vue };
+// @ts-expect-error JSZip is on window
+const jszip = window.JSZip;
+
+export { three, vue, jszip };

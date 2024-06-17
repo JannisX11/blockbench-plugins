@@ -127,7 +127,23 @@ setups.push(() => {
       texture.updateChangesAfterEdit();
 
       Undo.finishEdit("Create Material Texture");
+
+      if (mat) {
+        texture.updateSource(generatePreviewImage(mat.getMaterial()));
+      }
     },
+  });
+
+  Blockbench.on("save_project", function generateMaterialThumbnail() {
+    Texture.all.map((texture) => {
+      if (!texture.material) {
+        return;
+      }
+
+      const mat = new PbrMaterial(texture.layers, texture.uuid);
+
+      texture.updateSource(generatePreviewImage(mat.getMaterial()));
+    });
   });
 
   MenuBar.addAction(registry.createMaterialTexture, "tools");

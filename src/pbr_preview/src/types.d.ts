@@ -65,5 +65,7 @@ export interface IRegistry {
   tonemappingSelect: BarSelect;
   unassignChannel: Action;
   userMaterialBrushPresets: Dialog;
+  exportUsdz: Action;
+  usdz: Codec;
   [key: string]: Deletable;
 }
