@@ -40,8 +40,9 @@ setups.push(() => {
       texture.extend({ material: true });
 
       const scope =
-        Texture.all.filter((t) => t.selected || t.multi_selected) ??
-        Texture.all;
+        Texture.all.filter(
+          (t) => (t.selected || t.multi_selected) && !t.material
+        ) ?? Texture.all;
 
       const selected = getSelectedTexture();
 

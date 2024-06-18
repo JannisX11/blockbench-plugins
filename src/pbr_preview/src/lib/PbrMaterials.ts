@@ -155,8 +155,8 @@ export default class PbrMaterial {
     const materialData = Project.pbr_materials[this._materialUuid];
 
     // Don't infer the channel if it has already been assigned to NA_CHANNEL
-    if (inference && !materialData && channel !== NA_CHANNEL) {
-      return this._scope.find((t) => regex?.test(t.name)) ?? null;
+    if (inference && !materialData?.length && channel !== NA_CHANNEL) {
+      return this._scope.find((t) => regex.test(t.name)) ?? null;
     }
 
     const textureUuid = materialData?.[channel];

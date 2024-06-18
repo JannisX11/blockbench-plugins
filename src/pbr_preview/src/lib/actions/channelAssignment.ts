@@ -20,6 +20,48 @@ const channelAssignmentActions: Record<IChannel["id"], Action> = {};
 
 const channelSelectActions: Record<IChannel["id"], Action> = {};
 
+const canShowChannelAssignment = () =>
+  Condition({
+    modes: ["edit", "paint"],
+    selected: {
+      texture: true,
+    },
+    project: true,
+    method() {
+      const selected = getSelectedTexture();
+
+      if (selected && !selected.material) {
+        return true;
+      }
+
+      return (
+        selected?.material === true &&
+        getSelectedLayer() !== null &&
+        Modes.paint
+      );
+    },
+  });
+
+const canUnassignChannel = () =>
+  Condition({
+    modes: ["paint", "edit"],
+    selected: {
+      texture: true,
+    },
+    method() {
+      const texture = getSelectedTexture();
+
+      if (texture?.material && Modes.edit) {
+        // Don't show Action on material textures in edit mode
+        return false;
+      }
+
+      const layer = getSelectedLayer() ?? texture;
+
+      return layer?.channel && layer.channel !== NA_CHANNEL;
+    },
+  });
+
 setups.push(() => {
   Object.entries(CHANNELS).forEach(([key, channel]) => {
     channelAssignmentActions[key] = new Action(`assign_channel_${key}`, {
@@ -27,18 +69,7 @@ setups.push(() => {
       name: `Assign to ${channel.label.toLocaleLowerCase()} channel`,
       description: `Assign the selected layer to the ${channel.label} channel`,
       category: "textures",
-      condition: {
-        selected: {
-          texture: true,
-        },
-        project: true,
-        method() {
-          return (
-            getSelectedTexture()?.material === true &&
-            getSelectedLayer() !== null
-          );
-        },
-      },
+      condition: canShowChannelAssignment,
       click() {
         const layer =
           TextureLayer.selected ?? (Project ? Project.selected_texture : null);
@@ -96,7 +127,7 @@ setups.push(() => {
         selected: {
           texture: true,
         },
-        modes: ["paint"],
+        modes: ["paint", "edit"],
         method() {
           const selected = getSelectedTexture();
           const layers = selected?.layers_enabled
@@ -118,12 +149,14 @@ setups.push(() => {
         }
 
         const layer = layers.find(
-          (layer: TextureLayer) => layer.channel === key
+          (layer: Texture | TextureLayer) => layer.channel === key
         );
 
         if (!layer) {
           return;
         }
+
+        Modes.options.paint.select();
 
         layer.select();
         layer.scrollTo();
@@ -150,17 +183,7 @@ setups.push(() => {
     name: "Unassign Channel",
     description: "Unassign the selected layer from the channel",
     category: "textures",
-    condition: {
-      selected: {
-        texture: true,
-      },
-      method() {
-        const layer =
-          TextureLayer.selected ?? (Project ? Project.selected_texture : null);
-
-        return layer?.channel && layer.channel !== NA_CHANNEL;
-      },
-    },
+    condition: canUnassignChannel,
     click() {
       const layer =
         TextureLayer.selected ?? (Project ? Project.selected_texture : null);
@@ -211,12 +234,7 @@ setups.push(() => {
   registry.openChannelMenu = new Action("pbr_channel_menu", {
     name: "Assign to PBR Channel",
     icon: "texture",
-    condition: {
-      modes: ["edit", "paint"],
-      selected: {
-        texture: true,
-      },
-    },
+    condition: () => canShowChannelAssignment() || canUnassignChannel(),
     click(event) {
       registry.channelMenu?.open(event as MouseEvent);
     },
@@ -231,12 +249,7 @@ setups.push(() => {
     name: "Assign to PBR Channel",
     description: "Assign the selected layer to a channel",
     category: "textures",
-    condition: {
-      modes: ["paint"],
-      selected: {
-        texture: true,
-      },
-    },
+    condition: canShowChannelAssignment,
     click(event) {
       registry.channelMenu?.open(event as MouseEvent);
     },
@@ -248,9 +261,17 @@ setups.push(() => {
     description: "Select a channel to view",
     category: "textures",
     condition: {
-      modes: ["paint"],
+      modes: ["edit", "paint"],
       selected: {
         texture: true,
+      },
+      method() {
+        const selected = getSelectedTexture();
+        const layers = selected?.layers_enabled ? selected.layers : Texture.all;
+
+        return layers.some((layer: Texture | TextureLayer) =>
+          Object.keys(CHANNELS).some((key) => layer.channel === key)
+        );
       },
     },
     click(event) {
