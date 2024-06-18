@@ -1,5 +1,5 @@
-**Create and view PBR textures in Blockbench. Exports in formats for labPBR
-(Java) and RenderDragon (Bedrock) shaders.**
+**Create and view PBR textures in Blockbench. Exports [USDZ](https://openusd.org/release/index.html) and in formats for labPBR
+(Java) or RenderDragon (Bedrock) shaders**
 
 > **_PBR:_ Physically based rendering**\
 > Read the
@@ -73,6 +73,10 @@
   output.
 - Save material brush presets to a collection.
 - Automatic PBR preview updates after every brush stroke.
+
+### Export USDZ Scenes
+
+- Adds new codec for exporting in USDZ format.
 
 ## Usage
 
