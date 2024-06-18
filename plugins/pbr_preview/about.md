@@ -168,10 +168,9 @@ Assigning a layer to a new channel will clear the layer's current channel.
 
 #### Finding Assigned Channels
 
-When in Paint mode, select a texture with material layers assigned to reveal the
-_Select PBR Channel_ menu button in the _PBR Controls_ panel. This menu lists
-the channels currently assigned by the selected texture. Click a channel in the
-menu to have it selected in the Layers panel.
+Select a texture with material layers assigned to reveal the _PBR Channels_
+panel. This panel displays the channels currently assigned in the selected
+texture. Click a channel in the menu to have it selected in the Layers panel.
 
 ### Material Brush Tool
 

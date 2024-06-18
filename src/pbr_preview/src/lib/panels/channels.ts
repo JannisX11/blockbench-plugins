@@ -1,6 +1,51 @@
 import type { IChannel } from "../../types";
-import { registry, setups, CHANNELS, NA_CHANNEL } from "../../constants";
+import {
+  registry,
+  setups,
+  CHANNELS,
+  NA_CHANNEL,
+  teardowns,
+} from "../../constants";
 import { getSelectedLayer, getSelectedTexture } from "../util";
+
+const filterLayers = (layer: Texture | TextureLayer) =>
+  layer.visible && layer.channel && layer.channel !== NA_CHANNEL;
+
+const getChannels = () => {
+  const selectedLayer = getSelectedLayer();
+
+  if (selectedLayer) {
+    return selectedLayer.texture.layers.filter(filterLayers);
+  }
+
+  const selectedTexture = getSelectedTexture();
+
+  if (!selectedTexture) {
+    return [];
+  }
+
+  return selectedTexture.layers_enabled
+    ? selectedTexture.layers.filter(filterLayers)
+    : Texture.all
+        .map((t) =>
+          t.layers_enabled
+            ? [...t.layers.filter(filterLayers)]
+            : [filterLayers(t) ? t : null]
+        )
+        .flat()
+        .filter(Boolean);
+};
+
+const events: EventName[] = [
+  "select_texture" as EventName,
+  "update_texture_selection" as EventName,
+  "finish_edit",
+  "add_texture",
+];
+
+const refresh = () => {
+  Panels.channels_panel.inside_vue.textures = getChannels();
+};
 
 setups.push(() => {
   registry.channelsPanelStyle = Blockbench.addCSS(/* css */ `
@@ -83,19 +128,21 @@ setups.push(() => {
       modes: ["paint", "edit"],
     },
     toolbars: [
-      new Toolbar("channel_assignment_toolbar", {
-        id: "channel_assignment_toolbar",
-        children: ["create_material_texture", "show_channel_menu"],
-        name: "PBR Channel Controls",
-      }),
+      // new Toolbar("channel_assignment_toolbar", {
+      //   id: "channel_assignment_toolbar",
+      //   children: ["create_material_texture", "show_channel_menu"],
+      //   name: "PBR Channel Controls",
+      // }),
     ],
     component: {
       name: "ChannelsPanel",
       data(): {
         channels: Record<string, IChannel>;
+        textures: Array<Texture | TextureLayer>;
       } {
         return {
           channels: CHANNELS,
+          textures: [],
         };
       },
       methods: {
@@ -119,35 +166,6 @@ setups.push(() => {
             texture.img?.src ??
             `data:image/png;base64,${texture.canvas.toDataURL()}`
           );
-        },
-      },
-      computed: {
-        textures() {
-          const filterLayers = (layer: Texture | TextureLayer) =>
-            layer.visible && layer.channel && layer.channel !== NA_CHANNEL;
-
-          const selectedLayer = getSelectedLayer();
-
-          if (selectedLayer) {
-            return selectedLayer.texture.layers.filter(filterLayers);
-          }
-
-          const selectedTexture = getSelectedTexture();
-
-          if (!selectedTexture) {
-            return [];
-          }
-
-          return selectedTexture.layers_enabled
-            ? selectedTexture.layers.filter(filterLayers)
-            : Texture.all
-                .map((t) =>
-                  t.layers_enabled
-                    ? [...t.layers.filter(filterLayers)]
-                    : [filterLayers(t) ? t : null]
-                )
-                .flat()
-                .filter(Boolean);
         },
       },
       template: /* html */ `
@@ -191,5 +209,13 @@ setups.push(() => {
     },
     insert_after: "layers",
     insert_before: "color",
+  });
+
+  Blockbench.on(events.join(" ") as EventName, refresh);
+});
+
+teardowns.push(() => {
+  events.forEach((event) => {
+    Blockbench.removeListener(event, refresh);
   });
 });

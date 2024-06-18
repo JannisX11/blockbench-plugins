@@ -18,8 +18,6 @@ import { getSelectedLayer, getSelectedTexture } from "../util";
  */
 const channelAssignmentActions: Record<IChannel["id"], Action> = {};
 
-const channelSelectActions: Record<IChannel["id"], Action> = {};
-
 const canShowChannelAssignment = () =>
   Condition({
     modes: ["edit", "paint"],
@@ -117,62 +115,11 @@ setups.push(() => {
         applyPbrMaterial();
       },
     });
-
-    channelSelectActions[key] = new Action(`select_channel_${key}`, {
-      icon: channel.icon ?? "tv_options_edit_channels",
-      name: channel.label ?? key,
-      description: `Select the ${channel.label} channel`,
-      condition: {
-        project: true,
-        selected: {
-          texture: true,
-        },
-        modes: ["paint", "edit"],
-        method() {
-          const selected = getSelectedTexture();
-          const layers = selected?.layers_enabled
-            ? selected.layers
-            : Texture.all;
-
-          return layers.some(
-            (layer: Texture | TextureLayer) => layer.channel === key
-          );
-        },
-      },
-      click() {
-        const layers = Texture.selected?.layers_enabled
-          ? Texture.selected.layers
-          : Texture.all;
-
-        if (!layers || !layers.length) {
-          return;
-        }
-
-        const layer = layers.find(
-          (layer: Texture | TextureLayer) => layer.channel === key
-        );
-
-        if (!layer) {
-          return;
-        }
-
-        Modes.options.paint.select();
-
-        layer.select();
-        layer.scrollTo();
-      },
-    });
-
-    channelSelectActions[key].addLabel(true, () => channel.label ?? key);
   });
 });
 
 teardowns.push(() => {
-  const actions = [
-    ...Object.values(channelAssignmentActions),
-    ...Object.values(channelSelectActions),
-  ];
-  actions.forEach((action) => {
+  Object.values(channelAssignmentActions).forEach((action) => {
     action.delete();
   });
 });
@@ -226,11 +173,6 @@ setups.push(() => {
     }
   );
 
-  registry.channelSelectionMenu = new Menu(
-    "channel_selection_menu",
-    Object.keys(CHANNELS).map((key) => `select_channel_${key}`)
-  );
-
   registry.openChannelMenu = new Action("pbr_channel_menu", {
     name: "Assign to PBR Channel",
     icon: "texture",
@@ -252,30 +194,6 @@ setups.push(() => {
     condition: canShowChannelAssignment,
     click(event) {
       registry.channelMenu?.open(event as MouseEvent);
-    },
-  });
-
-  registry.showChannelSelectionMenu = new Action("show_channel_select_menu", {
-    icon: "tv_options_edit_channels",
-    name: "Select PBR Channel",
-    description: "Select a channel to view",
-    category: "textures",
-    condition: {
-      modes: ["edit", "paint"],
-      selected: {
-        texture: true,
-      },
-      method() {
-        const selected = getSelectedTexture();
-        const layers = selected?.layers_enabled ? selected.layers : Texture.all;
-
-        return layers.some((layer: Texture | TextureLayer) =>
-          Object.keys(CHANNELS).some((key) => layer.channel === key)
-        );
-      },
-    },
-    click(event) {
-      registry.channelSelectionMenu?.open(event as MouseEvent);
     },
   });
 

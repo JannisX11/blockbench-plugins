@@ -57,7 +57,7 @@ setups.push(() => {
     category: "file",
     name: "Export USDZ",
     description: "Exports the current model as a USDZ file",
-    icon: "file_download",
+    icon: "stacks",
     async click() {
       if (!usdz) {
         return;
