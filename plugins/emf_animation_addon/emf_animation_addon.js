@@ -170,7 +170,7 @@
 
             animDocs = {
                 name: "EMF addon",
-                icon: "keyboard_capslock",
+                icon: "fa-difference",
                 elements: [
                     {
                         "type": "heading",
