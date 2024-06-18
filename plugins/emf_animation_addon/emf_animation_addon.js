@@ -170,7 +170,7 @@
 
             animDocs = {
                 name: "EMF addon",
-                icon: "fa-difference",
+                icon: "difference",
                 elements: [
                     {
                         "type": "heading",
