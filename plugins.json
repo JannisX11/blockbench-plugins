@@ -436,7 +436,7 @@
 		"icon": "fa-compress-arrows-alt",
 		"author": "McHorse",
 		"description": "Stitch multiple textures into a single texture",
-		"version": "1.0.5",
+		"version": "1.0.6",
 		"min_version": "4.8.0",
 		"tags": ["Texture"],
 		"variant": "both",
