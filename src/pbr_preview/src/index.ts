@@ -7,7 +7,12 @@
 /// <reference path="../../../types/index.d.ts" />
 /// <reference path="./types.d.ts" />
 
-import { registry, setups, teardowns } from "./constants";
+import {
+  registry,
+  setups,
+  teardowns,
+  PLUGIN_VERSION as version,
+} from "./constants";
 import "./lib/properties";
 import "./lib/actions";
 import "./lib/tools";
@@ -33,11 +38,11 @@ import { disablePbr } from "./lib/disablePbr";
 
   BBPlugin.register("pbr_preview", {
     // @ts-expect-error Version does exist in PluginOptions
-    version: "1.1.0",
+    version,
     title: "PBR Tools",
     author: "Jason J. Gardner",
     description:
-      "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+      "Create and view PBR materials in Blockbench. Export USDZ scenes and textures for Java or RenderDragon shaders.",
     tags: ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "PBR"],
     icon: "icon.png",
     variant: "both",

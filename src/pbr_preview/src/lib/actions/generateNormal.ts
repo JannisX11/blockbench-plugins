@@ -4,38 +4,51 @@ import PbrMaterial from "../PbrMaterials";
 import { getSelectedLayer, getSelectedTexture } from "../util";
 import { createNormalMap, createAoMap } from "../normalMap";
 
+const generateNormal = (
+  e: Event,
+  orientation: "OpenGL" | "DirectX" = "DirectX"
+) => {
+  const texture: Texture | TextureLayer =
+    getSelectedLayer() ?? getSelectedTexture() ?? Texture.getDefault();
+
+  if (!texture) {
+    return;
+  }
+
+  const normalMap = createNormalMap(texture, orientation, false);
+
+  if (!normalMap) {
+    Blockbench.showQuickMessage("Failed to generate normal map", 2000);
+    return;
+  }
+
+  normalMap.select(e);
+
+  new PbrMaterial(
+    texture instanceof Texture && texture.layers_enabled
+      ? texture.layers
+      : null,
+    texture.uuid
+  ).saveTexture(CHANNELS.normal, normalMap);
+
+  Blockbench.showQuickMessage("Normal map generated", 2000);
+};
+
 setups.push(() => {
-  registry.generateNormal = new Action("generate_normal", {
+  registry.generateDirectXNormal = new Action("generate_dx_normal", {
     icon: CHANNELS.normal.icon ?? "altitude",
-    name: "Generate Normal Map",
-    description: "Generates a normal map from the height map",
+    name: "Generate DirectX Normal Map",
+    description: "Generates a DirectX normal map from the height map",
     condition: () => (getSelectedLayer() ?? getSelectedTexture()) !== null,
-    click(e) {
-      const texture: Texture | TextureLayer =
-        getSelectedLayer() ?? getSelectedTexture() ?? Texture.getDefault();
+    click: (e) => generateNormal(e),
+  });
 
-      if (!texture) {
-        return;
-      }
-
-      const normalMap = createNormalMap(texture);
-
-      if (!normalMap) {
-        Blockbench.showQuickMessage("Failed to generate normal map", 2000);
-        return;
-      }
-
-      normalMap.select(e);
-
-      new PbrMaterial(
-        texture instanceof Texture && texture.layers_enabled
-          ? texture.layers
-          : null,
-        texture.uuid
-      ).saveTexture(CHANNELS.normal, normalMap);
-
-      Blockbench.showQuickMessage("Normal map generated", 2000);
-    },
+  registry.generateOpenGlNormal = new Action("generate_opengl_normal", {
+    icon: CHANNELS.normal.icon ?? "altitude",
+    name: "Generate OpenGL Normal Map",
+    description: "Generates an OpenGL normal map from the height map",
+    condition: () => (getSelectedLayer() ?? getSelectedTexture()) !== null,
+    click: (e) => generateNormal(e, "OpenGL"),
   });
 
   registry.generateAo = new Action("generate_ao", {
@@ -91,10 +104,20 @@ setups.push(() => {
     },
   });
 
+  registry.generateNormal = new Action("generate_normal", {
+    children: [registry.generateDirectXNormal, registry.generateOpenGlNormal],
+    name: "Generate Normal Map",
+    description: "Generates a normal map from the height map",
+    condition: () => (getSelectedLayer() ?? getSelectedTexture()) !== null,
+    click() {},
+    icon: CHANNELS.normal.icon ?? "altitude",
+  });
+
   MenuBar.addAction(registry.generateNormal, "tools");
   MenuBar.addAction(registry.generateAo, "tools");
 });
 
 teardowns.push(() => {
   MenuBar.removeAction(`tools.generate_normal`);
+  MenuBar.removeAction(`tools.generate_ao`);
 });

@@ -32,5 +32,20 @@
                 ]
             }
         ]
+    },
+    "1.2.0": {
+        "title": "1.2.0",
+        "date": "2024-06-20",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "USDZ Export",
+                "list": [
+                    "Added USDZ export option",
+                    "Added normal map orientation options",
+                    "Created `.bbmat` codec"
+                ]
+            }
+        ]
     }
 }

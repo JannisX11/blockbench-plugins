@@ -1,8 +1,12 @@
-import { registry, setups, teardowns, CHANNELS } from "../../constants";
+import {
+  registry,
+  setups,
+  teardowns,
+  CHANNELS,
+  BBMAT_VERSION,
+  PLUGIN_VERSION,
+} from "../../constants";
 import type { Channel, IBbMat } from "../../types";
-import PbrMaterial from "../PbrMaterials";
-
-const FORMAT_VERSION = "1.0.0";
 
 setups.push(() => {
   registry.bbmat = new Codec("material", {
@@ -13,7 +17,7 @@ setups.push(() => {
       extensions: ["bbmat"],
       type: "json",
     },
-    compile(options) {
+    compile() {
       if (!Texture.selected?.material || !Texture.selected?.layers_enabled) {
         return;
       }
@@ -24,15 +28,8 @@ setups.push(() => {
         return [channel, map];
       });
 
-      const pbrMaterial = new PbrMaterial(
-        Texture.selected.layers,
-        Texture.selected.uuid
-      );
-
-      channels.push(["preview", pbrMaterial.renderMaterialPreview()]);
-
       return JSON.stringify({
-        version: FORMAT_VERSION,
+        version: BBMAT_VERSION,
         channels: Object.fromEntries(channels),
       });
     },
@@ -40,7 +37,19 @@ setups.push(() => {
       content = typeof content === "string" ? JSON.parse(content) : content;
       const version = content.version;
 
-      if (version !== FORMAT_VERSION) {
+      if (version !== BBMAT_VERSION) {
+        Blockbench.showMessageBox(
+          {
+            title: "Invalid Blockbench Material Version",
+            message: `The material file "${path}" is not compatible with version ${PLUGIN_VERSION} of the PBR plugin.`,
+            buttons: ["OK"],
+            confirm: 0,
+            width: 400,
+            cancel: 0,
+            checkboxes: {},
+          },
+          () => null
+        );
         return {};
       }
 
@@ -146,26 +155,7 @@ setups.push(() => {
       },
     },
     click() {
-      if (!registry.bbmat?.write || !registry.bbmat?.compile) {
-        return;
-      }
-
-      //   const content = registry.bbmat.compile();
-
-      //   if (isApp && Project) {
-      //     registry.bbmat.write(
-      //       content,
-      //       Project.save_path.replace(
-      //         /\/[^\\\/]\.bbmodel$/i,
-      //         `/${Texture.selected.name ?? "material"}.bbmat`
-      //       )
-      //     );
-      //     return;
-      //   }
-
-      if (registry.bbmat.export) {
-        registry.bbmat.export();
-      }
+      registry.bbmat?.export?.();
     },
   });
 

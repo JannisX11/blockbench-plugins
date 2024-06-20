@@ -78,6 +78,10 @@
 
 - Adds new codec for exporting in USDZ format.
 
+### `.bbmat` Codec
+
+Reuse and share PBR materials in Blockbench with this custom file format.
+
 ## Usage
 
 ### PBR Controls
@@ -195,3 +199,8 @@ Open the _Material Brush Presets_ dialog to define and save new brush settings,
 or to select and apply existing presets. A material preview is generated upon
 saving a preset. Select a preset to populate its values in the Material Brush
 input controls.
+
+### `.bbmat` Files
+- Import Blockbench PBR materials by dropping a `.bbmat` file into a Blockbench project.
+  - The import option is also available in the _File_ menu.
+- Export existing materials from texture content menu to save its assigned channels together in one file.

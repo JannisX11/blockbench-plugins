@@ -17,7 +17,7 @@ export class MaterialBrush {
         Object.keys(CHANNELS).map((key) => [
           key,
           CHANNELS[key].default ?? new THREE.Color(0xffffff00),
-        ]),
+        ])
       ),
       ...colors,
     };
@@ -65,8 +65,6 @@ export class MaterialBrush {
       [CHANNELS.roughness.id]: MaterialBrush.makeLinearColor(roughnessValue),
       [CHANNELS.emissive.id]: new THREE.Color(emissiveValue ?? defaultEmissive),
       [CHANNELS.height.id]: MaterialBrush.makeLinearColor(heightValue),
-      [CHANNELS.normal.id]:
-        CHANNELS.normal.default ?? new THREE.Color("#8080ff"),
     };
 
     return new MaterialBrush({ colors });
