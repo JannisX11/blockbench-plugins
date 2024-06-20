@@ -30,6 +30,11 @@ export interface IPbrMaterials {
   };
 }
 
+export interface IBbMat {
+  version: number;
+  channels: Record<Channel | "preview", string>;
+}
+
 export interface IRegistry {
   bakeTexturesAction: Action;
   bakeTexturesDialog: Dialog;
@@ -67,5 +72,8 @@ export interface IRegistry {
   userMaterialBrushPresets: Dialog;
   exportUsdz: Action;
   usdz: Codec;
+  bbmat: Codec;
+  bbMatExport: Action;
+  bbMatImport: Action;
   [key: string]: Deletable;
 }

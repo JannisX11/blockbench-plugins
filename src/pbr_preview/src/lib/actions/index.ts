@@ -9,3 +9,4 @@ import "./toggleLights";
 import "./togglePbr";
 import "./tonemapping";
 import "./usdz";
+import "../io/bbmat";

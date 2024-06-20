@@ -85,6 +85,7 @@ setups.push(() => {
 
       // Create PBR channels as texture layers for the new texture
       const layers = Object.keys(channels)
+        .reverse()
         .map((key) => {
           const channel = CHANNELS[key];
           const channelTexture = mat?.findTexture(channel, true);
