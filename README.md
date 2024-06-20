@@ -65,6 +65,14 @@ In order to submit your plugin, you need to meet a few requirements:
 
 Once you are ready to submit your plugin, create a pull request.
 
+## Updates
+
+Updates to plugins can be submitted via pull request.
+
+In order for the plugin to auto update for users who already have it installed, the version number needs to be increased both in the plugin file and in plugins.json.
+
+Optionally, a changelog can indicate what changed in a given update. See [Current structure](#current-structure).
+
 
 ## Third party contributions
 
