@@ -1,0 +1,84 @@
+
+#BAMO .dialog_content {
+    margin: 0;
+} 
+
+#BAMO .wizardWrapper {
+    display: flex; 
+    flex-direction: row;
+    height: 100%;
+} 
+
+#BAMO .wizardPage {
+    width: 100%; 
+    padding: 12px 20px;
+} 
+
+#BAMO .headerLabel {
+    font-size: 20px; 
+    display: inline-block
+} 
+
+#BAMO .headerDescription {
+    color: white;
+} 
+
+#BAMO input[type='text'] {
+    display: block; 
+    width: 100%; 
+    height: auto; 
+    padding: 4px 8px; 
+    border: 1px solid black;
+} 
+
+#BAMO input[type='number']{
+    display: inline-block; 
+    width: 50px; 
+    height: auto; 
+    border: 1px solid black; 
+    padding-left: 4px; 
+    margin-right: 8px; 
+    text-align: right;
+} 
+
+#BAMO input[type='checkbox'] {
+    padding-right: 8px;
+} 
+
+#BAMO select {
+    width: 100%; 
+    height: auto; 
+    padding: 4px 8px;
+    border: 1px solid black; 
+} 
+
+#BAMOsideBar {
+    border-right: 2px solid black;
+    width: 175px;
+} 
+
+#BAMOsideBar li {
+    width: 100%; 
+    padding: 8px 20px; 
+    cursor: pointer;
+} 
+
+#BAMOsideBar li.selected {
+    width: 100%; 
+    padding: 8px 20px; 
+    border-right: 4px solid green; 
+    cursor: default;
+    background-color: gray;
+} 
+
+#BAMOsideBar li.sideBarHeader {
+    width: 100%;
+    padding: 2px 10px;
+    font-size: 12px;
+    cursor: default;
+}
+
+ul.settingsList li {
+    padding: 8px 0;
+}
+	
