@@ -25,5 +25,18 @@
 				]
 			}
 		]
+	},
+	"1.0.6": {
+		"title": "1.0.6",
+		"date": "2024-06-19",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Fixed UV coordinates broken in Java Block/Item"
+				]
+			}
+		]
 	}
 }
