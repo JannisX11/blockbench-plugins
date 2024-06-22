@@ -74,7 +74,6 @@ setups.push(() => {
       [THREE.LinearToneMapping]: "Linear",
       [THREE.ReinhardToneMapping]: "Reinhard",
       [THREE.CineonToneMapping]: "Cineon",
-      [THREE.NeutralToneMapping]: "Neutral",
       [THREE.ACESFilmicToneMapping]: "ACES",
     },
     onChange({ value }) {
