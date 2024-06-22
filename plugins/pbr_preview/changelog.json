@@ -1,0 +1,51 @@
+{
+    "1.0.0": {
+        "title": "1.0.0",
+        "date": "2024-05-25",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "PBR plugin",
+                "list": [
+                    "Initial release 🚀"
+                ]
+            }
+        ]
+    },
+    "1.1.0": {
+        "title": "1.1.0",
+        "date": "2024-06-10",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "Java Support",
+                "list": [
+                    "Added labPBR export option",
+                    "Added labPBR texture decoding"
+                ]
+            },
+            {
+                "title": "Material Brush",
+                "list": [
+                    "Added material brush tool",
+                    "Added material brush preset dialog"
+                ]
+            }
+        ]
+    },
+    "1.2.0": {
+        "title": "1.2.0",
+        "date": "2024-06-20",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "USDZ Export",
+                "list": [
+                    "Added USDZ export option",
+                    "Added normal map orientation options",
+                    "Created `.bbmat` codec"
+                ]
+            }
+        ]
+    }
+}
