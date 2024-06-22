@@ -86,7 +86,8 @@ export default class PbrMaterial {
       aoMap: this.getTexture(CHANNELS.ao),
       bumpMap: this.getTexture(CHANNELS.height),
       normalMap,
-      normalScale: new THREE.Vector2(-1, 1),
+      // TODO: Use project settings to determine if normal map should be flipped
+      //normalScale: new THREE.Vector2(-1, 1),
       metalnessMap,
       metalness: metalnessMap ? 1 : 0,
       roughnessMap,

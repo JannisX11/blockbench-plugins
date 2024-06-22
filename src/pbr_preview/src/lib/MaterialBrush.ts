@@ -65,6 +65,9 @@ export class MaterialBrush {
       [CHANNELS.roughness.id]: MaterialBrush.makeLinearColor(roughnessValue),
       [CHANNELS.emissive.id]: new THREE.Color(emissiveValue ?? defaultEmissive),
       [CHANNELS.height.id]: MaterialBrush.makeLinearColor(heightValue),
+      // TODO: Add normal map color input
+      // [CHANNELS.normal.id]:
+      //   CHANNELS.normal.default ?? new THREE.Color("#8080ff"),
     };
 
     return new MaterialBrush({ colors });

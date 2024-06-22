@@ -64,7 +64,7 @@ function applyToMesh(
     }
   });
 
-  return updateFaces(applied);
+  return applied;
 }
 
 function applyToCube(
@@ -82,7 +82,7 @@ function applyToCube(
     }
   });
 
-  return updateFaces(applied);
+  return applied;
 }
 
 /**
@@ -98,16 +98,20 @@ export const applyPbrMaterial = (
     return;
   }
 
+  const appliedTextures = Project.elements.map(
+    (item) =>
+      (item instanceof Mesh && applyToMesh(item, materialParams)) ||
+      (item instanceof Cube && applyToCube(item, materialParams))
+  );
+
+  const allTextures = appliedTextures.reduce(
+    (acc, val) => ({ ...acc, ...val }),
+    {}
+  );
+
   // @ts-expect-error - Property 'pbr_active' does not exist on type 'Project'
   Project.pbr_active =
-    Texture.all.length > 0 &&
-    Project.elements
-      .map(
-        (item) =>
-          (item instanceof Mesh && applyToMesh(item, materialParams)) ||
-          (item instanceof Cube && applyToCube(item, materialParams))
-      )
-      .filter(Boolean).length > 0;
+    Texture.all.length > 0 && allTextures && updateFaces(allTextures);
 };
 
 export const debounceApplyPbrMaterial = (wait = 100) =>
