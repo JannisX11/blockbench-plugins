@@ -1,0 +1,76 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2022-06-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2022-06-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated the plugin about"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2022-10-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Stored data is now removed when uninstalling the plugin"
+        ]
+      }
+    ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2023-01-19",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Updated for Blockbench 4.6"
+        ]
+      }
+    ]
+  },
+  "2.0.0": {
+    "title": "2.0.0",
+    "date": "2024-06-13",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added a live colour palette preview",
+          "Added a new \"Brightness Range\" slider",
+          "Added a new \"Colour Offset\" slider",
+          "Added a toggle to limit the ranges to smaller ones, making it easier to be more precise"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Rewritten from the ground up"
+        ]
+      }
+    ]
+  }
+}

@@ -232,6 +232,10 @@
         texture.uv_width = w;
         texture.uv_height = h;
 
+        /* Required to work in Java Block/Item */
+        Project.texture_width = w;
+        Project.texture_height = h;
+
         Cube.all.forEach(cube => 
         {
             var toApplySides = [];
@@ -324,7 +328,7 @@
         icon: 'fa-compress-arrows-alt',
         author: 'McHorse',
         description: 'Stitch multiple textures into a single texture',
-        version: '1.0.5',
+        version: '1.0.6',
         min_version: "4.8.0",
         tags: ["Texture"],
         variant: 'both',
