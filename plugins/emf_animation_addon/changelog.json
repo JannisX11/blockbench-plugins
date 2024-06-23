@@ -11,5 +11,18 @@
         ]
       }
     ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-06-23",
+    "author": "Traben & Ewan Howell",
+    "categories": [
+      {
+        "title": "Doc update",
+        "list": [
+          "minor icon change in doc where the cem template loader icon was used"
+        ]
+      }
+    ]
   }
 }
