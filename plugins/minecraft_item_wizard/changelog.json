@@ -1,0 +1,22 @@
+{
+	"1.1.0": {
+		"title": "1.1.0",
+		"date": "2024-06-28",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Enchantable Functionality"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed typo in the list of armor slots",
+					"Made labels for armor slots more clear"
+				]
+			}
+		]
+	}
+}
