@@ -353,6 +353,21 @@
 		"creation_date": "2024-01-20",
 		"has_changelog": true
 	},
+	"resource_pack_utilities": {
+		"title": "Resource Pack Utilities",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "A collection of utilities to assist with resource pack creation.",
+		"tags": ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
+		"version": "1.0.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/resource_pack_utilities",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Resource Pack Utilities]",
+		"creation_date": "2024-06-29",
+		"has_changelog": true
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",

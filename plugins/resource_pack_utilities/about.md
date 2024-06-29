@@ -1,0 +1,87 @@
+<div id="about-content">
+  <p>This plugin contains a collection of utilities to assist with resource pack creation.</p>
+  <h2>How to use</h2>
+  <p>To use this plugin, go <strong>Tools > Resource Pack Utilities</strong>, then select the utility you would like to use.</p>
+  <h2>Utilities</h2>
+  <ul>
+        <li>
+      <h3 style="margin-bottom: -4px; font-weight: 600;">CIT Optimiser</h3>
+      <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
+    </li>
+    <li>
+      <h3 style="margin-bottom: -4px; font-weight: 600;">JSON Optimiser</h3>
+      <p>JSON Optimiser is a tool that will go through all JSON files in a folder and optimise them to be as small as possible, minifying them and removing any unnecessary data.</p>
+    </li>
+    <li>
+      <h3 style="margin-bottom: -4px; font-weight: 600;">Lang Stripper</h3>
+      <p>Lang Stripper is a tool that will go through all the language files in an resource pack and remove any entries that have not been modified.</p>
+    </li>
+    <li>
+      <h3 style="margin-bottom: -4px; font-weight: 600;">Pack Cleaner</h3>
+      <p>Pack Cleaner is a tool that will go through all the files in a resource pack and compare them against the vanilla assets, removing them if they are unmodified.</p>
+    </li>
+    <li>
+      <h3 style="margin-bottom: -4px; font-weight: 600;">Pack Creator</h3>
+      <p>Pack Creator is a tool that allows you to create template resource packs, as well as get the vanilla textures, models, sounds, etc…</p>
+    </li>
+  </ul>
+</div>
+<style>
+  .about {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #about-content {
+    overflow-y: auto;
+    min-height: 128px;
+  }
+  #about-markdown-links {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 20px 0;
+  }
+  #about-markdown-links > a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    text-decoration: none;
+    flex-grow: 1;
+    flex-basis: 0;
+    color: var(--color-subtle_text);
+    text-align: center;
+  }
+  #about-markdown-links > a:hover {
+    background-color: var(--color-accent);
+    color: var(--color-light);
+  }
+  #about-markdown-links > a > i {
+    font-size: 32px;
+    width: 100%;
+    max-width: initial;
+    height: 32px;
+    text-align: center;
+  }
+  #about-markdown-links > a:hover > i {
+    color: var(--color-light) !important;
+  }
+  #about-markdown-links > a > p {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
+</style>
+<div id="about-markdown-links">
+  <a href="https://ewanhowell.com/">
+    <i class="material-icons icon" style="color: rgb(51, 227, 142);">language</i>
+    <p>By Ewan Howell</p>
+  </a>
+  <a href="https://discord.ewanhowell.com/">
+    <i class="fa_big icon fab fa-discord" style="color: rgb(114, 127, 255);"></i>
+    <p>Discord Server</p>
+  </a>
+</div>
