@@ -6,7 +6,7 @@
         author: "Traben & Ewan Howell",
         description: "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
-        version: "1.0.0",
+        version: "1.0.1",
         min_version: "4.9.0",
         variant: "both",
         dependencies: ["cem_template_loader"],
@@ -170,7 +170,7 @@
 
             animDocs = {
                 name: "EMF addon",
-                icon: "keyboard_capslock",
+                icon: "difference",
                 elements: [
                     {
                         "type": "heading",
