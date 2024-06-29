@@ -4,7 +4,7 @@
   <p>To use this plugin, go <strong>Tools > Resource Pack Utilities</strong>, then select the utility you would like to use.</p>
   <h2>Utilities</h2>
   <ul>
-        <li>
+    <li>
       <h3 style="margin-bottom: -4px; font-weight: 600;">CIT Optimiser</h3>
       <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
     </li>
