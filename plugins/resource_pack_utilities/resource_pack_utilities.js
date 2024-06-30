@@ -10,10 +10,6 @@
   const icon = "construction"
   const description = "A collection of utilities to assist with resource pack creation."
 
-  const releasePattern = new RegExp("^[\\d\\.]+$")
-  const invalidDirPattern = new RegExp('[\\\\/:*?"<>|`]')
-  const simpleFilePattern = new RegExp("\\.(fsh|vsh|glsl|txt|ogg|zip|icns)$")
-
   const manifest = {
     latest: {},
     versions: []
@@ -39,7 +35,7 @@
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
     repository: `https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/${id}`,
     bug_tracker: `https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[${name}]`,
-    creation_date: "2024-06-29",
+    creation_date: "2024-07-01",
     has_changelog: true,
     async onload() {
       storage = JSON.parse(localStorage.getItem(id) ?? "{}")
@@ -316,6 +312,10 @@
               display: flex;
               gap: 16px;
               flex-direction: column;
+
+              > .component-checkboxRow + .component-checkboxRow {
+                margin-top: -16px;
+              }
             }
 
             .row {
@@ -575,7 +575,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "langStripper"
+      // dialog.content_vue.utility = "batchExporter"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -587,6 +587,8 @@
       document.getElementById(`${id}-processing-styles`)?.remove()
     }
   })
+
+  // Functions
 
   function save() {
     localStorage.setItem(id, JSON.stringify(storage))
@@ -602,6 +604,11 @@
         yield res
       }
     }
+  }
+
+  async function listFiles(dir) {
+    const files = await fs.promises.readdir(dir, { withFileTypes: true })
+    return files.filter(e => e.isFile()).map(e => e.name)
   }
 
   const sizes = ["B", "KB", "MB", "GB", "TB"]
@@ -902,6 +909,38 @@
       return storage.favourites.findIndex(e => e === a.id) - storage.favourites.findIndex(e => e === b.id)
     })
   }
+
+  // Constants
+
+  const releasePattern = new RegExp("^[\\d\\.]+$")
+  const invalidDirPattern = new RegExp('[\\\\/:*?"<>|`]')
+  const simpleFilePattern = new RegExp("\\.(fsh|vsh|glsl|txt|ogg|zip|icns)$")
+
+  const batchExporterFormats = Object.fromEntries(Object.entries(Formats).filter(([id, format]) => format.codec?.compile && format.codec.extension && format.codec.extension !== "bbmodel").map(e => [e[0], {
+    name: e[1].name,
+    type: e[1].codec?.extension
+  }]))
+
+  const batchExporterSpecialFormats = ["gltf", "obj", "fbx", "collada"]
+
+  Object.assign(batchExporterFormats, {
+    gltf: {
+      name: "glTF",
+      type: "gltf"
+    },
+    obj: {
+      name: "OBJ",
+      type: "obj"
+    },
+    fbx: {
+      name: "FBX",
+      type: "fbx"
+    },
+    collada: {
+      name: "Collada (dae)",
+      type: "dae"
+    }
+  })
 
   const components = {
     folderSelector: {
@@ -1212,7 +1251,7 @@
             background-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
           }
 
-          .warning {
+          .warn {
             background-color: color-mix(in srgb, var(--color-warning) 25%, transparent);
           }
 
@@ -1381,6 +1420,28 @@
           <input type="checkbox" v-model="snapshots" @change="change">
           <div>Snapshots</div>
         </label>
+      `
+    },
+    selectRow: {
+      props: ["value", "options", "width"],
+      watch: {
+        value(val) {
+          this.$emit("input", val)
+        }
+      },
+      styles: `
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        bb-select {
+          flex: 1;
+          cursor: pointer;
+        }
+      `,
+      template: `
+        <div :style="{ width: width ? width.toString() + 'px' : 'initial' }"><slot></slot>:</div>
+        <select-input v-model="value" :options="options" />
       `
     }
   }
@@ -1699,12 +1760,10 @@
               <div class="col spacer">
                 <h3>Folder to Optimise:</h3>
                 <folder-selector v-model="folder">the folder to optimise the JSON of</folder-selector>
-                <div>
-                  <checkbox-row v-model="types.json">Optimise <code>.json</code> files</checkbox-row>
-                  <checkbox-row v-model="types.mcmeta">Optimise <code>.mcmeta</code> files</checkbox-row>
-                  <checkbox-row v-model="types.jem">Optimise <code>.jem</code> files</checkbox-row>
-                  <checkbox-row v-model="types.jpm">Optimise <code>.jpm</code> files</checkbox-row>
-                </div>
+                <checkbox-row v-model="types.json">Optimise <code>.json</code> files</checkbox-row>
+                <checkbox-row v-model="types.mcmeta">Optimise <code>.mcmeta</code> files</checkbox-row>
+                <checkbox-row v-model="types.jem">Optimise <code>.jem</code> files</checkbox-row>
+                <checkbox-row v-model="types.jpm">Optimise <code>.jpm</code> files</checkbox-row>
               </div>
               <ignore-list v-model="ignoreList" />
             </div>
@@ -2092,20 +2151,16 @@
                 <input-row v-model="name" placeholder="Enter name…" width="120" :required="attemptedStart && !name.length">Pack Name</input-row>
                 <input-row v-model="description" placeholder="Enter description…" width="120">Pack Description</input-row>
                 <version-selector v-model="version" />
-                <div>
-                  <checkbox-row v-model="assets" @input="assetsToggle">Import vanilla assets</checkbox-row>
-                  <checkbox-row v-model="objects" :disabled="!assets">Also include objects (sounds, languages, panorama, etc…)</checkbox-row>
-                </div>
+                <checkbox-row v-model="assets" @input="assetsToggle">Import vanilla assets</checkbox-row>
+                <checkbox-row v-model="objects" :disabled="!assets">Also include objects (sounds, languages, panorama, etc…)</checkbox-row>
               </div>
               <div class="col">
                 <h3>Create Folders:</h3>
-                <div>
-                  <checkbox-row v-model="create.blockstates">blockstates</checkbox-row>
-                  <checkbox-row v-model="create.models">models</checkbox-row>
-                  <checkbox-row v-model="create.optifine" @input="optifineToggle">optifine</checkbox-row>
-                  <checkbox-row v-model="create.textures">textures</checkbox-row>
-                  <checkbox-row v-model="create.sounds">sounds</checkbox-row>
-                </div>
+                <checkbox-row v-model="create.blockstates">blockstates</checkbox-row>
+                <checkbox-row v-model="create.models">models</checkbox-row>
+                <checkbox-row v-model="create.optifine" @input="optifineToggle">optifine</checkbox-row>
+                <checkbox-row v-model="create.textures">textures</checkbox-row>
+                <checkbox-row v-model="create.sounds">sounds</checkbox-row>
                 <h3>Create Files:</h3>
                 <checkbox-row v-model="create.emissive" @input="emissiveToggle">emissive.properties</checkbox-row>
               </div>
@@ -2442,7 +2497,7 @@
             } else {
               await cacheDirectory()
               assetsIndex = await getVersionAssetsIndex(this.version)
-              const files = await fs.promises.readdir(langPath)
+              const files = await listFiles(langPath)
               root = await getRoot(this.version)
               const extension = path.extname(Object.keys(assetsIndex.objects).find(e => e.startsWith("assets/minecraft/lang/".slice(root.length + 1))))
               langs = files.filter(e => assetsIndex.objects[`assets/minecraft/lang/${e}`.slice(root.length + 1)] || (e.toLowerCase().startsWith("en_us.") && e.endsWith(extension)))
@@ -2524,6 +2579,185 @@
             <version-selector v-model="version" />
             <radio-row v-model="mode" :options="[['default', 'Strip default language file (en_us)'], ['all', 'Strip all language files']]"></radio-row>
             <button :disabled="!folder" @click="execute">Strip</button>
+          </div>
+          <div v-else>
+            <progress-bar :done="done" :total="total" />
+            <output-log v-model="outputLog" />
+            <button v-if="status.processing" @click="cancelled = true">Cancel</button>
+            <button v-else @click="status.finished = false">Done</button>
+          </div>
+        `
+      }
+    },
+    batchExporter: {
+      name: "Batch Exporter",
+      icon: "move_group",
+      tagline: "Export every bbmodel file in a folder at the same time.",
+      description: "Batch Exporter is a tool that will export every bbmodel file within a folder to an output folder using the selected format.",
+      component: {
+        data: {
+          inputFolder: "",
+          outputFolder: "",
+          outputLog,
+          done: 0,
+          total: null,
+          cancelled: false,
+          textures: true,
+          subfolders: false,
+          textureFolders: true,
+          format: "java_block",
+          formats: Object.fromEntries(Object.entries(batchExporterFormats).map(e => [e[0], e[1].name])),
+          specialFormats: batchExporterSpecialFormats
+        },
+        methods: {
+          async execute() {
+            outputLog.length = 0
+            this.status.finished = false
+            this.status.processing = true
+            this.done = 0
+            this.total = null
+            this.cancelled = false
+
+            if (!await exists(this.inputFolder)) {
+              this.status.finished = true
+              this.status.processing = false
+              this.total = 0
+              output.error(`The folder \`${formatPath(this.inputFolder)}\` was not found`)
+              return
+            }
+
+            if (!await exists(this.outputFolder)) {
+              this.status.finished = true
+              this.status.processing = false
+              this.total = 0
+              output.error(`The folder \`${formatPath(this.outputFolder)}\` was not found`)
+              return
+            }
+
+            const fileList = await listFiles(this.inputFolder, { withFileTypes: true })
+            const files = []
+            for (const file of fileList) {
+              if (file.endsWith(".bbmodel")) {
+                files.push(file)
+              }
+            }
+
+            this.total = files.length
+
+            if (!files.length) {
+              this.status.finished = true
+              this.status.processing = false
+              output.error("No `.bbmodel` files present in the selected folder")
+              return
+            }
+
+            let exportOptions = {}
+            if (Object.keys(Codecs[this.format].export_options).length) {
+              output.log("Getting export options…")
+              newProject("")
+              await Codecs[this.format].promptExportOptions()
+              exportOptions = Codecs[this.format].getExportOptions()
+              await Project.close()
+              output.log("Export options loaded")
+            }
+
+            for (const file of files) {
+              const name = file.slice(0, -8)
+              let outputPath = ""
+              let fullOutputPath = this.outputFolder
+              if (this.subfolders) {
+                outputPath = name + "/"
+                fullOutputPath = path.join(fullOutputPath, name)
+              }
+              const saveName = path.join(fullOutputPath, `${name}.${batchExporterFormats[this.format].type}`)
+              if (await exists(saveName)) {
+                output.warn(`Skipping \`${file}\` as \`${outputPath}${name}.${batchExporterFormats[this.format].type}\` already exists`)
+                this.done++
+                continue
+              }
+              let data
+              try {
+                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)))
+              } catch {
+                output.error(`Skipping \`${file}\` as it could not be read`)
+                this.done++
+                continue
+              }
+              if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
+                output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
+                this.done++
+                continue
+              }
+              newProject(Formats[data.meta.model_format])
+              Codecs.project.parse(data)
+              let compiled, mtl
+              if (this.format === "obj") {
+                const obj = Codecs.obj.compile(Object.assign({
+                  all_files: true,
+                  mtl_name: this.textures ? `${name}.mtl` : undefined
+                }, exportOptions))
+                compiled = obj.obj
+                mtl = obj.mtl
+              } else {
+                compiled = await Codecs[this.format].compile(exportOptions)
+              }
+              if (fullOutputPath !== this.outputFolder) {
+                await fs.promises.mkdir(fullOutputPath, { recursive: true })
+              }
+              await fs.promises.writeFile(saveName, Buffer.from(compiled), "utf-8")
+              output.log(`Exported \`${file}\` to \`${outputPath}${name}.${batchExporterFormats[this.format].type}\``)
+              if (this.format === "obj" && this.textures) {
+                if (await exists(saveName.slice(0, -3) + "mtl")) {
+                  output.warn(`Skipping \`${file}\`'s material as \`${outputPath}${name}.mtl\` already exists`)
+                } else {
+                  await fs.promises.writeFile(saveName.slice(0, -3) + "mtl", mtl, "utf-8")
+                  output.log(`Exported \`${file}\`'s material to \`${outputPath}${name}.mtl\``)
+                }
+              }
+              if (this.textures) {
+                for (const texture of data.textures) {
+                  const name = texture.name.endsWith(".png") ? texture.name : texture.name + ".png"
+                  let saveName
+                  if (this.textureFolders && !batchExporterSpecialFormats.includes(this.format)) {
+                    await fs.promises.mkdir(path.join(this.outputFolder, outputPath, "textures", texture.folder), { recursive: true })
+                    saveName = formatPath(path.join(outputPath, "textures", texture.folder, name))
+                  } else {
+                    saveName = `${outputPath}${name}`
+                  }
+                  const savePath = path.join(this.outputFolder, saveName)
+                  if (await exists(savePath)) {
+                    output.warn(`Skipping texture \`${name}\` from \`${file}\` as \`${saveName}\` already exists`)
+                    continue
+                  }
+                  await fs.promises.writeFile(savePath, Buffer.from(texture.source.split(",")[1], "base64"), "utf-8")
+                  output.log(`Exported \`${name}\` from \`${file}\` to \`${saveName}\``)
+                }
+              }
+              await Project.close()
+              this.done++
+            }
+
+            output.info("Finished")
+            this.status.finished = true
+            this.status.processing = false
+          }
+        },
+        styles: `
+          .component-versionSelector {
+            align-self: flex-start;
+          }
+        `,
+        template: `
+          <div v-if="!status.processing && !status.finished">
+            <h3>Input Folder:</h3>
+            <folder-selector v-model="inputFolder" placeholder="Select Input Folder">the folder containing bbmodels</folder-selector>
+            <h3>Output Folder:</h3>
+            <folder-selector v-model="outputFolder" placeholder="Select Output Folder">the folder to export the bbmodels to</folder-selector>
+            <select-row v-model="format" :options="formats">Output format</select-row>
+            <checkbox-row v-model="subfolders">Export each model to its own subfolder</checkbox-row>
+            <checkbox-row v-model="textures">Export textures</checkbox-row>
+            <checkbox-row v-if="!specialFormats.includes(format)" :disabled="!textures" v-model="textureFolders">Export textures into their defined folders</checkbox-row>
+            <button :disabled="!inputFolder || !outputFolder" @click="execute">Export</button>
           </div>
           <div v-else>
             <progress-bar :done="done" :total="total" />

@@ -5,6 +5,10 @@
   <h2>Utilities</h2>
   <ul>
     <li>
+      <h3>Batch Exporter</h3>
+      <p>Batch Exporter is a tool that will export every bbmodel file within a folder to an output folder using the selected format.</p>
+    </li>
+    <li>
       <h3>CIT Optimiser</h3>
       <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
     </li>
