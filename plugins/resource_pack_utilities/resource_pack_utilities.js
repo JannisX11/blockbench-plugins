@@ -32,7 +32,7 @@
     icon: "icon.png",
     author: "Ewan Howell",
     description,
-    tags: ["Minecraft: Java Edition", "Resource Packs", "Utility"],
+    tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
     version: "1.0.0",
     min_version: "4.10.0",
     variant: "desktop",
@@ -2424,9 +2424,9 @@
                 output.log(`Processed \`${assetPath}\`: Stripped \`${removed.length}\` entries`)
                 if (changes) {
                   if (type === ".json") {
-                    // await fs.promises.writeFile(filePath, JSON.stringify(fileData, null, 2))
+                    await fs.promises.writeFile(filePath, JSON.stringify(fileData, null, 2))
                   } else {
-                    // await fs.promises.writeFile(filePath, jsonToLang(fileData))
+                    await fs.promises.writeFile(filePath, jsonToLang(fileData))
                   }
                 }
               } catch {
