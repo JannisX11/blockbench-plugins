@@ -21,6 +21,10 @@
       <p>Lang Stripper is a tool that will go through all the language files in an resource pack and remove any entries that have not been modified.</p>
     </li>
     <li>
+      <h3>Missing Textures</h3>
+      <p>Missing Textures is a tool that will check what textures you have in a resource pack and tell you which ones the resource pack is missing.</p>
+    </li>
+    <li>
       <h3>Pack Cleaner</h3>
       <p>Pack Cleaner is a tool that will go through all the files in a resource pack and compare them against the vanilla assets, removing them if they are unmodified.</p>
     </li>
