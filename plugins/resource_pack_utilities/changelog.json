@@ -11,5 +11,18 @@
         ]
       }
     ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2024-07-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Missing Textures utility"
+        ]
+      }
+    ]
   }
 }
