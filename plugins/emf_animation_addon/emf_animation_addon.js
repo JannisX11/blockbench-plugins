@@ -6,7 +6,7 @@
         author: "Traben & Ewan Howell",
         description: "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
-        version: "1.0.1",
+        version: "1.0.2",
         min_version: "4.9.0",
         variant: "both",
         dependencies: ["cem_template_loader"],
@@ -14,6 +14,7 @@
             new Setting("emf_features", {
                 value: true,
                 category: "edit",
+                plugin: "emf_animation_addon",
                 name: "Enable EMF only animation features",
                 description: "Enable animation features that are only compatible with the Entity Model Features mod. WARNING: These animations will cause the model to fail to load when using OptiFine.",
                 onChange() {
