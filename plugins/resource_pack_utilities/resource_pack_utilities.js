@@ -1146,6 +1146,35 @@
           }
           this.newWord = ""
           setTimeout(() => this.$refs.input.focus(), 0)
+        },
+        load() {
+          Blockbench.import({
+            title: "Load Ignore List",
+            extensions: ["json"],
+            type: "JSON"
+          }, files => {
+            try {
+              const data = JSON.parse(files[0].content)
+              if (!Array.isArray(data) || data.some(e => typeof e !== "string")) {
+                throw new Error
+              }
+              this.ignoreList = Array.from(new Set(data.map(e => e.toLowerCase().trim())))
+            } catch {
+              Blockbench.showQuickMessage("Invalid ignore list")
+            }
+          })
+        },
+        save() {
+          if (!this.ignoreList.length) {
+            Blockbench.showQuickMessage("The ignore list is empty")
+            return
+          }
+          Blockbench.export({
+            extensions: ["json"],
+            type: "JSON",
+            name: "ignore_list",
+            content: JSON.stringify(this.ignoreList, null, 2)
+          }, () => Blockbench.showQuickMessage("Exported Ignore List"))
         }
       },
       styles: `
@@ -1188,9 +1217,42 @@
             opacity: 1;
           }
         }
+
+        .ignore-list-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: -8px;
+
+          h3 {
+            flex: 1;
+            margin: 0;
+          }
+
+          .tool {
+            margin: 0;
+            width: initial;
+            height: initial;
+            cursor: pointer;
+          }
+
+          i {
+            margin: 0;
+          }
+        }
       `,
       template: `
-        <h3>Ignore List</h3>
+        <div class="ignore-list-header">
+          <h3>Ignore List</h3>
+          <div class="tool" @click="load">
+            <div class="tooltip">Load Ignore List</div>
+            <i class="material-icons">upload</i>
+          </div>
+          <div class="tool" @click="save">
+            <div class="tooltip">Export Ignore List</div>
+            <i class="material-icons">save</i>
+          </div>
+        </div>
         <p>Files and folders that include these terms will<br>be ignored</p>
         <div>
           <input type="text" placeholder="Enter term" v-model="newWord" ref="input" @keydown.enter="addWord">
@@ -1240,8 +1302,8 @@
         },
         save() {
           Blockbench.export({
-            extensions: ["txt"],
-            type: "Text file",
+            extensions: ["log"],
+            type: "Log file",
             name: "log",
             content: this.value.map(e => e[1]).join("\n\n").replaceAll("`", "")
           }, () => Blockbench.showQuickMessage("Saved log"))
