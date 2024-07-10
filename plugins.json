@@ -424,6 +424,25 @@
 		"creation_date": "2024-01-20",
 		"has_changelog": true
 	},
+	"resource_pack_utilities": {
+		"title": "Resource Pack Utilities",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "A collection of utilities to assist with resource pack creation.",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Resource Packs",
+			"Utilities"
+		],
+		"version": "1.0.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/resource_pack_utilities",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Resource Pack Utilities]",
+		"creation_date": "2024-07-01",
+		"has_changelog": true
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
@@ -635,10 +654,11 @@
 		"tags": [
 			"Minecraft: Bedrock Edition"
 		],
-		"version": "1.0.4",
+		"version": "1.1.0",
 		"min_version": "4.8.0",
 		"variant": "both",
-		"creation_date": "2023-09-19"
+		"creation_date": "2023-09-19",
+		"has_changelog": true
 	},
 	"reference_models": {
 		"title": "Reference Models",
@@ -1094,7 +1114,7 @@
 		"tags": [
 			"Cosmic Reach"
 		],
-		"version": "1.2.0",
+		"version": "1.3.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-19",
@@ -1111,7 +1131,7 @@
 			"Entity Models",
 			"Animation"
 		],
-		"version": "1.0.0",
+		"version": "1.0.2",
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": [

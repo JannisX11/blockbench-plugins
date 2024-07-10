@@ -11,5 +11,31 @@
         ]
       }
     ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-06-23",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "Doc update",
+        "list": [
+          "minor icon change in doc where the cem template loader icon was used"
+        ]
+      }
+    ]
+  },
+  "1.0.2": {
+    "title": "1.0.2",
+    "date": "2024-07-01",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "fixed setting",
+        "list": [
+          "Fixed the EMF enable/disable setting not appearing in the plugins screen"
+        ]
+      }
+    ]
   }
 }

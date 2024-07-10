@@ -45,5 +45,27 @@
                 ]
             }
         ]
+    },
+    "1.3.0": {
+        "title": "1.3.0",
+        "date": "2024-06-30",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Added Cosmic Reach Entity Model format, export and import",
+                    "Added Cosmic Reach Entity Animation export and import tools",
+                    "Improved the menu import/export items",
+                    "Changed JSON output format to suit the original Cosmic Reach JSON files more"
+                ]
+            },
+            {
+                "title": "Removed",
+                "list": [
+                    "Possibility to import either a maximized or a minimized JSON file. All of JSON files exported are now maximized"
+                ]
+            }
+        ]
     }
 }
