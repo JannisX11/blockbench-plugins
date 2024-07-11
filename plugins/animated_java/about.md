@@ -26,12 +26,12 @@
 	</li>
 	<li class="animated-java-plugin-page-17qwm57">Animation Tweening: Create smooth transitions between animations.</li>
 	<li class="animated-java-plugin-page-17qwm57">Many different configuration options.</li>
-	<li class="animated-java-plugin-page-17qwm57">Complete Documentation at <a href="https://animated-java.dev/documentation/">animated-java.dev/documentation/</a></li>
+	<li class="animated-java-plugin-page-17qwm57">Complete Documentation at <a href="https://animated-java.dev/docs">animated-java.dev/documentation/</a></li>
 	<li class="animated-java-plugin-page-17qwm57">And much more!</li></ul>
 
 <h3 class="animated-java-plugin-page-h3 animated-java-plugin-page-17qwm57">Getting started</h3>
 
-<p>To learn the basics of Animated Java, check out our <a href="https://animated-java.dev/docs/getting_started">Getting Started</a> guide.
+<p>To learn the basics of Animated Java, check out our <a href="https://animated-java.dev/docs/getting-started/installing-animated-java">Getting Started</a> guide.
 </p>
 
 <p class="note animated-java-plugin-page-17qwm57"><i>Note that it is <b>highly</b> recommended to have a basic understanding of Java Edition&#39;s Data
@@ -48,7 +48,7 @@
 
 <h3 class="animated-java-plugin-page-h3 animated-java-plugin-page-17qwm57">Found a bug?</h3>
 
-<p>If you find a bug, please report it on our <a href="https://github.com/Animated-Java/animated-java">GitHub</a>. It only takes a few moments of your time, and improves the quality of the project for
+<p>If you find a bug, please report it on our <a href="https://animated-java.dev/source">GitHub</a>. It only takes a few moments of your time, and improves the quality of the project for
 	everyone!
 </p>
 <style>h3.animated-java-plugin-page-17qwm57{border-bottom:1px solid var(--color-accent)}li.animated-java-plugin-page-17qwm57{margin:0px}.blurb.animated-java-plugin-page-17qwm57{margin:0px !important}.note.animated-java-plugin-page-17qwm57{font-size:0.9em;color:var(--color-error)}@keyframes animated-java-plugin-page-17qwm57-wave{0%{transform:translatey(-1px)}50%{transform:translatey(1px)}100%{transform:translatey(-1px)}}.silly.animated-java-plugin-page-17qwm57{display:inline-block;animation:animated-java-plugin-page-17qwm57-wave 1.5s infinite;animation-timing-function:ease-in-out}</style>
