@@ -279,7 +279,7 @@
 		"title": "Scene Recorder",
 		"icon": "icon.png",
 		"author": "Ewan Howell",
-		"description": "Extend the GIF recorder new formats to record your model with. Improve the built-in GIF format.",
+		"description": "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
 		"tags": ["Recording", "Media"],
 		"version": "2.0.0",
 		"min_version": "4.10.0",
