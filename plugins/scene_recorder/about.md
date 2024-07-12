@@ -42,6 +42,7 @@
   }
   .about table {
     width: 100%;
+    border-collapse: collapse;
   }
   .about tr:first-child td {
     border-top: none;
