@@ -446,6 +446,18 @@ setups.push(() => {
 
         return rgba;
       },
+      onStrokeStart({ texture }) {
+        Undo.initEdit({
+          layers: texture.layers,
+        });
+
+        return true;
+      },
+      onStrokeEnd({ texture }) {
+        Undo.finishEdit("Material Brush Stroke");
+
+        return true;
+      },
     },
     onCanvasClick(data: any) {
       Painter.startPaintToolCanvas(data, data.event);
