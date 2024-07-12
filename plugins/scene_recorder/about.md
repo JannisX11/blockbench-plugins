@@ -1,32 +1,35 @@
 <div id="about-content">
-  <p>This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.</p>
-  <p>Using this plugin is very similar to using the built-in GIF Recorder.</p>
-  <p>You can find the <strong>Record Scene</strong> button <i class="icon material-icons" style="translate:0 5px">video_camera_back</i> in the <strong>View > Screenshot</strong> menu.</p>
+  <p>This plugin extends the built-in GIF recorder with a number of new formats to record your model with.</p>
+  <p>The new formats can be found inside the GIF recorder. You can find the <strong>Record Gif...</strong> button <i class="icon material-icons" style="translate:0 5px">local_movies</i> under the <strong>View</strong> menu.</p>
   <h2>Formats</h2>
   <table>
     <tr>
       <td>GIF</td>
-      <td>Record animated GIFs in higher quality than the built-in GIF Recorder</td>
+      <td>Record animated GIFs in higher quality than the built-in GIF format</td>
     </tr>
     <tr>
-      <td>MP4</td>
+      <td>MP4 Video</td>
       <td>Record an MP4 video</td>
     </tr>
     <tr>
-      <td>WebM</td>
+      <td>MKV Video</td>
+      <td>Record an MKV video</td>
+    </tr>
+    <tr>
+      <td>MOV Video</td>
+      <td>Record an MOV video</td>
+    </tr>
+    <tr>
+      <td>WebM Video</td>
       <td>Record a WebM video</td>
     </tr>
     <tr>
-      <td>WebP</td>
+      <td>Animated WebP</td>
       <td>Record an animated WebP image</td>
     </tr>
     <tr>
-      <td>APNG</td>
-      <td>Record an animated PNG image</td>
-    </tr>
-    <tr>
-      <td>PNG Image Sequence</td>
-      <td>Output each frame as an individual PNG image</td>
+      <td>Spritesheet</td>
+      <td>Record to a vertically stacked spritesheet texture</td>
     </tr>
   </table>
 </div>
@@ -39,6 +42,7 @@
   }
   .about table {
     width: 100%;
+    border-collapse: collapse;
   }
   .about tr:first-child td {
     border-top: none;
