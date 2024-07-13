@@ -1,7 +1,7 @@
 <div id="about-content">
   <p>This plugin adds a way to edit both plugin and theme files in a text editor of your choice, and have them automatically update inside Blockbench upon you saving the file.</p>
-  <p>When a plugin file is being watched for changes, it's <code>about.md</code> file will be automatically watched for changes too.</p>
-  <p>Theme files support both <code>.bbtheme</code> and <code>.css</code> files being watched.</p>
+  <p>When a plugin file is being watched for changes, it's <strong>about.md</strong> file will be automatically watched for changes too.</p>
+  <p>Theme files support both <strong>.bbtheme</strong> and <strong>.css</strong> files being watched.</p>
   <h2>How to use</h2>
   <h3>Watching files</h3>
   <p>To watch a file, have a theme or plugin file ready, then go to <strong>Help > Developer > Live Dev Reloader</strong>. From here, select <strong>Watch plugin or theme file</strong>, then select your plugin or theme file.</p>
@@ -20,6 +20,11 @@
   #about-content {
     overflow-y: auto;
     min-height: 128px;
+  }
+  #about-markdown-links {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 20px 0;
   }
   #about-markdown-links > a {
     display: flex;
@@ -54,13 +59,13 @@
     margin: 0;
   }
 </style>
-<div id="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
+<div id="about-markdown-links">
   <a href="https://ewanhowell.com/">
-    <i class="material-icons icon" style="color:rgb(51, 227, 142)">language</i>
+    <i class="material-icons icon" style="color: #33E38E;">language</i>
     <p>By Ewan Howell</p>
   </a>
   <a href="https://discord.ewanhowell.com/">
-    <i class="fa_big icon fab fa-discord" style="color:rgb(114, 127, 255)"></i>
+    <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
 </div>
