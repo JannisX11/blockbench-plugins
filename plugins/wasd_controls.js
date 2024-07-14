@@ -104,7 +104,7 @@ BBPlugin.register('wasd_controls', {
 
 		deletables.push(new Setting('requires_hold_right_mouse', {
 			name: 'Only works when holding the right mouse button',
-			description: 'The WASD Controls neeeds to be enabled for this to work.',
+			description: 'The WASD Controls needs to be enabled for this to work.',
 			category: 'preview',
 			value: true
 		}));
