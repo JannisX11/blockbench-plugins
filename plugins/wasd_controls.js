@@ -3,6 +3,7 @@
 let deletables = [];
 
 let old_animate;
+let rightMouseDown = false;
 
 BBPlugin.register('wasd_controls', {
 	title: 'WASD Controls',
@@ -15,41 +16,41 @@ BBPlugin.register('wasd_controls', {
 	variant: 'both',
 	onload() {
 		let navigate_forward = new KeybindItem('navigate_forward', {
-		    name: 'Move Forward',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Forward',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 'w', ctrl: null})
-		})
+		});
 		let navigate_backward = new KeybindItem('navigate_backward', {
-		    name: 'Move Backward',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Backward',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 's', ctrl: null})
-		})
+		});
 		let navigate_left = new KeybindItem('navigate_left', {
-		    name: 'Move Left',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Left',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 'a', ctrl: null})
-		})
+		});
 		let navigate_right = new KeybindItem('navigate_right', {
-		    name: 'Move Right',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Right',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 'd', ctrl: null})
-		})
+		});
 		let navigate_down = new KeybindItem('navigate_down', {
-		    name: 'Move Down',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Down',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 16, ctrl: null})
-		})
+		});
 		let navigate_up = new KeybindItem('navigate_up', {
-		    name: 'Move Up',
-		    icon: 'arrow_upward',
-		    category: 'navigate',
+			name: 'Move Up',
+			icon: 'arrow_upward',
+			category: 'navigate',
 			keybind: new Keybind({key: 32, ctrl: null})
-		})
+		});
 		let navigation_keybinds = [navigate_forward, navigate_backward, navigate_left, navigate_right, navigate_down, navigate_up];
 		deletables.push(...navigation_keybinds);
 
@@ -62,20 +63,26 @@ BBPlugin.register('wasd_controls', {
 		}
 
 		let wasd_toggle = new Toggle('wasd_movement', {
-		    name: 'WASD Movement',
-		    icon: 'sports_esports',
-		    category: 'navigate',
+			name: 'WASD Movement',
+			icon: 'sports_esports',
+			category: 'navigate',
 			value: false,
 			onChange(value) {
 				setupWASDMovement(Preview.selected, value ? 1 : 16);
 				Preview.all.forEach(preview => {
 					preview.controls.enableZoom = !value;
-				})
+				});
 			}
-		})
+		});
+
 		function isWASDMovementEnabled() {
-			return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value;
+			if (settings.requires_hold_right_mouse.value) {
+				return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value && rightMouseDown;
+			} else {
+				return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value
+			}
 		}
+
 		deletables.push(wasd_toggle);
 		MenuBar.menus.view.addAction('_');
 		MenuBar.menus.view.addAction(wasd_toggle);
@@ -86,14 +93,21 @@ BBPlugin.register('wasd_controls', {
 			type: 'number',
 			value: 100,
 			min: 1
-		}))
+		}));
 
 		deletables.push(new Setting('wasd_y_level', {
 			name: 'WASD Navigation at Y Level',
 			description: 'Navigate using WASD at consistent Y level rather than on camera plane',
 			category: 'preview',
 			value: true
-		}))
+		}));
+
+		deletables.push(new Setting('requires_hold_right_mouse', {
+			name: 'Only works when holding the right mouse button',
+			description: 'The WASD Controls neeeds to be enabled for this to work.',
+			category: 'preview',
+			value: true
+		}));
 
 		let pressed_keys = [];
 		Blockbench.on('press_key', data => {
@@ -104,13 +118,25 @@ BBPlugin.register('wasd_controls', {
 					data.capture();
 				}
 			}
-		})
+		});
+
 		document.addEventListener('keyup', event => {
 			pressed_keys.remove(event.which);
-		})
+		});
+
+		document.addEventListener('mousedown', event => {
+			if (event.button === 2) { // Right mouse button
+				rightMouseDown = true;
+			}
+		});
+
+		document.addEventListener('mouseup', event => {
+			if (event.button === 2) { // Right mouse button
+				rightMouseDown = false;
+			}
+		});
 
 		function doWASDMovement() {
-
 			let movement = new THREE.Vector3(0, 0, 0);
 			let uses_wasd_movement = false;
 			function add(x, y, z) {
@@ -149,21 +175,21 @@ BBPlugin.register('wasd_controls', {
 			if (isWASDMovementEnabled() && pressed_keys.length) {
 				doWASDMovement();
 			}
-		}
+		};
 	},
 	oninstall() {
-		MenuBar.menus.view.highlight(BarItems.wasd_movement)
+		MenuBar.menus.view.highlight(BarItems.wasd_movement);
 	},
 	onunload() {
 		deletables.forEach(action => {
 			action.delete();
-		})
+		});
 		setupWASDMovement(Preview.selected, 16);
 		Preview.all.forEach(preview => {
 			preview.controls.enableZoom = true;
-		})
+		});
 		window.animate = old_animate;
 	}
 });
 
-})()
+})();
