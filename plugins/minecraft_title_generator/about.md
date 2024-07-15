@@ -1,9 +1,8 @@
 <div id="about-content">
-  <img style="width:100%;height:128px;object-fit:contain;margin:0 0 30px;filter:drop-shadow(0 3px 10px #0006)" src="https://ewanhowell.com/assets/images/plugins/minecraft-title-generator/logo.webp" />
+  <img src="https://ewanhowell.com/assets/images/plugins/minecraft-title-generator/logo.webp" />
   <p>This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.</p>
   <h2>Getting started</h2>
   <p>To use this plugin, start by creating a new <strong>Minecraft Title</strong> project from the start screen, or go to <strong>File > New > Minecraft Title</strong> You can then use the pop-up dialog to add some text to the project. Don't forget to set the text type! You can add more text by using the <strong>Add Text</strong> button <i class="icon material-icons" style="translate:0 5px">text_fields</i> in the outliner.</p>
-  <br><br>
   <p>Once you are done configuring your text, you can go to the <strong>Render</strong> tab at the top right to produce a high-quality render of your title. The <strong>Position Camera</strong> button <i class="icon material-icons" style="translate:0 5px">auto_mode</i> will set the camera angle for you.</p>
 </div>
 <style>
@@ -13,12 +12,21 @@
     flex-direction: column;
     justify-content: space-between;
   }
-  #about {
-    display: none;
-  }
   #about-content {
     overflow-y: auto;
     min-height: 128px;
+  }
+  #about-content > img {
+    width: 100%;
+    height: 128px;
+    object-fit: contain;
+    margin: 16px 0 24px;
+    filter: drop-shadow(0 3px 10px #0006);
+  }
+  #about-markdown-links {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 20px 0;
   }
   #about-markdown-links > a {
     display: flex;
@@ -53,21 +61,21 @@
     margin: 0;
   }
 </style>
-<div id="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
+<div id="about-markdown-links">
   <a href="https://ewanhowell.com/">
-    <i class="material-icons icon" style="color:rgb(51, 227, 142)">language</i>
+    <i class="material-icons icon" style="color: #33E38E;">language</i>
     <p>By Ewan Howell</p>
   </a>
   <a href="https://discord.ewanhowell.com/">
-    <i class="fa_big icon fab fa-discord" style="color:rgb(114, 127, 255)"></i>
+    <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
   <a href="https://github.com/ewanhowell5195/MinecraftTitleGenerator/">
-    <i class="fa_big icon fab fa-github" style="color:rgb(110, 64, 201)"></i>
+    <i class="fa_big icon fab fa-github" style="color: #6E40C9;"></i>
     <p>Submit Textures and Fonts</p>
   </a>
   <a href="https://youtu.be/iGaufrACVj4">
-    <i class="fa_big icon fab fa-youtube" style="color:rgb(255, 68, 68)"></i>
+    <i class="fa_big icon fab fa-youtube" style="color: #FF4444;"></i>
     <p>Tutorial</p>
   </a>
 </div>

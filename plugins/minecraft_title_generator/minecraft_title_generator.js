@@ -96,7 +96,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.6.0",
+    version: "1.6.1",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -159,7 +159,7 @@
         }
         .minecraft-title-item.selected {
           outline: 2px solid var(--color-accent);
-          background-color: var(--color-button);
+          background-color: var(--color-selected);
           outline-offset: -2px;
         }
         .minecraft-title-item-has-variants {
