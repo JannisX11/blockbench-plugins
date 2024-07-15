@@ -76,7 +76,7 @@ BBPlugin.register('wasd_controls', {
 		});
 
 		function isWASDMovementEnabled() {
-			if (settings.requires_hold_right_mouse.value) {
+			if (settings.wasd_requires_hold_right_mouse.value) {
 				return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value && rightMouseDown;
 			} else {
 				return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value
@@ -102,11 +102,11 @@ BBPlugin.register('wasd_controls', {
 			value: true
 		}));
 
-		deletables.push(new Setting('requires_hold_right_mouse', {
+		deletables.push(new Setting('wasd_requires_hold_right_mouse', {
 			name: 'Only works when holding the right mouse button',
 			description: 'The WASD Controls needs to be enabled for this to work.',
 			category: 'preview',
-			value: true
+			value: false
 		}));
 
 		let pressed_keys = [];
