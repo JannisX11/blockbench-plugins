@@ -14,7 +14,7 @@
 		"author": "Titus Evans (SnaveSutit)",
 		"icon": "icon.svg",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"min_version": "4.10.0",
 		"variant": "desktop",
 		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
@@ -395,9 +395,7 @@
 		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
-		"tags": [
-			"Minecraft: Java Edition"
-		],
+		"tags": ["Minecraft: Java Edition"],
 		"version": "3.1.0",
 		"min_version": "4.8.0",
 		"await_loading": true,
