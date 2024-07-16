@@ -1,7 +1,5 @@
 (function() {
-
 let deletables = [];
-
 let old_animate;
 let rightMouseDown = false;
 
@@ -23,43 +21,56 @@ BBPlugin.register('wasd_controls', {
 		});
 		let navigate_backward = new KeybindItem('navigate_backward', {
 			name: 'Move Backward',
-			icon: 'arrow_upward',
+			icon: 'arrow_downward',
 			category: 'navigate',
 			keybind: new Keybind({key: 's', ctrl: null})
 		});
 		let navigate_left = new KeybindItem('navigate_left', {
 			name: 'Move Left',
-			icon: 'arrow_upward',
+			icon: 'arrow_back',
 			category: 'navigate',
 			keybind: new Keybind({key: 'a', ctrl: null})
 		});
 		let navigate_right = new KeybindItem('navigate_right', {
 			name: 'Move Right',
-			icon: 'arrow_upward',
+			icon: 'arrow_forward',
 			category: 'navigate',
 			keybind: new Keybind({key: 'd', ctrl: null})
 		});
 		let navigate_down = new KeybindItem('navigate_down', {
 			name: 'Move Down',
-			icon: 'arrow_upward',
+			icon: 'expand_more',
 			category: 'navigate',
 			keybind: new Keybind({key: 16, ctrl: null})
 		});
 		let navigate_up = new KeybindItem('navigate_up', {
 			name: 'Move Up',
-			icon: 'arrow_upward',
+			icon: 'expand_less',
 			category: 'navigate',
 			keybind: new Keybind({key: 32, ctrl: null})
 		});
-		let navigation_keybinds = [navigate_forward, navigate_backward, navigate_left, navigate_right, navigate_down, navigate_up];
+
+		let navigate_faster = new KeybindItem('navigate_faster', {
+			name: 'Move Faster',
+			icon: 'expand_less',
+			category: 'navigate',
+			keybind: new Keybind({key: 16, ctrl: null})
+		});
+		let navigate_slower = new KeybindItem('navigate_slower', {
+			name: 'Move Slower',
+			icon: 'expand_less',
+			category: 'navigate',
+			keybind: new Keybind({key: 18, ctrl: null})
+		});
+
+
+		let navigation_keybinds = [navigate_forward, navigate_backward, navigate_left, navigate_right, navigate_down, navigate_up, navigate_faster, navigate_slower];
 		deletables.push(...navigation_keybinds);
 
 		function setupWASDMovement(preview, length = 1) {
 			let pos = new THREE.Vector3().copy(preview.camera.position);
 			pos.add(preview.camera.getWorldDirection(new THREE.Vector3()).normalize().multiplyScalar(length));
 			preview.controls.target.copy(pos);
-
-			preview.controls.enable_zoom = false;
 		}
 
 		let wasd_toggle = new Toggle('wasd_movement', {
@@ -69,9 +80,6 @@ BBPlugin.register('wasd_controls', {
 			value: false,
 			onChange(value) {
 				setupWASDMovement(Preview.selected, value ? 1 : 16);
-				Preview.all.forEach(preview => {
-					preview.controls.enableZoom = !value;
-				});
 			}
 		});
 
@@ -87,23 +95,41 @@ BBPlugin.register('wasd_controls', {
 		MenuBar.menus.view.addAction('_');
 		MenuBar.menus.view.addAction(wasd_toggle);
 
-		deletables.push(new Setting('wasd_sensitivity', {
-			name: 'WASD Sensitivity',
+		deletables.push(new Setting('base_speed', {
+			name: 'WASD Controls: Base Speed',
 			category: 'preview',
 			type: 'number',
-			value: 100,
+			value: 50,
 			min: 1
 		}));
 
+		deletables.push(new Setting('move_faster_mult', {
+			name: 'WASD Controls: Move Faster Multiplier',
+			category: 'preview',
+			type: 'number',
+			value: 2,
+			max: 10,
+			min: 1
+		}));
+
+		deletables.push(new Setting('move_slower_mult', {
+			name: 'WASD Controls: Move Slower Multiplier',
+			category: 'preview',
+			type: 'number',
+			value: 0.5,
+			max: 1,
+			min: 0.1
+		}));
+
 		deletables.push(new Setting('wasd_y_level', {
-			name: 'WASD Navigation at Y Level',
+			name: 'WASD Controls: Navigate at Y Level',
 			description: 'Navigate using WASD at consistent Y level rather than on camera plane',
 			category: 'preview',
 			value: true
 		}));
 
 		deletables.push(new Setting('wasd_requires_hold_right_mouse', {
-			name: 'Only works when holding the right mouse button',
+			name: 'WASD Controls: Navigation only works when holding the right mouse button',
 			description: 'The WASD Controls needs to be enabled for this to work.',
 			category: 'preview',
 			value: false
@@ -138,6 +164,7 @@ BBPlugin.register('wasd_controls', {
 
 		function doWASDMovement() {
 			let movement = new THREE.Vector3(0, 0, 0);
+
 			let uses_wasd_movement = false;
 			function add(x, y, z) {
 				movement.x += x;
@@ -145,6 +172,7 @@ BBPlugin.register('wasd_controls', {
 				movement.z += z;
 				uses_wasd_movement = true;
 			}
+
 			if (pressed_keys.includes(navigate_forward.keybind.key)) add(0, 0, -1);
 			if (pressed_keys.includes(navigate_backward.keybind.key)) add(0, 0, 1);
 			if (pressed_keys.includes(navigate_left.keybind.key)) add(-1, 0, 0);
@@ -152,8 +180,14 @@ BBPlugin.register('wasd_controls', {
 			if (pressed_keys.includes(navigate_down.keybind.key)) add(0, -1, 0);
 			if (pressed_keys.includes(navigate_up.keybind.key)) add(0, 1, 0);
 			
+			
 			if (uses_wasd_movement) {
 				setupWASDMovement(Preview.selected);
+				
+				let speedMultiplier = 1.0; // Default speed
+				
+				if (pressed_keys.includes(navigate_faster.keybind.key)) speedMultiplier *= settings.move_faster_mult.value;
+				else if (pressed_keys.includes(navigate_slower.keybind.key)) speedMultiplier *= settings.move_slower_mult.value;
 
 				if (settings.wasd_y_level.value) {
 					let vec = Preview.selected.controls.object.getWorldDirection(new THREE.Vector3()).normalize();
@@ -162,7 +196,9 @@ BBPlugin.register('wasd_controls', {
 				} else {
 					movement.applyEuler(Preview.selected.controls.object.rotation);
 				}
-				movement.multiplyScalar(Settings.get('wasd_sensitivity') * (Pressing.ctrl || Pressing.overrides.ctrl ? 2.4 : 1) / 100);
+
+				console.log(movement, Settings.get('base_speed'), speedMultiplier, Settings.get('base_speed') * speedMultiplier / 100)
+				movement.multiplyScalar(Settings.get('base_speed') * speedMultiplier / 100);
 				Preview.selected.camera.position.add(movement);
 				Preview.selected.controls.target.add(movement);
 			}
@@ -175,6 +211,11 @@ BBPlugin.register('wasd_controls', {
 			if (isWASDMovementEnabled() && pressed_keys.length) {
 				doWASDMovement();
 			}
+
+			// Ensure zoom is disabled when moving
+			Preview.all.forEach(preview => {
+				preview.controls.enableZoom = !isWASDMovementEnabled();
+			});
 		};
 	},
 	oninstall() {
@@ -191,5 +232,4 @@ BBPlugin.register('wasd_controls', {
 		window.animate = old_animate;
 	}
 });
-
 })();
