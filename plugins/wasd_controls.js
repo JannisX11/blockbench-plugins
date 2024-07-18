@@ -73,16 +73,36 @@ BBPlugin.register('wasd_controls', {
 			preview.controls.target.copy(pos);
 		}
 
+		deletables.push(new Setting('wasd_enabled', {
+			name: 'WASD Controls: Enabled',
+			description: '_',
+			category: 'preview',
+			value: false,
+			onChange(value) {
+				BarItems.wasd_movement.value = value
+				BarItems.wasd_movement.updateEnabledState();
+				setupWASDMovement(Preview.selected, value ? 1 : 16);
+			}
+		}));
+
 		let wasd_toggle = new Toggle('wasd_movement', {
 			name: 'WASD Movement',
 			icon: 'sports_esports',
 			category: 'navigate',
 			value: false,
 			onChange(value) {
+				settings.wasd_enabled.value = value
+				Settings.saveLocalStorages();
 				setupWASDMovement(Preview.selected, value ? 1 : 16);
 			}
 		});
 
+		deletables.push(wasd_toggle);
+		MenuBar.menus.view.addAction('_');
+		MenuBar.menus.view.addAction(wasd_toggle);
+		BarItems.wasd_movement.value = settings.wasd_enabled.value
+		BarItems.wasd_movement.updateEnabledState();
+		
 		function isWASDMovementEnabled() {
 			if (settings.wasd_requires_hold_right_mouse.value) {
 				return Preview.selected && BarItems.wasd_movement && BarItems.wasd_movement.value && rightMouseDown;
@@ -91,12 +111,9 @@ BBPlugin.register('wasd_controls', {
 			}
 		}
 
-		deletables.push(wasd_toggle);
-		MenuBar.menus.view.addAction('_');
-		MenuBar.menus.view.addAction(wasd_toggle);
-
 		deletables.push(new Setting('base_speed', {
 			name: 'WASD Controls: Base Speed',
+			description: '-', 
 			category: 'preview',
 			type: 'number',
 			value: 50,
@@ -105,6 +122,7 @@ BBPlugin.register('wasd_controls', {
 
 		deletables.push(new Setting('move_faster_mult', {
 			name: 'WASD Controls: Move Faster Multiplier',
+			description: '-', 
 			category: 'preview',
 			type: 'number',
 			value: 2,
@@ -114,6 +132,7 @@ BBPlugin.register('wasd_controls', {
 
 		deletables.push(new Setting('move_slower_mult', {
 			name: 'WASD Controls: Move Slower Multiplier',
+			description: '-', 
 			category: 'preview',
 			type: 'number',
 			value: 0.5,
@@ -197,7 +216,6 @@ BBPlugin.register('wasd_controls', {
 					movement.applyEuler(Preview.selected.controls.object.rotation);
 				}
 
-				console.log(movement, Settings.get('base_speed'), speedMultiplier, Settings.get('base_speed') * speedMultiplier / 100)
 				movement.multiplyScalar(Settings.get('base_speed') * speedMultiplier / 100);
 				Preview.selected.camera.position.add(movement);
 				Preview.selected.controls.target.add(movement);
