@@ -22,8 +22,16 @@
       <p>Lang Stripper is a tool that will go through all the language files in an resource pack and remove any entries that have not been modified.</p>
     </li>
     <li>
+      <h3>Minecraft Title Converter</h3>
+      <p>Minecraft Title Converter is a tool that will convert images to be in the the Minecraft title format. This can also convert existing textures between the 1.19 and 1.20 texture formats.</p>
+    </li>
+    <li>
       <h3>Missing Textures</h3>
       <p>Missing Textures is a tool that will check what textures you have in a resource pack and tell you which ones the resource pack is missing.</p>
+    </li>
+    <li>
+      <h3>Mojang Converter</h3>
+      <p>Mojang Converter is a tool that will convert images to be in the the Mojang Studios logo format. This can also convert existing textures between the 1.15 and 1.16 texture formats.</p>
     </li>
     <li>
       <h3>Pack Cleaner</h3>
@@ -32,6 +40,14 @@
     <li>
       <h3>Pack Creator</h3>
       <p>Pack Creator is a tool that allows you to create template resource packs, as well as get the vanilla textures, models, sounds, etc…</p>
+    </li>
+    <li>
+      <h3>Skin Converter</h3>
+      <p>Skin Converter is a tool that will convert Minecraft skins between the classic 64x32 format and the modern 64x64 format.</p>
+    </li>
+    <li>
+      <h3>Wide ⇄ Slim Converter</h3>
+      <p>Wide ⇄ Slim Converter is a tool that will convert Minecraft skins between the wide 4px arm format and the slim 3px arm format.</p>
     </li>
   </ul>
 </div>
