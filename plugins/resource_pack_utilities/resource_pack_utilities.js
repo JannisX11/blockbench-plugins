@@ -4100,8 +4100,8 @@
           <file-input v-model="files" title="Select your compact CTM" @input="execute" max="5" />
           <h3>Output CTM:</h3>
           <tab-select v-model="mode" :options="modes" @input="execute" />
-          <canvas-output v-if="mode === 'full'" v-model="full" name="full_ctm" :error="error" height="234" />
-          <canvas-output v-if="mode === 'overlay'" v-model="overlay" name="overlay_ctm" :error="error" />
+          <canvas-output v-if="mode === 'full'" v-model="full" name="full_ctm" :error="error" height="192" />
+          <canvas-output v-if="mode === 'overlay'" v-model="overlay" name="overlay_ctm" :error="error" height="192" />
           <button :disabled="!full" @click="save">Export CTM</button>
         `
       }
