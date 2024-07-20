@@ -14,6 +14,10 @@
       <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
     </li>
     <li>
+      <h3>CTM Converter</h3>
+      <p>CTM Converter is a tool that will convert compact CTM into full CTM or overlay CTM.</p>
+    </li>
+    <li>
       <h3>JSON Optimiser</h3>
       <p>JSON Optimiser is a tool that will go through all JSON files in a folder and optimise them to be as small as possible, minifying them and removing any unnecessary data.</p>
     </li>

@@ -133,6 +133,7 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
+            min-height: 32px;
 
             &:disabled {
               opacity: .5;
@@ -578,7 +579,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "mojangConverter"
+      // dialog.content_vue.utility = "ctmConverter"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -1611,16 +1612,14 @@
         title: {}
       },
       data() {
-        if (this.max) {
-          this.max = parseInt(this.max)
-          if (this.max > 1) {
-            this.multiple = true
-          }
-        }
-        this.title ??= `Select ${ this.max ? "up to " + this.max : "" } ${ this.multiple ? "files" : "a file" }`
+        const maxFiles = parseInt(this.max)
+        const multipleFiles = this.multiple || parseInt(this.max) > 1
+        this.title ??= `Select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`
         return {
           files: Array.isArray(this.value) ? this.value : this.value ? [this.value] : [],
-          message: `select ${ this.max ? "up to " + this.max : "" } ${ this.multiple ? "files" : "a file" }`
+          message: `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
+          maxFiles,
+          multipleFiles
         }
       },
       methods: {
@@ -1629,13 +1628,16 @@
             title: this.title,
             extensions: this.extensions,
             type: this.type,
-            multiple: this.multiple,
+            multiple: this.multipleFiles,
             readtype: "buffer"
           }, async files => {
             if (files.length === 1) this.message = "change file"
             else this.message = `${files.length} files selected`
             this.files = []
-            for (const file of files) {
+            for (const [i, file] of files.entries()) {
+              if (this.maxFiles && i >= this.maxFiles) {
+                continue
+              }
               const buf = Buffer.from(file.content)
               const b64Image = buf.toString("base64")
               const img = await loadImage(buf)
@@ -1648,6 +1650,26 @@
             }
             this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
           })
+        },
+        remove(index) {
+          event.stopPropagation()
+          this.files.splice(index, 1)
+          this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
+          if (!this.files.length) this.message = `select ${ this.maxFiles ? "up to " + this.maxFiles : "" } ${ this.multipleFiles ? "files" : "a file" }`
+          else if (this.files.length === 1) this.message = "change file"
+          else this.message = `${this.files.length} files selected`
+        },
+        prev(index) {
+          const file = this.files[index - 1]
+          this.$set(this.files, index - 1, this.files[index])
+          this.$set(this.files, index, file)
+          this.$emit("input", this.files)
+        },
+        next(index) {
+          const file = this.files[index + 1]
+          this.$set(this.files, index + 1, this.files[index])
+          this.$set(this.files, index, file)
+          this.$emit("input", this.files)
         }
       },
       styles: `
@@ -1717,10 +1739,64 @@
             white-space: pre;
             text-align: center;
             font-weight: 600;
+
+            &:first-child .prev {
+              display: none;
+            }
+
+            &:last-child .next {
+              display: none;
+            }
           }
+        }
+
+        .file-image {
+          position: relative;
+          display: flex;
 
           & img {
             height: 128px;
+            display: block;
+          }
+
+          .icon {
+            position: absolute;
+            color: var(--color-light);
+            top: 64px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 32px;
+            min-width: 32px;
+            filter: drop-shadow(0 2px 3px #000);
+            opacity: 0;
+
+            &:hover {
+              transform: translateY(-50%) scale(1.4);
+            }
+          }
+
+          &:hover .icon {
+            opacity: 1;
+          }
+        }
+
+        .prev {
+          left: 0;
+        }
+
+        .next {
+          right: 0;
+        }
+
+        .remove {
+          top: 0 !important;
+          right: 0;
+          font-size: 24px !important;
+          padding: 4px;
+          transform: initial !important;
+
+          &:hover {
+            transform: scale(1.2) !important;
           }
         }
       `,
@@ -1729,13 +1805,18 @@
           <div class="file-input-row">
             <button>
               <i class="material-icons icon">upload</i>
-              <span>Choose file{{ multiple ? 's' : '' }}</span>
+              <span>Choose file{{ multipleFiles ? 's' : '' }}</span>
             </button>
             <span class="file-input-text">{{ this.message }}</span>
           </div>
           <div v-if="files.length" class="file-input-images" tabindex="0" @click.stop>
-            <div v-for="file in files">
-              <img class="checkerboard" :src="file.src">
+            <div v-for="(file, index) in files">
+              <div class="file-image">
+                <img class="checkerboard" :src="file.src">
+                <i class="remove material-icons icon" @click="remove(index)">close</i>
+                <i class="prev material-icons icon" @click="prev(index)">navigate_before</i>
+                <i class="next material-icons icon" @click="next(index)">navigate_next</i>
+              </div>
               <div>{{ file.info }}</div>
             </div>
           </div>
@@ -1766,7 +1847,7 @@
         }
       },
       methods: {
-        appendCanvas() {
+        async appendCanvas() {
           if (this.value) {
             this.$refs.canvasContainer.textContent = ""
             this.value.classList.add("checkerboard")
@@ -1774,7 +1855,7 @@
               this.value.style.height = this.height + "px"
             }
             this.$refs.canvasContainer.append(this.value)
-            this.$refs.canvasInfo.textContent = `${this.name}.png\n${this.value.width}x${this.value.height} - 12 KB`
+            this.$refs.canvasInfo.textContent = `${this.name}.png\n${this.value.width}x${this.value.height} - ${formatBytes((await (await new Promise(fulfil => this.value.toBlob(fulfil))).arrayBuffer()).byteLength)}`
           } else {
             if (this.error) {
               this.$refs.canvasContainer.innerHTML = `<span class="canvas-output-error">${this.error}</span>`
@@ -3330,7 +3411,11 @@
         },
         methods: {
           async execute() {
-            if (!this.file) return
+            if (!this.file) {
+              this.outputNew = null
+              this.outputOld = null
+              return
+            }
             const img = imageToCanvas(this.file.image)
             if (this.inputMode === "old") {
               const oldCanvas = new Canvas(img.width * 2, Math.floor(img.width / 2))
@@ -3394,10 +3479,17 @@
             new: "Convert for 1.20 and above",
             old: "Convert for 1.19 and below"
           },
-          outputBetweenError: null
+          error: null
         },
         methods: {
           async execute() {
+            if (!this.file) {
+              this.outputNew = null
+              this.outputOld = null
+              this.outputBetween = null
+              this.error = null
+              return
+            }
             const img = imageToCanvas(this.file.image)
             const aspect = img.width / img.height
             let w, h
@@ -3459,10 +3551,10 @@
               convertCanvas.ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h)
               convertCanvas.ctx.drawImage(img, 0, h2, w2, h, w, 0, w2, h)
               this.outputBetween = newConvert(convertCanvas)
-              this.outputBetweenError = null
+              this.error = null
             } else {
               this.outputBetween = null
-              this.outputBetweenError = "The input image must be square for this type of conversion"
+              this.error = "The input image must be square for this type of conversion"
             }
           }
         },
@@ -3478,7 +3570,7 @@
           </template>
           <template v-else>
             <h3>Minecraft Title texture for 1.20 and above:</h3>
-            <canvas-output v-model="outputBetween" name="minecraft" :error="outputBetweenError"  height="178" />
+            <canvas-output v-model="outputBetween" name="minecraft" :error="error" height="178" />
           </div>
         `
       }
@@ -3502,15 +3594,23 @@
         },
         methods: {
           async execute() {
+            if (!this.file) {
+              this.canvas = null
+              this.error = null
+              return
+            }
             if (!(this.file.image.width === this.file.image.height || this.file.image.width === this.file.image.height * 2)) {
+              this.canvas = null
               this.error = "Invalid skin: Skins must be square, or in the aspect ratio 2:1"
               return
             }
             if (!(Math.clz32(this.file.image.width) < Math.clz32(this.file.image.width - 1))) {
+              this.canvas = null
               this.error = "Invalid skin: Skins must have dimensions that are powers of 2, such as 64, 128, 256, etc…"
               return
             }
             if (this.file.image.width < 64) {
+              this.canvas = null
               this.error = "Invalid skin: The minimum size for a skin is 64x32"
               return
             }
@@ -3576,8 +3676,15 @@
         },
         methods: {
           async execute() {
-            if (!this.file) return
+            if (!this.file) {
+              this.slim = null
+              this.wide = null
+              this.error = null
+              return
+            }
             if (this.file.image.width != 64 || ![32, 64].includes(this.file.image.height)) {
+              this.slim = null
+              this.wide = null
               this.error = "Invalid skin: Skins must be 64x64 or 64x32"
               return
             }
@@ -3649,6 +3756,353 @@
           <h3>Output {{ mode === 'wide' ? 'slim' : 'wide' }} skin:</h3>
           <canvas-output v-if="mode === 'wide'" v-model="slim" name="slim" :error="error" />
           <canvas-output v-if="mode === 'slim'" v-model="wide" name="wide" :error="error" />
+        `
+      }
+    },
+    ctmConverter: {
+      name: "CTM Converter",
+      icon: "grid_view",
+      tagline: "Convert compact CTM into full or overlay CTM.",
+      description: "CTM Converter is a tool that will convert compact CTM into full CTM or overlay CTM.",
+      component: {
+        data: {
+          files: [],
+          error: null,
+          full: null,
+          overlay: null,
+          mode: "full",
+          modes: {
+            full: "Full CTM",
+            overlay: "Overlay CTM"
+          }
+        },
+        methods: {
+          async execute() {
+            if (!this.files.length) {
+              this.full = null
+              this.overlay = null
+              this.error = null
+              console.log(this.full, this.overlay, this.error)
+              return
+            }
+            if (![1, 5].includes(this.files.length)) {
+              this.full = null
+              this.overlay = null
+              this.error = "Please provide either a combined compact CTM spritesheet, or the 5 indivdual textures"
+              return
+            }
+            let img
+            if (this.files.length === 1) {
+              if (this.files[0].image.width !== this.files[0].image.height * 5) {
+                this.full = null
+                this.overlay = null
+                this.error = "Invalid compact CTM: A compact CTM spritesheet must be in the aspect ratio 5:1"
+                return
+              }
+              img = this.files[0].image
+            } else {
+              let size
+              for (const [i, file] of this.files.entries()) {
+                if (file.image.width !== file.image.height) {
+                  this.full = null
+                  this.overlay = null
+                  this.error = "Invalid input: CTM sprites must be square"
+                  return
+                }
+                if (!size) {
+                  size = file.image.width
+                  img = new Canvas(size * 5, size)
+                } else if (file.image.width !== size) {
+                  this.full = null
+                  this.overlay = null
+                  this.error = "Invalid input: All CTM sprites must be the same size"
+                  return
+                }
+                img.ctx.drawImage(file.image, size * i, 0)
+              }
+            }
+            this.error = null
+            const coords = {
+              full: [0, 0, 16, 16],
+              empty: [16, 0, 16, 16],
+              emptyTop: [16, 0, 16, 8],
+              emptyBottom: [16, 8, 16, 8],
+              emptyLeft: [16, 0, 8, 16],
+              emptyRight: [24, 0, 8, 16],
+              emptyTopLeft: [16, 0, 8, 8],
+              emptyTopRight: [24, 0, 8, 8],
+              emptyBottomLeft: [16, 8, 8, 8],
+              emptyBottomRight: [24, 8, 8, 8],
+              leftRight: [32, 0, 16, 16],
+              topBottom: [48, 0, 16, 16],
+              corners: [64, 0, 16, 16],
+              fullLeft: [0, 0, 8, 16],
+              fullRight: [8, 0, 8, 16],
+              fullTop: [0, 0, 16, 8],
+              fullBottom: [0, 8, 16, 8],
+              topBottomLeft: [48, 0, 8, 16],
+              topBottomRight: [56, 0, 8, 16],
+              leftRightTop: [32, 0, 16, 8],
+              leftRightBottom: [32, 8, 16, 8],
+              leftRightLeft: [32, 0, 8, 16],
+              leftRightRight: [40, 0, 8, 16],
+              topBottomTop: [48, 0, 16, 8],
+              topBottomBottom: [48, 8, 16, 8],
+              fullTopLeft: [0, 0, 8, 8],
+              fullTopRight: [8, 0, 8, 8],
+              fullBottomLeft: [0, 8, 8, 8],
+              fullBottomRight: [8, 8, 8, 8],
+              topBottomTopLeft: [48, 0, 8, 8],
+              topBottomTopRight: [56, 0, 8, 8],
+              topBottomBottomLeft: [48, 8, 8, 8],
+              topBottomBottomRight: [56, 8, 8, 8],
+              leftRightTopLeft: [32, 0, 8, 8],
+              leftRightTopRight: [40, 0, 8, 8],
+              leftRightBottomLeft: [32, 8, 8, 8],
+              leftRightBottomRight: [40, 8, 8, 8],
+              cornersTop: [64, 0, 16, 8],
+              cornersBottom: [64, 8, 16, 8],
+              cornersLeft: [64, 0, 8, 16],
+              cornersRight: [72, 0, 8, 16],
+              cornersTopLeft: [64, 0, 8, 8],
+              cornersTopRight: [72, 0, 8, 8],
+              cornersBottomLeft: [64, 8, 8, 8],
+              cornersBottomRight: [72, 8, 8, 8],
+              emptyTopLeft: [16, 0, 8, 8],
+              emptyTopRight: [24, 0, 8, 8],
+              emptyBottomLeft: [16, 8, 8, 8],
+              emptyBottomRight: [24, 8, 8, 8],
+              emptyLeft: [16, 0, 8, 16],
+              emptyRight: [24, 0, 8, 16],
+              emptyTop: [16, 0, 16, 8],
+              emptyBottom: [16, 8, 16, 8]
+            }
+            const fullMap = [
+              ["full", 0, 0],
+              ["fullLeft", 16, 0],
+              ["topBottomRight", 24, 0],
+              ["topBottom", 32, 0],
+              ["topBottomLeft", 48, 0],
+              ["fullRight", 56, 0],
+              ["fullTop", 0, 16],
+              ["leftRightBottom", 0, 24],
+              ["leftRight", 0, 32],
+              ["leftRightTop", 0, 48],
+              ["fullBottom", 0, 56],
+              ["fullTopLeft", 16, 16],
+              ["topBottomTopRight", 24, 16],
+              ["topBottomTop", 32, 16],
+              ["topBottomTopLeft", 48, 16],
+              ["fullTopRight", 56, 16],
+              ["leftRightBottomRight", 56, 24],
+              ["leftRightRight", 56, 32],
+              ["leftRightTopRight", 56, 48],
+              ["fullBottomRight", 56, 56],
+              ["topBottomBottomLeft", 48, 56],
+              ["topBottomBottom", 32, 56],
+              ["topBottomBottomRight", 24, 56],
+              ["fullBottomLeft", 16, 56],
+              ["leftRightTopLeft", 16, 48],
+              ["leftRightLeft", 16, 32],
+              ["leftRightBottomLeft", 16, 24],
+              ["emptyBottomRight", 24, 24],
+              ["emptyBottom", 32, 24],
+              ["emptyBottomLeft", 48, 24],
+              ["emptyLeft", 48, 32],
+              ["emptyTopLeft", 48, 48],
+              ["emptyTop", 32, 48],
+              ["emptyTopRight", 24, 48],
+              ["emptyRight", 24, 32],
+              ["empty", 32, 32],
+              ["fullTopLeft", 64, 0],
+              ["topBottomTopRight", 72, 0],
+              ["topBottomTopLeft", 80, 0],
+              ["fullTopRight", 88, 0],
+              ["leftRightBottomRight", 88, 8],
+              ["leftRightTopRight", 88, 16],
+              ["fullBottomRight", 88, 24],
+              ["topBottomBottomLeft", 80, 24],
+              ["topBottomBottomRight", 72, 24],
+              ["fullBottomLeft", 64, 24],
+              ["leftRightTopLeft", 64, 16],
+              ["leftRightBottomLeft", 64, 8],
+              ["cornersBottomRight", 72, 8],
+              ["cornersBottomLeft", 80, 8],
+              ["cornersTopLeft", 80, 16],
+              ["cornersTopRight", 72, 16],
+              ["leftRightLeft", 96, 0],
+              ["cornersTopRight", 104, 0],
+              ["topBottomTop", 112, 0],
+              ["cornersBottomRight", 120, 8],
+              ["leftRightRight", 120, 16],
+              ["cornersBottomLeft", 112, 24],
+              ["topBottomBottom", 96, 24],
+              ["cornersTopLeft", 96, 16],
+              ["cornersBottomRight", 104, 8],
+              ["cornersBottomLeft", 112, 8],
+              ["cornersTopLeft", 112, 16],
+              ["cornersTopRight", 104, 16],
+              ["cornersLeft", 128, 0],
+              ["emptyTopRight", 136, 0],
+              ["cornersTop", 144, 0],
+              ["emptyBottomRight", 152, 8],
+              ["cornersRight", 152, 16],
+              ["emptyBottomLeft", 144, 24],
+              ["cornersBottom", 128, 24],
+              ["emptyTopLeft", 128, 16],
+              ["cornersBottomRight", 136, 8],
+              ["cornersBottomLeft", 144, 8],
+              ["cornersTopLeft", 144, 16],
+              ["cornersTopRight", 136, 16],
+              ["emptyLeft", 160, 0],
+              ["cornersRight", 168, 0],
+              ["emptyTop", 176, 0],
+              ["cornersBottom", 176, 8],
+              ["emptyRight", 184, 16],
+              ["cornersLeft", 176, 16],
+              ["emptyBottom", 160, 24],
+              ["cornersTop", 160, 16],
+              ["leftRightLeft", 64, 32],
+              ["cornersTopRight", 72, 32],
+              ["topBottomTop", 80, 32],
+              ["cornersBottomRight", 88, 40],
+              ["leftRightRight", 88, 48],
+              ["cornersBottomLeft", 80, 56],
+              ["topBottomBottom", 64, 56],
+              ["cornersTopLeft", 64, 48],
+              ["emptyBottomRight", 72, 40],
+              ["emptyBottomLeft", 80, 40],
+              ["emptyTopLeft", 80, 48],
+              ["emptyTopRight", 72, 48],
+              ["leftRightLeft", 96, 32],
+              ["emptyTopRight", 104, 32],
+              ["topBottomTop", 112, 32],
+              ["emptyBottomRight", 120, 40],
+              ["leftRightRight", 120, 48],
+              ["emptyBottomLeft", 112, 56],
+              ["topBottomBottom", 96, 56],
+              ["emptyTopLeft", 96, 48],
+              ["cornersBottomRight", 104, 40],
+              ["cornersBottomLeft", 112, 40],
+              ["cornersTopLeft", 112, 48],
+              ["cornersTopRight", 104, 48],
+              ["emptyTop", 128, 32],
+              ["emptyTop", 144, 32],
+              ["emptyBottomRight", 152, 40],
+              ["emptyTopRight", 152, 48],
+              ["emptyBottom", 144, 56],
+              ["emptyBottom", 128, 56],
+              ["emptyTopLeft", 128, 48],
+              ["emptyBottomLeft", 128, 40],
+              ["cornersBottomRight", 136, 40],
+              ["cornersBottomLeft", 144, 40],
+              ["cornersTopLeft", 144, 48],
+              ["cornersTopRight", 136, 48],
+              ["cornersTopLeft", 160, 32],
+              ["emptyTopRight", 168, 32],
+              ["cornersBottomRight", 168, 40],
+              ["emptyBottomLeft", 160, 40],
+              ["emptyTopLeft", 176, 32],
+              ["cornersTopRight", 184, 32],
+              ["emptyBottomRight", 184, 40],
+              ["cornersBottomLeft", 176, 40],
+              ["corners", 160, 48]
+            ]
+            const overlayMap = [
+              ["emptyLeft", 0, 0],
+              ["emptyTopRight", 8, 0],
+              ["emptyTop", 16, 0],
+              ["emptyTopLeft", 32, 0],
+              ["emptyRight", 40, 0],
+              ["emptyRight", 40, 16],
+              ["emptyRight", 40, 32],
+              ["emptyBottomLeft", 32, 40],
+              ["emptyBottom", 16, 40],
+              ["emptyBottomRight", 8, 40],
+              ["emptyLeft", 0, 32],
+              ["emptyLeft", 0, 16],
+              ["cornersBottomRight", 8, 8],
+              ["topBottomBottom", 16, 8],
+              ["cornersBottomLeft", 32, 8],
+              ["leftRightLeft", 32, 16],
+              ["cornersTopLeft", 32, 32],
+              ["topBottomTop", 16, 32],
+              ["cornersTopRight", 8, 32],
+              ["leftRightRight", 8, 16],
+              ["full", 16, 16],
+              ["topBottomBottomLeft", 48, 8],
+              ["fullBottomRight", 56, 8],
+              ["leftRightTopRight", 56, 0],
+              ["leftRightTopLeft", 64, 0],
+              ["fullBottomLeft", 64, 8],
+              ["topBottomBottomRight", 72, 8],
+              ["topBottomTopRight", 72, 16],
+              ["fullTopLeft", 64, 16],
+              ["leftRightBottomLeft", 64, 24],
+              ["leftRightBottomRight", 56, 24],
+              ["fullTopRight", 56, 16],
+              ["topBottomTopLeft", 48, 16],
+              ["emptyTopLeft", 48, 0],
+              ["emptyTopRight", 72, 0],
+              ["emptyBottomRight", 72, 24],
+              ["emptyBottomLeft", 48, 24],
+              ["fullBottom", 80, 8],
+              ["leftRightTop", 80, 0],
+              ["fullLeft", 96, 0],
+              ["topBottomRight", 104, 0],
+              ["fullTop", 96, 16],
+              ["leftRightBottom", 96, 24],
+              ["fullRight", 88, 16],
+              ["topBottomLeft", 80, 16]
+            ]
+            const multiplier = img.width / 80
+            this.full = new Canvas(Math.floor(192 * multiplier), Math.floor(64 * multiplier))
+            this.overlay = new Canvas(Math.floor(112 * multiplier), Math.floor(48 * multiplier))
+            function paste(canvas, img, multiplier, area, x, y) {
+              const [x2, y2, w, h] = coords[area].map(e => Math.floor(e * multiplier))
+              canvas.ctx.drawImage(img, x2, y2, w, h, Math.floor(x * multiplier), Math.floor(y * multiplier), w, h)
+            }
+            for (const [area, x, y] of fullMap) paste(this.full, img, multiplier, area, x, y)
+            for (const [area, x, y] of overlayMap) paste(this.overlay, img, multiplier, area, x, y)
+          },
+          async save() {
+            const dir = Blockbench.pickDirectory()
+            if (!dir) return
+            let img, tileSize, tileCount
+            if (this.mode === "full") {
+              img = this.full
+              tileSize = img.width / 12
+              tileCount = 47
+            } else {
+              img = this.overlay
+              tileSize = img.width / 7
+              tileCount = 17
+            }
+            const canvas = new Canvas(tileSize, tileSize)
+            let tile = 0
+            loop:
+            for (let h = 0; h < img.height; h += tileSize) {
+              for (let w = 0; w < img.width; w += tileSize) {
+                canvas.ctx.drawImage(img, w, h, tileSize, tileSize, 0, 0, tileSize, tileSize)
+                await fs.promises.writeFile(path.join(dir, tile + ".png"), Buffer.from(await (await new Promise(fulfil => canvas.toBlob(fulfil))).arrayBuffer()))
+                canvas.ctx.clearRect(0, 0, tileSize, tileSize)
+                tile++
+                if (tile >= tileCount) {
+                  break loop
+                }
+              }
+            }
+            Blockbench.showQuickMessage("Exported CTM")
+          }
+        },
+        template: `
+          <h3>Compact CTM:</h3>
+          <file-input v-model="files" title="Select your compact CTM" @input="execute" max="5" />
+          <h3>Output CTM:</h3>
+          <tab-select v-model="mode" :options="modes" @input="execute" />
+          <canvas-output v-if="mode === 'full'" v-model="full" name="full_ctm" :error="error" height="234" />
+          <canvas-output v-if="mode === 'overlay'" v-model="overlay" name="overlay_ctm" :error="error" />
+          <button :disabled="!full" @click="save">Export CTM</button>
         `
       }
     }
