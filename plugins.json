@@ -168,6 +168,8 @@
 		"description": "Adds a screen space ambient occlusion shader",
 		"about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
 		"variant": "both",
+		"tags": ["Deprecated"],
+		"deprecation_note": "This plugin can cause visual artifacts and a decreased framerate",
 		"version": "1.0.3",
 		"min_version": "3.4.0"
 	},

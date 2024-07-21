@@ -1306,6 +1306,8 @@ Plugin.register('ambient_occlusion', {
 	icon: 'gradient',
 	author: 'JannisX11',
 	description: 'Adds a screen space ambient occlusion shader',
+	tags: ["Deprecated"],
+	deprecation_note: "This plugin can cause visual artifacts and a decreased framerate",
 	version: '1.0.3',
 	min_version: '3.2.0',
 	variant: 'both',
