@@ -10,6 +10,10 @@
       <p>Batch Exporter is a tool that will export every bbmodel file within a folder to an output folder using the selected format.</p>
     </li>
     <li>
+      <h3>Chest Converter</h3>
+      <p>Chest Converter is a tool that will convert the chest textures between the 1.14 format 1.15 format.</p>
+    </li>
+    <li>
       <h3>CIT Optimiser</h3>
       <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
     </li>

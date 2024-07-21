@@ -579,7 +579,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "ctmConverter"
+      // dialog.content_vue.utility = "chestConverter"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -1617,7 +1617,7 @@
         this.title ??= `Select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`
         return {
           files: Array.isArray(this.value) ? this.value : this.value ? [this.value] : [],
-          message: `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
+          message: Array.isArray(this.value) && this.value.length || !Array.isArray(this.value) && this.value ? (Array.isArray(this.value) ? `${this.value.length} file${this.value.length === 1 ? "" : "s"} selected` : "change file") : `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
           maxFiles,
           multipleFiles
         }
@@ -1881,6 +1881,11 @@
         }
       },
       styles: `
+        display: flex;
+        flex-direction: column;
+        gap: 8px !important;
+        flex: 1;
+
         .canvas-container {
           background-color: var(--color-back);
           border: 1px solid var(--color-border);
@@ -1913,7 +1918,6 @@
         .button-row {
           display: flex;
           gap: 8px;
-          margin-top: -8px;
 
           button {
             flex: 1 1 0px;
@@ -3782,7 +3786,6 @@
               this.full = null
               this.overlay = null
               this.error = null
-              console.log(this.full, this.overlay, this.error)
               return
             }
             if (![1, 5].includes(this.files.length)) {
@@ -3820,6 +3823,12 @@
                 }
                 img.ctx.drawImage(file.image, size * i, 0)
               }
+            }
+            if (img.height < 2) {
+              this.full = null
+              this.overlay = null
+              this.error = "Invalid input: The minimum tile size is 2x2"
+              return
             }
             this.error = null
             const coords = {
@@ -4105,7 +4114,192 @@
           <button :disabled="!full" @click="save">Export CTM</button>
         `
       }
-    }
+    },
+    chestConverter: {
+      name: "Chest Converter",
+      icon: "package_2",
+      tagline: "Convert chest textures between the 1.14 and 1.15 formats.",
+      description: "Chest Converter is a tool that will convert the chest textures between the 1.14 format 1.15 format.",
+      component: {
+        data: {
+          file: null,
+          files: [],
+          name: "normal",
+          output: null,
+          output2: null,
+          error: null,
+          mode: "normalOld",
+          modes: {
+            normalOld: "1.14 format normal",
+            largeOld: "1.14 format double",
+            normalNew: "1.15 format normal",
+            largeNew: "1.15 format double"
+          }
+        },
+        methods: {
+          async execute() {
+            if ((this.mode === "normalOld" || this.mode === "largeOld" || this.mode === "normalNew") && !this.file) {
+              this.output = null
+              this.output2 = null
+              this.error = null
+              return
+            }
+            if (this.mode === "largeNew" && !this.files.length) {
+              this.output = null
+              this.output2 = null
+              this.error = null
+              return
+            }
+            if ((this.mode === "normalOld" || this.mode === "normalNew") && this.file.image.width !== this.file.image.height) {
+              this.output = null
+              this.output2 = null
+              this.error = "Invalid chest texture: Normal chest textures must be square"
+              return
+            }
+            if (this.mode === "largeOld" && this.file.image.width !== this.file.image.height * 2) {
+              this.output = null
+              this.output2 = null
+              this.error = "Invalid chest texture: 1.14 format double chest textures must be in the aspect ratio 2:1"
+              return
+            }
+            if (this.mode === "largeNew") {
+              if (this.files.length < 2) {
+                this.output = null
+                this.output2 = null
+                this.error = "Please provide both parts of the 1.15 format double chest texture"
+                return
+              }
+              if (this.files.some(e => e.image.width !== e.image.height)) {
+                this.output = null
+                this.output2 = null
+                this.error = "Invalid chest texture: 1.15 format double chest textures must be square"
+                return
+              }
+              if (this.files[0].image.width !== this.files[1].image.width) {
+                this.output = null
+                this.output2 = null
+                this.error = "Invalid chest texture: Both 1.15 format double chest textures must be the same size"
+                return
+              }
+            }
+            this.error = null
+            const drawFlipped = (canvas, m, img, x, y, w, h, x2, y2) => canvas.ctx.drawImage(img, Math.floor(x * m), Math.floor(y * m), Math.floor(w * m), Math.floor(h * m), Math.floor(x2 * m), Math.floor(canvas.height - (y2 + h) * m), Math.floor(w * m), Math.floor(h * m))
+            const drawRotated = (canvas, m, img, x, y, w, h, x2, y2) => canvas.ctx.drawImage(img, Math.floor(x * m), Math.floor(y * m), Math.floor(w * m), Math.floor(h * m), Math.floor(canvas.width - (x2 + w) * m), Math.floor(canvas.height - (y2 + h) * m), Math.floor(w * m), Math.floor(h * m))
+            if (this.mode === "normalOld" || this.mode === "normalNew") {
+              this.name = "normal"
+              this.output2 = null
+              const m = this.file.image.width / 64
+              this.output = imageToCanvas(this.file.image)
+              this.output.ctx.save()
+              this.output.ctx.scale(1, -1)
+              this.output.ctx.translate(0, -this.output.height)
+              drawFlipped(this.output, m, this.file.image, 14, 0, 14, 14, 28, 0)
+              drawFlipped(this.output, m, this.file.image, 28, 0, 14, 14, 14, 0)
+              drawFlipped(this.output, m, this.file.image, 14, 19, 14, 14, 28, 19)
+              drawFlipped(this.output, m, this.file.image, 28, 19, 14, 14, 14, 19)
+              drawFlipped(this.output, m, this.file.image, 1, 0, 2, 1, 3, 0)
+              drawFlipped(this.output, m, this.file.image, 3, 0, 2, 1, 1, 0)
+              this.output.ctx.restore()
+              this.output.ctx.rotate(Math.degToRad(180))
+              this.output.ctx.translate(-this.output.width, -this.output.height)
+              drawRotated(this.output, m, this.file.image, 14, 14, 42, 5, 14, 14)
+              drawRotated(this.output, m, this.file.image, 0, 14, 14, 5, 0, 14)
+              drawRotated(this.output, m, this.file.image, 14, 33, 42, 10, 14, 33)
+              drawRotated(this.output, m, this.file.image, 0, 33, 14, 10, 0, 33)
+              drawRotated(this.output, m, this.file.image, 1, 1, 5, 4, 1, 1)
+              drawRotated(this.output, m, this.file.image, 0, 1, 1, 4, 0, 1)
+            } else if (this.mode === "largeOld") {
+              this.name = "normal_left"
+              const m = this.file.image.width / 128
+              this.output = new Canvas(this.file.image.height, this.file.image.height)
+              this.output.ctx.save()
+              this.output.ctx.scale(1, -1)
+              this.output.ctx.translate(0, -this.output.height)
+              drawFlipped(this.output, m, this.file.image, 59, 0, 15, 14, 14, 0)
+              drawFlipped(this.output, m, this.file.image, 29, 0, 15, 14, 29, 0)
+              drawFlipped(this.output, m, this.file.image, 59, 19, 15, 14, 14, 19)
+              drawFlipped(this.output, m, this.file.image, 29, 19, 15, 14, 29, 19)
+              drawFlipped(this.output, m, this.file.image, 4, 0, 1, 1, 1, 0)
+              drawFlipped(this.output, m, this.file.image, 2, 0, 1, 1, 2, 0)
+              this.output.ctx.restore()
+              this.output.ctx.rotate(Math.degToRad(180))
+              this.output.ctx.translate(-this.output.width, -this.output.height)
+              drawRotated(this.output, m, this.file.image, 29, 14, 44, 5, 14, 14)
+              drawRotated(this.output, m, this.file.image, 29, 33, 44, 10, 14, 33)
+              drawRotated(this.output, m, this.file.image, 2, 1, 3, 4, 1, 1)
+              this.output2 = new Canvas(this.file.image.height, this.file.image.height)
+              this.output2.ctx.save()
+              this.output2.ctx.scale(1, -1)
+              this.output2.ctx.translate(0, -this.output2.height)
+              drawFlipped(this.output2, m, this.file.image, 44, 0, 15, 14, 14, 0)
+              drawFlipped(this.output2, m, this.file.image, 14, 0, 15, 14, 29, 0)
+              drawFlipped(this.output2, m, this.file.image, 44, 19, 15, 14, 14, 19)
+              drawFlipped(this.output2, m, this.file.image, 14, 19, 15, 14, 29, 19)
+              drawFlipped(this.output2, m, this.file.image, 3, 0, 1, 1, 1, 0)
+              drawFlipped(this.output2, m, this.file.image, 1, 0, 1, 1, 2, 0)
+              this.output2.ctx.restore()
+              this.output2.ctx.rotate(Math.degToRad(180))
+              this.output2.ctx.translate(-this.output2.width, -this.output2.height)
+              drawRotated(this.output2, m, this.file.image, 0, 14, 14, 5, 0, 14)
+              drawRotated(this.output2, m, this.file.image, 73, 14, 15, 5, 14, 14)
+              drawRotated(this.output2, m, this.file.image, 14, 14, 15, 5, 43, 14)
+              drawRotated(this.output2, m, this.file.image, 0, 33, 14, 10, 0, 33)
+              drawRotated(this.output2, m, this.file.image, 73, 33, 15, 10, 14, 33)
+              drawRotated(this.output2, m, this.file.image, 14, 33, 15, 10, 43, 33)
+              drawRotated(this.output2, m, this.file.image, 0, 1, 1, 4, 0, 1)
+              drawRotated(this.output2, m, this.file.image, 5, 1, 1, 4, 1, 1)
+              drawRotated(this.output2, m, this.file.image, 1, 1, 1, 4, 3, 1)
+            } else {
+              this.name = "normal_double"
+              this.output2 = null
+              const m = this.files[0].image.width / 64
+              this.output = new Canvas(this.files[0].image.width * 2, this.files[0].image.height)
+              this.output.ctx.save()
+              this.output.ctx.scale(1, -1)
+              this.output.ctx.translate(0, -this.output.height)
+              drawFlipped(this.output, m, this.files[0].image, 14, 0, 15, 14, 59, 0)
+              drawFlipped(this.output, m, this.files[1].image, 14, 0, 15, 14, 44, 0)
+              drawFlipped(this.output, m, this.files[0].image, 29, 0, 15, 14, 29, 0)
+              drawFlipped(this.output, m, this.files[1].image, 29, 0, 15, 14, 14, 0)
+              drawFlipped(this.output, m, this.files[0].image, 14, 19, 15, 14, 59, 19)
+              drawFlipped(this.output, m, this.files[1].image, 14, 19, 15, 14, 44, 19)
+              drawFlipped(this.output, m, this.files[0].image, 29, 19, 15, 14, 29, 19)
+              drawFlipped(this.output, m, this.files[1].image, 29, 19, 15, 14, 14, 19)
+              drawFlipped(this.output, m, this.files[0].image, 1, 0, 1, 1, 4, 0)
+              drawFlipped(this.output, m, this.files[1].image, 1, 0, 1, 1, 3, 0)
+              drawFlipped(this.output, m, this.files[0].image, 2, 0, 1, 1, 2, 0)
+              drawFlipped(this.output, m, this.files[1].image, 2, 0, 1, 1, 1, 0)
+              this.output.ctx.restore()
+              this.output.ctx.rotate(Math.degToRad(180))
+              this.output.ctx.translate(-this.output.width, -this.output.height)
+              drawRotated(this.output, m, this.files[0].image, 14, 14, 44, 5, 29, 14)
+              drawRotated(this.output, m, this.files[1].image, 0, 14, 14, 5, 0, 14)
+              drawRotated(this.output, m, this.files[1].image, 14, 14, 15, 5, 73, 14)
+              drawRotated(this.output, m, this.files[1].image, 43, 14, 15, 5, 14, 14)
+              drawRotated(this.output, m, this.files[0].image, 14, 33, 44, 10, 29, 33)
+              drawRotated(this.output, m, this.files[1].image, 0, 33, 14, 10, 0, 33)
+              drawRotated(this.output, m, this.files[1].image, 14, 33, 15, 10, 73, 33)
+              drawRotated(this.output, m, this.files[1].image, 43, 33, 15, 10, 14, 33)
+              drawRotated(this.output, m, this.files[0].image, 1, 1, 3, 4, 2, 1)
+              drawRotated(this.output, m, this.files[1].image, 0, 1, 1, 4, 0, 1)
+              drawRotated(this.output, m, this.files[1].image, 1, 1, 1, 4, 5, 1)
+              drawRotated(this.output, m, this.files[1].image, 3, 1, 1, 4, 1, 1)
+            }
+          }
+        },
+        template: `
+          <h3>Input chest texture{{ mode === 'largeNew' ? "s" : "" }}:</h3>
+          <tab-select v-model="mode" :options="modes" @input="execute" />
+          <file-input v-if="mode !== 'largeNew'" :key="mode" v-model="file" title="Select your chest texture" @input="execute" />
+          <file-input v-if="mode === 'largeNew'" :key="mode" v-model="files" title="Select your chest textures" @input="execute" max="2" />
+          <h3>Output chest textures:</h3>
+          <div class="row" style="gap: 16px;">
+            <canvas-output v-model="output" :name="name" :error="error" />
+            <canvas-output v-if="output2" v-model="output2" name="normal_right" />
+          </div>
+        `
+      }
+    },
   }
 
   globalThis.resourcePackUtilities = utilities
