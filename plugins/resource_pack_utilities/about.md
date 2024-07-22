@@ -22,6 +22,10 @@
       <p>CTM Converter is a tool that will convert compact CTM into full CTM or overlay CTM.</p>
     </li>
     <li>
+      <h3>Image Resizer</h3>
+      <p>Image Resizer is a tool that will go through all images in a folder and resize them, relative to their original size.</p>
+    </li>
+    <li>
       <h3>JSON Optimiser</h3>
       <p>JSON Optimiser is a tool that will go through all JSON files in a folder and optimise them to be as small as possible, minifying them and removing any unnecessary data.</p>
     </li>

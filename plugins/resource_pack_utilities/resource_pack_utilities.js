@@ -323,7 +323,7 @@
 
             .row {
               display: flex;
-              gap: 40px;
+              gap: 32px;
               flex-direction: row;
               align-items: flex-start;
             }
@@ -579,7 +579,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "chestConverter"
+      // dialog.content_vue.utility = "imageResizer"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -1175,7 +1175,7 @@
         }
       `,
       template: `
-        <div :style="{ width: width ? width.toString() + 'px' : 'initial' }"><slot></slot>:</div>
+        <div :style="{ width: width ? width + 'px' : 'initial' }"><slot></slot>:</div>
         <input type="text" :class="{ required }" :placeholder="placeholder" :value="value" @input="$emit('input', $event.target.value)">
       `
     },
@@ -1566,7 +1566,7 @@
         }
       `,
       template: `
-        <div :style="{ width: width.toString() + 'px' }">Minecraft Version:</div>
+        <div :style="{ width: width + 'px' }">Minecraft Version:</div>
         <select-input v-model="version" :options="Object.fromEntries(manifest.versions.filter(e => snapshots ? !releasePattern.test(e.id) : releasePattern.test(e.id)).map(e => [e.id, e.id]))" @input="$emit('update:version', version)" />
         <label>
           <input type="checkbox" v-model="snapshots" @change="change">
@@ -1592,7 +1592,7 @@
         }
       `,
       template: `
-        <div :style="{ width: width ? width.toString() + 'px' : 'initial' }"><slot></slot>:</div>
+        <div :style="{ width: width ? width + 'px' : 'initial' }"><slot></slot>:</div>
         <select-input v-model="value" :options="options" />
       `
     },
@@ -1986,6 +1986,35 @@
           <input type="range" class="tool disp_range" v-model.number="value" :min="min" :max="max" :step="step" />
           <numeric-input class="tool disp_text" v-model.number="value" :min="min" :max="max" :step="step" />
         </div>
+      `
+    },
+    numInputRow: {
+      props: {
+        value: {},
+        min: {
+          default: 0
+        },
+        max: {
+          default: 100
+        },
+        step: {
+          default: 1
+        },
+        width: {}
+      },
+      watch: {
+        value(val) {
+          this.$emit("input", val)
+        }
+      },
+      styles: `
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      `,
+      template: `
+        <div :style="{ width: width ? width + 'px' : 'initial' }"><slot></slot>:</div>
+        <numeric-input class="tool disp_text" v-model.number="value" :min="min" :max="max" :step="step" />
       `
     }
   }
@@ -3754,9 +3783,9 @@
           <tab-select v-model="mode" :options="modes" />
           <file-input v-model="file" title="Select your skin file" @input="execute" />
           <h3 v-if="mode === 'wide'">The column of pixels in the arms that gets removed:</h3>
-          <num-slider v-if="mode === 'wide'" v-model="slimCol" :min="1" :max="4" :step="1" @input="execute" />
+          <num-slider v-if="mode === 'wide'" v-model="slimCol" :min="1" :max="4" @input="execute" />
           <h3 v-if="mode === 'slim'">The column of pixels in the arms that gets duplicated:</h3>
-          <num-slider v-if="mode === 'slim'" v-model="wideCol" :min="1" :max="3" :step="1" @input="execute" />
+          <num-slider v-if="mode === 'slim'" v-model="wideCol" :min="1" :max="3" @input="execute" />
           <h3>Output {{ mode === 'wide' ? 'slim' : 'wide' }} skin:</h3>
           <canvas-output v-if="mode === 'wide'" v-model="slim" name="slim" :error="error" />
           <canvas-output v-if="mode === 'slim'" v-model="wide" name="wide" :error="error" />
@@ -4300,6 +4329,114 @@
         `
       }
     },
+    imageResizer: {
+      name: "Image Resizer",
+      icon: "resize",
+      tagline: "Batch resize images in a folder, relative to their original sizes.",
+      description: "Image Resizer is a tool that will go through all images in a folder and resize them, relative to their original size.",
+      component: {
+        data: {
+          folder: "",
+          multiplier: 2,
+          method: "nearest",
+          methods: {
+            nearest: "Nearest",
+            bilinear: "Bilinear"
+          },
+          ignoreList: [],
+          outputLog,
+          done: 0,
+          total: null,
+          cancelled: false
+        },
+        methods: {
+          async execute() {
+            if (!await confirm("Run Image Resizer?", `Are you sure you want to run Image Resizer over the following folder:\n<code>${formatPath(this.folder)}</code>\n\nMake a backup first if you would like to keep the original versions of the images.`)) return
+
+            outputLog.length = 0
+            this.status.finished = false
+            this.status.processing = true
+            this.done = 0
+            this.total = null
+            this.cancelled = false
+
+            if (!await exists(this.folder)) {
+              this.status.finished = true
+              this.status.processing = false
+              this.total = 0
+              output.error(`The folder \`${formatPath(this.folder)}\` was not found`)
+              return
+            }
+
+            const files = []
+            for await (const file of getFiles(this.folder)) {
+              const shortened = formatPath(file.slice(this.folder.length)).replace(/^\//, "")
+              if (
+                !file.endsWith(".png") ||
+                this.ignoreList.some(item => shortened.toLowerCase().includes(item))
+              ) continue
+              files.push([file, shortened])
+            }
+
+            this.total = files.length
+
+            for (const [file, shortened] of files) {
+              if (this.cancelled) break
+              
+              const img = await loadImage(file)
+
+              const width = Math.max(1, Math.round(img.width * this.multiplier))
+              const height = Math.max(1, Math.round(img.height * this.multiplier))
+
+              if (width > 4096 || height > 4096) {
+                output.warn(`Skipping \`${shortened}\` as \`${width}x${height}\` is over the maxinum size limit (\`4096x4096\`)`)
+                this.done++
+                continue
+              }
+
+              const canvas = new Canvas(width, height)
+              
+              if (this.method === "nearest") {
+                canvas.ctx.imageSmoothingEnabled = false
+              }
+
+              canvas.ctx.drawImage(img, 0, 0, width, height)
+
+              await fs.promises.writeFile(file, Buffer.from(await (await new Promise(fulfil => canvas.toBlob(fulfil))).arrayBuffer()))
+
+              output.log(`Resized \`${shortened}\` from \`${img.width}x${img.height}\` to \`${width}x${height}\``)
+              this.done++
+            }
+
+            this.total = this.done
+            output.info("Finished")
+            this.status.processing = false
+            this.status.finished = true
+          }
+        },
+        template: `
+          <div v-if="!status.processing && !status.finished">
+            <div class="row">
+              <div class="col spacer">
+                <h3>Folder to Resize:</h3>
+                <folder-selector v-model="folder">folder to resize the images of</folder-selector>
+                <select-row v-model="method" :options="methods" width="148">Interpolation method</select-row>
+                <num-input-row v-model="multiplier" :min="0.1" :max="256" :step="0.1" width="148">Size Multiplier</num-input-row>
+                <div>If the input size is <code>16</code>, the output size will be <code>{{ Math.round(16 * multiplier).toLocaleString() }}</code></div>
+              </div>
+              <ignore-list v-model="ignoreList" style="align-self: flex-start;" />
+            </div>
+            <button :disabled="!folder" @click="execute">Resize</button>
+          </div>
+          <div v-else>
+            <progress-bar :done="done" :total="total" />
+            <output-log v-model="outputLog" />
+            <button v-if="status.processing" @click="cancelled = true">Cancel</button>
+            <button v-else @click="status.finished = false">Done</button>
+          </div>
+        `
+      }
+    }
   }
 
   globalThis.resourcePackUtilities = utilities
