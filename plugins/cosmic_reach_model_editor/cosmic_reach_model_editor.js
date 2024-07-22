@@ -10,7 +10,7 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "1.3.0",
+      version: "1.3.1",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
@@ -720,7 +720,7 @@
                         ],
                         click() {
                             try{
-                                codec.export({maximize: false, parent: undefined});
+                                codec.export();
                             }catch(error){
                                 dialog.lines = `<div>
                                     <h1>Unable to export file.</h1>
@@ -737,7 +737,7 @@
                         category: 'file',
                         click() {
                             try{
-                                codec.export({maximize: true, parent: undefined});
+                                codec.export();
                             }catch(error){
                                 dialog.lines = `<div>
                                     <h1>Unable to export file.</h1>
@@ -752,7 +752,7 @@
                     ]),*/
                     click() {
                         try{
-                            codec.export({maximize: settings.cosmic_reach_maximize_block_models.value, parent: undefined});
+                            codec.export({parent: undefined});
                         }catch(error){
                             dialog.lines = `<div>
                                 <h1>Unable to export file.</h1>
@@ -780,7 +780,7 @@
                                         }
                                     },
                                     onConfirm: result => {
-                                        codec.export({maximize: settings.cosmic_reach_maximize_block_children_models.value, parent: result.name});
+                                        codec.export({parent: result.name});
                                     }
                                 }).show()
                             }catch(error){
@@ -837,7 +837,7 @@
                 side_menu: new Menu("export_cosmic_reach_entity_model_side_menu",[]),
                 click() {
                     try{
-                        codec_entity.export({maximize: true});
+                        codec_entity.export();
                     }catch(error){
                         dialog.lines = `<div>
                             <h1>Unable to export file.</h1>
@@ -854,7 +854,7 @@
                 side_menu: new Menu("export_cosmic_reach_entity_model_side_menu",[]),
                 click() {
                     try{
-                        codec_entity.export({maximize: false});
+                        codec_entity.export();
                     }catch(error){
                         dialog.lines = `<div>
                             <h1>Unable to export file.</h1>
@@ -866,7 +866,7 @@
             }),]),*/
             click() {
                 try{
-                    codec_entity.export({maximize: settings.cosmic_reach_maximize_entity_models.value});
+                    codec_entity.export();
                 }catch(error){
                     dialog.lines = `<div>
                         <h1>Unable to export file.</h1>
@@ -912,7 +912,7 @@
             category: 'file',
             click() {
                 try{
-                    codec_animation.export({maximize: settings.cosmic_reach_maximize_entity_animations.value});
+                    codec_animation.export();
                 }catch(error){
                     dialog.lines = `<div>
                         <h1>Unable to export file.</h1>
