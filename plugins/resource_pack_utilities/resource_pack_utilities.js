@@ -1032,8 +1032,6 @@
     }
   })
 
-  const clockGeneratorTemplate = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAQBAMAAACigOGCAAAAMFBMVEUAAAD/APv///8AAAAeHBxJaNhsbIl1KAKyZBHclhPpsRX61kr797f99V///wD///9MIKtdAAAABHRSTlMAAAAzDEMHjAAAAMxJREFUeF5tzKEOgkAcgPH/KFoPXwApGtwYuyazMd/AanJmR0GbzUNnVoLJ4mAkguq9go0mI1oJvADe/8YcG3z1t32gATAGoMyq9CoBLOOsDbrRdfza1sEoJOwTSq0bwvwrwSjLAuFICendEfJcQikSMPyYhJDQaUJiqnrfcv4rA6EQEJujREXAJBSGhAedxPTg2FW6LgBXg/SdRmmIMF0gyBAunAfBE2Fp10HbZDzgJ6UJaz9LzzulsdI6ns/YCgGrAbgec6ENwHWhCT8ruX6BrD+klgAAAABJRU5ErkJggg=="
-
   const components = {
     folderSelector: {
       props: {
@@ -4473,15 +4471,16 @@
           gif: null,
           frames: [],
           error: null,
+          template: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAQBAMAAACigOGCAAAAMFBMVEUAAAD/APv///8AAAAeHBxJaNhsbIl1KAKyZBHclhPpsRX61kr797f99V///wD///9MIKtdAAAABHRSTlMAAAAzDEMHjAAAAMxJREFUeF5tzKEOgkAcgPH/KFoPXwApGtwYuyazMd/AanJmR0GbzUNnVoLJ4mAkguq9go0mI1oJvADe/8YcG3z1t32gATAGoMyq9CoBLOOsDbrRdfza1sEoJOwTSq0bwvwrwSjLAuFICendEfJcQikSMPyYhJDQaUJiqnrfcv4rA6EQEJujREXAJBSGhAedxPTg2FW6LgBXg/SdRmmIMF0gyBAunAfBE2Fp10HbZDzgJ6UJaz9LzzulsdI6ns/YCgGrAbgec6ENwHWhCT8ruX6BrD+klgAAAABJRU5ErkJggg=="
         },
         methods: {
-          template() {
+          saveTemplate() {
             Blockbench.export({
               extensions: ["png"],
               type: "PNG",
               name: "template",
               savetype: "image",
-              content: clockGeneratorTemplate
+              content: this.template
             }, () => Blockbench.showQuickMessage("Saved template…"))
           },
           async execute() {
@@ -4544,8 +4543,8 @@
           <div class="row">
             <div class="spacer">The input texture consists of three parts: the clock frame (gets overlayed on top), the rotating dial (should cover the entire area), and a mask to control the dial's visibility (solid pixels show the dial, transparent pixels hide it).</div>
             <div class="col" style="margin-top: -32px;">
-              <img class="checkerboard" width="192" height="64" src="${clockGeneratorTemplate}">
-              <button style="margin-top: -8px;" @click="template">Save template</button>
+              <img class="checkerboard" width="192" height="64" :src="template">
+              <button style="margin-top: -8px;" @click="saveTemplate">Save template</button>
             </div>
           </div>
           <h3>Input texture:</h3>
