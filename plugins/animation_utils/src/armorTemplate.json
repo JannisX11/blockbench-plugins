@@ -287,7 +287,7 @@
       "visibility": true,
       "autouv": 0,
       "origin": [
-        2,
+        -2,
         12,
         0
       ],
@@ -301,7 +301,7 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            2,
+            -2,
             12,
             0
           ],
@@ -317,7 +317,7 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            2,
+            -2,
             12,
             0
           ],
@@ -335,7 +335,7 @@
       "visibility": true,
       "autouv": 0,
       "origin": [
-        -2,
+        2,
         12,
         0
       ],
@@ -349,7 +349,7 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            -2,
+            2,
             12,
             0
           ],
@@ -365,7 +365,7 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            -2,
+            2,
             12,
             0
           ],
