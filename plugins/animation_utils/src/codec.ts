@@ -97,6 +97,24 @@ function getKeyframeDataPoints(source: any) {
     }
 }
 
+function geoLoopToBbLoop(jsonLoop) {
+    if (jsonLoop) {
+        if (typeof jsonLoop === 'boolean') {
+            return jsonLoop ? 'loop' : 'once'
+        }
+
+        if (typeof jsonLoop === 'string') {
+            if (jsonLoop === "hold_on_last_frame")
+                return 'hold'
+
+            if (jsonLoop === "loop" || jsonLoop === "true")
+                return 'loop'
+        }
+    }
+
+    return 'once'
+}
+
 function animatorLoadFile(file, animation_filter) {
     // Currently no modifications are needed
     // eslint-disable-next-line no-undef
@@ -111,9 +129,7 @@ function animatorLoadFile(file, animation_filter) {
             const animation = new Blockbench.Animation({
                 name: ani_name,
                 path,
-                // TODO: Make sure it's OK to disable this line
-                // loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
-                loop: a.loop,
+                loop: geoLoopToBbLoop(a.loop),
                 override: a.override_previous_animation,
                 anim_time_update: (typeof a.anim_time_update == 'string'
                     ? a.anim_time_update.replace(/;(?!$)/, ';\n')
