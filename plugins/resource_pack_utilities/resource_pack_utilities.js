@@ -579,7 +579,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "imageResizer"
+      // dialog.content_vue.utility = "clockGenerator"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -1031,6 +1031,8 @@
       type: "dae"
     }
   })
+
+  const clockGeneratorTemplate = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAQBAMAAACigOGCAAAAMFBMVEUAAAD/APv///8AAAAeHBxJaNhsbIl1KAKyZBHclhPpsRX61kr797f99V///wD///9MIKtdAAAABHRSTlMAAAAzDEMHjAAAAMxJREFUeF5tzKEOgkAcgPH/KFoPXwApGtwYuyazMd/AanJmR0GbzUNnVoLJ4mAkguq9go0mI1oJvADe/8YcG3z1t32gATAGoMyq9CoBLOOsDbrRdfza1sEoJOwTSq0bwvwrwSjLAuFICendEfJcQikSMPyYhJDQaUJiqnrfcv4rA6EQEJujREXAJBSGhAedxPTg2FW6LgBXg/SdRmmIMF0gyBAunAfBE2Fp10HbZDzgJ6UJaz9LzzulsdI6ns/YCgGrAbgec6ENwHWhCT8ruX6BrD+klgAAAABJRU5ErkJggg=="
 
   const components = {
     folderSelector: {
@@ -1850,12 +1852,19 @@
         async appendCanvas() {
           if (this.value) {
             this.$refs.canvasContainer.textContent = ""
-            this.value.classList.add("checkerboard")
-            if (this.height) {
-              this.value.style.height = this.height + "px"
+            if (this.type === "GIF") {
+              const img = document.createElement("img")
+              img.src = `data:image/gif;base64,${btoa(String.fromCharCode(...this.value))}`
+              this.$refs.canvasContainer.append(img)
+              this.$refs.canvasInfo.textContent = `${this.name}.gif\n${this.value[6] + (this.value[7] << 8)}x${this.value[8] + (this.value[9] << 8)} - ${formatBytes(this.value.length)}`
+            } else {
+              this.value.classList.add("checkerboard")
+              if (this.height) {
+                this.value.style.height = this.height + "px"
+              }
+              this.$refs.canvasContainer.append(this.value)
+              this.$refs.canvasInfo.textContent = `${this.name}.png\n${this.value.width}x${this.value.height} - ${formatBytes((await (await new Promise(fulfil => this.value.toBlob(fulfil))).arrayBuffer()).byteLength)}`
             }
-            this.$refs.canvasContainer.append(this.value)
-            this.$refs.canvasInfo.textContent = `${this.name}.png\n${this.value.width}x${this.value.height} - ${formatBytes((await (await new Promise(fulfil => this.value.toBlob(fulfil))).arrayBuffer()).byteLength)}`
           } else {
             if (this.error) {
               this.$refs.canvasContainer.innerHTML = `<span class="canvas-output-error">${this.error}</span>`
@@ -1871,13 +1880,23 @@
           Blockbench.showQuickMessage("Copied to clipboard…")
         },
         save() {
-          Blockbench.export({
-            extensions: ["png"],
-            type: this.type,
-            name: this.name,
-            savetype: "image",
-            content: this.value.toDataURL()
-          }, () => Blockbench.showQuickMessage("Saved…"))
+          if (this.type === "GIF") {
+            Blockbench.export({
+              extensions: ["gif"],
+              type: "GIF",
+              name: this.name,
+              savetype: "binary",
+              content: this.value
+            }, () => Blockbench.showQuickMessage("Saved…"))
+          } else {
+            Blockbench.export({
+              extensions: [this.type.toLowerCase()],
+              type: this.type,
+              name: this.name,
+              savetype: "image",
+              content: this.value.toDataURL()
+            }, () => Blockbench.showQuickMessage("Saved…"))
+          }
         }
       },
       styles: `
@@ -1910,7 +1929,7 @@
           }
         }
 
-        canvas {
+        canvas, img {
           height: 256px;
           display: block;
         }
@@ -1938,7 +1957,7 @@
             <i class="material-icons icon">save</i>
             <span>Save</span>
           </button>
-          <button :disabled="!value" @click="copy">
+          <button v-if="type !== 'GIF'" :disabled="!value" @click="copy">
             <i class="material-icons icon">content_copy</i>
             <span>Copy</span>
           </button>
@@ -4434,6 +4453,110 @@
             <button v-if="status.processing" @click="cancelled = true">Cancel</button>
             <button v-else @click="status.finished = false">Done</button>
           </div>
+        `
+      }
+    },
+    clockGenerator: {
+      name: "Clock Generator",
+      icon: "schedule",
+      tagline: "Easily generate a full set of clock textures from a simple input texture.",
+      description: "Clock Generator is a tool that allows you to quickly and easily generate a full set of clock textures from a simple input texture.",
+      component: {
+        data: {
+          file: null,
+          frameCount: 32,
+          method: "nearest",
+          methods: {
+            nearest: "Nearest",
+            bilinear: "Bilinear"
+          },
+          gif: null,
+          frames: [],
+          error: null,
+        },
+        methods: {
+          template() {
+            Blockbench.export({
+              extensions: ["png"],
+              type: "PNG",
+              name: "template",
+              savetype: "image",
+              content: clockGeneratorTemplate
+            }, () => Blockbench.showQuickMessage("Saved template…"))
+          },
+          async execute() {
+            if (!this.file) {
+              this.gif = null
+              this.error = null
+              return
+            }
+            const size = this.file.image.height
+            if (this.file.image.width !== size * 3) {
+              this.gif = null
+              this.error = "Invalid texture: The clock texture must be in the aspect ratio 3:1"
+              return
+            }
+            this.error = null
+            this.frames = []
+            const gif = GIFEnc.GIFEncoder()
+            for (let x = 0; x < this.frameCount; x++) {
+              const canvas = new Canvas(size, size)
+              if (this.method === "nearest") {
+                canvas.ctx.imageSmoothingEnabled = false
+              }
+              canvas.ctx.save()
+              canvas.ctx.translate(size / 2, size / 2)
+              canvas.ctx.rotate((360 / this.frameCount * x) * Math.PI / 180)
+              canvas.ctx.drawImage(this.file.image, size, 0, size, size, -size / 2, -size / 2, size, size)
+              canvas.ctx.restore()
+              canvas.ctx.globalCompositeOperation = "destination-in"
+              canvas.ctx.drawImage(this.file.image, 2 * size, 0, size, size, 0, 0, size, size)
+              canvas.ctx.globalCompositeOperation = "source-over"
+              canvas.ctx.drawImage(this.file.image, 0, 0, size, size, 0, 0, size, size)
+              this.frames.push(canvas)
+              const data = canvas.ctx.getImageData(0, 0, size, size).data
+              const palette = GIFEnc.quantize(data, 256)
+              const index = GIFEnc.applyPalette(data, palette)
+              gif.writeFrame(index, size, size, {
+                transparent: true,
+                palette
+              })
+            }
+            gif.finish()
+            this.gif = gif.bytes()
+          },
+          async save() {
+            const dir = Blockbench.pickDirectory()
+            if (!dir) return
+            await Promise.all(this.frames.map(async (frame, i) => fs.promises.writeFile(path.join(dir, `clock_${i.toString().padStart(2, 0)}.png`), Buffer.from(await (await new Promise(fulfil => frame.toBlob(fulfil))).arrayBuffer()))))
+            Blockbench.showQuickMessage("Exported clock")
+          }
+        },
+        styles: `
+          #template {
+            display: flex;
+            gap: 8px;
+            flex-direction: row;
+          }
+        `,
+        template: `
+          <h3>Template:</h3>
+          <div class="row">
+            <div class="spacer">The input texture consists of three parts: the clock frame (gets overlayed on top), the rotating dial (should cover the entire area), and a mask to control the dial's visibility (solid pixels show the dial, transparent pixels hide it).</div>
+            <div class="col" style="margin-top: -32px;">
+              <img class="checkerboard" width="192" height="64" src="${clockGeneratorTemplate}">
+              <button style="margin-top: -8px;" @click="template">Save template</button>
+            </div>
+          </div>
+          <h3>Input texture:</h3>
+          <file-input v-model="file" title="Select your clock texture" @input="execute" />
+          <div>
+            <num-input-row v-model="frameCount" :min="2" :max="360" width="148" @input="execute">Frame count</num-input-row>
+            <select-row v-model="method" :options="methods" width="148" @input="execute">Interpolation method</select-row>
+          </div>
+          <h3>Output clock:</h3>
+          <canvas-output v-model="gif" name="clock" :error="error" type="GIF" />
+          <button :disabled="!gif" @click="save">Export Clock</button>
         `
       }
     }

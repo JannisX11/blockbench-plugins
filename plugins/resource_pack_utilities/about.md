@@ -18,6 +18,10 @@
       <p>CIT Optimiser is a tool that will go through all properties files in an OptiFine CIT folder and optimise them to be as small as possible, removing any unnecessary data.</p>
     </li>
     <li>
+      <h3>Clock Generator</h3>
+      <p>Clock Generator is a tool that allows you to quickly and easily generate a full set of clock textures from a simple input texture.</p>
+    </li>
+    <li>
       <h3>CTM Converter</h3>
       <p>CTM Converter is a tool that will convert compact CTM into full CTM or overlay CTM.</p>
     </li>
