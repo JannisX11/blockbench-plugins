@@ -397,8 +397,10 @@
 		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "3.1.0",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"version": "3.1.1",
 		"min_version": "4.8.0",
 		"await_loading": true,
 		"variant": "both",

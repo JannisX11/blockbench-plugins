@@ -6,6 +6,11 @@
 🐞 = Bug Fix<br/>
 🦎 = Non-user-facing Change
 
+## 3.1.1
+- 🐞 Fix the item display settings being cleared if saving as an entity type model
+- 🐞 Fix the armour template having swapped pivot points on the legs
+- 🐞 Fix incorrect importing of loop type. Closes [#591](https://github.com/bernie-g/geckolib/issues/591)
+
 ## 3.1.0
 - 💥 Update to new plugin format, bump minimum Blockbench version to 4.8.0
 - 🚀 Added support for "Reverse Keyframes" action
