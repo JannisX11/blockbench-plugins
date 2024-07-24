@@ -31,5 +31,25 @@
         ]
       }
     ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2024-07-24",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Chest Converter utility",
+          "Added Clock Generator utility",
+          "Added CTM Converter utility",
+          "Added Image Resizer utility",
+          "Added Minecraft Title Converter utility",
+          "Added Mojang Converter utility",
+          "Added Skin Converter utility",
+          "Added Wide ⇄ Slim Converter utility"
+        ]
+      }
+    ]
   }
 }
