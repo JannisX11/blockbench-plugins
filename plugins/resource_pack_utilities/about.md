@@ -6,6 +6,10 @@
   <h2>Utilities</h2>
   <ul>
     <li>
+      <h3>Animation Combiner</h3>
+      <p>Animation Combiner is a tool that combines the textures from a selected folder into an animated texture spritesheet.</p>
+    </li>
+    <li>
       <h3>Batch Exporter</h3>
       <p>Batch Exporter is a tool that will export every bbmodel file within a folder to an output folder using the selected format.</p>
     </li>

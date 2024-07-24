@@ -51,5 +51,24 @@
         ]
       }
     ]
+  },
+  "1.3.0": {
+    "title": "1.3.0",
+    "date": "2024-07-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Animation Combiner utility"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed textures trying to export as \".image\" files"
+        ]
+      }
+    ]
   }
 }
