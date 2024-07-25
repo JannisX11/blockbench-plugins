@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.1.0",
+      version: "8.1.1",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -639,12 +639,14 @@
     if (!textureLoaded) {
       const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
       const textures = Array.isArray(data.texture_name) && Array.isArray(model.texture_data) ? data.texture_name : [data.texture_name ?? data.name]
+      for (const cube of Cube.all) {
+        cube.selectLow()
+      }
       for (const [i, name] of textures.entries()) {
-        let tex
         if (textureData[i]) {
-          tex = new Texture({ name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
+          new Texture({ name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
         } else {
-          tex = TextureGenerator.addBitmap({
+          TextureGenerator.addBitmap({
             name,
             color: new tinycolor("#00000000"),
             type: "template",
@@ -652,9 +654,12 @@
             resolution: "16"
           })
         }
-        if (!i && textures.length === 1) {
-          tex.use_as_default =  true
-        }
+      }
+      for (const cube of Cube.all) {
+        cube.unselect()
+      }
+      if (textures.length > 1) {
+        Texture.all.forEach(t => t.use_as_default = false)
       }
     }
   }

@@ -881,5 +881,18 @@
         ]
       }
     ]
+  },
+  "8.1.1": {
+    "title": "8.1.1",
+    "date": "2024-07-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed loading models without a vanilla texture"
+        ]
+      }
+    ]
   }
 }
