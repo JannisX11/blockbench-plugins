@@ -7,7 +7,7 @@
   <ul>
     <li>
       <h3>Animation Combiner</h3>
-      <p>Animation Combiner is a tool that combines the textures from a selected folder into an animated texture spritesheet.</p>
+      <p>Animation Combiner is a tool that combines the textures from a selected folder into an animated spritesheet texture.</p>
     </li>
     <li>
       <h3>Batch Exporter</h3>
@@ -64,6 +64,10 @@
     <li>
       <h3>Skin Converter</h3>
       <p>Skin Converter is a tool that will convert Minecraft skins between the classic 64x32 format and the modern 64x64 format.</p>
+    </li>
+    <li>
+      <h3>Sounds Stripper</h3>
+      <p>Sounds Stripper is a tool that will go through the sounds.json file in an resource pack and remove any entries that have not been modified.</p>
     </li>
     <li>
       <h3>Wide ⇄ Slim Converter</h3>
