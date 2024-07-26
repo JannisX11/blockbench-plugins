@@ -882,11 +882,17 @@
       }
     ]
   },
-  "8.1.1": {
-    "title": "8.1.1",
-    "date": "2024-07-25",
+  "8.2.0": {
+    "title": "8.2.0",
+    "date": "2024-07-26",
     "author": "Ewan Howell",
     "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Invalid animations can now be saved instead of reverting to the last valid animation"
+        ]
+      },
       {
         "title": "Bug Fixes",
         "list": [
