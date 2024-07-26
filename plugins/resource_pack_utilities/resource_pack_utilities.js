@@ -2391,7 +2391,6 @@
               this.done++
             }
             this.total = this.done
-            console.log(beforeTotal - afterTotal)
             output.info(`Compressed ${this.total} files\nBefore: ${formatBytes(beforeTotal)}\nAfter: ${formatBytes(afterTotal)}\nSaved: ${formatBytes(beforeTotal - afterTotal)}`)
             this.status.processing = false
             this.status.finished = true
