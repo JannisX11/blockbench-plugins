@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.1.0",
+      version: "8.2.0",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -639,12 +639,14 @@
     if (!textureLoaded) {
       const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
       const textures = Array.isArray(data.texture_name) && Array.isArray(model.texture_data) ? data.texture_name : [data.texture_name ?? data.name]
+      for (const cube of Cube.all) {
+        cube.selectLow()
+      }
       for (const [i, name] of textures.entries()) {
-        let tex
         if (textureData[i]) {
-          tex = new Texture({ name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
+          new Texture({ name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
         } else {
-          tex = TextureGenerator.addBitmap({
+          TextureGenerator.addBitmap({
             name,
             color: new tinycolor("#00000000"),
             type: "template",
@@ -652,9 +654,12 @@
             resolution: "16"
           })
         }
-        if (!i && textures.length === 1) {
-          tex.use_as_default =  true
-        }
+      }
+      for (const cube of Cube.all) {
+        cube.unselect()
+      }
+      if (textures.length > 1) {
+        Texture.all.forEach(t => t.use_as_default = false)
       }
     }
   }
@@ -1807,8 +1812,9 @@
     }
     function parseAnimations(text) {
       animationErrorToggle()
+      let animations
       try {
-        let animations = JSON.parse(text)
+        animations = JSON.parse(text)
         if (!Array.isArray(animations)) throw ["The top level must be an array"]
         for (const [i, animation] of animations.entries()) if (animation === null || typeof animation !== "object" || Array.isArray(animation)) {
           throw [`Unexpected item of type "${animation === null ? "null" : Array.isArray(animation) ? "array" : typeof animation}" at position ${i}`]
@@ -1834,7 +1840,6 @@
             if (!part) animationErrorToggle(`Unknown group "<span style="font-weight:600">${split[0]}</span>"`, null, true)
           }
         }
-        return animations
       } catch (err) {
         if (err instanceof SyntaxError) {
           const numbers = err.message.match(/\d+/g)
@@ -1849,12 +1854,15 @@
               colNum = parseInt(numbers[1])
             }
             return animationErrorToggle(`Unexpected character at line ${lineNum} column ${colNum}`, lineNum)
+          } else {
+            return animationErrorToggle(err)
           }
-          return animationErrorToggle(err)
+        } else {
+          const split = text.split("\n")
+          animationErrorToggle(err[0], split.indexOf(split.find(e => e.includes(`"${err[1]}"`) && e.includes(`"${err[2]}"`))) + 1)
         }
-        const split = text.split("\n")
-        animationErrorToggle(err[0], split.indexOf(split.find(e => e.includes(`"${err[1]}"`) && e.includes(`"${err[2]}"`))) + 1)
       }
+      return animations
     }
     function animationErrorToggle(err, lineNum, warning) {
       $(".cem_animation_error_line").removeClass("cem_animation_error_line")
