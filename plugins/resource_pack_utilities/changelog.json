@@ -88,6 +88,12 @@
           "JSON minification is now optional in JSON Optimiser",
           "Updated the Lang Stripper icon"
         ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed sorting of numerical file names in Animation Combiner"
+        ]
       }
     ]
   }

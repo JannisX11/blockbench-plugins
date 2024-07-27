@@ -619,9 +619,9 @@
     }
   }
 
-  async function listFiles(dir) {
+  async function listFiles(dir, type) {
     const files = await fs.promises.readdir(dir, { withFileTypes: true })
-    return files.filter(e => e.isFile()).map(e => e.name)
+    return files.filter(e => e.isFile() && (!type || e.name.endsWith("." + type))).map(e => e.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   }
 
   const sizes = ["B", "KB", "MB", "GB", "TB"]
@@ -3277,13 +3277,7 @@
               return
             }
 
-            const fileList = await listFiles(this.inputFolder, { withFileTypes: true })
-            const files = []
-            for (const file of fileList) {
-              if (file.endsWith(".bbmodel")) {
-                files.push(file)
-              }
-            }
+            const files = await listFiles(this.inputFolder, "bbmodel")
 
             this.total = files.length
 
@@ -4666,7 +4660,7 @@
               return
             }
 
-            const files = (await fs.promises.readdir(this.folder)).filter(e => e.endsWith(".png"))
+            const files = await listFiles(this.folder, "png")
             
             this.total = files.length
 
