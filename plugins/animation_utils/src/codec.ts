@@ -290,6 +290,22 @@ export function maybeExportItemJson(options = {}) {
             blockmodel.display = new_display
         }
     }
+    if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Project.textures) {
+            if (tex.particle) {
+                let name = tex.name;
+
+                if (name.indexOf(".png"))
+                    name = name.substring(0, name.indexOf(".png"))
+
+                const texturesMap = {}
+                texturesMap['particle'] = name
+                blockmodel.textures = texturesMap;
+
+                break
+            }
+        }
+    }
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
 
@@ -326,6 +342,7 @@ const format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
