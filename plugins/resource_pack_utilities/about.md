@@ -144,4 +144,8 @@
     <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
+  <a href="https://www.youtube.com/playlist?list=PLYMG6bVBIumJWFq1MVbubz86XfdGApan3">
+    <i class="fa_big icon fab fa-youtube" style="color: #FF4444;"></i>
+    <p>Tutorials</p>
+  </a>
 </div>

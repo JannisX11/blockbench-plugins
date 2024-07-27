@@ -86,7 +86,8 @@
         "title": "Changes",
         "list": [
           "JSON minification is now optional in JSON Optimiser",
-          "Updated the Lang Stripper icon"
+          "Updated the Lang Stripper icon",
+          "Added YouTube tutorials link"
         ]
       },
       {
