@@ -93,6 +93,7 @@
       {
         "title": "Bug Fixes",
         "list": [
+          "Fixed output textures failing to save",
           "Fixed sorting of numerical file names in Animation Combiner"
         ]
       }

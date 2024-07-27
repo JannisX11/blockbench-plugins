@@ -1948,7 +1948,7 @@
               type: this.type,
               name: this.name,
               savetype: "image",
-              content: this.output.toDataURL()
+              content: this.value.toDataURL()
             }, () => Blockbench.showQuickMessage("Saved…"))
           }
         }
