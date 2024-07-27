@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.3.0",
+    version: "1.4.0",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -588,7 +588,7 @@
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
       // dialog.show()
-      // dialog.content_vue.utility = "animationCombiner"
+      // dialog.content_vue.utility = "soundsStripper"
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -619,16 +619,18 @@
     }
   }
 
-  async function listFiles(dir) {
+  async function listFiles(dir, type) {
     const files = await fs.promises.readdir(dir, { withFileTypes: true })
-    return files.filter(e => e.isFile()).map(e => e.name)
+    return files.filter(e => e.isFile() && (!type || e.name.endsWith("." + type))).map(e => e.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   }
 
   const sizes = ["B", "KB", "MB", "GB", "TB"]
   function formatBytes(bytes) {
     if (bytes === 0) return "0 B"
+    const sign = bytes < 0 ? "-" : ""
+    bytes = Math.abs(bytes)
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
-    return parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + " " + sizes[i]
+    return sign + parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + " " + sizes[i]
   }
 
   async function loadImage(imagePath) {
@@ -764,12 +766,12 @@
         if (q === 0) {
           parsedZip.files[filePath].content = parsedZip.files[filePath].compressedContent
         } else {
-          Object.defineProperty(parsedZip.files[filePath], 'content', {
+          Object.defineProperty(parsedZip.files[filePath], "content", {
             configurable: true,
             enumerable: true,
             get() {
               const c = zlib.inflateRawSync(this.compressedContent)
-              Object.defineProperty(this, 'content', {
+              Object.defineProperty(this, "content", {
                 value: c,
                 configurable: true,
                 enumerable: true
@@ -1016,6 +1018,27 @@
     return btoa(binary)
   }
 
+  async function getObject(filePath, version, assetsIndex) {
+    if (!assetsIndex) {
+      assetsIndex = await getVersionAssetsIndex(version)
+    }
+    const root = getRoot(version)
+    const data = assetsIndex.objects[filePath.slice(root.length + 1)]
+    const objectPath = `${data.hash.slice(0, 2)}/${data.hash}`
+    const vanillaObjectPath = path.join(settings.minecraft_directory.value, "assets", "objects", objectPath)
+    if (await exists(vanillaObjectPath)) {
+      return fs.promises.readFile(vanillaObjectPath)
+    }
+    const cacheObjectPath = path.join(settings.cache_directory.value, "objects", objectPath)
+    if (await exists(cacheObjectPath)) {
+      return fs.promises.readFile(cacheObjectPath)
+    }
+    const object = Buffer.from(await fetch(`https://resources.download.minecraft.net/${objectPath}`).then(e => e.arrayBuffer()))
+    await fs.promises.mkdir(path.dirname(cacheObjectPath), { recursive: true })
+    await fs.promises.writeFile(cacheObjectPath, object)
+    output.log(`Downloaded \`${filePath}\` to the cache`)
+    return object
+  }
 
   // Constants
 
@@ -1646,7 +1669,7 @@
         this.title ??= `Select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`
         return {
           files: Array.isArray(this.value) ? this.value : this.value ? [this.value] : [],
-          message: Array.isArray(this.value) && this.value.length || !Array.isArray(this.value) && this.value ? (Array.isArray(this.value) ? `${this.value.length} file${this.value.length === 1 ? "" : "s"} selected` : "change file") : `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
+          message: `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
           maxFiles,
           multipleFiles
         }
@@ -1660,7 +1683,8 @@
             multiple: this.multipleFiles,
             readtype: "buffer"
           }, async files => {
-            if (files.length === 1) this.message = "change file"
+            if (files.length === 1 && this.type === "PNG") this.message = "change file"
+            else if (files.length === 1) this.message = files[0].name
             else this.message = `${files.length} files selected`
             this.files = []
             for (const [i, file] of files.entries()) {
@@ -1668,14 +1692,17 @@
                 continue
               }
               const buf = Buffer.from(file.content)
-              const b64Image = buf.toString("base64")
-              const img = await loadImage(buf)
-              this.files.push({
-                content: buf,
-                image: img,
-                src: `data:image/png;base64,${b64Image}`,
-                info: `${file.name}\n${img.width.toLocaleString()}x${img.height.toLocaleString()} - ${formatBytes(file.content.byteLength)}`
-              })
+              const data = {}
+              if (this.type === "PNG") {
+                const b64Image = buf.toString("base64")
+                const img = await loadImage(buf)
+                data.image = img
+                data.src = `data:image/png;base64,${b64Image}`
+                data.info = `${file.name}\n${img.width.toLocaleString()}x${img.height.toLocaleString()} - ${formatBytes(file.content.byteLength)}`
+              }
+              data.content = buf
+              data.path = file.path
+              this.files.push(data)
             }
             this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
           })
@@ -1838,7 +1865,7 @@
             </button>
             <span class="file-input-text">{{ this.message }}</span>
           </div>
-          <div v-if="files.length" class="file-input-images" tabindex="0" @click.stop>
+          <div v-if="type === 'PNG' && files.length" class="file-input-images" tabindex="0" @click.stop>
             <div v-for="(file, index) in files">
               <div class="file-image">
                 <img class="checkerboard" :src="file.src">
@@ -1921,7 +1948,7 @@
               type: this.type,
               name: this.name,
               savetype: "image",
-              content: this.output.toDataURL()
+              content: this.value.toDataURL()
             }, () => Blockbench.showQuickMessage("Saved…"))
           }
         }
@@ -2127,6 +2154,7 @@
             jem: true,
             jpm: true
           },
+          minify: true,
           ignoreList: [],
           outputLog,
           done: 0,
@@ -2352,7 +2380,11 @@
               if (this.types.jpm && file.endsWith(".jpm")) {
                 processPart(data)
               }
-              await fs.promises.writeFile(file, JSON.stringify(data), "utf-8")
+              if (this.minify) {
+                await fs.promises.writeFile(file, JSON.stringify(data), "utf-8")
+              } else {
+                await fs.promises.writeFile(file, compileJSON(data, { indentation: "  " }), "utf-8")
+              }
               const after = (await fs.promises.stat(file)).size
               afterTotal += after
               output.log(`\`${shortened}\`\nBefore: ${formatBytes(before)}\nAfter: ${formatBytes(after)}`)
@@ -2374,6 +2406,7 @@
                 <checkbox-row v-model="types.mcmeta">Optimise <code>.mcmeta</code> files</checkbox-row>
                 <checkbox-row v-model="types.jem">Optimise <code>.jem</code> files</checkbox-row>
                 <checkbox-row v-model="types.jpm">Optimise <code>.jpm</code> files</checkbox-row>
+                <checkbox-row v-model="minify" style="margin-top: 0;">Minify output</checkbox-row>
               </div>
               <ignore-list v-model="ignoreList" />
             </div>
@@ -2603,7 +2636,7 @@
               output.log("Extracted vanilla assets")
               if (this.objects) {
                 output.log("Extracting objects…")
-                const root = await getRoot(this.version)
+                const root = getRoot(this.version)
                 const paths = new Set
                 for (const [file, data] of objectsEntries) {
                   if (file.startsWith("icons/")) continue
@@ -3023,8 +3056,8 @@
     },
     langStripper: {
       name: "Lang Stripper",
-      icon: "content_cut",
-      tagline: "Remove all unedited entries from a Minecraft language file.",
+      icon: "translate",
+      tagline: "Remove all unedited entries from the Minecraft language files.",
       description: "Lang Stripper is a tool that will go through all the language files in an resource pack and remove any entries that have not been modified.",
       component: {
         data: {
@@ -3038,7 +3071,7 @@
         },
         methods: {
           async execute() {
-            if (!await confirm("Run Lang Stripper?", `Are you sure you want to run Lang Stripper over the following resource pack:\n<code>${formatPath(this.folder)}</code>\n\nMake a backup first if you would like to keep an un-optimised version of the resource pack.`)) return
+            if (!await confirm("Run Lang Stripper?", `Are you sure you want to run Lang Stripper over the following resource pack:\n<code>${formatPath(this.folder)}</code>\n\nMake a backup first if you would like to keep an un-stripped version of the language files.`)) return
 
             outputLog.length = 0
             this.status.finished = false
@@ -3108,7 +3141,7 @@
               await cacheDirectory()
               assetsIndex = await getVersionAssetsIndex(this.version)
               const files = await listFiles(langPath)
-              root = await getRoot(this.version)
+              root = getRoot(this.version)
               const extension = path.extname(Object.keys(assetsIndex.objects).find(e => e.startsWith("assets/minecraft/lang/".slice(root.length + 1))))
               langs = files.filter(e => assetsIndex.objects[`assets/minecraft/lang/${e}`.slice(root.length + 1)] || (e.toLowerCase().startsWith("en_us.") && e.endsWith(extension)))
               if (langs.length === 0) {
@@ -3244,13 +3277,7 @@
               return
             }
 
-            const fileList = await listFiles(this.inputFolder, { withFileTypes: true })
-            const files = []
-            for (const file of fileList) {
-              if (file.endsWith(".bbmodel")) {
-                files.push(file)
-              }
-            }
+            const files = await listFiles(this.inputFolder, "bbmodel")
 
             this.total = files.length
 
@@ -4633,7 +4660,7 @@
               return
             }
 
-            const files = (await fs.promises.readdir(this.folder)).filter(e => e.endsWith(".png"))
+            const files = await listFiles(this.folder, "png")
             
             this.total = files.length
 
@@ -4801,6 +4828,132 @@
               <button @click="save">Export Animation</button>
               <button @click="status.finished = false">Done</button>
             </div>
+          </div>
+        `
+      }
+    },
+    soundsStripper: {
+      name: "Sounds Stripper",
+      icon: "volume_up",
+      tagline: "Remove all unedited entries from the Minecraft sounds.json file.",
+      description: "Sounds Stripper is a tool that will go through the sounds.json file in an resource pack and remove any entries that have not been modified.",
+      component: {
+        data: {
+          file: null,
+          outputLog,
+          done: 0,
+          total: null,
+          cancelled: false,
+          mode: "default",
+          version: ""
+        },
+        methods: {
+          async execute() {
+            if (!await confirm("Run Sounds Stripper?", `Are you sure you want to run Sounds Stripper over the following file:\n<code>${formatPath(this.file.path)}</code>\n\nMake a backup first if you would like to keep an un-stripped version of the sounds.json.`)) return
+
+            outputLog.length = 0
+            this.status.finished = false
+            this.status.processing = true
+            this.done = 0
+            this.total = 1
+
+            await cacheDirectory()
+
+            const vanilla = JSON.parse(await getObject("assets/minecraft/sounds.json", this.version))
+            const sounds = JSON.parse(this.file.content)
+            
+            const logs = []
+
+            function stringify(arr) {
+              const out = []
+              for (let item of arr) {
+                if (typeof item === "string") {
+                  item = {
+                    name: item
+                  }
+                }
+                item.volume ??= 1
+                item.pitch ??= 1
+                item.weight ??= 1
+                item.stream ??= false
+                item.attenuation_distance ??= 16
+                item.preload ??= false
+                item.type ??= "file"
+                out.push(JSON.stringify(Object.entries(item).sort((a, b) => a[0].localeCompare(b[0]))))
+              }
+              return JSON.stringify(out.sort())
+            }
+
+            let modified
+            for (const [key, data] of Object.entries(sounds)) {
+              if (key in vanilla) {
+                const before = JSON.stringify(data)
+                if (data.sounds) {
+                  if (stringify(data.sounds) === stringify(vanilla[key].sounds)) {
+                    delete data.sounds
+                    delete data.replace
+                  } else {
+                    for (const [i, sound] of data.sounds.entries()) {
+                      if (typeof sound === "string") continue
+                      if (sound.volume === 1) delete sound.volume
+                      if (sound.pitch === 1) delete sound.pitch
+                      if (sound.weight === 1) delete sound.weight
+                      if (sound.stream === false) delete sound.stream
+                      if (sound.attenuation_distance === 16) delete sound.attenuation_distance
+                      if (sound.preload === false) delete sound.preload
+                      if (sound.type === "file") delete sound.type
+                      if ("name" in sound && Object.keys(sound).length === 1) {
+                        data.sounds[i] = sound.name
+                      }
+                    }
+                  }
+                }
+                if (data.subtitle === vanilla[key].subtitle) {
+                  delete data.subtitle
+                }
+                if (!Object.keys(data).length) {
+                  modified = true
+                  delete sounds[key]
+                  logs.push(`Removed \`${key}\``)
+                } else if (JSON.stringify(data) !== before) {
+                  modified = true
+                  logs.push(`Optimised \`${key}\``)
+                }
+              }
+            }
+
+            if (modified) {
+              await fs.promises.writeFile(this.file.path, JSON.stringify(sounds, null, 2))
+            } else {
+              output.log("No changes were made")
+            }
+
+            for (const log of logs) {
+              output.log(log)
+            }
+
+            this.done = 1
+            output.info("Finished")
+            this.status.processing = false
+            this.status.finished = true
+          }
+        },
+        styles: `
+          .component-versionSelector {
+            align-self: flex-start;
+          }
+        `,
+        template: `
+          <div v-if="!status.processing && !status.finished">
+            <h3>Select your sounds.json:</h3>
+            <file-input v-model="file" title="Select your sounds.json file" type="sounds.json" :extensions="['json']" />
+            <version-selector v-model="version" />
+            <button :disabled="!file" @click="execute">Strip</button>
+          </div>
+          <div v-else>
+            <progress-bar :done="done" :total="total" />
+            <output-log v-model="outputLog" />
+            <button v-if="!status.processing" @click="status.finished = false">Done</button>
           </div>
         `
       }

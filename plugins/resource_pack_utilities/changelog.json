@@ -70,5 +70,33 @@
         ]
       }
     ]
+  },
+  "1.4.0": {
+    "title": "1.4.0",
+    "date": "2024-07-27",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Sounds Stripper utility"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "JSON minification is now optional in JSON Optimiser",
+          "Updated the Lang Stripper icon",
+          "Added YouTube tutorials link"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed output textures failing to save",
+          "Fixed sorting of numerical file names in Animation Combiner"
+        ]
+      }
+    ]
   }
 }
