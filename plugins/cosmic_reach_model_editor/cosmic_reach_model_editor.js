@@ -82,7 +82,7 @@
 
                         let face = obj.faces[f]
 
-                        uvs[f] = [uv[0], uv[1], uv[2], uv[3], face, texture]
+                        uvs[f] = [uv[0], uv[1], uv[2], uv[3], face.cullface, texture]
 
                         texturesUsed.push(texture)
                     }
