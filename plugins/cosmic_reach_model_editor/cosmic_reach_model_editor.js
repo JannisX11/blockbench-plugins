@@ -10,7 +10,7 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "1.3.1",
+      version: "1.3.2",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
