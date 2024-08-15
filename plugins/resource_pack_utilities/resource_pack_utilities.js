@@ -2433,7 +2433,6 @@
         <ul>
           <li>Removes the <code>type=item</code> property</li>
           <li>Replaces <code>matchItems</code> with <code>items</code></li>
-          <li>Removes the <code>type=item</code> property</li>
           <li>Removes the <code>minecraft:</code> prefix</li>
           <li>Removes blank lines</li>
         </ul>
