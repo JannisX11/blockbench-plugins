@@ -98,5 +98,18 @@
         ]
       }
     ]
+  },
+  "1.5.0": {
+    "title": "1.5.0",
+    "date": "2024-08-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added support for the 1.21.2 \"light_emission\" property of block models to JSON Optimiser"
+        ]
+      }
+    ]
   }
 }

@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.4.0",
+    version: "1.5.0",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -2187,7 +2187,7 @@
             const partKeys = [ "id", "texture", "textureSize", "invertAxis", "translate", "rotate", "mirrorTexture", "boxes", "sprites", "submodel", "submodels" ]
             const boxKeys = [ "textureOffset", "uvDown", "uvUp", "uvNorth", "uvSouth", "uvWest", "uvEast", "coordinates", "sizeAdd" ]
             const spriteKeys = [ "textureOffset", "coordinates", "sizeAdd" ]
-            const elementKeys = [ "from", "to", "rotation", "faces", "shade" ]
+            const elementKeys = [ "from", "to", "rotation", "faces", "shade", "light_emission" ]
             const faceKeys = [ "uv", "texture", "cullface", "rotation", "tintindex" ]
             modelKeys.push(...partKeys)
 
@@ -2285,6 +2285,7 @@
                       }
                     }
                     if (element.shade) delete element.shade
+                    if (element.light_emission === 0) delete element.light_emission
                   }
                   data.elements = data.elements.filter(e => e.faces && Object.keys(e.faces).length)
                 }
