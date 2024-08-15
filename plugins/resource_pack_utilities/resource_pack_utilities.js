@@ -2112,6 +2112,7 @@
                 </ul>
               </li>
               <li>Removes the <code>shade</code> property when it is set to <code>true</code></li>
+              <li>Removes the <code>light_emission</code> property when it is set to <code>0</code></li>
               <li>Removes empty <code>elements</code> arrays</li>
             </ul>
           </li>
