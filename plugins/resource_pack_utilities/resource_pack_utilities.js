@@ -2095,6 +2095,7 @@
           <li>Minifies <code>.json</code>, <code>.mcmeta</code>, <code>.jem</code>, and <code>.jpm</code> files</li>
           <li>Removes default credits. Custom credits are kept</li>
           <li>Removes unnecessary keys</li>
+          <li>Removes <code>minecraft:</code> prefixes</li>
           <li>For block/item model <code>.json</code> files
             <ul>
               <li>Removes the <code>groups</code> object</li>
@@ -2155,6 +2156,7 @@
             jem: true,
             jpm: true
           },
+          prefixes: true,
           minify: true,
           ignoreList: [],
           outputLog,
@@ -2382,11 +2384,16 @@
               if (this.types.jpm && file.endsWith(".jpm")) {
                 processPart(data)
               }
+              let output
               if (this.minify) {
-                await fs.promises.writeFile(file, JSON.stringify(data), "utf-8")
+                output = JSON.stringify(data)
               } else {
-                await fs.promises.writeFile(file, compileJSON(data, { indentation: "  " }), "utf-8")
+                output = compileJSON(data, { indentation: "  " })
               }
+              if (this.prefixes) {
+                output = output.replace(/(?<![a-z0-9])minecraft:/g, "")
+              }
+              await fs.promises.writeFile(file, output, "utf-8")
               const after = (await fs.promises.stat(file)).size
               afterTotal += after
               output.log(`\`${shortened}\`\nBefore: ${formatBytes(before)}\nAfter: ${formatBytes(after)}`)
@@ -2408,6 +2415,7 @@
                 <checkbox-row v-model="types.mcmeta">Optimise <code>.mcmeta</code> files</checkbox-row>
                 <checkbox-row v-model="types.jem">Optimise <code>.jem</code> files</checkbox-row>
                 <checkbox-row v-model="types.jpm">Optimise <code>.jpm</code> files</checkbox-row>
+                <checkbox-row v-model="prefixes" style="margin-top: 0;">Remove <code>minecraft:</code> prefixes</checkbox-row>
                 <checkbox-row v-model="minify" style="margin-top: 0;">Minify output</checkbox-row>
               </div>
               <ignore-list v-model="ignoreList" />
