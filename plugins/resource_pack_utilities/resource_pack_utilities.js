@@ -2384,16 +2384,16 @@
               if (this.types.jpm && file.endsWith(".jpm")) {
                 processPart(data)
               }
-              let output
+              let out
               if (this.minify) {
-                output = JSON.stringify(data)
+                out = JSON.stringify(data)
               } else {
-                output = compileJSON(data, { indentation: "  " })
+                out = compileJSON(data, { indentation: "  " })
               }
               if (this.prefixes) {
-                output = output.replace(/(?<![a-z0-9])minecraft:/g, "")
+                out = out.replace(/(?<![a-z0-9])minecraft:/g, "")
               }
-              await fs.promises.writeFile(file, output, "utf-8")
+              await fs.promises.writeFile(file, out, "utf-8")
               const after = (await fs.promises.stat(file)).size
               afterTotal += after
               output.log(`\`${shortened}\`\nBefore: ${formatBytes(before)}\nAfter: ${formatBytes(after)}`)
