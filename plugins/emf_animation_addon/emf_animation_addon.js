@@ -109,9 +109,6 @@
                 keyframeloop: keyframeLoop,
                 nbt: (key, test) => {
                     //todo no real functionality here
-                    if (key === null || test === null) {
-                        throw Error
-                    }
                     return false
                 }
             }
@@ -173,7 +170,7 @@
                 "keyframe()": "keyframe(k, a, b, c,...)",
                 "keyframeloop()": "keyframeloop(k, a, b, c,...)",
                 "randomb()": "randomb(seed)",
-                "nbt()": "nbt(key, test) - will always be false in this editor!"
+                "nbt()": "nbt(leave empty) - breaks in editor!"
             }
 
             animDocs = {
@@ -383,7 +380,7 @@
                             ],
                             [
                                 "nbt(key, test)",
-                                "Works exactly like the nbt random property such that `models.1.SaddleItem=exits:false` will be `nbt(SaddleItem,exists:false)`"
+                                "Works exactly like the nbt random property such that `models.1.SaddleItem=exits:false` will be `nbt(SaddleItem,exists:false)`. THIS IS BROKEN IN THE CEM TEMPLATE LOADER EDITOR. Always leave the function empty here!"
                             ]
                         ]
                     },
