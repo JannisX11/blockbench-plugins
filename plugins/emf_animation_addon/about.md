@@ -15,4 +15,4 @@ you can also see them in the EMF mod's in-game config screen under models -> Ani
 
 For **all** EMF features, including how to export modded entity models for use in blockbench, see the <span style="color:dodgerblue">[**EMF Feature Guide**](https://github.com/Traben-0/Entity_Model_Features/blob/master/FEATURES.md)</span>
 
-Plugin is current for EMF v2.0.2
+### Plugin is current for EMF v2.2
