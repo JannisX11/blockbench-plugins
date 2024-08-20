@@ -9,7 +9,7 @@
         icon: "fa-cube",
         tags: ["Animation", "Minecraft: Java Edition"],
         variant: "both",
-        version: "1.0.0",
+        version: "1.0.1",
         onload() {
             Formats.modded_entity.animation_mode = true;
             menuButton = new Action("export_animation_to_json", {
