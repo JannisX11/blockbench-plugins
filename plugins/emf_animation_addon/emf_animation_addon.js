@@ -6,7 +6,7 @@
         author: "Traben & Ewan Howell",
         description: "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
-        version: "1.0.2",
+        version: "1.0.3",
         min_version: "4.9.0",
         variant: "both",
         dependencies: ["cem_template_loader"],
@@ -92,21 +92,24 @@
                 quadbezier: quadraticBezier,
                 cubicbezier: cubicBezier,
                 hermite: hermiteInterpolation,
-                catmullrom: (t, p0, p1, p2, p3) => {
-                    let t2 = t * t;
-                    let t3 = t * t2;
-                    return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+                catmullrom: catmullrom,
+                keyframe: (k, ...args) => {
+                    //skip if outside of scope
+                    let frameEnd = args.length - 1;
+                    let deltaFloor = Math.floor(k);
+
+                    if(deltaFloor >= frameEnd){
+                        return args[frameEnd];
+                    }else if(deltaFloor <= 0){
+                        return args[0];
+                    }
+
+                    return keyframeLoop(k, ...args);
                 },
-                keyframe: keyframe,
-                keyframeloop: (k, ...args) => {
-                    if (args.length < 2) throw Error
-                    if (typeof k !== "number") throw Error
-                    //normal keyframe bounds
-                    if (k < args.length - 1) return keyframe(k, ...args)
-                    //loop keyframe
-                    args.push(args[0])
-                    let boundedK = k % (args.length - 1)
-                    return keyframe(boundedK, ...args)
+                keyframeloop: keyframeLoop,
+                nbt: (key, test) => {
+                    //todo no real functionality here
+                    return false
                 }
             }
             ranges = {
@@ -120,7 +123,7 @@
                 fluid_depth_down: [0, 0, 64],
                 distance: [0, 0, 128, 0.25],
             }
-            booleans = ["is_climbing", "is_crawling", "is_swimming", "is_gliding", "is_blocking","is_first_person_hand","is_swinging_right_arm", "is_swinging_left_arm"]
+            booleans = ["is_climbing", "is_crawling", "is_swimming", "is_gliding", "is_blocking","is_first_person_hand","is_swinging_right_arm", "is_swinging_left_arm", "is_using_item", "is_holding_item_right", "is_holding_item_left", "is_paused", "is_hovered"]
             enabledBooleans = ["is_right_handed"]
 
 
@@ -166,7 +169,8 @@
                 "catmullrom()": "catmullrom(k, x, y, z, w)",
                 "keyframe()": "keyframe(k, a, b, c,...)",
                 "keyframeloop()": "keyframeloop(k, a, b, c,...)",
-                "randomb()": "randomb(seed)"
+                "randomb()": "randomb(seed)",
+                "nbt()": "nbt(leave empty) - breaks in editor!"
             }
 
             animDocs = {
@@ -301,6 +305,26 @@
                             [
                                 "is_first_person_hand",
                                 "If the model part being rendered is the first person player hand."
+                            ],
+                            [
+                                "is_using_item",
+                                "If the entity is using an item."
+                            ],
+                            [
+                                "is_holding_item_right",
+                                "If the entity is holding an item in its right hand."
+                            ],
+                            [
+                                "is_holding_item_left",
+                                "If the entity is holding an item in its left hand."
+                            ],
+                            [
+                                "is_paused",
+                                "If the game is paused."
+                            ],
+                            [
+                                "is_hovered",
+                                "If the entity is being hovered over."
                             ]
                         ]
                     },
@@ -331,6 +355,14 @@
                             [
                                 "raddiff(x, y)",
                                 "Returns the shortest angular radian difference between two radian values x and y."
+                            ],
+                            [
+                                "keyframe(k, a, b, c,...)",
+                                "Smoothly interpolates between values based on the current frame 'k' and the keyframes. 'a' is 'k=0', 'b' is 'k=1', 'c' is 'k=2' etc."
+                            ],
+                            [
+                                "keyframeloop(k, a, b, c,...)",
+                                "Smoothly interpolates between values based on the current frame 'k' and the keyframes. 'a' is 'k=0', 'b' is 'k=1', 'c' is 'k=2' etc. The keyframes will loop back around from the start and end values."
                             ]
                         ]
                     },
@@ -345,6 +377,10 @@
                             [
                                 "randomb(seed)",
                                 "Random boolean true|false. Providing a seed will always return the same result. The seed is optional."
+                            ],
+                            [
+                                "nbt(key, test)",
+                                "Works exactly like the nbt random property such that `models.1.SaddleItem=exits:false` will be `nbt(SaddleItem,exists:false)`. THIS IS BROKEN IN THE CEM TEMPLATE LOADER EDITOR. Always leave the function empty here!"
                             ]
                         ]
                     },
@@ -467,24 +503,26 @@
         globalThis.optifineAnimationDocumentation.shown = false
     }
 
-    function keyframe(k, ...args) {
+    function keyframeLoop(k, ...args) {
         if (args.length < 2) throw Error
         if (typeof k !== "number") throw Error
 
-        //get lower lerp value
-        let minIndex = Math.floor(k)
-        //return min if below 0
-        if (minIndex < 0) return args[0]
-        //return max if above max index
-        if (minIndex >= args.length - 1) return args[args.length - 1]
-        let min = args[minIndex]
-        //get upper lerp value
-        let maxIndex = minIndex + 1
-        let max = args[maxIndex]
-        if (typeof min !== "number" || typeof max !== "number") throw Error
+        let frameCount = args.length;
 
-        return Math.lerp(k - minIndex, min, max)
+        let deltaFloor = Math.floor(k);
 
+        let baseFrame =     args[(deltaFloor       % frameCount + frameCount) % frameCount];
+        let beforeFrame =   args[((deltaFloor - 1) % frameCount + frameCount) % frameCount];
+        let nextFrame =     args[((deltaFloor + 1) % frameCount + frameCount) % frameCount];
+        let afterFrame =    args[((deltaFloor + 2) % frameCount + frameCount) % frameCount];
+
+        let individualFrameDelta = Math.frac(k);
+
+        return catmullrom(individualFrameDelta, beforeFrame, baseFrame, nextFrame, afterFrame);
+    }
+
+    function catmullrom(f, g, h, i, j) {
+        return 0.5 * (2.0 * h + (i - g) * f + (2.0 * g - 5.0 * h + 4.0 * i - j) * f * f + (3.0 * h - g - 3.0 * i + j) * f * f * f);
     }
 
 
