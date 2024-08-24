@@ -6,7 +6,7 @@ let rightMouseDown = false;
 BBPlugin.register('wasd_controls', {
 	title: 'WASD Controls',
 	icon: 'sports_esports',
-	author: 'JannisX11',
+	author: 'JannisX11, caioraphael1',
 	description: 'Adds a WASD controlled viewport navigation mode',
 	about: 'The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.',
 	version: '1.2.0',
@@ -54,7 +54,7 @@ BBPlugin.register('wasd_controls', {
 			name: 'Move Faster',
 			icon: 'expand_less',
 			category: 'navigate',
-			keybind: new Keybind({key: 16, ctrl: null})
+			keybind: new Keybind({key: 17, ctrl: null})
 		});
 		let navigate_slower = new KeybindItem('navigate_slower', {
 			name: 'Move Slower',
