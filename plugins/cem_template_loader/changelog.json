@@ -900,5 +900,18 @@
         ]
       }
     ]
+  },
+  "8.2.1": {
+    "title": "8.2.1",
+    "date": "2024-08-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Loading a template model that is missing its vanilla texture will no longer trigger the connction error state"
+        ]
+      }
+    ]
   }
 }
