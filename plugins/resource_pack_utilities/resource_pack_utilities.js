@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.4.0",
+    version: "1.5.0",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -2095,6 +2095,7 @@
           <li>Minifies <code>.json</code>, <code>.mcmeta</code>, <code>.jem</code>, and <code>.jpm</code> files</li>
           <li>Removes default credits. Custom credits are kept</li>
           <li>Removes unnecessary keys</li>
+          <li>Removes <code>minecraft:</code> prefixes</li>
           <li>For block/item model <code>.json</code> files
             <ul>
               <li>Removes the <code>groups</code> object</li>
@@ -2112,6 +2113,7 @@
                 </ul>
               </li>
               <li>Removes the <code>shade</code> property when it is set to <code>true</code></li>
+              <li>Removes the <code>light_emission</code> property when it is set to <code>0</code></li>
               <li>Removes empty <code>elements</code> arrays</li>
             </ul>
           </li>
@@ -2154,6 +2156,7 @@
             jem: true,
             jpm: true
           },
+          prefixes: true,
           minify: true,
           ignoreList: [],
           outputLog,
@@ -2187,7 +2190,7 @@
             const partKeys = [ "id", "texture", "textureSize", "invertAxis", "translate", "rotate", "mirrorTexture", "boxes", "sprites", "submodel", "submodels" ]
             const boxKeys = [ "textureOffset", "uvDown", "uvUp", "uvNorth", "uvSouth", "uvWest", "uvEast", "coordinates", "sizeAdd" ]
             const spriteKeys = [ "textureOffset", "coordinates", "sizeAdd" ]
-            const elementKeys = [ "from", "to", "rotation", "faces", "shade" ]
+            const elementKeys = [ "from", "to", "rotation", "faces", "shade", "light_emission" ]
             const faceKeys = [ "uv", "texture", "cullface", "rotation", "tintindex" ]
             modelKeys.push(...partKeys)
 
@@ -2285,6 +2288,7 @@
                       }
                     }
                     if (element.shade) delete element.shade
+                    if (element.light_emission === 0) delete element.light_emission
                   }
                   data.elements = data.elements.filter(e => e.faces && Object.keys(e.faces).length)
                 }
@@ -2380,11 +2384,16 @@
               if (this.types.jpm && file.endsWith(".jpm")) {
                 processPart(data)
               }
+              let out
               if (this.minify) {
-                await fs.promises.writeFile(file, JSON.stringify(data), "utf-8")
+                out = JSON.stringify(data)
               } else {
-                await fs.promises.writeFile(file, compileJSON(data, { indentation: "  " }), "utf-8")
+                out = compileJSON(data, { indentation: "  " })
               }
+              if (this.prefixes) {
+                out = out.replace(/(?<![a-z0-9])minecraft:/g, "")
+              }
+              await fs.promises.writeFile(file, out, "utf-8")
               const after = (await fs.promises.stat(file)).size
               afterTotal += after
               output.log(`\`${shortened}\`\nBefore: ${formatBytes(before)}\nAfter: ${formatBytes(after)}`)
@@ -2406,6 +2415,7 @@
                 <checkbox-row v-model="types.mcmeta">Optimise <code>.mcmeta</code> files</checkbox-row>
                 <checkbox-row v-model="types.jem">Optimise <code>.jem</code> files</checkbox-row>
                 <checkbox-row v-model="types.jpm">Optimise <code>.jpm</code> files</checkbox-row>
+                <checkbox-row v-model="prefixes" style="margin-top: 0;">Remove <code>minecraft:</code> prefixes</checkbox-row>
                 <checkbox-row v-model="minify" style="margin-top: 0;">Minify output</checkbox-row>
               </div>
               <ignore-list v-model="ignoreList" />
@@ -2431,7 +2441,6 @@
         <ul>
           <li>Removes the <code>type=item</code> property</li>
           <li>Replaces <code>matchItems</code> with <code>items</code></li>
-          <li>Removes the <code>type=item</code> property</li>
           <li>Removes the <code>minecraft:</code> prefix</li>
           <li>Removes blank lines</li>
         </ul>
