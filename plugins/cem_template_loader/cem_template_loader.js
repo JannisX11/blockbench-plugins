@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.2.0",
+      version: "8.2.1",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -65,17 +65,26 @@
   async function fetchData(path, fallback) {
     try {
       const r = await fetch(`${root}/${path}`)
-      if (r.status !== 200 || r.headers.get("Content-Type")?.startsWith("text/html")) throw new Error
-      if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+      if (!r.ok) throw new Error
+      if (r.headers.get("Content-Type")?.startsWith("text/html")) {
+        return
+      }
+      if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) {
+        return r.json()
+      }
       return r
     } catch {
       for (let x = connection.rootIndex + 1; x < connection.roots.length; x++) {
         connection.rootIndex = x
         try {
           const r = await fetch(`${connection.roots[x]}/${path}`)
-          if (r.status !== 200) throw new Error
+          if (r.status !== 200) {
+            throw new Error
+          }
           root = connection.roots[x]
-          if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
+          if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) {
+            return r.json()
+          }
           return r
         } catch {}
       }
