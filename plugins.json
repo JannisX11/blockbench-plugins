@@ -955,7 +955,7 @@
 		"icon": "icon.png",
 		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
 		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
-		"version": "1.0.3",
+		"version": "1.0.4",
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": ["cem_template_loader"],
