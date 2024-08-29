@@ -50,5 +50,18 @@
         ]
       }
     ]
+  },
+  "1.0.4": {
+    "title": "1.0.4",
+    "date": "2024-08-25",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "fixed keyframe method bug",
+        "list": [
+          "Fixed a bug in the keyframe methods"
+        ]
+      }
+    ]
   }
 }

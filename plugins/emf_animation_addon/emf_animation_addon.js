@@ -6,7 +6,7 @@
         author: "Traben & Ewan Howell",
         description: "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
-        version: "1.0.3",
+        version: "1.0.4",
         min_version: "4.9.0",
         variant: "both",
         dependencies: ["cem_template_loader"],
@@ -516,7 +516,7 @@
         let nextFrame =     args[((deltaFloor + 1) % frameCount + frameCount) % frameCount];
         let afterFrame =    args[((deltaFloor + 2) % frameCount + frameCount) % frameCount];
 
-        let individualFrameDelta = Math.frac(k);
+        let individualFrameDelta = optifineAnimationVariables.constants.frac(k);
 
         return catmullrom(individualFrameDelta, beforeFrame, baseFrame, nextFrame, afterFrame);
     }
