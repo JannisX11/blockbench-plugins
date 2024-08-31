@@ -394,5 +394,18 @@
         ]
       }
     ]
+  },
+  "1.7.0": {
+    "title": "1.7.0",
+    "date": "2024-08-31",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Fonts now support setting a default character spacing"
+        ]
+      }
+    ]
   }
 }
