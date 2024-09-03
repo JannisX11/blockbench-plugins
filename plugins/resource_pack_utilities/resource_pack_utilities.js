@@ -3323,7 +3323,7 @@
               }
               let data
               try {
-                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)));
+                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)))
               } catch {
                 try {
                   data = autoParseJSON(
@@ -3333,9 +3333,9 @@
                     )
                   );
                 } catch {
-                  output.error(`Skipping \`${file}\` as it could not be read`);
-                  this.done++;
-                  continue;
+                  output.error(`Skipping \`${file}\` as it could not be read`)
+                  this.done++
+                  continue
                 }
               }
               if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
