@@ -117,5 +117,18 @@
         ]
       }
     ]
+  },
+  "1.6.0": {
+    "title": "1.6.0",
+    "date": "2024-09-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an issue with the Batch Exporter failing to read BBModels in Bedrock format."
+        ]
+      }
+    ]
   }
 }
