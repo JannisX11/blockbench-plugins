@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.2.1",
+      version: "8.3.0",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -895,12 +895,23 @@
       if (args.length < 3 || args.length % 2 !== 1 || typeof args[0] !== "boolean") throw Error
       for (let i = 0; i < args.length; i += 2) {
         if (i === args.length - 1) {
-          if (typeof args[i] === "boolean") throw Error("If statements cannot return a <strong>boolean</strong>")
+          if (typeof args[i] === "boolean") throw Error("<strong>if</strong> can only return numbers, use <strong>ifb</strong> instead")
           return args[i]
+        } else if (args[i]) {
+          if (typeof args[i + 1] === "boolean") throw Error("<strong>if</strong> can only return numbers, use <strong>ifb</strong> instead")
+          return args[i + 1]
         }
-        else if (args[i]) {
-          if (typeof args[i+1] === "boolean") throw Error("If statements cannot return a <strong>boolean</strong>")
-          return args[i+1]
+      }
+    },
+    ifb: (...args) => {
+      if (args.length < 3 || args.length % 2 !== 1 || typeof args[0] !== "boolean") throw Error
+      for (let i = 0; i < args.length; i += 2) {
+        if (i === args.length - 1) {
+          if (typeof args[i] !== "boolean") throw Error("<strong>ifb</strong> can only return booleans, use <strong>if</strong> instead")
+          return args[i]
+        } else if (args[i]) {
+          if (typeof args[i + 1] !== "boolean") throw Error("<strong>ifb</strong> can only return booleans, use <strong>if</strong> instead")
+          return args[i + 1]
         }
       }
     },
@@ -996,6 +1007,7 @@
     "player_rot_x",
     "player_rot_y",
     "frame_time",
+    "frame_counter",
     "dimension",
     "rule_index",
     "health",
@@ -1036,6 +1048,7 @@
     "fmod()",
     "lerp()",
     "if()",
+    "ifb()",
     "print()",
     "printb()",
     "between()",
@@ -1070,6 +1083,7 @@
     "fmod()": "fmod(x, y)",
     "lerp()": "lerp(t, x, y)",
     "if()": "if(c, v, [c2, v2, …,] v_else)",
+    "ifb()": "ifb(c, v, [c2, v2, …,] v_else)",
     "print()": "print(id, n, x)",
     "printb()": "printb(id, n, x)",
     "between()": "between(x, min, max)",
@@ -1102,7 +1116,7 @@
   }
   const reInnerGroups = /(?<!\w)\([^(),]*\)/g
   const reInnerFuncArgs = /(?<=\w\()[^()]*(?=\))/g
-  function preprocessCEMA(anim) {
+  function preprocessCEMA(anim, group) {
     if (typeof anim === "number") return anim
     if (typeof anim !== "string") throw ["Expression must be a string/number"]
     anim = anim.trim()
@@ -1123,6 +1137,18 @@
     if (check) throw [`Unsupported character "<span style="font-weight:600">${check[0]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
     const check2 = anim.match(/[\)\]]\s*\(|=>|(?<!\b(?:varb|visible)?)\.(?![trs][xyz]\b|\d+)[a-z]+|[^a-z0-9_]\[|(?!==)(?<=[^=!><]|^)=|<<=|>>>=|>>=|[!=]==|\+\+|--|\.\.\.|(?<![$\u200c\u200d\p{ID_Continue}])\d+n|[$\u200c\u200d\p{ID_Continue}]+\.[$\u200c\u200d\p{ID_Continue}]+[\.\(]|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>>?|\*\*/ui)
     if (check2) throw [`Invalid syntax "<span style="font-weight:600">${check2[0].replace(/</g, "&lt;")}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
+    const check3 = anim.match(/(?<![a-z0-9_])([0-9_]+[a-z0-9_]*)\.[a-z_]+/i)
+    if (check3) throw [`Unsupported bone name "<span style="font-weight:600">${check3[0]}</span>": Bone names cannot start with numbers or underscores`]
+    const check4 = anim.matchAll(/(?<![a-z0-9_])([a-z0-9_]+[a-z0-9_]*)\.([a-z_]+)/gi)
+    for (const m of check4) {
+      if (m[1] === "render") {
+        if (!renderVars.includes(m[2])) throw [`Invalid "<span style="font-weight:600">render</span>" variable: "<span style="font-weight:600">${m[2]}</span>" is not a render variable`]
+      } else if (!["this", "part", "var", "varb"].includes(m[1]) && !Group.all.find(e => e.name === m[1])) {
+        throw [`Unknown group "<span style="font-weight:600">${m[1]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
+      }
+    }
+    const check5 = anim.match(/(?<![a-z0-9_])(?:\.[0-9]+|[0-9]+\.(?![0-9]))/i)
+    if (check5) throw [`Invalid number "<span style="font-weight:600">${check5[0]}</span>": Numbers must have digits before and after the decimal point`]
     if (anim.match(/\(/g)?.length !== anim.match(/\)/g)?.length) throw [`Invalid syntax in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>": Number of opening and closing brackets do not match`]
     let s = anim, allArgs = ""
     while (reInnerGroups.test(s)) s = s.replace(reInnerGroups, "")
@@ -1135,6 +1161,8 @@
     return anim
       .replace(/:[a-z_]([a-z0-9_]+)?/gi, m => `.children["${m.slice(1)}"]`)
       .replace(/(?<=[\s\n(+*\/%!&|=<>,-]|^)[a-z_]([a-z0-9_]+)?/gi, (m, g, o, s) => {
+        if (m === "render") return `ctx["${m}"]`
+        if (["this", "part"].includes(m)) m = group
         if (s[o + m.length] === ".") return `ctx[Symbol.for("${m}")]`
         if (m in rangesObj && !rangeMap.has(m)) rangeMap.set(m, ranges.get(m) ?? [rangesObj[m], rangesObj[m]?.[1] ?? rangesObj[m]])
         if (m in specialsObj && !specialMap.has(m)) specialMap.set(m, specials.get(m) ?? specialsObj[m])
@@ -1629,14 +1657,14 @@
             type: "variable",
             key,
             raw: val,
-            anim: `ctx[Symbol.for("var")].${split[1]} = ${preprocessCEMA(val)}`
+            anim: `ctx[Symbol.for("var")].${split[1]} = ${preprocessCEMA(val, group.name)}`
           })
         } else if (split[0] === "varb") {
           steps.push({
             type: "variableBoolean",
             key,
             raw: val,
-            anim: `ctx[Symbol.for("varb")].${split[1]} = ${preprocessCEMA(val)}`
+            anim: `ctx[Symbol.for("varb")].${split[1]} = ${preprocessCEMA(val, group.name)}`
           })
         } else if (split[1] === "visible") {
           const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
@@ -1645,14 +1673,14 @@
             part,
             key,
             raw: val,
-            anim: preprocessCEMA(val)
+            anim: preprocessCEMA(val, group.name)
           })
         } else {
           const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
           if (!part || part.cemAnimationDisableRotation && split[1][0] === "r") continue
           let anim
           try {
-            anim = split[1] === "ty" ? `${part.parent === "root" ? "24-" : part.parent?.parent === "root" ? `- ${part.mesh.parent.position.y}-` : "-"}(${preprocessCEMA(val)})` : split[1] === "tz" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) - ${part.mesh.parent.position.z}` : split[1] === "tx" && part.parent?.parent === "root" ? `(${preprocessCEMA(val)}) + ${part.mesh.parent.position.x}` : preprocessCEMA(val)
+            anim = split[1] === "ty" ? `${part.parent === "root" ? "24-" : part.parent?.parent === "root" ? `- ${part.mesh.parent.position.y}-` : "-"}(${preprocessCEMA(val, group.name)})` : split[1] === "tz" && part.parent?.parent === "root" ? `(${preprocessCEMA(val, group.name)}) - ${part.mesh.parent.position.z}` : split[1] === "tx" && part.parent?.parent === "root" ? `(${preprocessCEMA(val, group.name)}) + ${part.mesh.parent.position.x}` : preprocessCEMA(val, group.name)
           } catch (err) {
             return animationErrorToggle(err)
           }
@@ -1843,7 +1871,7 @@
           boolMap = new Map()
           rangeMap = new Map()
           specialMap = new Map()
-          preprocessCEMA(val)
+          preprocessCEMA(val, group.name)
           if (!["var", "varb"].includes(split[0])) {
             const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
             if (!part) animationErrorToggle(`Unknown group "<span style="font-weight:600">${split[0]}</span>"`, null, true)
@@ -1950,7 +1978,9 @@
           limb_swing: specials.get("limb_swing")?.[1] ? specials.get("limb_swing")[0] += difference / 1.666 : specials.get("limb_swing")?.[0] ?? 0,
           hurt_time: specials.get("hurt_time")?.[1] ? specials.get("hurt_time")[0] -= difference : 0,
           death_time: specials.get("death_time")?.[1] ? specials.get("death_time")[0] += difference : 0,
-          swing_progress: specials.get("swing_progress")?.[1] ? specials.get("swing_progress")[0] += difference / 4 : 0
+          swing_progress: specials.get("swing_progress")?.[1] ? specials.get("swing_progress")[0] += difference / 4 : 0,
+          frame_counter: frameCount % 720719,
+          render: Object.fromEntries(renderVars.map(e => [e, 0]))
         }, constants, Object.fromEntries(bools), Object.fromEntries(Array.from(ranges.entries()).map(e => [e[0], e[1][1]])))
         if (settings.ignore_unkown_optifine_animations.value) {
           context = new Proxy(context, {
