@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.5.0",
+    version: "1.5.1",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -3298,11 +3298,11 @@
             }
 
             let exportOptions = {}
-            if (Object.keys(Codecs[this.format].export_options).length) {
+            if (Object.keys(Formats[this.format].codec.export_options).length) {
               output.log("Getting export options…")
               newProject("")
               await Codecs[this.format].promptExportOptions()
-              exportOptions = Codecs[this.format].getExportOptions()
+              exportOptions = Formats[this.format].codec.getExportOptions()
               await Project.close()
               output.log("Export options loaded")
             }
@@ -3321,10 +3321,8 @@
                 this.done++
                 continue
               }
-              let data
-              try {
-                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)))
-              } catch {
+              const data = autoParseJSON(await fs.promises.readFile(path.join(this.inputFolder, file), "utf-8"), false)
+              if (!data) {
                 output.error(`Skipping \`${file}\` as it could not be read`)
                 this.done++
                 continue

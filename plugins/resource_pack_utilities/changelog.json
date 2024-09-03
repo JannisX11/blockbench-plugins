@@ -117,5 +117,19 @@
         ]
       }
     ]
+  },
+  "1.5.1": {
+    "title": "1.5.1",
+    "date": "2024-09-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Batch Exporter failing to parse certain bbmodel files",
+          "Fixed Batch Exporter failing to export formats where the codec ID did not match the format ID"
+        ]
+      }
+    ]
   }
 }
