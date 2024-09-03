@@ -773,7 +773,7 @@
     editCheck = () => {
       if (Format.id === "optifine_entity") {
         if (!settings.jem_restrictions.value) {
-          const entry = Undo.history[Undo.history.length-1]
+          const entry = Undo.history[Undo.history.length - 1]
           const check = editCheckProcess(entry)
           if (check) {
             if (settings.dialog_jem_restrictions.value) {
@@ -854,7 +854,7 @@
 
   // OPTIFINE ANIMATION EDITOR
 
-  let animationStyles, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange
+  let animationStyles, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, renameGroup
   const E = s => $(document.createElement(s))
   let frameCount
   const constants = {
@@ -1651,7 +1651,7 @@
       specialMap = new Map()
       for (const group of groups) for (const section of group.cem_animations) for (const [key, val] of Object.entries(section)) {
         const split = key.split(".")
-        if (split[0] === "render" || split[1] === "visible_boxes") continue
+        if (split[0] === "render") continue
         else if (split[0] === "var") {
           steps.push({
             type: "variable",
@@ -1674,6 +1674,15 @@
             key,
             raw: val,
             anim: preprocessCEMA(val, group.name)
+          })
+        } else if (split[1] === "visible_boxes") {
+          const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
+          steps.push({
+            type: "visible_boxes",
+            part,
+            key,
+            raw: val,
+            anim: split[0] === group.name || split[0] === "part" ? true : preprocessCEMA(val, group.name)
           })
         } else {
           const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
@@ -1860,7 +1869,11 @@
         for (const section of animations) for (const [key, val] of Object.entries(section)) {
           if (val.trim?.() === "") throw ["Animations cannot be empty", key, val]
           const split = key.split(".")
-          if (split[0] === "render" || split[1] === "visible_boxes") continue
+          if (split[0] === "render") {
+            if (!renderVars.includes(split[1])) throw [`Invalid "<span style="font-weight:600">render</span>" variable: "<span style="font-weight:600">${split[1]}</span>" is not a render variable`]
+            continue
+          }
+          if (split[1] === "visible_boxes") continue
           if (split.length < 2 || split[1] === "") throw [`Missing transformation type in animation "<span style="font-weight:600">${key}</span>"`, key, val]
           if (!(["var", "varb"].includes(split[0]) || split[1] === "visible")) {
             if (split[1].length > 2) throw [`Invalid transformation type in animation "<span style="font-weight:600">${key}</span>"`, key, val]
@@ -2032,8 +2045,7 @@
               if (parsed?.message) throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> ${parsed.message}`
               throw `Unable to parse animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" for "<span style="font-weight:600">${step.key}</span>"`
             }
-          }
-          else if (step.type === "animation") {
+          } else if (step.type === "animation") {
             if (parsed === true || parsed === false) throw `Unable to play animation "<span style="font-weight:600">${step.raw.replace(/</g, "&lt;")}</span>" as it retuned a <strong>boolean</strong> instead of a <strong>number</strong>`
             step.part.mesh[step.mode][step.axis] = parsed * step.invert
             context[Symbol.for(step.part.name)][step.transform] = step.transform === "ty" ? (step.part.parent === "root") * 24 + (step.part.parent?.parent === "root") * -step.part.mesh.parent.position.y - step.part.mesh.position.y : step.transform === "tx" ? -((step.part.parent?.parent === "root") * step.part.mesh.parent.position.x + step.part.mesh.position.x) : step.transform === "tz" ? (step.part.parent?.parent === "root") * step.part.mesh.parent.position.z + step.part.mesh.position.z : invertions.has(step.transform) ? - step.part.mesh[step.mode][step.axis] : step.part.mesh[step.mode][step.axis]
@@ -2041,6 +2053,10 @@
             if (typeof parsed !== "boolean") throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> <strong>visible</strong> must be set to a boolean`
             step.part.mesh.visible = parsed
             context[Symbol.for(step.part.name)].visible = parsed
+          } else if (step.type === "visible_boxes") {
+            if (typeof parsed !== "boolean") throw `Invalid animation for "<span style="font-weight:600">${step.key}</span>"<div style="padding-right:10px">:</div> <strong>visible_boxes</strong> must be set to a boolean`
+            step.part.mesh.children.filter(e => e.type === "cube").forEach(e => e.visible = parsed)
+            context[Symbol.for(step.part.name)].visible_boxes = parsed
           }
         }
       } catch (err) {
@@ -2051,7 +2067,15 @@
     stopAnimations = resetGroups => {
       Blockbench.removeListener("render_frame", playAnimations)
       if (resetGroups) for (const group of Group.all.filter(e => e.cemAnimationDisableRotation)) group.cemAnimationDisableRotation = false
-      for (const group of Group.all) group.mesh.visible = true
+      for (const group of Group.all) {
+        group.mesh.visible = true
+        group.mesh.children.filter(e => e.type === "cube").forEach(e => e.visible = true)
+        for (const cube of Cube.all) {
+          if (!cube.visibility) {
+            cube.mesh.visible = false
+          }
+        }
+      }
       Canvas.updateView({groups: Group.all})
       playButton.css("display", "flex")
       stopButton.css("display", "none")
@@ -2063,16 +2087,28 @@
       paused = false
     }
     let group
-    function selectGroup() {
+    function selectGroup(parse = true) {
       partName.text(group.name)
       const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
       if (animation) {
-        parseAnimations(animation)
+        if (parse) parseAnimations(animation)
         animationEditorPanel.vue.text = animation
         editorWrapper[0].__vue__._data.undoStack = [{ plain: animation }]
         editorWrapper[0].__vue__._data.undoOffset = 0
       }
     }
+    renameGroup = evt => {
+      if (Project.format?.id === "optifine_entity") {
+        const entry = Undo.history[Undo.history.length - 1]
+        if (entry.action === "Rename element") {
+          const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
+          if (animation) {
+            parseAnimations(animation)
+          }
+        }
+      }
+    }
+    Blockbench.on("finished_edit", renameGroup)
     updateSelection = () => {
       if (Project.format?.id === "optifine_entity") {
         resizeWindow()
@@ -2082,8 +2118,12 @@
           while (selected.parent !== "root") selected = selected.parent
           if (group !== selected) {
             group = selected
-            selectGroup()
+            selectGroup(false)
           }
+        }
+        const animation = JSON.stringify(group?.cem_animations?.length === 0 ? [{}] : group?.cem_animations, null, 2)
+        if (animation) {
+          parseAnimations(animation)
         }
       }
     }
@@ -2342,6 +2382,7 @@
     stopAnimations?.(true)
     Blockbench.removeListener("update_selection", updateSelection)
     Blockbench.removeListener("select_project", tabChange)
+    Blockbench.removeListener("finished_edit", renameGroup)
     $("#cem_animation_editor_container > div")[0].removeEventListener("keydown", editorKeybinds)
     groupObserver.disconnect()
     $("[toggle='cem_animation_disable_rotations']").remove()
