@@ -3323,11 +3323,20 @@
               }
               let data
               try {
-                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)))
+                data = JSON.parse(await fs.promises.readFile(path.join(this.inputFolder, file)));
               } catch {
-                output.error(`Skipping \`${file}\` as it could not be read`)
-                this.done++
-                continue
+                try {
+                  data = autoParseJSON(
+                    await fs.promises.readFile(
+                      path.join(this.inputFolder, file),
+                      "utf-8"
+                    )
+                  );
+                } catch {
+                  output.error(`Skipping \`${file}\` as it could not be read`);
+                  this.done++;
+                  continue;
+                }
               }
               if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
                 output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
