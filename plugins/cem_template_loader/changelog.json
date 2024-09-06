@@ -913,5 +913,30 @@
         ]
       }
     ]
+  },
+  "8.3.0": {
+    "title": "8.3.0",
+    "date": "2024-09-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for the \"ifb()\" animation function",
+          "Added support for the \"frame_counter\" animation variable",
+          "Added more error checks to provide better animation error descriptions",
+          "Added support for \"visible_boxes\""
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "The animation editor will now no longer accept incorrectly formatted numbers",
+          "Fixed \"render\" variables throwing errors when used in animations",
+          "Fixed \"part\" and \"this\" variables throwing errors when used in animations",
+          "Fixed animations not being re-parsed when you add, remove, or rename a group"
+        ]
+      }
+    ]
   }
 }
