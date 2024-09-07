@@ -97,7 +97,7 @@
         return Math.max(Math.ceil(Math.sqrt(totalArea)), maxW);
     }
 
-    function calculateRects()
+    function calculateRects(userPadding)
     {
         var rects = [];
         var maxScale = 1;
@@ -136,7 +136,7 @@
             rects.push(rect);
         });
 
-        var padding = resize ? maxScale : 1;
+        var padding = userPadding * (resize ? maxScale : 1);
         var size = packBoxes(rects, padding);
 
         return {
@@ -148,9 +148,9 @@
         };
     }
 
-    function stitchTextures()
+    function stitchTextures(userPadding)
     {
-        const data = calculateRects();
+        const data = calculateRects(userPadding);
         const rects = data.rects;
 
         const offscreen = new OffscreenCanvas(data.w, data.h);
@@ -323,12 +323,33 @@
         Undo.finishEdit('finished stitching');
     }
 
+    var stitchDialog = new Dialog({
+        id: "texture_stitcher_stitch",
+        title: "Stitch textures",
+        form: {
+            padding: {
+                label: "Padding",
+                type: "number",
+                min: 0,
+                max: 12,
+                step: 1,
+                value: 1
+            }
+        },
+        onConfirm(formData) 
+        {
+            this.hide();
+
+            stitchTextures(formData.padding >= 0 ? formData.padding : 0)
+        }
+    });
+
     Plugin.register('texture_stitcher', {
         title: 'Texture Stitcher',
         icon: 'fa-compress-arrows-alt',
         author: 'McHorse',
         description: 'Stitch multiple textures into a single texture',
-        version: '1.0.6',
+        version: '1.0.7',
         min_version: "4.8.0",
         tags: ["Texture"],
         variant: 'both',
@@ -340,7 +361,10 @@
                 category: 'textures',
                 description: 'Stitch all of the textures into single texture (you might want to make a back up of the project)',
                 icon: 'fa-compress-arrows-alt',
-                click: stitchTextures
+                click()
+                {
+                    stitchDialog.show();
+                }
             });
 
             Interface.Panels.textures.menu.addAction(button);
