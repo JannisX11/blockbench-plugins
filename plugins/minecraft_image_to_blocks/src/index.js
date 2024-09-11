@@ -52,7 +52,7 @@ let plugin = {
                 image: {
                   label: 'Texture Image',
                   type: 'file',
-                  extensions: ['png', 'jpg', 'jpeg'],
+                  extensions: ['png'],
                 },
                 useColorForMerging: {
                   label: 'Use Color Values for Merging',
