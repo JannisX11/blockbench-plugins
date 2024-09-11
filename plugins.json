@@ -989,5 +989,17 @@
 			"PBR"
 		],
 		"min_version": "4.10.4"
+	},
+	"minecraft_image_to_blocks": {
+		"title": "Image to Blocks Model",
+		"icon": "logo.png",
+		"author": "Markus Bordihn (Kaworru)",
+		"tags": ["Minecraft", "Image", "Blocks"],
+		"version": "1.0.0",
+		"min_version": "4.10.4",
+		"description": "Converts an image into a 3D block model based on pixels with various options",
+		"website": "https://github.com/MarkusBordihn/Blockbench-Plugin-Minecraft_Image_To_Blocks",
+		"variant": "both",
+		"has_changelog": true
 	}
 }
