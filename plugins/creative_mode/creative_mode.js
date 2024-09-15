@@ -21,7 +21,7 @@ BBPlugin.register('creative_mode', {
     icon: 'icon.png',
     description: 'Place and remove cubes just like in Minecraft creative mode',
     version: '1.0.0',
-    min_version: '4.3.0',
+    min_version: '4.8.0',
 	variant: 'both',
     onload() {
         let canvas = document.querySelector('canvas');
