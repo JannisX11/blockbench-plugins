@@ -49,7 +49,6 @@
             lines: [],
             onConfirm: (b, e) => {
                 let res = propertiesDialog.getFormResult()
-                console.warn(res)
                 Project.properties = res
             },
             onCancel: (b, e) => {},
@@ -104,7 +103,6 @@
                         let uv = obj.faces[f].uv
 
                         let textures = Texture.all.filter((x) => {return x.uuid == obj.faces[f].texture})
-                        console.error(textures)
                         let texture = textures[0]
                         if (texture !== undefined) texture = texture.name
                         //texture = (texture === undefined) ? "empty.png" : texture.name
@@ -137,10 +135,7 @@
                         }
                     }
                     
-                    console.log(cube)
                     for(let i = 0; i < 6; i++){
-                        console.warn(i, uvs[facenamesbb[i]])
-                        console.log(uvs[facenamesbb[i]][5])
                         if ((uvs[facenamesbb[i]][5] === undefined) || (uvs[facenamesbb[i]][5] === "empty.png")){
                             continue
                         }
@@ -281,8 +276,6 @@
                         Project.texture_height = Texture.all[0].height
                     }, 50);
                 }
-
-                console.warn(data)
 
                 if(data.cuboids === undefined){
                     if(data.parent === undefined){
