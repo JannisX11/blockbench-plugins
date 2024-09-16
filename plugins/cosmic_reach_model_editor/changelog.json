@@ -93,5 +93,20 @@
                 ]
             }
         ]
+    },
+    "2.0.0": {
+        "title": "2.0.0",
+        "date": "2024-09-16",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Textureless faces now do not require empty.png(instead they are not exported)",
+                    "Added model properties(Tools>Edit Model Properties)(used for cullsSelf and isTransparent block properties)(they aren't stored when saved as .bbmodel due to BB restrictions)",
+                    "New assets hyerarchy format replaced the old one"
+                ]
+            }
+        ]
     }
 }
