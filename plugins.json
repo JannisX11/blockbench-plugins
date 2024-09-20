@@ -875,14 +875,14 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-	"animation_to_jsonea": {
-		"title": "Animation to JsonEA Converter",
+	"animation_to_json": {
+		"title": "Animation to JSON Converter",
 		"author": "Gaming32",
-		"description": "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+		"description": "Converts Blockbench animations to the JSON format for the NeoForge mod loader",
 		"icon": "fa-cube",
 		"tags": ["Animation", "Minecraft: Java Edition"],
 		"variant": "both",
-		"version": "1.0.0"
+		"version": "1.0.1"
 	},
 	"azurelib_utils": {
 		"title": "AzureLib Animator",
