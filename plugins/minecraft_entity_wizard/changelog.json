@@ -40,5 +40,18 @@
 				]
 			}
 		]
+	},
+	"1.6.0": {
+		"title": "1.6.0",
+		"date": "2024-09-26",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Breeze preset"
+				]
+			}
+		]
 	}
 }
