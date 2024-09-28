@@ -2,7 +2,6 @@ import omit from 'lodash/omit';
 import geckoSettings, {GECKO_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
 import type { EasingKey } from './easing';
-import {remove} from "lodash";
 
 interface GeckolibKeyframeOptions extends KeyframeOptions {
   easing: EasingKey
