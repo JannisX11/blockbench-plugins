@@ -37,7 +37,14 @@ function onProjectParse(e) {
 }
 
 function onBedrockCompile(e) {
-    console.log('onBedrockCompile e:', e);
+    if (Format.id !== "azure_model") return;
+
+    const geometry = e.model?.["minecraft:geometry"];
+    if (geometry) {
+        geometry.forEach((geo) => {
+            delete geo.item_display_transforms;
+        });
+    }
 }
 
 function animatorBuildFile() {
