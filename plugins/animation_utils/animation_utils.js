@@ -8504,6 +8504,25 @@ function onProjectParse(e) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onBedrockCompile(e) {
+    if (Format.id !== "animated_entity_model")
+        return;
+    // Remove display transforms from non-bedrock geometry
+    const geometry = e.model["minecraft:geometry"];
+    if (geometry) {
+        geometry.forEach((geo) => {
+            delete geo["item_display_transforms"];
+        });
+    }
+    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
+    switch (e.model.format_version) {
+        case "1.14.0":
+        case "1.21.0":
+        case "1.21.20":
+            e.model.format_version = "1.12.0";
+            break;
+        default:
+            break;
+    }
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
@@ -8513,6 +8532,40 @@ function animatorBuildFile() {
         Object.assign(res, {
             'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_2__["default"].formatVersion,
         });
+        // Convert exported bedrock animations to non-bedrock
+        // This should be a menu item but that can be a future thing
+        if (res.animations) {
+            for (const animation in res.animations) {
+                const bones = res.animations[animation].bones;
+                if (bones) {
+                    for (const boneName in bones) {
+                        const bone = bones[boneName];
+                        for (const animationGroupType in bone) {
+                            const animationGroup = bone[animationGroupType];
+                            for (const timestamp in animationGroup) {
+                                const keyframe = animationGroup[timestamp];
+                                if (keyframe["lerp_mode"])
+                                    delete keyframe["lerp_mode"];
+                                let bedrockKeyframe = keyframe["pre"];
+                                let bedrockKeyframeData = undefined;
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["pre"];
+                                }
+                                bedrockKeyframe = keyframe["post"];
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["post"];
+                                }
+                                if (bedrockKeyframeData) {
+                                    Object.assign(keyframe, bedrockKeyframeData);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // console.log('animatorBuildFile res:', res);
     return res;
@@ -8736,6 +8789,19 @@ function maybeExportItemJson(options = {}) {
             blockmodel.display = new_display;
         }
     }
+    if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Project.textures) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+                if (name.indexOf(".png") > 0)
+                    name = name.substring(0, name.indexOf(".png"));
+                const texturesMap = {};
+                texturesMap['particle'] = name;
+                blockmodel.textures = texturesMap;
+                break;
+            }
+        }
+    }
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
     const scope = codec;
     const path = _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath;
@@ -8765,6 +8831,7 @@ const format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
@@ -9443,7 +9510,7 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.1.1","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"3.2","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.11.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ })
 

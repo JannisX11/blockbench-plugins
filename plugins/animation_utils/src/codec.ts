@@ -52,6 +52,28 @@ function onProjectParse(e: any) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onBedrockCompile(e: any) {
+    if (Format.id !== "animated_entity_model") return;
+
+    // Remove display transforms from non-bedrock geometry
+    const geometry = e.model["minecraft:geometry"];
+
+    if (geometry) {
+        geometry.forEach((geo: Map<string, any>) => {
+            delete geo["item_display_transforms"];
+        })
+    }
+
+    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
+    switch (e.model.format_version) {
+        case "1.14.0":
+        case "1.21.0":
+        case "1.21.20":
+            e.model.format_version = "1.12.0"
+            break;
+        default:
+            break;
+    }
+
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
@@ -65,6 +87,50 @@ function animatorBuildFile() {
                 'geckolib_format_version': geckoSettings.formatVersion,
             }
         );
+
+        // Convert exported bedrock animations to non-bedrock
+        // This should be a menu item but that can be a future thing
+        if (res.animations) {
+            for (const animation in res.animations) {
+                const bones = res.animations[animation].bones;
+
+                if (bones) {
+                    for (const boneName in bones) {
+                        const bone = bones[boneName];
+
+                        for (const animationGroupType in bone) {
+                            const animationGroup = bone[animationGroupType];
+
+                            for (const timestamp in animationGroup) {
+                                const keyframe = animationGroup[timestamp];
+
+                                if (keyframe["lerp_mode"])
+                                    delete keyframe["lerp_mode"];
+
+                                let bedrockKeyframe : Map<any, any> = keyframe["pre"];
+                                let bedrockKeyframeData : Map<any, any> = undefined;
+
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["pre"]
+                                }
+
+                                bedrockKeyframe = keyframe["post"];
+
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["post"]
+                                }
+
+                                if (bedrockKeyframeData) {
+                                    Object.assign(keyframe, bedrockKeyframeData)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // console.log('animatorBuildFile res:', res);
     return res;
@@ -290,6 +356,22 @@ export function maybeExportItemJson(options = {}) {
             blockmodel.display = new_display
         }
     }
+    if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Project.textures) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+
+                if (name.indexOf(".png") > 0)
+                    name = name.substring(0, name.indexOf(".png"))
+
+                const texturesMap = {}
+                texturesMap['particle'] = name
+                blockmodel.textures = texturesMap;
+
+                break
+            }
+        }
+    }
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
 
@@ -326,6 +408,7 @@ const format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,

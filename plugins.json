@@ -400,8 +400,8 @@
 		"tags": [
 			"Minecraft: Java Edition"
 		],
-		"version": "3.1.1",
-		"min_version": "4.8.0",
+		"version": "3.2",
+		"min_version": "4.11.0",
 		"await_loading": true,
 		"variant": "both",
 		"max_version": "5.0.0"
