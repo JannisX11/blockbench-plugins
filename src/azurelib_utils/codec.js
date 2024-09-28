@@ -286,9 +286,7 @@ export function maybeExportItemJson(options = {}, as) {
     }
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
-
     var scope = codec;
-
     let path = azurelibSettings.itemModelPath;
 
     Blockbench.export({
