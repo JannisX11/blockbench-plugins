@@ -88,6 +88,50 @@ function animatorBuildFile() {
                 'geckolib_format_version': geckoSettings.formatVersion,
             }
         );
+
+        // Convert exported bedrock animations to non-bedrock
+        // This should be a menu item but that can be a future thing
+        if (res.animations) {
+            for (const animation in res.animations) {
+                const bones = res.animations[animation].bones;
+
+                if (bones) {
+                    for (const boneName in bones) {
+                        const bone = bones[boneName];
+
+                        for (const animationGroupType in bone) {
+                            const animationGroup = bone[animationGroupType];
+
+                            for (const timestamp in animationGroup) {
+                                const keyframe = animationGroup[timestamp];
+
+                                if (keyframe["lerp_mode"])
+                                    delete keyframe["lerp_mode"];
+
+                                let bedrockKeyframe : Map<any, any> = keyframe["pre"];
+                                let bedrockKeyframeData : Map<any, any> = undefined;
+
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["pre"]
+                                }
+
+                                bedrockKeyframe = keyframe["post"];
+
+                                if (bedrockKeyframe) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe["post"]
+                                }
+
+                                if (bedrockKeyframeData) {
+                                    Object.assign(keyframe, bedrockKeyframeData)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // console.log('animatorBuildFile res:', res);
     return res;
