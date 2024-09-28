@@ -64,6 +64,17 @@ function onBedrockCompile(e: any) {
         })
     }
 
+    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
+    switch (e.model.format_version) {
+        case "1.14.0":
+        case "1.21.0":
+        case "1.21.20":
+            e.model.format_version = "1.12.0"
+            break;
+        default:
+            break;
+    }
+
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
