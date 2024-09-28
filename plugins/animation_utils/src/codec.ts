@@ -2,6 +2,7 @@ import omit from 'lodash/omit';
 import geckoSettings, {GECKO_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
 import type { EasingKey } from './easing';
+import {remove} from "lodash";
 
 interface GeckolibKeyframeOptions extends KeyframeOptions {
   easing: EasingKey
@@ -52,6 +53,17 @@ function onProjectParse(e: any) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onBedrockCompile(e: any) {
+    if (Format.id !== "animated_entity_model") return;
+
+    // Remove display transforms from non-bedrock geometry
+    const geometry = e.model["minecraft:geometry"];
+
+    if (geometry) {
+        geometry.forEach((geo: Map<string, any>) => {
+            delete geo["item_display_transforms"];
+        })
+    }
+
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
