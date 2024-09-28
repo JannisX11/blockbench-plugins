@@ -292,10 +292,10 @@ export function maybeExportItemJson(options = {}) {
     }
     if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
         for (const tex of Project.textures) {
-            if (tex.particle) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
                 let name = tex.name;
 
-                if (name.indexOf(".png"))
+                if (name.indexOf(".png") > 0)
                     name = name.substring(0, name.indexOf(".png"))
 
                 const texturesMap = {}
