@@ -82,18 +82,8 @@
 			{
 				"title": "Changes",
 				"list": [
-					"Auto convert bedrock format into format that works properly"
-				]
-			},
-			{
-				"title": "Changes",
-				"list": [
-					"Remove item display transforms from geo file exported for azure_models"
-				]
-			},
-			{
-				"title": "Changes",
-				"list": [
+					"Auto convert bedrock format into format that works properly",
+					"Remove item display transforms from geo file exported for azure_models",
 					"Tweaked ArmorTemplate Names/pivots"
 				]
 			}
