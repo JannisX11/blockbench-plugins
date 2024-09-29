@@ -6,6 +6,9 @@
 🐞 = Bug Fix<br/>
 🦎 = Non-user-facing Change
 
+## 3.2.1
+- 🐞 Fix some animation exporting issues with specific animation setup cases
+
 ## 3.2
 - 🚀 Auto-export the particle texture entry in the textures list for block/item display jsons if not defined
 - 🚀 Auto-convert bedrock animation jsons to GeckoLib-supported animation jsons when exporting
