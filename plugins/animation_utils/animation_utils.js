@@ -8544,21 +8544,23 @@ function animatorBuildFile() {
                             const animationGroup = bone[animationGroupType];
                             for (const timestamp in animationGroup) {
                                 const keyframe = animationGroup[timestamp];
-                                if (keyframe["lerp_mode"])
-                                    delete keyframe["lerp_mode"];
-                                let bedrockKeyframe = keyframe["pre"];
+                                if (!keyframe)
+                                    continue;
+                                let bedrockKeyframe = keyframe.pre;
                                 let bedrockKeyframeData = undefined;
-                                if (bedrockKeyframe) {
+                                if (bedrockKeyframe !== undefined) {
                                     bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe["pre"];
+                                    delete keyframe.pre;
                                 }
-                                bedrockKeyframe = keyframe["post"];
-                                if (bedrockKeyframe) {
+                                bedrockKeyframe = keyframe.post;
+                                if (bedrockKeyframe !== undefined) {
                                     bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe["post"];
+                                    delete keyframe.post;
                                 }
-                                if (bedrockKeyframeData) {
+                                if (bedrockKeyframeData !== undefined) {
                                     Object.assign(keyframe, bedrockKeyframeData);
+                                    if (keyframe.lerp_mode)
+                                        delete keyframe.lerp_mode;
                                 }
                             }
                         }
@@ -9510,7 +9512,7 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.2","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.11.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"3.2.1","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.11.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ })
 
