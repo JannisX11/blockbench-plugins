@@ -104,26 +104,29 @@ function animatorBuildFile() {
                             for (const timestamp in animationGroup) {
                                 const keyframe = animationGroup[timestamp];
 
-                                if (keyframe["lerp_mode"])
-                                    delete keyframe["lerp_mode"];
+                                if (!keyframe)
+                                    continue
 
-                                let bedrockKeyframe : Map<any, any> = keyframe["pre"];
+                                let bedrockKeyframe : Map<any, any> = keyframe.pre;
                                 let bedrockKeyframeData : Map<any, any> = undefined;
 
-                                if (bedrockKeyframe) {
+                                if (bedrockKeyframe !== undefined) {
                                     bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe["pre"]
+                                    delete keyframe.pre
                                 }
 
-                                bedrockKeyframe = keyframe["post"];
+                                bedrockKeyframe = keyframe.post;
 
-                                if (bedrockKeyframe) {
+                                if (bedrockKeyframe !== undefined) {
                                     bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe["post"]
+                                    delete keyframe.post
                                 }
 
-                                if (bedrockKeyframeData) {
+                                if (bedrockKeyframeData !== undefined) {
                                     Object.assign(keyframe, bedrockKeyframeData)
+
+                                    if (keyframe.lerp_mode)
+                                        delete keyframe.lerp_mode;
                                 }
                             }
                         }
