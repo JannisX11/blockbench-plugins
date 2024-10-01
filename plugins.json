@@ -591,7 +591,7 @@
 		"author": "SnaveSutit & Marctron",
 		"icon": "video_file",
 		"description": "Converts Blockbench animations to FSK files.",
-		"about": "Go to Animation -> Export Endimations...",
+		"about": "To export an animation, go to File -> Export -> Export FSK.",
 		"tags": ["Minecraft: Java Edition", ".fsk", "Fisk's Superheroes"],
 		"version": "1.0.0",
 		"min_version": "4.2.0",
