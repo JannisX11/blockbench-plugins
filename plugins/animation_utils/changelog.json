@@ -1,0 +1,109 @@
+{
+  "3.0.7": {
+    "title": "3.0.7",
+    "author": "Eliot Lash",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Disable minification of JS bundle, fix some build errors on case sensitive filesystems, and upgrade to NodeJS v16.16"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Don't save `geckolib_format_version` in animation json for bedrock models",
+          "Remove hold menu hiding code that was causing issues for other plugins (regression of an old bug occurred in version 3.0.6)"
+        ]
+      }
+    ]
+  },
+  "3.1.0": {
+    "title": "3.1.0",
+    "author": "Eliot Lash",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for \"Reverse Keyframes\" action"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Update to new plugin format, bump minimum Blockbench version to 4.8.0",
+          "Ported plugin to TypeScript, added developer README and a few unit tests"
+        ]
+      }
+    ]
+  },
+  "3.1.1": {
+    "title": "3.1.1",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix the item display settings being cleared if saving as an entity type model",
+          "Fix the armour template having swapped pivot points on the legs",
+          "Fix incorrect importing of loop type. Closes [#591](https://github.com/bernie-g/geckolib/issues/591)"
+        ]
+      }
+    ]
+  },
+  "3.2": {
+    "title": "3.2",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Auto-export the particle texture entry in the textures list for block/item display jsons if not defined",
+          "Auto-convert bedrock animation jsons to GeckoLib-supported animation jsons when exporting"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix the particle texture entry not exporting if the name doesn't end in .png",
+          "Fixed item_display_transforms being shipped with .geo jsons for non-bedrock models",
+          "Forced known forward-compatible versions to export as 1.12.0 to maintain compatibility while we work out a better system"
+        ]
+      }
+    ]
+  },
+  "3.2.1": {
+    "title": "3.2.1",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix some animation exporting issues with specific animation setup cases"
+        ]
+      }
+    ]
+  },
+  "3.3": {
+    "title": "3.3",
+    "date": "2024-10-03",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Skip auto-exporting particle entry for item display if not a valid path",
+          "Updated the plugin's about panel",
+          "Updated the plugin's icon",
+          "Added api-supported changelog"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix Geckolib item/block models not displaying properly in the display tab"
+        ]
+      }
+    ]
+  }
+}
