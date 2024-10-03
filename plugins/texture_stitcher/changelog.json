@@ -38,5 +38,18 @@
 				]
 			}
 		]
+	},
+	"1.0.7": {
+		"title": "1.0.7",
+		"date": "2024-09-06",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added dialog to able specify padding"
+				]
+			}
+		]
 	}
 }

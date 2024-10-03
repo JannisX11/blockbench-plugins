@@ -8504,6 +8504,25 @@ function onProjectParse(e) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onBedrockCompile(e) {
+    if (Format.id !== "animated_entity_model")
+        return;
+    // Remove display transforms from non-bedrock geometry
+    const geometry = e.model["minecraft:geometry"];
+    if (geometry) {
+        geometry.forEach((geo) => {
+            delete geo["item_display_transforms"];
+        });
+    }
+    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
+    switch (e.model.format_version) {
+        case "1.14.0":
+        case "1.21.0":
+        case "1.21.20":
+            e.model.format_version = "1.12.0";
+            break;
+        default:
+            break;
+    }
     // console.log('onBedrockCompile e:', e);
     // maybeExportItemJson(e.options);
 }
@@ -8513,6 +8532,42 @@ function animatorBuildFile() {
         Object.assign(res, {
             'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_2__["default"].formatVersion,
         });
+        // Convert exported bedrock animations to non-bedrock
+        // This should be a menu item but that can be a future thing
+        if (res.animations) {
+            for (const animation in res.animations) {
+                const bones = res.animations[animation].bones;
+                if (bones) {
+                    for (const boneName in bones) {
+                        const bone = bones[boneName];
+                        for (const animationGroupType in bone) {
+                            const animationGroup = bone[animationGroupType];
+                            for (const timestamp in animationGroup) {
+                                const keyframe = animationGroup[timestamp];
+                                if (!keyframe)
+                                    continue;
+                                let bedrockKeyframe = keyframe.pre;
+                                let bedrockKeyframeData = undefined;
+                                if (bedrockKeyframe !== undefined) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe.pre;
+                                }
+                                bedrockKeyframe = keyframe.post;
+                                if (bedrockKeyframe !== undefined) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe.post;
+                                }
+                                if (bedrockKeyframeData !== undefined) {
+                                    Object.assign(keyframe, bedrockKeyframeData);
+                                    if (keyframe.lerp_mode)
+                                        delete keyframe.lerp_mode;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // console.log('animatorBuildFile res:', res);
     return res;
@@ -8544,6 +8599,20 @@ function getKeyframeDataPoints(source) {
         return points;
     }
 }
+function geoLoopToBbLoop(jsonLoop) {
+    if (jsonLoop) {
+        if (typeof jsonLoop === 'boolean') {
+            return jsonLoop ? 'loop' : 'once';
+        }
+        if (typeof jsonLoop === 'string') {
+            if (jsonLoop === "hold_on_last_frame")
+                return 'hold';
+            if (jsonLoop === "loop" || jsonLoop === "true")
+                return 'loop';
+        }
+    }
+    return 'once';
+}
 function animatorLoadFile(file, animation_filter) {
     // Currently no modifications are needed
     // eslint-disable-next-line no-undef
@@ -8559,9 +8628,7 @@ function animatorLoadFile(file, animation_filter) {
             const animation = new Blockbench.Animation({
                 name: ani_name,
                 path,
-                // TODO: Make sure it's OK to disable this line
-                // loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
-                loop: a.loop,
+                loop: geoLoopToBbLoop(a.loop),
                 override: a.override_previous_animation,
                 anim_time_update: (typeof a.anim_time_update == 'string'
                     ? a.anim_time_update.replace(/;(?!$)/, ';\n')
@@ -8724,6 +8791,19 @@ function maybeExportItemJson(options = {}) {
             blockmodel.display = new_display;
         }
     }
+    if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Project.textures) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+                if (name.indexOf(".png") > 0)
+                    name = name.substring(0, name.indexOf(".png"));
+                const texturesMap = {};
+                texturesMap['particle'] = name;
+                blockmodel.textures = texturesMap;
+                break;
+            }
+        }
+    }
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
     const scope = codec;
     const path = _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath;
@@ -8753,6 +8833,7 @@ const format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
@@ -9346,7 +9427,7 @@ Object.freeze(GECKO_SETTINGS_DEFAULT);
 const geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
 function onSettingsChanged() {
     if (Format.id === "animated_entity_model") {
-        Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM;
+        Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM || (Project && Object.keys(Project.display_settings).length != 0);
     }
     Modes.selected.select();
     switch (geckoSettings.objectType) {
@@ -9420,7 +9501,7 @@ const removeMonkeypatches = () => {
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]}],"textures":[]}');
+module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]}],"textures":[]}');
 
 /***/ }),
 
@@ -9431,7 +9512,7 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.1.0","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.8.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"3.2.1","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.11.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ })
 

@@ -74,6 +74,20 @@
                 "type": "string",
                 "description": "Link to the plugins website",
                 "pattern": "^https://.+"
+            },
+            "repository": {
+                "type": "string",
+                "description": "Link to the repository that contains the source for the plugin",
+                "pattern": "^https://.+"
+            },
+            "bug_tracker": {
+                "type": "string",
+                "description": "Link to where users can report issues with the plugin",
+                "pattern": "^https://.+"
+            },
+            "deprecation_note": {
+                "type": "string",
+                "description": "Used in combination with a \"Deprecated\" tag. Explains why the plugin is deprecated and what to do or use instead."
             }
         },
         "defaultSnippets": [

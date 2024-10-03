@@ -50,12 +50,14 @@
   .about td:first-child {
     font-weight: 700;
   }
-  #about {
-    display: none;
-  }
   #about-content {
     overflow-y: auto;
     min-height: 128px;
+  }
+  #about-markdown-links {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 20px 0;
   }
   #about-markdown-links > a {
     display: flex;
@@ -90,13 +92,13 @@
     margin: 0;
   }
 </style>
-<div id="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
+<div id="about-markdown-links">
   <a href="https://ewanhowell.com/">
-    <i class="material-icons icon" style="color:rgb(51, 227, 142)">language</i>
+    <i class="material-icons icon" style="color: #33E38E;">language</i>
     <p>By Ewan Howell</p>
   </a>
   <a href="https://discord.ewanhowell.com/">
-    <i class="fa_big icon fab fa-discord" style="color:rgb(114, 127, 255)"></i>
+    <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
   <a href="https://ffmpeg.org/download.html">
@@ -104,7 +106,7 @@
     <p>FFmpeg</p>
   </a>
   <a href="https://youtu.be/jZLqNocSQDM">
-    <i class="fa_big icon fab fa-youtube" style="color:rgb(255, 68, 68)"></i>
+    <i class="fa_big icon fab fa-youtube" style="color: #FF4444;"></i>
     <p>Installing FFmpeg</p>
   </a>
 </div>

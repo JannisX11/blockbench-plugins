@@ -6,6 +6,21 @@
 🐞 = Bug Fix<br/>
 🦎 = Non-user-facing Change
 
+## 3.2.1
+- 🐞 Fix some animation exporting issues with specific animation setup cases
+
+## 3.2
+- 🚀 Auto-export the particle texture entry in the textures list for block/item display jsons if not defined
+- 🚀 Auto-convert bedrock animation jsons to GeckoLib-supported animation jsons when exporting
+- 🐞 Fix the particle texture entry not exporting if the name doesn't end in .png
+- 🐞 Fixed item_display_transforms being shipped with .geo jsons for non-bedrock models
+- 🐞 Forced known forward-compatible versions to export as 1.12.0 to maintain compatibility while we work out a better system
+
+## 3.1.1
+- 🐞 Fix the item display settings being cleared if saving as an entity type model
+- 🐞 Fix the armour template having swapped pivot points on the legs
+- 🐞 Fix incorrect importing of loop type. Closes [#591](https://github.com/bernie-g/geckolib/issues/591)
+
 ## 3.1.0
 - 💥 Update to new plugin format, bump minimum Blockbench version to 4.8.0
 - 🚀 Added support for "Reverse Keyframes" action

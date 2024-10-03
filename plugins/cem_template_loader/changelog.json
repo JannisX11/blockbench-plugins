@@ -881,5 +881,62 @@
         ]
       }
     ]
+  },
+  "8.2.0": {
+    "title": "8.2.0",
+    "date": "2024-07-26",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Invalid animations can now be saved instead of reverting to the last valid animation"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed loading models without a vanilla texture"
+        ]
+      }
+    ]
+  },
+  "8.2.1": {
+    "title": "8.2.1",
+    "date": "2024-08-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Loading a template model that is missing its vanilla texture will no longer trigger the connction error state"
+        ]
+      }
+    ]
+  },
+  "8.3.0": {
+    "title": "8.3.0",
+    "date": "2024-09-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for the \"ifb()\" animation function",
+          "Added support for the \"frame_counter\" animation variable",
+          "Added more error checks to provide better animation error descriptions",
+          "Added support for \"visible_boxes\""
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "The animation editor will now no longer accept incorrectly formatted numbers",
+          "Fixed \"render\" variables throwing errors when used in animations",
+          "Fixed \"part\" and \"this\" variables throwing errors when used in animations",
+          "Fixed animations not being re-parsed when you add, remove, or rename a group"
+        ]
+      }
+    ]
   }
 }

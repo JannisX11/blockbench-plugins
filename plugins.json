@@ -14,7 +14,7 @@
 		"author": "Titus Evans (SnaveSutit)",
 		"icon": "icon.svg",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "1.0.0",
+		"version": "1.4.2",
 		"min_version": "4.10.0",
 		"variant": "desktop",
 		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
@@ -168,6 +168,8 @@
 		"description": "Adds a screen space ambient occlusion shader",
 		"about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
 		"variant": "both",
+		"tags": ["Deprecated"],
+		"deprecation_note": "This plugin can cause visual artifacts and a decreased framerate",
 		"version": "1.0.3",
 		"min_version": "3.4.0"
 	},
@@ -205,7 +207,7 @@
 		"author": "Ewan Howell",
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "8.1.0",
+		"version": "8.3.0",
 		"min_version": "4.10.0",
 		"variant": "both",
 		"creation_date": "2020-02-02",
@@ -258,7 +260,7 @@
 		"author": "Ewan Howell",
 		"description": "Create your very own preview scenes. Download preview scenes from the Preview Scene Store. Edit and manage existing preview scenes.",
 		"tags": ["Preview Scenes", "Blockbench"],
-		"version": "1.1.1",
+		"version": "1.1.3",
 		"min_version": "4.8.3",
 		"variant": "both",
 		"creation_date": "2022-10-14",
@@ -318,7 +320,7 @@
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.6.0",
+		"version": "1.7.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2023-06-10",
@@ -363,7 +365,7 @@
 		"author": "Ewan Howell",
 		"description": "A collection of utilities to assist with resource pack creation.",
 		"tags": ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-		"version": "1.1.0",
+		"version": "1.5.1",
 		"min_version": "4.10.0",
 		"variant": "desktop",
 		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
@@ -398,8 +400,8 @@
 		"tags": [
 			"Minecraft: Java Edition"
 		],
-		"version": "3.1.0",
-		"min_version": "4.8.0",
+		"version": "3.2.1",
+		"min_version": "4.11.0",
 		"await_loading": true,
 		"variant": "both",
 		"max_version": "5.0.0"
@@ -460,7 +462,7 @@
 		"icon": "fa-compress-arrows-alt",
 		"author": "McHorse",
 		"description": "Stitch multiple textures into a single texture",
-		"version": "1.0.6",
+		"version": "1.0.7",
 		"min_version": "4.8.0",
 		"tags": ["Texture"],
 		"variant": "both",
@@ -628,10 +630,10 @@
 	"wasd_controls": {
 		"title": "WASD Controls",
 		"icon": "sports_esports",
-		"author": "JannisX11",
+		"author": "JannisX11, caioraphael1",
 		"description": "Adds a WASD controlled viewport navigation mode",
 		"about": "The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.",
-		"version": "1.1.0",
+		"version": "1.2.0",
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
@@ -873,14 +875,14 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-	"animation_to_jsonea": {
-		"title": "Animation to JsonEA Converter",
+	"animation_to_json": {
+		"title": "Animation to JSON Converter",
 		"author": "Gaming32",
-		"description": "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+		"description": "Converts Blockbench animations to the JSON format for the NeoForge mod loader",
 		"icon": "fa-cube",
 		"tags": ["Animation", "Minecraft: Java Edition"],
 		"variant": "both",
-		"version": "1.0.0"
+		"version": "1.0.1"
 	},
 	"azurelib_utils": {
 		"title": "AzureLib Animator",
@@ -888,7 +890,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.9",
+		"version": "1.0.10",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -940,7 +942,7 @@
 		"icon": "icon.png",
 		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
 		"tags": ["Cosmic Reach"],
-		"version": "1.3.0",
+		"version": "2.0.0",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2024-04-19",
@@ -953,7 +955,7 @@
 		"icon": "icon.png",
 		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
 		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
-		"version": "1.0.2",
+		"version": "1.0.4",
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": ["cem_template_loader"],
@@ -968,5 +970,33 @@
 		"version": "1.0.0",
 		"min_version": "4.8.0",
 		"variant": "both"
+	},
+	"bedrock_block_transforms": {
+		"title": "Bedrock Block Transformation Preview",
+		"author": "JannisX11",
+		"icon": "token",
+		"description": "Edit and preview the Minecraft Bedrock Edition block transformation component",
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition"]
+	},
+	"pbr_preview": {
+		"title": "PBR Tools",
+		"author": "Jason J. Gardner",
+		"await_loading": true,
+		"creation_date": "2024-06-10",
+		"icon": "icon.png",
+		"description": "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+		"has_changelog": true,
+		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"variant": "both",
+		"version": "1.1.0",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Minecraft: Bedrock Edition",
+			"PBR"
+		],
+		"min_version": "4.10.4"
 	}
 }

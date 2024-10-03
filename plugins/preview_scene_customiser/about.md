@@ -20,12 +20,14 @@
     flex-direction: column;
     justify-content: space-between;
   }
-  #about {
-    display: none;
-  }
   #about-content {
     overflow-y: auto;
     min-height: 128px;
+  }
+  #about-markdown-links {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 20px 0;
   }
   #about-markdown-links > a {
     display: flex;
@@ -60,17 +62,17 @@
     margin: 0;
   }
 </style>
-<div id="about-markdown-links" style="display:flex;justify-content:space-around;margin:20px 20px 0">
+<div id="about-markdown-links">
   <a href="https://ewanhowell.com/">
-    <i class="material-icons icon" style="color:rgb(51, 227, 142)">language</i>
+    <i class="material-icons icon" style="color: #33E38E;">language</i>
     <p>By Ewan Howell</p>
   </a>
   <a href="https://discord.ewanhowell.com/">
-    <i class="fa_big icon fab fa-discord" style="color:rgb(114, 127, 255)"></i>
+    <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
   <a href="https://github.com/ewanhowell5195/previewSceneCustomiser/">
-    <i class="fa_big icon fab fa-github" style="color:rgb(110, 64, 201)"></i>
+    <i class="fa_big icon fab fa-github" style="color: #6E40C9;"></i>
     <p>Submit Preview Scenes</p>
   </a>
 </div>

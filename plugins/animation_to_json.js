@@ -2,19 +2,19 @@
 (function () {
     var menuButton;
 
-    Plugin.register("animation_to_jsonea", {
-        title: "Animation to JsonEA Converter",
+    Plugin.register("animation_to_json", {
+        title: "Animation to JSON Converter",
         author: "Gaming32",
-        description: "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+        description: "Converts Blockbench animations to the JSON format for the NeoForge mod loader",
         icon: "fa-cube",
         tags: ["Animation", "Minecraft: Java Edition"],
         variant: "both",
-        version: "1.0.0",
+        version: "1.0.1",
         onload() {
             Formats.modded_entity.animation_mode = true;
-            menuButton = new Action("export_animation_to_jsonea", {
-                name: "Export Animations to JsonEA",
-                description: "Export Animations to Json Entity Animation format",
+            menuButton = new Action("export_animation_to_json", {
+                name: "Export Animations to JSON",
+                description: "Export Animations to JSON format",
                 icon: "fa-file-export",
                 condition: () => Format.animation_mode,
                 click() {
@@ -24,7 +24,7 @@
                         type: "Json Files",
                         extensions: ["json"],
                         name: `${animation.name.replaceAll(".", "_").replace("animation_", "")}.json`,
-                        resource_id: "jsonea",
+                        resource_id: "json_entity_animation",
                         savetype: "text",
                         content: JSON.stringify(generateJson(animation))
                     });
@@ -36,7 +36,7 @@
             menuButton.delete();
         }
     });
-    
+
     function generateJson(animation) {
         const result = {
             length: animation.length,

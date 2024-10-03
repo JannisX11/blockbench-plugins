@@ -1,4 +1,5 @@
 <div id="about-content">
+  <img src="https://ewanhowell.com/assets/images/plugins/colour-gradient-generator/logo.webp" />
   <p>This plugin generates hue shifted colour gradient palettes from a single colour.</p>
   <h2>Example</h2>
   <h3>Input Colour</h3>
@@ -31,6 +32,13 @@
   #about-content {
     overflow-y: auto;
     min-height: 128px;
+  }
+  #about-content > img {
+    width: 100%;
+    height: 128px;
+    object-fit: contain;
+    margin: 16px 0 24px;
+    filter: drop-shadow(0 3px 10px #0006);
   }
   .about-colour-gradient {
     display: flex;
@@ -95,11 +103,11 @@
 </style>
 <div id="about-markdown-links">
   <a href="https://ewanhowell.com/">
-    <i class="material-icons icon" style="color: rgb(51, 227, 142);">language</i>
+    <i class="material-icons icon" style="color: #33E38E;">language</i>
     <p>By Ewan Howell</p>
   </a>
   <a href="https://discord.ewanhowell.com/">
-    <i class="fa_big icon fab fa-discord" style="color: rgb(114, 127, 255);"></i>
+    <i class="fa_big icon fab fa-discord" style="color: #727FFF;"></i>
     <p>Discord Server</p>
   </a>
 </div>

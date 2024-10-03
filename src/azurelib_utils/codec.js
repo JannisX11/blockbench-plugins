@@ -37,19 +37,54 @@ function onProjectParse(e) {
 }
 
 function onBedrockCompile(e) {
-    console.log('onBedrockCompile e:', e);
+    if (Format.id !== "azure_model") return;
+
+    const geometry = e.model?.["minecraft:geometry"];
+    if (geometry) {
+        geometry.forEach((geo) => {
+            delete geo.item_display_transforms;
+        });
+    }
 }
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-	if (Format.id === "azure_model") {
-        Object.assign(
-            res,
-            {
-                'azurelib_format_version': azurelibSettings.formatVersion,
+
+    if (Format.id !== "azure_model") return res;
+
+    Object.assign(res, {
+        'azurelib_format_version': azurelibSettings.formatVersion,
+    });
+
+    const animations = res.animations;
+    if (!animations) return res;
+
+    for (const animation in animations) {
+        const bones = animations[animation]?.bones;
+        if (!bones) continue;
+
+        for (const boneName in bones) {
+            const bone = bones[boneName];
+            for (const animationGroupType in bone) {
+                const animationGroup = bone[animationGroupType];
+                for (const timestamp in animationGroup) {
+                    const keyframe = animationGroup[timestamp];
+                    
+                    if (keyframe) {
+                        if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+
+                        let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
+                        if (bedrockKeyframeData) {
+                            Object.assign(keyframe, bedrockKeyframeData);
+                        }
+                        delete keyframe["pre"];
+                        delete keyframe["post"];
+                    }
+                }
             }
-        );
+        }
     }
+
     return res;
 }
 
@@ -251,9 +286,7 @@ export function maybeExportItemJson(options = {}, as) {
     }
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
-
     var scope = codec;
-
     let path = azurelibSettings.itemModelPath;
 
     Blockbench.export({

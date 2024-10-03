@@ -96,7 +96,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.6.0",
+    version: "1.7.0",
     min_version: "4.8.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -159,7 +159,7 @@
         }
         .minecraft-title-item.selected {
           outline: 2px solid var(--color-accent);
-          background-color: var(--color-button);
+          background-color: var(--color-selected);
           outline-offset: -2px;
         }
         .minecraft-title-item-has-variants {
@@ -1713,6 +1713,7 @@
               }
               this.texture = Object.keys(fonts[this.font].textures)[1] ?? Object.keys(fonts[this.font].textures)[0]
               this.overlay = Object.keys(fonts[this.font].overlays)[0]
+              this.characterSpacing = fonts[this.font].characterSpacing ?? 0
               if (!ignoreUpdate) this.buildPreview()
             },
             buildPreview() {
@@ -1751,7 +1752,7 @@
                 let width = 0
                 const cubes = []
                 const group = new THREE.Group()
-                for (const char of str) {
+                for (const [i, char] of Array.from(str).entries()) {
                   if (char === " ") {
                     width += 8
                     continue
@@ -1821,6 +1822,7 @@
                     character.add(mesh)
                     cubes.push(mesh)
                   }
+                  if (i) max += fonts[this.font].characterSpacing ?? 0
                   for (const cube of character.children) {
                     cube.position.x -= width + max
                   }
