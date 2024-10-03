@@ -19,6 +19,7 @@
                 author,
                 description: "Adds a button that inverts selected cube sizes.",
                 about: "This plugin adds a button that inverts the size values of each selected cube.\n## How to use\nTo use this plugin, go to the toolbar at the top of the screen (the one with the move, resize, and rotation tools) and click the `Invert Cubes` button. If you don't see the button, make sure to select some cubes. The button is also keybinded with a default of `Shift + I`.\n\nPlease report any bugs or suggestions you may have.",
+		tags: ["Deprecated"],
                 version: "1.0.0",
                 min_version: "4.2.0",
                 variant: "both",

@@ -10,7 +10,7 @@ Plugin.register('performance_audit', {
 	author: 'JannisX11',
 	description: 'Find performance issues and bottlenecks in your Blockbench installation.',
 	about: 'You can run a performance audit via Help > Audit Performance.',
-	version: '1.1.0',
+	version: '1.1.1',
 	min_version: '3.0.0',
 	variant: 'both',
 	onload() {
@@ -47,9 +47,7 @@ Plugin.register('performance_audit', {
 				let fps_sum = Prop.fps;
 				await new Promise(r => setTimeout(r, 1008));
 				fps_sum += Prop.fps;
-				await new Promise(r => setTimeout(r, 1008));
-				fps_sum += Prop.fps;
-				let avg_fps = fps_sum / 3;
+				let avg_fps = fps_sum / 2;
 				
 				let render_time = measurePerformance(() => {
 					Preview.all.forEach(function(prev) {
@@ -66,8 +64,8 @@ Plugin.register('performance_audit', {
 							AnimationController.selected.updatePreview();
 						}
 					}
-					if (quad_previews.current) {
-						WinterskyScene.updateFacingRotation(quad_previews.current.camera);
+					if (Preview.selected) {
+						WinterskyScene.updateFacingRotation(Preview.selected.camera);
 					}
 				})
 				let dispatch_time = measurePerformance(() => {

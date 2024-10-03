@@ -3,7 +3,7 @@
 		"title": "sam3DJ",
 		"author": "1Turtle",
 		"tags": ["Minecraft: Java Edition", "Format", "Exporter"],
-		"version": "1.0.2",
+		"version": "1.1.0",
 		"variant": "both",
 		"description": "Generate 3D prints in MC (Java Edition) via the .3DJ format within the SC-Peripherals mod!",
 		"about": "This plugin allows you to **export a model into the .3DJ format**.  \nThe .3DJ format is _mostly_ used with the `3D Printer` from the **SC-Peripherals** Java Edition mod.  \n  \n**Tip:** Cubes in a `state_on` folder will be _only_ displayed whenever the model is toggled on!    \n> **Note:** _The format does not support the following attributes:_  \n> * Rotated cubes  \n> * One cube with multiple textures  \n> * Cubes outside the given block space *(16x16x16 Grid / 1x1x1 Block)*  \n  \nTry to avoid those things, or else you might run into weird results.  \nMeshes are also not supported due to the limitations of the format and Minecraft.\n> For the full format documentations, see the [SwitchCraft3 Wiki](https://docs.sc3.io/whats-new/sc-peripherals.html#_3dj-format)  \n",
@@ -12,11 +12,13 @@
 	"animated_java": {
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
-		"icon": "icon-armor_stand",
+		"icon": "icon.svg",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "0.3.9a",
+		"version": "1.4.2",
+		"min_version": "4.10.0",
 		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"]
+		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
+		"await_loading": true
 	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
@@ -43,6 +45,7 @@
 		"author": "Geenium",
 		"description": "Loads Bedrock vanilla entity models up to version 1.13",
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
+		"deprecation_note": "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 		"icon": "pets",
 		"variant": "both"
 	},
@@ -60,7 +63,7 @@
 		"icon": "flip_to_back",
 		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"variant": "both"
 	},
 	"optimize": {
@@ -83,7 +86,8 @@
 		"author": "JannisX11",
 		"description": "Fixes texture bleeding (small white or colored lines around the edges of your model) by slightly shrinking UV maps",
 		"icon": "healing",
-		"min_version": "3.0.0",
+		"min_version": "3.0.5",
+		"version": "1.1.0",
 		"variant": "both"
 	},
 	"shape_generator": {
@@ -153,7 +157,7 @@
 		"author": "JannisX11",
 		"description": "Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.3.1",
+		"version": "1.3.2",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
@@ -164,6 +168,8 @@
 		"description": "Adds a screen space ambient occlusion shader",
 		"about": "Ambient Occlusion is enabled by default. You can adjust the intensity or disable it in the settings.",
 		"variant": "both",
+		"tags": ["Deprecated"],
+		"deprecation_note": "This plugin can cause visual artifacts and a decreased framerate",
 		"version": "1.0.3",
 		"min_version": "3.4.0"
 	},
@@ -175,7 +181,7 @@
 		"about": "To **import** a model from CraftStudio, go to the CraftStudio project settings and export a cspack file. Open this file in an archive manager (like 7zip) and extract the model file. Import the file into Blockbench using the import menu. \nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder. Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.",
 		"tags": ["CraftStudio"],
 		"variant": "both",
-		"version": "0.1.2",
+		"version": "0.1.3",
 		"min_version": "3.2.0"
 	},
 	"screencast_keys": {
@@ -197,14 +203,18 @@
 	},
 	"cem_template_loader": {
 		"title": "CEM Template Loader",
-		"icon": "keyboard_capslock",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
-		"about": "CEM Template Loader can be used to load the vanilla entity models for Minecraft: Java Edition, so you can use them in OptiFine CEM, or as texturing templates.\n\nTo use this plugin, head to the **Tools** tab and select **CEM Template Loader**. From here, select the model that you would like to edit and load it.\n\nAfter editing your model, export it as an **OptiFine JEM** to the folder `assets/minecraft/optifine/cem`. If a texture is used in the model, make sure it saves with a valid file path.\n\n## Important\n\nWhen editing an entity model, you cannot rotate root groups (top level folders), or move the pivot points of root groups, as this can break your model. If you need to rotate a root group, use a subgroup. If you need to change a root group's pivot point, use CEM animations.\n\nCEM Template Loader also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "7.0.0",
-		"min_version": "4.6.0",
-		"variant": "both"
+		"version": "8.3.0",
+		"min_version": "4.10.0",
+		"variant": "both",
+		"creation_date": "2020-02-02",
+		"has_changelog": true,
+		"website": "https://ewanhowell.com/plugins/cem-template-loader/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/cem_template_loader",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[CEM Template Loader]"
 	},
 	"optifine_player_models": {
 		"title": "OptiFine Player Models",
@@ -213,20 +223,25 @@
 		"description": "Adds a new format that allows you to create OptiFine player models.",
 		"about": "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-		"version": "1.3.2",
+		"version": "1.3.3",
 		"min_version": "4.2.0",
-		"variant": "both"
+		"variant": "both",
+		"await_loading": true
 	},
 	"colour_gradient_generator": {
 		"title": "Colour Gradient Generator",
-		"icon": "gradient",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Generate hue shifted gradient palettes from a single colour.",
-		"about": "This plugin generates hue shifted colour gradient palettes from a single colour.\n## Example\nInput colour\n<img width=\"64\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXBTTPNEJHzAAAACklEQVR4XmNgAAAAAgAB3p6PvwAAAABJRU5ErkJggg==\">\nOutput gradient\n<img width=\"576\" height=\"64\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAG1BMVEUnChZNFCR0HymaLSnBTTPTgFferoHp0qv07dW2MQ6TAAAADklEQVR4XmNgVHZNbwAAArQBUTtjBIoAAAAASUVORK5CYII=\">\n## How to use\nTo use this plugin, go into paint mode and change the colour palette mode to <strong>Palette</strong> or **Both**.\nYou can then select a colour and click on the gradient icon to generate a colour gradient.",
 		"tags": ["Paint", "Palette", "Color"],
-		"version": "1.2.0",
-		"min_version": "4.2.0",
-		"variant": "both"
+		"version": "2.0.0",
+		"min_version": "4.10.0",
+		"variant": "both",
+		"website": "https://ewanhowell.com/plugins/colour-gradient-generator/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/colour_gradient_generator",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Colour Gradient Generator]",
+		"creation_date": "2022-06-02",
+		"has_changelog": true
 	},
 	"collapsible_start_screen_categories": {
 		"title": "Collapsible Start Screen Categories",
@@ -241,25 +256,15 @@
 	},
 	"preview_scene_customiser": {
 		"title": "Preview Scene Customiser",
-		"icon": "image",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Create your very own preview scenes. Download preview scenes from the Preview Scene Store. Edit and manage existing preview scenes.",
-		"about": "## Creating your own preview scenes\n\nWith this plugin, you can create your own preview scenes that you can use with any model in Blockbench. A new format has been added that allows you to create, export, and install your very own preview scenes.\n\n## Downloading preview scenes\n\nA preview scene store is included, that allows you to browse and download preview scenes created by other people. Any downloaded scenes can be edited and customised as you wish from the preview scene management menu. You can submit your own preview scenes to the [GitHub Repository](https://github.com/ewanhowell5195/preview-scene-customiser/).\n\n## How to use\n\nYou can find all the options to manage, import, and download custom preview scenes under the \n`View > Preview Scene Customiser` menu.\n\nTo create custom preview scenes, use the new **Preview Scene** model format, and then export or install them from the \n`File > Export` menu.",
 		"tags": ["Preview Scenes", "Blockbench"],
-		"version": "1.0.2",
-		"min_version": "4.4.2",
-		"variant": "both"
-	},
-	"plugin_loader_2.0": {
-		"title": "Plugin Loader 2.0",
-		"icon": "extension",
-		"author": "Ewan Howell",
-		"description": "Replace the default Blockbench Plugin Loader interface with an improved and redesigned Plugin Loader interface.",
-		"about": "This plugin replaces the built in Blockbench Plugin Loader interface with a new and improved Plugin Loader.\n\n## Plugin Pages\nEach plugin now gets its own page where you can view all of its information, as well as install/uninstall/reload it.\n\n## Plugin Tabs\nAll of the tags used across the plugins are now shown as a list of tabs up the side of the Plugin Loader, allowing you to quickly and easily browse and filter by the tags.",
-		"tags": ["Plugins", "Blockbench"],
-		"version": "1.1.0",
-		"min_version": "4.2.0",
-		"variant": "both"
+		"version": "1.1.3",
+		"min_version": "4.8.3",
+		"variant": "both",
+		"creation_date": "2022-10-14",
+		"await_loading": true
 	},
 	"splash_art_customiser": {
 		"title": "Splash Art Customiser",
@@ -274,14 +279,18 @@
 	},
 	"scene_recorder": {
 		"title": "Scene Recorder",
-		"icon": "video_camera_back",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
-		"description": "Add a new scene recorder where you can record your model in a large variety of formats.",
-		"about": "This plugin adds a new scene recorder that allows you to record your model and scene in a large variety of formats.\n\nUsing this plugin is very similar to using the built-in GIF Recorder.\n\nYou can find the `Record Scene...` button in the `View > Screenshot` menu.\n\n## Formats\n- **GIF**\n - Record animated GIFs in higher quality than the built-in GIF Recorder\n- **MP4**\n - Record an MP4 video\n- **WebM**\n - Record a WebM video\n- **WebP**\n - Record an animated WebP image\n- **APNG**\n - Record an animated PNG image\n- **PNG Image Sequence**\n - Output each frame as an individual PNG image",
+		"description": "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
 		"tags": ["Recording", "Media"],
-		"version": "1.1.0",
-		"min_version": "4.5.2",
-		"variant": "desktop"
+		"version": "2.0.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/scene-recorder/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/scene_recorder",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Scene Recorder]",
+		"creation_date": "2022-12-14",
+		"has_changelog": true
 	},
 	"backup_viewer": {
 		"title": "Backup Viewer",
@@ -301,20 +310,69 @@
 		"description": "Track how long you spend using Blockbench and working on each project.",
 		"about": "This plugin allows you to keep track of how much time you spend using Blockbench and how long you spend working on each project.\n\nTo view your activity stats, go to `Tools > Activity Tracker`. From here you can see all your stats for both Blockbench and the current project.",
 		"tags": ["Tracking", "Stats", "Utility"],
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.6.5",
 		"variant": "both"
 	},
 	"minecraft_title_generator": {
 		"title": "Minecraft Title Generator",
-		"icon": "text_fields",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
-		"about": "This plugin adds a new format that allows you to create Minecraft-styled title models that you can render in high quality.",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.0.4",
-		"min_version": "4.7.2",
-		"variant": "both"
+		"version": "1.7.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-06-10",
+		"await_loading": true,
+		"contributes": {
+			"formats": ["minectaft_title"]
+		},
+		"has_changelog": true,
+		"website": "https://ewanhowell.com/plugins/minecraft-title-generator/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/minecraft-title-generator",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Minecraft Title Generator]"
+	},
+	"workspaces": {
+		"title": "Workspaces",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Organise your recent projects into workspaces that you can switch between.",
+		"tags": ["Files", "Management", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "desktop",
+		"creation_date": "2023-09-07"
+	},
+	"live_dev_reloader": {
+		"title": "Live Dev Reloader",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Edit plugins and themes live in any text editor and have them automatically update in Blockbench.",
+		"tags": ["Plugins", "Themes", "Blockbench"],
+		"version": "1.0.1",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/live-dev-reloader/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Live Dev Reloader]",
+		"creation_date": "2024-01-20",
+		"has_changelog": true
+	},
+	"resource_pack_utilities": {
+		"title": "Resource Pack Utilities",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "A collection of utilities to assist with resource pack creation.",
+		"tags": ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
+		"version": "1.5.1",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/resource_pack_utilities",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Resource Pack Utilities]",
+		"creation_date": "2024-07-01",
+		"has_changelog": true
 	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
@@ -336,14 +394,17 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse, AzureDoom",
-		"icon": "movie_filter",
-		"description": "Create animated blocks, items, entity, and armor using the GeckoLib library and plugin. https://geckolib.com",
-		"tags": ["Minecraft: Java Edition"],
-		"version": "3.0.2",
-		"min_version": "4.0.0",
+		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
+		"icon": "icon.png",
+		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"version": "3.2.1",
+		"min_version": "4.11.0",
 		"await_loading": true,
-		"variant": "both"
+		"variant": "both",
+		"max_version": "5.0.0"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
@@ -351,7 +412,7 @@
 		"icon": "icon-format_java",
 		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "0.2.1",
+		"version": "0.2.2",
 		"min_version": "3.6.6",
 		"variant": "both"
 	},
@@ -400,9 +461,12 @@
 		"title": "Texture Stitcher",
 		"icon": "fa-compress-arrows-alt",
 		"author": "McHorse",
-		"description": "Adds a menu item to textures editor that stitches multiple textures into one",
-		"version": "1.0.1",
-		"variant": "both"
+		"description": "Stitch multiple textures into a single texture",
+		"version": "1.0.7",
+		"min_version": "4.8.0",
+		"tags": ["Texture"],
+		"variant": "both",
+		"has_changelog": true
 	},
 	"arcaniax_block_exporter": {
 		"title": "Bedrock Block Exporter",
@@ -422,17 +486,6 @@
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
-	"bedrock_pivot_fix": {
-		"title": "Bedrock Pivot Fix 2",
-		"icon": "gps_fixed",
-		"author": "JannisX11",
-		"description": "Rotated cubes are broken in custom-block models in older versions of Minecraft: Bedrock Edition. Use this plugin to fix them.",
-		"about": "After installing, use **Filter > Fix Bedrock Pivots** to fix your current model.",
-		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
-		"version": "2.0.1",
-		"min_version": "3.0.0",
-		"variant": "both"
-	},
 	"simplify": {
 		"title": "Simplify Models",
 		"icon": "build",
@@ -443,21 +496,22 @@
 	},
 	"animation_sliders": {
 		"title": "Animation Sliders",
-		"icon": "fas.fa-bezier-curve",
+		"icon": "icon.png",
 		"author": "JannisX11",
 		"description": "Adds multiple sliders to tweak keyframes",
 		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.",
 		"tags": ["Animation"],
 		"version": "0.3.1",
 		"min_version": "3.7.0",
+		"new_repository_format": true,
 		"variant": "both"
 	},
 	"voxel_shape_generator": {
-		"title": "Voxel Shape Generator for MCP and Mojang Mappings",
+		"title": "VoxelShape Generators",
 		"icon": "fa-cubes",
-		"author": "Spectre0987",
-		"description": "Exports models as Voxel Shape code for Mojang or MCP mappings",
-		"version": "0.1.0",
+		"author": "Spectre0987, Nyfaria",
+		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
+		"version": "0.2.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
@@ -466,7 +520,7 @@
 		"icon": "bar_chart",
 		"author": "CyberStefNef",
 		"description": "Generates Voxel Shapes for Fabric",
-		"version": "0.0.1",
+		"version": "1.0.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition"]
 	},
@@ -476,29 +530,44 @@
 		"author": "JannisX11",
 		"description": "Export .mimodel files for Mine-imator and Modelbench",
 		"tags": ["Exporter"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
 	"minecraft_entity_wizard": {
 		"title": "Minecraft Entity Wizard",
 		"author": "JannisX11 & Mojang Studios",
-		"icon": "fas.fa-hat-wizard",
+		"icon": "icon.png",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.2",
-		"min_version": "3.7.0",
-		"variant": "both"
+		"version": "1.5.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2021-08-04",
+		"has_changelog": true
 	},
 	"minecraft_block_wizard": {
 		"title": "Minecraft Block Wizard",
 		"author": "JannisX11 & Mojang Studios",
-		"icon": "fas.fa-hat-wizard",
+		"icon": "icon.png",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.1.2",
-		"min_version": "4.4.0",
-		"variant": "both"
+		"version": "1.2.2",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2022-10-25"
+	},
+	"minecraft_item_wizard": {
+		"title": "Minecraft Item Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "icon.png",
+		"description": "Create custom items for Minecraft: Bedrock Edition!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.1.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-09-19",
+		"has_changelog": true
 	},
 	"reference_models": {
 		"title": "Reference Models",
@@ -541,28 +610,30 @@
 		"author": "Bug1312",
 		"icon": "border_outer",
 		"description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
-		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color!",
-		"version": "1.0.0",
+		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color! The scale can be changed from within the settings.",
+		"version": "1.1.0",
 		"variant": "both"
 	},
 	"mesh_tools": {
+		"new_repository_format": true,
 		"title": "MTools",
-		"icon": "fas.fa-vector-square",
 		"author": "Malik12tree",
-		"description": "Adds helpful Mesh Modeling Tools, Operators and Generators!",
-		"version": "1.0.7",
-		"min_version": "4.7.0",
-		"about": "<div class=\"mtools_private\"> <style> .mtools_private td:nth-child(2) { padding-left: 20px }  .mtools_private summary { color: var(--color-subtle_text); } .mtools_private details[open] summary { color: white; }  .mtools_private summary::before { content: 'chevron_right'; font-family: Material Icons; } .mtools_private details[open] summary::before { content: 'expand_more'; } </style><details> <summary>Modeling Tools</summary> <table> <caption class='small_text subtle'>Accessed from the mesh menu. For applying modifications on selected vertices, edges or faces</caption> <tr> <td>To Sphere</td> <td>Casts selected vertices into a sphere based on an influence</td> </tr> <tr> <td>Laplacian Smooth</td> <td>Smoothens selected vertices by averaging the position of neighboring vertices</td> </tr> <tr></tr> <tr> <td>Poke Faces</td> <td> Creates a Fan out of selected faces</td> </tr> <tr> <td>Triangles To Quads</td> <td> Trys to dissolve adjacent triangles into a quad</td> </tr> <tr> <td>Triangulate Faces</td> <td> Cuts a face into triangles</td> </tr> <tr> <td>Project From View</td> <td> Creates a UV map based on the vertices' position on the screen from the camera</td> </tr> <tr> <td>Cubic Projection</td> <td> Creates a UV map based on the sides of a cube</td> </tr> </table> </details> <details> <summary>Modeling Operators</summary> <table> <caption class='small_text subtle'>Accessed from the mesh menu. For applying modifications on selected meshes</caption> <tr> <td>Subdivide</td> <td> Splits the faces of a mesh into smaller faces, giving it a smooth appearance</td> </tr> <tr> <td>Split Edges</td> <td> Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges </td> </tr> <tr> <td>Scatter</td> <td> Scatters selected meshes on the active mesh</t<d> </tr> <tr> <td>Array</td> <td> Creates an array of copies of the base object, with each copy being offset from the previous one </td> </tr> </table> </details> <details> <summary>Mesh Generators</summary> <table> <caption class='small_text subtle'>Accessed from the tool menu. For procedural mesh generation</caption> <tr> <td>Terrain</td> <td> Generates Terrains procedurally with fully customized settings</td> </tr> <tr> <td>Text Mesh</td> <td> Generate a mesh representation of a text with Opentype Fonts and custom settings.<br><i>An OpenTypeFont is a format for scalable computer fonts that are stored in JSON files, a good converter is <a href=\"http://gero3.github.io/facetype.js/\">gero3.github.io/facetype.js</a></i></td> </tr> <tr> <td>XYZ Math Surface Function</td> <td> Creates an xyz surface based on given inputs containing 23 already-made presets!</td> </tr> <tr> <td>Polyhedron Primitive</td> <td> Generate the basic 4 regular polyhedron with custom detail</td> </tr> <tr> <td>Torus Knot Primitive</td> <td>Generates a p-q torus knot with custom settings</td> </tr> </table> </details> </div>",
+		"icon": "icon.png",
+		"description": "Adds powerful mesh modeling tools, operators and generators!",
+		"version": "2.0.2",
+		"min_version": "4.9.4",
 		"variant": "both",
-		"tags": ["Format: Generic Model", "Edit"]
+		"creation_date": "2022-04-09",
+		"has_changelog": true,
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]
 	},
 	"wasd_controls": {
 		"title": "WASD Controls",
 		"icon": "sports_esports",
-		"author": "JannisX11",
+		"author": "JannisX11, caioraphael1",
 		"description": "Adds a WASD controlled viewport navigation mode",
 		"about": "The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.",
-		"version": "1.1.0",
+		"version": "1.2.0",
 		"min_version": "4.3.0",
 		"variant": "both"
 	},
@@ -615,7 +686,8 @@
 		"version": "1.2.0",
 		"variant": "both",
 		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
-		"tags": ["Minecraft: Java Edition"]
+		"deprecation_note": "This feature is now built into Blockbench, the plugin is no longer required.",
+		"tags": ["Deprecated", "Minecraft: Java Edition"]
 	},
 	"root_motion_extractor": {
 		"title": "Root Motion Extractor",
@@ -702,8 +774,8 @@
 		"icon": "videocam",
 		"author": "JannisX11",
 		"description": "Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.",
-		"about": "Cameras can be added through the Edit menu. Enabling Quad View from View > Toggle Quad View is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
-		"version": "1.0.1",
+		"about": "Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
+		"version": "1.1.0",
 		"min_version": "4.5.0",
 		"variant": "both"
 	},
@@ -719,13 +791,15 @@
 		"variant": "both"
 	},
 	"bbs_exporter": {
-		"title": "BBS model exporter",
-		"icon": "fa-file-export",
+		"title": "BBS Model Ex/importer",
+		"icon": "icon.png",
 		"author": "McHorse",
-		"description": "Adds a model exporter which allows to export models to BBS, a voxel-like engine/sandbox for creating video games, mini-games, and machinimas.",
-		"version": "1.1.2",
+		"description": "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
+		"version": "1.2.3",
 		"variant": "both",
-		"tags": ["Exporter"]
+		"tags": ["Exporter", "Importer"],
+		"min_version": "4.8.0",
+		"has_changelog": true
 	},
 	"highlight_generator": {
 		"title": "Highlight Mod Shape Generator",
@@ -764,15 +838,15 @@
 		"author": "JannisX11",
 		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
 		"about": "You can run a performance audit via Help > Audit Performance.",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "3.0.0",
 		"variant": "both"
 	},
 	"mc_text_generator": {
-		"title": "Minecraft Text Generator",
+		"title": "Text Generator",
 		"icon": "text_format",
 		"author": "SirJain",
-		"description": "Generates Minecraft-styled text in cubes.",
+		"description": "Generates blocky text in cubes.",
 		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
 		"tags": ["Deprecated", "Minecraft", "Font"],
 		"version": "2.0.1",
@@ -801,8 +875,7 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-
-	"bamo":{
+	"bamo": {
 		"title": "BAMO Exporter",
 		"author": "Ryytikki",
 		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
@@ -810,35 +883,120 @@
 		"tags": ["Minecraft: Java Edition"],
 		"version": "0.5.0",
 		"variant": "desktop"
-  },
-	"animation_to_jsonea": {
-		"title": "Animation to JsonEA Converter",
+	},
+	"animation_to_json": {
+		"title": "Animation to JSON Converter",
 		"author": "Gaming32",
-		"description": "Converts Blockbench animations to the json format for the Json Entity Animation mod",
+		"description": "Converts Blockbench animations to the JSON format for the NeoForge mod loader",
 		"icon": "fa-cube",
 		"tags": ["Animation", "Minecraft: Java Edition"],
 		"variant": "both",
-		"version": "1.0.0"
+		"version": "1.0.1"
 	},
 	"azurelib_utils": {
-		"title": "AzureLib Utils",
+		"title": "AzureLib Animator",
 		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
-		"icon": "icon-zombie",
+		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.0",
-		"min_version": "4.0.0",
+		"version": "1.0.10",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
 		"await_loading": true,
-		"variant": "both"
+		"variant": "both",
+		"creation_date": "2023-04-04",
+		"contributes": {
+			"formats": ["azure_model"]
+		},
+		"has_changelog": true,
+		"website": "https://wiki.azuredoom.com/readme-1"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",
 		"author": "SirJain",
 		"icon": "swap_horiz",
 		"description": "Adds a button that inverts selected cube sizes.",
+		"tags": ["Deprecated"],
 		"about": "This plugin adds a button that inverts the size values of each selected cube.\n## How to use\nTo use this plugin, go to the toolbar at the top of the screen (the one with the move, resize, and rotation tools) and click the `Invert Cubes` button. If you don't see the button, make sure to select some cubes. The button is also keybinded with a default of `Shift + I`.\n\nPlease report any bugs or suggestions you may have.",
 		"version": "1.0.0",
 		"min_version": "4.2.0",
 		"variant": "both"
+	},
+	"figura_format": {
+		"title": "Figura Model Format",
+		"author": "Katt (KitCat962)",
+		"icon": "icon.svg",
+		"description": "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
+		"tags": ["Minecraft: Java Edition", "Figura"],
+		"version": "0.1.3",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"await_loading": true,
+		"creation_date": "2023-07-22"
+	},
+	"rainbow_road_game": {
+		"title": "Rainbow Road Game",
+		"author": "JannisX11",
+		"icon": "icon.png",
+		"description": "The rainbow road racing minigame from April fools day 2024! Turn your model into a race car and take it for a spin!",
+		"tags": ["Minigame"],
+		"version": "0.1.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-1"
+	},
+	"cosmic_reach_model_editor": {
+		"title": "Cosmic Reach Model Editor",
+		"author": "Z. Hoeshin",
+		"icon": "icon.png",
+		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
+		"tags": ["Cosmic Reach"],
+		"version": "2.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-19",
+		"new_repository_format": true,
+		"has_changelog": true
+	},
+	"emf_animation_addon": {
+		"title": "EMF Animation Addon",
+		"author": "Traben & Ewan Howell",
+		"icon": "icon.png",
+		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
+		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
+		"version": "1.0.4",
+		"min_version": "4.9.0",
+		"variant": "both",
+		"dependencies": ["cem_template_loader"],
+		"creation_date": "2024-06-05",
+		"has_changelog": true
+	},
+	"bedrock_block_transforms": {
+		"title": "Bedrock Block Transformation Preview",
+		"author": "JannisX11",
+		"icon": "token",
+		"description": "Edit and preview the Minecraft Bedrock Edition block transformation component",
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition"]
+	},
+	"pbr_preview": {
+		"title": "PBR Tools",
+		"author": "Jason J. Gardner",
+		"await_loading": true,
+		"creation_date": "2024-06-10",
+		"icon": "icon.png",
+		"description": "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+		"has_changelog": true,
+		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"variant": "both",
+		"version": "1.1.0",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Minecraft: Bedrock Edition",
+			"PBR"
+		],
+		"min_version": "4.10.4"
 	}
 }

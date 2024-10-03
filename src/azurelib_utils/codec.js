@@ -23,13 +23,11 @@ export function unloadCodec() {
 }
 
 function onProjectCompile(e) {
-    if (Format.id !== "animated_entity_model") return;
+    if (Format.id !== "azure_model") return;
     e.model.azurelibSettings = azurelibSettings;
-    // console.log(`compileCallback model:`, e.model);
 }
 
 function onProjectParse(e) {
-    // console.log(`onProjectParse:`, e);
     if (e.model && typeof e.model.azurelibSettings === 'object') {
         Object.assign(azurelibSettings, omit(e.model.azurelibSettings, ['formatVersion']));
     } else {
@@ -39,19 +37,54 @@ function onProjectParse(e) {
 }
 
 function onBedrockCompile(e) {
-    console.log('onBedrockCompile e:', e);
-    // maybeExportItemJson(e.options);
+    if (Format.id !== "azure_model") return;
+
+    const geometry = e.model?.["minecraft:geometry"];
+    if (geometry) {
+        geometry.forEach((geo) => {
+            delete geo.item_display_transforms;
+        });
+    }
 }
 
 function animatorBuildFile() {
     const res = Original.get(Animator).buildFile.apply(this, arguments);
-    Object.assign(
-        res,
-        {
-            'azurelib_format_version': azurelibSettings.formatVersion,
+
+    if (Format.id !== "azure_model") return res;
+
+    Object.assign(res, {
+        'azurelib_format_version': azurelibSettings.formatVersion,
+    });
+
+    const animations = res.animations;
+    if (!animations) return res;
+
+    for (const animation in animations) {
+        const bones = animations[animation]?.bones;
+        if (!bones) continue;
+
+        for (const boneName in bones) {
+            const bone = bones[boneName];
+            for (const animationGroupType in bone) {
+                const animationGroup = bone[animationGroupType];
+                for (const timestamp in animationGroup) {
+                    const keyframe = animationGroup[timestamp];
+                    
+                    if (keyframe) {
+                        if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+
+                        let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
+                        if (bedrockKeyframeData) {
+                            Object.assign(keyframe, bedrockKeyframeData);
+                        }
+                        delete keyframe["pre"];
+                        delete keyframe["post"];
+                    }
+                }
+            }
         }
-    );
-    // console.log('animatorBuildFile res:', res);
+    }
+
     return res;
 }
 
@@ -224,9 +257,7 @@ export function maybeExportItemJson(options = {}, as) {
     if (checkExport('comment', settings.credit.value)) {
         blockmodel.credit = settings.credit.value
     }
-    if (checkExport('parent', Project.parent != '')) {
-        blockmodel.parent = Project.parent
-    }
+    blockmodel.parent = 'builtin/entity'
     if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
         blockmodel.ambientocclusion = false
     }
@@ -255,9 +286,7 @@ export function maybeExportItemJson(options = {}, as) {
     }
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
-
     var scope = codec;
-
     let path = azurelibSettings.itemModelPath;
 
     Blockbench.export({
@@ -277,7 +306,7 @@ export function maybeExportItemJson(options = {}, as) {
 var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
-    id: "animated_entity_model",
+    id: "azure_model",
     name: "AzureLib Animated Model",
     category: "minecraft",
     description: "Animated Model for Java mods using AzureLib",
@@ -288,18 +317,15 @@ var format = new ModelFormat({
     single_texture: true,
     bone_rig: true,
     centered_grid: true,
-    animated_textures: false,
+    animated_textures: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
     codec: Codecs.project, // This sets what codec is used for File -> Save. We want to use bbmodel.
-    display_mode: false, // This may be dynamically turned on by settings
+    display_mode: true, // This may be dynamically turned on by settings
     onActivation: function () {
     }
 })
-
-//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
-// codec.format = format; // This sets the default format for the codec
 
 export default codec; // This is used for plugin "Export Animated Model" menu item
 

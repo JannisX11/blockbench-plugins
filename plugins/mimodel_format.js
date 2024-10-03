@@ -10,7 +10,7 @@ Plugin.register('mimodel_format', {
 	author: 'JannisX11',
 	description: 'Export .mimodel files for Mine-imator and Modelbench',
 	tags: ["Exporter"],
-	version: '1.0.1',
+	version: '1.0.2',
 	min_version: '3.7.0',
 	variant: 'both',
 	onload() {
@@ -29,7 +29,8 @@ Plugin.register('mimodel_format', {
 				}
 
 				let entitymodel = {
-					name: Project.geometry_name || Project.name || ''
+					name: Project.geometry_name || Project.name || '',
+					floor_box_uvs: true,
 				}
 				if (Texture.getDefault()) {
 					entitymodel.texture = Texture.getDefault().name

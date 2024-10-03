@@ -1,0 +1,67 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2024-06-05",
+    "author": "Traben & Ewan Howell",
+    "categories": [
+      {
+        "title": "New Plugin",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-06-23",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "Doc update",
+        "list": [
+          "minor icon change in doc where the cem template loader icon was used"
+        ]
+      }
+    ]
+  },
+  "1.0.2": {
+    "title": "1.0.2",
+    "date": "2024-07-01",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "fixed setting",
+        "list": [
+          "Fixed the EMF enable/disable setting not appearing in the plugins screen"
+        ]
+      }
+    ]
+  },
+  "1.0.3": {
+    "title": "1.0.3",
+    "date": "2024-08-20",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "updated for EMF 2.2",
+        "list": [
+          "Added functions, variables, and changes, from Entity Model Features update 2.2"
+        ]
+      }
+    ]
+  },
+  "1.0.4": {
+    "title": "1.0.4",
+    "date": "2024-08-25",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "fixed keyframe method bug",
+        "list": [
+          "Fixed a bug in the keyframe methods"
+        ]
+      }
+    ]
+  }
+}

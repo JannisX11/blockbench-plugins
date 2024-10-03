@@ -4,9 +4,6 @@ import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg } f
 
 const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 
-let holdMenu;
-let holdMenuConditionOriginal;
-
 export const loadAnimationUI = () => {
   Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
@@ -14,32 +11,21 @@ export const loadAnimationUI = () => {
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
   addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
-    Format.id !== "animated_entity_model" && Original.get(BarItems.keyframe_interpolation).condition()
+    Format.id !== "azure_model" && Original.get(BarItems.keyframe_interpolation).condition()
   );
-
-  holdMenu = Animation.prototype.menu.structure.find(x => x.name === 'menu.animation.loop')
-    .children.find(x => x.name === 'menu.animation.loop.hold');
-  holdMenuConditionOriginal = holdMenu.condition;
-  holdMenu.condition = () => Format.id !== "animated_entity_model" && holdMenuConditionOriginal();
 };
 
 export const unloadAnimationUI = () => {
   Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
-  holdMenu.condition = holdMenuConditionOriginal;
 };
 
 //#region Global Animation UI Handlers
 export const displayAnimationFrameCallback = (/*...args*/) => {
-  // const keyframe = $('#keyframe');
-  // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
 
 export function updateKeyframeEasing(value) {
   Undo.initEdit({keyframes: Timeline.selected}) 
-  // var axis = $(obj).attr('axis');
-  // const value = $(obj).val();
-  // console.log('updateKeyframeEasing value:', value, 'obj:', obj); 
   if (value === "-") return;
   Timeline.selected.forEach((kf) => {
     kf.easing = value;
@@ -52,11 +38,9 @@ export function updateKeyframeEasing(value) {
 export function updateKeyframeEasingArg(obj) {
   Undo.initEdit({keyframes: Timeline.selected}) 
   if ($(obj).val() === "-") return;
-  // console.log('updateKeyframeEasingArg value:', $(obj).val(), 'obj:', obj); 
   Timeline.selected.forEach((kf) => {
     const value = parseEasingArg(kf, $(obj).val().trim());
     kf.easingArgs = [value];
-    // obj.value = value;
   })
   Undo.finishEdit('edit keyframe easing argument')
 }
@@ -67,7 +51,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing_arg1').remove()
 
     const addPrePostButton = document.querySelector('#keyframe_type_label > div');
-    if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
+    if (addPrePostButton) addPrePostButton.hidden = Format.id === "azure_model";
 
     var multi_channel = false;
     var channel = false;
@@ -97,7 +81,6 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     };
 
     const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
-      // Dear god I miss lodash
       if (!acc.has(kf.animator)) acc.set(kf.animator, {});
       const animatorChannels = acc.get(kf.animator);
       if (!animatorChannels[kf.channel]) animatorChannels[kf.channel] = [];
@@ -112,7 +95,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
 
     const isFirstInChannel = kf => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
 
-    if (Timeline.selected.length && Format.id === "animated_entity_model") {
+    if (Timeline.selected.length && Format.id === "azure_model") {
       if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
         const displayedEasing = getMultiSelectValue('easing', EASING_DEFAULT, 'null');
 
@@ -247,8 +230,6 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           </div>`;
           scaleBar = document.getElementById('keyframe_bar_easing_arg1');
         }
-
-        // console.log('easingBar:', easingBar, 'keyframe:', keyframe);
     }
   }
 };

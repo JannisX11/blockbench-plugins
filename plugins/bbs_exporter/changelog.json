@@ -1,0 +1,28 @@
+{
+	"1.2.2": {
+		"title": "1.2.2",
+		"date": "2024-05-02",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Bug fixes",
+				"list": [
+					"Fixed cube faces not exporting in one texture formats"
+				]
+			}
+		]
+	},
+	"1.2.3": {
+		"title": "1.2.3",
+		"date": "2024-05-21",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Enhancements",
+				"list": [
+					"When exporting the model that has no groups, a single group called anchor will be added to successfully export the model without groups"
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,942 @@
+{
+  "0.1.0": {
+    "title": "0.1.0",
+    "date": "2020-02-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "0.2.0": {
+    "title": "0.2.0",
+    "date": "2020-02-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added 1.15 and 1.16 template models"
+        ]
+      }
+    ]
+  },
+  "0.3.0": {
+    "title": "0.3.0",
+    "date": "2020-02-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"minecart\" template model"
+        ]
+      }
+    ]
+  },
+  "0.4.0": {
+    "title": "0.4.0",
+    "date": "2020-02-26",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Added missing \"hat\" bone to the \"illusioner\" template model"
+        ]
+      }
+    ]
+  },
+  "0.5.0": {
+    "title": "0.5.0",
+    "date": "2020-03-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"pufferfish_small\" template model"
+        ]
+      }
+    ]
+  },
+  "0.6.0": {
+    "title": "0.6.0",
+    "date": "2020-03-19",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added new \"player\", \"player_slim\", \"elytra\", \"trident\", \"shield\", and \"arrow\" template models",
+          "Added new \"melon_golem\", \"furnace_golem\", and \"tropical_slime\" Minecraft Earth template models"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Modified the \"banner\" template model"
+        ]
+      }
+    ]
+  },
+  "0.7.0": {
+    "title": "0.7.0",
+    "date": "2020-04-14",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added new Minecraft Earth template models"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"wolf\" template model"
+        ]
+      }
+    ]
+  },
+  "0.8.0": {
+    "title": "0.8.0",
+    "date": "2020-05-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed Minecraft Earth template models"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Added \"strider\", \"zoglin\", and \"zombified_piglin\" template models to the unsupported category"
+        ]
+      }
+    ]
+  },
+  "0.9.0": {
+    "title": "0.9.0",
+    "date": "2020-05-20",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added a section showing what template models are currently compatible with 1.15"
+        ]
+      }
+    ]
+  },
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2020-06-01",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added a new \"Legacy\" section which now contains the 1.14 chest template models",
+          "Replaced the chest template models with the 1.15 versions"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"villager\" template model"
+        ]
+      }
+    ]
+  },
+  "2.0.0": {
+    "title": "2.0.0",
+    "date": "2020-07-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Complete revamp of all template models"
+        ]
+      }
+    ]
+  },
+  "2.1.0": {
+    "title": "2.1.0",
+    "date": "2020-07-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed \"player\" and \"player_slim\" template models"
+        ]
+      }
+    ]
+  },
+  "2.2.0": {
+    "title": "2.2.0",
+    "date": "2020-07-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"villager\" template model failing to load"
+        ]
+      }
+    ]
+  },
+  "2.3.0": {
+    "title": "2.3.0",
+    "date": "2020-08-28",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added the \"piglin\", \"piglin_brute\", and \"zombified_piglin\" template models to the supported category"
+        ]
+      }
+    ]
+  },
+  "2.4.0": {
+    "title": "2.4.0",
+    "date": "2020-10-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added unofficial \"axolotl\", \"goat\", and \"warden\" template models"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Minor bug fixes to various template models"
+        ]
+      }
+    ]
+  },
+  "2.5.0": {
+    "title": "2.5.0",
+    "date": "2020-10-04",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added an unofficial \"glow_squid\" template model"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed issues with the \"dolphin\", \"squid\", \"axolotl\", and \"warden\" template models"
+        ]
+      }
+    ]
+  },
+  "2.6.0": {
+    "title": "2.6.0",
+    "date": "2020-10-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added template textures to lots of template models",
+          "Improved the unofficial \"goat\" template model"
+        ]
+      }
+    ]
+  },
+  "2.7.0": {
+    "title": "2.7.0",
+    "date": "2020-10-31",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed issues with the \"wither\" and \"parrot\" template models"
+        ]
+      }
+    ]
+  },
+  "2.8.0": {
+    "title": "2.8.0",
+    "date": "2020-12-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Replaced the unofficial \"axolotl\", \"goat\", and \"glow_squid\" model templates with the official models"
+        ]
+      }
+    ]
+  },
+  "2.9.0": {
+    "title": "2.9.0",
+    "date": "2021-01-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed a typo in the \"chest_large\" model"
+        ]
+      }
+    ]
+  },
+  "2.10.0": {
+    "title": "2.10.0",
+    "date": "2021-02-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed issues with the \"wither\", \"wither skull\", and \"rabbit\" models"
+        ]
+      }
+    ]
+  },
+  "3.0.0": {
+    "title": "3.0.0",
+    "date": "2021-03-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Template models are now loaded from an external model JSON file"
+        ]
+      }
+    ]
+  },
+  "3.1.0": {
+    "title": "3.1.0",
+    "date": "2021-03-27",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added the ability to reload the external external model JSON file",
+          "Added external model JSON version number"
+        ]
+      }
+    ]
+  },
+  "4.0.0": {
+    "title": "4.0.0",
+    "date": "2021-05-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Restructured the external model JSON file to reduce it's file size"
+        ]
+      }
+    ]
+  },
+  "5.0.0": {
+    "title": "5.0.0",
+    "date": "2021-08-07",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added a brand new interface for selecting template models"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Rewritten most of the plugin"
+        ]
+      }
+    ]
+  },
+  "5.0.1": {
+    "title": "5.0.1",
+    "date": "2021-08-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Add plugin about details"
+        ]
+      }
+    ]
+  },
+  "5.3.0": {
+    "title": "5.3.0",
+    "date": "2021-10-14",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Support for Blockbench v4.0.0"
+        ]
+      }
+    ]
+  },
+  "5.4.1": {
+    "title": "5.4.1",
+    "date": "2021-12-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated unable to connect dialog"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed a bug with reloading template models"
+        ]
+      }
+    ]
+  },
+  "5.10.2": {
+    "title": "5.10.2",
+    "date": "2022-10-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added info dialog that is shown when the plugin is first installed"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Added bug report button to the loader interface"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed \"CEM Template Loader\" not appeaing in the start screen"
+        ]
+      }
+    ]
+  },
+  "5.11.0": {
+    "title": "5.11.0",
+    "date": "2022-03-24",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Models can now be automatically loaded from URL queries in the webapp"
+        ]
+      }
+    ]
+  },
+  "6.0.0": {
+    "title": "6.0.0",
+    "date": "2022-05-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added an OptiFine animation editor with support for editing and previewing animations from OptiFine CEM"
+        ]
+      }
+    ]
+  },
+  "6.0.1": {
+    "title": "6.0.1",
+    "date": "2022-05-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Only try to read OptiFine animations when the current format is an \"OptiFine Entity\""
+        ]
+      }
+    ]
+  },
+  "6.0.2": {
+    "title": "6.0.2",
+    "date": "2022-05-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed switching project tabs breaking the OptiFine animation editor"
+        ]
+      }
+    ]
+  },
+  "6.0.3": {
+    "title": "6.0.3",
+    "date": "2022-05-09",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Only try to stop OptiFine animations when the current format is an \"OptiFine Entity\""
+        ]
+      }
+    ]
+  },
+  "6.0.4": {
+    "title": "6.0.4",
+    "date": "2022-05-10",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed selection update event listener when no format is loaded"
+        ]
+      }
+    ]
+  },
+  "6.1.0": {
+    "title": "6.1.0",
+    "date": "2022-05-29",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Restructured the plugin's info dialog and renamed it to the about dialog"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Changed all references to the \"Filter\" menu to the new \"Tools\" menu"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed \"CEM Template Loader\" not appeaing in the start screen"
+        ]
+      }
+    ]
+  },
+  "6.2.0": {
+    "title": "6.2.0",
+    "date": "2022-06-4",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Small edits to the plugin's structure"
+        ]
+      }
+    ]
+  },
+  "6.2.1": {
+    "title": "6.2.1",
+    "date": "2022-07-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Replaced tutorials playlist link with a single tutorial video"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed playing animations when a non root group is selected"
+        ]
+      }
+    ]
+  },
+  "6.5.0": {
+    "title": "6.5.0",
+    "date": "2022-07-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added seeded randomness support to the \"random\" OptiFine animation function",
+          "Added new OptiFine animation variables: \"id\", \"rot_x/y\", \"player_pos_x/y/z\", \"player_rot_x/y\", \"death_time\", \"dimension\", \"frame_time\"",
+          "Added new OptiFine animation functions: \"printb\", \"lerp\"",
+          "Added support for OptiFine animation \"var.\" and \"varb.\" entity variables"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "The \"print\" function has been updated to match the officially supported one"
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed internal support for the \"idle_time\" and \"revenge_time\" OptiFine animation variables",
+          "Removed \"Invert this groups pivot point while playing animations\" group option"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Switched to using the new ModelLoaders"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"sqrt\" OptiFine animation function when used with numbers that are zero or below",
+          "Fixed the \"if\" OptiFine animation function allowing non boolean inputs",
+          "Fixed OptiFine animations crashing if a cube is selected",
+          "Fixed having groups named the same as functions causing issues"
+        ]
+      }
+    ]
+  },
+  "6.5.1": {
+    "title": "6.5.1",
+    "date": "2022-07-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed a gap appearing between the OptiFine animation editor and the viewport"
+        ]
+      }
+    ]
+  },
+  "6.6.0": {
+    "title": "6.6.0",
+    "date": "2022-10-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added \"rule_index\" OptiFine animation variable",
+          "Added \".visible\" OptiFine animation property"
+        ]
+      }
+    ]
+  },
+  "6.6.1": {
+    "title": "6.6.1",
+    "date": "2022-10-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed issues with OptiFine animation validation",
+          "Fixed broken \".visible\" references"
+        ]
+      }
+    ]
+  },
+  "6.6.2": {
+    "title": "6.6.2",
+    "date": "2022-10-24",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed \"print\" and \"lerp\" functions"
+        ]
+      }
+    ]
+  },
+  "6.6.3": {
+    "title": "6.6.3",
+    "date": "2022-10-26",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "\"rule_index\" animation variable is now defaulted to \"0\"",
+          "\"frame_time\" is now affected by the animation timescale"
+        ]
+      }
+    ]
+  },
+  "6.6.4": {
+    "title": "6.6.4",
+    "date": "2022-11-07",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed issues with OptiFine animation validation"
+        ]
+      }
+    ]
+  },
+  "6.6.5": {
+    "title": "6.6.5",
+    "date": "2022-11-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Updated model source URL"
+        ]
+      }
+    ]
+  },
+  "6.11.0": {
+    "title": "6.11.0",
+    "date": "2023-01-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added autocomplete support to the OptiFine animation editor"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed about action not being removed on unload"
+        ]
+      }
+    ]
+  },
+  "6.11.1": {
+    "title": "6.11.1",
+    "date": "2023-01-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed autocomplete for bones with numbers in the name"
+        ]
+      }
+    ]
+  },
+  "7.0.0": {
+    "title": "7.0.0",
+    "date": "2023-02-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added JEM format restrictions"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed disable rotation toggles appearing on cubes",
+          "Fixed broken styles"
+        ]
+      }
+    ]
+  },
+  "7.1.0": {
+    "title": "7.1.0",
+    "date": "2023-9-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed tab key in OptiFine animation editor",
+          "Fixed OptiFine animation editor autocomplete"
+        ]
+      }
+    ]
+  },
+  "7.8.0": {
+    "title": "7.8.0",
+    "date": "2023-10-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed the ability to reload the template models"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Update to new plugin repository format"
+        ]
+      }
+    ]
+  },
+  "8.0.0": {
+    "title": "8.0.0",
+    "date": "2024-05-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added a new dialog that shows when invalid operations are performed",
+          "Added an option to ignore unknown OptiFine animations",
+          "Loaded textures are now set as the default texture. This does not apply for models that load multiple textures"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "\"Load vanilla texture\" will now be selected by default",
+          "Moved the pretty print button",
+          "The OptiFine animation editor will now always have a group selected",
+          "Changed the play animaions button's icon to be the regular play icon"
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed \"Load into current project\"",
+          "Removed the ability to play only the current group's animations"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Rewritten most of the plugin",
+          "The CEM Animation Editor can now be extended by other plugins",
+          "The CEM Animation Documentation can now be extended by other plugins",
+          "Added CDN url fallback system",
+          "The external model JSON file's version number will now be separated from the plugin's version number. I have reset that version number to 2.0.0 and it will increase separately from the plugin's version number from now on",
+          "Added a class to the format page so it can be easily targetted by themes"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the page links in the CEM Animation Documentation"
+        ]
+      }
+    ]
+  },
+  "8.0.1": {
+    "title": "8.0.1",
+    "date": "2024-06-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Vue.js warnings"
+        ]
+      }
+    ]
+  },
+  "8.1.0": {
+    "title": "8.1.0",
+    "date": "2024-06-08",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "The CEM model search bar can now be cleared with a button",
+          "CEM animation errors now use the \"error\" colour instead of the \"close\" colour",
+          "CEM animation documentation scroll will now reset back to the top when changing tab"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed animation controller sliders going off the edge of the panel",
+          "Fixed project not getting entity name",
+          "Fixed codeblocks overflowing in the CEM Animation Documentation"
+        ]
+      }
+    ]
+  },
+  "8.2.0": {
+    "title": "8.2.0",
+    "date": "2024-07-26",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Invalid animations can now be saved instead of reverting to the last valid animation"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed loading models without a vanilla texture"
+        ]
+      }
+    ]
+  },
+  "8.2.1": {
+    "title": "8.2.1",
+    "date": "2024-08-25",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Loading a template model that is missing its vanilla texture will no longer trigger the connction error state"
+        ]
+      }
+    ]
+  },
+  "8.3.0": {
+    "title": "8.3.0",
+    "date": "2024-09-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for the \"ifb()\" animation function",
+          "Added support for the \"frame_counter\" animation variable",
+          "Added more error checks to provide better animation error descriptions",
+          "Added support for \"visible_boxes\""
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "The animation editor will now no longer accept incorrectly formatted numbers",
+          "Fixed \"render\" variables throwing errors when used in animations",
+          "Fixed \"part\" and \"this\" variables throwing errors when used in animations",
+          "Fixed animations not being re-parsed when you add, remove, or rename a group"
+        ]
+      }
+    ]
+  }
+}

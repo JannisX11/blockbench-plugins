@@ -1,0 +1,40 @@
+- [x] Modularize
+- [x] Better about description + Descriptive actions' descriptions
+- [x] Implement checkboxes for amend menus that simulated numbers as toggles. 
+- [x] Better English
+- [x] Rewrite utilities
+- [x] Make use of reusable ThreeJS objects scoped for each action file.
+- [ ] MTools Generate:
+	- [x] Allow loading font files for the Text Mesh generator
+	- [x] Use a math parser for XYZ surface generator.
+	- [x] XYZ surface generator: Include variables as sliders.
+	- [ ] XYZ surface generator: Allow to save multiple presets.
+	- [ ] Terrain generator
+		- [ ] Style Editor
+			- [ ] Better controls
+			- [ ] Allow to save multiple presets
+		- [ ] Optimize Code
+		- [x] Add world scale option
+		- [ ] Add texture dithering option
+- [ ] MTools Tools:
+	- [x] New Bridge Loops Action
+		- [x] Ability to bridge edge loops
+		- [x] Detect face holes
+		- [x] Support path blending
+	- [x] Triangles To Quads: Improved Algorithm
+	- [x] Expand/Shrink Selection: Enable for face and edge modes.
+- [ ] MTools Operators:
+	- [x] Scatter
+		- [x] Improve scattered mesh rotation to accurately follow face
+		- [x] Add More Settings
+			- [x] `Max Density`
+			- [x] `Min Distance`
+			- [x] `Scale`
+			- [x] `Min Scale`
+			- [x] `Scale Randomness`
+			- [x] `Max Rotation`
+			- [x] `Rotation Randomness`
+	- [ ] Array operator: add more controls like rotation and scale
+	- [ ] New Decimate Operator
+	- [ ] Unite MTEdge and CMEdge
+- [x] Create an attractive logo 🤔
