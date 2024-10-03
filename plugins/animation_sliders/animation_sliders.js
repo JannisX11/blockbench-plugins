@@ -11,8 +11,7 @@
 		description: 'Adds multiple sliders to tweak keyframes',
 		tags: ['Animation'],
 		version: '0.3.1',
-		min_version: '3.7.0',
-		new_repository_format: true,
+		min_version: '4.8.0',
 		variant: 'both',
 		onload() {
 
