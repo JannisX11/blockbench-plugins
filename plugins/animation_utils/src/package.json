@@ -21,12 +21,16 @@
   "license": "MIT",
   "blockbenchConfig": {
     "title": "GeckoLib Animation Utils",
-    "author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
+    "author": "Eliot Lash, Tslat, Gecko, McHorse",
     "icon": "icon.png",
     "description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
+    "has_changelog": true,
     "min_version": "4.11.0",
     "max_version": "5.0.0",
-    "variant": "both"
+    "variant": "both",
+    "website": "https://github.com/bernie-g/geckolib/wiki",
+    "repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils",
+    "bug_tracker": "https://github.com/bernie-g/geckolib/issues"
   },
   "sideEffects": [
     "./index.js"
