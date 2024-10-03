@@ -367,6 +367,9 @@ export function maybeExportItemJson(options = {}) {
                 if (name.indexOf(".png") > 0)
                     name = name.substring(0, name.indexOf(".png"))
 
+                if (!tex.particle && !isValidPath(name))
+                    continue;
+
                 const texturesMap = {}
                 texturesMap['particle'] = name
                 blockmodel.textures = texturesMap;
@@ -394,6 +397,12 @@ export function maybeExportItemJson(options = {}) {
     });
 
     return this;
+}
+
+function isValidPath(path: string) {
+    const pattern = new RegExp('^[_\\-/.a-z0-9]+$')
+
+    return pattern.test(path)
 }
 
 const codec = Codecs.bedrock;
