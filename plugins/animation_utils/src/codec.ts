@@ -24,6 +24,7 @@ export function loadCodec() {
     Codecs.project.on('compile', onProjectCompile);
     Codecs.project.on('parse', onProjectParse);
     Codecs.bedrock.on('compile', onBedrockCompile);
+    Blockbench.on('select_mode', onModeSelect)
     addMonkeypatch(Animator, null, "buildFile", animatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", animatorLoadFile);
 }
@@ -33,6 +34,12 @@ export function unloadCodec() {
     Codecs.project.removeListener('parse', onProjectParse);
     Codecs.bedrock.removeListener('compile', onBedrockCompile);
     format.delete();
+}
+
+function onModeSelect(e: any) {
+    if (e.mode.id == 'display' && Format.id == 'animated_entity_model') {
+        (Project as ModelProject).model_3d.position.y = 0;
+    }
 }
 
 function onProjectCompile(e: any) {
