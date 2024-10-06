@@ -257,6 +257,9 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
             const modelType = GeckoModelType[formResult[PROPERTY_MODEL_TYPE]]
             Project[PROPERTY_MODEL_TYPE] = modelType;
 
+            if (modelType == GeckoModelType.ITEM)
+                Project.parent = 'builtin/entity';
+
             if (Project.name === Format.name || Project.name === '')
                 Project.name = "GeckoLib " + Project[PROPERTY_MODEL_TYPE];
 

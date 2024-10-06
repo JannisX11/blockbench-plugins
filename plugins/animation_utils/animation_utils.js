@@ -6902,6 +6902,8 @@ function createProjectSettingsDialog(Project, form) {
             }
             const modelType = _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[formResult[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE]];
             Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] = modelType;
+            if (modelType == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM)
+                Project.parent = 'builtin/entity';
             if (Project.name === Format.name || Project.name === '')
                 Project.name = "GeckoLib " + Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
             switch (modelType) {
@@ -7465,8 +7467,10 @@ function onProjectSave(e) {
 function onSettingsChanged() {
     Modes.selected.select();
     Format.display_mode = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.hasModelDisplaySettings)();
-    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM)
+    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
         Project.parent = 'builtin/entity';
+        Project.saved = false;
+    }
 }
 /**
  * When opening a project tab, whether from an existing project, creating a new one, or swapping open tabs

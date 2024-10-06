@@ -67,8 +67,10 @@ function onSettingsChanged() {
 
     Format.display_mode = hasModelDisplaySettings();
 
-    if (Project instanceof ModelProject && Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM)
+    if (Project instanceof ModelProject && Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
         Project.parent = 'builtin/entity';
+        Project.saved = false;
+    }
 }
 
 /**
