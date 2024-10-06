@@ -1,4 +1,4 @@
-import { reverseEasing } from '../easing';
+import { reverseEasing } from '../ts/easing';
 
 describe('easing', () => {
   describe('reverseEasing', () => {

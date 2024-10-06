@@ -84,24 +84,46 @@
       }
     ]
   },
-  "3.3": {
-    "title": "3.3",
-    "date": "2024-10-03",
+  "4.0": {
+    "title": "4.0",
+    "date": "2024-10-06",
     "author": "Tslat",
     "categories": [
       {
+        "title": "New Features",
+        "list": [
+          "Overhauled the new project window, adding new settings and a much more dynamic experience",
+          "Add export of animations json from File -> Export menu for GeckoLib projects",
+          "Add plugin setting for default modid for projects",
+          "Add plugin setting for forcing the Display tab to be visible",
+          "Add plugin setting for auto-computing the particle texture when otherwise unspecified for item display jsons",
+          "Add plugin setting for auto-converting Bedrock-format animations to GeckoLib-format animations when exporting to json, if relevant",
+          "New GeckoLib models will now state their model type in the tab name",
+          "Auto-apply modid and parent folder prefix to texture path in display settings",
+          "Remember export locations for model, animations and item display settings per-project, independently"
+        ]
+      },
+      {
         "title": "Changes",
         "list": [
+          "Allow exporting of item display settings if the model has them set, even if not in block/item mode",
           "Skip auto-exporting particle entry for item display if not a valid path",
+          "Don't store filepath in BB project",
+          "Don't include .item in exported display jsons by default",
           "Updated the plugin's about panel",
           "Updated the plugin's icon",
-          "Added api-supported changelog"
+          "Added api-supported changelog",
+          "Tweaked various information and tooltip entries to be more clear",
+          "Large internal cleanup",
+          "Don't print plugin load console line until plugin is actually loaded",
+          "The Display tab will now disappear/reappear correctly when switching between projects"
         ]
       },
       {
         "title": "Bug Fixes",
         "list": [
-          "Fix Geckolib item/block models not displaying properly in the display tab"
+          "Fix Geckolib item/block models not displaying properly in the display tab",
+          "Fix the item model parent sometimes not being applied"
         ]
       }
     ]

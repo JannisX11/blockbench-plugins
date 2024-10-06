@@ -1,6 +1,6 @@
 {
   "name": "animation_utils",
-  "version": "3.2.1",
+  "version": "4.0",
   "private": true,
   "description": "GeckoLib",
   "main": "index.js",
@@ -17,7 +17,7 @@
     "test": "npm run test:only",
     "test:only": "jest"
   },
-  "author": "Eliot Lash, Gecko, McHorse, AzureDoom",
+  "author": "Eliot Lash, Tslat, Gecko, McHorse",
   "license": "MIT",
   "blockbenchConfig": {
     "title": "GeckoLib Animation Utils",
