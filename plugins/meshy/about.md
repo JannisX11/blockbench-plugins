@@ -19,3 +19,5 @@ This is a feature that skips the normal calculation for the mesh. This is off by
 ### Force Multi-Textures
 This forces multiple textures to be used for bedrock models. This is off by default sense bedrock models can only have one texture. This force them to be enabled. But you will need to stitch the textures before you try puttinng them in minecraft. The plugin Texture Stitcher by mchorse can do this for you.
 
+## CONTRIBUTING
+If you want to contribute to this plugin please make a pull request at my [GitHub repository](https://github.com/Shadowkitten47/Meshy). If you have any questions or suggestions you can DM me on discord ( #shadowkitten47 ) If for what every reason I don't respond and you want to contribute make sure to comment well and add it to the changelog.

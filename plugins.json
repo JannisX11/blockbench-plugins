@@ -1003,6 +1003,7 @@
 			"Entity Models",
 			"Mesh"
 		],
+		"has_changelog": true,
 		"min_version": "4.10.4"
 	}
 }
