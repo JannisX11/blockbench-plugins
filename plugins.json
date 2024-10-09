@@ -1010,5 +1010,21 @@
 			"PBR"
 		],
 		"min_version": "4.10.4"
+	},
+	"meshy": {
+		"title": "Meshy",
+		"author": "Shadowkitten47",
+		"creation_date": "2024-09-28",
+		"icon": "diamond",
+		"description": "Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock",
+		"variant": "both",
+		"version": "1.0.2",
+		"tags": [
+			"Minecraft: Bedrock Edition",
+			"Entity Models",
+			"Mesh"
+		],
+		"has_changelog": true,
+		"min_version": "4.10.4"
 	}
 }
