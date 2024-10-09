@@ -32,32 +32,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @returns {Number}
  */
 function findIntervalBorderIndex(point: number, intervals: number[], useRightBorder: boolean) {
-  //If point is beyond given intervals
-  if (point < intervals[0])
-    return 0
-  if (point > intervals[intervals.length - 1])
-    return intervals.length - 1
-  //If point is inside interval
-  //Start searching on a full range of intervals
-  let indexOfNumberToCompare = 0;
-  let leftBorderIndex = 0;
-  let rightBorderIndex = intervals.length - 1
-  //Reduce searching range till it find an interval point belongs to using binary search
-  while (rightBorderIndex - leftBorderIndex !== 1) {
-    indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2)
-    point >= intervals[indexOfNumberToCompare] ?
-      leftBorderIndex = indexOfNumberToCompare :
-      rightBorderIndex = indexOfNumberToCompare
+    //If point is beyond given intervals
+    if (point < intervals[0])
+        return 0
+
+    if (point > intervals[intervals.length - 1])
+        return intervals.length - 1
+
+    //If point is inside interval
+    //Start searching on a full range of intervals
+    let indexOfNumberToCompare = 0;
+    let leftBorderIndex = 0;
+    let rightBorderIndex = intervals.length - 1
+
+    //Reduce searching range till it find an interval point belongs to using binary search
+    while (rightBorderIndex - leftBorderIndex !== 1) {
+        indexOfNumberToCompare = leftBorderIndex + Math.floor((rightBorderIndex - leftBorderIndex) / 2)
+        point >= intervals[indexOfNumberToCompare] ?
+            leftBorderIndex = indexOfNumberToCompare :
+            rightBorderIndex = indexOfNumberToCompare
   }
+
   return useRightBorder ? rightBorderIndex : leftBorderIndex
 }
 
 function stepRange(steps: number, stop = 1) {
-  if (steps < 2) throw new Error("steps must be > 2, got:" + steps);
-  const stepLength = stop / steps;
-  return Array.from({
-    length: steps
-  }, (_, i) => i * stepLength);
+    if (steps < 2)
+        throw new Error("steps must be > 2, got:" + steps);
+
+    const stepLength = stop / steps;
+
+    return Array.from({length: steps}, (_, i) => i * stepLength);
 }
 
 type EasingFunction = (t: number) => number;
@@ -235,12 +240,9 @@ class Easing {
 
 const quart = Easing.poly(4);
 const quint = Easing.poly(5);
-const back = (direction: EasingDirection, scalar: number, t: number) =>
-  direction(Easing.back(1.70158 * scalar))(t);
-const elastic = (direction: EasingDirection, bounciness: number, t: number) =>
-  direction(Easing.elastic(bounciness))(t);
-const bounce = (direction: EasingDirection, bounciness: number, t: number) =>
-  direction(Easing.bounce(bounciness))(t);
+const back = (direction: EasingDirection, scalar: number, t: number) => direction(Easing.back(1.70158 * scalar))(t);
+const elastic = (direction: EasingDirection, bounciness: number, t: number) => direction(Easing.elastic(bounciness))(t);
+const bounce = (direction: EasingDirection, bounciness: number, t: number) => direction(Easing.bounce(bounciness))(t);
 
 export const easingFunctions = {
   linear: Easing.linear,
@@ -335,9 +337,23 @@ export const parseEasingArg = (kf: GeckolibKeyframe, value: string) => {
 };
 
 export function reverseEasing(easing?: EasingKey): EasingKey {
-  if (!easing) return easing;
-  if (easing.startsWith("easeInOut")) return easing;
-  if (easing.startsWith("easeIn")) return easing.replace("easeIn", "easeOut") as EasingKey;
-  if (easing.startsWith("easeOut")) return easing.replace("easeOut", "easeIn") as EasingKey;
+  if (!easing)
+      return easing;
+
+  if (easing.startsWith("easeInOut"))
+      return easing;
+
+  if (easing.startsWith("easeIn"))
+      return easing.replace("easeIn", "easeOut") as EasingKey;
+
+  if (easing.startsWith("easeOut"))
+      return easing.replace("easeOut", "easeIn") as EasingKey;
+
   return easing;
 }
+
+export const isArgsEasing = (easing = "") =>
+    easing.includes("Back") ||
+    easing.includes("Elastic") ||
+    easing.includes("Bounce") ||
+    easing === EASING_OPTIONS.step;
