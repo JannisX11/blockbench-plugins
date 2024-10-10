@@ -875,15 +875,16 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-	"bamo": {
+"bamo":{
 		"title": "BAMO Exporter",
 		"author": "Ryytikki",
 		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
 		"icon": "bar_chart",
 		"tags": ["Minecraft: Java Edition"],
 		"version": "0.5.0",
-		"variant": "desktop"
-	},
+		"variant": "desktop",
+		"new_respository_format" : true
+  },
 	"animation_to_json": {
 		"title": "Animation to JSON Converter",
 		"author": "Gaming32",

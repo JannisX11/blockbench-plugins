@@ -121,8 +121,9 @@ export default {
             var blockstatesFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\assets\\" + this.properties.namespace + "\\blockstates\\";
             var blockModelsFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\assets\\" + this.properties.namespace + "\\models\\block\\";
             var itemModelsFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\assets\\" + this.properties.namespace + "\\models\\item\\";
-            var blockTexturesFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\assets\\" + this.properties.namespace + "\\textures\\blocks\\";
             var dataFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\data\\";
+            var blockTextureFolderVersion = this.properties.version == "1.20.1" ? "block" : "blocks"
+            var blockTexturesFolder = settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\assets\\" + this.properties.namespace + "\\textures\\" + blockTextureFolderVersion + "\\";
 
             // Create the folders if they dont exist
             var folderList = [objFolder, blockstatesFolder, blockModelsFolder, itemModelsFolder, blockTexturesFolder, dataFolder];
@@ -135,7 +136,9 @@ export default {
             })
 
             // Create mcmeta file
-            var mcmetaData = {"pack" : {"pack_format" : 6, "description" : "Resource Pack for BAMO test files"}};
+            // Format ID is 15 for 1.20.1, 8 for 1.18.2, and 6 for 1.16.5
+            var formatID = this.properties.version == "1.20.1" ? 15 : this.properties.version == "1.18.2" ? 8 : 6
+            var mcmetaData = {"pack" : {"pack_format" : formatID, "description" : "Resource Pack for BAMO test files"}};
             fs.writeFile(settings.minecraftFolder.value + "\\bamopacks\\" + packName + "\\pack.mcmeta", JSON.stringify(mcmetaData), "utf8", (err) => {if (err != null) {console.log("Error generating mcmeta file:", err);}});
             zip.file("pack.mcmeta", JSON.stringify(mcmetaData))
 
@@ -183,7 +186,7 @@ export default {
                     Texture.all.forEach(function(tx){
                         if ((tx.id == comp) || (partCheck && tx.particle == true)){
                             if (tx.namespace == ""){
-                                textureData[key] = ns + ":blocks/" + cleanFileName(tx.name.split(".")[0]);
+                                textureData[key] = ns + ":" + blockTextureFolderVersion + "/" + cleanFileName(tx.name.split(".")[0]);
                             }else{
                                 textureData[key] = tx.namespace + ":" + tx.folder + "/" + cleanFileName(tx.name.split(".")[0])
                             } 
@@ -395,6 +398,7 @@ export default {
 
             var modelData = JSON.parse(codecData);
             var ns = this.properties.namespace
+            var animated = this.properties.animated
             // Copy texture files
             Texture.all.forEach(function(tx){
                 var image;
@@ -406,7 +410,11 @@ export default {
                     }
         
                     fs.writeFile(blockTexturesFolder + "\\" + cleanFileName(tx.name), image, (err) => {if (err != null) {console.log("Error Found writing texture data:", err);}});
-                    zip.file("assets/" + ns + "/textures/blocks/" + cleanFileName(tx.name), image)
+                    zip.file("assets/" + ns + "/textures/" + blockTextureFolderVersion + "/" + cleanFileName(tx.name), image)
+                    if (animated){
+                        fs.writeFile(blockTexturesFolder + "\\" + cleanFileName(tx.name) + ".mcmeta", '{"animation" : {}}', (err) => {if (err != null) {console.log("Error Found writing animation data:", err);}})
+                        zip.file("assets/" + ns + "/textures/" + blockTextureFolderVersion + "/" + cleanFileName(tx.name) + ".mcmeta", '{"animation" : {}}')
+                    }
                 }
             })
 

@@ -48,6 +48,16 @@
                     <p v-if="error=='name'" style="color:red">Block display name cannot be blank</p>
                     <input type="text" class="dark_bordered" v-model="$parent.$data.properties.displayName" placeholder="Name of the Block">
                 </li>
+                <li>
+                    <div class="headerLabel">Minecraft Version</div>
+                    <p class="headerDescription"> The version of minecraft to export for</p>
+                    <select class="dark_bordered" v-model="$parent.$data.properties.version">
+                        <option disabled value="">Please select</option>
+                        <option>1.20.1</option>
+                        <option>1.18.2</option>
+                        <option>1.16.5</option>
+                    </select>
+                </li>
             </ul><br>
             
             <button @click.prevent="changePage($event, 'types')">Continue</button>
@@ -323,6 +333,11 @@
                     <div class = "headerLabel">Rotation Type</div>
                     <p class="headerDescription">if y_axis, faces the player when placed</p>
                     <select class="dark_bordered" v-model="$parent.$data.properties.rotType"><option v-for="op in rotationTypes" v-bind:key="op">{{ op }}</option></select>
+                </li>
+                <li>
+                    <input type="checkbox" v-model="parentData.properties.animated">
+                    <div class = "headerLabel">Animated Textures (WIP)</div>
+                    <p class = "headerDescription">Enables texture animations. Currently only recommended for single texture models</p>
                 </li>
             </ul>
             <br>
