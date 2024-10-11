@@ -319,7 +319,7 @@
     description:
       "Adds a few tweaks to Blockbench to make your modeling experience better.",
     icon: "icon.png",
-    version: "1.0.0",
+    version: "1.1.0",
     variant: "both",
     new_repository_format: true,
     tags: ["Blockbench"],
