@@ -12,10 +12,12 @@ Plugin.register('bamo', {
 	title: 'BAMO Exporter',
 	author: 'Ryytikki',
 	description: 'Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on',
+	website: "https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
 	icon: 'icon.png',
 	tags: ['Minecraft: Java Edition'],
 	version: '0.5.1',
 	variant: 'desktop',
+	new_respository_format : true,
 	
 	onload() {
 

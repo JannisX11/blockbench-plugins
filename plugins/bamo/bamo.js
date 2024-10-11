@@ -9695,10 +9695,12 @@ Plugin.register('bamo', {
   title: 'BAMO Exporter',
   author: 'Ryytikki',
   description: 'Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on',
+  website: "https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
   icon: 'icon.png',
   tags: ['Minecraft: Java Edition'],
   version: '0.5.1',
   variant: 'desktop',
+  new_respository_format: true,
   onload: function onload() {
     (0,_util_Codec__WEBPACK_IMPORTED_MODULE_12__.loadCodec)(); // Setting that holds the resource pack folder location
 
