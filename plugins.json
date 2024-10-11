@@ -394,17 +394,21 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
+		"author": "Eliot Lash, Tslat, Gecko, McHorse",
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
 		"tags": [
 			"Minecraft: Java Edition"
 		],
-		"version": "3.2.1",
+		"version": "4.0",
 		"min_version": "4.11.0",
 		"await_loading": true,
 		"variant": "both",
-		"max_version": "5.0.0"
+		"max_version": "5.0.0",
+		"has_changelog": true,
+		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils",
+		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
@@ -874,15 +878,17 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-	"bamo": {
+	"bamo":{
 		"title": "BAMO Exporter",
 		"author": "Ryytikki",
-		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod. https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
-		"icon": "bar_chart",
+		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod.",
+		"website": "https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
+		"icon": "icon.png",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "0.5.0",
-		"variant": "desktop"
-	},
+		"version": "0.5.1",
+		"variant": "desktop",
+		"new_respository_format" : true
+  	},
 	"animation_to_json": {
 		"title": "Animation to JSON Converter",
 		"author": "Gaming32",

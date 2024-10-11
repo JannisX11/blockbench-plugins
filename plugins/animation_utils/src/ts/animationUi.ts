@@ -1,6 +1,6 @@
 import uniq from 'lodash/uniq';
-import { addMonkeypatch, hasArgs, Original } from './utils';
-import { EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg, GeckolibKeyframe } from './easing';
+import { addMonkeypatch, Monkeypatches } from './utils';
+import {EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg, GeckolibKeyframe, isArgsEasing} from './easing';
 
 const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 
@@ -11,7 +11,7 @@ export const loadAnimationUI = () => {
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
   addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
-    Format.id !== "animated_entity_model" && Original.get(BarItems.keyframe_interpolation).condition()
+    Format.id !== "animated_entity_model" && Monkeypatches.get(BarItems.keyframe_interpolation).condition()
   );
 
 };
@@ -21,7 +21,6 @@ export const unloadAnimationUI = () => {
   Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
 };
 
-//#region Global Animation UI Handlers
 export const displayAnimationFrameCallback = (/*...args*/) => {
   // const keyframe = $('#keyframe');
   // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
@@ -228,7 +227,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           }
         };
         const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
-        if (Timeline.selected.every((kf: GeckolibKeyframe) => hasArgs(kf.easing)) && easingArgLabel !== null) {
+        if (Timeline.selected.every((kf: GeckolibKeyframe) => isArgsEasing(kf.easing)) && easingArgLabel !== null) {
           const argDefault = getMultiSelectValue(getEasingArgDefault, null, null);
           const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
           let scaleBar: HTMLElement = document.createElement('div');
@@ -298,5 +297,3 @@ const getIcon = (name: string) => {
       return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 5.8208333,291.17915" style="fill:none;stroke-width:0.52916667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
   }
 };
-
-//#endregion Global Animation UI Handlers

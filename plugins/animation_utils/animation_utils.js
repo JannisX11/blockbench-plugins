@@ -318,37 +318,6 @@ module.exports = WeakMap;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_apply.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/_apply.js ***!
-  \***************************************/
-/***/ ((module) => {
-
-/**
- * A faster alternative to `Function#apply`, this function invokes `func`
- * with the `this` binding of `thisArg` and the arguments of `args`.
- *
- * @private
- * @param {Function} func The function to invoke.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} args The arguments to invoke `func` with.
- * @returns {*} Returns the result of `func`.
- */
-function apply(func, thisArg, args) {
-  switch (args.length) {
-    case 0: return func.call(thisArg);
-    case 1: return func.call(thisArg, args[0]);
-    case 2: return func.call(thisArg, args[0], args[1]);
-    case 3: return func.call(thisArg, args[0], args[1], args[2]);
-  }
-  return func.apply(thisArg, args);
-}
-
-module.exports = apply;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_arrayAggregator.js":
 /*!*************************************************!*\
   !*** ./node_modules/lodash/_arrayAggregator.js ***!
@@ -377,38 +346,6 @@ function arrayAggregator(array, setter, iteratee, accumulator) {
 }
 
 module.exports = arrayAggregator;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_arrayEach.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_arrayEach.js ***!
-  \*******************************************/
-/***/ ((module) => {
-
-/**
- * A specialized version of `_.forEach` for arrays without support for
- * iteratee shorthands.
- *
- * @private
- * @param {Array} [array] The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns `array`.
- */
-function arrayEach(array, iteratee) {
-  var index = -1,
-      length = array == null ? 0 : array.length;
-
-  while (++index < length) {
-    if (iteratee(array[index], index, array) === false) {
-      break;
-    }
-  }
-  return array;
-}
-
-module.exports = arrayEach;
 
 
 /***/ }),
@@ -660,44 +597,6 @@ module.exports = arraySome;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_assignValue.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_assignValue.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseAssignValue = __webpack_require__(/*! ./_baseAssignValue */ "./node_modules/lodash/_baseAssignValue.js"),
-    eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Assigns `value` to `key` of `object` if the existing value is not equivalent
- * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
- * for equality comparisons.
- *
- * @private
- * @param {Object} object The object to modify.
- * @param {string} key The key of the property to assign.
- * @param {*} value The value to assign.
- */
-function assignValue(object, key, value) {
-  var objValue = object[key];
-  if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
-      (value === undefined && !(key in object))) {
-    baseAssignValue(object, key, value);
-  }
-}
-
-module.exports = assignValue;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_assocIndexOf.js":
 /*!**********************************************!*\
   !*** ./node_modules/lodash/_assocIndexOf.js ***!
@@ -760,60 +659,6 @@ module.exports = baseAggregator;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseAssign.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseAssign.js ***!
-  \********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    keys = __webpack_require__(/*! ./keys */ "./node_modules/lodash/keys.js");
-
-/**
- * The base implementation of `_.assign` without support for multiple sources
- * or `customizer` functions.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @returns {Object} Returns `object`.
- */
-function baseAssign(object, source) {
-  return object && copyObject(source, keys(source), object);
-}
-
-module.exports = baseAssign;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseAssignIn.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_baseAssignIn.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js");
-
-/**
- * The base implementation of `_.assignIn` without support for multiple sources
- * or `customizer` functions.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @returns {Object} Returns `object`.
- */
-function baseAssignIn(object, source) {
-  return object && copyObject(source, keysIn(source), object);
-}
-
-module.exports = baseAssignIn;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_baseAssignValue.js":
 /*!*************************************************!*\
   !*** ./node_modules/lodash/_baseAssignValue.js ***!
@@ -845,222 +690,6 @@ function baseAssignValue(object, key, value) {
 }
 
 module.exports = baseAssignValue;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseClone.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseClone.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var Stack = __webpack_require__(/*! ./_Stack */ "./node_modules/lodash/_Stack.js"),
-    arrayEach = __webpack_require__(/*! ./_arrayEach */ "./node_modules/lodash/_arrayEach.js"),
-    assignValue = __webpack_require__(/*! ./_assignValue */ "./node_modules/lodash/_assignValue.js"),
-    baseAssign = __webpack_require__(/*! ./_baseAssign */ "./node_modules/lodash/_baseAssign.js"),
-    baseAssignIn = __webpack_require__(/*! ./_baseAssignIn */ "./node_modules/lodash/_baseAssignIn.js"),
-    cloneBuffer = __webpack_require__(/*! ./_cloneBuffer */ "./node_modules/lodash/_cloneBuffer.js"),
-    copyArray = __webpack_require__(/*! ./_copyArray */ "./node_modules/lodash/_copyArray.js"),
-    copySymbols = __webpack_require__(/*! ./_copySymbols */ "./node_modules/lodash/_copySymbols.js"),
-    copySymbolsIn = __webpack_require__(/*! ./_copySymbolsIn */ "./node_modules/lodash/_copySymbolsIn.js"),
-    getAllKeys = __webpack_require__(/*! ./_getAllKeys */ "./node_modules/lodash/_getAllKeys.js"),
-    getAllKeysIn = __webpack_require__(/*! ./_getAllKeysIn */ "./node_modules/lodash/_getAllKeysIn.js"),
-    getTag = __webpack_require__(/*! ./_getTag */ "./node_modules/lodash/_getTag.js"),
-    initCloneArray = __webpack_require__(/*! ./_initCloneArray */ "./node_modules/lodash/_initCloneArray.js"),
-    initCloneByTag = __webpack_require__(/*! ./_initCloneByTag */ "./node_modules/lodash/_initCloneByTag.js"),
-    initCloneObject = __webpack_require__(/*! ./_initCloneObject */ "./node_modules/lodash/_initCloneObject.js"),
-    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
-    isBuffer = __webpack_require__(/*! ./isBuffer */ "./node_modules/lodash/isBuffer.js"),
-    isMap = __webpack_require__(/*! ./isMap */ "./node_modules/lodash/isMap.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    isSet = __webpack_require__(/*! ./isSet */ "./node_modules/lodash/isSet.js"),
-    keys = __webpack_require__(/*! ./keys */ "./node_modules/lodash/keys.js"),
-    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js");
-
-/** Used to compose bitmasks for cloning. */
-var CLONE_DEEP_FLAG = 1,
-    CLONE_FLAT_FLAG = 2,
-    CLONE_SYMBOLS_FLAG = 4;
-
-/** `Object#toString` result references. */
-var argsTag = '[object Arguments]',
-    arrayTag = '[object Array]',
-    boolTag = '[object Boolean]',
-    dateTag = '[object Date]',
-    errorTag = '[object Error]',
-    funcTag = '[object Function]',
-    genTag = '[object GeneratorFunction]',
-    mapTag = '[object Map]',
-    numberTag = '[object Number]',
-    objectTag = '[object Object]',
-    regexpTag = '[object RegExp]',
-    setTag = '[object Set]',
-    stringTag = '[object String]',
-    symbolTag = '[object Symbol]',
-    weakMapTag = '[object WeakMap]';
-
-var arrayBufferTag = '[object ArrayBuffer]',
-    dataViewTag = '[object DataView]',
-    float32Tag = '[object Float32Array]',
-    float64Tag = '[object Float64Array]',
-    int8Tag = '[object Int8Array]',
-    int16Tag = '[object Int16Array]',
-    int32Tag = '[object Int32Array]',
-    uint8Tag = '[object Uint8Array]',
-    uint8ClampedTag = '[object Uint8ClampedArray]',
-    uint16Tag = '[object Uint16Array]',
-    uint32Tag = '[object Uint32Array]';
-
-/** Used to identify `toStringTag` values supported by `_.clone`. */
-var cloneableTags = {};
-cloneableTags[argsTag] = cloneableTags[arrayTag] =
-cloneableTags[arrayBufferTag] = cloneableTags[dataViewTag] =
-cloneableTags[boolTag] = cloneableTags[dateTag] =
-cloneableTags[float32Tag] = cloneableTags[float64Tag] =
-cloneableTags[int8Tag] = cloneableTags[int16Tag] =
-cloneableTags[int32Tag] = cloneableTags[mapTag] =
-cloneableTags[numberTag] = cloneableTags[objectTag] =
-cloneableTags[regexpTag] = cloneableTags[setTag] =
-cloneableTags[stringTag] = cloneableTags[symbolTag] =
-cloneableTags[uint8Tag] = cloneableTags[uint8ClampedTag] =
-cloneableTags[uint16Tag] = cloneableTags[uint32Tag] = true;
-cloneableTags[errorTag] = cloneableTags[funcTag] =
-cloneableTags[weakMapTag] = false;
-
-/**
- * The base implementation of `_.clone` and `_.cloneDeep` which tracks
- * traversed objects.
- *
- * @private
- * @param {*} value The value to clone.
- * @param {boolean} bitmask The bitmask flags.
- *  1 - Deep clone
- *  2 - Flatten inherited properties
- *  4 - Clone symbols
- * @param {Function} [customizer] The function to customize cloning.
- * @param {string} [key] The key of `value`.
- * @param {Object} [object] The parent object of `value`.
- * @param {Object} [stack] Tracks traversed objects and their clone counterparts.
- * @returns {*} Returns the cloned value.
- */
-function baseClone(value, bitmask, customizer, key, object, stack) {
-  var result,
-      isDeep = bitmask & CLONE_DEEP_FLAG,
-      isFlat = bitmask & CLONE_FLAT_FLAG,
-      isFull = bitmask & CLONE_SYMBOLS_FLAG;
-
-  if (customizer) {
-    result = object ? customizer(value, key, object, stack) : customizer(value);
-  }
-  if (result !== undefined) {
-    return result;
-  }
-  if (!isObject(value)) {
-    return value;
-  }
-  var isArr = isArray(value);
-  if (isArr) {
-    result = initCloneArray(value);
-    if (!isDeep) {
-      return copyArray(value, result);
-    }
-  } else {
-    var tag = getTag(value),
-        isFunc = tag == funcTag || tag == genTag;
-
-    if (isBuffer(value)) {
-      return cloneBuffer(value, isDeep);
-    }
-    if (tag == objectTag || tag == argsTag || (isFunc && !object)) {
-      result = (isFlat || isFunc) ? {} : initCloneObject(value);
-      if (!isDeep) {
-        return isFlat
-          ? copySymbolsIn(value, baseAssignIn(result, value))
-          : copySymbols(value, baseAssign(result, value));
-      }
-    } else {
-      if (!cloneableTags[tag]) {
-        return object ? value : {};
-      }
-      result = initCloneByTag(value, tag, isDeep);
-    }
-  }
-  // Check for circular references and return its corresponding clone.
-  stack || (stack = new Stack);
-  var stacked = stack.get(value);
-  if (stacked) {
-    return stacked;
-  }
-  stack.set(value, result);
-
-  if (isSet(value)) {
-    value.forEach(function(subValue) {
-      result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
-    });
-  } else if (isMap(value)) {
-    value.forEach(function(subValue, key) {
-      result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
-    });
-  }
-
-  var keysFunc = isFull
-    ? (isFlat ? getAllKeysIn : getAllKeys)
-    : (isFlat ? keysIn : keys);
-
-  var props = isArr ? undefined : keysFunc(value);
-  arrayEach(props || value, function(subValue, key) {
-    if (props) {
-      key = subValue;
-      subValue = value[key];
-    }
-    // Recursively populate clone (susceptible to call stack limits).
-    assignValue(result, key, baseClone(subValue, bitmask, customizer, key, value, stack));
-  });
-  return result;
-}
-
-module.exports = baseClone;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseCreate.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseCreate.js ***!
-  \********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
-
-/** Built-in value references. */
-var objectCreate = Object.create;
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} proto The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-var baseCreate = (function() {
-  function object() {}
-  return function(proto) {
-    if (!isObject(proto)) {
-      return {};
-    }
-    if (objectCreate) {
-      return objectCreate(proto);
-    }
-    object.prototype = proto;
-    var result = new object;
-    object.prototype = undefined;
-    return result;
-  };
-}());
-
-module.exports = baseCreate;
 
 
 /***/ }),
@@ -1119,54 +748,6 @@ function baseFindIndex(array, predicate, fromIndex, fromRight) {
 }
 
 module.exports = baseFindIndex;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseFlatten.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_baseFlatten.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayPush = __webpack_require__(/*! ./_arrayPush */ "./node_modules/lodash/_arrayPush.js"),
-    isFlattenable = __webpack_require__(/*! ./_isFlattenable */ "./node_modules/lodash/_isFlattenable.js");
-
-/**
- * The base implementation of `_.flatten` with support for restricting flattening.
- *
- * @private
- * @param {Array} array The array to flatten.
- * @param {number} depth The maximum recursion depth.
- * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
- * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
- * @param {Array} [result=[]] The initial result value.
- * @returns {Array} Returns the new flattened array.
- */
-function baseFlatten(array, depth, predicate, isStrict, result) {
-  var index = -1,
-      length = array.length;
-
-  predicate || (predicate = isFlattenable);
-  result || (result = []);
-
-  while (++index < length) {
-    var value = array[index];
-    if (depth > 0 && predicate(value)) {
-      if (depth > 1) {
-        // Recursively flatten arrays (susceptible to call stack limits).
-        baseFlatten(value, depth - 1, predicate, isStrict, result);
-      } else {
-        arrayPush(result, value);
-      }
-    } else if (!isStrict) {
-      result[result.length] = value;
-    }
-  }
-  return result;
-}
-
-module.exports = baseFlatten;
 
 
 /***/ }),
@@ -1537,34 +1118,6 @@ module.exports = baseIsEqualDeep;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseIsMap.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseIsMap.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var getTag = __webpack_require__(/*! ./_getTag */ "./node_modules/lodash/_getTag.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var mapTag = '[object Map]';
-
-/**
- * The base implementation of `_.isMap` without Node.js optimizations.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a map, else `false`.
- */
-function baseIsMap(value) {
-  return isObjectLike(value) && getTag(value) == mapTag;
-}
-
-module.exports = baseIsMap;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_baseIsMatch.js":
 /*!*********************************************!*\
   !*** ./node_modules/lodash/_baseIsMatch.js ***!
@@ -1712,34 +1265,6 @@ function baseIsNative(value) {
 }
 
 module.exports = baseIsNative;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseIsSet.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseIsSet.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var getTag = __webpack_require__(/*! ./_getTag */ "./node_modules/lodash/_getTag.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var setTag = '[object Set]';
-
-/**
- * The base implementation of `_.isSet` without Node.js optimizations.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a set, else `false`.
- */
-function baseIsSet(value) {
-  return isObjectLike(value) && getTag(value) == setTag;
-}
-
-module.exports = baseIsSet;
 
 
 /***/ }),
@@ -1895,49 +1420,6 @@ module.exports = baseKeys;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseKeysIn.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseKeysIn.js ***!
-  \********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    isPrototype = __webpack_require__(/*! ./_isPrototype */ "./node_modules/lodash/_isPrototype.js"),
-    nativeKeysIn = __webpack_require__(/*! ./_nativeKeysIn */ "./node_modules/lodash/_nativeKeysIn.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- */
-function baseKeysIn(object) {
-  if (!isObject(object)) {
-    return nativeKeysIn(object);
-  }
-  var isProto = isPrototype(object),
-      result = [];
-
-  for (var key in object) {
-    if (!(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
-      result.push(key);
-    }
-  }
-  return result;
-}
-
-module.exports = baseKeysIn;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_baseMatches.js":
 /*!*********************************************!*\
   !*** ./node_modules/lodash/_baseMatches.js ***!
@@ -2059,79 +1541,6 @@ function basePropertyDeep(path) {
 }
 
 module.exports = basePropertyDeep;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseSetToString.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_baseSetToString.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var constant = __webpack_require__(/*! ./constant */ "./node_modules/lodash/constant.js"),
-    defineProperty = __webpack_require__(/*! ./_defineProperty */ "./node_modules/lodash/_defineProperty.js"),
-    identity = __webpack_require__(/*! ./identity */ "./node_modules/lodash/identity.js");
-
-/**
- * The base implementation of `setToString` without support for hot loop shorting.
- *
- * @private
- * @param {Function} func The function to modify.
- * @param {Function} string The `toString` result.
- * @returns {Function} Returns `func`.
- */
-var baseSetToString = !defineProperty ? identity : function(func, string) {
-  return defineProperty(func, 'toString', {
-    'configurable': true,
-    'enumerable': false,
-    'value': constant(string),
-    'writable': true
-  });
-};
-
-module.exports = baseSetToString;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseSlice.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseSlice.js ***!
-  \*******************************************/
-/***/ ((module) => {
-
-/**
- * The base implementation of `_.slice` without an iteratee call guard.
- *
- * @private
- * @param {Array} array The array to slice.
- * @param {number} [start=0] The start position.
- * @param {number} [end=array.length] The end position.
- * @returns {Array} Returns the slice of `array`.
- */
-function baseSlice(array, start, end) {
-  var index = -1,
-      length = array.length;
-
-  if (start < 0) {
-    start = -start > length ? 0 : (length + start);
-  }
-  end = end > length ? length : end;
-  if (end < 0) {
-    end += length;
-  }
-  length = start > end ? 0 : ((end - start) >>> 0);
-  start >>>= 0;
-
-  var result = Array(length);
-  while (++index < length) {
-    result[index] = array[index + start];
-  }
-  return result;
-}
-
-module.exports = baseSlice;
 
 
 /***/ }),
@@ -2319,36 +1728,6 @@ module.exports = baseUniq;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseUnset.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseUnset.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var castPath = __webpack_require__(/*! ./_castPath */ "./node_modules/lodash/_castPath.js"),
-    last = __webpack_require__(/*! ./last */ "./node_modules/lodash/last.js"),
-    parent = __webpack_require__(/*! ./_parent */ "./node_modules/lodash/_parent.js"),
-    toKey = __webpack_require__(/*! ./_toKey */ "./node_modules/lodash/_toKey.js");
-
-/**
- * The base implementation of `_.unset`.
- *
- * @private
- * @param {Object} object The object to modify.
- * @param {Array|string} path The property path to unset.
- * @returns {boolean} Returns `true` if the property is deleted, else `false`.
- */
-function baseUnset(object, path) {
-  path = castPath(path, object);
-  object = parent(object, path);
-  return object == null || delete object[toKey(last(path))];
-}
-
-module.exports = baseUnset;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_cacheHas.js":
 /*!******************************************!*\
   !*** ./node_modules/lodash/_cacheHas.js ***!
@@ -2399,317 +1778,6 @@ function castPath(value, object) {
 }
 
 module.exports = castPath;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneArrayBuffer.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/_cloneArrayBuffer.js ***!
-  \**************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var Uint8Array = __webpack_require__(/*! ./_Uint8Array */ "./node_modules/lodash/_Uint8Array.js");
-
-/**
- * Creates a clone of `arrayBuffer`.
- *
- * @private
- * @param {ArrayBuffer} arrayBuffer The array buffer to clone.
- * @returns {ArrayBuffer} Returns the cloned array buffer.
- */
-function cloneArrayBuffer(arrayBuffer) {
-  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
-  new Uint8Array(result).set(new Uint8Array(arrayBuffer));
-  return result;
-}
-
-module.exports = cloneArrayBuffer;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneBuffer.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_cloneBuffer.js ***!
-  \*********************************************/
-/***/ ((module, exports, __webpack_require__) => {
-
-/* module decorator */ module = __webpack_require__.nmd(module);
-var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/** Detect free variable `exports`. */
-var freeExports =  true && exports && !exports.nodeType && exports;
-
-/** Detect free variable `module`. */
-var freeModule = freeExports && "object" == 'object' && module && !module.nodeType && module;
-
-/** Detect the popular CommonJS extension `module.exports`. */
-var moduleExports = freeModule && freeModule.exports === freeExports;
-
-/** Built-in value references. */
-var Buffer = moduleExports ? root.Buffer : undefined,
-    allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined;
-
-/**
- * Creates a clone of  `buffer`.
- *
- * @private
- * @param {Buffer} buffer The buffer to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Buffer} Returns the cloned buffer.
- */
-function cloneBuffer(buffer, isDeep) {
-  if (isDeep) {
-    return buffer.slice();
-  }
-  var length = buffer.length,
-      result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
-
-  buffer.copy(result);
-  return result;
-}
-
-module.exports = cloneBuffer;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneDataView.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_cloneDataView.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var cloneArrayBuffer = __webpack_require__(/*! ./_cloneArrayBuffer */ "./node_modules/lodash/_cloneArrayBuffer.js");
-
-/**
- * Creates a clone of `dataView`.
- *
- * @private
- * @param {Object} dataView The data view to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the cloned data view.
- */
-function cloneDataView(dataView, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer(dataView.buffer) : dataView.buffer;
-  return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
-}
-
-module.exports = cloneDataView;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneRegExp.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_cloneRegExp.js ***!
-  \*********************************************/
-/***/ ((module) => {
-
-/** Used to match `RegExp` flags from their coerced string values. */
-var reFlags = /\w*$/;
-
-/**
- * Creates a clone of `regexp`.
- *
- * @private
- * @param {Object} regexp The regexp to clone.
- * @returns {Object} Returns the cloned regexp.
- */
-function cloneRegExp(regexp) {
-  var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
-  result.lastIndex = regexp.lastIndex;
-  return result;
-}
-
-module.exports = cloneRegExp;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneSymbol.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_cloneSymbol.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js");
-
-/** Used to convert symbols to primitives and strings. */
-var symbolProto = Symbol ? Symbol.prototype : undefined,
-    symbolValueOf = symbolProto ? symbolProto.valueOf : undefined;
-
-/**
- * Creates a clone of the `symbol` object.
- *
- * @private
- * @param {Object} symbol The symbol object to clone.
- * @returns {Object} Returns the cloned symbol object.
- */
-function cloneSymbol(symbol) {
-  return symbolValueOf ? Object(symbolValueOf.call(symbol)) : {};
-}
-
-module.exports = cloneSymbol;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneTypedArray.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_cloneTypedArray.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var cloneArrayBuffer = __webpack_require__(/*! ./_cloneArrayBuffer */ "./node_modules/lodash/_cloneArrayBuffer.js");
-
-/**
- * Creates a clone of `typedArray`.
- *
- * @private
- * @param {Object} typedArray The typed array to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the cloned typed array.
- */
-function cloneTypedArray(typedArray, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
-  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-}
-
-module.exports = cloneTypedArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copyArray.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_copyArray.js ***!
-  \*******************************************/
-/***/ ((module) => {
-
-/**
- * Copies the values of `source` to `array`.
- *
- * @private
- * @param {Array} source The array to copy values from.
- * @param {Array} [array=[]] The array to copy values to.
- * @returns {Array} Returns `array`.
- */
-function copyArray(source, array) {
-  var index = -1,
-      length = source.length;
-
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-
-module.exports = copyArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copyObject.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_copyObject.js ***!
-  \********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var assignValue = __webpack_require__(/*! ./_assignValue */ "./node_modules/lodash/_assignValue.js"),
-    baseAssignValue = __webpack_require__(/*! ./_baseAssignValue */ "./node_modules/lodash/_baseAssignValue.js");
-
-/**
- * Copies properties of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy properties from.
- * @param {Array} props The property identifiers to copy.
- * @param {Object} [object={}] The object to copy properties to.
- * @param {Function} [customizer] The function to customize copied values.
- * @returns {Object} Returns `object`.
- */
-function copyObject(source, props, object, customizer) {
-  var isNew = !object;
-  object || (object = {});
-
-  var index = -1,
-      length = props.length;
-
-  while (++index < length) {
-    var key = props[index];
-
-    var newValue = customizer
-      ? customizer(object[key], source[key], key, object, source)
-      : undefined;
-
-    if (newValue === undefined) {
-      newValue = source[key];
-    }
-    if (isNew) {
-      baseAssignValue(object, key, newValue);
-    } else {
-      assignValue(object, key, newValue);
-    }
-  }
-  return object;
-}
-
-module.exports = copyObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copySymbols.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_copySymbols.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    getSymbols = __webpack_require__(/*! ./_getSymbols */ "./node_modules/lodash/_getSymbols.js");
-
-/**
- * Copies own symbols of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy symbols from.
- * @param {Object} [object={}] The object to copy symbols to.
- * @returns {Object} Returns `object`.
- */
-function copySymbols(source, object) {
-  return copyObject(source, getSymbols(source), object);
-}
-
-module.exports = copySymbols;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copySymbolsIn.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_copySymbolsIn.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    getSymbolsIn = __webpack_require__(/*! ./_getSymbolsIn */ "./node_modules/lodash/_getSymbolsIn.js");
-
-/**
- * Copies own and inherited symbols of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy symbols from.
- * @param {Object} [object={}] The object to copy symbols to.
- * @returns {Object} Returns `object`.
- */
-function copySymbolsIn(source, object) {
-  return copyObject(source, getSymbolsIn(source), object);
-}
-
-module.exports = copySymbolsIn;
 
 
 /***/ }),
@@ -2865,32 +1933,6 @@ var createSet = !(Set && (1 / setToArray(new Set([,-0]))[1]) == INFINITY) ? noop
 };
 
 module.exports = createSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_customOmitClone.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_customOmitClone.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var isPlainObject = __webpack_require__(/*! ./isPlainObject */ "./node_modules/lodash/isPlainObject.js");
-
-/**
- * Used by `_.omit` to customize its `_.cloneDeep` use to only clone plain
- * objects.
- *
- * @private
- * @param {*} value The value to inspect.
- * @param {string} key The key of the property to inspect.
- * @returns {*} Returns the uncloned value or `undefined` to defer cloning to `_.cloneDeep`.
- */
-function customOmitClone(value) {
-  return isPlainObject(value) ? undefined : value;
-}
-
-module.exports = customOmitClone;
 
 
 /***/ }),
@@ -3232,32 +2274,6 @@ module.exports = equalObjects;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_flatRest.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_flatRest.js ***!
-  \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var flatten = __webpack_require__(/*! ./flatten */ "./node_modules/lodash/flatten.js"),
-    overRest = __webpack_require__(/*! ./_overRest */ "./node_modules/lodash/_overRest.js"),
-    setToString = __webpack_require__(/*! ./_setToString */ "./node_modules/lodash/_setToString.js");
-
-/**
- * A specialized version of `baseRest` which flattens the rest array.
- *
- * @private
- * @param {Function} func The function to apply a rest parameter to.
- * @returns {Function} Returns the new function.
- */
-function flatRest(func) {
-  return setToString(overRest(func, undefined, flatten), func + '');
-}
-
-module.exports = flatRest;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_freeGlobal.js":
 /*!********************************************!*\
   !*** ./node_modules/lodash/_freeGlobal.js ***!
@@ -3294,33 +2310,6 @@ function getAllKeys(object) {
 }
 
 module.exports = getAllKeys;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getAllKeysIn.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_getAllKeysIn.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseGetAllKeys = __webpack_require__(/*! ./_baseGetAllKeys */ "./node_modules/lodash/_baseGetAllKeys.js"),
-    getSymbolsIn = __webpack_require__(/*! ./_getSymbolsIn */ "./node_modules/lodash/_getSymbolsIn.js"),
-    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js");
-
-/**
- * Creates an array of own and inherited enumerable property names and
- * symbols of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names and symbols.
- */
-function getAllKeysIn(object) {
-  return baseGetAllKeys(object, keysIn, getSymbolsIn);
-}
-
-module.exports = getAllKeysIn;
 
 
 /***/ }),
@@ -3410,22 +2399,6 @@ function getNative(object, key) {
 }
 
 module.exports = getNative;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getPrototype.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_getPrototype.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var overArg = __webpack_require__(/*! ./_overArg */ "./node_modules/lodash/_overArg.js");
-
-/** Built-in value references. */
-var getPrototype = overArg(Object.getPrototypeOf, Object);
-
-module.exports = getPrototype;
 
 
 /***/ }),
@@ -3522,41 +2495,6 @@ var getSymbols = !nativeGetSymbols ? stubArray : function(object) {
 };
 
 module.exports = getSymbols;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getSymbolsIn.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_getSymbolsIn.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayPush = __webpack_require__(/*! ./_arrayPush */ "./node_modules/lodash/_arrayPush.js"),
-    getPrototype = __webpack_require__(/*! ./_getPrototype */ "./node_modules/lodash/_getPrototype.js"),
-    getSymbols = __webpack_require__(/*! ./_getSymbols */ "./node_modules/lodash/_getSymbols.js"),
-    stubArray = __webpack_require__(/*! ./stubArray */ "./node_modules/lodash/stubArray.js");
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeGetSymbols = Object.getOwnPropertySymbols;
-
-/**
- * Creates an array of the own and inherited enumerable symbols of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of symbols.
- */
-var getSymbolsIn = !nativeGetSymbols ? stubArray : function(object) {
-  var result = [];
-  while (object) {
-    arrayPush(result, getSymbols(object));
-    object = getPrototype(object);
-  }
-  return result;
-};
-
-module.exports = getSymbolsIn;
 
 
 /***/ }),
@@ -3855,187 +2793,6 @@ function hashSet(key, value) {
 }
 
 module.exports = hashSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_initCloneArray.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_initCloneArray.js ***!
-  \************************************************/
-/***/ ((module) => {
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Initializes an array clone.
- *
- * @private
- * @param {Array} array The array to clone.
- * @returns {Array} Returns the initialized clone.
- */
-function initCloneArray(array) {
-  var length = array.length,
-      result = new array.constructor(length);
-
-  // Add properties assigned by `RegExp#exec`.
-  if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
-    result.index = array.index;
-    result.input = array.input;
-  }
-  return result;
-}
-
-module.exports = initCloneArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_initCloneByTag.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_initCloneByTag.js ***!
-  \************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var cloneArrayBuffer = __webpack_require__(/*! ./_cloneArrayBuffer */ "./node_modules/lodash/_cloneArrayBuffer.js"),
-    cloneDataView = __webpack_require__(/*! ./_cloneDataView */ "./node_modules/lodash/_cloneDataView.js"),
-    cloneRegExp = __webpack_require__(/*! ./_cloneRegExp */ "./node_modules/lodash/_cloneRegExp.js"),
-    cloneSymbol = __webpack_require__(/*! ./_cloneSymbol */ "./node_modules/lodash/_cloneSymbol.js"),
-    cloneTypedArray = __webpack_require__(/*! ./_cloneTypedArray */ "./node_modules/lodash/_cloneTypedArray.js");
-
-/** `Object#toString` result references. */
-var boolTag = '[object Boolean]',
-    dateTag = '[object Date]',
-    mapTag = '[object Map]',
-    numberTag = '[object Number]',
-    regexpTag = '[object RegExp]',
-    setTag = '[object Set]',
-    stringTag = '[object String]',
-    symbolTag = '[object Symbol]';
-
-var arrayBufferTag = '[object ArrayBuffer]',
-    dataViewTag = '[object DataView]',
-    float32Tag = '[object Float32Array]',
-    float64Tag = '[object Float64Array]',
-    int8Tag = '[object Int8Array]',
-    int16Tag = '[object Int16Array]',
-    int32Tag = '[object Int32Array]',
-    uint8Tag = '[object Uint8Array]',
-    uint8ClampedTag = '[object Uint8ClampedArray]',
-    uint16Tag = '[object Uint16Array]',
-    uint32Tag = '[object Uint32Array]';
-
-/**
- * Initializes an object clone based on its `toStringTag`.
- *
- * **Note:** This function only supports cloning values with tags of
- * `Boolean`, `Date`, `Error`, `Map`, `Number`, `RegExp`, `Set`, or `String`.
- *
- * @private
- * @param {Object} object The object to clone.
- * @param {string} tag The `toStringTag` of the object to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the initialized clone.
- */
-function initCloneByTag(object, tag, isDeep) {
-  var Ctor = object.constructor;
-  switch (tag) {
-    case arrayBufferTag:
-      return cloneArrayBuffer(object);
-
-    case boolTag:
-    case dateTag:
-      return new Ctor(+object);
-
-    case dataViewTag:
-      return cloneDataView(object, isDeep);
-
-    case float32Tag: case float64Tag:
-    case int8Tag: case int16Tag: case int32Tag:
-    case uint8Tag: case uint8ClampedTag: case uint16Tag: case uint32Tag:
-      return cloneTypedArray(object, isDeep);
-
-    case mapTag:
-      return new Ctor;
-
-    case numberTag:
-    case stringTag:
-      return new Ctor(object);
-
-    case regexpTag:
-      return cloneRegExp(object);
-
-    case setTag:
-      return new Ctor;
-
-    case symbolTag:
-      return cloneSymbol(object);
-  }
-}
-
-module.exports = initCloneByTag;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_initCloneObject.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_initCloneObject.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseCreate = __webpack_require__(/*! ./_baseCreate */ "./node_modules/lodash/_baseCreate.js"),
-    getPrototype = __webpack_require__(/*! ./_getPrototype */ "./node_modules/lodash/_getPrototype.js"),
-    isPrototype = __webpack_require__(/*! ./_isPrototype */ "./node_modules/lodash/_isPrototype.js");
-
-/**
- * Initializes an object clone.
- *
- * @private
- * @param {Object} object The object to clone.
- * @returns {Object} Returns the initialized clone.
- */
-function initCloneObject(object) {
-  return (typeof object.constructor == 'function' && !isPrototype(object))
-    ? baseCreate(getPrototype(object))
-    : {};
-}
-
-module.exports = initCloneObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isFlattenable.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_isFlattenable.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js"),
-    isArguments = __webpack_require__(/*! ./isArguments */ "./node_modules/lodash/isArguments.js"),
-    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js");
-
-/** Built-in value references. */
-var spreadableSymbol = Symbol ? Symbol.isConcatSpreadable : undefined;
-
-/**
- * Checks if `value` is a flattenable `arguments` object or array.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
- */
-function isFlattenable(value) {
-  return isArray(value) || isArguments(value) ||
-    !!(spreadableSymbol && value && value[spreadableSymbol]);
-}
-
-module.exports = isFlattenable;
 
 
 /***/ }),
@@ -4650,36 +3407,6 @@ module.exports = nativeKeys;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_nativeKeysIn.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_nativeKeysIn.js ***!
-  \**********************************************/
-/***/ ((module) => {
-
-/**
- * This function is like
- * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
- * except that it includes inherited enumerable properties.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- */
-function nativeKeysIn(object) {
-  var result = [];
-  if (object != null) {
-    for (var key in Object(object)) {
-      result.push(key);
-    }
-  }
-  return result;
-}
-
-module.exports = nativeKeysIn;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/_nodeUtil.js":
 /*!******************************************!*\
   !*** ./node_modules/lodash/_nodeUtil.js ***!
@@ -4774,78 +3501,6 @@ function overArg(func, transform) {
 }
 
 module.exports = overArg;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_overRest.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_overRest.js ***!
-  \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var apply = __webpack_require__(/*! ./_apply */ "./node_modules/lodash/_apply.js");
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * A specialized version of `baseRest` which transforms the rest array.
- *
- * @private
- * @param {Function} func The function to apply a rest parameter to.
- * @param {number} [start=func.length-1] The start position of the rest parameter.
- * @param {Function} transform The rest array transform.
- * @returns {Function} Returns the new function.
- */
-function overRest(func, start, transform) {
-  start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
-  return function() {
-    var args = arguments,
-        index = -1,
-        length = nativeMax(args.length - start, 0),
-        array = Array(length);
-
-    while (++index < length) {
-      array[index] = args[start + index];
-    }
-    index = -1;
-    var otherArgs = Array(start + 1);
-    while (++index < start) {
-      otherArgs[index] = args[index];
-    }
-    otherArgs[start] = transform(array);
-    return apply(func, this, otherArgs);
-  };
-}
-
-module.exports = overRest;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_parent.js":
-/*!****************************************!*\
-  !*** ./node_modules/lodash/_parent.js ***!
-  \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseGet = __webpack_require__(/*! ./_baseGet */ "./node_modules/lodash/_baseGet.js"),
-    baseSlice = __webpack_require__(/*! ./_baseSlice */ "./node_modules/lodash/_baseSlice.js");
-
-/**
- * Gets the parent value at `path` of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {Array} path The path to get the parent value of.
- * @returns {*} Returns the parent value.
- */
-function parent(object, path) {
-  return path.length < 2 ? object : baseGet(object, baseSlice(path, 0, -1));
-}
-
-module.exports = parent;
 
 
 /***/ }),
@@ -4946,77 +3601,6 @@ function setToArray(set) {
 }
 
 module.exports = setToArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_setToString.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_setToString.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseSetToString = __webpack_require__(/*! ./_baseSetToString */ "./node_modules/lodash/_baseSetToString.js"),
-    shortOut = __webpack_require__(/*! ./_shortOut */ "./node_modules/lodash/_shortOut.js");
-
-/**
- * Sets the `toString` method of `func` to return `string`.
- *
- * @private
- * @param {Function} func The function to modify.
- * @param {Function} string The `toString` result.
- * @returns {Function} Returns `func`.
- */
-var setToString = shortOut(baseSetToString);
-
-module.exports = setToString;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_shortOut.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_shortOut.js ***!
-  \******************************************/
-/***/ ((module) => {
-
-/** Used to detect hot functions by number of calls within a span of milliseconds. */
-var HOT_COUNT = 800,
-    HOT_SPAN = 16;
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeNow = Date.now;
-
-/**
- * Creates a function that'll short out and invoke `identity` instead
- * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
- * milliseconds.
- *
- * @private
- * @param {Function} func The function to restrict.
- * @returns {Function} Returns the new shortable function.
- */
-function shortOut(func) {
-  var count = 0,
-      lastCalled = 0;
-
-  return function() {
-    var stamp = nativeNow(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return arguments[0];
-      }
-    } else {
-      count = 0;
-    }
-    return func.apply(undefined, arguments);
-  };
-}
-
-module.exports = shortOut;
 
 
 /***/ }),
@@ -5303,42 +3887,6 @@ module.exports = toSource;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/constant.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/constant.js ***!
-  \*****************************************/
-/***/ ((module) => {
-
-/**
- * Creates a function that returns `value`.
- *
- * @static
- * @memberOf _
- * @since 2.4.0
- * @category Util
- * @param {*} value The value to return from the new function.
- * @returns {Function} Returns the new constant function.
- * @example
- *
- * var objects = _.times(2, _.constant({ 'a': 1 }));
- *
- * console.log(objects);
- * // => [{ 'a': 1 }, { 'a': 1 }]
- *
- * console.log(objects[0] === objects[1]);
- * // => true
- */
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-
-module.exports = constant;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/eq.js":
 /*!***********************************!*\
   !*** ./node_modules/lodash/eq.js ***!
@@ -5382,38 +3930,6 @@ function eq(value, other) {
 }
 
 module.exports = eq;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/flatten.js":
-/*!****************************************!*\
-  !*** ./node_modules/lodash/flatten.js ***!
-  \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseFlatten = __webpack_require__(/*! ./_baseFlatten */ "./node_modules/lodash/_baseFlatten.js");
-
-/**
- * Flattens `array` a single level deep.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to flatten.
- * @returns {Array} Returns the new flattened array.
- * @example
- *
- * _.flatten([1, [2, [3, [4]], 5]]);
- * // => [1, 2, [3, [4]], 5]
- */
-function flatten(array) {
-  var length = array == null ? 0 : array.length;
-  return length ? baseFlatten(array, 1) : [];
-}
-
-module.exports = flatten;
 
 
 /***/ }),
@@ -5853,43 +4369,6 @@ module.exports = isLength;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/isMap.js":
-/*!**************************************!*\
-  !*** ./node_modules/lodash/isMap.js ***!
-  \**************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseIsMap = __webpack_require__(/*! ./_baseIsMap */ "./node_modules/lodash/_baseIsMap.js"),
-    baseUnary = __webpack_require__(/*! ./_baseUnary */ "./node_modules/lodash/_baseUnary.js"),
-    nodeUtil = __webpack_require__(/*! ./_nodeUtil */ "./node_modules/lodash/_nodeUtil.js");
-
-/* Node.js helper references. */
-var nodeIsMap = nodeUtil && nodeUtil.isMap;
-
-/**
- * Checks if `value` is classified as a `Map` object.
- *
- * @static
- * @memberOf _
- * @since 4.3.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a map, else `false`.
- * @example
- *
- * _.isMap(new Map);
- * // => true
- *
- * _.isMap(new WeakMap);
- * // => false
- */
-var isMap = nodeIsMap ? baseUnary(nodeIsMap) : baseIsMap;
-
-module.exports = isMap;
-
-
-/***/ }),
-
 /***/ "./node_modules/lodash/isObject.js":
 /*!*****************************************!*\
   !*** ./node_modules/lodash/isObject.js ***!
@@ -5966,115 +4445,6 @@ function isObjectLike(value) {
 }
 
 module.exports = isObjectLike;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isPlainObject.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/isPlainObject.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
-    getPrototype = __webpack_require__(/*! ./_getPrototype */ "./node_modules/lodash/_getPrototype.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var objectTag = '[object Object]';
-
-/** Used for built-in method references. */
-var funcProto = Function.prototype,
-    objectProto = Object.prototype;
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/** Used to infer the `Object` constructor. */
-var objectCtorString = funcToString.call(Object);
-
-/**
- * Checks if `value` is a plain object, that is, an object created by the
- * `Object` constructor or one with a `[[Prototype]]` of `null`.
- *
- * @static
- * @memberOf _
- * @since 0.8.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- * }
- *
- * _.isPlainObject(new Foo);
- * // => false
- *
- * _.isPlainObject([1, 2, 3]);
- * // => false
- *
- * _.isPlainObject({ 'x': 0, 'y': 0 });
- * // => true
- *
- * _.isPlainObject(Object.create(null));
- * // => true
- */
-function isPlainObject(value) {
-  if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
-    return false;
-  }
-  var proto = getPrototype(value);
-  if (proto === null) {
-    return true;
-  }
-  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
-  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
-    funcToString.call(Ctor) == objectCtorString;
-}
-
-module.exports = isPlainObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isSet.js":
-/*!**************************************!*\
-  !*** ./node_modules/lodash/isSet.js ***!
-  \**************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseIsSet = __webpack_require__(/*! ./_baseIsSet */ "./node_modules/lodash/_baseIsSet.js"),
-    baseUnary = __webpack_require__(/*! ./_baseUnary */ "./node_modules/lodash/_baseUnary.js"),
-    nodeUtil = __webpack_require__(/*! ./_nodeUtil */ "./node_modules/lodash/_nodeUtil.js");
-
-/* Node.js helper references. */
-var nodeIsSet = nodeUtil && nodeUtil.isSet;
-
-/**
- * Checks if `value` is classified as a `Set` object.
- *
- * @static
- * @memberOf _
- * @since 4.3.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a set, else `false`.
- * @example
- *
- * _.isSet(new Set);
- * // => true
- *
- * _.isSet(new WeakSet);
- * // => false
- */
-var isSet = nodeIsSet ? baseUnary(nodeIsSet) : baseIsSet;
-
-module.exports = isSet;
 
 
 /***/ }),
@@ -6198,78 +4568,6 @@ function keys(object) {
 }
 
 module.exports = keys;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/keysIn.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/keysIn.js ***!
-  \***************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayLikeKeys = __webpack_require__(/*! ./_arrayLikeKeys */ "./node_modules/lodash/_arrayLikeKeys.js"),
-    baseKeysIn = __webpack_require__(/*! ./_baseKeysIn */ "./node_modules/lodash/_baseKeysIn.js"),
-    isArrayLike = __webpack_require__(/*! ./isArrayLike */ "./node_modules/lodash/isArrayLike.js");
-
-/**
- * Creates an array of the own and inherited enumerable property names of `object`.
- *
- * **Note:** Non-object values are coerced to objects.
- *
- * @static
- * @memberOf _
- * @since 3.0.0
- * @category Object
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.keysIn(new Foo);
- * // => ['a', 'b', 'c'] (iteration order is not guaranteed)
- */
-function keysIn(object) {
-  return isArrayLike(object) ? arrayLikeKeys(object, true) : baseKeysIn(object);
-}
-
-module.exports = keysIn;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/last.js":
-/*!*************************************!*\
-  !*** ./node_modules/lodash/last.js ***!
-  \*************************************/
-/***/ ((module) => {
-
-/**
- * Gets the last element of `array`.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to query.
- * @returns {*} Returns the last element of `array`.
- * @example
- *
- * _.last([1, 2, 3]);
- * // => 3
- */
-function last(array) {
-  var length = array == null ? 0 : array.length;
-  return length ? array[length - 1] : undefined;
-}
-
-module.exports = last;
 
 
 /***/ }),
@@ -6433,73 +4731,6 @@ function noop() {
 }
 
 module.exports = noop;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/omit.js":
-/*!*************************************!*\
-  !*** ./node_modules/lodash/omit.js ***!
-  \*************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayMap = __webpack_require__(/*! ./_arrayMap */ "./node_modules/lodash/_arrayMap.js"),
-    baseClone = __webpack_require__(/*! ./_baseClone */ "./node_modules/lodash/_baseClone.js"),
-    baseUnset = __webpack_require__(/*! ./_baseUnset */ "./node_modules/lodash/_baseUnset.js"),
-    castPath = __webpack_require__(/*! ./_castPath */ "./node_modules/lodash/_castPath.js"),
-    copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    customOmitClone = __webpack_require__(/*! ./_customOmitClone */ "./node_modules/lodash/_customOmitClone.js"),
-    flatRest = __webpack_require__(/*! ./_flatRest */ "./node_modules/lodash/_flatRest.js"),
-    getAllKeysIn = __webpack_require__(/*! ./_getAllKeysIn */ "./node_modules/lodash/_getAllKeysIn.js");
-
-/** Used to compose bitmasks for cloning. */
-var CLONE_DEEP_FLAG = 1,
-    CLONE_FLAT_FLAG = 2,
-    CLONE_SYMBOLS_FLAG = 4;
-
-/**
- * The opposite of `_.pick`; this method creates an object composed of the
- * own and inherited enumerable property paths of `object` that are not omitted.
- *
- * **Note:** This method is considerably slower than `_.pick`.
- *
- * @static
- * @since 0.1.0
- * @memberOf _
- * @category Object
- * @param {Object} object The source object.
- * @param {...(string|string[])} [paths] The property paths to omit.
- * @returns {Object} Returns the new object.
- * @example
- *
- * var object = { 'a': 1, 'b': '2', 'c': 3 };
- *
- * _.omit(object, ['a', 'c']);
- * // => { 'b': '2' }
- */
-var omit = flatRest(function(object, paths) {
-  var result = {};
-  if (object == null) {
-    return result;
-  }
-  var isDeep = false;
-  paths = arrayMap(paths, function(path) {
-    path = castPath(path, object);
-    isDeep || (isDeep = path.length > 1);
-    return path;
-  });
-  copyObject(object, getAllKeysIn(object), result);
-  if (isDeep) {
-    result = baseClone(result, CLONE_DEEP_FLAG | CLONE_FLAT_FLAG | CLONE_SYMBOLS_FLAG, customOmitClone);
-  }
-  var length = paths.length;
-  while (length--) {
-    baseUnset(result, paths[length]);
-  }
-  return result;
-});
-
-module.exports = omit;
 
 
 /***/ }),
@@ -8152,10 +6383,10 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\.0\.0-0\\s*$')
 
 /***/ }),
 
-/***/ "./animationUi.ts":
-/*!************************!*\
-  !*** ./animationUi.ts ***!
-  \************************/
+/***/ "./ts/animationUi.ts":
+/*!***************************!*\
+  !*** ./ts/animationUi.ts ***!
+  \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -8170,8 +6401,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var lodash_uniq__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash/uniq */ "./node_modules/lodash/uniq.js");
 /* harmony import */ var lodash_uniq__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_uniq__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./utils.ts");
-/* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./easing */ "./easing.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./easing */ "./ts/easing.ts");
 
 
 
@@ -8181,13 +6412,12 @@ const loadAnimationUI = () => {
     Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasing", updateKeyframeEasing);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', () => Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(BarItems.keyframe_interpolation).condition());
+    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', () => Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Monkeypatches.get(BarItems.keyframe_interpolation).condition());
 };
 const unloadAnimationUI = () => {
     Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
     Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
 };
-//#region Global Animation UI Handlers
 const displayAnimationFrameCallback = ( /*...args*/) => {
     // const keyframe = $('#keyframe');
     // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
@@ -8376,7 +6606,7 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
                 }
             };
             const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
-            if (Timeline.selected.every((kf) => (0,_utils__WEBPACK_IMPORTED_MODULE_1__.hasArgs)(kf.easing)) && easingArgLabel !== null) {
+            if (Timeline.selected.every((kf) => (0,_easing__WEBPACK_IMPORTED_MODULE_2__.isArgsEasing)(kf.easing)) && easingArgLabel !== null) {
                 const argDefault = getMultiSelectValue(_easing__WEBPACK_IMPORTED_MODULE_2__.getEasingArgDefault, null, null);
                 const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
                 let scaleBar = document.createElement('div');
@@ -8438,390 +6668,34 @@ const getIcon = (name) => {
             return '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 5.8208333,291.17915" style="fill:none;stroke-width:0.52916667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>';
     }
 };
-//#endregion Global Animation UI Handlers
 
 
 /***/ }),
 
-/***/ "./codec.ts":
-/*!******************!*\
-  !*** ./codec.ts ***!
-  \******************/
+/***/ "./ts/codec.ts":
+/*!*********************!*\
+  !*** ./ts/codec.ts ***!
+  \*********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildDisplaySettingsJson: () => (/* binding */ buildDisplaySettingsJson),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   loadCodec: () => (/* binding */ loadCodec),
-/* harmony export */   maybeExportItemJson: () => (/* binding */ maybeExportItemJson),
-/* harmony export */   unloadCodec: () => (/* binding */ unloadCodec)
+/* harmony export */   format: () => (/* binding */ format),
+/* harmony export */   openProjectSettingsDialog: () => (/* binding */ openProjectSettingsDialog)
 /* harmony export */ });
-/* harmony import */ var lodash_omit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash/omit */ "./node_modules/lodash/omit.js");
-/* harmony import */ var lodash_omit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_omit__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./settings */ "./settings.ts");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./utils.ts");
+/* harmony import */ var _resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../resources/armorTemplate.json */ "./resources/armorTemplate.json");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
 
 
 
-// This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
-class GeckolibBoneAnimator extends BoneAnimator {
-    addKeyframe(data, uuid) {
-        return super.addKeyframe(data, uuid);
-    }
-}
-/* eslint-disable no-useless-escape */
-//#region Codec Helpers / Export Settings
-function loadCodec() {
-    // The actual Codec is automatically registered by superclass constructor
-    Codecs.project.on('compile', onProjectCompile);
-    Codecs.project.on('parse', onProjectParse);
-    Codecs.bedrock.on('compile', onBedrockCompile);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(Animator, null, "buildFile", animatorBuildFile);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(Animator, null, "loadFile", animatorLoadFile);
-}
-function unloadCodec() {
-    Codecs.project.removeListener('compile', onProjectCompile);
-    Codecs.project.removeListener('parse', onProjectParse);
-    Codecs.bedrock.removeListener('compile', onBedrockCompile);
-    format.delete();
-}
-function onProjectCompile(e) {
-    if (Format.id !== "animated_entity_model")
-        return;
-    e.model.geckoSettings = _settings__WEBPACK_IMPORTED_MODULE_2__["default"];
-    // console.log(`compileCallback model:`, e.model);
-}
-function onProjectParse(e) {
-    // console.log(`onProjectParse:`, e);
-    if (e.model && typeof e.model.geckoSettings === 'object') {
-        Object.assign(_settings__WEBPACK_IMPORTED_MODULE_2__["default"], lodash_omit__WEBPACK_IMPORTED_MODULE_0___default()(e.model.geckoSettings, ['formatVersion']));
-    }
-    else {
-        Object.assign(_settings__WEBPACK_IMPORTED_MODULE_2__["default"], _settings__WEBPACK_IMPORTED_MODULE_2__.GECKO_SETTINGS_DEFAULT);
-    }
-    (0,_settings__WEBPACK_IMPORTED_MODULE_2__.onSettingsChanged)();
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onBedrockCompile(e) {
-    if (Format.id !== "animated_entity_model")
-        return;
-    // Remove display transforms from non-bedrock geometry
-    const geometry = e.model["minecraft:geometry"];
-    if (geometry) {
-        geometry.forEach((geo) => {
-            delete geo["item_display_transforms"];
-        });
-    }
-    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
-    switch (e.model.format_version) {
-        case "1.14.0":
-        case "1.21.0":
-        case "1.21.20":
-            e.model.format_version = "1.12.0";
-            break;
-        default:
-            break;
-    }
-    // console.log('onBedrockCompile e:', e);
-    // maybeExportItemJson(e.options);
-}
-function animatorBuildFile() {
-    const res = _utils__WEBPACK_IMPORTED_MODULE_1__.Original.get(Animator).buildFile.apply(this, arguments);
-    if (Format.id === "animated_entity_model") {
-        Object.assign(res, {
-            'geckolib_format_version': _settings__WEBPACK_IMPORTED_MODULE_2__["default"].formatVersion,
-        });
-        // Convert exported bedrock animations to non-bedrock
-        // This should be a menu item but that can be a future thing
-        if (res.animations) {
-            for (const animation in res.animations) {
-                const bones = res.animations[animation].bones;
-                if (bones) {
-                    for (const boneName in bones) {
-                        const bone = bones[boneName];
-                        for (const animationGroupType in bone) {
-                            const animationGroup = bone[animationGroupType];
-                            for (const timestamp in animationGroup) {
-                                const keyframe = animationGroup[timestamp];
-                                if (!keyframe)
-                                    continue;
-                                let bedrockKeyframe = keyframe.pre;
-                                let bedrockKeyframeData = undefined;
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.pre;
-                                }
-                                bedrockKeyframe = keyframe.post;
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.post;
-                                }
-                                if (bedrockKeyframeData !== undefined) {
-                                    Object.assign(keyframe, bedrockKeyframeData);
-                                    if (keyframe.lerp_mode)
-                                        delete keyframe.lerp_mode;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // console.log('animatorBuildFile res:', res);
-    return res;
-}
-function getKeyframeDataPoints(source) {
-    if (source instanceof Array) {
-        return [{
-                x: source[0],
-                y: source[1],
-                z: source[2],
-            }];
-    }
-    else if (['number', 'string'].includes(typeof source)) {
-        return [{
-                x: source, y: source, z: source
-            }];
-    }
-    else if (typeof source == 'object') {
-        if (source.vector) {
-            return getKeyframeDataPoints(source.vector);
-        }
-        const points = [];
-        if (source.pre) {
-            points.push(getKeyframeDataPoints(source.pre)[0]);
-        }
-        if (source.post) {
-            points.push(getKeyframeDataPoints(source.post)[0]);
-        }
-        return points;
-    }
-}
-function geoLoopToBbLoop(jsonLoop) {
-    if (jsonLoop) {
-        if (typeof jsonLoop === 'boolean') {
-            return jsonLoop ? 'loop' : 'once';
-        }
-        if (typeof jsonLoop === 'string') {
-            if (jsonLoop === "hold_on_last_frame")
-                return 'hold';
-            if (jsonLoop === "loop" || jsonLoop === "true")
-                return 'loop';
-        }
-    }
-    return 'once';
-}
-function animatorLoadFile(file, animation_filter) {
-    // Currently no modifications are needed
-    // eslint-disable-next-line no-undef
-    const json = file.json || autoParseJSON(file.content);
-    const path = file.path;
-    const new_animations = [];
-    if (json && typeof json.animations === 'object') {
-        for (const ani_name in json.animations) {
-            if (animation_filter && !animation_filter.includes(ani_name))
-                continue;
-            //Animation
-            const a = json.animations[ani_name];
-            const animation = new Blockbench.Animation({
-                name: ani_name,
-                path,
-                loop: geoLoopToBbLoop(a.loop),
-                override: a.override_previous_animation,
-                anim_time_update: (typeof a.anim_time_update == 'string'
-                    ? a.anim_time_update.replace(/;(?!$)/, ';\n')
-                    : a.anim_time_update),
-                blend_weight: (typeof a.blend_weight == 'string'
-                    ? a.blend_weight.replace(/;(?!$)/, ';\n')
-                    : a.blend_weight),
-                length: a.animation_length
-            }).add();
-            //Bones
-            if (a.bones) {
-                for (const bone_name in a.bones) {
-                    const b = a.bones[bone_name];
-                    const lowercase_bone_name = bone_name.toLowerCase();
-                    const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
-                    const uuid = group ? group.uuid : guid();
-                    let ga; // eslint-disable-line @typescript-eslint/no-unused-vars
-                    const ba = new GeckolibBoneAnimator(uuid, animation, bone_name);
-                    animation.animators[uuid] = ba;
-                    //Channels
-                    for (const channel in b) {
-                        if (Animator.possible_channels[channel]) {
-                            if (typeof b[channel] === 'string' || typeof b[channel] === 'number' || b[channel] instanceof Array) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                });
-                            }
-                            else if (typeof b[channel] === 'object' && b[channel].post) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    interpolation: b[channel].lerp_mode,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                });
-                            }
-                            else if (typeof b[channel] === 'object') {
-                                for (const timestamp in b[channel]) {
-                                    ba.addKeyframe({
-                                        time: parseFloat(timestamp),
-                                        channel,
-                                        easing: b[channel][timestamp].easing,
-                                        easingArgs: b[channel][timestamp].easingArgs,
-                                        interpolation: b[channel][timestamp].lerp_mode,
-                                        data_points: getKeyframeDataPoints(b[channel][timestamp]),
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (a.sound_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (const timestamp0 in a.sound_effects) {
-                    let sounds = a.sound_effects[timestamp0];
-                    if (sounds instanceof Array === false)
-                        sounds = [sounds];
-                    animation.animators.effects.addKeyframe({
-                        channel: 'sound',
-                        time: parseFloat(timestamp0),
-                        data_points: sounds
-                    });
-                }
-            }
-            if (a.particle_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (const timestamp1 in a.particle_effects) {
-                    let particles = a.particle_effects[timestamp1];
-                    if (particles instanceof Array === false)
-                        particles = [particles];
-                    particles.forEach(particle => {
-                        if (particle)
-                            particle.script = particle.pre_effect_script;
-                    });
-                    animation.animators.effects.addKeyframe({
-                        channel: 'particle',
-                        time: parseFloat(timestamp1),
-                        data_points: particles
-                    });
-                }
-            }
-            if (a.timeline) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (const timestamp2 in a.timeline) {
-                    const entry = a.timeline[timestamp2];
-                    const script = entry instanceof Array ? entry.join('\n') : entry;
-                    animation.animators.effects.addKeyframe({
-                        channel: 'timeline',
-                        time: parseFloat(timestamp2),
-                        data_points: [{ script }]
-                    });
-                }
-            }
-            animation.calculateSnappingFromKeyframes();
-            if (!Blockbench.Animation.selected && Animator.open) {
-                animation.select();
-            }
-            new_animations.push(animation);
-        }
-    }
-    return new_animations;
-}
-//#endregion Codec Helpers / Export Settings
-//#region Codec / ModelFormat
-function maybeExportItemJson(options = {}) {
-    function checkExport(key, condition) {
-        key = options[key];
-        if (key === undefined) {
-            return condition;
-        }
-        else {
-            return key;
-        }
-    }
-    if (!Project)
-        return;
-    const blockmodel = {};
-    if (checkExport('comment', settings.credit.value)) {
-        blockmodel.credit = settings.credit.value;
-    }
-    if (checkExport('parent', Project.parent != '')) {
-        blockmodel.parent = Project.parent;
-    }
-    if (checkExport('ambientocclusion', Project.ambientocclusion === false)) {
-        blockmodel.ambientocclusion = false;
-    }
-    if (Project.texture_width !== 16 || Project.texture_height !== 16) {
-        blockmodel.texture_size = [Project.texture_width, Project.texture_height];
-    }
-    if (checkExport('front_gui_light', Project.front_gui_light)) {
-        blockmodel.gui_light = 'front';
-    }
-    if (checkExport('overrides', Project.overrides)) {
-        blockmodel.overrides = Project.overrides;
-    }
-    if (checkExport('display', Object.keys(Project.display_settings).length >= 1)) {
-        const new_display = {};
-        let entries = 0;
-        for (const i in DisplayMode.slots) {
-            const key = DisplayMode.slots[i];
-            // eslint-disable-next-line no-prototype-builtins
-            if (DisplayMode.slots.hasOwnProperty(i) && Project.display_settings[key] && Project.display_settings[key].export) {
-                new_display[key] = Project.display_settings[key].export();
-                entries++;
-            }
-        }
-        if (entries) {
-            blockmodel.display = new_display;
-        }
-    }
-    if (checkExport('textures', Object.keys(Project.textures).length >= 1)) {
-        for (const tex of Project.textures) {
-            if (tex.particle || Object.keys(Project.textures).length === 1) {
-                let name = tex.name;
-                if (name.indexOf(".png") > 0)
-                    name = name.substring(0, name.indexOf(".png"));
-                const texturesMap = {};
-                texturesMap['particle'] = name;
-                blockmodel.textures = texturesMap;
-                break;
-            }
-        }
-    }
-    const blockmodelString = JSON.stringify(blockmodel, null, 2);
-    const scope = codec;
-    const path = _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath;
-    Blockbench.export({
-        resource_id: 'model',
-        type: Codecs.java_block.name,
-        extensions: ['json'],
-        name: scope.fileName().replace(".geo", ".item"),
-        startpath: path,
-        content: blockmodelString,
-    }, (real_path) => {
-        _settings__WEBPACK_IMPORTED_MODULE_2__["default"].itemModelPath = real_path;
-    });
-    return this;
-}
 const codec = Codecs.bedrock;
+// This gets automatically applied by Blockbench, we don't need to do anything with it
 const format = new ModelFormat({
-    id: "animated_entity_model",
+    id: _constants__WEBPACK_IMPORTED_MODULE_0__.GECKOLIB_MODEL_ID,
     name: "GeckoLib Animated Model",
     category: "minecraft",
     description: "Animated Model for Java mods using GeckoLib",
@@ -8834,26 +6708,359 @@ const format = new ModelFormat({
     centered_grid: true,
     animated_textures: true,
     select_texture_for_particles: true,
-    animation_mode: true,
     animation_files: true,
     locators: true,
     codec: Codecs.project,
     display_mode: false,
-    onActivation: function () {
-    }
+    animation_mode: true,
 });
-//Object.defineProperty(format, 'integer_size', {get: _ => Templates.get('integer_size')})
-// codec.format = format; // This sets the default format for the codec
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (codec); // This is used for plugin "Export Animated Model" menu item
-//#endregion Codec / ModelFormat
+// Override the new project panel to allow customisation
+format.new = function () {
+    if (newProject(this))
+        return openProjectSettingsDialog();
+};
+/**
+ * Open a GeckoLib-customised project settings dialog (usually found when creating a new project, or via the File -> Project... menu item
+ */
+function openProjectSettingsDialog() {
+    if (Project instanceof ModelProject)
+        return createProjectSettingsDialog(Project, createProjectSettingsForm(Project));
+}
+/**
+ * Internal function for determining the placeholder value for the <code>model_identifier</code> form element in dialog windows
+ */
+function getObjectIdPlaceholder(formResult) {
+    const name = formResult === null || formResult === void 0 ? void 0 : formResult['name'];
+    const modelType = formResult === null || formResult === void 0 ? void 0 : formResult[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+    if (!name && !modelType)
+        return 'my_entity';
+    const invalidPathChar = new RegExp('[^_\\-/.a-z0-9]+', 'g');
+    const pseudoWhitepaceChar = new RegExp('[\\s&-]+', 'g');
+    if (name)
+        return name.toLowerCase().replace(pseudoWhitepaceChar, "_").replace(invalidPathChar, "");
+    switch (_constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[modelType]) {
+        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ENTITY: return 'my_entity';
+        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.BLOCK: return 'my_block';
+        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM: return 'my_item';
+        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ARMOR: return 'my_armor';
+        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.OBJECT: return 'my_object';
+        default: return 'my_entity';
+    }
+}
+/**
+ * Create the Project Settings dialog form for use in both new projects and editing existing ones
+ */
+function createProjectSettingsForm(Project) {
+    const form = { format: { type: 'info', label: 'data.format', text: Format.name || 'unknown', description: Format.description } };
+    const properties = ModelProject['properties'];
+    const modelType = properties[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+    if (modelType) {
+        form[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] = {
+            label: modelType.label,
+            description: modelType.description,
+            default: _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ENTITY.toUpperCase(),
+            value: _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE].toUpperCase()].toUpperCase(),
+            placeholder: modelType.placeholder,
+            type: 'select',
+            options: typeof modelType.options == 'function' ? modelType.options() : modelType.options,
+        };
+    }
+    for (const key in properties) {
+        const property = properties[key];
+        if (property.exposed === false || !Condition(property.condition))
+            continue;
+        const entry = form[property.name] = {
+            label: property.label,
+            description: property.description,
+            value: Project[property.name],
+            placeholder: property.placeholder,
+            type: property.type
+        };
+        if (property.name === 'name') {
+            entry.label = 'Project Name';
+            entry.placeholder = 'My Project';
+            entry.description = 'The name of the Blockbench project';
+        }
+        else if (property.name === 'model_identifier') {
+            entry.label = 'Object ID';
+            entry.description = 'The registered id of the object this model represents, for exporting purposes';
+            entry.placeholder = getObjectIdPlaceholder();
+        }
+        switch (property.type) {
+            case 'boolean':
+                entry.type = 'checkbox';
+                break;
+            case 'string':
+                entry.type = 'text';
+                break;
+            default:
+                if (property.options) {
+                    entry['options'] = typeof property.options == 'function' ? property.options() : property.options;
+                    entry.type = 'select';
+                }
+                break;
+        }
+    }
+    if (form['name'] && (Project.save_path || Project.export_path || Format.image_editor) && !Format['legacy_editable_file_name'])
+        delete form['name'];
+    form['uv_mode'] = {
+        label: 'dialog.project.default_uv_mode',
+        description: 'dialog.project.default_uv_mode.description',
+        type: 'select',
+        condition: Format.optional_box_uv,
+        options: {
+            face_uv: 'dialog.project.uv_mode.face_uv',
+            box_uv: 'dialog.project.uv_mode.box_uv',
+        },
+        value: Project.box_uv ? 'box_uv' : 'face_uv',
+    };
+    form['texture_size'] = {
+        label: 'dialog.project.texture_size',
+        type: 'vector',
+        dimensions: 2,
+        value: [Project.texture_width, Project.texture_height],
+        min: 1
+    };
+    return form;
+}
+/**
+ * Create the 'new project' popup dialogue for GeckoLib projects.
+ * <p>
+ * The contents of this is mostly a copy of <code>project.js</code> "project_window" action declaration (Copyright Blockbench)<br>
+ * Periodically check this is up-to-date with Blockbench to ensure ongoing compatibility
+ * @return false if the user clicks <code>cancel</code>, otherwise true
+ */
+function createProjectSettingsDialog(Project, form) {
+    const dialog = new Dialog({
+        id: 'project',
+        title: 'dialog.project.title',
+        width: 500,
+        form,
+        onConfirm: function (formResult) {
+            let save;
+            const box_uv = formResult['uv_mode'] == 'box_uv';
+            const texture_width = Math.clamp(formResult['texture_size'][0], 1, Infinity);
+            const texture_height = Math.clamp(formResult['texture_size'][1], 1, Infinity);
+            if (Project.box_uv != box_uv || Project.texture_width != texture_width || Project.texture_height != texture_height) {
+                // Adjust UV Mapping if resolution changed
+                if (!Project.box_uv && !box_uv && !Format['per_texture_uv_size'] && (Project.texture_width != texture_width || Project.texture_height != texture_height)) {
+                    save = Undo.initEdit({ elements: [...Cube.all, ...Mesh.all], uv_only: true, uv_mode: true });
+                    Cube.all.forEach(cube => {
+                        for (const key in cube.faces) {
+                            const uv = cube.faces[key].uv;
+                            uv[0] *= texture_width / Project.texture_width;
+                            uv[2] *= texture_width / Project.texture_width;
+                            uv[1] *= texture_height / Project.texture_height;
+                            uv[3] *= texture_height / Project.texture_height;
+                        }
+                    });
+                    Mesh.all.forEach(mesh => {
+                        for (const key in mesh.faces) {
+                            const uv = mesh.faces[key].uv;
+                            for (const vkey in uv) {
+                                uv[vkey][0] *= texture_width / Project.texture_width;
+                                uv[vkey][1] *= texture_height / Project.texture_height;
+                            }
+                        }
+                    });
+                }
+                // Convert UV mode per element
+                if (Project.box_uv != box_uv && ((box_uv && !Cube.all.find(cube => cube['box_uv'])) || (!box_uv && !Cube.all.find(cube => !cube['box_uv'])))) {
+                    if (!save)
+                        save = Undo.initEdit({ elements: Cube.all, uv_only: true, uv_mode: true });
+                    Cube.all.forEach(cube => cube.setUVMode(box_uv));
+                }
+                if (!save)
+                    save = Undo.initEdit({ uv_mode: true });
+                Project.texture_width = texture_width;
+                Project.texture_height = texture_height;
+                if (Format.optional_box_uv)
+                    Project.box_uv = box_uv;
+                Canvas.updateAllUVs();
+                updateSelection();
+            }
+            const properties = ModelProject['properties'];
+            for (const key in properties) {
+                properties[key].merge(Project, formResult);
+            }
+            Project.name = Project.name.trim();
+            Project.model_identifier = Project.model_identifier.trim();
+            if (save)
+                Undo.finishEdit('Change project UV settings');
+            Blockbench.dispatchEvent('update_project_settings', formResult);
+            BARS.updateConditions();
+            if (Project.EditSession) {
+                const metadata = {
+                    texture_width: Project.texture_width,
+                    texture_height: Project.texture_height,
+                    box_uv: Project.box_uv
+                };
+                for (const key in properties) {
+                    properties[key].copy(Project, metadata);
+                }
+                Project.EditSession.sendAll('change_project_meta', JSON.stringify(metadata));
+            }
+            const modelType = _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[formResult[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE]];
+            Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] = modelType;
+            if (modelType == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM)
+                Project.parent = 'builtin/entity';
+            if (Project.name === Format.name || Project.name === '')
+                Project.name = "GeckoLib " + Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+            switch (modelType) {
+                case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ARMOR:
+                    if (Outliner.root.length === 0) {
+                        Codecs.project.parse(_resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_1__, null);
+                    }
+                    else {
+                        alert('Unable to generate Armor Template over an existing model. Please select Armor on a new or empty project to use this model type.');
+                        return false;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            Format.display_mode = modelType === _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM || settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_ALWAYS_SHOW_DISPLAY].value;
+            dialog.hide();
+        },
+        onFormChange(formResult) {
+            try {
+                document.getElementById('model_identifier')['placeholder'] = getObjectIdPlaceholder(formResult);
+            } // eslint-disable-next-line no-empty
+            catch (ex) { }
+        },
+    });
+    dialog.show();
+    return true;
+}
+/**
+ * Export the item display json
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function buildDisplaySettingsJson(options = {}) {
+    if (!Project)
+        return;
+    const modelProperties = {};
+    if (options['comment'] || settings.credit.value)
+        modelProperties.credit = settings.credit.value;
+    if (options['parent'] || Project.parent != '')
+        modelProperties.parent = Project.parent;
+    if (options['ambientocclusion'] || Project.ambientocclusion === false)
+        modelProperties.ambientocclusion = false;
+    if (Project.texture_width !== 16 || Project.texture_height !== 16)
+        modelProperties.texture_size = [Project.texture_width, Project.texture_height];
+    if (options['front_gui_light'] || Project.front_gui_light)
+        modelProperties.gui_light = 'front';
+    if (options['overrides'] || Project.overrides)
+        modelProperties.overrides = Project.overrides;
+    if (options['display'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(Project.display_settings)) {
+        const nonDefaultDisplays = {};
+        for (const slot in DisplayMode.slots) {
+            const perspective = DisplayMode.slots[slot];
+            // eslint-disable-next-line no-prototype-builtins
+            if (DisplayMode.slots.hasOwnProperty(slot) && Project.display_settings[perspective]) {
+                const display = Project.display_settings[perspective].export();
+                if (display)
+                    nonDefaultDisplays[perspective] = display;
+            }
+        }
+        if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(nonDefaultDisplays))
+            modelProperties.display = nonDefaultDisplays;
+    }
+    if (options['textures'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(Project.textures)) {
+        for (const texture of Project.textures) {
+            if (texture.particle || (settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_AUTO_PARTICLE_TEXTURE].value && Object.keys(Project.textures).length === 1)) {
+                let name = texture.name;
+                if (name.indexOf(".png") > 0)
+                    name = name.substring(0, name.indexOf(".png"));
+                if (!texture.particle) {
+                    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name)) {
+                        name = name.toLowerCase().replace(" ", "_");
+                        if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name))
+                            continue;
+                    }
+                }
+                name = (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.BLOCK ? "block/" : "item/") + name;
+                if (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODID])
+                    name = Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODID] + ":" + name;
+                modelProperties.textures = { 'particle': name };
+                break;
+            }
+        }
+    }
+    Blockbench.export({
+        resource_id: 'model',
+        type: Codecs.java_block.name,
+        extensions: ['json'],
+        name: Project.model_identifier ? (Project.model_identifier + ".json") : codec.fileName().replace(".geo", ""),
+        startpath: Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display,
+        content: JSON.stringify(modelProperties, null, 2),
+    }, file_path => {
+        const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display;
+        Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display = settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+        if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display)
+            Project.saved = false;
+    });
+    return this;
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (codec);
 
 
 /***/ }),
 
-/***/ "./easing.ts":
-/*!*******************!*\
-  !*** ./easing.ts ***!
-  \*******************/
+/***/ "./ts/constants.ts":
+/*!*************************!*\
+  !*** ./ts/constants.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GECKOLIB_MODEL_ID: () => (/* binding */ GECKOLIB_MODEL_ID),
+/* harmony export */   GeckoModelType: () => (/* binding */ GeckoModelType),
+/* harmony export */   PROPERTY_FILEPATH_CACHE: () => (/* binding */ PROPERTY_FILEPATH_CACHE),
+/* harmony export */   PROPERTY_MODEL_TYPE: () => (/* binding */ PROPERTY_MODEL_TYPE),
+/* harmony export */   PROPERTY_MODID: () => (/* binding */ PROPERTY_MODID),
+/* harmony export */   SETTING_ALWAYS_SHOW_DISPLAY: () => (/* binding */ SETTING_ALWAYS_SHOW_DISPLAY),
+/* harmony export */   SETTING_AUTO_PARTICLE_TEXTURE: () => (/* binding */ SETTING_AUTO_PARTICLE_TEXTURE),
+/* harmony export */   SETTING_CONVERT_BEDROCK_ANIMATIONS: () => (/* binding */ SETTING_CONVERT_BEDROCK_ANIMATIONS),
+/* harmony export */   SETTING_DEFAULT_MODID: () => (/* binding */ SETTING_DEFAULT_MODID),
+/* harmony export */   SETTING_REMEMBER_EXPORT_LOCATIONS: () => (/* binding */ SETTING_REMEMBER_EXPORT_LOCATIONS)
+/* harmony export */ });
+/**
+ * GeckoLib plugin model format ID. Used to identify model types generated from this plugin
+ */
+const GECKOLIB_MODEL_ID = "animated_entity_model";
+// Setting name constants
+const SETTING_AUTO_PARTICLE_TEXTURE = 'geckolib_auto_particle_texture';
+const SETTING_CONVERT_BEDROCK_ANIMATIONS = 'geckolib_convert_bedrock_animations';
+const SETTING_ALWAYS_SHOW_DISPLAY = 'geckolib_always_show_display';
+const SETTING_REMEMBER_EXPORT_LOCATIONS = 'geckolib_remember_export_locations';
+const SETTING_DEFAULT_MODID = 'geckolib_default_modid';
+// Property name constants
+const PROPERTY_MODID = 'geckolib_modid';
+const PROPERTY_MODEL_TYPE = 'geckolib_model_type';
+const PROPERTY_FILEPATH_CACHE = 'geckolib_filepath_cache';
+/**
+ * Available GeckoLib model types
+ */
+var GeckoModelType;
+(function (GeckoModelType) {
+    GeckoModelType["ENTITY"] = "Entity";
+    GeckoModelType["BLOCK"] = "Block";
+    GeckoModelType["ITEM"] = "Item";
+    GeckoModelType["ARMOR"] = "Armor";
+    GeckoModelType["OBJECT"] = "Object";
+})(GeckoModelType || (GeckoModelType = {}));
+
+
+/***/ }),
+
+/***/ "./ts/easing.ts":
+/*!**********************!*\
+  !*** ./ts/easing.ts ***!
+  \**********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -8863,6 +7070,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   EASING_OPTIONS: () => (/* binding */ EASING_OPTIONS),
 /* harmony export */   easingFunctions: () => (/* binding */ easingFunctions),
 /* harmony export */   getEasingArgDefault: () => (/* binding */ getEasingArgDefault),
+/* harmony export */   isArgsEasing: () => (/* binding */ isArgsEasing),
 /* harmony export */   parseEasingArg: () => (/* binding */ parseEasingArg),
 /* harmony export */   reverseEasing: () => (/* binding */ reverseEasing)
 /* harmony export */ });
@@ -8923,9 +7131,7 @@ function stepRange(steps, stop = 1) {
     if (steps < 2)
         throw new Error("steps must be > 2, got:" + steps);
     const stepLength = stop / steps;
-    return Array.from({
-        length: steps
-    }, (_, i) => i * stepLength);
+    return Array.from({ length: steps }, (_, i) => i * stepLength);
 }
 // The MIT license notice below applies to the Easing class
 /**
@@ -9188,19 +7394,406 @@ function reverseEasing(easing) {
         return easing.replace("easeOut", "easeIn");
     return easing;
 }
+const isArgsEasing = (easing = "") => easing.includes("Back") ||
+    easing.includes("Elastic") ||
+    easing.includes("Bounce") ||
+    easing === EASING_OPTIONS.step;
 
 
 /***/ }),
 
-/***/ "./keyframe.ts":
-/*!*********************!*\
-  !*** ./keyframe.ts ***!
-  \*********************/
+/***/ "./ts/events.ts":
+/*!**********************!*\
+  !*** ./ts/events.ts ***!
+  \**********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   addEventListeners: () => (/* binding */ addEventListeners),
+/* harmony export */   removeEventListeners: () => (/* binding */ removeEventListeners)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codec */ "./ts/codec.ts");
+
+
+
+
+function addEventListeners() {
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addCodecCallback)(Codecs.project, 'parse', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectParse));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addCodecCallback)(Codecs.bedrock, 'compile', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onBedrockCompile));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('select_mode', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onModeSelect));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('select_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSelect));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('update_project_settings', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onSettingsChanged));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('save_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSave));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Blockbench, null, "export", monkeypatchBlockbenchExport);
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
+}
+function removeEventListeners() {
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeCodecCallback)(Codecs.project, 'parse', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectParse));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeCodecCallback)(Codecs.bedrock, 'compile', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onBedrockCompile));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeEventListener)('select_mode', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onModeSelect));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeEventListener)('select_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSelect));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeEventListener)('update_project_settings', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onSettingsChanged));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.removeMonkeypatches)();
+}
+/**
+ * When an existing GeckoLib project is being read from file
+ */
+function onProjectParse(e) {
+    onSettingsChanged();
+    // Because the project hasn't had its model properties applied at this stage
+    Format.display_mode = (e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] && e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM) || settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_ALWAYS_SHOW_DISPLAY].value;
+}
+/**
+ * When the Blockbench project is being saved
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onProjectSave(e) {
+    if (!settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
+        e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE] = {};
+}
+/**
+ * When the GeckoLib project settings are changed, or a GeckoLib project is being opened or swapped to
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onSettingsChanged() {
+    Modes.selected.select();
+    Format.display_mode = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.hasModelDisplaySettings)();
+    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
+        Project.parent = 'builtin/entity';
+        Project.saved = false;
+    }
+}
+/**
+ * When opening a project tab, whether from an existing project, creating a new one, or swapping open tabs
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onProjectSelect() {
+    onSettingsChanged();
+}
+/**
+ * When selecting edit/paint/display/animate/etc
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onModeSelect(e) {
+    // Offset the display emulator to account for GeckoLib's +0.51 manual offset
+    // This is a legacy patch as Blockbench no longer does this internally
+    if (e.mode.id == 'display')
+        Project.model_3d.position.y = 0;
+}
+/**
+ * When the model geometry is being compiled for export
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onBedrockCompile(e) {
+    var _a;
+    // Remove display transforms from non-bedrock geometry
+    (_a = e.model["minecraft:geometry"]) === null || _a === void 0 ? void 0 : _a.forEach((geo) => delete geo["item_display_transforms"]);
+    // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
+    switch (e.model.format_version) {
+        case "1.14.0":
+        case "1.21.0":
+        case "1.21.20":
+            e.model.format_version = "1.12.0";
+            break;
+        default:
+            break;
+    }
+}
+/**
+ * When the project settings window is being opened, either via a new project or the File -> Project... menu item
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function monkeypatchProjectWindowClick() {
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)()) {
+        (0,_codec__WEBPACK_IMPORTED_MODULE_2__.openProjectSettingsDialog)();
+    }
+    else {
+        _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(BarItems).click();
+    }
+}
+/**
+ * When any file is being exported to disk by Blockbench
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function monkeypatchBlockbenchExport(options, cb) {
+    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)()) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(Blockbench).export(options, cb);
+        return;
+    }
+    if (Project instanceof ModelProject) {
+        if (options.resource_id === 'animation' && options.type === 'JSON Animation') { // Animation JSON
+            const fileName = Project.model_identifier && Project.model_identifier + ".animation";
+            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation;
+            const parentCallback = cb;
+            cb = file_path => {
+                if (parentCallback)
+                    parentCallback(file_path);
+                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation;
+                Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation = settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation)
+                    Project.saved = false;
+            };
+            if (fileName)
+                options.name = fileName;
+        }
+        else if (options.resource_id === 'model' && options.type === 'Bedrock Model') { // Geo
+            const fileName = Project.model_identifier && Project.model_identifier + ".geo";
+            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model;
+            const parentWriter = options.custom_writer;
+            const parentCallback = cb;
+            if (parentWriter) {
+                options.custom_writer = (content, filePath, callback) => {
+                    parentWriter(content, filePath, callback);
+                    callback(filePath);
+                };
+            }
+            cb = file_path => {
+                if (parentCallback)
+                    parentCallback(file_path);
+                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model;
+                Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model = settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model)
+                    Project.saved = false;
+            };
+            if (fileName)
+                options.name = fileName;
+        }
+    }
+    _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(Blockbench).export(options, cb);
+}
+/**
+ * When the animation file is being loaded into the project
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function monkeypatchAnimatorLoadFile(file, exportingAnims) {
+    // eslint-disable-next-line no-undef
+    const json = file.json || autoParseJSON(file.content);
+    const path = file.path;
+    const new_animations = [];
+    function geoLoopToBbLoop(jsonLoop) {
+        if (jsonLoop) {
+            if (typeof jsonLoop === 'boolean')
+                return jsonLoop ? 'loop' : 'once';
+            if (typeof jsonLoop === 'string') {
+                if (jsonLoop === "hold_on_last_frame")
+                    return 'hold';
+                if (jsonLoop === "loop" || jsonLoop === "true")
+                    return 'loop';
+            }
+        }
+        return 'once';
+    }
+    function getKeyframeDataPoints(source) {
+        if (source instanceof Array)
+            return [{ x: source[0], y: source[1], z: source[2], }];
+        if (['number', 'string'].includes(typeof source))
+            return [{ x: source, y: source, z: source }];
+        if (typeof source == 'object') {
+            if (source.vector)
+                return getKeyframeDataPoints(source.vector);
+            const points = [];
+            if (source.pre)
+                points.push(getKeyframeDataPoints(source.pre)[0]);
+            if (source.post)
+                points.push(getKeyframeDataPoints(source.post)[0]);
+            return points;
+        }
+    }
+    if (json && typeof json.animations === 'object') {
+        for (const animName in json.animations) {
+            if (exportingAnims && !exportingAnims.includes(animName))
+                continue;
+            //Animation
+            const animData = json.animations[animName];
+            const animation = new Blockbench.Animation({
+                name: animName,
+                path,
+                loop: geoLoopToBbLoop(animData.loop),
+                override: animData.override_previous_animation,
+                anim_time_update: (typeof animData.anim_time_update == 'string'
+                    ? animData.anim_time_update.replace(/;(?!$)/, ';\n')
+                    : animData.anim_time_update),
+                blend_weight: (typeof animData.blend_weight == 'string'
+                    ? animData.blend_weight.replace(/;(?!$)/, ';\n')
+                    : animData.blend_weight),
+                length: animData.animation_length
+            }).add();
+            //Bones
+            if (animData.bones) {
+                for (const boneName in animData.bones) {
+                    const bone = animData.bones[boneName];
+                    const lowercase_bone_name = boneName.toLowerCase();
+                    const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
+                    const uuid = group ? group.uuid : guid();
+                    let ga; // eslint-disable-line @typescript-eslint/no-unused-vars
+                    const boneAnimator = new _keyframe__WEBPACK_IMPORTED_MODULE_3__.GeckolibBoneAnimator(uuid, animation, boneName);
+                    animation.animators[uuid] = boneAnimator;
+                    //Channels
+                    for (const channel in bone) {
+                        if (Animator.possible_channels[channel]) {
+                            if (typeof bone[channel] === 'string' || typeof bone[channel] === 'number' || bone[channel] instanceof Array) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel].easing,
+                                    easingArgs: bone[channel].easingArgs,
+                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                });
+                            }
+                            else if (typeof bone[channel] === 'object' && bone[channel].post) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel].easing,
+                                    easingArgs: bone[channel].easingArgs,
+                                    interpolation: bone[channel].lerp_mode,
+                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                });
+                            }
+                            else if (typeof bone[channel] === 'object') {
+                                for (const timestamp in bone[channel]) {
+                                    boneAnimator.addKeyframe({
+                                        time: parseFloat(timestamp),
+                                        channel,
+                                        easing: bone[channel][timestamp].easing,
+                                        easingArgs: bone[channel][timestamp].easingArgs,
+                                        interpolation: bone[channel][timestamp].lerp_mode,
+                                        data_points: getKeyframeDataPoints(bone[channel][timestamp]),
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (animData.sound_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.sound_effects) {
+                    const sounds = animData.sound_effects[timestamp];
+                    animation.animators.effects.addKeyframe({
+                        channel: 'sound',
+                        time: parseFloat(timestamp),
+                        data_points: sounds instanceof Array ? sounds : [sounds]
+                    });
+                }
+            }
+            if (animData.particle_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.particle_effects) {
+                    let particles = animData.particle_effects[timestamp];
+                    if (!(particles instanceof Array))
+                        particles = [particles];
+                    particles.forEach(particle => {
+                        if (particle)
+                            particle.script = particle.pre_effect_script;
+                    });
+                    animation.animators.effects.addKeyframe({
+                        channel: 'particle',
+                        time: parseFloat(timestamp),
+                        data_points: particles
+                    });
+                }
+            }
+            if (animData.timeline) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.timeline) {
+                    const entry = animData.timeline[timestamp];
+                    const script = entry instanceof Array ? entry.join('\n') : entry;
+                    animation.animators.effects.addKeyframe({
+                        channel: 'timeline',
+                        time: parseFloat(timestamp),
+                        data_points: [{ script }]
+                    });
+                }
+            }
+            animation.calculateSnappingFromKeyframes();
+            if (!Blockbench.Animation.selected && Animator.open)
+                animation.select();
+            new_animations.push(animation);
+        }
+    }
+    return new_animations;
+}
+/**
+ * When the animations json is being compiled for export
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function monkeypatchAnimatorBuildFile() {
+    const result = _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(Animator).buildFile.apply(this, arguments);
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)()) {
+        result.geckolib_format_version = 2;
+        // Convert exported bedrock animations to non-bedrock
+        // Only applies to projects that had its animations made in a non-GeckoLib model format
+        if (settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_CONVERT_BEDROCK_ANIMATIONS].value && result.animations) {
+            for (const animation in result.animations) {
+                const bones = result.animations[animation].bones;
+                if (bones) {
+                    for (const boneName in bones) {
+                        const bone = bones[boneName];
+                        for (const animationGroupType in bone) {
+                            const animationGroup = bone[animationGroupType];
+                            for (const timestamp in animationGroup) {
+                                const keyframe = animationGroup[timestamp];
+                                if (!keyframe)
+                                    continue;
+                                let bedrockKeyframe = keyframe.pre;
+                                let bedrockKeyframeData = undefined;
+                                if (bedrockKeyframe !== undefined) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe.pre;
+                                }
+                                bedrockKeyframe = keyframe.post;
+                                if (bedrockKeyframe !== undefined) {
+                                    bedrockKeyframeData = bedrockKeyframe;
+                                    delete keyframe.post;
+                                }
+                                if (bedrockKeyframeData !== undefined) {
+                                    Object.assign(keyframe, bedrockKeyframeData);
+                                    if (keyframe.lerp_mode)
+                                        delete keyframe.lerp_mode;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
+/***/ }),
+
+/***/ "./ts/keyframe.ts":
+/*!************************!*\
+  !*** ./ts/keyframe.ts ***!
+  \************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GeckolibBoneAnimator: () => (/* binding */ GeckolibBoneAnimator),
 /* harmony export */   loadKeyframeOverrides: () => (/* binding */ loadKeyframeOverrides),
 /* harmony export */   unloadKeyframeOverrides: () => (/* binding */ unloadKeyframeOverrides)
 /* harmony export */ });
@@ -9208,14 +7801,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_groupBy__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash_mapValues__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash/mapValues */ "./node_modules/lodash/mapValues.js");
 /* harmony import */ var lodash_mapValues__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash_mapValues__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./utils.ts");
-/* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./easing */ "./easing.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./easing */ "./ts/easing.ts");
 
 
 
 
 var Keyframe = Blockbench.Keyframe;
-//#region Keyframe Mixins
 function loadKeyframeOverrides() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getLerp", keyframeGetLerp);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
@@ -9226,6 +7818,12 @@ function loadKeyframeOverrides() {
 function unloadKeyframeOverrides() {
     //No-op for now since monkeypatches are unloaded automatically
 }
+// This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
+class GeckolibBoneAnimator extends BoneAnimator {
+    addKeyframe(data, uuid) {
+        return super.addKeyframe(data, uuid);
+    }
+}
 function lerp(start, stop, amt) {
     return amt * (stop - start) + start;
 }
@@ -9233,10 +7831,10 @@ function lerp(start, stop, amt) {
 function keyframeGetLerp(other, axis, amount, allow_expression) {
     const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     if (Format.id !== "animated_entity_model") {
-        return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getLerp.apply(this, arguments);
+        return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
     }
     let easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
-    if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing)) {
+    if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing)) {
         const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
             ? other.easingArgs[0]
             : (0,_easing__WEBPACK_IMPORTED_MODULE_3__.getEasingArgDefault)(other);
@@ -9258,14 +7856,14 @@ function geckolibGetArray(data_point = 0) {
     let result = getArray.apply(this, [data_point]);
     if (Format.id === "animated_entity_model") {
         result = { vector: result, easing };
-        if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
+        if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
     return result;
 }
 function keyframeCompileBedrock() {
     if (Format.id !== "animated_entity_model" || !this.transform) {
-        return _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+        return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     }
     if (this.interpolation == 'catmullrom') {
         const previous = this.getPreviousKeyframe.apply(this);
@@ -9297,10 +7895,10 @@ function keyframeCompileBedrock() {
 }
 function keyframeGetUndoCopy() {
     const { easing, easingArgs } = this;
-    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).getUndoCopy.apply(this, arguments);
+    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getUndoCopy.apply(this, arguments);
     if (Format.id === "animated_entity_model") {
         Object.assign(result, { easing });
-        if ((0,_utils__WEBPACK_IMPORTED_MODULE_2__.hasArgs)(easing))
+        if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
     //   console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
@@ -9331,12 +7929,12 @@ function keyframeExtend(dataIn) {
             }
         }
     }
-    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(Keyframe).extend.apply(this, arguments);
+    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
     //   console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
     return result;
 }
 function onReverseKeyframes() {
-    _utils__WEBPACK_IMPORTED_MODULE_2__.Original.get(BarItems.reverse_keyframes).click.apply(this, arguments);
+    _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(BarItems.reverse_keyframes).click.apply(this, arguments);
     // console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
     // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
     Undo.initEdit({ keyframes: Timeline.selected });
@@ -9373,135 +7971,143 @@ function onReverseKeyframes() {
     updateKeyframeSelection();
     Animator.preview();
 }
-//#endregion Keyframe Mixins
 
 
 /***/ }),
 
-/***/ "./settings.ts":
+/***/ "./ts/utils.ts":
 /*!*********************!*\
-  !*** ./settings.ts ***!
+  !*** ./ts/utils.ts ***!
   \*********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   GECKO_SETTINGS_DEFAULT: () => (/* binding */ GECKO_SETTINGS_DEFAULT),
-/* harmony export */   MOD_SDKS: () => (/* binding */ MOD_SDKS),
-/* harmony export */   MOD_SDK_1_15_FABRIC: () => (/* binding */ MOD_SDK_1_15_FABRIC),
-/* harmony export */   MOD_SDK_1_15_FORGE: () => (/* binding */ MOD_SDK_1_15_FORGE),
-/* harmony export */   MOD_SDK_OPTIONS: () => (/* binding */ MOD_SDK_OPTIONS),
-/* harmony export */   OBJ_TYPE_ARMOR: () => (/* binding */ OBJ_TYPE_ARMOR),
-/* harmony export */   OBJ_TYPE_BLOCK_ITEM: () => (/* binding */ OBJ_TYPE_BLOCK_ITEM),
-/* harmony export */   OBJ_TYPE_ENTITY: () => (/* binding */ OBJ_TYPE_ENTITY),
-/* harmony export */   OBJ_TYPE_OPTIONS: () => (/* binding */ OBJ_TYPE_OPTIONS),
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   onSettingsChanged: () => (/* binding */ onSettingsChanged)
-/* harmony export */ });
-/* harmony import */ var _armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./armorTemplate.json */ "./armorTemplate.json");
-
-const makeOptions = (arr) => Object.fromEntries(arr.map(x => [x, x]));
-const MOD_SDK_1_15_FORGE = 'Forge 1.12 - 1.16';
-const MOD_SDK_1_15_FABRIC = 'Fabric 1.15 - 1.16';
-const MOD_SDKS = [MOD_SDK_1_15_FORGE, MOD_SDK_1_15_FABRIC];
-const MOD_SDK_OPTIONS = makeOptions(MOD_SDKS);
-const OBJ_TYPE_ENTITY = 'OBJ_TYPE_ENTITY';
-const OBJ_TYPE_ARMOR = 'OBJ_TYPE_ARMOR';
-const OBJ_TYPE_BLOCK_ITEM = 'OBJ_TYPE_ITEM_BLOCK';
-const OBJ_TYPE_OPTIONS = {
-    [OBJ_TYPE_ENTITY]: 'Entity',
-    [OBJ_TYPE_ARMOR]: 'Armor',
-    [OBJ_TYPE_BLOCK_ITEM]: 'Block/Item',
-};
-const GECKO_SETTINGS_DEFAULT = {
-    formatVersion: 2,
-    modSDK: MOD_SDK_1_15_FORGE,
-    objectType: OBJ_TYPE_ENTITY,
-    entityType: 'Entity',
-    javaPackage: 'com.example.mod',
-    animFileNamespace: 'MODID',
-    animFilePath: 'animations/ANIMATIONFILE.json',
-};
-Object.freeze(GECKO_SETTINGS_DEFAULT);
-const geckoSettings = Object.assign({}, GECKO_SETTINGS_DEFAULT);
-function onSettingsChanged() {
-    if (Format.id === "animated_entity_model") {
-        Format.display_mode = geckoSettings.objectType === OBJ_TYPE_BLOCK_ITEM || (Project && Object.keys(Project.display_settings).length != 0);
-    }
-    Modes.selected.select();
-    switch (geckoSettings.objectType) {
-        case OBJ_TYPE_ARMOR: {
-            if (Outliner.root.length === 0) {
-                Codecs.project.parse(_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__, null);
-            }
-            else {
-                alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
-            }
-            break;
-        }
-        case OBJ_TYPE_BLOCK_ITEM: {
-            if (Project)
-                Project.parent = 'builtin/entity';
-            break;
-        }
-    }
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (geckoSettings);
-
-
-/***/ }),
-
-/***/ "./utils.ts":
-/*!******************!*\
-  !*** ./utils.ts ***!
-  \******************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Original: () => (/* binding */ Original),
+/* harmony export */   Monkeypatches: () => (/* binding */ Monkeypatches),
+/* harmony export */   addCodecCallback: () => (/* binding */ addCodecCallback),
+/* harmony export */   addEventListener: () => (/* binding */ addEventListener),
 /* harmony export */   addMonkeypatch: () => (/* binding */ addMonkeypatch),
-/* harmony export */   hasArgs: () => (/* binding */ hasArgs),
+/* harmony export */   hasModelDisplaySettings: () => (/* binding */ hasModelDisplaySettings),
+/* harmony export */   isEmpty: () => (/* binding */ isEmpty),
+/* harmony export */   isGeckoLibModel: () => (/* binding */ isGeckoLibModel),
+/* harmony export */   isValidNamespace: () => (/* binding */ isValidNamespace),
+/* harmony export */   isValidPath: () => (/* binding */ isValidPath),
+/* harmony export */   make: () => (/* binding */ make),
+/* harmony export */   onlyIfGeckoLib: () => (/* binding */ onlyIfGeckoLib),
+/* harmony export */   removeCodecCallback: () => (/* binding */ removeCodecCallback),
+/* harmony export */   removeEventListener: () => (/* binding */ removeEventListener),
 /* harmony export */   removeMonkeypatches: () => (/* binding */ removeMonkeypatches)
 /* harmony export */ });
-/* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./easing */ "./easing.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
 
-const hasArgs = (easing = "") => easing.includes("Back") ||
-    easing.includes("Elastic") ||
-    easing.includes("Bounce") ||
-    easing === _easing__WEBPACK_IMPORTED_MODULE_0__.EASING_OPTIONS.step;
-const Original = new Map();
+const VALID_NAMESPACE_PATTERN = new RegExp('^[_\\-.a-z0-9]+$');
+const VALID_PATH_PATTERN = new RegExp('^[_\\-/.a-z0-9]+$');
+const Monkeypatches = new Map();
+/**
+ * Add what is effectively an override of another javascript function in a target object.
+ * <p>
+ * The patched function should call the original first and operate on the result to ensure compatibility
+ * </p>
+ *
+ * @param symbol The target object
+ * @param path The property of the target to access, or null to access the root target itself
+ * @param functionKey The name of the function to replace
+ * @param newFunction The function to patch in to replace the target
+ */
 const addMonkeypatch = (symbol, path, functionKey, newFunction) => {
     const pathAccessor = path ? symbol[path] : symbol;
-    if (!Original.get(symbol))
-        Original.set(symbol, { _pathAccessor: pathAccessor });
-    Original.get(symbol)[functionKey] = pathAccessor[functionKey];
+    if (!Monkeypatches.get(symbol))
+        Monkeypatches.set(symbol, { _pathAccessor: pathAccessor });
+    Monkeypatches.get(symbol)[functionKey] = pathAccessor[functionKey];
     pathAccessor[functionKey] = newFunction;
 };
+/**
+ * Remove all previously added monkeypatches, reverting their operation to prior to the patch
+ */
 const removeMonkeypatches = () => {
-    Original.forEach(symbol => {
+    Monkeypatches.forEach(symbol => {
         Object.keys(symbol).forEach(functionKey => {
             if (functionKey.startsWith('_'))
                 return;
             symbol._pathAccessor[functionKey] = symbol[functionKey];
         });
     });
-    Original.clear();
+    Monkeypatches.clear();
 };
+/**
+ * Wrap a callback object with a conditional check on the project being a GeckoLib project, for safety
+ */
+const onlyIfGeckoLib = (callback) => {
+    return e => {
+        if (isGeckoLibModel())
+            callback(e);
+    };
+};
+/**
+ * Add an event listener to Blockbench's event callback system.
+ * <p>
+ * This should be done in <code>codec.ts#loadCodec</code> or in the plugin creation in <code>index.ts</code>
+ */
+const addEventListener = (eventName, callback) => {
+    Blockbench.on(eventName, callback);
+};
+/**
+ * Remove a previously registered event listener from Blockbench's event callback system.
+ * <p>
+ * All registered event listeners should be removed when the plugin or codec is unloaded
+ */
+const removeEventListener = (eventName, callback) => {
+    Blockbench.removeListener(eventName, callback);
+};
+/**
+ * Add a callback to a codec to be called after the task has been completed
+ * <p>
+ * This should be done in <code>codec.ts#loadCodec</code> or in the plugin creation in <code>index.ts</code>
+ */
+const addCodecCallback = (codec, taskName, callback) => {
+    codec.on(taskName, callback);
+};
+/**
+ * Helper function that allows instantiation of an object and simultaneous property-modification without needing a local variable
+ */
+function make(obj, consumer) {
+    consumer(obj);
+    return obj;
+}
+/**
+ * Remove a previously added codec task completion callback
+ * <p>
+ * All registered coded callbacks should be removed when the plugin or codec is unloaded
+ */
+const removeCodecCallback = (codec, taskName, callback) => {
+    codec.removeListener(taskName, callback);
+};
+/**
+ * Whether a given string is a valid ResourceLocation path for Minecraft
+ */
+const isValidPath = (path) => {
+    return VALID_PATH_PATTERN.test(path);
+};
+/**
+ * Whether a given string is a valid ResourceLocation namespace for Minecraft
+ */
+const isValidNamespace = (namespace) => {
+    return VALID_NAMESPACE_PATTERN.test(namespace);
+};
+/**
+ * Whether a map-like object has no defined keys or values
+ */
+const isEmpty = (object = {}) => Object.keys(object).length === 0;
+/**
+ * Whether the currently focussed model is a GeckoLib model
+ */
+const isGeckoLibModel = () => Format.id === _constants__WEBPACK_IMPORTED_MODULE_0__.GECKOLIB_MODEL_ID;
+/**
+ * Whether the current project is a GeckoLib model that has or uses item render perspective transforms
+ */
+const hasModelDisplaySettings = () => isGeckoLibModel() && Project && ((Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM || !isEmpty(Project.display_settings)) || settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_ALWAYS_SHOW_DISPLAY].value);
 
-
-/***/ }),
-
-/***/ "./armorTemplate.json":
-/*!****************************!*\
-  !*** ./armorTemplate.json ***!
-  \****************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]}],"textures":[]}');
 
 /***/ }),
 
@@ -9512,7 +8118,18 @@ module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"ani
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"animation_utils","version":"3.2.1","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Gecko, McHorse, AzureDoom","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Gecko, McHorse, AzureDoom, Tslat","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","min_version":"4.11.0","max_version":"5.0.0","variant":"both"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = JSON.parse('{"name":"animation_utils","version":"4.0","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Tslat, Gecko, McHorse","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","has_changelog":true,"min_version":"4.11.0","max_version":"5.0.0","variant":"both","website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+
+/***/ }),
+
+/***/ "./resources/armorTemplate.json":
+/*!**************************************!*\
+  !*** ./resources/armorTemplate.json ***!
+  \**************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[4,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-4,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]}],"textures":[]}');
 
 /***/ })
 
@@ -9600,20 +8217,22 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
-/*!******************!*\
-  !*** ./index.ts ***!
-  \******************/
+/*!*********************!*\
+  !*** ./ts/index.ts ***!
+  \*********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! semver/functions/coerce */ "./node_modules/semver/functions/coerce.js");
 /* harmony import */ var semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! semver/functions/satisfies */ "./node_modules/semver/functions/satisfies.js");
 /* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./package.json */ "./package.json");
-/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./animationUi */ "./animationUi.ts");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./utils */ "./utils.ts");
-/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./keyframe */ "./keyframe.ts");
-/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./settings */ "./settings.ts");
-/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./codec */ "./codec.ts");
+/* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../package.json */ "./package.json");
+/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./animationUi */ "./ts/animationUi.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
+/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./codec */ "./ts/codec.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./events */ "./ts/events.ts");
+
 
 
 
@@ -9624,84 +8243,185 @@ __webpack_require__.r(__webpack_exports__);
 
 const { version, blockbenchConfig } = _package_json__WEBPACK_IMPORTED_MODULE_2__;
 const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
-if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default()(Blockbench.version), SUPPORTED_BB_VERSION_RANGE)) {
+if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default()(Blockbench.version), SUPPORTED_BB_VERSION_RANGE))
     alert(`GeckoLib Animation Utils currently only supports Blockbench ${SUPPORTED_BB_VERSION_RANGE}. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.`);
-}
+// Register the plugin and define what it adds
 (function () {
-    let exportAction;
-    let exportDisplayAction;
-    let button;
+    let pluginSettings;
+    let pluginProperties;
+    let pluginMenuItems;
     BBPlugin.register("animation_utils", Object.assign({}, blockbenchConfig, {
         name: blockbenchConfig.title,
         version,
         await_loading: true,
         onload() {
-            (0,_codec__WEBPACK_IMPORTED_MODULE_3__.loadCodec)();
+            (0,_events__WEBPACK_IMPORTED_MODULE_3__.addEventListeners)();
             (0,_animationUi__WEBPACK_IMPORTED_MODULE_4__.loadAnimationUI)();
             (0,_keyframe__WEBPACK_IMPORTED_MODULE_5__.loadKeyframeOverrides)();
+            pluginSettings = createPluginSettings();
+            pluginProperties = createPluginProperties();
+            pluginMenuItems = createPluginMenuItems();
+            for (const menuItem of pluginMenuItems) {
+                MenuBar.addAction(menuItem.action, menuItem.menuCategory);
+            }
             console.log("Loaded GeckoLib plugin");
-            exportAction = new Action("export_geckolib_model", {
-                name: "Export GeckoLib Model",
-                icon: "archive",
-                description: "Export your java animated model as a model for GeckoLib.",
-                category: "file",
-                condition: () => Format.id === "animated_entity_model",
-                click: function () {
-                    _codec__WEBPACK_IMPORTED_MODULE_3__["default"].export();
-                },
-            });
-            MenuBar.addAction(exportAction, "file.export");
-            exportDisplayAction = new Action("export_geckolib_display", {
-                name: "Export GeckoLib Display Settings",
-                icon: "icon-bb_interface",
-                description: "Export your java animated model display settings for GeckoLib.",
-                category: "file",
-                condition: () => Format.id === "animated_entity_model" && _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType === _settings__WEBPACK_IMPORTED_MODULE_6__.OBJ_TYPE_BLOCK_ITEM,
-                click: _codec__WEBPACK_IMPORTED_MODULE_3__.maybeExportItemJson,
-            });
-            MenuBar.addAction(exportDisplayAction, "file.export");
-            button = new Action('gecko_settings', {
-                name: 'GeckoLib Model Settings...',
-                description: 'Configure animated model.',
-                icon: 'info',
-                condition: () => Format.id === "animated_entity_model",
-                click: function () {
-                    const dialog = new Dialog({
-                        id: 'project',
-                        title: 'GeckoLib Model Settings',
-                        width: 540,
-                        lines: [`<b class="tl"><a href="https://geckolib.com">GeckoLib</a> Animation Utils v${version}</b>`],
-                        form: {
-                            objectType: { label: 'Object Type', type: 'select', default: _settings__WEBPACK_IMPORTED_MODULE_6__["default"].objectType, options: _settings__WEBPACK_IMPORTED_MODULE_6__.OBJ_TYPE_OPTIONS },
-                            // modSDK: {label: 'Modding SDK', type: 'select', default: geckoSettings.modSDK, options: MOD_SDK_OPTIONS},
-                            // entityType: {label: 'Entity Type', value: geckoSettings.entityType},
-                            // javaPackage: {label: 'Java Package', value: geckoSettings.javaPackage},
-                            // animFileNamespace: {label: 'Animation File Namespace', value: geckoSettings.animFileNamespace},
-                            // animFilePath: {label: 'Animation File Path', value: geckoSettings.animFilePath},
-                        },
-                        onConfirm: function (formResult) {
-                            Object.assign(_settings__WEBPACK_IMPORTED_MODULE_6__["default"], formResult);
-                            (0,_settings__WEBPACK_IMPORTED_MODULE_6__.onSettingsChanged)();
-                            dialog.hide();
-                        }
-                    });
-                    dialog.show();
-                }
-            });
-            MenuBar.addAction(button, 'file.1');
         },
         onunload() {
-            exportAction.delete();
-            exportDisplayAction.delete();
-            button.delete();
+            for (const setting of pluginSettings) {
+                setting.delete();
+            }
+            for (const property of pluginProperties) {
+                property.delete();
+            }
+            for (const menuItem of pluginMenuItems) {
+                menuItem.action.delete();
+            }
             (0,_keyframe__WEBPACK_IMPORTED_MODULE_5__.unloadKeyframeOverrides)();
             (0,_animationUi__WEBPACK_IMPORTED_MODULE_4__.unloadAnimationUI)();
-            (0,_codec__WEBPACK_IMPORTED_MODULE_3__.unloadCodec)();
-            (0,_utils__WEBPACK_IMPORTED_MODULE_7__.removeMonkeypatches)();
-            console.clear(); // eslint-disable-line no-console
+            (0,_events__WEBPACK_IMPORTED_MODULE_3__.removeEventListeners)();
+            _codec__WEBPACK_IMPORTED_MODULE_6__.format.delete();
+            console.clear();
         },
     }));
 })();
+/**
+ * Create and return the plugin's settings.
+ * <p>
+ * These are found in the Settings panel in the plugin info window
+ */
+function createPluginSettings() {
+    return [
+        new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_AUTO_PARTICLE_TEXTURE, {
+            value: true,
+            category: "export",
+            name: "Auto-compute block/item particle texture",
+            description: "Attempt to auto-compute the particle texture for a GeckoLib block/item model if one isn't already specified when exporting the display settings json"
+        }),
+        new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_CONVERT_BEDROCK_ANIMATIONS, {
+            value: true,
+            category: "export",
+            name: "Convert bedrock animations on export",
+            description: "Automatically convert bedrock-format animations to GeckoLib-compatible animations when exporting, if relevant. May have a performance improvement on larger projects"
+        }),
+        new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_ALWAYS_SHOW_DISPLAY, {
+            value: false,
+            category: "edit",
+            name: "Always show display tab",
+            description: "Force the Display tab to always show, even when not an Item type model"
+        }),
+        new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_REMEMBER_EXPORT_LOCATIONS, {
+            value: true,
+            category: "export",
+            name: "Remember file export locations",
+            description: "Remember where you export model/display/animation files to for re-use. Stores the file paths in the bbmodel project file."
+        }),
+        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_DEFAULT_MODID, {
+            // The below is absolutely disgusting, but I have no choice because this is a bug in Blockbench's API
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            type: 'text',
+            value: "",
+            category: "export",
+            name: "Default Mod ID",
+            description: "Default Mod ID for models (if applicable)"
+        }), setting => {
+            setting.onChange = function () {
+                const invalidNamespaceChar = new RegExp('[^_\\-.a-z0-9]+', 'g');
+                const pseudoWhitepaceChar = new RegExp('[\\s&-]+', 'g');
+                this.master_value = this.master_value.toLowerCase().replace(pseudoWhitepaceChar, "_").replace(invalidNamespaceChar, "");
+                return {};
+            };
+        })
+    ];
+}
+/**
+ * Create and return the plugin's properties.
+ * <p>
+ * These are metadata values stored in the project, usually used in project settings windows
+ */
+function createPluginProperties() {
+    return [
+        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "string", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODID, {
+            label: "Mod ID",
+            condition: {
+                formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
+            },
+            values: [],
+            merge_validation: _utils__WEBPACK_IMPORTED_MODULE_8__.isValidNamespace
+        }), property => {
+            property['placeholder'] = 'my_modid';
+            property['description'] = 'The modid of the mod this model is for';
+            property.getDefault = function () {
+                return settings[_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_DEFAULT_MODID].value;
+            };
+        }),
+        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "enum", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODEL_TYPE, {
+            label: "Model Type",
+            condition: {
+                formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
+            },
+            exposed: false,
+            options: _constants__WEBPACK_IMPORTED_MODULE_7__.GeckoModelType,
+            values: Object.values(_constants__WEBPACK_IMPORTED_MODULE_7__.GeckoModelType)
+        }), property => {
+            property['description'] = 'The type of GeckoLib object this model is for. Leave as the default value if unsure';
+        }),
+        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "instance", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_FILEPATH_CACHE, {
+            label: "GeckoLib Filepath Cache",
+            condition: {
+                formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
+            },
+            exposed: false,
+            values: []
+        }), property => {
+            property.default = {};
+        })
+    ];
+}
+/**
+ * Create and return the plugin's menu items
+ * <p>
+ * These are added to Blockbench's menu bar or submenus
+ */
+function createPluginMenuItems() {
+    return [
+        {
+            action: new Action("export_geckolib_model", {
+                name: "Export GeckoLib Model",
+                icon: "archive",
+                description: "Export your model geometry as a model for GeckoLib.",
+                category: "file",
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)(),
+                click: function () {
+                    _codec__WEBPACK_IMPORTED_MODULE_6__["default"].export();
+                },
+            }),
+            menuCategory: 'file.export'
+        },
+        {
+            action: new Action("export_geckolib_display", {
+                name: "Export GeckoLib Display Settings",
+                icon: "icon-bb_interface",
+                description: "Export your item/block display settings for GeckoLib.",
+                category: "file",
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)() && (0,_utils__WEBPACK_IMPORTED_MODULE_8__.hasModelDisplaySettings)(),
+                click: _codec__WEBPACK_IMPORTED_MODULE_6__.buildDisplaySettingsJson,
+            }),
+            menuCategory: 'file.export'
+        },
+        {
+            action: new Action("export_geckolib_animations", {
+                name: "Export GeckoLib Animations",
+                icon: "movie",
+                description: "Export your model animations for GeckoLib.",
+                category: "file",
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)() && !(0,_utils__WEBPACK_IMPORTED_MODULE_8__.isEmpty)(AnimationItem.all) && typeof BarItems['export_animation_file'] === 'object',
+                click: e => BarItems['export_animation_file'].trigger(e),
+            }),
+            menuCategory: 'file.export'
+        }
+    ];
+}
 
 })();
 
