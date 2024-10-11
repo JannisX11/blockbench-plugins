@@ -244,38 +244,40 @@
       return this.supportedFormats;
     }
 
-    onEnable() {
-      function convertImage(format, quality = 1.0) {
-        return new Promise((resolve, reject) => {
-          let img = new Image();
-          img.src = Project.textures[0].getDataURL();
-          img.onload = () => {
-            let canvas = document.createElement("canvas");
-            let ctx = canvas.getContext("2d");
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const base64Res = canvas.toDataURL("image/" + format, quality);
-            resolve(base64Res);
-          };
+    convertImage(format, quality = 1.0) {
+      return new Promise((resolve, reject) => {
+        let img = new Image();
+        img.src = Project.textures[0].getDataURL();
+        img.onload = () => {
+          let canvas = document.createElement("canvas");
+          let ctx = canvas.getContext("2d");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          const base64Res = canvas.toDataURL("image/" + format, quality);
+          resolve(base64Res);
+        };
 
           img.onerror = (error) => {
             reject("Error loading image");
           };
         });
       }
-      function exportImage(format, quality) {
-        convertImage(format, quality).then((img) => {
-          Blockbench.export({
-            extensions: [format],
-            type: tl("data.image"),
-            savetype: "image",
-            name: Project.name || "image." + format,
-            resource_id: "export_image",
-            content: img,
-          });
+
+    exportImage(format, quality) {
+      this.convertImage(format, quality).then((img) => {
+        Blockbench.export({
+          extensions: [format],
+          type: tl("data.image"),
+          savetype: "image",
+          name: Project.name || "image." + format,
+          resource_id: "export_image",
+          content: img,
         });
-      }
+      });
+    }
+
+    onEnable() {
       var options = {};
       this.getSupportedFormats().forEach((e) => {
         var k = e.substring(6);
@@ -300,9 +302,9 @@
           },
         },
         onConfirm: function (formData) {
-          exportImage(formData.format, formData.quality / 100);
-          this.hide();
-        },
+          this.exportImage(formData.format, formData.quality / 100);
+          dialog.hide();
+        }.bind(this),
       });
       var exportBtn = new Action("export_image", {
         name: "Export as Image",
