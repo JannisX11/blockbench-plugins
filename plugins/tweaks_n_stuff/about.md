@@ -1,4 +1,4 @@
-**Tweaks & Stuff** plugin adds a handful of utility features which can be toggled in settings. By default all tweaks are enabled.
+**Tweaks & Stuff** plugin adds a handful of utility features that can be toggled in settings. By default, all tweaks are enabled.
 
 ## Tweaks
 
