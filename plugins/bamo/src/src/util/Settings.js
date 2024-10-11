@@ -1,6 +1,7 @@
 export const BAMO_SETTINGS_DEFAULT = {
     displayName: "",
     namespace: "bamo",
+    version: "1.20.1",
     typeList: [],
     material: "Dirt",
     blastRes: 6,
@@ -63,7 +64,8 @@ export const BAMO_SETTINGS_DEFAULT = {
     bufferedHitbox: true,
     hitboxBuffer: 0.5,
     genScRecipe: true,
-    genReversableScRecipe: true
+    genReversableScRecipe: true,
+    animated: false
 };
 
 Object.freeze(BAMO_SETTINGS_DEFAULT);
