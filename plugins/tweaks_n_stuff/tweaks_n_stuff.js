@@ -316,11 +316,16 @@
   BBPlugin.register("tweaks_n_stuff", {
     title: "Tweaks & Stuff",
     author: "legopitstop",
+    icon: "icon.png",
     description:
       "Adds a few tweaks to Blockbench to make your modeling experience better.",
-    icon: "icon.png",
-    version: "1.1.0",
+    has_changelog: true,
+    website: "https://lpsmods.dev",
+    repository:
+      "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
     variant: "both",
+    version: "1.0.0",
+    tags: ["Blockbench"],
     new_repository_format: true,
     tags: ["Blockbench"],
     onload() {
