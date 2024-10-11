@@ -59,7 +59,6 @@
     onDisable() {}
   }
 
-  // TODO: Improve readability of text and icon colors.
   class HeaderColorTweak extends Tweak {
     constructor() {
       super(
@@ -168,28 +167,32 @@
     onEnable() {
       var close_others = new Action("close_others", {
         name: "Close Others",
+        description: "Close all tabs but this one.",
         icon: "close",
         condition: () => ModelProject.all.length > 1,
-        click: this.closeOtherProjects,
+        click: this.closeOtherProjects.bind(this),
       });
       var close_right = new Action("close_right", {
         name: "Close to the Right",
+        description: "Close all tabs to the right.",
         icon: "tab_close_right",
         condition: () =>
           ModelProject.all.indexOf(Project) != ModelProject.all.length - 1,
-        click: this.closeRightProjects,
+        click: this.closeRightProjects.bind(this),
       });
       var close_saved = new Action("close_saved", {
         name: "Close Saved",
+        description: "Close all saved tabs.",
         icon: "tab_close_inactive",
         condition: () => ModelProject.all.length > 1,
-        click: this.closeSavedProjects,
+        click: this.closeSavedProjects.bind(this),
       });
       var close_all = new Action("close_all", {
         name: "Close All",
+        description: "Close all tabs.",
         icon: "tab_close",
         condition: () => ModelProject.all.length > 1,
-        click: this.closeAllProjects,
+        click: this.closeAllProjects.bind(this),
       });
       ModelProject.prototype.menu.addAction(close_others, "#manage");
       ModelProject.prototype.menu.addAction(close_right, "#manage");
@@ -258,11 +261,11 @@
           resolve(base64Res);
         };
 
-          img.onerror = (error) => {
-            reject("Error loading image");
-          };
-        });
-      }
+        img.onerror = (error) => {
+          reject("Error loading image");
+        };
+      });
+    }
 
     exportImage(format, quality) {
       this.convertImage(format, quality).then((img) => {
@@ -308,7 +311,7 @@
       });
       var exportBtn = new Action("export_image", {
         name: "Export as Image",
-        description: "Exports image",
+        description: "Export your image as a PNG, JPEG or WEBP.",
         icon: "image",
         condition: () => Project && Project.format.id === "image",
         click: function () {
@@ -320,12 +323,6 @@
     }
   }
 
-  Tweak.all = [
-    new HeaderColorTweak(),
-    new WrapTabsTweak(),
-    new CloseActionsTweak(),
-    new ImageExporterTweak(),
-  ];
   BBPlugin.register("tweaks_n_stuff", {
     title: "Tweaks & Stuff",
     author: "legopitstop",
@@ -340,7 +337,6 @@
     version: "1.0.0",
     tags: ["Blockbench"],
     new_repository_format: true,
-    tags: ["Blockbench"],
     onload() {
       Tweak.all = [
         new HeaderColorTweak(),
@@ -366,7 +362,6 @@
       };
     },
     onunload() {
-      Tweak.all.forEach((tweak) => tweak.delete());
       SettingsProfile.prototype.select = selectProfile;
       SettingsProfile.prototype.unselect = unselectProfile;
       Tweak.all.forEach((tweak) => tweak.delete());
