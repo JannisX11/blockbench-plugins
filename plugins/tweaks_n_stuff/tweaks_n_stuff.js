@@ -297,7 +297,7 @@
         name: "Export as Image",
         description: "Exports image",
         icon: "image",
-        condition: () => Project.format.id === "image",
+        condition: () => Project && Project.format.id === "image",
         click: function () {
           dialog.show();
         },
@@ -329,6 +329,13 @@
     new_repository_format: true,
     tags: ["Blockbench"],
     onload() {
+      Tweak.all = [
+        new HeaderColorTweak(),
+        new WrapTabsTweak(),
+        new CloseActionsTweak(),
+        new ImageExporterTweak(),
+      ];
+
       Tweak.all.forEach((tweak) => tweak.load());
 
       // TODO: On Update event (Modifying profile color does'nt update)
@@ -349,6 +356,7 @@
       Tweak.all.forEach((tweak) => tweak.delete());
       SettingsProfile.prototype.select = selectProfile;
       SettingsProfile.prototype.unselect = unselectProfile;
+      Tweak.all.forEach((tweak) => tweak.delete());
     },
   });
 })();
