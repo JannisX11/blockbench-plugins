@@ -18,5 +18,18 @@
 				]
 			}
 		]
+	},
+	"1.1.1": {
+		"title": "1.1.1",
+		"date": "2024-10-11",
+		"author": "WalkQuackBack",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Updated format version to 1.21.10 to work with custom components"
+				]
+			}
+		]
 	}
 }
