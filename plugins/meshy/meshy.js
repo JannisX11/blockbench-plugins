@@ -299,6 +299,13 @@ Plugin.register(pluginInfo.id, {
 	description: 'Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock',
 	version: pluginInfo.version,
 	variant: 'both',
+    creation_date: "2024-09-28",
+    min_version: "4.10.4",
+    tags: [
+			"Minecraft: Bedrock Edition",
+			"Entity Models",
+			"Mesh"
+	],
     repository: pluginInfo.repository,
     onload() {
         let bedrock_old = Formats['bedrock_old']
