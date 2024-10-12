@@ -67,7 +67,8 @@ npm run build
 ```
 This will first run prebuild/pretest/test scripts, then build the plugin and automatically update the [plugins.json](../../plugins.json) manifest with your settings.
 
-Then, update the [CHANGELOG](./CHANGELOG.md) to add patch notes for the new version.
+Then, update the [changelog](./changelog.json) to add patch notes for the new version.
+New version entries go at the bottom.
 
 Double-check everything looks right, then commit and make a PR to [JannisX11/blockbench-plugins](https://github.com/JannisX11/blockbench-plugins) to release the plugin.
 

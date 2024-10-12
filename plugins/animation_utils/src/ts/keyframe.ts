@@ -1,17 +1,16 @@
 import groupBy from 'lodash/groupBy';
 import mapValues from 'lodash/mapValues';
-import {addMonkeypatch, hasArgs, Original} from './utils';
+import {addMonkeypatch, Monkeypatches} from './utils';
 import {
     EASING_DEFAULT,
-    easingFunctions,
+    easingFunctions, type EasingKey,
     EasingProperties,
     GeckolibKeyframe,
-    getEasingArgDefault,
+    getEasingArgDefault, isArgsEasing,
     reverseEasing
 } from './easing';
 import Keyframe = Blockbench.Keyframe;
 
-//#region Keyframe Mixins
 export function loadKeyframeOverrides() {
     addMonkeypatch(Keyframe, "prototype", "getLerp", keyframeGetLerp);
     addMonkeypatch(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
@@ -25,6 +24,18 @@ export function unloadKeyframeOverrides() {
     //No-op for now since monkeypatches are unloaded automatically
 }
 
+interface GeckolibKeyframeOptions extends KeyframeOptions {
+    easing: EasingKey
+    easingArgs: number[] | null | undefined
+}
+
+// This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
+export class GeckolibBoneAnimator extends BoneAnimator {
+    public addKeyframe(data: GeckolibKeyframeOptions, uuid?: string): _Keyframe {
+        return super.addKeyframe(data, uuid);
+    }
+}
+
 function lerp(start: number, stop: number, amt: number) {
     return amt * (stop - start) + start;
 }
@@ -33,10 +44,10 @@ function lerp(start: number, stop: number, amt: number) {
 function keyframeGetLerp(other, axis, amount, allow_expression) {
     const easing = other.easing || EASING_DEFAULT;
     if (Format.id !== "animated_entity_model") {
-        return Original.get(Keyframe).getLerp.apply(this, arguments);
+        return Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
     }
     let easingFunc = easingFunctions[easing];
-    if (hasArgs(easing)) {
+    if (isArgsEasing(easing)) {
         const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
             ? other.easingArgs[0]
             : getEasingArgDefault(other);
@@ -60,7 +71,7 @@ function geckolibGetArray(data_point: number = 0) {
     if (Format.id === "animated_entity_model") {
 
         result = {vector: result, easing};
-        if (hasArgs(easing)) result.easingArgs = easingArgs;
+        if (isArgsEasing(easing)) result.easingArgs = easingArgs;
     }
     return result;
 }
@@ -68,7 +79,7 @@ function geckolibGetArray(data_point: number = 0) {
 
 function keyframeCompileBedrock() {
     if (Format.id !== "animated_entity_model" || !this.transform) {
-        return Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+        return Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     }
 
     if (this.interpolation == 'catmullrom') {
@@ -99,10 +110,10 @@ function keyframeCompileBedrock() {
 
 function keyframeGetUndoCopy() {
     const {easing, easingArgs} = this;
-    const result = Original.get(Keyframe).getUndoCopy.apply(this, arguments);
+    const result = Monkeypatches.get(Keyframe).getUndoCopy.apply(this, arguments);
     if (Format.id === "animated_entity_model") {
         Object.assign(result, {easing});
-        if (hasArgs(easing)) result.easingArgs = easingArgs;
+        if (isArgsEasing(easing)) result.easingArgs = easingArgs;
     }
 //   console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
     return result;
@@ -132,13 +143,13 @@ function keyframeExtend(dataIn) {
             }
         }
     }
-    const result = Original.get(Keyframe).extend.apply(this, arguments);
+    const result = Monkeypatches.get(Keyframe).extend.apply(this, arguments);
 //   console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
     return result;
 }
 
 function onReverseKeyframes() {
-    Original.get(BarItems.reverse_keyframes).click.apply(this, arguments);
+    Monkeypatches.get(BarItems.reverse_keyframes).click.apply(this, arguments);
     // console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
     // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
     Undo.initEdit({keyframes: Timeline.selected})
@@ -178,5 +189,3 @@ function onReverseKeyframes() {
     updateKeyframeSelection();
     Animator.preview();
 }
-
-//#endregion Keyframe Mixins

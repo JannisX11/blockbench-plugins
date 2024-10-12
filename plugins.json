@@ -394,17 +394,21 @@
 	},
 	"animation_utils": {
 		"title": "GeckoLib Animation Utils",
-		"author": "Eliot Lash, Gecko, McHorse, AzureDoom, Tslat",
+		"author": "Eliot Lash, Tslat, Gecko, McHorse",
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
 		"tags": [
 			"Minecraft: Java Edition"
 		],
-		"version": "3.2",
+		"version": "4.0",
 		"min_version": "4.11.0",
 		"await_loading": true,
 		"variant": "both",
-		"max_version": "5.0.0"
+		"max_version": "5.0.0",
+		"has_changelog": true,
+		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils",
+		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
 	},
 	"modded_entity_fabric": {
 		"title": "Fabric Modded Entity",
@@ -502,8 +506,7 @@
 		"about": "Adds sliders and other tools to modify keyframes:\n\nYou can add the sliders and tools to any of your toolbars by clicking the three dots on the right side and selecting **Customize**. Search for the slider you want to add and click to add it.\n\n- **Tween Keyframes:** Amplify the values of the selected keyframes\n- **Amplify Keyframes:** Amplify the values of the selected keyframes\n- **Ease Keyframes:** Create a curve with the selected keyframes between the adjacent keyframes\n- **Retime Keyframes:** Shift the curve in the graph editor without changing the time of the keyframe. This allows you to change the time of one axis individually\n- **Keyframe Slider Axis:** Select which axis the keyframe sliders affect\n- **Create Keyframe Column:** Key all channels in the timeline at the current timecode, if they already have keyframes\n- **Select Keyframe Column:** Select all keyframes in the timeline along a column below the playhead\n- **Normalize Keyframes:** Subtract the currently displayed value from all selected keyframes, in order to remove the base pose from the model.",
 		"tags": ["Animation"],
 		"version": "0.3.1",
-		"min_version": "3.7.0",
-		"new_repository_format": true,
+		"min_version": "4.8.0",
 		"variant": "both"
 	},
 	"voxel_shape_generator": {
@@ -875,6 +878,17 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
+	"bamo":{
+		"title": "BAMO Exporter",
+		"author": "Ryytikki",
+		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod.",
+		"website": "https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
+		"icon": "icon.png",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "0.5.1",
+		"variant": "desktop",
+		"new_respository_format" : true
+  	},
 	"animation_to_json": {
 		"title": "Animation to JSON Converter",
 		"author": "Gaming32",
@@ -890,7 +904,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.9",
+		"version": "1.0.10",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -962,6 +976,15 @@
 		"creation_date": "2024-06-05",
 		"has_changelog": true
 	},
+	"creative_mode": {
+		"title": "Creative Mode",
+		"author": "Caio Raphael",
+		"icon": "icon.png",
+		"description": "Place and remove cubes just like in Minecraft creative mode",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
 	"bedrock_block_transforms": {
 		"title": "Bedrock Block Transformation Preview",
 		"author": "JannisX11",
@@ -989,6 +1012,19 @@
 			"PBR"
 		],
 		"min_version": "4.10.4"
+	},
+	"tweaks_n_stuff": {
+		"title": "Tweaks & Stuff",
+		"author": "legopitstop",
+		"creation_date": "2024-10-07",
+		"icon": "icon.png",
+		"description": "Adds a few tweaks to Blockbench to make your modeling experience better.",
+		"has_changelog": true,
+		"website": "https://lpsmods.dev",
+		"repository": "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
+		"variant": "both",
+		"version": "1.0.0",
+		"tags": ["Blockbench"]
 	},
 	"meshy": {
 		"title": "Meshy",

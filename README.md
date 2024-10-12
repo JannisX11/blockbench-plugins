@@ -28,7 +28,7 @@ The legacy format, where plugin Javascript files are saved directly in the plugi
 
 ### Current structure
 The new structure utilizes a separate directory per plugin in the plugins directory, which contains the plugin Javascript file, as well as other optional files.
-The new structure will be used by Blockbench if A: the `"min_version"` is set to 4.8.0 or higher, or B: if the field `"new_repository_format"` in plugins.json is set to `true`.
+The new structure will be used by Blockbench if the `"min_version"` is set to 4.8.0 or higher.
 The new structure is recommended for new plugins.
 
 These are the files that can be added to the plugin directory
@@ -46,7 +46,9 @@ These are the files that can be added to the plugin directory
 
 ## Bundling
 
-* If you are writing a complex plugin and you are using a module bundler such as Webpack or Browserify, you are required to host your source code in this repository in the src/ folder.
+* If you are writing a complex plugin and you are using a module bundler such as Webpack or Browserify, you are required to host your source code in this repository in the `src` folder of your plugin's directory.
+For plugins that use the legacy format, the source can be added to the `src` folder at the root of the repository.
+
 * Check out the webpack_template and the existing source folders to see how to set it up.
 
 ## Submission
@@ -57,11 +59,11 @@ In order to submit your plugin, you need to meet a few requirements:
 * If your plugin is designed for anything related to Minecraft, add one of the tags `Minecraft: Java Edition`, `Minecraft: Bedrock Edition` (or `Minecraft`). The same applies if it's designed for another specific game.
 	(Keep in mind that artists from many different areas use Blockbench, so provide some context in the meta data)
 * In total, you can provide up to three plugin tags
-* **The plugin meta data needs to be the same** in the plugin file itself and in the file `plugins.json`.
+* THE PLUGIN META DATA NEEDS TO BE THE SAME in the plugin file itself and in the file `plugins.json`.
 * Plugins should not be larger than 2 MB
 * Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * This list of plugins is curated to some extends. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
-* While it is the goal to keep the plugin API compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
+* While it is the goal to keep the plugin API generally compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
 
 Once you are ready to submit your plugin, create a pull request.
 
