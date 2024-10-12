@@ -1004,6 +1004,7 @@
 			"Mesh"
 		],
 		"has_changelog": true,
-		"min_version": "4.10.4"
+		"min_version": "4.10.4",
+		"repository": "https://github.com/Shadowkitten47/Meshy"
 	}
 }
