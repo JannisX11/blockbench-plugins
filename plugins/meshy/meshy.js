@@ -10,11 +10,11 @@
 function compileMesh(polyMesh, mesh) {
     polyMesh ??= 
     {
-        meta: settings["meta_data"].value ? 
+        meta: settings["meshy_meta_data"].value ? 
         {
             meshes: [],
         } : undefined,
-		normalized_uvs: settings["normalized_uvs"].value,
+		normalized_uvs: settings["meshy_normalized_mesh_uvs"].value,
         positions: [],
 		normals: [],
         uvs: [],
@@ -72,7 +72,7 @@ function compileMesh(polyMesh, mesh) {
         return poly;
     });
 
-    if (settings["meta_data"].value) {
+    if (settings["meshy_meta_data"].value) {
         const mesh_meta = {
             name: mesh.name,
             position: mesh.position,
@@ -164,7 +164,7 @@ function parseMesh(polyMesh, group) {
 
 function uvOnSave(...uv) { 
     uv[1] = Project.texture_height - uv[1] //Invert y axis
-    if (!settings["normalized_uvs"].value) return uv
+    if (!settings["meshy_normalized_mesh_uvs"].value) return uv
     uv[0] /= Project.texture_width
     uv[1] /= Project.texture_height
     return uv
@@ -189,7 +189,7 @@ function getVertices(mesh) {
  * This so we don't have to loop through the faces for each vertex
  */
 function getVertexNormal(mesh, vertexKey, vertexFacesMap) {
-    if (settings["skip_normals"].value) return [ 0,1,0 ];
+    if (settings["meshy_skip_mesh_normals"].value) return [ 0,1,0 ];
     let normalSum = [0, 0, 0];
     let faceCount = 0;
 
@@ -319,8 +319,8 @@ Plugin.register(pluginInfo.id, {
             }
         }
 
-        bedrock.single_texture = !settings["single_texture"]?.value
-        bedrock_old.single_texture = !settings["single_texture"]?.value
+        bedrock.single_texture = !settings["meshy_force_textures"]?.value
+        bedrock_old.single_texture = !settings["meshy_force_textures"]?.value
     },
     onunload() {
         let bedrock_old = Formats['bedrock_old']
