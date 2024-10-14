@@ -1019,11 +1019,13 @@
 		"creation_date": "2024-10-07",
 		"icon": "icon.png",
 		"description": "Adds a few tweaks to Blockbench to make your modeling experience better.",
+		"about": "**Tweaks & Stuff** plugin adds a handful of utility features that can be toggled in settings. By default, all tweaks are enabled.\n\n## Tweaks\n\n### Header Color\n\nSee your current profile at a glace using this tweak. You can disable this tweak in `Settings > Interface > Header Color`.\n\n![Header in all profile colors.](https://legopitstop.weebly.com/files/theme/blockbench/header_color.webp)\n\n### Wrap Tabs\n\nQuickly navigate large workspaces using this tweak. You can disable this tweak in `Settings > Interface > Wrap Tabs`.\n\n![wrap tabs](https://legopitstop.weebly.com/files/theme/blockbench/wrap_tabs_on.webp)\n\n### Image Exporter\n\nExport your image project as an image file. You can disable this tweak in `Settings > Export > Image Exporter`.\n\n![image exporter](https://legopitstop.weebly.com/files/theme/blockbench/image_exporter.webp)\n\nFormats vary from browser to browser. Electon supports PNG, JPEG, and WEBP formats.\n\n![image exporter dialog](https://legopitstop.weebly.com/files/theme/blockbench/image_exporter_dialog.webp)\n\n### Close Actions\n\nAdds \"close others\", \"close to the right\", \"close saved\", and \"close all\" to the project context menu (right-click on project tab). You can disable this tweak in `Settings > Interface > Close Actions`.\n\n![close actions](https://legopitstop.weebly.com/files/theme/blockbench/close_actions.webp)\n\nThe wrench is from the [Silk Icon Set](https://opengameart.org/content/application-silk-icon-set-13) by Mark James under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)\n",
 		"has_changelog": true,
 		"website": "https://lpsmods.dev",
 		"repository": "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
 		"variant": "both",
 		"version": "1.0.0",
+		"min_version": "4.8.0",
 		"tags": ["Blockbench"]
 	}
 }
