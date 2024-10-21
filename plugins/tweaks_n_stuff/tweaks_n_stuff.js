@@ -335,6 +335,7 @@
       "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
     variant: "both",
     version: "1.0.0",
+		min_version: "4.8.0",
     tags: ["Blockbench"],
     new_repository_format: true,
     onload() {
