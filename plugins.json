@@ -12,13 +12,10 @@
 	"animated_java": {
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
-		"icon": "icon.svg",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "1.4.2",
-		"min_version": "4.10.0",
-		"variant": "desktop",
-		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
-		"await_loading": true
+		"version": "1.5.0",
+		"await_loading": true,
+		"icon": "icon.svg"
 	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
