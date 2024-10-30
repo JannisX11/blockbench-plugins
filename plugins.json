@@ -15,7 +15,9 @@
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
 		"version": "1.5.1",
 		"await_loading": true,
-		"icon": "icon.svg"
+		"icon": "icon.svg",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"]
 	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
