@@ -10,7 +10,7 @@ BBPlugin.register('vox_importer', {
 	icon: 'view_module',
 	author: 'JannisX11',
 	description: 'Import MagicaVoxel .vox files',
-	version: '1.2.1',
+	version: '1.2.2',
 	variant: 'both',
 	onload() {
 
@@ -141,6 +141,7 @@ BBPlugin.register('vox_importer', {
 										(box.y2+1) * vsize,
 									],
 									name: 'voxel',
+									box_uv: false,
 									display: {
 										autouv: 0
 									}
