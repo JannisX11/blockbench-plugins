@@ -9,5 +9,16 @@
         "list": ["Initial release"]
       }
     ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-11-3",
+    "author": "WalkQuackBack",
+    "categories": [
+      {
+        "title": "General",
+        "list": ["About changes"]
+      }
+    ]
   }
 }
