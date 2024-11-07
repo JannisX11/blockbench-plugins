@@ -10,7 +10,7 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "2.0.0",
+      version: "2.1.0",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
@@ -101,15 +101,27 @@
                     let uvs = {}
                     for(let f of Object.keys(obj.faces)){
                         let uv = obj.faces[f].uv
-
-                        let textures = Texture.all.filter((x) => {return x.uuid == obj.faces[f].texture})
+                        
+                        let t = obj.faces[f].texture
+                        let textures = Texture.all.filter((x) => {
+                            if (x === undefined) {
+                                return false
+                            }
+                            if (t instanceof Texture) {
+                                return x.uuid == t.uuid
+                            }
+                            if (typeof(t) === 'string') {
+                                return x.uuid == t
+                            }
+                        })
                         let texture = textures[0]
+                        if (texture == undefined) console.error(obj.faces)
                         if (texture !== undefined) texture = texture.name
                         //texture = (texture === undefined) ? "empty.png" : texture.name
 
                         let face = obj.faces[f]
 
-                        uvs[f] = [uv[0], uv[1], uv[2], uv[3], face.cullface, texture]
+                        uvs[f] = [uv[0], uv[1], uv[2], uv[3], face.cullface, texture, face.rotation]
 
                         texturesUsed.push(texture)
                     }
@@ -142,8 +154,9 @@
                         cube.faces[facenamescr[i]] = {
                             "uv": uvs[facenamesbb[i]].slice(0, 4),
                             "ambientocclusion": uvs[facenamesbb[i]][4].tint === 0,
-                            "cullFace": uvs[facenamesbb[i]][4].cullFace !== "",
-                            "texture": uvs[facenamesbb[i]][5]
+                            "cullFace": uvs[facenamesbb[i]][4].length > 0,
+                            "texture": uvs[facenamesbb[i]][5],
+                            "uvRotation": uvs[facenamesbb[i]][6],
                         }
                     }
 
@@ -328,6 +341,7 @@
                                                 getFaceUV(cuboid, facenamecr, 1),
                                                 getFaceUV(cuboid, facenamecr, 2),
                                                 getFaceUV(cuboid, facenamecr, 3)]
+                    cube.faces[facenamebb].rotation = cuboid.faces[facenamecr]["uvRotation"] ?? 0
                     cube.faces[facenamebb].texture = Texture.all.filter((x) => {return x.name == texture.fileName})[0]
                 }
 

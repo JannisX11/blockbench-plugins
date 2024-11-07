@@ -108,5 +108,20 @@
                 ]
             }
         ]
+    },
+    "2.1.0": {
+        "title": "2.1.0",
+        "date": "2024-11-07",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Bug Fixes",
+                "list": [
+                    "UV Rotation is now exported",
+                    "UV is exported properly",
+                    "Textures export properly"
+                ]
+            }
+        ]
     }
 }
