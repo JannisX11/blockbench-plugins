@@ -28,6 +28,7 @@ function applyToFace(
   ).getMaterial({
     side: Canvas.getRenderSide(texture) as THREE.Side,
     ...materialParams,
+    alphaTest: 0.01,
   });
 
   Project.materials[texture.uuid] = THREE.ShaderMaterial.prototype.copy.call(
