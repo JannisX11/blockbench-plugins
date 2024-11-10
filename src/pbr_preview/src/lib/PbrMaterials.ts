@@ -97,7 +97,7 @@ export default class PbrMaterial {
       emissive: emissiveMap ? 0xffffff : 0,
       envMap: PreviewScene.active?.cubemap ?? null,
       envMapIntensity: 0.95,
-      alphaTest: 0.1,
+      alphaTest: 0.01,
       transparent: true,
       ...options,
     });
