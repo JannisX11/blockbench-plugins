@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.3.0",
+      version: "8.4.0",
       min_version: "4.10.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -104,6 +104,7 @@
     category: null,
     loadTexture: true,
     entity: null,
+    subentity: null,
     search: "",
     entities: [],
     built: false
@@ -388,7 +389,7 @@
           scrollbar-width: initial;
           scrollbar-color: initial;
         }
-        .cem-models > div {
+        .cem-model {
           min-width: 128px;
           border: 2px solid transparent;
           flex: 1;
@@ -398,31 +399,53 @@
           display: flex;
           flex-direction: column;
           align-items: center;
-        }
-        .cem-models > :hover {
-          background-color: var(--color-button);
-        }
-        .cem-models > .selected {
-          border: 2px solid var(--color-accent);
-          background-color: var(--color-selected);
-        }
-        .cem-models > div > img {
-          height: 66px;
-          width: 100%;
-          object-fit: contain;
-          pointer-events: none;
-        }
-        .cem-models > div > :nth-child(2) {
-          text-align: center;
-          flex: 1;
-          display: flex;
-          align-items: center;
-          max-height: 24px;
-          min-height: 24px;
-          line-height: 16px;
-          margin: -2px 0 2px;
-          text-transform: capitalize;
-          pointer-events: none;
+          position: relative;
+
+          &.cem-variant {
+            background-color: color-mix(in srgb, var(--color-back), black 15%);
+          }
+
+          &:hover {
+            background-color: var(--color-button);
+          }
+
+          &.selected {
+            border: 2px solid var(--color-accent);
+            background-color: var(--color-selected);
+          }
+
+          &.child-selected {
+            border: 2px solid transparent;
+          }
+
+          > img {
+            height: 66px;
+            width: 100%;
+            object-fit: contain;
+            pointer-events: none;
+          }
+
+          > div {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            max-height: 24px;
+            min-height: 24px;
+            line-height: 16px;
+            margin: -2px 0 2px;
+            pointer-events: none;
+          }
+
+          > i {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+
+            + div {
+              margin: -2px 24px 2px;
+            }
+          }
         }
         .cem-spacer {
           display: flex;
@@ -430,20 +453,43 @@
           align-items: center;
           flex: 1;
         }
+        .cem-model-heading {
+          min-width: 100%;
+          font-size: 24px;
+        }
       </style>`],
       component: {
         data: loaderData,
         methods: {
           async load() {
             this.loading = true
-            await loadModel(this.entity, this.loadTexture)
+            await loadModel(this.subentity ?? this.entity, this.loadTexture)
             loaderDialog.close()
           },
           reload() {
             window.cemTemplateLoaderReloaded = true
             plugin.reload()
           },
-          close: () => loaderDialog.close()
+          close: () => loaderDialog.close(),
+          selectEntity(model) {
+            if (this.entity !== model.name) {
+              this.entity = model.name
+            } else if (!this.subentity) {
+              this.entity = null
+            }
+            this.subentity = null
+          },
+          selectSubentity(model, submodel) {
+            if (this.search && this.subentity === submodel.name) {
+              this.entity = null
+              this.subentity = null
+            } else if (this.subentity !== submodel.name) {
+              this.entity = model.name
+              this.subentity = submodel.name
+            } else {
+              this.subentity = null
+            }
+          }
         },
         template: `
           <div id="cem-container">
@@ -468,13 +514,24 @@
               </div>
             </div>
             <div v-if="connection" v-for="[name, c] of Object.entries(categories)" class="cem-models" :class="{ hidden: category !== name }">
-              <div v-for="model of c.entities" :class="{ selected: entity === model.name, hidden: !model.name.includes(search) }" @click="entity = model.name">
-                <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
-                <div>{{ model.display_name ?? model.name.replace(/_/g, " ") }}</div>
-              </div>
+              <template v-for="model of c.entities">
+                <div v-if="model.type === 'heading'" class="cem-model-heading">{{ model.text }}</div>
+                <template v-else>
+                  <div class="cem-model" :class="{ selected: entity === model.name && (!subentity || !search), 'child-selected': entity === model.name && subentity, hidden: !model.name.includes(search) }" @click="selectEntity(model)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
+                    <i v-if="model.variants && entity !== model.name && !search" class="material-icons">add</i>
+                    <i v-if="model.variants && entity === model.name && !search" class="material-icons">remove</i>
+                    <div :style="{ textTransform: model.display_name ? null : 'capitalize' }">{{ model.display_name ?? model.name.replace(/_/g, " ") }}</div>
+                  </div>
+                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.name, hidden: search ? !submodel.name.includes(search) : entity !== model.name }" @click="selectSubentity(model, submodel)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.name + '.webp'" loading="lazy">
+                    <div :style="{ textTransform: submodel.display_name ? null : 'capitalize' }">{{ submodel.display_name ?? submodel.name.replace(/_/g, " ") }}</div>
+                  </div>
+                </template>
+              </template>
             </div>
             <div class="cem-spacer">
-              <h3 v-if="!entities.filter(e => e[0] === category && e[1].includes(search)).length">No results</h3>
+              <h3 v-if="!entities.filter(e => e[0] === category && e[1]?.includes(search)).length">No results</h3>
             </div>
             <div id="cem-footer">
               <label id="load-texture">
@@ -569,20 +626,30 @@
     if (!modelData.categories) return
     loaderDialog.sidebar.page = modelData.categories[0].name
     loaderData.category = modelData.categories[0].name
-    for (const category of modelData.categories) {
-      for (let i = 0; i < category.entities.length; i++) {
-        if (typeof category.entities[i] === "string") {
-          category.entities[i] = { name: category.entities[i] }
-        }
-      }
-    }
     modelData.entities = []
     for (const category of modelData.categories) {
       loaderDialog.sidebar.pages[category.name] = {
         label: category.name,
         icon: category.icon
       }
-      modelData.entities.push(...category.entities)
+      for (let i = 0; i < category.entities.length; i++) {
+        if (category.entities[i].type) continue
+        if (typeof category.entities[i] === "string") {
+          category.entities[i] = { name: category.entities[i] }
+        }
+        modelData.entities.push(category.entities[i])
+        if (category.entities[i].variants) {
+          for (let j = 0; j < category.entities[i].variants.length; j++) {
+            if (typeof category.entities[i].variants[j] === "string") {
+              category.entities[i].variants[j] = { name: category.entities[i].variants[j] }
+            }
+            if (!category.entities[i].variants[j].model) {
+              category.entities[i].variants[j].model = category.entities[i].model ?? category.entities[i].name
+            }
+            modelData.entities.push(category.entities[i].variants[j])
+          }
+        }
+      }
     }
     BarItems.cem_template_loader_placeholder.delete()
     BarItems.cem_template_loader.children = modelData.categories.map(e => new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
@@ -628,9 +695,9 @@
     Blockbench.setStatusBarText(data.name)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
-    if (loadTexture) {
+    if (loadTexture && !data.textureless) {
       try {
-        const textures = Array.isArray(data.texture_name) ? data.texture_name : [data.texture_name ?? data.name]
+        const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.name]
         for (const [i, name] of textures.entries()) {
           const texture = await fetchData(`images/minecraft/entities/${entity}${i || ""}.png`, () => null)
           if (!texture) throw Error
@@ -645,18 +712,19 @@
         loaderDialog.content_vue?.$forceUpdate()
       }
     }
-    if (!textureLoaded) {
+    if (!textureLoaded && !data.textureless) {
       const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
-      const textures = Array.isArray(data.texture_name) && Array.isArray(model.texture_data) ? data.texture_name : [data.texture_name ?? data.name]
+      const textureNames = Array.isArray(data.texture_name) ? data.texture_name : [data.texture_name ?? data.name]
+      const length = Math.max(textureData.length, textureNames.length)
       for (const cube of Cube.all) {
         cube.selectLow()
       }
-      for (const [i, name] of textures.entries()) {
+      for (let i = 0; i < length; i++) {
         if (textureData[i]) {
-          new Texture({ name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
+          new Texture({ name: textureNames[i] ?? data.name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
         } else {
           TextureGenerator.addBitmap({
-            name,
+            name: textureNames[i] ?? data.name,
             color: new tinycolor("#00000000"),
             type: "template",
             rearrange_uv: false,
@@ -667,9 +735,17 @@
       for (const cube of Cube.all) {
         cube.unselect()
       }
-      if (textures.length > 1) {
+      if (length.length > 1) {
         Texture.all.forEach(t => t.use_as_default = false)
       }
+    }
+    if (data.popup) {
+      console.log(data.popup.message ?? data.popup)
+      Blockbench.showMessageBox({
+        title: data.popup.title ?? "Before you start...",
+        message: data.popup.message ?? data.popup,
+        width: data.popup.width
+      })
     }
   }
 
@@ -1143,7 +1219,8 @@
     for (const m of check4) {
       if (m[1] === "render") {
         if (!renderVars.includes(m[2])) throw [`Invalid "<span style="font-weight:600">render</span>" variable: "<span style="font-weight:600">${m[2]}</span>" is not a render variable`]
-      } else if (!["this", "part", "var", "varb"].includes(m[1]) && !Group.all.find(e => e.name === m[1])) {
+      } else if (!["this", "part", "var", "varb", "root"].includes(m[1]) && !Group.all.find(e => e.name === m[1])) {
+        console.log(m[1])
         throw [`Unknown group "<span style="font-weight:600">${m[1]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
       }
     }
@@ -1886,7 +1963,7 @@
           specialMap = new Map()
           preprocessCEMA(val, group.name)
           if (!["var", "varb"].includes(split[0])) {
-            const part = ["this", "part"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
+            const part = ["this", "part", "root"].includes(split[0]) ? group : Group.all.find(e => e.name === split[0])
             if (!part) animationErrorToggle(`Unknown group "<span style="font-weight:600">${split[0]}</span>"`, null, true)
           }
         }
