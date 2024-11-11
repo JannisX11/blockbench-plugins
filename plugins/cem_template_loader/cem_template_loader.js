@@ -264,9 +264,10 @@
           overflow: hidden;
           height: 512px;
           display: grid;
-        }
-        #cem_template_loader > .dialog_wrapper:not(.has_sidebar) {
-          grid-template-columns: auto;
+
+          &:not(.has_sidebar) {
+            grid-template-columns: auto;
+          }
         }
         #cem_template_loader .dialog_sidebar_pages {
           margin-bottom: 66px;
@@ -439,20 +440,18 @@
 
           > i {
             position: absolute;
-            bottom: 4px;
+            top: 4px;
             right: 4px;
-
-            + div {
-              margin: -2px 24px 2px;
-            }
           }
         }
+
         .cem-spacer {
           display: flex;
           justify-content: center;
           align-items: center;
           flex: 1;
         }
+
         .cem-model-heading {
           min-width: 100%;
           font-size: 24px;
