@@ -938,5 +938,25 @@
         ]
       }
     ]
+  },
+  "8.4.0": {
+    "title": "8.4.0",
+    "date": "2024-11-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for entity list groups",
+          "Added support for entity list headings"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "The root bone will no longer cause animation errors when not present in the model"
+        ]
+      }
+    ]
   }
 }
