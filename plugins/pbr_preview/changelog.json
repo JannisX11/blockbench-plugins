@@ -47,5 +47,19 @@
                 ]
             }
         ]
+    },
+    "1.2.1": {
+        "title": "1.2.1",
+        "date": "2024-11-10",
+        "author": "Jason J. Gardner",
+        "categories": [
+            {
+                "title": "Alpha Threshold Fix",
+                "list": [
+                    "Fixed alpha test threshold application on models.",
+                    "Alpha test value is 1%"
+                ]
+            }
+        ]
     }
 }
