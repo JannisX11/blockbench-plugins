@@ -11,5 +11,19 @@
         ]
       }
     ]
+  },
+  "1.0.4": {
+    "title": "1.0.4",
+    "date": "2024-18-8",
+    "author": "Shadowkitten47",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix the invertion of the x-axis of the mesh",
+          "Fix other smaller issues"
+        ]
+      }
+    ]
   }
 }
