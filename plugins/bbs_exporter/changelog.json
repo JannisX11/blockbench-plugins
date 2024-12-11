@@ -24,5 +24,18 @@
 				]
 			}
 		]
+	},
+	"1.2.4": {
+		"title": "1.2.4",
+		"date": "2024-12-11",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Bug fixes",
+				"list": [
+					"When exporting the model's UV is incorrectly picked from the project's texture size rather than from the active texture"
+				]
+			}
+		]
 	}
 }
