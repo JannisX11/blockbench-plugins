@@ -374,6 +374,21 @@
 		"creation_date": "2024-07-01",
 		"has_changelog": true
 	},
+	"free_rotation": {
+		"title": "Free Rotation",
+		"icon": "icon.png",
+		"author": "Godlander & Ewan Howell",
+		"description": "Create Java Item models without any rotation limitations.",
+		"tags": ["Minecraft: Java Edition", "Rotation"],
+		"version": "1.0.0",
+		"min_version": "4.11.2",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/free-rotation/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/free_rotation",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Free Rotation]",
+		"creation_date": "2024-12-20",
+		"has_changelog": true
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
@@ -888,7 +903,7 @@
 		"version": "0.5.1",
 		"variant": "desktop",
 		"new_respository_format" : true
-  	},
+	},
 	"animation_to_json": {
 		"title": "Animation to JSON Converter",
 		"author": "Gaming32",
