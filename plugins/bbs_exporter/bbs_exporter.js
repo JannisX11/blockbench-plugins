@@ -300,6 +300,39 @@
 
     function compile()
     {
+        function findTextureSize()
+        {
+            var c = Cube.all;
+            var keys = Object.keys(sides);
+
+            for (var i = 0; i < c.length; i++)
+            {
+                var cube = c[i];
+
+                for (var j = 0; j < keys.length; j++)
+                {
+                    var face = cube.faces[keys[j]];
+
+                    if (face)
+                    {
+                        var textureUuid = face.texture;
+
+                        for (var k = 0; k < Texture.all.length; k++)
+                        {
+                            var texture = Texture.all[k];
+
+                            if (texture && texture.uuid == textureUuid)
+                            {
+                                return [texture.width, texture.height];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         var output = {
             version: "0.7.2",
             animations: {}
@@ -307,9 +340,17 @@
 
         if (lastOptions.model)
         {
+            var texture = [Project.texture_width, Project.texture_height];
+            var textureSize = findTextureSize();
+
+            if (textureSize)
+            {
+                texture = textureSize;
+            }
+
             output.model = {
                 groups: createHierarchy(Outliner.root),
-                texture: [Project.texture_width, Project.texture_height]
+                texture: texture
             };
         }
 
@@ -609,7 +650,7 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
         icon: "icon.png",
-        version: "1.2.3",
+        version: "1.2.4",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
