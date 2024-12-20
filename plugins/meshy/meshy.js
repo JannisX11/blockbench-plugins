@@ -156,6 +156,8 @@
     //Ensures every function is removed with the names used here. This is so that if duplicates are created it doesn't cause issues
     //The regular version does not do this
     function purgeEvents(codec) {
+        
+        console.log(codec.events);
         for (let i = 0; i < codec.events['parsed']?.length; i++) {
             if (listOfFunctions.includes(codec.events['parsed'][i].name)) {
                 codec.events['parsed'].splice(i, 1);
@@ -188,7 +190,7 @@
             uvs: [],
             polys: []
         };
-    
+        console.log(mesh)
         //vertex keys -> value
         const postionMap = new Map();
         const normalMap = new Map();
@@ -244,7 +246,11 @@
             const mesh_meta = {
                 name: mesh.name,
                 origin: mesh.origin,
-                rotation: mesh.rotation,
+                rotation: [
+                    mesh.rotation[0] * -1,
+                    mesh.rotation[1] * -1,
+                    mesh.rotation[2]
+                ],
                 start: polyMesh.polys.length,
                 length: polys.length
             }
@@ -264,17 +270,20 @@
         if (polyMesh.meta) {
             for (let meta of polyMesh.meta.meshes) {
                 const mesh = new Mesh({name: meta.name, autouv: 0, color: group.color, vertices: []});
-                meta.rotation ??= [0, 0, 0];
+
                 meta.origin ??= [0, 0, 0];
 
                 mesh.origin = meta.origin;
-                mesh.rotation = meta.rotation;
+                mesh.rotation = [
+                    mesh.rotation[0] * -1,
+                    mesh.rotation[1] * -1,
+                    mesh.rotation[2]
+                ];
                 const polys = polyMesh.polys.slice(meta.start, meta.start + meta.length);
                 for ( let face of polys ) {
                     const unique = new Set();
                     const vertices = []
                     const uvs = {}
-                    
 
                     for (let point of face ) {
     
@@ -285,7 +294,6 @@
                         //Do the transformations to revert the vertices
                         let postion = polyMesh.positions[point[0]]
 
-                        //No reason to use "clone" here but I did it becuase I didn't want to change it
                         let clone = [...postion]
                         clone[0] *= -1
                         clone = rotatePoint(clone, mesh.origin, [ mesh.rotation[0] * -1, mesh.rotation[1] * -1, mesh.rotation[2] * -1 ])
@@ -320,7 +328,7 @@
                     unique.add(point.toString());
     
                     let postion = polyMesh.positions[point[0]]
-                    postion[0] /= -1;
+                    postion[0] *= -1;
 
                     mesh.vertices[`v${point[0]}`] = postion;
                     vertices.push(`v${point[0]}`);
@@ -349,11 +357,15 @@
     
     //gets vertices of a Mesh and applys transformations to the points so that they can be exported
     function getVertices(mesh) {
-        const verts = Object.entries(mesh.vertices).map( ( [key, point ]) => {
-            point.V3_add(mesh.origin[0], mesh.origin[1], mesh.origin[2])
-            point = rotatePoint(point, mesh.origin, mesh.rotation)
-            point[0] *= -1;
-            return [ key, point ]
+        const verts = Object.entries(mesh.vertices).map( ( [key, point ]) => { 
+            //Generate a copy of the point so that it won't effect the original point
+            let p = [...point]
+
+            p.V3_add(mesh.origin)
+            p = rotatePoint(p, mesh.origin, mesh.rotation)
+            p[0] *= -1;
+
+            return [ key, p ]
         }) 
         return verts;
     }
