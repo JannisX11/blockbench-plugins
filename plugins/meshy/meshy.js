@@ -104,7 +104,7 @@
         },
     });
     
-    //Beaware: Function zone below
+
     function meshyOnCompileEvent({model, options}) {
         var groups = getAllGroups();
         var loose_elements = [];
@@ -138,6 +138,11 @@
             }
         }
     }
+
+    function meshyOnBedrockCompileEvent({model, options}) { //Extra step for non-legacy bedrock
+        model = model['minecraft:geometry'][0]; 
+        meshyOnCompileEvent({model, options});
+    }
     function meshyOnParseEvent({model}) {
         for (let i = 0; i < model.bones.length; i++) {
             const bone = model.bones[i];
@@ -148,16 +153,10 @@
             }
         }
     }
-    function meshyOnBedrockCompileEvent({model, options}) { //Extra step for non-legacy bedrock
-        model = model['minecraft:geometry'][0];
-        meshyOnCompileEvent({model, options});
-    }
     
-    //Ensures every function is removed with the names used here. This is so that if duplicates are created it doesn't cause issues
-    //The regular version does not do this
+
+    //Kinda of unnessesary, but during testing more than one even was created so the function below deletes them.
     function purgeEvents(codec) {
-        
-        console.log(codec.events);
         for (let i = 0; i < codec.events['parsed']?.length; i++) {
             if (listOfFunctions.includes(codec.events['parsed'][i].name)) {
                 codec.events['parsed'].splice(i, 1);
@@ -180,17 +179,19 @@
     function compileMesh(polyMesh, mesh) {
         polyMesh ??= 
         {
+            //If enabled create an extra section on the mesh to store information so that it can be recovered after export 
+            //sense minecraft dosen't allow more than pone mesh per group and dosen't have rotation for a smaller file size can disable the it
             meta: settings["meshy_meta_data"].value ? 
             {
                 meshes: [],
             } : undefined,
+
             normalized_uvs: settings["meshy_normalized_mesh_uvs"].value,
             positions: [],
             normals: [],
             uvs: [],
             polys: []
         };
-        console.log(mesh)
         //vertex keys -> value
         const postionMap = new Map();
         const normalMap = new Map();
@@ -355,7 +356,7 @@
         return uv
     }
     
-    //gets vertices of a Mesh and applys transformations to the points so that they can be exported
+    //Applies the Mesh Object rotation and position to each vertex of the mesh 
     function getVertices(mesh) {
         const verts = Object.entries(mesh.vertices).map( ( [key, point ]) => { 
             //Generate a copy of the point so that it won't effect the original point
@@ -437,7 +438,6 @@
             z + center[2]
         ];
     }
-    
     })();
     
     
