@@ -672,7 +672,7 @@
 		"author": "MrCrayfish",
 		"description": "Quickly preview a color on tint enabled faces!",
 		"icon": "fa-fill",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"variant": "both",
 		"min_version": "4.3.0",
 		"tags": ["Minecraft: Java Edition"],

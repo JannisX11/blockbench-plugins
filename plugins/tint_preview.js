@@ -620,7 +620,11 @@ function isTintColorArray(obj) {
 					textures.forEach(texture => {
 						let origMat = origMats[texture.uuid];
 						if(origMat) {
-							project.materials[texture.uuid] = origMat;
+							if (project.materials) {
+								project.materials[texture.uuid] = origMat;
+							} else if (texture._static?.properties) {
+								texture._static.properties.material = origMat;
+							}
 							count++;
 						}
 					});
@@ -639,7 +643,7 @@ function isTintColorArray(obj) {
 Important: This plugin is designed for JSON models only and will not work for other formats.`,
 		tags: ["Minecraft: Java Edition"],
 		icon: 'fa-fill',
-		version: '1.1.0',
+		version: '1.1.1',
 		variant: 'both',
 		min_version: '4.3.0',
 		onload() {
@@ -1016,7 +1020,7 @@ function clearTint() {
  * "texture * tint".
  */
 function applyTintingShader(project, texture) {
-	var originalMat = project.materials[texture.uuid];
+	var originalMat = texture.getMaterial();
 	var vertShader = `
 		attribute float highlight;
 
@@ -1130,7 +1134,11 @@ function applyTintingShader(project, texture) {
 	});
 	mat.map = originalMat.map;
 	mat.name = texture.name;
-	project.materials[texture.uuid] = mat;
+	if (project.materials) {
+		project.materials[texture.uuid] = mat;
+	} else if (texture._static?.properties) {
+		texture._static.properties.material = mat;
+	}
 
 	// Store the original mat for restoring
 	origMats[texture.uuid] = originalMat;
