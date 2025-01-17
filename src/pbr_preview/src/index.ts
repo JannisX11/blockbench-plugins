@@ -50,6 +50,7 @@ import { disablePbr } from "./lib/disablePbr";
     repository: "https://github.com/jasonjgardner/blockbench-plugins",
     has_changelog: true,
     min_version: "4.10.3",
+    max_version: "4.11.9",
     onload,
     onunload,
   });

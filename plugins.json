@@ -1021,13 +1021,14 @@
 		"has_changelog": true,
 		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
 		"variant": "both",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"tags": [
 			"Minecraft: Java Edition",
 			"Minecraft: Bedrock Edition",
 			"PBR"
 		],
-		"min_version": "4.10.4"
+		"min_version": "4.10.4",
+		"max_version": "4.11.9"
 	},
 	"tweaks_n_stuff": {
 		"title": "Tweaks & Stuff",
