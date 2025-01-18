@@ -1,71 +1,54 @@
+// src/io/formats/usdz/USDZExporter.ts
 class USDZExporter {
-  async parse(scene: THREE.Scene): Promise<Uint8Array> {
-    // @ts-expect-error JSZip is on window
-    const zip = new window.JSZip();
-    const modelFileName = "model.usda"; // model file should be first in USDZ archive so we init it here
-
+  async parse(scene) {
+    const zip = new JSZip;
+    const modelFileName = "model.usda";
     zip.file(modelFileName, "");
-    let output: string | null = buildHeader();
-    const materials: Record<string, THREE.Material> = {};
-    const textures: Record<string, THREE.Texture> = {};
+    let output = buildHeader();
+    const materials = {};
+    const textures = {};
     scene.traverseVisible((object) => {
-      if (!(object as THREE.Mesh).isMesh) {
+      if (!object.isMesh) {
         return;
       }
-      const mesh = object as THREE.Mesh;
-      if (
-        !(mesh.material as THREE.MeshStandardMaterial).isMeshStandardMaterial
-      ) {
-        console.warn(
-          "THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)",
-          object
-        );
+      const mesh = object;
+      if (!mesh.material.isMeshStandardMaterial) {
+        console.warn("THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)", object);
         return;
       }
       const geometry = mesh.geometry;
-      const material = mesh.material as THREE.MeshStandardMaterial;
+      const material = mesh.material;
       const geometryFileName = "geometries/Geometry_" + geometry.id + ".usd";
-
       if (!zip.file(geometryFileName)) {
         const meshObject = buildMeshObject(geometry);
         zip.file(geometryFileName, buildUSDFileAsString(meshObject));
       }
-
       if (!(material.uuid in materials)) {
         materials[material.uuid] = material;
       }
-
       output += buildXform(mesh, geometry, material);
     });
     output += buildMaterials(materials, textures);
     zip.file(modelFileName, output);
     output = null;
-
     for (const id in textures) {
       const texture = textures[id];
       const color = id.split("_")[1];
-      const isRGBA = texture.format === window.THREE.RGBAFormat;
+      const isRGBA = texture.format === THREE.RGBAFormat;
       const canvas = imageToCanvas(texture.image, color);
-      const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob(
-          (v) => v && resolve(v),
-          isRGBA ? "image/png" : "image/jpeg",
-          1
-        )
-      );
+      const blob = await new Promise((resolve) => canvas.toBlob((v) => v && resolve(v), isRGBA ? "image/png" : "image/jpeg", 1));
       const arrayBuffer = await blob.arrayBuffer();
       zip.file(`textures/Texture_${id}.${isRGBA ? "png" : "jpg"}`, arrayBuffer);
     }
-
-    // 64 byte alignment
     let offset = 0;
-
-    zip.forEach(async (relativePath: string) => {
+    zip.forEach(async (relativePath) => {
       const headerSize = 34 + relativePath.length;
       offset += headerSize;
       const offsetMod64 = offset & 63;
-      const content = await zip.file(relativePath)!.async("uint8array");
-
+      const content = await zip.file(relativePath)?.async("uint8array");
+      if (!content) {
+        return;
+      }
       if (offsetMod64 !== 4) {
         const padLength = 64 - offsetMod64;
         const padding = new Uint8Array(padLength);
@@ -74,68 +57,44 @@ class USDZExporter {
         newContent.set(padding, content.length);
         zip.file(relativePath, newContent);
       }
-
       offset += content.length;
     });
-
     const zipBlob = await zip.generateAsync({
       type: "blob",
-      compression: "STORE",
+      compression: "STORE"
     });
     return new Uint8Array(await zipBlob.arrayBuffer());
   }
 }
-
-function imageToCanvas(
-  image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap,
-  color?: string
-): HTMLCanvasElement {
-  if (
-    (typeof HTMLImageElement !== "undefined" &&
-      image instanceof HTMLImageElement) ||
-    (typeof HTMLCanvasElement !== "undefined" &&
-      image instanceof HTMLCanvasElement) ||
-    (typeof OffscreenCanvas !== "undefined" &&
-      image instanceof OffscreenCanvas) ||
-    (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap)
-  ) {
+function imageToCanvas(image, color) {
+  if (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement || typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas || typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) {
     const scale = 1024 / Math.max(image.width, image.height);
     const canvas = document.createElement("canvas");
     canvas.width = image.width * Math.min(1, scale);
     canvas.height = image.height * Math.min(1, scale);
-    const context = canvas.getContext("2d")!;
-
-    // Use nearest neighbor for scaling
+    const context = canvas.getContext("2d");
     context.imageSmoothingEnabled = false;
-
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
     if (color !== undefined) {
       const hex = parseInt(color, 16);
-      const r = ((hex >> 16) & 255) / 255;
-      const g = ((hex >> 8) & 255) / 255;
+      const r = (hex >> 16 & 255) / 255;
+      const g = (hex >> 8 & 255) / 255;
       const b = (hex & 255) / 255;
       const imagedata = context.getImageData(0, 0, canvas.width, canvas.height);
       const data = imagedata.data;
-
-      for (let i = 0; i < data.length; i += 4) {
+      for (let i = 0;i < data.length; i += 4) {
         data[i + 0] = data[i + 0] * r;
         data[i + 1] = data[i + 1] * g;
         data[i + 2] = data[i + 2] * b;
       }
-
       context.putImageData(imagedata, 0, 0);
     }
-
     return canvas;
   }
-
   throw new Error("Unsupported image type");
 }
-
-const PRECISION = 7;
-
-function buildHeader(): string {
+var PRECISION = 7;
+function buildHeader() {
   return `#usda 1.0
 (
     customLayerData = {
@@ -147,28 +106,17 @@ function buildHeader(): string {
 
 `;
 }
-
-function buildUSDFileAsString(dataToInsert: string): string {
+function buildUSDFileAsString(dataToInsert) {
   let output = buildHeader();
   output += dataToInsert;
   return output;
 }
-
-function buildXform(
-  object: THREE.Object3D,
-  geometry: THREE.BufferGeometry,
-  material: THREE.Material
-): string {
+function buildXform(object, geometry, material) {
   const name = "Object_" + object.id;
   const transform = buildMatrix(object.matrixWorld);
-
   if (object.matrixWorld.determinant() < 0) {
-    console.warn(
-      "THREE.USDZExporter: USDZ does not support negative scales",
-      object
-    );
+    console.warn("THREE.USDZExporter: USDZ does not support negative scales", object);
   }
-
   return `def Xform "${name}" (
     prepend references = @./geometries/Geometry_${geometry.id}.usd@</Geometry>
 )
@@ -181,17 +129,14 @@ function buildXform(
 
 `;
 }
-
-function buildMatrix(matrix: THREE.Matrix4): string {
+function buildMatrix(matrix) {
   const array = matrix.elements;
   return `( ${buildMatrixRow(array, 0)}, ${buildMatrixRow(array, 4)}, ${buildMatrixRow(array, 8)}, ${buildMatrixRow(array, 12)} )`;
 }
-
-function buildMatrixRow(array: number[], offset: number): string {
+function buildMatrixRow(array, offset) {
   return `(${array[offset + 0]}, ${array[offset + 1]}, ${array[offset + 2]}, ${array[offset + 3]})`;
 }
-
-function buildMeshObject(geometry: THREE.BufferGeometry): string {
+function buildMeshObject(geometry) {
   const mesh = buildMesh(geometry);
   return `
 def "Geometry"
@@ -200,8 +145,7 @@ def "Geometry"
 }
 `;
 }
-
-function buildMesh(geometry: THREE.BufferGeometry): string {
+function buildMesh(geometry) {
   const name = "Geometry";
   const attributes = geometry.attributes;
   const count = attributes.position.count;
@@ -210,102 +154,69 @@ function buildMesh(geometry: THREE.BufferGeometry): string {
     {
         int[] faceVertexCounts = [${buildMeshVertexCount(geometry)}]
         int[] faceVertexIndices = [${buildMeshVertexIndices(geometry)}]
-        normal3f[] normals = [${buildVector3Array(attributes.normal as THREE.BufferAttribute, count)}] (
+        normal3f[] normals = [${buildVector3Array(attributes.normal, count)}] (
             interpolation = "vertex"
         )
-        point3f[] points = [${buildVector3Array(attributes.position as THREE.BufferAttribute, count)}]
-        float2[] primvars:st = [${buildVector2Array(attributes.uv as THREE.BufferAttribute, count)}] (
+        point3f[] points = [${buildVector3Array(attributes.position, count)}]
+        float2[] primvars:st = [${buildVector2Array(attributes.uv, count)}] (
             interpolation = "vertex"
         )
         uniform token subdivisionScheme = "none"
     }
 `;
 }
-
-function buildMeshVertexCount(geometry: THREE.BufferGeometry): string {
-  const count =
-    geometry.index !== null
-      ? geometry.index.count
-      : geometry.attributes.position.count;
-  return Array(count / 3)
-    .fill(3)
-    .join(", ");
+function buildMeshVertexCount(geometry) {
+  const count = geometry.index !== null ? geometry.index.count : geometry.attributes.position.count;
+  return Array(count / 3).fill(3).join(", ");
 }
-
-function buildMeshVertexIndices(geometry: THREE.BufferGeometry): string {
+function buildMeshVertexIndices(geometry) {
   const index = geometry.index;
-  const array: number[] = [];
-
+  const array = [];
   if (index !== null) {
-    for (let i = 0; i < index.count; i++) {
+    for (let i = 0;i < index.count; i++) {
       array.push(index.getX(i));
     }
   } else {
     const length = geometry.attributes.position.count;
-
-    for (let i = 0; i < length; i++) {
+    for (let i = 0;i < length; i++) {
       array.push(i);
     }
   }
-
   return array.join(", ");
 }
-
-function buildVector3Array(
-  attribute: THREE.BufferAttribute,
-  count: number
-): string {
+function buildVector3Array(attribute, count) {
   if (attribute === undefined) {
     console.warn("USDZExporter: Normals missing.");
     return Array(count).fill("(0, 0, 0)").join(", ");
   }
-
-  const array: string[] = [];
-
-  for (let i = 0; i < attribute.count; i++) {
+  const array = [];
+  for (let i = 0;i < attribute.count; i++) {
     const x = attribute.getX(i);
     const y = attribute.getY(i);
     const z = attribute.getZ(i);
-    array.push(
-      `(${x.toPrecision(PRECISION)}, ${y.toPrecision(PRECISION)}, ${z.toPrecision(PRECISION)})`
-    );
+    array.push(`(${x.toPrecision(PRECISION)}, ${y.toPrecision(PRECISION)}, ${z.toPrecision(PRECISION)})`);
   }
-
   return array.join(", ");
 }
-
-function buildVector2Array(
-  attribute: THREE.BufferAttribute,
-  count: number
-): string {
+function buildVector2Array(attribute, count) {
   if (attribute === undefined) {
     console.warn("USDZExporter: UVs missing.");
     return Array(count).fill("(0, 0)").join(", ");
   }
-
-  const array: string[] = [];
-
-  for (let i = 0; i < attribute.count; i++) {
+  const array = [];
+  for (let i = 0;i < attribute.count; i++) {
     const x = attribute.getX(i);
     const y = attribute.getY(i);
-    array.push(
-      `(${x.toPrecision(PRECISION)}, ${Number(y.toPrecision(PRECISION))})`
-    );
+    array.push(`(${x.toPrecision(PRECISION)}, ${Number(y.toPrecision(PRECISION))})`);
   }
   return array.join(", ");
 }
-
-function buildMaterials(
-  materials: { [key: string]: THREE.Material },
-  textures: { [key: string]: THREE.Texture }
-): string {
-  const array: string[] = [];
-
+function buildMaterials(materials, textures) {
+  const array = [];
   for (const uuid in materials) {
     const material = materials[uuid];
     array.push(buildMaterial(material, textures));
   }
-
   return `def "Materials"
 {
 ${array.join("")}
@@ -313,21 +224,11 @@ ${array.join("")}
 
 `;
 }
-
-function buildMaterial(
-  material: THREE.Material,
-  textures: { [key: string]: THREE.Texture }
-): string {
-  // https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
+function buildMaterial(material, textures) {
   const pad = "            ";
-  const inputs: string[] = [];
-  const samplers: string[] = [];
-
-  function buildTexture(
-    texture: THREE.Texture,
-    mapType: string,
-    color?: THREE.Color
-  ): string {
+  const inputs = [];
+  const samplers = [];
+  function buildTexture(texture, mapType, color) {
     const id = texture.id + (color ? "_" + color.getHexString() : "");
     const isRGBA = texture.format === THREE.RGBAFormat;
     textures[id] = texture;
@@ -358,87 +259,60 @@ function buildMaterial(
             float3 outputs:rgb
         }`;
   }
-
-  const mat = material as THREE.MeshStandardMaterial;
-
+  const mat = material;
   if (mat.map !== null) {
-    inputs.push(
-      `${pad}color3f inputs:diffuseColor.connect = </Materials/Material_${mat.id}/Texture_${mat.map.id}_diffuse.outputs:rgb>`
-    );
+    inputs.push(`${pad}color3f inputs:diffuseColor.connect = </Materials/Material_${mat.id}/Texture_${mat.map.id}_diffuse.outputs:rgb>`);
     samplers.push(buildTexture(mat.map, "diffuse", mat.color));
   } else {
     inputs.push(`${pad}color3f inputs:diffuseColor = ${buildColor(mat.color)}`);
   }
-
   if (mat.emissiveMap !== null) {
-    inputs.push(
-      `${pad}color3f inputs:emissiveColor.connect = </Materials/Material_${mat.id}/Texture_${mat.emissiveMap.id}_emissive.outputs:rgb>`
-    );
+    inputs.push(`${pad}color3f inputs:emissiveColor.connect = </Materials/Material_${mat.id}/Texture_${mat.emissiveMap.id}_emissive.outputs:rgb>`);
     samplers.push(buildTexture(mat.emissiveMap, "emissive"));
   } else if (mat.emissive.getHex() > 0) {
-    inputs.push(
-      `${pad}color3f inputs:emissiveColor = ${buildColor(mat.emissive)}`
-    );
+    inputs.push(`${pad}color3f inputs:emissiveColor = ${buildColor(mat.emissive)}`);
   }
-
   if (mat.normalMap !== null) {
-    inputs.push(
-      `${pad}normal3f inputs:normal.connect = </Materials/Material_${mat.id}/Texture_${mat.normalMap.id}_normal.outputs:rgb>`
-    );
+    inputs.push(`${pad}normal3f inputs:normal.connect = </Materials/Material_${mat.id}/Texture_${mat.normalMap.id}_normal.outputs:rgb>`);
     samplers.push(buildTexture(mat.normalMap, "normal"));
   }
-
   if (mat.aoMap !== null) {
-    inputs.push(
-      `${pad}float inputs:occlusion.connect = </Materials/Material_${mat.id}/Texture_${mat.aoMap.id}_occlusion.outputs:r>`
-    );
+    inputs.push(`${pad}float inputs:occlusion.connect = </Materials/Material_${mat.id}/Texture_${mat.aoMap.id}_occlusion.outputs:r>`);
     samplers.push(buildTexture(mat.aoMap, "occlusion"));
   }
-
   if (mat.roughnessMap !== null && mat.roughness === 1) {
-    inputs.push(
-      `${pad}float inputs:roughness.connect = </Materials/Material_${mat.id}/Texture_${mat.roughnessMap.id}_roughness.outputs:g>`
-    );
+    inputs.push(`${pad}float inputs:roughness.connect = </Materials/Material_${mat.id}/Texture_${mat.roughnessMap.id}_roughness.outputs:g>`);
     samplers.push(buildTexture(mat.roughnessMap, "roughness"));
   } else {
     inputs.push(`${pad}float inputs:roughness = ${mat.roughness}`);
   }
-
   if (mat.metalnessMap !== null && mat.metalness === 1) {
-    inputs.push(
-      `${pad}float inputs:metallic.connect = </Materials/Material_${mat.id}/Texture_${mat.metalnessMap.id}_metallic.outputs:b>`
-    );
+    inputs.push(`${pad}float inputs:metallic.connect = </Materials/Material_${mat.id}/Texture_${mat.metalnessMap.id}_metallic.outputs:b>`);
     samplers.push(buildTexture(mat.metalnessMap, "metallic"));
   } else {
     inputs.push(`${pad}float inputs:metallic = ${mat.metalness}`);
   }
-
   if (mat.alphaMap !== null) {
-    inputs.push(
-      `${pad}float inputs:opacity.connect = </Materials/Material_${mat.id}/Texture_${mat.alphaMap.id}_opacity.outputs:r>`
-    );
+    inputs.push(`${pad}float inputs:opacity.connect = </Materials/Material_${mat.id}/Texture_${mat.alphaMap.id}_opacity.outputs:r>`);
     inputs.push(`${pad}float inputs:opacityThreshold = 0.0001`);
     samplers.push(buildTexture(mat.alphaMap, "opacity"));
   } else {
     inputs.push(`${pad}float inputs:opacity = ${mat.opacity}`);
   }
-
-  if ((mat as any).isMeshPhysicalMaterial) {
-    const physicalMat = mat as any;
+  if (mat.isMeshPhysicalMaterial) {
+    const physicalMat = mat;
     inputs.push(`${pad}float inputs:clearcoat = ${physicalMat.clearcoat}`);
-    inputs.push(
-      `${pad}float inputs:clearcoatRoughness = ${physicalMat.clearcoatRoughness}`
-    );
+    inputs.push(`${pad}float inputs:clearcoatRoughness = ${physicalMat.clearcoatRoughness}`);
     inputs.push(`${pad}float inputs:ior = ${physicalMat.ior}`);
   }
-
   return `
     def Material "Material_${mat.id}"
     {
         def Shader "PreviewSurface"
         {
             uniform token info:id = "UsdPreviewSurface"
-${inputs.join("\n")}
+${inputs.join(`
+`)}
             int inputs:useSpecularWorkflow = 0
             token outputs:surface
         }
@@ -454,18 +328,95 @@ ${inputs.join("\n")}
             float2 outputs:result
         }
 
-${samplers.join("\n")}
+${samplers.join(`
+`)}
 
     }
 `;
 }
-
-function buildColor(color: THREE.Color): string {
+function buildColor(color) {
   return `(${color.r}, ${color.g}, ${color.b})`;
 }
-
-function buildVector2(vector: THREE.Vector2): string {
+function buildVector2(vector) {
   return `(${vector.x}, ${vector.y})`;
 }
+var USDZExporter_default = USDZExporter;
 
-export default USDZExporter;
+// src/io/formats/usdz/index.ts
+function getOutputBaseName() {
+  if (!Project) {
+    return pathToName(Texture.selected?.name ?? "texture");
+  }
+  return Project.model_identifier.length > 0 ? Project.model_identifier : Project.getDisplayName();
+}
+function setup() {
+  const usdz = new Codec("usdz", {
+    extension: "usdz",
+    name: "USDZ",
+    remember: true,
+    fileName() {
+      return getOutputBaseName() + ".usdz";
+    },
+    async compile(compileOptions = {}) {
+      if (!Project) {
+        throw new Error("No project loaded");
+      }
+      const options = Object.assign(this.export_options ?? {}, compileOptions);
+      const exporter = new USDZExporter_default;
+      const scene = new window.THREE.Scene;
+      scene.name = "blockbench_export";
+      scene.add(Project.model_3d);
+      const result = await exporter.parse(scene);
+      this.dispatchEvent("compile", { model: result, options });
+      Canvas.scene.add(Project.model_3d);
+      return result;
+    },
+    async export(options = {}) {
+      const content = await this.compile(options);
+      Blockbench.export({
+        content,
+        name: this.fileName(),
+        startpath: this.startPath(),
+        resource_id: "usdz",
+        type: this.name,
+        extensions: ["usdz"],
+        savetype: "buffer"
+      }, (path) => this.afterDownload(path));
+    }
+  });
+  const exportUsdz = new Action("export_usdz", {
+    category: "file",
+    name: "Export USDZ",
+    description: "Exports the current model as a USDZ file",
+    icon: "stacks",
+    async click() {
+      if (!usdz) {
+        return;
+      }
+      usdz.export();
+    }
+  });
+  MenuBar.addAction(exportUsdz, "file.export");
+}
+function teardown() {
+  MenuBar.removeAction("file.export.export_usdz");
+}
+
+// src/index.ts
+(() => {
+  BBPlugin.register("usd_codec", {
+    version: "1.0.0",
+    title: "USD Codec",
+    author: "Jason J. Gardner",
+    description: "Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, and Houdini.",
+    tags: ["Codec", "PBR"],
+    icon: "icon.png",
+    variant: "both",
+    await_loading: true,
+    repository: "https://github.com/jasonjgardner/blockbench-plugins",
+    has_changelog: false,
+    min_version: "4.12.1",
+    onload: setup,
+    onunload: teardown
+  });
+})();
