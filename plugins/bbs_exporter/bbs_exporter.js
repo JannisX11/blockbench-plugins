@@ -323,7 +323,7 @@
 
                             if (texture && texture.uuid == textureUuid)
                             {
-                                return [texture.width, texture.height];
+                                return [texture.uv_width, texture.uv_height];
                             }
                         }
                     }
@@ -581,6 +581,21 @@
         name: "BBS model",
         extension: "json",
         remember: false,
+        load_filter: {
+            type: "json",
+            extensions: ["json"],
+            condition: (file) => {
+                return file && file.model && file.model.groups && file.model.texture;
+            }
+        },
+        load(content, file) {
+            if (!Undo)
+            {
+                setupProject(Formats.free);
+            }
+
+            importBBS(content);
+        },
         compile(options) {
             return autoStringify(compile());
         },
@@ -615,6 +630,12 @@
                 description: "When enabled, copies to the buffer only cubes from the first found group. This option is ignored when Copy to buffer option is disabled!",
                 type: "checkbox",
                 value: false
+            },
+            exportAsFolder: {
+                label: "Export to folder",
+                description: "When enabled, you can pick the folder where .bbs.json and the texture would be exported to.",
+                type: "checkbox",
+                value: false
             }
         },
         onConfirm: function(formData) {
@@ -623,7 +644,35 @@
             lastOptions.model = formData.exportModel;
             lastOptions.animations = formData.exportAnimations;
 
-            if (formData.copyToBuffer)
+            if (formData.exportAsFolder)
+            {
+                var folder = Blockbench.pickDirectory({
+                    title: "Export destination..."
+                });
+
+                if (folder)
+                {
+                    Blockbench.writeFile(PathModule.join(folder, "model.bbs.json"), {
+                        content: autoStringify(compile())
+                    });
+
+                    Texture.all.forEach((t) => 
+                    {
+                        if (t.error) 
+                        {
+                            return;
+                        }
+                        
+                        var name = t.name.endsWith(".png") ? t.name : t.name + ".png";
+                        
+                        Blockbench.writeFile(PathModule.join(folder, name), {
+                            content: t.source,
+                            savetype: 'image'
+                        });
+                    });
+                }
+            }
+            else if (formData.copyToBuffer)
             {
                 var data = {};
 
@@ -648,9 +697,9 @@
     Plugin.register("bbs_exporter", {
         title: "BBS Model Ex/importer",
         author: "McHorse",
-        description: "Adds actions to export/import models in BBS format, which is used by BBS machinima studio.",
+        description: "Adds actions to export/import models in BBS format, which is used by BBS mod.",
         icon: "icon.png",
-        version: "1.2.4",
+        version: "1.3",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
