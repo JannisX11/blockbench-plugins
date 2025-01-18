@@ -14,9 +14,9 @@ import { setup, teardown } from './io/formats/usdz'
     title: "USD Codec",
     author: "Jason J. Gardner",
     description:
-      "Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, and Houdini.",
+      "Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, Houdini, NVIDIA Omniverse, and more.",
     tags: ["Codec","PBR"],
-    icon: "icon.png",
+    icon: "icon.svg",
     variant: "both",
     await_loading: true,
     repository: "https://github.com/jasonjgardner/blockbench-plugins",

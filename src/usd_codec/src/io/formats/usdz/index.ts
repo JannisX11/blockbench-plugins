@@ -1,5 +1,7 @@
 import USDZExporter from "./USDZExporter";
 
+let exportUsdz: Action | null = null;
+
 function getOutputBaseName() {
   if (!Project) {
     // @ts-ignore Blockbench globals
@@ -56,7 +58,7 @@ export function setup() {
     },
   });
 
-  const exportUsdz = new Action("export_usdz", {
+  exportUsdz = new Action("export_usdz", {
     category: "file",
     name: "Export USDZ",
     description: "Exports the current model as a USDZ file",
@@ -75,4 +77,5 @@ export function setup() {
 
 export function teardown() {
   MenuBar.removeAction("file.export.export_usdz");
+  exportUsdz?.delete();
 }

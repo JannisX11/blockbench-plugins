@@ -1,101 +1,4 @@
-// src/io/formats/usdz/USDZExporter.ts
-class USDZExporter {
-  async parse(scene) {
-    const zip = new JSZip;
-    const modelFileName = "model.usda";
-    zip.file(modelFileName, "");
-    let output = buildHeader();
-    const materials = {};
-    const textures = {};
-    scene.traverseVisible((object) => {
-      if (!object.isMesh) {
-        return;
-      }
-      const mesh = object;
-      if (!mesh.material.isMeshStandardMaterial) {
-        console.warn("THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)", object);
-        return;
-      }
-      const geometry = mesh.geometry;
-      const material = mesh.material;
-      const geometryFileName = "geometries/Geometry_" + geometry.id + ".usd";
-      if (!zip.file(geometryFileName)) {
-        const meshObject = buildMeshObject(geometry);
-        zip.file(geometryFileName, buildUSDFileAsString(meshObject));
-      }
-      if (!(material.uuid in materials)) {
-        materials[material.uuid] = material;
-      }
-      output += buildXform(mesh, geometry, material);
-    });
-    output += buildMaterials(materials, textures);
-    zip.file(modelFileName, output);
-    output = null;
-    for (const id in textures) {
-      const texture = textures[id];
-      const color = id.split("_")[1];
-      const isRGBA = texture.format === THREE.RGBAFormat;
-      const canvas = imageToCanvas(texture.image, color);
-      const blob = await new Promise((resolve) => canvas.toBlob((v) => v && resolve(v), isRGBA ? "image/png" : "image/jpeg", 1));
-      const arrayBuffer = await blob.arrayBuffer();
-      zip.file(`textures/Texture_${id}.${isRGBA ? "png" : "jpg"}`, arrayBuffer);
-    }
-    let offset = 0;
-    zip.forEach(async (relativePath) => {
-      const headerSize = 34 + relativePath.length;
-      offset += headerSize;
-      const offsetMod64 = offset & 63;
-      const content = await zip.file(relativePath)?.async("uint8array");
-      if (!content) {
-        return;
-      }
-      if (offsetMod64 !== 4) {
-        const padLength = 64 - offsetMod64;
-        const padding = new Uint8Array(padLength);
-        const newContent = new Uint8Array(content.length + padLength);
-        newContent.set(content, 0);
-        newContent.set(padding, content.length);
-        zip.file(relativePath, newContent);
-      }
-      offset += content.length;
-    });
-    const zipBlob = await zip.generateAsync({
-      type: "blob",
-      compression: "STORE"
-    });
-    return new Uint8Array(await zipBlob.arrayBuffer());
-  }
-}
-function imageToCanvas(image, color) {
-  if (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement || typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement || typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas || typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) {
-    const scale = 1024 / Math.max(image.width, image.height);
-    const canvas = document.createElement("canvas");
-    canvas.width = image.width * Math.min(1, scale);
-    canvas.height = image.height * Math.min(1, scale);
-    const context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    if (color !== undefined) {
-      const hex = parseInt(color, 16);
-      const r = (hex >> 16 & 255) / 255;
-      const g = (hex >> 8 & 255) / 255;
-      const b = (hex & 255) / 255;
-      const imagedata = context.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imagedata.data;
-      for (let i = 0;i < data.length; i += 4) {
-        data[i + 0] = data[i + 0] * r;
-        data[i + 1] = data[i + 1] * g;
-        data[i + 2] = data[i + 2] * b;
-      }
-      context.putImageData(imagedata, 0, 0);
-    }
-    return canvas;
-  }
-  throw new Error("Unsupported image type");
-}
-var PRECISION = 7;
-function buildHeader() {
-  return `#usda 1.0
+class E{async parse(_){let q=new JSZip,K="model.usda";q.file("model.usda","");let k=j(),D={},W={};_.traverseVisible(($)=>{if(!$.isMesh)return;let H=$;if(!H.material.isMeshStandardMaterial){console.warn("THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)",$);return}let{geometry:Y,material:Q}=H,G="geometries/Geometry_"+Y.id+".usd";if(!q.file(G)){let F=z(Y);q.file(G,R(F))}if(!(Q.uuid in D))D[Q.uuid]=Q;k+=M(H,Y,Q)}),k+=d(D,W),q.file("model.usda",k),k=null;for(let $ in W){let H=W[$],Y=$.split("_")[1],Q=H.format===THREE.RGBAFormat,G=P(H.image,Y),L=await(await new Promise((I)=>G.toBlob((A)=>A&&I(A),Q?"image/png":"image/jpeg",1))).arrayBuffer();q.file(`textures/Texture_${$}.${Q?"png":"jpg"}`,L)}let J=0;q.forEach(async($)=>{let H=34+$.length;J+=H;let Y=J&63,Q=await q.file($)?.async("uint8array");if(!Q)return;if(Y!==4){let G=64-Y,F=new Uint8Array(G),L=new Uint8Array(Q.length+G);L.set(Q,0),L.set(F,Q.length),q.file($,L)}J+=Q.length});let X=await q.generateAsync({type:"blob",compression:"STORE"});return new Uint8Array(await X.arrayBuffer())}}function P(_,q){if(typeof HTMLImageElement!=="undefined"&&_ instanceof HTMLImageElement||typeof HTMLCanvasElement!=="undefined"&&_ instanceof HTMLCanvasElement||typeof OffscreenCanvas!=="undefined"&&_ instanceof OffscreenCanvas||typeof ImageBitmap!=="undefined"&&_ instanceof ImageBitmap){let K=1024/Math.max(_.width,_.height),k=document.createElement("canvas");k.width=_.width*Math.min(1,K),k.height=_.height*Math.min(1,K);let D=k.getContext("2d");if(D.imageSmoothingEnabled=!1,D.drawImage(_,0,0,k.width,k.height),q!==void 0){let W=parseInt(q,16),J=(W>>16&255)/255,X=(W>>8&255)/255,$=(W&255)/255,H=D.getImageData(0,0,k.width,k.height),Y=H.data;for(let Q=0;Q<Y.length;Q+=4)Y[Q+0]=Y[Q+0]*J,Y[Q+1]=Y[Q+1]*X,Y[Q+2]=Y[Q+2]*$;D.putImageData(H,0,0)}return k}throw new Error("Unsupported image type")}var B=7;function j(){return`#usda 1.0
 (
     customLayerData = {
         string creator = "Blockbench USDZExporter"
@@ -104,319 +7,90 @@ function buildHeader() {
     upAxis = "Y"
 )
 
-`;
-}
-function buildUSDFileAsString(dataToInsert) {
-  let output = buildHeader();
-  output += dataToInsert;
-  return output;
-}
-function buildXform(object, geometry, material) {
-  const name = "Object_" + object.id;
-  const transform = buildMatrix(object.matrixWorld);
-  if (object.matrixWorld.determinant() < 0) {
-    console.warn("THREE.USDZExporter: USDZ does not support negative scales", object);
-  }
-  return `def Xform "${name}" (
-    prepend references = @./geometries/Geometry_${geometry.id}.usd@</Geometry>
+`}function R(_){let q=j();return q+=_,q}function M(_,q,K){let k="Object_"+_.id,D=T(_.matrixWorld);if(_.matrixWorld.determinant()<0)console.warn("THREE.USDZExporter: USDZ does not support negative scales",_);return`def Xform "${k}" (
+    prepend references = @./geometries/Geometry_${q.id}.usd@</Geometry>
 )
 {
-    matrix4d xformOp:transform = ${transform}
+    matrix4d xformOp:transform = ${D}
     uniform token[] xformOpOrder = ["xformOp:transform"]
 
-    rel material:binding = </Materials/Material_${material.id}>
+    rel material:binding = </Materials/Material_${K.id}>
 }
 
-`;
-}
-function buildMatrix(matrix) {
-  const array = matrix.elements;
-  return `( ${buildMatrixRow(array, 0)}, ${buildMatrixRow(array, 4)}, ${buildMatrixRow(array, 8)}, ${buildMatrixRow(array, 12)} )`;
-}
-function buildMatrixRow(array, offset) {
-  return `(${array[offset + 0]}, ${array[offset + 1]}, ${array[offset + 2]}, ${array[offset + 3]})`;
-}
-function buildMeshObject(geometry) {
-  const mesh = buildMesh(geometry);
-  return `
+`}function T(_){let q=_.elements;return`( ${Z(q,0)}, ${Z(q,4)}, ${Z(q,8)}, ${Z(q,12)} )`}function Z(_,q){return`(${_[q+0]}, ${_[q+1]}, ${_[q+2]}, ${_[q+3]})`}function z(_){return`
 def "Geometry"
 {
-  ${mesh}
+  ${h(_)}
 }
-`;
-}
-function buildMesh(geometry) {
-  const name = "Geometry";
-  const attributes = geometry.attributes;
-  const count = attributes.position.count;
-  return `
-    def Mesh "${name}"
+`}function h(_){let K=_.attributes,k=K.position.count;return`
+    def Mesh "Geometry"
     {
-        int[] faceVertexCounts = [${buildMeshVertexCount(geometry)}]
-        int[] faceVertexIndices = [${buildMeshVertexIndices(geometry)}]
-        normal3f[] normals = [${buildVector3Array(attributes.normal, count)}] (
+        int[] faceVertexCounts = [${v(_)}]
+        int[] faceVertexIndices = [${f(_)}]
+        normal3f[] normals = [${U(K.normal,k)}] (
             interpolation = "vertex"
         )
-        point3f[] points = [${buildVector3Array(attributes.position, count)}]
-        float2[] primvars:st = [${buildVector2Array(attributes.uv, count)}] (
+        point3f[] points = [${U(K.position,k)}]
+        float2[] primvars:st = [${g(K.uv,k)}] (
             interpolation = "vertex"
         )
         uniform token subdivisionScheme = "none"
     }
-`;
-}
-function buildMeshVertexCount(geometry) {
-  const count = geometry.index !== null ? geometry.index.count : geometry.attributes.position.count;
-  return Array(count / 3).fill(3).join(", ");
-}
-function buildMeshVertexIndices(geometry) {
-  const index = geometry.index;
-  const array = [];
-  if (index !== null) {
-    for (let i = 0;i < index.count; i++) {
-      array.push(index.getX(i));
-    }
-  } else {
-    const length = geometry.attributes.position.count;
-    for (let i = 0;i < length; i++) {
-      array.push(i);
-    }
-  }
-  return array.join(", ");
-}
-function buildVector3Array(attribute, count) {
-  if (attribute === undefined) {
-    console.warn("USDZExporter: Normals missing.");
-    return Array(count).fill("(0, 0, 0)").join(", ");
-  }
-  const array = [];
-  for (let i = 0;i < attribute.count; i++) {
-    const x = attribute.getX(i);
-    const y = attribute.getY(i);
-    const z = attribute.getZ(i);
-    array.push(`(${x.toPrecision(PRECISION)}, ${y.toPrecision(PRECISION)}, ${z.toPrecision(PRECISION)})`);
-  }
-  return array.join(", ");
-}
-function buildVector2Array(attribute, count) {
-  if (attribute === undefined) {
-    console.warn("USDZExporter: UVs missing.");
-    return Array(count).fill("(0, 0)").join(", ");
-  }
-  const array = [];
-  for (let i = 0;i < attribute.count; i++) {
-    const x = attribute.getX(i);
-    const y = attribute.getY(i);
-    array.push(`(${x.toPrecision(PRECISION)}, ${Number(y.toPrecision(PRECISION))})`);
-  }
-  return array.join(", ");
-}
-function buildMaterials(materials, textures) {
-  const array = [];
-  for (const uuid in materials) {
-    const material = materials[uuid];
-    array.push(buildMaterial(material, textures));
-  }
-  return `def "Materials"
+`}function v(_){let q=_.index!==null?_.index.count:_.attributes.position.count;return Array(q/3).fill(3).join(", ")}function f(_){let q=_.index,K=[];if(q!==null)for(let k=0;k<q.count;k++)K.push(q.getX(k));else{let k=_.attributes.position.count;for(let D=0;D<k;D++)K.push(D)}return K.join(", ")}function U(_,q){if(_===void 0)return console.warn("USDZExporter: Normals missing."),Array(q).fill("(0, 0, 0)").join(", ");let K=[];for(let k=0;k<_.count;k++){let D=_.getX(k),W=_.getY(k),J=_.getZ(k);K.push(`(${D.toPrecision(B)}, ${W.toPrecision(B)}, ${J.toPrecision(B)})`)}return K.join(", ")}function g(_,q){if(_===void 0)return console.warn("USDZExporter: UVs missing."),Array(q).fill("(0, 0)").join(", ");let K=[];for(let k=0;k<_.count;k++){let D=_.getX(k),W=_.getY(k);K.push(`(${D.toPrecision(B)}, ${Number(W.toPrecision(B))})`)}return K.join(", ")}function d(_,q){let K=[];for(let k in _){let D=_[k];K.push(n(D,q))}return`def "Materials"
 {
-${array.join("")}
+${K.join("")}
 }
 
-`;
-}
-function buildMaterial(material, textures) {
-  const pad = "            ";
-  const inputs = [];
-  const samplers = [];
-  function buildTexture(texture, mapType, color) {
-    const id = texture.id + (color ? "_" + color.getHexString() : "");
-    const isRGBA = texture.format === THREE.RGBAFormat;
-    textures[id] = texture;
-    return `
-        def Shader "Transform2d_${mapType}" (
+`}function n(_,q){let k=[],D=[];function W(X,$,H){let Y=X.id+(H?"_"+H.getHexString():""),Q=X.format===THREE.RGBAFormat;return q[Y]=X,`
+        def Shader "Transform2d_${$}" (
             sdrMetadata = {
                 string role = "math"
             }
         )
         {
             uniform token info:id = "UsdTransform2d"
-            float2 inputs:in.connect = </Materials/Material_${material.id}/uvReader_st.outputs:result>
-            float2 inputs:scale = ${buildVector2(texture.repeat)}
-            float2 inputs:translation = ${buildVector2(texture.offset)}
+            float2 inputs:in.connect = </Materials/Material_${_.id}/uvReader_st.outputs:result>
+            float2 inputs:scale = ${N(X.repeat)}
+            float2 inputs:translation = ${N(X.offset)}
             float2 outputs:result
         }
 
-        def Shader "Texture_${texture.id}_${mapType}"
+        def Shader "Texture_${X.id}_${$}"
         {
             uniform token info:id = "UsdUVTexture"
-            asset inputs:file = @textures/Texture_${id}.${isRGBA ? "png" : "jpg"}@
-            float2 inputs:st.connect = </Materials/Material_${material.id}/Transform2d_${mapType}.outputs:result>
+            asset inputs:file = @textures/Texture_${Y}.${Q?"png":"jpg"}@
+            float2 inputs:st.connect = </Materials/Material_${_.id}/Transform2d_${$}.outputs:result>
             token inputs:wrapS = "repeat"
             token inputs:wrapT = "repeat"
             float outputs:r
             float outputs:g
             float outputs:b
             float3 outputs:rgb
-        }`;
-  }
-  const mat = material;
-  if (mat.map !== null) {
-    inputs.push(`${pad}color3f inputs:diffuseColor.connect = </Materials/Material_${mat.id}/Texture_${mat.map.id}_diffuse.outputs:rgb>`);
-    samplers.push(buildTexture(mat.map, "diffuse", mat.color));
-  } else {
-    inputs.push(`${pad}color3f inputs:diffuseColor = ${buildColor(mat.color)}`);
-  }
-  if (mat.emissiveMap !== null) {
-    inputs.push(`${pad}color3f inputs:emissiveColor.connect = </Materials/Material_${mat.id}/Texture_${mat.emissiveMap.id}_emissive.outputs:rgb>`);
-    samplers.push(buildTexture(mat.emissiveMap, "emissive"));
-  } else if (mat.emissive.getHex() > 0) {
-    inputs.push(`${pad}color3f inputs:emissiveColor = ${buildColor(mat.emissive)}`);
-  }
-  if (mat.normalMap !== null) {
-    inputs.push(`${pad}normal3f inputs:normal.connect = </Materials/Material_${mat.id}/Texture_${mat.normalMap.id}_normal.outputs:rgb>`);
-    samplers.push(buildTexture(mat.normalMap, "normal"));
-  }
-  if (mat.aoMap !== null) {
-    inputs.push(`${pad}float inputs:occlusion.connect = </Materials/Material_${mat.id}/Texture_${mat.aoMap.id}_occlusion.outputs:r>`);
-    samplers.push(buildTexture(mat.aoMap, "occlusion"));
-  }
-  if (mat.roughnessMap !== null && mat.roughness === 1) {
-    inputs.push(`${pad}float inputs:roughness.connect = </Materials/Material_${mat.id}/Texture_${mat.roughnessMap.id}_roughness.outputs:g>`);
-    samplers.push(buildTexture(mat.roughnessMap, "roughness"));
-  } else {
-    inputs.push(`${pad}float inputs:roughness = ${mat.roughness}`);
-  }
-  if (mat.metalnessMap !== null && mat.metalness === 1) {
-    inputs.push(`${pad}float inputs:metallic.connect = </Materials/Material_${mat.id}/Texture_${mat.metalnessMap.id}_metallic.outputs:b>`);
-    samplers.push(buildTexture(mat.metalnessMap, "metallic"));
-  } else {
-    inputs.push(`${pad}float inputs:metallic = ${mat.metalness}`);
-  }
-  if (mat.alphaMap !== null) {
-    inputs.push(`${pad}float inputs:opacity.connect = </Materials/Material_${mat.id}/Texture_${mat.alphaMap.id}_opacity.outputs:r>`);
-    inputs.push(`${pad}float inputs:opacityThreshold = 0.0001`);
-    samplers.push(buildTexture(mat.alphaMap, "opacity"));
-  } else {
-    inputs.push(`${pad}float inputs:opacity = ${mat.opacity}`);
-  }
-  if (mat.isMeshPhysicalMaterial) {
-    const physicalMat = mat;
-    inputs.push(`${pad}float inputs:clearcoat = ${physicalMat.clearcoat}`);
-    inputs.push(`${pad}float inputs:clearcoatRoughness = ${physicalMat.clearcoatRoughness}`);
-    inputs.push(`${pad}float inputs:ior = ${physicalMat.ior}`);
-  }
-  return `
-    def Material "Material_${mat.id}"
+        }`}let J=_;if(J.map!==null)k.push(`            color3f inputs:diffuseColor.connect = </Materials/Material_${J.id}/Texture_${J.map.id}_diffuse.outputs:rgb>`),D.push(W(J.map,"diffuse",J.color));else k.push(`            color3f inputs:diffuseColor = ${V(J.color)}`);if(J.emissiveMap!==null)k.push(`            color3f inputs:emissiveColor.connect = </Materials/Material_${J.id}/Texture_${J.emissiveMap.id}_emissive.outputs:rgb>`),D.push(W(J.emissiveMap,"emissive"));else if(J.emissive.getHex()>0)k.push(`            color3f inputs:emissiveColor = ${V(J.emissive)}`);if(J.normalMap!==null)k.push(`            normal3f inputs:normal.connect = </Materials/Material_${J.id}/Texture_${J.normalMap.id}_normal.outputs:rgb>`),D.push(W(J.normalMap,"normal"));if(J.aoMap!==null)k.push(`            float inputs:occlusion.connect = </Materials/Material_${J.id}/Texture_${J.aoMap.id}_occlusion.outputs:r>`),D.push(W(J.aoMap,"occlusion"));if(J.roughnessMap!==null&&J.roughness===1)k.push(`            float inputs:roughness.connect = </Materials/Material_${J.id}/Texture_${J.roughnessMap.id}_roughness.outputs:g>`),D.push(W(J.roughnessMap,"roughness"));else k.push(`            float inputs:roughness = ${J.roughness}`);if(J.metalnessMap!==null&&J.metalness===1)k.push(`            float inputs:metallic.connect = </Materials/Material_${J.id}/Texture_${J.metalnessMap.id}_metallic.outputs:b>`),D.push(W(J.metalnessMap,"metallic"));else k.push(`            float inputs:metallic = ${J.metalness}`);if(J.alphaMap!==null)k.push(`            float inputs:opacity.connect = </Materials/Material_${J.id}/Texture_${J.alphaMap.id}_opacity.outputs:r>`),k.push("            float inputs:opacityThreshold = 0.0001"),D.push(W(J.alphaMap,"opacity"));else k.push(`            float inputs:opacity = ${J.opacity}`);if(J.isMeshPhysicalMaterial){let X=J;k.push(`            float inputs:clearcoat = ${X.clearcoat}`),k.push(`            float inputs:clearcoatRoughness = ${X.clearcoatRoughness}`),k.push(`            float inputs:ior = ${X.ior}`)}return`
+    def Material "Material_${J.id}"
     {
         def Shader "PreviewSurface"
         {
             uniform token info:id = "UsdPreviewSurface"
-${inputs.join(`
+${k.join(`
 `)}
             int inputs:useSpecularWorkflow = 0
             token outputs:surface
         }
 
-        token outputs:surface.connect = </Materials/Material_${mat.id}/PreviewSurface.outputs:surface>
+        token outputs:surface.connect = </Materials/Material_${J.id}/PreviewSurface.outputs:surface>
         token inputs:frame:stPrimvarName = "st"
 
         def Shader "uvReader_st"
         {
             uniform token info:id = "UsdPrimvarReader_float2"
-            token inputs:varname.connect = </Materials/Material_${mat.id}.inputs:frame:stPrimvarName>
+            token inputs:varname.connect = </Materials/Material_${J.id}.inputs:frame:stPrimvarName>
             float2 inputs:fallback = (0.0, 0.0)
             float2 outputs:result
         }
 
-${samplers.join(`
+${D.join(`
 `)}
 
     }
-`;
-}
-function buildColor(color) {
-  return `(${color.r}, ${color.g}, ${color.b})`;
-}
-function buildVector2(vector) {
-  return `(${vector.x}, ${vector.y})`;
-}
-var USDZExporter_default = USDZExporter;
-
-// src/io/formats/usdz/index.ts
-function getOutputBaseName() {
-  if (!Project) {
-    return pathToName(Texture.selected?.name ?? "texture");
-  }
-  return Project.model_identifier.length > 0 ? Project.model_identifier : Project.getDisplayName();
-}
-function setup() {
-  const usdz = new Codec("usdz", {
-    extension: "usdz",
-    name: "USDZ",
-    remember: true,
-    fileName() {
-      return getOutputBaseName() + ".usdz";
-    },
-    async compile(compileOptions = {}) {
-      if (!Project) {
-        throw new Error("No project loaded");
-      }
-      const options = Object.assign(this.export_options ?? {}, compileOptions);
-      const exporter = new USDZExporter_default;
-      const scene = new window.THREE.Scene;
-      scene.name = "blockbench_export";
-      scene.add(Project.model_3d);
-      const result = await exporter.parse(scene);
-      this.dispatchEvent("compile", { model: result, options });
-      Canvas.scene.add(Project.model_3d);
-      return result;
-    },
-    async export(options = {}) {
-      const content = await this.compile(options);
-      Blockbench.export({
-        content,
-        name: this.fileName(),
-        startpath: this.startPath(),
-        resource_id: "usdz",
-        type: this.name,
-        extensions: ["usdz"],
-        savetype: "buffer"
-      }, (path) => this.afterDownload(path));
-    }
-  });
-  const exportUsdz = new Action("export_usdz", {
-    category: "file",
-    name: "Export USDZ",
-    description: "Exports the current model as a USDZ file",
-    icon: "stacks",
-    async click() {
-      if (!usdz) {
-        return;
-      }
-      usdz.export();
-    }
-  });
-  MenuBar.addAction(exportUsdz, "file.export");
-}
-function teardown() {
-  MenuBar.removeAction("file.export.export_usdz");
-}
-
-// src/index.ts
-(() => {
-  BBPlugin.register("usd_codec", {
-    version: "1.0.0",
-    title: "USD Codec",
-    author: "Jason J. Gardner",
-    description: "Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, and Houdini.",
-    tags: ["Codec", "PBR"],
-    icon: "icon.png",
-    variant: "both",
-    await_loading: true,
-    repository: "https://github.com/jasonjgardner/blockbench-plugins",
-    has_changelog: false,
-    min_version: "4.12.1",
-    onload: setup,
-    onunload: teardown
-  });
-})();
+`}function V(_){return`(${_.r}, ${_.g}, ${_.b})`}function N(_){return`(${_.x}, ${_.y})`}var O=E;var w=null;function y(){if(!Project)return pathToName(Texture.selected?.name??"texture");return Project.model_identifier.length>0?Project.model_identifier:Project.getDisplayName()}function C(){let _=new Codec("usdz",{extension:"usdz",name:"USDZ",remember:!0,fileName(){return y()+".usdz"},async compile(q={}){if(!Project)throw new Error("No project loaded");let K=Object.assign(this.export_options??{},q),k=new O,D=new window.THREE.Scene;D.name="blockbench_export",D.add(Project.model_3d);let W=await k.parse(D);return this.dispatchEvent("compile",{model:W,options:K}),Canvas.scene.add(Project.model_3d),W},async export(q={}){let K=await this.compile(q);Blockbench.export({content:K,name:this.fileName(),startpath:this.startPath(),resource_id:"usdz",type:this.name,extensions:["usdz"],savetype:"buffer"},(k)=>this.afterDownload(k))}});w=new Action("export_usdz",{category:"file",name:"Export USDZ",description:"Exports the current model as a USDZ file",icon:"stacks",async click(){if(!_)return;_.export()}}),MenuBar.addAction(w,"file.export")}function S(){MenuBar.removeAction("file.export.export_usdz"),w?.delete()}(()=>{BBPlugin.register("usd_codec",{version:"1.0.0",title:"USD Codec",author:"Jason J. Gardner",description:"Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, Houdini, NVIDIA Omniverse, and more.",tags:["Codec","PBR"],icon:"icon.svg",variant:"both",await_loading:!0,repository:"https://github.com/jasonjgardner/blockbench-plugins",has_changelog:!1,min_version:"4.12.1",onload:C,onunload:S})})();
