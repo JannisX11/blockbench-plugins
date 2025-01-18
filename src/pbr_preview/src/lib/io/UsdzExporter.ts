@@ -1,7 +1,8 @@
+import { three as THREE, jszip as JSZip } from "../../deps";
+
 class USDZExporter {
   async parse(scene: THREE.Scene): Promise<Uint8Array> {
-    // @ts-expect-error JSZip is on window
-    const zip = new window.JSZip();
+    const zip = new JSZip();
     const modelFileName = "model.usda"; // model file should be first in USDZ archive so we init it here
 
     zip.file(modelFileName, "");
@@ -44,7 +45,7 @@ class USDZExporter {
     for (const id in textures) {
       const texture = textures[id];
       const color = id.split("_")[1];
-      const isRGBA = texture.format === window.THREE.RGBAFormat;
+      const isRGBA = texture.format === THREE.RGBAFormat;
       const canvas = imageToCanvas(texture.image, color);
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob(
