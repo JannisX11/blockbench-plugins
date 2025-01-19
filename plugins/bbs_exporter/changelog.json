@@ -37,5 +37,25 @@
 				]
 			}
 		]
+	},
+	"1.3": {
+		"title": "1.3",
+		"date": "2025-01-18",
+		"author": "McHorse",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added option \"Export to folder\" to exporter to automatically export not only the .bbs.json file, but texture(s) as well!",
+					"Added load filter to ease importing .bbs.json models via drag-and-dropping or by opening file with Blockbench"
+				]
+			},
+			{
+				"title": "Bug fixes",
+				"list": [
+					"Fixed wrong UV size being used when a texture has different UV size"
+				]
+			}
+		]
 	}
 }
