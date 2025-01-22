@@ -78,5 +78,18 @@
         ]
       }
     ]
+  },
+  "2.0.1": {
+    "title": "2.0.1",
+    "date": "2025-01-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed for Blockbench 4.12"
+        ]
+      }
+    ]
   }
 }

@@ -14,8 +14,8 @@
     author: "Ewan Howell",
     description: "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
     tags: ["Recording", "Media"],
-    version: "2.0.0",
-    min_version: "4.10.0",
+    version: "2.0.1",
+    min_version: "4.12.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
     repository: `https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/${id}`,
@@ -121,7 +121,7 @@
         if (ScreencamGIFFormats[id]) {
           originalFormats[id] = ScreencamGIFFormats[id]
         } else {
-          Screencam.gif_options_dialog.form.format.options[id] = format.name
+          Screencam.gif_options_dialog.form_config.format.options[id] = format.name
         }
         ScreencamGIFFormats[id] = format
       }
@@ -148,10 +148,10 @@
             ScreencamGIFFormats[id] = originalFormats[id]
           } else {
             delete ScreencamGIFFormats[id]
-            delete Screencam.gif_options_dialog.form.format.options[id]
+            delete Screencam.gif_options_dialog.form_config.format.options[id]
           }
         }
-        delete Screencam.gif_options_dialog.form.mp4Codec
+        delete Screencam.gif_options_dialog.form_config.mp4Codec
         Screencam.gif_options_dialog.build()
       }
     }
@@ -287,9 +287,9 @@
   }
 
   function insertToForm(name, properties, index) {
-    const formArray = Object.entries(Screencam.gif_options_dialog.form)
+    const formArray = Object.entries(Screencam.gif_options_dialog.form_config)
     formArray.splice(index, 0, [name, properties])
-    Screencam.gif_options_dialog.form = Object.fromEntries(formArray)
+    Screencam.gif_options_dialog.form_config = Object.fromEntries(formArray)
     Screencam.gif_options_dialog.build()
   }
 })()
