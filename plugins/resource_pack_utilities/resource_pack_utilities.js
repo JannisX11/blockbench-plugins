@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.5.1",
+    version: "1.6.0",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -587,8 +587,11 @@
       MenuBar.addAction(action, "tools")
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
-      // dialog.show()
-      // dialog.content_vue.utility = "soundsStripper"
+      const utility = electron.getGlobal("process").argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
+      if (utility && utilities[utility]) {
+        dialog.show()
+        dialog.content_vue.utility = utility
+      }
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
