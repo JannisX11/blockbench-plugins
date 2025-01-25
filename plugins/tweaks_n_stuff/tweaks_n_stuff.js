@@ -202,127 +202,6 @@
     }
   }
 
-  class ImageExporterTweak extends Tweak {
-    constructor() {
-      super(
-        "image_exporter",
-        "Image Exporter",
-        'Adds an "Export as Image" action to image projects.',
-        "export"
-      );
-    }
-
-    getSupportedFormats() {
-      if (this.supportedFormats != null) {
-        return this.supportedFormats;
-      }
-      const formats = [
-        "image/png",
-        "image/jpg",
-        "image/jpeg",
-        "image/webp",
-        "image/gif",
-        "image/apng",
-        "image/tiff",
-        "image/tif",
-        "image/svg",
-        "image/pdf",
-        "image/xbm",
-        "image/bmp",
-        "image/ico",
-        "image/heif",
-      ];
-      const canvas = document.createElement("canvas");
-      this.supportedFormats = [];
-
-      formats.forEach((format) => {
-        try {
-          const dataUrl = canvas.toDataURL(format);
-          if (dataUrl.startsWith(`data:${format}`)) {
-            this.supportedFormats.push(format);
-          }
-        } catch (e) {}
-      });
-
-      return this.supportedFormats;
-    }
-
-    convertImage(format, quality = 1.0) {
-      return new Promise((resolve, reject) => {
-        let img = new Image();
-        img.src = Project.textures[0].getDataURL();
-        img.onload = () => {
-          let canvas = document.createElement("canvas");
-          let ctx = canvas.getContext("2d");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          const base64Res = canvas.toDataURL("image/" + format, quality);
-          resolve(base64Res);
-        };
-
-        img.onerror = (error) => {
-          reject("Error loading image");
-        };
-      });
-    }
-
-    exportImage(format, quality) {
-      this.convertImage(format, quality).then((img) => {
-        Blockbench.export({
-          extensions: [format],
-          type: tl("data.image"),
-          savetype: "image",
-          name: Project.name || "image." + format,
-          resource_id: "export_image",
-          content: img,
-        });
-      });
-    }
-
-    onEnable() {
-      var options = {};
-      this.getSupportedFormats().forEach((e) => {
-        var k = e.substring(6);
-        options[k] = k.toUpperCase();
-      });
-      var dialog = new Dialog({
-        id: "export_image",
-        title: "Export Image",
-        form: {
-          format: {
-            label: "Format",
-            type: "select",
-            options: options,
-            description: "Supported image formats for this browser.",
-          },
-          quality: {
-            label: "Quality",
-            type: "range",
-            min: 0,
-            max: 100,
-            value: 100,
-          },
-        },
-        onConfirm: function (formData) {
-          this.exportImage(formData.format, formData.quality / 100);
-          dialog.hide();
-        }.bind(this),
-      });
-      var exportBtn = new Action("export_image", {
-        name: "Export as Image",
-        description: "Export your image as a PNG, JPEG or WEBP.",
-        icon: "image",
-        condition: () => Project && Project.format.id === "image",
-        click: function () {
-          dialog.show();
-        },
-      });
-      MenuBar.addAction(exportBtn, "file.export");
-      this.deleteables.push(dialog, exportBtn);
-    }
-  }
-
   BBPlugin.register("tweaks_n_stuff", {
     title: "Tweaks & Stuff",
     author: "legopitstop",
@@ -330,11 +209,11 @@
     description:
       "Adds a few tweaks to Blockbench to make your modeling experience better.",
     has_changelog: true,
-    website: "https://lpsmods.dev",
+    website: "https://docs.lpsmods.dev/tweaks_n_stuff",
     repository:
       "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
     variant: "both",
-    version: "1.0.0",
+    version: "1.0.2",
 		min_version: "4.8.0",
     tags: ["Blockbench"],
     new_repository_format: true,
@@ -343,7 +222,6 @@
         new HeaderColorTweak(),
         new WrapTabsTweak(),
         new CloseActionsTweak(),
-        new ImageExporterTweak(),
       ];
 
       Tweak.all.forEach((tweak) => tweak.load());
