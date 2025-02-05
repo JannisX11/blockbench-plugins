@@ -2,14 +2,14 @@
 
 (function() {
 
-let add_action;
+let add_action, change_model_action;
 
 Plugin.register('reference_models', {
 	title: 'Reference Models',
 	icon: 'fas.fa-monument',
 	author: 'JannisX11',
 	description: 'Load and view glTF reference models in Blockbench',
-	version: '1.0.1',
+	version: '1.0.2',
 	min_version: '4.0.0',
 	variant: 'desktop',
 	onload() {
@@ -66,8 +66,9 @@ Plugin.register('reference_models', {
 			ReferenceModel.prototype.rotatable = true;
 			ReferenceModel.prototype.needsUniqueName = false;
 			ReferenceModel.prototype.menu = new Menu([
-				'group_elements',
+				'change_reference_model_file',
 				'_',
+				'group_elements',
 				'copy',
 				'paste',
 				'duplicate',
@@ -117,7 +118,6 @@ Plugin.register('reference_models', {
 			name: 'Add Reference Model',
 			icon: 'fas.fa-monument',
 			category: 'edit',
-			keybind: new Keybind({key: 'n', ctrl: true}),
 			condition: () => Modes.edit || Modes.paint,
 			click: function () {
 
@@ -161,11 +161,44 @@ Plugin.register('reference_models', {
 				return base_reference_model
 			}
 		})
+		change_model_action = new Action('change_reference_model_file', {
+			name: 'Change Reference Model File',
+			icon: 'fas.fa-monument',
+			category: 'edit',
+			condition: () => (Modes.edit || Modes.paint) && ReferenceModel.selected[0],
+			click: function () {
+				let ref_models = ReferenceModel.selected;
+				//Undo.initEdit({elements: ref_models});
+
+				Blockbench.import({
+					type: 'glTF Model',
+					extensions: ['gltf', 'glb'],
+					readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text')
+
+				}, files => {
+					let path = files[0].path;
+					let loader = new THREE.GLTFLoader().setPath(PathModule.dirname(path) + PathModule.sep);
+					for (let ref_model of ref_models) {
+						ref_model.path = path;
+						//Undo.finishEdit('Change reference model path');
+
+						loader.load(PathModule.basename(path), gltf => {
+							if (ref_model.mesh.children[0]) ref_model.mesh.remove(ref_model.mesh.children[0]);
+							ref_model.mesh.add(gltf.scene);
+							ref_model.preview_controller.updateTransform(ref_model);
+						})
+					}
+				})
+
+				return base_reference_model
+			}
+		})
 		Interface.Panels.outliner.menu.addAction(add_action, '3')
 		MenuBar.menus.edit.addAction(add_action, '6')
 	},
 	onunload() {
 		add_action.delete()
+		change_model_action.delete()
 	}
 });
 

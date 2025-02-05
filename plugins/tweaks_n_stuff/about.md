@@ -16,16 +16,6 @@ Quickly navigate large workspaces.
 
 ![wrap tabs](https://legopitstop.weebly.com/files/theme/blockbench/wrap_tabs_on.webp)
 
-### Image Exporter
-
-Export your image project as an image file.
-
-![image exporter](https://legopitstop.weebly.com/files/theme/blockbench/image_exporter.webp)
-
-Formats vary from browser to browser, however Electron supports PNG, JPEG, and WEBP formats.
-
-![image exporter dialog](https://legopitstop.weebly.com/files/theme/blockbench/image_exporter_dialog.webp)
-
 ## Utilities
 
 ### Close Actions
@@ -34,4 +24,4 @@ Adds `Close Others`, `Close to the Right`, `Close Saved`, and `Close All` to the
 
 ![close actions](https://legopitstop.weebly.com/files/theme/blockbench/close_actions.webp)
 
-The wrench used in the plugin icon is from the [Silk Icon Set](https://opengameart.org/content/application-silk-icon-set-13) by Mark James under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+> The wrench used in the plugin icon is from the [Silk Icon Set](https://opengameart.org/content/application-silk-icon-set-13) by Mark James under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
