@@ -1060,5 +1060,22 @@
 		"has_changelog": true,
 		"min_version": "4.10.4",
 		"repository": "https://github.com/Shadowkitten47/Meshy"
+	},
+	"usd_codec": {
+		"title": "USD Codec",
+		"author": "Jason J. Gardner",
+		"await_loading": true,
+		"creation_date": "2025-01-18",
+		"icon": "icon.svg",
+		"description": "Export Universal Scene Descriptor (USD) files for use in 3D applications like Blender, Maya, Houdini, NVIDIA Omniverse, and more.",
+		"has_changelog": false,
+		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"variant": "both",
+		"version": "1.0.0",
+		"tags": [
+			"Codec",
+			"PBR"
+		],
+		"min_version": "4.12.1"
 	}
 }
