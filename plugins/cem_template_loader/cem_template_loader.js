@@ -41,8 +41,8 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.4.0",
-      min_version: "4.10.0",
+      version: "8.5.0",
+      min_version: "4.12.0",
       variant: "both",
       creation_date: "2020-02-02",
       has_changelog: true,
@@ -195,7 +195,7 @@
       name,
       description,
       icon,
-      onStart: () => openLoader,
+      onStart: openLoader,
       format_page: {
         component: {
           methods: {
@@ -488,6 +488,14 @@
             } else {
               this.subentity = null
             }
+          },
+          areAllNextItemsHidden(entities, heading) {
+            const index = entities.indexOf(heading)
+            for (let i = index + 1; i < entities.length; i++) {
+              if (entities[i].type === "heading") break
+              if (entities[i].name.includes(this.search)) return false
+            }
+            return true
           }
         },
         template: `
@@ -514,7 +522,7 @@
             </div>
             <div v-if="connection" v-for="[name, c] of Object.entries(categories)" class="cem-models" :class="{ hidden: category !== name }">
               <template v-for="model of c.entities">
-                <div v-if="model.type === 'heading'" class="cem-model-heading">{{ model.text }}</div>
+                <div v-if="model.type === 'heading'" class="cem-model-heading" :class="{ hidden: areAllNextItemsHidden(c.entities, model) }">{{ model.text }}</div>
                 <template v-else>
                   <div class="cem-model" :class="{ selected: entity === model.name && (!subentity || !search), 'child-selected': entity === model.name && subentity, hidden: !model.name.includes(search) }" @click="selectEntity(model)">
                     <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
@@ -918,11 +926,16 @@
         if (!beforeGroup) return "You cannot add new root cubes/groups!"
       }
     }
-    if (entry.before.group && entry.post.group && Outliner.root.find(node => node instanceof Group && node.uuid == entry.before.group.uuid)) {
-      if (!entry.before.group.rotation.reduce((a, e, x) => a && e === entry.post.group.rotation[x], true)) {
-        return "You cannot rotate root groups!"
-      } else if (!entry.before.group.origin.reduce((a, e, x) => a && e === entry.post.group.origin[x], true)) {
-        return "You cannot move root group pivots!"
+    if (entry.before.groups && entry.post.groups) {
+      for (const beforeGroup of entry.before.groups) {
+        const postGroup = entry.post.groups.find(e => e.uuid === beforeGroup.uuid)
+        if (postGroup && Outliner.root.find(node => node instanceof Group && node.uuid == beforeGroup.uuid)) {
+          if (!beforeGroup.rotation.reduce((a, e, x) => a && e === postGroup.rotation[x], true)) {
+            return "You cannot rotate root groups!"
+          } else if (!beforeGroup.origin.reduce((a, e, x) => a && e === postGroup.origin[x], true)) {
+            return "You cannot move root group pivots!"
+          }
+        }
       }
     }
   }
@@ -2176,7 +2189,7 @@
     renameGroup = evt => {
       if (Project.format?.id === "optifine_entity") {
         const entry = Undo.history[Undo.history.length - 1]
-        if (entry.action === "Rename element") {
+        if (entry?.action === "Rename element") {
           const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
           if (animation) {
             parseAnimations(animation)
@@ -2189,7 +2202,7 @@
       if (Project.format?.id === "optifine_entity") {
         resizeWindow()
         stopAnimations()
-        let selected = Group.selected ?? Cube.selected?.[0]
+        let selected = Group.first_selected ?? Cube.selected?.[0]
         if (selected) {
           while (selected.parent !== "root") selected = selected.parent
           if (group !== selected) {
@@ -2207,7 +2220,7 @@
     tabChange = () => {
       setTimeout(() => {
         group = Group.all[0]
-        if (Format.id === "optifine_entity" && group && !Group.selected) {
+        if (Format.id === "optifine_entity" && group && !Group.first_selected) {
           selectGroup()
         }
       }, 0)
