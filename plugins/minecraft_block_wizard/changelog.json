@@ -18,5 +18,26 @@
 				]
 			}
 		]
+	},
+	"1.4.0": {
+		"title": "1.4.0",
+		"date": "2025-02-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Liquid Detection options",
+					"Added option to merge into existing mcaddon file",
+					"Added option to select game variant (normal, preview, education) inside the wizard"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Added a format version to blocks.json, fixing a content log warning"
+				]
+			}
+		]
 	}
 }
