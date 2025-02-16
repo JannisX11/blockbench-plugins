@@ -958,5 +958,25 @@
         ]
       }
     ]
+  },
+  "8.5.0": {
+    "title": "8.5.0",
+    "date": "2025-02-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Support for Blockbench v4.12.0"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed opening the loader through the \"File > New\" menu, and when double clicking it on the start screen",
+          "Category subheadings will now be hidden when searching and nothing from that subcategory matches the search"
+        ]
+      }
+    ]
   }
 }
