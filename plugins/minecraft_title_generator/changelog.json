@@ -418,7 +418,7 @@
         "list": [
           "Fonts now support character shifting. This adjusts the spacing between specific characters to improve readability by slightly modifying their positions when placed next to each other",
           "Fonts now support custom widths for the spaces between words",
-          "Added the ability to disable the built-in overlay texture included with some fonts. These are normally only applied when using gradient or tileable textures."
+          "Added the ability to disable the built-in overlay texture included with some fonts. These are normally only applied when using gradient or tileable textures"
         ]
       },
       {
