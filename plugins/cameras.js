@@ -215,14 +215,14 @@ BBPlugin.register('cameras', {
 		let old_y_condition = KeyframeDataPoint.properties.y.condition;
 		let old_z_condition = KeyframeDataPoint.properties.z.condition;
 		KeyframeDataPoint.properties.y.condition = (point) => {
-			return point.keyframe.channel == 'fov' ? false : old_y_condition;
+			return point.keyframe.channel == 'fov' ? false : old_y_condition(point);
 		}
 		KeyframeDataPoint.properties.z.condition = (point) => {
-			return point.keyframe.channel == 'fov' ? false : old_z_condition;
+			return point.keyframe.channel == 'fov' ? false : old_z_condition(point);
 		}
 		let old_x_default = KeyframeDataPoint.properties.x.default;
 		KeyframeDataPoint.properties.x.default = (point) => {
-			return point.keyframe.channel == 'fov' ? (point.keyframe.animator.element?.fov || 70) : old_x_default;
+			return point.keyframe.channel == 'fov' ? (point.keyframe.animator.element?.fov || 70) : old_x_default(point);
 		}
 
 		let add_action = new Action('add_camera', {
