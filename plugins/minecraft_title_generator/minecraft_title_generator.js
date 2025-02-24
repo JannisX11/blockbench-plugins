@@ -31,7 +31,30 @@
       ],
       height: 44,
       border: 266,
-      terminatorSpace: true
+      terminatorSpace: true,
+      shifts: {
+        "//": 16,
+        "\\\\": 16,
+        "tj": 8,
+        "lt": 8,
+        "ly": 8,
+        "yj": 6,
+        "lv": 4,
+        "qt": 4,
+        "qv": 4,
+        "{{": 4,
+        "}}": 4,
+        "}]": 4,
+        "[{": 4,
+        "l?": 4,
+        "q?": 4,
+        "t.": 4,
+        "t,": 4,
+        "t_": 4,
+        "t-": 4,
+        "-t": 4,
+        "l-": 8
+      }
     }
   }
   const fontData = []
@@ -96,8 +119,8 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.7.0",
-    min_version: "4.8.0",
+    version: "1.8.0",
+    min_version: "4.12.0",
     variant: "both",
     creation_date: "2023-06-10",
     await_loading: true,
@@ -1593,7 +1616,9 @@
             tileableRandomRotations: false,
             tileableRandomMirroring: false,
             tileableTextureResolution: 1000,
-            edgeBrightness: 35
+            edgeBrightness: 35,
+            disableFontOverlay: false,
+            disableCharacterShifting: false
           },
           mounted() {
             $(this.$refs.colour).spectrum(colourInput(dialog, "colour")),
@@ -1654,6 +1679,7 @@
                 this.scaleX = 1
                 this.scaleY = 1
                 this.scaleZ = 1
+                this.disableCharacterShifting = false
               }
               this.resetTexture(force)
               if (!ignoreUpdate) this.buildPreview()
@@ -1675,6 +1701,7 @@
                 this.tileableRandomRotations = false
                 this.tileableRandomMirroring = false
                 this.tileableTextureResolution = 1000
+                this.disableFontOverlay = false
                 this.hue = 0
                 this.saturation = 100
                 this.brightness = 100
@@ -1752,10 +1779,14 @@
                 let width = 0
                 const cubes = []
                 const group = new THREE.Group()
+                let lastCharacter
                 for (const [i, char] of Array.from(str).entries()) {
-                  if (char === " ") {
-                    width += 8
+                  if (char === " " && !fonts[args.font].characters[" "]) {
+                    width += fonts[args.font].spaceWidth ?? 8
                     continue
+                  }
+                  if (lastCharacter && fonts[this.font].shifts?.[lastCharacter + char]) {
+                    width -= fonts[this.font].shifts[lastCharacter + char]
                   }
                   let min = Infinity
                   let max = -Infinity
@@ -1828,6 +1859,7 @@
                   }
                   group.add(character)
                   width += max - min
+                  lastCharacter = char
                 }
 
                 for (const cube of cubes) {
@@ -2217,18 +2249,20 @@
                       if (args.overlayOpacity !== undefined) settings.overlayOpacity = args.overlayOpacity
                       if (args.colourOpacity !== undefined) settings.colourOpacity = args.colourOpacity
                       if (args.tileableScale !== undefined) settings.tileableScale = args.tileableScale
-                      if (args.tileableRandomRotations) settings.tileableRandomRotations = true
-                      if (args.tileableRandomMirroring) settings.tileableRandomMirroring = true
+                      if (args.tileableRandomRotations !== undefined) settings.tileableRandomRotations = args.tileableRandomRotations
+                      if (args.tileableRandomMirroring !== undefined) settings.tileableRandomMirroring = args.tileableRandomMirroring
                       if (args.tileableTextureResolution) settings.tileableTextureResolution = args.tileableTextureResolution
                       if (args.hue) settings.hue = args.hue
                       if (args.saturation !== undefined) settings.saturation = args.saturation
                       if (args.brightness !== undefined) settings.brightness = args.brightness
                       if (args.contrast !== undefined) settings.contrast = args.contrast
                       if (args.blend) settings.blend = args.blend
-                      if (args.customBorder) settings.customBorder = true
-                      if (args.fadeToBorder) settings.fadeToBorder = true
-                      if (args.customEdge) settings.customEdge = true
+                      if (args.customBorder !== undefined) settings.customBorder = args.customBorder
+                      if (args.fadeToBorder !== undefined) settings.fadeToBorder = args.fadeToBorder
+                      if (args.customEdge !== undefined) settings.customEdge = args.customEdge
                       if (args.edgeBrightness !== undefined) settings.edgeBrightness = args.edgeBrightness
+                      if (args.disableFontOverlay !== undefined) settings.disableFontOverlay = args.disableFontOverlay
+                      if (args.disableCharacterShifting !== undefined) settings.disableCharacterShifting = args.disableCharacterShifting
                       if (args.colour) {
                         settings.colour = args.colour
                         $(settings.$refs.colour).spectrum("set", args.colour)
@@ -2393,7 +2427,8 @@
                 }
               }).show()
             },
-            textInfo(font, parent) {
+            async textInfo(font, parent) {
+              await getFontCharacters(font)
               new Blockbench.Dialog({
                 id: "minecraft_title_info",
                 title: `${parent && parent !== font ? `${fonts[parent].name} ` : ""}${fonts[font].name} Info`,
@@ -2785,6 +2820,11 @@
                     <input type="range" class="tool disp_range" v-model.number="tileableYOffset" min="0" :max="tileableHeight" step="1" @input="updatePreview" />
                     <numeric-input class="tool disp_text" v-model.number="tileableYOffset" :min="0" :max="tileableHeight" :step="1" @input="updatePreview" />
                   </div>
+                  <div class="bar slider_input_combo">
+                    <div class="slider-label">Texture Resolution:</div>
+                    <input type="range" class="tool disp_range" v-model.number="tileableTextureResolution" min="1000" :max="4000" step="1000" @input="updatePreview" />
+                    <numeric-input class="tool disp_text" v-model.number="tileableTextureResolution" :min="1000" :max="4000" :step="1000" @input="updatePreview" />
+                  </div>
                   <label class="checkbox-row">
                     <input type="checkbox" :checked="tileableRandomRotations" v-model="tileableRandomRotations" @input="updatePreview">
                     <div>Random Rotations</div>
@@ -2793,11 +2833,19 @@
                     <input type="checkbox" :checked="tileableRandomMirroring" v-model="tileableRandomMirroring" @input="updatePreview">
                     <div>Random Mirroring</div>
                   </label>
-                  <div class="bar slider_input_combo">
-                    <div class="slider-label">Texture Resolution:</div>
-                    <input type="range" class="tool disp_range" v-model.number="tileableTextureResolution" min="1000" :max="4000" step="1000" @input="updatePreview" />
-                    <numeric-input class="tool disp_text" v-model.number="tileableTextureResolution" :min="1000" :max="4000" :step="1000" @input="updatePreview" />
-                  </div>
+                  <label v-if="fonts[font].overlay" class="checkbox-row">
+                    <input type="checkbox" :checked="disableFontOverlay" v-model="disableFontOverlay" @input="updatePreview">
+                    <div>Disable included font overlay</div>
+                  </label>
+                  <br>
+                </div>
+                <div v-if="textureSource === 'gradient' && fonts[font].overlay">
+                  <h2>Configuration</h2>
+                  <p>Configure the gradient texture</p>
+                  <label class="checkbox-row">
+                    <input type="checkbox" :checked="disableFontOverlay" v-model="disableFontOverlay" @input="updatePreview">
+                    <div>Disable included font overlay</div>
+                  </label>
                   <br>
                 </div>
                 <h2>Filters</h2>
@@ -2896,6 +2944,15 @@
                   <input type="range" class="tool disp_range" v-model.number="scaleZ" min="0.05" max="4" step="0.05" style="--color-thumb:var(--color-axis-z)" />
                   <numeric-input class="tool disp_text" v-model.number="scaleZ" :min="0.05" :max="4" :step="0.05" />
                 </div>
+                <template v-if="fonts[font].shifts">
+                  <br>
+                  <h2>Character shifting</h2>
+                  <p>Certain characters get shifted when placed next to specific characters to adjust spacing for better readability</p>
+                  <label class="checkbox-row">
+                    <input type="checkbox" :checked="disableCharacterShifting" v-model="disableCharacterShifting" @input="updatePreview">
+                    <div>Disable character shifting</div>
+                  </label>
+                </template>
               </div>
               <div id="minecraft-title-buttons">
                 <button v-if="tab > 0" @click="tabChange(tab - 1)">Back</button>
@@ -2954,6 +3011,13 @@
               delete variant.overlays
               fonts[variant.id] = variant
               font.variants[j] = variant
+              if (variant.shifts) {
+                if (v.shifts === "inherit") {
+                  variant.shifts = font.shifts
+                } else if (!v.shifts) {
+                  delete variant.shifts
+                }
+              }
               variant.parsed = true
             }
           }
@@ -3268,13 +3332,15 @@
         spacerWidth: args.spacerWidth,
         rowSpacing: args.rowSpacing,
         scale: args.scale,
+        disableCharacterShifting: args.disableCharacterShifting,
         name: args.name,
         elements
       })
     } else {
       group = new Group(args.name ?? makeName(text)).init()
+      let lastCharacter
       for (const part of words) {
-        const [word, newOffset] = makeWord(part, offset, group, {
+        const [word, newOffset, newLastCharacter] = makeWord(part, offset, group, {
           font: args.font,
           texture: texture.uuid,
           row: args.row,
@@ -3283,9 +3349,12 @@
           spacerWidth: args.spacerWidth,
           rowSpacing: args.rowSpacing,
           scale: args.scale,
-          elements
+          disableCharacterShifting: args.disableCharacterShifting,
+          elements,
+          lastCharacter
         })
-        offset = newOffset + (8 + args.characterSpacing) * args.scale[0]
+        offset = newOffset + ((fonts[args.font].spaceWidth ?? 8) + args.characterSpacing) * args.scale[0]
+        lastCharacter = newLastCharacter
       }
     }
     group.addTo().select()
@@ -3306,7 +3375,7 @@
     }
     Canvas.updateView({
       elements: Cube.selected,
-      groups: [Group.selected]
+      groups: Group.multi_selected
     })
     Undo.finishEdit("Add Minecraft title text")
     updateSelection()
@@ -3394,8 +3463,9 @@
         ctx.fillRect(0, end[0] * m, canvas.width, end[1] * m - end[0] * m)
         ctx.fillRect(0, end[2] * m, canvas.width, end[3] * m - end[2] * m)
       }
-      if (fonts[args.font].overlay) {
+      if (fonts[args.font].overlay && !args.disableFontOverlay) {
         await loadOverlay(args.font)
+        ctx.globalCompositeOperation = "source-over"
         ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
       }
     } else if (args.tileable || args.customTexture && args.customTextureType === "tileable") {
@@ -3514,12 +3584,10 @@
           ctx.fillRect(bottomUV[0], bottomUV[1], area.width, area.height)
         }
       }
-      if (fonts[args.font].overlay) {
-        ctx.globalCompositeOperation = "destination-out"
+      if (fonts[args.font].overlay && !args.disableFontOverlay) {
+        ctx.globalCompositeOperation = "source-over"
         await loadOverlay(args.font)
         ctx.drawImage(fonts[args.font].overlay, 0, 0, canvas.width, canvas.height)
-        ctx.globalCompositeOperation = "destination-over"
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       }
     }
     ctx.globalCompositeOperation = "copy"
@@ -3601,8 +3669,8 @@
     word.addTo(parent).init()
     for (const char of text) {
       if (fonts[args.font].characters[char]) {
-        const [character, width] = makeCharacter(char, offset, word, args)
-        offset += width
+        const [character, newOffset] = makeCharacter(char, offset, word, args)
+        offset = newOffset
       }
     }
     if (fonts[args.font].autoBorder) {
@@ -3635,7 +3703,7 @@
       border.addTo(word).init()
       args.elements.push(border)
     }
-    return [word, offset]
+    return [word, offset, args.lastCharacter]
   }
 
   const charMap = {
@@ -3646,6 +3714,9 @@
   }
 
   function makeCharacter(char, offset, parent, args) {
+    if (!args.disableCharacterShifting && args.lastCharacter && fonts[args.font].shifts?.[args.lastCharacter + char]) {
+      offset -= fonts[args.font].shifts[args.lastCharacter + char]
+    }
     let minX = Infinity
     let maxX = -Infinity
     let minZ = Infinity
@@ -3739,7 +3810,8 @@
       cube.addTo(character).init()
       args.elements.push(cube)
     }
-    return [character, maxX - minX + args.characterSpacing * args.scale[0]]
+    args.lastCharacter = char
+    return [character, offset + (maxX - minX + args.characterSpacing * args.scale[0])]
   }
 
   const makeName = str => str.replace(/\s/g, "_").replace(/😳/g, "a").replace(/😩/g, "'").replace(/┫|┣|\u200b/g, "")
@@ -3899,6 +3971,8 @@
     tileableRandomMirroring: vue.tileableRandomMirroring,
     tileableTextureResolution: vue.tileableTextureResolution,
     edgeBrightness: vue.edgeBrightness,
+    disableFontOverlay: vue.disableFontOverlay,
+    disableCharacterShifting: vue.disableCharacterShifting,
     three
   })
 

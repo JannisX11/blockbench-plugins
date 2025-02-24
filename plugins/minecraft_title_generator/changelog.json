@@ -401,9 +401,31 @@
     "author": "Ewan Howell",
     "categories": [
       {
-        "title": "Changes",
+        "title": "New Features",
         "list": [
           "Fonts now support setting a default character spacing"
+        ]
+      }
+    ]
+  },
+  "1.8.0": {
+    "title": "1.8.0",
+    "date": "2025-02-24",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Fonts now support character shifting. This adjusts the spacing between specific characters to improve readability by slightly modifying their positions when placed next to each other",
+          "Fonts now support custom widths for the spaces between words",
+          "Added the ability to disable the built-in overlay texture included with some fonts. These are normally only applied when using gradient or tileable textures"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed built-in font overlay textures using the wrong blend method",
+          "Fixed some settings possibly not loading properly when loading a preset"
         ]
       }
     ]
