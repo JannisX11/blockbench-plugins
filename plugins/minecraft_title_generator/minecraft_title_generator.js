@@ -119,7 +119,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.8.0",
+    version: "1.8.1",
     min_version: "4.12.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -1781,8 +1781,8 @@
                 const group = new THREE.Group()
                 let lastCharacter
                 for (const [i, char] of Array.from(str).entries()) {
-                  if (char === " " && !fonts[args.font].characters[" "]) {
-                    width += fonts[args.font].spaceWidth ?? 8
+                  if (char === " " && !fonts[this.font].characters[" "]) {
+                    width += fonts[this.font].spaceWidth ?? 8
                     continue
                   }
                   if (lastCharacter && fonts[this.font].shifts?.[lastCharacter + char]) {
