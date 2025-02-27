@@ -39,5 +39,18 @@
 				]
 			}
 		]
+	},
+	"1.4.1": {
+		"title": "1.4.1",
+		"date": "2025-02-27",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with uploading mcaddon file for merging"
+				]
+			}
+		]
 	}
 }
