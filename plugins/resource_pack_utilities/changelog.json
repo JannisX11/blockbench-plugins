@@ -144,5 +144,18 @@
         ]
       }
     ]
+  },
+  "1.6.1": {
+    "title": "1.6.1",
+    "date": "2025-03-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Batch Exporter failing to export glTF, OBJ, FBX, and Collada models"
+        ]
+      }
+    ]
   }
 }
