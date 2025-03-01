@@ -123,5 +123,18 @@
                 ]
             }
         ]
+    },
+    "2.2.0": {
+        "title": "2.2.0",
+        "date": "2024-03-03",
+        "author": "Z. Hoeshin",
+        "categories": [
+            {
+                "title": "Bug Fixes",
+                "list": [
+                    "Various bug fixes and improvements"
+                ]
+            }
+        ]
     }
 }
