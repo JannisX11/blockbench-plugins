@@ -104,7 +104,7 @@
 
       StartScreen.vue.$destroy()
 
-      StartScreen.vue.$data.recentsView = "backups"
+      StartScreen.vue.$data.recentsView = "recents"
       StartScreen.vue.$data.backups = backups
 
       StartScreen.vue.$options.methods.openBackup = backup => Blockbench.read([backup.path], {}, files => loadModelFile(files[0]))
