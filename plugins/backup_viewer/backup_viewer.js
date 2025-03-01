@@ -1,5 +1,6 @@
 (() => {
   let styles, oldTemplate
+  const workScreenElement = document.getElementById("work_screen")
   Plugin.register("backup_viewer", {
     title: "Backup Viewer",
     icon: "icon.png",
@@ -19,7 +20,6 @@
 
       const backups = []
       function getBackups() {
-        console.log("loading backups")
         backups.length = 0
         const backupFilePaths = fs.readdirSync(backupPath)
         for (const file of backupFilePaths) {
@@ -157,6 +157,10 @@
         mounted: StartScreen.vue.$options.mounted,
         template: newTemplate
       })
+
+      if (workScreenElement.style.display === "grid") {
+        document.getElementById("start_screen").style.display = "none"
+      }
     },
     onunload() {
       StartScreen.vue.$destroy()
@@ -175,6 +179,10 @@
         mounted: StartScreen.vue.$options.mounted,
         template: oldTemplate
       })
+
+      if (workScreenElement.style.display === "grid") {
+        document.getElementById("start_screen").style.display = "none"
+      }
 
       styles.delete()
     }
