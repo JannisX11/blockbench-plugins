@@ -365,7 +365,7 @@
 		"author": "Ewan Howell",
 		"description": "A collection of utilities to assist with resource pack creation.",
 		"tags": ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-		"version": "1.6.0",
+		"version": "1.6.1",
 		"min_version": "4.10.0",
 		"variant": "desktop",
 		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
