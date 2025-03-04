@@ -10,7 +10,7 @@
       author: "Z. Hoeshin",
       description: "Allows creating, editing, importing and exporting Cosmic Reach block models.",
       tags: ["Cosmic Reach"],
-      version: "2.1.0",
+      version: "2.2.0",
       min_version: "4.8.0",
       creation_date: "2024-04-19",
       variant: "both",
@@ -115,7 +115,7 @@
                             }
                         })
                         let texture = textures[0]
-                        if (texture == undefined) console.error(obj.faces)
+                        //if (texture == undefined) console.error(obj.faces)
                         if (texture !== undefined) texture = texture.name
                         //texture = (texture === undefined) ? "empty.png" : texture.name
 
@@ -429,6 +429,7 @@
                     })
                     for(let bone_name of Object.keys(animation.bones)){
                         let bone = animation.bones[bone_name]
+                        if (!(bone_name in bones)) continue
                         let animator = animationobj.getBoneAnimator(bones[bone_name].self)
                         for(let channel_name of Object.keys(bone)){
                             let channel = bone[channel_name]
@@ -711,7 +712,7 @@
                     bones[bone.name] = {"self": group, "parent": bone.parent}
                 }
                 for(let bone of Object.keys(bones)){
-                    b = bones[bone]
+                    let b = bones[bone]
                     if(b.parent){
                         b.self.addTo(bones[b.parent].self)
                     }else{
@@ -721,6 +722,13 @@
 
                 let patharr = path.split(/[\\\/]/g)
 
+                let loadedTextures = {}
+                const b = patharr.slice(undefined, patharr.length - 4)
+                for(let t of Object.keys(data.textures ?? {})){
+                    let newtexture = new Texture().fromPath([...b, data.textures[t].replace(":", "/")].join("/"))
+                    newtexture.name = data.textures[t].fileName
+                    loadedTextures[t] = newtexture.add()
+                }
                 
                 //patharr = patharr.slice(0, patharr.length - 1)
 
@@ -885,16 +893,16 @@
                     readtype: 'text',
                     resource_id: 'json'
                 }, files => {
-                    /*try{*/
+                    try{
                         codec_entity.parse(files[0].content, files[0].path);
                         Canvas.updateAll()
-                    /*}catch(error){
+                    }catch(error){
                         dialog.lines = `<div>
                             <h1>Unable to import file.</h1>
                             <p>${error}</p>
                         </div>`.split("\n")
                         dialog.show()
-                    }*/
+                    }
                 })
             }
         })
