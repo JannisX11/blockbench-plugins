@@ -29,7 +29,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.6.0",
+    version: "1.6.1",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -3301,11 +3301,12 @@
             }
 
             let exportOptions = {}
-            if (Object.keys(Formats[this.format].codec.export_options).length) {
+            const codec = Formats[this.format]?.codec ?? Codecs[this.format]
+            if (Object.keys(codec.export_options).length) {
               output.log("Getting export options…")
               newProject("")
-              await Codecs[this.format].promptExportOptions()
-              exportOptions = Formats[this.format].codec.getExportOptions()
+              await codec.promptExportOptions()
+              exportOptions = codec.getExportOptions()
               await Project.close()
               output.log("Export options loaded")
             }
