@@ -13,7 +13,7 @@
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-terser": "^0.4.4",
-		"blockbench-types": "^4.9.0",
+		"blockbench-types": "^4.12.1",
 		"fast-glob": "^3.3.2",
 		"rollup-plugin-copy": "^3.5.0",
 		"rollup-plugin-copy-watch": "^0.0.1",
