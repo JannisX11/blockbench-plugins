@@ -172,7 +172,7 @@ export default action("scatter", function () {
         value: 3,
         label: "Max Density",
         min: 0,
-        max: 100,
+        max: 256,
       },
       min_distance: {
         type: "number",
@@ -181,21 +181,21 @@ export default action("scatter", function () {
         min: 0,
       },
       scale: {
-        type: "number",
+        type: "range",
         value: 100,
         label: "Scale",
         min: 0,
         max: 100,
       },
       min_scale: {
-        type: "number",
+        type: "range",
         value: 100,
         label: "Min Scale",
         min: 0,
         max: 100,
       },
       scale_factor: {
-        type: "number",
+        type: "range",
         value: 50,
         label: "Scale Randomness",
         min: 0,
@@ -203,14 +203,14 @@ export default action("scatter", function () {
       },
 
       rotation: {
-        type: "number",
+        type: "range",
         value: 0,
         label: "Max Rotation",
         min: 0,
         max: 180,
       },
       rotation_factor: {
-        type: "number",
+        type: "range",
         value: 0,
         label: "Rotation Randomness",
         min: 0,

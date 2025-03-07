@@ -47,17 +47,17 @@ export default action("laplacian_smooth", () => {
   Undo.amendEdit(
     {
       influence: {
-        type: "number",
+        type: "range",
         value: 100,
         label: "Influence",
         min: 0,
         max: 100,
       },
       iterations: {
-        type: "number",
+        type: "range",
         value: 1,
         label: "Iterations",
-        min: 0,
+        min: 1,
         max: 10,
       },
     },
