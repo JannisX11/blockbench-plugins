@@ -197,6 +197,9 @@
   },
   "uv_project_view": {
     "docs": {
+      "tags": [
+        "Deprecated"
+      ],
       "lines": [
         {
           "type": "inset_row",

@@ -49,7 +49,14 @@ By installing the plugin, you get:
 <div
         style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
-  
+  <span style="
+	border: max(1px, 0.0625rem) solid var(--color-accent);
+	color: var(--color-accent);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">DEPRECATED</span>
   </div></div>
 <div
         style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
@@ -365,7 +372,14 @@ Access From:
 <section id="mesh_tools-action-uv_project_view">
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
-  
+  <span style="
+	border: max(1px, 0.0625rem) solid var(--color-accent);
+	color: var(--color-accent);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">DEPRECATED</span>
   </div>
 <span style="display:flex;align-items:center;gap: 10px;">
 Access From:
