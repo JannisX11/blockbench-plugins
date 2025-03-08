@@ -1723,7 +1723,7 @@
                 }
               }
               if (force || this.tab === 1) {
-                this.texture = Object.keys(fonts[font].textures)[1] ?? Object.keys(fonts[font].textures)[0]
+                this.texture = Object.keys(fonts[this.font].textures)[1] ?? Object.keys(fonts[this.font].textures)[0]
                 this.deleteCustomTexture()
                 $(this.$refs.gradientColour0).spectrum("set", "#FFCF76")
                 $(this.$refs.gradientColour1).spectrum("set", "#FFA3A3")
