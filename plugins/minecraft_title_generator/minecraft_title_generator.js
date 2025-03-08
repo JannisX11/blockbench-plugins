@@ -2200,8 +2200,7 @@
                         form: {
                           name: {
                             label: "Preset Name",
-                            placeholder: "Minecraft Cracked",
-                            max: 24
+                            placeholder: "Minecraft Cracked"
                           }
                         },
                         onConfirm: result => {

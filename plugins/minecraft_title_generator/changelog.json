@@ -462,7 +462,8 @@
           "Fade edges to the border colour is now automatically selected when selecting the bottom text type",
           "Words with only one character will no longer contain a subgroup for that character",
           "Tileable texture resolution is now 1-4 instead of 1000-4000",
-          "Improved the loading time of the plugin dialogs first load"
+          "Improved the loading time of the plugin dialogs first load",
+          "Redesigned the presets menu"
         ]
       },
       {
