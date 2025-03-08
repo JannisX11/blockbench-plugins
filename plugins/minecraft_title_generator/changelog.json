@@ -286,7 +286,7 @@
       {
         "title": "New Features",
         "list": [
-          "Added new \"Tileables\"",
+          "Added \"Tileables\". Tileables are a texture type that tiles a texture over the faces of each character",
           "Added new render output Dialog with more customisation options"
         ]
       },
@@ -401,7 +401,7 @@
     "author": "Ewan Howell",
     "categories": [
       {
-        "title": "New Features",
+        "title": "Changes",
         "list": [
           "Fonts now support setting a default character spacing"
         ]
@@ -439,6 +439,37 @@
         "title": "Bug Fixes",
         "list": [
           "Fixed enabling line terminators causing a crash"
+        ]
+      }
+    ]
+  },
+  "1.9.0": {
+    "title": "1.9.0",
+    "date": "2025-02-24",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added \"Shapes\". Shapes are a new type of element that can be added, as an alternative to text/fonts",
+          "\"Minecraft Title\" is now available as an angle from the \"Angles\" context menu"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Textures are now upscaled to the maximum size when enabling the fade edges to the border colour feature, in order to make a smoother gradient",
+          "Fade edges to the border colour is now automatically selected when selecting the bottom text type",
+          "Words with only one character will no longer contain a subgroup for that character",
+          "Tileable texture resolution is now 1-4 instead of 1000-4000",
+          "Improved the loading time of the plugin dialogs first load"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed loading presets with font variants",
+          "Fixed being unable to create presets when one already exists"
         ]
       }
     ]
