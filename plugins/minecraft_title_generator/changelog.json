@@ -445,7 +445,7 @@
   },
   "1.9.0": {
     "title": "1.9.0",
-    "date": "2025-02-24",
+    "date": "2025-03-08",
     "author": "Ewan Howell",
     "categories": [
       {
@@ -471,6 +471,19 @@
         "list": [
           "Fixed loading presets with font variants",
           "Fixed being unable to create presets when one already exists"
+        ]
+      }
+    ]
+  },
+  "1.9.1": {
+    "title": "1.9.1",
+    "date": "2025-03-08",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed presets not loading all settings properly"
         ]
       }
     ]
