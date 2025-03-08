@@ -2242,6 +2242,24 @@
                         await settings.switchToFonts()
                       }
                       await settings.reset(true, true)
+                      const ignore = [
+                        "font",
+                        "baseFont",
+                        "fontVariant",
+                        "fontTab",
+                        "texture",
+                        "variant",
+                        "tileable",
+                        "tileableVariant",
+                        "overlay",
+                        "tileableXOffset",
+                        "tileableYOffset"
+                      ]
+                      for (const k of Object.values(variables).flat().flatMap(Object.keys)) {
+                        if (!ignore.includes(k) && args[k] !== undefined) {
+                          settings[k] = args[k]
+                        }
+                      }
                       if (fonts[args.baseFont]) {
                         settings.font = args.baseFont
                         settings.baseFont = args.baseFont
@@ -4071,7 +4089,7 @@
   }
 
   function getDefaultDialogArgs() {
-    const args = Object.fromEntries(Object.values(variables).flat().map(Object.entries).flat())
+    const args = Object.fromEntries(Object.values(variables).flat().flatMap(Object.entries))
     args.connection = connection
     args.tab = 0
     args.text = ""
