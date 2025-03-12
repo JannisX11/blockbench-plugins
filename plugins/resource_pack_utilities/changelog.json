@@ -157,5 +157,18 @@
         ]
       }
     ]
+  },
+  "1.6.2": {
+    "title": "1.6.2",
+    "date": "2025-03-13",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed using outdated asset index files when a newer one is available"
+        ]
+      }
+    ]
   }
 }
