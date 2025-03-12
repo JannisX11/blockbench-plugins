@@ -53,7 +53,7 @@
         value: directory,
         category: "defaults",
         type: "click",
-        name: `${name} - Minecraft Directory`,
+        name: "Ewan's Plugins - Minecraft Directory",
         description: "The location of your .minecraft folder",
         icon: "folder_open",
         click() {
@@ -71,7 +71,7 @@
         value: "",
         category: "defaults",
         type: "click",
-        name: `${name} - Cache Directory`,
+        name: "Ewan's Plugins - Cache Directory",
         description: "The location to cache downloaded content",
         icon: "database",
         click() {

@@ -164,6 +164,12 @@
     "author": "Ewan Howell",
     "categories": [
       {
+        "title": "Changed",
+        "list": [
+          "Renamed the setting names to make them more generic so I can use them across multiple plugins"
+        ]
+      },
+      {
         "title": "Bug Fixes",
         "list": [
           "Fixed using outdated asset index files when a newer one is available"
