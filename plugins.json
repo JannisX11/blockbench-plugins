@@ -989,6 +989,53 @@
 		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
 		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
 		"version": "1.0.4",
+{
+  "lalaloopsy_character_packs": {
+    "title": "Lalaloopsy-styled Sewn-iverse Character Packs Generator",
+    "author": "Mavontay Hamilton",
+    "description": "Generate character packs in the Lalaloopsy-styled Sewn-iverse.",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "variant": "both",
+    "tags": ["Character Packs", "Lalaloopsy", "Generator"]
+  },
+  "animation_generator": {
+    "title": "Animation Generator",
+    "author": "Mavontay Hamilton",
+    "description": "Generate animations for your models.",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "variant": "both",
+    "tags": ["Animation", "Generator"]
+  },
+  "voicelines_generator": {
+    "title": "Voicelines Generator",
+    "author": "Mavontay Hamilton",
+    "description": "Generate voicelines for your characters.",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "variant": "both",
+    "tags": ["Voicelines", "Generator"]
+  },
+  "sfx_generator": {
+    "title": "SFX Generation",
+    "author": "Mavontay Hamilton",
+    "description": "Generate sound effects (SFX) for your models.",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "variant": "both",
+    "tags": ["SFX", "Generator"]
+  },
+  "image_to_entity_generator": {
+    "title": "2D Image to Entity Generator",
+    "author": "Mavontay Hamilton",
+    "description": "Convert 2D images to entities.",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "variant": "both",
+    "tags": ["Image", "Entity", "Converter"]
+  }
+}
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": ["cem_template_loader"],
