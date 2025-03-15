@@ -34,6 +34,8 @@ export function updateKeyframeEasing(value) {
   if (value === "-") return;
   Timeline.selected.forEach((kf: GeckolibKeyframe) => {
     kf.easing = value;
+    kf.easingArgs = undefined;
+    updateKeyframeIcon(kf)
   })
   window.updateKeyframeSelection(); // Ensure easingArg display is updated
   // Animator.preview();
@@ -68,6 +70,10 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
       } else if (channel !== kf.channel) {
         multi_channel = true
       }
+    })
+
+    Timeline.keyframes.forEach((kf) => {
+      updateKeyframeIcon(kf)
     })
 
     const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
@@ -177,7 +183,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         addEasingTypeIcons(easingBar, "quart", "Switch to Quartic easing");
         addEasingTypeIcons(easingBar, "quint", "Switch to Quntic easing");
         addEasingTypeIcons(easingBar, "expo", "Switch to Exponential easing");
-        addEasingTypeIcons(easingBar, "circ", "Switch to Cicle easing");
+        addEasingTypeIcons(easingBar, "circ", "Switch to Circle easing");
         addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
         addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
         addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
@@ -263,6 +269,13 @@ const getEasingType = (name: string) => {
 
   return "in";
 };
+
+const updateKeyframeIcon = (kf: GeckolibKeyframe) => {
+  // @ts-expect-error This is needed because this plugin uses an outdated version of blockbench-types that doesn't have kf.uuid
+  const element = document.getElementById(kf.uuid);
+  if (element && element.children && kf.easing)
+    element.children[0].className = 'easing-' + kf.easing.split(/\.?(?=[A-Z])/).join('_').toLowerCase().replace("ease_", "")
+}
 
 const getIcon = (name: string) => {
   switch(name) {
