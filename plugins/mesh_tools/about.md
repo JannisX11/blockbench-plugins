@@ -8,8 +8,8 @@ By installing the plugin, you get:
         style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
   <span style="
-	border: max(1px, 0.0625rem) solid var(--color-accent);
-	color: var(--color-accent);
+	border: max(1px, 0.0625rem) solid var(--color-confirm);
+	color: var(--color-confirm);
 	border-radius: 2em;
 	font-size: .75rem;
 	font-weight: 500;
@@ -50,8 +50,8 @@ By installing the plugin, you get:
         style="padding-inline-start: 24px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
   <span style="
-	border: max(1px, 0.0625rem) solid var(--color-accent);
-	color: var(--color-accent);
+	border: max(1px, 0.0625rem) solid var(--color-error);
+	color: var(--color-error);
 	border-radius: 2em;
 	font-size: .75rem;
 	font-weight: 500;
@@ -95,6 +95,26 @@ By installing the plugin, you get:
   </div></div>
 <div
         style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-object-group"></i> <b>Boolean</b>
+  <span style="
+	border: max(1px, 0.0625rem) solid var(--color-confirm);
+	color: var(--color-confirm);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">NEW</span>
+<span style="
+	border: max(1px, 0.0625rem) solid var(--color-warning);
+	color: var(--color-warning);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">EXPERIMENTAL</span>
+  </div></div>
+<div
+        style="padding-inline-start: 0px" ><div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
   
   </div></div>
@@ -133,12 +153,12 @@ By installing the plugin, you get:
 ### Modeling Tools
 For applying modifications on selected vertices, edges or faces.
 
-<section id="mesh_tools-action-bridge_edge_loops">
+<section id="mesh_tools-action-bridge_edge_loops" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">hub</i> <b>Bridge Edge Loops</b>
   <span style="
-	border: max(1px, 0.0625rem) solid var(--color-accent);
-	color: var(--color-accent);
+	border: max(1px, 0.0625rem) solid var(--color-confirm);
+	color: var(--color-confirm);
 	border-radius: 2em;
 	font-size: .75rem;
 	font-weight: 500;
@@ -189,7 +209,7 @@ Results with Blend Path enabled.
 </section>
 
 
-<section id="mesh_tools-action-to_sphere">
+<section id="mesh_tools-action-to_sphere" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">change_circle</i> <b>To Sphere</b>
   
@@ -237,7 +257,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-laplacian_smooth">
+<section id="mesh_tools-action-laplacian_smooth" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">blur_on</i> <b>Laplacian Smooth</b>
   
@@ -270,7 +290,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-poke">
+<section id="mesh_tools-action-poke" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">control_camera</i> <b>Poke Faces</b>
   
@@ -303,7 +323,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-tris_to_quad">
+<section id="mesh_tools-action-tris_to_quad" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-external-link-square-alt"></i> <b>Triangles To Quadrilaterals</b>
   
@@ -336,7 +356,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-triangulate">
+<section id="mesh_tools-action-triangulate" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">pie_chart_outline</i> <b>Triangulate Faces</b>
   
@@ -369,12 +389,12 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-uv_project_view">
+<section id="mesh_tools-action-uv_project_view" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">view_in_ar</i> <b>Project From View</b>
   <span style="
-	border: max(1px, 0.0625rem) solid var(--color-accent);
-	color: var(--color-accent);
+	border: max(1px, 0.0625rem) solid var(--color-error);
+	color: var(--color-error);
 	border-radius: 2em;
 	font-size: .75rem;
 	font-weight: 500;
@@ -391,7 +411,7 @@ Access From:
   
   </div>
 </span>
-<p>Projects the selected faces to the UV map from the camera.</p>
+<p>Projects the selected faces to the UV map from the camera. Use built-in under UV > UV Project from View</p>
 <div style="display:flex;flex-direction:column;gap: 5px;">
 <div style="display: flex;flex-wrap:wrap;">
 		<div style="border: 1px solid var(--color-dark);background: var(--color-back);">
@@ -412,7 +432,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-uv_turnaround_projection">
+<section id="mesh_tools-action-uv_turnaround_projection" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">open_with</i> <b>Cubic Projection</b>
   
@@ -448,7 +468,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-expand_selection">
+<section id="mesh_tools-action-expand_selection" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_more_double</i> <b>Expand Selection</b>
   
@@ -467,7 +487,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-shrink_selection">
+<section id="mesh_tools-action-shrink_selection" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">unfold_less_double</i> <b>Shrink Selection</b>
   
@@ -489,7 +509,7 @@ Access From:
 ### Modeling Operators
 For applying modifications on selected meshes.
 
-<section id="mesh_tools-action-subdivide">
+<section id="mesh_tools-action-subdivide" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">content_cut</i> <b>Subdivide</b>
   
@@ -522,7 +542,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-split_edges">
+<section id="mesh_tools-action-split_edges" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">vertical_split</i> <b>Split Edges</b>
   
@@ -549,7 +569,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-scatter">
+<section id="mesh_tools-action-scatter" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">scatter_plot</i> <b>Scatter</b>
   
@@ -576,7 +596,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-array_elements">
+<section id="mesh_tools-action-array_elements" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-layer-group"></i> <b>Array</b>
   
@@ -603,10 +623,44 @@ Access From:
 </section>
 
 
+<section id="mesh_tools-action-boolean" style="margin-top: 10px;"> 
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-object-group"></i> <b>Boolean</b>
+  <span style="
+	border: max(1px, 0.0625rem) solid var(--color-confirm);
+	color: var(--color-confirm);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">NEW</span>
+<span style="
+	border: max(1px, 0.0625rem) solid var(--color-warning);
+	color: var(--color-warning);
+	border-radius: 2em;
+	font-size: .75rem;
+	font-weight: 500;
+	padding: 0 7px;
+	white-space: nowrap;">EXPERIMENTAL</span>
+  </div>
+<span style="display:flex;align-items:center;gap: 10px;">
+Access From:
+<div style="display: inline-flex;align-items:center;gap: 5px;">
+  <i class="fa_big fas fa-vector-square"></i> <b>MTools Operators</b>
+  
+  </div>
+</span>
+<p>Performs a boolean operation on two selected meshes.</p>
+<div style="display:flex;flex-direction:column;gap: 5px;">
+
+</div>
+</section>
+
+
 ### Mesh Generators
 For procedural mesh generation
 
-<section id="mesh_tools-action-terrain_action">
+<section id="mesh_tools-action-terrain_action" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">terrain</i> <b>Terrain</b>
   
@@ -639,7 +693,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-terrainse">
+<section id="mesh_tools-action-terrainse" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">draw</i> <b>Terrain Style Editor</b>
   
@@ -658,7 +712,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-textmesh">
+<section id="mesh_tools-action-textmesh" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">format_size</i> <b>Text Mesh</b>
   
@@ -685,7 +739,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-xyzmathsurfacefunction">
+<section id="mesh_tools-action-xyzmathsurfacefunction" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="fa_big fas fa-brain"></i> <b>XYZ Math Surface</b>
   
@@ -712,7 +766,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-polyhedron">
+<section id="mesh_tools-action-polyhedron" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Polyhedron</b>
   
@@ -742,7 +796,7 @@ Access From:
 </section>
 
 
-<section id="mesh_tools-action-torusknot">
+<section id="mesh_tools-action-torusknot" style="margin-top: 10px;"> 
 <div style="display: inline-flex;align-items:center;gap: 5px;">
   <i class="material-icons notranslate icon">offline_bolt</i> <b>Torus Knot</b>
   
