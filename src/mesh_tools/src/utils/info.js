@@ -31,7 +31,7 @@ export function dontShowAgainInfo(id, title, message) {
  * @param {?number} timeout
  * @returns {never}
  */
-export function throwQuickMessage(message, timeout) {
+export function throwQuickMessage(message, timeout = 2000) {
   Blockbench.showQuickMessage(message, timeout);
   throw message;
 }

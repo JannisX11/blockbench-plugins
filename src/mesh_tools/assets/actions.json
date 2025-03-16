@@ -300,7 +300,9 @@
       "split_edges",
       "_",
       "scatter",
-      "array_elements"
+      "array_elements",
+      "_",
+      "boolean"
     ]
   },
   "subdivide": {
@@ -380,6 +382,16 @@
     "name": "Array",
     "icon": "fas.fa-layer-group",
     "description": "Generates an array of copies of the base object, with each copy being offset from the previous one."
+  },
+  "boolean": {
+    "name": "Boolean",
+    "icon": "fas.fa-object-group",
+    "description": "Performs a boolean operation on two selected meshes.",
+    "docs": {
+      "tags": [
+        "EXPERIMENTAL"
+      ]
+    }
   },
   "generators": {
     "name": "MTools Generate",

@@ -18,6 +18,10 @@ const context = await esbuild.context({
     ".js": "js",
     ".ts": "ts",
   },
+  external: ["three"],
+  alias: {
+    three: "./src/shims/three.shim.ts",
+  },
   logLevel: "info",
   plugins: [jsoncPlugin(), globImportPlugin()],
 });
