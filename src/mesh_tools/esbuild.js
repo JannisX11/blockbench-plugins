@@ -1,4 +1,5 @@
 import * as esbuild from "esbuild";
+import { copy } from 'esbuild-plugin-copy';
 import FastGlob from "fast-glob";
 import fs from "fs/promises";
 import * as jsonc from "jsonc-parser";
@@ -25,6 +26,13 @@ const context = await esbuild.context({
   },
   logLevel: "info",
   plugins: [
+    copy({
+      assets: {
+        from: ["./meta/*"],
+        to: ["../../plugins/mesh_tools"],
+      },
+      watch: true,
+    }),
     aboutPlugin({ actionsPath: "assets/actions.json" }),
     jsoncPlugin(),
     globImportPlugin(),

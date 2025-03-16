@@ -12,6 +12,7 @@
 	"devDependencies": {
 		"blockbench-types": "^4.12.1",
 		"esbuild": "^0.25.0",
+		"esbuild-plugin-copy": "^2.1.1",
 		"fast-glob": "^3.3.3",
 		"jsonc-parser": "^3.3.1",
 		"typescript": "^5.8.2"
