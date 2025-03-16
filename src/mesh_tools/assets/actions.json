@@ -391,7 +391,41 @@
       "flags": {
         "new": true,
         "experimental": true
-      }
+      },
+      "lines": [
+        "Result with boolean operation \"Subtraction (A - B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        "Result with boolean operation \"Intersection (A ∩ B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
     }
   },
   "generators": {
