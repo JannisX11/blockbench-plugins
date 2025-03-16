@@ -652,7 +652,38 @@ Access From:
 </span>
 <p>Performs a boolean operation on two selected meshes.</p>
 <div style="display:flex;flex-direction:column;gap: 5px;">
-
+Result with boolean operation "Subtraction (A - B)".
+<div style="display: flex;flex-wrap:wrap;">
+		<div style="border: 1px solid var(--color-dark);background: var(--color-back);">
+  <figure>
+  <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/boolean_before.png?raw=true" />
+  <figcaption>Input</figcaption>
+  </figure>
+  </div>
+<div style="border: 1px solid var(--color-dark);background: var(--color-back);">
+  <figure>
+  <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/boolean_1_after.png?raw=true" />
+  <figcaption>Result</figcaption>
+  </figure>
+  </div>
+	</div>
+	
+Result with boolean operation "Intersection (A ∩ B)".
+<div style="display: flex;flex-wrap:wrap;">
+		<div style="border: 1px solid var(--color-dark);background: var(--color-back);">
+  <figure>
+  <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/boolean_before.png?raw=true" />
+  <figcaption>Input</figcaption>
+  </figure>
+  </div>
+<div style="border: 1px solid var(--color-dark);background: var(--color-back);">
+  <figure>
+  <img style="image-rendering: auto;object-fit:contain;width: 250px; height: 250px;min-width: 100px" src="https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/assets/actions/boolean_2_after.png?raw=true" />
+  <figcaption>Result</figcaption>
+  </figure>
+  </div>
+	</div>
+	
 </div>
 </section>
 
