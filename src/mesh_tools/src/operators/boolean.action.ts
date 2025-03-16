@@ -18,15 +18,15 @@ export const operations = {
   },
   intersection: {
     name: "Intersection (A ∩ B)",
-    operator: SUBTRACTION,
+    operator: INTERSECTION,
   },
   subtraction: {
     name: "Subtraction (A - B)",
-    operator: REVERSE_SUBTRACTION,
+    operator: SUBTRACTION,
   },
   reverse_subtraction: {
     name: "Reverse Subtraction (B - A)",
-    operator: INTERSECTION,
+    operator: REVERSE_SUBTRACTION,
   },
   difference: {
     name: "Difference (A ⊕ B)",
