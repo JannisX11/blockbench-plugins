@@ -1,0 +1,52 @@
+const fs = require('fs');
+const path = require('path');
+
+// Informations de métadonnées
+const auteur = "Nolan Gamer";
+const logo = "Votre_logo.png"; // Spécifiez le chemin du fichier logo ici
+
+// Fonction pour lire un fichier Blockbench (.js)
+function importerBlockbench(filepath) {
+    if (path.extname(filepath) !== '.js') {
+        console.error('Erreur : Fichier non compatible. Utilisez un fichier .js.');
+        return null;
+    }
+    try {
+        const data = fs.readFileSync(filepath, 'utf8');
+        console.log('Modèle Blockbench importé avec succès.');
+        return JSON.parse(data); // Conversion en objet JSON
+    } catch (error) {
+        console.error('Erreur lors de l’importation :', error);
+        return null;
+    }
+}
+
+// Fonction pour exporter un fichier en Blockbuster (.ngp.bbmodel)
+function exporterBlockbuster(data, outputPath) {
+    if (!data) {
+        console.error('Erreur : Aucune donnée à exporter.');
+        return;
+    }
+
+    // Ajout de métadonnées dans les données
+    data.metadata = {
+        auteur: auteur,
+        logo: logo
+    };
+
+    try {
+        const blockbusterData = JSON.stringify(data, null, 2); // Conversion en chaîne JSON formatée
+        fs.writeFileSync(outputPath, blockbusterData);
+        console.log(`Fichier exporté avec succès en : ${outputPath}`);
+    } catch (error) {
+        console.error('Erreur lors de l’exportation :', error);
+    }
+}
+
+// Exemple d'utilisation
+const inputFilePath = 'modele_blockbench.js'; // Chemin d’entrée
+const outputFilePath = 'modele_blockbuster.ngp.bbmodel'; // Chemin de sortie
+
+// Étapes : Importer et exporter
+const modele = importerBlockbench(inputFilePath);
+exporterBlockbuster(modele, outputFilePath);
