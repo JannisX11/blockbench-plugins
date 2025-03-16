@@ -7,24 +7,31 @@ const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 export const loadAnimationUI = () => {
   Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
+  Blockbench.on('render_frame', renderFrameCallback)
 
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
   addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
     Format.id !== "animated_entity_model" && Monkeypatches.get(BarItems.keyframe_interpolation).condition()
   );
-
 };
 
 export const unloadAnimationUI = () => {
   Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
+  Blockbench.removeListener('render_frame', renderFrameCallback);
 };
 
 export const displayAnimationFrameCallback = (/*...args*/) => {
   // const keyframe = $('#keyframe');
   // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
+
+export function renderFrameCallback() {
+    Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
+        updateKeyframeIcon(kf)
+    })
+}
 
 export function updateKeyframeEasing(value) {
   Undo.initEdit({keyframes: Timeline.selected}) 

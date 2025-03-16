@@ -6733,6 +6733,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   displayAnimationFrameCallback: () => (/* binding */ displayAnimationFrameCallback),
 /* harmony export */   loadAnimationUI: () => (/* binding */ loadAnimationUI),
+/* harmony export */   renderFrameCallback: () => (/* binding */ renderFrameCallback),
 /* harmony export */   unloadAnimationUI: () => (/* binding */ unloadAnimationUI),
 /* harmony export */   updateKeyframeEasing: () => (/* binding */ updateKeyframeEasing),
 /* harmony export */   updateKeyframeEasingArg: () => (/* binding */ updateKeyframeEasingArg),
@@ -6749,6 +6750,7 @@ const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 const loadAnimationUI = () => {
     Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
     Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
+    Blockbench.on('render_frame', renderFrameCallback);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasing", updateKeyframeEasing);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', () => Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Monkeypatches.get(BarItems.keyframe_interpolation).condition());
@@ -6756,11 +6758,17 @@ const loadAnimationUI = () => {
 const unloadAnimationUI = () => {
     Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
     Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
+    Blockbench.removeListener('render_frame', renderFrameCallback);
 };
 const displayAnimationFrameCallback = ( /*...args*/) => {
     // const keyframe = $('#keyframe');
     // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
+function renderFrameCallback() {
+    Timeline.keyframes.forEach((kf) => {
+        updateKeyframeIcon(kf);
+    });
+}
 function updateKeyframeEasing(value) {
     Undo.initEdit({ keyframes: Timeline.selected });
     // var axis = $(obj).attr('axis');
