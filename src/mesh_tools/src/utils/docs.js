@@ -11,21 +11,20 @@ export function translate(subject) {
   return subject.replace(/[a-zA-Z_][a-zA-Z0-9_\.]+/g, (key) => {
     return getLanguage(LanguageDefinitions)[key] ?? key;
   });
-  
 }
 const getURL = (e) =>
-    // `http://127.0.0.1:5500/${e}?t=${Math.random()}`;
+  // `http://127.0.0.1:5500/${e}?t=${Math.random()}`;
   `https://github.com/Malik12tree/blockbench-plugins/blob/master/src/mesh_tools/${e}?raw=true`;
 
-export function renderPill(title) {
+export function renderPill({ title, color = "var(--color-accent)" }) {
   return `<span style="
-	border: max(1px, 0.0625rem) solid var(--color-accent);
-	color: var(--color-accent);
+	border: max(1px, 0.0625rem) solid ${color};
+	color: ${color};
 	border-radius: 2em;
 	font-size: .75rem;
 	font-weight: 500;
 	padding: 0 7px;
-	white-space: nowrap;">${title.toString().toUpperCase()}</span>`;
+	white-space: nowrap;">${(title + "").toUpperCase()}</span>`;
 }
 export function renderImage({ src, caption = "" }) {
   return `

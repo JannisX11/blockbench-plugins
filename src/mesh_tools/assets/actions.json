@@ -75,9 +75,9 @@
   },
   "bridge_edge_loops": {
     "docs": {
-      "tags": [
-        "New"
-      ],
+      "flags": {
+        "new": true
+      },
       "lines": [
         {
           "type": "inset_row",
@@ -197,9 +197,9 @@
   },
   "uv_project_view": {
     "docs": {
-      "tags": [
-        "Deprecated"
-      ],
+      "flags": {
+        "deprecated": true
+      },
       "lines": [
         {
           "type": "inset_row",
@@ -220,7 +220,7 @@
     },
     "name": "Project From View",
     "icon": "view_in_ar",
-    "description": "Projects the selected faces to the UV map from the camera."
+    "description": "Projects the selected faces to the UV map from the camera. Use built-in under UV > UV Project from View"
   },
   "uv_turnaround_projection": {
     "docs": {
@@ -388,9 +388,10 @@
     "icon": "fas.fa-object-group",
     "description": "Performs a boolean operation on two selected meshes.",
     "docs": {
-      "tags": [
-        "EXPERIMENTAL"
-      ]
+      "flags": {
+        "new": true,
+        "experimental": true
+      }
     }
   },
   "generators": {

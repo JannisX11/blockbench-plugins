@@ -3,6 +3,7 @@ import FastGlob from "fast-glob";
 import fs from "fs/promises";
 import * as jsonc from "jsonc-parser";
 import path from "path";
+import { aboutPlugin } from "./plugins/about.plugin.js";
 
 const watch = process.argv.includes("--watch");
 const sourcemap = process.argv.includes("--sourcemap");
@@ -23,7 +24,11 @@ const context = await esbuild.context({
     three: "./src/shims/three.shim.ts",
   },
   logLevel: "info",
-  plugins: [jsoncPlugin(), globImportPlugin()],
+  plugins: [
+    aboutPlugin({ actionsPath: "assets/actions.json" }),
+    jsoncPlugin(),
+    globImportPlugin(),
+  ],
 });
 
 if (watch) {
