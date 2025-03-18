@@ -8,7 +8,7 @@ import {
   SUBTRACTION,
 } from "three-bvh-csg";
 import { action } from "../actions.js";
-import { throwQuickMessage } from "../utils/info.js";
+import { dontShowAgainWarning, throwQuickMessage } from "../utils/info.js";
 import * as ThreeJSInteroperability from "../utils/threejs_interoperability.js";
 
 export const operations = {
@@ -87,6 +87,7 @@ function runEdit(
   meshB.mesh.getWorldScale(brush2.scale);
   brush2.updateMatrixWorld();
 
+  // TODO: Implement in-house boolean operation algorithm
   const result = evaluator.evaluate(
     brush1,
     brush2,
@@ -106,7 +107,16 @@ function runEdit(
   Canvas.updateVisibility();
 }
 
-export default action("boolean", () => {
+export default action("boolean", async () => {
+  const shouldContinue = await dontShowAgainWarning(
+    "boolean",
+    "Heads Up!",
+    "This feature is experimental and may cause unexpected behavior. Are you sure you want to continue?"
+  );
+  if (!shouldContinue) {
+    return;
+  }
+
   const meshes = Mesh.selected.slice();
 
   runEdit(meshes, false, { operation: "addition", hideMeshes: true });
