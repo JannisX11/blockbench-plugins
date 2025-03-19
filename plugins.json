@@ -1067,5 +1067,20 @@
 		"has_changelog": true,
 		"min_version": "4.10.4",
 		"repository": "https://github.com/Shadowkitten47/Meshy"
+	},
+	"outliner_group_exporter": {
+		"title": "Group Exporter",
+		"author": "MrCrayfish",
+		"creation_date": "2025-03-19",
+		"icon": "icon.png",
+		"description": "A simple plugin to allow you to export a group from the outliner as a model. Only cubes inside the group will be exported.",
+		"variant": "both",
+		"version": "1.0.0",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"has_changelog": true,
+		"min_version": "4.10.1",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/outliner_group_exporter"
 	}
 }

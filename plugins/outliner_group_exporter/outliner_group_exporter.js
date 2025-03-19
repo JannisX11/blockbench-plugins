@@ -8,7 +8,7 @@
         icon: 'icon.png',
         description: 'A simple plugin to allow you to export a group from the outliner as a model. Only cubes inside the group will be exported.',
         tags: ['Minecraft Java Edition'],
-        version: '0.0.1',
+        version: '1.0.0',
         min_version: '4.10.1',
         variant: 'both',
         onload() {
