@@ -53,7 +53,7 @@ export default action("to_sphere", () => {
   Undo.amendEdit(
     {
       influence: {
-        type: "number",
+        type: "range",
         value: 100,
         label: "Influence",
         min: 0,

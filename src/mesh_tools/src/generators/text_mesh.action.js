@@ -85,7 +85,7 @@ const dialog = new Dialog({
       }
     }
     for (const char of out.text) {
-      if (char != '\n' && !(char in content.glyphs)) {
+      if (char != "\n" && !(char in content.glyphs)) {
         throwQuickMessage(
           `Character "${char}" doesn't exist on the provided font!`,
           2000
@@ -97,6 +97,11 @@ const dialog = new Dialog({
 
     Undo.amendEdit(
       {
+        text: {
+          label: "Text",
+          type: "textarea",
+          value: out.text,
+        },
         size: {
           label: "Size",
           type: "number",
@@ -141,7 +146,7 @@ const dialog = new Dialog({
         },
       },
       (form) => {
-        runEdit(out.text, font, form, true);
+        runEdit(form.text, font, form, true);
       }
     );
   },

@@ -1,4 +1,5 @@
 import { action } from "../../actions.js";
+import { dontShowAgainInfo } from "../../utils/info.js";
 import { worldToScreen } from "../../utils/utils.js";
 
 function runEdit(preview, preserveAspect, amend) {
@@ -48,6 +49,12 @@ function runEdit(preview, preserveAspect, amend) {
 export default action("uv_project_view", () => {
   const preview = Canvas.getHoveredPreview();
   runEdit(preview, true, false);
+
+  dontShowAgainInfo(
+    "uv_project_view",
+    "Deprecation Notice",
+    "UV Project View is deprecated and will be removed from MTools. It's now built into Blockbench under <br> <code>UV > UV Project from View</code>."
+  );
 
   Undo.amendEdit(
     {

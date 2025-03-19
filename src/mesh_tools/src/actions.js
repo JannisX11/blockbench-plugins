@@ -34,6 +34,8 @@ export function action(id, click) {
   console.assert(id in ACTIONS, id);
 
   const options = Object.assign({ click }, ACTIONS[id]);
+  options.plugin = PLUGIN_ID;
+
   if (options.children) {
     // TODO qualify with parents
     options.children = options.children.map(qualifyName);

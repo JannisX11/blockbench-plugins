@@ -87,7 +87,7 @@ export default action("split_edges", () => {
   runEdit(180);
   Undo.amendEdit(
     {
-      angle: { label: "Angle", value: 180, min: 0, max: 180 },
+      angle: { label: "Angle", type: "range", value: 180, min: 0, max: 180 },
     },
     (form) => {
       runEdit(form.angle, true);

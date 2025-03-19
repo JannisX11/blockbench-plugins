@@ -369,11 +369,11 @@ function runEdit(
       };
     }
 
-    const furthestLoop = findMin(loops, e => e.centroid.length());
+    const furthestLoop = findMin(loops, (e) => e.centroid.length());
     loops.remove(furthestLoop);
 
     const sortedEdgeLoops = [furthestLoop];
-    mesh.addVertices(sortedEdgeLoops[0].centroid.toArray())
+    mesh.addVertices(sortedEdgeLoops[0].centroid.toArray());
     while (loops.length) {
       const currEdgeLoop = sortedEdgeLoops.last();
       const closestLoop = findMin(loops, (e) =>
@@ -399,7 +399,7 @@ function runEdit(
           numberOfCuts,
           blendPath,
           blendInfluence,
-          reverse
+          reverse,
         }
       );
     }
@@ -420,13 +420,6 @@ export default action("bridge_edge_loops", () => {
       //   label: "Reverse Winding",
       //   value: false,
       // },
-      blend_influence: {
-        type: "number",
-        label: "Smoothness",
-        value: 100,
-        min: -200,
-        max: 200,
-      },
       num_cuts: {
         type: "number",
         label: "Number Of Cuts",
@@ -437,6 +430,13 @@ export default action("bridge_edge_loops", () => {
         type: "number",
         label: "Twist",
         value: 0,
+      },
+      blend_influence: {
+        type: "range",
+        label: "Smoothness",
+        value: 100,
+        min: -200,
+        max: 200,
       },
       blend_path: {
         type: "checkbox",

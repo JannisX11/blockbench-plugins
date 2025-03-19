@@ -22,7 +22,36 @@ export function dontShowAgainInfo(id, title, message) {
       }
     }
   );
-  messageBox.object.querySelector(".dialog_content").style.overflow = "auto";
+}
+export function dontShowAgainWarning(id, title, message) {
+  if (dontShowAgainInfoStorage.has(id)) {
+    return true;
+  }
+
+  return new Promise((resolve) => {
+    Blockbench.showMessageBox(
+      {
+        title,
+        message,
+        icon: "warning",
+        checkboxes: {
+          dont_show_again: { value: false, text: "dialog.dontshowagain" },
+        },
+        buttons: ["dialog.ok", "dialog.cancel"],
+      },
+      (button, { dont_show_again: dontShowAgain }) => {
+        if (dontShowAgain) {
+          dontShowAgainInfoStorage.set(id, true);
+        }
+
+        if (button === 0) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      }
+    );
+  });
 }
 
 /**
@@ -31,7 +60,7 @@ export function dontShowAgainInfo(id, title, message) {
  * @param {?number} timeout
  * @returns {never}
  */
-export function throwQuickMessage(message, timeout) {
+export function throwQuickMessage(message, timeout = 2000) {
   Blockbench.showQuickMessage(message, timeout);
   throw message;
 }
