@@ -16,11 +16,42 @@ class USDZExporter {
       if (
         !(mesh.material as THREE.MeshStandardMaterial).isMeshStandardMaterial
       ) {
-        console.warn(
-          "THREE.USDZExporter: Unsupported material type (USDZ only supports MeshStandardMaterial)",
-          object
-        );
-        return;
+        // Try to convert non-standard materials to MeshStandardMaterial for USDZ export
+        const standardMaterial = new THREE.MeshStandardMaterial();
+        const originalMaterial = mesh.material as THREE.Material;
+
+        // Copy common properties
+        standardMaterial.name = originalMaterial.name;
+        standardMaterial.side = originalMaterial.side;
+        standardMaterial.transparent = originalMaterial.transparent;
+        standardMaterial.opacity = originalMaterial.opacity;
+
+        // Try to copy material-specific properties
+        const props = [
+          'color', 'map', 'normalMap', 'aoMap', 'emissive', 'emissiveMap',
+          'roughness', 'roughnessMap', 'metalness', 'metalnessMap',
+          'alphaMap', 'emissiveIntensity'
+        ];
+
+        for (const prop of props) {
+          if (prop in originalMaterial) {
+            const value = (originalMaterial as any)[prop];
+
+            if (value === undefined) {
+              continue;
+            }
+
+            if (value instanceof THREE.Color) {
+              (standardMaterial as any)[prop].copy(value);
+              continue;
+            }
+              
+            (standardMaterial as any)[prop] = value;
+          }
+        }
+
+        // Use the standard material for export
+        mesh.material = standardMaterial;
       }
       const geometry = mesh.geometry;
       const material = mesh.material as THREE.MeshStandardMaterial;
