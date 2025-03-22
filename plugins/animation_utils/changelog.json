@@ -127,5 +127,19 @@
         ]
       }
     ]
+  },
+  "4.0.1": {
+    "title": "4.0.1",
+    "author": "Zigy, Squishy",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Keyframes now have different icons based on their easing.",
+          "Easing arguments are now reset upon choosing a new easing. Fixes [#690](https://github.com/bernie-g/geckolib/issues/690)",
+          "Fixed a typo where the circle easing was spelled cicle instead."
+        ]
+      }
+    ]
   }
 }

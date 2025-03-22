@@ -19,6 +19,9 @@ const { version, blockbenchConfig } = packageJson;
 
 const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const css = require('../resources/easing_keyframes.css').toString();
+
 if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANGE))
   alert(`GeckoLib Animation Utils currently only supports Blockbench ${SUPPORTED_BB_VERSION_RANGE}. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.`);
 
@@ -36,6 +39,8 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         version,
         await_loading: true,
         onload() {
+          Blockbench.addCSS(css);
+
           addEventListeners();
           loadAnimationUI();
           loadKeyframeOverrides();
