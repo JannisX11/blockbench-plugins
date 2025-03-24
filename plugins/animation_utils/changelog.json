@@ -141,5 +141,17 @@
         ]
       }
     ]
+  },
+  "4.0.2": {
+    "title": "4.0.2",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the plugin not working on web."
+        ]
+      }
+    ]
   }
 }
