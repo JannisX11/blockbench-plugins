@@ -36,6 +36,12 @@
           "GUI Light is now supported",
           "Changing namespace is now supported"
         ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed rotations not being exported when display settings were not customised"
+        ]
       }
     ]
   }
