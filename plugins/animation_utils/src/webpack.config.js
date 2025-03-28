@@ -3,7 +3,6 @@ const PathModule = require('path')
 module.exports = {
     mode: 'development',
     devtool: false,
-    target: 'node',
     entry: './ts/index.ts',
     module: {
         rules: [
