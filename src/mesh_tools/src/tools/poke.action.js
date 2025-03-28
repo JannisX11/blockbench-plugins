@@ -1,13 +1,12 @@
 import { action } from "../actions.js";
 import { getFaceUVCenter } from "../utils/utils.js";
 
-function runEdit(amended, depth = 0) {
-  Undo.initEdit({ elements: Mesh.selected, selection: true }, amended);
-  /* selected meshes */
-  Mesh.selected.forEach((mesh) => {
-    /* selected faces */
+function runEdit(meshes, facesByMesh, amended, depth) {
+  Undo.initEdit({ elements: meshes, selection: true }, amended);
 
-    mesh.getSelectedFaces().forEach((key) => {
+  meshes.forEach((mesh, meshIndex) => {
+    const faces = facesByMesh[meshIndex];
+    faces.forEach((key) => {
       const face = mesh.faces[key];
 
       /* center vertex creation */
@@ -31,20 +30,23 @@ function runEdit(amended, depth = 0) {
   });
   Undo.finishEdit("MTools: Poke mesh face selection");
   Canvas.updateView({
-    elements: Mesh.selected,
+    elements: meshes,
     element_aspects: { geometry: true, uv: true, faces: true },
     selection: true,
   });
 }
 
 export default action("poke", () => {
-  runEdit(false);
+  const meshes = Mesh.selected.slice();
+  const facesByMesh = meshes.map((mesh) => mesh.getSelectedFaces().slice());
+
+  runEdit(meshes, facesByMesh, false, 0);
   Undo.amendEdit(
     {
       depth: { type: "number", value: 0, label: "Depth" },
     },
     (form) => {
-      runEdit(true, form.depth);
+      runEdit(meshes, facesByMesh, true, form.depth);
     }
   );
 });

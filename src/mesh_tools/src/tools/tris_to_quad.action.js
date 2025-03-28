@@ -2,12 +2,13 @@ import { action } from "../actions.js";
 import { minIndex } from "../utils/array.js";
 import { isValidQuad } from "../utils/utils.js";
 
-function runEdit(maxAngle, ignoreDisjointUVs = true, amend = false) {
-  Undo.initEdit({ elements: Mesh.selected, selection: true }, amend);
-  /* selected meshes */
-  Mesh.selected.forEach((mesh) =>
-    /* selected faces */
-    mesh.getSelectedFaces().forEach((faceKey) => {
+function runEdit(meshes, facesByMesh, maxAngle, ignoreDisjointUVs, amend) {
+  Undo.initEdit({ elements: meshes, selection: true }, amend);
+
+  meshes.forEach((mesh, meshIndex) => {
+    const faces = facesByMesh[meshIndex];
+
+    faces.forEach((faceKey) => {
       const face = mesh.faces[faceKey];
 
       if (!face || face.vertices.length != 3) return;
@@ -34,7 +35,7 @@ function runEdit(maxAngle, ignoreDisjointUVs = true, amend = false) {
           adjacentFaces.last() == adjacentFaces[i]
         )
           break;
-        if (!currentAdjacentFace.isSelected()) continue;
+        if (!faces.includes(currentAdjacentFaceKey)) continue;
 
         adjacentFaces.push(currentAdjacentFace);
         adjacentFacesEdges.push(currentAdjacentFaceEdge);
@@ -104,17 +105,20 @@ function runEdit(maxAngle, ignoreDisjointUVs = true, amend = false) {
       mesh.addFaces(newQuad);
       delete mesh.faces[adjacentFaceKey];
       delete mesh.faces[faceKey];
-    })
-  );
+    });
+  });
   Undo.finishEdit("MTools: Convert selected Triangles to Quads");
   Canvas.updateView({
-    elements: Mesh.selected,
+    elements: meshes,
     element_aspects: { geometry: true, uv: true, faces: true },
     selection: true,
   });
 }
 export default action("tris_to_quad", () => {
-  runEdit(45);
+  const meshes = Mesh.selected.slice();
+  const facesByMesh = meshes.map((mesh) => mesh.getSelectedFaces().slice());
+
+  runEdit(meshes, facesByMesh, 45, true, false);
   Undo.amendEdit(
     {
       max_angle: {
@@ -122,14 +126,15 @@ export default action("tris_to_quad", () => {
         value: 45,
         min: 0,
         max: 180,
-        type: "number",
+        type: "range",
       },
       ignore_disjoint_uvs: {
-        label: "Ignore Disjoint UVS",
+        label: "Ignore Disjoint UVs",
         value: true,
         type: "checkbox",
       },
     },
-    (out) => runEdit(out.max_angle, out.ignore_disjoint_uvs, true)
+    (out) =>
+      runEdit(meshes, facesByMesh, out.max_angle, out.ignore_disjoint_uvs, true)
   );
 });

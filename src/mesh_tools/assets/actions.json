@@ -75,9 +75,9 @@
   },
   "bridge_edge_loops": {
     "docs": {
-      "tags": [
-        "New"
-      ],
+      "flags": {
+        "new": true
+      },
       "lines": [
         {
           "type": "inset_row",
@@ -197,6 +197,9 @@
   },
   "uv_project_view": {
     "docs": {
+      "flags": {
+        "deprecated": true
+      },
       "lines": [
         {
           "type": "inset_row",
@@ -217,7 +220,7 @@
     },
     "name": "Project From View",
     "icon": "view_in_ar",
-    "description": "Projects the selected faces to the UV map from the camera."
+    "description": "Projects the selected faces to the UV map from the camera. Use built-in under UV > UV Project from View"
   },
   "uv_turnaround_projection": {
     "docs": {
@@ -297,7 +300,9 @@
       "split_edges",
       "_",
       "scatter",
-      "array_elements"
+      "array_elements",
+      "_",
+      "boolean"
     ]
   },
   "subdivide": {
@@ -377,6 +382,51 @@
     "name": "Array",
     "icon": "fas.fa-layer-group",
     "description": "Generates an array of copies of the base object, with each copy being offset from the previous one."
+  },
+  "boolean": {
+    "name": "Boolean",
+    "icon": "fas.fa-object-group",
+    "description": "Performs a boolean operation on two selected meshes.",
+    "docs": {
+      "flags": {
+        "new": true,
+        "experimental": true
+      },
+      "lines": [
+        "Result with boolean operation \"Subtraction (A - B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        "Result with boolean operation \"Intersection (A ∩ B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    }
   },
   "generators": {
     "name": "MTools Generate",

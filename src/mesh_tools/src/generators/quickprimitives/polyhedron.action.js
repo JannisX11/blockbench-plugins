@@ -42,8 +42,14 @@ const dialog = new Dialog({
     runEdit(out.select, out);
     Undo.amendEdit(
       {
-        radius: { label: "Radius", value: out.radius },
-        detail: { label: "Detail", value: out.detail, min: 1, max: 6 },
+        radius: { label: "Radius", value: out.radius, type: "number", min: 1 },
+        detail: {
+          label: "Detail",
+          value: out.detail,
+          type: "range",
+          min: 1,
+          max: 6,
+        },
       },
       (form) => {
         runEdit(out.select, form, true);
