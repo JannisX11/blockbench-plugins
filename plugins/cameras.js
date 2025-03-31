@@ -1,5 +1,3 @@
-(function() {
-
 let deletables = [];
 
 BBPlugin.register('cameras', {
@@ -8,7 +6,7 @@ BBPlugin.register('cameras', {
 	author: 'JannisX11',
 	description: 'Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.',
 	about: 'Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
-	version: '1.2.0',
+	version: '1.2.1',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -454,4 +452,3 @@ BBPlugin.register('cameras', {
 	}
 });
 
-})()
