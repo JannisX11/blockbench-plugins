@@ -55,7 +55,7 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
         easingFunc = easingFunc.bind(null, arg1);
     }
     const easedAmount = easingFunc(amount);
-    const start = this.calc(axis);
+    const start = this.data_points.length == 1 ? this.calc(axis) : this.calc(axis, 1);
     const stop = other.calc(axis);
     const result = lerp(start, stop, easedAmount);
     // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);

@@ -6685,7 +6685,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\.0\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"animation_utils","version":"4.0.2","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Tslat, Gecko, McHorse","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","has_changelog":true,"min_version":"4.11.0","max_version":"5.0.0","variant":"both","website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4","css-loader":"^6.7.1","to-string-loader":"^1.2.0"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"animation_utils","version":"4.1.0","private":true,"description":"GeckoLib","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Tslat, Gecko, McHorse","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","has_changelog":true,"min_version":"4.11.0","max_version":"5.0.0","variant":"both","website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4","css-loader":"^6.7.1","to-string-loader":"^1.2.0"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
 
 /***/ }),
 
@@ -6753,7 +6753,6 @@ const loadAnimationUI = () => {
     Blockbench.on('render_frame', renderFrameCallback);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasing", updateKeyframeEasing);
     (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.addMonkeypatch)(BarItems.keyframe_interpolation, null, 'condition', () => Format.id !== "animated_entity_model" && _utils__WEBPACK_IMPORTED_MODULE_1__.Monkeypatches.get(BarItems.keyframe_interpolation).condition());
 };
 const unloadAnimationUI = () => {
     Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
@@ -6765,9 +6764,25 @@ const displayAnimationFrameCallback = ( /*...args*/) => {
     // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
 function renderFrameCallback() {
+    if (Format.id !== "animated_entity_model")
+        return;
     Timeline.keyframes.forEach((kf) => {
+        if ((kf.interpolation != "linear" || kf.data_points.length != 1) && kf.easing != undefined) {
+            kf.easing = undefined;
+            kf.easingArgs = undefined;
+            window.updateKeyframeSelection();
+        }
+        if (kf.interpolation === "step") {
+            kf.interpolation = "linear";
+            if (kf.data_points.length == 1)
+                addDataPoint();
+            window.updateKeyframeSelection();
+        }
         updateKeyframeIcon(kf);
     });
+    const addPrePostButton = document.querySelector('#keyframe_type_label > div');
+    if (addPrePostButton)
+        addPrePostButton.hidden = true;
 }
 function updateKeyframeEasing(value) {
     Undo.initEdit({ keyframes: Timeline.selected });
@@ -6779,7 +6794,8 @@ function updateKeyframeEasing(value) {
     Timeline.selected.forEach((kf) => {
         kf.easing = value;
         kf.easingArgs = undefined;
-        updateKeyframeIcon(kf);
+        kf.interpolation = 'linear';
+        removeLastDataPoint();
     });
     window.updateKeyframeSelection(); // Ensure easingArg display is updated
     // Animator.preview();
@@ -6801,9 +6817,6 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
     $('#keyframe_bar_easing').remove();
     $('#keyframe_bar_easing_type').remove();
     $('#keyframe_bar_easing_arg1').remove();
-    const addPrePostButton = document.querySelector('#keyframe_type_label > div');
-    if (addPrePostButton)
-        addPrePostButton.hidden = Format.id === "animated_entity_model";
     let multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
     let channel = false;
     Timeline.selected.forEach((kf) => {
@@ -6815,7 +6828,7 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
         }
     });
     Timeline.keyframes.forEach((kf) => {
-        updateKeyframeIcon(kf);
+        updateKeyframe(kf);
     });
     const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
         const selectorFunction = typeof selector === 'function'
@@ -6938,6 +6951,8 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
                 keyEasingTypeElement.style.stroke = "var(--color-accent)";
                 keyEasingTypeElement.classList.add('selected_kf_easing_type');
             }
+            if (keyEasing !== "linear")
+                document.getElementById("panel_keyframe").querySelector('div.tool.widget.bar_select bb-select').innerHTML = "GeckoLib";
             const getEasingArgLabel = (kf) => {
                 switch (kf.easing) {
                     case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBack:
@@ -6987,11 +7002,42 @@ const getEasingType = (name) => {
     }
     return "in";
 };
+const updateKeyframe = (kf) => {
+    if (kf.data_points.length != 1 && (kf.easing != undefined || kf.interpolation !== "linear")) {
+        removeLastDataPoint();
+    }
+};
 const updateKeyframeIcon = (kf) => {
     // @ts-expect-error This is needed because this plugin uses an outdated version of blockbench-types that doesn't have kf.uuid
     const element = document.getElementById(kf.uuid);
     if (element && element.children && kf.easing)
         element.children[0].className = 'easing-' + kf.easing.split(/\.?(?=[A-Z])/).join('_').toLowerCase().replace("ease_", "");
+};
+const addDataPoint = () => {
+    Undo.initEdit({ keyframes: Timeline.selected });
+    Timeline.selected.forEach(kf => {
+        // @ts-expect-error needed because .channels doesn't exist in dev env
+        if (kf.data_points.length < kf.animator.channels[kf.channel].max_data_points) {
+            kf.data_points.push(new KeyframeDataPoint(kf));
+            kf.data_points.last().extend(kf.data_points[0]);
+        }
+    });
+    Timeline.selected.forEach((kf) => {
+        kf.easing = undefined;
+        kf.easingArgs = undefined;
+    });
+    Animator.preview();
+    Undo.finishEdit('Add keyframe data point');
+};
+const removeLastDataPoint = () => {
+    Undo.initEdit({ keyframes: Timeline.selected });
+    Timeline.selected.forEach(kf => {
+        if (kf.data_points.length >= 2) {
+            kf.data_points.remove(kf.data_points.last());
+        }
+    });
+    Animator.preview();
+    Undo.finishEdit('Remove keyframe data point');
 };
 const getIcon = (name) => {
     switch (name) {
@@ -8200,7 +8246,7 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
         easingFunc = easingFunc.bind(null, arg1);
     }
     const easedAmount = easingFunc(amount);
-    const start = this.calc(axis);
+    const start = this.data_points.length == 1 ? this.calc(axis) : this.calc(axis, 1);
     const stop = other.calc(axis);
     const result = lerp(start, stop, easedAmount);
     // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
