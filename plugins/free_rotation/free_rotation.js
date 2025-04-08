@@ -2,7 +2,7 @@
   const path = require("node:path")
   const os = require("node:os")
 
-  let codec, format, action, properties, styles
+  let codec, format, action, properties, styles, oldGUILightCondition
 
   const id = "free_rotation"
   const name = "Free Rotation"
@@ -50,8 +50,8 @@
     icon: "icon.png",
     author: "Godlander & Ewan Howell",
     description,
-    tags: ["Minecraft: Java Edition", "Rotation"],
-    version: "1.0.1",
+    tags: ["Minecraft: Java Edition", "Items", "Rotation"],
+    version: "1.1.0",
     min_version: "4.11.2",
     variant: "desktop",
     await_loading: true,
@@ -184,21 +184,26 @@
               },
               methods: {
                 check() {
+                  if (project.free_rotation_namespace.match(/[^a-z0-9\._-]/)) {
+                    this.namespaceError = "The Namespace can only include the following characters:<br><code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>, <code>.</code>"
+                  } else {
+                    this.namespaceError = ""
+                  }
                   if (!project.free_rotation_item) {
                     this.idError = "The Item ID is required"
-                  } else if (project.free_rotation_item.match(/[^a-z0-9_-]/)) {
-                    this.idError = "The Item ID can only include the following characters:<br><code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>"
+                  } else if (project.free_rotation_item.match(/[^a-z0-9\._-]/)) {
+                    this.idError = "The Item ID can only include the following characters:<br><code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>, <code>.</code>"
                   } else {
                     this.idError = ""
                   }
                   if (!project.free_rotation_name) {
                     this.nameError = "The Model Name is required"
-                  } else if (project.free_rotation_name.match(/[^a-z0-9_-]/)) {
-                    this.nameError = "The Model Name can only include the following characters:<br><code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>"
+                  } else if (project.free_rotation_name.match(/[^a-z0-9\._-]/)) {
+                    this.nameError = "The Model Name can only include the following characters:<br><code>a-z</code>, <code>0-9</code>, <code>_</code>, <code>-</code>, <code>.</code>"
                   } else {
                     this.nameError = ""
                   }
-                  if (this.idError || this.nameError) {
+                  if (this.namespaceError || this.idError || this.nameError) {
                     this.exportAllowed = false
                     return
                   }
@@ -213,15 +218,17 @@
                   })
                   if (!dir) return
 
-                  const definitionDir = path.join(dir, "assets", "freerot", "items")
+                  const namespace = Project.free_rotation_namespace || "minecraft"
+
+                  const definitionDir = path.join(dir, "assets", namespace, "items")
                   const definitionFile = path.join(definitionDir, project.free_rotation_item + ".json")
-                  const modelDir = path.join(dir, "assets", "freerot", "models", project.free_rotation_name)
+                  const modelDir = path.join(dir, "assets", namespace, "models", project.free_rotation_name)
 
                   if (fs.existsSync(definitionFile)) {
                     const check = await new Promise(fulfil => {
                       Blockbench.showMessageBox({
                         title: "Item definition already exists",
-                        message: `The item definition <code>assets/freerot/${project.free_rotation_item}.json</code> already exists. Are you sure you want to continue and overwrite it?`,
+                        message: `The item definition <code>assets/${namespace}/items/${project.free_rotation_item}.json</code> already exists. Are you sure you want to continue and overwrite it?`,
                         buttons: ["dialog.confirm", "dialog.cancel"]
                       }, button => {
                         if (button === 0) fulfil(true)
@@ -235,7 +242,7 @@
                     const check = await new Promise(fulfil => {
                       Blockbench.showMessageBox({
                         title: "Model already exists",
-                        message: `The the model folder <code>assets/freerot/models/${project.free_rotation_name}</code> already exists. Are you sure you want to continue and possibly overwrite files inside it?`,
+                        message: `The the model folder <code>assets/${namespace}/models/${project.free_rotation_name}</code> already exists. Are you sure you want to continue and possibly overwrite files inside it?`,
                         buttons: ["dialog.confirm", "dialog.cancel"]
                       }, button => {
                         if (button === 0) fulfil(true)
@@ -275,7 +282,7 @@
                       type: "composite",
                       models: new Array(models.length).fill().map((e, i) => ({
                         type: "model",
-                        model: `freerot:${project.free_rotation_name}/${i}`
+                        model: `${namespace}:${project.free_rotation_name}/${i}`
                       }))
                     }
                   }
@@ -284,12 +291,19 @@
                   for (const [i, model] of models.entries()) {
                     fs.writeFileSync(path.join(modelDir, `${i}.json`), model)
                   }
+
+                  Blockbench.showQuickMessage("Exported free rotation model")
                   close.bind(processing)()
                 }
               },
               template: `
                 <div>
                   <h2>Model Details</h2>
+                  <div class="dialog_bar bar form_bar form_bar_item" :title="ModelProject.properties.free_rotation_namespace.description">
+                    <label class="name_space_left" for="item">Namespace:</label>
+                    <input type="text" class="dark_bordered half focusable_input" id="item" placeholder="minecraft" v-model="project.free_rotation_namespace" @input="check">
+                    <i class="fa fa-question dialog_form_description" @click="Blockbench.showQuickMessage(ModelProject.properties.free_rotation_namespace.description)"></i>
+                  </div>
                   <div class="dialog_bar bar form_bar form_bar_item" :title="ModelProject.properties.free_rotation_item.description">
                     <label class="name_space_left" for="item">Item ID:</label>
                     <input type="text" class="dark_bordered half focusable_input" id="item" placeholder="diamond_sword" v-model="project.free_rotation_item" @input="check">
@@ -353,6 +367,7 @@
               elements: [element],
               display: {}
             }
+            if (project.front_gui_light) model.gui_light = "front"
             let size = [
               (cube.to[0] - cube.from[0]) / downscale,
               (cube.to[1] - cube.from[1]) / downscale,
@@ -396,7 +411,6 @@
                   }
                 }
               }
-              //if (data.cullface) renderedFace.cullface = data.cullface
               if (data.tint >= 0) renderedFace.tintindex = data.tint
               element.faces[face] = renderedFace
             }
@@ -427,6 +441,8 @@
                   translation.multiply(dscale)
                   translation.applyQuaternion(drotation)
                   translation.add(dtranslation)
+                } else {
+                  rotation.copy(quat)
                 }
 
                 model.display[slot] = {
@@ -525,6 +541,12 @@
       MenuBar.addAction(action, "file.export.0")
 
       properties = [
+        new Property(ModelProject, "string", "free_rotation_namespace", {
+          label: "Namespace",
+          description: "The namespace the model will be exported to",
+          default: "minecraft",
+          condition: { formats: [format.id] }
+        }),
         new Property(ModelProject, "string", "free_rotation_item", {
           label: "Item ID",
           description: "The item ID of the item that the model should apply to",
@@ -557,8 +579,11 @@
           exposed: false
         })
       ]
+      oldGUILightCondition = BarItems.gui_light.condition
+      BarItems.gui_light.condition = () => Format.id === id || oldGUILightCondition()
     },
     onunload() {
+      BarItems.gui_light.condition = oldGUILightCondition
       codec.delete()
       format.delete()
       action.delete()
