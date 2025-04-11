@@ -7833,7 +7833,6 @@ function addEventListeners() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('select_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSelect));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('update_project_settings', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onSettingsChanged));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('save_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSave));
-    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Blockbench, null, "export", monkeypatchBlockbenchExport);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
@@ -8135,54 +8134,6 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
         }
     }
     return new_animations;
-}
-/**
- * When the animations json is being compiled for export
- * <p>
- * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
- */
-function monkeypatchAnimatorBuildFile() {
-    const result = _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(Animator).buildFile.apply(this, arguments);
-    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)()) {
-        result.geckolib_format_version = 2;
-        // Convert exported bedrock animations to non-bedrock
-        // Only applies to projects that had its animations made in a non-GeckoLib model format
-        if (settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_CONVERT_BEDROCK_ANIMATIONS].value && result.animations) {
-            for (const animation in result.animations) {
-                const bones = result.animations[animation].bones;
-                if (bones) {
-                    for (const boneName in bones) {
-                        const bone = bones[boneName];
-                        for (const animationGroupType in bone) {
-                            const animationGroup = bone[animationGroupType];
-                            for (const timestamp in animationGroup) {
-                                const keyframe = animationGroup[timestamp];
-                                if (!keyframe)
-                                    continue;
-                                let bedrockKeyframe = keyframe.pre;
-                                let bedrockKeyframeData = undefined;
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.pre;
-                                }
-                                bedrockKeyframe = keyframe.post;
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.post;
-                                }
-                                if (bedrockKeyframeData !== undefined) {
-                                    Object.assign(keyframe, bedrockKeyframeData);
-                                    if (keyframe.lerp_mode)
-                                        delete keyframe.lerp_mode;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return result;
 }
 
 
