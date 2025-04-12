@@ -55,7 +55,9 @@ Plugin.register("simplify", {
 							cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv, data.roundAmount);
 
 							// rotation
-							cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
+							if (Project.format.id != "java_block") {
+								cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
+							}
 
 							// origin
 							cubes[i].origin = Simplify(cubes[i].origin, data.roundAmount);
