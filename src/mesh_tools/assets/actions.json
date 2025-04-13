@@ -1,0 +1,554 @@
+{
+  "bevel": {
+    "docs": {
+      "private": true
+    },
+    "name": "Bevel",
+    "icon": "rounded_corner",
+    "description": "Chamfers selected edges",
+    "selection_mode": [
+      "edge"
+    ]
+  },
+  "laplacian_smooth": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "laplacian_smooth_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "laplacian_smooth_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Laplacian Smooth",
+    "icon": "blur_on",
+    "description": "Smoothens selected vertices by averaging the position of neighboring vertices."
+  },
+  "to_sphere": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "to_sphere_1_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "to_sphere_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "to_sphere_2_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "to_sphere_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "To Sphere",
+    "icon": "change_circle",
+    "description": "Casts selected vertices into a smooth, spherical shape with adjustable influence."
+  },
+  "bridge_edge_loops": {
+    "docs": {
+      "flags": {
+        "new": true
+      },
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        "Results with Blend Path enabled.",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "bridge_edge_loops_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Bridge Edge Loops",
+    "icon": "hub",
+    "description": "Connects multiple edge loops with faces.",
+    "selection_mode": [
+      "edge",
+      "face"
+    ]
+  },
+  "poke": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "poke_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "poke_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Poke Faces",
+    "icon": "control_camera",
+    "description": "Generates a fan out of a face.",
+    "selection_mode": "face"
+  },
+  "tris_to_quad": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "tris_to_quad_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "tris_to_quad_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Triangles To Quadrilaterals",
+    "icon": "fas.fa-external-link-square-alt",
+    "description": "Attempts to merge adjacent triangles into quadrilaterals.",
+    "selection_mode": "face"
+  },
+  "triangulate": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "triangulate_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "triangulate_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Triangulate Faces",
+    "icon": "pie_chart_outline",
+    "description": "Splits selected faces into triangles.",
+    "selection_mode": "face"
+  },
+  "uv_project_view": {
+    "docs": {
+      "flags": {
+        "deprecated": true
+      },
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "uv_project_view_solid.png",
+              "caption": "word.mesh"
+            },
+            {
+              "type": "image",
+              "src": "uv_project_view_uv.png",
+              "caption": "word.uv"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Project From View",
+    "icon": "view_in_ar",
+    "description": "Projects the selected faces to the UV map from the camera. Use built-in under UV > UV Project from View"
+  },
+  "uv_turnaround_projection": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "uv_turnaround_projection_solid.png",
+              "caption": "word.mesh"
+            },
+            {
+              "type": "image",
+              "src": "uv_turnaround_projection_uv.png",
+              "caption": "word.uv"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Cubic Projection",
+    "icon": "open_with",
+    "description": "Unwraps the UV map from the 6 sides of a cube."
+  },
+  "uv_mapping": {
+    "name": "UV Mapping",
+    "icon": "map",
+    "children": [
+      "uv_project_view",
+      "uv_turnaround_projection"
+    ]
+  },
+  "expand_selection": {
+    "name": "Expand Selection",
+    "icon": "unfold_more_double",
+    "description": "Expands the selection with neighboring vertices.",
+    "keybind": {
+      "key": "l",
+      "ctrl": true
+    }
+  },
+  "shrink_selection": {
+    "name": "Shrink Selection",
+    "icon": "unfold_less_double",
+    "description": "Shrinks the selection with neighboring vertices.",
+    "keybind": {
+      "key": "k",
+      "ctrl": true
+    }
+  },
+  "tools": {
+    "name": "MTools",
+    "icon": "fas.fa-vector-square",
+    "condition": "NON_OBJECT_MODE",
+    "children": [
+      "bridge_edge_loops",
+      "to_sphere",
+      "laplacian_smooth",
+      "_",
+      "poke",
+      "tris_to_quad",
+      "triangulate",
+      "_",
+      "uv_mapping",
+      "_",
+      "expand_selection",
+      "shrink_selection"
+    ]
+  },
+  "operators": {
+    "name": "MTools Operators",
+    "icon": "fas.fa-vector-square",
+    "condition": "OBJECT_MODE",
+    "children": [
+      "subdivide",
+      "split_edges",
+      "_",
+      "scatter",
+      "array_elements",
+      "_",
+      "boolean"
+    ]
+  },
+  "subdivide": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "subdivide_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "subdivide_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Subdivide",
+    "icon": "content_cut",
+    "description": "Splits the faces of a mesh into smaller faces, giving it a smooth appearance."
+  },
+  "split_edges": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "split_edges.png"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Split Edges",
+    "icon": "vertical_split",
+    "description": "Splits and duplicates edges within a mesh, breaking 'links' between faces around those split edges."
+  },
+  "scatter": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "scatter.png"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Scatter",
+    "description": "Scatters selected meshes on the active mesh.",
+    "icon": "scatter_plot"
+  },
+  "array_elements": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "array.png"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Array",
+    "icon": "fas.fa-layer-group",
+    "description": "Generates an array of copies of the base object, with each copy being offset from the previous one."
+  },
+  "boolean": {
+    "name": "Boolean",
+    "icon": "fas.fa-object-group",
+    "description": "Performs a boolean operation on two selected meshes.",
+    "docs": {
+      "flags": {
+        "new": true,
+        "experimental": true
+      },
+      "lines": [
+        "Result with boolean operation \"Subtraction (A - B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_1_after.png",
+              "caption": "word.after"
+            }
+          ]
+        },
+        "Result with boolean operation \"Intersection (A ∩ B)\".",
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "boolean_before.png",
+              "caption": "word.before"
+            },
+            {
+              "type": "image",
+              "src": "boolean_2_after.png",
+              "caption": "word.after"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "generators": {
+    "name": "MTools Generate",
+    "icon": "fas.fa-vector-square",
+    "condition": "MESH",
+    "children": [
+      "terrain_action",
+      "terrainse",
+      "_",
+      "textmesh",
+      "xyzmathsurfacefunction",
+      "quickprimitives"
+    ]
+  },
+  "terrain_action": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "terrain_solid.png"
+            },
+            {
+              "type": "image",
+              "src": "terrain_wire.png"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Terrain",
+    "icon": "terrain",
+    "description": "Generates terrains procedurally with fully customized settings."
+  },
+  "terrainse": {
+    "name": "Terrain Style Editor",
+    "icon": "draw",
+    "description": "Configure the Custom color gradient style of the terrain generator."
+  },
+  "textmesh": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "text.png",
+              "caption": "\"Butcher\" expressed in Chinese"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Text Mesh",
+    "icon": "format_size",
+    "description": "Converts text into a 3D object, ideal for creating signs or logos."
+  },
+  "xyzmathsurfacefunction": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "xyz.png",
+              "caption": "Twisted Torus Preset"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "XYZ Math Surface",
+    "icon": "fas.fa-brain",
+    "description": "Generates an xyz surface based on mathematical equations containing 23 pre-built presets!"
+  },
+  "quickprimitives": {
+    "name": "Quick Primitives",
+    "icon": "fas.fa-shapes",
+    "children": [
+      "polyhedron",
+      "torusknot"
+    ]
+  },
+  "polyhedron": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "polyhedron.png",
+              "caption": "Icosahedron"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Polyhedron",
+    "icon": "offline_bolt",
+    "description": "Generate a polyhedron such as an Icosahedron, a Dodecahedron, an Octahedron or a Tetrahedron."
+  },
+  "torusknot": {
+    "docs": {
+      "lines": [
+        {
+          "type": "inset_row",
+          "items": [
+            {
+              "type": "image",
+              "src": "torus_knot.png"
+            }
+          ]
+        }
+      ]
+    },
+    "name": "Torus Knot",
+    "icon": "offline_bolt",
+    "description": "Generate a Torus Knot with fully customized settings."
+  }
+}

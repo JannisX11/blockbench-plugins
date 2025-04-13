@@ -1,3 +1,5 @@
+// code based off the existing modded_entity.js module built into Blockbench for entity code but for Fabric Yarn mappings!
+// https://github.com/JannisX11/blockbench/blob/master/js/io/formats/modded_entity.js
 (function() {
 
 const FABRIC_OPTIONS_DEFAULT = {
@@ -34,7 +36,7 @@ function setTemplate() {
 		name: 'Fabric 1.14',
 		flip_y: true,
 		integer_size: true,
-		file: 
+		file:
 			 `// Made with Blockbench %(bb_version)
 			// Exported for Minecraft version 1.14
 			// Paste this class into your mod and generate all required imports
@@ -72,7 +74,7 @@ function setTemplate() {
 				${members}
 			}`,
 		field: `private final ModelPart %(bone);`,
-		bone: 
+		bone:
 			 `%(bone) = new ModelPart(this);
 			%(bone).setPivot(%(x), %(y), %(z));
 			?(has_parent)%(parent).addChild(%(bone));
@@ -81,14 +83,13 @@ function setTemplate() {
 		renderer: `%(bone).render(f5);`,
 		cube: `%(bone).boxes.add(new Box(%(bone), %(uv_x), %(uv_y), %(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror)));`,
 	};
-
-	Codecs.modded_entity.templates['Fabric 1.15+'] = {
-		name: 'Fabric 1.15+',
+	Codecs.modded_entity.templates['Fabric 1.15+'] = { // ID used internally, will show "Fabric 1.15-1.16" in blockbench
+		name: 'Fabric 1.15-1.16',
 		flip_y: true,
 		integer_size: false,
-		file: 
+		file:
 			 `// Made with Blockbench %(bb_version)
-				// Exported for Minecraft version 1.15
+				// Exported for Minecraft version 1.15 - 1.16
 				// Paste this class into your mod and generate all required imports
 
 				${header}
@@ -117,7 +118,7 @@ function setTemplate() {
 						${members}
 				}`,
 		field: `private final ModelPart %(bone);`,
-		bone: 
+		bone:
 			 `%(bone) = new ModelPart(this);
 			%(bone).setPivot(%(x), %(y), %(z));
 			?(has_parent)%(parent).addChild(%(bone));
@@ -126,16 +127,59 @@ function setTemplate() {
 		renderer: `%(bone).render(matrixStack, buffer, packedLight, packedOverlay);`,
 		cube: `%(bone).setTextureOffset(%(uv_x), %(uv_y)).addCuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), %(inflate), %(mirror));`,
 	};
+
+	Codecs.modded_entity.templates['Fabric 1.17+'] = {
+		name: 'Fabric 1.17+',
+		flip_y: true,
+		integer_size: false,
+		file:
+			`// Made with Blockbench %(bb_version)
+			// Exported for Minecraft version 1.17+ for Yarn
+			// Paste this class into your mod and generate all required imports
+
+			${header}
+   
+			public class %(identifier) extends EntityModel<${entity}> {
+				%(fields)
+				public %(identifier)(ModelPart root) {
+					%(model_parts)
+				}
+				public static TexturedModelData getTexturedModelData() {
+					ModelData modelData = new ModelData();
+					ModelPartData modelPartData = modelData.getRoot();
+					%(content)
+					return TexturedModelData.of(modelData, %(texture_width), %(texture_height));
+				}
+				@Override
+				public void setAngles(${entity} entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+				}
+				@Override
+				public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
+					%(renderers)
+				}
+			}`,
+		field: `private final ModelPart %(bone);`,
+		model_part: `this.%(bone) = root.getChild("%(bone)");`,
+		bone:
+			`?(has_no_parent)ModelPartData %(bone) = modelPartData.addChild("%(bone)", ModelPartBuilder.create()
+			?(has_parent)ModelPartData %(bone) = %(parent).addChild("%(bone)", ModelPartBuilder.create()
+			%(remove_n)%(cubes)
+			?(has_rotation)%(remove_n), ModelTransform.of(%(x), %(y), %(z), %(rx), %(ry), %(rz)));
+			?(has_no_rotation)%(remove_n), ModelTransform.pivot(%(x), %(y), %(z)));`,
+		renderer: `%(bone).render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);`,
+		cube: `.uv(%(uv_x), %(uv_y)){?(has_mirror).mirrored()}.cuboid(%(x), %(y), %(z), %(dx), %(dy), %(dz), new Dilation(%(inflate))){?(has_mirror).mirrored(false)}`,
+	}
+
 }
 
 Plugin.register('modded_entity_fabric', {
 	title: 'Fabric Modded Entity',
 	icon: 'icon-format_java',
-	author: 'Eliot Lash',
+	author: 'Eliot Lash, SebaSphere',
 	description: 'Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap',
     tags: ["Minecraft: Java Edition"],
 	min_version: '3.6.6',
-	version: '0.2.1',
+	version: '0.4.0',
 	variant: 'both',
 	onload() {
 		Codecs.project.on('compile', compileCallback);
@@ -176,7 +220,8 @@ Plugin.register('modded_entity_fabric', {
 	},
 	onunload() {
 		delete Codecs.modded_entity.templates['Fabric 1.14'];
-		delete Codecs.modded_entity.templates['Fabric 1.15+'];
+		delete Codecs.modded_entity.templates['Fabric 1.15+']; // 1.15 to 1.16
+		delete Codecs.modded_entity.templates['Fabric 1.17+']; // 1.17 to 1.19 at time of writing
 		// remove button when plugin is unloaded
 		button.delete();
 		Codecs.project.events.compile.remove(compileCallback)

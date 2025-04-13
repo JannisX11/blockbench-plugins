@@ -1,0 +1,35 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2024-10-7",
+    "author": "legopitstop",
+    "categories": [
+      {
+        "title": "General",
+        "list": ["Initial release"]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2024-11-3",
+    "author": "WalkQuackBack",
+    "categories": [
+      {
+        "title": "General",
+        "list": ["About changes"]
+      }
+    ]
+  },
+  "1.0.2": {
+    "title": "1.0.2",
+    "date": "2025-1-24",
+    "author": "legopitstop",
+    "categories": [
+      {
+        "title": "General",
+        "list": ["Removed `Image Exporter` tweak"]
+      }
+    ]
+  }
+}

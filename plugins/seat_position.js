@@ -1,3 +1,5 @@
+/// <reference path="../types/index.d.ts" />
+
 (function() {
 	let scale = 1;
 	let position = [0, 0, 0];
@@ -50,17 +52,16 @@
 			var O = SeatPositioner.object;
 			var M = new THREE.MeshLambertMaterial({color: 0xffffff});
 	
-			var head = new THREE.Mesh(new THREE.CubeGeometry(8, 8, 8), M);
+			var head = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), M);
 			head.position.y = 19;
 			O.add(head);
 	
-			var body = new THREE.Mesh(new THREE.CubeGeometry(8, 12, 4), M);
+			var body = new THREE.Mesh(new THREE.BoxGeometry(8, 12, 4), M);
 			body.position.y = 9;
 			O.add(body);
 	
-			var leg_geo = new THREE.CubeGeometry();
-			leg_geo.from([-2, -12, -2]);
-			leg_geo.to([2, 0, 2]);
+			var leg_geo = new THREE.BoxGeometry();
+			leg_geo.setShape([-2, -12, -2], [2, 0, 2]);
 	
 			var leg_r = new THREE.Mesh(leg_geo, M);
 			leg_r.position.set(2, 3, 0);
@@ -74,9 +75,8 @@
 			leg_l.rotation.z = Math.degToRad(-13);
 			O.add(leg_l);
 	
-			var arm_geo = new THREE.CubeGeometry();
-			arm_geo.from([-2, -10, -2]);
-			arm_geo.to([2, 2, 2]);
+			var arm_geo = new THREE.BoxGeometry();
+			arm_geo.setShape([-2, -10, -2], [2, 2, 2]);
 	
 			var arm_r = new THREE.Mesh(arm_geo, M);
 			arm_r.position.set(6, 13, 0);
@@ -127,24 +127,78 @@
 			title: 'Setup Hitbox',
 			width: 540,
 			form: {
-				size: {label: 'Size', type: 'vector', value: [1, 1], dimensions: 2, step: 0.1},
-				offset: {label: 'Offset', type: 'vector', value: [0, 0, 0], step: 0.1},
+				type: {label: 'Type', type: 'select', options: {
+					entity_hitbox: 'Entity Hitbox',
+					entity_collision: 'Entity Collision',
+					block_selection_box: 'Block Selection Box',
+					block_collision: 'Block Collision',
+				}},
+				size_entity: {label: 'Size', type: 'vector', value: [1, 1], dimensions: 2, step: 0.1, condition: form => form.type == 'entity_hitbox' || form.type == 'entity_collision'},
+				offset_entity: {label: 'Offset', type: 'vector', value: [0, 0, 0], step: 0.1, condition: form => form.type == 'entity_hitbox'},
+				size_block: {label: 'Size', type: 'vector', value: [16, 16, 16], max: 16, min: 0, dimensions: 3, condition: form => form.type.startsWith('block')},
+				offset_block: {label: 'Offset', type: 'vector', value: [0, 0, 0], condition: form => form.type.startsWith('block')},
 				result: {type: 'textarea', height: 130, readonly: true}
 			},
 			singleButton: true,
-			onFormChange({size, offset}) {
-				SetupHitboxHelper.object.scale.x = SetupHitboxHelper.object.scale.z = size[0] || '0.01';
-				SetupHitboxHelper.object.scale.y = size[1] || '0.01';
-				SetupHitboxHelper.object.position.fromArray(offset).multiplyScalar(16);
-				SetupHitboxHelper.object.position.set(-offset[0] * 16, offset[1] * 16, -offset[2] * 16);
-
-				let json_result = {
-					width: size[0],
-					height: size[1],
-					pivot: [offset[0], offset[1] + size[1]/2, offset[2]]
+			onFormChange({type, size_entity, size_block, offset_entity, offset_block}) {
+				if (type.startsWith('entity')) {
+					SetupHitboxHelper.object.scale.x = SetupHitboxHelper.object.scale.z = size_entity[0] || 0.01;
+					SetupHitboxHelper.object.scale.y = size_entity[1] || 0.01;
+					SetupHitboxHelper.object.position.fromArray(offset_entity).multiplyScalar(16);
+					SetupHitboxHelper.object.position.set(
+						-offset_entity[0] * 16,
+						offset_entity[1] * 16,
+						-offset_entity[2] * 16
+					);
+				} else {
+					SetupHitboxHelper.object.scale.x = size_block[0]/16 || 0.01;
+					SetupHitboxHelper.object.scale.z = size_block[2]/16 || 0.01;
+					SetupHitboxHelper.object.scale.y = size_block[1]/16 || 0.01;
+					SetupHitboxHelper.object.position.set(
+						-offset_block[0],
+						offset_block[1],
+						offset_block[2]
+					);
 				}
-				console.log(offset[1] + size[1]/2, offset[1], size[1])
-				$('dialog#setup_hitbox textarea').val(compileJSON(json_result)).addClass('code');
+
+				let result_string;
+				if (type == 'entity_hitbox') {
+					// Entity
+					result_string = '"minecraft:custom_hit_test": '+ compileJSON({
+						"hitboxes": [
+							{
+								width: size_entity[0],
+								height: size_entity[1],
+								pivot: [offset_entity[0], offset_entity[1] + size_entity[1]/2, offset_entity[2]]
+							}
+						]
+					})
+				} else if (type == 'entity_collision') {
+					// Entity
+					result_string = '"minecraft:collision_box": '+ compileJSON({
+						width: size_entity[0],
+						height: size_entity[1],
+					})
+				} else {
+					// Block
+					let value = compileJSON({
+						origin: [offset_block[0] - size_block[0]/2, offset_block[1], offset_block[2] - size_block[2]/2],
+						size: size_block
+					});16
+
+					if (size_block.allEqual(0)) value = false;
+					if (size_block.allEqual(16) && offset_block.allEqual(0)) value = true;
+
+					result_string = `"minecraft:${type == 'block_collision' ? 'collision_box' : 'selection_box'}": ` + value
+				}
+				$('dialog#setup_hitbox textarea').val(result_string).addClass('code');
+			},
+			onOpen() {
+				if (!this.getFormResult().type?.endsWith('block') && Format.id == 'bedrock_block') {
+					setTimeout(() => {
+						this.setFormValues({type: 'block_collision'});
+					}, 10);
+				}
 			},
 			onConfirm() {
 				scene.remove(SetupHitboxHelper.object);
@@ -183,15 +237,15 @@
 		}
 	};
 	
-	var seat_pos_action, hitbox_action;
+	var seat_pos_action, hitbox_action, style;
 
 	Plugin.register('seat_position', {
 		title: 'Seat Position + Hitbox',
 		icon: 'event_seat',
 		author: 'JannisX11',
-		description: 'Preview seat positions and hitboxes for custom MC Bedrock entities',
+		description: 'Preview seat positions, hit/selection boxes, and collision boxes for custom MC Bedrock entities and blocks',
 		tags: ["Minecraft: Bedrock Edition"],
-		version: '1.2.0',
+		version: '1.3.2',
 		variant: 'both',
 		onload() {
 			seat_pos_action = new Action('open_seat_position', {
@@ -208,6 +262,7 @@
 			})
 			hitbox_action = new Action('open_hitbox_setup', {
 				name: 'Setup Hitbox',
+				description: 'Set up an entity or block collision, hitbox, or selection box',
 				icon: 'view_in_ar',
 				condition: _ => Format.bone_rig,
 				click: () => {
@@ -215,10 +270,17 @@
 					$('#blackout').hide(0);
 					SetupHitboxHelper.setupObject();
 					scene.add(SetupHitboxHelper.object);
+					SetupHitboxHelper.dialog.updateFormValues();
 				}
 			})
 			MenuBar.addAction(seat_pos_action, 'filter');
 			MenuBar.addAction(hitbox_action, 'filter');
+
+			style = Blockbench.addCSS(`
+				dialog#setup_hitbox textarea {
+					tab-size: 40px;
+				}
+			`)
 		},
 		onunload() {
 			seat_pos_action.delete();

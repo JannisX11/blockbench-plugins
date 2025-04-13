@@ -13,25 +13,64 @@
 				"type": "string"
 			},
 			"icon": {
-				"type": "string"
+				"type": "string",
+				"description": "The plugin icon. Icons can be either PNG files with a resolution of 48x48, or they can be SVG files."
 			},
 			"author": {
-				"type": "string"
+				"type": "string",
+				"description": "Name of the author or authors"
 			},
 			"description": {
-				"type": "string"
+				"type": "string",
+				"description": "Short plugin description"
 			},
 			"about": {
-				"type": "string"
+				"type": "string",
+				"description": "Plugin about text. Markdown is supported. For longer about pages, a separate about.md file is recommended."
+			},
+			"tags": {
+				"type": "array",
+				"description": "Plugin tags. Up to 3 tags are allowed",
+				"items": {
+					"type": "string"
+				}
 			},
 			"version": {
-				"type": "string"
+				"type": "string",
+				"description": "Plugin version"
 			},
 			"variant": {
-				"type": "string"
+				"type": "string",
+				"description": "Supported Blockbench variant",
+				"enum": ["desktop", "web", "both"]
 			},
 			"min_version": {
-				"type": "string"
+				"type": "string",
+				"description": "Minimum required Blockbench version. Versions 4.7.x and below use the legacy repository structure, where the plugin file is directly stored in the plugins directory."
+			},
+			"deprecation_note": {
+				"type": "string",
+				"description": "Reason for plugin deprecation. Used alongside the 'Deprecated' tag"
+			},
+			"website": {
+				"type": "string",
+				"description": "URL to website of the plugin, if applicable"
+			},
+			"repository": {
+				"type": "string",
+				"description": "URL to Git repository of the plugin, if applicable"
+			},
+			"bug_tracker": {
+				"type": "string",
+				"description": "URL to the bug tracker of the plugin, if applicable. If unspecified, links to this repository."
+			},
+			"await_loading": {
+				"type": "boolean",
+				"description": "When set to true, Blockbench waits for this plugin to finish loading before opening double-clicked files etc. This is useful for plugins that add their own file formats that need to be considered when opening files."
+			},
+			"creation_date": {
+				"type": "string",
+				"description": "Date of the original release of the plugin, as YYYY/MM/DD"
 			}
 		}
 	}

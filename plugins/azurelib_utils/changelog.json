@@ -1,0 +1,92 @@
+{
+	"1.0.6": {
+		"title": "1.0.6",
+		"date": "2024-03-27",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Updates about.md for supported versions",
+					"Updates about.md for NeoForge 1.20.4 vs 1.20.1 dependencies",
+					"Adds bvanseg as maintainer for any bug fixes/upcoming rewrites.",
+					"Bumps version to 1.0.6"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes builtin/entity not being added to display exports."
+				]
+			}
+		]
+	},
+	"1.0.7": {
+		"title": "1.0.7",
+		"date": "2024-05-21",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Makes builtin/entity always be part of the display export for AzureLib Projects",
+					"Enables animated texture support for format"
+				]
+			}
+		]
+	},
+	"1.0.8": {
+		"title": "1.0.8",
+		"date": "2024-06-01",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Disables some logging that isn't needed.",
+					"Now include a license with plugin info, sourced MIT"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes issue with easing and keyframes."
+				]
+			}
+		]
+	},
+	"1.0.9": {
+		"title": "1.0.9",
+		"date": "2024-06-03",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Fixes some plugin meta data inconsistencies, thanks to ewanhowell5195"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes crash if setting steps to 0 or nothing then clicking away, as per the issue #513"
+				]
+			}
+		]
+	},
+	"1.0.10": {
+		"title": "1.0.10",
+		"date": "2024-09-28",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Auto convert bedrock format into format that works properly",
+					"Remove item display transforms from geo file exported for azure_models",
+					"Tweaked ArmorTemplate Names/pivots"
+				]
+			}
+		]
+	}
+}

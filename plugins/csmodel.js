@@ -14,7 +14,7 @@ Plugin.register('csmodel', {
 		\nTo **export** a file, export a .csmodel file from Blockbench and drop it into an existing .cspack file into the Models folder.
 		Make sure it is using the same file name as the old model in the pack. Import the .cspack into CraftStudio and select the models you want to import.`,
 	tags: ["CraftStudio"],
-	version: '0.1.1',
+	version: '0.1.3',
 	min_version: '3.8.0',
 	variant: 'both',
 	onload() {
@@ -404,8 +404,8 @@ Plugin.register('csmodel', {
 
 				writer.view.setUint16(5, id+1, true);
 
-				if (textures[0]) {
-					var src = textures[0].getBase64();
+				if (Texture.getDefault()) {
+					var src = Texture.getDefault().getBase64();
 				} else {
 					var src = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAHklEQVQ4T2P8////fwYKAOOoAQyjYcAwGgYMwyIMACUfP9Eb4ExuAAAAAElFTkSuQmCC'
 				}
@@ -489,7 +489,8 @@ Plugin.register('csmodel', {
 							name,
 							origin: pos.toArray(),
 							from, to,
-							rotation
+							rotation,
+							box_uv: false
 						}).init();
 						nodes[id] = cube;
 						face_info[cube.uuid] = faces;
@@ -599,8 +600,8 @@ Plugin.register('csmodel', {
 					codec.parse(files[0].content);
 					csname = files[0].name.replace(".csmodel","").replace(/\s+/g, "_").toLowerCase();
 					Project.name = csname;
-					Project.geometry_name = csname;
-					textures[0].name = csname;
+					Project.model_identifier = csname;
+					Texture.all.last().name = csname;
 				})
 			}
 		})

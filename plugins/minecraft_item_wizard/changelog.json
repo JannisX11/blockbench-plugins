@@ -1,0 +1,42 @@
+{
+	"1.1.0": {
+		"title": "1.1.0",
+		"date": "2024-06-28",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Enchantable Functionality"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed typo in the list of armor slots",
+					"Made labels for armor slots more clear"
+				]
+			}
+		]
+	},
+	"1.2.0": {
+		"title": "1.2.0",
+		"date": "2025-02-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added option to merge into existing mcaddon file",
+					"Added option to select game variant (normal, preview, education) inside the wizard"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed JSON comments causing file merging with existing packs to fail"
+				]
+			}
+		]
+	}
+}

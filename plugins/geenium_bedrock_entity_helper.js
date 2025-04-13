@@ -8,6 +8,7 @@ var plugin_data = {
 	icon: 'pets',
 	author: 'Geenium',
 	description: 'Loads Bedrock vanilla entity models up to version 1.13',
+	deprecation_note: "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 	tags: ['Minecraft: Bedrock Edition'],
 	version: '0.3.0',
 	variant: 'both'

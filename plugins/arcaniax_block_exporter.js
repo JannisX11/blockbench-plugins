@@ -144,15 +144,15 @@
 	function exportBlock(formData){
 		makeFolder(folderLocation);
 		
-		var bp = folderLocation+"\\" + formData.name + " BP";
-		var rp = folderLocation+"\\" + formData.name + " RP";
+		var bp = PathModule.join(folderLocation, formData.name + " BP");
+		var rp = PathModule.join(folderLocation, formData.name + " RP");
 		
-		var blockBehaviors = bp + "\\" + "blocks";
-		var lang = rp + "\\" + "texts";
-		var textures = rp + "\\" + "textures";
-		var models = rp + "\\" + "models";
-		var blockModels = rp + "\\" + "models" + "\\" + "blocks";
-		var blockTextures = rp + "\\textures\\" + "blocks";
+		var blockBehaviors = PathModule.join(bp, "blocks");
+		var lang = PathModule.join(rp, "texts");
+		var textures = PathModule.join(rp, "textures");
+		var models = PathModule.join(rp, "models");
+		var blockModels = PathModule.join(rp, "models", "blocks");
+		var blockTextures = PathModule.join(rp, "textures", "blocks");
 		
 		makeFolder(bp);
 		makeFolder(rp);
@@ -180,20 +180,20 @@
 	}
 	
 	function saveModel(dir, formData){
-		fs.writeFile(dir + "\\" + formData.file_name +".geo.json", Format.codec.compile() , onError);
+		fs.writeFile(PathModule.join(dir, formData.file_name, ".geo.json"), Format.codec.compile(), onError);
 	}
 	
 	function createManifests(bp, rp, formData){
-		fs.writeFile(bp + "\\manifest.json", getBehaviorManifest(formData) , onError);
-		fs.writeFile(rp + "\\manifest.json", getResourceManifest(formData) , onError);
+		fs.writeFile(PathModule.join(bp, "manifest.json"), getBehaviorManifest(formData), onError);
+		fs.writeFile(PathModule.join(rp, "manifest.json"), getResourceManifest(formData), onError);
 	}
 	
 	function addTranslation(dir, formData){
 		var translationPrefix = "tile." + formData.id + ".name=";
 		var translation = translationPrefix + formData.name;
 		
-		fs.writeFile(dir + "\\en_US.lang", translation , onError);
-		fs.writeFile(dir + "\\languages.lang", getDefaultLanguages() , onError);
+		fs.writeFile(PathModule.join(dir, "en_US.lang"), translation, onError);
+		fs.writeFile(PathModule.join(dir, "languages.lang"), getDefaultLanguages(), onError);
 	}
 	
 	function getDefaultLanguages(){
@@ -201,7 +201,7 @@
 	}
 	
 	function addTextureMapping(dir, formData){
-		fs.writeFile(dir + "\\terrain_texture.json", getTerrainTextureFormat(formData) , onError);
+		fs.writeFile(PathModule.join(dir, "terrain_texture.json"), getTerrainTextureFormat(formData) , onError);
 	}
 	
 	function saveTexture(dir, formData){
@@ -209,46 +209,49 @@
 			var base64 = textures[0].getBase64();
 			var base64Data = base64.replace(/^data:image\/png;base64,/, "");
 
-			fs.writeFile(dir + "\\" + formData.file_name + ".png", base64Data, 'base64', onError );
+			fs.writeFile(PathModule.join(dir, formData.file_name, ".png"), base64Data, 'base64', onError);
 		}
 	}
 	
 	function createBehaviorFile(dir, formData){
-		fs.writeFile(dir + "\\" + formData.file_name + '.behavior.json', getBehaviorFormat(formData) , onError);
+		fs.writeFile(PathModule.join(dir, formData.file_name, '.behavior.json'), getBehaviorFormat(formData), onError);
 	}
 	
-	function checkFolders(dir){
-		var bp = dir+"\\behavior_packs";
-		var rp = dir+"\\resource_packs";
-		if (fs.existsSync(bp)&&fs.existsSync(rp)) {
-			if (hasDirectory(rp)){
-				if (hasDirectory(bp)){
-				  return true;
-				}
-			}
-		}
-		return false;
-	}
+	// UNUSED
+	// function checkFolders(dir){
+	// 	var bp = (dir, "behavior_packs");
+	// 	var rp = PathModule.join(dir, "resource_packs");
+	// 	if (fs.existsSync(bp)&&fs.existsSync(rp)) {
+	// 		if (hasDirectory(rp)){
+	// 			if (hasDirectory(bp)){
+	// 			  return true;
+	// 			}
+	// 		}
+	// 	}
+	// 	return false;
+	// }
 	
-	function hasDirectory(dir){
-		var bool = false;
-		fs.readdirSync(dir).forEach(file => {
-		  if (fs.lstatSync(dir + "\\" + file).isDirectory() ){
-			  bool = true;
-		  }
-		});
-		return bool;
-	}
+	// UNUSED
+	// function hasDirectory(dir){
+	// 	var bool = false;
+	// 	fs.readdirSync(dir).forEach(file => {
+	// 	  if (fs.lstatSync(PathModule.join(dir, file)).isDirectory() ){
+	// 		  bool = true;
+	// 	  }
+	// 	});
+	// 	return bool;
+	// }
 	
-	function getFirstDirectory(dir){
-		var returnFile = "";
-		fs.readdirSync(dir).forEach(file => {
-		  if (fs.lstatSync(dir + "\\" + file).isDirectory() ){
-			  returnFile = file;
-		  }
-		});
-		return dir + "\\" + returnFile;
-	}
+	// UNUSED
+	// function getFirstDirectory(dir){
+	// 	var returnFile = "";
+	// 	fs.readdirSync(dir).forEach(file => {
+	// 	  if (fs.lstatSync(PathModule.join(dir, file)).isDirectory() ){
+	// 		  returnFile = file;
+	// 	  }
+	// 	});
+	// 	return PathModule.join(dir, returnFile);
+	// }
 	
 	
 	function getResourceManifest(formData){

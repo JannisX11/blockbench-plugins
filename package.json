@@ -13,6 +13,6 @@
   },
   "homepage": "https://github.com/JannisX11/blockbench-plugins#readme",
   "devDependencies": {
-    "blockbench-types": "^3.8.0"
+    "blockbench-types": "^4.11.0"
   }
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 203.2 203.2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="linearGradient56" x1="17.571072" y1="191.51862" x2="55.244778" y2="232.12518" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1, 0, 0, 1, 0, 0)" xlink:href="#linearGradient54"/>
+    <linearGradient id="linearGradient54">
+      <stop style="stop-opacity: 0.498542;" offset="0" id="stop55"/>
+      <stop style="stop-color:#000000;stop-opacity:0;" offset="1" id="stop56"/>
+    </linearGradient>
+  </defs>
+  <g id="layer1" transform="matrix(1, 0, 0, 1, 65.37128448486328, -111.62109375)">
+    <ellipse style="fill: rgb(8, 141, 211); stroke-width: 0.264583; fill-opacity: 1;" id="path1" cx="36.228714" cy="213.2211" rx="101.6" ry="101.80915" transform="translate(1.4583333e-7)"/>
+    <path style="stroke: rgb(255, 255, 255); stroke-width: 13; stroke-linejoin: round; stroke-dasharray: none; stroke-opacity: 1; fill: none;" d="M 36.229 154.203 L -12.205 251.072 L 84.663 251.072 L 36.229 154.203 Z" id="path2"/>
+    <path style="fill: url(#linearGradient56); fill-opacity: 1; stroke: rgb(255, 255, 255); stroke-width: 13; stroke-dasharray: none; stroke-opacity: 1; stroke-linejoin: round; visibility: hidden;" d="M 36.229 154.203 L -12.205 251.072 L 84.663 251.072 L 36.229 154.203 Z" id="path56"/>
+  </g>
+</svg>

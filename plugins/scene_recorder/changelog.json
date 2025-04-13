@@ -1,0 +1,95 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2022-12-14",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2022-12-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed MP4 pixel encoding"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2023-04-10",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added the new GIF Recorder features into Scene Recorder"
+        ]
+      }
+    ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2023-08-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Update to new plugin repository format"
+        ]
+      }
+    ]
+  },
+  "2.0.0": {
+    "title": "2.0.0",
+    "date": "2024-07-11",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added the MKV Video format",
+          "Added the MOV Video format",
+          "Added the Spritesheet format"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Scene Recorder has been merged with the built-in GIF Recorder. It is no longer its own dialog, everything is now in one place."
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed the PNG Image Sequence format - This is now natively supported by the GIF Recorder",
+          "Removed the Animated PNG format - This is now natively supported by the GIF Recorder"
+        ]
+      }
+    ]
+  },
+  "2.0.1": {
+    "title": "2.0.1",
+    "date": "2025-01-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed for Blockbench 4.12"
+        ]
+      }
+    ]
+  }
+}

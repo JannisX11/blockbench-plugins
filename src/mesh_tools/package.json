@@ -1,0 +1,25 @@
+{
+	"name": "mesh_tools",
+	"version": "0.0.1",
+	"author": "Malik12tree",
+	"description": "Mesh Tools Plugin",
+	"main": "src/index.js",
+	"type": "module",
+	"scripts": {
+		"build": "node esbuild.js",
+		"dev": "node esbuild.js --watch --sourcemap"
+	},
+	"devDependencies": {
+		"blockbench-types": "^4.12.1",
+		"esbuild": "^0.25.0",
+		"esbuild-plugin-copy": "^2.1.1",
+		"fast-glob": "^3.3.3",
+		"jsonc-parser": "^3.3.1",
+		"typescript": "^5.8.2"
+	},
+	"dependencies": {
+		"expr-eval": "^2.0.2",
+		"opentype.js": "^1.3.4",
+		"three-bvh-csg": "^0.0.16"
+	}
+}

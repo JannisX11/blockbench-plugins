@@ -3,11 +3,11 @@ var createOutlineAction;
 Plugin.register('outline_creator', {
     icon: 'crop_square',
     title: 'Outline Creator',
-    description: 'Creates stylistic outlines for cubes using negative scale values.',
-    about: 'To use the plugin, select an element you want to create an outline for, go to the Filter menu and click on the Create Outline option.',
+    description: 'Creates stylistic outlines for cubes and meshes using negative scale values.',
+    about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.',
     author: 'Wither',
-    version: '1.0.2',
-    min_version: '3.0.0',
+    version: '1.1.0',
+    min_version: '4.2.0',
     variant: 'both',
 
     onload() {
@@ -15,35 +15,43 @@ Plugin.register('outline_creator', {
             id: 'create_outline',
             name: 'Create Outline',
             icon: 'crop_square',
-            description: 'Create an outline for selected cubes',
-            click: function(ev) {
-                if(selected.length != 0) {
-                    outlineSettings.show();
-                }
-                else {
+            description: 'Create an outline for selected elements',
+            click(ev) {
+                if (selected.length === 0) {
                     Blockbench.showMessageBox({
-                        title: 'Error!',
+                        title: 'No valid elements selected',
                         icon: 'error',
-                        message: 'You must select at least one cube!',
+                        message: 'You must select at least one cube or mesh!',
                         buttons: ['OK']
-            
                     });
+                }
+
+                else if (!selected.find(el => el instanceof Cube || el instanceof Mesh)) {
+                    Blockbench.showMessageBox({
+                        title: 'Invalid elements',
+                        icon: 'error',
+                        message: 'You can only add outlines to cubes and meshes!',
+                        buttons: ['OK']
+                    });
+                }
+
+                else {
+                    outlineSettings.show();
                 }
             }
         });
-        MenuBar.addAction(createOutlineAction, 'filter');
+        MenuBar.addAction(createOutlineAction, 'tools');
     },
     onunload() {
-        this.onuninstall();
-    },
-    onuninstall() {
         createOutlineAction.delete();
     }
 })
 
 function createOutline(outline_thickness) {
     Undo.initEdit({elements: Outliner.elements, outliner: true});
-    selected.forEach(element => {
+
+    // Cube handling
+    for (const element of Cube.selected) {
         var outline = new Cube({
             name: `${element.name}_outline`, 
             from:[element.to[0] + outline_thickness, element.to[1] + outline_thickness, element.to[2] + outline_thickness], 
@@ -89,7 +97,32 @@ function createOutline(outline_thickness) {
                 }
             }
         }).init();
-    });
+    }
+
+    // Mesh handling
+    for (const mesh of Mesh.selected) {
+        mesh.duplicate();
+        mesh.oldVertices = {};
+
+        for (const key in mesh.vertices) {
+            mesh.oldVertices[key] = mesh.vertices[key].slice();
+        }
+
+        mesh.forAllFaces(face => {
+            face.invert();
+        })
+
+        mesh.resize(outline_thickness * 2, 0, false, false, true);
+        mesh.resize(outline_thickness, 1, false, false, true);
+        mesh.resize(outline_thickness * 2, 2, false, false, true);
+        mesh.name = mesh.name + "_outline";
+    }
+
+    Canvas.updateView({
+	elements: selected,
+	element_aspects: {transform: true, geometry: true},
+    })
+
     Undo.finishEdit('Created outlines');
 }
 
