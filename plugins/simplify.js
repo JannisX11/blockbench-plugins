@@ -112,7 +112,6 @@ function dialog_open() {
 }
 
 function simplify_value(value, round) {
-    console.trace(value, round, Math.round(value / round) * round);
     return Math.round(value / round) * round;
 }
 
