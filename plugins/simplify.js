@@ -91,7 +91,7 @@ function dialog_create() {
         origin: {label: "Origin", type: "checkbox", value: true}
     };
 
-    if (Format != Formats.java_block) {
+    if (!Format.rotation_snap) {
         form.rotation = {label: "Rotation", type: "checkbox", value: true};
     }
 
