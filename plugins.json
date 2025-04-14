@@ -512,9 +512,9 @@
 	"simplify": {
 		"title": "Simplify Models",
 		"icon": "build",
-		"author": "Ryan Garrett",
+		"author": "ThePinkHacker",
 		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-		"version": "0.2.0",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"animation_sliders": {
