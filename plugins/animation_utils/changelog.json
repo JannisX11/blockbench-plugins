@@ -153,5 +153,17 @@
         ]
       }
     ]
+  },
+  "4.1.0": {
+    "title": "4.1.0",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added support for bezier, step, and smooth (Catmull-Rom) keyframes!"
+        ]
+      }
+    ]
   }
 }

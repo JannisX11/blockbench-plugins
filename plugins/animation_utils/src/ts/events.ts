@@ -10,7 +10,7 @@ import {GeckolibBoneAnimator} from "./keyframe";
 import {
     GeckoModelType,
     PROPERTY_FILEPATH_CACHE,
-    PROPERTY_MODEL_TYPE, SETTING_ALWAYS_SHOW_DISPLAY, SETTING_CONVERT_BEDROCK_ANIMATIONS,
+    PROPERTY_MODEL_TYPE, SETTING_ALWAYS_SHOW_DISPLAY,
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
 import {openProjectSettingsDialog} from "./codec";
@@ -22,7 +22,6 @@ export function addEventListeners() {
     addEventListener('select_project', onlyIfGeckoLib(onProjectSelect));
     addEventListener('update_project_settings', onlyIfGeckoLib(onSettingsChanged));
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
-    addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
     addMonkeypatch(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
@@ -377,66 +376,4 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
     }
 
     return new_animations
-}
-
-/**
- * When the animations json is being compiled for export
- * <p>
- * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
- */
-function monkeypatchAnimatorBuildFile() {
-    const result = Monkeypatches.get(Animator).buildFile.apply(this, arguments);
-
-    if (isGeckoLibModel()) {
-        result.geckolib_format_version = 2
-
-        // Convert exported bedrock animations to non-bedrock
-        // Only applies to projects that had its animations made in a non-GeckoLib model format
-        if (settings[SETTING_CONVERT_BEDROCK_ANIMATIONS].value && result.animations) {
-            for (const animation in result.animations) {
-                const bones = result.animations[animation].bones;
-
-                if (bones) {
-                    for (const boneName in bones) {
-                        const bone = bones[boneName];
-
-                        for (const animationGroupType in bone) {
-                            const animationGroup = bone[animationGroupType];
-
-                            for (const timestamp in animationGroup) {
-                                const keyframe = animationGroup[timestamp];
-
-                                if (!keyframe)
-                                    continue
-
-                                let bedrockKeyframe : Map<any, any> = keyframe.pre;
-                                let bedrockKeyframeData : Map<any, any> = undefined;
-
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.pre
-                                }
-
-                                bedrockKeyframe = keyframe.post;
-
-                                if (bedrockKeyframe !== undefined) {
-                                    bedrockKeyframeData = bedrockKeyframe;
-                                    delete keyframe.post
-                                }
-
-                                if (bedrockKeyframeData !== undefined) {
-                                    Object.assign(keyframe, bedrockKeyframeData)
-
-                                    if (keyframe.lerp_mode)
-                                        delete keyframe.lerp_mode;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return result;
 }
