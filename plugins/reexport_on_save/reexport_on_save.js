@@ -256,7 +256,7 @@ async function reexport() {
     let codecOptions = Project.reexport.codec_options;
 
     // Bad codec
-    if (codec == undefined || !codec.conditionMet()) {
+    if (codec == undefined || codec.export_action?.conditionMet() === false) {
         isCurrentlyReexporting = false;
         showReexportFailed(`"${Project.reexport.codec}" is not a valid export codec for this project`);
         return;
