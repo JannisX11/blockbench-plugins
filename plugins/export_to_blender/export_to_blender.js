@@ -69,9 +69,14 @@ Plugin.register('export_to_blender', {
         + 'It works by first exporting the project as GLTF, then importing that GLTF into Blender using a Python script. '
         + 'You may need to specify the path to your Blender installation upon first use. ',
     icon: 'icon.png',
+    creation_date: '2025-04-16',
     version: '1.0.0',
     variant: 'desktop',
+    min_version: '4.12.4',
+    has_changelog: false,
     tags: [ 'Exporter' ],
+	repository: 'https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender',
+
     onload() {
 
         let blenderPathSetting = deferDelete(new Setting('blender_path', {
