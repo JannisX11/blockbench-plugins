@@ -11,43 +11,43 @@ const macos   = process.platform === 'drawin';
 // 2. Adds the file to a root node and a collection
 // 3. Saves the blend file
 const blenderScript =
-    'import bpy\n' +
-    'import sys\n' +
-    '\n' +
-    'args = sys.argv[sys.argv.index("--") + 1:]\n' +
-    'name = args[0]\n' +
-    'gltf_path = args[1]\n' +
-    'blend_path = args[2]\n' +
-    '\n' +
-    'print("Creating blend...")\n' +
-    'bpy.ops.wm.read_factory_settings(use_empty=True)\n' +
-    '\n' +
-    '# Create collections\n' +
-    'collection = bpy.data.collections.new(name)\n' +
-    'bpy.context.scene.collection.children.link(collection)\n' +
-    '\n' +
-    '# Import gltf\n' +
-    'print("Importing gltf...")\n' +
-    'bpy.ops.import_scene.gltf(filepath=gltf_path)\n' +
-    '\n' +
-    '# Root node\n' +
-    'root_node = bpy.data.objects.new(name, None)\n' +
-    'bpy.context.collection.objects.link(root_node)\n' +
-    'collection.objects.link(root_node)\n' +
-    'bpy.context.scene.collection.objects.unlink(root_node)\n' +
-    '\n' +
-    '# Add imported objects to collection and root node\n' +
-    'for obj in bpy.context.selected_objects:\n' +
-    '    # Add to collection\n' +
-    '    collection.objects.link(obj)\n' +
-    '    bpy.context.scene.collection.objects.unlink(obj)\n' +
-    '    # Add root object to prop node\n' +
-    '    if obj.parent == None:\n' +
-    '        obj.parent = root_node\n' +
-    '\n' +
-    '# Save blend file\n' +
-    'bpy.ops.wm.save_as_mainfile(filepath=blend_path)\n' +
-    'print(f"Saved blend file: {blend_path}")\n' +
+    'import bpy                                             \n' +
+    'import sys                                             \n' +
+    '                                                       \n' +
+    'args = sys.argv[sys.argv.index("--") + 1:]             \n' +
+    'name = args[0]                                         \n' +
+    'gltf_path = args[1]                                    \n' +
+    'blend_path = args[2]                                   \n' +
+    '                                                       \n' +
+    'print("Creating blend...")                             \n' +
+    'bpy.ops.wm.read_factory_settings(use_empty=True)       \n' +
+    '                                                       \n' +
+    '# Create collections                                   \n' +
+    'collection = bpy.data.collections.new(name)            \n' +
+    'bpy.context.scene.collection.children.link(collection) \n' +
+    '                                                       \n' +
+    '# Import gltf                                          \n' +
+    'print("Importing gltf...")                             \n' +
+    'bpy.ops.import_scene.gltf(filepath=gltf_path)          \n' +
+    '                                                       \n' +
+    '# Root node                                            \n' +
+    'root_node = bpy.data.objects.new(name, None)           \n' +
+    'bpy.context.collection.objects.link(root_node)         \n' +
+    'collection.objects.link(root_node)                     \n' +
+    'bpy.context.scene.collection.objects.unlink(root_node) \n' +
+    '                                                       \n' +
+    '# Add imported objects to collection and root node     \n' +
+    'for obj in bpy.context.selected_objects:               \n' +
+    '    # Add to collection                                \n' +
+    '    collection.objects.link(obj)                       \n' +
+    '    bpy.context.scene.collection.objects.unlink(obj)   \n' +
+    '    # Add root object to prop node                     \n' +
+    '    if obj.parent == None:                             \n' +
+    '        obj.parent = root_node                         \n' +
+    '                                                       \n' +
+    '# Save blend file                                      \n' +
+    'bpy.ops.wm.save_as_mainfile(filepath=blend_path)       \n' +
+    'print(f"Saved blend file: {blend_path}")               \n' +
     '\n';
 
 // Because we need to send the code through a command line argument,
@@ -96,11 +96,12 @@ Plugin.register('export_to_blender', {
             },
             async onConfirm(form_result) {
 
-                let path = form_result['path'];
+                let blenderPath = form_result['path'];
 
-                if (path != null && path != '' && fs.existsSync(path) && await validateBlender(path)) {
+                if (blenderPath != null && blenderPath != ''
+                  && fs.existsSync(blenderPath) && await validateBlender(blenderPath)) {
                     // New path is valid!
-                    Settings.structure.export.items['blender_path'].value = path;
+                    Settings.structure.export.items['blender_path'].value = blenderPath;
                     blenderCodec.export_action.trigger();
 
                 } else {
@@ -331,10 +332,10 @@ async function findBlender() {
           : macos ? [`/Applications/Blender.app/Contents/Resources/Blender`]
           : [];
 
-        for (let path of obviousPaths) {
+        for (let obviousPath of obviousPaths) {
             // Resolve wildcard
-            if (path.indexOf('*') !== -1) {
-                let segments = path.split('/');
+            if (obviousPath.indexOf('*') !== -1) {
+                let segments = obviousPath.split('/');
                 let wildcardSegmentIndex = segments.findIndex(s => s.includes('*'));
                 let segmentsUntilWildcard = segments.slice(0, wildcardSegmentIndex);
                 // Stop early if the the wildcard's parent doesn't exist
@@ -349,7 +350,7 @@ async function findBlender() {
                     .filter(i => i.startsWith(beforeWildcard))
                     .filter(i => i.endsWith(afterWildcard));
                 let existingPaths = matchingDirItems
-                    .map(i => path.replace(wildcardSegment, i))
+                    .map(i => obviousPath.replace(wildcardSegment, i))
                     .filter(p => fs.existsSync(p));
 
                 // Nothing matches or matches don't contain Blender exe
@@ -358,27 +359,34 @@ async function findBlender() {
 
                 // Just one existing match, go validate it!
                 if (matchingDirItems.length === 1) {
-                    path = existingPaths[0];
-                }
+                    obviousPath = existingPaths[0];
+                    
+                } else {
 
-                // Multiple versions of Blender
-                // Find whichever file has the most recent write time
-                let newestPath = existingPaths.map(path => (
-                    { path, writeTime: fs.statSync(path).mtime.getTime() }))
-                .sort((a, b) => b.writeTime - a.writeTime)
-                .map(entry => entry.path)
-                [0];
-                path = newestPath;
+                    // Multiple versions of Blender
+                    // Find whichever file has the most recent write time
+                    let newestPath = existingPaths
+                        .map(existingPath => ({
+                            existingPath,
+                            writeTime: fs.statSync(existingPath).mtime.getTime()
+                        }))
+                        .sort((a, b) => b.writeTime - a.writeTime)
+                        .map(entry => entry.existingPath)
+                        [0];
+                    obviousPath = newestPath;
+                }
 
             }
 
             // Check to make sure we resolved the wildcard
-            if (path.indexOf('*') !== -1) {
+            if (obviousPath.indexOf('*') !== -1) {
                 console.warn('Two wildcards in Blender path?')
                 continue;
             }
-            if (fs.existsSync(path) && await validateBlender(path))
-                return path; 
+
+            // Make sure the file exists and and can be called with --version
+            if (fs.existsSync(obviousPath) && await validateBlender(obviousPath))
+                return obviousPath; 
         }
 
     } catch {}
