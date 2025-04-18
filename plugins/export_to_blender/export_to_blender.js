@@ -242,7 +242,7 @@ async function compileBlend(options) {
 
     if (!fs.existsSync(tempBlendPath)) {
         fs.unlinkSync(tempGlbPath);
-        return new Error('Blender didn\'t create blend file for some reason');
+        return new Error('Blender didn\'t create blend file for some reason. Please verify your Blender path in your settings.');
     }
 
     // Read Blender scene content
