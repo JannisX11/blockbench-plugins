@@ -163,6 +163,12 @@
         "list": [
           "Added support for bezier, step, and smooth (Catmull-Rom) keyframes!"
         ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed incorrect armor template pivots. Fixes [#527](https://github.com/bernie-g/geckolib/issues/527)"
+        ]
       }
     ]
   }
