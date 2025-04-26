@@ -32,7 +32,16 @@ interface GeckolibKeyframeOptions extends KeyframeOptions {
 // This subclass isn't strictly needed at runtime but was required to appease the compiler due to our monkeypatch
 export class GeckolibBoneAnimator extends BoneAnimator {
     public addKeyframe(data: GeckolibKeyframeOptions, uuid?: string): _Keyframe {
-        return super.addKeyframe(data, uuid);
+        const keyframe = super.addKeyframe(data, uuid);
+        if (data.bezier_left_time)
+            keyframe.bezier_left_time = data.bezier_left_time;
+        if (data.bezier_right_time)
+            keyframe.bezier_right_time = data.bezier_right_time;
+        if (data.bezier_right_value)
+            keyframe.bezier_right_value = data.bezier_right_value;
+        if (data.bezier_left_value)
+            keyframe.bezier_left_value = data.bezier_left_value;
+        return keyframe;
     }
 }
 
@@ -68,9 +77,12 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
 function geckolibGetArray(data_point: number = 0) {
     const {easing, easingArgs, getArray} = this;
     let result = getArray.apply(this, [data_point]);
-    if (Format.id === "animated_entity_model") {
-
-        result = {vector: result, easing};
+    if (this.interpolation == "geckolib_bezier") {
+        result = {vector: result, easing: "bezier", left: this.bezier_left_time, right: this.bezier_right_time};
+    } else if (Format.id === "animated_entity_model") {
+        if (this.data_points.length != 1)
+            result = {pre: result, post: getArray.apply(this, [1]), easing};
+        else result = {vector: result, easing};
         if (isArgsEasing(easing)) result.easingArgs = easingArgs;
     }
     return result;
@@ -91,20 +103,9 @@ function keyframeCompileBedrock() {
             lerp_mode: this.interpolation,
         }
     } else if (this.data_points.length == 1) {
-        const previous = this.getPreviousKeyframe.apply(this);
-        if (previous && previous.interpolation == 'step') {
-            return new oneLiner({
-                pre: geckolibGetArray.call(previous, [1]),
-                post: geckolibGetArray.call(this),
-            })
-        } else {
-            return geckolibGetArray.call(this);
-        }
+        return geckolibGetArray.call(this)
     } else {
-        return new oneLiner({
-            pre: geckolibGetArray.call(this,[0]),
-            post: geckolibGetArray.call(this, [1]),
-        })
+        return geckolibGetArray.call(this,[0])
     }
 }
 

@@ -8,12 +8,14 @@ import {
 } from "./utils";
 import {GeckolibBoneAnimator} from "./keyframe";
 import {
+    BAKE_IN_BEZIER_KEYFRAMES,
     GeckoModelType,
     PROPERTY_FILEPATH_CACHE,
     PROPERTY_MODEL_TYPE, SETTING_ALWAYS_SHOW_DISPLAY,
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
 import {openProjectSettingsDialog} from "./codec";
+import {GeckolibKeyframe} from "./easing";
 
 export function addEventListeners() {
     addCodecCallback(Codecs.project, 'parse', onlyIfGeckoLib(onProjectParse))
@@ -22,6 +24,7 @@ export function addEventListeners() {
     addEventListener('select_project', onlyIfGeckoLib(onProjectSelect));
     addEventListener('update_project_settings', onlyIfGeckoLib(onSettingsChanged));
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
+    addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
     addMonkeypatch(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
@@ -289,10 +292,14 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                 boneAnimator.addKeyframe({
                                     time: 0,
                                     channel,
-                                    easing: bone[channel].easing,
+                                    easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
                                     easingArgs: bone[channel].easingArgs,
-                                    interpolation: bone[channel].lerp_mode,
+                                    interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
                                     data_points: getKeyframeDataPoints(bone[channel]),
+                                    bezier_right_time: bone[channel].right,
+                                    bezier_left_time: bone[channel].left,
+                                    bezier_left_value: bone[channel].left,
+                                    bezier_right_value: bone[channel].right
                                 });
                             }
                             else if (typeof bone[channel] === 'object') {
@@ -300,10 +307,14 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     boneAnimator.addKeyframe({
                                         time: parseFloat(timestamp),
                                         channel,
-                                        easing: bone[channel][timestamp].easing,
+                                        easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
                                         easingArgs: bone[channel][timestamp].easingArgs,
-                                        interpolation: bone[channel][timestamp].lerp_mode,
+                                        interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
                                         data_points: getKeyframeDataPoints(bone[channel][timestamp]),
+                                        bezier_right_time: bone[channel][timestamp].right,
+                                        bezier_left_time: bone[channel][timestamp].left,
+                                        bezier_left_value: bone[channel][timestamp].left,
+                                        bezier_right_value: bone[channel][timestamp].right
                                     });
                                 }
                             }
@@ -376,4 +387,50 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
     }
 
     return new_animations
+}
+
+/**
+ * When the animations JSON is being compiled for export
+ * <p>
+ * Makes sure bezier keyframes get exported correctly rather than being baked.
+ */
+function monkeypatchAnimatorBuildFile() {
+    const bezierKeys:GeckolibKeyframe[] = [];
+    if (isGeckoLibModel() && !settings[BAKE_IN_BEZIER_KEYFRAMES].value) {
+        let animation;
+        this.animations.forEach(a => {
+           if (a.name == arguments[1][0]) animation = a;
+           return;
+        });
+
+        if (animation) {
+            for (const uuid in animation.animators) {
+                const animator = animation.animators[uuid];
+                if (!animator.keyframes.length && !animator.rotation_global) continue;
+                if (animator.type == 'bone') {
+                    for (const channel in Animator.possible_channels) {
+                        if (!animator[channel]?.length) continue;
+                        const sorted_keyframes = animator[channel].slice().sort((a, b) => a.time - b.time);
+                        sorted_keyframes.forEach((kf: GeckolibKeyframe) => {
+                            if (kf.interpolation == "bezier") {
+                                bezierKeys[bezierKeys.length] = kf;
+                                kf.interpolation = "geckolib_bezier";
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+    const result = Monkeypatches.get(Animator).buildFile.apply(this, arguments);
+
+    if (isGeckoLibModel() && !settings[BAKE_IN_BEZIER_KEYFRAMES].value) {
+        result.geckolib_format_version = 2
+        bezierKeys.forEach((kf) => {
+            kf.interpolation = "bezier";
+            kf.easing = undefined;
+        });
+    }
+
+    return result;
 }

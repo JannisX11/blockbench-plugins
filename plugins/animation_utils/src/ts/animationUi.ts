@@ -25,15 +25,19 @@ export const displayAnimationFrameCallback = (/*...args*/) => {
 };
 
 export function renderFrameCallback() {
-  if (Format.id !== "animated_entity_model") return;
+  if (Format.id !== "animated_entity_model") {
+    setSaveAnimationButtonsHidden(false)
+    return
+  }
+  setSaveAnimationButtonsHidden(true)
   Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
-    if ((kf.interpolation != "linear" || kf.data_points.length != 1) && kf.easing != undefined) {
-      kf.easing = undefined;
-      kf.easingArgs = undefined;
+    if (kf.interpolation != "linear" && kf.data_points.length != 1 && kf.easing != undefined) {
+      kf.easing = undefined
+      kf.easingArgs = undefined
       window.updateKeyframeSelection();
     }
     if (kf.interpolation === "step") {
-      kf.interpolation = "linear";
+      kf.interpolation = "linear"
       if (kf.data_points.length == 1) addDataPoint()
       window.updateKeyframeSelection();
     }
@@ -53,7 +57,6 @@ export function updateKeyframeEasing(value) {
     kf.easing = value;
     kf.easingArgs = undefined;
     kf.interpolation = 'linear';
-    removeLastDataPoint()
   })
   window.updateKeyframeSelection(); // Ensure easingArg display is updated
   // Animator.preview();
@@ -288,7 +291,7 @@ const getEasingType = (name: string) => {
 };
 
 const updateKeyframe = (kf: GeckolibKeyframe) => {
-  if (kf.data_points.length != 1 && (kf.easing != undefined || kf.interpolation !== "linear")) {
+  if (kf.data_points.length != 1 && kf.interpolation !== "linear") {
     removeLastDataPoint()
   }
 }
@@ -309,10 +312,6 @@ const addDataPoint = () => {
       kf.data_points.last().extend(kf.data_points[0])
     }
   })
-  Timeline.selected.forEach((kf: GeckolibKeyframe) => {
-    kf.easing = undefined;
-    kf.easingArgs = undefined;
-  })
   Animator.preview()
   Undo.finishEdit('Add keyframe data point')
 }
@@ -326,6 +325,20 @@ const removeLastDataPoint = () => {
   })
   Animator.preview()
   Undo.finishEdit('Remove keyframe data point')
+}
+
+const setSaveAnimationButtonsHidden = (value:boolean) => {
+  try {
+    document.querySelectorAll<HTMLElement>('.animation_file .in_list_button').forEach(element => {
+      element.style.display = value ? "none" : "block";
+    })
+    document.querySelectorAll<HTMLElement>('li[menu_item="save"]').forEach(element => {
+      element.style.color = value ? "#AAAAAA" : "#000006";
+      element.style.pointerEvents = value ? "none" : "auto";
+    })
+  } catch {
+    //ignore
+  }
 }
 
 const getIcon = (name: string) => {
