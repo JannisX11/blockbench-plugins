@@ -31,7 +31,7 @@ export function renderFrameCallback() {
   }
   setSaveAnimationButtonsHidden(true)
   Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
-    if (kf.interpolation != "linear" && kf.data_points.length != 1 && kf.easing != undefined) {
+    if (kf.interpolation != "linear" && kf.easing != undefined) {
       kf.easing = undefined
       kf.easingArgs = undefined
       window.updateKeyframeSelection();
