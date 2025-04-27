@@ -7372,12 +7372,10 @@ function buildDisplaySettingsJson(options = {}) {
                 let name = texture.name;
                 if (name.indexOf(".png") > 0)
                     name = name.substring(0, name.indexOf(".png"));
-                if (!texture.particle) {
-                    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name)) {
-                        name = name.toLowerCase().replace(" ", "_");
-                        if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name))
-                            continue;
-                    }
+                if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name)) {
+                    name = name.toLowerCase().replace(" ", "_");
+                    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name))
+                        continue;
                 }
                 name = (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.BLOCK ? "block/" : "item/") + name;
                 if (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODID])
