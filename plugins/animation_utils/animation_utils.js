@@ -8079,8 +8079,8 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     easingArgs: bone[channel].easingArgs,
                                     interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
                                     data_points: getKeyframeDataPoints(bone[channel]),
-                                    bezier_right_time: bone[channel].right,
-                                    bezier_left_time: bone[channel].left,
+                                    bezier_right_time: bone[channel].right_time,
+                                    bezier_left_time: bone[channel].left_time,
                                     bezier_left_value: bone[channel].left,
                                     bezier_right_value: bone[channel].right
                                 });
@@ -8094,8 +8094,8 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                         easingArgs: bone[channel][timestamp].easingArgs,
                                         interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
                                         data_points: getKeyframeDataPoints(bone[channel][timestamp]),
-                                        bezier_right_time: bone[channel][timestamp].right,
-                                        bezier_left_time: bone[channel][timestamp].left,
+                                        bezier_right_time: bone[channel][timestamp].right_time,
+                                        bezier_left_time: bone[channel][timestamp].left_time,
                                         bezier_left_value: bone[channel][timestamp].left,
                                         bezier_right_value: bone[channel][timestamp].right
                                     });
@@ -8286,7 +8286,7 @@ function geckolibGetArray(data_point = 0) {
     const { easing, easingArgs, getArray } = this;
     let result = getArray.apply(this, [data_point]);
     if (this.interpolation == "geckolib_bezier") {
-        result = { vector: result, easing: "bezier", left: this.bezier_left_time, right: this.bezier_right_time };
+        result = { vector: result, easing: "bezier", left: this.bezier_left_value, left_time: this.bezier_left_time, right: this.bezier_right_value, right_time: this.bezier_right_time };
     }
     else if (Format.id === "animated_entity_model") {
         if (this.data_points.length != 1)

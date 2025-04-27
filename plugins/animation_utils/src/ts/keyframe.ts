@@ -78,7 +78,7 @@ function geckolibGetArray(data_point: number = 0) {
     const {easing, easingArgs, getArray} = this;
     let result = getArray.apply(this, [data_point]);
     if (this.interpolation == "geckolib_bezier") {
-        result = {vector: result, easing: "bezier", left: this.bezier_left_time, right: this.bezier_right_time};
+        result = {vector: result, easing: "bezier", left: this.bezier_left_value, left_time: this.bezier_left_time, right: this.bezier_right_value, right_time: this.bezier_right_time};
     } else if (Format.id === "animated_entity_model") {
         if (this.data_points.length != 1)
             result = {pre: result, post: getArray.apply(this, [1]), easing};
