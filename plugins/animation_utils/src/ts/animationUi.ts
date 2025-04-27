@@ -25,11 +25,7 @@ export const displayAnimationFrameCallback = (/*...args*/) => {
 };
 
 export function renderFrameCallback() {
-  if (Format.id !== "animated_entity_model") {
-    setSaveAnimationButtonsHidden(false)
-    return
-  }
-  setSaveAnimationButtonsHidden(true)
+  if (Format.id !== "animated_entity_model") return
   Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
     if (kf.interpolation != "linear" && kf.easing != undefined) {
       kf.easing = undefined
@@ -325,24 +321,6 @@ const removeLastDataPoint = () => {
   })
   Animator.preview()
   Undo.finishEdit('Remove keyframe data point')
-}
-
-const setSaveAnimationButtonsHidden = (value:boolean) => {
-  try {
-    document.querySelectorAll<HTMLElement>('.animation_file .in_list_button').forEach(element => {
-      element.style.display = value ? "none" : "block";
-    })
-    document.querySelectorAll<HTMLElement>('li[menu_item="save"]').forEach(element => {
-      element.style.color = value ? "#AAAAAA" : "#000006";
-      element.style.pointerEvents = value ? "none" : "auto";
-    })
-    document.querySelectorAll<HTMLElement>('li[menu_item="save_all_animations"]').forEach(element => {
-      element.style.color = value ? "#AAAAAA" : "#000006";
-      element.style.pointerEvents = value ? "none" : "auto";
-    })
-  } catch {
-    //ignore
-  }
 }
 
 const getIcon = (name: string) => {
