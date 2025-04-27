@@ -336,6 +336,10 @@ const setSaveAnimationButtonsHidden = (value:boolean) => {
       element.style.color = value ? "#AAAAAA" : "#000006";
       element.style.pointerEvents = value ? "none" : "auto";
     })
+    document.querySelectorAll<HTMLElement>('li[menu_item="save_all_animations"]').forEach(element => {
+      element.style.color = value ? "#AAAAAA" : "#000006";
+      element.style.pointerEvents = value ? "none" : "auto";
+    })
   } catch {
     //ignore
   }
