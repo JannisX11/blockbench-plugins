@@ -351,13 +351,11 @@ export function buildDisplaySettingsJson(options = {}) {
                 if (name.indexOf(".png") > 0)
                     name = name.substring(0, name.indexOf(".png"))
 
-                if (!texture.particle) {
-                    if (!isValidPath(name)) {
-                        name = name.toLowerCase().replace(" ", "_")
+                if (!isValidPath(name)) {
+                    name = name.toLowerCase().replace(" ", "_")
 
-                        if (!isValidPath(name))
-                            continue;
-                    }
+                    if (!isValidPath(name))
+                        continue;
                 }
 
                 name = (Project[PROPERTY_MODEL_TYPE] == GeckoModelType.BLOCK ? "block/" : "item/") + name;

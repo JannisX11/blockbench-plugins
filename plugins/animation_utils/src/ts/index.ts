@@ -9,7 +9,7 @@ import {
     GeckoFilepathCache,
     GECKOLIB_MODEL_ID,
     GeckoModelType, PROPERTY_FILEPATH_CACHE, PROPERTY_MODEL_TYPE, PROPERTY_MODID,
-    SETTING_ALWAYS_SHOW_DISPLAY, SETTING_AUTO_PARTICLE_TEXTURE, SETTING_CONVERT_BEDROCK_ANIMATIONS,
+    SETTING_ALWAYS_SHOW_DISPLAY, SETTING_AUTO_PARTICLE_TEXTURE, BAKE_IN_BEZIER_KEYFRAMES,
     SETTING_DEFAULT_MODID,
     SETTING_REMEMBER_EXPORT_LOCATIONS,
 } from "./constants";
@@ -91,11 +91,11 @@ function createPluginSettings(): Setting[] {
       name: "Auto-compute block/item particle texture",
       description: "Attempt to auto-compute the particle texture for a GeckoLib block/item model if one isn't already specified when exporting the display settings json"
     }),
-    new Setting(SETTING_CONVERT_BEDROCK_ANIMATIONS, {
-      value: true,
+    new Setting(BAKE_IN_BEZIER_KEYFRAMES, {
+      value: false,
       category: "export",
-      name: "Convert bedrock animations on export",
-      description: "Automatically convert bedrock-format animations to GeckoLib-compatible animations when exporting, if relevant. May have a performance improvement on larger projects"
+      name: "Bake in bezier keyframes",
+      description: "When true Blockbench makes a ton of linear keyframes to form the illusion of a bezier easing, rather than properly setting the easing to bezier."
     }),
     new Setting(SETTING_ALWAYS_SHOW_DISPLAY, {
       value: false,

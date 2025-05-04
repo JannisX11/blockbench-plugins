@@ -153,5 +153,23 @@
         ]
       }
     ]
+  },
+  "4.1.0": {
+    "title": "4.1.0",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added support for bezier, step, and smooth (Catmull-Rom) keyframes!"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed incorrect armor template pivots. Fixes [#527](https://github.com/bernie-g/geckolib/issues/527)"
+        ]
+      }
+    ]
   }
 }
