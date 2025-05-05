@@ -4,7 +4,7 @@ const path = require('path');
 
 const windows = process.platform === 'win32';
 const linux   = process.platform === 'linux';
-const macos   = process.platform === 'drawin';
+const macos   = process.platform === 'darwin';
 
 // Python code to be run by Blender
 // 1. Imports a GLTF file
