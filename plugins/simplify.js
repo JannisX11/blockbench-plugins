@@ -32,7 +32,7 @@ function dialog_confirm(data, pointer_event) {
         let cubes;
 
         if (data.selectOnly == true) {
-            cubes = selected;
+            cubes = Cube.selected;
         } else {
             cubes = Cube.all;
         }
