@@ -50,12 +50,12 @@ function dialog_confirm(data, pointer_event) {
     
             // UV
             if (data.uv) {
-                cubes[i].faces.north.uv = simplify_value(cubes[i].faces.north.uv, data.roundAmount);
-                cubes[i].faces.east.uv = simplify_value(cubes[i].faces.east.uv, data.roundAmount);
-                cubes[i].faces.south.uv = simplify_value(cubes[i].faces.south.uv, data.roundAmount);
-                cubes[i].faces.west.uv = simplify_value(cubes[i].faces.west.uv, data.roundAmount);
-                cubes[i].faces.up.uv = simplify_value(cubes[i].faces.up.uv, data.roundAmount);
-                cubes[i].faces.down.uv = simplify_value(cubes[i].faces.down.uv, data.roundAmount);
+                cubes[i].faces.north.uv = simplify_array(cubes[i].faces.north.uv, data.roundAmount);
+                cubes[i].faces.east.uv = simplify_array(cubes[i].faces.east.uv, data.roundAmount);
+                cubes[i].faces.south.uv = simplify_array(cubes[i].faces.south.uv, data.roundAmount);
+                cubes[i].faces.west.uv = simplify_array(cubes[i].faces.west.uv, data.roundAmount);
+                cubes[i].faces.up.uv = simplify_array(cubes[i].faces.up.uv, data.roundAmount);
+                cubes[i].faces.down.uv = simplify_array(cubes[i].faces.down.uv, data.roundAmount);
             }
     
             // Rotation
