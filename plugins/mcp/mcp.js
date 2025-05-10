@@ -99997,17 +99997,17 @@ var startHTTPStreamServer = async ({
       try {
         const sessionId = Array.isArray(req.headers["mcp-session-id"]) ? req.headers["mcp-session-id"][0] : req.headers["mcp-session-id"];
         let transport;
-        let server2;
+        let server;
         const body = await getBody(req);
         if (sessionId && activeTransports[sessionId]) {
           transport = activeTransports[sessionId].transport;
-          server2 = activeTransports[sessionId].server;
+          server = activeTransports[sessionId].server;
         } else if (!sessionId && isInitializeRequest(body)) {
           transport = new StreamableHTTPServerTransport({
             eventStore: eventStore || new InMemoryEventStore,
             onsessioninitialized: (_sessionId) => {
               activeTransports[_sessionId] = {
-                server: server2,
+                server,
                 transport
               };
             },
@@ -100016,9 +100016,9 @@ var startHTTPStreamServer = async ({
           transport.onclose = async () => {
             const sid = transport.sessionId;
             if (sid && activeTransports[sid]) {
-              onClose?.(server2);
+              onClose?.(server);
               try {
-                await server2.close();
+                await server.close();
               } catch (error) {
                 console.error("Error closing server:", error);
               }
@@ -100026,7 +100026,7 @@ var startHTTPStreamServer = async ({
             }
           };
           try {
-            server2 = await createServer(req);
+            server = await createServer(req);
           } catch (error) {
             if (error instanceof Response) {
               res.writeHead(error.status).end(error.statusText);
@@ -100035,8 +100035,8 @@ var startHTTPStreamServer = async ({
             res.writeHead(500).end("Error creating server");
             return;
           }
-          server2.connect(transport);
-          onConnect?.(server2);
+          server.connect(transport);
+          onConnect?.(server);
           await transport.handleRequest(req, res, body);
           return;
         } else {
@@ -100091,14 +100091,14 @@ var startHTTPStreamServer = async ({
         return;
       }
       console.log("received delete request for session", sessionId);
-      const { server: server2, transport } = activeTransports[sessionId];
+      const { server, transport } = activeTransports[sessionId];
       if (!transport) {
         res.writeHead(400).end("No active transport");
         return;
       }
       try {
         await transport.handleRequest(req, res);
-        onClose?.(server2);
+        onClose?.(server);
       } catch (error) {
         console.error("Error handling delete request:", error);
         res.writeHead(500).end("Error handling delete request");
@@ -100181,9 +100181,9 @@ var startSSEServer = async ({
     }
     if (req.method === "GET" && new URL(req.url, "http://localhost").pathname === endpoint) {
       const transport = new SSEServerTransport("/messages", res);
-      let server2;
+      let server;
       try {
-        server2 = await createServer(req);
+        server = await createServer(req);
       } catch (error) {
         if (error instanceof Response) {
           res.writeHead(error.status).end(error.statusText);
@@ -100197,21 +100197,21 @@ var startSSEServer = async ({
       res.on("close", async () => {
         closed = true;
         try {
-          await server2.close();
+          await server.close();
         } catch (error) {
           console.error("Error closing server:", error);
         }
         delete activeTransports[transport.sessionId];
-        onClose?.(server2);
+        onClose?.(server);
       });
       try {
-        await server2.connect(transport);
+        await server.connect(transport);
         await transport.send({
           jsonrpc: "2.0",
           method: "sse/connection",
           params: { message: "SSE Connection established" }
         });
-        onConnect?.(server2);
+        onConnect?.(server);
       } catch (error) {
         if (!closed) {
           console.error("Error connecting to server:", error);
@@ -101107,28 +101107,28 @@ var FastMCP = class extends FastMCPEventEmitter {
 };
 
 // server/server.ts
-var server2 = new FastMCP({
+var server = new FastMCP({
   name: "Blockbench MCP",
   version: "1.0.0",
   instructions: Settings.get("mcp_instructions") || ""
 });
-var server_default = server2;
+var server_default = server;
 // server/tools.ts
 init_lib();
 
 // lib/factories.ts
 var tools = {};
-function createTool(name, description, setup) {
-  if (tools[name]) {
-    throw new Error(`Tool with name "${name}" already exists.`);
+function createTool(tool, enabled2 = true) {
+  if (tools[tool.name]) {
+    throw new Error(`Tool with name "${tool.name}" already exists.`);
   }
-  tools[name] = {
-    name,
-    description,
-    enabled: true
+  server_default.addTool(tool);
+  tools[tool.name] = {
+    name: tool.name,
+    description: tool.annotations?.title ?? tool.description ?? `${tool.name} tool`,
+    enabled: enabled2
   };
-  setup(server_default);
-  return tools[name];
+  return tools[tool.name];
 }
 
 // lib/util.ts
@@ -101177,41 +101177,181 @@ function getProjectTexture(id3) {
 }
 
 // server/tools.ts
-createTool("eval", "Evaluates the given expression and logs it to the console.", (server) => {
-  server.addTool({
-    name: "eval",
-    description: "Evaluates the given expression and logs it to the console.",
-    parameters: z.object({
-      code: z.string()
-    }),
-    async execute({ code }) {
-      try {
-        const result = await eval(code);
-        if (result !== undefined) {
-          return `Code executed successfully. Result: ${JSON.stringify(result)}`;
-        }
-        return "Code executed successfully, but no result was returned.";
-      } catch (error4) {
-        return `Error executing code: ${error4}`;
-      }
+createTool({
+  name: "place_cube",
+  description: "Places a cube of the given size at the specified position. Texture and group are optional.",
+  annotations: {
+    title: "Place Cube",
+    destructiveHint: true
+  },
+  parameters: z.object({
+    elements: z.array(z.object({
+      name: z.string(),
+      origin: z.tuple([z.number(), z.number(), z.number()]),
+      from: z.tuple([z.number(), z.number(), z.number()]),
+      to: z.tuple([z.number(), z.number(), z.number()]),
+      rotation: z.tuple([z.number(), z.number(), z.number()])
+    })).min(1),
+    texture: z.string().optional(),
+    group: z.string().optional(),
+    faces: z.union([
+      z.array(z.enum(["north", "south", "east", "west", "up", "down"])),
+      z.boolean().optional(),
+      z.array(z.object({
+        face: z.enum(["north", "south", "east", "west", "up", "down"]),
+        uv: z.tuple([z.number(), z.number(), z.number(), z.number()])
+      }))
+    ]).optional().default(true)
+  }),
+  async execute({ elements, texture, faces, group: group5 }, { reportProgress }) {
+    Undo.initEdit({
+      elements: [],
+      outliner: true,
+      collections: []
+    });
+    const total = elements.length;
+    const projectTexture = texture ? getProjectTexture(texture) : Texture.getDefault();
+    if (!projectTexture) {
+      throw new Error(`No texture found for "${texture}".`);
     }
-  });
+    const groups = getAllGroups();
+    const outlinerGroup = groups.find((g) => g.name === group5 || g.uuid === group5);
+    const autouv = faces === true || Array.isArray(faces) && faces.every((face) => typeof face === "string");
+    const cubes = elements.map((element2, progress) => {
+      const cube = new Cube({
+        autouv: autouv ? 1 : 0,
+        name: element2.name,
+        from: element2.from,
+        to: element2.to,
+        origin: element2.origin,
+        rotation: element2.rotation
+      }).init();
+      cube.addTo(outlinerGroup);
+      if (!autouv && Array.isArray(faces)) {
+        faces.forEach(({ face, uv }) => {
+          cube.faces[face].extend({
+            uv
+          });
+        });
+      } else {
+        cube.applyTexture(projectTexture, faces !== false ? faces : undefined);
+        cube.mapAutoUV();
+      }
+      reportProgress({
+        progress,
+        total
+      });
+      return cube;
+    });
+    Undo.finishEdit("Agent placed cubes");
+    Canvas.updateAll();
+    return await Promise.resolve(JSON.stringify(cubes.map((cube) => `Added cube ${cube.name} with ID ${cube.uuid}`)));
+  }
 });
-createTool("image", "Returns the image data of the given texture.", (server3) => {
-  server3.addTool({
-    name: "image",
-    description: "Returns the image data of the given texture.",
-    parameters: z.object({
-      texture: z.string()
-    }),
-    async execute({ texture }) {
-      const image = getProjectTexture(texture);
-      if (!image) {
-        return `No image found for texture "${texture}".`;
+createTool({
+  name: "eval",
+  description: "Evaluates the given expression and logs it to the console.",
+  annotations: {
+    title: "Eval",
+    destructiveHint: true,
+    openWorldHint: true
+  },
+  parameters: z.object({
+    code: z.string()
+  }),
+  async execute({ code }) {
+    try {
+      const result = await eval(code);
+      if (result !== undefined) {
+        return `Code executed successfully. Result: ${JSON.stringify(result)}`;
       }
-      return imageContent({ url: image.getDataURL() });
+      return "Code executed successfully, but no result was returned.";
+    } catch (error4) {
+      return `Error executing code: ${error4}`;
     }
-  });
+  }
+});
+createTool({
+  name: "list_textures",
+  description: "Returns a list of all textures in the Blockbench editor.",
+  annotations: {
+    title: "List Textures",
+    readOnlyHint: true
+  },
+  parameters: z.object({}),
+  async execute() {
+    const textures = Project?.textures ?? Texture.all;
+    if (textures.length === 0) {
+      return "No textures found.";
+    }
+    return JSON.stringify(textures.map((texture) => ({
+      name: texture.name,
+      uuid: texture.uuid,
+      id: texture.id
+    })));
+  }
+});
+createTool({
+  name: "get_texture",
+  description: "Returns the image data of the given texture.",
+  annotations: {
+    title: "Get Texture",
+    readOnlyHint: true
+  },
+  parameters: z.object({
+    texture: z.string()
+  }),
+  async execute({ texture }) {
+    const image = getProjectTexture(texture);
+    if (!image) {
+      return `No image found for texture "${texture}".`;
+    }
+    return imageContent({ url: image.getDataURL() });
+  }
+});
+createTool({
+  name: "capture_screenshot",
+  description: "Returns the image data of the current view.",
+  annotations: {
+    title: "Capture Screenshot",
+    readOnlyHint: true,
+    destructiveHint: true
+  },
+  parameters: z.object({
+    project: z.string().optional()
+  }),
+  async execute({ project: project3 }) {
+    const selectedProject = Project ?? ModelProject.all.find((p) => p.name === project3 || p.uuid === project3 || p.selected);
+    if (!selectedProject) {
+      throw new Error("No project found in the Blockbench editor.");
+    }
+    selectedProject.updateThumbnail();
+    return imageContent({ url: selectedProject.thumbnail });
+  }
+});
+createTool({
+  name: "set_camera_angle",
+  description: "Sets the camera angle to the specified value.",
+  annotations: {
+    title: "Set Camera Angle",
+    destructiveHint: true
+  },
+  parameters: z.object({
+    angle: z.object({
+      position: z.tuple([z.number(), z.number(), z.number()]),
+      target: z.tuple([z.number(), z.number(), z.number()]).optional(),
+      rotation: z.tuple([z.number(), z.number(), z.number()]).optional(),
+      projection: z.enum(["unset", "orthographic", "perspective"])
+    })
+  }),
+  async execute({ angle }) {
+    const preview = Preview.selected;
+    if (!preview) {
+      throw new Error("No preview found in the Blockbench editor.");
+    }
+    preview.loadAnglePreset(angle);
+    return `Camera angle set to ${JSON.stringify(angle)}.`;
+  }
 });
 var tools_default = tools;
 // server/resources.ts
@@ -101222,8 +101362,9 @@ server_default.addResource({
   mimeType: "application/json",
   async load() {
     const fixFunc = fixCircularReferences(Blockbench);
-    const result2 = JSON.stringify(Blockbench, (key, value10) => fixFunc(key, value10));
+    const result2 = JSON.stringify(Blockbench, fixFunc);
     return await Promise.resolve([{
+      type: "text",
       text: result2
     }]);
   }
@@ -101313,7 +101454,7 @@ var texturesResource = {
 server_default.addResourceTemplate(texturesResource);
 // ui/index.ts
 var panel;
-function uiSetup(server3, tools2) {
+function uiSetup(server2, tools2) {
   panel = new Panel("mcp_panel", {
     id: "mcp_panel",
     icon: "robot",
@@ -101321,15 +101462,15 @@ function uiSetup(server3, tools2) {
     default_side: "right",
     component: {
       mounted() {
-        server3.on("connect", () => {
+        server2.on("connect", () => {
           this.server.connected = true;
         });
       },
       data: () => ({
         server: {
           connected: false,
-          name: server3.options.name,
-          version: server3.options.version
+          name: server2.options.name,
+          version: server2.options.version
         },
         tools: Object.values(tools2).map((tool) => ({
           name: tool.name,
@@ -101343,6 +101484,11 @@ function uiSetup(server3, tools2) {
                     <dd>{{server.name}}</dd>
                     <dt>Server Version</dt>
                     <dd>{{server.version}}</dd>
+                    <dt>Server Status</dt>
+                    <dd>
+                        <span v-if="server.connected" class="connected">Connected</span>
+                        <span v-else class="disconnected">Disconnected</span>
+                    </dd>
                 </dl>
 
                 <h3>Tools</h3>
@@ -101358,14 +101504,46 @@ function uiSetup(server3, tools2) {
   return panel;
 }
 function uiTeardown() {
-  if (panel) {
-    panel.delete();
-  }
+  panel?.delete();
+}
+
+// ui/settings.ts
+var settings = [];
+function settingsSetup() {
+  const category = "general";
+  settings.push(new Setting("mcp_instructions", {
+    name: "MCP System Instructions",
+    description: "Instructions for the MCP system.",
+    type: "text",
+    value: "Generate simple, low-poly models for Minecraft inside Blockbench.",
+    category,
+    icon: "psychology"
+  }), new Setting("mcp_port", {
+    name: "MCP Server Port",
+    description: "Port for the MCP server.",
+    type: "number",
+    value: 3000,
+    category,
+    icon: "numbers"
+  }), new Setting("mcp_endpoint", {
+    name: "MCP Server Endpoint",
+    description: "Endpoint for the MCP server.",
+    type: "text",
+    value: "/mcp",
+    category,
+    icon: "webhook"
+  }));
+}
+function settingsTeardown() {
+  settings.forEach((setting) => {
+    setting.delete();
+  });
 }
 
 // index.ts
 (() => {
   const onload = () => {
+    settingsSetup();
     uiSetup(server_default, tools_default);
     server_default.start({
       transportType: "httpStream",
@@ -101378,6 +101556,7 @@ function uiTeardown() {
   const onunload = () => {
     server_default.stop();
     uiTeardown();
+    settingsTeardown();
   };
   BBPlugin.register("mcp", {
     version: "1.0.0",
@@ -101395,4 +101574,4 @@ function uiTeardown() {
   });
 })();
 
-//# debugId=0A4059529DBEF39B64756E2164756E21
+//# debugId=759B46F3D28BCCF264756E2164756E21

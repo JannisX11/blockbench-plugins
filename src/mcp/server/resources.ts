@@ -11,9 +11,10 @@ server.addResource({
   mimeType: "application/json",
   async load() {
     const fixFunc = fixCircularReferences(Blockbench);
-    const result = JSON.stringify(Blockbench, (key, value) => fixFunc(key as keyof typeof Blockbench, value));
+    const result = JSON.stringify(Blockbench, fixFunc);
 
     return await Promise.resolve([{
+      type: "text",
       text: result,
     }]);
   }
