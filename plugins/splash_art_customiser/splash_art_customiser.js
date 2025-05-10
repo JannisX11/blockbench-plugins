@@ -14,10 +14,9 @@
     icon: "palette",
     author: "Ewan Howell",
     description: "Customise the start screen's splash art, by adding your own!",
-    about: "This plugin allows you to customise the start screen's splash art by adding your own! If you add multiple splash art images, you can set it to pick a random one every time your launch Blockbench.\n\n## How to use\nOn the top left corner of the splash art, you will find a gear icon. From here you can manage your custom splash arts.\n\n## Splash art types\n- URL - A splash art can be loaded from a URL (faster loading)\n- File - A splash art can be loaded from a file (slower loading)\n- Gallery - Pick an image from the [Blockbench Gallery](https://www.blockbench.net/gallery)\n\n## Supported file types\n- PNG\n- JPG/JPEG\n- GIF\n- WebP\n- SVG",
     tags: ["Splash art", "Start screen", "Blockbench"],
-    version: "1.1.0",
-    min_version: "4.7.0",
+    version: "1.1.2",
+    min_version: "4.12.0",
     variant: "both",
     onload() {
       if (!Blockbench.flags.after_update) setSplashArt()
@@ -430,10 +429,10 @@
     }).show()
     const preview = $("dialog#splash_art_settings #splash-art-settings-preview")
     const updatePreview = () => preview.css({
-      aspectRatio: aspectRatios[parseInt(settingsDialog.form.aspectRatio.bar.find("bb-select").attr("value"))].replace(":", " / "),
-      imageRendering: imageRenderers[parseInt(settingsDialog.form.imageRendering.bar.find("bb-select").attr("value"))].toLowerCase(),
-      backgroundSize: backgroundSizes[parseInt(settingsDialog.form.backgroundSize.bar.find("bb-select").attr("value"))].toLowerCase(),
-      backgroundRepeat: backgroundRepeats[parseInt(settingsDialog.form.backgroundRepeat.bar.find("bb-select").attr("value"))].toLowerCase().replace(" ", "-")
+      aspectRatio: aspectRatios[parseInt(settingsDialog.form.form_data.aspectRatio.bar.find("bb-select").attr("value"))].replace(":", " / "),
+      imageRendering: imageRenderers[parseInt(settingsDialog.form.form_data.imageRendering.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundSize: backgroundSizes[parseInt(settingsDialog.form.form_data.backgroundSize.bar.find("bb-select").attr("value"))].toLowerCase(),
+      backgroundRepeat: backgroundRepeats[parseInt(settingsDialog.form.form_data.backgroundRepeat.bar.find("bb-select").attr("value"))].toLowerCase().replace(" ", "-")
     })
     updatePreview()
     const observer = new MutationObserver(updatePreview)

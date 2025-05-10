@@ -5,10 +5,10 @@ export const GECKOLIB_MODEL_ID = "animated_entity_model"
 
 // Setting name constants
 export const SETTING_AUTO_PARTICLE_TEXTURE = 'geckolib_auto_particle_texture';
-export const SETTING_CONVERT_BEDROCK_ANIMATIONS = 'geckolib_convert_bedrock_animations';
 export const SETTING_ALWAYS_SHOW_DISPLAY = 'geckolib_always_show_display';
 export const SETTING_REMEMBER_EXPORT_LOCATIONS = 'geckolib_remember_export_locations';
 export const SETTING_DEFAULT_MODID = 'geckolib_default_modid';
+export const BAKE_IN_BEZIER_KEYFRAMES = "geckolib_bake_in_bezier_keyframes";
 
 // Property name constants
 export const PROPERTY_MODID = 'geckolib_modid';

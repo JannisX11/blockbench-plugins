@@ -131,5 +131,50 @@
         ]
       }
     ]
+  },
+  "1.6.0": {
+    "title": "1.6.0",
+    "date": "2025-01-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Blockbench can now be launched with the \"--resource-pack-utility=<utility>\" command line argument to launch straight to the specified utility"
+        ]
+      }
+    ]
+  },
+  "1.6.1": {
+    "title": "1.6.1",
+    "date": "2025-03-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Batch Exporter failing to export glTF, OBJ, FBX, and Collada models"
+        ]
+      }
+    ]
+  },
+  "1.6.2": {
+    "title": "1.6.2",
+    "date": "2025-03-13",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changed",
+        "list": [
+          "Renamed the setting names to make them more generic so I can use them across multiple plugins"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed using outdated asset index files when a newer one is available"
+        ]
+      }
+    ]
   }
 }

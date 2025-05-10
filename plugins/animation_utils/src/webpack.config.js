@@ -3,7 +3,6 @@ const PathModule = require('path')
 module.exports = {
     mode: 'development',
     devtool: false,
-    target: 'node',
     entry: './ts/index.ts',
     module: {
         rules: [
@@ -11,6 +10,10 @@ module.exports = {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/,
+                use: [ 'to-string-loader', 'css-loader' ]
             },
         ],
     },

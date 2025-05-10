@@ -127,5 +127,49 @@
         ]
       }
     ]
+  },
+  "4.0.1": {
+    "title": "4.0.1",
+    "author": "Zigy, Squishy",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Keyframes now have different icons based on their easing.",
+          "Easing arguments are now reset upon choosing a new easing. Fixes [#690](https://github.com/bernie-g/geckolib/issues/690)",
+          "Fixed a typo where the circle easing was spelled cicle instead."
+        ]
+      }
+    ]
+  },
+  "4.0.2": {
+    "title": "4.0.2",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the plugin not working on web."
+        ]
+      }
+    ]
+  },
+  "4.1.0": {
+    "title": "4.1.0",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added support for bezier, step, and smooth (Catmull-Rom) keyframes!"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed incorrect armor template pivots. Fixes [#527](https://github.com/bernie-g/geckolib/issues/527)"
+        ]
+      }
+    ]
   }
 }

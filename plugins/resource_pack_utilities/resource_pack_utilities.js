@@ -1,4 +1,5 @@
 (() => {
+  const crypto = require("node:crypto")
   const path = require("node:path")
   const zlib = require("node:zlib")
   const os = require("node:os")
@@ -29,7 +30,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-    version: "1.5.1",
+    version: "1.6.2",
     min_version: "4.10.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -52,7 +53,7 @@
         value: directory,
         category: "defaults",
         type: "click",
-        name: `${name} - Minecraft Directory`,
+        name: "Ewan's Plugins - Minecraft Directory",
         description: "The location of your .minecraft folder",
         icon: "folder_open",
         click() {
@@ -70,7 +71,7 @@
         value: "",
         category: "defaults",
         type: "click",
-        name: `${name} - Cache Directory`,
+        name: "Ewan's Plugins - Cache Directory",
         description: "The location to cache downloaded content",
         icon: "database",
         click() {
@@ -587,8 +588,11 @@
       MenuBar.addAction(action, "tools")
       MenuBar.addAction(action2, "tools")
       document.addEventListener("keydown", copyText)
-      // dialog.show()
-      // dialog.content_vue.utility = "soundsStripper"
+      const utility = electron.getGlobal("process").argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
+      if (utility && utilities[utility]) {
+        dialog.show()
+        dialog.content_vue.utility = utility
+      }
     },
     onunload() {
       document.removeEventListener("keydown", copyText)
@@ -840,6 +844,10 @@
     return version.data
   }
 
+  async function shaCheck(path, sha) {
+    return crypto.createHash("sha1").update(await fs.promises.readFile(path)).digest("hex") === sha
+  }
+
   async function getVersionAssetsIndex(id) {
     const version = await getVersionData(id)
     if (version.assetsIndex) {
@@ -847,12 +855,17 @@
     }
     const vanillaAssetsIndexPath = path.join(settings.minecraft_directory.value, "assets", "indexes", version.assets + ".json")
     if (await exists(vanillaAssetsIndexPath)) {
-      version.assetsIndex = JSON.parse(await fs.promises.readFile(vanillaAssetsIndexPath))
-      return version.assetsIndex
+      if (await shaCheck(vanillaAssetsIndexPath, version.assetIndex.sha1)) {
+        version.assetsIndex = JSON.parse(await fs.promises.readFile(vanillaAssetsIndexPath))
+        return version.assetsIndex
+      } else {
+        version.assetsIndex = await fetch(version.assetIndex.url).then(e => e.json())
+        await fs.promises.writeFile(vanillaAssetsIndexPath, JSON.stringify(version.assetsIndex), "utf-8")
+      }
     }
     await cacheDirectory()
     const cacheAssetsIndexPath = path.join(settings.cache_directory.value, `assets_index_${version.assets}.json`)
-    if (await exists(cacheAssetsIndexPath)) {
+    if (await exists(cacheAssetsIndexPath) && await shaCheck(cacheAssetsIndexPath, version.assetIndex.sha1)) {
       version.assetsIndex = JSON.parse(await fs.promises.readFile(cacheAssetsIndexPath))
       return version.assetsIndex
     }
@@ -3298,11 +3311,12 @@
             }
 
             let exportOptions = {}
-            if (Object.keys(Formats[this.format].codec.export_options).length) {
+            const codec = Formats[this.format]?.codec ?? Codecs[this.format]
+            if (Object.keys(codec.export_options).length) {
               output.log("Getting export options…")
               newProject("")
-              await Codecs[this.format].promptExportOptions()
-              exportOptions = Formats[this.format].codec.getExportOptions()
+              await codec.promptExportOptions()
+              exportOptions = codec.getExportOptions()
               await Project.close()
               output.log("Export options loaded")
             }

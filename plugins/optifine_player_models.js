@@ -1,13 +1,28 @@
 (async function () {
-  let format, codec, action, config, property, setResolution, textureAdd, model, aboutAction, styles
+  let format, codec, action, config, property, setResolution, textureAdd, model, styles
   const id = "optifine_player_models"
   const name = "OptiFine Player Models"
   const icon = "icon-player"
-  const author = "Ewan Howell"
+  const description = "Adds a new format that allows you to create OptiFine player models."
   const links = {
-    discord: "https://discord.com/invite/FcpnSjrP82",
-    ewan: "https://ewanhowell.com/",
-    tutorial: "https://youtu.be/0rT-q95dpV0"
+    website: {
+      text: "By Ewan Howell",
+      link: "https://ewanhowell.com/",
+      icon: "language",
+      colour: "#33E38E"
+    },
+    discord: {
+      text: "Discord Server",
+      link: "https://discord.ewanhowell.com/",
+      icon: "fab.fa-discord",
+      colour: "#727FFF"
+    },
+    tutorial: {
+      text: "Player Model Tutorial",
+      link: "https://youtu.be/0rT-q95dpV0",
+      icon: "fab.fa-youtube",
+      colour: "#FF4444"
+    }
   }
   const groups = [
     {
@@ -39,18 +54,16 @@
   Plugin.register(id, {
     title: name,
     icon,
-    author,
-    description: "Adds a new format that allows you to create OptiFine player models.",
+    author: "Ewan Howell",
+    description,
     about: "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.3.3",
+    version: "1.4.1",
     min_version: "4.2.0",
     variant: "both",
     await_loading: true,
-    oninstall: () => showAbout(true),
     async onload() {
       addStyles()
-      addAbout()
       codec = new Codec("optifine_player_model_codec", {
         name: "OptiFine Player Model",
         extension: "cfg",
@@ -550,14 +563,14 @@
         format_page: {
           component: {
             methods: {
-              load: () => loadInterface(entityData.categories[0].name, data),
+              load: () => Formats.optifine_player_model.new(),
               info: () => showAbout()
             },
             template: `
-              <div style="display:flex;flex-direction:column;height:100%;">
-                <p class="format_description">Create player models for use with OptiFine</p>
+              <div class="ewan-format-page" style="display:flex;flex-direction:column;height:100%">
+                <p class="format_description">${description}</p>
                 <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition with OptiFine</span></p>
-                <content style="flex:1;margin:-22px 0 20px">
+                <content>
                   <h3 class="markdown"><strong>How to use:</strong></h3>
                   <br>
                   <button @click="info">Show information</button>
@@ -574,28 +587,21 @@
                     </ul>
                   </p>
                 </content>
-                <div class="socials">
-                  <a href="${links["website"]}" class="open-in-browser">
-                    <i class="icon material-icons" style="color:#33E38E">language</i>
-                    <label>By ${author}</label>
+                <div class="spacer"></div>
+                <div class="optifine-player-model-links">${Object.values(links).map(e => `
+                  <a href="${e.link}">
+                    ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
+                    <p>${e.text}</p>
                   </a>
-                  <a href="${links["discord"]}" class="open-in-browser">
-                    <i class="icon fab fa-discord" style="color:#727FFF"></i>
-                    <label>Discord Server</label>
-                  </a>
-                  <a href="${links["tutorial"]}" class="open-in-browser">
-                    <i class="icon fab fa-youtube" style="color:#FF4444"></i>
-                    <label>Player Model Tutorial</label>
-                  </a>
-                </div>
+                `).join("")}</div>
                 <div class="button_bar">
-                  <button id="create_new_model_button" style="margin-top:20px;" @click="Formats.optifine_player_model.new()">
-                    <i class="icon icon-player"></i>
-                    <span id="create_new_model_button_text">Create New OptiFine Player Model</span>
+                  <button id="create_new_model_button" style="margin-top:20px;margin-bottom:24px;" @click="load">
+                    <i class="${icon} icon"></i>
+                    Create New OptiFine Player Model
                   </button>
                 </div>
               </div>
-            `,
+            `
           }
         }
       })
@@ -724,7 +730,6 @@
         }
       })
       MenuBar.addAction(config, "file.export.1")
-      let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
     },
     onunload() {
       Blockbench.removeListener("new_project", setResolution)
@@ -735,79 +740,61 @@
       config.delete()
       styles.delete()
       property.delete()
-      aboutAction.delete()
-      MenuBar.removeAction("file.export.export_optifine_player_model")
-      MenuBar.removeAction("file.export.create_optifine_player_model_config")
-      MenuBar.removeAction("help.about_plugins.about_optifine_player_models")
     }
   })
   function addStyles() {
     styles = Blockbench.addCSS(`
-      #format_page_optifine_player_model .socials {
-        padding: 0!important;
+      .spacer {
+        flex: 1;
+      }
+      .optifine-player-model-links {
         display: flex;
-        max-width: 540px;
-        margin: auto;
-        width: 100%;
+        justify-content: space-around;
+        margin: 20px 40px 0;
       }
-      #format_page_optifine_player_model .socials a {
-        text-align: center;
-        flex-basis: 0;
-        flex-grow: 1;
+      .optifine-player-model-links > a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
         text-decoration: none;
-        padding: 6px;
-        padding-top: 10px;
-      }
-      #format_page_optifine_player_model .socials a i {
-        display: block;
-        font-size: 2em;
-        max-width: none;
-        pointer-events: none;
-      }
-      #format_page_optifine_player_model .socials a label {
+        flex-grow: 1;
+        flex-basis: 0;
         color: var(--color-subtle_text);
-        cursor: inherit;
-        pointer-events: none;
+        text-align: center;
       }
-      #format_page_optifine_player_model .socials a:hover {
+      .optifine-player-model-links > a:hover {
         background-color: var(--color-accent);
+        color: var(--color-light);
       }
-      #format_page_optifine_player_model .socials a:hover * {
-        color: var(--color-light)!important;
+      .optifine-player-model-links > a > i {
+        font-size: 32px;
+        width: 100%;
+        max-width: initial;
+        height: 32px;
+        text-align: center;
       }
-      #format_page_optifine_player_model code {
-        padding: 0 2px;
-        background-color: var(--color-back);
-        border: 1px solid var(--color-border);
-        user-select: text;
-        font-family: var(--font-code);
+      .optifine-player-model-links > a:hover > i {
+        color: var(--color-light) !important;
       }
-      #format_page_optifine_player_model #create_new_model_button {
-        text-decoration: none!important;
+      .optifine-player-model-links > a > p {
+        flex: 1;
+        display: flex;
+        align-items: center;
       }
-      #format_page_optifine_player_model #create_new_model_button:focus #create_new_model_button_text {
-        text-decoration: underline;
+      #format_page_optifine_player_model {
+        padding-bottom: 0;
+      }
+      #format_page_optifine_player_model .format_target {
+        margin-bottom: 6px;
+      }
+      #format_page_optifine_player_model div:nth-child(3), #format_page_optifine_player_model content {
+        overflow-y: auto;
       }
     `)
   }
-  function addAbout() {
-    let about = MenuBar.menus.help.structure.find(e => e.id === "about_plugins")
-    if (!about) {
-      about = new Action("about_plugins", {
-        name: "About Plugins...",
-        icon: "info",
-        children: []
-      })
-      MenuBar.addAction(about, "help")
-    }
-    aboutAction = new Action(`about_${id}`, {
-      name: `About ${name}...`,
-      icon,
-      click: () => showAbout()
-    })
-    about.children.push(aboutAction)
-  }
-  function showAbout(banner) {
+  function showAbout() {
     new Dialog({
       id: "about",
       title: name,
@@ -844,37 +831,32 @@
           dialog#about div > ol > li > p {
             padding-left: 8px;
           }
-          dialog#about li > p{
+          dialog#about li > p {
             white-space: pre-wrap;
           }
           dialog#about #banner {
             background-color: var(--color-accent);
             color: var(--color-accent_text);
             width: 100%;
-            padding: 0 8px
+            padding: 0 8px;
           }
           dialog#about #content {
             margin: 24px;
           }
+          dialog#about .fa_big {
+            width: initial;
+            height: initial;
+          }
         </style>
-        ${banner ? `<div id="banner">This window can be reopened at any time from <strong>Help > About Plugins > ${name}</strong></div>` : ""}
         <div id="content">
           <h1 style="margin-top:-10px">OptiFine Player Models</h1>
           <p>This plugin adds a new format that allows you to make you own custom OptiFine player models.</p>
-          <div class="socials">
-            <a href="${links["ewan"]}" class="open-in-browser">
-              <i class="icon material-icons" style="color:#33E38E">language</i>
-              <label>By Ewan Howell</label>
+          <div class="socials">${Object.values(links).map(e => `
+            <a href="${e.link}">
+              ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
+              <label>${e.text}</label>
             </a>
-            <a href="${links["discord"]}" class="open-in-browser">
-              <i class="icon fab fa-discord" style="color:#727FFF"></i>
-              <label>Discord Server</label>
-            </a>
-            <a href="${links["tutorial"]}" class="open-in-browser" title="Outdated but still valid for getting it all working">
-              <i class="icon fab fa-youtube" style="color:#FF4444"></i>
-              <label>Player Model Tutorial</label>
-            </a>
-          </div>
+          `).join("")}</div>
           <br>
           <h2>Setup</h2>
           <ol>

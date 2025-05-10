@@ -1,5 +1,5 @@
 import uniq from 'lodash/uniq';
-import { addMonkeypatch, Monkeypatches } from './utils';
+import {addMonkeypatch} from './utils';
 import {EASING_OPTIONS, EASING_DEFAULT, getEasingArgDefault, parseEasingArg, GeckolibKeyframe, isArgsEasing} from './easing';
 
 const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
@@ -7,24 +7,41 @@ const easingRegExp = /^ease(InOut|In|Out)?([\w]+)$/;
 export const loadAnimationUI = () => {
   Blockbench.on('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.on('update_keyframe_selection', updateKeyframeSelectionCallback);
+  Blockbench.on('render_frame', renderFrameCallback)
 
   addMonkeypatch(window, null, "updateKeyframeEasing", updateKeyframeEasing);
   addMonkeypatch(window, null, "updateKeyframeEasingArg", updateKeyframeEasingArg);
-  addMonkeypatch(BarItems.keyframe_interpolation, null, 'condition', () => 
-    Format.id !== "animated_entity_model" && Monkeypatches.get(BarItems.keyframe_interpolation).condition()
-  );
-
 };
 
 export const unloadAnimationUI = () => {
   Blockbench.removeListener('display_animation_frame', displayAnimationFrameCallback);
   Blockbench.removeListener('update_keyframe_selection', updateKeyframeSelectionCallback);
+  Blockbench.removeListener('render_frame', renderFrameCallback);
 };
 
 export const displayAnimationFrameCallback = (/*...args*/) => {
   // const keyframe = $('#keyframe');
   // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
+
+export function renderFrameCallback() {
+  if (Format.id !== "animated_entity_model") return
+  Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
+    if (kf.interpolation != "linear" && kf.easing != undefined) {
+      kf.easing = undefined
+      kf.easingArgs = undefined
+      window.updateKeyframeSelection();
+    }
+    if (kf.interpolation === "step") {
+      kf.interpolation = "linear"
+      if (kf.data_points.length == 1) addDataPoint()
+      window.updateKeyframeSelection();
+    }
+    updateKeyframeIcon(kf)
+  })
+  const addPrePostButton = document.querySelector<HTMLElement>('#keyframe_type_label > div');
+  if (addPrePostButton) addPrePostButton.hidden = true;
+}
 
 export function updateKeyframeEasing(value) {
   Undo.initEdit({keyframes: Timeline.selected}) 
@@ -34,6 +51,8 @@ export function updateKeyframeEasing(value) {
   if (value === "-") return;
   Timeline.selected.forEach((kf: GeckolibKeyframe) => {
     kf.easing = value;
+    kf.easingArgs = undefined;
+    kf.interpolation = 'linear';
   })
   window.updateKeyframeSelection(); // Ensure easingArg display is updated
   // Animator.preview();
@@ -57,9 +76,6 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
     $('#keyframe_bar_easing_type').remove()
     $('#keyframe_bar_easing_arg1').remove()
 
-    const addPrePostButton = document.querySelector<HTMLElement>('#keyframe_type_label > div');
-    if (addPrePostButton) addPrePostButton.hidden = Format.id === "animated_entity_model";
-
     let multi_channel = false; //eslint-disable-line @typescript-eslint/no-unused-vars
     let channel: boolean | string | number = false;
     Timeline.selected.forEach((kf) => {
@@ -68,6 +84,10 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
       } else if (channel !== kf.channel) {
         multi_channel = true
       }
+    })
+
+    Timeline.keyframes.forEach((kf: GeckolibKeyframe) => {
+      updateKeyframe(kf)
     })
 
     const getMultiSelectValue = (selector, defaultValue, conflictValue) => {
@@ -177,7 +197,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
         addEasingTypeIcons(easingBar, "quart", "Switch to Quartic easing");
         addEasingTypeIcons(easingBar, "quint", "Switch to Quntic easing");
         addEasingTypeIcons(easingBar, "expo", "Switch to Exponential easing");
-        addEasingTypeIcons(easingBar, "circ", "Switch to Cicle easing");
+        addEasingTypeIcons(easingBar, "circ", "Switch to Circle easing");
         addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
         addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
         addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
@@ -206,6 +226,8 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
           keyEasingTypeElement.style.stroke = "var(--color-accent)";
           keyEasingTypeElement.classList.add('selected_kf_easing_type');
         }
+
+        if (keyEasing !== "linear") document.getElementById("panel_keyframe").querySelector('div.tool.widget.bar_select bb-select').innerHTML = "GeckoLib";
 
         const getEasingArgLabel = (kf: GeckolibKeyframe) => {
           switch(kf.easing) {
@@ -263,6 +285,43 @@ const getEasingType = (name: string) => {
 
   return "in";
 };
+
+const updateKeyframe = (kf: GeckolibKeyframe) => {
+  if (kf.data_points.length != 1 && kf.interpolation !== "linear") {
+    removeLastDataPoint()
+  }
+}
+
+const updateKeyframeIcon = (kf: GeckolibKeyframe) => {
+  // @ts-expect-error This is needed because this plugin uses an outdated version of blockbench-types that doesn't have kf.uuid
+  const element = document.getElementById(kf.uuid);
+  if (element && element.children && kf.easing)
+    element.children[0].className = 'easing-' + kf.easing.split(/\.?(?=[A-Z])/).join('_').toLowerCase().replace("ease_", "")
+}
+
+const addDataPoint = () => {
+  Undo.initEdit({keyframes: Timeline.selected})
+  Timeline.selected.forEach(kf => {
+    // @ts-expect-error needed because .channels doesn't exist in dev env
+    if (kf.data_points.length < kf.animator.channels[kf.channel].max_data_points) {
+      kf.data_points.push(new KeyframeDataPoint(kf))
+      kf.data_points.last().extend(kf.data_points[0])
+    }
+  })
+  Animator.preview()
+  Undo.finishEdit('Add keyframe data point')
+}
+
+const removeLastDataPoint = () => {
+  Undo.initEdit({keyframes: Timeline.selected})
+  Timeline.selected.forEach(kf => {
+    if (kf.data_points.length >= 2) {
+      kf.data_points.remove(kf.data_points.last());
+    }
+  })
+  Animator.preview()
+  Undo.finishEdit('Remove keyframe data point')
+}
 
 const getIcon = (name: string) => {
   switch(name) {
