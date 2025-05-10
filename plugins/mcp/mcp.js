@@ -101250,7 +101250,7 @@ createTool({
 });
 createTool({
   name: "eval",
-  description: "Evaluates the given expression and logs it to the console.",
+  description: "Evaluates the given expression and logs it to the console. Do not pass `console` commands as they will not work.",
   annotations: {
     title: "Eval",
     destructiveHint: true,
@@ -101261,13 +101261,20 @@ createTool({
   }),
   async execute({ code }) {
     try {
+      Undo.initEdit({
+        elements: [],
+        outliner: true,
+        collections: []
+      });
       const result = await eval(code);
       if (result !== undefined) {
-        return `Code executed successfully. Result: ${JSON.stringify(result)}`;
+        return JSON.stringify(result);
       }
-      return "Code executed successfully, but no result was returned.";
+      return "(Code executed successfully, but no result was returned.)";
     } catch (error4) {
       return `Error executing code: ${error4}`;
+    } finally {
+      Undo.finishEdit("Agent executed code");
     }
   }
 });
@@ -101289,6 +101296,66 @@ createTool({
       uuid: texture.uuid,
       id: texture.id
     })));
+  }
+});
+createTool({
+  name: "create_texture",
+  description: "Creates a new texture with the given name and size.",
+  annotations: {
+    title: "Create Texture",
+    destructiveHint: true,
+    openWorldHint: true
+  },
+  parameters: z.object({
+    name: z.string(),
+    width: z.number().min(16).max(4096),
+    height: z.number().min(16).max(4096),
+    data: z.string().optional(),
+    pbr_channel: z.enum(["color", "normal", "height", "mer"]).optional()
+  }),
+  async execute({ name, width, height, data, pbr_channel }) {
+    Undo.initEdit({
+      elements: [],
+      outliner: true,
+      collections: []
+    });
+    let texture = new Texture({
+      name,
+      width,
+      height
+    });
+    if (data) {
+      texture = texture.fromDataURL(data);
+    }
+    if (pbr_channel) {
+      texture.extend({
+        pbr_channel
+      });
+    }
+    texture.add(true);
+    Undo.finishEdit("Agent created texture");
+    Canvas.updateAll();
+    return imageContent({
+      url: texture.getDataURL()
+    });
+  }
+});
+createTool({
+  name: "list_outline",
+  description: "Returns a list of all groups and their children in the Blockbench editor.",
+  annotations: {
+    title: "List Outline",
+    readOnlyHint: true
+  },
+  parameters: z.object({}),
+  async execute() {
+    const elements = Outliner.elements;
+    if (elements.length === 0) {
+      return "No elements found.";
+    }
+    const fixedRefs = fixCircularReferences(elements);
+    const outline = JSON.stringify(elements, fixedRefs);
+    return outline;
   }
 });
 createTool({
@@ -101574,4 +101641,4 @@ function settingsTeardown() {
   });
 })();
 
-//# debugId=759B46F3D28BCCF264756E2164756E21
+//# debugId=8D9B260CE103F0BC64756E2164756E21
