@@ -32,6 +32,11 @@ export function uiSetup(server: FastMCP, tools: Record<string, IMCPTool>) {
                     <dd>{{server.name}}</dd>
                     <dt>Server Version</dt>
                     <dd>{{server.version}}</dd>
+                    <dt>Server Status</dt>
+                    <dd>
+                        <span v-if="server.connected" class="connected">Connected</span>
+                        <span v-else class="disconnected">Disconnected</span>
+                    </dd>
                 </dl>
 
                 <h3>Tools</h3>
@@ -49,7 +54,5 @@ export function uiSetup(server: FastMCP, tools: Record<string, IMCPTool>) {
 }
 
 export function uiTeardown() {
-    if (panel) {
-        panel.delete();
-    }
+    panel?.delete();
 }

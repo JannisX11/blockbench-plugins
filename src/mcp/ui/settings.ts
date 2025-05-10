@@ -1,14 +1,17 @@
 const settings: Setting[] = []
 
 export function settingsSetup() {
+    const category = "general";
+
     settings.push(
+        
         new Setting("mcp_instructions", {
             name: "MCP System Instructions",
             // https://github.com/punkpeye/fastmcp?tab=readme-ov-file#providing-instructions
             description: "Instructions for the MCP system.",
             type: "text",
-            value: "",
-            category: "AI",
+            value: "Generate simple, low-poly models for Minecraft inside Blockbench.",
+            category,
             icon: "psychology",
         }),
         new Setting("mcp_port", {
@@ -16,16 +19,16 @@ export function settingsSetup() {
             description: "Port for the MCP server.",
             type: "number",
             value: 3000,
-            category: "AI",
-            icon: "settings_input_component",
+            category,
+            icon: "numbers"
         }),
         new Setting("mcp_endpoint", {
             name: "MCP Server Endpoint",
             description: "Endpoint for the MCP server.",
             type: "text",
             value: "/mcp",
-            category: "AI",
-            icon: "settings_input_component",
+            category,
+            icon: "webhook"
         }),
     );
 }

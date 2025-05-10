@@ -1,28 +1,30 @@
-import type { FastMCP } from "fastmcp";
+import type { Tool, ToolParameters } from "fastmcp";
 import type { IMCPTool } from "@/types";
 import { server } from "@/server";
 
+/**
+ * User-visible list of tool details.
+ */
 export const tools: Record<
   string,
   IMCPTool
 > = {};
 
-export function createTool(
-  name: string,
-  description: string,
-  setup: (server: FastMCP) => void
+export function createTool<T extends ToolParameters>(
+    tool: Tool<undefined, T>,
+    enabled = true
 ) {
-  if (tools[name]) {
-    throw new Error(`Tool with name "${name}" already exists.`);
+  if (tools[tool.name]) {
+    throw new Error(`Tool with name "${tool.name}" already exists.`);
   }
 
-  tools[name] = {
-    name,
-    description,
-    enabled: true,
+  server.addTool(tool);
+
+  tools[tool.name] = {
+    name: tool.name,
+    description: tool.annotations?.title ?? tool.description ?? `${tool.name} tool`,
+    enabled
   };
 
-  setup(server);
-
-  return tools[name];
+  return tools[tool.name];
 }

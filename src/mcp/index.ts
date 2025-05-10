@@ -5,9 +5,11 @@
  */
 import { server as mcp, tools, resources } from "./server"
 import { uiSetup, uiTeardown } from "./ui";
+import { settingsSetup, settingsTeardown } from "./ui/settings";
 
 (() => {
   const onload = () => {
+    settingsSetup();
     uiSetup(mcp, tools);
     mcp.start({
       transportType: "httpStream",
@@ -22,6 +24,7 @@ import { uiSetup, uiTeardown } from "./ui";
     // Shutdown the server
     mcp.stop();
     uiTeardown();
+    settingsTeardown();
   };
 
   BBPlugin.register("mcp", {
