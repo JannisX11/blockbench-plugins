@@ -37,7 +37,7 @@ import { settingsSetup, settingsTeardown } from "./ui/settings";
     variant: "desktop",
     await_loading: true,
     repository: "https://github.com/jasonjgardner/blockbench-plugins",
-    min_version: "4.11.9",
+    min_version: "4.12.4",
     onload,
     onunload,
   });

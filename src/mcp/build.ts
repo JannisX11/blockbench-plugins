@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { argv } from "node:process";
 
 const OUTPUT_DIR = "../../plugins/mcp";
 const entryFile = path.resolve("./index.ts");
@@ -24,7 +25,7 @@ async function main() {
       //     "zod",
       //     "@modelcontextprotocol/*"
     ],
-    minify: process.env.NODE_ENV === "production",
+    minify: process.env.NODE_ENV === "production" || argv.includes("--minify"),
   });
 
   if (!result.success) {
