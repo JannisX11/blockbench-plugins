@@ -1,8 +1,18 @@
 import type { FastMCP } from "fastmcp";
-import type { IMCPTool } from "@/types";
+import type { IMCPTool, IMCPPrompt, IMCPResource } from "@/types";
 let panel: Panel | undefined;
 
-export function uiSetup(server: FastMCP, tools: Record<string, IMCPTool>) {
+export function uiSetup({
+  server,
+  tools,
+  resources,
+  prompts
+}: {
+  server: FastMCP;
+  tools: Record<string, IMCPTool>;
+  resources: Record<string, IMCPResource>;
+  prompts: Record<string, IMCPPrompt>;
+}) {
   Blockbench.addCSS(/* css */ `
     .mcp-panel {
         display: grid;

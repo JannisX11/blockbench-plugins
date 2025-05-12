@@ -1,5 +1,5 @@
 import type { Tool, ToolParameters, Prompt, PromptArgument } from "fastmcp";
-import type { IMCPTool } from "@/types";
+import type { IMCPTool, IMCPPrompt } from "@/types";
 import { server } from "@/server";
 
 /**
@@ -15,12 +15,7 @@ export const tools: Record<
  */
 export const prompts: Record<
   string,
-  {
-    name: string;
-    description: string;
-    arguments: PromptArgument[];
-    enabled: boolean;
-  }
+  IMCPPrompt
 > = {};
 
 /**

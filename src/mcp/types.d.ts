@@ -1,7 +1,14 @@
-import type { ToolParameters, Tool } from "fastmcp";
+import type { ToolParameters, Tool, Prompt, PromptArgument } from "fastmcp";
 
-export interface IMCPTool implements Tool {
-    name: string
-    description: string
-    enabled: boolean
+export interface IMCPTool {
+  name: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface IMCPPrompt {
+  name: string;
+  description: string;
+  arguments: PromptArgument[];
+  enabled: boolean;
 }

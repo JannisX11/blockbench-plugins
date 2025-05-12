@@ -5,14 +5,19 @@
  */
 /// <reference types="three" />
 /// <reference path="../../types/index.d.ts" />
-import { server as mcp, tools, resources } from "./server"
+import { server as mcp, tools, resources, prompts } from "./server"
 import { uiSetup, uiTeardown } from "./ui";
 import { settingsSetup, settingsTeardown } from "./ui/settings";
 
 (() => {
   const onload = () => {
     settingsSetup();
-    uiSetup(mcp, tools);
+    uiSetup({
+      server: mcp,
+      tools,
+      resources,
+      prompts
+    });
     mcp.start({
       transportType: "httpStream",
       httpStream: {
@@ -40,6 +45,7 @@ import { settingsSetup, settingsTeardown } from "./ui/settings";
     await_loading: true,
     repository: "https://github.com/jasonjgardner/blockbench-plugins",
     min_version: "4.12.4",
+    
     onload,
     onunload,
   });

@@ -93,13 +93,13 @@ async function buildPlugin(): Promise<boolean> {
   }
 
   // Copy the README file
-  const readmeSource = path.resolve("./README.md");
-  const readmeDest = path.join(OUTPUT_DIR, "README.md");
+  const readmeSource = path.resolve("./about.md");
+  const readmeDest = path.join(OUTPUT_DIR, "about.md");
 
   try {
     await access(readmeSource);
     await copyFile(readmeSource, readmeDest);
-    console.log("📁 Copied README.md");
+    console.log("📁 Copied about.md");
   } catch (error) {
     // File doesn't exist or couldn't be copied
   }
