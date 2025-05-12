@@ -1091,5 +1091,18 @@
 		"has_changelog": true,
 		"min_version": "4.10.1",
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/outliner_group_exporter"
+	},
+	"mcp": {
+		"title": "Model Context Protocol Server",
+		"version": "1.0.0",
+		"author": "Jason J. Gardner",
+		"creation_date": "2025-05-11",
+		"icon": "icon.svg",
+		"await_loading": true,
+		"description": "Add a MCP server to Blockbench to allow AI agents to interact with the project.",
+		"min_version": "4.12.4",
+		"variant": "desktop",
+		"repository": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"tags": ["MCP", "AI"]
 	}
 }
