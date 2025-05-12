@@ -11,6 +11,7 @@ server.addResource({
   mimeType: "application/json",
   async load() {
     const fixFunc = fixCircularReferences(Blockbench);
+    // @ts-expect-error Will error until type arguments are provided to previous line
     const result = JSON.stringify(Blockbench, fixFunc);
 
     return await Promise.resolve([{

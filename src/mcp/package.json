@@ -12,9 +12,13 @@
   "main": "../../plugins/mcp/mcp.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "bun run ./build.ts"
+    "dev": "bun run ./build.ts",
+    "dev:watch": "bun run ./build.ts --watch",
+    "compile": "bun run ./build.ts --minify",
+    "inspect": "bunx @modelcontextprotocol/inspector node ../../plugins/mcp/mcp.js"
   },
   "dependencies": {
+    "@types/bun": "^1.2.13",
     "fastmcp": "^1.27.4",
     "zod": "^3.24.3"
   },

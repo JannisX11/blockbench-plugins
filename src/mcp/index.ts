@@ -3,6 +3,8 @@
  * @discord jason.gardner
  * @github https://github.com/jasonjgardner
  */
+/// <reference types="three" />
+/// <reference path="../../types/index.d.ts" />
 import { server as mcp, tools, resources } from "./server"
 import { uiSetup, uiTeardown } from "./ui";
 import { settingsSetup, settingsTeardown } from "./ui/settings";
