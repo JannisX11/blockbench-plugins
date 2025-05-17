@@ -410,46 +410,6 @@ createTool("modify_cube", {
   },
 });
 
-createTool("eval", {
-  description:
-    "Evaluates the given expression and logs it to the console. Do not pass `console` commands as they will not work.",
-  annotations: {
-    title: "Eval",
-    destructiveHint: true,
-    openWorldHint: true,
-  },
-  parameters: z.object({
-    code: z.string()
-      .refine((val) => !/console\.|\/\/|\/\*/.test(val), {
-        message: "Code must not include 'console.', '//' or '/* */' comments.",
-      })
-    .describe("JavaScript code to evaluate. Do not pass `console` commands or comments."),
-  }),
-  async execute({ code }) {
-    try {
-      Undo.initEdit({
-        elements: [],
-        outliner: true,
-        collections: [],
-      });
-
-      const result = await eval(
-        code.trim()
-      );
-
-      if (result !== undefined) {
-        return JSON.stringify(result);
-      }
-
-      return "(Code executed successfully, but no result was returned.)";
-    } catch (error) {
-      return `Error executing code: ${error}`;
-    } finally {
-      Undo.finishEdit("Agent executed code");
-    }
-  },
-});
-
 createTool("add_group", {
   description: "Adds a new group with the given name and options.",
   annotations: {
