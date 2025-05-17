@@ -4,6 +4,41 @@ import server from "./server";
 import { fixCircularReferences, getProjectTexture } from "../lib/util";
 import { ResourceTemplate } from "fastmcp";
 
+server.addResource({
+  name: "bar_items",
+  description:
+    "Returns the current toolbar options and actions in the Blockbench editor.",
+  uri: "bar_items://",
+  mimeType: "application/json",
+  async load() {
+    return await Promise.resolve([
+      {
+        type: "text",
+        text: JSON.stringify(Object.keys(BarItems)),
+      },
+    ]);
+  },
+});
+
+server.addResource({
+  name: "dialog",
+  description: "Returns the current dialogs in the Blockbench editor.",
+  uri: "dialog://",
+  mimeType: "application/json",
+  async load() {
+    return await Promise.resolve([
+      {
+        type: "text",
+        text: JSON.stringify(
+          Dialog.stack.map((d) => d.getFormResult()),
+          null,
+          2
+        ),
+      },
+    ]);
+  },
+});
+
 const nodesResource: ResourceTemplate = {
   name: "nodes",
   description: "Returns the current nodes in the Blockbench editor.",
@@ -40,9 +75,11 @@ const nodesResource: ResourceTemplate = {
       throw new Error("No nodes found in the Blockbench editor.");
     }
 
-    const node = Project.nodes_3d[id] ?? Object.values(Project.nodes_3d).find(
-      (node) => node.name === id || node.uuid === id
-    );
+    const node =
+      Project.nodes_3d[id] ??
+      Object.values(Project.nodes_3d).find(
+        (node) => node.name === id || node.uuid === id
+      );
 
     if (!node) {
       throw new Error(`Node with ID "${id}" not found.`);
@@ -86,7 +123,7 @@ const texturesResource: ResourceTemplate = {
         return {
           values: textures.map((texture) => texture.name),
         };
-      }
+      },
     },
   ],
   async load({ id }) {

@@ -1,3 +1,6 @@
+import html2canvas from "html2canvas";
+import { imageContent } from "fastmcp";
+
 export function fixCircularReferences<
   T extends Record<string, any>,
   K extends keyof T,
@@ -50,4 +53,29 @@ export function getProjectTexture(id: string): Texture | null {
   );
 
   return texture || null;
+}
+
+export function captureScreenshot(project?: string) {
+  let selectedProject = Project;
+
+  if (!selectedProject || project !== undefined) {
+    selectedProject = ModelProject.all.find(
+      (p) => p.name === project || p.uuid === project || p.selected
+    );
+  }
+  
+  if (!selectedProject) {
+    throw new Error("No project found in the Blockbench editor.");
+  }
+
+  if (selectedProject.select()) {
+    selectedProject.updateThumbnail();
+  }
+
+  return imageContent({ url: selectedProject.thumbnail });
+}
+
+export async function captureAppScreenshot() {
+  const canvas = await html2canvas(document.documentElement);
+  return await imageContent({ url: canvas.toDataURL() });
 }
