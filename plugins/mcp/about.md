@@ -56,14 +56,6 @@ Only a small fraction of Blockbench's API has been mapped to a MCP server tool, 
 
 "One-shotting" a model is possible but human-in-the-loop interaction and project clean-up should usually be expected.
 
-#### Risky Eval
-
-An __eval__ tool is provided and Blockbench's API is exposed as a [resource](https://modelcontextprotocol.io/docs/concepts/resources) to the MCP server. An AI agent can utilize the tool and resource together to execute ad-hoc API calls to fill in for missing tools.
-
-> ⚠️ Blockbench's API also exposes `electron` which has read/write access to your system.
-
-This tool is not required and does not need to be enabled.
-
 ### Tips
 
 - __Set the agent up for success__ by adding textures and groups to the project ahead of prompting.
