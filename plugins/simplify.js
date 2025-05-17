@@ -1,100 +1,120 @@
 Plugin.register("simplify", {
-	title: "Simplify Models",
-	author: "Ryan Garrett",
-	icon: "build",
-	description: "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-	version: "0.2.0",
-	variant: "both",
-	onload() {
-		MenuBar.addAction(new Action({
-			id: "simplify",
-			name: "Simplify",
-			icon: "build",
-			category: "filter",
-			click: function(ev) {
-				var dialog = new Dialog({title:"Simplify cubes", id:"simplify_options", lines:[
-					"<p>This will simplify the cubes in the current model. It will do this to the rotation, pivot point, size, UV, and position of each cube.</p>"
-				],
-				form: {
-					selectOnly: {label: "Selected Cubes Only", type: "checkbox"},
-					roundAmount: {label: "Rounding Amount", type: "number", value: 0.25, min: 0, step: 0.25}
-				},
-				onConfirm: function(data) {
-					try {
-						dialog.hide();
-
-						var cubes = Cube.all;
-						if (data.selectOnly == true) {
-							if (selected.length > 0) {
-								cubes = selected;
-							}
-							else {
-								cubes = null;
-							}
-						}
-
-						// Undo
-						Undo.initEdit({elements: cubes});
-
-						// Goes through all of the cubes and simplifies them
-						for (let i = 0; i < cubes.length; i++) {
-
-							// to
-							cubes[i].to = Simplify(cubes[i].to, data.roundAmount);
-
-							// from
-							cubes[i].from = Simplify(cubes[i].from, data.roundAmount);
-
-							// uv
-							cubes[i].faces.north.uv = Simplify(cubes[i].faces.north.uv, data.roundAmount);
-
-							cubes[i].faces.east.uv = Simplify(cubes[i].faces.east.uv, data.roundAmount);
-
-							cubes[i].faces.south.uv = Simplify(cubes[i].faces.south.uv, data.roundAmount);
-
-							cubes[i].faces.west.uv = Simplify(cubes[i].faces.west.uv, data.roundAmount);
-
-							// rotation
-							cubes[i].rotation = Simplify(cubes[i].rotation, data.roundAmount);
-
-							// origin
-							cubes[i].origin = Simplify(cubes[i].origin, data.roundAmount);
-
-							Canvas.adaptObjectPosition(cubes[i]);
-							Canvas.updateUV(cubes[i]);
-						}
-
-						Undo.finishEdit("simplify cubes", {elements: cubes});
-
-						updateSelection()
-					}
-					catch {
-						Blockbench.showMessage("Failed");
-						updateSelection()
-					}
-				}
-				});
-
-				dialog.show()
-			}
-		}), "filter");
-	},
-
-	onunload() {
-		MenuBar.removeAction("filter.simplify");
-	}
+    title: "Simplify Models",
+    author: "ThePinkHacker",
+    icon: "build",
+    description: "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
+    version: "1.0.0",
+    variant: "both",
+    onload() {
+        MenuBar.addAction(
+            new Action({
+                id: "simplify",
+                name: "Simplify",
+                icon: "build",
+                category: "filter",
+                click: dialog_open,
+            }),
+            "filter",
+        );
+    },
+    onunload() {
+        MenuBar.removeAction("filter.simplify");
+    }
 });
 
-// Rounds the value or values to the nearest multiple of round
-function Simplify(value, round = 1) {
-	if (value.length == null) {
-		return Math.round(value / round) * round;
-	}
-	// If value is an array
-	var values = [];
+function dialog_confirm(data, pointer_event) {
+    if (data.roundAmount == 0) {
+        Blockbench.showMessage("Failed, Invalid Number.", "center");
+        return;
+    }
+    
+    try {
+        let cubes;
 
-	for (let i = 0; i < value.length; i++) {
-		values.push(Math.round(value[i] / round) * round);
-	}
-	return values;
+        if (data.selectOnly == true) {
+            cubes = Cube.selected;
+        } else {
+            cubes = Cube.all;
+        }
+    
+        // Undo
+        Undo.initEdit({elements: cubes});
+    
+        // Simplify cube loop
+        for (let i = 0; i < cubes.length; i++) {
+            // Size
+            if (data.size) {
+                cubes[i].to = simplify_array(cubes[i].to, data.roundAmount);
+                cubes[i].from = simplify_array(cubes[i].from, data.roundAmount);
+            }
+    
+            // UV
+            if (data.uv) {
+                cubes[i].faces.north.uv = simplify_array(cubes[i].faces.north.uv, data.roundAmount);
+                cubes[i].faces.east.uv = simplify_array(cubes[i].faces.east.uv, data.roundAmount);
+                cubes[i].faces.south.uv = simplify_array(cubes[i].faces.south.uv, data.roundAmount);
+                cubes[i].faces.west.uv = simplify_array(cubes[i].faces.west.uv, data.roundAmount);
+                cubes[i].faces.up.uv = simplify_array(cubes[i].faces.up.uv, data.roundAmount);
+                cubes[i].faces.down.uv = simplify_array(cubes[i].faces.down.uv, data.roundAmount);
+            }
+    
+            // Rotation
+            if (data.rotation) {
+                cubes[i].rotation = simplify_array(cubes[i].rotation, data.roundAmount);
+            }
+    
+            // Origin
+            if (data.origin) {
+                cubes[i].origin = simplify_array(cubes[i].origin, data.roundAmount);
+            }
+    
+            Canvas.adaptObjectPosition(cubes[i]);
+            Canvas.updateUV(cubes[i]);
+        }
+    
+        Undo.finishEdit("simplify cubes", {elements: cubes});
+        updateSelection()
+    }
+    catch (error) {
+        console.error(error);
+        Blockbench.showMessage("Failed", "center");
+        updateSelection()
+    }
+}
+
+function dialog_create() {
+    let form = {
+        selectOnly: {label: "Selected Cubes Only", type: "checkbox"},
+        roundAmount: {label: "Rounding Amount", type: "number", value: 0.25, min: 0.0, step: 0.25},
+        size: {label: "Size", type: "checkbox", value: true},
+        uv: {label: "UV", type: "checkbox", value: true},
+        origin: {label: "Origin", type: "checkbox", value: true}
+    };
+
+    if (!Format.rotation_snap) {
+        form.rotation = {label: "Rotation", type: "checkbox", value: true};
+    }
+
+    return new Dialog({
+        title: "Simplify Models",
+        id: "simplify_options",
+        lines: [
+            "<p>This will simplify the cubes in the current model. It will do this to the rotation, pivot point, size, UV, and position of each cube.</p>",
+        ],
+        form: form,
+        onConfirm: dialog_confirm,
+    });
+}
+
+
+function dialog_open() {
+    dialog_create().show();
+}
+
+function simplify_value(value, round) {
+    return Math.round(value / round) * round;
+}
+
+function simplify_array(values, round) {
+    return values.map((value) => simplify_value(value, round));
 }

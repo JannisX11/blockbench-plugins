@@ -13,7 +13,7 @@
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
 		"description": "A Blockbench plugin that makes complex animation a breeze in Minecraft: Java Edition.",
-		"version": "1.7.2",
+		"version": "1.7.3",
 		"await_loading": true,
 		"icon": "icon.svg",
 		"variant": "desktop",
@@ -521,9 +521,9 @@
 	"simplify": {
 		"title": "Simplify Models",
 		"icon": "build",
-		"author": "Ryan Garrett",
+		"author": "ThePinkHacker",
 		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
-		"version": "0.2.0",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"animation_sliders": {
