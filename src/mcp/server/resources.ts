@@ -4,23 +4,6 @@ import server from "./server";
 import { fixCircularReferences, getProjectTexture } from "../lib/util";
 import { ResourceTemplate } from "fastmcp";
 
-server.addResource({
-  name: "api",
-  description: "Blockbench's exposed API. Accessible through `Blockbench.` in the console.",
-  uri: "/api",
-  mimeType: "application/json",
-  async load() {
-    const fixFunc = fixCircularReferences(Blockbench);
-    // @ts-expect-error Will error until type arguments are provided to previous line
-    const result = JSON.stringify(Blockbench, fixFunc);
-
-    return await Promise.resolve([{
-      type: "text",
-      text: result,
-    }]);
-  }
-});
-
 const nodesResource: ResourceTemplate = {
   name: "nodes",
   description: "Returns the current nodes in the Blockbench editor.",
