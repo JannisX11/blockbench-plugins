@@ -1091,5 +1091,20 @@
 		"has_changelog": true,
 		"min_version": "4.10.1",
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/outliner_group_exporter"
+	},
+	"export_to_blender": {
+		"title": "Export to Blender",
+		"author": "0x13F",
+		"description": "Export your project as a Blender scene (.blend)",
+		"icon": "icon.png",
+		"creation_date": "2025-04-16",
+		"version": "1.0.0",
+		"variant": "desktop",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Exporter"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender"
 	}
 }
