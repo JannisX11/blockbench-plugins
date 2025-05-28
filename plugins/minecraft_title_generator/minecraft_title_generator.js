@@ -231,13 +231,17 @@
       }
     ]
   }
+  let initialLoaded
+  const initialLoad = new Promise(fulfil => {
+    initialLoaded = fulfil
+  })
   Plugin.register(id, {
     title: name,
     icon: "icon.png",
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.9.1",
+    version: "1.9.2",
     min_version: "4.12.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -465,18 +469,30 @@
         name: "Add Minecraft Title Text",
         icon,
         condition: () => Project.format === format,
-        click() {
-          dialog.content_vue.switchToFonts()
-          dialog.show()
+        async click() {
+          if (dialog.content_vue) {
+            dialog.content_vue.switchToFonts()
+            dialog.show()
+          } else {
+            dialog.show()
+            await initialLoad
+            dialog.content_vue.switchToFonts()
+          }
         }
       })
       action2 = new Action("minecraft_title_add_shape", {
         name: "Add Minecraft Title Shape",
         icon: "interests",
         condition: () => Project.format === format,
-        click() {
-          dialog.content_vue.switchToShapes()
-          dialog.show()
+        async click() {
+          if (dialog.content_vue) {
+            dialog.content_vue.switchToShapes()
+            dialog.show()
+          } else {
+            dialog.show()
+            await initialLoad
+            dialog.content_vue.switchToShapes()
+          }
         }
       })
       Toolbars.outliner.add(action2, 0)
@@ -3215,6 +3231,8 @@
           this.content_vue.scene = new THREE.Scene()
 
           this.content_vue.buildPreview()
+
+          initialLoaded()
         }
       })
       debugDialog = new Dialog({

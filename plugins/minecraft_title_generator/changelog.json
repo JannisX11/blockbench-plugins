@@ -487,5 +487,18 @@
         ]
       }
     ]
+  },
+  "1.9.2": {
+    "title": "1.9.2",
+    "date": "2025-05-28",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed being unable to add new text when opening an existing Minecraft Title project"
+        ]
+      }
+    ]
   }
 }
