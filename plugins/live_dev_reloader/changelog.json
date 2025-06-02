@@ -25,5 +25,18 @@
         ]
       }
     ]
+  },
+  "1.0.2": {
+    "title": "1.0.2",
+    "date": "2025-06-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed \"Plugin not installed\" when Live Dev Reloader loads before the watched plugin"
+        ]
+      }
+    ]
   }
 }

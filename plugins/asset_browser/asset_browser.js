@@ -1,7 +1,7 @@
 const crypto = require("node:crypto")
 const os = require("node:os")
 
-let dialog, action, storage, loader, styles
+let dialog, action, storage, loader, styles, cacheDir
 
 const id = "asset_browser"
 const name = "Asset Browser"
@@ -25,8 +25,8 @@ const links = {
 const manifest = {
   latest: {},
   types: {
-    release: "Release",
-    snapshot: "Snapshot",
+    release: "Java Release",
+    snapshot: "Java Snapshot",
     bedrock: "Bedrock Release",
     "bedrock-preview": "Bedrock Preview"
   },
@@ -69,15 +69,20 @@ Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft", "Assets", "Browser"],
-  version: "1.0.0",
+  version: "1.1.0",
   min_version: "4.12.0",
   variant: "desktop",
   creation_date: "2025-05-30",
-  has_changelog: true,
+  type: "module",
   website: "https://ewanhowell.com/plugins/asset-browser/",
   repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/asset-browser",
   bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Asset Browser]",
+  has_changelog: true,
   onload() {
+    cacheDir = PathModule.join(app.getPath("userData"), "minecraft_assets_cache")
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true })
+    }
     storage = JSON.parse(localStorage.getItem(id) ?? "{}")
     storage.recents ??= []
     storage.recentComparisons ??= []
@@ -90,7 +95,7 @@ Plugin.register(id, {
     } else {
       directory = PathModule.join(os.homedir(), ".minecraft")
     }
-    new Setting("minecraft_directory", {
+    new Setting("ewan_minecraft_directory", {
       value: directory,
       category: "defaults",
       type: "click",
@@ -100,28 +105,10 @@ Plugin.register(id, {
       click() {
         const dir = Blockbench.pickDirectory({
           title: "Select your .minecraft folder",
-          startpath: settings.minecraft_directory.value
+          startpath: settings.ewan_minecraft_directory.value
         })
         if (dir) {
-          settings.minecraft_directory.value = dir
-          Settings.saveLocalStorages()
-        }
-      }
-    })
-    new Setting("cache_directory", {
-      value: "",
-      category: "defaults",
-      type: "click",
-      name: "Ewan's Plugins - Cache Directory",
-      description: "The location to cache downloaded content",
-      icon: "database",
-      click() {
-        const dir = Blockbench.pickDirectory({
-          title: "Select a folder to cache downloaded content",
-          startpath: settings.cache_directory.value
-        })
-        if (dir) {
-          settings.cache_directory.value = dir
+          settings.ewan_minecraft_directory.value = dir
           Settings.saveLocalStorages()
         }
       }
@@ -1248,7 +1235,7 @@ Plugin.register(id, {
             }
             if (!this.jar.optifineLoaded && this.version.includes("OptiFine")) {
               const folderName = this.version.replace("-OptiFine", "")
-              const libraryFile = PathModule.join(settings.minecraft_directory.value, "libraries", "optifine", "OptiFine", folderName, `OptiFine-${folderName}.jar`)
+              const libraryFile = PathModule.join(settings.ewan_minecraft_directory.value, "libraries", "optifine", "OptiFine", folderName, `OptiFine-${folderName}.jar`)
               if (await exists(libraryFile)) {
                 const zip = parseZip(await fs.promises.readFile(libraryFile).then(e => e.buffer))
                 for (const [k, v] of Object.entries(zip.files)) {
@@ -1673,6 +1660,9 @@ Plugin.register(id, {
                   }
                 }
               }
+            }
+            for (const textureMesh of TextureMesh.all) {
+              textureMesh.name = `minecraft:item/${model.name.slice(0, -5)}`
             }
             if (loadCount === 1 && noElements) {
               Blockbench.showMessageBox({
@@ -3201,14 +3191,14 @@ Plugin.register(id, {
         const currentMajorRelease = manifest.versions.slice(1).find(e => e.type === "release" && e.id === currentMajorNum)
         const prevMajorRelease = manifest.versions.slice(1).find(e => e.type === "release" && !e.id.startsWith(currentMajorNum))
 
-        this.content_vue.suggestedComparisons.push(["Latest Version", manifest.versions[1].id, manifest.versions[0].id])
+        this.content_vue.suggestedComparisons.push(["Latest Java Version", manifest.versions[1].id, manifest.versions[0].id])
         if (manifest.versions[0].type !== "release") {
-          this.content_vue.suggestedComparisons.push(["Since Release", latestRelease.id, manifest.versions[0].id])
+          this.content_vue.suggestedComparisons.push(["Since Java Release", latestRelease.id, manifest.versions[0].id])
         }
         this.content_vue.suggestedComparisons.push(
-          ["Latest Release", prevRelease.id, latestRelease.id],
-          ["Major Release", prevMajorRelease.id, latestRelease.id],
-          ["Release Patches", currentMajorRelease.id, latestRelease.id]
+          ["Latest Java Release", prevRelease.id, latestRelease.id],
+          ["Major Java Release", prevMajorRelease.id, latestRelease.id],
+          ["Release Java Patches", currentMajorRelease.id, latestRelease.id]
         )
 
         const latestBedrock = manifest.versions.find(e => e.type.startsWith("bedrock"))
@@ -3228,7 +3218,7 @@ Plugin.register(id, {
       onOpen() {
         setTimeout(async () => {
           if (!await MinecraftEULA.promptUser(id)) return dialog.close()
-          if (!await exists(settings.minecraft_directory.value)) {
+          if (!await exists(settings.ewan_minecraft_directory.value)) {
             new Dialog({
               title: "The .minecraft directory was not found",
               lines: [`${name} can load assets from your Minecraft: Java Edition installation.<br><br>When prompted, please select your <code class="rpu-code">.minecraft</code> folder.<br><br>If you do not have Minecraft: Java Edition installed, select a random folder.`],
@@ -3237,10 +3227,10 @@ Plugin.register(id, {
               onClose() {
                 const dir = Blockbench.pickDirectory({
                   title: "Select your .minecraft folder",
-                  startpath: settings.minecraft_directory.value
+                  startpath: settings.ewan_minecraft_directory.value
                 })
                 if (dir) {
-                  settings.minecraft_directory.value = dir
+                  settings.ewan_minecraft_directory.value = dir
                   Settings.saveLocalStorages()
                   loadDownloadedVersions()
                 } else {
@@ -3250,7 +3240,6 @@ Plugin.register(id, {
               }
             }).show()
           }
-          if (!await cacheDirectory(true)) return dialog.close()
         }, 0)
       }
     })
@@ -3619,44 +3608,6 @@ function lazyScrollerComponent() {
   }
 }
 
-async function cacheDirectory(allowCancel) {
-  if (!await exists(settings.cache_directory.value)) {
-    return new Promise(fulfil => {
-      new Dialog({
-        title: "The cache directory was not found",
-        lines: [`${name} requires a folder to cache downloaded content.<br><br>When prompted, please choose a folder to use for caching.`],
-        width: 512,
-        buttons: allowCancel ? ["dialog.ok", "dialog.cancel"] : ["dialog.ok"],
-        onClose(index) {
-          if (index) {
-            Blockbench.showQuickMessage("No folder was selected")
-            fulfil(false)
-            return
-          }
-          let dir
-          while (!dir) {
-            dir = Blockbench.pickDirectory({
-              title: "Select a folder to cache downloaded content",
-              startpath: settings.cache_directory.value
-            })
-            if (allowCancel && !dir) {
-              Blockbench.showQuickMessage("No folder was selected")
-              fulfil(false)
-              return
-            }
-          }
-          settings.cache_directory.value = dir
-          Settings.saveLocalStorages()
-          loadDownloadedVersions()
-          fulfil(true)
-        }
-      }).show()
-    })
-  } else {
-    return true
-  }
-}
-
 function exists(path) {
   return new Promise(async fulfil => {
     try {
@@ -3763,13 +3714,12 @@ async function getVersionData(id) {
   if (version.data) {
     return version.data
   }
-  const vanillaDataPath = PathModule.join(settings.minecraft_directory.value, "versions", version.id, version.id + ".json")
+  const vanillaDataPath = PathModule.join(settings.ewan_minecraft_directory.value, "versions", version.id, version.id + ".json")
   if (await exists(vanillaDataPath)) {
     version.data = JSON.parse(await fs.promises.readFile(vanillaDataPath))
     return version.data
   }
-  await cacheDirectory()
-  const cacheDataPath = PathModule.join(settings.cache_directory.value, `data_${version.id}.json`)
+  const cacheDataPath = PathModule.join(cacheDir, `data_${version.id}.json`)
   if (await exists(cacheDataPath)) {
     version.data = JSON.parse(await fs.promises.readFile(cacheDataPath))
     return version.data
@@ -3780,7 +3730,7 @@ async function getVersionData(id) {
 }
 
 async function getVersionAssetsIndex(version) {
-  const vanillaAssetsIndexPath = PathModule.join(settings.minecraft_directory.value, "assets", "indexes", version.assets + ".json")
+  const vanillaAssetsIndexPath = PathModule.join(settings.ewan_minecraft_directory.value, "assets", "indexes", version.assets + ".json")
   if (await exists(vanillaAssetsIndexPath)) {
     if (await shaCheck(vanillaAssetsIndexPath, version.assetIndex.sha1)) {
       version.assetsIndex = JSON.parse(await fs.promises.readFile(vanillaAssetsIndexPath))
@@ -3790,8 +3740,7 @@ async function getVersionAssetsIndex(version) {
       await fs.promises.writeFile(vanillaAssetsIndexPath, JSON.stringify(version.assetsIndex), "utf-8")
     }
   }
-  await cacheDirectory()
-  const cacheAssetsIndexPath = PathModule.join(settings.cache_directory.value, `assets_index_${version.assets}.json`)
+  const cacheAssetsIndexPath = PathModule.join(cacheDir, `assets_index_${version.assets}.json`)
   if (await exists(cacheAssetsIndexPath) && await shaCheck(cacheAssetsIndexPath, version.assetIndex.sha1)) {
     version.assetsIndex = JSON.parse(await fs.promises.readFile(cacheAssetsIndexPath))
     return version.assetsIndex
@@ -3803,13 +3752,16 @@ async function getVersionAssetsIndex(version) {
 
 async function getVersionJar(id) {
   if (loadedJars[id]) return loadedJars[id]
+  const extension = /^v\d+\.\d+\.\d+\.\d+/.test(id) ? ".zip" : ".jar"
   let jar
-  const jarPath = PathModule.join(settings.minecraft_directory.value, "versions", id, id + ".jar")
-  if (await exists(jarPath)) {
-    jar = parseZip((await fs.promises.readFile(jarPath)).buffer)
-  } else {
-    await cacheDirectory()
-    const jarPath = PathModule.join(settings.cache_directory.value, id + ".jar")
+  if (extension === ".jar") {
+    const jarPath = PathModule.join(settings.ewan_minecraft_directory.value, "versions", id, id + ".jar")
+    if (await exists(jarPath)) {
+      jar = parseZip((await fs.promises.readFile(jarPath)).buffer)
+    }
+  }
+  if (!jar) {
+    const jarPath = PathModule.join(cacheDir, id + extension)
     if (await exists(jarPath)) {
       jar = parseZip((await fs.promises.readFile(jarPath)).buffer)
     } else {
@@ -3840,7 +3792,6 @@ async function getVersionObjects(vue, id) {
   const assetsIndex = version.assetsIndex ?? await getVersionAssetsIndex(version)
   const root = getRoot(id)
   const objectsEntries = Object.entries(assetsIndex.objects)
-  await cacheDirectory()
 
   version.objects = {}
 
@@ -3853,11 +3804,11 @@ async function getVersionObjects(vue, id) {
       files.push(new Promise(async fulfil => {
         const objectPath = `${data.hash.slice(0, 2)}/${data.hash}`
         const packPath = file === "pack.mcmeta" ? file : PathModule.join(root, file).replaceAll("\\", "/")
-        const vanillaObjectPath = PathModule.join(settings.minecraft_directory.value, "assets", "objects", objectPath)
+        const vanillaObjectPath = PathModule.join(settings.ewan_minecraft_directory.value, "assets", "objects", objectPath)
         if (await exists(vanillaObjectPath)) {
           version.objects[packPath] = { path: vanillaObjectPath }
         } else {
-          const cacheObjectPath = PathModule.join(settings.cache_directory.value, "objects", objectPath)
+          const cacheObjectPath = PathModule.join(cacheDir, "objects", objectPath)
           if (!(await exists(cacheObjectPath))) {
             const object = new Uint8Array(await fetch(`https://resources.download.minecraft.net/${objectPath}`).then(e => e.arrayBuffer()))
             await fs.promises.mkdir(PathModule.dirname(cacheObjectPath), { recursive: true })
@@ -3915,7 +3866,7 @@ function naturalSorter(as, bs) {
 
 async function loadDownloadedVersions() {
   const downloadedVersions = []
-  const versionsFolder = PathModule.join(settings.minecraft_directory.value, "versions")
+  const versionsFolder = PathModule.join(settings.ewan_minecraft_directory.value, "versions")
   if (await exists(versionsFolder)) {
     for (const entry of await fs.promises.readdir(versionsFolder, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue
@@ -3928,10 +3879,10 @@ async function loadDownloadedVersions() {
       }
     }
   }
-  const cacheFolder = PathModule.join(settings.cache_directory.value)
+  const cacheFolder = PathModule.join(cacheDir)
   if (await exists(cacheFolder)) {
     for (const entry of await fs.promises.readdir(cacheFolder, { withFileTypes: true })) {
-      if (!entry.isFile() || !entry.name.endsWith(".jar")) continue
+      if (!entry.isFile() || !(entry.name.endsWith(".jar") || entry.name.endsWith(".zip"))) continue
       downloadedVersions.push({
         id: entry.name.slice(0, -4),
         date: await fs.promises.stat(PathModule.join(cacheFolder, entry.name)).then(e => e.birthtime)

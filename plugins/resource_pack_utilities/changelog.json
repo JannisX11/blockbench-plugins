@@ -176,5 +176,19 @@
         ]
       }
     ]
+  },
+  "1.7.0": {
+    "title": "1.7.0",
+    "date": "2025-06-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Techinical Changes",
+        "list": [
+          "The cache folder has been moved to the AppData folder and is no longer required to be specified by the user",
+          "The \"Minecraft Directory\" setting ID has been made more unique as to not conflict if other plugins use the same ID"
+        ]
+      }
+    ]
   }
 }
