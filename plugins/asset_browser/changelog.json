@@ -11,5 +11,31 @@
         ]
       }
     ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2025-06-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Renamed Java edition categories to make them more consistent with Bedrock edition categories"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed texture mesh elements showing a data URL instead of the item model name when opening generated item models"
+        ]
+      },
+      {
+        "title": "Techinical Changes",
+        "list": [
+          "The cache folder has been moved to the AppData folder and is no longer required to be specified by the user",
+          "The \"Minecraft Directory\" setting ID has been made more unique as to not conflict if other plugins use the same ID"
+        ]
+      }
+    ]
   }
 }
