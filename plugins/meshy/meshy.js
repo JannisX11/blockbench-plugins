@@ -1,19 +1,11 @@
 (function() {
-    const pluginInfo = {"name":"Meshy","id":"meshy","version":"1.0.4","repository":"https://github.com/Shadowkitten47/Meshy"};
+    const pluginInfo = {"name":"Meshy","id":"meshy","version":"1.0.5","repository":"https://github.com/Shadowkitten47/Meshy"};
     
     const pluginSettings = [
         {
             id: 'meshy_normalized_mesh_uvs',
             name: 'Normalize Mesh UVs',
             description: 'Normalize UVs of polymeshes',
-            category: 'export',
-            value: true,
-            plugin: pluginInfo.id,
-        },
-        {
-            id: 'meshy_meta_data',
-            name: 'Meshy Meta Data',
-            description: 'Adds meta data to bedrock polymeshes',
             category: 'export',
             value: true,
             plugin: pluginInfo.id,
@@ -51,7 +43,7 @@
         icon: 'diamond',
         description: 'Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock',
         variant: 'both',
-        version: pluginInfo.version, //1.0.3
+        version: pluginInfo.version, //1.0.4
         tags: ['Minecraft: Bedrock Edition', 'Entity Models', 'Mesh'],
         has_changelog: true,
         min_version: '4.10.4',
@@ -69,7 +61,7 @@
             bedrock.single_texture = !settings['meshy_force_textures']?.value;
             bedrock_old.single_texture = !settings['meshy_force_textures']?.value;
     
-            var codec = Codecs['bedrock'];
+            let codec = Codecs['bedrock'];
             purgeEvents(codec); //Removes all of events that match the function names used so that duplicates don't occur
     
             codec.on('parsed', meshyOnParseEvent);
@@ -95,7 +87,7 @@
                     settings[s.id].delete();
                 }
             }
-            var codec = Codecs['bedrock'];
+            let codec = Codecs['bedrock'];
             purgeEvents(codec);
             codec = Codecs['bedrock_old'];
             purgeEvents(codec);
@@ -104,10 +96,10 @@
         },
     });
     
-
+    //Beaware: Function zone below
     function meshyOnCompileEvent({model, options}) {
-        var groups = getAllGroups();
-        var loose_elements = [];
+        let groups = getAllGroups();
+        let loose_elements = [];
         Outliner.root.forEach((obj) => {
             if (obj instanceof OutlinerElement) {
                 loose_elements.push(obj);
@@ -138,11 +130,6 @@
             }
         }
     }
-
-    function meshyOnBedrockCompileEvent({model, options}) { //Extra step for non-legacy bedrock
-        model = model['minecraft:geometry'][0]; 
-        meshyOnCompileEvent({model, options});
-    }
     function meshyOnParseEvent({model}) {
         for (let i = 0; i < model.bones.length; i++) {
             const bone = model.bones[i];
@@ -153,10 +140,15 @@
             }
         }
     }
+    function meshyOnBedrockCompileEvent({model, options}) { //Extra step for non-legacy bedrock
+        model = model['minecraft:geometry'][0];
+        meshyOnCompileEvent({model, options});
+    }
     
-
-    //Kinda of unnessesary, but during testing more than one even was created so the function below deletes them.
+    //Ensures every function is removed with the names used here. This is so that if duplicates are created it doesn't cause issues
+    //The regular version does not do this
     function purgeEvents(codec) {
+        
         for (let i = 0; i < codec.events['parsed']?.length; i++) {
             if (listOfFunctions.includes(codec.events['parsed'][i].name)) {
                 codec.events['parsed'].splice(i, 1);
@@ -179,29 +171,24 @@
     function compileMesh(polyMesh, mesh) {
         polyMesh ??= 
         {
-            //If enabled create an extra section on the mesh to store information so that it can be recovered after export 
-            //sense minecraft dosen't allow more than pone mesh per group and dosen't have rotation for a smaller file size can disable the it
-            meta: settings["meshy_meta_data"].value ? 
-            {
-                meshes: [],
-            } : undefined,
-
             normalized_uvs: settings["meshy_normalized_mesh_uvs"].value,
             positions: [],
             normals: [],
             uvs: [],
             polys: []
         };
+
         //vertex keys -> value
         const postionMap = new Map();
         const normalMap = new Map();
         const uvMap = new Map();
-        const vertexFacesMap = new Map();
+        
     
         //normal arr -> value
         const normals = new Map();
     
         //Make a map of faces a vertex is appart of 
+        const vertexFacesMap = new Map();
         for (let faceKey in mesh.faces) {
             let face = mesh.faces[faceKey];
             for (let vertexKey of face.vertices) {
@@ -211,12 +198,13 @@
                 vertexFacesMap.get(vertexKey).push(faceKey);
             }
         }
-    
+
         for (let [key, pos] of getVertices(mesh)) {
             postionMap.set(key, polyMesh.positions.length);
             polyMesh.positions.push(pos);
     
             const normal = getVertexNormal(mesh, key, vertexFacesMap);
+
             if (!normals.has(normal.toString())) {
                 normalMap.set(key, polyMesh.normals.length);
                 normals.set(normal.toString(), polyMesh.normals.length);
@@ -225,7 +213,8 @@
             else normalMap.set(key, normals.get(normal.toString()))
         }
     
-        
+        normals.clear();
+
         let polys = Object.values(mesh.faces).map((face) => {
             const poly = face.getSortedVertices().map((vertexKey) => {
                 const uv = uvOnSave(...face.uv[vertexKey]);
@@ -239,88 +228,20 @@
     
                 return [postionMap.get(vertexKey), normalMap.get(vertexKey), uIndex];
             });
-            if (poly.length < 4) poly.push(poly[2]);
+            if (poly.length < 4) 
+                //Fill the poly with the first vertex if less than a quad change: Support for less than 3 vertices
+                return poly.concat(Array(4 - poly.length).fill(poly[0]));
             return poly;
         });
-    
-        if (settings["meshy_meta_data"].value) {
-            const mesh_meta = {
-                name: mesh.name,
-                origin: mesh.origin,
-                rotation: [
-                    mesh.rotation[0] * -1,
-                    mesh.rotation[1] * -1,
-                    mesh.rotation[2]
-                ],
-                start: polyMesh.polys.length,
-                length: polys.length
-            }
-            polyMesh.meta.meshes.push(mesh_meta);
-        }
-    
         //Spread opertator fails here so we loop for each
         for (let poly of polys) polyMesh.polys.push(poly);
         return polyMesh;
     }
     
     function parseMesh(polyMesh, group) {
-        /**
-         * Adds meta data to mesh. This is to recover the original objects after exporting
-         * sense only one can be save to a group at a time this also used for saving the rotation and position.
-         */
-        if (polyMesh.meta) {
-            for (let meta of polyMesh.meta.meshes) {
-                const mesh = new Mesh({name: meta.name, autouv: 0, color: group.color, vertices: []});
-
-                meta.origin ??= [0, 0, 0];
-
-                mesh.origin = meta.origin;
-                mesh.rotation = [
-                    mesh.rotation[0] * -1,
-                    mesh.rotation[1] * -1,
-                    mesh.rotation[2]
-                ];
-                const polys = polyMesh.polys.slice(meta.start, meta.start + meta.length);
-                for ( let face of polys ) {
-                    const unique = new Set();
-                    const vertices = []
-                    const uvs = {}
-
-                    for (let point of face ) {
-    
-                        //Make sure we don't add the same vertex twice ( This means that a quad was folded in half )
-                        if (unique.has(point.toString())) continue;
-                        unique.add(point.toString());
-    
-                        //Do the transformations to revert the vertices
-                        let postion = polyMesh.positions[point[0]]
-
-                        let clone = [...postion]
-                        clone[0] *= -1
-                        clone = rotatePoint(clone, mesh.origin, [ mesh.rotation[0] * -1, mesh.rotation[1] * -1, mesh.rotation[2] * -1 ])
-                        clone = clone.V3_add(-mesh.origin[0], -mesh.origin[1], -mesh.origin[2])
-                        postion = clone
-                        //Save the point to the mesh
-                        mesh.vertices[`v${point[0]}`] = postion;
-                        vertices.push(`v${point[0]}`);
-    
-                        const uv = [...polyMesh.uvs[point[2]]]
-                        if (polyMesh.normalized_uvs) { 
-                            uv.V2_multiply(Project.texture_width, Project.texture_height)
-                        }
-                        uv[1] = Project.texture_height - uv[1]  //Invert y axis
-                        uvs[`v${point[0]}`] = uv;
-    
-                    }
-                    mesh.addFaces(new MeshFace(mesh, {  uv: uvs, vertices }));
-                }
-
-                mesh.addTo(group).init();
-            }
-        }
-        else {
-            const mesh = new Mesh({name: "mesh", autouv: 0, color: group.color, vertices: []});
-            for ( let face of polyMesh.polys ) {
+        const mesh = new Mesh({name: "mesh", autouv: 0, color: group.color, vertices: []});
+        const uniquePoints = new Set();
+        for ( let face of polyMesh.polys ) {
                 const unique = new Set();
                 const vertices = []
                 const uvs = {}
@@ -328,13 +249,15 @@
                     if (unique.has(point.toString())) continue;
                     unique.add(point.toString());
     
-                    let postion = polyMesh.positions[point[0]]
-                    postion[0] *= -1;
+                    if ( !uniquePoints.has(point[0])) {
+                        uniquePoints.add(point[0]);
+                        let position = polyMesh.positions[point[0]]
+                        position[0] *= -1;
+                        mesh.vertices[`v${point[0]}`] = position;
+                    }
 
-                    mesh.vertices[`v${point[0]}`] = postion;
                     vertices.push(`v${point[0]}`);
-    
-    
+        
                     const uv = [...polyMesh.uvs[point[2]]]
                     if (polyMesh.normalized_uvs) { 
                         uv.V2_multiply(Project.texture_width, Project.texture_height)
@@ -343,9 +266,8 @@
                     uvs[`v${point[0]}`] = uv;
                 }
                 mesh.addFaces(new MeshFace(mesh, { uv: uvs, vertices }));
-            }
-            mesh.addTo(group).init();
         }
+        mesh.addTo(group).init();
     }
     
     function uvOnSave(...uv) { 
@@ -356,7 +278,7 @@
         return uv
     }
     
-    //Applies the Mesh Object rotation and position to each vertex of the mesh 
+    //gets vertices of a Mesh and applys transformations to the points so that they can be exported
     function getVertices(mesh) {
         const verts = Object.entries(mesh.vertices).map( ( [key, point ]) => { 
             //Generate a copy of the point so that it won't effect the original point
@@ -405,9 +327,6 @@
         ];
     }
     
-    function multiplyScalar(vec, scalar) {
-        return vec.map((coord) => coord * scalar);
-    }
     
     function rotatePoint(point, center, rotation) {
         // Convert rotation angles to radians
@@ -438,6 +357,7 @@
             z + center[2]
         ];
     }
+    
     })();
     
     
