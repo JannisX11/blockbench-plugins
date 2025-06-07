@@ -2,7 +2,7 @@ name: Plugin Updates
 
 on:
   push:
-    branches: [test]
+    branches: [master]
 
 jobs:
   generate-updates:
