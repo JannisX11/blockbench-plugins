@@ -43,21 +43,17 @@ let anotherReexportQueued = false;
 // MARK: 🟥 plugin
 
 Plugin.register('reexport_on_save', {
-    title: 'Re-export on Save',
-    author: '0x13F',
-    description: 'Automatically re-export your project when saving',
-    about: ''
-        + 'This plugin adds a toggle to automatically re-export when saving a project. '
-        + 'The export settings can be customized per project. '
-        + 'Other plugins that add new exporting codecs should work with this out of the box. ',
-    icon: 'output',
+    title:         'Re-export on Save',
+    author:        '0x13F',
+    description:   'Automatically re-export your project when saving',
+    icon:          'output',
     creation_date: '2025-04-18',
-    version: '1.0.0',
-    variant: 'desktop',
-    min_version: '4.12.4',
+    version:       '1.0.0',
+    variant:       'desktop',
+    min_version:   '4.12.4',
     has_changelog: false,
-    tags: [ 'Exporter', 'Utility' ],
-	repository: 'https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save',
+    tags:          [ 'Exporter', 'Utility' ],
+	repository:    'https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save',
     onload() {
 
         // Property to store re-export settings in project file
@@ -519,7 +515,7 @@ function buildReexportDialog(dialog, justChangedCodecTo) {
 // or without parameters to show whatever the current status is
 function updateStatusBar(statusText, icon, expire) {
 
-    let reexportStatusNode = document.querySelector('#reexport_status')
+    let reexportStatusNode = document.querySelector('#reexport_status');
 
     if (reexportStatusNode == undefined) {
         let statusBarNode = document.querySelector('#status_bar');
@@ -757,7 +753,7 @@ async function tryCatchAwait(lambda) {
     try {
         return await lambda();
     } catch (e) {
-        return e
+        return e;
     }
 }
 
