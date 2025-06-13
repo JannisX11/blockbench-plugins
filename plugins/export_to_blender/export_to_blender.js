@@ -62,15 +62,9 @@ Plugin.register('export_to_blender', {
     title: 'Export to Blender',
     author: '0x13F',
     description: 'Export your project as a Blender scene (.blend)',
-    about:''
-        + '**Requires Blender to be installed!** '
-        + '\n\n'
-        + 'This plugin adds the option to export your project as a Blender scene file (.blend). '
-        + 'It works by first exporting the project as GLTF, then importing that GLTF into Blender using a Python script. '
-        + 'You may need to specify the path to your Blender installation upon first use. ',
     icon: 'icon.png',
     creation_date: '2025-04-16',
-    version: '1.0.0',
+    version: '1.0.1',
     variant: 'desktop',
     min_version: '4.12.4',
     has_changelog: false,
