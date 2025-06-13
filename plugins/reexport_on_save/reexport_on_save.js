@@ -486,7 +486,7 @@ function buildReexportDialog(dialog, justChangedCodecTo) {
                 extension = 'glb';
     
             // Replace invalid path with just the name of the project
-            if (isReexportPathValid(oldPath))
+            if (isReexportPathValid(oldPath, extension))
                 startPath = Project.name || 'model';
     
             let chosenPath = await pickExportPath(startPath, Codecs[selectedCodec].name, [extension]);
@@ -573,7 +573,7 @@ function exportPathToAbsolute(exportPath) {
     return path.resolve(path.dirname(Project.save_path), path.dirname(Project.export_path), exportPath);
 }
 
-function isReexportPathValid(exportPath) {
+function isReexportPathValid(exportPath, expectedExtension = undefined) {
     let absoluteExportPath = exportPathToAbsolute(exportPath);
     let filename = path.basename(exportPath);
     let extensionWithPeriod = path.extname(filename);
@@ -589,9 +589,12 @@ function isReexportPathValid(exportPath) {
     // then they're weird
     isInvalid ||= extensionWithPeriod === '' || extensionWithPeriod === '.';
 
-    let expectedExtension = Codecs[Project.reexport.codec].extension;
-    if (Project.reexport.codec === 'gltf' && Project.reexport.codec_options.encoding === 'binary')
-        expectedExtension = 'glb';
+    if (expectedExtension == undefined) {
+        expectedExtension = Codecs[Project.reexport.codec].extension;
+        if (Project.reexport.codec === 'gltf' && Project.reexport.codec_options.encoding === 'binary')
+            expectedExtension = 'glb';
+    }
+    
     // Extension doesn't match what's expected from the codec
     // This is a lot more likely to be intentional than no extension
     // But still a lot less likely than being an accident
