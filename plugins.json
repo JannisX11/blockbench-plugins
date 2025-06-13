@@ -1081,7 +1081,7 @@
 		"icon": "diamond",
 		"description": "Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock",
 		"variant": "both",
-		"version": "1.0.4",
+		"version": "1.0.5",
 		"tags": [
 			"Minecraft: Bedrock Edition",
 			"Entity Models",
