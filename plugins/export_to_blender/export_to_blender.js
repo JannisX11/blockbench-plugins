@@ -59,17 +59,17 @@ const encodedBlenderScript = `import base64; exec(base64.b64decode('${btoa(blend
 let deferred = [];
 
 Plugin.register('export_to_blender', {
-    title: 'Export to Blender',
-    author: '0x13F',
-    description: 'Export your project as a Blender scene (.blend)',
-    icon: 'icon.png',
+    title:         'Export to Blender',
+    author:        '0x13F',
+    description:   'Export your project as a Blender scene (.blend)',
+    icon:          'icon.png',
     creation_date: '2025-04-16',
-    version: '1.0.1',
-    variant: 'desktop',
-    min_version: '4.12.4',
+    version:       '1.0.1',
+    variant:       'desktop',
+    min_version:   '4.12.4',
     has_changelog: false,
-    tags: [ 'Exporter' ],
-	repository: 'https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender',
+    tags:          [ 'Exporter' ],
+	repository:    'https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender',
 
     onload() {
 
@@ -106,9 +106,9 @@ Plugin.register('export_to_blender', {
                 } else {
                     // New path is not valid, show message box and try again
                     Blockbench.showMessageBox({
-                        title: 'Blender path',
+                        title:   'Blender path',
                         message: 'Provided path does not point to a valid Blender executable, please try again.',
-                        icon: 'error',
+                        icon:    'error',
                     }, () => blenderCodec.export_action.trigger());
                 }
             },
@@ -175,22 +175,22 @@ Plugin.register('export_to_blender', {
                 ['armature']: {
                     type: 'checkbox',
                     label: 'codec.common.armature',
-                    value: false
+                    value: false,
                 },
                 ['animations']: {
                     label: 'codec.common.export_animations',
                     type: 'checkbox',
-                    value: true
+                    value: true,
                 },
             },
             async compile(options) {
-                return await compileBlend(options)
+                return await compileBlend(options);
             },
             async export() {
                 let options = await this.promptExportOptions();
                 if (options === null) return;
 
-                await exportBlend(this, options, blenderPatienceDialog)
+                await exportBlend(this, options, blenderPatienceDialog);
             },
         }));
 
@@ -379,7 +379,7 @@ async function findBlender() {
 
             // Check to make sure we resolved the wildcard
             if (obviousPath.indexOf('*') !== -1) {
-                console.warn('Two wildcards in Blender path?')
+                console.warn('Two wildcards in Blender path?');
                 continue;
             }
 
@@ -388,10 +388,10 @@ async function findBlender() {
                 return obviousPath; 
         }
 
-    } catch {}
-
-    // Give up, just prompt the user
-    return null;
+    } catch {
+        // Give up, just prompt the user
+        return null;
+    }
 }
 
 // Runs a command as a Promise
@@ -400,9 +400,9 @@ function executeCommand(command, args) {
         let commandWithArgs = `"${command}" ${args.map(a => `"${a}"`).join(' ')}`;
         exec(commandWithArgs, (error, stdout, stderr) => {
             if (!error && stdout) {
-                resolve(stdout)
+                resolve(stdout);
             } else {
-                resolve(stderr)
+                resolve(stderr);
             }
         });
     });
