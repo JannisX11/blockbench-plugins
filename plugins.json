@@ -91,15 +91,6 @@
 		"version": "1.1.0",
 		"variant": "both"
 	},
-	"no_rotation_steps": {
-		"title": "No Rotation Steps",
-		"author": "JannisX11",
-		"description": "Disables limited rotation steps of 22.5 degrees in Java block/item models of the latest version. Introduces a project setting for format version.",
-		"icon": "architecture",
-		"min_version": "4.0.0",
-		"version": "1.0.0",
-		"variant": "both"
-	},
 	"shape_generator": {
 		"title": "Shape Generator",
 		"author": "dragonmaster95",
