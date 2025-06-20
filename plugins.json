@@ -73,7 +73,8 @@
 		"description": "Hide concealed faces for better performance!",
 		"icon": "border_outer",
 		"min_version": "2.0.2",
-		"variant": "both"
+		"variant": "both",
+		"version": "1.2.8"
 	},
 	"blockmodels-exporter": {
 		"title": "Export to BlockModels.com",
