@@ -1128,5 +1128,22 @@
 			"Utility"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save"
+	},
+	"repeating_textures": {
+		"title": "Repeating Textures",
+		"author": "0x13F",
+		"description": "Enables repeating textures",
+		"icon": "icon.png",
+		"creation_date": "2025-06-15",
+		"version": "2.0.0",
+		"variant": "both",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Viewport",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/repeating_textures"
 	}
 }
