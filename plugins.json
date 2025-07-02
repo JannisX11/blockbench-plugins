@@ -1145,5 +1145,18 @@
 			"Utility"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/repeating_textures"
+	},
+	"blockbenchy": {
+		"title": "Blockbenchy - 3MF Exporter",
+		"author": "Ayden Hodgins-de Jonge",
+		"description": "Export geometry as 3MF",
+		"tags": ["Exporter", "3D Printing", "3MF"],
+		"icon": "icon.png",
+		"variant": "both",
+		"version": "0.0.1",
+		"creation_date": "2025-07-02",
+		"min_version": "4.12.5",
+		"has_changelog": false,
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/blockbenchy"
 	}
 }
