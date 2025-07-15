@@ -4,7 +4,7 @@ import {compile} from "./compile";
 
 
 let exportButton: Action
-let exportDialog = new Dialog("export-dialog", {
+let exportDialog = new Dialog("export-to-3mf-dialog", {
     title: "3MF Model Exporter",
 
     form: {
@@ -70,7 +70,7 @@ let exportDialog = new Dialog("export-dialog", {
 })
 
 function load() {
-    exportButton = new Action("export-button", {
+    exportButton = new Action("export-to-3mf-button", {
         click(): void {
             exportDialog.show()
         },
@@ -89,14 +89,17 @@ function unload() {
 }
 
 
-BBPlugin.register("blockbenchy", {
-    author: "Ayden Hodgins-de Jonge",
-    description: "Export geometry as 3MF",
-    tags: ["Exporter", "3D Printing", "3MF"],
-    icon: "icon.png",
-    variant: "both",
-    title: "Blockbenchy - 3MF Exporter",
-    version: "0.0.1",
+BBPlugin.register("export_to_3mf", {
+    "title": "Export to 3MF",
+    "author": "Ayden Hodgins-de Jonge",
+    "description": "Export geometry as 3MF for 3D printing",
+    "tags": ["Exporter", "3D Printing", "3MF"],
+    "icon": "icon.png",
+    "variant": "both",
+    "version": "0.0.1",
+    "min_version": "4.12.5",
+    "has_changelog": false,
+    "repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf",
     onload: load,
     onunload: unload
 })

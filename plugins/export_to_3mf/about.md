@@ -1,6 +1,6 @@
-# Blockbenchy - 3MF Exporter
+# Export to 3MF
 
-**Block*benchy*** is a Blockbench plugin that allows you to directly export your models to .3mf (3D Manufacturing Format) files. This format can then be imported into 3D printing software.
+**Export to 3MF** is a Blockbench plugin that allows you to directly export your models to .3mf files (3D Manufacturing Format). This allows you to easily slice your Blockbench models for 3D printing.
 
 ## How to use
 Access the export via `File > Export > Export 3MF Model`.

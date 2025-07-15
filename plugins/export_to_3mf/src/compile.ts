@@ -1,7 +1,7 @@
 /// <reference path="../node_modules/blockbench-types/types/plugin.d.ts" />
 
-import JSZip from "jszip";
 import {isObjectManifold} from "./validation";
+
 
 declare const THREE: typeof import('three');
 
@@ -28,6 +28,7 @@ export type RawTriangle = {vertices: Vertex[], colour: number, object: number}
 export type IndexedTriangle = {indexes: [number, number, number]}
 
 export async function compile(units: string, splitGroups: undefined|"group"|"marker"): Promise<ArrayBuffer> {
+    // @ts-ignore
     const zip = new JSZip()
 
     // Basic stuff
