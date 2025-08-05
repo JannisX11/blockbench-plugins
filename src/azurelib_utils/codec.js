@@ -292,6 +292,34 @@ export function maybeExportItemJson(options = {}, as) {
             blockmodel.display = new_display
         }
     }
+    if (Project.textures && checkExport("textures", Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Object.values(Project.textures)) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+
+                if (name.indexOf(".png") > -1) {
+                    name = name.substring(0, name.indexOf(".png"));
+                }
+
+                if (!tex.particle && !isValidPath(name)) {
+                    continue;
+                }
+
+                blockmodel.textures = {
+                    particle: name
+                };
+
+                break;
+            }
+        }
+    }
+
+    function isValidPath(path) {
+        const pattern = new RegExp('^[_\\-/.a-z0-9]+$');
+
+        return pattern.test(path);
+    }
+
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
     var scope = codec;
@@ -326,6 +354,7 @@ var format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
