@@ -73,7 +73,8 @@
 		"description": "Hide concealed faces for better performance!",
 		"icon": "border_outer",
 		"min_version": "2.0.2",
-		"variant": "both"
+		"variant": "both",
+		"version": "1.2.8"
 	},
 	"blockmodels-exporter": {
 		"title": "Export to BlockModels.com",
@@ -1127,5 +1128,35 @@
 			"Utility"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save"
+	},
+	"repeating_textures": {
+		"title": "Repeating Textures",
+		"author": "0x13F",
+		"description": "Enables repeating textures",
+		"icon": "icon.png",
+		"creation_date": "2025-06-15",
+		"version": "2.0.0",
+		"variant": "both",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Viewport",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/repeating_textures"
+	},
+	"export_to_3mf": {
+		"title": "Export to 3MF",
+		"author": "Ayden Hodgins-de Jonge",
+		"description": "Export geometry as 3MF for 3D printing",
+		"tags": ["Exporter", "3D Printing", "3MF"],
+		"icon": "icon.png",
+		"variant": "both",
+		"version": "0.0.1",
+		"creation_date": "2025-07-02",
+		"min_version": "4.12.5",
+		"has_changelog": false,
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf"
 	}
 }
