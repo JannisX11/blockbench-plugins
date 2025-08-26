@@ -1158,5 +1158,22 @@
 		"min_version": "4.12.5",
 		"has_changelog": false,
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf"
+	},
+
+	"shaper": {
+		"title": "Shaper",
+		"author": "Vowxky",
+		"description": "Support tool for the Shaper mod that helps create and export hitboxes. Exports Voxel Shapes as a flat JSON list with scope selection for easier editing and reuse.",
+		"icon": "bar_chart",
+		"creation_date": "2025-08-26",
+		"version": "1.0.0",
+		"variant": "both",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Exporter"
+		],
+		"bug_tracker": "https://github.com/vowxky/blockbench-plugins/issues?title=[Shaper]"
 	}
 }
