@@ -9,7 +9,7 @@ Plugin.register('repeating_textures', {
     description:   'Enables repeating textures',
     icon:          'icon.png',
     creation_date: '2025-06-15',
-    version:       '2.0.0',
+    version:       '3.0.0',
     variant:       'both',
     min_version:   '4.12.4',
     has_changelog: false,
@@ -71,27 +71,25 @@ Plugin.register('repeating_textures', {
 
 function applyRepeatingTextures(force = undefined) {
 
-    Texture.all.forEach(t => applyRepeatingTextureFor(t, force));
+    for (let texture of Texture.all)
+        applyRepeatingTextureFor(texture, force);
 
 }
 
 function applyRepeatingTextureFor(texture, force = undefined) {
 
-    if (force ?? Settings.get('repeating_textures')) {
-        if (texture.img.tex.wrapS !== THREE.RepeatWrapping
-            || texture.img.tex.wrapT !== THREE.RepeatWrapping) {
-            texture.img.tex.wrapS = THREE.RepeatWrapping;
-            texture.img.tex.wrapT = THREE.RepeatWrapping;
-            texture.img.tex.needsUpdate = true;
-        }
-    } else {
-        if (texture.img.tex.wrapS !== THREE.ClampToEdgeWrapping
-            || texture.img.tex.wrapT !== THREE.ClampToEdgeWrapping) {
-            texture.img.tex.wrapS = THREE.ClampToEdgeWrapping;
-            texture.img.tex.wrapT = THREE.ClampToEdgeWrapping;
-            texture.img.tex.needsUpdate = true;
-        }
-    }
+    let useRepeating = force ?? Settings.get('repeating_textures');
+    let wrapMode = useRepeating ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
+    let map = texture.material?.map ?? texture.img?.tex;
+
+    console.log(texture, force, map, wrapMode)
+
+    if (map.wrapS === wrapMode && map.wrapT === wrapMode)
+        return;
+
+    map.wrapS = wrapMode;
+    map.wrapT = wrapMode;
+    map.needsUpdate = true;
 
 }
 
