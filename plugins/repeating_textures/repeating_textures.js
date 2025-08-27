@@ -23,7 +23,7 @@ Plugin.register('repeating_textures', {
             let original = Texture.prototype.getMaterial;
             Texture.prototype.getMaterial = function () {
                 let result = original.apply(this);
-                applyRepeatingTextureFor(this);
+                updateTextureWrapMode(this);
                 return result;
             };
             defer(() => Texture.prototype.getMaterial = original);
@@ -36,7 +36,7 @@ Plugin.register('repeating_textures', {
             category: 'view',
             value: true,
             onChange() {
-                applyRepeatingTextures();
+                updateAllTextureWrapModes();
             },
         }));
 
@@ -54,9 +54,9 @@ Plugin.register('repeating_textures', {
         defer(() => MenuBar.menus.file.structure.splice(MenuBar.menus.view.structure.indexOf(repeatingTexturesToggle), 1));
 
         // Apply setting on load
-        applyRepeatingTextures();
+        updateAllTextureWrapModes();
         // Disable on unload
-        defer(() => applyRepeatingTextures(false));
+        defer(() => updateAllTextureWrapModes(false));
 
     },
 
@@ -69,14 +69,14 @@ Plugin.register('repeating_textures', {
 
 });
 
-function applyRepeatingTextures(force = undefined) {
+function updateAllTextureWrapModes(force = undefined) {
 
     for (let texture of Texture.all)
-        applyRepeatingTextureFor(texture, force);
+        updateTextureWrapMode(texture, force);
 
 }
 
-function applyRepeatingTextureFor(texture, force = undefined) {
+function updateTextureWrapMode(texture, force = undefined) {
 
     let useRepeating = force ?? Settings.get('repeating_textures');
     let wrapMode = useRepeating ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
