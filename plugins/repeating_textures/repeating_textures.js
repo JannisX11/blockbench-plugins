@@ -82,8 +82,6 @@ function applyRepeatingTextureFor(texture, force = undefined) {
     let wrapMode = useRepeating ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
     let map = texture.material?.map ?? texture.img?.tex;
 
-    console.log(texture, force, map, wrapMode)
-
     if (map.wrapS === wrapMode && map.wrapT === wrapMode)
         return;
 
