@@ -75,7 +75,7 @@ Plugin.register('export_to_blender', {
 
     onload() {
 
-        let blenderPathSetting = deferDelete(new Setting('blender_path', {
+        deferDelete(new Setting('blender_path', {
             name: 'Blender path',
             description: 'Path to the Blender executable',
             category: 'export',
@@ -153,7 +153,7 @@ Plugin.register('export_to_blender', {
                 name: 'Export Blender Scene',
                 icon: 'blender',
                 category: 'file',
-                click: function () {
+                click() {
 
                     let blenderPath = Settings.get('blender_path');
                     if (blenderPath == undefined || blenderPath == '') {
@@ -161,7 +161,7 @@ Plugin.register('export_to_blender', {
                     } else {
                         blenderCodec.export();
                     }
-                }
+                },
             })),
             export_options: {
                 ['scale']: {
@@ -422,7 +422,7 @@ function executeCommand(command, args) {
                 reject(err);
             });
         } catch (error) {
-            reject(error)
+            reject(error);
         }
     });
 }
