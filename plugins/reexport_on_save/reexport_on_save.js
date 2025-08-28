@@ -46,7 +46,7 @@ Plugin.register('reexport_on_save', {
     description:   'Automatically re-export your project when saving',
     icon:          'output',
     creation_date: '2025-04-18',
-    version:       '1.0.0',
+    version:       '2.0.0',
     variant:       'desktop',
     min_version:   '4.12.4',
     has_changelog: false,
