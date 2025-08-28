@@ -1,8 +1,6 @@
 (function() {
 
-const path = require('path');
-
-const windows = process.platform === 'win32';
+const windows = Blockbench.operating_system === 'Windows';
 
 // Fix for Properties of type 'object' not getting read properly on project load
 // Thanks SnaveSutit!
@@ -234,7 +232,7 @@ async function reexport() {
     let exportPath = exportPathToAbsolute(Project.reexport.path);
 
     // Failed to resolve export path
-    if (!path.isAbsolute(exportPath)) {
+    if (!PathModule.isAbsolute(exportPath)) {
         isCurrentlyReexporting = false;
         showReexportFailed('the export path is relative but this project has no save path');
         return;
@@ -247,7 +245,7 @@ async function reexport() {
         return;
     }
 
-    let exportFilename = path.basename(exportPath);
+    let exportFilename = PathModule.basename(exportPath);
     let codec = Codecs[Project.reexport.codec];
     let codecOptions = Project.reexport.codec_options;
 
@@ -336,7 +334,7 @@ function buildReexportDialog(dialog, justChangedCodecTo) {
         dialog.setFormValues({
             ...Project.reexport,
             // Also set the relative checkbox
-            relative: !path.isAbsolute(Project.reexport?.path ?? ''),
+            relative: !PathModule.isAbsolute(Project.reexport?.path ?? ''),
         });
     }
 
@@ -457,7 +455,7 @@ function buildReexportDialog(dialog, justChangedCodecTo) {
         if (gltfEncoding === 'binary')
             extension = 'glb';
         let projectName = Project.name || 'model';
-        let exportPath = '.' + path.sep + projectName + '.' + extension;
+        let exportPath = '.' + PathModule.sep + projectName + '.' + extension;
         dialog.setFormValues({ path: exportPath });
     }
     
@@ -476,8 +474,8 @@ function buildReexportDialog(dialog, justChangedCodecTo) {
         // File picker dialog with correct extension
         browseButton.onclick = async () => {
             let oldPath = dialog.getFormResult().path;
-            let parentDir = path.dirname((Project.save_path || Project.export_path) ?? '');
-            let startPath = path.resolve(parentDir, oldPath);
+            let parentDir = PathModule.dirname((Project.save_path || Project.export_path) ?? '');
+            let startPath = PathModule.resolve(parentDir, oldPath);
 
             let selectedCodec = dialog.codecForm.getResult().codec;
             let gltfEncoding = selectedCodec === 'gltf' ? dialog.codecForm.getResult().codec_encoding : undefined;
@@ -570,13 +568,13 @@ function updateStatusBar(statusText, icon, expire) {
 // MARK: 🟥 util
 
 function exportPathToAbsolute(exportPath) {
-    return path.resolve(path.dirname(Project.save_path), path.dirname(Project.export_path), exportPath);
+    return PathModule.resolve(PathModule.dirname(Project.save_path), PathModule.dirname(Project.export_path), exportPath);
 }
 
 function isReexportPathValid(exportPath, expectedExtension = undefined) {
     let absoluteExportPath = exportPathToAbsolute(exportPath);
-    let filename = path.basename(exportPath);
-    let extensionWithPeriod = path.extname(filename);
+    let filename = PathModule.basename(exportPath);
+    let extensionWithPeriod = PathModule.extname(filename);
     let isInvalid = false;
 
     // Re-export path should not be the same as the project itself
@@ -630,12 +628,12 @@ function isReexportPathValid(exportPath, expectedExtension = undefined) {
 function changeReexportExtension(dialog, newExtension) {
 
     let oldPath = dialog.getFormResult().path;
-    let baseNameWithoutExt = path.basename(oldPath, path.extname(oldPath));
+    let baseNameWithoutExt = PathModule.basename(oldPath, PathModule.extname(oldPath));
     // Replace empty filename or filename startings with periods, because they're probably invalid
     if (baseNameWithoutExt === '' || baseNameWithoutExt.startsWith('.'))
         baseNameWithoutExt = Project.name || 'model';
 
-    let pathWithoutExtension = path.dirname(oldPath) + path.sep + baseNameWithoutExt;
+    let pathWithoutExtension = PathModule.dirname(oldPath) + PathModule.sep + baseNameWithoutExt;
     let newPath = pathWithoutExtension + '.' + newExtension;
 
     dialog.setFormValues({ path: newPath, });
@@ -648,16 +646,16 @@ function makeReexportPathRelative(dialog, makeRelative) {
     let oldPath = dialog.getFormResult().path;
     let newPath = undefined;
 
-    let parentDir = path.dirname((Project.save_path || Project.export_path) ?? '');
+    let parentDir = PathModule.dirname((Project.save_path || Project.export_path) ?? '');
     // If we don't know the parent dir of the project,
     // there's no point even trying to do anything
     if (parentDir === '' || parentDir === '.')
         return;
 
-    if (makeRelative && path.isAbsolute(oldPath)) {
-        newPath = '.' + path.sep + path.relative(parentDir, oldPath);
+    if (makeRelative && PathModule.isAbsolute(oldPath)) {
+        newPath = '.' + PathModule.sep + PathModule.relative(parentDir, oldPath);
     } else if (!makeRelative) { // make absolute
-        newPath = path.resolve(parentDir, oldPath);
+        newPath = PathModule.resolve(parentDir, oldPath);
     }
 
     dialog.setFormValues({ path: newPath });
