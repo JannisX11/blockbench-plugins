@@ -1158,5 +1158,15 @@
 		"min_version": "4.12.5",
 		"has_changelog": false,
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf"
+	},
+	"baked_ambient_occlusion":{
+		"title": "Mr Salmon's Baked Ambient Occlusion",
+		"author": "Kai Salmon",
+		"description": "Baked Ambient Occlusion, creating instant shading",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"variant": "both",
+		"repository": "https://github.com/KaiSalmon/baked_ambient_occlusion"
 	}
 }
