@@ -171,5 +171,17 @@
         ]
       }
     ]
+  },
+  "4.1.1": {
+    "title": "4.1.1",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Deprecated plugin in favour of GeckoLib Models & Animations in preparation for Blockbench 5.0.0"
+        ]
+      }
+    ]
   }
 }
