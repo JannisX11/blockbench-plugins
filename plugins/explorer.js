@@ -10,7 +10,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	about: 'Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.',
-	version: '1.0.2',
+	version: '1.0.3',
 	min_version: '4.6.0',
 	variant: 'desktop',
 	onload() {
@@ -199,6 +199,7 @@ BBPlugin.register('explorer', {
 						let folders = [];
 						if (!this.path) return;
 						try {
+							let fs = require('fs');
 							let dirents = fs.readdirSync(this.path, {withFileTypes: true});
 							if (!dirents) return;
 							dirents.forEach(dirent => {
