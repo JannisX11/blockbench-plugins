@@ -7647,8 +7647,7 @@ function buildDisplaySettingsJson(options = {}) {
     const modelProperties = {};
     if (options['comment'] || settings.credit.value)
         modelProperties.credit = settings.credit.value;
-    if (options['parent'] || Project.parent != '')
-        modelProperties.parent = Project.parent;
+    modelProperties.parent = !Project.parent ? 'builtin/entity' : Project.parent;
     if (options['ambientocclusion'] || Project.ambientocclusion === false)
         modelProperties.ambientocclusion = false;
     if (Project.texture_width !== 16 || Project.texture_height !== 16)
@@ -7671,7 +7670,7 @@ function buildDisplaySettingsJson(options = {}) {
         if (!(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(nonDefaultDisplays))
             modelProperties.display = nonDefaultDisplays;
     }
-    if (options['textures'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(Project.textures)) {
+    if ((options['textures'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(Project.textures)) && Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID]) {
         for (const texture of Project.textures) {
             if (texture.particle || (settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_AUTO_PARTICLE_TEXTURE].value && Object.keys(Project.textures).length === 1)) {
                 let name = texture.name;
@@ -7683,8 +7682,7 @@ function buildDisplaySettingsJson(options = {}) {
                         continue;
                 }
                 name = (Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] == _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.BLOCK ? "block/" : "item/") + name;
-                if (Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID])
-                    name = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID] + ":" + name;
+                name = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID] + ":" + name;
                 modelProperties.textures = { 'particle': name };
                 break;
             }
@@ -8158,7 +8156,8 @@ function onProjectParse(e) {
  * Only called for GeckoLib projects
  */
 function onProjectSave(e) {
-    if (!settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
+    // Explicitly checked for undefined here because Blockbench attempts a save when removing the plugin
+    if (settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS] && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
         e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE] = {};
 }
 /**
@@ -8241,7 +8240,7 @@ function monkeypatchBlockbenchExport(options, cb) {
             const fileName = Project.model_identifier && Project.model_identifier + ".animation";
             options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation;
             const parentCallback = cb;
-            cb = file_path => {
+            cb = (file_path) => {
                 if (parentCallback)
                     parentCallback(file_path);
                 const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation;
@@ -8316,6 +8315,17 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             return points;
         }
     }
+    // Because Blockbench now implicitly inverts rotation and position keyframes on export and import (??)
+    function invertAnimKeyframe(channel, array) {
+        if (channel == 'position') {
+            array[0] = invertMolang(array[0]);
+        }
+        if (channel == 'rotation') {
+            array[0] = invertMolang(array[0]);
+            array[1] = invertMolang(array[1]);
+        }
+        return array;
+    }
     if (json && typeof json.animations === 'object') {
         for (const animName in json.animations) {
             if (exportingAnims && !exportingAnims.includes(animName))
@@ -8354,7 +8364,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     channel,
                                     easing: bone[channel]["easing"],
                                     easingArgs: bone[channel]["easingArgs"],
-                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                    data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
                                 });
                             }
                             else if (typeof bone[channel] === 'object' && bone[channel].post) {
@@ -8364,7 +8374,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
                                     easingArgs: bone[channel]["easingArgs"],
                                     interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
-                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                    data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
                                     bezier_right_time: bone[channel].right_time,
                                     bezier_left_time: bone[channel].left_time,
                                     bezier_left_value: bone[channel].left,
@@ -8379,7 +8389,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                         easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
                                         easingArgs: bone[channel][timestamp].easingArgs,
                                         interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
-                                        data_points: getKeyframeDataPoints(bone[channel][timestamp]),
+                                        data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
                                         bezier_right_time: bone[channel][timestamp].right_time,
                                         bezier_left_time: bone[channel][timestamp].left_time,
                                         bezier_left_value: bone[channel][timestamp].left,
@@ -8452,13 +8462,6 @@ function monkeypatchAnimatorBuildFile() {
     if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)() && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.BAKE_IN_BEZIER_KEYFRAMES].value) {
         const arg = arguments[1][0];
         const animation = this.animations.find(anim => anim.name == arg);
-        /*
-                this.animations.forEach(anim => {
-                   if (anim.name == arguments[1][0])
-                       animation = anim;
-        
-                   return;
-                });*/
         if (animation) {
             for (const uuid in animation.animators) {
                 const animator = animation.animators[uuid];
@@ -8549,63 +8552,66 @@ function lerp(start, stop, amt) {
 }
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
-    const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
-    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
+    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID)
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
-    }
+    const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     let easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
     if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing)) {
-        const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
+        const easingValue = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
             ? other.easingArgs[0]
             : (0,_easing__WEBPACK_IMPORTED_MODULE_3__.getEasingArgDefault)(other);
-        // console.log(`keyframeGetLerp arg1: ${arg1}`);
-        easingFunc = easingFunc.bind(null, arg1);
+        easingFunc = easingFunc.bind(null, easingValue);
     }
     const easedAmount = easingFunc(amount);
     const start = this.data_points.length == 1 ? this.calc(axis) : this.calc(axis, 1);
     const stop = other.calc(axis);
     const result = lerp(start, stop, easedAmount);
-    // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
-    if (Number.isNaN(result)) {
+    if (Number.isNaN(result))
         throw new Error('batman');
-    }
     return result;
 }
-function geckolibGetArray(data_point = 0) {
+// Calculate GeckoLib's keyframe values in place of the built-in Bedrock compiler.
+// Additionally, invert the keyframe to match Blockbench's internal handling
+function geckolibGetArray(data_point, invert) {
     const { easing, easingArgs, getArray } = this;
     let result = getArray.apply(this, [data_point]);
     if (this.bezier) {
         result = { vector: result, easing: "bezier", left: this.bezier_left_value, left_time: this.bezier_left_time, right: this.bezier_right_value, right_time: this.bezier_right_time };
     }
     else if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
-        if (this.data_points.length != 1)
+        if (this.data_points.length != 1) {
             result = { pre: result, post: getArray.apply(this, [1]), easing };
-        else
+        }
+        else {
             result = { vector: result, easing };
+        }
         if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
+    if (invert) {
+        for (let i = 0; i < result.vector.length; i++) {
+            result.vector[i] = invertMolang(result.vector[i]);
+        }
+    }
     return result;
 }
+// Replace the bedrock keyframe compilation with a custom handler
 function keyframeCompileBedrock() {
-    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID || !this.transform) {
+    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID || !this.transform)
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
-    }
+    const invertKeyframe = this.channel === 'rotation' || this.channel === 'position';
     if (this.interpolation == 'catmullrom') {
         const previous = this.getPreviousKeyframe.apply(this);
         const include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
         return {
-            pre: include_pre ? geckolibGetArray.call(this, [0]) : undefined,
-            post: geckolibGetArray.call(this, [include_pre ? 1 : 0]),
+            pre: include_pre ? geckolibGetArray.call(this, [0], invertKeyframe) : undefined,
+            post: geckolibGetArray.call(this, [include_pre ? 1 : 0], invertKeyframe),
             lerp_mode: this.interpolation,
         };
     }
-    else if (this.data_points.length == 1) {
-        return geckolibGetArray.call(this);
-    }
-    else {
-        return geckolibGetArray.call(this, [0]);
-    }
+    if (this.data_points.length == 1)
+        return geckolibGetArray.call(this, 0, invertKeyframe);
+    return geckolibGetArray.call(this, [0], invertKeyframe);
 }
 function keyframeGetUndoCopy() {
     const { easing, easingArgs } = this;
@@ -8615,41 +8621,34 @@ function keyframeGetUndoCopy() {
         if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
-    //   console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
     return result;
 }
+// Append GeckoLib data to Keyframes when constructed
 function keyframeExtend(dataIn) {
     const data = Object.assign({}, dataIn);
-    //   console.log('keyframeExtend 1 arguments:', arguments);
     if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
         if (typeof data.values === 'object') {
-            if (data.values.easing !== undefined) {
+            if (data.values.easing !== undefined)
                 Merge.string(this, data.values, 'easing');
-            }
-            if (Array.isArray(data.values.easingArgs)) {
+            if (Array.isArray(data.values.easingArgs))
                 this.easingArgs = data.values.easingArgs;
-            }
             if (!Array.isArray(data.values) && Array.isArray(data.values.vector)) {
                 // Convert data to format expected by KeyframeExtendOriginal
                 data.values = data.values.vector;
             }
         }
         else {
-            if (data.easing !== undefined) {
+            if (data.easing !== undefined)
                 Merge.string(this, data, 'easing');
-            }
-            if (Array.isArray(data.easingArgs)) {
+            if (Array.isArray(data.easingArgs))
                 this.easingArgs = data.easingArgs;
-            }
         }
     }
-    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
-    //   console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
-    return result;
+    return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
 }
+// Inject GeckoLib support for the reverse keyframes feature
 function onReverseKeyframes() {
     _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(BarItems.reverse_keyframes).click.apply(this, arguments);
-    // console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
     // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
     Undo.initEdit({ keyframes: Timeline.selected });
     const kfByAnimator = lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected, kf => kf.animator.uuid);
@@ -8665,7 +8664,6 @@ function onReverseKeyframes() {
                 easing: (0,_easing__WEBPACK_IMPORTED_MODULE_3__.reverseEasing)(kf.easing),
                 easingArgs: kf.easingArgs
             }));
-            // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
             // Shift easing data to the right by one keyframe
             channelKeyframes.forEach((kf, i) => {
                 if (i == 0) {
@@ -8677,10 +8675,8 @@ function onReverseKeyframes() {
                 kf.easing = newEasingData.easing;
                 kf.easingArgs = newEasingData.easingArgs;
             });
-            // console.log('@@@ onReverseKeyframes POST animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes);
         });
     });
-    // console.log('@@@ kfByAnimator:', kfByAnimator, "\nkfByAnimatorAndChannel:", kfByAnimatorAndChannel);
     Undo.finishEdit('Reverse keyframe easing');
     updateKeyframeSelection();
     Animator.preview();
@@ -8753,7 +8749,7 @@ const removeMonkeypatches = () => {
  * Wrap a callback object with a conditional check on the project being a GeckoLib project, for safety
  */
 const onlyIfGeckoLib = (callback) => {
-    return e => {
+    return (e) => {
         if (isGeckoLibModel())
             callback(e);
     };
@@ -9040,7 +9036,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
 function createPluginSettings() {
     return [
         new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_AUTO_PARTICLE_TEXTURE, {
-            value: true,
+            value: false,
             category: "export",
             name: "Auto-compute block/item particle texture",
             description: "Attempt to auto-compute the particle texture for a GeckoLib block/item model if one isn't already specified when exporting the display settings json"

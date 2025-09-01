@@ -15,7 +15,7 @@ export const Monkeypatches = new Map();
  * @param functionKey The name of the function to replace
  * @param newFunction The function to patch in to replace the target
  */
-export const addMonkeypatch = (symbol, path, functionKey, newFunction) => {
+export const addMonkeypatch = (symbol: any, path: string | null, functionKey: string, newFunction) => {
   const pathAccessor = path ? symbol[path] : symbol;
 
   if (!Monkeypatches.get(symbol))
@@ -44,7 +44,7 @@ export const removeMonkeypatches = () => {
  * Wrap a callback object with a conditional check on the project being a GeckoLib project, for safety
  */
 export const onlyIfGeckoLib = (callback: (data: object) => void) => {
-  return e => {
+  return (e: any) => {
     if (isGeckoLibModel())
       callback(e)
   }

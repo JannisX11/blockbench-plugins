@@ -181,13 +181,16 @@
         "list": [
           "Rename to GeckoLib",
           "Update to support Blockbench 5.0.0",
-          "General internal cleanup"
+          "General internal cleanup",
+          "Skip `Auto-compute block/item particle texture` at export time if no mod-id set",
+          "Default the `Auto-compute block/item particle texture` to false to reduce runtime errors from unaware devs"
         ]
       },
       {
         "title": "Bug Fixes",
         "list": [
-          "Require Blockbench to fully load the plugin before running, preventing race conditions on format availability"
+          "Require Blockbench to fully load the plugin before running, preventing race conditions on format availability",
+          "Fixed GeckoLib item display settings sometimes not exporting with the parent set"
         ]
       }
     ]

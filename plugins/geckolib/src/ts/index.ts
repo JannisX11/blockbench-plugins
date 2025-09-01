@@ -85,7 +85,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
 function createPluginSettings(): Setting[] {
   return [
     new Setting(SETTING_AUTO_PARTICLE_TEXTURE, {
-      value: true,
+      value: false,
       category: "export",
       name: "Auto-compute block/item particle texture",
       description: "Attempt to auto-compute the particle texture for a GeckoLib block/item model if one isn't already specified when exporting the display settings json"

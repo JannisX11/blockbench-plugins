@@ -309,8 +309,7 @@ export function buildDisplaySettingsJson(options = {}) {
     if (options['comment'] || settings.credit.value)
         modelProperties.credit = settings.credit.value
 
-    if (options['parent'] || Project.parent != '')
-        modelProperties.parent = Project.parent
+    modelProperties.parent = !Project.parent ? 'builtin/entity' : Project.parent;
 
     if (options['ambientocclusion'] || Project.ambientocclusion === false)
         modelProperties.ambientocclusion = false
@@ -343,7 +342,7 @@ export function buildDisplaySettingsJson(options = {}) {
             modelProperties.display = nonDefaultDisplays
     }
 
-    if (options['textures'] || !isEmpty(Project.textures)) {
+    if ((options['textures'] || !isEmpty(Project.textures)) && Project[PROPERTY_MODID]) {
         for (const texture of Project.textures) {
             if (texture.particle || (settings[SETTING_AUTO_PARTICLE_TEXTURE].value && Object.keys(Project.textures).length === 1)) {
                 let name = texture.name;
@@ -359,9 +358,7 @@ export function buildDisplaySettingsJson(options = {}) {
                 }
 
                 name = (Project[PROPERTY_MODEL_TYPE] == GeckoModelType.BLOCK ? "block/" : "item/") + name;
-
-                if (Project[PROPERTY_MODID])
-                    name = Project[PROPERTY_MODID] + ":" + name
+                name = Project[PROPERTY_MODID] + ":" + name
 
                 modelProperties.textures = {'particle': name};
 
