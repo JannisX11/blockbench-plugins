@@ -51,7 +51,7 @@ Plugin.register('repeating_textures', {
         let shadingToggleIndex = MenuBar.menus.view.structure.indexOf('toggle_shading');
         let repeatingTexturesToggleIndex = shadingToggleIndex + 1;
         MenuBar.menus.view.structure.splice(repeatingTexturesToggleIndex, 0, repeatingTexturesToggle);
-        defer(() => MenuBar.menus.file.structure.splice(MenuBar.menus.view.structure.indexOf(repeatingTexturesToggle), 1));
+        defer(() => MenuBar.menus.view.structure.splice(MenuBar.menus.view.structure.indexOf(repeatingTexturesToggle), 1));
 
         // Apply setting on load
         updateAllTextureWrapModes();
