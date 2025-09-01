@@ -8299,32 +8299,41 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
         }
         return 'once';
     }
-    function getKeyframeDataPoints(source) {
+    function getKeyframeDataPoints(channel, source) {
         if (source instanceof Array)
-            return [{ x: source[0], y: source[1], z: source[2], }];
+            return invertAnimKeyframe(channel, [{ x: source[0], y: source[1], z: source[2] }]);
         if (['number', 'string'].includes(typeof source))
-            return [{ x: source, y: source, z: source }];
+            return invertAnimKeyframe(channel, [{ x: source, y: source, z: source }]);
         if (typeof source == 'object') {
             if (source.vector)
-                return getKeyframeDataPoints(source.vector);
+                return getKeyframeDataPoints(channel, source.vector);
             const points = [];
             if (source.pre)
-                points.push(getKeyframeDataPoints(source.pre)[0]);
+                points.push(getKeyframeDataPoints(channel, source.pre)[0]);
             if (source.post)
-                points.push(getKeyframeDataPoints(source.post)[0]);
+                points.push(getKeyframeDataPoints(channel, source.post)[0]);
             return points;
         }
     }
     // Because Blockbench now implicitly inverts rotation and position keyframes on export and import (??)
-    function invertAnimKeyframe(channel, array) {
-        if (channel == 'position') {
-            array[0] = invertMolang(array[0]);
+    function invertAnimKeyframe(channel, value) {
+        if (channel != 'position' && channel != 'rotation')
+            return value;
+        if (value instanceof Array) {
+            switch (value.length) {
+                case 1: return [invertAnimKeyframe(channel, value[0])];
+                case 3: return [invertAnimKeyframe(channel, value[0]), channel == 'rotation' ? invertAnimKeyframe(channel, value[1]) : value[1], value[2]];
+                default: return value;
+            }
         }
-        if (channel == 'rotation') {
-            array[0] = invertMolang(array[0]);
-            array[1] = invertMolang(array[1]);
+        else if (typeof value == 'object') {
+            if (value.x)
+                value.x = invertMolang(value.x);
+            if (value.y && channel == 'rotation')
+                value.y = invertMolang(value.y);
+            return value;
         }
-        return array;
+        return invertMolang(value);
     }
     if (json && typeof json.animations === 'object') {
         for (const animName in json.animations) {
@@ -8364,7 +8373,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     channel,
                                     easing: bone[channel]["easing"],
                                     easingArgs: bone[channel]["easingArgs"],
-                                    data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
                                 });
                             }
                             else if (typeof bone[channel] === 'object' && bone[channel].post) {
@@ -8374,7 +8383,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
                                     easingArgs: bone[channel]["easingArgs"],
                                     interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
-                                    data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
                                     bezier_right_time: bone[channel].right_time,
                                     bezier_left_time: bone[channel].left_time,
                                     bezier_left_value: bone[channel].left,
@@ -8389,7 +8398,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                         easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
                                         easingArgs: bone[channel][timestamp].easingArgs,
                                         interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
-                                        data_points: invertAnimKeyframe(channel, getKeyframeDataPoints(bone[channel])),
+                                        data_points: getKeyframeDataPoints(channel, bone[channel][timestamp]),
                                         bezier_right_time: bone[channel][timestamp].right_time,
                                         bezier_left_time: bone[channel][timestamp].left_time,
                                         bezier_left_value: bone[channel][timestamp].left,
