@@ -1163,13 +1163,13 @@
 		"title": "Texture Filtering",
 		"author": "HeyItsDuke, 0x13F",
 		"description": "Toggles between Nearest (Blockbench default) and Linear texture filtering",
-		"tags": ["Texture'", "Viewport", "Utility"],
 		"icon": "deblur",
-		"variant": "both",
-		"version": "1.0.0",
 		"creation_date": "2025-09-01",
+		"version": "1.0.0",
+		"variant": "both",
 		"min_version": "4.12.4",
 		"has_changelog": false,
+		"tags": ["Texture'", "Viewport", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_filtering"
 	}
 }
