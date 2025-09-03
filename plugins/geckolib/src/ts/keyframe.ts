@@ -84,7 +84,7 @@ function keyframeGetLerp(other, axis, amount, allow_expression) {
 
 // Calculate GeckoLib's keyframe values in place of the built-in Bedrock compiler.
 // Additionally, invert the keyframe to match Blockbench's internal handling
-function geckolibGetArray(data_point: number, invert: boolean) {
+function geckolibGetArray(data_point: number, channel: string) {
     const {easing, easingArgs, getArray} = this;
     let result = getArray.apply(this, [data_point]);
 
@@ -103,10 +103,11 @@ function geckolibGetArray(data_point: number, invert: boolean) {
             result.easingArgs = easingArgs;
     }
 
-    if (invert) {
-        for (let i = 0; i < result.vector.length; i++) {
-            result.vector[i] = invertMolang(result.vector[i])
-        }
+    if (channel === 'rotation' || channel === 'position') {
+        result.vector[0] = invertMolang(result.vector[0])
+
+        if (channel === 'rotation')
+            result.vector[1] = invertMolang(result.vector[1])
     }
 
     return result;
@@ -117,23 +118,21 @@ function keyframeCompileBedrock() {
     if (Format.id !== GECKOLIB_MODEL_ID || !this.transform)
         return Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
 
-    const invertKeyframe = this.channel === 'rotation' || this.channel === 'position';
-
     if (this.interpolation == 'catmullrom') {
         const previous = this.getPreviousKeyframe.apply(this);
         const include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
 
         return {
-            pre: include_pre ? geckolibGetArray.call(this, [0], invertKeyframe) : undefined,
-            post: geckolibGetArray.call(this, [include_pre ? 1 : 0], invertKeyframe),
+            pre: include_pre ? geckolibGetArray.call(this, [0], this.channel) : undefined,
+            post: geckolibGetArray.call(this, [include_pre ? 1 : 0], this.channel),
             lerp_mode: this.interpolation,
         }
     }
 
     if (this.data_points.length == 1)
-        return geckolibGetArray.call(this, 0, invertKeyframe);
+        return geckolibGetArray.call(this, 0, this.channel);
 
-    return geckolibGetArray.call(this, [0], invertKeyframe);
+    return geckolibGetArray.call(this, [0], this.channel);
 }
 
 function keyframeGetUndoCopy() {
