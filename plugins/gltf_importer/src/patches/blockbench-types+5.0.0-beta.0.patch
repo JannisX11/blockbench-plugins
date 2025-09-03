@@ -1,0 +1,12 @@
+diff --git a/node_modules/blockbench-types/generated/plugin_loader.d.ts b/node_modules/blockbench-types/generated/plugin_loader.d.ts
+index 33ea480..ae9db47 100644
+--- a/node_modules/blockbench-types/generated/plugin_loader.d.ts
++++ b/node_modules/blockbench-types/generated/plugin_loader.d.ts
+@@ -126,6 +126,7 @@ interface PluginOptions {
+     bug_tracker?: string;
+     contributors?: string[];
+     disabled?: boolean;
++    creation_date: string | number;
+     /**
+      * Runs when the plugin loads
+      */
