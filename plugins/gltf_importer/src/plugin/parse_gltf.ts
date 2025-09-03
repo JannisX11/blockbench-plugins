@@ -10,47 +10,39 @@ type GLTFLoaderConstructor = { new (loadingManager: THREE.LoadingManager|undefin
 export type GLTFLOoader = _GLTFLoader;
 export type GLTF = _GLTF;
 
+export async function parseGltf(file: Filesystem.FileResult): Promise<GLTF> {
+    
+    let loadingManager = new THREE.LoadingManager();
+    fixStupidRelativePathBug(loadingManager, file);
+
+    let gltfLoader = createGltfLoader(loadingManager);
+
+    let gltf = await parseGltfWithLoader(gltfLoader, file);
+
+    return gltf;
+}
+
 export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined = undefined): _GLTFLoader {
     let _GLTFLoader = THREE['GLTFLoader'] as GLTFLoaderConstructor;
     let loader = new _GLTFLoader(loadingManager);
     return loader;
 }
 
-export function parseGltf(loader: _GLTFLoader, file: Filesystem.FileResult): Promise<GLTF> {
+export function parseGltfWithLoader(loader: _GLTFLoader, file: Filesystem.FileResult): Promise<GLTF> {
     return new Promise((resolve, reject) =>
         loader.parse(file.content, PathModule.dirname(file.path), resolve, reject));
 }
 
-// TODO: delete this
-export function spyGltfTextures(manager: THREE.LoadingManager): {[textureId: string]: string } {
-    let trackedTextureLoader = new TrackedTextureLoader(manager);
-    return trackedTextureLoader.textureUrls;
-}
-
-class TrackedTextureLoader extends THREE.TextureLoader {
-    public textureUrls: { [textureId: string]: string } = {};
-
-    load(
-        url: string,
-        onLoad?:     (texture: THREE.Texture) => void,
-        onProgress?: (event: ProgressEvent) => void,
-        onError?:    (event: ErrorEvent) => void
-    ): THREE.Texture {
-        console.log('aaaa', url);  // TODO:
-        return super.load(
-            url,
-            (texture) => {
-                console.log('texture!', texture, url) // TODO:
-                this.textureUrls[texture.uuid] = url;
-                onLoad?.(texture);
-            },
-            onProgress,
-            onError
-        );
-    }
-
-    loadAsync(url: string, onProgress?: (event: ProgressEvent) => void): Promise<THREE.Texture> {
-        console.log('bbbbbb', url) // TODO:
-        return super.loadAsync(url, onProgress);
-    }
+export function fixStupidRelativePathBug(loadingManager: THREE.LoadingManager, file: Filesystem.FileResult) {
+    // GLTFLoader is stupid and forgets to add the path seperator after the parent directory
+    // when a referenced file's relative path doesn't start with ./
+    // We detect when it makes this mistake and fix it
+    loadingManager.setURLModifier((url) => {
+        let basePathWithoutSep = PathModule.dirname(file.path);
+        let basePathWithSlash = basePathWithoutSep + PathModule.sep;
+        // HACK: we don't need to do startsWith twice here if we look at char indices
+        if (url.startsWith(basePathWithoutSep) && !url.startsWith(basePathWithSlash))
+            return url.replace(basePathWithoutSep, basePathWithSlash);
+        return url;
+    });
 }

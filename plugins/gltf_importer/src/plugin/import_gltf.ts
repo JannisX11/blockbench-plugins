@@ -1,4 +1,4 @@
-import { createGltfLoader, parseGltf } from './parse_gltf';
+import { GLTF, parseGltf } from './parse_gltf';
 import { valuesAndIndices } from './util';
 import { VectorHashMap } from './vector_hash_map';
 
@@ -20,9 +20,8 @@ export type ImportedContent = {
     uvOutOfBounds:         boolean,
     usesRepeatingWrapMode: boolean,
     unsupportedArmatures:  boolean,
-    // To keep track of which THREE material corresponds to which Blockbench texture
-    texturesById:     {[textureId: string]: Texture};
-    textureCacheKeys: {[textureUuid: string]: string};
+    // To keep track of which THREE texture corresponds to which Blockbench texture
+    texturesById: {[textureId: string]: Texture};
 };
 
 // MARK: 🟥 gltf
@@ -30,25 +29,16 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
     // TODO: cameras!
     // TODO: animations!
-    
-    let gltfLoader = createGltfLoader();
-    let gltf = await parseGltf(gltfLoader, options.file);
+
+    console.log('options', options); // TODO: remove
+
+    let gltf = await parseGltf(options.file);
 
     let sceneRoot = gltf.scene as unknown as THREE.Group;
 
     console.log('gltf', gltf); // TODO: remove
 
-    // The GLTF loader's internal texture cache holds information 
-    // on texture's sources inside the cache keys
-    // We extract these keys so we can later use it to load the textures ourselves
-    let textureCache = (gltf.parser as any).textureCache as {[textureCacheKey: string]: Promise<THREE.Texture>};
-    // Await all the promises of textures
-    let textureCacheTextures = await Promise.all(Object.values(textureCache));
-    // Use the texture uuids as keys and the cache keys as values
-    // Also strip the keys after the colon
-    let textureCacheKeys = Object.fromEntries(Object.keys(textureCache).map((k, i) => [textureCacheTextures[i].uuid, k.substring(0, k.indexOf(':'))]));
-
-    let rootGroup = Outliner.root.find(n => n instanceof Group); // TODO: does this work??
+    let rootGroup = Outliner.root.find(n => n instanceof Group); // TODO: doesn't always work
     // keep track of all the things we imported for the undo system
     let content: ImportedContent = {
         groups:     [],
@@ -59,7 +49,6 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         usesRepeatingWrapMode: false,
         unsupportedArmatures:  false,
         texturesById: {},
-        textureCacheKeys: textureCacheKeys,
     };
     Undo.initEdit({
         outliner: true,
@@ -70,15 +59,45 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         animations: content.animations,
     });
 
+    await importTextures(gltf, options, content);
     importNode(sceneRoot, options, content);
 
     console.log('content', content); // TODO: remove
-
 
     Undo.finishEdit('Import glTF');
     console.log(`Imported glTF with ${content.groups.length} groups, ${content.elements.length} elements, ${content.textures.length} textures and ${content.animations.length} animations.`);
 
     return content;
+}
+
+// MARK: 🟥 textures
+async function importTextures(gltf: GLTF, options: ImportOptions, content: ImportedContent): Promise<void> {
+
+    // The GLTF loader's internal texture cache holds information 
+    // on texture's sources inside the cache keys
+    // We extract these keys so we can later use it to load the textures ourselves
+    let textureCache = (gltf.parser as any).textureCache as {[textureCacheKey: string]: Promise<THREE.Texture>};
+
+    for (let [cacheKey, threeTexturePromise] of Object.entries(textureCache)) {
+        let bbTexture = new Texture();
+        let threeTexture = await threeTexturePromise;
+        // Strip suffix (probably the sampler or something, don't care)
+        let cacheKeySource = cacheKey.substring(0, cacheKey.indexOf(':'));
+        // If the cache key is a number, that means the texture is embedded
+        if (isStringNumber(cacheKeySource)) {
+            // TODO:
+            console.log('erm miauw')
+
+        // TODO: can data urls be a thing?
+        // Otherwise the texture is from a file
+        } else {
+            let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKeySource);
+            bbTexture = bbTexture.fromPath(absoluteTexturePath).add(false);
+        }
+
+        content.texturesById[threeTexture.uuid] = bbTexture;
+        content.textures.push(bbTexture);
+    }
 }
 
 // MARK: 🟥 node
@@ -146,7 +165,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
     let meshTexture: Texture = null!; // TODO: decide which texture is the mesh texture
     // Lookup of primitive to texture
-    let primitiveTextures = primitives.map(p => importTextureForMesh(p, options, content));
+    let primitiveTextures = primitives.map(p => content.texturesById[(p.material as any)?.map?.uuid]);
     // TODO: handle multiple textures
 
     // Potentially confusing terms:
@@ -255,35 +274,3 @@ function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: Imp
 
 //     return mesh;
 // }
-
-// MARK: 🟥 texture
-function importTextureForMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent): Texture|null {
-    let threeMaterial = node.material as THREE.Material;
-    let threeTexture = (threeMaterial as any).map as THREE.Texture|undefined;
-
-    // No texture we recognise somehow?
-    if (threeTexture == undefined)
-        return undefined;
-
-    // Already imported
-    if (content.texturesById[threeTexture.uuid] != undefined)
-        return content.texturesById[threeTexture.uuid];
-
-    // Use the internal GLTF texture cache key for this texture to know where it's from
-    let textureCacheKey = content.textureCacheKeys[threeTexture.uuid];
-
-    // If the cache key is a number, that means the texture is embedded
-    if (isStringNumber(textureCacheKey)) {
-        // TODO:
-        console.log('erm miauw')
-
-    // Otherwise the texture is from a file
-    } else {
-        let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), textureCacheKey);
-        let bbTexture = new Texture().fromPath(absoluteTexturePath).add(false);
-        content.texturesById[threeTexture.uuid] = bbTexture;
-    }
-
-    return content.texturesById[threeTexture.uuid];
-
-}

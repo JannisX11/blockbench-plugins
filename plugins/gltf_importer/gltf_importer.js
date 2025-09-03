@@ -2262,34 +2262,30 @@
   // plugin/parse_gltf.ts
   if (THREE["GLTFLoader"] == void 0)
     init_GLTFLoader();
+  async function parseGltf(file) {
+    let loadingManager = new THREE.LoadingManager();
+    fixStupidRelativePathBug(loadingManager, file);
+    let gltfLoader = createGltfLoader(loadingManager);
+    let gltf = await parseGltfWithLoader(gltfLoader, file);
+    return gltf;
+  }
   function createGltfLoader(loadingManager = void 0) {
     let _GLTFLoader = THREE["GLTFLoader"];
     let loader = new _GLTFLoader(loadingManager);
     return loader;
   }
-  function parseGltf(loader, file) {
+  function parseGltfWithLoader(loader, file) {
     return new Promise((resolve, reject) => loader.parse(file.content, PathModule.dirname(file.path), resolve, reject));
   }
-  var TrackedTextureLoader = class extends THREE.TextureLoader {
-    textureUrls = {};
-    load(url, onLoad, onProgress, onError) {
-      console.log("aaaa", url);
-      return super.load(
-        url,
-        (texture) => {
-          console.log("texture!", texture, url);
-          this.textureUrls[texture.uuid] = url;
-          onLoad?.(texture);
-        },
-        onProgress,
-        onError
-      );
-    }
-    loadAsync(url, onProgress) {
-      console.log("bbbbbb", url);
-      return super.loadAsync(url, onProgress);
-    }
-  };
+  function fixStupidRelativePathBug(loadingManager, file) {
+    loadingManager.setURLModifier((url) => {
+      let basePathWithoutSep = PathModule.dirname(file.path);
+      let basePathWithSlash = basePathWithoutSep + PathModule.sep;
+      if (url.startsWith(basePathWithoutSep) && !url.startsWith(basePathWithSlash))
+        return url.replace(basePathWithoutSep, basePathWithSlash);
+      return url;
+    });
+  }
 
   // plugin/util.ts
   function isPluginInstalled(pluginId) {
@@ -2353,13 +2349,10 @@
 
   // plugin/import_gltf.ts
   async function importGltf(options) {
-    let gltfLoader = createGltfLoader();
-    let gltf = await parseGltf(gltfLoader, options.file);
+    console.log("options", options);
+    let gltf = await parseGltf(options.file);
     let sceneRoot = gltf.scene;
     console.log("gltf", gltf);
-    let textureCache = gltf.parser.textureCache;
-    let textureCacheTextures = await Promise.all(Object.values(textureCache));
-    let textureCacheKeys = Object.fromEntries(Object.keys(textureCache).map((k, i) => [textureCacheTextures[i].uuid, k.substring(0, k.indexOf(":"))]));
     let rootGroup = Outliner.root.find((n) => n instanceof Group);
     let content = {
       groups: [],
@@ -2369,8 +2362,7 @@
       uvOutOfBounds: false,
       usesRepeatingWrapMode: false,
       unsupportedArmatures: false,
-      texturesById: {},
-      textureCacheKeys
+      texturesById: {}
     };
     Undo.initEdit({
       outliner: true,
@@ -2380,11 +2372,28 @@
       textures: content.textures,
       animations: content.animations
     });
+    await importTextures(gltf, options, content);
     importNode(sceneRoot, options, content);
     console.log("content", content);
     Undo.finishEdit("Import glTF");
     console.log(`Imported glTF with ${content.groups.length} groups, ${content.elements.length} elements, ${content.textures.length} textures and ${content.animations.length} animations.`);
     return content;
+  }
+  async function importTextures(gltf, options, content) {
+    let textureCache = gltf.parser.textureCache;
+    for (let [cacheKey, threeTexturePromise] of Object.entries(textureCache)) {
+      let bbTexture = new Texture();
+      let threeTexture = await threeTexturePromise;
+      let cacheKeySource = cacheKey.substring(0, cacheKey.indexOf(":"));
+      if (isStringNumber(cacheKeySource)) {
+        console.log("erm miauw");
+      } else {
+        let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKeySource);
+        bbTexture = bbTexture.fromPath(absoluteTexturePath).add(false);
+      }
+      content.texturesById[threeTexture.uuid] = bbTexture;
+      content.textures.push(bbTexture);
+    }
   }
   function importNode(node, options, content) {
     switch (node.type) {
@@ -2436,7 +2445,7 @@
     });
     content.elements.push(mesh);
     let meshTexture = null;
-    let primitiveTextures = primitives.map((p) => importTextureForMesh(p, options, content));
+    let primitiveTextures = primitives.map((p) => content.texturesById[p.material?.map?.uuid]);
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
     let primitiveToUniqueVertexIndices = [];
@@ -2491,23 +2500,6 @@
   }
   function importSingleMesh(node, options, content) {
     return importMeshPrimitives(node, [node], options, content);
-  }
-  function importTextureForMesh(node, options, content) {
-    let threeMaterial = node.material;
-    let threeTexture = threeMaterial.map;
-    if (threeTexture == void 0)
-      return void 0;
-    if (content.texturesById[threeTexture.uuid] != void 0)
-      return content.texturesById[threeTexture.uuid];
-    let textureCacheKey = content.textureCacheKeys[threeTexture.uuid];
-    if (isStringNumber(textureCacheKey)) {
-      console.log("erm miauw");
-    } else {
-      let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), textureCacheKey);
-      let bbTexture = new Texture().fromPath(absoluteTexturePath).add(false);
-      content.texturesById[threeTexture.uuid] = bbTexture;
-    }
-    return content.texturesById[threeTexture.uuid];
   }
 
   // plugin/plugin.ts
