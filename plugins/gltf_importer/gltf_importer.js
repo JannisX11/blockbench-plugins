@@ -2384,6 +2384,7 @@
     });
     await importTextures(gltf, options, content);
     importNode(sceneRoot, options, content);
+    content.usesRepeatingWrapMode = gltf.parser.json.samplers.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497);
     console.log("content", content);
     Undo.finishEdit("Import glTF");
     console.log(`Imported glTF with ${content.groups.length} groups, ${content.elements.length} elements, ${content.textures.length} textures and ${content.animations.length} animations.`);
@@ -2499,18 +2500,21 @@
         let v1Idx = primitive.geometry.index.array[faceIndex * 3];
         let v2Idx = primitive.geometry.index.array[faceIndex * 3 + 1];
         let v3Idx = primitive.geometry.index.array[faceIndex * 3 + 2];
-        let v1Uv = [uvComponents[v1Idx * 2] * uvWidth, uvComponents[v1Idx * 2 + 1] * uvHeight];
-        let v2Uv = [uvComponents[v2Idx * 2] * uvWidth, uvComponents[v2Idx * 2 + 1] * uvHeight];
-        let v3Uv = [uvComponents[v3Idx * 2] * uvWidth, uvComponents[v3Idx * 2 + 1] * uvHeight];
+        let v1Uv = [uvComponents[v1Idx * 2], uvComponents[v1Idx * 2 + 1]];
+        let v2Uv = [uvComponents[v2Idx * 2], uvComponents[v2Idx * 2 + 1]];
+        let v3Uv = [uvComponents[v3Idx * 2], uvComponents[v3Idx * 2 + 1]];
+        let v1UvScaled = [v1Uv[0] * uvWidth, v1Uv[1] * uvHeight];
+        let v2UvScaled = [v2Uv[0] * uvWidth, v2Uv[1] * uvHeight];
+        let v3UvScaled = [v3Uv[0] * uvWidth, v3Uv[1] * uvHeight];
         let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
         let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
         let v3Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v3Idx]];
         faces.push(new MeshFace(mesh, {
           vertices: [v1Key, v2Key, v3Key],
           uv: {
-            [v1Key]: v1Uv,
-            [v2Key]: v2Uv,
-            [v3Key]: v3Uv
+            [v1Key]: v1UvScaled,
+            [v2Key]: v2UvScaled,
+            [v3Key]: v3UvScaled
           },
           texture
         }));

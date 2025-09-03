@@ -62,7 +62,12 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     });
 
     await importTextures(gltf, options, content);
+
     importNode(sceneRoot, options, content);
+
+    // Check if any samplers use the repeating wrap mode
+    content.usesRepeatingWrapMode = gltf.parser.json.samplers.some((s: any) =>
+        s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 );
 
     console.log('content', content); // TODO: remove
 
@@ -74,6 +79,8 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
 // MARK: 🟥 textures
 async function importTextures(gltf: GLTF, options: ImportOptions, content: ImportedContent): Promise<void> {
+
+    // TODO: imports textures that aren't used by blockbench like normal maps, probably go back to lazy way it was done before
 
     // The GLTF loader's internal texture cache holds information 
     // on texture's sources inside the cache keys
@@ -243,9 +250,12 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             let v2Idx = primitive.geometry.index.array[faceIndex*3 + 1];
             let v3Idx = primitive.geometry.index.array[faceIndex*3 + 2];
             // UV
-            let v1Uv: ArrayVector2 = [ uvComponents[v1Idx*2] * uvWidth, uvComponents[v1Idx*2 + 1] * uvHeight ];
-            let v2Uv: ArrayVector2 = [ uvComponents[v2Idx*2] * uvWidth, uvComponents[v2Idx*2 + 1] * uvHeight ];
-            let v3Uv: ArrayVector2 = [ uvComponents[v3Idx*2] * uvWidth, uvComponents[v3Idx*2 + 1] * uvHeight ];
+            let v1Uv: ArrayVector2 = [ uvComponents[v1Idx*2] , uvComponents[v1Idx*2 + 1] ];
+            let v2Uv: ArrayVector2 = [ uvComponents[v2Idx*2] , uvComponents[v2Idx*2 + 1] ];
+            let v3Uv: ArrayVector2 = [ uvComponents[v3Idx*2] , uvComponents[v3Idx*2 + 1] ];
+            let v1UvScaled: ArrayVector2 = [ v1Uv[0] * uvWidth, v1Uv[1] * uvHeight ];
+            let v2UvScaled: ArrayVector2 = [ v2Uv[0] * uvWidth, v2Uv[1] * uvHeight ];
+            let v3UvScaled: ArrayVector2 = [ v3Uv[0] * uvWidth, v3Uv[1] * uvHeight ];
             // Unique vertex keys
             let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
             let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
@@ -254,9 +264,9 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             faces.push(new MeshFace(mesh, {
                 vertices: [v1Key, v2Key, v3Key],
                 uv: {
-                    [v1Key]: v1Uv,
-                    [v2Key]: v2Uv,
-                    [v3Key]: v3Uv,
+                    [v1Key]: v1UvScaled,
+                    [v2Key]: v2UvScaled,
+                    [v3Key]: v3UvScaled,
                 },
                 texture: texture,
             }));
