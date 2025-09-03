@@ -1,5 +1,5 @@
 import { GLTF, parseGltf } from './parse_gltf';
-import { valuesAndIndices } from './util';
+import { imageBitmapToDataUri, valuesAndIndices } from './util';
 import { VectorHashMap } from './vector_hash_map';
 
 export type ImportOptions = {
@@ -29,6 +29,8 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
     // TODO: cameras!
     // TODO: animations!
+
+    // TODO: check if any samplers use repeating texture mode and set content.usesRepeatingWrapMode
 
     console.log('options', options); // TODO: remove
 
@@ -83,18 +85,28 @@ async function importTextures(gltf: GLTF, options: ImportOptions, content: Impor
         let threeTexture = await threeTexturePromise;
         // Strip suffix (probably the sampler or something, don't care)
         let cacheKeySource = cacheKey.substring(0, cacheKey.indexOf(':'));
+
         // If the cache key is a number, that means the texture is embedded
         if (isStringNumber(cacheKeySource)) {
-            // TODO:
-            console.log('erm miauw')
+            if (!(threeTexture.image instanceof ImageBitmap)) {
+                console.warn('Imported texture has unknown format: ', threeTexture.image);
+                bbTexture.remove();
+                return;
+            }
+            let dataUri = await imageBitmapToDataUri(threeTexture.image, 'image/png', 1);
+            bbTexture.fromDataURL(dataUri);
 
-        // TODO: can data urls be a thing?
+        // Embededd data uri
+        } else if (cacheKeySource.startsWith('data:')) {
+            bbTexture.fromDataURL(cacheKeySource);
+
         // Otherwise the texture is from a file
         } else {
             let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKeySource);
-            bbTexture = bbTexture.fromPath(absoluteTexturePath).add(false);
+            bbTexture.fromPath(absoluteTexturePath);
         }
 
+        bbTexture.add(false);
         content.texturesById[threeTexture.uuid] = bbTexture;
         content.textures.push(bbTexture);
     }
@@ -146,12 +158,16 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 }
 
 // MARK: 🟥 mesh
+
+function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent): Mesh {
+    return importMeshPrimitives(node, [node], options, content);
+}
+
 // Meshes in glTFs are made of one or more primitives which can have different materials
 // THREE.js turns this into a Group with multiple meshes
 // In Blockbench we would like this to be one mesh again, and just set the different textures on the faces
 // We also de-duplicate vertices across primitives
 function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent): Mesh {
-    // TODO: half the time its fucked
 
     // Take info like name and origin from the encompassing group
     let mesh = new Mesh({
@@ -163,10 +179,8 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     });
     content.elements.push(mesh);
 
-    let meshTexture: Texture = null!; // TODO: decide which texture is the mesh texture
     // Lookup of primitive to texture
     let primitiveTextures = primitives.map(p => content.texturesById[(p.material as any)?.map?.uuid]);
-    // TODO: handle multiple textures
 
     // Potentially confusing terms:
     // Original Vertex:      Vertex from incoming glTF vertex buffer
@@ -219,14 +233,19 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     // Construct faces by using the primitive's original vertex index to look up UV and unique vertex key
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
         for (let faceIndex = 0; faceIndex < primitive.geometry.index.count; faceIndex++ ) {
+            let texture = primitiveTextures[primitiveIndex];
+            let uvWidth  = texture?.uv_width  ?? Project.texture_width;
+            let uvHeight = texture?.uv_height ?? Project.texture_height;
+            let uvComponents = primitive.geometry.attributes.uv.array;
+            
             // Original vertex index
             let v1Idx = primitive.geometry.index.array[faceIndex*3];
             let v2Idx = primitive.geometry.index.array[faceIndex*3 + 1];
             let v3Idx = primitive.geometry.index.array[faceIndex*3 + 2];
             // UV
-            let v1Uv: ArrayVector2 = [ primitive.geometry.attributes.uv[v1Idx*2], primitive.geometry.attributes.uv[v1Idx*2 + 1] ];
-            let v2Uv: ArrayVector2 = [ primitive.geometry.attributes.uv[v2Idx*2], primitive.geometry.attributes.uv[v2Idx*2 + 1] ];
-            let v3Uv: ArrayVector2 = [ primitive.geometry.attributes.uv[v3Idx*2], primitive.geometry.attributes.uv[v3Idx*2 + 1] ];
+            let v1Uv: ArrayVector2 = [ uvComponents[v1Idx*2] * uvWidth, uvComponents[v1Idx*2 + 1] * uvHeight ];
+            let v2Uv: ArrayVector2 = [ uvComponents[v2Idx*2] * uvWidth, uvComponents[v2Idx*2 + 1] * uvHeight ];
+            let v3Uv: ArrayVector2 = [ uvComponents[v3Idx*2] * uvWidth, uvComponents[v3Idx*2 + 1] * uvHeight ];
             // Unique vertex keys
             let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
             let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
@@ -239,24 +258,18 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                     [v2Key]: v2Uv,
                     [v3Key]: v3Uv,
                 },
-                texture: primitiveTextures[primitiveIndex],
+                texture: texture,
             }));
 
             // If any UV component is outside 0..1, remember that
-            if ([ ...v1Uv, ...v2Uv, ...v3Uv ].some(x => x < 0 || x > 1))
-                content.uvOutOfBounds = true;
+            content.uvOutOfBounds ||= [ ...v1Uv, ...v2Uv, ...v3Uv ].some(x => x < 0 || x > 1);
         }
     }
 
     mesh.addFaces(...faces);
     mesh.init();
-    mesh.applyTexture(meshTexture);
 
     return mesh;
-}
-
-function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent): Mesh {
-    return importMeshPrimitives(node, [node], options, content);
 }
 
 // MARK: 🟥 armature

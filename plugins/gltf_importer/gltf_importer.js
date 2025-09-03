@@ -2270,8 +2270,8 @@
     return gltf;
   }
   function createGltfLoader(loadingManager = void 0) {
-    let _GLTFLoader = THREE["GLTFLoader"];
-    let loader = new _GLTFLoader(loadingManager);
+    let _GLTFLoaderClass = THREE["GLTFLoader"];
+    let loader = new _GLTFLoaderClass(loadingManager);
     return loader;
   }
   function parseGltfWithLoader(loader, file) {
@@ -2297,6 +2297,16 @@
   }
   function valuesAndIndices(array) {
     return array.map((v, i) => [v, i]);
+  }
+  async function imageBitmapToDataUri(imageBitmap, type = "image/png", quality) {
+    let canvas = document.createElement("canvas");
+    canvas.width = imageBitmap.width;
+    canvas.height = imageBitmap.height;
+    let ctx = canvas.getContext("2d");
+    if (ctx == void 0)
+      throw new Error("Failed to get 2D context");
+    ctx.drawImage(imageBitmap, 0, 0);
+    return canvas.toDataURL(type, quality);
   }
 
   // plugin/vector_hash_map.ts
@@ -2386,11 +2396,20 @@
       let threeTexture = await threeTexturePromise;
       let cacheKeySource = cacheKey.substring(0, cacheKey.indexOf(":"));
       if (isStringNumber(cacheKeySource)) {
-        console.log("erm miauw");
+        if (!(threeTexture.image instanceof ImageBitmap)) {
+          console.warn("Imported texture has unknown format: ", threeTexture.image);
+          bbTexture.remove();
+          return;
+        }
+        let dataUri = await imageBitmapToDataUri(threeTexture.image, "image/png", 1);
+        bbTexture.fromDataURL(dataUri);
+      } else if (cacheKeySource.startsWith("data:")) {
+        bbTexture.fromDataURL(cacheKeySource);
       } else {
         let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKeySource);
-        bbTexture = bbTexture.fromPath(absoluteTexturePath).add(false);
+        bbTexture.fromPath(absoluteTexturePath);
       }
+      bbTexture.add(false);
       content.texturesById[threeTexture.uuid] = bbTexture;
       content.textures.push(bbTexture);
     }
@@ -2433,6 +2452,9 @@
     }
     return group;
   }
+  function importSingleMesh(node, options, content) {
+    return importMeshPrimitives(node, [node], options, content);
+  }
   function importMeshPrimitives(node, primitives, options, content) {
     let mesh = new Mesh({
       name: node.name,
@@ -2444,7 +2466,6 @@
       // TODO:
     });
     content.elements.push(mesh);
-    let meshTexture = null;
     let primitiveTextures = primitives.map((p) => content.texturesById[p.material?.map?.uuid]);
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
@@ -2471,12 +2492,16 @@
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
       for (let faceIndex = 0; faceIndex < primitive.geometry.index.count; faceIndex++) {
+        let texture = primitiveTextures[primitiveIndex];
+        let uvWidth = texture?.uv_width ?? Project.texture_width;
+        let uvHeight = texture?.uv_height ?? Project.texture_height;
+        let uvComponents = primitive.geometry.attributes.uv.array;
         let v1Idx = primitive.geometry.index.array[faceIndex * 3];
         let v2Idx = primitive.geometry.index.array[faceIndex * 3 + 1];
         let v3Idx = primitive.geometry.index.array[faceIndex * 3 + 2];
-        let v1Uv = [primitive.geometry.attributes.uv[v1Idx * 2], primitive.geometry.attributes.uv[v1Idx * 2 + 1]];
-        let v2Uv = [primitive.geometry.attributes.uv[v2Idx * 2], primitive.geometry.attributes.uv[v2Idx * 2 + 1]];
-        let v3Uv = [primitive.geometry.attributes.uv[v3Idx * 2], primitive.geometry.attributes.uv[v3Idx * 2 + 1]];
+        let v1Uv = [uvComponents[v1Idx * 2] * uvWidth, uvComponents[v1Idx * 2 + 1] * uvHeight];
+        let v2Uv = [uvComponents[v2Idx * 2] * uvWidth, uvComponents[v2Idx * 2 + 1] * uvHeight];
+        let v3Uv = [uvComponents[v3Idx * 2] * uvWidth, uvComponents[v3Idx * 2 + 1] * uvHeight];
         let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
         let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
         let v3Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v3Idx]];
@@ -2487,19 +2512,14 @@
             [v2Key]: v2Uv,
             [v3Key]: v3Uv
           },
-          texture: primitiveTextures[primitiveIndex]
+          texture
         }));
-        if ([...v1Uv, ...v2Uv, ...v3Uv].some((x) => x < 0 || x > 1))
-          content.uvOutOfBounds = true;
+        content.uvOutOfBounds ||= [...v1Uv, ...v2Uv, ...v3Uv].some((x) => x < 0 || x > 1);
       }
     }
     mesh.addFaces(...faces);
     mesh.init();
-    mesh.applyTexture(meshTexture);
     return mesh;
-  }
-  function importSingleMesh(node, options, content) {
-    return importMeshPrimitives(node, [node], options, content);
   }
 
   // plugin/plugin.ts

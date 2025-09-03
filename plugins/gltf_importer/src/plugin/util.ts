@@ -8,5 +8,18 @@ export function showPlugin(pluginId: string) {
 }
 
 export function valuesAndIndices<T>(array: T[]): [T, number][] {
-    return array.map((v, i) => [v, i] as [T, number])
+    return array.map((v, i) => [v, i] as [T, number]);
+}
+
+export async function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): Promise<string> {
+    let canvas = document.createElement('canvas');
+    canvas.width = imageBitmap.width;
+    canvas.height = imageBitmap.height;
+
+    let ctx = canvas.getContext('2d');
+    if (ctx == undefined)
+        throw new Error("Failed to get 2D context");
+    ctx.drawImage(imageBitmap, 0, 0);
+
+    return canvas.toDataURL(type, quality);
 }

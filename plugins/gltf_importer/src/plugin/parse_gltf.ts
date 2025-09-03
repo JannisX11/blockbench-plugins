@@ -5,9 +5,9 @@ import type { GLTFLoader as _GLTFLoader, GLTF as _GLTF } from 'three/examples/js
 if (THREE['GLTFLoader'] == undefined)
     require('./GLTFLoader.js');
 
-type GLTFLoaderConstructor = { new (loadingManager: THREE.LoadingManager|undefined): _GLTFLoader; };
+type GLTFLoaderConstructor = { new (loadingManager: THREE.LoadingManager|undefined): GLTFLoader; };
 
-export type GLTFLOoader = _GLTFLoader;
+export type GLTFLoader = _GLTFLoader;
 export type GLTF = _GLTF;
 
 export async function parseGltf(file: Filesystem.FileResult): Promise<GLTF> {
@@ -22,9 +22,9 @@ export async function parseGltf(file: Filesystem.FileResult): Promise<GLTF> {
     return gltf;
 }
 
-export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined = undefined): _GLTFLoader {
-    let _GLTFLoader = THREE['GLTFLoader'] as GLTFLoaderConstructor;
-    let loader = new _GLTFLoader(loadingManager);
+export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined = undefined): GLTFLoader {
+    let _GLTFLoaderClass = THREE['GLTFLoader'] as GLTFLoaderConstructor;
+    let loader = new _GLTFLoaderClass(loadingManager);
     return loader;
 }
 
