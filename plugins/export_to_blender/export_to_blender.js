@@ -1,54 +1,56 @@
 (function() {
 
-const path = require('path');
+const windows = Blockbench.operating_system === 'Windows';
+const linux   = Blockbench.operating_system === 'macOS';
+const macos   = Blockbench.operating_system === 'Linux';
 
-const windows = process.platform === 'win32';
-const linux   = process.platform === 'linux';
-const macos   = process.platform === 'darwin';
+const requireUserPermission = Blockbench.isNewerThan('4.99');
+let fsModule           = requireUserPermission ? undefined : require('fs');
+let childProcessModule = requireUserPermission ? undefined : require('child_process');
 
 // Python code to be run by Blender
 // 1. Imports a GLTF file
 // 2. Adds the file to a root node and a collection
 // 3. Saves the blend file
-const blenderScript =
-    'import bpy                                             \n' +
-    'import sys                                             \n' +
-    '                                                       \n' +
-    'args = sys.argv[sys.argv.index("--") + 1:]             \n' +
-    'name = args[0]                                         \n' +
-    'gltf_path = args[1]                                    \n' +
-    'blend_path = args[2]                                   \n' +
-    '                                                       \n' +
-    'print("Creating blend...")                             \n' +
-    'bpy.ops.wm.read_factory_settings(use_empty=True)       \n' +
-    '                                                       \n' +
-    '# Create collections                                   \n' +
-    'collection = bpy.data.collections.new(name)            \n' +
-    'bpy.context.scene.collection.children.link(collection) \n' +
-    '                                                       \n' +
-    '# Import gltf                                          \n' +
-    'print("Importing gltf...")                             \n' +
-    'bpy.ops.import_scene.gltf(filepath=gltf_path)          \n' +
-    '                                                       \n' +
-    '# Root node                                            \n' +
-    'root_node = bpy.data.objects.new(name, None)           \n' +
-    'bpy.context.collection.objects.link(root_node)         \n' +
-    'collection.objects.link(root_node)                     \n' +
-    'bpy.context.scene.collection.objects.unlink(root_node) \n' +
-    '                                                       \n' +
-    '# Add imported objects to collection and root node     \n' +
-    'for obj in bpy.context.selected_objects:               \n' +
-    '    # Add to collection                                \n' +
-    '    collection.objects.link(obj)                       \n' +
-    '    bpy.context.scene.collection.objects.unlink(obj)   \n' +
-    '    # Add root object to prop node                     \n' +
-    '    if obj.parent == None:                             \n' +
-    '        obj.parent = root_node                         \n' +
-    '                                                       \n' +
-    '# Save blend file                                      \n' +
-    'bpy.ops.wm.save_as_mainfile(filepath=blend_path)       \n' +
-    'print(f"Saved blend file: {blend_path}")               \n' +
-    '\n';
+const blenderScript = [
+    'import bpy                                             ',
+    'import sys                                             ',
+    '                                                       ',
+    'args = sys.argv[sys.argv.index("--") + 1:]             ',
+    'name = args[0]                                         ',
+    'gltf_path = args[1]                                    ',
+    'blend_path = args[2]                                   ',
+    '                                                       ',
+    'print("Creating blend...")                             ',
+    'bpy.ops.wm.read_factory_settings(use_empty=True)       ',
+    '                                                       ',
+    '# Create collections                                   ',
+    'collection = bpy.data.collections.new(name)            ',
+    'bpy.context.scene.collection.children.link(collection) ',
+    '                                                       ',
+    '# Import gltf                                          ',
+    'print("Importing gltf...")                             ',
+    'bpy.ops.import_scene.gltf(filepath=gltf_path)          ',
+    '                                                       ',
+    '# Root node                                            ',
+    'root_node = bpy.data.objects.new(name, None)           ',
+    'bpy.context.collection.objects.link(root_node)         ',
+    'collection.objects.link(root_node)                     ',
+    'bpy.context.scene.collection.objects.unlink(root_node) ',
+    '                                                       ',
+    '# Add imported objects to collection and root node     ',
+    'for obj in bpy.context.selected_objects:               ',
+    '    # Add to collection                                ',
+    '    collection.objects.link(obj)                       ',
+    '    bpy.context.scene.collection.objects.unlink(obj)   ',
+    '    # Add root object to prop node                     ',
+    '    if obj.parent == None:                             ',
+    '        obj.parent = root_node                         ',
+    '                                                       ',
+    '# Save blend file                                      ',
+    'bpy.ops.wm.save_as_mainfile(filepath=blend_path)       ',
+    'print(f"Saved blend file: {blend_path}")               ',
+].join('\n');
 
 // Because we need to send the code through a command line argument,
 // It's very hard to encode double quotes and newlines
@@ -64,7 +66,7 @@ Plugin.register('export_to_blender', {
     description:   'Export your project as a Blender scene (.blend)',
     icon:          'icon.png',
     creation_date: '2025-04-16',
-    version:       '1.0.1',
+    version:       '2.0.0',
     variant:       'desktop',
     min_version:   '4.12.4',
     has_changelog: false,
@@ -73,7 +75,7 @@ Plugin.register('export_to_blender', {
 
     onload() {
 
-        let blenderPathSetting = deferDelete(new Setting('blender_path', {
+        deferDelete(new Setting('blender_path', {
             name: 'Blender path',
             description: 'Path to the Blender executable',
             category: 'export',
@@ -98,7 +100,7 @@ Plugin.register('export_to_blender', {
                 let blenderPath = form_result['path'];
 
                 if (blenderPath != null && blenderPath != ''
-                  && fs.existsSync(blenderPath) && await validateBlender(blenderPath)) {
+                  && getFs().existsSync(blenderPath) && await validateBlender(blenderPath)) {
                     // New path is valid!
                     Settings.structure.export.items['blender_path'].value = blenderPath;
                     blenderCodec.export_action.trigger();
@@ -151,7 +153,7 @@ Plugin.register('export_to_blender', {
                 name: 'Export Blender Scene',
                 icon: 'blender',
                 category: 'file',
-                click: function () {
+                click() {
 
                     let blenderPath = Settings.get('blender_path');
                     if (blenderPath == undefined || blenderPath == '') {
@@ -159,7 +161,7 @@ Plugin.register('export_to_blender', {
                     } else {
                         blenderCodec.export();
                     }
-                }
+                },
             })),
             export_options: {
                 ['scale']: {
@@ -214,7 +216,7 @@ Plugin.register('export_to_blender', {
 
 async function compileBlend(options) {
 
-    let tempPathPrefix = `${path.dirname(Project.save_path)}/.${path.basename(Project.save_path)}`;
+    let tempPathPrefix = `${PathModule.dirname(Project.save_path)}/.${PathModule.basename(Project.save_path)}`;
     let tempGlbPath    = tempPathPrefix + '.TEMP_BLEND_EXPORT.glb';
     let tempBlendPath  = tempPathPrefix + '.TEMP_BLEND_EXPORT.blend';
 
@@ -223,7 +225,7 @@ async function compileBlend(options) {
         encoding: 'binary',
         ...options,
     });
-    fs.writeFileSync(tempGlbPath, Buffer.from(glbContent));
+    getFs().writeFileSync(tempGlbPath, Buffer.from(glbContent));
     
     // Run Blender script
     let blender = Settings.get('blender_path');
@@ -239,17 +241,17 @@ async function compileBlend(options) {
 
     console.log(`Blender: ${blenderLogs}`);
 
-    if (!fs.existsSync(tempBlendPath)) {
-        fs.unlinkSync(tempGlbPath);
+    if (!getFs().existsSync(tempBlendPath)) {
+        getFs().unlinkSync(tempGlbPath);
         return new Error('Blender didn\'t create blend file for some reason. Please verify your Blender path in your settings.');
     }
 
     // Read Blender scene content
-    let blendContent = fs.readFileSync(tempBlendPath);
+    let blendContent = getFs().readFileSync(tempBlendPath);
 
     // Clean up
-    fs.unlinkSync(tempGlbPath);
-    fs.unlinkSync(tempBlendPath);
+    getFs().unlinkSync(tempGlbPath);
+    getFs().unlinkSync(tempBlendPath);
 
     return blendContent;
 
@@ -286,7 +288,7 @@ async function exportBlend(codec, options, blenderPatienceDialog) {
         content: content,
         
     }, (exportPath) => {
-        Blockbench.showQuickMessage(`Exported as ${path.basename(exportPath)}`, 1000);
+        Blockbench.showQuickMessage(`Exported as ${PathModule.basename(exportPath)}`, 1000);
     });
 
 }
@@ -311,12 +313,14 @@ async function findBlender() {
         // Try just running the command
         if (await validateBlender('blender'))
             return 'blender';
-        
+    
         // Try running `where blender`
-        let whereCommand = windows ? 'where' : 'which';
-        let pathFromWhere = await executeCommand(whereCommand, ['blender']);
-        if (fs.existsSync(pathFromWhere) && await validateBlender(pathFromWhere))
-            return pathFromWhere;
+        try {
+            let whereCommand = windows ? 'where' : 'which';
+            let pathFromWhere = await executeCommand(whereCommand, ['blender']);
+            if (getFs().existsSync(pathFromWhere) && await validateBlender(pathFromWhere))
+                return pathFromWhere;
+        } catch { }
 
         // Try obvious paths
         // wildcards should be resolved, but only one wildcard is allowed
@@ -338,19 +342,19 @@ async function findBlender() {
                 let wildcardSegmentIndex = segments.findIndex(s => s.includes('*'));
                 let segmentsUntilWildcard = segments.slice(0, wildcardSegmentIndex);
                 // Stop early if the the wildcard's parent doesn't exist
-                if (!fs.existsSync(segmentsUntilWildcard.join('/')))
+                if (!getFs().existsSync(segmentsUntilWildcard.join('/')))
                     continue;
                 
                 let wildcardSegment = segments[wildcardSegmentIndex];
                 let wildcardIndex = wildcardSegment.indexOf('*');
                 let beforeWildcard = wildcardSegment.slice(0, wildcardIndex);
                 let afterWildcard = wildcardSegment.slice(wildcardIndex + 1);
-                let matchingDirItems = fs.readdirSync(segmentsUntilWildcard.join('/'))
+                let matchingDirItems = getFs().readdirSync(segmentsUntilWildcard.join('/'))
                     .filter(i => i.startsWith(beforeWildcard))
                     .filter(i => i.endsWith(afterWildcard));
                 let existingPaths = matchingDirItems
                     .map(i => obviousPath.replace(wildcardSegment, i))
-                    .filter(p => fs.existsSync(p));
+                    .filter(p => getFs().existsSync(p));
 
                 // Nothing matches or matches don't contain Blender exe
                 if (existingPaths.length === 0)
@@ -367,7 +371,7 @@ async function findBlender() {
                     let newestPath = existingPaths
                         .map(existingPath => ({
                             existingPath,
-                            writeTime: fs.statSync(existingPath).mtime.getTime()
+                            writeTime: getFs().statSync(existingPath).mtime.getTime()
                         }))
                         .sort((a, b) => b.writeTime - a.writeTime)
                         .map(entry => entry.existingPath)
@@ -384,7 +388,7 @@ async function findBlender() {
             }
 
             // Make sure the file exists and and can be called with --version
-            if (fs.existsSync(obviousPath) && await validateBlender(obviousPath))
+            if (getFs().existsSync(obviousPath) && await validateBlender(obviousPath))
                 return obviousPath; 
         }
 
@@ -397,23 +401,40 @@ async function findBlender() {
 // Runs a command as a Promise
 function executeCommand(command, args) {
     return new Promise((resolve, reject) => {
-        let commandWithArgs = `"${command}" ${args.map(a => `"${a}"`).join(' ')}`;
-        exec(commandWithArgs, (error, stdout, stderr) => {
-            if (!error && stdout) {
-                resolve(stdout);
-            } else {
-                resolve(stderr);
-            }
-        });
+        try {
+            let process = getChildProcess().spawn(command, args, { shell: false });
+            let stdout = '';
+            let stderr = '';
+            process.stdout.on('data', (data) => {
+                stdout += data.toString();
+            });
+            process.stderr.on('data', (data) => {
+                stderr += data.toString();
+            });
+            process.on('close', (code) => {
+                if (code === 0) {
+                    resolve(stdout.trim());
+                } else {
+                    reject(new Error(stderr.trim() || `Command failed with exit code ${code}`));
+                }
+            });
+            process.on('error', (err) => {
+                reject(err);
+            });
+        } catch (error) {
+            reject(error);
+        }
     });
 }
 
 // Tries to run blender with the provided path
 // Returns the same path on success, otherwise null
 async function validateBlender(blender) {
-    let result = await executeCommand(blender, ['--version']);
-    if (result?.startsWith("Blender "))
-        return blender;
+    try {
+        let result = await executeCommand(blender, ['--version']);
+        if (result?.startsWith("Blender "))
+            return blender;
+    } catch { }
     return null;
 }
 
@@ -430,5 +451,22 @@ function deferDelete(deletable) {
     return deletable;
 }
 
+function getFs() {
+    if (fsModule == undefined)
+        fsModule = requireNativeModule('fs', {
+            message: 'This permission is required to locate Blender and convert your model.',
+        });
+
+    return fsModule;
+}
+
+function getChildProcess() {
+    if (childProcessModule == undefined)
+        childProcessModule = requireNativeModule('child_process', {
+            message: 'This permission is required to communicate with Blender to convert your model.',
+        });
+
+    return childProcessModule;
+}
+
 })();
-        

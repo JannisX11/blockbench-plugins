@@ -1104,7 +1104,7 @@
 		"description": "Export your project as a Blender scene (.blend)",
 		"icon": "icon.png",
 		"creation_date": "2025-04-16",
-		"version": "1.0.1",
+		"version": "2.0.0",
 		"variant": "desktop",
 		"min_version": "4.12.4",
 		"has_changelog": false,
