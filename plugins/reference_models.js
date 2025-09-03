@@ -7,8 +7,8 @@ let add_action, change_model_action;
 Plugin.register('reference_models', {
 	title: 'Reference Models',
 	icon: 'fas.fa-monument',
-	author: 'JannisX11',
-	description: 'Load and view glTF reference models in Blockbench',
+	author: 'CodemanxYT',
+	description: 'Load and view png reference models in Blockbench',
 	version: '1.0.2',
 	min_version: '4.0.0',
 	variant: 'desktop',
@@ -102,8 +102,8 @@ Plugin.register('reference_models', {
 				mesh.isElement = true;
 				if (element.path) {
 					let loader = new THREE.GLTFLoader().setPath(PathModule.dirname(element.path) + PathModule.sep);
-					loader.load(PathModule.basename(element.path), gltf => {
-						element.mesh.add(gltf.scene);
+					loader.load(PathModule.basename(element.path), png => {
+						element.mesh.add(png.scene);
 						element.preview_controller.updateTransform(element);
 					})
 				}
@@ -141,9 +141,9 @@ Plugin.register('reference_models', {
 	
 
 				Blockbench.import({
-					type: 'glTF Model',
-					extensions: ['gltf', 'glb'],
-					readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text')
+					type: 'png Model',
+					extensions: ['png', 'png'],
+					readtype: file => (pathToExtension(file.path) == 'png' ? 'binary' : 'text')
 
 				}, files => {
 					let path = files[0].path;
@@ -152,8 +152,8 @@ Plugin.register('reference_models', {
 					base_reference_model.name = pathToName(path, false);
 					Undo.finishEdit('Add reference model', {outliner: true, elements: selected, selection: true});
 
-					loader.load(PathModule.basename(path), gltf => {
-						base_reference_model.mesh.add(gltf.scene);
+					loader.load(PathModule.basename(path), png => {
+						base_reference_model.mesh.add(png.scene);
 						base_reference_model.preview_controller.updateTransform(base_reference_model);
 					})
 				})
