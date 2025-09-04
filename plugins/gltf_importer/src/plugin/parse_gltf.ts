@@ -34,7 +34,7 @@ export function parseGltfWithLoader(loader: _GLTFLoader, file: Filesystem.FileRe
 }
 
 export function fixStupidRelativePathBug(loadingManager: THREE.LoadingManager, file: Filesystem.FileResult) {
-    // GLTFLoader is stupid and forgets to add the path seperator after the parent directory
+    // GLTFLoader is an idiot and forgets to add the path seperator after the parent directory
     // when a referenced file's relative path doesn't start with ./
     // We detect when it makes this mistake and fix it
     loadingManager.setURLModifier((url) => {

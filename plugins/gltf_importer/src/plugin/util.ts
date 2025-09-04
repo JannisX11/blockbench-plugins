@@ -18,7 +18,7 @@ export async function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'ima
 
     let ctx = canvas.getContext('2d');
     if (ctx == undefined)
-        throw new Error("Failed to get 2D context");
+        throw new Error('Failed to get 2D context');
     ctx.drawImage(imageBitmap, 0, 0);
 
     return canvas.toDataURL(type, quality);
