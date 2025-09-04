@@ -11,7 +11,7 @@ export function valuesAndIndices<T>(array: T[]): [T, number][] {
     return array.map((v, i) => [v, i] as [T, number]);
 }
 
-export async function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): Promise<string> {
+export function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): string {
     let canvas = document.createElement('canvas');
     canvas.width = imageBitmap.width;
     canvas.height = imageBitmap.height;

@@ -2298,7 +2298,7 @@
   function valuesAndIndices(array) {
     return array.map((v, i) => [v, i]);
   }
-  async function imageBitmapToDataUri(imageBitmap, type = "image/png", quality) {
+  function imageBitmapToDataUri(imageBitmap, type = "image/png", quality) {
     let canvas = document.createElement("canvas");
     canvas.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
@@ -2372,7 +2372,8 @@
       uvOutOfBounds: false,
       usesRepeatingWrapMode: false,
       unsupportedArmatures: false,
-      texturesById: {}
+      texturesById: {},
+      textureCacheKeys: await prepareTextureCacheKeys(gltf)
     };
     Undo.initEdit({
       outliner: true,
@@ -2382,38 +2383,11 @@
       textures: content.textures,
       animations: content.animations
     });
-    await importTextures(gltf, options, content);
     importNode(sceneRoot, options, content);
     content.usesRepeatingWrapMode = gltf.parser.json.samplers.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497);
     console.log("content", content);
     Undo.finishEdit("Import glTF");
-    console.log(`Imported glTF with ${content.groups.length} groups, ${content.elements.length} elements, ${content.textures.length} textures and ${content.animations.length} animations.`);
     return content;
-  }
-  async function importTextures(gltf, options, content) {
-    let textureCache = gltf.parser.textureCache;
-    for (let [cacheKey, threeTexturePromise] of Object.entries(textureCache)) {
-      let bbTexture = new Texture();
-      let threeTexture = await threeTexturePromise;
-      let cacheKeySource = cacheKey.substring(0, cacheKey.indexOf(":"));
-      if (isStringNumber(cacheKeySource)) {
-        if (!(threeTexture.image instanceof ImageBitmap)) {
-          console.warn("Imported texture has unknown format: ", threeTexture.image);
-          bbTexture.remove();
-          return;
-        }
-        let dataUri = await imageBitmapToDataUri(threeTexture.image, "image/png", 1);
-        bbTexture.fromDataURL(dataUri);
-      } else if (cacheKeySource.startsWith("data:")) {
-        bbTexture.fromDataURL(cacheKeySource);
-      } else {
-        let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKeySource);
-        bbTexture.fromPath(absoluteTexturePath);
-      }
-      bbTexture.add(false);
-      content.texturesById[threeTexture.uuid] = bbTexture;
-      content.textures.push(bbTexture);
-    }
   }
   function importNode(node, options, content) {
     switch (node.type) {
@@ -2467,7 +2441,7 @@
       // TODO:
     });
     content.elements.push(mesh);
-    let primitiveTextures = primitives.map((p) => content.texturesById[p.material?.map?.uuid]);
+    let primitiveTextures = primitives.map((p) => importTexture(p.material?.map, options, content));
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
     let primitiveToUniqueVertexIndices = [];
@@ -2524,6 +2498,39 @@
     mesh.addFaces(...faces);
     mesh.init();
     return mesh;
+  }
+  async function prepareTextureCacheKeys(gltf) {
+    let textureCache = gltf.parser.textureCache;
+    let textures = await Promise.all(Object.values(textureCache));
+    let cacheKeys = Object.keys(textureCache).map((key) => key.substring(0, key.lastIndexOf(":")));
+    let textureCacheKeys = Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
+    return textureCacheKeys;
+  }
+  function importTexture(threeTexture, options, content) {
+    if (threeTexture == void 0)
+      return void 0;
+    if (content.texturesById[threeTexture.uuid] != void 0)
+      return content.texturesById[threeTexture.uuid];
+    let bbTexture = new Texture();
+    let cacheKey = content.textureCacheKeys[threeTexture.uuid];
+    if (isStringNumber(cacheKey)) {
+      if (!(threeTexture.image instanceof ImageBitmap)) {
+        console.warn("Imported texture has unknown format: ", threeTexture.image);
+        bbTexture.remove();
+        return;
+      }
+      let dataUri = imageBitmapToDataUri(threeTexture.image, "image/png", 1);
+      bbTexture.fromDataURL(dataUri);
+    } else if (cacheKey.startsWith("data:")) {
+      bbTexture.fromDataURL(cacheKey);
+    } else {
+      let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
+      bbTexture.fromPath(absoluteTexturePath);
+    }
+    bbTexture.add(false);
+    content.texturesById[threeTexture.uuid] = bbTexture;
+    content.textures.push(bbTexture);
+    return bbTexture;
   }
 
   // plugin/plugin.ts
