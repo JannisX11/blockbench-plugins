@@ -1,8 +1,9 @@
 Adds the options to import a glTF (.GLTF or .GLB) model as a generic model.
-Also imports armatures, groups, cameras and animations.
+Currently only imports meshes, textures and groups.
+Armatures and animations are not supported as of this version.
 
-- Blockbench 5.0 or newer is required to import armatures.
-- The "Cameras" plugin *(by JannisX11)* is required to import cameras.
+<!-- // TODO: - Blockbench 5.0 or newer is required to import armatures. -->
+<!-- // TODO: - The "Cameras" plugin *(by JannisX11)* is required to import cameras. -->
 
 --------------------------------------------------------------------------------
 

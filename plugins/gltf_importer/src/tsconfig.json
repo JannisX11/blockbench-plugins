@@ -5,7 +5,8 @@
         "module": "es2022",
         "moduleResolution": "node",
         "lib": ["ES2023", "DOM", "DOM.Iterable"],
-        "rootDir": "plugin"
+        "rootDir": "plugin",
+        "strictNullChecks": true,
     },
     "exclude": [
         "node_modules"

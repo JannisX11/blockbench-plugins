@@ -24,7 +24,7 @@ export type ImportedContent = {
     usesRepeatingWrapMode: boolean,
     unsupportedArmatures:  boolean,
     // To keep track of which THREE texture corresponds to which Blockbench texture
-    texturesById: {[textureId: string]: Texture};
+    texturesById: {[textureId: string]: Texture|null};
     // Each THREE texture's cache key, containing source information
     textureCacheKeys: {[textureId: string]: string};
 };
@@ -37,11 +37,11 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     // TODO: animations!
     // TODO: armatures!
 
-    console.log('options', options); // TODO: remove
+    // console.log('options', options); // TODO: remove
 
     let gltf = await parseGltf(options.file);
 
-    console.log('gltf', gltf); // TODO: remove
+    // console.log('gltf', gltf); // TODO: remove
 
     // Stop early if cameras are enabled, but not installed, and the model does include cameras
     if (options.cameras === 'NOT_INSTALLED' && gltf.cameras.length !== 0)
@@ -81,11 +81,13 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 )
         ?? false;
 
-    console.log('content', content); // TODO: remove
+    // console.log('content', content); // TODO: remove
 
     // Select all the elements we imported
     if (options.selectResult) {
+        Outliner.selected.empty();
         Outliner.selected.push(...content.elements);
+        Group.all.forEach(g => g.unselect());
         content.groups.forEach(g => g.multiSelect());
     }
 
@@ -206,7 +208,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             }
 
             // Remember the unique vertex index for the original vertex index into this primitive
-            primitiveToUniqueVertexIndices[primitiveIndex].push(uniqueVertexIndices.get(vertex));
+            primitiveToUniqueVertexIndices[primitiveIndex].push(uniqueVertexIndices.get(vertex)!);
         }
     }
 
@@ -220,10 +222,13 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     
     // Construct faces by using the primitive's original vertex index to look up UV and unique vertex key
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
+        if (primitive.geometry.index == undefined)
+            continue; // I guess indices are optional? seems weird
+
         for (let faceIndex = 0; faceIndex < primitive.geometry.index.count/3; faceIndex++ ) {
             let texture = primitiveTextures[primitiveIndex];
-            let uvWidth  = texture?.uv_width  ?? Project.texture_width;
-            let uvHeight = texture?.uv_height ?? Project.texture_height;
+            let uvWidth  = texture?.uv_width  ?? Project?.texture_width  ?? 16;
+            let uvHeight = texture?.uv_height ?? Project?.texture_height ?? 16;
             let v1Uv: ArrayVector2, v2Uv: ArrayVector2, v3Uv: ArrayVector2;
             
             // Original vertex index
@@ -270,6 +275,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             // Then for any triangle, we look up all the faces that use any of its vertices
             // to get a set of candidate triangles for merging into a quad
 
+            // TODO: the option to merge quads is currently commented out in the import form
             // Try merging into quad with previous face
             let facesMergedIntoQuad = options.mergeQuads && (() => {
                 if (faces.length < 1)
@@ -280,8 +286,8 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                     return false; // Previous face must be a tri
                 // because Blockbench doesn't support n-gons
 
-                let nonSharedVertexKeys = [];
-                let sharedVertexKeys = [];
+                let nonSharedVertexKeys: string[] = [];
+                let sharedVertexKeys: string[] = [];
                 for (let vertKey of lastFace.vertices)
                     (faceVertexKeys.includes(vertKey) ? sharedVertexKeys : nonSharedVertexKeys).push(vertKey);
 
@@ -317,7 +323,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                 return true;
             })();
             
-            console.log(facesMergedIntoQuad); //TODO:
+            // console.log(facesMergedIntoQuad); //TODO:
 
             // If not quad, create new face
             if (!facesMergedIntoQuad) {
@@ -354,48 +360,48 @@ async function prepareTextureCacheKeys(gltf: GLTF): Promise<{[textureId: string]
     return textureCacheKeys;
 }
 
-function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOptions, content: ImportedContent): Texture {
+function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOptions, content: ImportedContent): Texture|undefined {
 
     // No texture
     if (threeTexture == undefined)
         return undefined;
 
     // Already imported
-    if (content.texturesById[threeTexture.uuid] != undefined)
-        return content.texturesById[threeTexture.uuid];
+    if (content.texturesById[threeTexture.uuid] !== undefined)
+        return content.texturesById[threeTexture.uuid] ?? undefined;
 
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
+    let bbTexture: Texture|null = null;
 
-    // No cache key meaning no texture
-    if (cacheKey == undefined)
-        return undefined;
-
-    let bbTexture = new Texture();
+    // No cache key means no texture
+    if (cacheKey == undefined) {
 
     // If the cache key is a number, that means the texture is embedded in a buffer
-    if (isStringNumber(cacheKey)) {
+    } else if (isStringNumber(cacheKey)) {
         if (!(threeTexture.image instanceof ImageBitmap)) {
             console.warn('Imported texture has unknown format: ', threeTexture.image);
-            bbTexture.remove();
-            return;
+        } else {
+            let dataUri = imageBitmapToDataUri(threeTexture.image, 'image/png', 1);
+            bbTexture = new Texture().fromDataURL(dataUri);
         }
-        let dataUri = imageBitmapToDataUri(threeTexture.image, 'image/png', 1);
-        bbTexture.fromDataURL(dataUri);
 
     // Embededd data uri
     } else if (cacheKey.startsWith('data:')) {
-        bbTexture.fromDataURL(cacheKey);
+        bbTexture = new Texture().fromDataURL(cacheKey);
 
     // Otherwise the texture is from a file
     } else {
         let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
-        bbTexture.fromPath(absoluteTexturePath);
+        bbTexture = new Texture().fromPath(absoluteTexturePath);
     }
     // TODO: are we sure it cant still be some other stupid thing?
 
-    bbTexture.add(false);
-    content.texturesById[threeTexture.uuid] = bbTexture;
-    content.textures.push(bbTexture);
+    if (bbTexture != undefined) {
+        bbTexture.add(false);
+        content.textures.push(bbTexture);
+    }
 
-    return bbTexture;
+    content.texturesById[threeTexture.uuid] = bbTexture;
+
+    return bbTexture ?? undefined;
 }

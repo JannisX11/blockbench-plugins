@@ -72,6 +72,7 @@ BBPlugin.register('gltf_importer', {
                     label: 'Import Groups',
                     value: false,
                 },
+                // TODO: enable
                 // ['cameras']: {
                 //     type: 'checkbox',
                 //     label: 'Import Cameras',
@@ -87,6 +88,11 @@ BBPlugin.register('gltf_importer', {
                 //     label: 'Merge Quads',
                 //     value: true,
                 // },
+                ['info_sep']: '_',
+                ['info']: {
+                    type: 'info',
+                    text: 'It is currently not possible to import armatures, animations or cameras.',
+                },
             },
     
             onConfirm(formOptions: ImportGltfFormResult) {

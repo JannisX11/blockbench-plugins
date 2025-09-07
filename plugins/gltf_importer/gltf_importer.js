@@ -2355,9 +2355,7 @@
 
   // plugin/import_gltf.ts
   async function importGltf(options) {
-    console.log("options", options);
     let gltf = await parseGltf(options.file);
-    console.log("gltf", gltf);
     if (options.cameras === "NOT_INSTALLED" && gltf.cameras.length !== 0)
       return "UNSUPPORTED_CAMERAS";
     let content = {
@@ -2385,9 +2383,10 @@
     let sceneRoot = gltf.scene;
     importNode(sceneRoot, options, content);
     content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497) ?? false;
-    console.log("content", content);
     if (options.selectResult) {
+      Outliner.selected.empty();
       Outliner.selected.push(...content.elements);
+      Group.all.forEach((g) => g.unselect());
       content.groups.forEach((g) => g.multiSelect());
     }
     if (options.undoable)
@@ -2471,10 +2470,12 @@
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v, i) => [vertexKeys[i], v]));
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
+      if (primitive.geometry.index == void 0)
+        continue;
       for (let faceIndex = 0; faceIndex < primitive.geometry.index.count / 3; faceIndex++) {
         let texture = primitiveTextures[primitiveIndex];
-        let uvWidth = texture?.uv_width ?? Project.texture_width;
-        let uvHeight = texture?.uv_height ?? Project.texture_height;
+        let uvWidth = texture?.uv_width ?? Project?.texture_width ?? 16;
+        let uvHeight = texture?.uv_height ?? Project?.texture_height ?? 16;
         let v1Uv, v2Uv, v3Uv;
         let v1Idx = primitive.geometry.index.array[faceIndex * 3];
         let v2Idx = primitive.geometry.index.array[faceIndex * 3 + 1];
@@ -2527,7 +2528,6 @@
           lastFace.uv[newVertexKey] = uv[newVertexKey];
           return true;
         })();
-        console.log(facesMergedIntoQuad);
         if (!facesMergedIntoQuad) {
           faces.push(new MeshFace(mesh, {
             vertices: faceVertexKeys,
@@ -2551,30 +2551,30 @@
   function importTexture(threeTexture, options, content) {
     if (threeTexture == void 0)
       return void 0;
-    if (content.texturesById[threeTexture.uuid] != void 0)
-      return content.texturesById[threeTexture.uuid];
+    if (content.texturesById[threeTexture.uuid] !== void 0)
+      return content.texturesById[threeTexture.uuid] ?? void 0;
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
-    if (cacheKey == void 0)
-      return void 0;
-    let bbTexture = new Texture();
-    if (isStringNumber(cacheKey)) {
+    let bbTexture = null;
+    if (cacheKey == void 0) {
+    } else if (isStringNumber(cacheKey)) {
       if (!(threeTexture.image instanceof ImageBitmap)) {
         console.warn("Imported texture has unknown format: ", threeTexture.image);
-        bbTexture.remove();
-        return;
+      } else {
+        let dataUri = imageBitmapToDataUri(threeTexture.image, "image/png", 1);
+        bbTexture = new Texture().fromDataURL(dataUri);
       }
-      let dataUri = imageBitmapToDataUri(threeTexture.image, "image/png", 1);
-      bbTexture.fromDataURL(dataUri);
     } else if (cacheKey.startsWith("data:")) {
-      bbTexture.fromDataURL(cacheKey);
+      bbTexture = new Texture().fromDataURL(cacheKey);
     } else {
       let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
-      bbTexture.fromPath(absoluteTexturePath);
+      bbTexture = new Texture().fromPath(absoluteTexturePath);
     }
-    bbTexture.add(false);
+    if (bbTexture != void 0) {
+      bbTexture.add(false);
+      content.textures.push(bbTexture);
+    }
     content.texturesById[threeTexture.uuid] = bbTexture;
-    content.textures.push(bbTexture);
-    return bbTexture;
+    return bbTexture ?? void 0;
   }
 
   // plugin/plugin.ts
@@ -2629,7 +2629,8 @@
             type: "checkbox",
             label: "Import Groups",
             value: false
-          }
+          },
+          // TODO: enable
           // ['cameras']: {
           //     type: 'checkbox',
           //     label: 'Import Cameras',
@@ -2645,6 +2646,11 @@
           //     label: 'Merge Quads',
           //     value: true,
           // },
+          ["info_sep"]: "_",
+          ["info"]: {
+            type: "info",
+            text: "It is currently not possible to import armatures, animations or cameras."
+          }
         },
         onConfirm(formOptions) {
           if (formOptions.file == void 0)

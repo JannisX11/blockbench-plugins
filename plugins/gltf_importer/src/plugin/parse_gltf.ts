@@ -27,5 +27,5 @@ export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined 
 
 export function parseGltfWithLoader(loader: _GLTFLoader, file: Filesystem.FileResult): Promise<GLTF> {
     return new Promise((resolve, reject) =>
-        loader.parse(file.content, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
+        loader.parse(file.content!, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
 }
