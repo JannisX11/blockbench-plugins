@@ -1,13 +1,16 @@
 import { GLTF, parseGltf } from './parse_gltf';
-import { imageBitmapToDataUri, valuesAndIndices } from './util';
+import { arrayEquals, imageBitmapToDataUri, modulo, valuesAndIndices } from './util';
 import { VectorHashMap } from './vector_hash_map';
 
 export type ImportOptions = {
     file: Filesystem.FileResult,
-    scale:      number,
-    groups:     boolean,
-    cameras:    boolean,
-    animations: boolean,
+    scale:        number,
+    groups:       boolean,
+    cameras:      boolean|'NOT_INSTALLED',
+    animations:   boolean,
+    mergeQuads:   boolean,
+    undoable:     boolean,
+    selectResult: boolean,
 };
 
 export type ImportedContent = {
@@ -26,8 +29,9 @@ export type ImportedContent = {
     textureCacheKeys: {[textureId: string]: string};
 };
 
+
 // MARK: 🟥 gltf
-export async function importGltf(options: ImportOptions): Promise<ImportedContent> {
+export async function importGltf(options: ImportOptions): Promise<ImportedContent|'UNSUPPORTED_CAMERAS'> {
 
     // TODO: cameras!
     // TODO: animations!
@@ -37,12 +41,13 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
     let gltf = await parseGltf(options.file);
 
-    let sceneRoot = gltf.scene as unknown as THREE.Group;
-
     console.log('gltf', gltf); // TODO: remove
 
-    let rootGroup = Outliner.root.find(n => n instanceof Group); // TODO: doesn't always work
-    // keep track of all the things we imported for the undo system
+    // Stop early if cameras are enabled, but not installed, and the model does include cameras
+    if (options.cameras === 'NOT_INSTALLED' && gltf.cameras.length !== 0)
+        return 'UNSUPPORTED_CAMERAS';
+
+    // Keep track of all the things we importeNd
     let content: ImportedContent = {
         groups:     [],
         elements:   [],
@@ -55,26 +60,37 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         textureCacheKeys: await prepareTextureCacheKeys(gltf),
     };
 
-    Undo.initEdit({
-        outliner: true,
-        selection: true,
-        group: rootGroup,
-        elements: content.elements,
-        textures: content.textures,
-        animations: content.animations,
-    });
+    if (options.undoable) {
+        let rootGroup = Outliner.root.find(n => n instanceof Group); // TODO: doesn't always work
+        Undo.initEdit({
+            outliner: true,
+            selection: true,
+            group: rootGroup,
+            elements: content.elements,
+            textures: content.textures,
+            animations: content.animations,
+        });
+    }
 
+    // Navigate node tree and import what we find
+    let sceneRoot = gltf.scene as unknown as THREE.Group;
     importNode(sceneRoot, options, content);
 
     // Check if any samplers use the repeating wrap mode
-    content.usesRepeatingWrapMode = gltf.parser.json.samplers.some((s: any) =>
-        s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 );
-
-    // TODO: Select all the elements we imported
+    content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s: any) =>
+        s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 )
+        ?? false;
 
     console.log('content', content); // TODO: remove
 
-    Undo.finishEdit('Import glTF');
+    // Select all the elements we imported
+    if (options.selectResult) {
+        Outliner.selected.push(...content.elements);
+        content.groups.forEach(g => g.multiSelect());
+    }
+
+    if (options.undoable)
+        Undo.finishEdit('Import glTF');
 
     return content;
 }
@@ -116,6 +132,7 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
         group.openUp();
     }
 
+    // Child nodes
     for (let child of node.children) {
         let result = importNode(child, options, content);
         result?.addTo(group ?? 'root');
@@ -164,6 +181,8 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     // i.e. primitiveToUniqueVertexIndices[primitiveIndex][vertexIndex] -> index into uniqueVertices
     let primitiveToUniqueVertexIndices: number[][] = [];
 
+    // TODO: also de-duplicate on vertex weights! Probably make the key [x,y,z, bone0,... weight0...]
+
     // De-duplicate, scale and merge primitives
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
         primitiveToUniqueVertexIndices[primitiveIndex] = [];
@@ -196,43 +215,118 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     let vertexKeys = Array.from({ length: uniqueVertices.length }, () => bbuid(4));
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v,i) => [vertexKeys[i], v]));
     let faces: MeshFace[] = [];
+
+    // TODO: auto uv if not present somehow?
     
     // Construct faces by using the primitive's original vertex index to look up UV and unique vertex key
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
-        for (let faceIndex = 0; faceIndex < primitive.geometry.index.count; faceIndex++ ) {
+        for (let faceIndex = 0; faceIndex < primitive.geometry.index.count/3; faceIndex++ ) {
             let texture = primitiveTextures[primitiveIndex];
             let uvWidth  = texture?.uv_width  ?? Project.texture_width;
             let uvHeight = texture?.uv_height ?? Project.texture_height;
-            let uvComponents = primitive.geometry.attributes.uv.array;
+            let v1Uv: ArrayVector2, v2Uv: ArrayVector2, v3Uv: ArrayVector2;
             
             // Original vertex index
             let v1Idx = primitive.geometry.index.array[faceIndex*3];
             let v2Idx = primitive.geometry.index.array[faceIndex*3 + 1];
             let v3Idx = primitive.geometry.index.array[faceIndex*3 + 2];
-            // UV
-            let v1Uv = [ uvComponents[v1Idx*2] , uvComponents[v1Idx*2 + 1] ];
-            let v2Uv = [ uvComponents[v2Idx*2] , uvComponents[v2Idx*2 + 1] ];
-            let v3Uv = [ uvComponents[v3Idx*2] , uvComponents[v3Idx*2 + 1] ];
-            let v1UvScaled: ArrayVector2 = [ v1Uv[0] * uvWidth, v1Uv[1] * uvHeight ];
-            let v2UvScaled: ArrayVector2 = [ v2Uv[0] * uvWidth, v2Uv[1] * uvHeight ];
-            let v3UvScaled: ArrayVector2 = [ v3Uv[0] * uvWidth, v3Uv[1] * uvHeight ];
             // Unique vertex keys
             let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
             let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
             let v3Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v3Idx]];
+            let faceVertexKeys = [v1Key, v2Key, v3Key]
 
-            faces.push(new MeshFace(mesh, {
-                vertices: [v1Key, v2Key, v3Key],
-                uv: {
-                    [v1Key]: v1UvScaled,
-                    [v2Key]: v2UvScaled,
-                    [v3Key]: v3UvScaled,
-                },
-                texture: texture,
-            }));
+            // UV (optional apparently)
+            if (primitive.geometry.attributes.uv != undefined) {
+                let uvComponents = primitive.geometry.attributes.uv.array;
+                v1Uv = [ uvComponents[v1Idx*2] , uvComponents[v1Idx*2 + 1] ];
+                v2Uv = [ uvComponents[v2Idx*2] , uvComponents[v2Idx*2 + 1] ];
+                v3Uv = [ uvComponents[v3Idx*2] , uvComponents[v3Idx*2 + 1] ];
+            } else {
+                // TODO: this currently doesn't allow for merging into quad
+                // maybe fill missing uvs after creating primitive
+                // then the quads are already created
+                // or find Blockbench auto uv function
+                v1Uv = [0,0];
+                v2Uv = [1,0];
+                v3Uv = [0,1];
+            }
+            let v1UvScaled: ArrayVector2 = [ v1Uv[0] * uvWidth, v1Uv[1] * uvHeight ];
+            let v2UvScaled: ArrayVector2 = [ v2Uv[0] * uvWidth, v2Uv[1] * uvHeight ];
+            let v3UvScaled: ArrayVector2 = [ v3Uv[0] * uvWidth, v3Uv[1] * uvHeight ];
+            let uv = {
+                [v1Key]: v1UvScaled,
+                [v2Key]: v2UvScaled,
+                [v3Key]: v3UvScaled,
+            };
 
-            // If any UV component is outside 0..1, remember that
+            // Remember whether any UV component is outside 0..1
             content.uvOutOfBounds ||= [ ...v1Uv, ...v2Uv, ...v3Uv ].some(x => x < 0 || x > 1);
+
+            // TODO: Improvement for quad merging:
+            // Currently we only merge quads of subsequent faces.
+            // We could allow non-subsequent faces by having a map of
+            // vertex keys to faces that use that vertex key.
+            // Then for any triangle, we look up all the faces that use any of its vertices
+            // to get a set of candidate triangles for merging into a quad
+
+            // Try merging into quad with previous face
+            let facesMergedIntoQuad = options.mergeQuads && (() => {
+                if (faces.length < 1)
+                    return false; // Can't be first face
+                
+                let lastFace = faces[faces.length - 1];
+                if (lastFace.vertices.length !== 3)
+                    return false; // Previous face must be a tri
+                // because Blockbench doesn't support n-gons
+
+                let nonSharedVertexKeys = [];
+                let sharedVertexKeys = [];
+                for (let vertKey of lastFace.vertices)
+                    (faceVertexKeys.includes(vertKey) ? sharedVertexKeys : nonSharedVertexKeys).push(vertKey);
+
+                if (sharedVertexKeys.length !== 2 || nonSharedVertexKeys.length !== 1)
+                    return false; // Faces must share exactly 2 vertices
+
+                if (sharedVertexKeys.some(vk => !arrayEquals(uv[vk], lastFace.uv[vk])))
+                    return false; // UVs of shared vertices must be identical
+
+                let face1VertAafterB = (   faceVertexKeys.indexOf(sharedVertexKeys[0]) + 1) % 3 ===    faceVertexKeys.indexOf(sharedVertexKeys[1]);
+                let face2VertAafterB = (lastFace.vertices.indexOf(sharedVertexKeys[0]) + 1) % 3 === lastFace.vertices.indexOf(sharedVertexKeys[1]);
+                if (face1VertAafterB === face2VertAafterB)
+                    return false; // The order of the shared vertices should be reversed
+                
+                let newVertexKey = nonSharedVertexKeys[0];
+
+                // Validate normals are (roughly) the same (coplanar)
+                // by finding the first face's normal and projecting the new vertex onto it (dot product)
+                // If the resulting projected length is greater than 0, the two faces are not coplanar
+                // TODO: 
+
+                // TODO: consider checking rough shape, could eliminate n-gon fans
+                // TODO: if a third triangle in a row is connect, maybe consider it an n-gon fan and dont merge?
+
+                // Find where in the last face to insert the new vertex
+                let face2VertBeforeNewVert = faceVertexKeys[modulo(faceVertexKeys.indexOf(newVertexKey) - 1, 3)];
+                let face1VertBeforeNewVertIndex = lastFace.vertices.indexOf(face2VertBeforeNewVert);
+
+                // Expand previous face into quad
+                lastFace.vertices.splice(face1VertBeforeNewVertIndex, 0, newVertexKey);
+                lastFace.uv[newVertexKey] = uv[newVertexKey];
+
+                return true;
+            })();
+            
+            console.log(facesMergedIntoQuad); //TODO:
+
+            // If not quad, create new face
+            if (!facesMergedIntoQuad) {
+                faces.push(new MeshFace(mesh, {
+                    vertices: faceVertexKeys,
+                    uv: uv,
+                    texture: texture,
+                }));
+            }
         }
     }
 
@@ -270,8 +364,13 @@ function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOpt
     if (content.texturesById[threeTexture.uuid] != undefined)
         return content.texturesById[threeTexture.uuid];
 
-    let bbTexture = new Texture();
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
+
+    // No cache key meaning no texture
+    if (cacheKey == undefined)
+        return undefined;
+
+    let bbTexture = new Texture();
 
     // If the cache key is a number, that means the texture is embedded in a buffer
     if (isStringNumber(cacheKey)) {
@@ -288,11 +387,11 @@ function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOpt
         bbTexture.fromDataURL(cacheKey);
 
     // Otherwise the texture is from a file
-    // TODO: are we sure it cant still be some other stupid thing?
     } else {
         let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
         bbTexture.fromPath(absoluteTexturePath);
     }
+    // TODO: are we sure it cant still be some other stupid thing?
 
     bbTexture.add(false);
     content.texturesById[threeTexture.uuid] = bbTexture;

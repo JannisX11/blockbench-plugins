@@ -47,6 +47,7 @@ BBPlugin.register('gltf_importer', {
             groups: boolean,
             cameras: boolean,
             animations: boolean,
+            quads: boolean,
         };
         let importGltfDialog = deferDelete(new Dialog('import_gltf_dialog', {
             title: 'Import glTF',
@@ -71,30 +72,50 @@ BBPlugin.register('gltf_importer', {
                     label: 'Import Groups',
                     value: false,
                 },
-                ['cameras']: {
-                    type: 'checkbox',
-                    label: 'Import Cameras',
-                    value: false,
-                },
-                ['animations']: {
-                    type: 'checkbox',
-                    label: 'Import Animations',
-                    value: false,
-                },
+                // ['cameras']: {
+                //     type: 'checkbox',
+                //     label: 'Import Cameras',
+                //     value: isPluginInstalled('cameras'),
+                // },
+                // ['animations']: {
+                //     type: 'checkbox',
+                //     label: 'Import Animations',
+                //     value: true,
+                // },
+                // ['quads']: {
+                //     type: 'checkbox',
+                //     label: 'Merge Quads',
+                //     value: true,
+                // },
             },
     
-            onConfirm(options: ImportGltfFormResult) {
-                if (options.file == undefined)
+            onConfirm(formOptions: ImportGltfFormResult) {
+                if (formOptions.file == undefined)
                     return false;
 
-                // TODO: test if plugin is also enabled
-                if (options.cameras && !isPluginInstalled('cameras')) {
-                    warnAboutCameras();
-                    return false;
+                let importOptions: ImportOptions = {
+                    file: formOptions.file!,
+                    scale: formOptions.scale,
+                    groups: formOptions.groups,
+                    cameras: formOptions.cameras,
+                    animations: formOptions.animations,
+                    mergeQuads: formOptions.quads,
+                    undoable: true,
+                    selectResult: true,
                 }
 
-                importGltf(options as ImportOptions)
+                // Return early if the model contains cameras to import but it's not installed
+                if (formOptions.cameras && !isPluginInstalled('cameras'))
+                    importOptions.cameras = 'NOT_INSTALLED';
+
+                importGltf(importOptions)
                     .then(async content => {
+
+                        if (content === 'UNSUPPORTED_CAMERAS') {
+                            importGltfDialog.show();
+                            warnAboutCameras();
+                            return;
+                        } 
 
                         if (content.unsupportedArmatures)
                             await warnAboutUnsupportedArmatures();
@@ -129,7 +150,6 @@ function warnAboutUnsupportedArmatures(): Promise<void> {
 }
 
 function warnAboutRepeatingTextures() {
-    // TODO: test if plugin is also enabled
     if (isPluginInstalled('repeating_textures')) {
         if (!Settings.get('repeating_textures')) {
             // Installed but disabled, suggest enabling
@@ -168,7 +188,7 @@ function warnAboutRepeatingTextures() {
 function warnAboutCameras() {
     Blockbench.showMessageBox({
         title: 'Cameras plugin not installed',
-        message: 'You have chosen to import cameras, '
+        message: 'The imported glTF model contains cameras which you have chosen to import, '
             + 'but the "Cameras" plugin is not currently installed. '
             + 'Would you like to install the "Cameras" plugin now?',
         icon: 'warning',

@@ -13,10 +13,7 @@ export type GLTF = _GLTF;
 export async function parseGltf(file: Filesystem.FileResult): Promise<GLTF> {
     
     let loadingManager = new THREE.LoadingManager();
-    fixStupidRelativePathBug(loadingManager, file);
-
     let gltfLoader = createGltfLoader(loadingManager);
-
     let gltf = await parseGltfWithLoader(gltfLoader, file);
 
     return gltf;
@@ -30,19 +27,5 @@ export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined 
 
 export function parseGltfWithLoader(loader: _GLTFLoader, file: Filesystem.FileResult): Promise<GLTF> {
     return new Promise((resolve, reject) =>
-        loader.parse(file.content, PathModule.dirname(file.path), resolve, reject));
-}
-
-export function fixStupidRelativePathBug(loadingManager: THREE.LoadingManager, file: Filesystem.FileResult) {
-    // GLTFLoader is an idiot and forgets to add the path seperator after the parent directory
-    // when a referenced file's relative path doesn't start with ./
-    // We detect when it makes this mistake and fix it
-    loadingManager.setURLModifier((url) => {
-        let basePathWithoutSep = PathModule.dirname(file.path);
-        let basePathWithSlash = basePathWithoutSep + PathModule.sep;
-        // HACK: we don't need to do startsWith twice here if we look at char indices
-        if (url.startsWith(basePathWithoutSep) && !url.startsWith(basePathWithSlash))
-            return url.replace(basePathWithoutSep, basePathWithSlash);
-        return url;
-    });
+        loader.parse(file.content, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
 }

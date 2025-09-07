@@ -2264,7 +2264,6 @@
     init_GLTFLoader();
   async function parseGltf(file) {
     let loadingManager = new THREE.LoadingManager();
-    fixStupidRelativePathBug(loadingManager, file);
     let gltfLoader = createGltfLoader(loadingManager);
     let gltf = await parseGltfWithLoader(gltfLoader, file);
     return gltf;
@@ -2275,21 +2274,12 @@
     return loader;
   }
   function parseGltfWithLoader(loader, file) {
-    return new Promise((resolve, reject) => loader.parse(file.content, PathModule.dirname(file.path), resolve, reject));
-  }
-  function fixStupidRelativePathBug(loadingManager, file) {
-    loadingManager.setURLModifier((url) => {
-      let basePathWithoutSep = PathModule.dirname(file.path);
-      let basePathWithSlash = basePathWithoutSep + PathModule.sep;
-      if (url.startsWith(basePathWithoutSep) && !url.startsWith(basePathWithSlash))
-        return url.replace(basePathWithoutSep, basePathWithSlash);
-      return url;
-    });
+    return new Promise((resolve, reject) => loader.parse(file.content, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
   }
 
   // plugin/util.ts
   function isPluginInstalled(pluginId) {
-    return Plugins.installed.some((p) => p.id === pluginId);
+    return Plugins.installed.some((p) => p.id === pluginId && p.disabled !== true);
   }
   function showPlugin(pluginId) {
     Plugins.dialog.component.data.selected_plugin = Plugins.all.find((p) => p.id === pluginId);
@@ -2307,6 +2297,12 @@
       throw new Error("Failed to get 2D context");
     ctx.drawImage(imageBitmap, 0, 0);
     return canvas.toDataURL(type, quality);
+  }
+  function arrayEquals(a, b) {
+    return !a.some((v, i) => b[i] !== v);
+  }
+  function modulo(a, b) {
+    return (a % b + b) % b;
   }
 
   // plugin/vector_hash_map.ts
@@ -2361,9 +2357,9 @@
   async function importGltf(options) {
     console.log("options", options);
     let gltf = await parseGltf(options.file);
-    let sceneRoot = gltf.scene;
     console.log("gltf", gltf);
-    let rootGroup = Outliner.root.find((n) => n instanceof Group);
+    if (options.cameras === "NOT_INSTALLED" && gltf.cameras.length !== 0)
+      return "UNSUPPORTED_CAMERAS";
     let content = {
       groups: [],
       elements: [],
@@ -2375,18 +2371,27 @@
       texturesById: {},
       textureCacheKeys: await prepareTextureCacheKeys(gltf)
     };
-    Undo.initEdit({
-      outliner: true,
-      selection: true,
-      group: rootGroup,
-      elements: content.elements,
-      textures: content.textures,
-      animations: content.animations
-    });
+    if (options.undoable) {
+      let rootGroup = Outliner.root.find((n) => n instanceof Group);
+      Undo.initEdit({
+        outliner: true,
+        selection: true,
+        group: rootGroup,
+        elements: content.elements,
+        textures: content.textures,
+        animations: content.animations
+      });
+    }
+    let sceneRoot = gltf.scene;
     importNode(sceneRoot, options, content);
-    content.usesRepeatingWrapMode = gltf.parser.json.samplers.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497);
+    content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497) ?? false;
     console.log("content", content);
-    Undo.finishEdit("Import glTF");
+    if (options.selectResult) {
+      Outliner.selected.push(...content.elements);
+      content.groups.forEach((g) => g.multiSelect());
+    }
+    if (options.undoable)
+      Undo.finishEdit("Import glTF");
     return content;
   }
   function importNode(node, options, content) {
@@ -2466,33 +2471,70 @@
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v, i) => [vertexKeys[i], v]));
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
-      for (let faceIndex = 0; faceIndex < primitive.geometry.index.count; faceIndex++) {
+      for (let faceIndex = 0; faceIndex < primitive.geometry.index.count / 3; faceIndex++) {
         let texture = primitiveTextures[primitiveIndex];
         let uvWidth = texture?.uv_width ?? Project.texture_width;
         let uvHeight = texture?.uv_height ?? Project.texture_height;
-        let uvComponents = primitive.geometry.attributes.uv.array;
+        let v1Uv, v2Uv, v3Uv;
         let v1Idx = primitive.geometry.index.array[faceIndex * 3];
         let v2Idx = primitive.geometry.index.array[faceIndex * 3 + 1];
         let v3Idx = primitive.geometry.index.array[faceIndex * 3 + 2];
-        let v1Uv = [uvComponents[v1Idx * 2], uvComponents[v1Idx * 2 + 1]];
-        let v2Uv = [uvComponents[v2Idx * 2], uvComponents[v2Idx * 2 + 1]];
-        let v3Uv = [uvComponents[v3Idx * 2], uvComponents[v3Idx * 2 + 1]];
-        let v1UvScaled = [v1Uv[0] * uvWidth, v1Uv[1] * uvHeight];
-        let v2UvScaled = [v2Uv[0] * uvWidth, v2Uv[1] * uvHeight];
-        let v3UvScaled = [v3Uv[0] * uvWidth, v3Uv[1] * uvHeight];
         let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
         let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
         let v3Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v3Idx]];
-        faces.push(new MeshFace(mesh, {
-          vertices: [v1Key, v2Key, v3Key],
-          uv: {
-            [v1Key]: v1UvScaled,
-            [v2Key]: v2UvScaled,
-            [v3Key]: v3UvScaled
-          },
-          texture
-        }));
+        let faceVertexKeys = [v1Key, v2Key, v3Key];
+        if (primitive.geometry.attributes.uv != void 0) {
+          let uvComponents = primitive.geometry.attributes.uv.array;
+          v1Uv = [uvComponents[v1Idx * 2], uvComponents[v1Idx * 2 + 1]];
+          v2Uv = [uvComponents[v2Idx * 2], uvComponents[v2Idx * 2 + 1]];
+          v3Uv = [uvComponents[v3Idx * 2], uvComponents[v3Idx * 2 + 1]];
+        } else {
+          v1Uv = [0, 0];
+          v2Uv = [1, 0];
+          v3Uv = [0, 1];
+        }
+        let v1UvScaled = [v1Uv[0] * uvWidth, v1Uv[1] * uvHeight];
+        let v2UvScaled = [v2Uv[0] * uvWidth, v2Uv[1] * uvHeight];
+        let v3UvScaled = [v3Uv[0] * uvWidth, v3Uv[1] * uvHeight];
+        let uv = {
+          [v1Key]: v1UvScaled,
+          [v2Key]: v2UvScaled,
+          [v3Key]: v3UvScaled
+        };
         content.uvOutOfBounds ||= [...v1Uv, ...v2Uv, ...v3Uv].some((x) => x < 0 || x > 1);
+        let facesMergedIntoQuad = options.mergeQuads && (() => {
+          if (faces.length < 1)
+            return false;
+          let lastFace = faces[faces.length - 1];
+          if (lastFace.vertices.length !== 3)
+            return false;
+          let nonSharedVertexKeys = [];
+          let sharedVertexKeys = [];
+          for (let vertKey of lastFace.vertices)
+            (faceVertexKeys.includes(vertKey) ? sharedVertexKeys : nonSharedVertexKeys).push(vertKey);
+          if (sharedVertexKeys.length !== 2 || nonSharedVertexKeys.length !== 1)
+            return false;
+          if (sharedVertexKeys.some((vk) => !arrayEquals(uv[vk], lastFace.uv[vk])))
+            return false;
+          let face1VertAafterB = (faceVertexKeys.indexOf(sharedVertexKeys[0]) + 1) % 3 === faceVertexKeys.indexOf(sharedVertexKeys[1]);
+          let face2VertAafterB = (lastFace.vertices.indexOf(sharedVertexKeys[0]) + 1) % 3 === lastFace.vertices.indexOf(sharedVertexKeys[1]);
+          if (face1VertAafterB === face2VertAafterB)
+            return false;
+          let newVertexKey = nonSharedVertexKeys[0];
+          let face2VertBeforeNewVert = faceVertexKeys[modulo(faceVertexKeys.indexOf(newVertexKey) - 1, 3)];
+          let face1VertBeforeNewVertIndex = lastFace.vertices.indexOf(face2VertBeforeNewVert);
+          lastFace.vertices.splice(face1VertBeforeNewVertIndex, 0, newVertexKey);
+          lastFace.uv[newVertexKey] = uv[newVertexKey];
+          return true;
+        })();
+        console.log(facesMergedIntoQuad);
+        if (!facesMergedIntoQuad) {
+          faces.push(new MeshFace(mesh, {
+            vertices: faceVertexKeys,
+            uv,
+            texture
+          }));
+        }
       }
     }
     mesh.addFaces(...faces);
@@ -2511,8 +2553,10 @@
       return void 0;
     if (content.texturesById[threeTexture.uuid] != void 0)
       return content.texturesById[threeTexture.uuid];
-    let bbTexture = new Texture();
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
+    if (cacheKey == void 0)
+      return void 0;
+    let bbTexture = new Texture();
     if (isStringNumber(cacheKey)) {
       if (!(threeTexture.image instanceof ImageBitmap)) {
         console.warn("Imported texture has unknown format: ", threeTexture.image);
@@ -2585,26 +2629,44 @@
             type: "checkbox",
             label: "Import Groups",
             value: false
-          },
-          ["cameras"]: {
-            type: "checkbox",
-            label: "Import Cameras",
-            value: false
-          },
-          ["animations"]: {
-            type: "checkbox",
-            label: "Import Animations",
-            value: false
           }
+          // ['cameras']: {
+          //     type: 'checkbox',
+          //     label: 'Import Cameras',
+          //     value: isPluginInstalled('cameras'),
+          // },
+          // ['animations']: {
+          //     type: 'checkbox',
+          //     label: 'Import Animations',
+          //     value: true,
+          // },
+          // ['quads']: {
+          //     type: 'checkbox',
+          //     label: 'Merge Quads',
+          //     value: true,
+          // },
         },
-        onConfirm(options) {
-          if (options.file == void 0)
+        onConfirm(formOptions) {
+          if (formOptions.file == void 0)
             return false;
-          if (options.cameras && !isPluginInstalled("cameras")) {
-            warnAboutCameras();
-            return false;
-          }
-          importGltf(options).then(async (content) => {
+          let importOptions = {
+            file: formOptions.file,
+            scale: formOptions.scale,
+            groups: formOptions.groups,
+            cameras: formOptions.cameras,
+            animations: formOptions.animations,
+            mergeQuads: formOptions.quads,
+            undoable: true,
+            selectResult: true
+          };
+          if (formOptions.cameras && !isPluginInstalled("cameras"))
+            importOptions.cameras = "NOT_INSTALLED";
+          importGltf(importOptions).then(async (content) => {
+            if (content === "UNSUPPORTED_CAMERAS") {
+              importGltfDialog.show();
+              warnAboutCameras();
+              return;
+            }
             if (content.unsupportedArmatures)
               await warnAboutUnsupportedArmatures();
             if (content.usesRepeatingWrapMode && content.uvOutOfBounds)
@@ -2659,7 +2721,7 @@
   function warnAboutCameras() {
     Blockbench.showMessageBox({
       title: "Cameras plugin not installed",
-      message: 'You have chosen to import cameras, but the "Cameras" plugin is not currently installed. Would you like to install the "Cameras" plugin now?',
+      message: 'The imported glTF model contains cameras which you have chosen to import, but the "Cameras" plugin is not currently installed. Would you like to install the "Cameras" plugin now?',
       icon: "warning",
       width: 520,
       buttons: ["dialog.yes", "dialog.no"]

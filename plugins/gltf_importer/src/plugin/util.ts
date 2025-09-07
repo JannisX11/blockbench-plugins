@@ -1,5 +1,5 @@
 export function isPluginInstalled(pluginId: string): boolean {
-    return Plugins.installed.some(p => p.id === pluginId);
+    return Plugins.installed.some(p => p.id === pluginId && p.disabled !== true);
 }
 
 export function showPlugin(pluginId: string) {
@@ -22,4 +22,14 @@ export function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png
     ctx.drawImage(imageBitmap, 0, 0);
 
     return canvas.toDataURL(type, quality);
+}
+
+export function arrayEquals(a: any[], b: any[]): boolean {
+    return !a.some((v, i) => b[i] !== v);
+}
+
+// Actual proper modulo, not the fake % remainder bs
+// Allows negative values of 'a' to wrap correctly
+export function modulo(a: number, b: number): number {
+    return ((a % b) + b) % b;
 }

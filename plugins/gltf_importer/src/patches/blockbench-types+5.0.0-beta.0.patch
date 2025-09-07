@@ -1,3 +1,16 @@
+diff --git a/node_modules/blockbench-types/custom/mesh.d.ts b/node_modules/blockbench-types/custom/mesh.d.ts
+index fb315a5..98c1dcb 100644
+--- a/node_modules/blockbench-types/custom/mesh.d.ts
++++ b/node_modules/blockbench-types/custom/mesh.d.ts
+@@ -20,7 +20,7 @@ interface MeshOptions {
+ 
+ interface MeshFaceOptions extends FaceOptions {
+ 	vertices: string[]
+-	uv: { [vkey: string]: ArrayVector2 }
++	uv?: { [vkey: string]: ArrayVector2 }
+ }
+ declare class MeshFace extends Face {
+ 	constructor(mesh: Mesh, data: MeshFaceOptions)
 diff --git a/node_modules/blockbench-types/generated/plugin_loader.d.ts b/node_modules/blockbench-types/generated/plugin_loader.d.ts
 index 33ea480..ae9db47 100644
 --- a/node_modules/blockbench-types/generated/plugin_loader.d.ts
