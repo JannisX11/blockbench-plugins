@@ -17,7 +17,7 @@ Plugin.register('bamo', {
 	tags: ['Minecraft: Java Edition'],
 	version: '0.5.1',
 	variant: 'desktop',
-	new_respository_format : true,
+	new_repository_format : true,
 	
 	onload() {
 
