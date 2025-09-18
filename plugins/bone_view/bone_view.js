@@ -253,7 +253,7 @@
         author: 'codename-B',
         description: 'Toggleable view to visualize group pivots and their connections as bones (Blender-like).',
         version: '1.0.0', 
-        min_version: '4.9.0',
+        min_version: '4.12.6',
         variant: 'both',
 
         onload() {
