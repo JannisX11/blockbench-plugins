@@ -1,0 +1,13 @@
+{
+    "1.0.0": {
+        "release_date": "2025-09-17",
+        "changes": [
+            "Initial release of the Bone View plugin.",
+            "Added toggleable view to visualize model armatures.",
+            "Implemented rendering of bones and axis helpers for each group.",
+            "Integrated the plugin with the Blockbench UI by adding a button to the 'View' menu.",
+            "Added a customizable hotkey (default: Shift+B) to toggle the Bone View.",
+            "Added a setting in 'Keybindings' to change the hotkey."
+        ]
+    }
+}
