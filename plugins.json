@@ -521,7 +521,7 @@
 		"icon": "storefront",
 		"author": "JannisX11",
 		"description": "Bakes complex animations into simple linear keyframes",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "3.7.0",
 		"variant": "both"
 	},
@@ -816,7 +816,7 @@
 		"author": "JannisX11",
 		"description": "Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.",
 		"about": "Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"min_version": "4.5.0",
 		"variant": "both"
 	},
@@ -869,7 +869,7 @@
 		"description": "Navigate the files in your project from the sidebar in Blockbench!",
 		"about": "Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.",
 		"tags": ["Files"],
-		"version": "1.0.2",
+		"version": "1.0.3",
 		"min_version": "4.6.0",
 		"variant": "desktop"
 	},
@@ -925,7 +925,7 @@
 		"tags": ["Minecraft: Java Edition"],
 		"version": "0.5.1",
 		"variant": "desktop",
-		"new_respository_format" : true
+		"new_repository_format": true
 	},
 	"animation_to_json": {
 		"title": "Animation to JSON Converter",
@@ -1104,7 +1104,7 @@
 		"description": "Export your project as a Blender scene (.blend)",
 		"icon": "icon.png",
 		"creation_date": "2025-04-16",
-		"version": "1.0.1",
+		"version": "2.0.0",
 		"variant": "desktop",
 		"min_version": "4.12.4",
 		"has_changelog": false,
@@ -1119,7 +1119,7 @@
 		"description": "Automatically re-export your project when saving",
 		"icon": "output",
 		"creation_date": "2025-04-18",
-		"version": "1.0.0",
+		"version": "2.0.0",
 		"variant": "desktop",
 		"min_version": "4.12.4",
 		"has_changelog": false,
@@ -1135,7 +1135,7 @@
 		"description": "Enables repeating textures",
 		"icon": "icon.png",
 		"creation_date": "2025-06-15",
-		"version": "2.0.0",
+		"version": "3.0.0",
 		"variant": "both",
 		"min_version": "4.12.4",
 		"has_changelog": false,
@@ -1168,5 +1168,22 @@
 		"min_version": "4.0.0",
 		"variant": "both",
 		"repository": "https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion"
+},
+
+	"shaper": {
+		"title": "Shaper",
+		"author": "Vowxky",
+		"description": "Support tool for the Shaper mod that helps create and export hitboxes. Exports Voxel Shapes as a flat JSON list with scope selection for easier editing and reuse.",
+		"icon": "bar_chart",
+		"creation_date": "2025-08-26",
+		"version": "1.0.0",
+		"variant": "both",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Exporter"
+		],
+		"bug_tracker": "https://github.com/vowxky/blockbench-plugins/issues?title=[Shaper]"
 	}
 }
