@@ -1159,7 +1159,6 @@
 		"has_changelog": false,
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf"
 	},
-
 	"shaper": {
 		"title": "Shaper",
 		"author": "Vowxky",
@@ -1175,5 +1174,18 @@
 			"Exporter"
 		],
 		"bug_tracker": "https://github.com/vowxky/blockbench-plugins/issues?title=[Shaper]"
+	},
+	"texture_filtering": {
+		"title": "Texture Filtering",
+		"author": "HeyItsDuke, 0x13F",
+		"description": "Toggles between Nearest (Blockbench default) and Linear texture filtering",
+		"icon": "deblur",
+		"creation_date": "2025-09-01",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": ["Texture'", "Viewport", "Utility"],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_filtering"
 	}
 }
