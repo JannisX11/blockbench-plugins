@@ -9,7 +9,7 @@ Plugin.register('bakery', {
 	icon: 'storefront',
 	author: 'JannisX11',
 	description: 'Bakes complex animations into simple linear keyframes',
-	version: '1.1.0',
+	version: '1.1.1',
 	min_version: '3.7.0',
 	variant: 'both',
 	onload() {
@@ -74,9 +74,15 @@ Plugin.register('bakery', {
 												let slerp = quat_before.slerp(quat_after, t);
 
 												let euler = new THREE.Euler().setFromQuaternion(slerp, mesh.rotation.order);
-												keyframe.set('x', Math.trimDeg( (-Math.radToDeg(euler.x - mesh.fix_rotation.x)) ));
-												keyframe.set('y', Math.trimDeg( (-Math.radToDeg(euler.y - mesh.fix_rotation.y)) ));
-												keyframe.set('z', Math.trimDeg( ( Math.radToDeg(euler.z - mesh.fix_rotation.z)) ));
+												if (Blockbench.isNewerThan('4.99')) {
+													keyframe.set('x', Math.trimDeg( ( Math.radToDeg(euler.x - mesh.fix_rotation.x)) ));
+													keyframe.set('y', Math.trimDeg( ( Math.radToDeg(euler.y - mesh.fix_rotation.y)) ));
+													keyframe.set('z', Math.trimDeg( ( Math.radToDeg(euler.z - mesh.fix_rotation.z)) ));
+												} else {
+													keyframe.set('x', Math.trimDeg( (-Math.radToDeg(euler.x - mesh.fix_rotation.x)) ));
+													keyframe.set('y', Math.trimDeg( (-Math.radToDeg(euler.y - mesh.fix_rotation.y)) ));
+													keyframe.set('z', Math.trimDeg( ( Math.radToDeg(euler.z - mesh.fix_rotation.z)) ));
+												}
 											}
 
 										} else {
