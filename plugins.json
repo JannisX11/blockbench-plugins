@@ -1190,6 +1190,7 @@
 		"min_version": "4.12.6",
 		"variant": "both",
 		"has_changelog": true,
-		"creation_date": "2025-09-17"
+		"creation_date": "2025-09-17",
+		"repository": "https://github.com/codename-B/bone-view"
 	}
 }
