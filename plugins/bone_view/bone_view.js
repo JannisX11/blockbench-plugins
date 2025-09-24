@@ -249,12 +249,16 @@
 
     BBPlugin.register('bone_view', {
         title: 'Bone View',
-        icon: 'icon.png',
         author: 'codename-B',
         description: 'Toggleable view to visualize group pivots and their connections as bones (Blender-like).',
-        version: '1.0.0', 
+        icon: 'icon.png',
+        tags: ["Animation", "Rigging", "Viewport"],
+        version: '1.0.0',
         min_version: '4.12.6',
         variant: 'both',
+        has_changelog: true,
+        creation_date: "2025-09-17",
+        repository: "https://github.com/codename-B/bone-view",
 
         onload() {
             ResourceManager.init();
