@@ -66,13 +66,13 @@
             joint.isBoneIndicator = true;
             joint.renderOrder = RENDER_ORDER_BONE;
 
-            scene.add(arrow, axes, joint);
+            three_grid.add(arrow, axes, joint);
             return { arrow, axes, joint };
         }
 
         function disposeIndicators(entry) {
             if (!entry) return;
-            scene.remove(entry.arrow, entry.axes, entry.joint);
+            three_grid.remove(entry.arrow, entry.axes, entry.joint);
         }
 
         function ensureFor(group) {
@@ -116,25 +116,21 @@
 
             const parentPos = new THREE.Vector3();
             parentGroup.mesh.getWorldPosition(parentPos);
-            const length = worldPos.distanceTo(parentPos);
-            if (length <= 0.001) {
-                return { worldPos, worldQuat, valid: false };
-            }
-
-            const dir = new THREE.Vector3().subVectors(parentPos, worldPos).normalize();
-            return { worldPos, worldQuat, dir, length, parentPos, valid: true };
+            
+            return { worldPos, worldQuat, parentPos, valid: true };
         }
 
         function updateTransforms() {
             ResourceManager.updateColors();
             const active = pluginAction && pluginAction.value;
-            // offset by root x,y,z
-            const rootOffset = new THREE.Vector3(0, 0, 0);
-            if (Group.all.length) {
-                var group = Group.all[0];
-                var origin = group.origin;
-                rootOffset.set(origin[0], origin[1], origin[2]);
-            }
+
+            const inverseParentMatrix = new THREE.Matrix4();
+            three_grid.updateWorldMatrix(true, false);
+            inverseParentMatrix.copy(three_grid.matrixWorld).invert();
+
+            const parentWorldQuat = new THREE.Quaternion();
+            three_grid.getWorldQuaternion(parentWorldQuat);
+            const inverseParentQuat = parentWorldQuat.clone().invert();
 
             for (const group of Group.all) {
                 const entry = ensureFor(group);
@@ -153,24 +149,35 @@
                     entry.joint.visible = false;
                     continue;
                 }
+                
+                const localPos = data.worldPos.clone().applyMatrix4(inverseParentMatrix);
+                const parentLocalPos = data.parentPos.clone().applyMatrix4(inverseParentMatrix);
+                const localQuat = inverseParentQuat.clone().multiply(data.worldQuat);
 
-                const offsetWorldPos = new THREE.Vector3().copy(data.worldPos).add(rootOffset);
+                const length = localPos.distanceTo(parentLocalPos);
+                 if (length <= 0.001) {
+                    entry.arrow.visible = false;
+                    entry.axes.visible = false;
+                    entry.joint.visible = false;
+                    continue;
+                }
+                const dir = new THREE.Vector3().subVectors(parentLocalPos, localPos).normalize();
 
                 entry.axes.visible = true;
-                entry.axes.position.copy(offsetWorldPos);
-                entry.axes.quaternion.copy(data.worldQuat);
+                entry.axes.position.copy(localPos);
+                entry.axes.quaternion.copy(localQuat);
 
                 entry.joint.visible = true;
-                entry.joint.position.copy(offsetWorldPos);
+                entry.joint.position.copy(localPos);
 
                 entry.arrow.visible = true;
-                const qToDir = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), data.dir);
+                const qToDir = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
                 entry.arrow.quaternion.copy(qToDir);
 
-                const mid = new THREE.Vector3().copy(offsetWorldPos).addScaledVector(data.dir, data.length / 2);
+                const mid = new THREE.Vector3().copy(localPos).addScaledVector(dir, length / 2);
                 entry.arrow.position.copy(mid);
 
-                entry.arrow.scale.set(BONE_RADIUS, data.length, BONE_RADIUS);
+                entry.arrow.scale.set(BONE_RADIUS, length, BONE_RADIUS);
             }
         }
 
