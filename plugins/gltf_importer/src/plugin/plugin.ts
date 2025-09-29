@@ -44,6 +44,7 @@ BBPlugin.register('gltf_importer', {
         type ImportGltfFormResult = {
             file?: Filesystem.FileResult,
             scale: number,
+            backFaces: boolean,
             groups: boolean,
             cameras: boolean,
             animations: boolean,
@@ -66,6 +67,11 @@ BBPlugin.register('gltf_importer', {
                     type: 'number',
                     label: 'Scale',
                     value: Settings.get('model_export_scale'),
+                },
+                ['backFaces']: {
+                    type: 'checkbox',
+                    label: 'Double-sided faces',
+                    value: false,
                 },
                 ['groups']: {
                     type: 'checkbox',
@@ -102,6 +108,7 @@ BBPlugin.register('gltf_importer', {
                 let importOptions: ImportOptions = {
                     file: formOptions.file!,
                     scale: formOptions.scale,
+                    backFaces: formOptions.backFaces,
                     groups: formOptions.groups,
                     cameras: formOptions.cameras,
                     animations: formOptions.animations,
@@ -132,6 +139,10 @@ BBPlugin.register('gltf_importer', {
 
             },
         }));
+
+        // Allow other plugins to access the import function
+        window['importGltf'] = importGltf;
+        defer(() => delete window['importGltf']);
 
     },
 

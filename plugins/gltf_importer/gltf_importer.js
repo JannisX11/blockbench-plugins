@@ -2304,6 +2304,9 @@
   function modulo(a, b) {
     return (a % b + b) % b;
   }
+  function eulerDegreesFromQuat(quat) {
+    return new THREE.Euler().setFromQuaternion(quat).toVector3().multiplyScalar(180 / Math.PI);
+  }
 
   // plugin/vector_hash_map.ts
   var VectorHashMap = class {
@@ -2415,15 +2418,14 @@
     let group = null;
     if (options.groups && !isRoot) {
       group = new Group({
-        name: node.name,
-        // TODO: what if its empty? what if its duplicate?
+        name: node.userData.name || node.name || "group",
         origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
-        // TODO: global position ignoring rotations
-        rotation: node.rotation.toArray()
-        // TODO:
-      }).init();
-      content.groups.push(group);
+        rotation: eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray()
+      });
+      group.init();
+      group.createUniqueName();
       group.openUp();
+      content.groups.push(group);
     }
     for (let child of node.children) {
       let result = importNode(child, options, content);
@@ -2436,15 +2438,13 @@
   }
   function importMeshPrimitives(node, primitives, options, content) {
     let mesh = new Mesh({
-      name: node.name,
-      // TODO: what if its empty? what if its duplicate?
+      name: node.userData.name || node.name || "mesh",
       origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
-      // TODO: global position ignoring rotations
-      rotation: node.rotation.toArray(),
+      rotation: eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray(),
       vertices: {}
-      // TODO:
     });
     content.elements.push(mesh);
+    let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
     let primitiveTextures = primitives.map((p) => importTexture(p.material?.map, options, content));
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
@@ -2455,9 +2455,9 @@
         let x = primitive.geometry.attributes.position.array[vertexIndex * 3];
         let y = primitive.geometry.attributes.position.array[vertexIndex * 3 + 1];
         let z = primitive.geometry.attributes.position.array[vertexIndex * 3 + 2];
-        x *= options.scale;
-        y *= options.scale;
-        z *= options.scale;
+        x *= scale.x;
+        y *= scale.y;
+        z *= scale.z;
         let vertex = [x, y, z];
         if (!uniqueVertexIndices.has(vertex)) {
           let newUniqueVertexIndex = uniqueVertices.push(vertex) - 1;
@@ -2535,6 +2535,13 @@
             texture
           }));
         }
+        if (options.backFaces) {
+          faces.push(new MeshFace(mesh, {
+            vertices: faceVertexKeys.reverse(),
+            uv,
+            texture
+          }));
+        }
       }
     }
     mesh.addFaces(...faces);
@@ -2570,7 +2577,7 @@
       bbTexture = new Texture().fromPath(absoluteTexturePath);
     }
     if (bbTexture != void 0) {
-      bbTexture.add(false);
+      bbTexture.name = threeTexture.name || "texture", bbTexture.add(false);
       content.textures.push(bbTexture);
     }
     content.texturesById[threeTexture.uuid] = bbTexture;
@@ -2625,6 +2632,11 @@
             label: "Scale",
             value: Settings.get("model_export_scale")
           },
+          ["backFaces"]: {
+            type: "checkbox",
+            label: "Double-sided faces",
+            value: false
+          },
           ["groups"]: {
             type: "checkbox",
             label: "Import Groups",
@@ -2658,6 +2670,7 @@
           let importOptions = {
             file: formOptions.file,
             scale: formOptions.scale,
+            backFaces: formOptions.backFaces,
             groups: formOptions.groups,
             cameras: formOptions.cameras,
             animations: formOptions.animations,
@@ -2680,6 +2693,8 @@
           });
         }
       }));
+      window["importGltf"] = importGltf;
+      defer(() => delete window["importGltf"]);
     },
     onunload() {
       runDeferred();

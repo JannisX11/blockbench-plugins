@@ -1,4 +1,5 @@
 // Hash map that hashes lists of numbers by their components instead of their object reference
+// Used for de-duplicating vertices
 export class VectorHashMap<TKey extends number[], TValue> {
 
     backingMap: {[hash: number]: [TKey, TValue][]};

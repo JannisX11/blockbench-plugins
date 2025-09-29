@@ -1,10 +1,11 @@
 import { GLTF, parseGltf } from './parse_gltf';
-import { arrayEquals, imageBitmapToDataUri, modulo, valuesAndIndices } from './util';
+import { arrayEquals, eulerDegreesFromQuat, imageBitmapToDataUri, modulo, valuesAndIndices } from './util';
 import { VectorHashMap } from './vector_hash_map';
 
 export type ImportOptions = {
     file: Filesystem.FileResult,
     scale:        number,
+    backFaces:    boolean,
     groups:       boolean,
     cameras:      boolean|'NOT_INSTALLED',
     animations:   boolean,
@@ -19,7 +20,7 @@ export type ImportedContent = {
     elements:   OutlinerElement[],
     textures:   Texture[],
     animations: BBAnimation[],
-    // Used for displaying warnings to the user
+    // Used for displaying warnings
     uvOutOfBounds:         boolean,
     usesRepeatingWrapMode: boolean,
     unsupportedArmatures:  boolean,
@@ -36,8 +37,6 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     // TODO: cameras!
     // TODO: animations!
     // TODO: armatures!
-
-    // console.log('options', options); // TODO: remove
 
     let gltf = await parseGltf(options.file);
 
@@ -125,13 +124,14 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
     // Only create outliner group if the option is enabled and if the current node is not the root
     if (options.groups && !isRoot) {
         group = new Group({
-            name: node.name, // TODO: what if its empty? what if its duplicate?
-            origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),  // TODO: global position ignoring rotations
-            rotation: node.rotation.toArray() as ArrayVector3,
-            // TODO:
-        }).init();
-        content.groups.push(group);
+            name: node.userData.name || node.name || 'group',
+            origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
+            rotation: eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray() as ArrayVector3,
+        });
+        group.init();
+        group.createUniqueName();
         group.openUp();
+        content.groups.push(group);
     }
 
     // Child nodes
@@ -157,14 +157,14 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
     // Take info like name and origin from the encompassing group
     let mesh = new Mesh({
-        name: node.name, // TODO: what if its empty? what if its duplicate?
-        origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(), // TODO: global position ignoring rotations
-        rotation: node.rotation.toArray() as ArrayVector3,
+        name: node.userData.name || node.name || 'mesh',
+        origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
+        rotation:  eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray() as ArrayVector3,
         vertices: {},
-        // TODO:
     });
     content.elements.push(mesh);
 
+    let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
     // Lookup of primitive to texture
     let primitiveTextures = primitives.map(p => importTexture((p.material as any)?.map, options, content));
 
@@ -195,9 +195,9 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             let z = primitive.geometry.attributes.position.array[vertexIndex*3 + 2];
 
             // Apply scale
-            x *= options.scale;
-            y *= options.scale;
-            z *= options.scale;
+            x *= scale.x;
+            y *= scale.y;
+            z *= scale.z;
 
             let vertex: ArrayVector3 = [x, y, z];
 
@@ -333,6 +333,15 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                     texture: texture,
                 }));
             }
+
+            // Backfaces
+            if (options.backFaces) {
+                faces.push(new MeshFace(mesh, {
+                    vertices: faceVertexKeys.reverse(),
+                    uv: uv,
+                    texture: texture,
+                }));
+            }
         }
     }
 
@@ -397,6 +406,7 @@ function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOpt
     // TODO: are we sure it cant still be some other stupid thing?
 
     if (bbTexture != undefined) {
+        bbTexture.name = threeTexture.name || 'texture',
         bbTexture.add(false);
         content.textures.push(bbTexture);
     }

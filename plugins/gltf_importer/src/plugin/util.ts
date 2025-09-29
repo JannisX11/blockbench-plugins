@@ -1,3 +1,5 @@
+import { Object3D } from "three";
+
 export function isPluginInstalled(pluginId: string): boolean {
     return Plugins.installed.some(p => p.id === pluginId && p.disabled !== true);
 }
@@ -32,4 +34,8 @@ export function arrayEquals(a: any[], b: any[]): boolean {
 // Allows negative values of 'a' to wrap correctly
 export function modulo(a: number, b: number): number {
     return ((a % b) + b) % b;
+}
+
+export function eulerDegreesFromQuat(quat: THREE.Quaternion): THREE.Vector3 {
+    return new THREE.Euler().setFromQuaternion(quat).toVector3().multiplyScalar(180/Math.PI);
 }
