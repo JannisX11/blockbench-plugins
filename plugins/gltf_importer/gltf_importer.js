@@ -2590,7 +2590,7 @@
     author: "0x13F",
     description: "Import .GLTF and .GLB models",
     icon: "icon.png",
-    creation_date: "//TODO:",
+    creation_date: "29-09-2025",
     version: "1.0.0",
     variant: "desktop",
     min_version: "4.12.6",
