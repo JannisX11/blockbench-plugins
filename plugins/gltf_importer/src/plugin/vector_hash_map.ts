@@ -51,7 +51,7 @@ export class VectorHashMap<TKey extends number[], TValue> {
             }
         }
 
-        return hash >>> 0;// Return as unsigned 32-bit int
+        return hash >>> 0; // Return as unsigned 32-bit int
     }
 
     getBucket(key: TKey): [TKey, TValue][]|undefined {

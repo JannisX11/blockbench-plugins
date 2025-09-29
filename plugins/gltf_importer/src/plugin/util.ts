@@ -1,5 +1,3 @@
-import { Object3D } from "three";
-
 export function isPluginInstalled(pluginId: string): boolean {
     return Plugins.installed.some(p => p.id === pluginId && p.disabled !== true);
 }

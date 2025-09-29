@@ -60,7 +60,7 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     };
 
     if (options.undoable) {
-        let rootGroup = Outliner.root.find(n => n instanceof Group); // TODO: doesn't always work
+        let rootGroup = Outliner.root.find(n => n instanceof Group);
         Undo.initEdit({
             outliner: true,
             selection: true,
@@ -79,8 +79,6 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s: any) =>
         s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 )
         ?? false;
-
-    // console.log('content', content); // TODO: remove
 
     // Select all the elements we imported
     if (options.selectResult) {
@@ -165,6 +163,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     content.elements.push(mesh);
 
     let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
+
     // Lookup of primitive to texture
     let primitiveTextures = primitives.map(p => importTexture((p.material as any)?.map, options, content));
 
@@ -195,11 +194,11 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             let z = primitive.geometry.attributes.position.array[vertexIndex*3 + 2];
 
             // Apply scale
-            x *= scale.x;
-            y *= scale.y;
-            z *= scale.z;
-
-            let vertex: ArrayVector3 = [x, y, z];
+            let vertex: ArrayVector3 = [
+                x * scale.x,
+                y * scale.y,
+                z * scale.z,
+            ];
 
             // If this is a new position, add it to unique vertices
             if (!uniqueVertexIndices.has(vertex)) {
@@ -304,10 +303,10 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                 
                 let newVertexKey = nonSharedVertexKeys[0];
 
+                // TODO:
                 // Validate normals are (roughly) the same (coplanar)
                 // by finding the first face's normal and projecting the new vertex onto it (dot product)
                 // If the resulting projected length is greater than 0, the two faces are not coplanar
-                // TODO: 
 
                 // TODO: consider checking rough shape, could eliminate n-gon fans
                 // TODO: if a third triangle in a row is connect, maybe consider it an n-gon fan and dont merge?
@@ -319,11 +318,11 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                 // Expand previous face into quad
                 lastFace.vertices.splice(face1VertBeforeNewVertIndex, 0, newVertexKey);
                 lastFace.uv[newVertexKey] = uv[newVertexKey];
+                
+                // TODO: also make quads respact options.backFaces
 
                 return true;
             })();
-            
-            // console.log(facesMergedIntoQuad); //TODO:
 
             // If not quad, create new face
             if (!facesMergedIntoQuad) {
@@ -332,15 +331,16 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                     uv: uv,
                     texture: texture,
                 }));
-            }
 
-            // Backfaces
-            if (options.backFaces) {
-                faces.push(new MeshFace(mesh, {
-                    vertices: faceVertexKeys.reverse(),
-                    uv: uv,
-                    texture: texture,
-                }));
+                
+                // Backfaces
+                if (options.backFaces) {
+                    faces.push(new MeshFace(mesh, {
+                        vertices: faceVertexKeys.reverse(),
+                        uv: uv,
+                        texture: texture,
+                    }));
+                }
             }
         }
     }

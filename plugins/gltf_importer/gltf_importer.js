@@ -2455,10 +2455,11 @@
         let x = primitive.geometry.attributes.position.array[vertexIndex * 3];
         let y = primitive.geometry.attributes.position.array[vertexIndex * 3 + 1];
         let z = primitive.geometry.attributes.position.array[vertexIndex * 3 + 2];
-        x *= scale.x;
-        y *= scale.y;
-        z *= scale.z;
-        let vertex = [x, y, z];
+        let vertex = [
+          x * scale.x,
+          y * scale.y,
+          z * scale.z
+        ];
         if (!uniqueVertexIndices.has(vertex)) {
           let newUniqueVertexIndex = uniqueVertices.push(vertex) - 1;
           uniqueVertexIndices.set(vertex, newUniqueVertexIndex);
@@ -2534,13 +2535,13 @@
             uv,
             texture
           }));
-        }
-        if (options.backFaces) {
-          faces.push(new MeshFace(mesh, {
-            vertices: faceVertexKeys.reverse(),
-            uv,
-            texture
-          }));
+          if (options.backFaces) {
+            faces.push(new MeshFace(mesh, {
+              vertices: faceVertexKeys.reverse(),
+              uv,
+              texture
+            }));
+          }
         }
       }
     }
