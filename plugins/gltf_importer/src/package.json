@@ -1,0 +1,19 @@
+{
+  "name": "gltf_importer",
+  "main": "plugin/plugin.ts",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild plugin/plugin.ts --bundle --outfile=../gltf_importer.js",
+    "dev": "esbuild plugin/plugin.ts --bundle --outfile=../gltf_importer.js --watch",
+    "patch": "patch-package blockbench-types",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "blockbench-types": "5.0.0-beta.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.179.0",
+    "esbuild": "^0.25.9",
+    "patch-package": "^8.0.0"
+  }
+}

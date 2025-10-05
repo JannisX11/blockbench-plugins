@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "types": ["blockbench-types"],
+        "target": "es2023",
+        "module": "es2022",
+        "moduleResolution": "node",
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "rootDir": "plugin",
+        "strictNullChecks": true,
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
