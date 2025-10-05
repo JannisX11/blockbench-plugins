@@ -10,7 +10,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	about: 'Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.',
-	version: '1.0.3',
+	version: '1.0.4',
 	min_version: '4.6.0',
 	variant: 'desktop',
 	onload() {
@@ -387,7 +387,11 @@ BBPlugin.register('explorer', {
 				if (current_file) {
 					this.content_vue.goTo(PathModule.dirname(current_file));
 				} else if (!this.content_vue.path) {
-					this.content_vue.goTo(electron.app.getPath('desktop'));
+					if ("SystemInfo" in window) {
+						this.content_vue.goTo(SystemInfo.home_directory);
+					} else {
+						this.content_vue.goTo(electron.app.getPath('desktop'));
+					}
 				}
 				this.content_vue.selected.replace(current_file ? [current_file] : []);
 				setTimeout(() => {
