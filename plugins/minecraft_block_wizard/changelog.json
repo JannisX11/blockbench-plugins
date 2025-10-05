@@ -21,7 +21,7 @@
 	},
 	"1.4.0": {
 		"title": "1.4.0",
-		"date": "2025-02-15",
+		"date": "2025-10-05",
 		"author": "JannisX11",
 		"categories": [
 			{
@@ -40,15 +40,17 @@
 			}
 		]
 	},
-	"1.4.1": {
-		"title": "1.4.1",
-		"date": "2025-02-27",
+	"1.5.0": {
+		"title": "1.5.0",
+		"date": "2025-10-09",
 		"author": "JannisX11",
 		"categories": [
 			{
-				"title": "Fixes",
+				"title": "Changes",
 				"list": [
-					"Fixed an issue with uploading mcaddon file for merging"
+					"Added redstone conductivity option",
+					"Added compatibility for Blockbench 5.0",
+					"Added compatibility for new Minecraft install location"
 				]
 			}
 		]
