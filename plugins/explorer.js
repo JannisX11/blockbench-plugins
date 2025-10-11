@@ -10,7 +10,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	about: 'Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.',
-	version: '1.0.4',
+	version: '1.0.5',
 	min_version: '4.6.0',
 	variant: 'desktop',
 	onload() {
@@ -34,6 +34,9 @@ BBPlugin.register('explorer', {
 			if (dirent.name.endsWith('.geo.json')) {
 				icon_name = 'icon-format_bedrock';
 				color = '#e3815b';
+			}
+			if (icon_name == 'insert_drive_file' && Codec.getAllExtensions().includes(ext)) {
+				icon_name = 'description';
 			}
 
 			return Blockbench.getIconNode(icon_name, color);
