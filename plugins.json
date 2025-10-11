@@ -432,17 +432,40 @@
 		"author": "Eliot Lash, Tslat, Gecko, McHorse",
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
+		"deprecation_note": "This plugin has been discontinued in favour of the \"GeckoLib\" plugin. This plugin will continue to work on Blockbench 4 and below. For Blockbench 5+, use 'GeckoLib' instead.",
 		"tags": [
-			"Minecraft: Java Edition"
+			"Minecraft: Java Edition",
+			"Deprecated"
 		],
-		"version": "4.1.0",
-		"min_version": "4.11.0",
+		"version": "4.1.1",
+		"min_version": "4.12.0",
 		"await_loading": true,
 		"variant": "both",
 		"max_version": "5.0.0",
 		"has_changelog": true,
 		"website": "https://github.com/bernie-g/geckolib/wiki",
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils",
+		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
+	},
+	"geckolib": {
+		"title": "GeckoLib Models & Animations",
+		"author": "Eliot Lash, Tslat, Gecko, McHorse",
+		"contributors": [
+			"Zigy"
+		],
+		"icon": "icon.png",
+		"description": "Create animated blocks, items, entities, and armor for the GeckoLib java mod library.",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"version": "4.2.0",
+		"min_version": "5.0.0",
+		"max_version": "6.0.0",
+		"await_loading": true,
+		"variant": "both",
+		"has_changelog": true,
+		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib",
 		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
 	},
 	"modded_entity_fabric": {

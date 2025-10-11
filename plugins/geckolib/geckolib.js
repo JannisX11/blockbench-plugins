@@ -5212,19 +5212,18 @@ module.exports = uniq;
   \***************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const ANY = Symbol('SemVer ANY')
 // hoisted class for cyclic dependency
 class Comparator {
   static get ANY () {
     return ANY
   }
+
   constructor (comp, options) {
-    if (!options || typeof options !== 'object') {
-      options = {
-        loose: !!options,
-        includePrerelease: false
-      }
-    }
+    options = parseOptions(options)
 
     if (comp instanceof Comparator) {
       if (comp.loose === !!options.loose) {
@@ -5234,6 +5233,7 @@ class Comparator {
       }
     }
 
+    comp = comp.trim().split(/\s+/).join(' ')
     debug('comparator', comp, options)
     this.options = options
     this.loose = !!options.loose
@@ -5296,13 +5296,6 @@ class Comparator {
       throw new TypeError('a Comparator is required')
     }
 
-    if (!options || typeof options !== 'object') {
-      options = {
-        loose: !!options,
-        includePrerelease: false
-      }
-    }
-
     if (this.operator === '') {
       if (this.value === '') {
         return true
@@ -5315,38 +5308,50 @@ class Comparator {
       return new Range(this.value, options).test(comp.semver)
     }
 
-    const sameDirectionIncreasing =
-      (this.operator === '>=' || this.operator === '>') &&
-      (comp.operator === '>=' || comp.operator === '>')
-    const sameDirectionDecreasing =
-      (this.operator === '<=' || this.operator === '<') &&
-      (comp.operator === '<=' || comp.operator === '<')
-    const sameSemVer = this.semver.version === comp.semver.version
-    const differentDirectionsInclusive =
-      (this.operator === '>=' || this.operator === '<=') &&
-      (comp.operator === '>=' || comp.operator === '<=')
-    const oppositeDirectionsLessThan =
-      cmp(this.semver, '<', comp.semver, options) &&
-      (this.operator === '>=' || this.operator === '>') &&
-        (comp.operator === '<=' || comp.operator === '<')
-    const oppositeDirectionsGreaterThan =
-      cmp(this.semver, '>', comp.semver, options) &&
-      (this.operator === '<=' || this.operator === '<') &&
-        (comp.operator === '>=' || comp.operator === '>')
+    options = parseOptions(options)
 
-    return (
-      sameDirectionIncreasing ||
-      sameDirectionDecreasing ||
-      (sameSemVer && differentDirectionsInclusive) ||
-      oppositeDirectionsLessThan ||
-      oppositeDirectionsGreaterThan
-    )
+    // Special cases where nothing can possibly be lower
+    if (options.includePrerelease &&
+      (this.value === '<0.0.0-0' || comp.value === '<0.0.0-0')) {
+      return false
+    }
+    if (!options.includePrerelease &&
+      (this.value.startsWith('<0.0.0') || comp.value.startsWith('<0.0.0'))) {
+      return false
+    }
+
+    // Same direction increasing (> or >=)
+    if (this.operator.startsWith('>') && comp.operator.startsWith('>')) {
+      return true
+    }
+    // Same direction decreasing (< or <=)
+    if (this.operator.startsWith('<') && comp.operator.startsWith('<')) {
+      return true
+    }
+    // same SemVer and both sides are inclusive (<= or >=)
+    if (
+      (this.semver.version === comp.semver.version) &&
+      this.operator.includes('=') && comp.operator.includes('=')) {
+      return true
+    }
+    // opposite directions less than
+    if (cmp(this.semver, '<', comp.semver, options) &&
+      this.operator.startsWith('>') && comp.operator.startsWith('<')) {
+      return true
+    }
+    // opposite directions greater than
+    if (cmp(this.semver, '>', comp.semver, options) &&
+      this.operator.startsWith('<') && comp.operator.startsWith('>')) {
+      return true
+    }
+    return false
   }
 }
 
 module.exports = Comparator
 
-const {re, t} = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
+const { safeRe: re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
 const cmp = __webpack_require__(/*! ../functions/cmp */ "./node_modules/semver/functions/cmp.js")
 const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
 const SemVer = __webpack_require__(/*! ./semver */ "./node_modules/semver/classes/semver.js")
@@ -5361,15 +5366,15 @@ const Range = __webpack_require__(/*! ./range */ "./node_modules/semver/classes/
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
+const SPACE_CHARACTERS = /\s+/g
+
 // hoisted class for cyclic dependency
 class Range {
   constructor (range, options) {
-    if (!options || typeof options !== 'object') {
-      options = {
-        loose: !!options,
-        includePrerelease: false
-      }
-    }
+    options = parseOptions(options)
 
     if (range instanceof Range) {
       if (
@@ -5386,7 +5391,7 @@ class Range {
       // just put it in the set and return
       this.raw = range.value
       this.set = [[range]]
-      this.format()
+      this.formatted = undefined
       return this
     }
 
@@ -5394,31 +5399,66 @@ class Range {
     this.loose = !!options.loose
     this.includePrerelease = !!options.includePrerelease
 
-    // First, split based on boolean or ||
-    this.raw = range
-    this.set = range
-      .split(/\s*\|\|\s*/)
+    // First reduce all whitespace as much as possible so we do not have to rely
+    // on potentially slow regexes like \s*. This is then stored and used for
+    // future error messages as well.
+    this.raw = range.trim().replace(SPACE_CHARACTERS, ' ')
+
+    // First, split on ||
+    this.set = this.raw
+      .split('||')
       // map the range to a 2d array of comparators
-      .map(range => this.parseRange(range.trim()))
+      .map(r => this.parseRange(r.trim()))
       // throw out any comparator lists that are empty
       // this generally means that it was not a valid range, which is allowed
       // in loose mode, but will still throw if the WHOLE range is invalid.
       .filter(c => c.length)
 
     if (!this.set.length) {
-      throw new TypeError(`Invalid SemVer Range: ${range}`)
+      throw new TypeError(`Invalid SemVer Range: ${this.raw}`)
     }
 
-    this.format()
+    // if we have any that are not the null set, throw out null sets.
+    if (this.set.length > 1) {
+      // keep the first one, in case they're all null sets
+      const first = this.set[0]
+      this.set = this.set.filter(c => !isNullSet(c[0]))
+      if (this.set.length === 0) {
+        this.set = [first]
+      } else if (this.set.length > 1) {
+        // if we have any that are *, then the range is just *
+        for (const c of this.set) {
+          if (c.length === 1 && isAny(c[0])) {
+            this.set = [c]
+            break
+          }
+        }
+      }
+    }
+
+    this.formatted = undefined
+  }
+
+  get range () {
+    if (this.formatted === undefined) {
+      this.formatted = ''
+      for (let i = 0; i < this.set.length; i++) {
+        if (i > 0) {
+          this.formatted += '||'
+        }
+        const comps = this.set[i]
+        for (let k = 0; k < comps.length; k++) {
+          if (k > 0) {
+            this.formatted += ' '
+          }
+          this.formatted += comps[k].toString().trim()
+        }
+      }
+    }
+    return this.formatted
   }
 
   format () {
-    this.range = this.set
-      .map((comps) => {
-        return comps.join(' ').trim()
-      })
-      .join('||')
-      .trim()
     return this.range
   }
 
@@ -5427,38 +5467,73 @@ class Range {
   }
 
   parseRange (range) {
+    // memoize range parsing for performance.
+    // this is a very hot path, and fully deterministic.
+    const memoOpts =
+      (this.options.includePrerelease && FLAG_INCLUDE_PRERELEASE) |
+      (this.options.loose && FLAG_LOOSE)
+    const memoKey = memoOpts + ':' + range
+    const cached = cache.get(memoKey)
+    if (cached) {
+      return cached
+    }
+
     const loose = this.options.loose
-    range = range.trim()
     // `1.2.3 - 1.2.4` => `>=1.2.3 <=1.2.4`
     const hr = loose ? re[t.HYPHENRANGELOOSE] : re[t.HYPHENRANGE]
     range = range.replace(hr, hyphenReplace(this.options.includePrerelease))
     debug('hyphen replace', range)
+
     // `> 1.2.3 < 1.2.5` => `>1.2.3 <1.2.5`
     range = range.replace(re[t.COMPARATORTRIM], comparatorTrimReplace)
-    debug('comparator trim', range, re[t.COMPARATORTRIM])
+    debug('comparator trim', range)
 
     // `~ 1.2.3` => `~1.2.3`
     range = range.replace(re[t.TILDETRIM], tildeTrimReplace)
+    debug('tilde trim', range)
 
     // `^ 1.2.3` => `^1.2.3`
     range = range.replace(re[t.CARETTRIM], caretTrimReplace)
-
-    // normalize spaces
-    range = range.split(/\s+/).join(' ')
+    debug('caret trim', range)
 
     // At this point, the range is completely trimmed and
     // ready to be split into comparators.
 
-    const compRe = loose ? re[t.COMPARATORLOOSE] : re[t.COMPARATOR]
-    return range
+    let rangeList = range
       .split(' ')
       .map(comp => parseComparator(comp, this.options))
       .join(' ')
       .split(/\s+/)
+      // >=0.0.0 is equivalent to *
       .map(comp => replaceGTE0(comp, this.options))
+
+    if (loose) {
       // in loose mode, throw out any that are not valid comparators
-      .filter(this.options.loose ? comp => !!comp.match(compRe) : () => true)
-      .map(comp => new Comparator(comp, this.options))
+      rangeList = rangeList.filter(comp => {
+        debug('loose invalid filter', comp, this.options)
+        return !!comp.match(re[t.COMPARATORLOOSE])
+      })
+    }
+    debug('range list', rangeList)
+
+    // if any comparators are the null set, then replace with JUST null set
+    // if more than one comparator, remove any * comparators
+    // also, don't include the same comparator more than once
+    const rangeMap = new Map()
+    const comparators = rangeList.map(comp => new Comparator(comp, this.options))
+    for (const comp of comparators) {
+      if (isNullSet(comp)) {
+        return [comp]
+      }
+      rangeMap.set(comp.value, comp)
+    }
+    if (rangeMap.size > 1 && rangeMap.has('')) {
+      rangeMap.delete('')
+    }
+
+    const result = [...rangeMap.values()]
+    cache.set(memoKey, result)
+    return result
   }
 
   intersects (range, options) {
@@ -5505,18 +5580,27 @@ class Range {
     return false
   }
 }
+
 module.exports = Range
 
+const LRU = __webpack_require__(/*! ../internal/lrucache */ "./node_modules/semver/internal/lrucache.js")
+const cache = new LRU()
+
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
 const Comparator = __webpack_require__(/*! ./comparator */ "./node_modules/semver/classes/comparator.js")
 const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
 const SemVer = __webpack_require__(/*! ./semver */ "./node_modules/semver/classes/semver.js")
 const {
-  re,
+  safeRe: re,
   t,
   comparatorTrimReplace,
   tildeTrimReplace,
-  caretTrimReplace
+  caretTrimReplace,
 } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = __webpack_require__(/*! ../internal/constants */ "./node_modules/semver/internal/constants.js")
+
+const isNullSet = c => c.value === '<0.0.0-0'
+const isAny = c => c.value === ''
 
 // take a set of comparators and determine whether there
 // exists a version which can satisfy it
@@ -5560,10 +5644,14 @@ const isX = id => !id || id.toLowerCase() === 'x' || id === '*'
 // ~1.2, ~1.2.x, ~>1.2, ~>1.2.x --> >=1.2.0 <1.3.0-0
 // ~1.2.3, ~>1.2.3 --> >=1.2.3 <1.3.0-0
 // ~1.2.0, ~>1.2.0 --> >=1.2.0 <1.3.0-0
-const replaceTildes = (comp, options) =>
-  comp.trim().split(/\s+/).map((comp) => {
-    return replaceTilde(comp, options)
-  }).join(' ')
+// ~0.0.1 --> >=0.0.1 <0.1.0-0
+const replaceTildes = (comp, options) => {
+  return comp
+    .trim()
+    .split(/\s+/)
+    .map((c) => replaceTilde(c, options))
+    .join(' ')
+}
 
 const replaceTilde = (comp, options) => {
   const r = options.loose ? re[t.TILDELOOSE] : re[t.TILDE]
@@ -5599,10 +5687,15 @@ const replaceTilde = (comp, options) => {
 // ^1.2, ^1.2.x --> >=1.2.0 <2.0.0-0
 // ^1.2.3 --> >=1.2.3 <2.0.0-0
 // ^1.2.0 --> >=1.2.0 <2.0.0-0
-const replaceCarets = (comp, options) =>
-  comp.trim().split(/\s+/).map((comp) => {
-    return replaceCaret(comp, options)
-  }).join(' ')
+// ^0.0.1 --> >=0.0.1 <0.0.2-0
+// ^0.1.0 --> >=0.1.0 <0.2.0-0
+const replaceCarets = (comp, options) => {
+  return comp
+    .trim()
+    .split(/\s+/)
+    .map((c) => replaceCaret(c, options))
+    .join(' ')
+}
 
 const replaceCaret = (comp, options) => {
   debug('caret', comp, options)
@@ -5659,9 +5752,10 @@ const replaceCaret = (comp, options) => {
 
 const replaceXRanges = (comp, options) => {
   debug('replaceXRanges', comp, options)
-  return comp.split(/\s+/).map((comp) => {
-    return replaceXRange(comp, options)
-  }).join(' ')
+  return comp
+    .split(/\s+/)
+    .map((c) => replaceXRange(c, options))
+    .join(' ')
 }
 
 const replaceXRange = (comp, options) => {
@@ -5721,8 +5815,9 @@ const replaceXRange = (comp, options) => {
         }
       }
 
-      if (gtlt === '<')
+      if (gtlt === '<') {
         pr = '-0'
+      }
 
       ret = `${gtlt + M}.${m}.${p}${pr}`
     } else if (xm) {
@@ -5743,12 +5838,15 @@ const replaceXRange = (comp, options) => {
 const replaceStars = (comp, options) => {
   debug('replaceStars', comp, options)
   // Looseness is ignored here.  star is always as loose as it gets!
-  return comp.trim().replace(re[t.STAR], '')
+  return comp
+    .trim()
+    .replace(re[t.STAR], '')
 }
 
 const replaceGTE0 = (comp, options) => {
   debug('replaceGTE0', comp, options)
-  return comp.trim()
+  return comp
+    .trim()
     .replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], '')
 }
 
@@ -5757,9 +5855,10 @@ const replaceGTE0 = (comp, options) => {
 // 1.2 - 3.4.5 => >=1.2.0 <=3.4.5
 // 1.2.3 - 3.4 => >=1.2.0 <3.5.0-0 Any 3.4.x will do
 // 1.2 - 3.4 => >=1.2.0 <3.5.0-0
+// TODO build?
 const hyphenReplace = incPr => ($0,
   from, fM, fm, fp, fpr, fb,
-  to, tM, tm, tp, tpr, tb) => {
+  to, tM, tm, tp, tpr) => {
   if (isX(fM)) {
     from = ''
   } else if (isX(fm)) {
@@ -5786,7 +5885,7 @@ const hyphenReplace = incPr => ($0,
     to = `<=${to}`
   }
 
-  return (`${from} ${to}`).trim()
+  return `${from} ${to}`.trim()
 }
 
 const testSet = (set, version, options) => {
@@ -5834,28 +5933,28 @@ const testSet = (set, version, options) => {
   \***********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
 const { MAX_LENGTH, MAX_SAFE_INTEGER } = __webpack_require__(/*! ../internal/constants */ "./node_modules/semver/internal/constants.js")
-const { re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const { safeRe: re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
 
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
 const { compareIdentifiers } = __webpack_require__(/*! ../internal/identifiers */ "./node_modules/semver/internal/identifiers.js")
 class SemVer {
   constructor (version, options) {
-    if (!options || typeof options !== 'object') {
-      options = {
-        loose: !!options,
-        includePrerelease: false
-      }
-    }
+    options = parseOptions(options)
+
     if (version instanceof SemVer) {
       if (version.loose === !!options.loose &&
-          version.includePrerelease === !!options.includePrerelease) {
+        version.includePrerelease === !!options.includePrerelease) {
         return version
       } else {
         version = version.version
       }
     } else if (typeof version !== 'string') {
-      throw new TypeError(`Invalid Version: ${version}`)
+      throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`)
     }
 
     if (version.length > MAX_LENGTH) {
@@ -5997,7 +6096,7 @@ class SemVer {
     do {
       const a = this.build[i]
       const b = other.build[i]
-      debug('prerelease compare', i, a, b)
+      debug('build compare', i, a, b)
       if (a === undefined && b === undefined) {
         return 0
       } else if (b === undefined) {
@@ -6014,36 +6113,55 @@ class SemVer {
 
   // preminor will bump the version up to the next minor release, and immediately
   // down to pre-release. premajor and prepatch work the same way.
-  inc (release, identifier) {
+  inc (release, identifier, identifierBase) {
+    if (release.startsWith('pre')) {
+      if (!identifier && identifierBase === false) {
+        throw new Error('invalid increment argument: identifier is empty')
+      }
+      // Avoid an invalid semver results
+      if (identifier) {
+        const match = `-${identifier}`.match(this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE])
+        if (!match || match[1] !== identifier) {
+          throw new Error(`invalid identifier: ${identifier}`)
+        }
+      }
+    }
+
     switch (release) {
       case 'premajor':
         this.prerelease.length = 0
         this.patch = 0
         this.minor = 0
         this.major++
-        this.inc('pre', identifier)
+        this.inc('pre', identifier, identifierBase)
         break
       case 'preminor':
         this.prerelease.length = 0
         this.patch = 0
         this.minor++
-        this.inc('pre', identifier)
+        this.inc('pre', identifier, identifierBase)
         break
       case 'prepatch':
         // If this is already a prerelease, it will bump to the next version
         // drop any prereleases that might already exist, since they are not
         // relevant at this point.
         this.prerelease.length = 0
-        this.inc('patch', identifier)
-        this.inc('pre', identifier)
+        this.inc('patch', identifier, identifierBase)
+        this.inc('pre', identifier, identifierBase)
         break
       // If the input is a non-prerelease version, this acts the same as
       // prepatch.
       case 'prerelease':
         if (this.prerelease.length === 0) {
-          this.inc('patch', identifier)
+          this.inc('patch', identifier, identifierBase)
         }
-        this.inc('pre', identifier)
+        this.inc('pre', identifier, identifierBase)
+        break
+      case 'release':
+        if (this.prerelease.length === 0) {
+          throw new Error(`version ${this.raw} is not a prerelease`)
+        }
+        this.prerelease.length = 0
         break
 
       case 'major':
@@ -6085,9 +6203,11 @@ class SemVer {
         break
       // This probably shouldn't be used publicly.
       // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
-      case 'pre':
+      case 'pre': {
+        const base = Number(identifierBase) ? 1 : 0
+
         if (this.prerelease.length === 0) {
-          this.prerelease = [0]
+          this.prerelease = [base]
         } else {
           let i = this.prerelease.length
           while (--i >= 0) {
@@ -6098,27 +6218,36 @@ class SemVer {
           }
           if (i === -1) {
             // didn't increment anything
-            this.prerelease.push(0)
+            if (identifier === this.prerelease.join('.') && identifierBase === false) {
+              throw new Error('invalid increment argument: identifier already exists')
+            }
+            this.prerelease.push(base)
           }
         }
         if (identifier) {
           // 1.2.0-beta.1 bumps to 1.2.0-beta.2,
           // 1.2.0-beta.fooblz or 1.2.0-beta bumps to 1.2.0-beta.0
-          if (this.prerelease[0] === identifier) {
+          let prerelease = [identifier, base]
+          if (identifierBase === false) {
+            prerelease = [identifier]
+          }
+          if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
             if (isNaN(this.prerelease[1])) {
-              this.prerelease = [identifier, 0]
+              this.prerelease = prerelease
             }
           } else {
-            this.prerelease = [identifier, 0]
+            this.prerelease = prerelease
           }
         }
         break
-
+      }
       default:
         throw new Error(`invalid increment argument: ${release}`)
     }
-    this.format()
-    this.raw = this.version
+    this.raw = this.format()
+    if (this.build.length) {
+      this.raw += `+${this.build.join('.')}`
+    }
     return this
   }
 }
@@ -6134,6 +6263,9 @@ module.exports = SemVer
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const eq = __webpack_require__(/*! ./eq */ "./node_modules/semver/functions/eq.js")
 const neq = __webpack_require__(/*! ./neq */ "./node_modules/semver/functions/neq.js")
 const gt = __webpack_require__(/*! ./gt */ "./node_modules/semver/functions/gt.js")
@@ -6144,17 +6276,21 @@ const lte = __webpack_require__(/*! ./lte */ "./node_modules/semver/functions/lt
 const cmp = (a, op, b, loose) => {
   switch (op) {
     case '===':
-      if (typeof a === 'object')
+      if (typeof a === 'object') {
         a = a.version
-      if (typeof b === 'object')
+      }
+      if (typeof b === 'object') {
         b = b.version
+      }
       return a === b
 
     case '!==':
-      if (typeof a === 'object')
+      if (typeof a === 'object') {
         a = a.version
-      if (typeof b === 'object')
+      }
+      if (typeof b === 'object') {
         b = b.version
+      }
       return a !== b
 
     case '':
@@ -6192,9 +6328,12 @@ module.exports = cmp
   \*************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
 const parse = __webpack_require__(/*! ./parse */ "./node_modules/semver/functions/parse.js")
-const {re, t} = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const { safeRe: re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
 
 const coerce = (version, options) => {
   if (version instanceof SemVer) {
@@ -6213,34 +6352,43 @@ const coerce = (version, options) => {
 
   let match = null
   if (!options.rtl) {
-    match = version.match(re[t.COERCE])
+    match = version.match(options.includePrerelease ? re[t.COERCEFULL] : re[t.COERCE])
   } else {
     // Find the right-most coercible string that does not share
     // a terminus with a more left-ward coercible string.
     // Eg, '1.2.3.4' wants to coerce '2.3.4', not '3.4' or '4'
+    // With includePrerelease option set, '1.2.3.4-rc' wants to coerce '2.3.4-rc', not '2.3.4'
     //
     // Walk through the string checking with a /g regexp
     // Manually set the index so as to pick up overlapping matches.
     // Stop when we get a match that ends at the string end, since no
     // coercible string can be more right-ward without the same terminus.
+    const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL]
     let next
-    while ((next = re[t.COERCERTL].exec(version)) &&
+    while ((next = coerceRtlRegex.exec(version)) &&
         (!match || match.index + match[0].length !== version.length)
     ) {
       if (!match ||
             next.index + next[0].length !== match.index + match[0].length) {
         match = next
       }
-      re[t.COERCERTL].lastIndex = next.index + next[1].length + next[2].length
+      coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length
     }
     // leave it in a clean state
-    re[t.COERCERTL].lastIndex = -1
+    coerceRtlRegex.lastIndex = -1
   }
 
-  if (match === null)
+  if (match === null) {
     return null
+  }
 
-  return parse(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options)
+  const major = match[2]
+  const minor = match[3] || '0'
+  const patch = match[4] || '0'
+  const prerelease = options.includePrerelease && match[5] ? `-${match[5]}` : ''
+  const build = options.includePrerelease && match[6] ? `+${match[6]}` : ''
+
+  return parse(`${major}.${minor}.${patch}${prerelease}${build}`, options)
 }
 module.exports = coerce
 
@@ -6252,6 +6400,9 @@ module.exports = coerce
   !*** ./node_modules/semver/functions/compare.js ***!
   \**************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
 const compare = (a, b, loose) =>
@@ -6268,6 +6419,9 @@ module.exports = compare
   \*********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const eq = (a, b, loose) => compare(a, b, loose) === 0
 module.exports = eq
@@ -6280,6 +6434,9 @@ module.exports = eq
   !*** ./node_modules/semver/functions/gt.js ***!
   \*********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const gt = (a, b, loose) => compare(a, b, loose) > 0
@@ -6294,6 +6451,9 @@ module.exports = gt
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const gte = (a, b, loose) => compare(a, b, loose) >= 0
 module.exports = gte
@@ -6306,6 +6466,9 @@ module.exports = gte
   !*** ./node_modules/semver/functions/lt.js ***!
   \*********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const lt = (a, b, loose) => compare(a, b, loose) < 0
@@ -6320,6 +6483,9 @@ module.exports = lt
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
+
+
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const lte = (a, b, loose) => compare(a, b, loose) <= 0
 module.exports = lte
@@ -6332,6 +6498,9 @@ module.exports = lte
   !*** ./node_modules/semver/functions/neq.js ***!
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
 const neq = (a, b, loose) => compare(a, b, loose) !== 0
@@ -6346,39 +6515,21 @@ module.exports = neq
   \************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const {MAX_LENGTH} = __webpack_require__(/*! ../internal/constants */ "./node_modules/semver/internal/constants.js")
-const { re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+"use strict";
+
+
 const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
-
-const parse = (version, options) => {
-  if (!options || typeof options !== 'object') {
-    options = {
-      loose: !!options,
-      includePrerelease: false
-    }
-  }
-
+const parse = (version, options, throwErrors = false) => {
   if (version instanceof SemVer) {
     return version
   }
-
-  if (typeof version !== 'string') {
-    return null
-  }
-
-  if (version.length > MAX_LENGTH) {
-    return null
-  }
-
-  const r = options.loose ? re[t.LOOSE] : re[t.FULL]
-  if (!r.test(version)) {
-    return null
-  }
-
   try {
     return new SemVer(version, options)
   } catch (er) {
-    return null
+    if (!throwErrors) {
+      return null
+    }
+    throw er
   }
 }
 
@@ -6392,6 +6543,9 @@ module.exports = parse
   !*** ./node_modules/semver/functions/satisfies.js ***!
   \****************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
 const satisfies = (version, range, options) => {
@@ -6413,22 +6567,43 @@ module.exports = satisfies
   \***************************************************/
 /***/ ((module) => {
 
+"use strict";
+
+
 // Note: this is the semver.org version of the spec that it implements
 // Not necessarily the package version of this code.
 const SEMVER_SPEC_VERSION = '2.0.0'
 
 const MAX_LENGTH = 256
 const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER ||
-  /* istanbul ignore next */ 9007199254740991
+/* istanbul ignore next */ 9007199254740991
 
 // Max safe segment length for coercion.
 const MAX_SAFE_COMPONENT_LENGTH = 16
 
+// Max safe length for a build identifier. The max length minus 6 characters for
+// the shortest version with a build 0.0.0+BUILD.
+const MAX_SAFE_BUILD_LENGTH = MAX_LENGTH - 6
+
+const RELEASE_TYPES = [
+  'major',
+  'premajor',
+  'minor',
+  'preminor',
+  'patch',
+  'prepatch',
+  'prerelease',
+]
+
 module.exports = {
-  SEMVER_SPEC_VERSION,
   MAX_LENGTH,
+  MAX_SAFE_COMPONENT_LENGTH,
+  MAX_SAFE_BUILD_LENGTH,
   MAX_SAFE_INTEGER,
-  MAX_SAFE_COMPONENT_LENGTH
+  RELEASE_TYPES,
+  SEMVER_SPEC_VERSION,
+  FLAG_INCLUDE_PRERELEASE: 0b001,
+  FLAG_LOOSE: 0b010,
 }
 
 
@@ -6439,6 +6614,9 @@ module.exports = {
   !*** ./node_modules/semver/internal/debug.js ***!
   \***********************************************/
 /***/ ((module) => {
+
+"use strict";
+
 
 const debug = (
   typeof process === 'object' &&
@@ -6458,6 +6636,9 @@ module.exports = debug
   !*** ./node_modules/semver/internal/identifiers.js ***!
   \*****************************************************/
 /***/ ((module) => {
+
+"use strict";
+
 
 const numeric = /^[0-9]+$/
 const compareIdentifiers = (a, b) => {
@@ -6480,8 +6661,89 @@ const rcompareIdentifiers = (a, b) => compareIdentifiers(b, a)
 
 module.exports = {
   compareIdentifiers,
-  rcompareIdentifiers
+  rcompareIdentifiers,
 }
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/lrucache.js":
+/*!**************************************************!*\
+  !*** ./node_modules/semver/internal/lrucache.js ***!
+  \**************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+class LRUCache {
+  constructor () {
+    this.max = 1000
+    this.map = new Map()
+  }
+
+  get (key) {
+    const value = this.map.get(key)
+    if (value === undefined) {
+      return undefined
+    } else {
+      // Remove the key from the map and add it to the end
+      this.map.delete(key)
+      this.map.set(key, value)
+      return value
+    }
+  }
+
+  delete (key) {
+    return this.map.delete(key)
+  }
+
+  set (key, value) {
+    const deleted = this.delete(key)
+
+    if (!deleted && value !== undefined) {
+      // If cache is full, delete the least recently used item
+      if (this.map.size >= this.max) {
+        const firstKey = this.map.keys().next().value
+        this.delete(firstKey)
+      }
+
+      this.map.set(key, value)
+    }
+
+    return this
+  }
+}
+
+module.exports = LRUCache
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/parse-options.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/semver/internal/parse-options.js ***!
+  \*******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// parse out just the options we care about
+const looseOption = Object.freeze({ loose: true })
+const emptyOpts = Object.freeze({ })
+const parseOptions = options => {
+  if (!options) {
+    return emptyOpts
+  }
+
+  if (typeof options !== 'object') {
+    return looseOption
+  }
+
+  return options
+}
+module.exports = parseOptions
 
 
 /***/ }),
@@ -6492,22 +6754,57 @@ module.exports = {
   \********************************************/
 /***/ ((module, exports, __webpack_require__) => {
 
-const { MAX_SAFE_COMPONENT_LENGTH } = __webpack_require__(/*! ./constants */ "./node_modules/semver/internal/constants.js")
+"use strict";
+
+
+const {
+  MAX_SAFE_COMPONENT_LENGTH,
+  MAX_SAFE_BUILD_LENGTH,
+  MAX_LENGTH,
+} = __webpack_require__(/*! ./constants */ "./node_modules/semver/internal/constants.js")
 const debug = __webpack_require__(/*! ./debug */ "./node_modules/semver/internal/debug.js")
 exports = module.exports = {}
 
 // The actual regexps go on exports.re
 const re = exports.re = []
+const safeRe = exports.safeRe = []
 const src = exports.src = []
+const safeSrc = exports.safeSrc = []
 const t = exports.t = {}
 let R = 0
 
+const LETTERDASHNUMBER = '[a-zA-Z0-9-]'
+
+// Replace some greedy regex tokens to prevent regex dos issues. These regex are
+// used internally via the safeRe object since all inputs in this library get
+// normalized first to trim and collapse all extra whitespace. The original
+// regexes are exported for userland consumption and lower level usage. A
+// future breaking change could export the safer regex only with a note that
+// all input should have extra whitespace removed.
+const safeRegexReplacements = [
+  ['\\s', 1],
+  ['\\d', MAX_LENGTH],
+  [LETTERDASHNUMBER, MAX_SAFE_BUILD_LENGTH],
+]
+
+const makeSafeRegex = (value) => {
+  for (const [token, max] of safeRegexReplacements) {
+    value = value
+      .split(`${token}*`).join(`${token}{0,${max}}`)
+      .split(`${token}+`).join(`${token}{1,${max}}`)
+  }
+  return value
+}
+
 const createToken = (name, value, isGlobal) => {
+  const safe = makeSafeRegex(value)
   const index = R++
-  debug(index, value)
+  debug(name, index, value)
   t[name] = index
   src[index] = value
+  safeSrc[index] = safe
   re[index] = new RegExp(value, isGlobal ? 'g' : undefined)
+  safeRe[index] = new RegExp(safe, isGlobal ? 'g' : undefined)
 }
 
 // The following Regular Expressions can be used for tokenizing,
@@ -6517,13 +6814,13 @@ const createToken = (name, value, isGlobal) => {
 // A single `0`, or a non-zero digit followed by zero or more digits.
 
 createToken('NUMERICIDENTIFIER', '0|[1-9]\\d*')
-createToken('NUMERICIDENTIFIERLOOSE', '[0-9]+')
+createToken('NUMERICIDENTIFIERLOOSE', '\\d+')
 
 // ## Non-numeric Identifier
 // Zero or more digits, followed by a letter or hyphen, and then zero or
 // more letters, digits, or hyphens.
 
-createToken('NONNUMERICIDENTIFIER', '\\d*[a-zA-Z-][a-zA-Z0-9-]*')
+createToken('NONNUMERICIDENTIFIER', `\\d*[a-zA-Z-]${LETTERDASHNUMBER}*`)
 
 // ## Main Version
 // Three dot-separated numeric identifiers.
@@ -6538,12 +6835,14 @@ createToken('MAINVERSIONLOOSE', `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.` +
 
 // ## Pre-release Version Identifier
 // A numeric identifier, or a non-numeric identifier.
+// Non-numberic identifiers include numberic identifiers but can be longer.
+// Therefore non-numberic identifiers must go first.
 
-createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NUMERICIDENTIFIER]
-}|${src[t.NONNUMERICIDENTIFIER]})`)
+createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NONNUMERICIDENTIFIER]
+}|${src[t.NUMERICIDENTIFIER]})`)
 
-createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NUMERICIDENTIFIERLOOSE]
-}|${src[t.NONNUMERICIDENTIFIER]})`)
+createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NONNUMERICIDENTIFIER]
+}|${src[t.NUMERICIDENTIFIERLOOSE]})`)
 
 // ## Pre-release Version
 // Hyphen, followed by one or more dot-separated pre-release version
@@ -6558,7 +6857,7 @@ createToken('PRERELEASELOOSE', `(?:-?(${src[t.PRERELEASEIDENTIFIERLOOSE]
 // ## Build Metadata Identifier
 // Any combination of digits, letters, or hyphens.
 
-createToken('BUILDIDENTIFIER', '[0-9A-Za-z-]+')
+createToken('BUILDIDENTIFIER', `${LETTERDASHNUMBER}+`)
 
 // ## Build Metadata
 // Plus sign, followed by one or more period-separated build metadata
@@ -6618,12 +6917,17 @@ createToken('XRANGELOOSE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`)
 
 // Coercion.
 // Extract anything that could conceivably be a part of a valid semver
-createToken('COERCE', `${'(^|[^\\d])' +
+createToken('COERCEPLAIN', `${'(^|[^\\d])' +
               '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
               `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
+              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`)
+createToken('COERCE', `${src[t.COERCEPLAIN]}(?:$|[^\\d])`)
+createToken('COERCEFULL', src[t.COERCEPLAIN] +
+              `(?:${src[t.PRERELEASE]})?` +
+              `(?:${src[t.BUILD]})?` +
               `(?:$|[^\\d])`)
 createToken('COERCERTL', src[t.COERCE], true)
+createToken('COERCERTLFULL', src[t.COERCEFULL], true)
 
 // Tilde ranges.
 // Meaning is "reasonably at or greater than"
@@ -6672,8 +6976,8 @@ createToken('HYPHENRANGELOOSE', `^\\s*(${src[t.XRANGEPLAINLOOSE]})` +
 // Star ranges basically just allow anything at all.
 createToken('STAR', '(<|>)?=?\\s*\\*')
 // >=0.0.0 is like a star
-createToken('GTE0', '^\\s*>=\\s*0\.0\.0\\s*$')
-createToken('GTE0PRE', '^\\s*>=\\s*0\.0\.0-0\\s*$')
+createToken('GTE0', '^\\s*>=\\s*0\\.0\\.0\\s*$')
+createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 
 
 /***/ }),
@@ -6685,7 +6989,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\.0\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"animation_utils","version":"4.1.1","private":true,"description":"GeckoLib (Legacy)","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","blockbenchConfig":{"title":"GeckoLib Animation Utils","author":"Eliot Lash, Tslat, Gecko, McHorse","icon":"icon.png","description":"Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.","deprecation_note":"This plugin has been discontinued in favour of the \\"GeckoLib\\" plugin. This plugin will continue to work on Blockbench 4 and below. For Blockbench 5+, use \'GeckoLib\' instead.","has_changelog":true,"min_version":"4.12.0","max_version":"5.0.0","variant":"both","website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^29.5.4","@types/lodash":"^4.14.197","@typescript-eslint/eslint-plugin":"^6.5.0","@typescript-eslint/parser":"^6.5.0","blockbench-types":"^4.9.0","eol":"0.9.1","eslint":"^7.7.0","indent-string":"^5.0.0","jest":"^29.6.4","ts-jest":"^29.1.1","ts-loader":"^9.4.4","typescript":"^4.9.5","webpack":"^5.88.2","webpack-cli":"^5.1.4","css-loader":"^6.7.1","to-string-loader":"^1.2.0"},"dependencies":{"lodash":"^4.17.21","semver":"7.3.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.0","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
 
 /***/ }),
 
@@ -6696,7 +7000,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"animation_utils","version":"4
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"meta":{"format_version":"3.2","model_format":"animated_entity_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]}],"textures":[]}');
+module.exports = /*#__PURE__*/JSON.parse('{"meta":{"format_version":"3.2","model_format":"geckolib_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"dontTouch","from":[-4,24,-4],"to":[4,32,4],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,0,0],"uuid":"9675593e-b27d-b70e-e1ea-1fc29f46a294"},{"name":"dontTouch","from":[-4,12,-2],"to":[4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[0,24,0],"uuid":"fa43156a-2a62-948c-082f-483d525f6d1f"},{"name":"dontTouch","from":[4,12,-2],"to":[8,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"aa51170c-8b32-fb62-71f1-58ac0b7785a8"},{"name":"dontTouch","from":[-8,12,-2],"to":[-4,24,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"bf2c2539-20e3-cfcc-94c0-491734019889"},{"name":"dontTouch","from":[-4,0,-2],"to":[0,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"17b9bae0-356a-9bba-fad9-4672e2671191"},{"name":"dontTouch","from":[0,0,-2],"to":[4,12,2],"autouv":1,"color":0,"export":false,"locked":true,"origin":[4,22,0],"uuid":"7b31bac4-dc40-2b93-1204-7bbdcfe7d924"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["9675593e-b27d-b70e-e1ea-1fc29f46a294",{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["fa43156a-2a62-948c-082f-483d525f6d1f",{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":["aa51170c-8b32-fb62-71f1-58ac0b7785a8",{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":[]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":["bf2c2539-20e3-cfcc-94c0-491734019889",{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["17b9bae0-356a-9bba-fad9-4672e2671191",{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["7b31bac4-dc40-2b93-1204-7bbdcfe7d924",{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[]}]}],"textures":[]}');
 
 /***/ }),
 
@@ -6743,6 +7047,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash_uniq__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash_uniq__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
 /* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./easing */ "./ts/easing.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+
 
 
 
@@ -6764,7 +7070,7 @@ const displayAnimationFrameCallback = ( /*...args*/) => {
     // console.log('displayAnimationFrameCallback:', args, 'keyframe:', keyframe); // keyframe is null here
 };
 function renderFrameCallback() {
-    if (Format.id !== "animated_entity_model")
+    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_3__.GECKOLIB_MODEL_ID)
         return;
     Timeline.keyframes.forEach((kf) => {
         if (kf.interpolation != "linear" && kf.easing != undefined) {
@@ -6864,7 +7170,7 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
         return acc;
     }, new Map());
     const isFirstInChannel = (kf) => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
-    if (Timeline.selected.length && Format.id === "animated_entity_model") {
+    if (Timeline.selected.length && Format.id === _constants__WEBPACK_IMPORTED_MODULE_3__.GECKOLIB_MODEL_ID) {
         if (Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !isFirstInChannel(kf))) {
             const displayedEasing = getMultiSelectValue('easing', _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_DEFAULT, 'null');
             const convertEasingTypeToId = (easing, easingType, inputEasingOrType) => {
@@ -6912,78 +7218,79 @@ const updateKeyframeSelectionCallback = ( /*...args*/) => {
                 };
                 bar.appendChild(div);
             };
-            const keyframe = document.getElementById('panel_keyframe');
-            let easingBar = document.createElement('div');
-            keyframe.appendChild(easingBar);
-            easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
-          <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
-        </div>`;
-            easingBar = document.getElementById('keyframe_bar_easing');
-            addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
-            addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
-            addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
-            addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
-            addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");
-            addEasingTypeIcons(easingBar, "quart", "Switch to Quartic easing");
-            addEasingTypeIcons(easingBar, "quint", "Switch to Quntic easing");
-            addEasingTypeIcons(easingBar, "expo", "Switch to Exponential easing");
-            addEasingTypeIcons(easingBar, "circ", "Switch to Circle easing");
-            addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
-            addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
-            addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
-            const keyEasing = getEasingInterpolation(displayedEasing);
-            const keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
-            keyEasingElement.style.stroke = "var(--color-accent)";
-            keyEasingElement.classList.add('selected_kf_easing');
-            if (!(keyEasing === "linear" || keyEasing == "step")) {
-                let easingTypeBar = document.createElement('div');
-                keyframe.appendChild(easingTypeBar);
-                easingTypeBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_type">
+            const keyframePanel = document.getElementById('panel_keyframe');
+            if (keyframePanel) {
+                let easingBar = document.createElement('div');
+                keyframePanel.appendChild(easingBar);
+                easingBar.outerHTML = `<div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
+                <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
+            </div>`;
+                easingBar = document.getElementById('keyframe_bar_easing');
+                addEasingTypeIcons(easingBar, "linear", "Switch to Linear easing");
+                addEasingTypeIcons(easingBar, "step", "Switch to Step easing");
+                addEasingTypeIcons(easingBar, "sine", "Switch to Sine easing");
+                addEasingTypeIcons(easingBar, "quad", "Switch to Quadratic easing");
+                addEasingTypeIcons(easingBar, "cubic", "Switch to Cubic easing");
+                addEasingTypeIcons(easingBar, "quart", "Switch to Quartic easing");
+                addEasingTypeIcons(easingBar, "quint", "Switch to Quntic easing");
+                addEasingTypeIcons(easingBar, "expo", "Switch to Exponential easing");
+                addEasingTypeIcons(easingBar, "circ", "Switch to Circle easing");
+                addEasingTypeIcons(easingBar, "back", "Switch to Back easing");
+                addEasingTypeIcons(easingBar, "elastic", "Switch to Elastic easing");
+                addEasingTypeIcons(easingBar, "bounce", "Switch to Bounce easing");
+                const keyEasing = getEasingInterpolation(displayedEasing);
+                const keyEasingElement = document.getElementById("kf_easing_type_" + keyEasing);
+                keyEasingElement.style.stroke = "var(--color-accent)";
+                keyEasingElement.classList.add('selected_kf_easing');
+                if (!(keyEasing === "linear" || keyEasing == "step")) {
+                    let easingTypeBar = document.createElement('div');
+                    keyframePanel.appendChild(easingTypeBar);
+                    easingTypeBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_type">
             <label class="tl" style="font-weight: bolder; min-width: 47px;">Type</label>
           </div>`;
-                easingTypeBar = document.getElementById('keyframe_bar_easing_type');
-                addEasingTypeIcons(easingTypeBar, "in", "Switch to In easing type");
-                addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
-                addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
-                const keyEasingType = getEasingType(displayedEasing);
-                const keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
-                keyEasingTypeElement.style.stroke = "var(--color-accent)";
-                keyEasingTypeElement.classList.add('selected_kf_easing_type');
-            }
-            if (keyEasing !== "linear")
-                document.getElementById("panel_keyframe").querySelector('div.tool.widget.bar_select bb-select').innerHTML = "GeckoLib";
-            const getEasingArgLabel = (kf) => {
-                switch (kf.easing) {
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBack:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutBack:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutBack:
-                        return 'Overshoot';
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInElastic:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutElastic:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutElastic:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBounce:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutBounce:
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutBounce:
-                        return 'Bounciness';
-                    case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.step:
-                        return 'Steps';
-                    default:
-                        return 'N/A';
+                    easingTypeBar = document.getElementById('keyframe_bar_easing_type');
+                    addEasingTypeIcons(easingTypeBar, "in", "Switch to In easing type");
+                    addEasingTypeIcons(easingTypeBar, "out", "Switch to Out easing type");
+                    addEasingTypeIcons(easingTypeBar, "inout", "Switch to In/Out easing type");
+                    const keyEasingType = getEasingType(displayedEasing);
+                    const keyEasingTypeElement = document.getElementById("kf_easing_type_" + keyEasingType);
+                    keyEasingTypeElement.style.stroke = "var(--color-accent)";
+                    keyEasingTypeElement.classList.add('selected_kf_easing_type');
                 }
-            };
-            const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
-            if (Timeline.selected.every((kf) => (0,_easing__WEBPACK_IMPORTED_MODULE_2__.isArgsEasing)(kf.easing)) && easingArgLabel !== null) {
-                const argDefault = getMultiSelectValue(_easing__WEBPACK_IMPORTED_MODULE_2__.getEasingArgDefault, null, null);
-                const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
-                let scaleBar = document.createElement('div');
-                keyframe.appendChild(scaleBar);
-                scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_arg1">
-            <label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
-            <input type="number" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
-          </div>`;
-                scaleBar = document.getElementById('keyframe_bar_easing_arg1');
+                if (keyEasing !== "linear")
+                    keyframePanel.querySelector('div.tool.widget.bar_select bb-select').innerHTML = "GeckoLib";
+                const getEasingArgLabel = (kf) => {
+                    switch (kf.easing) {
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBack:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutBack:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutBack:
+                            return 'Overshoot';
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInElastic:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutElastic:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutElastic:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInBounce:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeOutBounce:
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.easeInOutBounce:
+                            return 'Bounciness';
+                        case _easing__WEBPACK_IMPORTED_MODULE_2__.EASING_OPTIONS.step:
+                            return 'Steps';
+                        default:
+                            return 'N/A';
+                    }
+                };
+                const easingArgLabel = getMultiSelectValue(getEasingArgLabel, null, null);
+                if (Timeline.selected.every((kf) => (0,_easing__WEBPACK_IMPORTED_MODULE_2__.isArgsEasing)(kf.easing)) && easingArgLabel !== null) {
+                    const argDefault = getMultiSelectValue(_easing__WEBPACK_IMPORTED_MODULE_2__.getEasingArgDefault, null, null);
+                    const [displayedValue] = getMultiSelectValue('easingArgs', [argDefault], [argDefault]);
+                    let scaleBar = document.createElement('div');
+                    keyframePanel.appendChild(scaleBar);
+                    scaleBar.outerHTML = `<div class="bar flex" id="keyframe_bar_easing_arg1">
+                  <label class="tl" style="font-weight: bolder; min-width: 90px;">${easingArgLabel}</label>
+                  <input type="number" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target" value="${displayedValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
+                </div>`;
+                    scaleBar = document.getElementById('keyframe_bar_easing_arg1');
+                }
             }
-            // console.log('easingBar:', easingBar, 'keyframe:', keyframe);
         }
     }
 };
@@ -7007,7 +7314,6 @@ const updateKeyframe = (kf) => {
     }
 };
 const updateKeyframeIcon = (kf) => {
-    // @ts-expect-error This is needed because this plugin uses an outdated version of blockbench-types that doesn't have kf.uuid
     const element = document.getElementById(kf.uuid);
     if (element && element.children && kf.easing)
         element.children[0].className = 'easing-' + kf.easing.split(/\.?(?=[A-Z])/).join('_').toLowerCase().replace("ease_", "");
@@ -7015,7 +7321,6 @@ const updateKeyframeIcon = (kf) => {
 const addDataPoint = () => {
     Undo.initEdit({ keyframes: Timeline.selected });
     Timeline.selected.forEach(kf => {
-        // @ts-expect-error needed because .channels doesn't exist in dev env
         if (kf.data_points.length < kf.animator.channels[kf.channel].max_data_points) {
             kf.data_points.push(new KeyframeDataPoint(kf));
             kf.data_points.last().extend(kf.data_points[0]);
@@ -7085,16 +7390,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   format: () => (/* binding */ format),
 /* harmony export */   openProjectSettingsDialog: () => (/* binding */ openProjectSettingsDialog)
 /* harmony export */ });
-/* harmony import */ var _resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../resources/armorTemplate.json */ "./resources/armorTemplate.json");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+/* harmony import */ var _resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../resources/armorTemplate.json */ "./resources/armorTemplate.json");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
 
 
 
 const codec = Codecs.bedrock;
 // This gets automatically applied by Blockbench, we don't need to do anything with it
-const format = new ModelFormat({
-    id: _constants__WEBPACK_IMPORTED_MODULE_0__.GECKOLIB_MODEL_ID,
+const format = new ModelFormat(_constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID, {
+    id: _constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID,
     name: "GeckoLib Animated Model",
     category: "minecraft",
     description: "Animated Model for Java mods using GeckoLib",
@@ -7129,20 +7434,20 @@ function openProjectSettingsDialog() {
  * Internal function for determining the placeholder value for the <code>model_identifier</code> form element in dialog windows
  */
 function getObjectIdPlaceholder(formResult) {
-    const name = formResult === null || formResult === void 0 ? void 0 : formResult['name'];
-    const modelType = formResult === null || formResult === void 0 ? void 0 : formResult[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+    const name = formResult?.['name'];
+    const modelType = formResult?.[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE];
     if (!name && !modelType)
         return 'my_entity';
     const invalidPathChar = new RegExp('[^_\\-/.a-z0-9]+', 'g');
     const pseudoWhitepaceChar = new RegExp('[\\s&-]+', 'g');
     if (name)
         return name.toLowerCase().replace(pseudoWhitepaceChar, "_").replace(invalidPathChar, "");
-    switch (_constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[modelType]) {
-        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ENTITY: return 'my_entity';
-        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.BLOCK: return 'my_block';
-        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM: return 'my_item';
-        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ARMOR: return 'my_armor';
-        case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.OBJECT: return 'my_object';
+    switch (_constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType[modelType]) {
+        case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY: return 'my_entity';
+        case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.BLOCK: return 'my_block';
+        case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM: return 'my_item';
+        case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ARMOR: return 'my_armor';
+        case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.OBJECT: return 'my_object';
         default: return 'my_entity';
     }
 }
@@ -7152,16 +7457,16 @@ function getObjectIdPlaceholder(formResult) {
 function createProjectSettingsForm(Project) {
     const form = { format: { type: 'info', label: 'data.format', text: Format.name || 'unknown', description: Format.description } };
     const properties = ModelProject['properties'];
-    const modelType = properties[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+    const modelType = properties[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE];
     if (modelType) {
-        form[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] = {
+        form[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = {
             label: modelType.label,
-            description: modelType.description,
-            default: _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ENTITY.toUpperCase(),
-            value: _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE].toUpperCase()].toUpperCase(),
-            placeholder: modelType.placeholder,
+            description: modelType["description"],
+            default: _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY.toUpperCase(),
+            value: Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] instanceof String ? _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType[Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE].toUpperCase()].toUpperCase() : _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY.toUpperCase(),
+            placeholder: modelType["placeholder"],
             type: 'select',
-            options: typeof modelType.options == 'function' ? modelType.options() : modelType.options,
+            options: modelType["options"],
         };
     }
     for (const key in properties) {
@@ -7170,9 +7475,9 @@ function createProjectSettingsForm(Project) {
             continue;
         const entry = form[property.name] = {
             label: property.label,
-            description: property.description,
+            description: property["description"],
             value: Project[property.name],
-            placeholder: property.placeholder,
+            placeholder: property["placeholder"],
             type: property.type
         };
         if (property.name === 'name') {
@@ -7193,8 +7498,8 @@ function createProjectSettingsForm(Project) {
                 entry.type = 'text';
                 break;
             default:
-                if (property.options) {
-                    entry['options'] = typeof property.options == 'function' ? property.options() : property.options;
+                if (property["options"]) {
+                    entry['options'] = property["options"];
                     entry.type = 'select';
                 }
                 break;
@@ -7299,16 +7604,16 @@ function createProjectSettingsDialog(Project, form) {
                 }
                 Project.EditSession.sendAll('change_project_meta', JSON.stringify(metadata));
             }
-            const modelType = _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType[formResult[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE]];
-            Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] = modelType;
-            if (modelType == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM)
+            const modelType = _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType[formResult[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE]];
+            Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = modelType;
+            if (modelType == _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM)
                 Project.parent = 'builtin/entity';
             if (Project.name === Format.name || Project.name === '')
-                Project.name = "GeckoLib " + Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+                Project.name = "GeckoLib " + Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE];
             switch (modelType) {
-                case _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ARMOR:
+                case _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ARMOR:
                     if (Outliner.root.length === 0) {
-                        Codecs.project.parse(_resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_1__, null);
+                        Codecs.project.parse(_resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__, null);
                     }
                     else {
                         alert('Unable to generate Armor Template over an existing model. Please select Armor on a new or empty project to use this model type.');
@@ -7318,14 +7623,14 @@ function createProjectSettingsDialog(Project, form) {
                 default:
                     break;
             }
-            Format.display_mode = modelType === _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM || settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_ALWAYS_SHOW_DISPLAY].value;
+            Format.display_mode = modelType === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM || settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_ALWAYS_SHOW_DISPLAY].value;
             dialog.hide();
         },
         onFormChange(formResult) {
             try {
                 document.getElementById('model_identifier')['placeholder'] = getObjectIdPlaceholder(formResult);
-            } // eslint-disable-next-line no-empty
-            catch (ex) { }
+            } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            catch (ex) { /* empty */ }
         },
     });
     dialog.show();
@@ -7342,8 +7647,7 @@ function buildDisplaySettingsJson(options = {}) {
     const modelProperties = {};
     if (options['comment'] || settings.credit.value)
         modelProperties.credit = settings.credit.value;
-    if (options['parent'] || Project.parent != '')
-        modelProperties.parent = Project.parent;
+    modelProperties.parent = !Project.parent ? 'builtin/entity' : Project.parent;
     if (options['ambientocclusion'] || Project.ambientocclusion === false)
         modelProperties.ambientocclusion = false;
     if (Project.texture_width !== 16 || Project.texture_height !== 16)
@@ -7352,7 +7656,7 @@ function buildDisplaySettingsJson(options = {}) {
         modelProperties.gui_light = 'front';
     if (options['overrides'] || Project.overrides)
         modelProperties.overrides = Project.overrides;
-    if (options['display'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(Project.display_settings)) {
+    if (options['display'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(Project.display_settings)) {
         const nonDefaultDisplays = {};
         for (const slot in DisplayMode.slots) {
             const perspective = DisplayMode.slots[slot];
@@ -7363,23 +7667,22 @@ function buildDisplaySettingsJson(options = {}) {
                     nonDefaultDisplays[perspective] = display;
             }
         }
-        if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(nonDefaultDisplays))
+        if (!(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(nonDefaultDisplays))
             modelProperties.display = nonDefaultDisplays;
     }
-    if (options['textures'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isEmpty)(Project.textures)) {
+    if ((options['textures'] || !(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isEmpty)(Project.textures)) && Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID]) {
         for (const texture of Project.textures) {
-            if (texture.particle || (settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_AUTO_PARTICLE_TEXTURE].value && Object.keys(Project.textures).length === 1)) {
+            if (texture.particle || (settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_AUTO_PARTICLE_TEXTURE].value && Object.keys(Project.textures).length === 1)) {
                 let name = texture.name;
                 if (name.indexOf(".png") > 0)
                     name = name.substring(0, name.indexOf(".png"));
-                if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name)) {
+                if (!(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isValidPath)(name)) {
                     name = name.toLowerCase().replace(" ", "_");
-                    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_2__.isValidPath)(name))
+                    if (!(0,_utils__WEBPACK_IMPORTED_MODULE_1__.isValidPath)(name))
                         continue;
                 }
-                name = (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] == _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.BLOCK ? "block/" : "item/") + name;
-                if (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODID])
-                    name = Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODID] + ":" + name;
+                name = (Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] == _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.BLOCK ? "block/" : "item/") + name;
+                name = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODID] + ":" + name;
                 modelProperties.textures = { 'particle': name };
                 break;
             }
@@ -7390,12 +7693,12 @@ function buildDisplaySettingsJson(options = {}) {
         type: Codecs.java_block.name,
         extensions: ['json'],
         name: Project.model_identifier ? (Project.model_identifier + ".json") : codec.fileName().replace(".geo", ""),
-        startpath: Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display,
+        startpath: Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].display,
         content: JSON.stringify(modelProperties, null, 2),
     }, file_path => {
-        const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display;
-        Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display = settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
-        if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_FILEPATH_CACHE].display)
+        const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].display;
+        Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].display = settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+        if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].display)
             Project.saved = false;
     });
     return this;
@@ -7428,7 +7731,7 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * GeckoLib plugin model format ID. Used to identify model types generated from this plugin
  */
-const GECKOLIB_MODEL_ID = "animated_entity_model";
+const GECKOLIB_MODEL_ID = "geckolib_model";
 // Setting name constants
 const SETTING_AUTO_PARTICLE_TEXTURE = 'geckolib_auto_particle_texture';
 const SETTING_ALWAYS_SHOW_DISPLAY = 'geckolib_always_show_display';
@@ -7812,9 +8115,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   removeEventListeners: () => (/* binding */ removeEventListeners)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
-/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
-/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codec */ "./ts/codec.ts");
+/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+/* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./codec */ "./ts/codec.ts");
 
 
 
@@ -7845,7 +8148,7 @@ function removeEventListeners() {
 function onProjectParse(e) {
     onSettingsChanged();
     // Because the project hasn't had its model properties applied at this stage
-    Format.display_mode = (e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] && e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM) || settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_ALWAYS_SHOW_DISPLAY].value;
+    Format.display_mode = (e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] && e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM) || settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_ALWAYS_SHOW_DISPLAY].value;
 }
 /**
  * When the Blockbench project is being saved
@@ -7853,8 +8156,9 @@ function onProjectParse(e) {
  * Only called for GeckoLib projects
  */
 function onProjectSave(e) {
-    if (!settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
-        e.model[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE] = {};
+    // Explicitly checked for undefined here because Blockbench attempts a save when removing the plugin
+    if (settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS] && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
+        e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE] = {};
 }
 /**
  * When the GeckoLib project settings are changed, or a GeckoLib project is being opened or swapped to
@@ -7862,9 +8166,10 @@ function onProjectSave(e) {
  * Only called for GeckoLib projects
  */
 function onSettingsChanged() {
-    Modes.selected.select();
+    if (Modes.selected instanceof Mode)
+        Modes.selected.select();
     Format.display_mode = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.hasModelDisplaySettings)();
-    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_1__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
+    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
         Project.parent = 'builtin/entity';
         Project.saved = false;
     }
@@ -7894,9 +8199,8 @@ function onModeSelect(e) {
  * Only called for GeckoLib projects
  */
 function onBedrockCompile(e) {
-    var _a;
     // Remove display transforms from non-bedrock geometry
-    (_a = e.model["minecraft:geometry"]) === null || _a === void 0 ? void 0 : _a.forEach((geo) => delete geo["item_display_transforms"]);
+    e.model["minecraft:geometry"]?.forEach((geo) => delete geo["item_display_transforms"]);
     // Force-suppress specific version advancement for non-bedrock models to prevent legacy version crashes until a better system is established
     switch (e.model.format_version) {
         case "1.14.0":
@@ -7915,7 +8219,7 @@ function onBedrockCompile(e) {
  */
 function monkeypatchProjectWindowClick() {
     if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)()) {
-        (0,_codec__WEBPACK_IMPORTED_MODULE_2__.openProjectSettingsDialog)();
+        (0,_codec__WEBPACK_IMPORTED_MODULE_3__.openProjectSettingsDialog)();
     }
     else {
         _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(BarItems).click();
@@ -7934,14 +8238,14 @@ function monkeypatchBlockbenchExport(options, cb) {
     if (Project instanceof ModelProject) {
         if (options.resource_id === 'animation' && options.type === 'JSON Animation') { // Animation JSON
             const fileName = Project.model_identifier && Project.model_identifier + ".animation";
-            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation;
+            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation;
             const parentCallback = cb;
-            cb = file_path => {
+            cb = (file_path) => {
                 if (parentCallback)
                     parentCallback(file_path);
-                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation;
-                Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation = settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
-                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].animation)
+                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation;
+                Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation = settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].animation)
                     Project.saved = false;
             };
             if (fileName)
@@ -7949,7 +8253,7 @@ function monkeypatchBlockbenchExport(options, cb) {
         }
         else if (options.resource_id === 'model' && options.type === 'Bedrock Model') { // Geo
             const fileName = Project.model_identifier && Project.model_identifier + ".geo";
-            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model;
+            options.startpath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].model;
             const parentWriter = options.custom_writer;
             const parentCallback = cb;
             if (parentWriter) {
@@ -7961,9 +8265,9 @@ function monkeypatchBlockbenchExport(options, cb) {
             cb = file_path => {
                 if (parentCallback)
                     parentCallback(file_path);
-                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model;
-                Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model = settings[_constants__WEBPACK_IMPORTED_MODULE_1__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
-                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_1__.PROPERTY_FILEPATH_CACHE].model)
+                const oldPath = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].model;
+                Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].model = settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value ? file_path : undefined;
+                if (oldPath !== Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE].model)
                     Project.saved = false;
             };
             if (fileName)
@@ -7995,21 +8299,41 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
         }
         return 'once';
     }
-    function getKeyframeDataPoints(source) {
+    function getKeyframeDataPoints(channel, source) {
         if (source instanceof Array)
-            return [{ x: source[0], y: source[1], z: source[2], }];
+            return invertAnimKeyframe(channel, [{ x: source[0], y: source[1], z: source[2] }]);
         if (['number', 'string'].includes(typeof source))
-            return [{ x: source, y: source, z: source }];
+            return invertAnimKeyframe(channel, [{ x: source, y: source, z: source }]);
         if (typeof source == 'object') {
             if (source.vector)
-                return getKeyframeDataPoints(source.vector);
+                return getKeyframeDataPoints(channel, source.vector);
             const points = [];
             if (source.pre)
-                points.push(getKeyframeDataPoints(source.pre)[0]);
+                points.push(getKeyframeDataPoints(channel, source.pre)[0]);
             if (source.post)
-                points.push(getKeyframeDataPoints(source.post)[0]);
+                points.push(getKeyframeDataPoints(channel, source.post)[0]);
             return points;
         }
+    }
+    // Because Blockbench now implicitly inverts rotation and position keyframes on export and import (??)
+    function invertAnimKeyframe(channel, value) {
+        if (channel != 'position' && channel != 'rotation')
+            return value;
+        if (value instanceof Array) {
+            switch (value.length) {
+                case 1: return [invertAnimKeyframe(channel, value[0])];
+                case 3: return [invertAnimKeyframe(channel, value[0]), channel == 'rotation' ? invertAnimKeyframe(channel, value[1]) : value[1], value[2]];
+                default: return value;
+            }
+        }
+        else if (typeof value == 'object') {
+            if (value.x)
+                value.x = invertMolang(value.x);
+            if (value.y && channel == 'rotation')
+                value.y = invertMolang(value.y);
+            return value;
+        }
+        return invertMolang(value);
     }
     if (json && typeof json.animations === 'object') {
         for (const animName in json.animations) {
@@ -8017,7 +8341,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                 continue;
             //Animation
             const animData = json.animations[animName];
-            const animation = new Blockbench.Animation({
+            let animation = new Animation({
                 name: animName,
                 path,
                 loop: geoLoopToBbLoop(animData.loop),
@@ -8029,7 +8353,8 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                     ? animData.blend_weight.replace(/;(?!$)/, ';\n')
                     : animData.blend_weight),
                 length: animData.animation_length
-            }).add();
+            });
+            animation = animation.add();
             //Bones
             if (animData.bones) {
                 for (const boneName in animData.bones) {
@@ -8037,8 +8362,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                     const lowercase_bone_name = boneName.toLowerCase();
                     const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
                     const uuid = group ? group.uuid : guid();
-                    let ga; // eslint-disable-line @typescript-eslint/no-unused-vars
-                    const boneAnimator = new _keyframe__WEBPACK_IMPORTED_MODULE_3__.GeckolibBoneAnimator(uuid, animation, boneName);
+                    const boneAnimator = new _keyframe__WEBPACK_IMPORTED_MODULE_1__.GeckolibBoneAnimator(uuid, animation, boneName);
                     animation.animators[uuid] = boneAnimator;
                     //Channels
                     for (const channel in bone) {
@@ -8047,9 +8371,9 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                 boneAnimator.addKeyframe({
                                     time: 0,
                                     channel,
-                                    easing: bone[channel].easing,
-                                    easingArgs: bone[channel].easingArgs,
-                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                    easing: bone[channel]["easing"],
+                                    easingArgs: bone[channel]["easingArgs"],
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
                                 });
                             }
                             else if (typeof bone[channel] === 'object' && bone[channel].post) {
@@ -8057,9 +8381,9 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                     time: 0,
                                     channel,
                                     easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
-                                    easingArgs: bone[channel].easingArgs,
+                                    easingArgs: bone[channel]["easingArgs"],
                                     interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
-                                    data_points: getKeyframeDataPoints(bone[channel]),
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
                                     bezier_right_time: bone[channel].right_time,
                                     bezier_left_time: bone[channel].left_time,
                                     bezier_left_value: bone[channel].left,
@@ -8074,7 +8398,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                                         easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
                                         easingArgs: bone[channel][timestamp].easingArgs,
                                         interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
-                                        data_points: getKeyframeDataPoints(bone[channel][timestamp]),
+                                        data_points: getKeyframeDataPoints(channel, bone[channel][timestamp]),
                                         bezier_right_time: bone[channel][timestamp].right_time,
                                         bezier_left_time: bone[channel][timestamp].left_time,
                                         bezier_left_value: bone[channel][timestamp].left,
@@ -8088,7 +8412,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.sound_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(animation);
+                    animation.animators.effects = new EffectAnimator(null, animation, animName);
                 for (const timestamp in animData.sound_effects) {
                     const sounds = animData.sound_effects[timestamp];
                     animation.animators.effects.addKeyframe({
@@ -8100,7 +8424,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.particle_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(animation);
+                    animation.animators.effects = new EffectAnimator(null, animation, animName);
                 for (const timestamp in animData.particle_effects) {
                     let particles = animData.particle_effects[timestamp];
                     if (!(particles instanceof Array))
@@ -8118,7 +8442,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.timeline) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(animation);
+                    animation.animators.effects = new EffectAnimator(null, animation, animName);
                 for (const timestamp in animData.timeline) {
                     const entry = animData.timeline[timestamp];
                     const script = entry instanceof Array ? entry.join('\n') : entry;
@@ -8130,7 +8454,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
                 }
             }
             animation.calculateSnappingFromKeyframes();
-            if (!Blockbench.Animation.selected && Animator.open)
+            if (!Animator.selected && Animator.open)
                 animation.select();
             new_animations.push(animation);
         }
@@ -8143,15 +8467,10 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
  * Makes sure bezier keyframes get exported correctly rather than being baked.
  */
 function monkeypatchAnimatorBuildFile() {
-    var _a;
     const bezierKeys = [];
-    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)() && !settings[_constants__WEBPACK_IMPORTED_MODULE_1__.BAKE_IN_BEZIER_KEYFRAMES].value) {
-        let animation;
-        this.animations.forEach(a => {
-            if (a.name == arguments[1][0])
-                animation = a;
-            return;
-        });
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)() && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.BAKE_IN_BEZIER_KEYFRAMES].value) {
+        const arg = arguments[1][0];
+        const animation = this.animations.find(anim => anim.name == arg);
         if (animation) {
             for (const uuid in animation.animators) {
                 const animator = animation.animators[uuid];
@@ -8159,13 +8478,13 @@ function monkeypatchAnimatorBuildFile() {
                     continue;
                 if (animator.type == 'bone') {
                     for (const channel in Animator.possible_channels) {
-                        if (!((_a = animator[channel]) === null || _a === void 0 ? void 0 : _a.length))
+                        if (!animator[channel]?.length)
                             continue;
                         const sorted_keyframes = animator[channel].slice().sort((a, b) => a.time - b.time);
                         sorted_keyframes.forEach((kf) => {
                             if (kf.interpolation == "bezier") {
                                 bezierKeys[bezierKeys.length] = kf;
-                                kf.interpolation = "geckolib_bezier";
+                                kf.bezier = true;
                             }
                         });
                     }
@@ -8174,10 +8493,10 @@ function monkeypatchAnimatorBuildFile() {
         }
     }
     const result = _utils__WEBPACK_IMPORTED_MODULE_0__.Monkeypatches.get(Animator).buildFile.apply(this, arguments);
-    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)() && !settings[_constants__WEBPACK_IMPORTED_MODULE_1__.BAKE_IN_BEZIER_KEYFRAMES].value) {
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isGeckoLibModel)() && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.BAKE_IN_BEZIER_KEYFRAMES].value) {
         result.geckolib_format_version = 2;
         bezierKeys.forEach((kf) => {
-            kf.interpolation = "bezier";
+            kf.bezier = false;
             kf.easing = undefined;
         });
     }
@@ -8206,11 +8525,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash_mapValues__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash_mapValues__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
 /* harmony import */ var _easing__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./easing */ "./ts/easing.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
 
 
 
 
-var Keyframe = Blockbench.Keyframe;
+
 function loadKeyframeOverrides() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getLerp", keyframeGetLerp);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
@@ -8241,107 +8561,102 @@ function lerp(start, stop, amt) {
 }
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
-    const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
-    if (Format.id !== "animated_entity_model") {
+    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID)
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
-    }
+    const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     let easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
     if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing)) {
-        const arg1 = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
+        const easingValue = Array.isArray(other.easingArgs) && other.easingArgs.length > 0
             ? other.easingArgs[0]
             : (0,_easing__WEBPACK_IMPORTED_MODULE_3__.getEasingArgDefault)(other);
-        // console.log(`keyframeGetLerp arg1: ${arg1}`);
-        easingFunc = easingFunc.bind(null, arg1);
+        easingFunc = easingFunc.bind(null, easingValue);
     }
     const easedAmount = easingFunc(amount);
     const start = this.data_points.length == 1 ? this.calc(axis) : this.calc(axis, 1);
     const stop = other.calc(axis);
     const result = lerp(start, stop, easedAmount);
-    // console.log('keyframeGetLerp easing:', easing, 'arguments:', arguments, 'start:', start, 'stop:', stop, 'amount:', amount, 'easedAmount:', easedAmount, 'result:', result);
-    if (Number.isNaN(result)) {
+    if (Number.isNaN(result))
         throw new Error('batman');
-    }
     return result;
 }
-function geckolibGetArray(data_point = 0) {
+// Calculate GeckoLib's keyframe values in place of the built-in Bedrock compiler.
+// Additionally, invert the keyframe to match Blockbench's internal handling
+function geckolibGetArray(data_point, channel) {
     const { easing, easingArgs, getArray } = this;
     let result = getArray.apply(this, [data_point]);
-    if (this.interpolation == "geckolib_bezier") {
+    if (this.bezier) {
         result = { vector: result, easing: "bezier", left: this.bezier_left_value, left_time: this.bezier_left_time, right: this.bezier_right_value, right_time: this.bezier_right_time };
     }
-    else if (Format.id === "animated_entity_model") {
-        if (this.data_points.length != 1)
+    else if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
+        if (this.data_points.length != 1) {
             result = { pre: result, post: getArray.apply(this, [1]), easing };
-        else
+        }
+        else {
             result = { vector: result, easing };
+        }
         if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
+    if (channel === 'rotation' || channel === 'position') {
+        result.vector[0] = invertMolang(result.vector[0]);
+        if (channel === 'rotation')
+            result.vector[1] = invertMolang(result.vector[1]);
+    }
     return result;
 }
+// Replace the bedrock keyframe compilation with a custom handler
 function keyframeCompileBedrock() {
-    if (Format.id !== "animated_entity_model" || !this.transform) {
+    if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID || !this.transform)
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
-    }
     if (this.interpolation == 'catmullrom') {
         const previous = this.getPreviousKeyframe.apply(this);
         const include_pre = (!previous && this.time > 0) || (previous && previous.interpolation != 'catmullrom');
         return {
-            pre: include_pre ? geckolibGetArray.call(this, [0]) : undefined,
-            post: geckolibGetArray.call(this, [include_pre ? 1 : 0]),
+            pre: include_pre ? geckolibGetArray.call(this, [0], this.channel) : undefined,
+            post: geckolibGetArray.call(this, [include_pre ? 1 : 0], this.channel),
             lerp_mode: this.interpolation,
         };
     }
-    else if (this.data_points.length == 1) {
-        return geckolibGetArray.call(this);
-    }
-    else {
-        return geckolibGetArray.call(this, [0]);
-    }
+    if (this.data_points.length == 1)
+        return geckolibGetArray.call(this, 0, this.channel);
+    return geckolibGetArray.call(this, [0], this.channel);
 }
 function keyframeGetUndoCopy() {
     const { easing, easingArgs } = this;
     const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getUndoCopy.apply(this, arguments);
-    if (Format.id === "animated_entity_model") {
+    if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
         Object.assign(result, { easing });
         if ((0,_easing__WEBPACK_IMPORTED_MODULE_3__.isArgsEasing)(easing))
             result.easingArgs = easingArgs;
     }
-    //   console.log('keyframeGetUndoCopy arguments:', arguments, 'this:', this, 'result:', result);
     return result;
 }
+// Append GeckoLib data to Keyframes when constructed
 function keyframeExtend(dataIn) {
     const data = Object.assign({}, dataIn);
-    //   console.log('keyframeExtend 1 arguments:', arguments);
-    if (Format.id === "animated_entity_model") {
+    if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
         if (typeof data.values === 'object') {
-            if (data.values.easing !== undefined) {
+            if (data.values.easing !== undefined)
                 Merge.string(this, data.values, 'easing');
-            }
-            if (Array.isArray(data.values.easingArgs)) {
+            if (Array.isArray(data.values.easingArgs))
                 this.easingArgs = data.values.easingArgs;
-            }
             if (!Array.isArray(data.values) && Array.isArray(data.values.vector)) {
                 // Convert data to format expected by KeyframeExtendOriginal
                 data.values = data.values.vector;
             }
         }
         else {
-            if (data.easing !== undefined) {
+            if (data.easing !== undefined)
                 Merge.string(this, data, 'easing');
-            }
-            if (Array.isArray(data.easingArgs)) {
+            if (Array.isArray(data.easingArgs))
                 this.easingArgs = data.easingArgs;
-            }
         }
     }
-    const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
-    //   console.log('keyframeExtend 2 arguments:', arguments, 'this:', this, 'result:', result);
-    return result;
+    return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
 }
+// Inject GeckoLib support for the reverse keyframes feature
 function onReverseKeyframes() {
     _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(BarItems.reverse_keyframes).click.apply(this, arguments);
-    // console.log('@@@ onReverseKeyframes selected:', Timeline.selected);
     // There's not really an easy way to merge our undo operation with the original one so we'll make a new one instead
     Undo.initEdit({ keyframes: Timeline.selected });
     const kfByAnimator = lodash_groupBy__WEBPACK_IMPORTED_MODULE_0___default()(Timeline.selected, kf => kf.animator.uuid);
@@ -8357,7 +8672,6 @@ function onReverseKeyframes() {
                 easing: (0,_easing__WEBPACK_IMPORTED_MODULE_3__.reverseEasing)(kf.easing),
                 easingArgs: kf.easingArgs
             }));
-            // console.log('@@@ onReverseKeyframes PRE animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes, 'easingData:', easingData);
             // Shift easing data to the right by one keyframe
             channelKeyframes.forEach((kf, i) => {
                 if (i == 0) {
@@ -8369,10 +8683,8 @@ function onReverseKeyframes() {
                 kf.easing = newEasingData.easing;
                 kf.easingArgs = newEasingData.easingArgs;
             });
-            // console.log('@@@ onReverseKeyframes POST animator:', animatorUuid, 'channel:', channel, 'channelKeyframes:', channelKeyframes);
         });
     });
-    // console.log('@@@ kfByAnimator:', kfByAnimator, "\nkfByAnimatorAndChannel:", kfByAnimatorAndChannel);
     Undo.finishEdit('Reverse keyframe easing');
     updateKeyframeSelection();
     Animator.preview();
@@ -8445,7 +8757,7 @@ const removeMonkeypatches = () => {
  * Wrap a callback object with a conditional check on the project being a GeckoLib project, for safety
  */
 const onlyIfGeckoLib = (callback) => {
-    return e => {
+    return (e) => {
         if (isGeckoLibModel())
             callback(e);
     };
@@ -8662,12 +8974,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! semver/functions/satisfies */ "./node_modules/semver/functions/satisfies.js");
 /* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _package_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../package.json */ "./package.json");
-/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./animationUi */ "./ts/animationUi.ts");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
+/* harmony import */ var _animationUi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./animationUi */ "./ts/animationUi.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
 /* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
 /* harmony import */ var _codec__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./codec */ "./ts/codec.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./events */ "./ts/events.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./events */ "./ts/events.ts");
 
 
 
@@ -8677,9 +8989,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const { version, blockbenchConfig } = _package_json__WEBPACK_IMPORTED_MODULE_2__;
-const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version, author, pluginOptions } = _package_json__WEBPACK_IMPORTED_MODULE_2__;
+const SUPPORTED_BB_VERSION_RANGE = `${pluginOptions.min_version} - ${pluginOptions.max_version}`;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const css = (__webpack_require__(/*! ../resources/easing_keyframes.css */ "./resources/easing_keyframes.css").toString)();
 if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_functions_coerce__WEBPACK_IMPORTED_MODULE_0___default()(Blockbench.version), SUPPORTED_BB_VERSION_RANGE))
     alert(`GeckoLib Animation Utils currently only supports Blockbench ${SUPPORTED_BB_VERSION_RANGE}. Please ensure you are using this version of Blockbench to avoid bugs and undefined behavior.`);
@@ -8688,14 +9000,15 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
     let pluginSettings;
     let pluginProperties;
     let pluginMenuItems;
-    BBPlugin.register("animation_utils", Object.assign({}, blockbenchConfig, {
-        name: blockbenchConfig.title,
+    // @ts-expect-error - Typescript doesn't like that the "Tags" collection could be empty instead of implicitly non-empty
+    BBPlugin.register("geckolib", Object.assign({}, pluginOptions, {
+        name: pluginOptions.title,
         version,
-        await_loading: true,
+        author,
         onload() {
             Blockbench.addCSS(css);
-            (0,_events__WEBPACK_IMPORTED_MODULE_3__.addEventListeners)();
-            (0,_animationUi__WEBPACK_IMPORTED_MODULE_4__.loadAnimationUI)();
+            (0,_events__WEBPACK_IMPORTED_MODULE_8__.addEventListeners)();
+            (0,_animationUi__WEBPACK_IMPORTED_MODULE_3__.loadAnimationUI)();
             (0,_keyframe__WEBPACK_IMPORTED_MODULE_5__.loadKeyframeOverrides)();
             pluginSettings = createPluginSettings();
             pluginProperties = createPluginProperties();
@@ -8716,8 +9029,8 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
                 menuItem.action.delete();
             }
             (0,_keyframe__WEBPACK_IMPORTED_MODULE_5__.unloadKeyframeOverrides)();
-            (0,_animationUi__WEBPACK_IMPORTED_MODULE_4__.unloadAnimationUI)();
-            (0,_events__WEBPACK_IMPORTED_MODULE_3__.removeEventListeners)();
+            (0,_animationUi__WEBPACK_IMPORTED_MODULE_3__.unloadAnimationUI)();
+            (0,_events__WEBPACK_IMPORTED_MODULE_8__.removeEventListeners)();
             _codec__WEBPACK_IMPORTED_MODULE_6__.format.delete();
             console.clear();
         },
@@ -8731,7 +9044,7 @@ if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_1___default()(semver_fu
 function createPluginSettings() {
     return [
         new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_AUTO_PARTICLE_TEXTURE, {
-            value: true,
+            value: false,
             category: "export",
             name: "Auto-compute block/item particle texture",
             description: "Attempt to auto-compute the particle texture for a GeckoLib block/item model if one isn't already specified when exporting the display settings json"
@@ -8754,7 +9067,7 @@ function createPluginSettings() {
             name: "Remember file export locations",
             description: "Remember where you export model/display/animation files to for re-use. Stores the file paths in the bbmodel project file."
         }),
-        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_DEFAULT_MODID, {
+        (0,_utils__WEBPACK_IMPORTED_MODULE_4__.make)(new Setting(_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_DEFAULT_MODID, {
             // The below is absolutely disgusting, but I have no choice because this is a bug in Blockbench's API
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -8780,13 +9093,13 @@ function createPluginSettings() {
  */
 function createPluginProperties() {
     return [
-        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "string", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODID, {
+        (0,_utils__WEBPACK_IMPORTED_MODULE_4__.make)(new Property(ModelProject, "string", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODID, {
             label: "Mod ID",
             condition: {
                 formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
             },
             values: [],
-            merge_validation: _utils__WEBPACK_IMPORTED_MODULE_8__.isValidNamespace
+            merge_validation: _utils__WEBPACK_IMPORTED_MODULE_4__.isValidNamespace
         }), property => {
             property['placeholder'] = 'my_modid';
             property['description'] = 'The modid of the mod this model is for';
@@ -8794,7 +9107,7 @@ function createPluginProperties() {
                 return settings[_constants__WEBPACK_IMPORTED_MODULE_7__.SETTING_DEFAULT_MODID].value;
             };
         }),
-        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "enum", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODEL_TYPE, {
+        (0,_utils__WEBPACK_IMPORTED_MODULE_4__.make)(new Property(ModelProject, "object", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODEL_TYPE, {
             label: "Model Type",
             condition: {
                 formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
@@ -8805,7 +9118,7 @@ function createPluginProperties() {
         }), property => {
             property['description'] = 'The type of GeckoLib object this model is for. Leave as the default value if unsure';
         }),
-        (0,_utils__WEBPACK_IMPORTED_MODULE_8__.make)(new Property(ModelProject, "instance", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_FILEPATH_CACHE, {
+        (0,_utils__WEBPACK_IMPORTED_MODULE_4__.make)(new Property(ModelProject, "instance", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_FILEPATH_CACHE, {
             label: "GeckoLib Filepath Cache",
             condition: {
                 formats: [_constants__WEBPACK_IMPORTED_MODULE_7__.GECKOLIB_MODEL_ID]
@@ -8830,7 +9143,7 @@ function createPluginMenuItems() {
                 icon: "archive",
                 description: "Export your model geometry as a model for GeckoLib.",
                 category: "file",
-                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)(),
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_4__.isGeckoLibModel)(),
                 click: function () {
                     _codec__WEBPACK_IMPORTED_MODULE_6__["default"].export();
                 },
@@ -8843,7 +9156,7 @@ function createPluginMenuItems() {
                 icon: "icon-bb_interface",
                 description: "Export your item/block display settings for GeckoLib.",
                 category: "file",
-                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)() && (0,_utils__WEBPACK_IMPORTED_MODULE_8__.hasModelDisplaySettings)(),
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_4__.isGeckoLibModel)() && (0,_utils__WEBPACK_IMPORTED_MODULE_4__.hasModelDisplaySettings)(),
                 click: _codec__WEBPACK_IMPORTED_MODULE_6__.buildDisplaySettingsJson,
             }),
             menuCategory: 'file.export'
@@ -8854,7 +9167,7 @@ function createPluginMenuItems() {
                 icon: "movie",
                 description: "Export your model animations for GeckoLib.",
                 category: "file",
-                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_8__.isGeckoLibModel)() && !(0,_utils__WEBPACK_IMPORTED_MODULE_8__.isEmpty)(AnimationItem.all) && typeof BarItems['export_animation_file'] === 'object',
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_4__.isGeckoLibModel)() && !(0,_utils__WEBPACK_IMPORTED_MODULE_4__.isEmpty)(AnimationItem.all) && typeof BarItems['export_animation_file'] === 'object',
                 click: e => BarItems['export_animation_file'].trigger(e),
             }),
             menuCategory: 'file.export'

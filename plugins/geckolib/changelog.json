@@ -172,14 +172,25 @@
       }
     ]
   },
-  "4.1.1": {
-    "title": "4.1.1",
+  "4.2.0": {
+    "title": "4.2.0",
     "author": "Tslat",
     "categories": [
       {
         "title": "Changes",
         "list": [
-          "Deprecated plugin in favour of GeckoLib Models & Animations in preparation for Blockbench 5.0.0"
+          "Rename to GeckoLib",
+          "Update to support Blockbench 5.0.0",
+          "General internal cleanup",
+          "Skip `Auto-compute block/item particle texture` at export time if no mod-id set",
+          "Default the `Auto-compute block/item particle texture` to false to reduce runtime errors from unaware devs"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Require Blockbench to fully load the plugin before running, preventing race conditions on format availability",
+          "Fixed GeckoLib item display settings sometimes not exporting with the parent set"
         ]
       }
     ]
