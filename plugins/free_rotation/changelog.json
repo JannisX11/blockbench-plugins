@@ -44,5 +44,18 @@
         ]
       }
     ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Compatibility",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      }
+    ]
   }
 }

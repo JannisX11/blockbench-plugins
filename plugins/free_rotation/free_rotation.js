@@ -1,8 +1,7 @@
 (() => {
   const path = require("node:path")
-  const os = require("node:os")
 
-  let codec, format, action, properties, styles, oldGUILightCondition
+  let fs, codec, format, action, properties, styles, oldGUILightCondition
 
   const id = "free_rotation"
   const name = "Free Rotation"
@@ -37,12 +36,12 @@
   }
 
   let directory
-  if (os.platform() === "win32") {
-    directory = path.join(os.homedir(), "AppData", "Roaming", ".minecraft", "resourcepacks")
-  } else if (os.platform() === "darwin") {
-    directory = path.join(os.homedir(), "Library", "Application Support", "minecraft", "resourcepacks")
+  if (SystemInfo.platform === "win32") {
+    directory = PathModule.join(SystemInfo.appdata_directory, ".minecraft")
+  } else if (SystemInfo.platform === "darwin") {
+    directory = PathModule.join(SystemInfo.home_directory, "Library", "Application Support", "minecraft")
   } else {
-    directory = path.join(os.homedir(), ".minecraft", "resourcepacks")
+    directory = PathModule.join(SystemInfo.home_directory, ".minecraft")
   }
 
   Plugin.register(id, {
@@ -51,8 +50,8 @@
     author: "Godlander & Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Items", "Rotation"],
-    version: "1.1.0",
-    min_version: "4.11.2",
+    version: "1.2.0",
+    min_version: "5.0.0",
     variant: "desktop",
     await_loading: true,
     website: "https://ewanhowell.com/plugins/free-rotation/",
@@ -61,6 +60,15 @@
     creation_date: "2024-12-20",
     has_changelog: true,
     onload() {
+      fs = require("fs", {
+        message: "This permission is required for exporting your free rotation models.",
+        optional: false
+      })
+
+      if (!fs) {
+        throw new Error("fs access denied")
+      }
+
       styles = Blockbench.addCSS(`
         #format_page_free_rotation {
           padding-bottom: 0;
@@ -583,12 +591,14 @@
       BarItems.gui_light.condition = () => Format.id === id || oldGUILightCondition()
     },
     onunload() {
-      BarItems.gui_light.condition = oldGUILightCondition
-      codec.delete()
-      format.delete()
-      action.delete()
-      styles.delete()
-      properties.forEach(e => e.delete())
+      if (oldGUILightCondition) {
+        BarItems.gui_light.condition = oldGUILightCondition
+        codec.delete()
+        format.delete()
+        action.delete()
+        styles.delete()
+        properties.forEach(e => e.delete())
+      }
     }
   })
 })()

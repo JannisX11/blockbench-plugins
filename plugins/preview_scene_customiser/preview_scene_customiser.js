@@ -42,11 +42,15 @@
     author,
     description,
     tags: ["Preview Scenes", "Blockbench"],
-    version: "1.1.4",
+    version: "1.1.5",
     min_version: "4.12.0",
     variant: "both",
     creation_date: "2022-10-14",
     await_loading: true,
+    has_changelog: true,
+    website: "https://ewanhowell.com/plugins/preview-scene-customiser/",
+    repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/preview-scene-customiser",
+    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Preview Scene Customiser]",
     onload() {
       styles = Blockbench.addCSS(`
         .preview-scene-links {
@@ -282,6 +286,9 @@
         codec,
         format_page: {
           component: {
+            methods: {
+              create: () => format.new()
+            },
             template: `
               <div class="ewan-format-page" style="display:flex;flex-direction:column;height:100%">
                 <p class="format_description">${description}</p>
@@ -313,7 +320,7 @@
                   </a>
                 `).join("")}</div>
                 <div class="button_bar">
-                  <button id="create_new_model_button" style="margin-top:20px;margin-bottom:24px;" @click="Formats.preview_scene_model.new()">
+                  <button id="create_new_model_button" style="margin-top:20px;margin-bottom:24px;" @click="create">
                     <i class="material-icons">${icon}</i>
                     Create New Preview Scene
                   </button>

@@ -190,5 +190,30 @@
         ]
       }
     ]
+  },
+  "1.8.0": {
+    "title": "1.10.0",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added LangBuilder utility"
+        ]
+      },
+      {
+        "title": "Compatibility",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Temporarily removed command line argument support"
+        ]
+      }
+    ]
   }
 }

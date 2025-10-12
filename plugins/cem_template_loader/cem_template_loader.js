@@ -842,12 +842,13 @@
             <p><strong>WARNING:</strong> It is highly recommended to leave restrictions enabled. This setting can be changed later in settings.</p>
             <br>
             <div id="jem-restrictions-footer">
-            <div id="cem-buttons">
-              <label>
-                <input type="checkbox" :checked="dontShowAgain" v-model="dontShowAgain">
-                <div>Don't Show Again</div>
-              </label>
-              <button @click="finish">OK</button>
+              <div id="cem-buttons">
+                <label>
+                  <input type="checkbox" :checked="dontShowAgain" v-model="dontShowAgain">
+                  <div>Don't Show Again</div>
+                </label>
+                <button @click="finish">OK</button>
+              </div>
             </div>
           </div>
         `

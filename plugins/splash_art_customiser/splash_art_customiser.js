@@ -15,9 +15,10 @@
     author: "Ewan Howell",
     description: "Customise the start screen's splash art, by adding your own!",
     tags: ["Splash art", "Start screen", "Blockbench"],
-    version: "1.1.2",
+    version: "1.1.3",
     min_version: "4.12.0",
     variant: "both",
+    creation_date: "2022-11-08",
     onload() {
       if (!Blockbench.flags.after_update) setSplashArt()
       styles = Blockbench.addCSS(`
@@ -98,9 +99,10 @@
           flex-wrap: wrap;
           overflow-y: auto;
           max-height: 316px;
+          width: 100%;
         }
         dialog#${id} .splash-art-preview {
-          width: 238px;
+          width: calc(50% - 4px);
           aspect-ratio: 64 / 27;
           background-position: 50% 50%;
           background-size: cover;
@@ -174,6 +176,7 @@
             dialog = new Dialog({
               id,
               title,
+              width: 560,
               buttons: [],
               component: {
                 data: {
@@ -318,7 +321,7 @@
                     </div>
                     <div v-if="error">
                       <div id="error-darken"></div>
-                      <div id="error" class="flex-center column" id="error">
+                      <div id="error" class="flex-center column">
                         <h2>{{ error }}</h2>
                         <button class="flex-center" @click="error = false">
                           <span>Okay</span>

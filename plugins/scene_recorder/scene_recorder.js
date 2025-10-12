@@ -1,10 +1,7 @@
 (async function () {
-  const child_process = require("child_process")
-  const path = require("path")
-
   const originalFormats = {}
 
-  let formats, ffmpegPath, dialog
+  let child_process, formats, ffmpegPath, dialog
   const id = "scene_recorder"
   const name = "Scene Recorder"
   const E = s => $(document.createElement(s))
@@ -14,8 +11,8 @@
     author: "Ewan Howell",
     description: "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
     tags: ["Recording", "Media"],
-    version: "2.0.1",
-    min_version: "4.12.0",
+    version: "2.1.0",
+    min_version: "5.0.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
     repository: `https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/${id}`,
@@ -23,6 +20,15 @@
     creation_date: "2022-12-14",
     has_changelog: true,
     async onload() {
+      child_process = require("child_process", {
+        message: "Required to process recordings using FFmpeg",
+        optional: false
+      })
+
+      if (!child_process) {
+        throw new Error("child_process access denied")
+      }
+
       Screencam.gif_options_dialog.close()
       Screencam.gif_options_dialog.onOpen = async () => {
         if (await checkFFmpeg()) {
