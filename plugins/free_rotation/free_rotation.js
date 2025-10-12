@@ -50,7 +50,7 @@
     author: "Godlander & Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "Items", "Rotation"],
-    version: "1.2.0",
+    version: "1.2.1",
     min_version: "5.0.0",
     variant: "desktop",
     await_loading: true,
@@ -175,6 +175,7 @@
             </style>`],
             component: {
               data: {
+                ModelProject,
                 project,
                 exportAllowed: false,
                 idError: "",

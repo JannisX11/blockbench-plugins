@@ -57,5 +57,18 @@
         ]
       }
     ]
+  },
+  "1.2.1": {
+    "title": "1.2.1",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the export dialog failing to open"
+        ]
+      }
+    ]
   }
 }
