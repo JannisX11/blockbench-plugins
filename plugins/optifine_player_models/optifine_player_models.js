@@ -1,5 +1,5 @@
 (async function () {
-  let format, codec, action, config, property, setResolution, textureAdd, model, styles
+  let fs, format, codec, action, config, property, setResolution, textureAdd, model, styles
   const id = "optifine_player_models"
   const name = "OptiFine Player Models"
   const icon = "icon-player"
@@ -56,13 +56,25 @@
     icon,
     author: "Ewan Howell",
     description,
-    about: "This plugin adds a new format that allows you to make you own custom OptiFine player models.\n## Setup\n1. Open your launcher and go to the **Installations** tab.\n2. Find your installation, click the triple dot, and slect **Edit**.\n3. Select **More Options**.\n4. Inside the **JVM ARGUMENTS** field, add:\n`-Dplayer.models.local=true -Dplayer.models.reload=true`\nNote:\t**player.models.reload** reloads the model every 5 seconds in game, and can be disabled after you finish making the model.\n5. Make a folder named <code>playermodels</code> inside your **.minecraft** folder.\n6. Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.\n\n## Usage\n- You need a config file for every player with a player model. This config file must be the players username, and needs to go in the **users** folder.\n**Example**: `.minecraft/playermodels/users/ewanhowell5195.cfg`\n- You can create a user config by going to **File > Export > Create OptiFine Player Model Config**.\n- Exported player models should go in a folder named what the player model is, inside the **items** folder, and be named `model.cfg`.\n**Example**: `.minecraft/playermodels/items/horns/model.cfg`\n- If not using **Use Player Texture**, textures must go inside a folder named `users` located next to the model file, and be named the players username.\n**Example**: `.minecraft/playermodels/items/horns/users/ewanhowell5195.png`\n\n## Limitations\n- They are client side only.\n- They are not part of resource packs.\n- They require OptiFine, and JVM args set in the launcher.\n- Animations are not supported.\n- You can only target specific players, not all players.\n\n## Important\nEnabling the player model JVM arguments **will disable any online player models**, usually being seasonal cosmetics like the Santa and Witch hats.",
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.4.1",
-    min_version: "4.2.0",
+    version: "1.5.0",
+    min_version: "5.0.0",
     variant: "both",
     await_loading: true,
+    creation_date: "2022-05-29",
+    contributes: {
+      formats: ["optifine_player_model"]
+    },
     async onload() {
+      fs = require("fs", {
+        message: "This permission is required for exporting your model",
+        optional: false
+      })
+
+      if (!fs) {
+        throw new Error("fs access denied")
+      }
+
       addStyles()
       codec = new Codec("optifine_player_model_codec", {
         name: "OptiFine Player Model",
@@ -734,12 +746,12 @@
     onunload() {
       Blockbench.removeListener("new_project", setResolution)
       Blockbench.removeListener("add_texture", textureAdd)
-      codec.delete()
-      format.delete()
-      action.delete()
-      config.delete()
-      styles.delete()
-      property.delete()
+      codec?.delete()
+      format?.delete()
+      action?.delete()
+      config?.delete()
+      styles?.delete()
+      property?.delete()
     }
   })
   function addStyles() {
