@@ -822,7 +822,6 @@
     let [dialog, settings] = await configurePreviewSceneSettings(model, args)
     $("dialog#preview_scene_settings_dialog #import").on("click", async e => {
       settings = await settings
-      window.testtest = dialog.form.form_data.name.bar
       const name = dialog.form.form_data.name.bar.querySelector("input").value.trim()
       const category = dialog.form.form_data.category.bar.querySelector("input").value.trim().replace(/\s/g, "_")
       if (!name) return Blockbench.showQuickMessage("Invalid name")
