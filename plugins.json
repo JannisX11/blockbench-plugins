@@ -408,7 +408,7 @@
 		"author": "Godlander & Ewan Howell",
 		"description": "Create Java Item models without any rotation limitations.",
 		"tags": ["Minecraft: Java Edition", "Items", "Rotation"],
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"min_version": "5.0.0",
 		"variant": "desktop",
 		"website": "https://ewanhowell.com/plugins/free-rotation/",
