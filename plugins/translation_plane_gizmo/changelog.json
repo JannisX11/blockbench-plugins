@@ -1,0 +1,18 @@
+[
+	{
+		"version": "1.0.0",
+		"date": "2025-01-08",
+		"changes": [
+			"Enhanced 2D plane gizmo with sophisticated gradient color system",
+			"Improved raycast detection and hover feedback",
+			"Better integration with Blockbench's transform system",
+			"Added comprehensive debug utilities",
+			"Performance optimizations and reduced flickering",
+			"Enhanced visual feedback with gradient color system",
+			"Improved grid snapping functionality",
+			"Better undo/redo integration",
+			"Added toolbar button and keyboard shortcuts",
+			"Comprehensive error handling and logging"
+		]
+	}
+]

@@ -1235,5 +1235,16 @@
 		"has_changelog": false,
 		"tags": ["Texture'", "Viewport", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_filtering"
+	},
+	"translation_plane_gizmo": {
+		"title": "Translation Plane Gizmo",
+		"author": "AnnJ",
+		"description": "Enhanced 2D plane gizmo for simultaneous multi-axis translation",
+		"icon": "control_camera",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"variant": "both",
+		"tags": ["Minecraft", "Tool", "Gizmo"],
+		"about": "# Translation Plane Gizmo v1.0.0\n\n## Features:\n- **2D Plane Movement**: Drag colored planes to move objects along two axes simultaneously\n- **RGB Color Coding**: XY (Blue), XZ (Green), YZ (Red) planes for easy identification\n- **Smart Integration**: Seamlessly works with Blockbench's transform system\n- **Grid Snapping**: Optional grid snapping for precise positioning\n- **Undo Support**: Full integration with Blockbench's undo system\n- **Cross-Version Compatible**: Works with both Blockbench v4 and v5\n- **Blender-Style Handles**: Small, finite square handles like professional 3D software\n- **Smart Camera Scaling**: Handles scale with zoom level like built-in arrow gizmos\n\n## How it works:\n- **XY Plane (Blue)**: Move objects in X and Y directions simultaneously\n- **XZ Plane (Green)**: Move objects in X and Z directions simultaneously\n- **YZ Plane (Red)**: Move objects in Y and Z directions simultaneously\n\n## Usage:\n1. Select objects in the 3D view\n2. Switch to **Move tool**\n3. You'll see three colored planes around the selection\n4. Click and drag any plane to move the object in that 2D plane\n5. Hold Shift for grid snapping (if enabled)\n\n## Integration:\n- Works with cubes, meshes, and groups\n- Respects Blockbench's transform space settings\n- Compatible with proportional editing\n- Supports both local and global transform spaces"
 	}
 }

@@ -1,0 +1,15 @@
+# Members file for translation_plane_gizmo plugin
+# This file specifies who has permission to contribute to this plugin
+
+# Maintainers: Can do anything with the plugin, including removing it entirely or modifying the members list
+maintainers:
+  - PlanesZwalker  # Your GitHub username
+
+# Developers: Can contribute new versions of the plugin
+developers:
+  # Add other GitHub usernames here if you want to allow contributions
+
+# Abandoned: What to do if you no longer contribute to the plugin
+# Options: "allow_contributions", "archive", "transfer"
+# If unspecified, contributions may be merged after 4-8 weeks of inactivity
+abandoned: "allow_contributions"
