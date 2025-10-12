@@ -42,8 +42,8 @@
     author,
     description,
     tags: ["Preview Scenes", "Blockbench"],
-    version: "1.1.5",
-    min_version: "4.12.0",
+    version: "1.2.0",
+    min_version: "5.0.0",
     variant: "both",
     creation_date: "2022-10-14",
     await_loading: true,
@@ -809,11 +809,11 @@
     return [dialog, new Promise(fulfil => {
       $("dialog#preview_scene_settings_dialog #import").on("click", e => {
         fulfil({
-          renderSide: parseInt(dialog.form.form_data.renderSide.bar.find("bb-select").attr("value")),
-          lightSide: parseInt(dialog.form.form_data.lightSide.bar.find("bb-select").attr("value")),
+          renderSide: parseInt(dialog.form.form_data.renderSide.bar.querySelector(".bb-select").getAttribute("value")),
+          lightSide: parseInt(dialog.form.form_data.lightSide.bar.querySelector(".bb-select").getAttribute("value")),
           lightColour: dialog.form.form_data.lightColour.colorpicker.value.toHexString(),
           tintColour: dialog.form.form_data.tintColour.colorpicker.value.toHexString(),
-          shading: dialog.form.form_data.shading.bar.find("input").is(":checked")
+          shading: dialog.form.form_data.shading.bar.querySelector("input").checked
         })
       })
     })]
@@ -822,8 +822,8 @@
     let [dialog, settings] = await configurePreviewSceneSettings(model, args)
     $("dialog#preview_scene_settings_dialog #import").on("click", async e => {
       settings = await settings
-      const name = dialog.form.form_data.name.bar.find("input").val().trim()
-      const category = dialog.form.form_data.category.bar.find("input").val().trim().replace(/\s/g, "_")
+      const name = dialog.form.form_data.name.bar.querySelector("input").value.trim()
+      const category = dialog.form.form_data.category.bar.querySelector("input").value.trim().replace(/\s/g, "_")
       if (!name) return Blockbench.showQuickMessage("Invalid name")
       const id = name.toLowerCase().replace(/\s/g, "_")
       if (PreviewScene.scenes[id]?.id) return Blockbench.showQuickMessage("Preview Scene already exists, please pick a different name", 2000) 
