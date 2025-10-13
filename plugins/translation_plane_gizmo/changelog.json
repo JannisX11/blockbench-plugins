@@ -12,7 +12,15 @@
 			"Improved grid snapping functionality",
 			"Better undo/redo integration",
 			"Added toolbar button and keyboard shortcuts",
-			"Comprehensive error handling and logging"
+			"Comprehensive error handling and logging",
+			"Fixed toolbar button persistence - icon now stays visible after Blockbench restart",
+			"Added dynamic language switching - plugin automatically adapts to language changes",
+			"Improved toolbar button creation with robust retry mechanism",
+			"Enhanced language detection with multiple fallback methods",
+			"Added periodic language change monitoring",
+			"Improved toolbar button restoration and reference management",
+			"Added multiple event listeners for better reliability",
+			"Enhanced debug utilities for language testing"
 		]
 	}
 ]

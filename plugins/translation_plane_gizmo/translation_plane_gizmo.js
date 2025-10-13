@@ -26,6 +26,30 @@
             document.documentElement.lang === 'fr'
         );
     };
+    
+    // Function to update UI elements when language changes
+    const updateLanguageUI = () => {
+        // Update toolbar button tooltip if it exists
+        if(menuAction && menuAction.domButton) {
+            const tooltip = menuAction.domButton.querySelector('.tooltip');
+            if(tooltip) {
+                tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+            }
+        }
+        
+        // Update any other UI elements that use translations
+        // (Add more UI updates here as needed)
+    };
+    
+    // Function to check for language changes
+    const checkLanguageChange = () => {
+        const currentLanguage = isFrench() ? 'fr' : 'en';
+        if(lastDetectedLanguage !== null && lastDetectedLanguage !== currentLanguage) {
+            // Language has changed, update UI
+            updateLanguageUI();
+        }
+        lastDetectedLanguage = currentLanguage;
+    };
 
     const t = (key) => {
         const translations = {
@@ -124,6 +148,7 @@
     let eventHandlers = {};
     let isGizmoEnabled = true; // Track gizmo state
     let menuAction = null; // Store reference to menu action
+    let lastDetectedLanguage = null; // Track language changes
 
     // Warn only once per unique tag to avoid console spam
     const warnedTags = new Set();
@@ -300,8 +325,77 @@
     function toggleGizmo() {
         isGizmoEnabled = !isGizmoEnabled;
         updatePlaneHandles();
+        
+        // Update toolbar button state if it exists
+        if(menuAction && menuAction.domButton) {
+            const icon = menuAction.domButton.querySelector('i');
+            const tooltip = menuAction.domButton.querySelector('.tooltip');
+            if(icon) icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
+            if(tooltip) tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+        }
+        
         // Gizmo toggled silently
         return isGizmoEnabled;
+    }
+    
+    // Function to ensure toolbar button is always visible when plugin is loaded
+    function ensureToolbarButtonVisible() {
+        if(!menuAction || !menuAction.domButton) {
+            // Try to recreate the toolbar button with multiple selectors
+            let toolbarContent = document.querySelector('.toolbar.no_wrap .content');
+            if (!toolbarContent) {
+                toolbarContent = document.querySelector('.toolbar .content');
+            }
+            if (!toolbarContent) {
+                toolbarContent = document.querySelector('[class*="toolbar"] [class*="content"]');
+            }
+            if (!toolbarContent) {
+                // Try to find any toolbar-like element
+                const toolbars = document.querySelectorAll('[class*="toolbar"]');
+                for (let toolbar of toolbars) {
+                    const content = toolbar.querySelector('[class*="content"]');
+                    if (content) {
+                        toolbarContent = content;
+                        break;
+                    }
+                }
+            }
+            
+            if(toolbarContent) {
+                const existingButton = toolbarContent.querySelector('[toolbar_item="plane_gizmo_toggle"]');
+                if(!existingButton) {
+                    // Recreate the button
+                    const toolDiv = document.createElement('div');
+                    toolDiv.className = 'tool';
+                    toolDiv.setAttribute('toolbar_item', 'plane_gizmo_toggle');
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.style.marginLeft = '0px';
+                    tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'material-icons notranslate icon';
+                    icon.textContent = 'view_in_ar';
+                    icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
+                    
+                    toolDiv.appendChild(tooltip);
+                    toolDiv.appendChild(icon);
+                    
+                    toolDiv.onclick = () => {
+                        const enabled = toggleGizmo();
+                        icon.style.color = enabled ? '#ffffff' : '#888888';
+                        tooltip.textContent = enabled ? t('action_disable_name') : t('action_enable_name');
+                    };
+                    
+                    toolbarContent.appendChild(toolDiv);
+                    menuAction = { domButton: toolDiv };
+                } else {
+                    // Button exists but our reference is lost, restore it
+                    menuAction = { domButton: existingButton };
+                }
+            }
+        }
     }
 
     /**
@@ -1691,6 +1785,34 @@
                 cameraFound: !!(Preview && Preview.selected && Preview.selected.camera),
                 canvasFound: !!Canvas?.canvas
             };
+        },
+        ensureToolbarButton: () => {
+            console.warn('[PlaneGizmo] 🔧 Ensuring toolbar button is visible...');
+            ensureToolbarButtonVisible();
+            const buttonExists = !!(menuAction && menuAction.domButton);
+            console.warn('[PlaneGizmo] Toolbar button exists:', buttonExists);
+            return buttonExists;
+        },
+        testLanguageSwitch: () => {
+            console.warn('[PlaneGizmo] 🌍 Testing language switch...');
+            const currentLang = isFrench() ? 'French' : 'English';
+            console.warn('[PlaneGizmo] Current language:', currentLang);
+            console.warn('[PlaneGizmo] Last detected language:', lastDetectedLanguage);
+            
+            // Force update UI
+            updateLanguageUI();
+            
+            // Test translation function
+            const testKeys = ['action_toggle_name', 'action_enable_name', 'action_disable_name'];
+            testKeys.forEach(key => {
+                console.warn(`[PlaneGizmo] ${key}:`, t(key));
+            });
+            
+            return {
+                currentLanguage: currentLang,
+                lastDetected: lastDetectedLanguage,
+                isFrench: isFrench()
+            };
         }
     };
 
@@ -1745,6 +1867,8 @@
                 // Initial setup with delay to ensure Blockbench is ready
                 setTimeout(()=>{
                     updatePlaneHandles();
+                    // Initialize language tracking
+                    lastDetectedLanguage = isFrench() ? 'fr' : 'en';
                     // Initial setup complete
                 }, 200);
 
@@ -1755,6 +1879,12 @@
                         if(Transformer && Transformer.visible && Outliner && Outliner.selected && Outliner.selected.length > 0) {
                             updatePlaneHandles();
                         }
+                        
+                        // Periodically check if toolbar button is still visible
+                        ensureToolbarButtonVisible();
+                        
+                        // Check for language changes
+                        checkLanguageChange();
                     }, 200); // 5fps - minimal updates to prevent flickering
                 }
 
@@ -1806,53 +1936,120 @@
                             updatePlaneHandles();
                         }
                     });
+                    
+                    // Listen for language changes
+                    Blockbench.on('language_changed', () => {
+                        updateLanguageUI();
+                    });
+                    
+                    // Also listen for settings changes that might affect language
+                    Blockbench.on('settings_changed', (event) => {
+                        if(event && event.key === 'language') {
+                            updateLanguageUI();
+                        }
+                    });
                 }
 
                 // Add toolbar button using proper Blockbench toolbar structure
-                try {
-                    // Find the main toolbar content area
-                    const toolbarContent = document.querySelector('.toolbar.no_wrap .content');
-                    if(toolbarContent) {
-                        // Create a tool div element (matching Blockbench's structure)
-                        const toolDiv = document.createElement('div');
-                        toolDiv.className = 'tool';
-                        toolDiv.setAttribute('toolbar_item', 'plane_gizmo_toggle');
+                // Use a more robust retry mechanism to ensure toolbar is ready
+                const addToolbarButton = (attempt = 1) => {
+                    try {
+                        // Try multiple selectors to find the toolbar
+                        let toolbarContent = document.querySelector('.toolbar.no_wrap .content');
+                        if (!toolbarContent) {
+                            toolbarContent = document.querySelector('.toolbar .content');
+                        }
+                        if (!toolbarContent) {
+                            toolbarContent = document.querySelector('[class*="toolbar"] [class*="content"]');
+                        }
+                        if (!toolbarContent) {
+                            // Try to find any toolbar-like element
+                            const toolbars = document.querySelectorAll('[class*="toolbar"]');
+                            for (let toolbar of toolbars) {
+                                const content = toolbar.querySelector('[class*="content"]');
+                                if (content) {
+                                    toolbarContent = content;
+                                    break;
+                                }
+                            }
+                        }
                         
-                        // Create tooltip structure (matching Blockbench's structure)
-                        const tooltip = document.createElement('div');
-                        tooltip.className = 'tooltip';
-                        tooltip.style.marginLeft = '0px';
-                        tooltip.textContent = t('action_toggle_name');
-                        
-                        // Create icon element using Material Icons (matching Blockbench's structure)
-                        const icon = document.createElement('i');
-                        icon.className = 'material-icons notranslate icon';
-                        icon.textContent = 'view_in_ar'; // 3D/AR view icon - perfect for plane gizmos
-                        icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
-                        
-                        // Add tooltip and icon to tool div
-                        toolDiv.appendChild(tooltip);
-                        toolDiv.appendChild(icon);
-                        
-                        // Add click handler
-                        toolDiv.onclick = () => {
-                            const enabled = toggleGizmo();
-                            // Update icon color and tooltip text
-                            icon.style.color = enabled ? '#ffffff' : '#888888';
-                            tooltip.textContent = enabled ? t('action_disable_name') : t('action_enable_name');
-                        };
-                        
-                        // Add to toolbar content
-                        toolbarContent.appendChild(toolDiv);
-                        // Toolbar button added via direct DOM manipulation
-                        
-                        // Store reference for cleanup
-                        menuAction = { domButton: toolDiv };
-                    } else {
-                        console.warn('[PlaneGizmo] Toolbar content not found');
+                        if(toolbarContent) {
+                            // Check if button already exists to avoid duplicates
+                            const existingButton = toolbarContent.querySelector('[toolbar_item="plane_gizmo_toggle"]');
+                            if(existingButton) {
+                                // Update existing button state
+                                const icon = existingButton.querySelector('i');
+                                const tooltip = existingButton.querySelector('.tooltip');
+                                if(icon) icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
+                                if(tooltip) tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+                                menuAction = { domButton: existingButton };
+                                return;
+                            }
+                            
+                            // Create a tool div element (matching Blockbench's structure)
+                            const toolDiv = document.createElement('div');
+                            toolDiv.className = 'tool';
+                            toolDiv.setAttribute('toolbar_item', 'plane_gizmo_toggle');
+                            
+                            // Create tooltip structure (matching Blockbench's structure)
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip';
+                            tooltip.style.marginLeft = '0px';
+                            tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+                            
+                            // Create icon element using Material Icons (matching Blockbench's structure)
+                            const icon = document.createElement('i');
+                            icon.className = 'material-icons notranslate icon';
+                            icon.textContent = 'view_in_ar'; // 3D/AR view icon - perfect for plane gizmos
+                            icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
+                            
+                            // Add tooltip and icon to tool div
+                            toolDiv.appendChild(tooltip);
+                            toolDiv.appendChild(icon);
+                            
+                            // Add click handler
+                            toolDiv.onclick = () => {
+                                const enabled = toggleGizmo();
+                                // Update icon color and tooltip text
+                                icon.style.color = enabled ? '#ffffff' : '#888888';
+                                tooltip.textContent = enabled ? t('action_disable_name') : t('action_enable_name');
+                            };
+                            
+                            // Add to toolbar content
+                            toolbarContent.appendChild(toolDiv);
+                            
+                            // Store reference for cleanup
+                            menuAction = { domButton: toolDiv };
+                        } else if(attempt < 10) {
+                            // Retry if toolbar not found (up to 10 attempts with longer delays)
+                            setTimeout(() => addToolbarButton(attempt + 1), 500 * attempt);
+                        } else {
+                            console.warn('[PlaneGizmo] Toolbar content not found after 10 attempts');
+                        }
+                    } catch(e) {
+                        console.warn('[PlaneGizmo] Direct DOM manipulation failed:', e);
                     }
-                } catch(e) {
-                    console.warn('[PlaneGizmo] Direct DOM manipulation failed:', e);
+                };
+                
+                // Start the toolbar button creation process with multiple attempts
+                setTimeout(() => addToolbarButton(), 100);
+                setTimeout(() => addToolbarButton(), 1000);
+                setTimeout(() => addToolbarButton(), 3000);
+                setTimeout(() => addToolbarButton(), 5000);
+                
+                // Also listen for when Blockbench is fully loaded
+                if(typeof Blockbench !== 'undefined' && Blockbench.on) {
+                    Blockbench.on('ready', () => {
+                        setTimeout(() => addToolbarButton(), 100);
+                    });
+                }
+                
+                // Listen for window load event as backup
+                if(window.addEventListener) {
+                    window.addEventListener('load', () => {
+                        setTimeout(() => addToolbarButton(), 500);
+                    });
                 }
 
                 dlog('Enhanced plugin loaded successfully');
@@ -1937,12 +2134,19 @@
                         Blockbench.off('update_selection');
                         Blockbench.off('undo');
                         Blockbench.off('redo');
+                        Blockbench.off('language_changed');
+                        Blockbench.off('settings_changed');
                         // Blockbench event listeners removed
                     } catch(e) {
                         console.warn('[PlaneGizmo] Could not remove Blockbench listeners:', e);
                     }
                 }
 
+                // Clean up window event listeners
+                if(window.removeEventListener) {
+                    window.removeEventListener('load', () => {});
+                }
+                
                 // Clean up global references
                 if(window.PlaneGizmo) {
                     delete window.PlaneGizmo;
