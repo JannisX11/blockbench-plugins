@@ -9,7 +9,7 @@ BBPlugin.register('wasd_controls', {
 	author: 'JannisX11, caioraphael1',
 	description: 'Adds a WASD controlled viewport navigation mode',
 	about: 'The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.',
-	version: '1.2.1',
+	version: '1.2.2',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -223,6 +223,9 @@ BBPlugin.register('wasd_controls', {
 		}
 
 		function tickNavigation() {
+			
+			// Ensure plugin is installed correctly
+			if (!settings.wasd_enabled) return;
 
 			if (isWASDMovementEnabled() && pressed_keys.length) {
 				doWASDMovement();
@@ -246,6 +249,6 @@ BBPlugin.register('wasd_controls', {
 		Preview.all.forEach(preview => {
 			preview.controls.enableZoom = true;
 		});
-		clearInterval(interval)
+		clearInterval(interval);
 	}
 });
