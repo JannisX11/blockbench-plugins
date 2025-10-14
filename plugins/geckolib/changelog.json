@@ -194,5 +194,19 @@
         ]
       }
     ]
+  },
+  "4.2.1": {
+    "title": "4.2.1",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fix Blockbench exporting empty quotes instead of keyframe values some keyframes",
+          "Fix Blockbench failing to export animations files for some specific models",
+          "Fix the keyframe panel selector not updating properly"
+        ]
+      }
+    ]
   }
 }
