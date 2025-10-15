@@ -978,5 +978,18 @@
         ]
       }
     ]
+  },
+  "8.5.1": {
+    "title": "8.5.1",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed previewing CEM animations on mobile devices"
+        ]
+      }
+    ]
   }
 }
