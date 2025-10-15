@@ -111,49 +111,8 @@ const setupPlugin = () => Plugin.register(id, {
           outline: 4px solid var(--color-danger);
         }
       }
-    `)
 
-    const subcomponents = Object.fromEntries(
-      Object.entries(components).map(([k, v]) => {
-        v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
-        return [k, Vue.extend(v)]
-      })
-    )
-
-    const utilityComponents = Object.fromEntries(
-      Object.entries(utilities).map(([k, v]) => {
-        v.component.props = ["value"]
-        const data = v.component.data
-        v.component.data = function() {
-          return {
-            ...data,
-            status: this.value
-          }
-        }
-        v.component.watch = {
-          value(val) {
-            this.status = val
-          },
-          status(val) {
-            this.$emit("input", val)
-          },
-          ...v.component.watch
-        }
-        v.component.components = subcomponents
-        v.component.methods ??= {}
-        v.component.methods = { ...v.component.methods, ...methods }
-        v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
-        return [k, Vue.extend(v.component)]
-      })
-    )
-
-    dialog = new Dialog({
-      id,
-      title: name,
-      width: 780,
-      buttons: [],
-      cancel_on_click_outside: false,
-      lines: [`<style>#${id} {
+      #${id} {
         .dialog_content {
           margin: 0;
           max-height: calc(100vh - 128px);
@@ -271,6 +230,7 @@ const setupPlugin = () => Plugin.register(id, {
               gap: 8px;
               width: calc(50% - 4px);
               position: relative;
+              border-radius: 6px;
 
               * {
                 cursor: pointer;
@@ -346,9 +306,10 @@ const setupPlugin = () => Plugin.register(id, {
           align-items: center;
           min-width: initial;
           padding: 0 8px;
+          box-shadow: none;
 
           &:hover {
-           color: var(--color-light) !important;
+            color: var(--color-text) !important;
           }
 
           &:disabled {
@@ -420,7 +381,49 @@ const setupPlugin = () => Plugin.register(id, {
 
         ${Object.entries(components).filter((([k, v]) => v.styles)).map(([k, v]) => `.component-${k} { ${v.styles} }`).join("")}
         ${Object.entries(utilities).filter((([k, v]) => v.component.styles)).map(([k, v]) => `.utility-${k} { ${v.component.styles} }`).join("")}
-      }</style>`],
+      }
+    `)
+
+    const subcomponents = Object.fromEntries(
+      Object.entries(components).map(([k, v]) => {
+        v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
+        return [k, Vue.extend(v)]
+      })
+    )
+
+    const utilityComponents = Object.fromEntries(
+      Object.entries(utilities).map(([k, v]) => {
+        v.component.props = ["value"]
+        const data = v.component.data
+        v.component.data = function() {
+          return {
+            ...data,
+            status: this.value
+          }
+        }
+        v.component.watch = {
+          value(val) {
+            this.status = val
+          },
+          status(val) {
+            this.$emit("input", val)
+          },
+          ...v.component.watch
+        }
+        v.component.components = subcomponents
+        v.component.methods ??= {}
+        v.component.methods = { ...v.component.methods, ...methods }
+        v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
+        return [k, Vue.extend(v.component)]
+      })
+    )
+
+    dialog = new Dialog({
+      id,
+      title: name,
+      width: 780,
+      buttons: [],
+      cancel_on_click_outside: false,
       component: {
         data: {
           utility: null,
