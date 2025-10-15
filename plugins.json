@@ -323,9 +323,14 @@
 		"description": "Track how long you spend using Blockbench and working on each project.",
 		"about": "This plugin allows you to keep track of how much time you spend using Blockbench and how long you spend working on each project.\n\nTo view your activity stats, go to `Tools > Activity Tracker`. From here you can see all your stats for both Blockbench and the current project.",
 		"tags": ["Tracking", "Stats", "Utility"],
-		"version": "1.0.1",
-		"min_version": "4.6.5",
-		"variant": "both"
+		"version": "1.1.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-03-30",
+		"website": "https://ewanhowell.com/plugins/activity-tracker/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/activity-tracker",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Activity Tracker]",
+		"has_changelog": true
 	},
 	"minecraft_title_generator": {
 		"title": "Minecraft Title Generator",
