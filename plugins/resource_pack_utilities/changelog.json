@@ -192,14 +192,14 @@
     ]
   },
   "1.8.0": {
-    "title": "1.10.0",
+    "title": "1.8.0",
     "date": "2025-10-12",
     "author": "Ewan Howell",
     "categories": [
       {
         "title": "New Features",
         "list": [
-          "Added LangBuilder utility"
+          "Added Lang Builder utility"
         ]
       },
       {
@@ -212,6 +212,26 @@
         "title": "Removed Features",
         "list": [
           "Temporarily removed command line argument support"
+        ]
+      }
+    ]
+  },
+  "1.9.0": {
+    "title": "1.9.0",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Updates",
+        "list": [
+          "Updated Pack Creator to support the new pack.mcmeta format",
+          "Updated JSON Optimiser to support the new pack.mcmeta format"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed ability to export from Animation Combiner"
         ]
       }
     ]

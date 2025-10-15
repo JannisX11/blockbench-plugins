@@ -27,7 +27,7 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.8.0",
+  version: "1.9.0",
   min_version: "5.0.0",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -554,7 +554,7 @@ const setupPlugin = () => Plugin.register(id, {
                 </div>
               </div>
             </div>
-            <component v-for="(data, id) in utilities" v-if="utility === id" :is="id" v-model="status"></component>
+            <component v-for="(data, id) in utilities" :key="id" v-if="utility === id" :is="id" v-model="status"></component>
           </div>
         `
       },
@@ -2383,7 +2383,7 @@ const utilities = {
               }
               if (data.pack) {
                 for (const key in data.pack) {
-                  if (!(key === "pack_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
+                  if (!(key === "pack_format" || key === "min_format" || key === "max_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
                 }
               } else if (data.animation) {
                 for (const key in data.animation) {
@@ -2820,28 +2820,32 @@ const utilities = {
             this.done++
           }
           let packFormat
+          const mcmeta = {
+            pack: {
+              description: this.description || "Template Resource Pack",
+              pack_format: packFormat
+            }
+          }
           if (jar.files["version.json"]) {
             const data = JSON.parse(jar.files["version.json"].content)
             if (typeof data.pack_version === "number") {
-              packFormat = data.pack_version
+              mcmeta.pack.pack_format = data.pack_version.resource
+            } else if (data.pack_version.resource) {
+              mcmeta.pack.pack_format = data.pack_version.resource
             } else {
-              packFormat = data.pack_version.resource
+              mcmeta.pack.min_format = data.pack_version.resource_major
+              mcmeta.pack.max_format = data.pack_version.resource_major
             }
           } else if (jar.files["pack.mcmeta"]) {
-            packFormat = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
+            mcmeta.pack.pack_format = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
           } else if (this.version.startsWith("1.9") || this.version.startsWith("1.10") || this.version.startsWith("15w")) {
-            packFormat = 2
+            mcmeta.pack.pack_format = 2
           } else if (this.version.startsWith("1.11") || this.version.startsWith("1.12") || this.version.startsWith("16w") || this.version.startsWith("17w")) {
-            packFormat = 3
+            mcmeta.pack.pack_format = 3
           } else {
-            packFormat = 1
+            mcmeta.pack.pack_format = 1
           }
-          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify({
-            "pack": {
-              "description": this.description || "Template Resource Pack",
-              "pack_format": packFormat
-            }
-          }, null, 2), "utf-8")
+          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify(mcmeta, null, 2), "utf-8")
           output.log("Created file `pack.mcmeta`")
           this.done++
           if (!await exists(PathModule.join(folder, "pack.png"))) {
@@ -4857,31 +4861,30 @@ const utilities = {
           this.status.finished = true
         },
         async save() {
-          const save = await electron.dialog.showSaveDialog({
-            title: "Save animation",
-            defaultPath: "animation",
-            filters: [
-              { name: "PNG", extensions: ["png"] }
-            ]
+          Blockbench.export({
+            extensions: ["png"],
+            type: "PNG",
+            name: "animation",
+            savetype: "buffer",
+            content: Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer())
+          }, async file => {
+            const mcmeta = {
+              animation: {}
+            }
+            if (this.delay > 1) {
+              mcmeta.animation.frametime = this.delay
+            }
+            if (this.interpolation) {
+              mcmeta.animation.interpolate = true
+            }
+            if (this.type === "vertical" && this.width !== this.height) {
+              mcmeta.animation.height = this.height
+            } else if (this.type === "horizonal") {
+              mcmeta.animation.width = this.width
+            }
+            await fs.promises.writeFile(file + ".mcmeta", JSON.stringify(mcmeta, null, 2))
+            Blockbench.showQuickMessage("Exported animation")
           })
-          if (save.cancelled) return
-          await fs.promises.writeFile(save.filePath, Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer()))
-          const mcmeta = {
-            animation: {}
-          }
-          if (this.delay > 1) {
-            mcmeta.animation.frametime = this.delay
-          }
-          if (this.interpolation) {
-            mcmeta.animation.interpolate = true
-          }
-          if (this.type === "vertical" && this.width !== this.height) {
-            mcmeta.animation.height = this.height
-          } else if (this.type === "horizonal") {
-            mcmeta.animation.width = this.width
-          }
-          await fs.promises.writeFile(save.filePath + ".mcmeta", JSON.stringify(mcmeta, null, 2))
-          Blockbench.showQuickMessage("Exported animation")
         }
       },
       styles: `
