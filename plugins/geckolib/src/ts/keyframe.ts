@@ -93,7 +93,17 @@ function geckolibGetArray(data_point: number, channel: string) {
     }
     else if (Format.id === GECKOLIB_MODEL_ID) {
         if (this.data_points.length != 1) {
-            result = {pre: result, post: getArray.apply(this, [1]), easing};
+            const postResult = getArray.apply(this, [1]);
+
+            if (!easing && result[0] === postResult[0] && result[1] === postResult[1] && result[2] === postResult[2]) {
+                result = {vector: result, easing};
+            }
+            else {
+                result = {
+                    pre: checkAndPatchKeyframeValues(result, channel),
+                    post: checkAndPatchKeyframeValues(getArray.apply(this, [1]), channel), easing
+                };
+            }
         }
         else {
             result = {vector: result, easing};
@@ -103,14 +113,28 @@ function geckolibGetArray(data_point: number, channel: string) {
             result.easingArgs = easingArgs;
     }
 
-    if (channel === 'rotation' || channel === 'position') {
-        result.vector[0] = invertMolang(result.vector[0])
-
-        if (channel === 'rotation')
-            result.vector[1] = invertMolang(result.vector[1])
-    }
+    if (result.vector)
+        result.vector = checkAndPatchKeyframeValues(result.vector, channel);
 
     return result;
+}
+
+// Invert the molang value to match Blockbench's internal handling
+// Also swap out empty molang queries because Blockbench now sends them as empty quotes for some reason
+function checkAndPatchKeyframeValues(vector: any[], channel: string) {
+    for (let i = 0; i <= 2; i++) {
+        if (vector[i] === "")
+            vector[i] = 0;
+    }
+    
+    if (channel === 'rotation' || channel === 'position') {
+        vector[0] = invertMolang(vector[0]);
+
+        if (channel === 'rotation')
+            vector[1] = invertMolang(vector[1]);
+    }
+    
+    return vector;
 }
 
 // Replace the bedrock keyframe compilation with a custom handler

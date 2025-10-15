@@ -439,13 +439,13 @@
 		"title": "GeckoLib Animation Utils",
 		"author": "Eliot Lash, Tslat, Gecko, McHorse",
 		"icon": "icon.png",
-		"description": "Create animated blocks, items, entities, and armor using the GeckoLib library and plugin.",
+		"description": "Replaced by new plugin for Blockbench 5.0+ - Install 'GeckoLib Models and Animations'",
 		"deprecation_note": "This plugin has been discontinued in favour of the \"GeckoLib\" plugin. This plugin will continue to work on Blockbench 4 and below. For Blockbench 5+, use 'GeckoLib' instead.",
 		"tags": [
 			"Minecraft: Java Edition",
 			"Deprecated"
 		],
-		"version": "4.1.1",
+		"version": "4.1.2",
 		"min_version": "4.12.0",
 		"await_loading": true,
 		"variant": "both",
@@ -466,7 +466,7 @@
 		"tags": [
 			"Minecraft: Java Edition"
 		],
-		"version": "4.2.0",
+		"version": "4.2.1",
 		"min_version": "5.0.0",
 		"max_version": "6.0.0",
 		"await_loading": true,

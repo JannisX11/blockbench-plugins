@@ -234,7 +234,7 @@ export const updateKeyframeSelectionCallback = (/*...args*/) => {
             }
 
             if (keyEasing !== "linear")
-                keyframePanel.querySelector('div.tool.widget.bar_select bb-select').innerHTML = "GeckoLib";
+                document.getElementById('panel_keyframe').querySelector('div.bb-select').textContent = "GeckoLib"
 
             const getEasingArgLabel = (kf: GeckolibKeyframe) => {
                 switch(kf.easing) {
