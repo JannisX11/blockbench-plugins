@@ -53,11 +53,11 @@
   const groupNames = groups.map(e => e.name)
   Plugin.register(id, {
     title: name,
-    icon,
+    icon: "icon.png",
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.5.0",
+    version: "1.5.1",
     min_version: "5.0.0",
     variant: "both",
     await_loading: true,
@@ -65,6 +65,10 @@
     contributes: {
       formats: ["optifine_player_model"]
     },
+    website: "https://ewanhowell.com/plugins/optifine-player-models/",
+    repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/optifine_player_models",
+    bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[OptiFine Player Models]",
+    has_changelog: true,
     async onload() {
       fs = require("fs", {
         message: "This permission is required for exporting your model",
@@ -559,7 +563,7 @@
         id: "optifine_player_model",
         name: "OptiFine Player Model",
         description: "Player models for OptiFine",
-        icon: "icon-player",
+        icon,
         category: "minecraft",
         show_on_start_screen: true,
         model_identifier: false,
@@ -576,7 +580,11 @@
           component: {
             methods: {
               load: () => Formats.optifine_player_model.new(),
-              info: () => showAbout()
+              info() {
+                Plugins.dialog.show()
+                Plugins.dialog.content_vue.search_term = "OptiFine Player Models"
+                Plugins.dialog.content_vue.selectPlugin(Plugins.dialog.content_vue.viewed_plugins.find(e => e.id === "optifine_player_models"))
+              }
             },
             template: `
               <div class="ewan-format-page" style="display:flex;flex-direction:column;height:100%">
@@ -699,19 +707,12 @@
                       }
                     ]
                   }
-                  if (isApp) {
-                    const dir = electron.dialog.showOpenDialogSync({
-                      properties: ["openDirectory"]
-                    })
-                    if (!dir) return
-                    const fs = require("fs")
-                    const path = require("path")
-                    const file = path.join(dir[0], `${$("#optifine_player_model_config_username").val().trim()}.cfg`)
-                    fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf-8")
-                    Blockbench.showQuickMessage(`Saved as: ${file}`, 2000)
-                  } else {
-                    saveAs(new Blob([JSON.stringify(data, null, 2)], {type: "application/json;charset=utf-8"}), `${$("#optifine_player_model_config_username").val().trim()}.cfg`)
-                  }
+                  Blockbench.export({
+                    extensions: ["cfg"],
+                    type: "CFG",
+                    name: $("#optifine_player_model_config_username").val().trim(),
+                    content: JSON.stringify(data, null, 2)
+                  }, file => Blockbench.showQuickMessage(`Saved as: ${file}`, 2000))
                   dialog.cancel()
                 },
                 close: () => dialog.cancel()
@@ -804,107 +805,6 @@
       #format_page_optifine_player_model div:nth-child(3), #format_page_optifine_player_model content {
         overflow-y: auto;
       }
-    `)
-  }
-  function showAbout() {
-    new Dialog({
-      id: "about",
-      title: name,
-      width: 780,
-      buttons: [],
-      lines: [`
-        <style>
-          dialog#about .dialog_title {
-            padding-left: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-          dialog#about .dialog_content {
-            text-align: left!important;
-            margin: 0!important;
-          }
-          dialog#about .socials {
-            padding: 20px 0 0!important;
-            margin-bottom: -30px!important;
-          }
-          dialog#about code {
-            padding: 0 2px;
-          }
-          dialog#about ul > li {
-            list-style: disc;
-          }
-          dialog#about ol, dialog#about ul {
-            padding-left: 20px;
-          }
-          dialog#about ol > li {
-            list-style: decimal;
-          }
-          dialog#about div > ol > li > p {
-            padding-left: 8px;
-          }
-          dialog#about li > p {
-            white-space: pre-wrap;
-          }
-          dialog#about #banner {
-            background-color: var(--color-accent);
-            color: var(--color-accent_text);
-            width: 100%;
-            padding: 0 8px;
-          }
-          dialog#about #content {
-            margin: 24px;
-          }
-          dialog#about .fa_big {
-            width: initial;
-            height: initial;
-          }
-        </style>
-        <div id="content">
-          <h1 style="margin-top:-10px">OptiFine Player Models</h1>
-          <p>This plugin adds a new format that allows you to make you own custom OptiFine player models.</p>
-          <div class="socials">${Object.values(links).map(e => `
-            <a href="${e.link}">
-              ${Blockbench.getIconNode(e.icon, e.colour).outerHTML}
-              <label>${e.text}</label>
-            </a>
-          `).join("")}</div>
-          <br>
-          <h2>Setup</h2>
-          <ol>
-            <li><p>Open your launcher and go to the <strong>Installations</strong> tab.</p></li>
-            <li><p>Find your installation, click the triple dot, and slect <strong>Edit</strong>.</p></li>
-            <li><p>Select <strong>More Options</strong>.</p></li>
-            <li><p>Inside the <strong>JVM ARGUMENTS</strong> field, add:\n<code>-Dplayer.models.local=true -Dplayer.models.reload=true</code>\nNote:\t<strong>player.models.reload</strong> reloads the model every 5 seconds in game, and can be disabled after you finish making the model.</p></li>
-            <li><p>Make a folder named <code>playermodels</code> inside your <strong>.minecraft</strong> folder.</p></li>
-            <li><p>Inside that folder, make 2 more folders named <code>items</code> and <code>users</code>.</p></li>
-          </ol>
-          <br>
-          <h2>Usage</h2>
-          <ul>
-            <li><p>You need a config file for every player with a player model. This config file must be the players username, and needs to go in the <strong>users</strong> folder.\n<strong>Example</strong>: <code>.minecraft/playermodels/users/ewanhowell5195.cfg</code><p></li>
-            <li>You can create a user config by going to <strong>File > Export > Create OptiFine Player Model Config</strong>.</li>
-            <li><p>Exported player models should go in a folder named what the player model is, inside the <strong>items</strong> folder, and be named <code>model.cfg</code>.\n<strong>Example</strong>: <code>.minecraft/playermodels/items/horns/model.cfg</code></p></li>
-            <li><p>If not using <strong>Use Player Texture</strong>, textures must go inside a folder named <code>users</code> located next to the model file, and be named the players username.\n<strong>Example</strong>: <code>.minecraft/playermodels/items/horns/users/ewanhowell5195.png</code></p></li>
-          </ul>
-          <br>
-          <h2>Limitations</h2>
-          <ul>
-            <li>They are client side only.</li>
-            <li>They are not part of resource packs.</li>
-            <li>They require OptiFine, and JVM args set in the launcher.</li>
-            <li>Animations are not supported.</li>
-            <li>You can only target specific players, not all players.</li>
-          </ul>
-          <br>
-          <h2>Important</h2>
-          <p>Enabling the player model JVM arguments <strong>will disable any online player models</strong>, usually being seasonal cosmetics like the Santa and Witch hats.</p>
-        </div>
-      `]
-    }).show()
-    $("dialog#about .dialog_title").html(`
-      <i class="icon icon-player"></i>
-      ${name}
     `)
   }
 })()
