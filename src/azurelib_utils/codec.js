@@ -30,6 +30,12 @@ export function unloadCodec() {
     format.delete();
 }
 
+function onModeSelect(e) {
+    if (e.mode.id === 'display' && Format.id === 'azure_model') {
+        Project.model_3d.position.y = 0;
+    }
+}
+
 function onProjectCompile(e) {
     if (Format.id !== "azure_model") return;
     e.model.azurelibSettings = azurelibSettings;
