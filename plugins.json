@@ -292,7 +292,7 @@
 		"author": "Ewan Howell",
 		"description": "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
 		"tags": ["Recording", "Media"],
-		"version": "2.1.0",
+		"version": "2.1.1",
 		"min_version": "5.0.0",
 		"variant": "desktop",
 		"website": "https://ewanhowell.com/plugins/scene-recorder/",
