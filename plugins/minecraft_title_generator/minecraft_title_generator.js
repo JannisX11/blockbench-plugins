@@ -241,7 +241,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.10.1",
+    version: "1.10.2",
     min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -734,7 +734,7 @@
                 .minecraft-output-label {
                   font-size: 1.25em;
                 }
-                .minecraft-output-options bb-select {
+                .minecraft-output-options .bb-select {
                   flex: 1;
                   cursor: pointer;
                 }
@@ -1407,7 +1407,7 @@
           .minecraft-title-contents .checkbox-row * {
             cursor: pointer;
           }
-          .minecraft-title-contents bb-select {
+          .minecraft-title-contents .bb-select {
             cursor: pointer;
           }
           #minecraft_title_generator {
