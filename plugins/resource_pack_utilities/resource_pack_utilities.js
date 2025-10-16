@@ -27,8 +27,8 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.9.0",
-  min_version: "5.0.0",
+  version: "1.9.1",
+  min_version: "5.0.2",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
   repository: `https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/${id}`,
@@ -179,7 +179,7 @@ const setupPlugin = () => Plugin.register(id, {
           margin-bottom: -8px;
         }
 
-        bb-select {
+        .bb-select {
           cursor: pointer;
           padding-top: 0;
           padding-right: 27px;
@@ -309,7 +309,7 @@ const setupPlugin = () => Plugin.register(id, {
           box-shadow: none;
 
           &:hover {
-            color: var(--color-text) !important;
+            color: var(--color-light) !important;
           }
 
           &:disabled {
@@ -382,7 +382,7 @@ const setupPlugin = () => Plugin.register(id, {
         ${Object.entries(components).filter((([k, v]) => v.styles)).map(([k, v]) => `.component-${k} { ${v.styles} }`).join("")}
         ${Object.entries(utilities).filter((([k, v]) => v.component.styles)).map(([k, v]) => `.utility-${k} { ${v.component.styles} }`).join("")}
       }
-    `)
+    `, "base")
 
     const subcomponents = Object.fromEntries(
       Object.entries(components).map(([k, v]) => {
@@ -631,11 +631,11 @@ const setupPlugin = () => Plugin.register(id, {
     MenuBar.addAction(action, "tools")
     MenuBar.addAction(action2, "tools")
     document.addEventListener("keydown", copyText)
-    // const utility = electron.getGlobal("process").argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
-    // if (utility && utilities[utility]) {
-    //   dialog.show()
-    //   dialog.content_vue.utility = utility
-    // }
+    const utility = Blockbench.argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
+    if (utility && utilities[utility]) {
+      dialog.show()
+      dialog.content_vue.utility = utility
+    }
   },
   onunload() {
     document.removeEventListener("keydown", copyText)
@@ -1632,7 +1632,7 @@ const components = {
       align-items: center;
       gap: 8px;
 
-      bb-select {
+      .bb-select {
         flex: 1;
         min-width: 100px;
       }
@@ -1669,7 +1669,7 @@ const components = {
       gap: 8px;
       align-items: center;
 
-      bb-select {
+      .bb-select {
         flex: 1;
       }
     `,
