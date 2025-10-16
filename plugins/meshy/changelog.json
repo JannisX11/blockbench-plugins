@@ -25,5 +25,19 @@
         ]
       }
     ]
+  },
+  "1.0.5": {
+    "title": "1.0.5",
+    "date": "2025-7-6",
+    "author": "Shadowkitten47",
+    "categories": [
+      {
+        "title": "Bug Fixes 2",
+        "list": [
+          "Removed Meta Data, which caused issues on later versions of minecraft formating",
+          "Fixed 1/2 length faces (lines and points) which would cause them not to render ingame"
+        ]
+      }
+    ]
   }
 }

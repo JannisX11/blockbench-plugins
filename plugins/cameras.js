@@ -6,7 +6,7 @@ BBPlugin.register('cameras', {
 	author: 'JannisX11',
 	description: 'Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.',
 	about: 'Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.',
-	version: '1.2.1',
+	version: '1.2.2',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -87,6 +87,11 @@ BBPlugin.register('cameras', {
 					preview.setFOV(preview_fov);
 				}
 			}
+			static behavior = {
+				unique_name: true,
+				movable: true,
+				rotatable: true,
+			}
 		}
 		window.CameraElement = CameraElement;
 		
@@ -121,11 +126,30 @@ BBPlugin.register('cameras', {
 			];
 		
 		new Property(CameraElement, 'string', 'name', {default: 'camera'})
-		new Property(CameraElement, 'string', 'path')
 		new Property(CameraElement, 'vector', 'position');
 		new Property(CameraElement, 'vector', 'rotation');
-		new Property(CameraElement, 'number', 'fov', {default: 70});
-		new Property(CameraElement, 'vector2', 'aspect_ratio', {default: [16, 9]});
+		new Property(CameraElement, 'number', 'fov', {
+			default: 70,
+			inputs: {
+				element_panel: {
+					input: {label: 'FOV', type: 'number', min: 1, max: 160},
+					onChange() {
+						Canvas.updateView({elements: CameraElement.selected, element_aspects: {transform: true}});
+					}
+				}
+			}
+		});
+		new Property(CameraElement, 'vector2', 'aspect_ratio', {
+			default: [16, 9],
+			inputs: {
+				element_panel: {
+					input: {label: 'Aspect Ratio', type: 'vector', dimensions: 2},
+					onChange() {
+						Canvas.updateView({elements: CameraElement.selected, element_aspects: {transform: true}});
+					}
+				}
+			}
+		});
 		new Property(CameraElement, 'string', 'linked_preview');
 		new Property(CameraElement, 'boolean', 'camera_linked');
 		new Property(CameraElement, 'boolean', 'visibility', {default: true});
@@ -242,7 +266,7 @@ BBPlugin.register('cameras', {
 					})
 				}
 	
-				if (Group.selected) Group.selected.unselect()
+				unselectAll();
 				base_camera.select()
 				Undo.finishEdit('Add camera', {outliner: true, elements: selected, selection: true});
 				Blockbench.dispatchEvent( 'add_camera', {object: base_camera} )
@@ -335,6 +359,7 @@ BBPlugin.register('cameras', {
 		})
 		deletables.push(snap_action);
 
+		const anim_sign = Blockbench.isNewerThan('4.99') ? 1 : -1;
 		class CameraAnimator extends BoneAnimator {
 			constructor(uuid, animation, name) {
 				super(uuid, animation);
@@ -393,7 +418,7 @@ BBPlugin.register('cameras', {
 			displayPosition(arr, multiplier = 1) {
 				var bone = this.element.mesh
 				if (arr) {
-					bone.position.x -= arr[0] * multiplier;
+					bone.position.x += arr[0] * multiplier * anim_sign;
 					bone.position.y += arr[1] * multiplier;
 					bone.position.z += arr[2] * multiplier;
 				}
@@ -402,9 +427,22 @@ BBPlugin.register('cameras', {
 			displayRotation(arr, multiplier = 1) {
 				var bone = this.element.mesh
 				if (arr) {
-					arr.forEach((n, i) => {
-						bone.rotation[getAxisLetter(i)] += Math.degToRad(n) * (i == 2 ? 1 : -1) * multiplier
-					})
+					if (anim_sign == 1) {
+						if (arr.length === 4) {
+							var added_rotation = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().fromArray(arr), 'ZYX')
+							bone.rotation.x += added_rotation.x * multiplier
+							bone.rotation.y += added_rotation.y * multiplier
+							bone.rotation.z += added_rotation.z * multiplier
+						} else {
+							bone.rotation.x += Math.degToRad(arr[0]) * multiplier
+							bone.rotation.y += Math.degToRad(arr[1]) * multiplier
+							bone.rotation.z += Math.degToRad(arr[2]) * multiplier
+						}
+					} else {
+						arr.forEach((n, i) => {
+							bone.rotation[getAxisLetter(i)] += Math.degToRad(n) * (i == 2 ? 1 : -1) * multiplier
+						})
+					}
 				}
 				return this;
 			}

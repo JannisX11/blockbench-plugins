@@ -500,5 +500,31 @@
         ]
       }
     ]
+  },
+  "1.10.0": {
+    "title": "1.10.0",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Compatibility",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      }
+    ]
+  },
+  "1.10.1": {
+    "title": "1.10.1",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed custom textures failing to load"
+        ]
+      }
+    ]
   }
 }

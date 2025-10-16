@@ -241,8 +241,8 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.9.2",
-    min_version: "4.12.0",
+    version: "1.10.1",
+    min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",
     await_loading: true,
@@ -353,6 +353,15 @@
         .spacer, #minecraft_title_generator .sp-preview, #minecraft_title_generator .form_inline_select > li {
           flex: 1;
         }
+        #minecraft_title_generator .form_inline_select > li {
+          border-radius: 0;
+        }
+        #minecraft_title_generator .form_inline_select > li:first-child {
+          border-radius: 5px 0 0 5px;
+        }
+        #minecraft_title_generator .form_inline_select > li:last-child {
+          border-radius: 0 5px 5px 0;
+        }
         #minecraft_title_generator .form_inline_select > .disabled {
           cursor: not-allowed;
           color: inherit !important;
@@ -374,9 +383,12 @@
         #format_page_minecraft_title div:nth-child(3), #format_page_minecraft_title content {
           overflow-y: auto;
         }
+        body.minecraft-title-generator .config_dialog .form_bar_shading {
+          display: none;
+        }
       `)
       let shadeState
-      BarItems.toggle_shading.condition = () => Project.format?.id !== format.id
+      settings.shading.condition = () => Project.format?.id !== format.id
       format = new ModelFormat({
         id: "minecraft_title",
         name: "Minecraft Title",
@@ -396,11 +408,13 @@
           dialog.show()
         },
         onActivation() {
-          shadeState = BarItems.toggle_shading.value
-          if (shadeState) BarItems.toggle_shading.click()
+          shadeState = settings.shading.value
+          document.body.classList.add("minecraft-title-generator")
+          settings.shading.set(false)
         },
         onDeactivation() {
-          if (shadeState) BarItems.toggle_shading.click()
+          settings.shading.set(shadeState)
+          document.body.classList.remove("minecraft-title-generator")
           dialog.close()
         },
         format_page: {
@@ -519,6 +533,7 @@
           padding: 10px;
           display: none;
           z-index: 1;
+          border-radius: 6px;
         }
 
         body[mode="minecraft_title_render"] {
@@ -591,6 +606,7 @@
           display: flex;
           background-color: var(--color-button);
           padding: 4px;
+          border-radius: 4px;
         }
 
         .minecraft-title-render-resolution {
@@ -1331,6 +1347,9 @@
           #new_minecraft_title_text .dialog_content {
             margin: 0;
           }
+          #new_minecraft_title_text .dialog_close_button:hover {
+            border-radius: 6px;
+          }
           #minecraft-title-tabs {
             background-color: var(--color-frame);
             display: flex;
@@ -1575,7 +1594,7 @@
           #new_minecraft_title_text .dialog_close_button:not(:is(:last-child)):not(:is(:nth-last-child(2))):hover {
             background-color: var(--color-accent);
           }
-          #new_minecraft_title_text .dialog_close_button.selected::after {
+          #new_minecraft_title_text .dialog_close_button.selected:not(:hover)::after {
             content: "";
             position: absolute;
             background-color: var(--color-accent);
@@ -2612,16 +2631,16 @@
           template: `
             <div id="${id}">
               <div id="minecraft-title-generator-title">Add Minecraft Title {{ fonts[font].type === 'font' ? 'Text' : 'Shape' }}</div>
-              <div class="dialog_close_button" style="right:135px;" :class="{ selected: fonts[font].type === 'font' }" @click="switchToFonts" title="Switch to text mode">
+              <div class="dialog_close_button" style="right:148px;" :class="{ selected: fonts[font].type === 'font' }" @click="switchToFonts" title="Switch to text mode">
                 <i class="material-icons">text_fields</i>
               </div>
-              <div class="dialog_close_button" style="right:105px;" :class="{ selected: fonts[font].type === 'shape' }" @click="switchToShapes" title="Switch to shape mode">
+              <div class="dialog_close_button" style="right:115px;" :class="{ selected: fonts[font].type === 'shape' }" @click="switchToShapes" title="Switch to shape mode">
                 <i class="material-icons">interests</i>
               </div>
-              <div class="dialog_close_button" style="right:60px;" @click="presets" title="Load and save presets">
+              <div class="dialog_close_button" style="right:66px;" @click="presets" title="Load and save presets">
                 <i class="material-icons">tune</i>
               </div>
-              <div class="dialog_close_button" style="right:30px;" @click="reset()" title="Reset values back to their defaults">
+              <div class="dialog_close_button" style="right:33px;" @click="reset()" title="Reset values back to their defaults">
                 <i class="material-icons">replay</i>
               </div>
               <div v-if="connection.failed" id="minecraft-title-connection-warning">
@@ -4069,41 +4088,23 @@
     hide: c => updateColour(dialog, v, c)
   })
 
-  async function getTextureFromFile() {
-    try {
-      let texture
-      if (isApp) {
-        const file = electron.dialog.showOpenDialogSync({
-          filters: [{
-            name: "PNG Texture",
-            extensions: ["png"]
-          }]
-        })
-        if (!file) return
-        texture = await loadImage(file[0])
-      } else {
-        const input = document.createElement("input")
-        let file
-        input.type = "file"
-        input.accept = ".png"
-        await new Promise(fulfil => {
-          input.onchange = () => {
-            file = Array.from(input.files)
-            fulfil()
-          }
-          input.click()
-        })
-        const data = await new Promise(fulfil => {
-          const fr = new FileReader()
-          fr.onload = () => fulfil(fr.result)
-          fr.readAsDataURL(file[0])
-        })
-        texture = await loadImage(data)
-      }
-      return texture
-    } catch {
-      Blockbench.showQuickMessage("Unable to load texture")
-    }
+  function getTextureFromFile() {
+    return new Promise(fulfil => {
+      Filesystem.importFile({
+        title: "Select Minecraft title texture",
+        type: "PNG Texture",
+        readtype: "buffer",
+        extensions: ["png"]
+      }, async files => {
+        try {
+          const texture = await loadImage(files[0].content)
+          fulfil(texture)
+        } catch {
+          Blockbench.showQuickMessage("Unable to load texture")
+          fulfil()
+        }
+      })
+    }).catch(() => undefined)
   }
 
   function getDefaultDialogArgs() {
@@ -4183,7 +4184,11 @@
     return new Promise((fulfil, reject) => {
       img.onload = () => fulfil(img)
       img.onerror = reject
-      img.src = b64
+      if (b64 instanceof ArrayBuffer) {
+        img.src = URL.createObjectURL(new Blob([b64], { type: "image/png" }))
+      } else {
+        img.src = b64
+      }
     })
   }
 

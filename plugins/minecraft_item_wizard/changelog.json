@@ -38,5 +38,33 @@
 				]
 			}
 		]
+	},
+	"1.2.1": {
+		"title": "1.2.1",
+		"date": "2025-06-08",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue when importing mcaddon file for merging",
+					"The resource pack now has the behavior pack set as a dependency"
+				]
+			}
+		]
+	},
+	"1.2.2": {
+		"title": "1.2.2",
+		"date": "2025-10-05",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added compatibility for Blockbench 5.0",
+					"Added compatibility for new Minecraft install location"
+				]
+			}
+		]
 	}
 }

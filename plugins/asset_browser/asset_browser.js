@@ -1,7 +1,7 @@
 const crypto = require("node:crypto")
-const os = require("node:os")
+const zlib = require("node:zlib")
 
-let dialog, action, storage, loader, styles, cacheDir
+let fs, dialog, action, storage, loader, styles, cacheDir
 
 const id = "asset_browser"
 const name = "Asset Browser"
@@ -69,17 +69,25 @@ Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft", "Assets", "Browser"],
-  version: "1.1.0",
-  min_version: "4.12.0",
+  version: "1.2.0",
+  min_version: "5.0.0",
   variant: "desktop",
   creation_date: "2025-05-30",
-  type: "module",
   website: "https://ewanhowell.com/plugins/asset-browser/",
   repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/asset-browser",
   bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Asset Browser]",
   has_changelog: true,
   onload() {
-    cacheDir = PathModule.join(app.getPath("userData"), "minecraft_assets_cache")
+    fs = require("fs", {
+      message: "This permission is required to access your downloaded Minecraft versions, cache versions you open that aren’t already downloaded, and export assets to folders.",
+      optional: false
+    })
+
+    if (!fs) {
+      throw new Error("fs access denied")
+    }
+
+    cacheDir = PathModule.join(SystemInfo.user_data_directory, "minecraft_assets_cache")
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true })
     }
@@ -88,12 +96,12 @@ Plugin.register(id, {
     storage.recentComparisons ??= []
     loadSidebar()
     let directory
-    if (os.platform() === "win32") {
-      directory = PathModule.join(os.homedir(), "AppData", "Roaming", ".minecraft")
-    } else if (os.platform() === "darwin") {
-      directory = PathModule.join(os.homedir(), "Library", "Application Support", "minecraft")
+    if (SystemInfo.platform === "win32") {
+      directory = PathModule.join(SystemInfo.appdata_directory, ".minecraft")
+    } else if (SystemInfo.platform === "darwin") {
+      directory = PathModule.join(SystemInfo.home_directory, "Library", "Application Support", "minecraft")
     } else {
-      directory = PathModule.join(os.homedir(), ".minecraft")
+      directory = PathModule.join(SystemInfo.home_directory, ".minecraft")
     }
     new Setting("ewan_minecraft_directory", {
       value: directory,
@@ -1373,6 +1381,14 @@ Plugin.register(id, {
             }
             return data.content
           },
+          getFileContentSync(file) {
+            const data = this.jar.files[file] ?? this.jar.zips?.[file]
+            if (!data) return
+            if (!data.content) {
+              data.content = fs.readFileSync(data.path)
+            }
+            return data.content
+          },
           async openFilesCheck() {
             if (this.selected.length <= 16) return true
             if (!await confirm("Open files", `You are about to open ${this.selected.length.toLocaleString()} files. Are you sure you want to continue?`)) return
@@ -1435,7 +1451,25 @@ Plugin.register(id, {
                 } else if (file.type === "bedrock") {
                   loadModelFile({
                     content: JSON.stringify(file.content),
-                    path: `${Date.now()}/${file.name}`
+                    path: `${Date.now()}${osfs}${file.name}`
+                  }, {
+                    externalDataLoader: data => {
+                      if (typeof data === "string") {
+                        return this.getFileContentSync(`resource_pack/${data}`)
+                      }
+                      const files = Object.keys(this.jar.files).filter(e => e.startsWith(`resource_pack/${data.dir}`)).filter(data.filter)
+                      for (const file of files) {
+                        const content = this.getFileContentSync(file).toString()
+                        const output = data.find(content)
+                        if (output) {
+                          if (data.return === "find") {
+                            return output
+                          } else {
+                            return content
+                          }
+                        }
+                      }
+                    }
                   })
                 } else {
                   const extension = PathModule.extname(file.name) || ".txt"
@@ -1621,87 +1655,18 @@ Plugin.register(id, {
             }
           },
           async loadJavaBlockItemModel(model, loadCount = 1, importMode) {
-            let noElements, textures
-            if (!model.content.elements && !(item_parents.includes(model.content.parent) && model.content.textures?.layer0)) {
-              noElements = true
-              model.content.elements = []
-            }
-            textures = new Map
-            if (model.content.textures) {
-              for (const [k, v] of Object.entries(model.content.textures)) {
-                if (v.startsWith("#")) continue
-                const content = await this.getFileContent(`assets/minecraft/textures/${v.replace(/\w+:/, "")}.png`)
-                const data = "data:image/png;base64," + content.toString("base64")
-                textures.set(data, {
-                  id: k,
-                  path: model.content.textures[k]
-                })
-                model.content.textures[k] = data
-              }
-            }
+            const externalDataLoader = path => this.getFileContentSync(`assets/minecraft/${path}`)
             if (importMode) {
-              Codecs.java_block.parse(model.content, model.name, true)
+              Codecs.java_block.parse(model.content, model.name, {
+                import_to_current_project: true,
+                externalDataLoader
+              })
             } else {
               loadModelFile({
                 content: JSON.stringify(model.content),
-                path: `${Date.now()}/${model.name}`
-              })
-            }
-            for (const texture of Project.textures) {
-              if (!texture.name) {
-                const data = textures.get(texture.img.src)
-                if (data) {
-                  texture.minecraft_id = "#" + data.id
-                  const match = data.path.match(/^(?:([^:]+):)?(?:(.+)\/)?([^\/]+)$/)
-                  texture.name = match[3] + ".png"
-                  texture.namespace = match[1] ?? "minecraft"
-                  if (match[2]) {
-                    texture.folder = match[2]
-                  }
-                }
-              }
-            }
-            for (const textureMesh of TextureMesh.all) {
-              textureMesh.name = `minecraft:item/${model.name.slice(0, -5)}`
-            }
-            if (loadCount === 1 && noElements) {
-              Blockbench.showMessageBox({
-                translateKey: "child_model_only",
-                icon: "info",
-                message: tl("message.child_model_only.message", [model.parent]),
-                commands: !model.content.parent.replace(/\w+:/, "").startsWith("builtin") && {
-                  open: "message.child_model_only.open",
-                  open_with_textures: {
-                    text: "message.child_model_only.open_with_textures",
-                    condition: Texture.all.length > 0
-                  }
-                }
-              }, async result => {
-                if (result !== "open" && result !== "open_with_textures") return
-                const currentProject = Project
-                const path = `assets/minecraft/models/${model.content.parent.replace(/\w+:/, "")}.json`
-                const content = await this.getFileContent(path)
-
-                try {
-                  await this.loadJavaBlockItemModel({
-                    content: JSON.parse(content),
-                    name: PathModule.basename(path)
-                  })
-                  
-                  if (result === "open_with_textures") {
-                    Project.textures.forEachReverse(tex => {
-                      if (tex.error == 3 && tex.name.startsWith("#")) {
-                        const loaded_tex = currentProject.textures.find(e => e.minecraft_id === tex.name)
-                        if (loaded_tex) {
-                          tex.fromDataURL(loaded_tex.img.src)
-                          tex.name = loaded_tex.name
-                          tex.namespace = loaded_tex.namespace
-                          tex.folder = loaded_tex.folder
-                        }
-                      }
-                    })
-                  }
-                } catch {}
+                path: `${Date.now()}${osfs}${model.name}`
+              }, {
+                externalDataLoader
               })
             }
           },
@@ -1755,23 +1720,26 @@ Plugin.register(id, {
             return typeof data.blockbenchImportable === "function" ? data.blockbenchImportable() : data.blockbenchImportable
           },
           async openExternally(file) {
-            const extension = PathModule.extname(file)
-            const tempPath = PathModule.join(os.tmpdir(), `${PathModule.basename(file, extension)}_${Date.now()}${extension}`)
-            fs.writeFileSync(tempPath, await this.getFileContent(file))
-            if (extension) {
-              if (os.platform() === "win32") {
-                exec(`"${tempPath}"`)
-              } else if (os.platform() === "darwin") {
-                exec(`open "${tempPath}"`)
+            const { exec } = require("child_process")
+            if (exec) {
+              const extension = PathModule.extname(file)
+              const tempPath = PathModule.join(SystemInfo.temp_directory, `${PathModule.basename(file, extension)}_${Date.now()}${extension}`)
+              fs.writeFileSync(tempPath, await this.getFileContent(file))
+              if (extension) {
+                if (SystemInfo.platform === "win32") {
+                  exec(`"${tempPath}"`)
+                } else if (SystemInfo.platform === "darwin") {
+                  exec(`open "${tempPath}"`)
+                } else {
+                  exec(`xdg-open "${tempPath}"`)
+                }
+              } else if (SystemInfo.platform === "win32") {
+                exec(`notepad.exe "${tempPath}"`)
+              } else if (SystemInfo.platform === "darwin") {
+                exec(`open -a "TextEdit" "${tempPath}"`)
               } else {
                 exec(`xdg-open "${tempPath}"`)
               }
-            } else if (os.platform() === "win32") {
-              exec(`notepad.exe "${tempPath}"`)
-            } else if (os.platform() === "darwin") {
-              exec(`open -a "TextEdit" "${tempPath}"`)
-            } else {
-              exec(`xdg-open "${tempPath}"`)
             }
           },
           async exportFiles(files) {
@@ -2913,7 +2881,7 @@ Plugin.register(id, {
           }
         },
         template: `
-          <div id="${id}-container" tabindex="0" @keydown="keydownHandler" @click="event.target.tagName === 'INPUT' ? null : event.currentTarget.focus()">
+          <div id="${id}-container" tabindex="0" @keydown="keydownHandler">
             <div v-if="!jar && !loadingMessage" id="index">
               <div id="mode-tabs">
                 <div @click="changeMode('assets')" :class="{ active: mode === 'assets' }">View Assets</div>
@@ -3379,10 +3347,10 @@ Plugin.register(id, {
     })
   },
   onunload() {
-    dialog.close()
-    action.delete()
-    loader.delete()
-    styles.delete()
+    dialog?.close()
+    action?.delete()
+    loader?.delete()
+    styles?.delete()
   }
 })
 
@@ -3611,7 +3579,7 @@ function lazyScrollerComponent() {
 function exists(path) {
   return new Promise(async fulfil => {
     try {
-      await fs.promises.access(path)
+      await fs.promises.stat(path)
       fulfil(true)
     } catch {
       fulfil(false)

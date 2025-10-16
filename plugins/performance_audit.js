@@ -10,7 +10,7 @@ Plugin.register('performance_audit', {
 	author: 'JannisX11',
 	description: 'Find performance issues and bottlenecks in your Blockbench installation.',
 	about: 'You can run a performance audit via Help > Audit Performance.',
-	version: '1.1.1',
+	version: '1.1.2',
 	min_version: '3.0.0',
 	variant: 'both',
 	onload() {
@@ -91,7 +91,7 @@ Plugin.register('performance_audit', {
 
 				let conclusion = 'Your performance is good!';
 				let tips = [];
-				if (avg_fps < 40) {
+				if (avg_fps < 46) {
 					if (animate_time_sum > 23) {
 						conclusion = 'Your performance is limited by CPU power...';
 						tips = [
@@ -104,6 +104,8 @@ Plugin.register('performance_audit', {
 							'Check if there are any updates for your graphics drivers',
 						]
 					}
+				} else if (avg_fps < 54) {
+					conclusion = 'Your performance is below average';
 				}
 				if (settings.ambient_occlusion_enabled && settings.ambient_occlusion_enabled.value) {
 					tips.push('You are using the "Ambient Occlusion" plugin. It is recommended to uninstall or disable this plugin if you are having performance issues.')

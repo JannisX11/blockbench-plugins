@@ -1,9 +1,8 @@
-
 Plugin.register("optimize", {
 "title": "Optimize",
 "author": "Krozi",
 "icon": "border_outer",
-"version": "1.2.7",
+"version": "1.2.8",
 "description": "Hide concealed faces for better performance!",
 onload() {
 	
@@ -55,17 +54,19 @@ try {
 			var y = faceAxis%3
 			var z = (faceAxis+1)%3
 			var level
+			var [cube1from, cube1to] = optimize_fromToInflate(cube1)
 			if (faceAxis < 3) {
-				level = cube1.from[y]
+				level = cube1from[y]
 			}
 			else {
-				level = cube1.to[y]
+				level = cube1to[y]
 			}
-			if (Math.abs(cube1.to[x] - cube1.from[x]) < epsilon || Math.abs(cube1.to[z] - cube1.from[z]) < epsilon) {
+			if (Math.abs(cube1to[x] - cube1from[x]) < epsilon || Math.abs(cube1to[z] - cube1from[z]) < epsilon) {
 				var planes = []
 			}
 			else {
-				var planes = [[cube1.from[x], cube1.from[z], cube1.to[x], cube1.to[z]]]
+				var planes = [[cube1from[x], cube1from[z], cube1to[x], cube1to[z]]]
+				var nonRectangleIntersections = []
 				for (j=0; j<elements.length; j++) {
 					if (cube1.faces[axisToFace[faceAxis]].texture !== null && i != j) {
 						var cube2 = elements[j]
@@ -75,15 +76,17 @@ try {
 						var rotationAxis2
 						[angle2, rotationAxis2] = optimize_getAngleAxis(cube2.rotation)
 						if (rotationAxis1 != rotationAxis2 && angle1 != 0 && angle2 != 0) {
+							nonRectangleIntersections.push(cube2)
 							continue			// Intersection not a rectangle --> Not my problem, ignore
 						}
 						var rotationAxis = Math.max(rotationAxis1, rotationAxis2)
 						var notRotationAxis = 3-y-rotationAxis
 						var intersection = []
+						var [from, to] = optimize_fromToInflate(cube2)
 						
 						if (rotationAxis1 == rotationAxis2 && angle1 == angle2) {			// Both cubes have the same orientations
-							var from = optimize_rotatePoint(optimize_rotatePoint(cube2.from, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
-							var to = optimize_rotatePoint(optimize_rotatePoint(cube2.to, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
+							from = optimize_rotatePoint(optimize_rotatePoint(from, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
+							to = optimize_rotatePoint(optimize_rotatePoint(to, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1)
 							var level2 = to[y]
 							if (faceAxis < 3) {
 								level2 = from[y]
@@ -95,14 +98,15 @@ try {
 						}
 						
 						else if (rotationAxis1 == rotationAxis2 || angle1 == 0 || angle2 == 0) {		// Both cubes have different orientations
+							nonRectangleIntersections.push(cube2)
 							var corners = []
-							corner = cube2.from.slice(0)
+							corner = from.slice(0)
 							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-							corner[(rotationAxis+1)%3] = cube2.to[(rotationAxis+1)%3]
+							corner[(rotationAxis+1)%3] = to[(rotationAxis+1)%3]
 							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-							corner[(rotationAxis+2)%3] = cube2.to[(rotationAxis+2)%3]
+							corner[(rotationAxis+2)%3] = to[(rotationAxis+2)%3]
 							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
-							corner[(rotationAxis+1)%3] = cube2.from[(rotationAxis+1)%3]
+							corner[(rotationAxis+1)%3] = from[(rotationAxis+1)%3]
 							corners.push(optimize_rotatePoint(optimize_rotatePoint(corner, origin2, rotationAxis, angle2), origin1, rotationAxis, -angle1))
 							var intersected = []
 							for (var c=0; c<4; c++) {
@@ -113,10 +117,10 @@ try {
 							}
 							if (intersected.length == 2) {
 								if (notRotationAxis == z) {
-									intersection = [cube2.from[x], Math.min(intersected[0], intersected[1]), cube2.to[x], Math.max(intersected[0], intersected[1])]
+									intersection = [from[x], Math.min(intersected[0], intersected[1]), to[x], Math.max(intersected[0], intersected[1])]
 								}
 								else {
-									intersection = [Math.min(intersected[0], intersected[1]), cube2.from[z], Math.max(intersected[0], intersected[1]), cube2.to[z]]
+									intersection = [Math.min(intersected[0], intersected[1]), from[z], Math.max(intersected[0], intersected[1]), to[z]]
 								}
 							}
 						}
@@ -144,6 +148,37 @@ try {
 								}
 							}
 							planes = newPlanes
+						}
+					}
+				}
+				// Try to cull elements with different rotations
+				for (j=0; j<nonRectangleIntersections.length; j++) {
+					var cube2 = nonRectangleIntersections[j]
+					var [from, to] = optimize_fromToInflate(cube2)
+					var [angle2, rotationAxis2] = optimize_getAngleAxis(cube2.rotation)
+					for (planeNumber=planes.length-1; planeNumber >= 0; planeNumber--) {
+						var plane = planes[planeNumber]
+						var corners = [
+							[plane[0], level, plane[1]],
+							[plane[2], level, plane[1]],
+							[plane[0], level, plane[3]],
+							[plane[2], level, plane[3]]
+						]
+						var deletePlane = true
+						for (k=0; k<4; k++) {
+							var corner = [corners[k][(3-x)%3], corners[k][(4-x)%3], corners[k][(5-x)%3]]
+							corner = optimize_rotatePoint(optimize_rotatePoint(corner, origin1, rotationAxis1, angle1), cube2.origin, rotationAxis2, -angle2)
+							if (!(
+								from[0] - epsilon <= corner[0] && corner[0] <= to[0] + epsilon &&
+								from[1] - epsilon <= corner[1] && corner[1] <= to[1] + epsilon &&
+								from[2] - epsilon <= corner[2] && corner[2] <= to[2] + epsilon
+							)) {
+								deletePlane = false
+								break
+							}
+						}
+						if (deletePlane) {
+							planes.remove(plane)
 						}
 					}
 				}
@@ -215,6 +250,12 @@ onunload() {
 }
 })
 
+optimize_fromToInflate = function(cube) {
+	var from = [cube.from[0] - cube.inflate, cube.from[1] - cube.inflate, cube.from[2] - cube.inflate]
+	var to = [cube.to[0] + cube.inflate, cube.to[1] + cube.inflate, cube.to[2] + cube.inflate]
+	return [from, to]
+}
+
 optimize_rotatePoint = function(position, origin, axis, angle) {
 	if (angle == 0 || axis == -1) {
 		return position
@@ -238,8 +279,8 @@ optimize_rotatePoint = function(position, origin, axis, angle) {
 		cos = 0.9238795325
 	}
 	else {
-		sin = Math.sin(angle)
-		cos = Math.cos(angle)
+		sin = Math.sin(angle * Math.PI / 180)
+		cos = Math.cos(angle * Math.PI / 180)
 	}
 	var newPosition = [0,0,0]
 	var x = axis
