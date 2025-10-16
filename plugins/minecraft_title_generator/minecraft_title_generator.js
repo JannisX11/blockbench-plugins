@@ -241,7 +241,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.10.0",
+    version: "1.10.1",
     min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -4088,41 +4088,23 @@
     hide: c => updateColour(dialog, v, c)
   })
 
-  async function getTextureFromFile() {
-    try {
-      let texture
-      if (isApp) {
-        const file = electron.dialog.showOpenDialogSync({
-          filters: [{
-            name: "PNG Texture",
-            extensions: ["png"]
-          }]
-        })
-        if (!file) return
-        texture = await loadImage(file[0])
-      } else {
-        const input = document.createElement("input")
-        let file
-        input.type = "file"
-        input.accept = ".png"
-        await new Promise(fulfil => {
-          input.onchange = () => {
-            file = Array.from(input.files)
-            fulfil()
-          }
-          input.click()
-        })
-        const data = await new Promise(fulfil => {
-          const fr = new FileReader()
-          fr.onload = () => fulfil(fr.result)
-          fr.readAsDataURL(file[0])
-        })
-        texture = await loadImage(data)
-      }
-      return texture
-    } catch {
-      Blockbench.showQuickMessage("Unable to load texture")
-    }
+  function getTextureFromFile() {
+    return new Promise(fulfil => {
+      Filesystem.importFile({
+        title: "Select Minecraft title texture",
+        type: "PNG Texture",
+        readtype: "buffer",
+        extensions: ["png"]
+      }, async files => {
+        try {
+          const texture = await loadImage(files[0].content)
+          fulfil(texture)
+        } catch {
+          Blockbench.showQuickMessage("Unable to load texture")
+          fulfil()
+        }
+      })
+    }).catch(() => undefined)
   }
 
   function getDefaultDialogArgs() {
@@ -4202,7 +4184,11 @@
     return new Promise((fulfil, reject) => {
       img.onload = () => fulfil(img)
       img.onerror = reject
-      img.src = b64
+      if (b64 instanceof ArrayBuffer) {
+        img.src = URL.createObjectURL(new Blob([b64], { type: "image/png" }))
+      } else {
+        img.src = b64
+      }
     })
   }
 

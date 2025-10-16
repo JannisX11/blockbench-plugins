@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.5.0",
+      version: "8.5.1",
       min_version: "4.12.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -747,7 +747,6 @@
       }
     }
     if (data.popup) {
-      console.log(data.popup.message ?? data.popup)
       Blockbench.showMessageBox({
         title: data.popup.title ?? "Before you start...",
         message: data.popup.message ?? data.popup,
@@ -1233,7 +1232,6 @@
       if (m[1] === "render") {
         if (!renderVars.includes(m[2])) throw [`Invalid "<span style="font-weight:600">render</span>" variable: "<span style="font-weight:600">${m[2]}</span>" is not a render variable`]
       } else if (!["this", "part", "var", "varb", "root"].includes(m[1]) && !Group.all.find(e => e.name === m[1])) {
-        console.log(m[1])
         throw [`Unknown group "<span style="font-weight:600">${m[1]}</span>" in animation "<span style="font-weight:600">${anim.replace(/</g, "&lt;")}</span>"`]
       }
     }
@@ -2235,7 +2233,7 @@
         evt.stopImmediatePropagation()
       }
     }
-    $("#cem_animation_editor_container > div")[0].addEventListener("keydown", editorKeybinds, true)
+    animationEditorPanel.node.querySelector("#cem_animation_editor_container > div").addEventListener("keydown", editorKeybinds, true)
     resizeWindow()
     function addAnimationToggles() {
       if (Project.format?.id === "optifine_entity") {
@@ -2473,7 +2471,7 @@
     Blockbench.removeListener("update_selection", updateSelection)
     Blockbench.removeListener("select_project", tabChange)
     Blockbench.removeListener("finished_edit", renameGroup)
-    $("#cem_animation_editor_container > div")[0].removeEventListener("keydown", editorKeybinds)
+    animationEditorPanel.node.querySelector("#cem_animation_editor_container > div").removeEventListener("keydown", editorKeybinds)
     groupObserver.disconnect()
     $("[toggle='cem_animation_disable_rotations']").remove()
     animationEditorPanel.delete()

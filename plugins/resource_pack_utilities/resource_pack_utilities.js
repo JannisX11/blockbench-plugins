@@ -27,7 +27,7 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.8.0",
+  version: "1.9.0",
   min_version: "5.0.0",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -111,49 +111,8 @@ const setupPlugin = () => Plugin.register(id, {
           outline: 4px solid var(--color-danger);
         }
       }
-    `)
 
-    const subcomponents = Object.fromEntries(
-      Object.entries(components).map(([k, v]) => {
-        v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
-        return [k, Vue.extend(v)]
-      })
-    )
-
-    const utilityComponents = Object.fromEntries(
-      Object.entries(utilities).map(([k, v]) => {
-        v.component.props = ["value"]
-        const data = v.component.data
-        v.component.data = function() {
-          return {
-            ...data,
-            status: this.value
-          }
-        }
-        v.component.watch = {
-          value(val) {
-            this.status = val
-          },
-          status(val) {
-            this.$emit("input", val)
-          },
-          ...v.component.watch
-        }
-        v.component.components = subcomponents
-        v.component.methods ??= {}
-        v.component.methods = { ...v.component.methods, ...methods }
-        v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
-        return [k, Vue.extend(v.component)]
-      })
-    )
-
-    dialog = new Dialog({
-      id,
-      title: name,
-      width: 780,
-      buttons: [],
-      cancel_on_click_outside: false,
-      lines: [`<style>#${id} {
+      #${id} {
         .dialog_content {
           margin: 0;
           max-height: calc(100vh - 128px);
@@ -271,6 +230,7 @@ const setupPlugin = () => Plugin.register(id, {
               gap: 8px;
               width: calc(50% - 4px);
               position: relative;
+              border-radius: 6px;
 
               * {
                 cursor: pointer;
@@ -346,9 +306,10 @@ const setupPlugin = () => Plugin.register(id, {
           align-items: center;
           min-width: initial;
           padding: 0 8px;
+          box-shadow: none;
 
           &:hover {
-           color: var(--color-light) !important;
+            color: var(--color-text) !important;
           }
 
           &:disabled {
@@ -420,7 +381,49 @@ const setupPlugin = () => Plugin.register(id, {
 
         ${Object.entries(components).filter((([k, v]) => v.styles)).map(([k, v]) => `.component-${k} { ${v.styles} }`).join("")}
         ${Object.entries(utilities).filter((([k, v]) => v.component.styles)).map(([k, v]) => `.utility-${k} { ${v.component.styles} }`).join("")}
-      }</style>`],
+      }
+    `)
+
+    const subcomponents = Object.fromEntries(
+      Object.entries(components).map(([k, v]) => {
+        v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
+        return [k, Vue.extend(v)]
+      })
+    )
+
+    const utilityComponents = Object.fromEntries(
+      Object.entries(utilities).map(([k, v]) => {
+        v.component.props = ["value"]
+        const data = v.component.data
+        v.component.data = function() {
+          return {
+            ...data,
+            status: this.value
+          }
+        }
+        v.component.watch = {
+          value(val) {
+            this.status = val
+          },
+          status(val) {
+            this.$emit("input", val)
+          },
+          ...v.component.watch
+        }
+        v.component.components = subcomponents
+        v.component.methods ??= {}
+        v.component.methods = { ...v.component.methods, ...methods }
+        v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
+        return [k, Vue.extend(v.component)]
+      })
+    )
+
+    dialog = new Dialog({
+      id,
+      title: name,
+      width: 780,
+      buttons: [],
+      cancel_on_click_outside: false,
       component: {
         data: {
           utility: null,
@@ -554,7 +557,7 @@ const setupPlugin = () => Plugin.register(id, {
                 </div>
               </div>
             </div>
-            <component v-for="(data, id) in utilities" v-if="utility === id" :is="id" v-model="status"></component>
+            <component v-for="(data, id) in utilities" :key="id" v-if="utility === id" :is="id" v-model="status"></component>
           </div>
         `
       },
@@ -2383,7 +2386,7 @@ const utilities = {
               }
               if (data.pack) {
                 for (const key in data.pack) {
-                  if (!(key === "pack_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
+                  if (!(key === "pack_format" || key === "min_format" || key === "max_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
                 }
               } else if (data.animation) {
                 for (const key in data.animation) {
@@ -2820,28 +2823,32 @@ const utilities = {
             this.done++
           }
           let packFormat
+          const mcmeta = {
+            pack: {
+              description: this.description || "Template Resource Pack",
+              pack_format: packFormat
+            }
+          }
           if (jar.files["version.json"]) {
             const data = JSON.parse(jar.files["version.json"].content)
             if (typeof data.pack_version === "number") {
-              packFormat = data.pack_version
+              mcmeta.pack.pack_format = data.pack_version.resource
+            } else if (data.pack_version.resource) {
+              mcmeta.pack.pack_format = data.pack_version.resource
             } else {
-              packFormat = data.pack_version.resource
+              mcmeta.pack.min_format = data.pack_version.resource_major
+              mcmeta.pack.max_format = data.pack_version.resource_major
             }
           } else if (jar.files["pack.mcmeta"]) {
-            packFormat = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
+            mcmeta.pack.pack_format = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
           } else if (this.version.startsWith("1.9") || this.version.startsWith("1.10") || this.version.startsWith("15w")) {
-            packFormat = 2
+            mcmeta.pack.pack_format = 2
           } else if (this.version.startsWith("1.11") || this.version.startsWith("1.12") || this.version.startsWith("16w") || this.version.startsWith("17w")) {
-            packFormat = 3
+            mcmeta.pack.pack_format = 3
           } else {
-            packFormat = 1
+            mcmeta.pack.pack_format = 1
           }
-          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify({
-            "pack": {
-              "description": this.description || "Template Resource Pack",
-              "pack_format": packFormat
-            }
-          }, null, 2), "utf-8")
+          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify(mcmeta, null, 2), "utf-8")
           output.log("Created file `pack.mcmeta`")
           this.done++
           if (!await exists(PathModule.join(folder, "pack.png"))) {
@@ -4857,31 +4864,30 @@ const utilities = {
           this.status.finished = true
         },
         async save() {
-          const save = await electron.dialog.showSaveDialog({
-            title: "Save animation",
-            defaultPath: "animation",
-            filters: [
-              { name: "PNG", extensions: ["png"] }
-            ]
+          Blockbench.export({
+            extensions: ["png"],
+            type: "PNG",
+            name: "animation",
+            savetype: "buffer",
+            content: Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer())
+          }, async file => {
+            const mcmeta = {
+              animation: {}
+            }
+            if (this.delay > 1) {
+              mcmeta.animation.frametime = this.delay
+            }
+            if (this.interpolation) {
+              mcmeta.animation.interpolate = true
+            }
+            if (this.type === "vertical" && this.width !== this.height) {
+              mcmeta.animation.height = this.height
+            } else if (this.type === "horizonal") {
+              mcmeta.animation.width = this.width
+            }
+            await fs.promises.writeFile(file + ".mcmeta", JSON.stringify(mcmeta, null, 2))
+            Blockbench.showQuickMessage("Exported animation")
           })
-          if (save.cancelled) return
-          await fs.promises.writeFile(save.filePath, Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer()))
-          const mcmeta = {
-            animation: {}
-          }
-          if (this.delay > 1) {
-            mcmeta.animation.frametime = this.delay
-          }
-          if (this.interpolation) {
-            mcmeta.animation.interpolate = true
-          }
-          if (this.type === "vertical" && this.width !== this.height) {
-            mcmeta.animation.height = this.height
-          } else if (this.type === "horizonal") {
-            mcmeta.animation.width = this.width
-          }
-          await fs.promises.writeFile(save.filePath + ".mcmeta", JSON.stringify(mcmeta, null, 2))
-          Blockbench.showQuickMessage("Exported animation")
         }
       },
       styles: `

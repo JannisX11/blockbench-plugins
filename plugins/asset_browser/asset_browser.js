@@ -73,7 +73,6 @@ Plugin.register(id, {
   min_version: "5.0.0",
   variant: "desktop",
   creation_date: "2025-05-30",
-  type: "module",
   website: "https://ewanhowell.com/plugins/asset-browser/",
   repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/asset-browser",
   bug_tracker: "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Asset Browser]",

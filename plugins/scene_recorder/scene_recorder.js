@@ -11,7 +11,7 @@
     author: "Ewan Howell",
     description: "Enhance the GIF recorder by adding new formats for recording your model. Replace the built-in GIF format with a higher quality one.",
     tags: ["Recording", "Media"],
-    version: "2.1.0",
+    version: "2.1.1",
     min_version: "5.0.0",
     variant: "desktop",
     website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -163,27 +163,28 @@
     }
   })
 
-  async function processFFmpeg(vars, options, args) {
+  function processFFmpeg(vars, options, args) {
     if (args.validate && !args.validate(vars)) return
-    const buffers = []
-    for (const [i, canvas] of vars.frame_canvases.entries()) {
-      const blob = await new Promise(canvas.toBlob.bind(canvas))
-      buffers.push(Buffer.from(await blob.arrayBuffer()))
-    }
-    const file = electron.dialog.showSaveDialogSync({
-      filters: [{
-        name: args.name,
-        extensions: [args.extension]
-      }],
-      defaultPath: `${Project.name || "scene"}.${args.extension}`
+    Blockbench.export({
+      resource_id: id,
+      extensions: [args.extension],
+      type: args.name,
+      name: Project.name ?? "scene",
+      async custom_writer(content, file) {
+        const toast = Blockbench.showToastNotification({ text: `Processing your ${args.name}…`, icon: "local_movies" })
+        const buffers = []
+        for (const [i, canvas] of vars.frame_canvases.entries()) {
+          const blob = await new Promise(canvas.toBlob.bind(canvas))
+          buffers.push(Buffer.from(await blob.arrayBuffer()))
+        }
+        if (args.preprocess) {
+          args.preprocess(vars, options, args, buffers, file)
+        }
+        await ffmpeg(buffers, ["-framerate", options.fps, "-i", "-", ...args.command, "-f", args.format ?? args.extension, "-y", file])
+        toast.delete()
+        Blockbench.showQuickMessage(`Saved as ${file}`)
+      }
     })
-    if (!file) return
-    Blockbench.showQuickMessage("Processing...")
-    if (args.preprocess) {
-      args.preprocess(vars, options, args, buffers, file)
-    }
-    await ffmpeg(buffers, ["-framerate", options.fps, "-i", "-", ...args.command, "-f", args.format ?? args.extension, "-y", file])
-    Blockbench.showQuickMessage(`Saved as ${file}`)
   }
 
   function spawn(exe, args, data = { stdio: "ignore" }) {
@@ -250,21 +251,24 @@
       component: {
         methods: {
           async select() {
-            const file = electron.dialog.showOpenDialogSync()
-            if (!file) return
-            try {
-              const p = spawn(file[0], [], {
-                stdio: ["ignore", "ignore", "pipe"]
-              })
-              let out = ""
-              for await (const chunk of p.stderr) out += chunk
-              if (!out.startsWith("ffmpeg")) return Blockbench.showQuickMessage("Invalid FFmpeg file")
-            } catch {
-              return Blockbench.showQuickMessage("Invalid FFmpeg file")
-            }
-            localStorage.setItem("ffmpegPath", file[0])
-            dialog.close()
-            Plugins.all.find(e => e.id === id).reload()
+            Filesystem.importFile({
+              title: "Select FFmpeg",
+              extensions: []
+            }, async files => {
+              try {
+                const p = spawn(files[0].path, [], {
+                  stdio: ["ignore", "ignore", "pipe"]
+                })
+                let out = ""
+                for await (const chunk of p.stderr) out += chunk
+                if (!out.startsWith("ffmpeg")) return Blockbench.showQuickMessage("Invalid FFmpeg file")
+              } catch {
+                return Blockbench.showQuickMessage("Invalid FFmpeg file")
+              }
+              localStorage.setItem("ffmpegPath", files[0].path)
+              dialog.close()
+              Plugins.all.find(e => e.id === id).reload()
+            })
           },
           reload() {
             Plugins.all.find(e => e.id === id).reload()
