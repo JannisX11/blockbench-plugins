@@ -978,7 +978,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.10",
+		"version": "1.0.11",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -988,7 +988,7 @@
 			"formats": ["azure_model"]
 		},
 		"has_changelog": true,
-		"website": "https://wiki.azuredoom.com/readme-1"
+		"website": "https://wiki.azuredoom.com/"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",

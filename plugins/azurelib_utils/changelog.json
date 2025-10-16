@@ -88,5 +88,26 @@
 				]
 			}
 		]
+	},
+	"1.0.11": {
+		"title": "1.0.10",
+		"date": "2025-10-15",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds particle field support for item disply exports",
+					"Bump support for 5.x version of Blockbench",
+					"Adds new armorWaist bone to Armor template"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes wiki links"
+				]
+			}
+		]
 	}
 }

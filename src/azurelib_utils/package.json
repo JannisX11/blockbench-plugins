@@ -1,6 +1,6 @@
 {
   "name": "azurelib_utils",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "private": true,
   "description": "AzureLib Animator",
   "main": "index.js",
@@ -20,7 +20,7 @@
     "icon": "azureicon.png",
     "description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
     "min_version": "4.8.0",
-    "max_version": "5.0.0",
+    "max_version": "15.0.0",
     "new_repository_format": "true",
     "variant": "both",
     "creation_date": "2023-04-04",
@@ -28,7 +28,7 @@
         "formats": ["azure_model"]
     },
     "has_changelog": true,
-    "website": "https://wiki.azuredoom.com/readme-1",
+    "website": "https://wiki.azuredoom.com/",
     "tags": [
       "Minecraft: Java Edition"
     ]
