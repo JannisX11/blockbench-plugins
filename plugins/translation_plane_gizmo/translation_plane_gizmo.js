@@ -14,127 +14,35 @@
      */
     
     const PLUGIN_ID = 'translation_plane_gizmo';
-    const DEBUG = false; // Disabled by default to prevent log spam
-
-    // Language detection and translations
-    const isFrench = () => {
-        // Check multiple ways Blockbench might indicate French language
-        return (
-            navigator.language.startsWith('fr') ||
-            (typeof Blockbench !== 'undefined' && Blockbench.language === 'fr') ||
-            (typeof settings !== 'undefined' && settings.language?.value === 'fr') ||
-            document.documentElement.lang === 'fr'
-        );
-    };
     
-    // Function to update UI elements when language changes
-    const updateLanguageUI = () => {
-        // Update toolbar button tooltip if it exists
-        if(menuAction && menuAction.domButton) {
-            const tooltip = menuAction.domButton.querySelector('.tooltip');
-            if(tooltip) {
-                tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+    try {
+        if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
+            MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
+            MenuBar.removeAction('plane_gizmo_toggle', 'view');
+            MenuBar.removeAction('plane_gizmo_toggle', 'edit');
+        }
+        if (typeof MenuBar !== 'undefined' && MenuBar.actions) {
+            const existingAction = MenuBar.actions.find(action => action.id === 'plane_gizmo_toggle');
+            if (existingAction) {
+                MenuBar.removeAction(existingAction, 'toolbar');
+                MenuBar.removeAction(existingAction, 'view');
+                MenuBar.removeAction(existingAction, 'edit');
             }
         }
-        
-        // Update any other UI elements that use translations
-        // (Add more UI updates here as needed)
-    };
-    
-    // Function to check for language changes
-    const checkLanguageChange = () => {
-        const currentLanguage = isFrench() ? 'fr' : 'en';
-        if(lastDetectedLanguage !== null && lastDetectedLanguage !== currentLanguage) {
-            // Language has changed, update UI
-            updateLanguageUI();
-        }
-        lastDetectedLanguage = currentLanguage;
-    };
-
-    const t = (key) => {
-        const translations = {
-            // English (default)
-            'plugin_title': 'Translation Plane Gizmo',
-            'plugin_description': 'Enhanced 2D plane gizmo for simultaneous multi-axis translation',
-            'about_title': 'Translation Plane Gizmo v1.0.0',
-            'features_title': 'Features:',
-            'feature_2d_movement': '2D Plane Movement: Drag colored planes to move objects along two axes simultaneously',
-            'feature_rgb_coding': 'RGB Color Coding: XY (Blue), XZ (Green), YZ (Red) planes for easy identification',
-            'feature_smart_integration': 'Smart Integration: Seamlessly works with Blockbench\'s transform system',
-            'feature_blender_style': 'Blender-Style Handles: Small, finite square handles like professional 3D software',
-            'feature_smart_scaling': 'Smart Camera Scaling: Handles scale with zoom level like built-in arrow gizmos',
-            'feature_cross_version': 'Cross-Version Compatible: Works with both Blockbench v4 and v5',
-            'feature_undo_support': 'Undo Support: All movements are properly integrated with Blockbench\'s undo system',
-            'feature_snap_grid': 'Grid Snapping: Optional grid snapping for precise positioning',
-            'feature_multi_selection': 'Multi-Selection: Works with multiple selected objects',
-            'feature_transform_spaces': 'Transform Spaces: Supports both local and global transform spaces',
-            
-            // French translations
-            'fr_plugin_title': 'Gizmo de Plan de Translation',
-            'fr_plugin_description': 'Gizmo de plan 2D amélioré pour la translation simultanée multi-axes',
-            'fr_about_title': 'Gizmo de Plan de Translation v1.0.0',
-            'fr_features_title': 'Fonctionnalités :',
-            'fr_feature_2d_movement': 'Mouvement de Plan 2D : Glissez les plans colorés pour déplacer les objets le long de deux axes simultanément',
-            'fr_feature_rgb_coding': 'Codage Couleur RGB : Plans XY (Bleu), XZ (Vert), YZ (Rouge) pour une identification facile',
-            'fr_feature_smart_integration': 'Intégration Intelligente : Fonctionne parfaitement avec le système de transformation de Blockbench',
-            'fr_feature_blender_style': 'Poignées Style Blender : Petites poignées carrées finies comme dans les logiciels 3D professionnels',
-            'fr_feature_smart_scaling': 'Mise à l\'Échelle Intelligente : Les poignées s\'adaptent au zoom comme les flèches intégrées',
-            'fr_feature_cross_version': 'Compatible Multi-Versions : Fonctionne avec Blockbench v4 et v5',
-            'fr_feature_undo_support': 'Support Annulation : Tous les mouvements sont intégrés au système d\'annulation de Blockbench',
-            'fr_feature_snap_grid': 'Accrochage Grille : Accrochage optionnel à la grille pour un positionnement précis',
-            'fr_feature_multi_selection': 'Sélection Multiple : Fonctionne avec plusieurs objets sélectionnés',
-            'fr_feature_transform_spaces': 'Espaces de Transformation : Support des espaces de transformation locaux et globaux',
-            
-            // Additional French translations
-            'how_it_works': 'Comment ça fonctionne :',
-            'xy_plane_desc': 'Plan XY (Bleu) : Déplace les objets dans les directions X et Y simultanément',
-            'xz_plane_desc': 'Plan XZ (Vert) : Déplace les objets dans les directions X et Z simultanément',
-            'yz_plane_desc': 'Plan YZ (Rouge) : Déplace les objets dans les directions Y et Z simultanément',
-            'usage': 'Utilisation :',
-            'usage_step1': 'Sélectionnez des objets dans la vue 3D',
-            'usage_step2': 'Passez à l\'outil **Déplacer**',
-            'usage_step3': 'Vous verrez trois plans colorés autour de la sélection',
-            'usage_step4': 'Cliquez et glissez n\'importe quel plan pour déplacer l\'objet dans ce plan 2D',
-            'usage_step5': 'Maintenez Maj pour l\'accrochage à la grille (si activé)',
-            'integration': 'Intégration :',
-            'integration_objects': 'Fonctionne avec les cubes, maillages et groupes',
-            'integration_settings': 'Respecte les paramètres d\'espace de transformation de Blockbench',
-            'integration_proportional': 'Compatible avec l\'édition proportionnelle',
-            'integration_spaces': 'Support des espaces de transformation locaux et globaux',
-            
-            // Action translations
-            'action_toggle_name': 'Toggle Plane Gizmo',
-            'action_toggle_description': 'Toggle the translation plane gizmo on/off',
-            'action_enable_name': 'Enable Plane Gizmo',
-            'action_disable_name': 'Disable Plane Gizmo',
-            
-            // French action translations
-            'fr_action_toggle_name': 'Basculer Gizmo Plan',
-            'fr_action_toggle_description': 'Activer/désactiver le gizmo de plan de translation',
-            'fr_action_enable_name': 'Activer Gizmo Plan',
-            'fr_action_disable_name': 'Désactiver Gizmo Plan'
-        };
-
-        if (isFrench()) {
-            return translations[`fr_${key}`] || translations[key] || key;
-        }
-        return translations[key] || key;
-    };
-
-    function dlog(...args){
-        if(DEBUG || window.PlaneGizmo?.debugMode) {
-            console.log('[PlaneGizmo]', ...args);
-        }
+    } catch (e) {
     }
 
     const PLANE_CONFIG = {
-        color: { XY: 0x4444ff, XZ: 0x44ff44, YZ: 0xff4444 },
-        baseOpacity: 0.2,
+        color: { XY: 0x0000ff, XZ: 0x00ff00, YZ: 0xff0000 },
+        baseOpacity: 0.6,
         hoverOpacity: 1,
         renderOrder: 99999,
         snapToGrid: true,
         gridSize: 1,
         enableUndo: true,
+        planeSize: 0.25,
+        hoverScale: 1.3,
+        offsetDistance: 4
     };
 
     let planeHandles = [];
@@ -143,105 +51,49 @@
     let currentDragPlane = null;
     let dragStartPoint = null;
     let dragStartPosition = null;
-    let dragAppliedDelta = null; // cumulative delta already applied via Blockbench API
+    let dragAppliedDelta = null;
     let updateInterval = null;
-    let eventHandlers = {};
-    let isGizmoEnabled = true; // Track gizmo state
-    let menuAction = null; // Store reference to menu action
-    let lastDetectedLanguage = null; // Track language changes
+    let selectionPollingInterval = null;
+    let isGizmoEnabled = true;
+    let menuAction = null;
+    let lastHoveredPlane = null;
+    let cameraEventHandlers = { wheel: null, cameraMove: null };
 
-    // Warn only once per unique tag to avoid console spam
-    const warnedTags = new Set();
-    function warnOnce(tag, ...args) {
-        if (window.PlaneGizmo?.verboseWarnings === false) return; // allow global mute
-        if (warnedTags.has(tag)) return;
-        warnedTags.add(tag);
-        console.warn(...args);
-    }
-
-    function createGradientMaterial(colors, opacity) {
-        // Convert hex colors to RGB
-        const color1 = new THREE.Color(colors[0].color);
-        const color2 = new THREE.Color(colors[1].color);
-        
-        // Create custom shader material for gradient
-        const gradientMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                color1: { value: color1 },
-                color2: { value: color2 },
-                opacity: { value: opacity }
-            },
-            vertexShader: `
-                varying vec2 vUv;
-                void main() {
-                    vUv = uv;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform vec3 color1;
-                uniform vec3 color2;
-                uniform float opacity;
-                varying vec2 vUv;
-                
-                void main() {
-                    // Create gradient from color1 to color2 based on UV coordinates
-                    vec3 gradient = mix(color1, color2, vUv.x);
-                    gl_FragColor = vec4(gradient, opacity);
-                }
-            `,
+    function createSolidMaterial(color, opacity) {
+        return new THREE.MeshBasicMaterial({
+            color: color,
             transparent: true,
+            opacity: opacity,
             side: THREE.DoubleSide,
             depthTest: false,
-            depthWrite: false
+            depthWrite: false,
+            alphaTest: 0.1,
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1
         });
-        
-        return gradientMaterial;
     }
 
     function getGizmoParent() {
         if (gizmoGroup) return gizmoGroup;
         
-        // Try multiple scene sources to find the correct one
-        let targetScene = null;
-        
-        // Method 1: Try global scene (most likely)
         if (typeof scene !== 'undefined' && scene) {
-            targetScene = scene;
-            warnOnce('scene_global', '[PlaneGizmo] ✅ Using global scene for gizmo group');
-        }
-        // Method 2: Try Canvas.scene
-        else if (Canvas && Canvas.scene) {
-            targetScene = Canvas.scene;
-            warnOnce('scene_canvas', '[PlaneGizmo] ⚠️ Using Canvas.scene for gizmo group');
-        }
-        // Method 3: Try to find scene in Blockbench
-        else if (typeof Blockbench !== 'undefined' && Blockbench.scene) {
-            targetScene = Blockbench.scene;
-            warnOnce('scene_bb', '[PlaneGizmo] ⚠️ Using Blockbench.scene for gizmo group');
-        }
-        
-        if (targetScene) {
             gizmoGroup = new THREE.Group();
             gizmoGroup.name = 'PlaneGizmoGroup';
             gizmoGroup.renderOrder = PLANE_CONFIG.renderOrder;
-            targetScene.add(gizmoGroup);
-            warnOnce('scene_added', '[PlaneGizmo] ✅ Gizmo group added to scene:', targetScene.name || 'unnamed');
+            scene.add(gizmoGroup);
             return gizmoGroup;
         }
         
-        warnOnce('no_scene', '[PlaneGizmo] ❌ CRITICAL: No valid scene found for gizmo group!');
         return null;
     }
 
-    /**
-     * Creates the 3D plane handles for translation gizmo
-     * Each plane is positioned with proper offsets to prevent intersection
-     */
-    function createPlaneHandles(){
-        if(planeHandles.length) return;
-        // Create square geometries for Blender-style handles
-        const handleSize = 0.4; // Larger square size for better visibility
+    function createPlaneHandles() {
+        if (planeHandles.length) {
+            return;
+        }
+        
+        const handleSize = PLANE_CONFIG.planeSize;
         const planeGeometries = {
             XY: new THREE.PlaneGeometry(handleSize, handleSize),
             XZ: new THREE.PlaneGeometry(handleSize, handleSize),
@@ -249,1913 +101,704 @@
         };
 
         const planes = [
-            { name:'XY', color:PLANE_CONFIG.color.XY, axes:['x','y'], rotation:new THREE.Euler(0,0,0), offset:new THREE.Vector3(0,0,1.5) },
-            { name:'XZ', color:PLANE_CONFIG.color.XZ, axes:['x','z'], rotation:new THREE.Euler(-Math.PI/2,0,0), offset:new THREE.Vector3(0,1.5,0) },
-            { name:'YZ', color:PLANE_CONFIG.color.YZ, axes:['y','z'], rotation:new THREE.Euler(0,Math.PI/2,0), offset:new THREE.Vector3(1.5,0,0) }
+            { 
+                name: 'XY', 
+                color: PLANE_CONFIG.color.XY, 
+                axes: ['x', 'y'], 
+                rotation: new THREE.Euler(0, 0, 0), 
+                offset: new THREE.Vector3(PLANE_CONFIG.offsetDistance * 0.5, PLANE_CONFIG.offsetDistance * 0.5, 0) 
+            },
+            { 
+                name: 'XZ', 
+                color: PLANE_CONFIG.color.XZ, 
+                axes: ['x', 'z'], 
+                rotation: new THREE.Euler(-Math.PI/2, 0, 0), 
+                offset: new THREE.Vector3(PLANE_CONFIG.offsetDistance * 0.5, 0, PLANE_CONFIG.offsetDistance * 0.5) 
+            },
+            { 
+                name: 'YZ', 
+                color: PLANE_CONFIG.color.YZ, 
+                axes: ['y', 'z'], 
+                rotation: new THREE.Euler(0, Math.PI/2, 0), 
+                offset: new THREE.Vector3(0, PLANE_CONFIG.offsetDistance * 0.5, PLANE_CONFIG.offsetDistance * 0.5) 
+            }
         ];
 
         const parent = getGizmoParent();
-        if(!parent) {
-            console.warn('[PlaneGizmo] ❌ CRITICAL: No parent found for plane handles - cannot create planes!');
+        if (!parent) {
             return;
         }
 
-        planes.forEach(p=>{
-            // Create gradient material based on the axes the plane controls
-            let gradientMaterial;
+        planes.forEach(plane => {
+            let material;
             
-            if(p.name === 'XY') {
-                // XY plane: Green to Red gradient (Y to X axis)
-                gradientMaterial = createGradientMaterial([
-                    { color: 0x00ff00, position: 0 }, // Green (Y axis)
-                    { color: 0xff0000, position: 1 }  // Red (X axis)
-                ], PLANE_CONFIG.baseOpacity);
-            } else if(p.name === 'XZ') {
-                // XZ plane: Red to Blue gradient (X to Z axis)
-                gradientMaterial = createGradientMaterial([
-                    { color: 0xff0000, position: 0 }, // Red (X axis)
-                    { color: 0x0000ff, position: 1 }  // Blue (Z axis)
-                ], PLANE_CONFIG.baseOpacity);
-            } else if(p.name === 'YZ') {
-                // YZ plane: Green to Blue gradient (Y to Z axis)
-                gradientMaterial = createGradientMaterial([
-                    { color: 0x00ff00, position: 0 }, // Green (Y axis)
-                    { color: 0x0000ff, position: 1 }  // Blue (Z axis)
-                ], PLANE_CONFIG.baseOpacity);
+            if (plane.name === 'XY') {
+                material = createSolidMaterial(0x0000ff, PLANE_CONFIG.baseOpacity);
+            } else if (plane.name === 'XZ') {
+                material = createSolidMaterial(0x00ff00, PLANE_CONFIG.baseOpacity);
+            } else if (plane.name === 'YZ') {
+                material = createSolidMaterial(0xff0000, PLANE_CONFIG.baseOpacity);
             }
             
-            const mesh = new THREE.Mesh(planeGeometries[p.name], gradientMaterial);
-            mesh.rotation.copy(p.rotation);
+            const mesh = new THREE.Mesh(planeGeometries[plane.name], material);
+            mesh.rotation.copy(plane.rotation);
             mesh.renderOrder = PLANE_CONFIG.renderOrder;
-
-            // Ensure the mesh is properly set up for raycasting
             mesh.castShadow = false;
             mesh.receiveShadow = false;
-            mesh.frustumCulled = false; // Disable frustum culling to ensure planes are always rendered
-
-            // Set initial scale to 1 (will be adjusted by camera distance scaling)
+            mesh.frustumCulled = false;
             mesh.scale.setScalar(1.0);
-
             mesh.userData = {
-                planeName:p.name,
-                axes:p.axes,
-                baseOpacity:PLANE_CONFIG.baseOpacity,
+                planeName: plane.name,
+                axes: plane.axes,
+                baseOpacity: PLANE_CONFIG.baseOpacity,
+                baseScale: PLANE_CONFIG.planeSize,
+                baseColor: material.color.getHex(),
                 isPlaneGizmo: true,
                 clickable: true,
-                cssClass: `plane_gizmo ${p.name.toLowerCase()}`,
-                planeLabel: p.name,
-                offset: p.offset.clone() // Store the offset for positioning
+                offset: plane.offset.clone()
             };
 
-            // Add to parent and ensure it's visible
             parent.add(mesh);
-            mesh.visible = true; // Explicitly set visible
-            
-            dlog('Created plane:', p.name);
-
+            mesh.visible = true;
             planeHandles.push(mesh);
+            
         });
         
-        // Force update the parent's matrix to ensure planes are properly positioned
         parent.updateMatrixWorld(true);
-        
-        dlog('Planes created:', planeHandles.length);
     }
 
     function toggleGizmo() {
         isGizmoEnabled = !isGizmoEnabled;
         updatePlaneHandles();
         
-        // Update toolbar button state if it exists
-        if(menuAction && menuAction.domButton) {
-            const icon = menuAction.domButton.querySelector('i');
-            const tooltip = menuAction.domButton.querySelector('.tooltip');
-            if(icon) icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
-            if(tooltip) tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
+        if (menuAction && menuAction.update) {
+            menuAction.update();
         }
         
-        // Gizmo toggled silently
         return isGizmoEnabled;
     }
     
-    // Function to ensure toolbar button is always visible when plugin is loaded
-    function ensureToolbarButtonVisible() {
-        if(!menuAction || !menuAction.domButton) {
-            // Try to recreate the toolbar button with multiple selectors
-            let toolbarContent = document.querySelector('.toolbar.no_wrap .content');
-            if (!toolbarContent) {
-                toolbarContent = document.querySelector('.toolbar .content');
-            }
-            if (!toolbarContent) {
-                toolbarContent = document.querySelector('[class*="toolbar"] [class*="content"]');
-            }
-            if (!toolbarContent) {
-                // Try to find any toolbar-like element
-                const toolbars = document.querySelectorAll('[class*="toolbar"]');
-                for (let toolbar of toolbars) {
-                    const content = toolbar.querySelector('[class*="content"]');
-                    if (content) {
-                        toolbarContent = content;
-                        break;
-                    }
-                }
-            }
-            
-            if(toolbarContent) {
-                const existingButton = toolbarContent.querySelector('[toolbar_item="plane_gizmo_toggle"]');
-                if(!existingButton) {
-                    // Recreate the button
-                    const toolDiv = document.createElement('div');
-                    toolDiv.className = 'tool';
-                    toolDiv.setAttribute('toolbar_item', 'plane_gizmo_toggle');
-                    
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'tooltip';
-                    tooltip.style.marginLeft = '0px';
-                    tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
-                    
-                    const icon = document.createElement('i');
-                    icon.className = 'material-icons notranslate icon';
-                    icon.textContent = 'view_in_ar';
-                    icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
-                    
-                    toolDiv.appendChild(tooltip);
-                    toolDiv.appendChild(icon);
-                    
-                    toolDiv.onclick = () => {
-                        const enabled = toggleGizmo();
-                        icon.style.color = enabled ? '#ffffff' : '#888888';
-                        tooltip.textContent = enabled ? t('action_disable_name') : t('action_enable_name');
-                    };
-                    
-                    toolbarContent.appendChild(toolDiv);
-                    menuAction = { domButton: toolDiv };
-                } else {
-                    // Button exists but our reference is lost, restore it
-                    menuAction = { domButton: existingButton };
-                }
-            }
+    let cachedControlSize = null;
+    let cachedIsTouch = null;
+    let lastControlSizeCheck = 0;
+    let lastTouchCheck = 0;
+    
+    function updatePlaneHandles() {
+        if (planeHandles.length === 0) return;
+        
+        const now = Date.now();
+        if (now - lastControlSizeCheck > 100) {
+            cachedControlSize = safeGetControlSize();
+            lastControlSizeCheck = now;
         }
-    }
-
-    /**
-     * Updates plane handle positions and scaling based on camera distance
-     * Ensures proper margins and scaling behavior matching Blockbench's arrow gizmos
-     */
-    function updatePlaneHandles(){
-        try {
-            // Enhanced visibility conditions - show when translate or move mode is active AND gizmo is enabled
-            const mode = Toolbox?.selected?.transformerMode;
-            const isTranslate = mode === 'translate' || mode === 'move';
+        if (now - lastTouchCheck > 1000) {
+            cachedIsTouch = safeIsTouch();
+            lastTouchCheck = now;
+        }
+        
+        const mode = Toolbox?.selected?.transformerMode;
+        const isTranslate = mode === 'translate' || mode === 'move';
+        
+        const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
+        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
             
-            // Check if any selected elements are visible
-            const hasVisibleSelection = Outliner && Outliner.selected && Outliner.selected.length > 0 
-                && Outliner.selected.some(element => element.visible !== false);
-            
-            const show = isGizmoEnabled // Check if gizmo is enabled
+        const show = isGizmoEnabled 
                          && Transformer && Transformer.visible
                          && Toolbox && Toolbox.selected
                          && isTranslate
-                         && hasVisibleSelection // Check if at least one selected element is visible
-                         && !isDragging; // Hide planes during dragging to avoid conflicts
-
-            // Only update visibility if it changed to prevent flickering
-            planeHandles.forEach(h=>{
-                const wasVisible = h.visible;
-                h.visible = show;
-
-                // Only log if visibility state changed
-                if(wasVisible !== show && DEBUG) {
-                    if(!show) {
-                        dlog('Planes hidden:', {
-                            transformer: !!Transformer,
-                            transformerVisible: Transformer?.visible,
-                            toolbox: !!Toolbox,
-                            selectedTool: Toolbox?.selected,
-                            transformerMode: Toolbox?.selected?.transformerMode,
-                            outliner: !!Outliner,
-                            selectedElements: Outliner?.selected?.length,
-                            isDragging
-                        });
-                    } else {
-                        dlog('Planes shown - updating positions');
-                    }
-                }
-
-                if(!show) return;
-
-                // Position planes at the center of the selection
-                let center = new THREE.Vector3();
-                let hasSelection = false;
-                
-                // Try to use Blockbench's getSelectionCenter function for accurate positioning
-                // This ensures compatibility with both v4 and v5 coordinate systems
-                if(typeof getSelectionCenter === 'function') {
-                    try {
-                        const centerArray = getSelectionCenter();
-                        center.fromArray(centerArray);
-                        hasSelection = true;
-                        dlog(`Using getSelectionCenter():`, centerArray);
-                    } catch(e) {
-                        dlog('getSelectionCenter() failed, falling back to manual calculation:', e);
-                    }
-                }
-                
-                // Fallback to manual calculation if getSelectionCenter is not available
-                if(!hasSelection && Outliner && Outliner.selected && Outliner.selected.length > 0) {
-                    Outliner.selected.forEach(el => {
-                        if(el.from && el.to) {
-                            // For cubes, use the center of the bounding box
-                            const cubeCenter = new THREE.Vector3(
-                                (el.from[0] + el.to[0]) / 2,
-                                (el.from[1] + el.to[1]) / 2,
-                                (el.from[2] + el.to[2]) / 2
-                            );
-                            center.add(cubeCenter);
-                            hasSelection = true;
-                        } else if(el.position) {
-                            // For meshes/groups, use their position
-                            center.add(new THREE.Vector3(el.position[0], el.position[1], el.position[2]));
-                            hasSelection = true;
-                        }
-                    });
-                    
-                    if(hasSelection) {
-                        center.divideScalar(Outliner.selected.length);
-                    }
-                }
-                
-                // Final fallback to transformer position if no selection center
-                if(!hasSelection && Transformer && Transformer.position) {
-                    center.copy(Transformer.position);
-                    hasSelection = true;
-                }
-                
-                if(hasSelection) {
-                    // Position planes completely outside the center for Blender-style non-crossing handles
-                    if(h.userData.offset) {
-                        // Scale the offset with camera distance to maintain proper separation
-                        const scaledOffset = h.userData.offset.clone();
-                        if(typeof Preview !== 'undefined' && Preview.selected && Preview.selected.calculateControlScale) {
-                            try {
-                                const cameraScale = Preview.selected.calculateControlScale(center);
-                                // Use the same camera scaling for offset to maintain proper separation at all zoom levels
-                                scaledOffset.multiplyScalar(cameraScale * 1.5);
-                            } catch(e) {
-                                // Fallback: use base offset
-                                scaledOffset.multiplyScalar(0.5);
-                            }
-                        } else {
-                            scaledOffset.multiplyScalar(1.5);
-                        }
-                        // Position plane at center + scaled offset (not crossing through center)
-                        h.position.copy(center).add(scaledOffset);
-                    } else {
-                    h.position.copy(center);
-                    }
-                } else {
-                    // Fallback: position planes at origin if no selection
-                    h.position.set(0, 0, 0);
-                    if(h.userData.offset) {
-                        h.position.add(h.userData.offset);
-                    }
-                    dlog(`Fallback positioned ${h.userData.planeName} plane at:`, h.position.toArray());
-                }
-                
-                // Camera-distance scaling like Blockbench's arrow gizmos
-                let dynamicScale = 1.0;
-                
-                // Use Blockbench's exact calculateControlScale formula for consistent scaling
-                if(typeof Preview !== 'undefined' && Preview.selected && Preview.selected.calculateControlScale) {
-                    try {
-                        const cameraScale = Preview.selected.calculateControlScale(center);
-                        // Fine-tuned scaling: larger multiplier with slight reduction
-                        dynamicScale = cameraScale * (settings.control_size?.value || 1.0) * 0.74 * 1;
-                        
-                        // Touch device multiplier (like Blockbench does)
-                        if(Blockbench && Blockbench.isTouch) {
-                            dynamicScale *= 1.5;
-                        }
-                        
-                    } catch(e) {
-                        dynamicScale = 1.0;
-                    }
-                } else {
-                    // Fallback scaling if calculateControlScale is not available
-                    dynamicScale = 2.0;
-                }
-                
-                // Clamp to reasonable range (increased for larger gizmos)
-                dynamicScale = THREE.MathUtils.clamp(dynamicScale, 0.1, 100.0);
-
-                // Cache base scale and only apply hover modifier elsewhere to avoid flicker
-                h.userData.baseScale = dynamicScale;
-                if (!h.userData.isHovered) {
-                    h.scale.setScalar(h.userData.baseScale);
-                }
-
-                // Set opacity based on hover state - handle both regular and shader materials
-                if(h.material.uniforms && h.material.uniforms.opacity) {
-                    h.material.uniforms.opacity.value = h.userData.baseOpacity;
-                } else {
-                h.material.opacity = h.userData.baseOpacity;
-                }
-
-                // Force visible for debugging (can be toggled)
-                if(window.PlaneGizmo && window.PlaneGizmo.forceVisible) {
-                    h.visible = true;
+                         && validSelection;
+        
+        let center = new THREE.Vector3();
+        let hasValidSelection = false;
+        
+        if (show) {
+            Outliner.selected.forEach(el => {
+                if (el.from && el.to) {
+                    center.x += (el.from[0] + el.to[0]) * 0.5;
+                    center.y += (el.from[1] + el.to[1]) * 0.5;
+                    center.z += (el.from[2] + el.to[2]) * 0.5;
+                    hasValidSelection = true;
+                } else if (el.position) {
+                    center.x += el.position[0];
+                    center.y += el.position[1];
+                    center.z += el.position[2];
+                    hasValidSelection = true;
                 }
             });
-        } catch(e){
-            console.error('[PlaneGizmo] updatePlaneHandles error', e);
-        }
-    }
-
-    function getRaycaster(event){
-        const rc = new THREE.Raycaster();
-        // Ensure we don't accidentally filter by layers
-        if (rc.layers && typeof rc.layers.mask === 'number') {
-            rc.layers.mask = 0xFFFFFFFF;
-        }
-        
-        // Resolve a viewport element and its bounding rect (Blockbench uses #preview div)
-        let viewportEl = null;
-        let rect = null;
-        if (document.getElementById('preview')) {
-            viewportEl = document.getElementById('preview');
-            rect = viewportEl.getBoundingClientRect();
-            warnOnce('el_preview', '[PlaneGizmo] ✅ Using #preview element for mouse coords');
-        }
-        if ((!viewportEl || !rect || rect.width === 0) && Canvas && Canvas.canvas) {
-            viewportEl = Canvas.canvas;
-            rect = viewportEl.getBoundingClientRect();
-            warnOnce('el_canvas', '[PlaneGizmo] ⚠️ Using Canvas.canvas for mouse coords');
-        }
-        if ((!viewportEl || !rect || rect.width === 0)) {
-            const anyCanvas = document.querySelector('canvas');
-            if (anyCanvas) {
-                viewportEl = anyCanvas;
-                rect = anyCanvas.getBoundingClientRect();
-                warnOnce('el_anycanvas', '[PlaneGizmo] ⚠️ Using first <canvas> for mouse coords');
+                
+            if (hasValidSelection) {
+                const invLength = 1.0 / Outliner.selected.length;
+                center.x *= invLength;
+                center.y *= invLength;
+                center.z *= invLength;
             }
         }
-        if(!viewportEl || !rect || rect.width === 0) {
-            warnOnce('no_view_el', '[PlaneGizmo] ❌ CRITICAL: No viewport element found for mouse coords');
-            return rc;
+        
+        let cameraScale = 1.0;
+        if (hasValidSelection) {
+            cameraScale = Preview.selected.calculateControlScale(center);
+        }
+        
+        const scaledOffsetMultiplier = cameraScale * 1.5;
+        const baseScaleMultiplier = cameraScale * cachedControlSize * 0.74;
+        const touchMultiplier = cachedIsTouch ? 1.5 : 1.0;
+        
+        planeHandles.forEach(handle => {
+            handle.visible = show;
+            if (!show) return;
+
+            if (hasValidSelection) {
+                if (handle.userData.offset) {
+                    const offset = handle.userData.offset;
+                    handle.position.x = center.x + offset.x * scaledOffsetMultiplier;
+                    handle.position.y = center.y + offset.y * scaledOffsetMultiplier;
+                    handle.position.z = center.z + offset.z * scaledOffsetMultiplier;
+                } else {
+                    handle.position.copy(center);
+                }
+            } else {
+                handle.position.set(0, 0, 0);
+                handle.visible = false;
+            }
+            
+            let dynamicScale = 1.0;
+            
+            if (hasValidSelection) {
+                dynamicScale = baseScaleMultiplier * touchMultiplier;
+                dynamicScale = THREE.MathUtils.clamp(dynamicScale, 0.1, 100.0);
+            }
+            handle.userData.baseScale = dynamicScale;
+            
+            if (!handle.userData.isHovered) {
+                handle.scale.setScalar(handle.userData.baseScale);
+                
+                if (handle.material.uniforms && handle.material.uniforms.opacity) {
+                    handle.material.uniforms.opacity.value = handle.userData.baseOpacity;
+                } else {
+                    handle.material.opacity = handle.userData.baseOpacity;
+                }
+            }
+        });   
+    }
+
+    function getRaycaster(event) {
+        const raycaster = new THREE.Raycaster();
+        
+        let viewportEl = document.getElementById('preview') || 
+                        document.querySelector('#preview canvas') ||
+                        document.querySelector('canvas');
+        
+        if (!viewportEl) {
+            return raycaster;
+        }
+
+        const rect = viewportEl.getBoundingClientRect();
+        
+        if (rect.width === 0 || rect.height === 0) {
+            return raycaster;
         }
 
         const mouse = new THREE.Vector2(
-            ((event.clientX-rect.left)/rect.width)*2-1,
-            -((event.clientY-rect.top)/rect.height)*2+1
+            ((event.clientX - rect.left) / rect.width) * 2 - 1,
+            -((event.clientY - rect.top) / rect.height) * 2 + 1
         );
 
-        dlog('Raycast setup:', {
-            mouseX: event.clientX,
-            mouseY: event.clientY,
-            canvasFound: !!viewportEl,
-            canvasRect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
-            normalizedMouse: { x: mouse.x, y: mouse.y }
+        mouse.x = THREE.MathUtils.clamp(mouse.x, -1, 1);
+        mouse.y = THREE.MathUtils.clamp(mouse.y, -1, 1);
+        if (Preview && Preview.selected && Preview.selected.camera) {
+            raycaster.setFromCamera(mouse, Preview.selected.camera);
+        }
+
+        return raycaster;
+    }
+
+    let hoverUpdateRequestId = null;
+    
+    function updateHoverState(event) {
+        if (!planeHandles.length || isDragging) return;
+        
+        if (hoverUpdateRequestId) {
+            cancelAnimationFrame(hoverUpdateRequestId);
+        }
+        hoverUpdateRequestId = requestAnimationFrame(() => {
+            performHoverUpdate(event);
+            hoverUpdateRequestId = null;
+        });
+    }
+    
+    function performHoverUpdate(event) {
+        const mode = Toolbox?.selected?.transformerMode;
+        const isTranslate = mode === 'translate' || mode === 'move';
+        const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
+        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
+        const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
+        
+        if (!shouldShow) {
+            if (lastHoveredPlane) {
+                resetPlaneHover(lastHoveredPlane);
+                lastHoveredPlane = null;
+            }
+            return;
+        }
+        if (planeHandles.length === 0) return;
+
+        const ray = getRaycaster(event);
+        const intersects = ray.intersectObjects(planeHandles, true);
+
+        let hoveredPlane = null;
+        if (intersects.length > 0) {
+            if (intersects[0].distance < 100) {
+                hoveredPlane = intersects[0].object;
+            }
+        }
+        if (hoveredPlane !== lastHoveredPlane) {
+            if (lastHoveredPlane) {
+                resetPlaneHover(lastHoveredPlane);
+            }
+            
+            if (hoveredPlane) {
+                setPlaneHover(hoveredPlane);
+            }
+            
+            lastHoveredPlane = hoveredPlane;
+        }
+    }
+    
+    function resetPlaneHover(plane) {
+        if (!plane) return;
+        
+        plane.userData.isHovered = false;
+        if (plane.material) {
+            plane.material.opacity = plane.userData.baseOpacity;
+            plane.material.needsUpdate = true;
+            plane.scale.setScalar(plane.userData.baseScale || 1.0);
+        }
+    }
+    
+    function setPlaneHover(plane) {
+        if (!plane) return;
+        
+        plane.userData.isHovered = true;
+        if (plane.material) {
+            plane.material.opacity = PLANE_CONFIG.hoverOpacity;
+            plane.material.needsUpdate = true;
+            plane.scale.setScalar((plane.userData.baseScale || 1.0) * PLANE_CONFIG.hoverScale);
+        }
+    }
+
+    function onMouseMove(event) {
+        if (!isDragging) {
+            updateHoverState(event);
+        }
+    }
+
+    function onMouseDown(event) {
+        if (event.button !== 0) return;
+        
+        const isCanvasTarget = event.target.tagName?.toLowerCase() === 'canvas';
+        if (!isCanvasTarget) return;
+        
+        const mode = Toolbox?.selected?.transformerMode;
+        const isTranslate = mode === 'translate' || mode === 'move';
+        const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
+        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
+        const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
+        
+        if (!shouldShow) return;
+
+        const ray = getRaycaster(event);
+        const intersects = ray.intersectObjects(planeHandles, true);
+        
+        if (intersects.length === 0) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        
+        event.isPlaneGizmoInteraction = true;
+
+        isDragging = true;
+        currentDragPlane = intersects[0].object;
+        dragStartPoint = intersects[0].point.clone();
+        dragStartPosition = {};
+        dragAppliedDelta = new THREE.Vector3(0, 0, 0);
+
+        Outliner.selected.forEach(el => {
+            if (el.from && el.to) {
+                dragStartPosition[el.uuid] = { from: [...el.from], to: [...el.to] };
+            } else if (el.position) {
+                dragStartPosition[el.uuid] = { position: [...el.position] };
+            }
         });
 
-        // Use Blockbench's camera system if available - try multiple camera sources
-        let cameraUsed = null;
-        let cameraPosition = null;
-
-        // Debug: Check all available cameras with more detail
-        dlog('🔍 Searching for cameras...');
-
-        // Check Preview camera
-        if(Preview) {
-            dlog('  Preview exists:', !!Preview);
-            if(Preview.selected) {
-                dlog('    Preview.selected exists:', !!Preview.selected);
-                if(Preview.selected.camera) {
-                    dlog('      ✅ Preview camera found:', {
-                        position: Preview.selected.camera.position.toArray(),
-                        type: Preview.selected.camera.type,
-                        uuid: Preview.selected.camera.uuid,
-                        fov: Preview.selected.camera.fov,
-                        near: Preview.selected.camera.near,
-                        far: Preview.selected.camera.far
-                    });
-                } else {
-                    dlog('      ❌ Preview.selected.camera is null/undefined');
-                }
-            } else {
-                dlog('    ❌ Preview.selected is null/undefined');
-            }
-        } else {
-            dlog('  ❌ Preview is null/undefined');
-        }
-
-        // Check Transformer camera
-        if(Transformer) {
-            dlog('  Transformer exists:', !!Transformer);
-            if(Transformer.camera) {
-                dlog('    ✅ Transformer camera found:', {
-                    position: Transformer.camera.position.toArray(),
-                    type: Transformer.camera.type,
-                    uuid: Transformer.camera.uuid
-                });
-            } else {
-                dlog('    ❌ Transformer.camera is null/undefined');
-            }
-        } else {
-            dlog('  ❌ Transformer is null/undefined');
-        }
-
-        // Check scene cameras
-        dlog('  Scene exists:', !!scene, 'Scene.children exists:', !!(scene && scene.children));
-        if(scene && scene.children) {
-            const cameras = scene.children.filter(child => child instanceof THREE.Camera);
-            dlog('  Found', cameras.length, 'cameras in scene:');
-            cameras.forEach((cam, i) => {
-                dlog(`    Camera ${i}:`, {
-                    position: cam.position.toArray(),
-                    type: cam.type,
-                    uuid: cam.uuid,
-                    name: cam.name || 'unnamed'
-                });
+        if (PLANE_CONFIG.enableUndo && Undo && Undo.initEdit) {
+            const undoable = (Outliner.selected || []).filter(el => typeof el.getUndoCopy === 'function');
+            Undo.initEdit({
+                elements: undoable,
+                selection: true,
+                outliner: true
             });
         }
 
-        // Simplified camera detection - try multiple sources robustly
-        let camerasTried = [];
-
-        // Method 1: Try Canvas camera (desktop builds may not expose Canvas.camera)
-        if(Canvas && Canvas.camera) {
-            rc.setFromCamera(mouse, Canvas.camera);
-            cameraUsed = 'Canvas.camera';
-            cameraPosition = Canvas.camera.position.clone();
-            camerasTried.push('Canvas camera');
-            warnOnce('cam_canvas', '[PlaneGizmo] ✅ Using Canvas.camera for raycast');
-        }
-        // Method 2: Try the main preview camera
-        else if(typeof Preview !== 'undefined' && Preview) {
-            let previewCam = null;
-            if (Preview.selected && Preview.selected.camera) {
-                previewCam = Preview.selected.camera;
-                camerasTried.push('Preview selected');
-            } else if (Preview.all && Preview.all.length) {
-                for (let p of Preview.all) {
-                    if (p && p.camera) { previewCam = p.camera; camerasTried.push('Preview any'); break; }
-                }
-            }
-            if (previewCam) {
-                rc.setFromCamera(mouse, previewCam);
-                cameraUsed = 'Preview.camera';
-                cameraPosition = previewCam.position.clone();
-                warnOnce('cam_preview_any', '[PlaneGizmo] ⚠️ Using Preview.camera for raycast');
-            }
-        }
-        // Method 3: Try the transformer camera
-        if(!cameraUsed && Transformer && Transformer.camera) {
-            rc.setFromCamera(mouse, Transformer.camera);
-            cameraUsed = 'Transformer.camera';
-            cameraPosition = Transformer.camera.position.clone();
-            camerasTried.push('Transformer camera');
-            warnOnce('cam_transformer', '[PlaneGizmo] ⚠️ Using Transformer.camera for raycast');
-        }
-        // Method 4: Try to find any camera in the scene
-        if(!cameraUsed && scene && scene.children && scene.children.length > 0) {
-            // Look for PerspectiveCamera or OrthographicCamera
-            const perspectiveCameras = scene.children.filter(child => child instanceof THREE.PerspectiveCamera);
-            const orthoCameras = scene.children.filter(child => child instanceof THREE.OrthographicCamera);
-
-            if(perspectiveCameras.length > 0) {
-                rc.setFromCamera(mouse, perspectiveCameras[0]);
-                cameraUsed = 'Scene.PerspectiveCamera';
-                cameraPosition = perspectiveCameras[0].position.clone();
-                camerasTried.push('Perspective camera');
-                warnOnce('cam_scene_persp', '[PlaneGizmo] ⚠️ Using Scene.PerspectiveCamera for raycast');
-            } else if(orthoCameras.length > 0) {
-                rc.setFromCamera(mouse, orthoCameras[0]);
-                cameraUsed = 'Scene.OrthographicCamera';
-                cameraPosition = orthoCameras[0].position.clone();
-                camerasTried.push('Orthographic camera');
-                warnOnce('cam_scene_ortho', '[PlaneGizmo] ⚠️ Using Scene.OrthographicCamera for raycast');
-            } else {
-                // Look for any camera
-                const camera = scene.children.find(child => child instanceof THREE.Camera);
-                if(camera) {
-                    rc.setFromCamera(mouse, camera);
-                    cameraUsed = 'Scene.camera';
-                    cameraPosition = camera.position.clone();
-                    camerasTried.push('Any camera');
-                    warnOnce('cam_scene_any', '[PlaneGizmo] ⚠️ Using Scene.camera for raycast');
-                }
-            }
-        }
-
-        // If no camera found, try to use a default position
-        if(!cameraUsed) {
-            warnOnce('cam_default', '[PlaneGizmo] ⚠️ WARNING: No camera found, using default raycast setup - this may cause incorrect raycasting!');
-            dlog('No camera found, using default raycast setup');
-            rc.setFromCamera(mouse, new THREE.PerspectiveCamera(75, 1, 0.1, 1000));
-            cameraUsed = 'Default camera';
-            cameraPosition = new THREE.Vector3(0, 0, 10);
-            camerasTried.push('Default camera');
-        }
-
-        dlog('Camera used for raycast:', cameraUsed, 'Camera position:', cameraPosition, 'Ray direction:', rc.ray.direction, 'Ray origin:', rc.ray.origin, 'Cameras tried:', camerasTried);
-
-        return rc;
+        document.addEventListener('mousemove', onMouseMoveDrag, true);
+        document.addEventListener('mouseup', onMouseUp, true);
     }
 
-    // Utility function to check if we're in the right mode
-    function shouldShowPlanes() {
-        const mode = Toolbox?.selected?.transformerMode;
-        const isTranslate = mode === 'translate' || mode === 'move';
-        return !!(Transformer && Transformer.visible && Outliner && Outliner.selected && Outliner.selected.length > 0 && isTranslate);
-    }
-
-    // Enhanced hover detection with better precision and visual feedback
-    function updateHoverState(event) {
-        if(!planeHandles.length) return;
-        if(!shouldShowPlanes()) {
-            // Ensure hover visuals reset when planes hidden
-            planeHandles.forEach(h=>{ h.userData.isHovered=false; if(h.material){ h.material.opacity=h.userData.baseOpacity||PLANE_CONFIG.baseOpacity; h.scale.setScalar(h.userData.baseScale||h.scale.x); }});
-            return;
-        }
+    function onMouseMoveDrag(event) {
+        if (!isDragging || !currentDragPlane || !Outliner.selected) return;
 
         const ray = getRaycaster(event);
-        let intersects = ray.intersectObjects(planeHandles, true);
-        // No expanded hitbox for hover - only hover when mouse is actually over the plane
+        const planeName = currentDragPlane.userData.planeName;
+        const plane = new THREE.Plane();
 
-        // Reset all plane visual states without overriding base scale
-        planeHandles.forEach(h => {
-            h.userData.isHovered = false;
-            if(h.material) {
-                // Handle both regular materials and shader materials
-                if(h.material.uniforms && h.material.uniforms.opacity) {
-                    h.material.uniforms.opacity.value = h.userData.baseOpacity;
-                } else {
-                h.material.opacity = h.userData.baseOpacity;
-                }
-                h.scale.setScalar(h.userData.baseScale || h.scale.x);
-            }
-        });
-
-        // Highlight hovered plane with enhanced visual feedback
-        if(intersects.length > 0) {
-            const hoveredPlane = intersects[0].object;
-            if(hoveredPlane.material) {
-                // Handle both regular materials and shader materials
-                if(hoveredPlane.material.uniforms && hoveredPlane.material.uniforms.opacity) {
-                    hoveredPlane.material.uniforms.opacity.value = PLANE_CONFIG.hoverOpacity;
-                } else {
-                hoveredPlane.material.opacity = PLANE_CONFIG.hoverOpacity;
-                }
-                // Make hovered plane slightly larger for better feedback
-                hoveredPlane.userData.isHovered = true;
-                hoveredPlane.scale.setScalar((hoveredPlane.userData.baseScale || hoveredPlane.scale.x) * 1.15);
-
-                dlog('🎯 Hovered plane:', hoveredPlane.userData.planeName, 'at position:', hoveredPlane.position);
-            }
+        switch (planeName) {
+            case 'XY': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), dragStartPoint); break;
+            case 'XZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), dragStartPoint); break;
+            case 'YZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), dragStartPoint); break;
         }
-    }
-
-    function addMouseEvents(){
-        eventHandlers.hover = function(e){
-            try {
-                updateHoverState(e);
-            } catch(e) {
-                console.error('[PlaneGizmo] hover error', e);
-            }
-        };
-
-        eventHandlers.mousedown = function(e){
-            dlog('🖱️ MOUSE DOWN - Button:', e.button, 'Target:', e.target?.tagName || 'unknown', 'ClientX:', e.clientX, 'ClientY:', e.clientY);
-
-            // Only react to left-clicks on the viewport canvas
-            const isCanvasTarget = (e.target === Canvas?.canvas) || (e.target?.closest && Canvas?.canvas && e.target.closest('canvas') === Canvas.canvas) || e.target?.tagName?.toLowerCase() === 'canvas';
-            if(e.button!==0 || !isCanvasTarget || !shouldShowPlanes()) {
-                dlog('❌ Mouse down ignored:', { button: e.button, shouldShow: shouldShowPlanes() });
-                return;
-            }
-
-            const ray = getRaycaster(e);
-            // Intersect planes; use recursive=true, no optional target (older Three.js expects array)
-            const intersects = ray.intersectObjects(planeHandles, true);
-            if (intersects.length === 0) {
-                // Conservative fallback hitbox to help clicks near plane, without stealing gizmo arrow clicks
-                const expanded = [];
-                planeHandles.forEach(p => {
-                    const box = new THREE.Box3().setFromObject(p).expandByScalar(3.0);
-                    const hitPoint = new THREE.Vector3();
-                    if (ray.ray.intersectBox(box, hitPoint)) {
-                        expanded.push({ object: p, point: hitPoint.clone(), distance: ray.ray.origin.distanceTo(hitPoint) });
-                    }
-                });
-                if (expanded.length) {
-                    expanded.sort((a,b)=>a.distance-b.distance);
-                    // Only accept if the ray actually passes inside the projected rectangle (distance threshold small)
-                    if (expanded[0].distance < 5) {
-                        intersects.push(expanded[0]);
-                        dlog('✅ Found intersection using conservative hitbox');
-                    }
-                }
-            }
-
-            dlog('🎯 Raycast found', intersects.length, 'intersections');
-            if(intersects.length > 0) {
-                dlog('✅ SUCCESS! Found intersections with planes');
-                intersects.forEach((intersect, i) => {
-                    dlog(`  Intersection ${i}:`, intersect.object.userData.planeName, 'Distance:', intersect.distance, 'Point:', intersect.point);
-                });
-
-                e.preventDefault();
-                // Avoid blocking other UI handlers globally
-                e.stopPropagation();
-
-            isDragging=true;
-            currentDragPlane=intersects[0].object;
-            dragStartPoint=intersects[0].point.clone();
-            dragStartPosition={};
-            dragAppliedDelta=new THREE.Vector3(0,0,0);
-
-                // Store original positions for all selected elements
-            Outliner.selected.forEach(el=>{
-                    if(el.from && el.to) {
-                        dragStartPosition[el.uuid]={from:[...el.from],to:[...el.to]};
-                    } else if(el.position) {
-                        dragStartPosition[el.uuid]={position:[...el.position]};
-                    }
-                });
-
-                dlog('✅ DRAG STARTED on', currentDragPlane.userData.planeName, 'with', Outliner.selected.length, 'selected elements');
-
-                // Integrate with Blockbench's undo system
-                if(PLANE_CONFIG.enableUndo && Undo && Undo.initEdit) {
-                    Undo.initEdit({elements:Outliner.selected});
-                }
-                // During drag, capture mouse events at the document level to avoid misses
-                document.addEventListener('mousemove', eventHandlers.mousemove, true);
-                document.addEventListener('mouseup', eventHandlers.mouseup, true);
-            } else {
-                // No plane hit: let default transformer arrows handle the click
-                return;
-            }
-        };
-
-        eventHandlers.mousemove=function(e){
-            if(!isDragging||!currentDragPlane||!Outliner.selected) {
-                // Only log this occasionally to reduce spam
-                if(DEBUG && Math.random() < 0.05) {
-                    dlog('Mouse move ignored:', { isDragging, currentDragPlane: !!currentDragPlane, selectedCount: Outliner.selected?.length });
-                }
-                return;
-            }
-
-            dlog('🎮 DRAG IN PROGRESS - Plane:', currentDragPlane.userData.planeName);
-
-            const ray = getRaycaster(e);
-            const planeName=currentDragPlane.userData.planeName;
-            const plane=new THREE.Plane();
-
-            // Calculate plane orientation based on the current drag plane
-            switch(planeName){
-                case 'XY': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0,0,1), dragStartPoint); break;
-                case 'XZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0,1,0), dragStartPoint); break;
-                case 'YZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(1,0,0), dragStartPoint); break;
-            }
 
             const intersectPoint = new THREE.Vector3();
-            if(!ray.ray.intersectPlane(plane,intersectPoint)) {
-                dlog('❌ No plane intersection during drag');
-                return;
-            }
+        if (!ray.ray.intersectPlane(plane, intersectPoint)) return;
 
-            // Constrain movement to the active plane axes only
             const delta3 = intersectPoint.clone().sub(dragStartPoint);
             let desired = new THREE.Vector3(
                 (planeName === 'XY' || planeName === 'XZ') ? delta3.x : 0,
                 (planeName === 'XY' || planeName === 'YZ') ? delta3.y : 0,
                 (planeName === 'XZ' || planeName === 'YZ') ? delta3.z : 0
             );
-            // Apply grid snapping if enabled (hold Shift to toggle)
-            const snapping = PLANE_CONFIG.snapToGrid ^ (e.shiftKey === true);
-            if(snapping) {
-                const g = PLANE_CONFIG.gridSize;
-                desired.x = Math.round(desired.x / g) * g;
-                desired.y = Math.round(desired.y / g) * g;
-                desired.z = Math.round(desired.z / g) * g;
-            }
-            // Compute incremental delta to apply this frame
-            const inc = desired.clone().sub(dragAppliedDelta || new THREE.Vector3());
-            dragAppliedDelta.add(inc);
 
-            dlog('📏 Inc delta:', inc.x.toFixed(3), inc.y.toFixed(3), inc.z.toFixed(3));
+        const snapping = PLANE_CONFIG.snapToGrid ^ (event.shiftKey === true);
+        if (snapping) {
+            const g = PLANE_CONFIG.gridSize;
+            desired.x = Math.round(desired.x / g) * g;
+            desired.y = Math.round(desired.y / g) * g;
+            desired.z = Math.round(desired.z / g) * g;
+        }
 
-            // Use Blockbench transformation helpers so all types update correctly
-            if (inc.x) moveElementsInSpace(inc.x, 0);
-            if (inc.y) moveElementsInSpace(inc.y, 1);
-            if (inc.z) moveElementsInSpace(inc.z, 2);
+        const inc = desired.clone().sub(dragAppliedDelta || new THREE.Vector3());
+        dragAppliedDelta.add(inc);
+        if (inc.x) moveElementsInSpace(inc.x, 0);
+        if (inc.y) moveElementsInSpace(inc.y, 1);
+        if (inc.z) moveElementsInSpace(inc.z, 2);
 
-            // Update transformer and scene to reflect changes
-            if(Transformer && Transformer.update) Transformer.update();
-            if(Canvas && Canvas.updatePositions) Canvas.updatePositions();
-            if(Canvas && Canvas.updateView) {
+        if (Transformer && Transformer.update) Transformer.update();
+        if (Canvas && Canvas.updatePositions) Canvas.updatePositions();
+        if (Canvas && Canvas.updateView) {
+            Canvas.updateView({
+                elements: Outliner.selected,
+                element_aspects: { transform: true, geometry: true }
+            });
+        }
+    }
+
+    function onMouseUp(event) {
+        if (!isDragging) return;
+
+        if (PLANE_CONFIG.enableUndo && Undo && Undo.finishEdit) {
+            Undo.finishEdit('Plane Translation');
+        }
+
+        isDragging = false;
+        currentDragPlane = null;
+        dragStartPoint = null;
+        dragStartPosition = null;
+        dragAppliedDelta = null;
+        document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
+        document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
+
+        if (Canvas && Canvas.updateView) {
                 Canvas.updateView({
                     elements: Outliner.selected,
-                    element_aspects: { transform: true, geometry: true }
-                });
-            }
-            if(Project && Project.preview) Project.preview.all_faces.forEach(f=>f.updateGeometry && f.updateGeometry());
-        };
-
-        eventHandlers.mouseup=function(e){
-            if(!isDragging) return;
-
-            dlog('Drag finished on', currentDragPlane ? currentDragPlane.userData.planeName : 'unknown plane');
-
-            // Complete the undo operation if enabled
-            if(PLANE_CONFIG.enableUndo && Undo && Undo.finishEdit) {
-                Undo.finishEdit('Déplacement sur plan 2D');
-            }
-
-            // Reset drag state
-            isDragging=false;
-            currentDragPlane=null;
-            dragStartPoint=null;
-            dragStartPosition=null;
-            dragAppliedDelta=null;
-
-            // Remove document-level listeners added during drag
-            document.removeEventListener('mousemove', eventHandlers.mousemove, true);
-            document.removeEventListener('mouseup', eventHandlers.mouseup, true);
-
-            // Update Blockbench's UI to reflect changes
-            if(Canvas && Canvas.updateView) {
-                Canvas.updateView({
-                    elements: Outliner.selected,
-                    element_aspects: {geometry: true, transform: true},
+                element_aspects: { geometry: true, transform: true },
                     selection: true
                 });
             }
 
-            // Trigger a final transformer update
-            if(Transformer && Transformer.update) {
-                Transformer.update();
-            }
-        };
-
-        // Attach event listeners with debugging
-        const canvas = Canvas?.canvas;
-        if (canvas) {
-            // Attach without capture so app menus continue receiving events
-            canvas.addEventListener('mousemove', eventHandlers.hover, false);
-            canvas.addEventListener('mousedown', eventHandlers.mousedown, false);
-            canvas.addEventListener('mouseup', eventHandlers.mouseup, false);
-            warnOnce('events_canvas', '[PlaneGizmo] ✅ Mouse event listeners attached to canvas');
-            dlog('✅ Mouse event listeners attached to canvas');
-
-            // Add a comprehensive test to verify mouse events are working
-            let testEventsReceived = 0;
-            const testHandler = (e) => {
-                testEventsReceived++;
-                if (testEventsReceived <= 3) { // Only log first few events
-                    dlog('🖱️ Raw mouse event received on canvas:', e.type, 'at', e.clientX, e.clientY, 'Target:', e.target?.tagName);
-                }
-            };
-
-            // Store reference for cleanup
-            window.planeGizmoTestHandler = testHandler;
-
-            canvas.addEventListener('mousedown', testHandler, false);
-            canvas.addEventListener('mousemove', testHandler, false);
-            canvas.addEventListener('mouseup', testHandler, false);
-
-            // Log after a short delay to see if events are being received
-            setTimeout(() => {
-                if(testEventsReceived === 0) warnOnce('no_mouse_events', '[PlaneGizmo] ⚠️ WARNING: No mouse events received - event system may be broken!');
-                dlog('📊 Event reception test:', testEventsReceived, 'events received in first second');
-            }, 1000);
-        } else {
-            // Fallback to document if canvas not available
-            warnOnce('events_doc_fallback', '[PlaneGizmo] ⚠️ WARNING: Canvas not found, using document fallback - this may cause issues!');
-            document.addEventListener('mousemove', eventHandlers.hover, true);
-            document.addEventListener('mousedown', eventHandlers.mousedown, true);
-            document.addEventListener('mouseup', eventHandlers.mouseup, true);
-            dlog('⚠️ Mouse event listeners attached to document (canvas not found)');
+        if (Transformer && Transformer.update) {
+            Transformer.update();
         }
     }
 
-    function removeMouseEvents(){
-        const canvas = Canvas?.canvas;
+    function addMouseEvents() {
+        const canvas = document.querySelector('canvas');
         if (canvas) {
-            // Match the addEventListener options (bubble phase)
-            canvas.removeEventListener('mousemove', eventHandlers.hover, false);
-            canvas.removeEventListener('mousedown', eventHandlers.mousedown, false);
-            canvas.removeEventListener('mouseup', eventHandlers.mouseup, false);
-
-            // Remove test handlers if they exist
-            if (window.planeGizmoTestHandler) {
-                canvas.removeEventListener('mousedown', window.planeGizmoTestHandler);
-                canvas.removeEventListener('mousemove', window.planeGizmoTestHandler);
-                canvas.removeEventListener('mouseup', window.planeGizmoTestHandler);
-                window.planeGizmoTestHandler = null;
-            }
-        } else {
-            document.removeEventListener('mousemove', eventHandlers.hover, true);
-            document.removeEventListener('mousedown', eventHandlers.mousedown, true);
-            document.removeEventListener('mouseup', eventHandlers.mouseup, true);
+            canvas.addEventListener('mousemove', onMouseMove, { passive: true });
+            canvas.addEventListener('mousedown', onMouseDown, true);
+            canvas.addEventListener('mouseleave', onMouseLeave, { passive: true });
         }
-        eventHandlers={};
-        dlog('Mouse event listeners removed');
     }
 
-    function removePlaneHandles(){
-        planeHandles.forEach(h=>{ 
-            if(h.parent) h.parent.remove(h); 
-            if(h.material) h.material.dispose(); 
-            if(h.geometry) h.geometry.dispose(); 
+    function onMouseLeave(event) {
+        if (lastHoveredPlane) {
+            resetPlaneHover(lastHoveredPlane);
+            lastHoveredPlane = null;
+        }
+    }
+
+    function removeMouseEvents() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.removeEventListener('mousemove', onMouseMove, { passive: true });
+            canvas.removeEventListener('mousedown', onMouseDown, true);
+            canvas.removeEventListener('mouseleave', onMouseLeave, { passive: true });
+            
+            if (cameraEventHandlers.wheel) {
+                canvas.removeEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
+            }
+            if (cameraEventHandlers.cameraMove) {
+                canvas.removeEventListener('mousemove', cameraEventHandlers.cameraMove, { passive: true });
+            }
+        }
+        document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
+        document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
+    }
+
+    function removePlaneHandles() {
+        planeHandles.forEach(h => {
+            if (h.parent) h.parent.remove(h);
+            if (h.material) h.material.dispose();
+            if (h.geometry) h.geometry.dispose();
         });
-        planeHandles=[];
+        planeHandles = [];
     }
 
-    function addPlaneGizmoStyles(){
-        // Create a style element for the plane gizmo
-        const style = document.createElement('style');
-        style.id = 'plane-gizmo-styles';
-        style.textContent = `
-            /* Plane Gizmo Visual Enhancements */
-            .plane_gizmo {
-                transition: opacity 0.2s ease, transform 0.2s ease;
-                cursor: pointer;
+    function safeGetControlSize() {
+        return (settings && settings.control_size && settings.control_size.value) || 1.0;
+    }
+
+    function safeIsTouch() {
+        return (Blockbench && typeof Blockbench.isTouch === 'boolean') ? Blockbench.isTouch : false;
+    }
+
+    function getCurrentLanguage() {
+        const frenchIndicators = ['Fichier', 'Édition', 'Affichage', 'Outils', 'Aide'];
+        for (const indicator of frenchIndicators) {
+            if (document.querySelector(`[title*="${indicator}"]`) || 
+                document.querySelector(`[aria-label*="${indicator}"]`) ||
+                document.body.textContent.includes(indicator)) {
+                return 'fr';
             }
-            
-            .plane_gizmo:hover {
-                opacity: 0.9 !important;
-                transform: scale(1.05);
-            }
-            
-            .plane_gizmo.xy {
-                border: 2px solid #4444ff;
-                box-shadow: 0 0 10px rgba(68, 68, 255, 0.3);
-            }
-            
-            .plane_gizmo.xz {
-                border: 2px solid #44ff44;
-                box-shadow: 0 0 10px rgba(68, 255, 68, 0.3);
-            }
-            
-            .plane_gizmo.yz {
-                border: 2px solid #ff4444;
-                box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
-            }
-            
-            /* Debug overlay for plane gizmo */
-            .plane-gizmo-debug {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 10px;
-                border-radius: 5px;
-                font-family: monospace;
-                font-size: 12px;
-                z-index: 10000;
-                max-width: 300px;
-            }
-            
-            .plane-gizmo-debug h4 {
-                margin: 0 0 5px 0;
-                color: #4CAF50;
-            }
-            
-            .plane-gizmo-debug .status {
-                margin: 2px 0;
-            }
-            
-            .plane-gizmo-debug .status.success {
-                color: #4CAF50;
-            }
-            
-            .plane-gizmo-debug .status.error {
-                color: #f44336;
-            }
-            
-            .plane-gizmo-debug .status.warning {
-                color: #ff9800;
-            }
-        `;
+        }
         
-        // Add the styles to the document head
-        document.head.appendChild(style);
-        dlog('✅ Plane gizmo styles added');
+        return 'en';
     }
 
-    function removePlaneGizmoStyles(){
-        const style = document.getElementById('plane-gizmo-styles');
-        if(style) {
-            style.remove();
-            dlog('✅ Plane gizmo styles removed');
+    function getLocalizedActionName() {
+        const currentLang = getCurrentLanguage();
+        
+        if (typeof currentLang === 'string' && currentLang.startsWith('fr')) {
+            return 'Activer/désactiver le gizmo de plans';
         }
+        
+        return 'Toggle Plane Gizmo';
     }
 
-    // Debug utilities for development (removed for production)
-    window.PlaneGizmo = {
-        debug: DEBUG,
-        debugMode: false, // Can be toggled on/off for debugging
-        // Controls whether one-time warnings (warnOnce) are printed
-        verboseWarnings: false,
-        config: PLANE_CONFIG,
-        planes: () => planeHandles,
-        isDragging: () => isDragging,
-        currentPlane: () => currentDragPlane,
-        update: updatePlaneHandles,
-        show: () => planeHandles.forEach(h => h.visible = true),
-        hide: () => planeHandles.forEach(h => h.visible = false),
-        toggle: toggleGizmo,
-        isEnabled: () => isGizmoEnabled,
-        forceVisible: false,
+    function getLocalizedActionDescription() {
+        const currentLang = getCurrentLanguage();
+        
+        if (typeof currentLang === 'string' && currentLang.startsWith('fr')) {
+            return 'Activer/désactiver le gizmo de plans de translation';
+        }
+        
+        return 'Toggle the translation plane gizmo on/off';
+    }
 
-        // Debug mode controls
-        enableDebug: () => {
-            window.PlaneGizmo.debugMode = true;
-            // Debug mode enabled
-        },
-        disableDebug: () => {
-            window.PlaneGizmo.debugMode = false;
-            // Debug mode disabled
-        },
+    function getLocalizedPluginDescription() {
+        const currentLang = getCurrentLanguage();
+        
+        if (typeof currentLang === 'string' && currentLang.startsWith('fr')) {
+            return 'Gizmo de plans 2D pour la translation multi-axes simultanée';
+        }
+        
+        return 'Enhanced 2D plane gizmo for simultaneous multi-axis translation';
+    }
 
-        enableForceVisible: () => { 
-            window.PlaneGizmo.forceVisible = true; 
-            updatePlaneHandles(); 
-            dlog('Force visible enabled'); 
-        },
-        disableForceVisible: () => { 
-            window.PlaneGizmo.forceVisible = false; 
-            updatePlaneHandles(); 
-            dlog('Force visible disabled'); 
-        },
-        enableVerboseWarnings: () => { window.PlaneGizmo.verboseWarnings = true; },
-        disableVerboseWarnings: () => { window.PlaneGizmo.verboseWarnings = false; },
-        debugRaycast: (x, y) => {
-            // Debug raycast silently
-            
-            // Test with current mouse position or provided coordinates
-            const testEvent = x !== undefined && y !== undefined ? 
-                { clientX: x, clientY: y } : 
-                { clientX: 400, clientY: 300 }; // Default test position
-                
-            const ray = getRaycaster(testEvent);
-            // Ray intersection test silently
-            
-            // Test with expanded boxes
-            const expanded = [];
-            planeHandles.forEach(p => {
-                const box = new THREE.Box3().setFromObject(p).expandByScalar(0.75);
-                const hitPoint = new THREE.Vector3();
-                if (ray.ray.intersectBox(box, hitPoint)) {
-                    expanded.push({ object: p, point: hitPoint.clone(), distance: ray.ray.origin.distanceTo(hitPoint) });
-                }
-            });
-            // Expanded box intersections tested silently
-        },
-        testClick: () => {
-            // Testing click simulation silently
-            const canvas = Canvas?.canvas;
-            if (!canvas) {
-                return;
-            }
-            const rect = canvas.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            // Simulating click at canvas center
-            
-            const testEvent = {
-                clientX: centerX,
-                clientY: centerY,
-                button: 0,
-                target: canvas,
-                preventDefault: () => {},
-                stopImmediatePropagation: () => {}
-            };
-            
-            // Call the mousedown handler directly
-            if (eventHandlers.mousedown) {
-                eventHandlers.mousedown(testEvent);
-            } else {
-                // No mousedown handler found
-            }
-        },
-        forceUpdatePlanes: () => {
-            // Force updating plane matrices silently
-            planeHandles.forEach(p => {
-                p.updateMatrix();
-                p.updateMatrixWorld(true);
-            });
-            if (gizmoGroup) {
-                gizmoGroup.updateMatrix();
-                gizmoGroup.updateMatrixWorld(true);
-            }
-            // Plane matrices updated
-        },
-        log: dlog,
-        debugVisibility: () => {
-            dlog('Debug Visibility:', {
-                transformer: !!Transformer,
-                transformerVisible: Transformer?.visible,
-                toolbox: !!Toolbox,
-                selectedTool: Toolbox?.selected,
-                transformerMode: Toolbox?.selected?.transformerMode,
-                outliner: !!Outliner,
-                selectedElements: Outliner?.selected?.length,
-                isDragging,
-                planesVisible: planeHandles.map(h => ({name: h.userData.planeName, visible: h.visible, position: h.position}))
-            });
-        },
-        checkConditions: () => {
-            const conditions = {
-                transformer: !!Transformer,
-                transformerVisible: Transformer?.visible,
-                toolbox: !!Toolbox,
-                selectedTool: !!Toolbox?.selected,
-                transformerMode: Toolbox?.selected?.transformerMode,
-                outliner: !!Outliner,
-                selectedElements: Outliner?.selected?.length,
-                isDragging,
-                allConditionsMet: Transformer && Transformer.visible
-                                 && Toolbox && Toolbox.selected
-                                 && Toolbox.selected.transformerMode === 'translate'
-                                 && Outliner && Outliner.selected && Outliner.selected.length>0
-                                 && !isDragging
-            };
-            dlog('Conditions check:', conditions);
-            return conditions;
-        },
-        testDrag: () => {
-            if(!Outliner.selected || Outliner.selected.length === 0) {
-                dlog('❌ No elements selected for testing');
-                return;
-            }
+    function getLocalizedAbout() {
+        const currentLang = getCurrentLanguage();
+        
+        if (typeof currentLang === 'string' && currentLang.startsWith('fr')) {
+            return `
+# Translation Plane Gizmo v1.0.0
 
-            dlog('🧪 Testing drag functionality...');
+## Fonctionnalités :
+- **Mouvement 2D par Plans** : Glissez les plans colorés pour déplacer les objets le long de deux axes simultanément
+- **Codage Couleur RGB** : Plans XY (Bleu), XZ (Vert), YZ (Rouge)
+- **Style Blender** : Poignées carrées professionnelles qui s'adaptent au zoom
+- **Bouton Toggle** : Bouton dans la barre d'outils pour activer/désactiver
 
-            // Simulate a small movement on XY plane
-            const testDelta = { x: 1, y: 1, z: 0 };
-
-            Outliner.selected.forEach(el => {
-                if(el.from && el.to) {
-                    el.from[0] += testDelta.x;
-                    el.from[1] += testDelta.y;
-                    el.to[0] += testDelta.x;
-                    el.to[1] += testDelta.y;
-                    dlog('✅ Test moved cube:', el.name || el.uuid);
-                } else if(el.position) {
-                    el.position[0] += testDelta.x;
-                    el.position[1] += testDelta.y;
-                    dlog('✅ Test moved mesh:', el.name || el.uuid);
-                }
-
-                if(Canvas && Canvas.adaptObjectPosition) {
-                    Canvas.adaptObjectPosition(el);
-                }
-            });
-
-            if(Transformer && Transformer.update) {
-                Transformer.update();
-            }
-
-            dlog('🎯 Test drag completed - check if objects moved');
-        },
-        testClickDetection: () => {
-            dlog('🔍 Testing plane click detection...');
-
-            // Create a test raycast to see if planes are detectable
-            if(planeHandles.length === 0) {
-                dlog('❌ No planes available for testing');
-                return;
-            }
-
-            // Test raycasting against plane centers with multiple methods
-            planeHandles.forEach(plane => {
-                dlog(`\n📋 Testing ${plane.userData.planeName}:`);
-
-                // Method 1: Standard raycast from camera center
-                const testRay1 = getRaycaster({ clientX: 400, clientY: 300 }); // Center of canvas
-                const intersects1 = testRay1.intersectObject(plane);
-                dlog(`  Center raycast:`, intersects1.length > 0 ? '✅ Clickable' : '❌ Not clickable');
-
-                // Method 2: Raycast from camera toward plane center
-                const testRay2 = new THREE.Raycaster();
-                if(Preview && Preview.selected && Preview.selected.camera) {
-                    const center = plane.getWorldPosition(new THREE.Vector3());
-                    testRay2.setFromCamera(new THREE.Vector2(0, 0), Preview.selected.camera);
-                    const direction = center.clone().sub(testRay2.ray.origin).normalize();
-                    testRay2.ray.direction.copy(direction);
-                    const intersects2 = testRay2.intersectObject(plane);
-                    dlog(`  Directed raycast:`, intersects2.length > 0 ? '✅ Clickable' : '❌ Not clickable');
-                }
-
-                // Method 3: Bounding sphere test
-                const planeBox = new THREE.Box3().setFromObject(plane);
-                const center = planeBox.getCenter(new THREE.Vector3());
-                const radius = planeBox.getSize(new THREE.Vector3()).length() / 2;
-                dlog(`  Bounding box:`, planeBox.min, 'to', planeBox.max, 'Radius:', radius);
-            });
-        },
-        analyzeCameraPlane: () => {
-            dlog('📊 Camera vs Plane Analysis:');
-
-            if(Preview && Preview.selected && Preview.selected.camera) {
-                const camera = Preview.selected.camera;
-                const cameraForward = camera.getWorldDirection(new THREE.Vector3());
-
-                dlog('Camera position:', camera.position.toArray());
-                dlog('Camera forward direction:', cameraForward.toArray());
-                dlog('Camera up vector:', camera.up.toArray());
-
-                planeHandles.forEach(plane => {
-                    const planePos = plane.getWorldPosition(new THREE.Vector3());
-                    const distance = camera.position.distanceTo(planePos);
-                    const direction = planePos.clone().sub(camera.position).normalize();
-                    const dotProduct = cameraForward.dot(direction);
-
-                    // Calculate angle between camera forward and plane direction
-                    const angle = Math.acos(Math.max(-1, Math.min(1, dotProduct))) * (180 / Math.PI);
-
-                    dlog(`${plane.userData.planeName}:`, {
-                        distance: distance.toFixed(2),
-                        direction: direction.toArray(),
-                        dotProduct: dotProduct.toFixed(3),
-                        angleFromCamera: angle.toFixed(1) + '°',
-                        inFrontOfCamera: dotProduct > 0,
-                        behindCamera: dotProduct < 0,
-                        planeNormal: plane.geometry ? 'Has geometry' : 'No geometry'
-                    });
-                });
-            } else {
-                dlog('❌ No camera available for analysis');
-            }
-        },
-        forceUpdatePlanes: () => {
-            dlog('🔄 Force updating all plane positions and matrices...');
-            planeHandles.forEach(plane => {
-                plane.updateMatrixWorld(true); // Force update world matrix
-                dlog(`${plane.userData.planeName} world position:`, plane.getWorldPosition(new THREE.Vector3()));
-            });
-            dlog('✅ All planes updated');
-        },
-        manualClickTest: (clientX = 400, clientY = 300) => {
-            dlog('🧪 Manual click test at:', clientX, clientY);
-
-            // Simulate a mouse event for testing
-            const testEvent = {
-                clientX: clientX,
-                clientY: clientY,
-                button: 0,
-                target: Canvas?.canvas || document.querySelector('canvas'),
-                preventDefault: () => {},
-                stopImmediatePropagation: () => {}
-            };
-
-            // Test if our mousedown handler would detect the click
-            const ray = getRaycaster(testEvent);
-            const intersects = ray.intersectObjects(planeHandles, true);
-
-            dlog('Manual test results:', intersects.length, 'intersections');
-            intersects.forEach((intersect, i) => {
-                dlog(`  ${i}:`, intersect.object.userData.planeName, 'at', intersect.point);
-            });
-
-            if(intersects.length > 0) {
-                dlog('✅ Manual test SUCCESS - planes are clickable!');
-                return true;
-            } else {
-                dlog('❌ Manual test FAILED - planes not clickable at this position');
-                return false;
-            }
-        },
-        createDebugOverlay: () => {
-            // Create a debug overlay to show real-time status
-            const overlay = document.createElement('div');
-            overlay.className = 'plane-gizmo-debug';
-            overlay.innerHTML = `
-                <h4>Plane Gizmo Debug</h4>
-                <div class="status" id="pg-status">Initializing...</div>
-                <div class="status" id="pg-planes">Planes: 0</div>
-                <div class="status" id="pg-selected">Selected: 0</div>
-                <div class="status" id="pg-mode">Mode: Unknown</div>
+## Utilisation :
+1. Sélectionnez des objets et passez à l'outil **Déplacer**
+2. Cliquez et glissez les plans colorés pour un mouvement 2D
+3. Maintenez Shift pour l'accrochage grille
             `;
-            document.body.appendChild(overlay);
-            
-            // Update the overlay periodically
-            const updateOverlay = () => {
-                const statusEl = document.getElementById('pg-status');
-                const planesEl = document.getElementById('pg-planes');
-                const selectedEl = document.getElementById('pg-selected');
-                const modeEl = document.getElementById('pg-mode');
-                
-                if(statusEl && planesEl && selectedEl && modeEl) {
-                    const conditions = window.PlaneGizmo.checkConditions();
-                    const show = conditions.allConditionsMet;
-                    
-                    statusEl.textContent = show ? 'Active' : 'Inactive';
-                    statusEl.className = `status ${show ? 'success' : 'warning'}`;
-                    
-                    planesEl.textContent = `Planes: ${planeHandles.length}`;
-                    selectedEl.textContent = `Selected: ${Outliner?.selected?.length || 0}`;
-                    modeEl.textContent = `Mode: ${Toolbox?.selected?.transformerMode || 'None'}`;
-                }
-            };
-            
-            // Update every 500ms
-            const overlayInterval = setInterval(updateOverlay, 500);
-            
-            // Store reference for cleanup
-            window.planeGizmoDebugOverlay = {
-                element: overlay,
-                interval: overlayInterval
-            };
-            
-            dlog('✅ Debug overlay created');
-        },
-        removeDebugOverlay: () => {
-            if(window.planeGizmoDebugOverlay) {
-                clearInterval(window.planeGizmoDebugOverlay.interval);
-                window.planeGizmoDebugOverlay.element.remove();
-                delete window.planeGizmoDebugOverlay;
-                dlog('✅ Debug overlay removed');
-            }
-        },
-        quickStatus: () => {
-            console.warn('[PlaneGizmo] === QUICK STATUS CHECK ===');
-            console.warn('[PlaneGizmo] Canvas:', !!Canvas);
-            console.warn('[PlaneGizmo] Canvas.canvas:', !!Canvas?.canvas);
-            console.warn('[PlaneGizmo] Canvas.camera:', !!Canvas?.camera);
-            console.warn('[PlaneGizmo] Scene:', !!scene);
-            console.warn('[PlaneGizmo] THREE:', !!THREE);
-            console.warn('[PlaneGizmo] Plane handles:', planeHandles.length);
-            console.warn('[PlaneGizmo] Gizmo group:', !!gizmoGroup);
-            console.warn('[PlaneGizmo] Transformer:', !!Transformer);
-            console.warn('[PlaneGizmo] Outliner:', !!Outliner);
-            console.warn('[PlaneGizmo] Selected elements:', Outliner?.selected?.length || 0);
-            console.warn('[PlaneGizmo] Toolbox mode:', Toolbox?.selected?.transformerMode);
-            
-            if(planeHandles.length > 0) {
-                console.warn('[PlaneGizmo] First plane visible:', planeHandles[0].visible);
-                console.warn('[PlaneGizmo] First plane position:', planeHandles[0].position.toArray());
-                console.warn('[PlaneGizmo] First plane world position:', planeHandles[0].getWorldPosition(new THREE.Vector3()).toArray());
-                console.warn('[PlaneGizmo] First plane scale:', planeHandles[0].scale.toArray());
-            }
-            
-            // Check which scene the gizmo group is in
-            if(gizmoGroup && gizmoGroup.parent) {
-                console.warn('[PlaneGizmo] Gizmo group parent:', gizmoGroup.parent.name || 'unnamed');
-                console.warn('[PlaneGizmo] Gizmo group parent type:', gizmoGroup.parent.type);
-            }
-            
-            return {
-                canvas: !!Canvas,
-                canvasCamera: !!Canvas?.camera,
-                scene: !!scene,
-                three: !!THREE,
-                planes: planeHandles.length,
-                selected: Outliner?.selected?.length || 0,
-                mode: Toolbox?.selected?.transformerMode
-            };
-        },
-        debugRaycast: () => {
-            console.warn('[PlaneGizmo] 🔍 COMPREHENSIVE RAYCAST DEBUG - Running diagnostic tests...');
-            dlog('🔍 COMPREHENSIVE RAYCAST DEBUG');
-            
-            // First, check basic system status
-            console.warn('[PlaneGizmo] === SYSTEM STATUS CHECK ===');
-            console.warn('[PlaneGizmo] Canvas object:', !!Canvas);
-            console.warn('[PlaneGizmo] Canvas.canvas:', !!Canvas?.canvas);
-            console.warn('[PlaneGizmo] Scene object:', !!scene);
-            console.warn('[PlaneGizmo] THREE object:', !!THREE);
-            console.warn('[PlaneGizmo] Plane handles count:', planeHandles.length);
-            console.warn('[PlaneGizmo] Gizmo group:', !!gizmoGroup);
-            
-            if(planeHandles.length === 0) {
-                console.warn('[PlaneGizmo] ❌ CRITICAL: No plane handles created!');
-                return { error: 'No plane handles' };
-            }
-            
-            // Test with center of screen
-            const testEvent = {
-                clientX: window.innerWidth / 2,
-                clientY: window.innerHeight / 2,
-                button: 0,
-                target: Canvas?.canvas || document.querySelector('canvas'),
-                preventDefault: () => {},
-                stopImmediatePropagation: () => {}
-            };
-            
-            console.warn('[PlaneGizmo] Test event:', testEvent);
-            dlog('Test event:', testEvent);
-            
-            const ray = getRaycaster(testEvent);
-            console.warn('[PlaneGizmo] Raycaster created:', {
-                rayOrigin: ray.ray.origin,
-                rayDirection: ray.ray.direction,
-                rayLength: ray.ray.direction.length()
-            });
-            dlog('Raycaster created:', {
-                rayOrigin: ray.ray.origin,
-                rayDirection: ray.ray.direction,
-                rayLength: ray.ray.direction.length()
-            });
-            
-            // Test intersection with all planes
-            console.warn('[PlaneGizmo] === INDIVIDUAL PLANE TESTS ===');
-            planeHandles.forEach((plane, i) => {
-                console.warn(`[PlaneGizmo] --- Plane ${i}: ${plane.userData.planeName} ---`);
-                console.warn('[PlaneGizmo] Position:', plane.position.toArray());
-                console.warn('[PlaneGizmo] World position:', plane.getWorldPosition(new THREE.Vector3()).toArray());
-                console.warn('[PlaneGizmo] Visible:', plane.visible);
-                console.warn('[PlaneGizmo] Scale:', plane.scale.toArray());
-                console.warn('[PlaneGizmo] Rotation:', plane.rotation.toArray());
-                console.warn('[PlaneGizmo] Geometry:', plane.geometry ? 'OK' : 'MISSING');
-                console.warn('[PlaneGizmo] Material:', plane.material ? 'OK' : 'MISSING');
-                
-                if(plane.material) {
-                    console.warn('[PlaneGizmo] Material properties:', {
-                        transparent: plane.material.transparent,
-                        opacity: plane.material.opacity,
-                        side: plane.material.side,
-                        depthTest: plane.material.depthTest,
-                        depthWrite: plane.material.depthWrite
-                    });
-                }
-                
-                // Test individual raycast
-                const intersects = ray.intersectObject(plane);
-                console.warn('[PlaneGizmo] Individual raycast result:', intersects.length, 'intersections');
-                if(intersects.length > 0) {
-                    console.warn('[PlaneGizmo] Intersection point:', intersects[0].point);
-                    console.warn('[PlaneGizmo] Intersection distance:', intersects[0].distance);
-                }
-                
-                // Test bounding box
-                const box = new THREE.Box3().setFromObject(plane);
-                console.warn('[PlaneGizmo] Bounding box:', box.min.toArray(), 'to', box.max.toArray());
-                console.warn('[PlaneGizmo] Box size:', box.getSize(new THREE.Vector3()).toArray());
-                
-                dlog(`\n--- Plane ${i}: ${plane.userData.planeName} ---`);
-                dlog('Plane position:', plane.position.toArray());
-                dlog('Plane world position:', plane.getWorldPosition(new THREE.Vector3()).toArray());
-                dlog('Plane visible:', plane.visible);
-                dlog('Plane scale:', plane.scale.toArray());
-                dlog('Plane rotation:', plane.rotation.toArray());
-                dlog('Plane geometry:', plane.geometry ? 'OK' : 'MISSING');
-                dlog('Plane material:', plane.material ? 'OK' : 'MISSING');
-                
-                if(plane.material) {
-                    dlog('Material properties:', {
-                        transparent: plane.material.transparent,
-                        opacity: plane.material.opacity,
-                        side: plane.material.side,
-                        depthTest: plane.material.depthTest,
-                        depthWrite: plane.material.depthWrite
-                    });
-                }
-                
-                // Test individual raycast
-                const intersects2 = ray.intersectObject(plane);
-                dlog('Individual raycast result:', intersects2.length, 'intersections');
-                if(intersects2.length > 0) {
-                    dlog('Intersection point:', intersects2[0].point);
-                    dlog('Intersection distance:', intersects2[0].distance);
-                }
-                
-                // Test bounding box
-                const box2 = new THREE.Box3().setFromObject(plane);
-                dlog('Bounding box:', box2.min.toArray(), 'to', box2.max.toArray());
-                dlog('Box size:', box2.getSize(new THREE.Vector3()).toArray());
-            });
-            
-            // Test with all planes at once
-            const allIntersects = ray.intersectObjects(planeHandles, true);
-            console.warn('[PlaneGizmo] --- ALL PLANES RAYCAST RESULTS ---');
-            console.warn('[PlaneGizmo] Total intersections:', allIntersects.length);
-            dlog('\n--- ALL PLANES RAYCAST ---');
-            dlog('Total intersections:', allIntersects.length);
-            allIntersects.forEach((intersect, i) => {
-                console.warn(`[PlaneGizmo] Intersection ${i}:`, intersect.object.userData.planeName, 'at', intersect.point, 'distance:', intersect.distance);
-                dlog(`Intersection ${i}:`, intersect.object.userData.planeName, 'at', intersect.point, 'distance:', intersect.distance);
-            });
-            
-            if(allIntersects.length === 0) {
-                console.warn('[PlaneGizmo] ❌ CRITICAL: No intersections found - raycast system is completely broken!');
-                
-                // Additional diagnostic: Check if planes are in the right scene
-                console.warn('[PlaneGizmo] === SCENE DIAGNOSTIC ===');
-                if(gizmoGroup && gizmoGroup.parent) {
-                    console.warn('[PlaneGizmo] Gizmo group is in scene:', gizmoGroup.parent.name || 'unnamed');
-                    console.warn('[PlaneGizmo] Gizmo group parent type:', gizmoGroup.parent.type);
-                } else {
-                    console.warn('[PlaneGizmo] ❌ Gizmo group has no parent!');
-                }
-                
-                // Check if planes are actually visible in the scene
-                planeHandles.forEach((plane, i) => {
-                    const worldPos = plane.getWorldPosition(new THREE.Vector3());
-                    const distance = ray.ray.origin.distanceTo(worldPos);
-                    console.warn(`[PlaneGizmo] Plane ${i} (${plane.userData.planeName}):`, {
-                        worldPosition: worldPos.toArray(),
-                        distanceFromRayOrigin: distance.toFixed(2),
-                        visible: plane.visible,
-                        inScene: !!plane.parent
-                    });
-                });
-                
-            } else {
-                console.warn('[PlaneGizmo] ✅ SUCCESS: Raycast system is working!');
-            }
-            
-            return {
-                ray: ray,
-                individualResults: planeHandles.map(p => ({
-                    name: p.userData.planeName,
-                    intersects: ray.intersectObject(p).length
-                })),
-                allIntersects: allIntersects.length
-            };
-        },
-        testSceneIntegration: () => {
-            console.warn('[PlaneGizmo] === SCENE INTEGRATION TEST ===');
-            
-            // Check if planes are in the scene
-            if(gizmoGroup && gizmoGroup.parent) {
-                console.warn('[PlaneGizmo] ✅ Gizmo group is in scene:', gizmoGroup.parent.name || 'unnamed');
-                console.warn('[PlaneGizmo] Gizmo group children count:', gizmoGroup.children.length);
-                
-                // Check if planes are actually in the gizmo group
-                planeHandles.forEach((plane, i) => {
-                    const inGizmoGroup = gizmoGroup.children.includes(plane);
-                    const inScene = plane.parent === gizmoGroup;
-                    console.warn(`[PlaneGizmo] Plane ${i} (${plane.userData.planeName}):`, {
-                        inGizmoGroup: inGizmoGroup,
-                        inScene: inScene,
-                        parent: plane.parent?.name || 'none'
-                    });
-                });
-            } else {
-                console.warn('[PlaneGizmo] ❌ Gizmo group has no parent!');
-            }
-            
-            // Test if we can find the planes in the scene hierarchy
-            let foundPlanes = 0;
-            if(scene) {
-                scene.traverse((child) => {
-                    if(child.userData && child.userData.isPlaneGizmo) {
-                        foundPlanes++;
-                        console.warn('[PlaneGizmo] Found plane in scene:', child.userData.planeName, 'at', child.getWorldPosition(new THREE.Vector3()).toArray());
-                    }
-                });
-            }
-            console.warn('[PlaneGizmo] Total planes found in scene:', foundPlanes);
-            
-            return {
-                gizmoGroupInScene: !!(gizmoGroup && gizmoGroup.parent),
-                planesInGizmoGroup: planeHandles.filter(p => gizmoGroup.children.includes(p)).length,
-                planesFoundInScene: foundPlanes
-            };
-        },
-        quickTest: () => {
-            console.warn('[PlaneGizmo] 🧪 QUICK FUNCTIONALITY TEST');
-            
-            // Test 1: Check if planes are visible and positioned correctly
-            console.warn('[PlaneGizmo] Test 1: Plane visibility and positioning');
-            planeHandles.forEach((plane, i) => {
-                const worldPos = plane.getWorldPosition(new THREE.Vector3());
-                console.warn(`[PlaneGizmo] Plane ${i} (${plane.userData.planeName}):`, {
-                    visible: plane.visible,
-                    position: plane.position.toArray(),
-                    worldPosition: worldPos.toArray(),
-                    scale: plane.scale.toArray(),
-                    inScene: !!plane.parent
-                });
-            });
-            
-            // Test 2: Check camera and raycasting setup
-            console.warn('[PlaneGizmo] Test 2: Camera and raycasting setup');
-            if(Preview && Preview.selected && Preview.selected.camera) {
-                const cam = Preview.selected.camera;
-                console.warn('[PlaneGizmo] Camera position:', cam.position.toArray());
-                console.warn('[PlaneGizmo] Camera direction:', cam.getWorldDirection(new THREE.Vector3()).toArray());
-            } else {
-                console.warn('[PlaneGizmo] ❌ No camera found!');
-            }
-            
-            // Test 3: Simulate a click at canvas center
-            console.warn('[PlaneGizmo] Test 3: Simulating click at canvas center');
-            const canvas = Canvas?.canvas;
-            if(canvas) {
-                const rect = canvas.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                const testEvent = {
-                    clientX: centerX,
-                    clientY: centerY,
-                    button: 0,
-                    target: canvas,
-                    preventDefault: () => {},
-                    stopImmediatePropagation: () => {}
-                };
-                
-                const ray = getRaycaster(testEvent);
-                const intersects = ray.intersectObjects(planeHandles, true);
-                console.warn('[PlaneGizmo] Center click intersections:', intersects.length);
-                
-                if(intersects.length > 0) {
-                    console.warn('[PlaneGizmo] ✅ SUCCESS: Planes are clickable at center!');
-                    intersects.forEach((intersect, i) => {
-                        console.warn(`[PlaneGizmo] Intersection ${i}:`, intersect.object.userData.planeName, 'at distance', intersect.distance.toFixed(2));
-                    });
-                } else {
-                    console.warn('[PlaneGizmo] ❌ FAILED: No intersections at center');
-                }
-            } else {
-                console.warn('[PlaneGizmo] ❌ No canvas found!');
-            }
-            
-            return {
-                planesVisible: planeHandles.filter(p => p.visible).length,
-                planesInScene: planeHandles.filter(p => p.parent).length,
-                cameraFound: !!(Preview && Preview.selected && Preview.selected.camera),
-                canvasFound: !!Canvas?.canvas
-            };
-        },
-        ensureToolbarButton: () => {
-            console.warn('[PlaneGizmo] 🔧 Ensuring toolbar button is visible...');
-            ensureToolbarButtonVisible();
-            const buttonExists = !!(menuAction && menuAction.domButton);
-            console.warn('[PlaneGizmo] Toolbar button exists:', buttonExists);
-            return buttonExists;
-        },
-        testLanguageSwitch: () => {
-            console.warn('[PlaneGizmo] 🌍 Testing language switch...');
-            const currentLang = isFrench() ? 'French' : 'English';
-            console.warn('[PlaneGizmo] Current language:', currentLang);
-            console.warn('[PlaneGizmo] Last detected language:', lastDetectedLanguage);
-            
-            // Force update UI
-            updateLanguageUI();
-            
-            // Test translation function
-            const testKeys = ['action_toggle_name', 'action_enable_name', 'action_disable_name'];
-            testKeys.forEach(key => {
-                console.warn(`[PlaneGizmo] ${key}:`, t(key));
-            });
-            
-            return {
-                currentLanguage: currentLang,
-                lastDetected: lastDetectedLanguage,
-                isFrench: isFrench()
-            };
         }
-    };
+        
+        return `
+# Translation Plane Gizmo v1.0.0
 
-    Plugin.register(PLUGIN_ID,{
-        title: t('plugin_title'),
-        author:'AnnJ',
-        description: t('plugin_description'),
-        icon:'control_camera',
-        version:'1.0.0',
-        min_version:'4.0.0', // Compatible with both v4 and v5
-        variant:'both',
-        about: `
-# ${t('about_title')}
+## Features:
+- **2D Plane Movement**: Drag colored planes to move objects along two axes simultaneously
+- **RGB Color Coding**: XY (Blue), XZ (Green), YZ (Red) planes
+- **Blender-Style**: Professional square handles that scale with zoom
+- **Toggle Button**: Toolbar button to enable/disable
 
-## ${t('features_title')}
-- **${t('feature_2d_movement')}**
-- **${t('feature_rgb_coding')}**
-- **${t('feature_smart_integration')}**
-- **${t('feature_snap_grid')}**
-- **${t('feature_undo_support')}**
-- **${t('feature_cross_version')}**
-- **${t('feature_blender_style')}**
-- **${t('feature_smart_scaling')}**
+## Usage:
+1. Select objects and switch to **Move** tool
+2. Click and drag colored planes for 2D movement
+3. Hold Shift for grid snapping
+        `;
+    }
 
-## ${t('how_it_works')}
-- **${t('xy_plane_desc')}**
-- **${t('xz_plane_desc')}**
-- **${t('yz_plane_desc')}**
+    function createToolbarButton() {
+        try {
+            if (menuAction) {
+                menuAction = null;
+            }
+            
+            const actionName = getLocalizedActionName();
+            const actionDescription = getLocalizedActionDescription();
+            
+            menuAction = new Action('plane_gizmo_toggle', {
+                name: actionName,
+                description: actionDescription,
+                icon: 'view_in_ar',
+                click: () => {
+                    toggleGizmo();
+                },
+                condition: {
+                    modes: ['edit']
+                }
+            });
 
-## ${t('usage')}
-1. ${t('usage_step1')}
-2. ${t('usage_step2')}
-3. ${t('usage_step3')}
-4. ${t('usage_step4')}
-5. ${t('usage_step5')}
+            MenuBar.addAction(menuAction, 'toolbar');
+            MenuBar.addAction(menuAction, 'view');
+            MenuBar.addAction(menuAction, 'edit');
+            
 
-## ${t('integration')}
-- ${t('integration_objects')}
-- ${t('integration_settings')}
-- ${t('integration_proportional')}
-- ${t('integration_spaces')}
-        `,
+        } catch (e) {
+            window.togglePlaneGizmo = toggleGizmo;
+        }
+    }
 
-        onload(){
-            try {
-                // Plugin loading silently for production
-                createPlaneHandles();
+    try {
+        if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
+            MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
+            MenuBar.removeAction('plane_gizmo_toggle', 'view');
+            MenuBar.removeAction('plane_gizmo_toggle', 'edit');
+        }
+    } catch (e) {
+    }
 
-                // Add CSS styling for better visual feedback
-                addPlaneGizmoStyles();
+    Plugin.register(PLUGIN_ID, {
+        title: 'Translation Plane Gizmo',
+        author: 'AnnJ',
+        description: getLocalizedPluginDescription(),
+        icon: 'control_camera',
+        version: '1.0.0',
+        min_version: '4.0.0',
+        variant: 'both',
+        about: getLocalizedAbout(),
 
-                // Initial setup with delay to ensure Blockbench is ready
-                setTimeout(()=>{
+        onload() {
+            createPlaneHandles();
+            addMouseEvents();
+            
+            setTimeout(() => {
+                createToolbarButton();
+            }, 100);
+            
+
+            updateInterval = setInterval(() => {
+                if (Transformer && Transformer.visible) {
                     updatePlaneHandles();
-                    // Initialize language tracking
-                    lastDetectedLanguage = isFrench() ? 'fr' : 'en';
-                    // Initial setup complete
-                }, 200);
-
-                // Set up regular updates (conditional updates only when needed)
-                if(!updateInterval) {
-                    updateInterval = setInterval(() => {
-                        // Only update if transformer is visible and has selected elements
-                        if(Transformer && Transformer.visible && Outliner && Outliner.selected && Outliner.selected.length > 0) {
-                            updatePlaneHandles();
-                        }
-                        
-                        // Periodically check if toolbar button is still visible
-                        ensureToolbarButtonVisible();
-                        
-                        // Check for language changes
-                        checkLanguageChange();
-                    }, 200); // 5fps - minimal updates to prevent flickering
                 }
+            }, 16);
 
-                // Listen for selection changes to immediately update gizmo visibility
-                if(typeof Outliner !== 'undefined' && Outliner.on) {
-                    Outliner.on('selection_changed', () => {
-                        if(isGizmoEnabled) {
+            if (typeof Outliner !== 'undefined' && Outliner.selected) {
+                let lastSelectionLength = Outliner.selected ? Outliner.selected.length : 0;
+                
+                selectionPollingInterval = setInterval(() => {
+                    const currentLength = Outliner.selected ? Outliner.selected.length : 0;
+                    if (currentLength !== lastSelectionLength) {
+                        lastSelectionLength = currentLength;
+                        if (isGizmoEnabled) {
                             updatePlaneHandles();
                         }
-                    });
-                }
+                    }
+                }, 50);
+            }
 
-                // Listen for element deletion/removal events
-                if(typeof Canvas !== 'undefined' && Canvas.on) {
-                    Canvas.on('elements_removed', () => {
-                        if(isGizmoEnabled) {
-                            updatePlaneHandles();
-                        }
-                    });
-                }
-
-                addMouseEvents();
-
-                // Add keyboard shortcuts for debugging
-                if(typeof Blockbench !== 'undefined' && Blockbench.keybinds) {
-                    Blockbench.keybinds.add('plane_gizmo.toggle', 'Ctrl+Shift+P', () => {
-                        toggleGizmo();
-                    });
-                }
-
-                // Add event listeners for selection changes and element removal using global Blockbench events
-                if(typeof Blockbench !== 'undefined' && Blockbench.on) {
-                    // Listen for selection changes
-                    Blockbench.on('update_selection', () => {
-                        if(isGizmoEnabled) {
-                            updatePlaneHandles();
-                        }
-                    });
-
-                    // Listen for undo/redo operations that might affect selection
-                    Blockbench.on('undo', () => {
-                        if(isGizmoEnabled) {
-                            updatePlaneHandles();
-                        }
-                    });
-
-                    Blockbench.on('redo', () => {
-                        if(isGizmoEnabled) {
-                            updatePlaneHandles();
-                        }
-                    });
-                    
-                    // Listen for language changes
-                    Blockbench.on('language_changed', () => {
-                        updateLanguageUI();
-                    });
-                    
-                    // Also listen for settings changes that might affect language
-                    Blockbench.on('settings_changed', (event) => {
-                        if(event && event.key === 'language') {
-                            updateLanguageUI();
-                        }
-                    });
-                }
-
-                // Add toolbar button using proper Blockbench toolbar structure
-                // Use a more robust retry mechanism to ensure toolbar is ready
-                const addToolbarButton = (attempt = 1) => {
-                    try {
-                        // Try multiple selectors to find the toolbar
-                        let toolbarContent = document.querySelector('.toolbar.no_wrap .content');
-                        if (!toolbarContent) {
-                            toolbarContent = document.querySelector('.toolbar .content');
-                        }
-                        if (!toolbarContent) {
-                            toolbarContent = document.querySelector('[class*="toolbar"] [class*="content"]');
-                        }
-                        if (!toolbarContent) {
-                            // Try to find any toolbar-like element
-                            const toolbars = document.querySelectorAll('[class*="toolbar"]');
-                            for (let toolbar of toolbars) {
-                                const content = toolbar.querySelector('[class*="content"]');
-                                if (content) {
-                                    toolbarContent = content;
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if(toolbarContent) {
-                            // Check if button already exists to avoid duplicates
-                            const existingButton = toolbarContent.querySelector('[toolbar_item="plane_gizmo_toggle"]');
-                            if(existingButton) {
-                                // Update existing button state
-                                const icon = existingButton.querySelector('i');
-                                const tooltip = existingButton.querySelector('.tooltip');
-                                if(icon) icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
-                                if(tooltip) tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
-                                menuAction = { domButton: existingButton };
-                                return;
-                            }
-                            
-                            // Create a tool div element (matching Blockbench's structure)
-                            const toolDiv = document.createElement('div');
-                            toolDiv.className = 'tool';
-                            toolDiv.setAttribute('toolbar_item', 'plane_gizmo_toggle');
-                            
-                            // Create tooltip structure (matching Blockbench's structure)
-                            const tooltip = document.createElement('div');
-                            tooltip.className = 'tooltip';
-                            tooltip.style.marginLeft = '0px';
-                            tooltip.textContent = isGizmoEnabled ? t('action_disable_name') : t('action_enable_name');
-                            
-                            // Create icon element using Material Icons (matching Blockbench's structure)
-                            const icon = document.createElement('i');
-                            icon.className = 'material-icons notranslate icon';
-                            icon.textContent = 'view_in_ar'; // 3D/AR view icon - perfect for plane gizmos
-                            icon.style.color = isGizmoEnabled ? '#ffffff' : '#888888';
-                            
-                            // Add tooltip and icon to tool div
-                            toolDiv.appendChild(tooltip);
-                            toolDiv.appendChild(icon);
-                            
-                            // Add click handler
-                            toolDiv.onclick = () => {
-                                const enabled = toggleGizmo();
-                                // Update icon color and tooltip text
-                                icon.style.color = enabled ? '#ffffff' : '#888888';
-                                tooltip.textContent = enabled ? t('action_disable_name') : t('action_enable_name');
-                            };
-                            
-                            // Add to toolbar content
-                            toolbarContent.appendChild(toolDiv);
-                            
-                            // Store reference for cleanup
-                            menuAction = { domButton: toolDiv };
-                        } else if(attempt < 10) {
-                            // Retry if toolbar not found (up to 10 attempts with longer delays)
-                            setTimeout(() => addToolbarButton(attempt + 1), 500 * attempt);
-                        } else {
-                            console.warn('[PlaneGizmo] Toolbar content not found after 10 attempts');
-                        }
-                    } catch(e) {
-                        console.warn('[PlaneGizmo] Direct DOM manipulation failed:', e);
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+                cameraEventHandlers.wheel = () => {
+                    if (isGizmoEnabled && Transformer && Transformer.visible) {
+                        updatePlaneHandles();
                     }
                 };
-                
-                // Start the toolbar button creation process with multiple attempts
-                setTimeout(() => addToolbarButton(), 100);
-                setTimeout(() => addToolbarButton(), 1000);
-                setTimeout(() => addToolbarButton(), 3000);
-                setTimeout(() => addToolbarButton(), 5000);
-                
-                // Also listen for when Blockbench is fully loaded
-                if(typeof Blockbench !== 'undefined' && Blockbench.on) {
-                    Blockbench.on('ready', () => {
-                        setTimeout(() => addToolbarButton(), 100);
-                    });
-                }
-                
-                // Listen for window load event as backup
-                if(window.addEventListener) {
-                    window.addEventListener('load', () => {
-                        setTimeout(() => addToolbarButton(), 500);
-                    });
-                }
+                canvas.addEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
 
-                dlog('Enhanced plugin loaded successfully');
-                console.log('[Translation Plane Gizmo] ✅ Plugin loaded');
-            } catch(e) {
-                console.error('[PlaneGizmo] onload error', e);
+                cameraEventHandlers.cameraMove = (event) => {
+                    if (isGizmoEnabled && Transformer && Transformer.visible && 
+                        (event.buttons === 2 || event.buttons === 4)) {
+                        updatePlaneHandles();
+                    }
+                };
+                canvas.addEventListener('mousemove', cameraEventHandlers.cameraMove, { passive: true });
             }
         },
 
-        onunload(){
-            try{
-                // Unloading plugin silently
-                removeMouseEvents();
-                if(updateInterval){
-                    clearInterval(updateInterval);
-                    updateInterval=null;
+        onunload() {
+            if (hoverUpdateRequestId) {
+                cancelAnimationFrame(hoverUpdateRequestId);
+                hoverUpdateRequestId = null;
+            }
+            
+            removeMouseEvents();
+            
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            
+            if (selectionPollingInterval) {
+                clearInterval(selectionPollingInterval);
+                selectionPollingInterval = null;
+            }
+            
+            removePlaneHandles();
+            
+            
+            if (menuAction) {
+                try {
+                    MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
+                    MenuBar.removeAction('plane_gizmo_toggle', 'view');
+                    MenuBar.removeAction('plane_gizmo_toggle', 'edit');
+                } catch (e) {
                 }
-                removePlaneHandles();
-                removePlaneGizmoStyles();
-                
-                // Clean up debug overlay if it exists
-                if(window.PlaneGizmo && window.PlaneGizmo.removeDebugOverlay) {
-                    window.PlaneGizmo.removeDebugOverlay();
-                }
-                
-                gizmoGroup=null;
+                menuAction = null;
+            }
+            
+            try {
+                MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
+                MenuBar.removeAction('plane_gizmo_toggle', 'view');
+                MenuBar.removeAction('plane_gizmo_toggle', 'edit');
+            } catch (e) {
+            }
+            
+            if (window.togglePlaneGizmo) {
+                delete window.togglePlaneGizmo;
+            }
 
-                // Clean up toolbar button and menu item
-                if(menuAction) {
-                    try {
-                        // Remove from toolbar using MenuBar API (use string ID)
-                        if(typeof MenuBar !== 'undefined') {
-                            MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-                            // Toolbar button removed
-                            
-                            // Remove from view menu
-                            MenuBar.removeAction('plane_gizmo_toggle', 'view');
-                            // Menu item removed
-                        }
-                        
-                        // Clean up DOM button if it was created
-                        if(menuAction && menuAction.domButton) {
-                            try {
-                                menuAction.domButton.remove();
-                                // DOM button removed
-                            } catch(e) {
-                                console.warn('[PlaneGizmo] Failed to remove DOM button:', e);
-                            }
-                        }
-                        
-                        // Clear the action reference
-                        menuAction = null;
-                    } catch(e) {
-                        console.warn('[PlaneGizmo] Could not remove toolbar/menu items:', e);
-                        // Try alternative cleanup method
-                        try {
-                            if(typeof MenuBar !== 'undefined') {
-                                MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-                                MenuBar.removeAction('plane_gizmo_toggle', 'view');
-                            }
-                            // Alternative cleanup successful
-                        } catch(e2) {
-                            console.warn('[PlaneGizmo] Alternative cleanup also failed:', e2);
-                        }
-                        menuAction = null;
-                    }
-                }
-
-                // Clean up keyboard shortcut
-                if(typeof Blockbench !== 'undefined' && Blockbench.keybinds) {
+            if (typeof Blockbench !== 'undefined' && Blockbench.keybinds) {
                     try {
                         Blockbench.keybinds.remove('plane_gizmo.toggle');
-                        // Keyboard shortcut removed
-                    } catch(e) {
-                        console.warn('[PlaneGizmo] Could not remove keyboard shortcut:', e);
-                    }
+                } catch (e) {
                 }
-
-                // Clean up event listeners
-                if(typeof Blockbench !== 'undefined' && Blockbench.off) {
-                    try {
-                        Blockbench.off('update_selection');
-                        Blockbench.off('undo');
-                        Blockbench.off('redo');
-                        Blockbench.off('language_changed');
-                        Blockbench.off('settings_changed');
-                        // Blockbench event listeners removed
-                    } catch(e) {
-                        console.warn('[PlaneGizmo] Could not remove Blockbench listeners:', e);
-                    }
-                }
-
-                // Clean up window event listeners
-                if(window.removeEventListener) {
-                    window.removeEventListener('load', () => {});
-                }
-                
-                // Clean up global references
-                if(window.PlaneGizmo) {
-                    delete window.PlaneGizmo;
-                }
-
-                dlog('Plugin unloaded successfully');
-            } catch(e) {
-                console.error('[PlaneGizmo] onunload error', e);
             }
+            
+            gizmoGroup = null;
+            lastHoveredPlane = null;
+            cameraEventHandlers = { wheel: null, cameraMove: null };
         }
     });
-})();
+})()

@@ -1,7 +1,7 @@
-(function() {
 let deletables = [];
 let old_animate;
 let rightMouseDown = false;
+let interval;
 
 BBPlugin.register('wasd_controls', {
 	title: 'WASD Controls',
@@ -9,7 +9,7 @@ BBPlugin.register('wasd_controls', {
 	author: 'JannisX11, caioraphael1',
 	description: 'Adds a WASD controlled viewport navigation mode',
 	about: 'The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.',
-	version: '1.2.0',
+	version: '1.2.1',
 	min_version: '4.3.0',
 	variant: 'both',
 	onload() {
@@ -74,14 +74,14 @@ BBPlugin.register('wasd_controls', {
 		}
 
 		deletables.push(new Setting('wasd_enabled', {
-			name: 'WASD Controls: Enabled',
+			name: 'WASD Enabled',
 			description: '_',
 			category: 'preview',
 			value: false,
 			onChange(value) {
 				BarItems.wasd_movement.value = value
 				BarItems.wasd_movement.updateEnabledState();
-				setupWASDMovement(Preview.selected, value ? 1 : 16);
+				setupWASDMovement(Preview.selected, value ? 8 : 32);
 			}
 		}));
 
@@ -93,7 +93,7 @@ BBPlugin.register('wasd_controls', {
 			onChange(value) {
 				settings.wasd_enabled.value = value
 				Settings.saveLocalStorages();
-				setupWASDMovement(Preview.selected, value ? 1 : 16);
+				setupWASDMovement(Preview.selected, value ? 8 : 32);
 			}
 		});
 
@@ -112,7 +112,7 @@ BBPlugin.register('wasd_controls', {
 		}
 
 		deletables.push(new Setting('base_speed', {
-			name: 'WASD Controls: Base Speed',
+			name: 'WASD Base Speed',
 			description: '-', 
 			category: 'preview',
 			type: 'number',
@@ -121,7 +121,7 @@ BBPlugin.register('wasd_controls', {
 		}));
 
 		deletables.push(new Setting('move_faster_mult', {
-			name: 'WASD Controls: Move Faster Multiplier',
+			name: 'WASD Move Faster Multiplier',
 			description: '-', 
 			category: 'preview',
 			type: 'number',
@@ -131,7 +131,7 @@ BBPlugin.register('wasd_controls', {
 		}));
 
 		deletables.push(new Setting('move_slower_mult', {
-			name: 'WASD Controls: Move Slower Multiplier',
+			name: 'WASD Move Slower Multiplier',
 			description: '-', 
 			category: 'preview',
 			type: 'number',
@@ -141,15 +141,15 @@ BBPlugin.register('wasd_controls', {
 		}));
 
 		deletables.push(new Setting('wasd_y_level', {
-			name: 'WASD Controls: Navigate at Y Level',
+			name: 'WASD Navigate at Y Level',
 			description: 'Navigate using WASD at consistent Y level rather than on camera plane',
 			category: 'preview',
 			value: true
 		}));
 
 		deletables.push(new Setting('wasd_requires_hold_right_mouse', {
-			name: 'WASD Controls: Navigation only works when holding the right mouse button',
-			description: 'The WASD Controls needs to be enabled for this to work.',
+			name: 'WASD Hold Right Mouse Button',
+			description: 'Use WASD controls only while holding the right mouse button',
 			category: 'preview',
 			value: false
 		}));
@@ -222,9 +222,7 @@ BBPlugin.register('wasd_controls', {
 			}
 		}
 
-		old_animate = window.animate;
-		window.animate = function(...args) {
-			old_animate(...args);
+		function tickNavigation() {
 
 			if (isWASDMovementEnabled() && pressed_keys.length) {
 				doWASDMovement();
@@ -235,6 +233,7 @@ BBPlugin.register('wasd_controls', {
 				preview.controls.enableZoom = !isWASDMovementEnabled();
 			});
 		};
+		interval = setInterval(tickNavigation, 1000/60);
 	},
 	oninstall() {
 		MenuBar.menus.view.highlight(BarItems.wasd_movement);
@@ -247,7 +246,6 @@ BBPlugin.register('wasd_controls', {
 		Preview.all.forEach(preview => {
 			preview.controls.enableZoom = true;
 		});
-		window.animate = old_animate;
+		clearInterval(interval)
 	}
 });
-})();
