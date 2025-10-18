@@ -1,0 +1,18 @@
+[
+	{
+		"version": "1.0.0",
+		"date": "2025-01-08",
+		"changes": [
+			"Initial release of Minecraft Rotation Checker",
+			"Automatic detection of non-standard rotations",
+			"Multi-language support (English and French)",
+			"Beautiful warning dialog with detailed information",
+			"Quick fix functionality for all rotations",
+			"Individual rotation fix options",
+			"Export protection for JSON and BBModel formats",
+			"Smart rotation normalization and duplicate detection",
+			"Integration with Blockbench's export system",
+			"Comprehensive rotation validation algorithms"
+		]
+	}
+]
