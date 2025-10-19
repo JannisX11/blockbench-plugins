@@ -721,7 +721,7 @@
 		"description": "Create Skin Packs for the Minecraft Marketplace",
 		"about": "Generates skin packs for the Minecraft Marketplace.\nAll textures in all open tabs count as skins. You can load individual skins into Blockbench via **File** > **Import Minecraft Skins**.\nYou can also create new skins via **New** > **Minecraft Skin**, in the File menu or on the start screen.\nExport a skin pack via **File** > **Export** > **Export Skin Pack**.",
 		"tags": ["Minecraft: Bedrock Edition", "Minecraft Marketplace"],
-		"version": "0.2.0",
+		"version": "0.3.1",
 		"min_version": "4.2.3",
 		"variant": "desktop"
 	},
@@ -978,7 +978,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.10",
+		"version": "1.0.11",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -988,7 +988,7 @@
 			"formats": ["azure_model"]
 		},
 		"has_changelog": true,
-		"website": "https://wiki.azuredoom.com/readme-1"
+		"website": "https://wiki.azuredoom.com/"
 	},
 	"cube_inverter": {
 		"title": "Cube Inverter",
@@ -1240,5 +1240,21 @@
 		"has_changelog": false,
 		"tags": ["Texture'", "Viewport", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_filtering"
+	},
+	"gltf_importer": {
+		"title": "glTF Importer",
+		"author": "0x13F",
+		"description": "Import .GLTF and .GLB models",
+		"icon": "icon.png",
+		"creation_date": "2025-09-25",
+		"version": "1.0.0",
+		"variant": "desktop",
+		"min_version": "4.12.6",
+		"has_changelog": false,
+		"tags": [
+			"Format: Generic Model",
+			"Importer"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
 	}
 }

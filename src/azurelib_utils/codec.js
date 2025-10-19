@@ -1,3 +1,11 @@
+/**
+ * This module is a fork of the GeckoLib Animation Utils plugin and modified for use in the Azurelib fork.
+ * Original source:
+ * https://github.com/JannisX11/blockbench-plugins/tree/034ed058efa5b2847fb852e3b215aad372080dcf/src/animation_utils 
+ * Copyright © 2024 Bernie-G. Licensed under the MIT License.
+ * https://github.com/JannisX11/blockbench-plugins/blob/main/LICENSE
+ */
+
 import omit from 'lodash/omit';
 import azurelibSettings, {AZURELIB_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
@@ -20,6 +28,12 @@ export function unloadCodec() {
     Codecs.project.events.parse.remove(onProjectParse)
     Codecs.bedrock.events.compile.remove(onBedrockCompile)
     format.delete();
+}
+
+function onModeSelect(e) {
+    if (e.mode.id === 'display' && Format.id === 'azure_model') {
+        Project.model_3d.position.y = 0;
+    }
 }
 
 function onProjectCompile(e) {
@@ -284,6 +298,34 @@ export function maybeExportItemJson(options = {}, as) {
             blockmodel.display = new_display
         }
     }
+    if (Project.textures && checkExport("textures", Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Object.values(Project.textures)) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+
+                if (name.indexOf(".png") > -1) {
+                    name = name.substring(0, name.indexOf(".png"));
+                }
+
+                if (!tex.particle && !isValidPath(name)) {
+                    continue;
+                }
+
+                blockmodel.textures = {
+                    particle: name
+                };
+
+                break;
+            }
+        }
+    }
+
+    function isValidPath(path) {
+        const pattern = new RegExp('^[_\\-/.a-z0-9]+$');
+
+        return pattern.test(path);
+    }
+
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
     var scope = codec;
@@ -318,6 +360,7 @@ var format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,
