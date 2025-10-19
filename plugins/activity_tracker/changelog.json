@@ -37,9 +37,22 @@
         ]
       },
       {
-        "title": "Fixes",
+        "title": "Bug Fixes",
         "list": [
           "Fixed project tracking not showing for Blockbench 5.0"
+        ]
+      }
+    ]
+  },
+  "1.1.1": {
+    "title": "1.1.1",
+    "date": "2025-10-19",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed project tracking not showing if Activity Tracker is first opened on the Start Screen"
         ]
       }
     ]
