@@ -1270,7 +1270,7 @@
 		"await_loading": true,
 		"variant": "both",
 		"has_changelog": true,
-		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"website": "https://tesera.io",
 		"repository": "https://github.com/sciner/blockbench-plugins/tree/master/plugins/tesera"
 	}
 }
