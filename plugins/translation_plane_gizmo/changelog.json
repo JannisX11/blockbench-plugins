@@ -1,0 +1,22 @@
+[
+	{
+		"version": "1.0.0",
+		"date": "2025-01-08",
+		"changes": [
+			"Complete refactor from AI-generated code to production-ready implementation",
+			"Blender-style solid color plane handles (XY=Blue, XZ=Green, YZ=Red)",
+			"Fixed all original issues: flickering, toolbar button, undo system, localization",
+			"Removed non-existent API references and excessive try-catch blocks",
+			"Proper Blockbench API integration with MenuBar.addAction",
+			"Smart camera scaling that matches built-in arrow gizmos",
+			"Robust language detection with French localization support",
+			"Optimized hover detection with proper state management",
+			"Complete undo system integration for groups and elements",
+			"Production-ready code with no debug logging",
+			"Cross-version compatibility with Blockbench v4.0.0+",
+			"Proper event handling to prevent element selection interference",
+			"Memory leak prevention with comprehensive cleanup",
+			"Simplified fallback system with only essential compatibility checks"
+		]
+	}
+]
