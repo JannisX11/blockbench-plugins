@@ -189,155 +189,171 @@ function animatorBuildFile() {
 }
 
 function animatorLoadFile(file, animation_filter) {
-    // Currently no modifications are needed
-    // eslint-disable-next-line no-undef
+    if (Format?.id !== "azure_model") {
+        return Original.get(Animator).loadFile.apply(this, arguments);
+    }
     var json = file.json || autoParseJSON(file.content);
     let path = file.path;
     let new_animations = [];
-    if (json && typeof json.animations === 'object') {
-        for (var ani_name in json.animations) {
-            if (animation_filter && !animation_filter.includes(ani_name)) continue;
-            //Animation
-            var a = json.animations[ani_name]
-            var animation = new Animation({
-                name: ani_name,
-                path,
-                loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
-                override: a.override_previous_animation,
-                anim_time_update: (typeof a.anim_time_update == 'string'
-                    ? a.anim_time_update.replace(/;(?!$)/, ';\n')
-                    : a.anim_time_update),
-                blend_weight: (typeof a.blend_weight == 'string'
-                    ? a.blend_weight.replace(/;(?!$)/, ';\n')
-                    : a.blend_weight),
-                length: a.animation_length
-            }).add()
-            //Bones
-            if (a.bones) {
-                // eslint-disable-next-line no-inner-declarations
-                function getKeyframeDataPoints(source) {
-                    if (source instanceof Array) {
-                        return [{
-                            x: source[0],
-                            y: source[1],
-                            z: source[2],
-                        }]
-                    } else if (['number', 'string'].includes(typeof source)) {
-                        return [{
-                            x: source, y: source, z: source
-                        }]
-                    } else if (typeof source == 'object') {
-                        if(source.vector)
-                        {
-                            return getKeyframeDataPoints(source.vector);
-                        }
-                        let points = [];
-                        if (source.pre) {
-                            points.push(getKeyframeDataPoints(source.pre)[0])
-                        }
-                        if (source.post) {
-                            points.push(getKeyframeDataPoints(source.post)[0])
-                        }
-                        return points;
-                    }
+    if (!json || typeof json.animations !== 'object') return new_animations;
+    
+    function getKeyframeDataPoints(source, channel) {
+        const applyFlip = (vec, channel) => {
+            if (!vec) return vec;
+            if (channel === 'position') {
+                vec.x = invertMolang(vec.x);
+            } else if (channel === 'rotation') {
+                vec.x = invertMolang(vec.x);
+                vec.y = invertMolang(vec.y);
+            }
+            return vec;
+        };
+    
+        // Apply inversion fix (Blockbench 5.0+ compatibility)
+        if (Array.isArray(source) && Blockbench.isNewerThan('4.99')) {
+            let vec = { x: source[0], y: source[1], z: source[2] };
+            applyFlip(vec, channel);
+            return [vec];
+        } else if (typeof source === 'number' || typeof source === 'string') {
+            return [{ x: source, y: source, z: source }];
+        } else if (source && typeof source === 'object') {
+            if (Array.isArray(source.vector)) {
+                return getKeyframeDataPoints(source.vector, channel);
+            }
+            let points = [];
+            if (source.pre) {
+                points.push(getKeyframeDataPoints(source.pre, channel)[0]);
+            }
+            if (source.post) {
+                const postPoint = getKeyframeDataPoints(source.post, channel)[0];
+                if (!(Array.isArray(source.pre) && Array.isArray(source.post) && source.post.equals && source.post.equals(source.pre))) {
+                    points.push(postPoint);
+                } else if (!points.length) {
+                    points.push(postPoint);
                 }
-                for (var bone_name in a.bones) {
-                    var b = a.bones[bone_name]
-                    let lowercase_bone_name = bone_name.toLowerCase();
-                    var group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name)
-                    let uuid = group ? group.uuid : guid();
-
-                    var ba = new BoneAnimator(uuid, animation, bone_name);
-                    animation.animators[uuid] = ba;
-                    //Channels
-                    for (var channel in b) {
-                        if (Animator.possible_channels[channel]) {
-                            if (typeof b[channel] === 'string' || typeof b[channel] === 'number' || b[channel] instanceof Array) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                })
-                            } else if (typeof b[channel] === 'object' && b[channel].post) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    interpolation: b[channel].lerp_mode,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                });
-                            } else if (typeof b[channel] === 'object') {
-                                for (var timestamp in b[channel]) {
-                                    ba.addKeyframe({
-                                        time: parseFloat(timestamp),
-                                        channel,
-                                        easing: b[channel][timestamp].easing,
-                                        easingArgs: b[channel][timestamp].easingArgs,
-                                        interpolation: b[channel][timestamp].lerp_mode,
-                                        data_points: getKeyframeDataPoints(b[channel][timestamp]),
-                                    });
-                                }
+            }
+            return points.length ? points : undefined;
+        }
+        return undefined;
+    }
+    
+    for (var ani_name in json.animations) {
+        if (animation_filter && !animation_filter.includes(ani_name)) continue;
+    
+        var a = json.animations[ani_name];
+        var animation = new Animation({
+            name: ani_name,
+            path,
+            loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
+            override: a.override_previous_animation,
+            anim_time_update: (typeof a.anim_time_update == 'string'
+                ? a.anim_time_update.replace(/;(?!$)/, ';\n')
+                : a.anim_time_update),
+            blend_weight: (typeof a.blend_weight == 'string'
+                ? a.blend_weight.replace(/;(?!$)/, ';\n')
+                : a.blend_weight),
+            length: a.animation_length
+        }).add();
+    
+        if (a.bones) {
+            for (var bone_name in a.bones) {
+                var b = a.bones[bone_name];
+                let lowercase_bone_name = bone_name.toLowerCase();
+                var group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
+                let uuid = group ? group.uuid : guid();
+    
+                var ba = new BoneAnimator(uuid, animation, bone_name);
+                animation.animators[uuid] = ba;
+    
+                for (var channel in b) {
+                    if (!Animator.possible_channels[channel]) continue;
+    
+                    const src = b[channel];
+                    const addKF = (time, srcObj) => {
+                        const kf_points = getKeyframeDataPoints(srcObj, channel);
+                        if (!kf_points) return;
+    
+                        ba.addKeyframe({
+                            time,
+                            channel,
+                            easing: srcObj?.easing ?? (src?.easing),
+                            easingArgs: Array.isArray(srcObj?.easingArgs) ? srcObj.easingArgs : (Array.isArray(src?.easingArgs) ? src.easingArgs : undefined),
+                            interpolation: srcObj?.lerp_mode,
+                            uniform: !(Array.isArray(srcObj) || Array.isArray(srcObj?.vector)),
+                            data_points: kf_points,
+                        });
+                    };
+    
+                    if (typeof src === 'string' || typeof src === 'number' || Array.isArray(src)) {
+                        addKF(0, src);
+    
+                    } else if (src && typeof src === 'object') {
+                        if (src.post || src.pre || src.vector !== undefined) {
+                            addKF(0, src);
+                        } else {
+                            for (var timestamp in src) {
+                                const node = src[timestamp];
+                                addKF(parseFloat(timestamp), node);
                             }
                         }
                     }
                 }
             }
-            if (a.sound_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp0 in a.sound_effects) {
-                    var sounds = a.sound_effects[timestamp0];
-                    if (sounds instanceof Array === false) sounds = [sounds];
-                    animation.animators.effects.addKeyframe({
-                        channel: 'sound',
-                        time: parseFloat(timestamp0),
-                        data_points: sounds
-                    })
-                }
-            }
-            if (a.particle_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp1 in a.particle_effects) {
-                    var particles = a.particle_effects[timestamp1];
-                    if (particles instanceof Array === false) particles = [particles];
-                    particles.forEach(particle => {
-                        if (particle) particle.script = particle.pre_effect_script;
-                    })
-                    animation.animators.effects.addKeyframe({
-                        channel: 'particle',
-                        time: parseFloat(timestamp1),
-                        data_points: particles
-                    })
-                }
-            }
-            if (a.timeline) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp2 in a.timeline) {
-                    var entry = a.timeline[timestamp2];
-                    var script = entry instanceof Array ? entry.join('\n') : entry;
-                    animation.animators.effects.addKeyframe({
-                        channel: 'timeline',
-                        time: parseFloat(timestamp2),
-                        data_points: [{script}]
-                    })
-                }
-            }
-            animation.calculateSnappingFromKeyframes();
-            if (!Animation.selected && Animator.open) {
-                animation.select()
-            }
-            new_animations.push(animation)
         }
+    
+        if (a.sound_effects) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts0 in a.sound_effects) {
+                var sounds = a.sound_effects[ts0];
+                if (!Array.isArray(sounds)) sounds = [sounds];
+                animation.animators.effects.addKeyframe({
+                    channel: 'sound',
+                    time: parseFloat(ts0),
+                    data_points: sounds
+                });
+            }
+        }
+        if (a.particle_effects) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts1 in a.particle_effects) {
+                var particles = a.particle_effects[ts1];
+                if (!Array.isArray(particles)) particles = [particles];
+                particles.forEach(particle => {
+                    if (particle) particle.script = particle.pre_effect_script;
+                });
+                animation.animators.effects.addKeyframe({
+                    channel: 'particle',
+                    time: parseFloat(ts1),
+                    data_points: particles
+                });
+            }
+        }
+        if (a.timeline) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts2 in a.timeline) {
+                var entry = a.timeline[ts2];
+                var script = Array.isArray(entry) ? entry.join('\n') : entry;
+                animation.animators.effects.addKeyframe({
+                    channel: 'timeline',
+                    time: parseFloat(ts2),
+                    data_points: [{ script }]
+                });
+            }
+        }
+    
+        animation.calculateSnappingFromKeyframes();
+        if (!Animation.selected && Animator.open) {
+            animation.select();
+        }
+        new_animations.push(animation);
     }
-    return new_animations
+    return new_animations;
 }
 
 //#endregion Codec Helpers / Export Settings
