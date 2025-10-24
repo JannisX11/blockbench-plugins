@@ -13,7 +13,7 @@ import { loadAnimationUI, unloadAnimationUI } from './animationUi';
 import { removeMonkeypatches } from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
 import azurelibSettings, { OBJ_TYPE_OPTIONS, onSettingsChanged } from './settings';
-import codec, { loadCodec, unloadCodec, maybeExportItemJson } from './codec';
+import codec, { loadCodec, unloadCodec, maybeExportItemJson, maybeImportItemJson  } from './codec';
 
 const SUPPORTED_BB_VERSION_RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
 if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANGE)) {
@@ -23,6 +23,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
 (function () {
   let exportAction;
   let exportDisplayAction;
+  let importDisplayAction;
   let button;
 
   Plugin.register("azurelib_utils", Object.assign(
@@ -102,6 +103,17 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         });
         MenuBar.addAction(exportDisplayAction, "file.export");
 
+        importDisplayAction = new Action({
+            id: "import_AzureLib_display",
+            name: "Import AzureLib Display Settings",
+            icon: "icon-bow",
+            description: "Import Display Settings into the display tab.",
+            category: "file",
+            condition: () => Format.id === "azure_model",
+            click: maybeImportItemJson,
+        });
+        MenuBar.addAction(importDisplayAction, "file.import");
+
         button = new Action('azurelib_settings', {
           name: 'AzureLib Model Settings',
           description: 'Change model type.',
@@ -130,6 +142,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
       onunload() {
         exportAction.delete();
         exportDisplayAction.delete();
+        importDisplayAction.delete();
         button.delete();
         unloadKeyframeOverrides();
         unloadAnimationUI();

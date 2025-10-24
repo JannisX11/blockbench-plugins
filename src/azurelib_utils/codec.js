@@ -456,6 +456,52 @@ export function maybeExportItemJson(options = {}, as) {
     return this;
 }
 
+export function maybeImportItemJson() {
+    Blockbench.import({
+        resource_id: 'model',
+        type: 'json',
+        extensions: ['json'],
+        readtype: 'text',
+        multiple: false
+    }, (files) => {
+        if (!files?.[0]) return;
+
+        let json;
+        try {
+            json = JSON.parse(files[0].content);
+        } catch {
+            return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
+        }
+
+        if (json.parent !== 'builtin/entity' || typeof json.display !== 'object') {
+            return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
+        }
+
+        Project.display_settings = {};
+
+        for (const [slot, data] of Object.entries(json.display)) {
+            if (!DisplayMode.slots.includes(slot)) continue;
+
+            const rotation    = Array.isArray(data.rotation)    ? data.rotation.slice()    : [0, 0, 0];
+            const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
+            const scale       = Array.isArray(data.scale)       ? data.scale.slice()       : [1, 1, 1];
+
+            const y = Number(translation[1]) || 0;
+            translation[1] = Math.round((y + 1.5) * 100) / 100;
+            const displaySlot = new DisplaySlot(slot);
+            displaySlot.rotation    = rotation;
+            displaySlot.translation = translation;
+            displaySlot.scale       = scale;
+
+            Project.display_settings[slot] = displaySlot;
+        }
+
+        Project.saved = false;
+
+        Blockbench.showQuickMessage('[AzureLib] Display settings imported successfully.');
+    });
+}
+
 var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
