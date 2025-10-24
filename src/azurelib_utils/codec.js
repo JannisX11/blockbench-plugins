@@ -51,6 +51,11 @@ function onModeSelect(e) {
 
 function onProjectCompile(e) {
     if (Format.id !== "azure_model") return;
+
+    if (azurelibSettings.objectType === "AZURE_ITEM_BLOCK") {
+        azurelibSettings.objectType = "AZURE_ENTITY";
+        azurelibSettings.entityType = "Entity/Block/Item";
+    }
     e.model.azurelibSettings = azurelibSettings;
 }
 
@@ -63,7 +68,18 @@ function onProjectParse(e) {
     const settings = model.azurelibSettings;
     if (settings && typeof settings === "object") {
         Object.assign(azurelibSettings, omit(settings, ["formatVersion"]));
+        if (azurelibSettings.objectType === "AZURE_ITEM_BLOCK") {
+            console.warn("[AzureLib] Converting deprecated AZURE_ITEM_BLOCK to AZURE_ENTITY");
+            azurelibSettings.objectType = "AZURE_ENTITY";
+            azurelibSettings.entityType = "Entity/Block/Item";
+        }
         console.log("[AzureLib] Loaded settings for", settings.objectType);
+        Blockbench.showMessageBox({
+            title: 'AzureLib Conversion Notice',
+            message:
+                'This project used the old "Block/Item" model type.\n\nIt has been automatically updated to the new "Entity/Block/Item" type (AZURE_ENTITY).',
+            buttons: ['OK']
+        });
         onSettingsChanged();
     } else {
         if (e.model?.meta?.model_format === "azure_model" && !e.model.azurelibSettings) {
