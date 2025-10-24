@@ -36,6 +36,46 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
         loadAnimationUI();
         loadKeyframeOverrides();
         console.log("Loaded AzureLib plugin")
+		
+        // Intercept new project creation for AzureLib format
+        Blockbench.on('new_project', () => {
+          if (Format?.id === "azure_model") {
+            setTimeout(() => {
+              if (Interface && Interface.dialog && Interface.dialog.close) {
+                try {
+                  Interface.dialog.close();
+                  console.log("[AzureLib] Closed default Project Settings dialog");
+                } catch (err) {
+                  console.warn("[AzureLib] Could not close Project Settings dialog:", err);
+                }
+              }
+        
+              new Dialog({
+                id: 'azurelib_model_settings',
+                title: 'AzureLib Model Settings',
+                width: 540,
+                lines: [
+                  `<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animation Utils v${version}</b>`,
+                  '<p>Select your model type to get started.</p>'
+                ],
+                form: {
+                  objectType: {
+                    label: 'Object Type',
+                    type: 'select',
+                    default: azurelibSettings.objectType,
+                    options: OBJ_TYPE_OPTIONS
+                  },
+                },
+                onConfirm(formResult) {
+                  Object.assign(azurelibSettings, formResult);
+                  onSettingsChanged();
+                }
+              }).show();
+        
+            }, 150);
+          }
+        });
+		
         exportAction = new Action({
           id: "export_AzureLib_model",
           name: "Export AzureLib .geo Model",
