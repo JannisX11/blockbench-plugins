@@ -109,5 +109,25 @@
 				]
 			}
 		]
+	},
+	"1.0.12": {
+		"title": "1.0.10",
+		"date": "2025-10-15",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds popup for model type on new project creation."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes animation keyframe invert from 5.x changes",
+					"Fixes the project object type not saving properly, causing armor to always save as entity"
+				]
+			}
+		]
 	}
 }
