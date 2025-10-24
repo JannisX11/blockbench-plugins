@@ -9,6 +9,9 @@
 import omit from 'lodash/omit';
 import azurelibSettings, {AZURELIB_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
+import { invertMolang as localInvertMolang } from './utils';
+
+const invertMolang = globalThis.invertMolang || localInvertMolang;
 
 /* eslint-disable no-useless-escape */
 
@@ -73,27 +76,62 @@ function animatorBuildFile() {
     const animations = res.animations;
     if (!animations) return res;
 
+    // helper function for inverting arrays
+    const flipArray = (array, channel) => {
+        if (!Array.isArray(array)) return array;
+
+        if (channel === 'position') {
+            array[0] = invertMolang(array[0]);
+        }
+        if (channel === 'rotation') {
+            array[0] = invertMolang(array[0]);
+            array[1] = invertMolang(array[1]);
+        }
+        return array;
+    };
+
     for (const animation in animations) {
         const bones = animations[animation]?.bones;
         if (!bones) continue;
 
         for (const boneName in bones) {
             const bone = bones[boneName];
-            for (const animationGroupType in bone) {
+            for (const animationGroupType in bone) { // ← This is your channel name
                 const animationGroup = bone[animationGroupType];
                 for (const timestamp in animationGroup) {
                     const keyframe = animationGroup[timestamp];
                     
-                    if (keyframe) {
-                        if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+                    if (!keyframe) continue;
 
-                        let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
-                        if (bedrockKeyframeData) {
-                            Object.assign(keyframe, bedrockKeyframeData);
-                        }
-                        delete keyframe["pre"];
-                        delete keyframe["post"];
+                    if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+
+                    let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
+                    if (bedrockKeyframeData) {
+                        Object.assign(keyframe, bedrockKeyframeData);
                     }
+                    delete keyframe["pre"];
+                    delete keyframe["post"];
+												
+                    // Apply inversion fix (Blockbench 5.0+ compatibility)
+					if (Blockbench.isNewerThan('4.99')) {
+                        if (Array.isArray(keyframe)) {
+                            flipArray(keyframe, animationGroupType);
+                        } else if (Array.isArray(keyframe.vector)) {
+                            keyframe.vector = flipArray(keyframe.vector, animationGroupType);
+                        } else if (
+                            keyframe.x !== undefined ||
+                            keyframe.y !== undefined ||
+                            keyframe.z !== undefined
+                        ) {
+                            // handle object-style keyframes
+                            if (animationGroupType === 'rotation') {
+                                keyframe.x = invertMolang(keyframe.x);
+                                keyframe.y = invertMolang(keyframe.y);
+                            } else if (animationGroupType === 'position') {
+                                keyframe.x = invertMolang(keyframe.x);
+                            }
+                        }
+					}
                 }
             }
         }
