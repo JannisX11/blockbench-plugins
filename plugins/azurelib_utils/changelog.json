@@ -119,7 +119,7 @@
 				"title": "Changes",
 				"list": [
 					"Adds popup for model type on new project creation.",
-					"Adds new import option to import item display settings to the display tab (currently doesn't refresh until you switch tabs)"
+					"Adds new import option to import item display settings to the display tab"
 				]
 			},
 			{
