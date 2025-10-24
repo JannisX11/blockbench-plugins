@@ -13,6 +13,8 @@ import { invertMolang as localInvertMolang } from './utils';
 
 const invertMolang = globalThis.invertMolang || localInvertMolang;
 
+let hasShownConversionNotice = false;
+
 /* eslint-disable no-useless-escape */
 
 //#region Codec Helpers / Export Settings
@@ -27,11 +29,13 @@ export function loadCodec() {
 	
     Blockbench.on('close_project', () => {
         Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        hasShownConversionNotice = false;
         console.log('[AzureLib] Project closed → reset settings to defaults');
     });
     
     Blockbench.on('new_project', () => {
         Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        hasShownConversionNotice = false;
         console.log('[AzureLib] New project → defaults restored');
     });
 }
@@ -62,29 +66,38 @@ function onProjectCompile(e) {
 function onProjectParse(e) {
     const model = e.model || {};
     const metaFormat = model?.meta?.model_format || model?.model_format;
-
+    
     if (metaFormat !== "azure_model") return;
-
+    
     const settings = model.azurelibSettings;
     if (settings && typeof settings === "object") {
-        Object.assign(azurelibSettings, omit(settings, ["formatVersion"]));
-        if (azurelibSettings.objectType === "AZURE_ITEM_BLOCK") {
-            console.warn("[AzureLib] Converting deprecated AZURE_ITEM_BLOCK to AZURE_ENTITY");
-            azurelibSettings.objectType = "AZURE_ENTITY";
-            azurelibSettings.entityType = "Entity/Block/Item";
-        }
-        console.log("[AzureLib] Loaded settings for", settings.objectType);
+      const wasDeprecatedType = settings.objectType === "AZURE_ITEM_BLOCK";
+    
+      Object.assign(azurelibSettings, omit(settings, ["formatVersion"]));
+    
+      if (wasDeprecatedType) {
+        console.warn("[AzureLib] Converting deprecated AZURE_ITEM_BLOCK to AZURE_ENTITY");
+        azurelibSettings.objectType = "AZURE_ENTITY";
+        azurelibSettings.entityType = "Entity/Block/Item";
+      }
+    
+      console.log("[AzureLib] Loaded settings for", azurelibSettings.objectType);
+    
+      if (wasDeprecatedType && !hasShownConversionNotice) {
+        hasShownConversionNotice = true;
         Blockbench.showMessageBox({
-            title: 'AzureLib Conversion Notice',
-            message:
-                'This project used the old "Block/Item" model type.\n\nIt has been automatically updated to the new "Entity/Block/Item" type (AZURE_ENTITY).',
-            buttons: ['OK']
+          title: 'AzureLib Conversion Notice',
+          message:
+            'This project used the old "Block/Item" model type.\n\nIt has been automatically updated to the new "Entity/Block/Item" type (AZURE_ENTITY).',
+          buttons: ['OK']
         });
-        onSettingsChanged();
+      }
+    
+      onSettingsChanged();
     } else {
-        if (e.model?.meta?.model_format === "azure_model" && !e.model.azurelibSettings) {
-          console.debug("[AzureLib] Azure model detected but no settings yet — likely early parse.");
-        }
+      if (e.model?.meta?.model_format === "azure_model" && !e.model.azurelibSettings) {
+        console.debug("[AzureLib] Azure model detected but no settings yet — likely early parse.");
+      }
     }
 }
 
