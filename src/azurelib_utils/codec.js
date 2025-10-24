@@ -24,6 +24,16 @@ export function loadCodec() {
     Codecs.bedrock.on('compile', onBedrockCompile);
     addMonkeypatch(Animator, null, "buildFile", animatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", animatorLoadFile);
+	
+    Blockbench.on('close_project', () => {
+        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        console.log('[AzureLib] Project closed → reset settings to defaults');
+    });
+    
+    Blockbench.on('new_project', () => {
+        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        console.log('[AzureLib] New project → defaults restored');
+    });
 }
 
 export function unloadCodec() {
@@ -45,12 +55,21 @@ function onProjectCompile(e) {
 }
 
 function onProjectParse(e) {
-    if (e.model && typeof e.model.azurelibSettings === 'object') {
-        Object.assign(azurelibSettings, omit(e.model.azurelibSettings, ['formatVersion']));
+    const model = e.model || {};
+    const metaFormat = model?.meta?.model_format || model?.model_format;
+
+    if (metaFormat !== "azure_model") return;
+
+    const settings = model.azurelibSettings;
+    if (settings && typeof settings === "object") {
+        Object.assign(azurelibSettings, omit(settings, ["formatVersion"]));
+        console.log("[AzureLib] Loaded settings for", settings.objectType);
+        onSettingsChanged();
     } else {
-        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        if (e.model?.meta?.model_format === "azure_model" && !e.model.azurelibSettings) {
+          console.debug("[AzureLib] Azure model detected but no settings yet — likely early parse.");
+        }
     }
-    onSettingsChanged();
 }
 
 function onBedrockCompile(e) {
