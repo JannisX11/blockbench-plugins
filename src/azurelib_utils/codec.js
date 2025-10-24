@@ -398,6 +398,15 @@ export function maybeExportItemJson(options = {}, as) {
         }
         if (entries) {
             blockmodel.display = new_display
+			const SUBTRACT_Y = 1.5; 
+
+			for (const [slot, value] of Object.entries(new_display)) {
+			  const tr = value && value.translation;
+			  if (Array.isArray(tr)) {
+			    const y = Number(tr[1]) || 0;
+			    tr[1] = Math.round((y - SUBTRACT_Y) * 100) / 100;
+			  }
+			}
         }
     }
     if (Project.textures && checkExport("textures", Object.keys(Project.textures).length >= 1)) {
