@@ -497,6 +497,8 @@ export function maybeImportItemJson() {
         }
 
         Project.saved = false;
+        DisplayMode.vue.$forceUpdate();
+        DisplayMode.updateDisplayBase();
 
         Blockbench.showQuickMessage('[AzureLib] Display settings imported successfully.');
     });
