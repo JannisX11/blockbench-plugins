@@ -90,7 +90,7 @@
 		]
 	},
 	"1.0.11": {
-		"title": "1.0.10",
+		"title": "1.0.11",
 		"date": "2025-10-15",
 		"author": "AzureDoom",
 		"categories": [
@@ -106,6 +106,28 @@
 				"title": "Fixes",
 				"list": [
 					"Fixes wiki links"
+				]
+			}
+		]
+	},
+	"1.0.12": {
+		"title": "1.0.12",
+		"date": "2025-10-15",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds popup for model type on new project creation.",
+					"Adds new import option to import item display settings to the display tab"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes animation keyframe invert from 5.x changes",
+					"Fixes the project object type not saving properly, causing armor to always save as entity",
+					"Fixes the output offset of item display settings."
 				]
 			}
 		]
