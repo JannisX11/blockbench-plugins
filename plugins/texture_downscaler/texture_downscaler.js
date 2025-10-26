@@ -184,8 +184,10 @@ function updateDownscaledTexture(texture) {
 
 function restoreAllDownscaledTextures() {
     restoreAllTexturePanelItems();
-    for (let texture of ModelProject.all.flatMap(p => p.textures))
-        texture.material.map = texture.canvas;
+    for (let texture of ModelProject.all.flatMap(p => p.textures)) {
+        texture.material.map.image = texture.canvas;
+        texture.material.map.needsUpdate = true;
+    }
 }
 
 //  ########     ###    ##    ## ######## ##       
