@@ -1264,7 +1264,7 @@
 		"author": "0x13F",
 		"description": "Downscale textures non-destructively",
 		"icon": "icon.png",
-		"creation_date": "//TODO:",
+		"creation_date": "2025-10-26",
 		"version": "1.0.0",
 		"variant": "desktop",
 		"min_version": "5.0.3",
