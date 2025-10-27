@@ -12,19 +12,19 @@
      * @version 1.0.0
      * @compatibility Blockbench v4.0.0+
      */
-    
+
     const PLUGIN_ID = 'translation_plane_gizmo';
 
     function detectLanguage() {
         if (typeof Settings !== 'undefined' && Settings.language) {
             return Settings.language.startsWith('fr') ? 'fr' : 'en';
         }
-        
+
         const docLang = document.documentElement.lang || navigator.language;
         if (docLang && docLang.startsWith('fr')) {
             return 'fr';
         }
-        
+
         return 'en';
     }
 
@@ -65,7 +65,7 @@
 3. Maintenez Shift pour l'accrochage grille`
         }
     };
-    
+
     try {
         if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
             MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
@@ -91,8 +91,8 @@
         snapToGrid: true,
         gridSize: 1,
         enableUndo: true,
-        planeSize: 0.25,
-        hoverScale: 1.3,
+        planeSize: 0.15,
+        hoverScale: 1.1,
         offsetDistance: 4
     };
 
@@ -127,7 +127,7 @@
 
     function getGizmoParent() {
         if (gizmoGroup) return gizmoGroup;
-        
+
         if (typeof scene !== 'undefined' && scene) {
             gizmoGroup = new THREE.Group();
             gizmoGroup.name = 'PlaneGizmoGroup';
@@ -135,7 +135,7 @@
             scene.add(gizmoGroup);
             return gizmoGroup;
         }
-        
+
         return null;
     }
 
@@ -143,7 +143,7 @@
         if (planeHandles.length) {
             return;
         }
-        
+
         const handleSize = PLANE_CONFIG.planeSize;
         const planeGeometries = {
             XY: new THREE.PlaneGeometry(handleSize, handleSize),
@@ -182,7 +182,7 @@
 
         planes.forEach(plane => {
             let material;
-            
+
             if (plane.name === 'XY') {
                 material = createSolidMaterial(0x0000ff, PLANE_CONFIG.baseOpacity);
             } else if (plane.name === 'XZ') {
@@ -190,7 +190,7 @@
             } else if (plane.name === 'YZ') {
                 material = createSolidMaterial(0xff0000, PLANE_CONFIG.baseOpacity);
             }
-            
+
             const mesh = new THREE.Mesh(planeGeometries[plane.name], material);
             mesh.rotation.copy(plane.rotation);
             mesh.renderOrder = PLANE_CONFIG.renderOrder;
@@ -206,37 +206,38 @@
                 baseColor: material.color.getHex(),
                 isPlaneGizmo: true,
                 clickable: true,
-                offset: plane.offset.clone()
+                offset: plane.offset.clone(),
+                originalRotation: plane.rotation.clone()
             };
 
             parent.add(mesh);
             mesh.visible = true;
             planeHandles.push(mesh);
-            
+
         });
-        
+
         parent.updateMatrixWorld(true);
     }
 
     function toggleGizmo() {
         isGizmoEnabled = !isGizmoEnabled;
         updatePlaneHandles();
-        
+
         if (menuAction && menuAction.update) {
             menuAction.update();
         }
-        
+
         return isGizmoEnabled;
     }
-    
+
     let cachedControlSize = null;
     let cachedIsTouch = null;
     let lastControlSizeCheck = 0;
     let lastTouchCheck = 0;
-    
+
     function updatePlaneHandles() {
         if (planeHandles.length === 0) return;
-        
+
         const now = Date.now();
         if (now - lastControlSizeCheck > 100) {
             cachedControlSize = safeGetControlSize();
@@ -246,56 +247,44 @@
             cachedIsTouch = safeIsTouch();
             lastTouchCheck = now;
         }
-        
+
         const mode = Toolbox?.selected?.transformerMode;
         const isTranslate = mode === 'translate' || mode === 'move';
-        
+
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
         const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
-            
+
         const show = isGizmoEnabled 
                          && Transformer && Transformer.visible
                          && Toolbox && Toolbox.selected
                          && isTranslate
                          && validSelection;
-        
+
         let center = new THREE.Vector3();
         let hasValidSelection = false;
         
-        if (show) {
-            Outliner.selected.forEach(el => {
-                if (el.from && el.to) {
-                    center.x += (el.from[0] + el.to[0]) * 0.5;
-                    center.y += (el.from[1] + el.to[1]) * 0.5;
-                    center.z += (el.from[2] + el.to[2]) * 0.5;
-                    hasValidSelection = true;
-                } else if (el.position) {
-                    center.x += el.position[0];
-                    center.y += el.position[1];
-                    center.z += el.position[2];
-                    hasValidSelection = true;
-                }
-            });
-                
-            if (hasValidSelection) {
-                const invLength = 1.0 / Outliner.selected.length;
-                center.x *= invLength;
-                center.y *= invLength;
-                center.z *= invLength;
-            }
+        if (show && Transformer && Transformer.position) {
+            // Use the built-in Transformer position and rotation for correct handling of rotated groups
+            center.copy(Transformer.position);
+            hasValidSelection = true;
         }
-        
+
         let cameraScale = 1.0;
         if (hasValidSelection) {
             cameraScale = Preview.selected.calculateControlScale(center);
         }
-        
+
         const scaledOffsetMultiplier = cameraScale * 1.5;
         const baseScaleMultiplier = cameraScale * cachedControlSize * 0.74;
         const touchMultiplier = cachedIsTouch ? 1.5 : 1.0;
-        
+
         planeHandles.forEach(handle => {
-            handle.visible = show;
+            // During dragging, only show the current drag plane
+            if (isDragging && currentDragPlane) {
+                handle.visible = (handle === currentDragPlane) && show;
+            } else {
+                handle.visible = show;
+            }
             if (!show) return;
 
             if (hasValidSelection) {
@@ -307,22 +296,35 @@
                 } else {
                     handle.position.copy(center);
                 }
+                
+                // Apply Transformer rotation to handle rotated groups correctly
+                if (Transformer && Transformer.rotation) {
+                    // Combine the base plane rotation with the Transformer rotation
+                    const baseRotation = handle.userData.originalRotation || new THREE.Euler(0, 0, 0);
+                    const quaternion = new THREE.Quaternion();
+                    quaternion.setFromEuler(baseRotation);
+                    quaternion.multiplyQuaternions(quaternion, new THREE.Quaternion().setFromEuler(Transformer.rotation));
+                    handle.rotation.setFromQuaternion(quaternion);
+                } else {
+                    // Reset to original plane orientations if no Transformer rotation
+                    handle.rotation.copy(handle.userData.originalRotation || new THREE.Euler(0, 0, 0));
+                }
             } else {
                 handle.position.set(0, 0, 0);
                 handle.visible = false;
             }
-            
+
             let dynamicScale = 1.0;
-            
+
             if (hasValidSelection) {
                 dynamicScale = baseScaleMultiplier * touchMultiplier;
-                dynamicScale = THREE.MathUtils.clamp(dynamicScale, 0.1, 100.0);
+                dynamicScale = THREE.MathUtils.clamp(dynamicScale, 0.8, 1000.0);
             }
             handle.userData.baseScale = dynamicScale;
-            
+
             if (!handle.userData.isHovered) {
                 handle.scale.setScalar(handle.userData.baseScale);
-                
+
                 if (handle.material.uniforms && handle.material.uniforms.opacity) {
                     handle.material.uniforms.opacity.value = handle.userData.baseOpacity;
                 } else {
@@ -334,17 +336,17 @@
 
     function getRaycaster(event) {
         const raycaster = new THREE.Raycaster();
-        
+
         let viewportEl = document.getElementById('preview') || 
                         document.querySelector('#preview canvas') ||
                         document.querySelector('canvas');
-        
+
         if (!viewportEl) {
             return raycaster;
         }
 
         const rect = viewportEl.getBoundingClientRect();
-        
+
         if (rect.width === 0 || rect.height === 0) {
             return raycaster;
         }
@@ -364,10 +366,10 @@
     }
 
     let hoverUpdateRequestId = null;
-    
+
     function updateHoverState(event) {
         if (!planeHandles.length || isDragging) return;
-        
+
         if (hoverUpdateRequestId) {
             cancelAnimationFrame(hoverUpdateRequestId);
         }
@@ -376,14 +378,14 @@
             hoverUpdateRequestId = null;
         });
     }
-    
+
     function performHoverUpdate(event) {
         const mode = Toolbox?.selected?.transformerMode;
         const isTranslate = mode === 'translate' || mode === 'move';
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
         const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
         const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
-        
+
         if (!shouldShow) {
             if (lastHoveredPlane) {
                 resetPlaneHover(lastHoveredPlane);
@@ -406,18 +408,18 @@
             if (lastHoveredPlane) {
                 resetPlaneHover(lastHoveredPlane);
             }
-            
+
             if (hoveredPlane) {
                 setPlaneHover(hoveredPlane);
             }
-            
+
             lastHoveredPlane = hoveredPlane;
         }
     }
-    
+
     function resetPlaneHover(plane) {
         if (!plane) return;
-        
+
         plane.userData.isHovered = false;
         if (plane.material) {
             plane.material.opacity = plane.userData.baseOpacity;
@@ -425,10 +427,10 @@
             plane.scale.setScalar(plane.userData.baseScale || 1.0);
         }
     }
-    
+
     function setPlaneHover(plane) {
         if (!plane) return;
-        
+
         plane.userData.isHovered = true;
         if (plane.material) {
             plane.material.opacity = PLANE_CONFIG.hoverOpacity;
@@ -445,27 +447,27 @@
 
     function onMouseDown(event) {
         if (event.button !== 0) return;
-        
+
         const isCanvasTarget = event.target.tagName?.toLowerCase() === 'canvas';
         if (!isCanvasTarget) return;
-        
+
         const mode = Toolbox?.selected?.transformerMode;
         const isTranslate = mode === 'translate' || mode === 'move';
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
         const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
         const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
-        
+
         if (!shouldShow) return;
 
         const ray = getRaycaster(event);
         const intersects = ray.intersectObjects(planeHandles, true);
-        
+
         if (intersects.length === 0) return;
 
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        
+
         event.isPlaneGizmoInteraction = true;
 
         isDragging = true;
@@ -554,6 +556,7 @@
         dragStartPoint = null;
         dragStartPosition = null;
         dragAppliedDelta = null;
+        
         document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
         document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
 
@@ -592,7 +595,7 @@
             canvas.removeEventListener('mousemove', onMouseMove, { passive: true });
             canvas.removeEventListener('mousedown', onMouseDown, true);
             canvas.removeEventListener('mouseleave', onMouseLeave, { passive: true });
-            
+
             if (cameraEventHandlers.wheel) {
                 canvas.removeEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
             }
@@ -643,10 +646,10 @@
             if (menuAction) {
                 menuAction = null;
             }
-            
+
             const actionName = getLocalizedActionName();
             const actionDescription = getLocalizedActionDescription();
-            
+
             menuAction = new Action('plane_gizmo_toggle', {
                 name: actionName,
                 description: actionDescription,
@@ -662,7 +665,7 @@
             MenuBar.addAction(menuAction, 'toolbar');
             MenuBar.addAction(menuAction, 'view');
             MenuBar.addAction(menuAction, 'edit');
-            
+
 
         } catch (e) {
             window.togglePlaneGizmo = toggleGizmo;
@@ -691,11 +694,11 @@
         onload() {
             createPlaneHandles();
             addMouseEvents();
-            
+
             setTimeout(() => {
                 createToolbarButton();
             }, 100);
-            
+
 
             updateInterval = setInterval(() => {
                 if (Transformer && Transformer.visible) {
@@ -705,7 +708,7 @@
 
             if (typeof Outliner !== 'undefined' && Outliner.selected) {
                 let lastSelectionLength = Outliner.selected ? Outliner.selected.length : 0;
-                
+
                 selectionPollingInterval = setInterval(() => {
                     const currentLength = Outliner.selected ? Outliner.selected.length : 0;
                     if (currentLength !== lastSelectionLength) {
@@ -741,22 +744,22 @@
                 cancelAnimationFrame(hoverUpdateRequestId);
                 hoverUpdateRequestId = null;
             }
-            
+
             removeMouseEvents();
-            
+
             if (updateInterval) {
                 clearInterval(updateInterval);
                 updateInterval = null;
             }
-            
+
             if (selectionPollingInterval) {
                 clearInterval(selectionPollingInterval);
                 selectionPollingInterval = null;
             }
-            
+
             removePlaneHandles();
-            
-            
+
+
             if (menuAction) {
                 try {
                     MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
@@ -766,14 +769,14 @@
                 }
                 menuAction = null;
             }
-            
+
             try {
                 MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
                 MenuBar.removeAction('plane_gizmo_toggle', 'view');
                 MenuBar.removeAction('plane_gizmo_toggle', 'edit');
             } catch (e) {
             }
-            
+
             if (window.togglePlaneGizmo) {
                 delete window.togglePlaneGizmo;
             }
@@ -784,7 +787,7 @@
                 } catch (e) {
                 }
             }
-            
+
             gizmoGroup = null;
             lastHoveredPlane = null;
             cameraEventHandlers = { wheel: null, cameraMove: null };
