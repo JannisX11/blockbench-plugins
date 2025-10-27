@@ -148,6 +148,17 @@
         0
       ],
       "uuid": "7b31bac4-dc40-2b93-1204-7bbdcfe7d924"
+    },
+    {
+      "name": "dontTouch",
+      "from": [-4, 12, -2],
+      "to": [4, 16, 2],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "locked": true,
+      "origin": [0, 12, 0],
+      "uuid": "aa51250c-8b32-fb62-71f1-58ac0b7785a8"
     }
   ],
   "outliner": [

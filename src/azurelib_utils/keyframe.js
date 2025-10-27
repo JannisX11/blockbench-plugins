@@ -65,8 +65,10 @@ function azurelibGetArray(data_point = 0) {
 }
 
 function keyframeCompileBedrock() {
-    if (Format.id !== "azure_model" || !this.transform) {
-        return Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+	const original = Original.get(Keyframe).compileBedrockKeyframe;
+	const isExporting = Blockbench.exporting || Codecs.exporting || Animator.exporting;
+	if (Format.id !== "azure_model" || !this.transform || !isExporting) {
+        return original.apply(this, arguments);
     }
 
     const previousKeyframe = this.getPreviousKeyframe.bind(this);
