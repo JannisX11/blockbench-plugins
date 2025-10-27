@@ -22,12 +22,14 @@ Non-standard rotations may cause visual glitches or incorrect model orientation 
 4. You can choose to continue export (at your own risk) or cancel to fix the rotations first
 5. Models with only standard rotations export normally without any interruption
 
+### 📸 Example Dialog
+![Rotation Checker Dialog](demo.png)
+*The warning dialog shows detected rotation issues with suggested fixes and user options*
+
 ## 🚀 Benefits
 • **Prevent Export Errors**: Catch rotation issues before they cause problems in Minecraft
 • **Save Time**: No more trial-and-error with model exports
 • **Professional Results**: Ensure your models display correctly in-game
-• **Educational**: Learn about Minecraft's rotation standards
-• **Non-Intrusive**: Only activates when needed, doesn't slow down your workflow
 
 ## 🌍 Multi-Language Support
 The plugin automatically detects Blockbench's language setting and adapts the UI accordingly:
@@ -36,11 +38,6 @@ The plugin automatically detects Blockbench's language setting and adapts the UI
 - **Other languages**: Falls back to English
 
 ## 🔧 Technical Details
-- Compatible with Blockbench 4.12.6+
 - Uses only built-in Blockbench APIs
 - No external dependencies
 - Lightweight and efficient
-- Automatic rotation normalization
-- Smart duplicate detection
-
-*Version 1.0.0 - Compatible with Blockbench 4.12.6+*

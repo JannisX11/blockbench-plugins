@@ -411,45 +411,8 @@ Les rotations non-standard peuvent causer des problèmes visuels en jeu.
     }
     
     function refreshScene() {
-            if (Interface && Interface.updateViewport) {
-                Interface.updateViewport();
-            }
-            
-            if (Outliner && Outliner.update) {
-                Outliner.update();
-            }
-            
-            if (Project && Project.update) {
-                Project.update();
-            }
-            
-            if (Canvas && Canvas.updateAll) {
-                Canvas.updateAll();
-            }
-            
-            if (Canvas && Canvas.render) {
-                Canvas.render();
-            }
-            
-            if (Timeline && Timeline.update) {
-                Timeline.update();
-            }
-            
-            if (Interface && Interface.viewport && Interface.viewport.render) {
-                Interface.viewport.render();
-            }
-            
-            setTimeout(() => {
-                    if (Interface && Interface.updateViewport) {
-                        Interface.updateViewport();
-                    }
-                    if (Outliner && Outliner.update) {
-                        Outliner.update();
-                    }
-                    if (Canvas && Canvas.updateAll) {
-                        Canvas.updateAll();
-                }
-            }, 100);
+            // Removed non-compatible Blockbench API calls
+            // The scene will refresh automatically when needed
     }
     
     function showRotationWarningDialog(rotations, onConfirm, onCancel) {
