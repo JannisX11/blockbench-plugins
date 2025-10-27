@@ -1,10 +1,12 @@
 // =============================================================================
-// Minecraft Rotation Checker - Unified Version (Multi-Language)
+// Minecraft Java Edition Rotation Checker - Multi-Language
 // =============================================================================
+// For Minecraft Java Edition 1.8 - 1.18.x (versions with 22.5° rotation restrictions)
 // Automatically detects Blockbench's language setting and adapts UI accordingly
 // Detects non-standard rotations in exported models and shows confirmation dialog
-// ONLY when exporting to JSON or BBModel formats.
+// ONLY when exporting to JSON or BBModel formats for older Java Edition versions.
 // 
+// Note: Minecraft 1.19+ may have relaxed rotation restrictions - verify compatibility
 // Features: Multi-language support, rotation error detection, dialog with Cancel/Continue buttons
 // =============================================================================
 
@@ -13,22 +15,25 @@
     
     const translations = {
         en: {
-            title: 'Minecraft Rotation Checker',
-            description: 'Automatically detects non-standard rotations in your models and warns you before export to prevent Minecraft display issues.',
-            about: `# Minecraft Rotation Checker
-Detects non-standard rotations before export to prevent Minecraft display issues.
+            title: 'Minecraft Java Edition Rotation Checker',
+            description: 'For Minecraft Java Edition 1.8-1.18.x: Detects non-standard rotations in your models and warns you before export to prevent display issues.',
+            about: `# Minecraft Java Edition Rotation Checker
+For Minecraft Java Edition 1.8 - 1.18.x (versions with rotation restrictions)
+
+## ⚠️ Important Note
+This plugin is designed for **older Minecraft Java Edition versions** (1.8 - 1.18.x) that have 22.5° rotation restrictions. Minecraft 1.19+ may have relaxed these restrictions - please verify compatibility with your target version.
 
 ## 🎯 Features
-• **Smart Detection**: Identifies rotations that don't follow Minecraft Bedrock's 22.5° standard
+• **Smart Detection**: Identifies rotations that don't follow Java Edition's 22.5° standard
 • **Export Protection**: Shows warning dialog before exporting JSON or BBModel files
 • **Auto-Fix**: Automatically corrects rotations to nearest standard values
 • **User Choice**: Continue export or cancel to fix rotations first
 
-## 📐 Minecraft Standards
-Minecraft Bedrock supports rotations in 22.5° increments:
+## 📐 Minecraft Java Edition Standards (1.8 - 1.18.x)
+Minecraft Java Edition 1.8 - 1.18.x supports rotations in 22.5° increments:
 **-45°, -22.5°, 0°, 22.5°, 45°**
 
-Non-standard rotations may cause visual glitches in-game.
+Non-standard rotations may cause visual glitches in these versions.
 
 ## 💡 How It Works
 1. Plugin scans rotation values when exporting JSON or BBModel files
@@ -58,8 +63,8 @@ Non-standard rotations may cause visual glitches in-game.
             fixAllSuccess: 'All rotations have been fixed!',
         },
         fr: {
-            title: 'Vérificateur de Rotations Minecraft',
-            description: '⚠️ Détecte automatiquement les rotations non-standard dans vos modèles et vous avertit avant l\'export pour éviter les problèmes d\'affichage dans Minecraft.',
+            title: 'Vérificateur de Rotations Minecraft Java Edition',
+            description: 'Pour Minecraft Java Edition 1.8-1.18.x: Détecte automatiquement les rotations non-standard dans vos modèles et vous avertit avant l\'export pour éviter les problèmes d\'affichage.',
             rotationIssues: 'Problèmes de Rotation :',
             quickFix: 'Correction Rapide',
             continueExport: 'Continuer l\'Export',
@@ -75,20 +80,23 @@ Non-standard rotations may cause visual glitches in-game.
             useFurthestDescription: 'Corrige chaque rotation vers sa deuxième valeur standard la plus proche',
             fixAllDescription: 'Ceci affecte toutes les rotations qui ont plusieurs options.',
             fixAllSuccess: 'Toutes les rotations ont été corrigées !',
-            about: `# Vérificateur de Rotations Minecraft
-Détecte les rotations non-standard avant l'export pour éviter les problèmes d'affichage dans Minecraft.
+            about: `# Vérificateur de Rotations Minecraft Java Edition
+Pour Minecraft Java Edition 1.8 - 1.18.x (versions avec restrictions de rotation)
+
+## ⚠️ Note Importante
+Ce plugin est conçu pour les **versions plus anciennes de Minecraft Java Edition** (1.8 - 1.18.x) qui ont des restrictions de rotation de 22,5°. Minecraft 1.19+ peut avoir assoupli ces restrictions - veuillez vérifier la compatibilité avec votre version cible.
 
 ## 🎯 Fonctionnalités
-• **Détection Intelligente** : Identifie les rotations qui ne suivent pas la norme 22,5° de Minecraft Bedrock
+• **Détection Intelligente** : Identifie les rotations qui ne suivent pas la norme 22,5° de Java Edition
 • **Protection d'Export** : Affiche une boîte de dialogue d'avertissement avant l'export des fichiers JSON ou BBModel
 • **Correction Auto** : Corrige automatiquement les rotations vers les valeurs standard les plus proches
 • **Choix de l'Utilisateur** : Continuer l'export ou annuler pour corriger les rotations d'abord
 
-## 📐 Normes Minecraft
-Minecraft Bedrock supporte les rotations par incréments de 22,5° :
+## 📐 Normes Minecraft Java Edition (1.8 - 1.18.x)
+Minecraft Java Edition 1.8 - 1.18.x supporte les rotations par incréments de 22,5° :
 **-45°, -22,5°, 0°, 22,5°, 45°**
 
-Les rotations non-standard peuvent causer des problèmes visuels en jeu.
+Les rotations non-standard peuvent causer des problèmes visuels dans ces versions.
 
 ## 💡 Comment Ça Marche
 1. Le plugin analyse les valeurs de rotation lors de l'export JSON ou BBModel
@@ -137,7 +145,7 @@ Les rotations non-standard peuvent causer des problèmes visuels en jeu.
         icon: 'warning',
         version: '1.0.0',
         variant: 'both',
-        tags: ['minecraft', 'rotation', 'validation', 'export'],
+        tags: ['rotation', 'validation', 'export'],
         about: t('about'),
         onload() {
             initialize();

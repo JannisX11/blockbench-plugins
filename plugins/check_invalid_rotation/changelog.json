@@ -1,9 +1,15 @@
-[
-	{
-		"version": "1.0.0",
+{
+	"1.0.0": {
+		"title": "1.0.0",
+		"author": "AnnJ",
 		"date": "2025-01-08",
-		"changes": [
-			"Initial release"
+		"categories": [
+			{
+				"title": "Initial Release",
+				"list": [
+					"Created Plugin"
+				]
+			}
 		]
 	}
-]
+}
