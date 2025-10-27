@@ -38,30 +38,34 @@
             'plane_gizmo_toggle': 'Toggle Translation Plane Gizmo',
             'plane_gizmo_description': 'Enhanced 2D plane gizmo for simultaneous multi-axis translation',
             'plane_gizmo_plugin_description': 'Adds 2D plane gizmos for multi-axis translation',
-            'plane_gizmo_about': `# Translation Plane Gizmo v1.0.0
-## Features:
-- **2D Plane Movement**: Drag colored planes to move objects along two axes simultaneously
-- **RGB Color Coding**: XY (Blue), XZ (Green), YZ (Red) planes
-- **Blender-Style**: Professional square handles that scale with zoom
-- **Toggle Button**: Toolbar button to enable/disable
-## Usage:
-1. Select objects and switch to **Move** tool
-2. Click and drag colored planes for 2D movement
+            'plane_gizmo_about': `Translation Plane Gizmo v1.0.0
+
+<h3>Features</h3>
+- 2D Plane Movement: Drag colored planes to move objects along two axes simultaneously<br>
+- RGB Color Coding: XY (Blue), XZ (Green), YZ (Red) planes<br>
+- Blender-Style: Professional square handles that scale with zoom<br>
+- Toggle Button: Toolbar button to enable/disable
+
+<h3>Usage</h3>
+1. Select objects and switch to Move tool<br>
+2. Click and drag colored planes for 2D movement<br>
 3. Hold Shift for grid snapping`
         },
         fr: {
             'plane_gizmo_toggle': 'Basculer le Gizmo de Plan de Translation',
             'plane_gizmo_description': 'Gizmo de plan 2D amélioré pour la translation multi-axes simultanée',
             'plane_gizmo_plugin_description': 'Ajoute des gizmos de plan 2D pour la translation multi-axes',
-            'plane_gizmo_about': `# Translation Plane Gizmo v1.0.0
-## Fonctionnalités :
-- **Mouvement 2D par Plans** : Glissez les plans colorés pour déplacer les objets le long de deux axes simultanément
-- **Codage Couleur RGB** : Plans XY (Bleu), XZ (Vert), YZ (Rouge)
-- **Style Blender** : Poignées carrées professionnelles qui s'adaptent au zoom
-- **Bouton Toggle** : Bouton dans la barre d'outils pour activer/désactiver
-## Utilisation :
-1. Sélectionnez des objets et passez à l'outil **Déplacer**
-2. Cliquez et glissez les plans colorés pour un mouvement 2D
+            'plane_gizmo_about': `Translation Plane Gizmo v1.0.0
+
+<h3>Fonctionnalités</h3>
+- Mouvement 2D par Plans: Glissez les plans colorés pour déplacer les objets le long de deux axes simultanément<br>
+- Codage Couleur RGB: Plans XY (Bleu), XZ (Vert), YZ (Rouge)<br>
+- Style Blender: Poignées carrées professionnelles qui s'adaptent au zoom<br>
+- Bouton Toggle: Bouton dans la barre d'outils pour activer/désactiver
+
+<h3>Utilisation</h3>
+1. Sélectionnez des objets et passez à l'outil Déplacer<br>
+2. Cliquez et glissez les plans colorés pour un mouvement 2D<br>
 3. Maintenez Shift pour l'accrochage grille`
         }
     };
@@ -663,8 +667,6 @@
             });
 
             MenuBar.addAction(menuAction, 'toolbar');
-            MenuBar.addAction(menuAction, 'view');
-            MenuBar.addAction(menuAction, 'edit');
 
 
         } catch (e) {
@@ -675,8 +677,6 @@
     try {
         if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
             MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-            MenuBar.removeAction('plane_gizmo_toggle', 'view');
-            MenuBar.removeAction('plane_gizmo_toggle', 'edit');
         }
     } catch (e) {
     }
@@ -689,15 +689,31 @@
         version: '1.0.0',
         min_version: '4.0.0',
         variant: 'both',
+        tags: ['Gizmo', 'Translation', 'Tools'],
         about: getLocalizedAbout(),
+        contributes: {
+            actions: [
+                {
+                    id: 'plane_gizmo_toggle',
+                    name: 'Toggle Translation Plane Gizmo',
+                    description: 'Enable/disable the translation plane gizmo for multi-axis movement',
+                    icon: 'view_in_ar'
+                }
+            ],
+            tools: [
+                {
+                    id: 'translation_plane_gizmo',
+                    name: 'Translation Plane Gizmo',
+                    description: '2D plane handles for multi-axis translation (XY=Blue, XZ=Green, YZ=Red)',
+                    icon: 'control_camera'
+                }
+            ]
+        },
 
         onload() {
             createPlaneHandles();
             addMouseEvents();
-
-            setTimeout(() => {
-                createToolbarButton();
-            }, 100);
+            createToolbarButton();
 
 
             updateInterval = setInterval(() => {
