@@ -4,7 +4,6 @@
 // For Minecraft Java Edition 1.8 - 1.18.x (versions with 22.5° rotation restrictions)
 // Automatically detects Blockbench's language setting and adapts UI accordingly
 // Detects non-standard rotations in exported models and shows confirmation dialog
-// ONLY when exporting to JSON or BBModel formats for older Java Edition versions.
 // 
 // Note: Minecraft 1.19+ may have relaxed rotation restrictions - verify compatibility
 // Features: Multi-language support, rotation error detection, dialog with Cancel/Continue buttons
@@ -15,36 +14,25 @@
     
     const translations = {
         en: {
-            title: 'Minecraft Java Edition Rotation Checker',
-            description: 'For Minecraft Java Edition 1.8-1.18.x: Detects non-standard rotations in your models and warns you before export to prevent display issues.',
-            about: `# Minecraft Java Edition Rotation Checker
+            title: 'Invalid Rotation Checker',
+            description: 'Detects non-standard rotations and warns before save/export.',
+            about: `Minecraft Java Edition Rotation Checker
+
 For Minecraft Java Edition 1.8 - 1.18.x (versions with rotation restrictions)
 
-## ⚠️ Important Note
-This plugin is designed for **older Minecraft Java Edition versions** (1.8 - 1.18.x) that have 22.5° rotation restrictions. Minecraft 1.19+ may have relaxed these restrictions - please verify compatibility with your target version.
+<h3>What It Does</h3>
+Comprehensive rotation validation that protects your models from compatibility issues. Works with ALL save and export operations to catch non-standard rotations before they cause display problems in Minecraft.
 
-## 🎯 Features
-• **Smart Detection**: Identifies rotations that don't follow Java Edition's 22.5° standard
-• **Export Protection**: Shows warning dialog before exporting JSON or BBModel files
-• **Auto-Fix**: Automatically corrects rotations to nearest standard values
-• **User Choice**: Continue export or cancel to fix rotations first
-
-## 📐 Minecraft Java Edition Standards (1.8 - 1.18.x)
-Minecraft Java Edition 1.8 - 1.18.x supports rotations in 22.5° increments:
-**-45°, -22.5°, 0°, 22.5°, 45°**
-
-Non-standard rotations may cause visual glitches in these versions.
-
-## 💡 How It Works
-1. Plugin scans rotation values when exporting JSON or BBModel files
-2. Shows warning dialog if non-standard rotations are found
-3. Lists problematic elements with suggested corrections
-4. Choose to fix automatically or continue export
-
-*Version 1.0.0 - Compatible with Blockbench 4.12.6+*`,
+<h3>How It Works</h3>
+1. Universal Protection: Scans rotations during save (Ctrl+Alt+S), save as (Ctrl+Shift+Alt+S), and export operations</br>
+2. Smart Detection: Identifies rotations that don't follow the 22.5° standard</br>
+3. Context-Aware Warnings: Shows operation-specific dialogs with appropriate button text</br>
+4. Quick Fix Options: Automatically fix rotations or choose to fix individually with nearest/furthest options
+5. User Control: Continue the operation or cancel to fix rotations first
+`,
             dialogTitle: 'Non-Standard Rotations Detected',
             warningMessage: 'non-standard rotation(s) found',
-            warningDescription: 'These rotations may cause display issues in Minecraft. Consider fixing them before export.',
+            warningDescription: 'These rotations may cause display issues in Minecraft. Consider fixing them before saving/exporting.',
             rotationIssues: 'Rotation Issues:',
             quickFix: 'Quick Fix',
             quickFixDescription: 'Automatically fix all rotations to their nearest standard values.',
@@ -60,11 +48,13 @@ Non-standard rotations may cause visual glitches in these versions.
             useClosestDescription: 'Fix each rotation to its nearest standard value',
             useFurthestDescription: 'Fix each rotation to its second nearest standard value',
             fixAllDescription: 'This affects all rotations that have multiple options.',
+            rotationsWillBeCorrected: 'rotation(s) will be corrected',
+            clickOptionThenButtons: 'Click on an option above, then use the buttons below',
             fixAllSuccess: 'All rotations have been fixed!',
         },
         fr: {
-            title: 'Vérificateur de Rotations Minecraft Java Edition',
-            description: 'Pour Minecraft Java Edition 1.8-1.18.x: Détecte automatiquement les rotations non-standard dans vos modèles et vous avertit avant l\'export pour éviter les problèmes d\'affichage.',
+            title: 'Vérificateur de Rotations',
+            description: 'Détecte les rotations non-standard et avertit avant sauvegarde/export.',
             rotationIssues: 'Problèmes de Rotation :',
             quickFix: 'Correction Rapide',
             continueExport: 'Continuer l\'Export',
@@ -79,42 +69,33 @@ Non-standard rotations may cause visual glitches in these versions.
             useClosestDescription: 'Corrige chaque rotation vers sa valeur standard la plus proche',
             useFurthestDescription: 'Corrige chaque rotation vers sa deuxième valeur standard la plus proche',
             fixAllDescription: 'Ceci affecte toutes les rotations qui ont plusieurs options.',
+            rotationsWillBeCorrected: 'rotation(s) sera(ont) corrigée(s)',
+            clickOptionThenButtons: 'Cliquez sur une option ci-dessus, puis utilisez les boutons ci-dessous',
             fixAllSuccess: 'Toutes les rotations ont été corrigées !',
-            about: `# Vérificateur de Rotations Minecraft Java Edition
+            about: `Vérificateur de Rotations Minecraft Java Edition
+
 Pour Minecraft Java Edition 1.8 - 1.18.x (versions avec restrictions de rotation)
 
-## ⚠️ Note Importante
-Ce plugin est conçu pour les **versions plus anciennes de Minecraft Java Edition** (1.8 - 1.18.x) qui ont des restrictions de rotation de 22,5°. Minecraft 1.19+ peut avoir assoupli ces restrictions - veuillez vérifier la compatibilité avec votre version cible.
+<h3>Fonctionnalités</h3>
+Validation complète des rotations qui protège vos modèles des problèmes de compatibilité. Fonctionne avec TOUTES les opérations de sauvegarde et d'export pour détecter les rotations non-standard avant qu'elles ne causent des problèmes d'affichage dans Minecraft.
 
-## 🎯 Fonctionnalités
-• **Détection Intelligente** : Identifie les rotations qui ne suivent pas la norme 22,5° de Java Edition
-• **Protection d'Export** : Affiche une boîte de dialogue d'avertissement avant l'export des fichiers JSON ou BBModel
-• **Correction Auto** : Corrige automatiquement les rotations vers les valeurs standard les plus proches
-• **Choix de l'Utilisateur** : Continuer l'export ou annuler pour corriger les rotations d'abord
-
-## 📐 Normes Minecraft Java Edition (1.8 - 1.18.x)
-Minecraft Java Edition 1.8 - 1.18.x supporte les rotations par incréments de 22,5° :
-**-45°, -22,5°, 0°, 22,5°, 45°**
-
-Les rotations non-standard peuvent causer des problèmes visuels dans ces versions.
-
-## 💡 Comment Ça Marche
-1. Le plugin analyse les valeurs de rotation lors de l'export JSON ou BBModel
-2. Affiche une boîte de dialogue d'avertissement si des rotations non-standard sont trouvées
-3. Liste les éléments problématiques avec les corrections suggérées
-4. Choisir de corriger automatiquement ou continuer l'export
-
-*Version 1.0.0 - Compatible avec Blockbench 4.12.6+*`,
+<h3>Comment Ça Marche</h3>
+1. Protection Universelle : Analyse les rotations lors de la sauvegarde (Ctrl+Alt+S), enregistrer sous (Ctrl+Shift+Alt+S), et les opérations d'export</br>
+2. Détection Intelligente : Identifie les rotations qui ne suivent pas la norme 22,5°</br>
+3. Avertissements Contextuels : Affiche des dialogues spécifiques à l'opération avec le texte de bouton approprié</br>
+4. Options de Correction Rapide : Corrige automatiquement les rotations ou choisissez de les corriger individuellement avec options plus proche/plus éloigné</br>
+5. Contrôle Utilisateur : Continuer l'opération ou annuler pour corriger les rotations d'abord
+`,
             dialogTitle: 'Rotations Non-Standard Détectées',
             warningMessage: 'rotation(s) non-standard trouvée(s)',
-            warningDescription: 'Ces rotations peuvent causer des problèmes d\'affichage dans Minecraft. Considérez les corriger avant l\'export.',
+            warningDescription: 'Ces rotations peuvent causer des problèmes d\'affichage dans Minecraft. Considérez de les corriger avant la sauvegarde/export.',
             rotationIssues: 'Problèmes de Rotation :',
             quickFix: 'Correction Rapide',
             quickFixDescription: 'Corriger automatiquement toutes les rotations vers leurs valeurs standard les plus proches.',
             fixAll: 'Tout Corriger',
             fix: 'Corriger',
             fixed: 'Corrigé ✓',
-            rotationsFixed: 'rotations corrigées ✓',
+            rotationsFixed: 'Rotations corrigées ✓',
             cancelExport: 'Annuler l\'Export',
             continueExport: 'Continuer l\'Export',
         }
@@ -145,10 +126,16 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
         icon: 'warning',
         version: '1.0.0',
         variant: 'both',
-        tags: ['rotation', 'validation', 'export'],
+        tags: ['Rotation', 'Validation', 'Export'],
         about: t('about'),
         onload() {
+            console.log('[Rotation Checker] Plugin loading...');
             initialize();
+            // Delay save integration to ensure MenuBar is available
+            setTimeout(() => {
+                addSaveIntegration();
+            }, 3000);
+            console.log('[Rotation Checker] Plugin loaded successfully');
         },
         onunload() {
             if (clickHandler) {
@@ -156,6 +143,7 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
                 clickHandler = null;
             }
             
+            // Restore original export functions
             if (window.rotationCheckerOriginalFunctions && typeof Codecs !== 'undefined') {
                 if (window.rotationCheckerOriginalFunctions.java_block && Codecs.java_block) {
                     Codecs.java_block.export = window.rotationCheckerOriginalFunctions.java_block;
@@ -165,9 +153,30 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
                 }
                 delete window.rotationCheckerOriginalFunctions;
             }
+            
+            // Restore original save functions
+            if (window.rotationCheckerOriginalSaveFunctions) {
+                // Restore MenuBar actions
+                if (MenuBar && MenuBar.actions) {
+                    const saveAction = MenuBar.actions.find(action => action.id === 'file.save');
+                    const saveAsAction = MenuBar.actions.find(action => action.id === 'file.save_as');
+                    
+                    if (saveAction && window.rotationCheckerOriginalSaveFunctions.save) {
+                        saveAction.click = window.rotationCheckerOriginalSaveFunctions.save;
+                    }
+                    if (saveAsAction && window.rotationCheckerOriginalSaveFunctions.saveAs) {
+                        saveAsAction.click = window.rotationCheckerOriginalSaveFunctions.saveAs;
+                    }
+                }
+                
+                // Note: Only MenuBar actions are restored, no additional cleanup needed
+                
+                delete window.rotationCheckerOriginalSaveFunctions;
+            }
         }
     });
     
+    // Constants must be defined before any functions that use them
     const STANDARD_ROTATIONS = [-45, -22.5, 0, 22.5, 45];
     const ROTATION_TOLERANCE = 0.1;
     
@@ -419,11 +428,71 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
     }
     
     function refreshScene() {
-            // Removed non-compatible Blockbench API calls
-            // The scene will refresh automatically when needed
+        // Refresh the scene after making changes
+        if (typeof Canvas !== 'undefined' && Canvas.updateAll) {
+                Canvas.updateAll();
+            }
+        if (typeof Outliner !== 'undefined' && Outliner.update) {
+                Outliner.update();
+            }
+        if (typeof Interface !== 'undefined' && Interface.update) {
+            Interface.update();
+                }
     }
     
-    function showRotationWarningDialog(rotations, onConfirm, onCancel) {
+    function showRotationWarningDialog(rotations, onConfirm, onCancel, context = 'export') {
+        
+        // Get context-aware button text
+        const getButtonText = (buttonType) => {
+            const lang = detectLanguage();
+            const translations = {
+                en: {
+                    export: {
+                        fixAll: 'Fix All',
+                        cancel: 'Cancel Export',
+                        continue: 'Continue Export'
+                    },
+                    save: {
+                        fixAll: 'Fix All',
+                        cancel: 'Cancel Save',
+                        continue: 'Continue Save'
+                    },
+                    saveAs: {
+                        fixAll: 'Fix All',
+                        cancel: 'Cancel Save As',
+                        continue: 'Continue Save As'
+                    },
+                    saveIncrement: {
+                        fixAll: 'Fix All',
+                        cancel: 'Cancel Save with Increment',
+                        continue: 'Continue Save with Increment'
+                    }
+                },
+                fr: {
+                    export: {
+                        fixAll: 'Tout Corriger',
+                        cancel: 'Annuler l\'Export',
+                        continue: 'Continuer l\'Export'
+                    },
+                    save: {
+                        fixAll: 'Tout Corriger',
+                        cancel: 'Annuler la Sauvegarde',
+                        continue: 'Continuer la Sauvegarde'
+                    },
+                    saveAs: {
+                        fixAll: 'Tout Corriger',
+                        cancel: 'Annuler Enregistrer Sous',
+                        continue: 'Continuer Enregistrer Sous'
+                    },
+                    saveIncrement: {
+                        fixAll: 'Tout Corriger',
+                        cancel: 'Annuler Enregistrer avec Incrément',
+                        continue: 'Continuer Enregistrer avec Incrément'
+                    }
+                }
+            };
+            return translations[lang]?.[context]?.[buttonType] || translations.en[context]?.[buttonType] || buttonType;
+        };
         
         let rotationListHTML = '';
         rotations.forEach((rotation, index) => {
@@ -471,7 +540,7 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
         const dialog = new Dialog('rotation_warning_dialog', {
             title: t('dialogTitle'),
             width: 600,
-            buttons: [t('fixAll'), t('cancelExport'), t('continueExport')],
+            buttons: [getButtonText('fixAll'), getButtonText('cancel'), getButtonText('continue')],
             cancelIndex: 1,
             confirmIndex: 2,
             component: {
@@ -521,11 +590,15 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
             onButton(index) {
                 if (index === 0) {
                     showFixAllChoiceDialog(rotations, dialog);
-                    return false;
+                    return false; // Prevent dialog from closing
                 } else if (index === 1) {
-            onCancel();
+                    // Cancel - close dialog and call onCancel
+                    dialog.close();
+                    onCancel();
                 } else if (index === 2) {
-            onConfirm();
+                    // Continue - close dialog and call onConfirm
+                    dialog.close();
+                    onConfirm();
                 }
             }
         });
@@ -558,7 +631,10 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
                                     btn.style.background = '#4caf50';
                                     btn.disabled = true;
                                 });
+                                // Refresh scene after fixing
+                                setTimeout(() => {
                                 refreshScene();
+                                }, 100);
                             }
                         }
                     }
@@ -575,20 +651,89 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
     function showFixAllChoiceDialog(rotations, parentDialog) {
         const choiceDialog = new Dialog('fix_all_choice_dialog', {
             title: t('chooseFixStrategy'),
-            width: 400,
+            width: 500,
+            height: 300,
             buttons: [t('useClosest'), t('useFurthest'), t('cancel')],
             cancelIndex: 2,
-            lines: [
-                t('chooseFixStrategy'),
-                '',
-                `• ${t('useClosest')}: ${t('useClosestDescription')}`,
-                `• ${t('useFurthest')}: ${t('useFurthestDescription')}`,
-                '',
-                t('fixAllDescription')
-            ],
+            component: {
+                template: `
+                    <div style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="font-size: 18px; font-weight: 600; color: #ffffff; margin-bottom: 8px;">
+                                ${t('chooseFixStrategy')}
+                            </div>
+                            <div style="font-size: 14px; color: #aaa; margin-bottom: 20px;">
+                                ${t('fixAllDescription')}
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                            <div style="flex: 1; padding: 16px; background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%); border-radius: 8px; border: 2px solid #4a4a4a; cursor: pointer; transition: all 0.2s ease;" 
+                                 @click="selectStrategy('closest')" 
+                                 :style="{ borderColor: selectedStrategy === 'closest' ? '#4caf50' : '#4a4a4a', background: selectedStrategy === 'closest' ? 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)' : 'linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%)' }">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <div style="width: 24px; height: 24px; background: #4caf50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: bold; color: white;">
+                                        ✓
+                                    </div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #ffffff;">
+                                        ${t('useClosest')}
+                                    </div>
+                                </div>
+                                <div style="font-size: 13px; color: #ccc; line-height: 1.4;">
+                                    ${t('useClosestDescription')}
+                                </div>
+                                <div style="margin-top: 8px; font-size: 12px; color: #888; font-style: italic;">
+                                    Ex: 23° → 22.5°
+                                </div>
+                            </div>
+                            
+                            <div style="flex: 1; padding: 16px; background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%); border-radius: 8px; border: 2px solid #4a4a4a; cursor: pointer; transition: all 0.2s ease;" 
+                                 @click="selectStrategy('furthest')" 
+                                 :style="{ borderColor: selectedStrategy === 'furthest' ? '#2196f3' : '#4a4a4a', background: selectedStrategy === 'furthest' ? 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)' : 'linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%)' }">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <div style="width: 24px; height: 24px; background: #2196f3; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: bold; color: white;">
+                                        →
+                                    </div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #ffffff;">
+                                        ${t('useFurthest')}
+                                    </div>
+                                </div>
+                                <div style="font-size: 13px; color: #ccc; line-height: 1.4;">
+                                    ${t('useFurthestDescription')}
+                                </div>
+                                <div style="margin-top: 8px; font-size: 12px; color: #888; font-style: italic;">
+                                    Ex: 23° → 45°
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 16px; background: #1a1a1a; border-radius: 6px; border: 1px solid #333;">
+                            <div style="font-size: 12px; color: #888; margin-bottom: 4px;">
+                                ${rotations.length} ${t('rotationsWillBeCorrected')}
+                            </div>
+                            <div style="font-size: 11px; color: #666;">
+                                ${t('clickOptionThenButtons')}
+                            </div>
+                        </div>
+                    </div>
+                `,
+                data() {
+                    return {
+                        selectedStrategy: 'closest'
+                    };
+                },
+                methods: {
+                    selectStrategy(strategy) {
+                        this.selectedStrategy = strategy;
+                    }
+                }
+            },
             onButton(index) {
-                if (index === 0) {
-                    const fixedCount = applyAllRotationFixes(rotations, 0);
+                const selectedStrategy = choiceDialog.component.data.selectedStrategy;
+                if (index === 0 || index === 1) {
+                    // Use the selected strategy from the component
+                    const strategyIndex = selectedStrategy === 'closest' ? 0 : 1;
+                    const fixedCount = applyAllRotationFixes(rotations, strategyIndex);
                     if (fixedCount > 0) {
                         refreshScene();
                         parentDialog.component.data.fixedCount = fixedCount;
@@ -602,23 +747,21 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
                                 btn.disabled = true;
                             });
                         });
-                    }
-                } else if (index === 1) {
-                    const fixedCount = applyAllRotationFixes(rotations, 1);
-                    if (fixedCount > 0) {
-                        refreshScene();
-                        parentDialog.component.data.fixedCount = fixedCount;
-                        parentDialog.component.data.isFixed = true;
                         
-                        rotations.forEach((rotation, rotationIndex) => {
-                            const allButtons = document.querySelectorAll(`[id^="fix_btn_${rotationIndex}_"]`);
-                            allButtons.forEach(btn => {
-                                btn.innerHTML = t('fixed');
-                                btn.style.background = '#4caf50';
-                                btn.disabled = true;
-                            });
-                        });
+                        Blockbench.showQuickMessage(t('fixAllSuccess'), 2000);
+                        if (typeof Interface !== 'undefined' && Interface.update) {
+                            Interface.update();
+                        }
                     }
+                    // Close choice dialog first
+                    choiceDialog.close();
+                    // Use setTimeout to close parent dialog after choice dialog is closed
+                    setTimeout(() => {
+                        parentDialog.close();
+                    }, 50);
+                } else {
+                    // Just close the choice dialog
+                    choiceDialog.close();
                 }
             }
         });
@@ -635,12 +778,15 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
             if (Codecs.java_block && Codecs.java_block.export) {
                 originalExportFunctions.java_block = Codecs.java_block.export;
                 Codecs.java_block.export = function() {
+                    console.log('[Rotation Checker] Java Block export triggered');
                     const nonStandardRotations = extractRotations(Project);
                             if (nonStandardRotations.length > 0) {
+                                console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
                                 showRotationWarningDialog(
                                     nonStandardRotations,
                             () => originalExportFunctions.java_block.call(this),
-                            () => {}
+                            () => {},
+                            'export'
                                 );
                             } else {
                         originalExportFunctions.java_block.call(this);
@@ -651,12 +797,15 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
             if (Codecs.bedrock && Codecs.bedrock.export) {
                 originalExportFunctions.bedrock = Codecs.bedrock.export;
                 Codecs.bedrock.export = function() {
+                    console.log('[Rotation Checker] Bedrock export triggered');
                     const nonStandardRotations = extractRotations(Project);
                     if (nonStandardRotations.length > 0) {
+                        console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
                         showRotationWarningDialog(
                             nonStandardRotations,
                             () => originalExportFunctions.bedrock.call(this),
-                            () => {}
+                            () => {},
+                            'export'
                         );
                     } else {
                         originalExportFunctions.bedrock.call(this);
@@ -668,4 +817,84 @@ Les rotations non-standard peuvent causer des problèmes visuels dans ces versio
         }
     }
     
+    function addSaveIntegration() {
+        console.log('[Rotation Checker] Starting save integration...');
+        
+        // Use keyboard event listener to intercept all save shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Check for Ctrl+S (Save)
+            if (event.ctrlKey && event.key === 's' && !event.shiftKey && !event.altKey) {
+                console.log('[Rotation Checker] Ctrl+S detected');
+                event.preventDefault(); // Prevent default save
+                event.stopPropagation(); // Stop event from bubbling
+                checkRotationsBeforeSave(() => {
+                    // Call the original save function
+                    if (MenuBar && MenuBar.actions) {
+                        const saveAction = MenuBar.actions.find(action => action.id === 'file.save');
+                        if (saveAction && saveAction.click) {
+                            saveAction.click();
+                        }
+                    }
+                }, 'save');
+            }
+            // Check for Ctrl+Shift+S (Save As)
+            else if (event.ctrlKey && event.shiftKey && event.key === 's' && !event.altKey) {
+                console.log('[Rotation Checker] Ctrl+Shift+S detected');
+                event.preventDefault(); // Prevent default save as
+                event.stopPropagation(); // Stop event from bubbling
+                checkRotationsBeforeSave(() => {
+                    // Call the original save as function
+                    if (MenuBar && MenuBar.actions) {
+                        const saveAsAction = MenuBar.actions.find(action => action.id === 'file.save_as');
+                        if (saveAsAction && saveAsAction.click) {
+                            saveAsAction.click();
+                        }
+                    }
+                }, 'saveAs');
+            }
+            // Check for Shift+Alt+S (Save with increment)
+            else if (event.shiftKey && event.altKey && event.key === 's' && !event.ctrlKey) {
+                console.log('[Rotation Checker] Shift+Alt+S detected');
+                event.preventDefault(); // Prevent default save with increment
+                event.stopPropagation(); // Stop event from bubbling
+                checkRotationsBeforeSave(() => {
+                    // Call the original save with increment function
+                    if (MenuBar && MenuBar.actions) {
+                        const saveIncrementAction = MenuBar.actions.find(action => action.id === 'file.save_increment');
+                        if (saveIncrementAction && saveIncrementAction.click) {
+                            saveIncrementAction.click();
+                        }
+                    }
+                }, 'saveIncrement');
+            }
+        }, true); // Use capture phase to intercept before other handlers
+        
+        console.log('[Rotation Checker] Keyboard event listeners added for Ctrl+S, Ctrl+Shift+S, and Shift+Alt+S');
+    }
+    
+    function checkRotationsBeforeSave(originalSaveFunction, context = 'save') {
+        console.log(`[Rotation Checker] Checking rotations for context: ${context}`);
+        const nonStandardRotations = extractRotations(Project);
+        if (nonStandardRotations.length > 0) {
+            console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
+            showRotationWarningDialog(
+                nonStandardRotations,
+                () => {
+                    // Continue with save after fixing or user confirmation
+                    if (originalSaveFunction) {
+                        originalSaveFunction.call(this);
+                    }
+                },
+                () => {
+                    // Cancel save - do nothing
+                },
+                context
+            );
+        } else {
+            // No rotation issues, proceed with normal save
+            if (originalSaveFunction) {
+                originalSaveFunction.call(this);
+            }
+        }
+    }
 })();
