@@ -1,0 +1,23 @@
+{
+  "name": "tweaks_n_stuff",
+  "private": true,
+  "main": "./ts/index.ts",
+  "scripts": {
+    "build": "node build.mjs",
+    "rebuild": "npm run build && echo Done!",
+    "dev": "chokidar \"ts/**/*\" -c \"npm run rebuild\" -d"
+  },
+  "keywords": [
+    "blockbench"
+  ],
+  "author": "legopitstop",
+  "license": "MIT",
+  "dependencies": {
+    "esbuild": "^0.25.11",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "blockbench-types": "^5.0.0",
+    "chokidar-cli": "^3.0.0"
+  }
+}
