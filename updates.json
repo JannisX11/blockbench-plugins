@@ -5,9 +5,9 @@
     "updated": 0
   },
   "animated_java": {
-    "version": "1.7.3",
+    "version": "1.8.0",
     "created": 1736294400000,
-    "updated": 1746662400000
+    "updated": 1761004800000
   },
   "armor_stand_animator": {
     "version": "1.1.0",
@@ -24,13 +24,13 @@
     "created": 0,
     "updated": 0
   },
-  "plaster": {
-    "version": "1.1.0",
+  "optimize": {
+    "version": "1.2.8",
     "created": 0,
     "updated": 0
   },
-  "no_rotation_steps": {
-    "version": "1.0.0",
+  "plaster": {
+    "version": "1.1.0",
     "created": 0,
     "updated": 0
   },
@@ -65,7 +65,7 @@
     "updated": 0
   },
   "ambient_occlusion": {
-    "version": "1.0.3",
+    "version": "1.0.4",
     "created": 0,
     "updated": 0
   },
@@ -79,20 +79,25 @@
     "created": 0,
     "updated": 0
   },
-  "cem_template_loader": {
-    "version": "8.5.0",
-    "created": 1580601600000,
-    "updated": 1739318400000
-  },
-  "optifine_player_models": {
-    "version": "1.4.1",
+  "discord-rpc": {
+    "version": "1.1.4",
     "created": 0,
     "updated": 0
   },
+  "cem_template_loader": {
+    "version": "8.5.1",
+    "created": 1580601600000,
+    "updated": 1760486400000
+  },
+  "optifine_player_models": {
+    "version": "1.5.0",
+    "created": 1653782400000,
+    "updated": 1653782400000
+  },
   "colour_gradient_generator": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "created": 1654128000000,
-    "updated": 1718236800000
+    "updated": 1760227200000
   },
   "collapsible_start_screen_categories": {
     "version": "1.0.0",
@@ -100,34 +105,34 @@
     "updated": 0
   },
   "preview_scene_customiser": {
-    "version": "1.1.4",
+    "version": "1.2.0",
     "created": 1665705600000,
-    "updated": 1665705600000
+    "updated": 1760227200000
   },
   "splash_art_customiser": {
-    "version": "1.1.2",
-    "created": 0,
-    "updated": 0
+    "version": "1.1.4",
+    "created": 1667865600000,
+    "updated": 1667865600000
   },
   "scene_recorder": {
-    "version": "2.0.1",
+    "version": "2.1.1",
     "created": 1670976000000,
-    "updated": 1737504000000
+    "updated": 1760227200000
   },
   "backup_viewer": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "created": 1672185600000,
-    "updated": 1740787200000
+    "updated": 1760227200000
   },
   "activity_tracker": {
-    "version": "1.0.1",
-    "created": 0,
-    "updated": 0
+    "version": "1.1.1",
+    "created": 1680134400000,
+    "updated": 1760832000000
   },
   "minecraft_title_generator": {
-    "version": "1.9.2",
+    "version": "1.10.2",
     "created": 1686355200000,
-    "updated": 1748390400000
+    "updated": 1760572800000
   },
   "workspaces": {
     "version": "1.0.0",
@@ -135,24 +140,24 @@
     "updated": 1694044800000
   },
   "live_dev_reloader": {
-    "version": "1.0.2",
+    "version": "1.1.0",
     "created": 1705708800000,
-    "updated": 1748908800000
+    "updated": 1760227200000
   },
   "resource_pack_utilities": {
-    "version": "1.7.0",
+    "version": "1.9.1",
     "created": 1719792000000,
-    "updated": 1748908800000
+    "updated": 1760572800000
   },
   "asset_browser": {
-    "version": "1.1.0",
+    "version": "1.2.1",
     "created": 1748563200000,
-    "updated": 1748908800000
+    "updated": 1760572800000
   },
   "free_rotation": {
-    "version": "1.1.0",
+    "version": "1.2.1",
     "created": 1734652800000,
-    "updated": 1742860800000
+    "updated": 1760227200000
   },
   "threecore_exporter": {
     "version": "1.0.3",
@@ -165,7 +170,12 @@
     "updated": 0
   },
   "animation_utils": {
-    "version": "4.1.0",
+    "version": "4.1.2",
+    "created": 0,
+    "updated": 0
+  },
+  "geckolib": {
+    "version": "4.2.1",
     "created": 0,
     "updated": 0
   },
@@ -205,7 +215,7 @@
     "updated": 0
   },
   "bakery": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 0
   },
@@ -235,19 +245,19 @@
     "updated": 0
   },
   "minecraft_entity_wizard": {
-    "version": "1.7.0",
+    "version": "1.8.2",
     "created": 1628035200000,
-    "updated": 1739577600000
+    "updated": 1761350400000
   },
   "minecraft_block_wizard": {
-    "version": "1.4.1",
+    "version": "1.5.2",
     "created": 1666656000000,
-    "updated": 1740614400000
+    "updated": 1761350400000
   },
   "minecraft_item_wizard": {
-    "version": "1.2.0",
+    "version": "1.2.4",
     "created": 1695081600000,
-    "updated": 1739577600000
+    "updated": 1761350400000
   },
   "reference_models": {
     "version": "1.0.2",
@@ -280,17 +290,17 @@
     "updated": 1742083200000
   },
   "wasd_controls": {
-    "version": "1.2.0",
+    "version": "1.2.2",
     "created": 0,
     "updated": 0
   },
   "skin_packager": {
-    "version": "0.2.0",
+    "version": "0.3.1",
     "created": 0,
     "updated": 0
   },
   "tint_preview": {
-    "version": "1.1.1",
+    "version": "1.1.2",
     "created": 0,
     "updated": 0
   },
@@ -350,7 +360,7 @@
     "updated": 0
   },
   "cameras": {
-    "version": "1.2.1",
+    "version": "1.2.2",
     "created": 0,
     "updated": 0
   },
@@ -358,6 +368,11 @@
     "version": "1.1.1",
     "created": 0,
     "updated": 0
+  },
+  "bbs_exporter": {
+    "version": "1.3.1",
+    "created": 1714608000000,
+    "updated": 1760400000000
   },
   "highlight_generator": {
     "version": "1.0.0",
@@ -370,12 +385,12 @@
     "updated": 0
   },
   "explorer": {
-    "version": "1.0.2",
+    "version": "1.0.5",
     "created": 0,
     "updated": 0
   },
   "performance_audit": {
-    "version": "1.1.1",
+    "version": "1.1.2",
     "created": 0,
     "updated": 0
   },
@@ -405,9 +420,9 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "1.0.10",
+    "version": "1.0.12",
     "created": 1680566400000,
-    "updated": 1727481600000
+    "updated": 1760486400000
   },
   "cube_inverter": {
     "version": "1.0.0",
@@ -455,9 +470,9 @@
     "updated": 1737676800000
   },
   "meshy": {
-    "version": "1.0.4",
+    "version": "1.0.5",
     "created": 1727481600000,
-    "updated": 1727481600000
+    "updated": 1751756400000
   },
   "outliner_group_exporter": {
     "version": "1.0.0",
@@ -465,8 +480,43 @@
     "updated": 1742342400000
   },
   "export_to_blender": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "created": 1744761600000,
     "updated": 1744761600000
+  },
+  "reexport_on_save": {
+    "version": "2.0.0",
+    "created": 1744934400000,
+    "updated": 1744934400000
+  },
+  "repeating_textures": {
+    "version": "3.0.0",
+    "created": 1749945600000,
+    "updated": 1749945600000
+  },
+  "export_to_3mf": {
+    "version": "0.0.1",
+    "created": 1751414400000,
+    "updated": 1751414400000
+  },
+  "shaper": {
+    "version": "1.0.0",
+    "created": 1756166400000,
+    "updated": 1756166400000
+  },
+  "bone_view": {
+    "version": "1.0.0",
+    "created": 1758067200000,
+    "updated": 1758067200000
+  },
+  "texture_filtering": {
+    "version": "1.0.0",
+    "created": 1756684800000,
+    "updated": 1756684800000
+  },
+  "gltf_importer": {
+    "version": "1.0.0",
+    "created": 1758758400000,
+    "updated": 1758758400000
   }
 }
