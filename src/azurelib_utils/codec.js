@@ -1,6 +1,19 @@
+/**
+ * This module is a fork of the GeckoLib Animation Utils plugin and modified for use in the Azurelib fork.
+ * Original source:
+ * https://github.com/JannisX11/blockbench-plugins/tree/034ed058efa5b2847fb852e3b215aad372080dcf/src/animation_utils 
+ * Copyright © 2024 Bernie-G. Licensed under the MIT License.
+ * https://github.com/JannisX11/blockbench-plugins/blob/main/LICENSE
+ */
+
 import omit from 'lodash/omit';
 import azurelibSettings, {AZURELIB_SETTINGS_DEFAULT, onSettingsChanged} from './settings';
 import {addMonkeypatch, Original} from './utils';
+import { invertMolang as localInvertMolang } from './utils';
+
+const invertMolang = globalThis.invertMolang || localInvertMolang;
+
+let hasShownConversionNotice = false;
 
 /* eslint-disable no-useless-escape */
 
@@ -13,6 +26,18 @@ export function loadCodec() {
     Codecs.bedrock.on('compile', onBedrockCompile);
     addMonkeypatch(Animator, null, "buildFile", animatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", animatorLoadFile);
+	
+    Blockbench.on('close_project', () => {
+        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        hasShownConversionNotice = false;
+        console.log('[AzureLib] Project closed → reset settings to defaults');
+    });
+    
+    Blockbench.on('new_project', () => {
+        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+        hasShownConversionNotice = false;
+        console.log('[AzureLib] New project → defaults restored');
+    });
 }
 
 export function unloadCodec() {
@@ -22,18 +47,58 @@ export function unloadCodec() {
     format.delete();
 }
 
+function onModeSelect(e) {
+    if (e.mode.id === 'display' && Format.id === 'azure_model') {
+        Project.model_3d.position.y = 0;
+    }
+}
+
 function onProjectCompile(e) {
     if (Format.id !== "azure_model") return;
+
+    if (azurelibSettings.objectType === "AZURE_ITEM_BLOCK") {
+        azurelibSettings.objectType = "AZURE_ENTITY";
+        azurelibSettings.entityType = "Entity/Block/Item";
+    }
     e.model.azurelibSettings = azurelibSettings;
 }
 
 function onProjectParse(e) {
-    if (e.model && typeof e.model.azurelibSettings === 'object') {
-        Object.assign(azurelibSettings, omit(e.model.azurelibSettings, ['formatVersion']));
+    const model = e.model || {};
+    const metaFormat = model?.meta?.model_format || model?.model_format;
+    
+    if (metaFormat !== "azure_model") return;
+    
+    const settings = model.azurelibSettings;
+    if (settings && typeof settings === "object") {
+      const wasDeprecatedType = settings.objectType === "AZURE_ITEM_BLOCK";
+    
+      Object.assign(azurelibSettings, omit(settings, ["formatVersion"]));
+    
+      if (wasDeprecatedType) {
+        console.warn("[AzureLib] Converting deprecated AZURE_ITEM_BLOCK to AZURE_ENTITY");
+        azurelibSettings.objectType = "AZURE_ENTITY";
+        azurelibSettings.entityType = "Entity/Block/Item";
+      }
+    
+      console.log("[AzureLib] Loaded settings for", azurelibSettings.objectType);
+    
+      if (wasDeprecatedType && !hasShownConversionNotice) {
+        hasShownConversionNotice = true;
+        Blockbench.showMessageBox({
+          title: 'AzureLib Conversion Notice',
+          message:
+            'This project used the old "Block/Item" model type.\n\nIt has been automatically updated to the new "Entity/Block/Item" type (AZURE_ENTITY).',
+          buttons: ['OK']
+        });
+      }
+    
+      onSettingsChanged();
     } else {
-        Object.assign(azurelibSettings, AZURELIB_SETTINGS_DEFAULT);
+      if (e.model?.meta?.model_format === "azure_model" && !e.model.azurelibSettings) {
+        console.debug("[AzureLib] Azure model detected but no settings yet — likely early parse.");
+      }
     }
-    onSettingsChanged();
 }
 
 function onBedrockCompile(e) {
@@ -59,27 +124,62 @@ function animatorBuildFile() {
     const animations = res.animations;
     if (!animations) return res;
 
+    // helper function for inverting arrays
+    const flipArray = (array, channel) => {
+        if (!Array.isArray(array)) return array;
+
+        if (channel === 'position') {
+            array[0] = invertMolang(array[0]);
+        }
+        if (channel === 'rotation') {
+            array[0] = invertMolang(array[0]);
+            array[1] = invertMolang(array[1]);
+        }
+        return array;
+    };
+
     for (const animation in animations) {
         const bones = animations[animation]?.bones;
         if (!bones) continue;
 
         for (const boneName in bones) {
             const bone = bones[boneName];
-            for (const animationGroupType in bone) {
+            for (const animationGroupType in bone) { // ← This is your channel name
                 const animationGroup = bone[animationGroupType];
                 for (const timestamp in animationGroup) {
                     const keyframe = animationGroup[timestamp];
                     
-                    if (keyframe) {
-                        if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+                    if (!keyframe) continue;
 
-                        let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
-                        if (bedrockKeyframeData) {
-                            Object.assign(keyframe, bedrockKeyframeData);
-                        }
-                        delete keyframe["pre"];
-                        delete keyframe["post"];
+                    if (keyframe["lerp_mode"]) delete keyframe["lerp_mode"];
+
+                    let bedrockKeyframeData = keyframe["pre"] || keyframe["post"];
+                    if (bedrockKeyframeData) {
+                        Object.assign(keyframe, bedrockKeyframeData);
                     }
+                    delete keyframe["pre"];
+                    delete keyframe["post"];
+												
+                    // Apply inversion fix (Blockbench 5.0+ compatibility)
+					if (Blockbench.isNewerThan('4.99')) {
+                        if (Array.isArray(keyframe)) {
+                            flipArray(keyframe, animationGroupType);
+                        } else if (Array.isArray(keyframe.vector)) {
+                            keyframe.vector = flipArray(keyframe.vector, animationGroupType);
+                        } else if (
+                            keyframe.x !== undefined ||
+                            keyframe.y !== undefined ||
+                            keyframe.z !== undefined
+                        ) {
+                            // handle object-style keyframes
+                            if (animationGroupType === 'rotation') {
+                                keyframe.x = invertMolang(keyframe.x);
+                                keyframe.y = invertMolang(keyframe.y);
+                            } else if (animationGroupType === 'position') {
+                                keyframe.x = invertMolang(keyframe.x);
+                            }
+                        }
+					}
                 }
             }
         }
@@ -89,155 +189,171 @@ function animatorBuildFile() {
 }
 
 function animatorLoadFile(file, animation_filter) {
-    // Currently no modifications are needed
-    // eslint-disable-next-line no-undef
+    if (Format?.id !== "azure_model") {
+        return Original.get(Animator).loadFile.apply(this, arguments);
+    }
     var json = file.json || autoParseJSON(file.content);
     let path = file.path;
     let new_animations = [];
-    if (json && typeof json.animations === 'object') {
-        for (var ani_name in json.animations) {
-            if (animation_filter && !animation_filter.includes(ani_name)) continue;
-            //Animation
-            var a = json.animations[ani_name]
-            var animation = new Animation({
-                name: ani_name,
-                path,
-                loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
-                override: a.override_previous_animation,
-                anim_time_update: (typeof a.anim_time_update == 'string'
-                    ? a.anim_time_update.replace(/;(?!$)/, ';\n')
-                    : a.anim_time_update),
-                blend_weight: (typeof a.blend_weight == 'string'
-                    ? a.blend_weight.replace(/;(?!$)/, ';\n')
-                    : a.blend_weight),
-                length: a.animation_length
-            }).add()
-            //Bones
-            if (a.bones) {
-                // eslint-disable-next-line no-inner-declarations
-                function getKeyframeDataPoints(source) {
-                    if (source instanceof Array) {
-                        return [{
-                            x: source[0],
-                            y: source[1],
-                            z: source[2],
-                        }]
-                    } else if (['number', 'string'].includes(typeof source)) {
-                        return [{
-                            x: source, y: source, z: source
-                        }]
-                    } else if (typeof source == 'object') {
-                        if(source.vector)
-                        {
-                            return getKeyframeDataPoints(source.vector);
-                        }
-                        let points = [];
-                        if (source.pre) {
-                            points.push(getKeyframeDataPoints(source.pre)[0])
-                        }
-                        if (source.post) {
-                            points.push(getKeyframeDataPoints(source.post)[0])
-                        }
-                        return points;
-                    }
+    if (!json || typeof json.animations !== 'object') return new_animations;
+    
+    function getKeyframeDataPoints(source, channel) {
+        const applyFlip = (vec, channel) => {
+            if (!vec) return vec;
+            if (channel === 'position') {
+                vec.x = invertMolang(vec.x);
+            } else if (channel === 'rotation') {
+                vec.x = invertMolang(vec.x);
+                vec.y = invertMolang(vec.y);
+            }
+            return vec;
+        };
+    
+        // Apply inversion fix (Blockbench 5.0+ compatibility)
+        if (Array.isArray(source) && Blockbench.isNewerThan('4.99')) {
+            let vec = { x: source[0], y: source[1], z: source[2] };
+            applyFlip(vec, channel);
+            return [vec];
+        } else if (typeof source === 'number' || typeof source === 'string') {
+            return [{ x: source, y: source, z: source }];
+        } else if (source && typeof source === 'object') {
+            if (Array.isArray(source.vector)) {
+                return getKeyframeDataPoints(source.vector, channel);
+            }
+            let points = [];
+            if (source.pre) {
+                points.push(getKeyframeDataPoints(source.pre, channel)[0]);
+            }
+            if (source.post) {
+                const postPoint = getKeyframeDataPoints(source.post, channel)[0];
+                if (!(Array.isArray(source.pre) && Array.isArray(source.post) && source.post.equals && source.post.equals(source.pre))) {
+                    points.push(postPoint);
+                } else if (!points.length) {
+                    points.push(postPoint);
                 }
-                for (var bone_name in a.bones) {
-                    var b = a.bones[bone_name]
-                    let lowercase_bone_name = bone_name.toLowerCase();
-                    var group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name)
-                    let uuid = group ? group.uuid : guid();
-
-                    var ba = new BoneAnimator(uuid, animation, bone_name);
-                    animation.animators[uuid] = ba;
-                    //Channels
-                    for (var channel in b) {
-                        if (Animator.possible_channels[channel]) {
-                            if (typeof b[channel] === 'string' || typeof b[channel] === 'number' || b[channel] instanceof Array) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                })
-                            } else if (typeof b[channel] === 'object' && b[channel].post) {
-                                ba.addKeyframe({
-                                    time: 0,
-                                    channel,
-                                    easing: b[channel].easing,
-                                    easingArgs: b[channel].easingArgs,
-                                    interpolation: b[channel].lerp_mode,
-                                    data_points: getKeyframeDataPoints(b[channel]),
-                                });
-                            } else if (typeof b[channel] === 'object') {
-                                for (var timestamp in b[channel]) {
-                                    ba.addKeyframe({
-                                        time: parseFloat(timestamp),
-                                        channel,
-                                        easing: b[channel][timestamp].easing,
-                                        easingArgs: b[channel][timestamp].easingArgs,
-                                        interpolation: b[channel][timestamp].lerp_mode,
-                                        data_points: getKeyframeDataPoints(b[channel][timestamp]),
-                                    });
-                                }
+            }
+            return points.length ? points : undefined;
+        }
+        return undefined;
+    }
+    
+    for (var ani_name in json.animations) {
+        if (animation_filter && !animation_filter.includes(ani_name)) continue;
+    
+        var a = json.animations[ani_name];
+        var animation = new Animation({
+            name: ani_name,
+            path,
+            loop: a.loop && (a.loop == 'hold_on_last_frame' ? 'hold' : 'loop'),
+            override: a.override_previous_animation,
+            anim_time_update: (typeof a.anim_time_update == 'string'
+                ? a.anim_time_update.replace(/;(?!$)/, ';\n')
+                : a.anim_time_update),
+            blend_weight: (typeof a.blend_weight == 'string'
+                ? a.blend_weight.replace(/;(?!$)/, ';\n')
+                : a.blend_weight),
+            length: a.animation_length
+        }).add();
+    
+        if (a.bones) {
+            for (var bone_name in a.bones) {
+                var b = a.bones[bone_name];
+                let lowercase_bone_name = bone_name.toLowerCase();
+                var group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
+                let uuid = group ? group.uuid : guid();
+    
+                var ba = new BoneAnimator(uuid, animation, bone_name);
+                animation.animators[uuid] = ba;
+    
+                for (var channel in b) {
+                    if (!Animator.possible_channels[channel]) continue;
+    
+                    const src = b[channel];
+                    const addKF = (time, srcObj) => {
+                        const kf_points = getKeyframeDataPoints(srcObj, channel);
+                        if (!kf_points) return;
+    
+                        ba.addKeyframe({
+                            time,
+                            channel,
+                            easing: srcObj?.easing ?? (src?.easing),
+                            easingArgs: Array.isArray(srcObj?.easingArgs) ? srcObj.easingArgs : (Array.isArray(src?.easingArgs) ? src.easingArgs : undefined),
+                            interpolation: srcObj?.lerp_mode,
+                            uniform: !(Array.isArray(srcObj) || Array.isArray(srcObj?.vector)),
+                            data_points: kf_points,
+                        });
+                    };
+    
+                    if (typeof src === 'string' || typeof src === 'number' || Array.isArray(src)) {
+                        addKF(0, src);
+    
+                    } else if (src && typeof src === 'object') {
+                        if (src.post || src.pre || src.vector !== undefined) {
+                            addKF(0, src);
+                        } else {
+                            for (var timestamp in src) {
+                                const node = src[timestamp];
+                                addKF(parseFloat(timestamp), node);
                             }
                         }
                     }
                 }
             }
-            if (a.sound_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp0 in a.sound_effects) {
-                    var sounds = a.sound_effects[timestamp0];
-                    if (sounds instanceof Array === false) sounds = [sounds];
-                    animation.animators.effects.addKeyframe({
-                        channel: 'sound',
-                        time: parseFloat(timestamp0),
-                        data_points: sounds
-                    })
-                }
-            }
-            if (a.particle_effects) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp1 in a.particle_effects) {
-                    var particles = a.particle_effects[timestamp1];
-                    if (particles instanceof Array === false) particles = [particles];
-                    particles.forEach(particle => {
-                        if (particle) particle.script = particle.pre_effect_script;
-                    })
-                    animation.animators.effects.addKeyframe({
-                        channel: 'particle',
-                        time: parseFloat(timestamp1),
-                        data_points: particles
-                    })
-                }
-            }
-            if (a.timeline) {
-                if (!animation.animators.effects) {
-                    animation.animators.effects = new EffectAnimator(animation);
-                }
-                for (var timestamp2 in a.timeline) {
-                    var entry = a.timeline[timestamp2];
-                    var script = entry instanceof Array ? entry.join('\n') : entry;
-                    animation.animators.effects.addKeyframe({
-                        channel: 'timeline',
-                        time: parseFloat(timestamp2),
-                        data_points: [{script}]
-                    })
-                }
-            }
-            animation.calculateSnappingFromKeyframes();
-            if (!Animation.selected && Animator.open) {
-                animation.select()
-            }
-            new_animations.push(animation)
         }
+    
+        if (a.sound_effects) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts0 in a.sound_effects) {
+                var sounds = a.sound_effects[ts0];
+                if (!Array.isArray(sounds)) sounds = [sounds];
+                animation.animators.effects.addKeyframe({
+                    channel: 'sound',
+                    time: parseFloat(ts0),
+                    data_points: sounds
+                });
+            }
+        }
+        if (a.particle_effects) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts1 in a.particle_effects) {
+                var particles = a.particle_effects[ts1];
+                if (!Array.isArray(particles)) particles = [particles];
+                particles.forEach(particle => {
+                    if (particle) particle.script = particle.pre_effect_script;
+                });
+                animation.animators.effects.addKeyframe({
+                    channel: 'particle',
+                    time: parseFloat(ts1),
+                    data_points: particles
+                });
+            }
+        }
+        if (a.timeline) {
+            if (!animation.animators.effects) {
+                animation.animators.effects = new EffectAnimator(animation);
+            }
+            for (var ts2 in a.timeline) {
+                var entry = a.timeline[ts2];
+                var script = Array.isArray(entry) ? entry.join('\n') : entry;
+                animation.animators.effects.addKeyframe({
+                    channel: 'timeline',
+                    time: parseFloat(ts2),
+                    data_points: [{ script }]
+                });
+            }
+        }
+    
+        animation.calculateSnappingFromKeyframes();
+        if (!Animation.selected && Animator.open) {
+            animation.select();
+        }
+        new_animations.push(animation);
     }
-    return new_animations
+    return new_animations;
 }
 
 //#endregion Codec Helpers / Export Settings
@@ -282,8 +398,45 @@ export function maybeExportItemJson(options = {}, as) {
         }
         if (entries) {
             blockmodel.display = new_display
+			const SUBTRACT_Y = 1.5; 
+
+			for (const [slot, value] of Object.entries(new_display)) {
+			  const tr = value && value.translation;
+			  if (Array.isArray(tr)) {
+			    const y = Number(tr[1]) || 0;
+			    tr[1] = Math.round((y - SUBTRACT_Y) * 100) / 100;
+			  }
+			}
         }
     }
+    if (Project.textures && checkExport("textures", Object.keys(Project.textures).length >= 1)) {
+        for (const tex of Object.values(Project.textures)) {
+            if (tex.particle || Object.keys(Project.textures).length === 1) {
+                let name = tex.name;
+
+                if (name.indexOf(".png") > -1) {
+                    name = name.substring(0, name.indexOf(".png"));
+                }
+
+                if (!tex.particle && !isValidPath(name)) {
+                    continue;
+                }
+
+                blockmodel.textures = {
+                    particle: name
+                };
+
+                break;
+            }
+        }
+    }
+
+    function isValidPath(path) {
+        const pattern = new RegExp('^[_\\-/.a-z0-9]+$');
+
+        return pattern.test(path);
+    }
+
 
     const blockmodelString = JSON.stringify(blockmodel, null, 2);
     var scope = codec;
@@ -303,6 +456,54 @@ export function maybeExportItemJson(options = {}, as) {
     return this;
 }
 
+export function maybeImportItemJson() {
+    Blockbench.import({
+        resource_id: 'model',
+        type: 'json',
+        extensions: ['json'],
+        readtype: 'text',
+        multiple: false
+    }, (files) => {
+        if (!files?.[0]) return;
+
+        let json;
+        try {
+            json = JSON.parse(files[0].content);
+        } catch {
+            return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
+        }
+
+        if (json.parent !== 'builtin/entity' || typeof json.display !== 'object') {
+            return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
+        }
+
+        Project.display_settings = {};
+
+        for (const [slot, data] of Object.entries(json.display)) {
+            if (!DisplayMode.slots.includes(slot)) continue;
+
+            const rotation    = Array.isArray(data.rotation)    ? data.rotation.slice()    : [0, 0, 0];
+            const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
+            const scale       = Array.isArray(data.scale)       ? data.scale.slice()       : [1, 1, 1];
+
+            const y = Number(translation[1]) || 0;
+            translation[1] = Math.round((y + 1.5) * 100) / 100;
+            const displaySlot = new DisplaySlot(slot);
+            displaySlot.rotation    = rotation;
+            displaySlot.translation = translation;
+            displaySlot.scale       = scale;
+
+            Project.display_settings[slot] = displaySlot;
+        }
+
+        Project.saved = false;
+        DisplayMode.vue.$forceUpdate();
+        DisplayMode.updateDisplayBase();
+
+        Blockbench.showQuickMessage('[AzureLib] Display settings imported successfully.');
+    });
+}
+
 var codec = Codecs.bedrock;
 
 var format = new ModelFormat({
@@ -318,6 +519,7 @@ var format = new ModelFormat({
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
     locators: true,

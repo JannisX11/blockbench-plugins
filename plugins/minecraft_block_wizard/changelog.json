@@ -21,7 +21,7 @@
 	},
 	"1.4.0": {
 		"title": "1.4.0",
-		"date": "2025-10-05",
+		"date": "2025-02-15",
 		"author": "JannisX11",
 		"categories": [
 			{
@@ -51,6 +51,20 @@
 					"Added redstone conductivity option",
 					"Added compatibility for Blockbench 5.0",
 					"Added compatibility for new Minecraft install location"
+				]
+			}
+		]
+	},
+	"1.5.2": {
+		"title": "1.5.2",
+		"date": "2025-10-25",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed export issue in the web app",
+					"Fixed issue with exporting to the new Minecraft install location"
 				]
 			}
 		]

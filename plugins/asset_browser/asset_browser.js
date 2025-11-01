@@ -69,7 +69,7 @@ Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft", "Assets", "Browser"],
-  version: "1.2.0",
+  version: "1.2.1",
   min_version: "5.0.0",
   variant: "desktop",
   creation_date: "2025-05-30",
@@ -166,7 +166,7 @@ Plugin.register(id, {
           padding: 12px 16px;
         }
 
-        bb-select {
+        .bb-select {
           cursor: pointer;
         }
 

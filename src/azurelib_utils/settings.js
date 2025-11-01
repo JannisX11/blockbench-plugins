@@ -1,3 +1,11 @@
+/**
+ * This module is a fork of the GeckoLib Animation Utils plugin and modified for use in the Azurelib fork.
+ * Original source:
+ * https://github.com/JannisX11/blockbench-plugins/tree/034ed058efa5b2847fb852e3b215aad372080dcf/src/animation_utils 
+ * Copyright © 2024 Bernie-G. Licensed under the MIT License.
+ * https://github.com/JannisX11/blockbench-plugins/blob/main/LICENSE
+ */
+
 import armorTemplate from './armorTemplate.json';
 
 const makeOptions = arr => Object.fromEntries(arr.map(x => [x, x]));
@@ -12,8 +20,7 @@ export const AZURE_ARMOR = 'AZURE_ARMOR';
 export const AZURE_ITEM_BLOCK = 'AZURE_ITEM_BLOCK';
 export const OBJ_TYPE_OPTIONS = {
   [AZURE_ENTITY]: 'Entity/Block/Item',
-  [AZURE_ARMOR]: 'Armor',
-  [AZURE_ITEM_BLOCK]: 'Block/Item', //Will be deprecated in the future, kept to kept existing bbmodels working. Merged into AZURE_ENTITY
+  [AZURE_ARMOR]: 'Armor'
 };
 
 export const AZURELIB_SETTINGS_DEFAULT = {
@@ -38,9 +45,6 @@ export function onSettingsChanged() {
       } else {
         alert('Unable to load Armor Template as this would overwrite the current model. Please select Armor type on an empty project if you want to use the Armor Template.');
       }
-      break;
-    } case AZURE_ITEM_BLOCK: {
-      Project.parent = 'builtin/entity';
       break;
     } case AZURE_ENTITY: {
       Project.parent = 'builtin/entity';

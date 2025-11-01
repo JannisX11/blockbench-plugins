@@ -14,7 +14,7 @@ Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Tracking", "Stats", "Utility"],
-  version: "1.1.0",
+  version: "1.1.1",
   min_version: "4.8.0",
   variant: "both",
   creation_date: "2023-03-30",
@@ -153,7 +153,7 @@ Plugin.register(id, {
       buttons: [],
       component: {
         data: () => ({
-          Project,
+          get Project() { return Project },
           activity,
           importDialog,
           exportDialog,

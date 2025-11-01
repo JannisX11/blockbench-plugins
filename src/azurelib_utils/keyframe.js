@@ -1,3 +1,11 @@
+/**
+ * This module is a fork of the GeckoLib Animation Utils plugin and modified for use in the Azurelib fork.
+ * Original source:
+ * https://github.com/JannisX11/blockbench-plugins/tree/034ed058efa5b2847fb852e3b215aad372080dcf/src/animation_utils 
+ * Copyright © 2024 Bernie-G. Licensed under the MIT License.
+ * https://github.com/JannisX11/blockbench-plugins/blob/main/LICENSE
+ */
+
 import { Original, addMonkeypatch, hasArgs } from './utils';
 import { easingFunctions, EASING_DEFAULT, getEasingArgDefault } from './easing';
 
@@ -57,8 +65,10 @@ function azurelibGetArray(data_point = 0) {
 }
 
 function keyframeCompileBedrock() {
-    if (Format.id !== "azure_model" || !this.transform) {
-        return Original.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
+	const original = Original.get(Keyframe).compileBedrockKeyframe;
+	const isExporting = Blockbench.exporting || Codecs.exporting || Animator.exporting;
+	if (Format.id !== "azure_model" || !this.transform || !isExporting) {
+        return original.apply(this, arguments);
     }
 
     const previousKeyframe = this.getPreviousKeyframe.bind(this);

@@ -148,6 +148,17 @@
         0
       ],
       "uuid": "7b31bac4-dc40-2b93-1204-7bbdcfe7d924"
+    },
+    {
+      "name": "dontTouch",
+      "from": [-4, 12, -2],
+      "to": [4, 16, 2],
+      "autouv": 1,
+      "color": 0,
+      "export": false,
+      "locked": true,
+      "origin": [0, 12, 0],
+      "uuid": "aa51250c-8b32-fb62-71f1-58ac0b7785a8"
     }
   ],
   "outliner": [
@@ -223,7 +234,7 @@
       "visibility": true,
       "autouv": 0,
       "origin": [
-        4,
+        5,
         22,
         0
       ],
@@ -237,7 +248,7 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            4,
+            5,
             22,
             0
           ],
@@ -255,7 +266,7 @@
       "visibility": true,
       "autouv": 0,
       "origin": [
-        -4,
+        -5,
         22,
         0
       ],
@@ -269,8 +280,40 @@
           "visibility": true,
           "autouv": 0,
           "origin": [
-            -4,
+            -5,
             22,
+            0
+          ],
+          "children": [
+            
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bipedWaist",
+      "uuid": "d8125cc7-7e10-0930-259e-b8e4211ce9da",
+      "export": true,
+      "isOpen": true,
+      "visibility": true,
+      "autouv": 0,
+      "origin": [
+        0,
+        12,
+        0
+      ],
+      "children": [
+        "aa51250c-8b32-fb62-71f1-58ac0b7785a8",
+        {
+          "name": "armorWaist",
+          "uuid": "c9000e23-fd2f-b56c-3552-45d6650e11c6",
+          "export": true,
+          "isOpen": true,
+          "visibility": true,
+          "autouv": 0,
+          "origin": [
+            0,
+            12,
             0
           ],
           "children": [

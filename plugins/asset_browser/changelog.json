@@ -50,5 +50,18 @@
         ]
       }
     ]
+  },
+  "1.2.1": {
+    "title": "1.2.1",
+    "date": "2025-10-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed select menu styling"
+        ]
+      }
+    ]
   }
 }
