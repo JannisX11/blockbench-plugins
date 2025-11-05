@@ -241,7 +241,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.10.2",
+    version: "1.10.3",
     min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -2182,6 +2182,8 @@
                     align-items: center;
                     cursor: pointer;
                     background-color: var(--color-button);
+                    border-radius: 5px;
+                    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
                   }
                   .minecraft-title-preset:hover {
                     background-color: var(--color-accent);
@@ -2456,13 +2458,13 @@
                   template: `
                     <div id="minecraft-title-presets-container">
                       <div v-if="Object.keys(this.presets).length" id="minecraft-title-presets">
-                        <div v-for="[name, data] of Object.entries(presets)" class="minecraft-title-preset" @click="load(event, name)">
+                        <div v-for="[name, data] of Object.entries(presets)" class="minecraft-title-preset" @click="load($event, name)">
                           <i class="material-icons" :title="(data.settings.fontType === 'shape' ? 'Shape' : 'Text') + ' preset'">{{ data.settings.fontType === 'shape' ? 'interests' : 'text_fields' }}</i>
                           <div class="minecraft-title-preset-name">{{ name }}</div>
                           <div class="spacer"></div>
                           <div class="minecraft-title-preset-date">{{ new Date(data.date).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }) }}</div>
-                          <i class="material-icons clickable" @click="exportPreset(event, name)" title="Share preset">ios_share</i>
-                          <i class="material-icons clickable" @click="deletePreset(event, name)" title="Delete preset">delete</i>
+                          <i class="material-icons clickable" @click="exportPreset($event, name)" title="Share preset">ios_share</i>
+                          <i class="material-icons clickable" @click="deletePreset($event, name)" title="Delete preset">delete</i>
                         </div>
                       </div>
                       <hr v-if="Object.keys(this.presets).length">
