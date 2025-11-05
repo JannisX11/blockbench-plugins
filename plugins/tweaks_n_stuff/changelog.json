@@ -31,5 +31,24 @@
         "list": ["Removed `Image Exporter` tweak"]
       }
     ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2025-10-27",
+    "author": "legopitstop",
+    "categories": [
+      {
+        "title": "General",
+        "list": ["Plugin now uses typescript.", "Added translation support. (Translations found in `plugins/tweaks_n_stuff/src/ts/lang`)"]
+      },
+      {
+        "title": "New Tweaks",
+        "list": ["Added `Pin Tab` tweak."]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": ["Changing the profile color wouldn't update the header color."]
+      }
+    ]
   }
 }
