@@ -1,4 +1,4 @@
-<img src="https://i.imgur.com/fjDJ4jM.png" alt="GeckoLib"/>
+<img src="https://github.com/user-attachments/assets/77a85ba0-86c0-41ee-b06d-4cc265a4a2a0" alt="GeckoLib"/>
 
 Blockbench plugin for the GeckoLib animation and rendering library mod for Minecraft: Java edition.
 This plugin allows you to create and edit model and animation assets for GeckoLib-based mods, utilising Blockbench's live animation editor and other editing tools.
