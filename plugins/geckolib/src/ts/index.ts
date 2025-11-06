@@ -168,7 +168,10 @@ function createPluginProperties(): Property<any>[] {
               values: Object.values(GeckoModelType)
           }),
           property => {
-            property['description'] = 'The type of GeckoLib object this model is for. Leave as the default value if unsure';
+              property.merge = (instance, data) => {
+                  instance[PROPERTY_MODEL_TYPE] = data[PROPERTY_MODEL_TYPE] as string;
+              }
+              property['description'] = 'The type of GeckoLib object this model is for. Leave as the default value if unsure';
           }
       ),
       make(

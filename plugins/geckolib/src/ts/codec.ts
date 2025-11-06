@@ -82,11 +82,14 @@ function createProjectSettingsForm(Project: ModelProject) {
     const modelType = properties[PROPERTY_MODEL_TYPE];
 
     if (modelType) {
+        const currentType = Project[PROPERTY_MODEL_TYPE];
         form[PROPERTY_MODEL_TYPE] = {
             label: modelType.label,
             description: modelType["description"],
             default: GeckoModelType.ENTITY.toUpperCase(),
-            value: Project[PROPERTY_MODEL_TYPE] instanceof String ? GeckoModelType[Project[PROPERTY_MODEL_TYPE].toUpperCase()].toUpperCase() : GeckoModelType.ENTITY.toUpperCase(),
+            value: typeof(currentType) === 'string' ?
+                GeckoModelType[currentType.toUpperCase()].toUpperCase() :
+                GeckoModelType.ENTITY.toUpperCase(),
             placeholder: modelType["placeholder"],
             type: 'select',
             options: modelType["options"],
