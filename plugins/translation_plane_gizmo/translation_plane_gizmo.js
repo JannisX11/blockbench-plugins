@@ -10,7 +10,7 @@
      * 
      * @author AnnJ
      * @version 1.0.0
-     * @compatibility Blockbench v4.0.0+
+     * @compatibility Blockbench v4.8.0+
      */
 
     const PLUGIN_ID = 'translation_plane_gizmo';
@@ -37,58 +37,17 @@
         en: {
             'plane_gizmo_toggle': 'Toggle Translation Plane Gizmo',
             'plane_gizmo_description': 'Enhanced 2D plane gizmo for simultaneous multi-axis translation',
-            'plane_gizmo_plugin_description': 'Adds 2D plane gizmos for multi-axis translation',
-            'plane_gizmo_about': `Translation Plane Gizmo v1.0.0
-
-<h3>Features</h3>
-- 2D Plane Movement: Drag colored planes to move objects along two axes simultaneously<br>
-- RGB Color Coding: XY (Blue), XZ (Green), YZ (Red) planes<br>
-- Blender-Style: Professional square handles that scale with zoom<br>
-- Toggle Button: Toolbar button to enable/disable
-
-<h3>Usage</h3>
-1. Select objects and switch to Move tool<br>
-2. Click and drag colored planes for 2D movement<br>
-3. Hold Shift for grid snapping`
+            'plane_gizmo_plugin_description': 'Adds 2D plane gizmos for multi-axis translation'
         },
         fr: {
             'plane_gizmo_toggle': 'Basculer le Gizmo de Plan de Translation',
             'plane_gizmo_description': 'Gizmo de plan 2D amélioré pour la translation multi-axes simultanée',
-            'plane_gizmo_plugin_description': 'Ajoute des gizmos de plan 2D pour la translation multi-axes',
-            'plane_gizmo_about': `Translation Plane Gizmo v1.0.0
-
-<h3>Fonctionnalités</h3>
-- Mouvement 2D par Plans: Glissez les plans colorés pour déplacer les objets le long de deux axes simultanément<br>
-- Codage Couleur RGB: Plans XY (Bleu), XZ (Vert), YZ (Rouge)<br>
-- Style Blender: Poignées carrées professionnelles qui s'adaptent au zoom<br>
-- Bouton Toggle: Bouton dans la barre d'outils pour activer/désactiver
-
-<h3>Utilisation</h3>
-1. Sélectionnez des objets et passez à l'outil Déplacer<br>
-2. Cliquez et glissez les plans colorés pour un mouvement 2D<br>
-3. Maintenez Shift pour l'accrochage grille`
+            'plane_gizmo_plugin_description': 'Ajoute des gizmos de plan 2D pour la translation multi-axes'
         }
     };
 
-    try {
-        if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
-            MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-            MenuBar.removeAction('plane_gizmo_toggle', 'view');
-            MenuBar.removeAction('plane_gizmo_toggle', 'edit');
-        }
-        if (typeof MenuBar !== 'undefined' && MenuBar.actions) {
-            const existingAction = MenuBar.actions.find(action => action.id === 'plane_gizmo_toggle');
-            if (existingAction) {
-                MenuBar.removeAction(existingAction, 'toolbar');
-                MenuBar.removeAction(existingAction, 'view');
-                MenuBar.removeAction(existingAction, 'edit');
-            }
-        }
-    } catch (e) {
-    }
 
     const PLANE_CONFIG = {
-        color: { XY: 0x0000ff, XZ: 0x00ff00, YZ: 0xff0000 },
         baseOpacity: 0.6,
         hoverOpacity: 1,
         renderOrder: 99999,
@@ -105,7 +64,6 @@
     let isDragging = false;
     let currentDragPlane = null;
     let dragStartPoint = null;
-    let dragStartPosition = null;
     let dragAppliedDelta = null;
     let updateInterval = null;
     let selectionPollingInterval = null;
@@ -113,6 +71,30 @@
     let menuAction = null;
     let lastHoveredPlane = null;
     let cameraEventHandlers = { wheel: null, cameraMove: null };
+
+    /**
+     * Check if the current model format supports parent space rotation
+     * Java Block models don't support proper parent space, so we disable this feature for them
+     */
+    function supportsParentSpaceRotation() {
+        if (typeof Format === 'undefined' || !Format || !Format.id) {
+            return false;
+        }
+        
+        if (Format.id === 'java_block') {
+            return false;
+        }
+        
+        return true;
+    }
+
+    function isEntityFormat() {
+        if (typeof Format === 'undefined' || !Format || !Format.id) {
+            return false;
+        }
+        
+        return Format.id !== 'java_block';
+    }
 
     function createSolidMaterial(color, opacity) {
         return new THREE.MeshBasicMaterial({
@@ -132,15 +114,11 @@
     function getGizmoParent() {
         if (gizmoGroup) return gizmoGroup;
 
-        if (typeof scene !== 'undefined' && scene) {
-            gizmoGroup = new THREE.Group();
-            gizmoGroup.name = 'PlaneGizmoGroup';
-            gizmoGroup.renderOrder = PLANE_CONFIG.renderOrder;
-            scene.add(gizmoGroup);
-            return gizmoGroup;
-        }
-
-        return null;
+        gizmoGroup = new THREE.Group();
+        gizmoGroup.name = 'PlaneGizmoGroup';
+        gizmoGroup.renderOrder = PLANE_CONFIG.renderOrder;
+        scene.add(gizmoGroup);
+        return gizmoGroup;
     }
 
     function createPlaneHandles() {
@@ -158,31 +136,22 @@
         const planes = [
             { 
                 name: 'XY', 
-                color: PLANE_CONFIG.color.XY, 
-                axes: ['x', 'y'], 
                 rotation: new THREE.Euler(0, 0, 0), 
                 offset: new THREE.Vector3(PLANE_CONFIG.offsetDistance * 0.5, PLANE_CONFIG.offsetDistance * 0.5, 0) 
             },
             { 
                 name: 'XZ', 
-                color: PLANE_CONFIG.color.XZ, 
-                axes: ['x', 'z'], 
                 rotation: new THREE.Euler(-Math.PI/2, 0, 0), 
                 offset: new THREE.Vector3(PLANE_CONFIG.offsetDistance * 0.5, 0, PLANE_CONFIG.offsetDistance * 0.5) 
             },
             { 
                 name: 'YZ', 
-                color: PLANE_CONFIG.color.YZ, 
-                axes: ['y', 'z'], 
                 rotation: new THREE.Euler(0, Math.PI/2, 0), 
                 offset: new THREE.Vector3(0, PLANE_CONFIG.offsetDistance * 0.5, PLANE_CONFIG.offsetDistance * 0.5) 
             }
         ];
 
         const parent = getGizmoParent();
-        if (!parent) {
-            return;
-        }
 
         planes.forEach(plane => {
             let material;
@@ -204,12 +173,9 @@
             mesh.scale.setScalar(1.0);
             mesh.userData = {
                 planeName: plane.name,
-                axes: plane.axes,
                 baseOpacity: PLANE_CONFIG.baseOpacity,
                 baseScale: PLANE_CONFIG.planeSize,
-                baseColor: material.color.getHex(),
                 isPlaneGizmo: true,
-                clickable: true,
                 offset: plane.offset.clone(),
                 originalRotation: plane.rotation.clone()
             };
@@ -256,7 +222,21 @@
         const isTranslate = mode === 'translate' || mode === 'move';
 
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
-        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
+        let validSelection = false;
+        
+        if (isEntityFormat()) {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el);
+            } else {
+                const allGroups = Project && Project.groups ? Project.groups : [];
+                const selectedGroups = allGroups.filter(g => g && g.selected);
+                validSelection = selectedGroups.length > 0;
+            }
+        } else {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el && (el.from || el.position));
+            }
+        }
 
         const show = isGizmoEnabled 
                          && Transformer && Transformer.visible
@@ -266,15 +246,30 @@
 
         let center = new THREE.Vector3();
         let hasValidSelection = false;
-        
-        if (show && Transformer && Transformer.position) {
-            // Use the built-in Transformer position and rotation for correct handling of rotated groups
-            center.copy(Transformer.position);
-            hasValidSelection = true;
+
+        if (show && Transformer) {
+            if (Transformer.position) {
+                center.copy(Transformer.position);
+                hasValidSelection = true;
+            } else if (isEntityFormat() && hasSelection && Outliner.selected.length > 0) {
+                const firstSelected = Outliner.selected[0];
+                if (firstSelected) {
+                    if (firstSelected.origin && Array.isArray(firstSelected.origin) && firstSelected.origin.length >= 3) {
+                        center.set(firstSelected.origin[0] || 0, firstSelected.origin[1] || 0, firstSelected.origin[2] || 0);
+                        hasValidSelection = true;
+                    } else if (firstSelected.position && Array.isArray(firstSelected.position) && firstSelected.position.length >= 3) {
+                        center.set(firstSelected.position[0] || 0, firstSelected.position[1] || 0, firstSelected.position[2] || 0);
+                        hasValidSelection = true;
+                    } else {
+                        center.set(0, 0, 0);
+                        hasValidSelection = true;
+                    }
+                }
+            }
         }
 
         let cameraScale = 1.0;
-        if (hasValidSelection) {
+        if (hasValidSelection && Preview && Preview.selected && typeof Preview.selected.calculateControlScale === 'function') {
             cameraScale = Preview.selected.calculateControlScale(center);
         }
 
@@ -300,17 +295,38 @@
                 } else {
                     handle.position.copy(center);
                 }
+
+                let isParentSpace = false;
+                let parentRotation = null;
+                if (supportsParentSpaceRotation() && Transformer && typeof Transformer.getTransformSpace === 'function') {
+                    const space = Transformer.getTransformSpace();
+                    if (typeof space === 'object' && space !== null) {
+                        isParentSpace = true;
+                        if (space.rotation) {
+                            const rot = space.rotation;
+                            if (Array.isArray(rot) && rot.length >= 3) {
+                                parentRotation = new THREE.Euler(
+                                    THREE.MathUtils.degToRad(rot[0]),
+                                    THREE.MathUtils.degToRad(rot[1]),
+                                    THREE.MathUtils.degToRad(rot[2]),
+                                    'XYZ'
+                                );
+                            }
+                        }
+                    }
+                }
                 
-                // Apply Transformer rotation to handle rotated groups correctly
-                if (Transformer && Transformer.rotation) {
-                    // Combine the base plane rotation with the Transformer rotation
+                if (!parentRotation && isParentSpace && Transformer.rotation) {
+                    parentRotation = Transformer.rotation;
+                }
+                
+                if (isParentSpace && parentRotation) {
                     const baseRotation = handle.userData.originalRotation || new THREE.Euler(0, 0, 0);
-                    const quaternion = new THREE.Quaternion();
-                    quaternion.setFromEuler(baseRotation);
-                    quaternion.multiplyQuaternions(quaternion, new THREE.Quaternion().setFromEuler(Transformer.rotation));
-                    handle.rotation.setFromQuaternion(quaternion);
+                    const parentQuat = new THREE.Quaternion().setFromEuler(parentRotation);
+                    const baseQuat = new THREE.Quaternion().setFromEuler(baseRotation);
+                    const finalQuat = parentQuat.clone().multiply(baseQuat);
+                    handle.rotation.setFromQuaternion(finalQuat);
                 } else {
-                    // Reset to original plane orientations if no Transformer rotation
                     handle.rotation.copy(handle.userData.originalRotation || new THREE.Euler(0, 0, 0));
                 }
             } else {
@@ -328,12 +344,7 @@
 
             if (!handle.userData.isHovered) {
                 handle.scale.setScalar(handle.userData.baseScale);
-
-                if (handle.material.uniforms && handle.material.uniforms.opacity) {
-                    handle.material.uniforms.opacity.value = handle.userData.baseOpacity;
-                } else {
-                    handle.material.opacity = handle.userData.baseOpacity;
-                }
+                handle.material.opacity = handle.userData.baseOpacity;
             }
         });   
     }
@@ -387,7 +398,22 @@
         const mode = Toolbox?.selected?.transformerMode;
         const isTranslate = mode === 'translate' || mode === 'move';
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
-        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
+        let validSelection = false;
+        
+        if (isEntityFormat()) {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el);
+            } else {
+                const allGroups = Project && Project.groups ? Project.groups : [];
+                const selectedGroups = allGroups.filter(g => g && g.selected);
+                validSelection = selectedGroups.length > 0;
+            }
+        } else {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el && (el.from || el.position));
+            }
+        }
+        
         const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
 
         if (!shouldShow) {
@@ -458,7 +484,22 @@
         const mode = Toolbox?.selected?.transformerMode;
         const isTranslate = mode === 'translate' || mode === 'move';
         const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
-        const validSelection = hasSelection && Outliner.selected.some(el => el && (el.from || el.position));
+        let validSelection = false;
+        
+        if (isEntityFormat()) {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el);
+            } else {
+                const allGroups = Project && Project.groups ? Project.groups : [];
+                const selectedGroups = allGroups.filter(g => g && g.selected);
+                validSelection = selectedGroups.length > 0;
+            }
+        } else {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el && (el.from || el.position));
+            }
+        }
+        
         const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
 
         if (!shouldShow) return;
@@ -477,16 +518,7 @@
         isDragging = true;
         currentDragPlane = intersects[0].object;
         dragStartPoint = intersects[0].point.clone();
-        dragStartPosition = {};
         dragAppliedDelta = new THREE.Vector3(0, 0, 0);
-
-        Outliner.selected.forEach(el => {
-            if (el.from && el.to) {
-                dragStartPosition[el.uuid] = { from: [...el.from], to: [...el.to] };
-            } else if (el.position) {
-                dragStartPosition[el.uuid] = { position: [...el.position] };
-            }
-        });
 
         if (PLANE_CONFIG.enableUndo && Undo && Undo.initEdit) {
             const undoable = (Outliner.selected || []).filter(el => typeof el.getUndoCopy === 'function');
@@ -508,21 +540,66 @@
         const planeName = currentDragPlane.userData.planeName;
         const plane = new THREE.Plane();
 
-        switch (planeName) {
-            case 'XY': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), dragStartPoint); break;
-            case 'XZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), dragStartPoint); break;
-            case 'YZ': plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), dragStartPoint); break;
-        }
+        const localNormal = new THREE.Vector3(0, 0, 1);
+        const worldNormal = localNormal.clone().applyQuaternion(
+            currentDragPlane.getWorldQuaternion(new THREE.Quaternion())
+        );
+        plane.setFromNormalAndCoplanarPoint(worldNormal, dragStartPoint);
 
-            const intersectPoint = new THREE.Vector3();
+        const intersectPoint = new THREE.Vector3();
         if (!ray.ray.intersectPlane(plane, intersectPoint)) return;
 
-            const delta3 = intersectPoint.clone().sub(dragStartPoint);
-            let desired = new THREE.Vector3(
-                (planeName === 'XY' || planeName === 'XZ') ? delta3.x : 0,
-                (planeName === 'XY' || planeName === 'YZ') ? delta3.y : 0,
-                (planeName === 'XZ' || planeName === 'YZ') ? delta3.z : 0
-            );
+        const worldDelta = intersectPoint.clone().sub(dragStartPoint);
+
+        let isParentSpace = false;
+        let parentRotation = null;
+        if (supportsParentSpaceRotation() && Transformer && typeof Transformer.getTransformSpace === 'function') {
+            const space = Transformer.getTransformSpace();
+            if (typeof space === 'object' && space !== null) {
+                isParentSpace = true;
+                if (space.rotation) {
+                    const rot = space.rotation;
+                    if (Array.isArray(rot) && rot.length >= 3) {
+                        parentRotation = new THREE.Euler(
+                            THREE.MathUtils.degToRad(rot[0]),
+                            THREE.MathUtils.degToRad(rot[1]),
+                            THREE.MathUtils.degToRad(rot[2]),
+                            'XYZ'
+                        );
+                    }
+                }
+            }
+        }
+        
+        if (!parentRotation && isParentSpace && Transformer && Transformer.rotation) {
+            parentRotation = Transformer.rotation;
+        }
+        
+        let parentXAxis = new THREE.Vector3(1, 0, 0);
+        let parentYAxis = new THREE.Vector3(0, 1, 0);
+        let parentZAxis = new THREE.Vector3(0, 0, 1);
+        
+        if (isParentSpace && parentRotation) {
+            const parentQuaternion = new THREE.Quaternion().setFromEuler(parentRotation);
+            parentXAxis.applyQuaternion(parentQuaternion);
+            parentYAxis.applyQuaternion(parentQuaternion);
+            parentZAxis.applyQuaternion(parentQuaternion);
+        }
+
+        let desired = new THREE.Vector3();
+        if (planeName === 'XY') {
+            desired.x = worldDelta.dot(parentXAxis);
+            desired.y = worldDelta.dot(parentYAxis);
+            desired.z = 0;
+        } else if (planeName === 'XZ') {
+            desired.x = worldDelta.dot(parentXAxis);
+            desired.y = 0;
+            desired.z = worldDelta.dot(parentZAxis);
+        } else if (planeName === 'YZ') {
+            desired.x = 0;
+            desired.y = worldDelta.dot(parentYAxis);
+            desired.z = worldDelta.dot(parentZAxis);
+        }
 
         const snapping = PLANE_CONFIG.snapToGrid ^ (event.shiftKey === true);
         if (snapping) {
@@ -558,9 +635,8 @@
         isDragging = false;
         currentDragPlane = null;
         dragStartPoint = null;
-        dragStartPosition = null;
         dragAppliedDelta = null;
-        
+
         document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
         document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
 
@@ -633,30 +709,17 @@
         return t('plane_gizmo_toggle');
     }
 
-    function getLocalizedActionDescription() {
-        return t('plane_gizmo_description');
-    }
-
     function getLocalizedPluginDescription() {
         return t('plane_gizmo_description');
     }
 
-    function getLocalizedAbout() {
-        return t('plane_gizmo_about');
-    }
-
     function createToolbarButton() {
-        try {
-            if (menuAction) {
-                menuAction = null;
-            }
+        const actionName = getLocalizedActionName();
 
-            const actionName = getLocalizedActionName();
-            const actionDescription = getLocalizedActionDescription();
-
+        if (typeof Action !== 'undefined') {
             menuAction = new Action('plane_gizmo_toggle', {
                 name: actionName,
-                description: actionDescription,
+                description: t('plane_gizmo_description'),
                 icon: 'view_in_ar',
                 click: () => {
                     toggleGizmo();
@@ -666,20 +729,12 @@
                 }
             });
 
-            MenuBar.addAction(menuAction, 'toolbar');
-
-
-        } catch (e) {
-            window.togglePlaneGizmo = toggleGizmo;
+            if (MenuBar && typeof MenuBar.addAction === 'function') {
+                MenuBar.addAction(menuAction, 'toolbar');
+            }
         }
     }
 
-    try {
-        if (typeof MenuBar !== 'undefined' && MenuBar.removeAction) {
-            MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-        }
-    } catch (e) {
-    }
 
     Plugin.register(PLUGIN_ID, {
         title: 'Translation Plane Gizmo',
@@ -687,10 +742,9 @@
         description: getLocalizedPluginDescription(),
         icon: 'control_camera',
         version: '1.0.0',
-        min_version: '4.0.0',
+        min_version: '4.8.0',
         variant: 'both',
         tags: ['Gizmo', 'Translation', 'Tools'],
-        about: getLocalizedAbout(),
         contributes: {
             actions: [
                 {
@@ -722,19 +776,17 @@
                 }
             }, 16);
 
-            if (typeof Outliner !== 'undefined' && Outliner.selected) {
-                let lastSelectionLength = Outliner.selected ? Outliner.selected.length : 0;
+            let lastSelectionLength = Outliner.selected ? Outliner.selected.length : 0;
 
-                selectionPollingInterval = setInterval(() => {
-                    const currentLength = Outliner.selected ? Outliner.selected.length : 0;
-                    if (currentLength !== lastSelectionLength) {
-                        lastSelectionLength = currentLength;
-                        if (isGizmoEnabled) {
-                            updatePlaneHandles();
-                        }
+            selectionPollingInterval = setInterval(() => {
+                const currentLength = Outliner.selected ? Outliner.selected.length : 0;
+                if (currentLength !== lastSelectionLength) {
+                    lastSelectionLength = currentLength;
+                    if (isGizmoEnabled) {
+                        updatePlaneHandles();
                     }
-                }, 50);
-            }
+                }
+            }, 50);
 
             const canvas = document.querySelector('canvas');
             if (canvas) {
@@ -775,33 +827,15 @@
 
             removePlaneHandles();
 
-
-            if (menuAction) {
-                try {
-                    MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
-                    MenuBar.removeAction('plane_gizmo_toggle', 'view');
-                    MenuBar.removeAction('plane_gizmo_toggle', 'edit');
-                } catch (e) {
-                }
-                menuAction = null;
+            if (gizmoGroup && scene) {
+                scene.remove(gizmoGroup);
             }
 
-            try {
+            if (menuAction && MenuBar && typeof MenuBar.removeAction === 'function') {
                 MenuBar.removeAction('plane_gizmo_toggle', 'toolbar');
                 MenuBar.removeAction('plane_gizmo_toggle', 'view');
                 MenuBar.removeAction('plane_gizmo_toggle', 'edit');
-            } catch (e) {
-            }
-
-            if (window.togglePlaneGizmo) {
-                delete window.togglePlaneGizmo;
-            }
-
-            if (typeof Blockbench !== 'undefined' && Blockbench.keybinds) {
-                    try {
-                        Blockbench.keybinds.remove('plane_gizmo.toggle');
-                } catch (e) {
-                }
+                menuAction = null;
             }
 
             gizmoGroup = null;
