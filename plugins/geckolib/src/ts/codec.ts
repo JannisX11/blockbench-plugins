@@ -13,23 +13,25 @@ const codec = Codecs.bedrock;
 // This gets automatically applied by Blockbench, we don't need to do anything with it
 export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
     id: GECKOLIB_MODEL_ID,
-    name: "GeckoLib Animated Model",
-    category: "minecraft",
-    description: "Animated Model for Java mods using GeckoLib",
     icon: "view_in_ar",
-    rotate_cubes: true,
+    name: "GeckoLib Animated Model",
+    description: "Animated Model for Java mods using GeckoLib",
+    category: "minecraft",
     box_uv: true,
     optional_box_uv: true,
     single_texture: true,
+    animated_textures: true,
     bone_rig: true,
     centered_grid: true,
-    animated_textures: true,
-    select_texture_for_particles: true,
-    animation_files: true,
+    rotate_cubes: true,
     locators: true,
-    codec: Codecs.project,
+    uv_rotation: true,
+    select_texture_for_particles: true,
+    texture_mcmeta: true,
+    animation_files: true,
     display_mode: false,
     animation_mode: true,
+    codec: Codecs.project,
 })
 
 // Override the new project panel to allow customisation
