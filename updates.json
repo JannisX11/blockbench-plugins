@@ -465,9 +465,9 @@
     "updated": 1731196800000
   },
   "tweaks_n_stuff": {
-    "version": "1.0.2",
+    "version": "1.1.0",
     "created": 1728259200000,
-    "updated": 1737676800000
+    "updated": 1763074905482
   },
   "meshy": {
     "version": "1.0.5",
@@ -515,8 +515,8 @@
     "updated": 1756684800000
   },
   "gltf_importer": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "created": 1758758400000,
-    "updated": 1758758400000
+    "updated": 1763074905482
   }
 }
