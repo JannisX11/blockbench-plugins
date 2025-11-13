@@ -518,5 +518,10 @@
     "version": "1.1.0",
     "created": 1758758400000,
     "updated": 1763074905482
+  },
+  "translation_plane_gizmo": {
+    "version": "1.0.0",
+    "created": 1763076756774,
+    "updated": 1763076756774
   }
 }
