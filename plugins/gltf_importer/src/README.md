@@ -1,4 +1,4 @@
-# Joint Pain
+# glTF Importer
 
 A plugin to import glTF models into Blockbench.
 The approach is to use THREE.js GLTFLoader to import the glTF into

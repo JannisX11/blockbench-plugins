@@ -208,5 +208,25 @@
         ]
       }
     ]
+  },
+  "4.2.2": {
+    "title": "4.2.2",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Added support for auto-creating the .png.mcmeta file for animated textures"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the model type property not saving/loading/applying properly",
+          "Fixed the broken plugin description page image for UK users",
+          "Fixed UV face rotation not showing when editing textures"
+        ]
+      }
+    ]
   }
 }

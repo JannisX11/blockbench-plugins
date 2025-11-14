@@ -539,5 +539,24 @@
         ]
       }
     ]
+  },
+  "1.10.3": {
+    "title": "1.10.3",
+    "date": "2025-11-01",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated preset button styles to match the Blockbench 5.0 button design"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed presets failing to load"
+        ]
+      }
+    ]
   }
 }

@@ -2445,7 +2445,7 @@
     });
     content.elements.push(mesh);
     let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
-    let primitiveTextures = primitives.map((p) => importTexture(p.material?.map, options, content));
+    let primitiveTextures = primitives.map((p) => importTexture(p.material, options, content));
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
     let primitiveToUniqueVertexIndices = [];
@@ -2535,13 +2535,6 @@
             uv,
             texture
           }));
-          if (options.backFaces) {
-            faces.push(new MeshFace(mesh, {
-              vertices: faceVertexKeys.reverse(),
-              uv,
-              texture
-            }));
-          }
         }
       }
     }
@@ -2556,11 +2549,16 @@
     let textureCacheKeys = Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
     return textureCacheKeys;
   }
-  function importTexture(threeTexture, options, content) {
+  function importTexture(threeMaterial, options, content) {
+    let threeTexture = threeMaterial?.map;
     if (threeTexture == void 0)
       return void 0;
-    if (content.texturesById[threeTexture.uuid] !== void 0)
-      return content.texturesById[threeTexture.uuid] ?? void 0;
+    if (content.texturesById[threeTexture.uuid] !== void 0) {
+      let bbTexture2 = content.texturesById[threeTexture.uuid] ?? void 0;
+      if (threeMaterial?.side !== THREE.FrontSide && bbTexture2 != void 0)
+        bbTexture2.render_sides = "double";
+      return bbTexture2;
+    }
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
     let bbTexture = null;
     if (cacheKey == void 0) {
@@ -2580,6 +2578,8 @@
     if (bbTexture != void 0) {
       bbTexture.name = threeTexture.name || "texture", bbTexture.add(false);
       content.textures.push(bbTexture);
+      if (threeMaterial?.side !== THREE.FrontSide && bbTexture != void 0)
+        bbTexture.render_sides = "double";
     }
     content.texturesById[threeTexture.uuid] = bbTexture;
     return bbTexture ?? void 0;
@@ -2592,7 +2592,7 @@
     description: "Import .GLTF and .GLB models",
     icon: "icon.png",
     creation_date: "2025-09-25",
-    version: "1.0.0",
+    version: "1.1.0",
     variant: "desktop",
     min_version: "4.12.6",
     has_changelog: false,
@@ -2633,11 +2633,6 @@
             label: "Scale",
             value: Settings.get("model_export_scale")
           },
-          ["backFaces"]: {
-            type: "checkbox",
-            label: "Double-sided faces",
-            value: false
-          },
           ["groups"]: {
             type: "checkbox",
             label: "Import Groups",
@@ -2671,7 +2666,6 @@
           let importOptions = {
             file: formOptions.file,
             scale: formOptions.scale,
-            backFaces: formOptions.backFaces,
             groups: formOptions.groups,
             cameras: formOptions.cameras,
             animations: formOptions.animations,

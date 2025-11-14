@@ -95,5 +95,19 @@
 				]
 			}
 		]
+	},
+	"1.8.2": {
+		"title": "1.8.2",
+		"date": "2025-10-25",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed export issue in the web app",
+					"Fixed issue with exporting to the new Minecraft install location"
+				]
+			}
+		]
 	}
 }

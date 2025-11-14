@@ -10,7 +10,7 @@ BBPlugin.register('gltf_importer', {
     description:   'Import .GLTF and .GLB models',
     icon:          'icon.png',
     creation_date: '2025-09-25',
-    version:       '1.0.0',
+    version:       '1.1.0',
     variant:       'desktop',
     min_version:   '4.12.6',
     has_changelog: false,   
@@ -44,7 +44,6 @@ BBPlugin.register('gltf_importer', {
         type ImportGltfFormResult = {
             file?: Filesystem.FileResult,
             scale: number,
-            backFaces: boolean,
             groups: boolean,
             cameras: boolean,
             animations: boolean,
@@ -67,11 +66,6 @@ BBPlugin.register('gltf_importer', {
                     type: 'number',
                     label: 'Scale',
                     value: Settings.get('model_export_scale'),
-                },
-                ['backFaces']: {
-                    type: 'checkbox',
-                    label: 'Double-sided faces',
-                    value: false,
                 },
                 ['groups']: {
                     type: 'checkbox',
@@ -108,7 +102,6 @@ BBPlugin.register('gltf_importer', {
                 let importOptions: ImportOptions = {
                     file: formOptions.file!,
                     scale: formOptions.scale,
-                    backFaces: formOptions.backFaces,
                     groups: formOptions.groups,
                     cameras: formOptions.cameras,
                     animations: formOptions.animations,
