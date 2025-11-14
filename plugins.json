@@ -1252,7 +1252,8 @@
 		"version": "1.0.0",
 		"min_version": "4.8.0",
 		"variant": "both",
-		"tags": ["Gizmo", "Translation", "Tools"]
+		"tags": ["Gizmo", "Translation", "Tools"],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/translation_plane_gizmo"
 	},
 	"gltf_importer": {
 		"title": "glTF Importer",
