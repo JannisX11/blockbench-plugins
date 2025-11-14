@@ -199,6 +199,7 @@
 						this.setFormValues({type: 'block_collision'});
 					}, 10);
 				}
+				this.updateFormValues();
 			},
 			onConfirm() {
 				scene.remove(SetupHitboxHelper.object);
@@ -289,3 +290,4 @@
 	})
 
 })()
+
