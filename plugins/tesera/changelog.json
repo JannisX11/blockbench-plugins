@@ -1,0 +1,18 @@
+{
+  "0.0.3": {
+    "title": "0.0.3",
+    "author": "SCINER",
+    "categories": [
+      {
+        "title": "Initial Release",
+        "list": [
+          "Added 'Add display' feature in the 'Edit' section to introduce display elements into the game.",
+          "Enabled cube flags management for enhanced flexibility and control over cube behavior.",
+          "Allowed assignment of custom JSON to cubes for creative interpretation and utilization within the game.",
+          "Enhanced animation tools with a search bar for quickly finding animations by name and customizable color highlighting for animation groups to improve organization and readability."
+        ]
+      }
+    ]
+  }
+}
+
