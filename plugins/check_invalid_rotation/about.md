@@ -1,43 +1,44 @@
-# Minecraft Rotation Checker
+# Minecraft Java Edition Rotation Checker
 
-Protect your models from Minecraft compatibility issues by detecting non-standard rotations before export.
+Comprehensive rotation validation for Minecraft Java Edition 1.8-1.18.x - Detect and fix non-standard rotations before they cause display issues in-game.
 
-## 🎯 Key Features
-• **Smart Detection**: Identifies rotations that don't follow Minecraft Bedrock's 22.5° increment standard
-• **Export Protection**: Shows warning dialog before exporting JSON or BBModel files
-• **Detailed Information**: Lists all problematic rotations with suggested corrections
-• **User Choice**: Continue export or cancel to fix rotations first
-• **Zero Interference**: Only activates during export, doesn't affect normal workflow
+## Features:
+- **Universal Protection**: Works with ALL save and export operations (Ctrl+Alt+S, File > Save, File > Save As, Java Block export, Bedrock export)
+- **Smart Detection**: Identifies rotations that don't follow Minecraft Java Edition's 22.5° increment standard
+- **Quick Fix Options**: Automatically fix rotations to nearest standard values or fix individually
+- **Context-Aware Dialogs**: Different button text for export vs save operations
+- **Multi-Language Support**: English and French translations
 
-## 📐 Minecraft Bedrock Standards
-Minecraft Bedrock supports rotations in 22.5° increments:
+## Minecraft Java Edition Standards (1.8-1.18.x):
+Minecraft Java Edition 1.8-1.18.x supports rotations in 22.5° increments:
 **-45°, -22.5°, 0°, 22.5°, 45°**
+
+**Note**: Minecraft 1.19+ may have relaxed these restrictions. This plugin targets older versions where rotation restrictions are still enforced.
 
 Non-standard rotations may cause visual glitches or incorrect model orientation in-game.
 
-## 💡 How It Works
-1. When you export a model as JSON or BBModel, the plugin automatically scans all rotation values
-2. If non-standard rotations are found, a beautiful warning dialog appears
-3. The dialog shows exactly which elements have problematic rotations and suggests corrections
-4. You can choose to continue export (at your own risk) or cancel to fix the rotations first
-5. Models with only standard rotations export normally without any interruption
+## How It Works:
+1. **Automatic Scanning**: When you save or export a model, the plugin automatically scans all rotation values
+2. **Smart Detection**: Identifies any rotations that don't follow the 22.5° standard
+3. **Warning Dialog**: Shows a dialog with operation-specific button text
+4. **Fix Options**: Choose to fix all rotations automatically or fix them individually (nearest or furthest standard values)
+5. **User Control**: Continue the operation or cancel to fix rotations first
 
-### 📸 Example Dialog
-![Rotation Checker Dialog](demo.png)
-*The warning dialog shows detected rotation issues with suggested fixes and user options*
+## Fixing Options:
+- **Fix All**: Automatically correct all problematic rotations at once
+- **Individual Fix**: Fix each rotation with two options:
+  - **Nearest**: Fix to the closest standard value (e.g., 23° → 22.5°)
+  - **Furthest**: Fix to the second closest standard value (e.g., 23° → 45°)
+- **Continue**: Proceed with the operation without fixing (at your own risk)
+- **Cancel**: Cancel the operation to fix rotations manually
 
-## 🚀 Benefits
-• **Prevent Export Errors**: Catch rotation issues before they cause problems in Minecraft
-• **Save Time**: No more trial-and-error with model exports
-• **Professional Results**: Ensure your models display correctly in-game
+![Rotation Checker Dialog](https://raw.githubusercontent.com/JannisX11/blockbench-plugins/master/plugins/check_invalid_rotation/demo.png)
 
-## 🌍 Multi-Language Support
-The plugin automatically detects Blockbench's language setting and adapts the UI accordingly:
-- **English**: Full support with detailed messages
-- **French**: Complete translation with localized interface
-- **Other languages**: Falls back to English
+## Supported Operations:
+- Save Operations: Ctrl+Alt+S, File > Save Model
+- Save As Operations: Ctrl+Shift+S, File > Save As
+- Increment Operations: File > Increment Save
+- Export Operations: Java Block export, Bedrock export
 
-## 🔧 Technical Details
-- Uses only built-in Blockbench APIs
-- No external dependencies
-- Lightweight and efficient
+## Compatibility:
+- Compatible with Blockbench v4.8.0+

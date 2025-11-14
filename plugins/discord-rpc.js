@@ -59,7 +59,7 @@
     "function" != typeof i && (i = () => !1);
     e.exports = {
         pid: function() {
-            return "undefined" != typeof process ? process.pid : null
+            return "undefined" != typeof process ? process.pid : require('process')?.pid
         },
         register: i,
         uuid: () => {
@@ -161,7 +161,7 @@
             title: "Discord RPC",
             author: "strajabot, Kastle, & simplyme",
             icon: "announcement",
-            version: "1.1.3",
+            version: "1.1.4",
             description: "Show a rich presence status in Discord",
             variant: "desktop",
             onload() {
@@ -173,17 +173,18 @@
                             edit: "Editing",
                             paint: "Painting",
                             animate: "Animating",
-                            start: "Starting"
+                            pose: "Posing"
                         } [Modes.selected.id] || "Making",
                         n = {
+                            free: "a Generic Model",
                             java_block: "a Java Block/Item",
                             bedrock: "a Bedrock Model",
+                            bedrock_block: "a Bedrock Block Model",
                             bedrock_old: "a Bedrock Legacy Model",
                             modded_entity: "a Modded Entity",
                             optifine_entity: "an OptiFine Entity",
                             optifine_part: "an OptiFine Part",
                             skin: "a Skin",
-                            free: "a Generic Model"
                         } [Format.id] || "a " + Format.name;
                     s.setActivity({
                         largeImageKey: "icon",
@@ -197,8 +198,8 @@
                 }
                 e = new Setting("obfuscaterpc", {
                     value: !0,
-                    name: "Discord Rich Prescense",
-                    description: "Obfuscate Project Name"
+                    name: "Hide Project Name in Discord",
+                    description: "Display \"Unknown Model\" instead of revealing the project name in Discord activity"
                 });
                 const c = Modes.options;
                 Object.keys(c).forEach(e => {
@@ -648,7 +649,7 @@
     function T(e = 0) {
         return new Promise((t, n) => {
             const s = function(e) {
-                    if ("win32" === process.platform) return "\\\\?\\pipe\\discord-ipc-" + e;
+                    if ("win32" === Blockbench.platform) return "\\\\?\\pipe\\discord-ipc-" + e;
                     const {
                         env: {
                             XDG_RUNTIME_DIR: t,

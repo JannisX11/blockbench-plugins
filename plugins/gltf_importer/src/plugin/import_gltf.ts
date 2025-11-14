@@ -5,7 +5,6 @@ import { VectorHashMap } from './vector_hash_map';
 export type ImportOptions = {
     file: Filesystem.FileResult,
     scale:        number,
-    backFaces:    boolean,
     groups:       boolean,
     cameras:      boolean|'NOT_INSTALLED',
     animations:   boolean,
@@ -165,7 +164,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
 
     // Lookup of primitive to texture
-    let primitiveTextures = primitives.map(p => importTexture((p.material as any)?.map, options, content));
+    let primitiveTextures = primitives.map(p => importTexture((p.material as any), options, content));
 
     // Potentially confusing terms:
     // Original Vertex:      Vertex from incoming glTF vertex buffer
@@ -318,8 +317,6 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                 // Expand previous face into quad
                 lastFace.vertices.splice(face1VertBeforeNewVertIndex, 0, newVertexKey);
                 lastFace.uv[newVertexKey] = uv[newVertexKey];
-                
-                // TODO: also make quads respact options.backFaces
 
                 return true;
             })();
@@ -331,16 +328,6 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                     uv: uv,
                     texture: texture,
                 }));
-
-                
-                // Backfaces
-                if (options.backFaces) {
-                    faces.push(new MeshFace(mesh, {
-                        vertices: faceVertexKeys.reverse(),
-                        uv: uv,
-                        texture: texture,
-                    }));
-                }
             }
         }
     }
@@ -369,15 +356,21 @@ async function prepareTextureCacheKeys(gltf: GLTF): Promise<{[textureId: string]
     return textureCacheKeys;
 }
 
-function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOptions, content: ImportedContent): Texture|undefined {
+function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, options: ImportOptions, content: ImportedContent): Texture|undefined {
+    let threeTexture = threeMaterial?.map;
 
     // No texture
     if (threeTexture == undefined)
         return undefined;
 
     // Already imported
-    if (content.texturesById[threeTexture.uuid] !== undefined)
-        return content.texturesById[threeTexture.uuid] ?? undefined;
+    if (content.texturesById[threeTexture.uuid] !== undefined) {
+        let bbTexture = content.texturesById[threeTexture.uuid] ?? undefined;
+        // Make double-sided if necesary
+        if (threeMaterial?.side !== THREE.FrontSide && bbTexture != undefined)
+            bbTexture.render_sides = 'double';
+        return bbTexture;
+    }
 
     let cacheKey = content.textureCacheKeys[threeTexture.uuid];
     let bbTexture: Texture|null = null;
@@ -409,6 +402,10 @@ function importTexture(threeTexture: THREE.Texture|undefined, options: ImportOpt
         bbTexture.name = threeTexture.name || 'texture',
         bbTexture.add(false);
         content.textures.push(bbTexture);
+
+        // Make double-sided if necesary
+        if (threeMaterial?.side !== THREE.FrontSide && bbTexture != undefined)
+            bbTexture.render_sides = 'double';
     }
 
     content.texturesById[threeTexture.uuid] = bbTexture;

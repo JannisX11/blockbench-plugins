@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["node"],
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "target": "es2022"
+  },
+  "compileOnSave": false
+}

@@ -6989,7 +6989,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.1","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.2","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
 
 /***/ }),
 
@@ -7400,23 +7400,25 @@ const codec = Codecs.bedrock;
 // This gets automatically applied by Blockbench, we don't need to do anything with it
 const format = new ModelFormat(_constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID, {
     id: _constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID,
-    name: "GeckoLib Animated Model",
-    category: "minecraft",
-    description: "Animated Model for Java mods using GeckoLib",
     icon: "view_in_ar",
-    rotate_cubes: true,
+    name: "GeckoLib Animated Model",
+    description: "Animated Model for Java mods using GeckoLib",
+    category: "minecraft",
     box_uv: true,
     optional_box_uv: true,
     single_texture: true,
+    animated_textures: true,
     bone_rig: true,
     centered_grid: true,
-    animated_textures: true,
-    select_texture_for_particles: true,
-    animation_files: true,
+    rotate_cubes: true,
     locators: true,
-    codec: Codecs.project,
+    uv_rotation: true,
+    select_texture_for_particles: true,
+    texture_mcmeta: true,
+    animation_files: true,
     display_mode: false,
     animation_mode: true,
+    codec: Codecs.project,
 });
 // Override the new project panel to allow customisation
 format.new = function () {
@@ -7459,11 +7461,14 @@ function createProjectSettingsForm(Project) {
     const properties = ModelProject['properties'];
     const modelType = properties[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE];
     if (modelType) {
+        const currentType = Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE];
         form[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = {
             label: modelType.label,
             description: modelType["description"],
             default: _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY.toUpperCase(),
-            value: Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] instanceof String ? _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType[Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE].toUpperCase()].toUpperCase() : _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY.toUpperCase(),
+            value: typeof (currentType) === 'string' ?
+                _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType[currentType.toUpperCase()].toUpperCase() :
+                _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ENTITY.toUpperCase(),
             placeholder: modelType["placeholder"],
             type: 'select',
             options: modelType["options"],
@@ -9136,6 +9141,9 @@ function createPluginProperties() {
             options: _constants__WEBPACK_IMPORTED_MODULE_7__.GeckoModelType,
             values: Object.values(_constants__WEBPACK_IMPORTED_MODULE_7__.GeckoModelType)
         }), property => {
+            property.merge = (instance, data) => {
+                instance[_constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODEL_TYPE] = data[_constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_MODEL_TYPE];
+            };
             property['description'] = 'The type of GeckoLib object this model is for. Leave as the default value if unsure';
         }),
         (0,_utils__WEBPACK_IMPORTED_MODULE_4__.make)(new Property(ModelProject, "instance", _constants__WEBPACK_IMPORTED_MODULE_7__.PROPERTY_FILEPATH_CACHE, {

@@ -1,0 +1,22 @@
+{
+  "settings.header_color": "Header Color",
+  "settings.header_color.desc": "Sets the color of the header depending on the profile color.",
+  "settings.close_actions": "Close Actions",
+  "settings.close_actions.desc": "Adds 'Close Others', 'Close to the Right', 'Close Saved', and 'Close All' to the project context menu, opened by right-clicking on a project tab.",
+  "settings.pin_tab": "Pin Tab",
+  "settings.pin_tab.desc": "Adds 'Pin Tab' and 'Unpin Tab' to the project context menu, opened by right-clicking on a project tab.",
+  "settings.wrap_tabs": "Wrap Tabs",
+  "settings.wrap_tabs.desc": "Controls whether tabs should be wrapped over multiple lines when exceeding available space or whether a scrollbar should appear instead.",
+  "action.close_others": "Close Others",
+  "action.close_others.desc": "Close all tabs but this one.",
+  "action.close_right": "Close to the Right",
+  "action.close_right.desc": "Close all tabs to the right.",
+  "action.close_saved": "Close Saved",
+  "action.close_saved.desc": "Close all saved tabs.",
+  "action.close_all": "Close All",
+  "action.close_all.desc": "Close all tabs.",
+  "action.pin_tab": "Pin Tab",
+  "action.pin_tab.desc": "desc",
+  "action.unpin_tab": "Unpin Tab",
+  "action.unpin_tab.desc": "desc"
+}

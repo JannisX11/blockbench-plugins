@@ -643,7 +643,7 @@ function isTintColorArray(obj) {
 Important: This plugin is designed for JSON models only and will not work for other formats.`,
 		tags: ["Minecraft: Java Edition"],
 		icon: 'fa-fill',
-		version: '1.1.1',
+		version: '1.1.2',
 		variant: 'both',
 		min_version: '4.3.0',
 		onload() {
@@ -1133,6 +1133,7 @@ function applyTintingShader(project, texture) {
 		transparent: true,
 	});
 	mat.map = originalMat.map;
+	mat.uniforms = originalMat.uniforms;
 	mat.name = texture.name;
 	if (project.materials) {
 		project.materials[texture.uuid] = mat;
