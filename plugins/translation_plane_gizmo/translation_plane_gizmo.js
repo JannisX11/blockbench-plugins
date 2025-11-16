@@ -2,14 +2,14 @@
     'use strict';
 
     /**
-     * Translation Plane Gizmo Plugin v1.0.0
+     * Translation Plane Gizmo Plugin v1.0.1
      * 
      * Provides Blender-style 2D plane handles for simultaneous multi-axis translation
      * in Blockbench. Features smart camera scaling, proper margins, and seamless
      * integration with Blockbench's transform system.
      * 
      * @author AnnJ
-     * @version 1.0.0
+     * @version 1.0.1
      * @compatibility Blockbench v4.8.0+
      */
 
@@ -741,7 +741,7 @@
         author: 'AnnJ',
         description: getLocalizedPluginDescription(),
         icon: 'control_camera',
-        version: '1.0.0',
+        version: '1.0.1',
         min_version: '4.8.0',
         variant: 'both',
         tags: ['Gizmo', 'Translation', 'Tools'],
