@@ -1,14 +1,3 @@
-// =============================================================================
-// Minecraft Java Edition Rotation Checker - Multi-Language
-// =============================================================================
-// For Minecraft Java Edition 1.8 - 1.18.x (versions with 22.5° rotation restrictions)
-// Automatically detects Blockbench's language setting and adapts UI accordingly
-// Detects non-standard rotations in exported models and shows confirmation dialog
-// 
-// Note: Minecraft 1.19+ may have relaxed rotation restrictions - verify compatibility
-// Features: Multi-language support, rotation error detection, dialog with Cancel/Continue buttons
-// =============================================================================
-
 (function() {
     'use strict';
     
@@ -129,13 +118,10 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
         tags: ['Rotation', 'Validation', 'Export'],
         about: t('about'),
         onload() {
-            console.log('[Rotation Checker] Plugin loading...');
             initialize();
-            // Delay save integration to ensure MenuBar is available
             setTimeout(() => {
                 addSaveIntegration();
             }, 3000);
-            console.log('[Rotation Checker] Plugin loaded successfully');
         },
         onunload() {
             if (clickHandler) {
@@ -143,7 +129,6 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                 clickHandler = null;
             }
             
-            // Restore original export functions
             if (window.rotationCheckerOriginalFunctions && typeof Codecs !== 'undefined') {
                 if (window.rotationCheckerOriginalFunctions.java_block && Codecs.java_block) {
                     Codecs.java_block.export = window.rotationCheckerOriginalFunctions.java_block;
@@ -154,9 +139,7 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                 delete window.rotationCheckerOriginalFunctions;
             }
             
-            // Restore original save functions
             if (window.rotationCheckerOriginalSaveFunctions) {
-                // Restore MenuBar actions
                 if (MenuBar && MenuBar.actions) {
                     const saveAction = MenuBar.actions.find(action => action.id === 'file.save');
                     const saveAsAction = MenuBar.actions.find(action => action.id === 'file.save_as');
@@ -169,14 +152,11 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                     }
                 }
                 
-                // Note: Only MenuBar actions are restored, no additional cleanup needed
-                
                 delete window.rotationCheckerOriginalSaveFunctions;
             }
         }
     });
     
-    // Constants must be defined before any functions that use them
     const STANDARD_ROTATIONS = [-45, -22.5, 0, 22.5, 45];
     const ROTATION_TOLERANCE = 0.1;
     
@@ -351,7 +331,6 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
     }
         
     function applyRotationFixWithValue(rotation, standardValue) {
-        
         const pathParts = rotation.property.match(/^(.+?)\[([XYZ])\]$/);
         if (pathParts) {
             const baseProperty = pathParts[1];
@@ -428,21 +407,18 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
     }
     
     function refreshScene() {
-        // Refresh the scene after making changes
         if (typeof Canvas !== 'undefined' && Canvas.updateAll) {
-                Canvas.updateAll();
-            }
+            Canvas.updateAll();
+        }
         if (typeof Outliner !== 'undefined' && Outliner.update) {
-                Outliner.update();
-            }
+            Outliner.update();
+        }
         if (typeof Interface !== 'undefined' && Interface.update) {
             Interface.update();
-                }
+        }
     }
     
     function showRotationWarningDialog(rotations, onConfirm, onCancel, context = 'export') {
-        
-        // Get context-aware button text
         const getButtonText = (buttonType) => {
             const lang = detectLanguage();
             const translations = {
@@ -554,14 +530,14 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                 template: `
                     <div>
                         <div v-if="!isFixed" style="background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
-            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
                                 <i class="material-icons" style="color: #f44336; margin-right: 8px; font-size: 18px;">error_outline</i>
-                <strong style="color: #f44336;">${rotations.length} ${t('warningMessage')}</strong>
-            </div>
-            <p style="margin: 0; color: var(--color-text, #ffffff); font-size: 14px;">
-                ${t('warningDescription')}
-            </p>
-                </div>
+                                <strong style="color: #f44336;">${rotations.length} ${t('warningMessage')}</strong>
+                            </div>
+                            <p style="margin: 0; color: var(--color-text, #ffffff); font-size: 14px;">
+                                ${t('warningDescription')}
+                            </p>
+                        </div>
                         <div v-else style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
                             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                                 <i class="material-icons" style="color: #4caf50; margin-right: 8px; font-size: 18px;">check_circle</i>
@@ -575,33 +551,33 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                                 <i class="material-icons" style="color: #4caf50; margin-right: 8px; font-size: 18px;">auto_fix_high</i>
                                 <strong style="color: #4caf50;">${t('quickFix')}</strong>
-            </div>
-            <p style="margin: 0; color: var(--color-text, #ffffff); font-size: 14px;">
-                ${t('quickFixDescription')}
-            </p>
-                </div>
+                            </div>
+                            <p style="margin: 0; color: var(--color-text, #ffffff); font-size: 14px;">
+                                ${t('quickFixDescription')}
+                            </p>
+                        </div>
                         <h4 style="margin: 0 0 8px 0; color: var(--color-text, #ffffff); font-size: 16px; font-weight: 600;">${t('rotationIssues')}</h4>
                         <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--color-border, #555); border-radius: 4px; background: var(--color-background, #2d2d2d);">
                             ${rotationListHTML}
                         </div>
                     </div>
                 `
-            },
-            onButton(index) {
-                if (index === 0) {
-                    showFixAllChoiceDialog(rotations, dialog);
-                    return false; // Prevent dialog from closing
-                } else if (index === 1) {
-                    // Cancel - close dialog and call onCancel
-                    dialog.close();
-                    onCancel();
-                } else if (index === 2) {
-                    // Continue - close dialog and call onConfirm
-                    dialog.close();
-                    onConfirm();
-                }
             }
         });
+        
+        dialog.onButton = function(index) {
+            if (index === 0) {
+                showFixAllChoiceDialog(rotations, dialog);
+                return false;
+            } else if (index === 1) {
+                onCancel();
+                return true;
+            } else if (index === 2) {
+                onConfirm();
+                return true;
+            }
+            return true;
+        };
         
         const setupEventDelegation = () => {
             const dialogElement = document.querySelector('.dialog[data-dialog="rotation_warning_dialog"]') || 
@@ -631,9 +607,8 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                                     btn.style.background = '#4caf50';
                                     btn.disabled = true;
                                 });
-                                // Refresh scene after fixing
                                 setTimeout(() => {
-                                refreshScene();
+                                    refreshScene();
                                 }, 100);
                             }
                         }
@@ -653,8 +628,8 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
             title: t('chooseFixStrategy'),
             width: 500,
             height: 300,
-            buttons: [t('useClosest'), t('useFurthest'), t('cancel')],
-            cancelIndex: 2,
+            buttons: [t('fixAll'), t('cancel')],
+            cancelIndex: 1,
             component: {
                 template: `
                     <div style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -729,9 +704,8 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                 }
             },
             onButton(index) {
-                const selectedStrategy = choiceDialog.component.data.selectedStrategy;
-                if (index === 0 || index === 1) {
-                    // Use the selected strategy from the component
+                if (index === 0) {
+                    const selectedStrategy = choiceDialog.component.data.selectedStrategy;
                     const strategyIndex = selectedStrategy === 'closest' ? 0 : 1;
                     const fixedCount = applyAllRotationFixes(rotations, strategyIndex);
                     if (fixedCount > 0) {
@@ -753,15 +727,9 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
                             Interface.update();
                         }
                     }
-                    // Close choice dialog first
-                    choiceDialog.close();
-                    // Use setTimeout to close parent dialog after choice dialog is closed
-                    setTimeout(() => {
-                        parentDialog.close();
-                    }, 50);
+                    return true;
                 } else {
-                    // Just close the choice dialog
-                    choiceDialog.close();
+                    return true;
                 }
             }
         });
@@ -778,17 +746,15 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
             if (Codecs.java_block && Codecs.java_block.export) {
                 originalExportFunctions.java_block = Codecs.java_block.export;
                 Codecs.java_block.export = function() {
-                    console.log('[Rotation Checker] Java Block export triggered');
                     const nonStandardRotations = extractRotations(Project);
-                            if (nonStandardRotations.length > 0) {
-                                console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
-                                showRotationWarningDialog(
-                                    nonStandardRotations,
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
                             () => originalExportFunctions.java_block.call(this),
                             () => {},
                             'export'
-                                );
-                            } else {
+                        );
+                    } else {
                         originalExportFunctions.java_block.call(this);
                     }
                 };
@@ -797,10 +763,8 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
             if (Codecs.bedrock && Codecs.bedrock.export) {
                 originalExportFunctions.bedrock = Codecs.bedrock.export;
                 Codecs.bedrock.export = function() {
-                    console.log('[Rotation Checker] Bedrock export triggered');
                     const nonStandardRotations = extractRotations(Project);
                     if (nonStandardRotations.length > 0) {
-                        console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
                         showRotationWarningDialog(
                             nonStandardRotations,
                             () => originalExportFunctions.bedrock.call(this),
@@ -818,80 +782,365 @@ Validation complète des rotations qui protège vos modèles des problèmes de c
     }
     
     function addSaveIntegration() {
-        console.log('[Rotation Checker] Starting save integration...');
+        if (!window.rotationCheckerOriginalSaveFunctions) {
+            window.rotationCheckerOriginalSaveFunctions = {};
+        }
         
-        // Use keyboard event listener to intercept all save shortcuts
-        document.addEventListener('keydown', function(event) {
-            // Check for Ctrl+S (Save)
-            if (event.ctrlKey && event.key === 's' && !event.shiftKey && !event.altKey) {
-                console.log('[Rotation Checker] Ctrl+S detected');
-                event.preventDefault(); // Prevent default save
-                event.stopPropagation(); // Stop event from bubbling
-                checkRotationsBeforeSave(() => {
-                    // Call the original save function
-                    if (MenuBar && MenuBar.actions) {
-                        const saveAction = MenuBar.actions.find(action => action.id === 'file.save');
-                        if (saveAction && saveAction.click) {
-                            saveAction.click();
-                        }
+        if (typeof Blockbench !== 'undefined') {
+            if (Blockbench.save && !window.rotationCheckerOriginalSaveFunctions.blockbenchSave) {
+                window.rotationCheckerOriginalSaveFunctions.blockbenchSave = Blockbench.save;
+                Blockbench.save = function() {
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                window.rotationCheckerOriginalSaveFunctions.blockbenchSave();
+                            },
+                            () => {},
+                            'save'
+                        );
+                    } else {
+                        window.rotationCheckerOriginalSaveFunctions.blockbenchSave();
                     }
-                }, 'save');
+                };
             }
-            // Check for Ctrl+Shift+S (Save As)
-            else if (event.ctrlKey && event.shiftKey && event.key === 's' && !event.altKey) {
-                console.log('[Rotation Checker] Ctrl+Shift+S detected');
-                event.preventDefault(); // Prevent default save as
-                event.stopPropagation(); // Stop event from bubbling
-                checkRotationsBeforeSave(() => {
-                    // Call the original save as function
-                    if (MenuBar && MenuBar.actions) {
-                        const saveAsAction = MenuBar.actions.find(action => action.id === 'file.save_as');
-                        if (saveAsAction && saveAsAction.click) {
-                            saveAsAction.click();
-                        }
+            
+            if (Blockbench.saveAs && !window.rotationCheckerOriginalSaveFunctions.blockbenchSaveAs) {
+                window.rotationCheckerOriginalSaveFunctions.blockbenchSaveAs = Blockbench.saveAs;
+                Blockbench.saveAs = function() {
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                window.rotationCheckerOriginalSaveFunctions.blockbenchSaveAs();
+                            },
+                            () => {},
+                            'saveAs'
+                        );
+                    } else {
+                        window.rotationCheckerOriginalSaveFunctions.blockbenchSaveAs();
                     }
-                }, 'saveAs');
+                };
             }
-            // Check for Shift+Alt+S (Save with increment)
-            else if (event.shiftKey && event.altKey && event.key === 's' && !event.ctrlKey) {
-                console.log('[Rotation Checker] Shift+Alt+S detected');
-                event.preventDefault(); // Prevent default save with increment
-                event.stopPropagation(); // Stop event from bubbling
-                checkRotationsBeforeSave(() => {
-                    // Call the original save with increment function
-                    if (MenuBar && MenuBar.actions) {
-                        const saveIncrementAction = MenuBar.actions.find(action => action.id === 'file.save_increment');
-                        if (saveIncrementAction && saveIncrementAction.click) {
-                            saveIncrementAction.click();
-                        }
+            
+            if (Blockbench.saveIncrement && !window.rotationCheckerOriginalSaveFunctions.blockbenchSaveIncrement) {
+                window.rotationCheckerOriginalSaveFunctions.blockbenchSaveIncrement = Blockbench.saveIncrement;
+                Blockbench.saveIncrement = function() {
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                window.rotationCheckerOriginalSaveFunctions.blockbenchSaveIncrement();
+                            },
+                            () => {},
+                            'saveIncrement'
+                        );
+                    } else {
+                        window.rotationCheckerOriginalSaveFunctions.blockbenchSaveIncrement();
                     }
-                }, 'saveIncrement');
+                };
             }
-        }, true); // Use capture phase to intercept before other handlers
+        }
         
-        console.log('[Rotation Checker] Keyboard event listeners added for Ctrl+S, Ctrl+Shift+S, and Shift+Alt+S');
+        if (MenuBar && MenuBar.menus && MenuBar.menus.file && MenuBar.menus.file.structure) {
+            let saveItem = MenuBar.menus.file.structure.find(item => 
+                (typeof item === 'string' && item === 'save_project') || 
+                (typeof item === 'object' && item && item.id === 'save_project')
+            );
+            let saveAsItem = MenuBar.menus.file.structure.find(item => 
+                (typeof item === 'string' && item === 'save_project_as') || 
+                (typeof item === 'object' && item && item.id === 'save_project_as')
+            );
+            let saveIncrementItem = MenuBar.menus.file.structure.find(item => 
+                (typeof item === 'string' && item === 'save_project_incremental') || 
+                (typeof item === 'object' && item && item.id === 'save_project_incremental')
+            );
+            
+            if (!saveItem || !saveAsItem || !saveIncrementItem) {
+                MenuBar.menus.file.structure.forEach(item => {
+                    if (item && item.children && Array.isArray(item.children)) {
+                        item.children.forEach(child => {
+                            if (child && child.id) {
+                                if (child.id === 'save_project' && !saveItem) {
+                                    saveItem = child;
+                                }
+                                if (child.id === 'save_project_as' && !saveAsItem) {
+                                    saveAsItem = child;
+                                }
+                                if (child.id === 'save_project_incremental' && !saveIncrementItem) {
+                                    saveIncrementItem = child;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            if (!saveItem || !saveAsItem || !saveIncrementItem) {
+                const allItems = [];
+                
+                MenuBar.menus.file.structure.forEach(item => {
+                    if (item && typeof item === 'object' && item.id) {
+                        allItems.push(item);
+                        if (item.children && Array.isArray(item.children)) {
+                            item.children.forEach(child => {
+                                if (child && typeof child === 'object' && child.id) {
+                                    allItems.push(child);
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                saveItem = allItems.find(item => item.id === 'save_project' || item.id === 'save' || item.id.includes('save_project'));
+                saveAsItem = allItems.find(item => item.id === 'save_project_as' || item.id === 'save_as' || item.id.includes('save_project_as'));
+                saveIncrementItem = allItems.find(item => item.id === 'save_project_incremental' || item.id === 'save_incremental' || item.id.includes('save_project_incremental'));
+            }
+            
+            if (saveItem && typeof saveItem === 'string') {
+                if (MenuBar.actions) {
+                    saveItem = MenuBar.actions.find(action => action.id === saveItem);
+                } else {
+                    saveItem = MenuBar.menus.file.structure.find(item => 
+                        typeof item === 'object' && item && item.id === saveItem
+                    );
+                }
+            }
+            if (saveAsItem && typeof saveAsItem === 'string') {
+                if (MenuBar.actions) {
+                    saveAsItem = MenuBar.actions.find(action => action.id === saveAsItem);
+                } else {
+                    saveAsItem = MenuBar.menus.file.structure.find(item => 
+                        typeof item === 'object' && item && item.id === saveAsItem
+                    );
+                }
+            }
+            if (saveIncrementItem && typeof saveIncrementItem === 'string') {
+                if (MenuBar.actions) {
+                    saveIncrementItem = MenuBar.actions.find(action => action.id === saveIncrementItem);
+                } else {
+                    saveIncrementItem = MenuBar.menus.file.structure.find(item => 
+                        typeof item === 'object' && item && item.id === saveIncrementItem
+                    );
+                }
+            }
+            
+            if (saveItem && typeof saveItem === 'object' && saveItem.click && !window.rotationCheckerOriginalSaveFunctions.save) {
+                window.rotationCheckerOriginalSaveFunctions.save = saveItem.click;
+                saveItem.click = function() {
+                    checkRotationsBeforeSave(window.rotationCheckerOriginalSaveFunctions.save, 'save');
+                };
+            }
+            
+            if (saveAsItem && typeof saveAsItem === 'object' && saveAsItem.click && !window.rotationCheckerOriginalSaveFunctions.saveAs) {
+                window.rotationCheckerOriginalSaveFunctions.saveAs = saveAsItem.click;
+                saveAsItem.click = function() {
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                window.rotationCheckerOriginalSaveFunctions.saveAs();
+                            },
+                            () => {},
+                            'saveAs'
+                        );
+                    } else {
+                        window.rotationCheckerOriginalSaveFunctions.saveAs();
+                    }
+                };
+            }
+            
+            if (saveIncrementItem && typeof saveIncrementItem === 'object' && saveIncrementItem.click && !window.rotationCheckerOriginalSaveFunctions.saveIncrement) {
+                window.rotationCheckerOriginalSaveFunctions.saveIncrement = saveIncrementItem.click;
+                saveIncrementItem.click = function() {
+                    checkRotationsBeforeSave(window.rotationCheckerOriginalSaveFunctions.saveIncrement, 'saveIncrement');
+                };
+            }
+        }
+
+        try {
+            if (typeof BarItems !== 'undefined') {
+                if (BarItems.save_project_as && typeof BarItems.save_project_as.click === 'function' && !window.rotationCheckerOriginalSaveFunctions.barSaveAs) {
+                    window.rotationCheckerOriginalSaveFunctions.barSaveAs = BarItems.save_project_as.click;
+                    BarItems.save_project_as.click = function() {
+                        const nonStandardRotations = extractRotations(Project);
+                        if (nonStandardRotations.length > 0) {
+                            showRotationWarningDialog(
+                                nonStandardRotations,
+                                () => {
+                                    Promise.resolve().then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+                                        window.rotationCheckerOriginalSaveFunctions.barSaveAs.call(this);
+                                    })));
+                                },
+                                () => {},
+                                'saveAs'
+                            );
+                        } else {
+                            window.rotationCheckerOriginalSaveFunctions.barSaveAs.call(this);
+                        }
+                    };
+                }
+                if (BarItems.save_project && typeof BarItems.save_project.click === 'function' && !window.rotationCheckerOriginalSaveFunctions.barSave) {
+                    window.rotationCheckerOriginalSaveFunctions.barSave = BarItems.save_project.click;
+                    BarItems.save_project.click = function() {
+                        checkRotationsBeforeSave(window.rotationCheckerOriginalSaveFunctions.barSave.bind(this), 'save');
+                    };
+                }
+                if (BarItems.save_project_incremental && typeof BarItems.save_project_incremental.click === 'function' && !window.rotationCheckerOriginalSaveFunctions.barSaveInc) {
+                    window.rotationCheckerOriginalSaveFunctions.barSaveInc = BarItems.save_project_incremental.click;
+                    BarItems.save_project_incremental.click = function() {
+                        checkRotationsBeforeSave(window.rotationCheckerOriginalSaveFunctions.barSaveInc.bind(this), 'saveIncrement');
+                    };
+                }
+            }
+        } catch (e) {
+        }
+        
+        const triggerSaveAsAction = () => {
+            try {
+                if (typeof BarItems !== 'undefined' && BarItems.save_project_as && typeof BarItems.save_project_as.click === 'function') {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            BarItems.save_project_as.click();
+                        });
+                    });
+                    return true;
+                }
+            } catch (e) {
+            }
+            try {
+                const el = document.querySelector('li[menu_item="save_project_as"]');
+                if (el) {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            el.click();
+                        });
+                    });
+                    return true;
+                }
+            } catch (e) {
+            }
+            try {
+                if (typeof window.saveAs === 'function') {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            window.saveAs();
+                        });
+                    });
+                    return true;
+                }
+            } catch (e) {
+            }
+            return false;
+        };
+
+        const addMenuClickListeners = () => {
+            const saveMenuItem = document.querySelector('li[menu_item="save_project"]');
+            if (saveMenuItem && !saveMenuItem.hasAttribute('data-rotation-checker-hooked')) {
+                saveMenuItem.setAttribute('data-rotation-checker-hooked', 'true');
+                const originalClick = saveMenuItem.onclick;
+                saveMenuItem.onclick = function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                if (originalClick) originalClick.call(this, event);
+                            },
+                            () => {},
+                            'save'
+                        );
+                    } else {
+                        if (originalClick) originalClick.call(this, event);
+                    }
+                };
+            }
+            
+            const saveAsMenuItem = document.querySelector('li[menu_item="save_project_as"]');
+            if (saveAsMenuItem && !saveAsMenuItem.hasAttribute('data-rotation-checker-hooked')) {
+                saveAsMenuItem.setAttribute('data-rotation-checker-hooked', 'true');
+                const originalClick = saveAsMenuItem.onclick;
+                saveAsMenuItem.onclick = function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                            showRotationWarningDialog(
+                                nonStandardRotations,
+                                () => {
+                                    Promise.resolve().then(() => {
+                                        requestAnimationFrame(() => {
+                                            requestAnimationFrame(() => {
+                                                const ok = triggerSaveAsAction();
+                                                if (!ok && originalClick) {
+                                                    setTimeout(() => originalClick.call(this, event), 300);
+                                                }
+                                            });
+                                        });
+                                    });
+                                },
+                            () => {},
+                            'saveAs'
+                        );
+                    } else {
+                        const ok = triggerSaveAsAction();
+                        if (!ok && originalClick) originalClick.call(this, event);
+                    }
+                };
+            }
+            
+            const saveIncrementMenuItem = document.querySelector('li[menu_item="save_project_incremental"]');
+            if (saveIncrementMenuItem && !saveIncrementMenuItem.hasAttribute('data-rotation-checker-hooked')) {
+                saveIncrementMenuItem.setAttribute('data-rotation-checker-hooked', 'true');
+                const originalClick = saveIncrementMenuItem.onclick;
+                saveIncrementMenuItem.onclick = function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const nonStandardRotations = extractRotations(Project);
+                    if (nonStandardRotations.length > 0) {
+                        showRotationWarningDialog(
+                            nonStandardRotations,
+                            () => {
+                                if (originalClick) originalClick.call(this, event);
+                            },
+                            () => {},
+                            'saveIncrement'
+                        );
+                    } else {
+                        if (originalClick) originalClick.call(this, event);
+                    }
+                };
+            }
+        };
+        
+        addMenuClickListeners();
     }
     
     function checkRotationsBeforeSave(originalSaveFunction, context = 'save') {
-        console.log(`[Rotation Checker] Checking rotations for context: ${context}`);
         const nonStandardRotations = extractRotations(Project);
         if (nonStandardRotations.length > 0) {
-            console.log(`[Rotation Checker] Found ${nonStandardRotations.length} non-standard rotations, showing dialog`);
             showRotationWarningDialog(
                 nonStandardRotations,
                 () => {
-                    // Continue with save after fixing or user confirmation
                     if (originalSaveFunction) {
                         originalSaveFunction.call(this);
                     }
                 },
                 () => {
-                    // Cancel save - do nothing
                 },
                 context
             );
         } else {
-            // No rotation issues, proceed with normal save
             if (originalSaveFunction) {
                 originalSaveFunction.call(this);
             }
