@@ -187,6 +187,28 @@
         });
 
         parent.updateMatrixWorld(true);
+        
+        // Force canvas to recognize new objects and refresh raycasting system
+        if (Canvas && Canvas.scene) {
+            Canvas.scene.updateMatrixWorld(true);
+        }
+        
+        // Ensure raycasting knows about the plane objects
+        if (Canvas && Canvas.scene) {
+            Canvas.scene.traverse((obj) => {
+                if (obj.userData && obj.userData.isPlaneGizmo) {
+                    // Ensure proper raycast method is available
+                    if (!obj.raycast || typeof obj.raycast !== 'function') {
+                        obj.raycast = THREE.Mesh.prototype.raycast;
+                    }
+                }
+            });
+        }
+        
+        // Force canvas update to register new objects
+        if (Canvas && typeof Canvas.updateAll === 'function') {
+            Canvas.updateAll();
+        }
     }
 
     function toggleGizmo() {
@@ -765,8 +787,17 @@
         },
 
         onload() {
-            createPlaneHandles();
-            addMouseEvents();
+            // Defer gizmo creation to ensure canvas is fully ready
+            setTimeout(() => {
+                createPlaneHandles();
+                addMouseEvents();
+                
+                // Force another update after initialization to ensure raycasting is ready
+                if (Canvas && typeof Canvas.updateAll === 'function') {
+                    Canvas.updateAll();
+                }
+            }, 100);
+            
             createToolbarButton();
 
 
