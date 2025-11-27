@@ -1270,5 +1270,17 @@
 			"Importer"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
+	},
+	"hytale_verifier": {
+		"title": "Hytale Model Verifier",
+		"author": "Gilan",
+		"description": "Verifies whether a model has the correct resolution and shapes for the Hytale art-style and has tools for fixing these issues.",
+		"icon": "icon.png",
+		"version": "1.3.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"has_changelog": false,
+		"tags": ["Hytale"],
+		"repository": "https://github.com/GilanRanger/Blockbench-HytaleVerify"
 	}
 }
