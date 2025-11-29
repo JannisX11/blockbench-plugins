@@ -1,5 +1,8 @@
 (function() {
 
+  let modelVerify, uvScale, uvAttemptFix, meshToCube;
+  let savedBlockSize = null;
+
   Plugin.register('hytale_verifier', {
     title: 'Hytale Model Verifier',
     author: 'Gilan',
@@ -9,9 +12,24 @@
     min_version: '4.8.0',
     variant: 'both',
     tags: ['Hytale'],
-    
+
     onload() {
-      let modelVerify = new Action('hytale_model_verify', {
+      Blockbench.on('load_project', () => {
+          savedBlockSize = Format.block_size;
+          
+          // Sets the grid to the correct scale for modeling Hytale entities
+          Format.block_size = 64;
+          settings.grids.onChange();
+      });
+
+      Blockbench.on('close_project', () => {
+          if (savedBlockSize !== null) {
+              Format.block_size = savedBlockSize;
+              settings.grids.onChange();
+          }
+      });
+
+      modelVerify = new Action('hytale_model_verify', {
         name: 'Verify Hytale Model',
         description: 'Click to verify if your Model has the correct texture resolution (1 pixel = 1 world unit)',
         icon: 'view_in_ar',
@@ -20,7 +38,7 @@
         }
       });
 
-      let uvScale = new Action('hytale_fix_uv_scale', {
+      uvScale = new Action('hytale_fix_uv_scale', {
         name: 'Scale UV for Hytale Model',
         description: 'Scales UV coordiantes to match the size of their texture',
         icon: 'photo_size_select_large',
@@ -29,7 +47,7 @@
         }
       });
 
-      let uvAttemptFix = new Action('hytale_uv_attempt_fix', {
+      uvAttemptFix = new Action('hytale_uv_attempt_fix', {
         name: 'Fix UV for Hytale Model',
         description: 'Fixes the size of each per-face UV of a model to match the 1:1 ratio, will then require you either move the UV or change the texture to match',
         icon: 'aspect_ratio',
@@ -38,7 +56,7 @@
         }
       });
 
-      let meshToCube = new Action('hytale_mesh_to_cube', {
+      meshToCube = new Action('hytale_mesh_to_cube', {
         name: 'Convert Meshes to Cubes',
         description: 'Converts cuboid meshes to cubes while preserving UVs and properties',
         icon: 'transform',
@@ -58,6 +76,9 @@
       uvScale.delete();
       modelVerify.delete();
       meshToCube.delete();
+
+      Blockbench.removeListener('load_project');
+      Blockbench.removeListener('close_project');
     }
   });
 
