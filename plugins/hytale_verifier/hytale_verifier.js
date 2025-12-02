@@ -339,6 +339,13 @@
             let faceSize = getFaceSize(cube, faceKey);
             let pixelsNeededWidth = (faceSize.width / 16) * expectedDensity;
             let pixelsNeededHeight = (faceSize.height / 16) * expectedDensity;
+
+            let rotation = face.rotation || 0;
+            let isRotated90or270 = (rotation === 90 || rotation === 270);
+
+            if (isRotated90or270) {
+              [pixelsNeededWidth, pixelsNeededHeight] = [pixelsNeededHeight, pixelsNeededWidth];
+            }
             
             if (Math.abs(actualPixelsWidth - pixelsNeededWidth) >= 1 || Math.abs(actualPixelsHeight - pixelsNeededHeight) >= 1) {
               issues.push({
@@ -399,6 +406,13 @@
             let faceSize = getFaceSize(cube, faceKey);
             let pixelsNeededWidth = (faceSize.width / 16) * expectedDensity;
             let pixelsNeededHeight = (faceSize.height / 16) * expectedDensity;
+            
+            let rotation = face.rotation || 0;
+            let isRotated90or270 = (rotation === 90 || rotation === 270);
+            
+            if (isRotated90or270) {
+              [pixelsNeededWidth, pixelsNeededHeight] = [pixelsNeededHeight, pixelsNeededWidth];
+            }
             
             if (Math.abs(actualPixelsWidth - pixelsNeededWidth) > 1 || Math.abs(actualPixelsHeight - pixelsNeededHeight) > 1) {
               let centerU = (face.uv[0] + face.uv[2]) / 2;
