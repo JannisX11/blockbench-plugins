@@ -27,7 +27,7 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.9.1",
+  version: "1.9.2",
   min_version: "5.0.2",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -3389,76 +3389,86 @@ const utilities = {
           }
 
           for (const file of files) {
-            const name = file.slice(0, -8)
-            let outputPath = ""
-            let fullOutputPath = this.outputFolder
-            if (this.subfolders) {
-              outputPath = name + "/"
-              fullOutputPath = PathModule.join(fullOutputPath, name)
-            }
-            const saveName = PathModule.join(fullOutputPath, `${name}.${batchExporterFormats[this.format].type}`)
-            if (await exists(saveName)) {
-              output.warn(`Skipping \`${file}\` as \`${outputPath}${name}.${batchExporterFormats[this.format].type}\` already exists`)
-              this.done++
-              continue
-            }
-            const data = autoParseJSON(await fs.promises.readFile(PathModule.join(this.inputFolder, file), "utf-8"), false)
-            if (!data) {
-              output.error(`Skipping \`${file}\` as it could not be read`)
-              this.done++
-              continue
-            }
-            if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
-              output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
-              this.done++
-              continue
-            }
-            newProject(Formats[data.meta.model_format])
-            Codecs.project.parse(data)
-            let compiled, mtl
-            if (this.format === "obj") {
-              const obj = Codecs.obj.compile(Object.assign({
-                all_files: true,
-                mtl_name: this.textures ? `${name}.mtl` : undefined
-              }, exportOptions))
-              compiled = obj.obj
-              mtl = obj.mtl
-            } else {
-              compiled = await Codecs[this.format].compile(exportOptions)
-            }
-            if (fullOutputPath !== this.outputFolder) {
-              await fs.promises.mkdir(fullOutputPath, { recursive: true })
-            }
-            await fs.promises.writeFile(saveName, Buffer.from(compiled), "utf-8")
-            output.log(`Exported \`${file}\` to \`${outputPath}${name}.${batchExporterFormats[this.format].type}\``)
-            if (this.format === "obj" && this.textures) {
-              if (await exists(saveName.slice(0, -3) + "mtl")) {
-                output.warn(`Skipping \`${file}\`'s material as \`${outputPath}${name}.mtl\` already exists`)
+            try {
+              const name = file.slice(0, -8)
+              let outputPath = ""
+              let fullOutputPath = this.outputFolder
+              if (this.subfolders) {
+                outputPath = name + "/"
+                fullOutputPath = PathModule.join(fullOutputPath, name)
+              }
+              const saveName = PathModule.join(fullOutputPath, `${name}.${batchExporterFormats[this.format].type}`)
+              if (await exists(saveName)) {
+                output.warn(`Skipping \`${file}\` as \`${outputPath}${name}.${batchExporterFormats[this.format].type}\` already exists`)
+                this.done++
+                continue
+              }
+              const data = autoParseJSON(await fs.promises.readFile(PathModule.join(this.inputFolder, file), "utf-8"), false)
+              if (!data) {
+                output.error(`Skipping \`${file}\` as it could not be read`)
+                this.done++
+                continue
+              }
+              if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
+                output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
+                this.done++
+                continue
+              }
+              if (!Formats[data.meta.model_format]) {
+                output.warn(`Skipping \`${file}\` as it uses an unknown model format: \`${data.meta.model_format}\``)
+                this.done++
+                continue
+              }
+              newProject(Formats[data.meta.model_format])
+              Codecs.project.parse(data)
+              let compiled, mtl
+              if (this.format === "obj") {
+                const obj = Codecs.obj.compile(Object.assign({
+                  all_files: true,
+                  mtl_name: this.textures ? `${name}.mtl` : undefined
+                }, exportOptions))
+                compiled = obj.obj
+                mtl = obj.mtl
               } else {
-                await fs.promises.writeFile(saveName.slice(0, -3) + "mtl", mtl, "utf-8")
-                output.log(`Exported \`${file}\`'s material to \`${outputPath}${name}.mtl\``)
+                compiled = await Codecs[this.format].compile(exportOptions)
               }
-            }
-            if (this.textures) {
-              for (const texture of data.textures) {
-                const name = texture.name.endsWith(".png") ? texture.name : texture.name + ".png"
-                let saveName
-                if (this.textureFolders && !batchExporterSpecialFormats.includes(this.format)) {
-                  await fs.promises.mkdir(PathModule.join(this.outputFolder, outputPath, "textures", texture.folder), { recursive: true })
-                  saveName = formatPath(PathModule.join(outputPath, "textures", texture.folder, name))
+              if (fullOutputPath !== this.outputFolder) {
+                await fs.promises.mkdir(fullOutputPath, { recursive: true })
+              }
+              await fs.promises.writeFile(saveName, Buffer.from(compiled), "utf-8")
+              output.log(`Exported \`${file}\` to \`${outputPath}${name}.${batchExporterFormats[this.format].type}\``)
+              if (this.format === "obj" && this.textures) {
+                if (await exists(saveName.slice(0, -3) + "mtl")) {
+                  output.warn(`Skipping \`${file}\`'s material as \`${outputPath}${name}.mtl\` already exists`)
                 } else {
-                  saveName = `${outputPath}${name}`
+                  await fs.promises.writeFile(saveName.slice(0, -3) + "mtl", mtl, "utf-8")
+                  output.log(`Exported \`${file}\`'s material to \`${outputPath}${name}.mtl\``)
                 }
-                const savePath = PathModule.join(this.outputFolder, saveName)
-                if (await exists(savePath)) {
-                  output.warn(`Skipping texture \`${name}\` from \`${file}\` as \`${saveName}\` already exists`)
-                  continue
-                }
-                await fs.promises.writeFile(savePath, Buffer.from(texture.source.split(",")[1], "base64"), "utf-8")
-                output.log(`Exported \`${name}\` from \`${file}\` to \`${saveName}\``)
               }
+              if (this.textures) {
+                for (const texture of data.textures) {
+                  const name = texture.name.endsWith(".png") ? texture.name : texture.name + ".png"
+                  let saveName
+                  if (this.textureFolders && !batchExporterSpecialFormats.includes(this.format)) {
+                    await fs.promises.mkdir(PathModule.join(this.outputFolder, outputPath, "textures", texture.folder), { recursive: true })
+                    saveName = formatPath(PathModule.join(outputPath, "textures", texture.folder, name))
+                  } else {
+                    saveName = `${outputPath}${name}`
+                  }
+                  const savePath = PathModule.join(this.outputFolder, saveName)
+                  if (await exists(savePath)) {
+                    output.warn(`Skipping texture \`${name}\` from \`${file}\` as \`${saveName}\` already exists`)
+                    continue
+                  }
+                  await fs.promises.writeFile(savePath, Buffer.from(texture.source.split(",")[1], "base64"), "utf-8")
+                  output.log(`Exported \`${name}\` from \`${file}\` to \`${saveName}\``)
+                }
+              }
+              await Project.close()
+            } catch (err) {
+              output.error(`Skipping \`${file}\` as it could not be read`)
+              console.error(err)
             }
-            await Project.close()
             this.done++
           }
 

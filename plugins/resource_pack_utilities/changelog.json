@@ -254,5 +254,18 @@
         ]
       }
     ]
+  },
+  "1.9.2": {
+    "title": "1.9.2",
+    "date": "2025-12-04",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Batch Exporter crashing when loading bbmodels that have unknown model formats"
+        ]
+      }
+    ]
   }
 }
