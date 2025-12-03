@@ -190,7 +190,7 @@ var nbt = new function() {
 
 			buffer = newBuffer;
 			dataView = new DataView(newBuffer);
-			arrayView = newArrayView;
+			arrayView = new Uint8Array(newBuffer);
 		}
 
 		function write(dataType, size, value) {
@@ -324,8 +324,8 @@ var nbt = new function() {
 		 *
 		 * @example
 		 * writer.compound({
-		 *     foo: { type: 'int', value: 12 },
-		 *     bar: { type: 'string', value: 'Hello, World!' }
+		 * foo: { type: 'int', value: 12 },
+		 * bar: { type: 'string', value: 'Hello, World!' }
 		 * }); */
 		this[nbt.tagTypes.compound] = function(value) {
 			var self = this;
@@ -335,7 +335,7 @@ var nbt = new function() {
 				self[value[key].type](value[key].value);
 			});
 			this.byte(nbt.tagTypes.end);
-			return this;
+			return self;
 		};
 
 		var typeName;
@@ -483,7 +483,7 @@ var nbt = new function() {
 		 * @example
 		 * reader.compound();
 		 * // -> { foo: { type: int, value: 42 },
-		 * //      bar: { type: string, value: 'Hello! }} */
+		 * //      bar: { type: string, value: 'Hi!' }} */
 		this[nbt.tagTypes.compound] = function() {
 			var values = {};
 			while (true) {
@@ -517,11 +517,11 @@ var nbt = new function() {
 	 *
 	 * @example
 	 * nbt.writeUncompressed({
-	 *     name: 'My Level',
-	 *     value: {
-	 *         foo: { type: int, value: 42 },
-	 *         bar: { type: string, value: 'Hi!' }
-	 *     }
+	 * name: 'My Level',
+	 * value: {
+	 * foo: { type: int, value: 12 },
+	 * bar: { type: string, value: 'Hi!' }
+	 * }
 	 * }); */
 	nbt.writeUncompressed = function(value) {
 		if (!value) { throw new Error('Argument "value" is falsy'); }
@@ -538,7 +538,7 @@ var nbt = new function() {
 	/**
 	 * @param {ArrayBuffer|Buffer} data - an uncompressed NBT archive
 	 * @returns {{name: string, value: Object.<string, Object>}}
-	 *     a named compound
+	 * a named compound
 	 *
 	 * @see module:nbt.parse
 	 * @see module:nbt.writeUncompressed
@@ -589,11 +589,11 @@ var nbt = new function() {
 	 *
 	 * @example
 	 * nbt.parse(buf, function(error, results) {
-	 *     if (error) {
-	 *         throw error;
-	 *     }
-	 *     console.log(result.name);
-	 *     console.log(result.value.foo);
+	 * if (error) {
+	 * throw error;
+	 * }
+	 * console.log(result.name);
+	 * console.log(result.value.foo);
 	 * }); */
 	nbt.parse = function(data, callback) {
 		if (!data) { throw new Error('Argument "data" is falsy'); }
@@ -633,8 +633,13 @@ var nbt = new function() {
 Blockbench.nbt_lib = nbt
 
 
+// 🛠️ FIX 2: Explicitly define Node.js modules for desktop environment 
+// (Blockbench 5.0 often stops making these global)
 if (!Blockbench.isWeb) {
 	window.zlib = require('zlib')
+	window.fs = require('fs');
+	window.path = require('path');
+	window.osfs = window.path.sep;
 } else {
 	$.getScript('https://rawgit.com/nodeca/pako/master/dist/pako.js', function() {
 		window.zlib = pako
@@ -683,6 +688,8 @@ function structure_importer_addResourcePack() {
 	addButton.parentNode.insertBefore(node, addButton)
 }
 
+// ❌ Removed: function structure_importer_updateSize (Still commented out from previous fix)
+/*
 function structure_importer_updateSize() {
 	var filePath = document.getElementById("file").files[0].path
 	var data = zlib.gunzipSync(fs.readFileSync(filePath))
@@ -694,6 +701,7 @@ function structure_importer_updateSize() {
 		scale.value = 2**Math.ceil(Math.log2(Math.max(sizeNBT[0], sizeNBT[1], sizeNBT[2])))
 	})
 }
+*/
 
 function structure_importer_run(ev) {
 	function importStructureFile(cb) {
@@ -751,27 +759,35 @@ function structure_importer_run(ev) {
 					
 					dialog.hide()
 					
+					// ✅ FIX 1: Use asynchronous import
 					Blockbench.import({
 						type: "NBT structure",
 						extensions: ["nbt", "dat"],
-						title: "Pick an NBT structure file"
+						title: "Pick an NBT structure file",
+						readtype: "binary" // Important: tells BB to load the file as a buffer
 					}, (files) => {
-						if (files.length == 0) {
+						if (files.length === 0) {
 							Blockbench.showMessage("Error: no files were picked", "center")
 							throw "Error: no files were picked"
 						}
 
-						var data = zlib.gunzipSync(fs.readFileSync(files[0].path))
-						if (!useLegacy) {
-							nbt.parse(data, function (a, b) {
-								this.buildStructure(b)
-							}.bind(structureBuilder))
-						}
-						else {
-							nbt.parse(data, function (a, b) {
-								legacyStructureImporter(b)
-							})
-						}
+						var fileData = files[0].content; // The loaded binary data
+
+						// nbt.parse will now check for the gzip header and use the asynchronous zlib.gunzip
+						nbt.parse(fileData, (error, data) => {
+							if (error) {
+								Blockbench.showMessage("Error parsing NBT file: " + error.message, "center");
+								console.error(error);
+								return;
+							}
+							
+							if (!useLegacy) {
+								structureBuilder.buildStructure(data)
+							}
+							else {
+								legacyStructureImporter(data)
+							}
+						});
 					});
 				}
 			})
@@ -914,7 +930,7 @@ function structure_importer_run(ev) {
 
 window.structure_importer_selectResourcePath = structure_importer_selectResourcePath;
 window.structure_importer_addResourcePack = structure_importer_addResourcePack;
-window.structure_importer_updateSize = structure_importer_updateSize;
+// window.structure_importer_updateSize = structure_importer_updateSize;
 window.structure_importer_run = structure_importer_run;
 
 
