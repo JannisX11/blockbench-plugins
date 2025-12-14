@@ -33,7 +33,7 @@
 		              create: () => format.new()
 		            },
 		            template: `
-		              <div class="ewan-format-page" style="display:flex;flex-direction:column;height:100%">
+		              <div class="format-page" style="display:flex;flex-direction:column;height:100%">
 		                <p class="format_description">${description}</p>
 		                <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition</span></p>
 		                <content>
@@ -58,7 +58,7 @@
 		                  <h3 class="markdown">Troubleshooting:</h3>
 		                  <p class="markdown">
 		                    <ul>
-		                      <li>If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your Java Block Sequence have been checked (Export: On) in the Edit tab.</li>
+		                      <li>If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your Java Block Sequence have been checked (Export: On) in the outliner.</li>
 		                    </ul>
 		                  </p>
 		                </content>

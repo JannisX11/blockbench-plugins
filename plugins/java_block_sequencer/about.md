@@ -1,6 +1,6 @@
 # Java Block Sequencer v1.0.0
 
-Adds the option to turn animation keyframes into a sequence of Minecraft block/item models.
+Adds the option to turn animation keyframes into a sequence of block/item models.
 This will not export any item definition files for the exported models, so these must be referenced manually in a resource pack.
 Requires Minecraft 1.21.11 or later.
 
@@ -17,4 +17,4 @@ Whenever an animation is exported with JBS, each frame goes through 6 stages:
 Start by creating a new model or converting an existing cube-based project into a **Java Block Sequence**. Create an animation. Right-click your animation. Click **Export Java Block Sequence** from the drop-down menu. Each model will be displayed in-game based on settings in the Display tab.
 
 ## Troubleshooting
-- If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your animation have been checked (`Export: On`) in the Outliner.
+- If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your animation have been checked (`Export: On`) in the outliner.
