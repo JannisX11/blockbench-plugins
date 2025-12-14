@@ -19,7 +19,7 @@
 		repository: "https://github.com/Jatzylap/Java-Block-Sequencer",
 		onload() {
 
-			codec = Codecs.java_block;	// Defaults to MC 1.21.11
+			codec = Codecs.java_block;	// Defaults to 1.21.11+ format
 			
 			format = new ModelFormat({
 		        id: "java_block_sequence",
