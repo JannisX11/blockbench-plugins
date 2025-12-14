@@ -1,6 +1,6 @@
 # Java Block Sequencer v1.0.0
 
-Adds the option to turn animation keyframes into a sequence of block/item models.
+Adds the option to turn animation keyframes into a sequence of Minecraft block/item models.
 This will not export any item definition files for the exported models, so these must be referenced manually in a resource pack.
 Requires Minecraft 1.21.11 or later.
 
