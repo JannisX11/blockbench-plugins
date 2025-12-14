@@ -2,11 +2,11 @@
 
 	let codec, format, export_action;
 	
-	const description = 'Export animation keyframes into a sequence of block/item models.'
+	const description = 'Exports an animation into a sequence of Minecraft block/item models.'
 	const icon = 'icon-objects'
 	
-	BBPlugin.register('java_block_animation_exporter', {
-		title: 'Java Block Animation Exporter',
+	BBPlugin.register('java_block_sequencer', {
+		title: 'Java Block Sequencer',
 		icon,
 		author: 'Jatzylap',
 		description,
@@ -14,16 +14,16 @@
 		version: '1.0.0',
 		min_version: '5.0.5',
 		variant: 'desktop',
-		creation_date: "2025-12-13",
-    	await_loading: true,
+		creation_date: "2025-12-14",
 		has_changelog: true,
-		repository: "https://github.com/Jatzylap/Java-Block-Animation-Exporter",
+		repository: "https://github.com/Jatzylap/Java-Block-Sequencer",
 		onload() {
 
 			codec = Codecs.java_block;	// Defaults to MC 1.21.11
+			
 			format = new ModelFormat({
-		        id: "java_block_animation",
-		        name: "Java Block Animation",
+		        id: "java_block_sequence",
+		        name: "Java Block Sequence",
 		        extension: "json",
 		        icon: "icon-objects",
 		        category: "minecraft",
@@ -40,7 +40,7 @@
 		                  <h3 class="markdown">About:</h3>
 		                  <p class="markdown">
 		                    <ul>
-		            		  <li>Adds the option to turn animation keyframes into a sequence of block/item models based on the Java Block codec.</li>
+		            		  <li>Adds the option to turn an animation into a sequence of Minecraft block/item models.</li>
 		                      <li>This will not export any item definition files for the exported models, so these must be referenced manually in a resource pack.</li>
 		                      <li>Requires <strong>Minecraft 1.21.11</strong> or later.</li>
 		                    </ul>
@@ -48,17 +48,17 @@
 		                  <h3 class="markdown">How to use:</h3>
 		                  <p class="markdown">
 		                    <ul>
-		                      <li>Create a new model or convert an existing cube-based project into a <strong>Java Block Animation</strong>.</li>
+		                      <li>Create a new model or convert an existing cube-based project into a <strong>Java Block Sequence</strong>.</li>
 		                      <li>Create an animation.</li>
 		                      <li>Right-click your animation.</li>
-		                      <li>Click <strong>Export Java Block Animation</strong> from the drop-down menu.</li>
+		                      <li>Click <strong>Export Java Block Sequence</strong> from the drop-down menu.</li>
 		            		  <li>Each model will be displayed in-game based on settings in the Display tab.</li>
 		                    </ul>
 		                  </p>
 		                  <h3 class="markdown">Troubleshooting:</h3>
 		                  <p class="markdown">
 		                    <ul>
-		                      <li>If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your Java Block Animation have been checked (Export: On) in the Edit tab.</li>
+		                      <li>If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your Java Block Sequence have been checked (Export: On) in the Edit tab.</li>
 		                    </ul>
 		                  </p>
 		                </content>
@@ -97,16 +97,16 @@
 
 			codec.format = format;
 
-			export_anim_action = new Action('export_java_block_animation', {
-				name: 'Export Java Block Animation',
-				description: 'Export animation as Java Block models',
+			export_anim_action = new Action('export_java_block_sequence', {
+				name: 'Export Java Block sequence',
+				description: 'Export animation into Java Block models',
 				icon: 'icon-objects',
 				category: 'animation',
 				condition: () => Modes.animate && Animation.selected,
 				click() {
 					new Dialog({
-						id: 'export_java_block_animation',
-						title: 'Export Java Block Animation',
+						id: 'export_java_block_sequence',
+						title: 'Export Java Block Sequence',
 						form: {
 							length: {label: 'Length', type: 'number', value: Animation.selected.length, min: 0, max: 10000},
 							fps: {label: 'FPS', type: 'number', value: Animation.selected.snapping, min: 1, max: 1000},
@@ -254,7 +254,7 @@
 								
 								let javablockmodel = codec.compile(Project);
 								archive.file(`${frame}.json`, javablockmodel);
-								Undo.finishEdit(`Java Block Animation Cache`);
+								Undo.finishEdit(`Java Block Sequence Cache`);
 								Undo.undo();
 							}
 

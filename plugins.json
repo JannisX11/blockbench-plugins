@@ -1270,5 +1270,18 @@
 			"Importer"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
+	},
+	"java_block_animation_exporter": {
+		"title": "Java Block Sequencer",
+		"icon": "icon.png",
+		"author": "Jatzylap",
+		"description": "Exports an animation into a sequence of Minecraft block/item models.",
+    	"tags": ["Minecraft: Java Edition", "Exporter", "Animation"],
+		"version": "1.0.0",
+		"min_version": "5.0.5",
+		"variant": "desktop",
+		"creation_date": "2025-12-14",
+		"has_changelog": true,
+		"repository": "https://github.com/Jatzylap/Java-Block-Sequencer"
 	}
 }
