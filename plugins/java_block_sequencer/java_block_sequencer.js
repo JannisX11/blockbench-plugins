@@ -3,7 +3,7 @@
 	let codec, format, export_action;
 	
 	const description = 'Exports an animation into a sequence of Minecraft block/item models.'
-	const icon = 'icon-objects'
+	const icon = 'icon.png'
 	
 	BBPlugin.register('java_block_sequencer', {
 		title: 'Java Block Sequencer',
