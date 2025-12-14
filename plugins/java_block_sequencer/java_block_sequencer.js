@@ -13,7 +13,7 @@
     	tags: ["Minecraft: Java Edition", "Exporter", "Animation"],
 		version: '1.0.0',
 		min_version: '5.0.5',
-		variant: 'desktop',
+		variant: 'both',
 		creation_date: "2025-12-14",
 		has_changelog: true,
 		repository: "https://github.com/Jatzylap/Java-Block-Sequencer",
