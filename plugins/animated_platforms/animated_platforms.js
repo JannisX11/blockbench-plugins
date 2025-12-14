@@ -3856,7 +3856,7 @@
     description:
       "An animated ground plane that makes it easier to animate moving entities (walk cycles, vehicles, etc.). " +
       "It offers customization for size, rotation, speed, opacity, textures, and per-animation presets so you can tune it to your workflow.",
-    icon: "icon.png",
+    icon: "icon.svg",
     version: PLUGIN_VERSION,
     min_version: "4.8.0",
     variant: "both",
