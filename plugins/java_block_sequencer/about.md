@@ -17,4 +17,4 @@ Whenever an animation is exported with JBS, each frame goes through 6 stages:
 Start by creating a new model or converting an existing cube-based project into a **Java Block Sequence**. Create an animation. Right-click your animation. Click **Export Java Block Sequence** from the drop-down menu. Each model will be displayed in-game based on settings in the Display tab.
 
 ## Troubleshooting
-- If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your animation have been checked (`Export: On`) in the `Edit` tab.
+- If the exported models aren't getting rotated or positioned properly, make sure the groups/bones used in your animation have been checked (`Export: On`) in the Outliner.
