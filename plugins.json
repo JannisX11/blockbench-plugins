@@ -99,6 +99,7 @@
 		"description": "Generates shapes.",
 		"icon": "pages",
 		"min_version": "3.0.2",
+		"version": "0.0.4",
 		"variant": "both"
 	},
 	"outline_creator": {
