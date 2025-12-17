@@ -523,5 +523,10 @@
     "version": "1.0.0",
     "created": 1763076756774,
     "updated": 1763076756774
+  },
+  "shape_generator": {
+    "version": "0.0.4",
+    "created": 1765964433931,
+    "updated": 1765964433931
   }
 }
