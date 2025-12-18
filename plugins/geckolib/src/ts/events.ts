@@ -46,8 +46,10 @@ export function removeEventListeners() {
 function onProjectParse(e: any) {
     onSettingsChanged();
 
-    if (!e.model[PROPERTY_MODEL_TYPE])
+    if (!e.model[PROPERTY_MODEL_TYPE]) {
         e.model[PROPERTY_MODEL_TYPE] = determineModelType(e.model);
+        Project.saved = false;
+    }
 
     // Because the project hasn't had its model properties applied at this stage
     Format.display_mode = (e.model[PROPERTY_MODEL_TYPE] && e.model[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
