@@ -1,10 +1,10 @@
 import {
     addCodecCallback,
     addEventListener,
-    addMonkeypatch, hasModelDisplaySettings, isGeckoLibModel, Monkeypatches,
+    addMonkeypatch, shouldShowDisplayPanel, isGeckoLibModel, Monkeypatches,
     onlyIfGeckoLib,
     removeCodecCallback,
-    removeEventListener, removeMonkeypatches
+    removeEventListener, removeMonkeypatches, determineModelType
 } from "./utils";
 import {GeckolibBoneAnimator} from "./keyframe";
 import {
@@ -46,6 +46,9 @@ export function removeEventListeners() {
 function onProjectParse(e: any) {
     onSettingsChanged();
 
+    if (!e.model[PROPERTY_MODEL_TYPE])
+        e.model[PROPERTY_MODEL_TYPE] = determineModelType(e.model);
+
     // Because the project hasn't had its model properties applied at this stage
     Format.display_mode = (e.model[PROPERTY_MODEL_TYPE] && e.model[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
 }
@@ -56,6 +59,9 @@ function onProjectParse(e: any) {
  * Only called for GeckoLib projects
  */
 function onProjectSave(e: {model: object, options: any }) {
+    if (!e.model[PROPERTY_MODEL_TYPE])
+        e.model[PROPERTY_MODEL_TYPE] = determineModelType(e.model);
+
     // Explicitly checked for undefined here because Blockbench attempts a save when removing the plugin
     if (settings[SETTING_REMEMBER_EXPORT_LOCATIONS] && !settings[SETTING_REMEMBER_EXPORT_LOCATIONS].value)
         e.model[PROPERTY_FILEPATH_CACHE] = {}
@@ -70,7 +76,7 @@ function onSettingsChanged() {
     if (Modes.selected instanceof Mode)
         Modes.selected.select()
 
-    Format.display_mode = hasModelDisplaySettings();
+    Format.display_mode = shouldShowDisplayPanel();
 
     if (Project instanceof ModelProject && Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
         Project.parent = 'builtin/entity';
