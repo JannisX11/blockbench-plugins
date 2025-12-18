@@ -25,6 +25,7 @@ export function addEventListeners() {
     addEventListener('select_project', onlyIfGeckoLib(onProjectSelect));
     addEventListener('update_project_settings', onlyIfGeckoLib(onSettingsChanged));
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
+    addEventListener('convert_format', onlyIfGeckoLib(onProjectConvert));
     addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
@@ -70,6 +71,15 @@ function onProjectSave(e: {model: object, options: any }) {
 }
 
 /**
+ * When a project is being converted from another format to a GeckoLib model
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onProjectConvert(e: any) {
+    onSettingsChanged();
+}
+
+/**
  * When the GeckoLib project settings are changed, or a GeckoLib project is being opened or swapped to
  * <p>
  * Only called for GeckoLib projects
@@ -78,12 +88,19 @@ function onSettingsChanged() {
     if (Modes.selected instanceof Mode)
         Modes.selected.select()
 
-    Format.display_mode = shouldShowDisplayPanel();
+    if (Project instanceof ModelProject) {
+        if (!Project[PROPERTY_MODEL_TYPE]) {
+            Project[PROPERTY_MODEL_TYPE] = determineModelType();
+            Project.saved = false;
+        }
 
-    if (Project instanceof ModelProject && Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
-        Project.parent = 'builtin/entity';
-        Project.saved = false;
+        if (Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
+            Project.parent = 'builtin/entity';
+            Project.saved = false;
+        }
     }
+
+    Format.display_mode = shouldShowDisplayPanel();
 }
 
 /**
