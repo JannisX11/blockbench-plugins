@@ -135,7 +135,7 @@ export const shouldShowDisplayPanel = () => {
 /**
  * Determine the GeckoModelType of the current project (as best as possible), or null if it is not a GeckoLib model.
  */
-export const determineModelType = (optionalModel: any) => {
+export const determineModelType = (optionalModel?: any) => {
   if (!isGeckoLibModel() || !Project)
     return null;
 
