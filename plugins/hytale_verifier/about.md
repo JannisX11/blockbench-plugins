@@ -54,7 +54,8 @@ Scales each face's UV individually to match the 1:1 pixel density ratio. This to
 
 - Blockbench 4.8.0 or higher
 - Models must use cubes
-- Expected density: 1 pixel = 1 world unit (x16)
+- Maximum 256 nodes (groups and cubes)
+- Expected density: 1 pixel = 1 world unit (16x)
 
 ## Issues & Feedback
 

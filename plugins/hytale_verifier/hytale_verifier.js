@@ -1,34 +1,18 @@
 (function() {
 
   let modelVerify, uvScale, uvAttemptFix, meshToCube;
-  let savedBlockSize = null;
 
   Plugin.register('hytale_verifier', {
     title: 'Hytale Model Verifier',
     author: 'Gilan',
     description: 'Verifies whether a model has the correct resolution and shapes for the Hytale art-style and has tools for fixing these issues.',
     icon: 'icon.png',
-    version: '1.3.0',
+    version: '1.4.0',
     min_version: '4.8.0',
     variant: 'both',
     tags: ['Hytale'],
 
     onload() {
-      Blockbench.on('load_project', () => {
-          savedBlockSize = Format.block_size;
-          
-          // Sets the grid to the correct scale for modeling Hytale entities
-          Format.block_size = 64;
-          settings.grids.onChange();
-      });
-
-      Blockbench.on('close_project', () => {
-          if (savedBlockSize !== null) {
-              Format.block_size = savedBlockSize;
-              settings.grids.onChange();
-          }
-      });
-
       modelVerify = new Action('hytale_model_verify', {
         name: 'Verify Hytale Model',
         description: 'Click to verify if your Model has the correct texture resolution (1 pixel = 1 world unit)',
@@ -76,9 +60,6 @@
       uvScale.delete();
       modelVerify.delete();
       meshToCube.delete();
-
-      Blockbench.removeListener('load_project');
-      Blockbench.removeListener('close_project');
     }
   });
 
@@ -298,6 +279,16 @@
 
   function verifyModel(expectedDensity, modelType) {
     let issues = [];
+    let nodeCount = (Outliner.elements.length + getAllGroups().length);
+
+    // Maximum number of nodes as 256 (assumed from comment by Slikey)
+    if (nodeCount > 256) {
+      issues.push({
+        name: "Max nodes",
+        resolution: `Model has (${nodeCount}) nodes`,
+        expected: 'Models can only have a maximum of 256 nodes'
+      });
+    }
     
     Outliner.elements.forEach(element => {
       if (!element.visibility) return;
