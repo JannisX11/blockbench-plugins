@@ -228,5 +228,18 @@
         ]
       }
     ]
+  },
+  "4.2.3": {
+    "title": "4.2.3",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Further fix situations where the model type property would not save properly",
+          "Properly update the project's settings when converting from another format to GeckoLib"
+        ]
+      }
+    ]
   }
 }
