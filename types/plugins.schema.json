@@ -86,6 +86,11 @@
                 "description": "Link to where users can report issues with the plugin",
                 "pattern": "^https://.+"
             },
+            "contributors": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of people who have contributed to the plugin but are not the main author(s)"
+            },
             "deprecation_note": {
                 "type": "string",
                 "description": "Used in combination with a \"Deprecated\" tag. Explains why the plugin is deprecated and what to do or use instead."
