@@ -528,5 +528,10 @@
     "version": "0.0.4",
     "created": 1765964433931,
     "updated": 1765964433931
+  },
+  "hytale_plugin": {
+    "version": "0.4.0",
+    "created": 1766421748990,
+    "updated": 1766421748990
   }
 }
