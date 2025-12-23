@@ -1,10 +1,10 @@
 import {
     addCodecCallback,
     addEventListener,
-    addMonkeypatch, hasModelDisplaySettings, isGeckoLibModel, Monkeypatches,
+    addMonkeypatch, shouldShowDisplayPanel, isGeckoLibModel, Monkeypatches,
     onlyIfGeckoLib,
     removeCodecCallback,
-    removeEventListener, removeMonkeypatches
+    removeEventListener, removeMonkeypatches, determineModelType
 } from "./utils";
 import {GeckolibBoneAnimator} from "./keyframe";
 import {
@@ -25,6 +25,7 @@ export function addEventListeners() {
     addEventListener('select_project', onlyIfGeckoLib(onProjectSelect));
     addEventListener('update_project_settings', onlyIfGeckoLib(onSettingsChanged));
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
+    addEventListener('convert_format', onlyIfGeckoLib(onProjectConvert));
     addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
@@ -46,6 +47,11 @@ export function removeEventListeners() {
 function onProjectParse(e: any) {
     onSettingsChanged();
 
+    if (!e.model[PROPERTY_MODEL_TYPE]) {
+        e.model[PROPERTY_MODEL_TYPE] = determineModelType(e.model);
+        Project.saved = false;
+    }
+
     // Because the project hasn't had its model properties applied at this stage
     Format.display_mode = (e.model[PROPERTY_MODEL_TYPE] && e.model[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
 }
@@ -56,9 +62,21 @@ function onProjectParse(e: any) {
  * Only called for GeckoLib projects
  */
 function onProjectSave(e: {model: object, options: any }) {
+    if (!e.model[PROPERTY_MODEL_TYPE])
+        e.model[PROPERTY_MODEL_TYPE] = determineModelType(e.model);
+
     // Explicitly checked for undefined here because Blockbench attempts a save when removing the plugin
     if (settings[SETTING_REMEMBER_EXPORT_LOCATIONS] && !settings[SETTING_REMEMBER_EXPORT_LOCATIONS].value)
         e.model[PROPERTY_FILEPATH_CACHE] = {}
+}
+
+/**
+ * When a project is being converted from another format to a GeckoLib model
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onProjectConvert(e: any) {
+    onSettingsChanged();
 }
 
 /**
@@ -70,12 +88,19 @@ function onSettingsChanged() {
     if (Modes.selected instanceof Mode)
         Modes.selected.select()
 
-    Format.display_mode = hasModelDisplaySettings();
+    if (Project instanceof ModelProject) {
+        if (!Project[PROPERTY_MODEL_TYPE]) {
+            Project[PROPERTY_MODEL_TYPE] = determineModelType();
+            Project.saved = false;
+        }
 
-    if (Project instanceof ModelProject && Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
-        Project.parent = 'builtin/entity';
-        Project.saved = false;
+        if (Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
+            Project.parent = 'builtin/entity';
+            Project.saved = false;
+        }
     }
+
+    Format.display_mode = shouldShowDisplayPanel();
 }
 
 /**
@@ -355,7 +380,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
 
             if (animData.sound_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
 
                 for (const timestamp in animData.sound_effects) {
                     const sounds = animData.sound_effects[timestamp];
@@ -370,7 +395,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
 
             if (animData.particle_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
 
                 for (const timestamp in animData.particle_effects) {
                     let particles = animData.particle_effects[timestamp];
@@ -393,7 +418,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
 
             if (animData.timeline) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
 
                 for (const timestamp in animData.timeline) {
                     const entry = animData.timeline[timestamp];

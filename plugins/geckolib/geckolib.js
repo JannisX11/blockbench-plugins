@@ -6989,7 +6989,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.2","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.3","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
 
 /***/ }),
 
@@ -8134,6 +8134,7 @@ function addEventListeners() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('select_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSelect));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('update_project_settings', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onSettingsChanged));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('save_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSave));
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('convert_format', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectConvert));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Blockbench, null, "export", monkeypatchBlockbenchExport);
@@ -8152,6 +8153,10 @@ function removeEventListeners() {
  */
 function onProjectParse(e) {
     onSettingsChanged();
+    if (!e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE]) {
+        e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.determineModelType)(e.model);
+        Project.saved = false;
+    }
     // Because the project hasn't had its model properties applied at this stage
     Format.display_mode = (e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] && e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM) || settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_ALWAYS_SHOW_DISPLAY].value;
 }
@@ -8161,9 +8166,19 @@ function onProjectParse(e) {
  * Only called for GeckoLib projects
  */
 function onProjectSave(e) {
+    if (!e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE])
+        e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.determineModelType)(e.model);
     // Explicitly checked for undefined here because Blockbench attempts a save when removing the plugin
     if (settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS] && !settings[_constants__WEBPACK_IMPORTED_MODULE_2__.SETTING_REMEMBER_EXPORT_LOCATIONS].value)
         e.model[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_FILEPATH_CACHE] = {};
+}
+/**
+ * When a project is being converted from another format to a GeckoLib model
+ * <p>
+ * Only called for GeckoLib projects
+ */
+function onProjectConvert(e) {
+    onSettingsChanged();
 }
 /**
  * When the GeckoLib project settings are changed, or a GeckoLib project is being opened or swapped to
@@ -8173,11 +8188,17 @@ function onProjectSave(e) {
 function onSettingsChanged() {
     if (Modes.selected instanceof Mode)
         Modes.selected.select();
-    Format.display_mode = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.hasModelDisplaySettings)();
-    if (Project instanceof ModelProject && Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
-        Project.parent = 'builtin/entity';
-        Project.saved = false;
+    if (Project instanceof ModelProject) {
+        if (!Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE]) {
+            Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.determineModelType)();
+            Project.saved = false;
+        }
+        if (Project[_constants__WEBPACK_IMPORTED_MODULE_2__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_2__.GeckoModelType.ITEM && (!Project.parent || Project.parent !== 'builtin/entity')) {
+            Project.parent = 'builtin/entity';
+            Project.saved = false;
+        }
     }
+    Format.display_mode = (0,_utils__WEBPACK_IMPORTED_MODULE_0__.shouldShowDisplayPanel)();
 }
 /**
  * When opening a project tab, whether from an existing project, creating a new one, or swapping open tabs
@@ -8417,7 +8438,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.sound_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.sound_effects) {
                     const sounds = animData.sound_effects[timestamp];
                     animation.animators.effects.addKeyframe({
@@ -8429,7 +8450,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.particle_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.particle_effects) {
                     let particles = animData.particle_effects[timestamp];
                     if (!(particles instanceof Array))
@@ -8447,7 +8468,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.timeline) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.timeline) {
                     const entry = animData.timeline[timestamp];
                     const script = entry instanceof Array ? entry.join('\n') : entry;
@@ -8731,7 +8752,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   addCodecCallback: () => (/* binding */ addCodecCallback),
 /* harmony export */   addEventListener: () => (/* binding */ addEventListener),
 /* harmony export */   addMonkeypatch: () => (/* binding */ addMonkeypatch),
-/* harmony export */   hasModelDisplaySettings: () => (/* binding */ hasModelDisplaySettings),
+/* harmony export */   determineModelType: () => (/* binding */ determineModelType),
 /* harmony export */   isEmpty: () => (/* binding */ isEmpty),
 /* harmony export */   isGeckoLibModel: () => (/* binding */ isGeckoLibModel),
 /* harmony export */   isValidNamespace: () => (/* binding */ isValidNamespace),
@@ -8740,7 +8761,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   onlyIfGeckoLib: () => (/* binding */ onlyIfGeckoLib),
 /* harmony export */   removeCodecCallback: () => (/* binding */ removeCodecCallback),
 /* harmony export */   removeEventListener: () => (/* binding */ removeEventListener),
-/* harmony export */   removeMonkeypatches: () => (/* binding */ removeMonkeypatches)
+/* harmony export */   removeMonkeypatches: () => (/* binding */ removeMonkeypatches),
+/* harmony export */   shouldShowDisplayPanel: () => (/* binding */ shouldShowDisplayPanel)
 /* harmony export */ });
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
 
@@ -8841,7 +8863,7 @@ const isValidNamespace = (namespace) => {
 /**
  * Whether a map-like object has no defined keys or values
  */
-const isEmpty = (object = {}) => Object.keys(object).length === 0;
+const isEmpty = (object = {}) => !object || Object.keys(object).length === 0;
 /**
  * Whether the currently focussed model is a GeckoLib model
  */
@@ -8849,7 +8871,27 @@ const isGeckoLibModel = () => Format.id === _constants__WEBPACK_IMPORTED_MODULE_
 /**
  * Whether the current project is a GeckoLib model that has or uses item render perspective transforms
  */
-const hasModelDisplaySettings = () => isGeckoLibModel() && Project && ((Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM || !isEmpty(Project.display_settings)) || settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_ALWAYS_SHOW_DISPLAY].value);
+const shouldShowDisplayPanel = () => {
+    if (!isGeckoLibModel() || !Project)
+        return false;
+    if (settings[_constants__WEBPACK_IMPORTED_MODULE_0__.SETTING_ALWAYS_SHOW_DISPLAY].value)
+        return true;
+    return Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] === _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM || !isEmpty(Project.display_settings);
+};
+/**
+ * Determine the GeckoModelType of the current project (as best as possible), or null if it is not a GeckoLib model.
+ */
+const determineModelType = (optionalModel) => {
+    if (!isGeckoLibModel() || !Project)
+        return null;
+    if (Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] && typeof Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE] === 'string')
+        return Project[_constants__WEBPACK_IMPORTED_MODULE_0__.PROPERTY_MODEL_TYPE];
+    if (optionalModel && !isEmpty(optionalModel.display))
+        return _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM;
+    if (!isEmpty(Project.display_settings))
+        return _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ITEM;
+    return _constants__WEBPACK_IMPORTED_MODULE_0__.GeckoModelType.ENTITY;
+};
 
 
 /***/ }),
@@ -9184,7 +9226,7 @@ function createPluginMenuItems() {
                 icon: "icon-bb_interface",
                 description: "Export your item/block display settings for GeckoLib.",
                 category: "file",
-                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_4__.isGeckoLibModel)() && (0,_utils__WEBPACK_IMPORTED_MODULE_4__.hasModelDisplaySettings)(),
+                condition: () => (0,_utils__WEBPACK_IMPORTED_MODULE_4__.isGeckoLibModel)() && (0,_utils__WEBPACK_IMPORTED_MODULE_4__.shouldShowDisplayPanel)(),
                 click: _codec__WEBPACK_IMPORTED_MODULE_6__.buildDisplaySettingsJson,
             }),
             menuCategory: 'file.export'
