@@ -1287,5 +1287,22 @@
 			"Importer"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
+	},
+	"texture_downscaler": {
+		"title": "Texture Downscaler",
+		"author": "0x13F",
+		"description": "Downscale textures non-destructively",
+		"icon": "icon.png",
+		"creation_date": "2025-10-26",
+		"version": "1.0.0",
+		"variant": "desktop",
+		"min_version": "5.0.3",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Viewport",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_downscaler"
 	}
 }
