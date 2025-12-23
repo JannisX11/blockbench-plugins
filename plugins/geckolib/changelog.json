@@ -237,6 +237,7 @@
         "title": "Bug Fixes",
         "list": [
           "Further fix situations where the model type property would not save properly",
+          "Fixed an issue with importing animations with sound keyframes",
           "Properly update the project's settings when converting from another format to GeckoLib"
         ]
       }
