@@ -533,5 +533,10 @@
     "version": "0.4.0",
     "created": 1766421748990,
     "updated": 1766421748990
+  },
+  "texture_downscaler": {
+    "version": "1.0.0",
+    "created": 1766497657176,
+    "updated": 1766497657176
   }
 }
