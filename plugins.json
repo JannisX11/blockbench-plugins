@@ -1266,7 +1266,7 @@
 		"author": "AnnJ",
 		"description": "Enhanced 2D plane gizmo for simultaneous multi-axis translation",
 		"icon": "control_camera",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"tags": ["Gizmo", "Translation", "Tools"],
