@@ -8438,7 +8438,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.sound_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.sound_effects) {
                     const sounds = animData.sound_effects[timestamp];
                     animation.animators.effects.addKeyframe({
@@ -8450,7 +8450,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.particle_effects) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.particle_effects) {
                     let particles = animData.particle_effects[timestamp];
                     if (!(particles instanceof Array))
@@ -8468,7 +8468,7 @@ function monkeypatchAnimatorLoadFile(file, exportingAnims) {
             }
             if (animData.timeline) {
                 if (!animation.animators.effects)
-                    animation.animators.effects = new EffectAnimator(null, animation, animName);
+                    animation.animators.effects = new EffectAnimator(animation);
                 for (const timestamp in animData.timeline) {
                     const entry = animData.timeline[timestamp];
                     const script = entry instanceof Array ? entry.join('\n') : entry;
