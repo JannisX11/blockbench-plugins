@@ -10,6 +10,7 @@ Plugin.register('smudge_brush', {
 	tags: ['Brush', 'Paint'],
 	version: '1.0.0',
 	min_version: '4.8.0',
+    creation_date: "2025-12-27",
 	variant: 'both',
 	onload() {
 
