@@ -721,7 +721,7 @@ BBPlugin.register('brush', {
 	icon: "fa-brush",
 	author: "Malik12tree",
 	description: "Create/Use custom brushes with dynamic behavior!",
-	version: "1.0.0",
+	version: "1.0.1",
 	min_version: "4.4.0",
 	variant: "both",
 	tags: ["Paint", "Customization", "Interface"],
