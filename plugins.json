@@ -833,6 +833,16 @@
 		"variant": "both",
 		"tags": ["Paint", "Customization", "Interface"]
 	},
+	"smudge_brush": {
+		"title": "Smudge Brush",
+		"icon": "touch_app",
+		"author": "JannisX11",
+		"description": "Adds a smudge brush to smear details on textures and images",
+		"tags": ["Brush", "Paint"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
 	"pluginstats": {
 		"title": "Plugin Statistics",
 		"icon": "trending_up",

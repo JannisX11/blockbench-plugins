@@ -1,21 +1,21 @@
 /// <reference path="../../types/index.d.ts" />
 
-let smear_brush;
+let smudge_brush;
 
-Plugin.register('smear_brush', {
-	title: 'Smear Brush',
+Plugin.register('smudge_brush', {
+	title: 'Smudge Brush',
 	icon: 'touch_app',
 	author: 'JannisX11',
-	description: '',
+	description: 'Adds a smudge brush to smear textures and images',
 	tags: ['Brush', 'Paint'],
-	version: '0.4.0',
+	version: '1.0.0',
 	min_version: '4.8.0',
 	variant: 'both',
 	onload() {
 
 		let last_coord = null;
-		smear_brush = new Tool('smear_brush', {
-			name: 'Smear Brush',
+		smudge_brush = new Tool('smudge_brush', {
+			name: 'Smudge Brush',
 			icon: 'touch_app',
 			category: 'tools',
 			toolbar: 'brush',
@@ -30,22 +30,13 @@ Plugin.register('smear_brush', {
 				softness: true,
 				opacity: true,
 				offset_even_radius: true,
-				pixel_perfect: true,
 				floor_coordinates: () => BarItems.slider_brush_softness.get() == 0,
-				get interval() {
-					let size = BarItems.slider_brush_size.get();
-					if (size > 40) {
-						return size / 12;
-					} else {
-						return 1 + size * BarItems.slider_brush_softness.get() / 1500;
-					}
-				},
+				interval: 1,
 				onStrokeStart() {
 					last_coord = null;
 				},
 				draw({ctx, x, y, size, softness, texture, event}) {
 					if (!last_coord || (last_coord[0] == x && last_coord[1] == y)) {
-						console.log(last_coord)
 						last_coord = [x, y];
 						return;
 					}
@@ -60,7 +51,7 @@ Plugin.register('smear_brush', {
 								return pxcolor;
 							}
 						}
-						return smear_brush.brush.changePixel(px, py, pxcolor, local_opacity, {opacity: b_opacity, ctx, x, y, size, softness, texture, event});
+						return smudge_brush.brush.changePixel(px, py, pxcolor, local_opacity, {opacity: b_opacity, ctx, x, y, size, softness, texture, event});
 					}
 					let shape = BarItems.brush_shape.value;
 					if (shape == 'square') {
@@ -78,15 +69,25 @@ Plugin.register('smear_brush', {
 						px - (x - last_coord[0]),
 						py - (y - last_coord[1]),
 					];
-					let smear_color;
-					Painter.scanCanvas(ctx, smear_pixel[0], smear_pixel[1], 1, 1, (px1, py1, pxcolor) => smear_color = pxcolor);
-					if (smear_color) {
-						smear_color = {r: smear_color[0], g: smear_color[1], b: smear_color[2], a: smear_color[3]/255};
+					let smear_color = {r: 0, g: 0, b: 0, a: 0};
+					let count = 0;
+					let start = [Math.floor(smear_pixel[0]), Math.floor(smear_pixel[1])]
+					Painter.scanCanvas(ctx, ...start, 2, 2, (px1, py1, pxcolor2) => {
+						let amount_x = smear_pixel[0] % 1;
+						let amount_y = smear_pixel[1] % 1;
+						if (px1 == start[0]) amount_x = 1-amount_x;
+						if (py1 == start[1]) amount_y = 1-amount_y;
+						smear_color.r += pxcolor2[0] * amount_x * amount_y;
+						smear_color.g += pxcolor2[1] * amount_x * amount_y;
+						smear_color.b += pxcolor2[2] * amount_x * amount_y;
+						smear_color.a += (pxcolor2[3] / 255) * amount_x * amount_y;
+						count++;
+					});
+					if (count == 4) {
 						result_color = Painter.combineColors(pxcolor, smear_color, a);
 					}
 					if (Painter.lock_alpha) result_color.a = pxcolor.a
-					console.log({smear_pixel, smear_color, result_color, pxcolor, px, py, x, last_coord})
-					return result_color;
+					return result_color || pxcolor;
 				}
 			},
 			allowed_view_modes: ['textured', 'material'],
@@ -101,11 +102,16 @@ Plugin.register('smear_brush', {
 			onUnselect() {
 				Interface.removeSuggestedModifierKey('shift', 'modifier_actions.draw_line');
 			}
-		})
+		});
+		if (!localStorage.getItem('smudge_brush.init')) {
+			let index = Toolbars.tools.children.indexOf(BarItems.brush_tool);
+			Toolbars.tools.add(smudge_brush, index+1);
+			localStorage.setItem('smudge_brush.init', 'true');
+		}
 
 	},
 	onunload() {
-		smear_brush.delete();
+		smudge_brush.delete();
 	}
 });
 
