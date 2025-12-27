@@ -543,5 +543,10 @@
     "version": "1.0.0",
     "created": 1766790102010,
     "updated": 1766790102010
+  },
+  "java_block_animation_exporter": {
+    "version": "1.0.0",
+    "created": 1766859185469,
+    "updated": 1766859185469
   }
 }
