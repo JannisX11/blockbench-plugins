@@ -548,5 +548,10 @@
     "version": "1.0.0",
     "created": 1766859185469,
     "updated": 1766859185469
+  },
+  "animated_platforms": {
+    "version": "1.0.0",
+    "created": 1766862509962,
+    "updated": 1766862509962
   }
 }
