@@ -1280,7 +1280,7 @@
 		"version": "1.0.0",
 		"min_version": "5.0.5",
 		"variant": "both",
-		"creation_date": "2025-12-14",
+		"creation_date": "2025-12-27",
 		"has_changelog": true,
 		"repository": "https://github.com/Jatzylap/Java-Block-Sequencer"
 	}
