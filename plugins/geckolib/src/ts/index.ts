@@ -2,7 +2,7 @@ import semverCoerce from 'semver/functions/coerce';
 import semverSatisfies from 'semver/functions/satisfies';
 import packageJson from '../package.json';
 import { loadAnimationUI, unloadAnimationUI } from './animationUi';
-import {hasModelDisplaySettings, isEmpty, isGeckoLibModel, isValidNamespace, make} from './utils';
+import {shouldShowDisplayPanel, isEmpty, isGeckoLibModel, isValidNamespace, make} from './utils';
 import { loadKeyframeOverrides, unloadKeyframeOverrides } from './keyframe';
 import codec, {buildDisplaySettingsJson, format} from './codec';
 import {
@@ -216,7 +216,7 @@ function createPluginMenuItems(): { action: Action, menuCategory: string }[] {
         icon: "icon-bb_interface",
         description: "Export your item/block display settings for GeckoLib.",
         category: "file",
-        condition: () => isGeckoLibModel() && hasModelDisplaySettings(),
+        condition: () => isGeckoLibModel() && shouldShowDisplayPanel(),
         click: buildDisplaySettingsJson,
       }),
       menuCategory: 'file.export'

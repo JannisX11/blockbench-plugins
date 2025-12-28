@@ -523,5 +523,35 @@
     "version": "1.0.0",
     "created": 1763076756774,
     "updated": 1763076756774
+  },
+  "shape_generator": {
+    "version": "0.0.4",
+    "created": 1765964433931,
+    "updated": 1765964433931
+  },
+  "hytale_plugin": {
+    "version": "0.4.0",
+    "created": 1766421748990,
+    "updated": 1766421748990
+  },
+  "texture_downscaler": {
+    "version": "1.0.0",
+    "created": 1766497657176,
+    "updated": 1766497657176
+  },
+  "smudge_brush": {
+    "version": "1.0.0",
+    "created": 1766790102010,
+    "updated": 1766790102010
+  },
+  "java_block_animation_exporter": {
+    "version": "1.0.0",
+    "created": 1766859185469,
+    "updated": 1766859185469
+  },
+  "animated_platforms": {
+    "version": "1.0.0",
+    "created": 1766862509962,
+    "updated": 1766862509962
   }
 }
