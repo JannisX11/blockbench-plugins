@@ -553,5 +553,10 @@
     "version": "1.0.0",
     "created": 1766862509962,
     "updated": 1766862509962
+  },
+  "java_block_sequencer": {
+    "version": "1.0.0",
+    "created": 1766970388550,
+    "updated": 1766970388550
   }
 }
