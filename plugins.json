@@ -1311,7 +1311,7 @@
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
 	},
-	"java_block_animation_exporter": {
+	"java_block_sequencer": {
 		"title": "Java Block Sequencer",
 		"icon": "icon.png",
 		"author": "Jatzylap",
