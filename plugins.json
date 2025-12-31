@@ -501,9 +501,12 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.4.0",
+		"version": "0.4.1",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
+		"contributes": {
+			"formats": ["hytale_character", "hytale_prop"]
+		},
 		"variant": "both",
 		"min_version": "5.0.5",
 		"creation_date": "2025-12-22",

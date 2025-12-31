@@ -180,5 +180,24 @@
 				]
 			}
 		]
+	},
+	"0.4.1": {
+		"title": "0.4.1",
+		"date": "2025-12-31",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with cubes that are not in a group not being exported",
+					"Fixed import and export of quads",
+					"Disabled inflate slider in Hytale projects",
+					"Fixed issue where project name changes to attachment name when saving collection",
+					"Improved rotation euler rounding",
+					"Fixed textures assigned per face having an effect on the model. Textures can only be assigned per model or attachment.",
+					"Added metadata to let Blockbench recommend the plugin for specific file types"
+				]
+			}
+		]
 	}
 }
