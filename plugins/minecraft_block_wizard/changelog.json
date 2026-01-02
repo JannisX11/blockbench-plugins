@@ -94,5 +94,19 @@
 				]
 			}
 		]
+	},
+	"1.6.1": {
+		"title": "1.6.1",
+		"date": "2026-01-02",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with loading the plugin in the web app",
+					"Updated the documentation link"
+				]
+			}
+		]
 	}
 }
