@@ -199,5 +199,27 @@
 				]
 			}
 		]
+	},
+	"0.5.0": {
+		"title": "0.5.0",
+		"date": "2026-01-03",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Hytale preview scene, can be selected from Preview Options",
+					"Added Hytale Player as a size reference, can be switched on from Preview Options"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix missing resize handles for transforming layers",
+					"Update tutorial links on format page",
+					"Fix typo in about page"
+				]
+			}
+		]
 	}
 }
