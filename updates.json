@@ -250,9 +250,9 @@
     "updated": 1761350400000
   },
   "minecraft_block_wizard": {
-    "version": "1.5.2",
+    "version": "1.6.0",
     "created": 1666656000000,
-    "updated": 1761350400000
+    "updated": 1767189707918
   },
   "minecraft_item_wizard": {
     "version": "1.2.4",
@@ -530,9 +530,9 @@
     "updated": 1765964433931
   },
   "hytale_plugin": {
-    "version": "0.4.0",
+    "version": "0.5.0",
     "created": 1766421748990,
-    "updated": 1766421748990
+    "updated": 1767474263390
   },
   "texture_downscaler": {
     "version": "1.0.0",
@@ -553,5 +553,10 @@
     "version": "1.0.0",
     "created": 1766862509962,
     "updated": 1766862509962
+  },
+  "java_block_sequencer": {
+    "version": "1.0.0",
+    "created": 1766970388550,
+    "updated": 1766970388550
   }
 }

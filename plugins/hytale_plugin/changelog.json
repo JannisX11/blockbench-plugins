@@ -180,5 +180,46 @@
 				]
 			}
 		]
+	},
+	"0.4.1": {
+		"title": "0.4.1",
+		"date": "2025-12-31",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with cubes that are not in a group not being exported",
+					"Fixed import and export of quads",
+					"Disabled inflate slider in Hytale projects",
+					"Fixed issue where project name changes to attachment name when saving collection",
+					"Improved rotation euler rounding",
+					"Fixed textures assigned per face having an effect on the model. Textures can only be assigned per model or attachment.",
+					"Added metadata to let Blockbench recommend the plugin for specific file types"
+				]
+			}
+		]
+	},
+	"0.5.0": {
+		"title": "0.5.0",
+		"date": "2026-01-03",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Hytale preview scene, can be selected from Preview Options",
+					"Added Hytale Player as a size reference, can be switched on from Preview Options"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix missing resize handles for transforming layers",
+					"Update tutorial links on format page",
+					"Fix typo in about page"
+				]
+			}
+		]
 	}
 }

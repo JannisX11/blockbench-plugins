@@ -585,9 +585,12 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.4.0",
+		"version": "0.5.0",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
+		"contributes": {
+			"formats": ["hytale_character", "hytale_prop"]
+		},
 		"variant": "both",
 		"min_version": "5.0.5",
 		"creation_date": "2025-12-22",
@@ -758,10 +761,8 @@
 		"author": "JannisX11 & Mojang Studios",
 		"icon": "icon.png",
 		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
-		"tags": [
-			"Minecraft: Bedrock Edition"
-		],
-		"version": "1.5.2",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.6.1",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2022-10-25",
@@ -1522,7 +1523,7 @@
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
 	},
-	"java_block_animation_exporter": {
+	"java_block_sequencer": {
 		"title": "Java Block Sequencer",
 		"icon": "icon.png",
 		"author": "Jatzylap",
