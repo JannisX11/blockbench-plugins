@@ -152,6 +152,7 @@ function unwrapVector(v) {
 function shouldFlattenKeyframeObj(obj) {
   // flatten if it's basically only { vector: [...] } (or nested vector)
   if (!obj || typeof obj !== 'object') return false;
+  if ('effect' in obj) return false;
 
   const keys = Object.keys(obj);
   const allowed = new Set(['vector', 'easing', 'easingArgs']);
@@ -353,9 +354,13 @@ function buildAnimationFile() {
     if (!outAnim) continue;
   
     const bbAnim = Animation.all.find(a => a.name === animName) || null;
-    const effects = bbAnim?.animators?.effects;
+    const effects = bbAnim ? ensureEffectsAnimator(bbAnim) : null;
   
     if (!effects || !Array.isArray(effects.keyframes) || effects.keyframes.length === 0) {
+      // Important: clear any default/compiled vector-ish data so we don't export junk
+      delete outAnim.sound_effects;
+      delete outAnim.particle_effects;
+      delete outAnim.timeline;
       continue;
     }
   
