@@ -486,6 +486,7 @@ dialog#block_multi_collisions textarea { tab-size: 40px; }
             "Format: Bedrock Block"
         ], variant: 'both',
         version: '1.0.0',
+		min_version: "4.12.6",
         onload() {
             action = new Action('open_block_collision_editor', {
                 name: 'Setup Block Collisions',
