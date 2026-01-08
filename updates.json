@@ -558,5 +558,10 @@
     "version": "1.0.0",
     "created": 1766970388550,
     "updated": 1766970388550
+  },
+  "block_multi_collisions": {
+    "version": "1.0.0",
+    "created": 1767891679712,
+    "updated": 1767891679712
   }
 }
