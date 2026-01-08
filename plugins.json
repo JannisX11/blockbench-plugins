@@ -1343,5 +1343,20 @@
 			"Utility"
 		],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_downscaler"
+	},
+	"block_multi_collisions": {
+		"title": "Block Multi-Collision Editor",
+		"author": "minato4743",
+        "description": "This Plugin allow you to make and generate multiple collision boxes for Minecraft Bedrock blocks.",
+		"icon": "icon.svg",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.12.6",
+		"has_changelog": true,
+		"tags": [
+			"Minecraft: Bedrock Edition",
+			"Format: Bedrock Block"
+		],
+		"repository": "https://github.com/MinecraftBedrockArabic/blockbench-plugins/tree/master/plugins/block_multi_collisions"
 	}
 }
