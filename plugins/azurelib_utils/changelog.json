@@ -131,5 +131,24 @@
 				]
 			}
 		]
+	},
+	"2.0.0": {
+		"title": "2.0.0",
+		"date": "2026-01-06",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Rewrote most of the internal code to make future maintance easier."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes animation keyframe export on easings and effect keyframes"
+				]
+			}
+		]
 	}
 }
