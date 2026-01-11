@@ -765,6 +765,8 @@
       centered_grid: true,
       box_uv: false,
       optional_box_uv: true,
+      box_uv_float_size: true,
+      integer_size: true,
       uv_rotation: true,
       rotate_cubes: true,
       per_texture_uv_size: true,
@@ -818,6 +820,20 @@
       block_size: 32,
       ...common
     });
+    let int_setting = new Setting("hytale_integer_size", {
+      name: "Hytale Integer Size",
+      category: "edit",
+      description: "Restrict cube sizes in hytale formats to full integers. Float values are technically supported but make UV mapping more difficult. Using stretch is recommended instead.",
+      type: "toggle",
+      value: true
+    });
+    track(int_setting);
+    const integer_size = { get: () => int_setting.value };
+    Object.defineProperty(format_character, "integer_size", integer_size);
+    Object.defineProperty(format_prop, "integer_size", integer_size);
+    const single_texture = { get: () => Collection.all.length == 0 };
+    Object.defineProperty(format_character, "single_texture", single_texture);
+    Object.defineProperty(format_prop, "single_texture", single_texture);
     codec.format = format_character;
     track(format_character);
     track(format_prop);
@@ -906,6 +922,7 @@
     });
     let setting = new Setting("hytale_duplicate_bone_names", {
       name: "Duplicate Bone Names",
+      category: "edit",
       description: "Allow creating duplicate groups names in Hytale formats. Multiple groups with the same name can be used to apply animations to multiple nodes at once.",
       type: "toggle",
       value: false
@@ -1482,6 +1499,7 @@
     });
     track(on_interpolate);
     let original_display_scale = BoneAnimator.prototype.displayScale;
+    let original_display_rotation = BoneAnimator.prototype.displayRotation;
     let original_show_default_pose = Animator.showDefaultPose;
     BoneAnimator.prototype.displayScale = function displayScale(array, multiplier = 1) {
       if (!array) return this;
@@ -1497,9 +1515,24 @@
           Cube.preview_controller.updateGeometry(target_shape);
           target_shape.stretch.V3_set(initial_stretch);
         }
-        return;
+        return this;
       }
-      original_display_scale.call(this, array, multiplier);
+      return original_display_scale.call(this, array, multiplier);
+    };
+    BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
+      if (isHytaleFormat() && array) {
+        let bone = this.group.scene_object;
+        let euler = Reusable.euler1.set(
+          Math.degToRad(array[0]) * multiplier,
+          Math.degToRad(array[1]) * multiplier,
+          Math.degToRad(array[2]) * multiplier,
+          bone.rotation.order
+        );
+        let q2 = Reusable.quat2.setFromEuler(euler);
+        bone.quaternion.multiply(q2);
+        return this;
+      }
+      return original_display_rotation.call(this, array, multiplier);
     };
     Animator.showDefaultPose = function(reduced_updates, ...args) {
       original_show_default_pose(reduced_updates, ...args);
@@ -1512,6 +1545,7 @@
     track({
       delete() {
         BoneAnimator.prototype.displayScale = original_display_scale;
+        BoneAnimator.prototype.displayRotation = original_display_rotation;
         Animator.showDefaultPose = original_show_default_pose;
       }
     });
@@ -1576,9 +1610,10 @@
             autouv: settings.autouv.value ? 1 : 0,
             // @ts-ignore
             double_sided: true,
+            box_uv: false,
             color
           }).init();
-          if (!base_quad.box_uv) base_quad.mapAutoUV();
+          base_quad.mapAutoUV();
           let group = getCurrentGroup();
           if (group) {
             base_quad.addTo(group);
@@ -1648,6 +1683,18 @@
     track(add_quad_action);
     let add_element_menu = BarItems.add_element.side_menu;
     add_element_menu.addAction(add_quad_action);
+    let set_uv_mode_original = Cube.prototype.setUVMode;
+    Cube.prototype.setUVMode = function(box_uv, ...args) {
+      if (isHytaleFormat()) {
+        if (cubeIsQuad(this) && box_uv) return;
+      }
+      return set_uv_mode_original.call(this, box_uv, ...args);
+    };
+    track({
+      delete() {
+        Cube.prototype.setUVMode = set_uv_mode_original;
+      }
+    });
     let inflate_condition_original = BarItems.slider_inflate.condition;
     BarItems.slider_inflate.condition = () => {
       if (isHytaleFormat()) return false;
@@ -1831,6 +1878,31 @@
     });
     check.name = "Hytale Node Count";
     track(check);
+    let uv_check = new ValidatorCheck("hytale_uv_size", {
+      update_triggers: ["update_selection"],
+      condition: { formats: FORMAT_IDS },
+      run() {
+        for (let texture of Texture.all) {
+          if (texture.uv_width != texture.width || texture.uv_height != texture.height) {
+            this.fail({
+              message: `The texture ${texture.name} has a resolution (${texture.width}x${texture.height}) that does not match its UV size (${texture.uv_width}x${texture.uv_height}). Ensure that your pixel density is 64 for characters and 32 for props.`,
+              buttons: [
+                {
+                  name: "Fix UV Size",
+                  icon: "build",
+                  click() {
+                    updateUVSize(texture);
+                    texture.select();
+                  }
+                }
+              ]
+            });
+          }
+        }
+      }
+    });
+    uv_check.name = "Hytale UV Size";
+    track(uv_check);
     let listener = Blockbench.on("display_model_stats", ({ stats }) => {
       if (!FORMAT_IDS.includes(Format.id)) return;
       let node_count = getNodeCount();
@@ -1842,7 +1914,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.5.0",
+    version: "0.6.0",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -1866,6 +1938,7 @@
       name: "Copy-Paste with Magenta Alpha",
       description: "Copy image selections with magenta background and remove magenta when pasting to help transfer transparency to Photoshop",
       type: "toggle",
+      category: "paint",
       value: false
     });
     track(setting);
@@ -3146,6 +3219,9 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
         panel_setup_listener = Blockbench.on("select_mode", showCollectionPanel);
       }
       let on_finish_edit = Blockbench.on("generate_texture_template", (arg) => {
+        if (arg.texture) {
+          updateUVSize(arg.texture);
+        }
         for (let element of arg.elements) {
           if (typeof element.autouv != "number") continue;
           element.autouv = 1;

@@ -221,5 +221,29 @@
 				]
 			}
 		]
+	},
+	"0.6.0": {
+		"title": "0.6.0",
+		"date": "2026-01-11",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Cube sizes are now limited to full integers by default. This can be disabled in the settings, however it is recommended to leave it on and use stretch instead.",
+					"Added a validator to flag textures with the wrong pixel density. In the future, UV size will automatically adapt to texture size.",
+					"Added info about scale keyframes to about page"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Unless attachments are loaded, UI will now adapt single-texture workflow",
+					"Fixed a preview issue with rotation keyframes",
+					"Quads are no longer created with Box UV enabled if Box UV is the project default, and can no longer be set to Box UV",
+					"Fixed settings categories"
+				]
+			}
+		]
 	}
 }
