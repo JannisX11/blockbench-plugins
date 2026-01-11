@@ -239,9 +239,9 @@
     function createAnimationGroup(a)
     {
         var group = {};
-        var translate = createAnimationKeyframes(a.position);
-        var scale = createAnimationKeyframes(a.scale);
-        var rotate = createAnimationKeyframes(a.rotation);
+        var translate = createAnimationKeyframes(a.position, "p");
+        var scale = createAnimationKeyframes(a.scale, "s");
+        var rotate = createAnimationKeyframes(a.rotation, "r");
 
         if (translate.length > 0) group.translate = translate;
         if (scale.length > 0) group.scale = scale;
@@ -250,7 +250,7 @@
         return group;
     }
 
-    function createAnimationKeyframes(g)
+    function createAnimationKeyframes(g, typeGroup)
     {
         if (!g)
         {
@@ -266,7 +266,7 @@
             var out = [
                 keyframe.time,
                 keyframe.interpolation,
-                getExpression(data, "x"), getExpression(data, "y"), getExpression(data, "z")
+                getExpression(data, "x", typeGroup === "r" || typeGroup === "p"), getExpression(data, "y", typeGroup === "r"), getExpression(data, "z", false)
             ];
 
             keyframes.push(out);
@@ -275,14 +275,15 @@
         return keyframes;
     }
 
-    function getExpression(data, component)
+    function getExpression(data, component, invert)
     {
         var value = data[component] || 0;
         var parsed = parseFloat(value);
+        var inverter = invert && Blockbench.isNewerThan('4.99') ? invertMolang : (v) => v;
 
         if (!isNaN(value) && !isNaN(parsed))
         {
-            return parsed;
+            return inverter(parsed);
         }
 
         if (typeof value === "string")
@@ -295,7 +296,7 @@
             }
         }
 
-        return value;
+        return inverter(value);
     }
 
     function compile()
@@ -699,7 +700,7 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS mod.",
         icon: "icon.png",
-        version: "1.3",
+        version: "1.3.1",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,

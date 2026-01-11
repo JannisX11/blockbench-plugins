@@ -1,0 +1,34 @@
+name: Plugin Updates
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  generate-updates:
+    if: github.repository == 'JannisX11/blockbench-plugins'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate updates.json
+        working-directory: build
+        run: node update_plugin_updates.mjs
+
+      - name: Commit and push updates.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update updates.json"
+            git push
+          else
+            echo "No changes to commit"
+          fi

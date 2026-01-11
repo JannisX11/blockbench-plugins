@@ -40,15 +40,71 @@
 			}
 		]
 	},
-	"1.4.1": {
-		"title": "1.4.1",
-		"date": "2025-02-27",
+	"1.5.0": {
+		"title": "1.5.0",
+		"date": "2025-10-09",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added redstone conductivity option",
+					"Added compatibility for Blockbench 5.0",
+					"Added compatibility for new Minecraft install location"
+				]
+			}
+		]
+	},
+	"1.5.2": {
+		"title": "1.5.2",
+		"date": "2025-10-25",
 		"author": "JannisX11",
 		"categories": [
 			{
 				"title": "Fixes",
 				"list": [
-					"Fixed an issue with uploading mcaddon file for merging"
+					"Fixed export issue in the web app",
+					"Fixed issue with exporting to the new Minecraft install location"
+				]
+			}
+		]
+	},
+	"1.6.0": {
+		"title": "1.6.0",
+		"date": "2025-12-31",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added new preset \"Leaves\"",
+					"Added Fade to Opaque material option",
+					"Added UV Lock option",
+					"Added Random Offset option",
+					"Add Destroy Tier option",
+					"Update destroy tool export to improve integration",
+					"Unlock several features to be available in Education Edition mode",
+					"Updated Activate Add-On guide"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed missing namespace in inventory group ID, which is now required"
+				]
+			}
+		]
+	},
+	"1.6.1": {
+		"title": "1.6.1",
+		"date": "2026-01-02",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with loading the plugin in the web app",
+					"Updated the documentation link"
 				]
 			}
 		]

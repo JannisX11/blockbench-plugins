@@ -63,7 +63,7 @@
 				"title": "Features",
 				"list": [
 					"Added option to merge into existing mcaddon file",
-					"Added option to select game variant (normal, preview, education) inside the wizard",
+					"Added option to select game variant (normal, preview, edu) inside the wizard",
 					"Added runtime identifier to NPC preset (enabling punch to remove)"
 				]
 			},
@@ -71,6 +71,41 @@
 				"title": "Fixes",
 				"list": [
 					"Fixed JSON comments causing file merging with existing packs to fail"
+				]
+			}
+		]
+	},
+	"1.8.0": {
+		"title": "1.8.0",
+		"date": "2025-10-05",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added happy ghast preset",
+					"Added compatibility for Blockbench 5.0",
+					"Added compatibility for new Minecraft install location"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed held item position in pillager preset"
+				]
+			}
+		]
+	},
+	"1.8.2": {
+		"title": "1.8.2",
+		"date": "2025-10-25",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed export issue in the web app",
+					"Fixed issue with exporting to the new Minecraft install location"
 				]
 			}
 		]

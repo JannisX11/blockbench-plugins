@@ -9,7 +9,7 @@ Plugin.register('repeating_textures', {
     description:   'Enables repeating textures',
     icon:          'icon.png',
     creation_date: '2025-06-15',
-    version:       '2.0.0',
+    version:       '3.0.0',
     variant:       'both',
     min_version:   '4.12.4',
     has_changelog: false,
@@ -23,7 +23,7 @@ Plugin.register('repeating_textures', {
             let original = Texture.prototype.getMaterial;
             Texture.prototype.getMaterial = function () {
                 let result = original.apply(this);
-                applyRepeatingTextureFor(this);
+                updateTextureWrapMode(this);
                 return result;
             };
             defer(() => Texture.prototype.getMaterial = original);
@@ -36,7 +36,7 @@ Plugin.register('repeating_textures', {
             category: 'view',
             value: true,
             onChange() {
-                applyRepeatingTextures();
+                updateAllTextureWrapModes();
             },
         }));
 
@@ -51,12 +51,12 @@ Plugin.register('repeating_textures', {
         let shadingToggleIndex = MenuBar.menus.view.structure.indexOf('toggle_shading');
         let repeatingTexturesToggleIndex = shadingToggleIndex + 1;
         MenuBar.menus.view.structure.splice(repeatingTexturesToggleIndex, 0, repeatingTexturesToggle);
-        defer(() => MenuBar.menus.file.structure.splice(MenuBar.menus.view.structure.indexOf(repeatingTexturesToggle), 1));
+        defer(() => MenuBar.menus.view.structure.splice(MenuBar.menus.view.structure.indexOf(repeatingTexturesToggle), 1));
 
         // Apply setting on load
-        applyRepeatingTextures();
+        updateAllTextureWrapModes();
         // Disable on unload
-        defer(() => applyRepeatingTextures(false));
+        defer(() => updateAllTextureWrapModes(false));
 
     },
 
@@ -69,29 +69,25 @@ Plugin.register('repeating_textures', {
 
 });
 
-function applyRepeatingTextures(force = undefined) {
+function updateAllTextureWrapModes(force = undefined) {
 
-    Texture.all.forEach(t => applyRepeatingTextureFor(t, force));
+    for (let texture of Texture.all)
+        updateTextureWrapMode(texture, force);
 
 }
 
-function applyRepeatingTextureFor(texture, force = undefined) {
+function updateTextureWrapMode(texture, force = undefined) {
 
-    if (force ?? Settings.get('repeating_textures')) {
-        if (texture.img.tex.wrapS !== THREE.RepeatWrapping
-            || texture.img.tex.wrapT !== THREE.RepeatWrapping) {
-            texture.img.tex.wrapS = THREE.RepeatWrapping;
-            texture.img.tex.wrapT = THREE.RepeatWrapping;
-            texture.img.tex.needsUpdate = true;
-        }
-    } else {
-        if (texture.img.tex.wrapS !== THREE.ClampToEdgeWrapping
-            || texture.img.tex.wrapT !== THREE.ClampToEdgeWrapping) {
-            texture.img.tex.wrapS = THREE.ClampToEdgeWrapping;
-            texture.img.tex.wrapT = THREE.ClampToEdgeWrapping;
-            texture.img.tex.needsUpdate = true;
-        }
-    }
+    let useRepeating = force ?? Settings.get('repeating_textures');
+    let wrapMode = useRepeating ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
+    let map = texture.material?.map ?? texture.img?.tex;
+
+    if (map.wrapS === wrapMode && map.wrapT === wrapMode)
+        return;
+
+    map.wrapS = wrapMode;
+    map.wrapT = wrapMode;
+    map.needsUpdate = true;
 
 }
 

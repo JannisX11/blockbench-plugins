@@ -1,15 +1,17 @@
-let actions, watching, message, styles, unwatchAction, rewatchAction
+let fs, actions, watching, message, styles, unwatchAction, rewatchAction
+
 const id = "live_dev_reloader"
 const name = "Live Dev Reloader"
 const icon = "refresh"
+
 Plugin.register(id, {
   title: name,
   icon: "icon.png",
   author: "Ewan Howell",
   description: "Edit plugins and themes live in any text editor and have them automatically update in Blockbench.",
   tags: ["Plugins", "Themes", "Blockbench"],
-  version: "1.0.2",
-  min_version: "4.10.0",
+  version: "1.1.0",
+  min_version: "5.0.0",
   variant: "desktop",
   website: "https://ewanhowell.com/plugins/live-dev-reloader/",
   repository: "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
@@ -58,12 +60,25 @@ Plugin.register(id, {
   },
   onunload() {
     actions.forEach(e => e.delete())
-    unwatch("reload")
+    if (fs) {
+      unwatch("reload")
+    }
     MenuBar.removeAction(`help.developer.${id}`)
   }
 })
 
+function getFS() {
+  fs = require("fs", {
+    message: "This permission is required to load and detect changes in plugin and theme files on your computer.",
+    optional: false
+  })
+  if (!fs) {
+    throw new Error("fs access denied")
+  }
+}
+
 function watch(file, first) {
+  getFS()
   if (!fs.existsSync(file)) {
     localStorage.removeItem("live_dev_reloader_file")
     unwatch("force")
@@ -92,6 +107,7 @@ function watch(file, first) {
 }
 
 function unwatch(type) {
+  getFS()
   if (watching) {
     fs.unwatchFile(watching)
     fs.unwatchFile(PathModule.join(PathModule.dirname(watching), "about.md"))
@@ -111,6 +127,7 @@ function unwatch(type) {
 }
 
 function rewatch() {
+  getFS()
   if (rewatchAction) {
     rewatchAction.delete()
     actions.splice(actions.indexOf(rewatchAction), 1)
@@ -130,6 +147,7 @@ function rewatch() {
 }
 
 async function update(curr, prev, main, first) {
+  getFS()
   if (main && curr.mtimeMs === 0) {
     Blockbench.showQuickMessage(`Stopped watching. File not found: ${PathModule.basename(watching)}`, 3000)
     return unwatch("force")

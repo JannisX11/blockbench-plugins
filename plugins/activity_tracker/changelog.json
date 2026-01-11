@@ -1,0 +1,60 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2023-03-30",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.0.1": {
+    "title": "1.0.1",
+    "date": "2023-04-01",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Fixes",
+        "list": [
+          "Fixed minor tracking issues"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Updated to new repository format"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed project tracking not showing for Blockbench 5.0"
+        ]
+      }
+    ]
+  },
+  "1.1.1": {
+    "title": "1.1.1",
+    "date": "2025-10-19",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed project tracking not showing if Activity Tracker is first opened on the Start Screen"
+        ]
+      }
+    ]
+  }
+}

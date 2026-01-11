@@ -1,0 +1,15 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2025-12-14",
+    "author": "Jatzylap",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  }
+}

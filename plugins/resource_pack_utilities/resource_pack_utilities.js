@@ -1,8 +1,7 @@
 const crypto = require("node:crypto")
 const zlib = require("node:zlib")
-const os = require("node:os")
 
-let dialog, action, action2, styles, storage, cacheDir
+let fs, dialog, action, action2, styles, storage, cacheDir
 
 const id = "resource_pack_utilities"
 const name = "Resource Pack Utilities"
@@ -28,8 +27,8 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.7.0",
-  min_version: "4.10.0",
+  version: "1.9.2",
+  min_version: "5.0.2",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
   repository: `https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/${id}`,
@@ -37,19 +36,28 @@ const setupPlugin = () => Plugin.register(id, {
   creation_date: "2024-07-01",
   has_changelog: true,
   async onload() {
-    cacheDir = PathModule.join(app.getPath("userData"), "minecraft_assets_cache")
+    fs = require("fs", {
+      message: "This permission is required to access your downloaded Minecraft versions, cache versions you open that aren’t already downloaded, and export assets to folders.",
+      optional: false
+    })
+
+    if (!fs) {
+      throw new Error("fs access denied")
+    }
+
+    cacheDir = PathModule.join(SystemInfo.user_data_directory, "minecraft_assets_cache")
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true })
     }
     storage = JSON.parse(localStorage.getItem(id) ?? "{}")
     storage.favourites ??= []
     let directory
-    if (os.platform() === "win32") {
-      directory = PathModule.join(os.homedir(), "AppData", "Roaming", ".minecraft")
-    } else if (os.platform() === "darwin") {
-      directory = PathModule.join(os.homedir(), "Library", "Application Support", "minecraft")
+    if (SystemInfo.platform === "win32") {
+      directory = PathModule.join(SystemInfo.appdata_directory, ".minecraft")
+    } else if (SystemInfo.platform === "darwin") {
+      directory = PathModule.join(SystemInfo.home_directory, "Library", "Application Support", "minecraft")
     } else {
-      directory = PathModule.join(os.homedir(), ".minecraft")
+      directory = PathModule.join(SystemInfo.home_directory, ".minecraft")
     }
     new Setting("ewan_minecraft_directory", {
       value: directory,
@@ -69,6 +77,7 @@ const setupPlugin = () => Plugin.register(id, {
         }
       }
     })
+
     const methods = {
       selectFolder(title = "folder", key = "folder") {
         const dir = Blockbench.pickDirectory({
@@ -80,6 +89,7 @@ const setupPlugin = () => Plugin.register(id, {
         }
       }
     }
+
     styles = Blockbench.addCSS(`
       .rpu-code {
         background-color: var(--color-back);
@@ -101,14 +111,8 @@ const setupPlugin = () => Plugin.register(id, {
           outline: 4px solid var(--color-danger);
         }
       }
-    `)
-    dialog = new Dialog({
-      id,
-      title: name,
-      width: 780,
-      buttons: [],
-      cancel_on_click_outside: false,
-      lines: [`<style>#${id} {
+
+      #${id} {
         .dialog_content {
           margin: 0;
           max-height: calc(100vh - 128px);
@@ -175,8 +179,43 @@ const setupPlugin = () => Plugin.register(id, {
           margin-bottom: -8px;
         }
 
+        .bb-select {
+          cursor: pointer;
+          padding-top: 0;
+          padding-right: 27px;
+          display: flex;
+          align-items: center;
+
+          &::before {
+            top: 50%;
+            right: 6px;
+            transform: translateY(calc(-50% - 7px));
+          }
+        }
+
+        .divider {
+          min-height: 1px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+
+          &::before,
+          &:not(:empty)::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: var(--color-border);
+          }
+        }
+
         #home {
-          > div {
+          .component-searchBar {
+            margin: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border);
+          }
+
+          > .utilities {
             margin: 16px;
             gap: 8px;
             flex-wrap: wrap;
@@ -191,6 +230,7 @@ const setupPlugin = () => Plugin.register(id, {
               gap: 8px;
               width: calc(50% - 4px);
               position: relative;
+              border-radius: 6px;
 
               * {
                 cursor: pointer;
@@ -257,7 +297,7 @@ const setupPlugin = () => Plugin.register(id, {
           }
         }
 
-        #back-button {
+        #home-button {
           position: absolute;
           top: 8px;
           right: 8px;
@@ -266,9 +306,10 @@ const setupPlugin = () => Plugin.register(id, {
           align-items: center;
           min-width: initial;
           padding: 0 8px;
+          box-shadow: none;
 
           &:hover {
-           color: var(--color-light) !important;
+            color: var(--color-light) !important;
           }
 
           &:disabled {
@@ -314,32 +355,75 @@ const setupPlugin = () => Plugin.register(id, {
           }
         }
 
-        .search_bar {
-          float: initial;
-          width: calc(100% - 32px);
-        }
-
         .no-results {
+          display: flex;
           padding: 0 !important;
           background-color: initial !important;
           text-align: center;
           width: 100% !important;
           height: 128px;
           justify-content: center;
+          align-items: center;
         }
 
         .button-row {
           display: flex;
           gap: 8px;
 
-          button {
+          > * {
             flex: 1 1 0px;
           }
         }
 
+        .utility-langBuilder {
+          margin-left: 14px;
+        }
+
         ${Object.entries(components).filter((([k, v]) => v.styles)).map(([k, v]) => `.component-${k} { ${v.styles} }`).join("")}
         ${Object.entries(utilities).filter((([k, v]) => v.component.styles)).map(([k, v]) => `.utility-${k} { ${v.component.styles} }`).join("")}
-      }</style>`],
+      }
+    `, "base")
+
+    const subcomponents = Object.fromEntries(
+      Object.entries(components).map(([k, v]) => {
+        v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
+        return [k, Vue.extend(v)]
+      })
+    )
+
+    const utilityComponents = Object.fromEntries(
+      Object.entries(utilities).map(([k, v]) => {
+        v.component.props = ["value"]
+        const data = v.component.data
+        v.component.data = function() {
+          return {
+            ...data,
+            status: this.value
+          }
+        }
+        v.component.watch = {
+          value(val) {
+            this.status = val
+          },
+          status(val) {
+            this.$emit("input", val)
+          },
+          ...v.component.watch
+        }
+        v.component.components = subcomponents
+        v.component.methods ??= {}
+        v.component.methods = { ...v.component.methods, ...methods }
+        v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
+        return [k, Vue.extend(v.component)]
+      })
+    )
+
+    dialog = new Dialog({
+      id,
+      title: name,
+      width: 780,
+      buttons: [],
+      cancel_on_click_outside: false,
       component: {
         data: {
           utility: null,
@@ -351,32 +435,10 @@ const setupPlugin = () => Plugin.register(id, {
           favourites: storage.favourites,
           search: ""
         },
-        components: Object.fromEntries(Object.entries(utilities).map(([k, v]) => {
-          v.component.props = ["value"]
-          const data = v.component.data
-          v.component.data = function() {
-            return {
-              ...data,
-              status: this.value
-            }
-          }
-          v.component.watch = {
-            value(val) {
-              this.status = val
-            },
-            status(val) {
-              this.$emit("input", val)
-            }
-          }
-          v.component.components = Object.fromEntries(Object.entries(components).map(([k, v]) => {
-            v.template = `<div ref="container" class="component-${k}">${v.template}</div>`
-            return [k, Vue.extend(v)]
-          }))
-          v.component.methods ??= {}
-          v.component.methods = { ...v.component.methods, ...methods }
-          v.component.template = `<div ref="container" class="utility utility-${k}">${v.component.template}</div>`
-          return [k, Vue.extend(v.component)]
-        })),
+        components: {
+          ...subcomponents,
+          ...utilityComponents
+        },
         watch: {
           status(val) {
             if (val.processing) {
@@ -473,22 +535,19 @@ const setupPlugin = () => Plugin.register(id, {
             <div v-if="utility" id="header">
               <h1><i class="material-icons icon">{{ utilities[utility].icon }}</i> {{ utilities[utility].name }}</h1>
               <span>{{ utilities[utility].description }}</span>
-              <button id="back-button" @click="utility = null; status.finished = false" :disabled="status.processing"><i class="material-icons">arrow_back</i> Back</button>
+              <button id="home-button" @click="utility = null; status.finished = false" :disabled="status.processing"><i class="material-icons">arrow_back</i> Home</button>
               <button v-if="utilities[utility].info" id="info-button" class="material-icons icon" @click="showInfo">info</button>
             </div>
             <div v-if="utility === null" id="home">
-              <div class="search_bar">
-                <input type="text" class="dark_bordered" placeholder="Search…" v-model="search" ref="search">
-                <i :class="{ active: search }" class="material-icons" @click="search = ''; $refs.search.focus()">{{ search ? "clear" : "search" }}</i>
-              </div>
-              <div v-if="!search.length && Object.keys(utilities).filter(e => favourites.includes(e)).length">
+              <search-bar v-model="search" />
+              <div class="utilities" v-if="!search.length && Object.keys(utilities).filter(e => favourites.includes(e)).length">
                 <div v-for="id in favourites" v-if="id in utilities" @click="utility = id">
                   <h3><i class="material-icons icon">{{ utilities[id].icon }}</i> {{ utilities[id].name }}</h3>
                   <div>{{ utilities[id].tagline }}</div>
                   <i class="fa_big fa fa-star" @click.stop="unfavourite(id)"></i>
                 </div>
               </div>
-              <div v-if="Object.keys(utilities).filter(e => !favourites.includes(e)).length">
+              <div class="utilities" v-if="Object.keys(utilities).filter(e => !favourites.includes(e)).length">
                 <div v-if="!utilityList.length" class="no-results">No results…</div>
                 <div v-for="([id, data]) in utilityList" v-if="search.length ? id.toLowerCase().includes(search.replace(/\\s/g, '')) : !favourites.includes(id)" @click="utility = id">
                   <h3><i class="material-icons icon">{{ data.icon }}</i> {{ data.name }}</h3>
@@ -498,7 +557,7 @@ const setupPlugin = () => Plugin.register(id, {
                 </div>
               </div>
             </div>
-            <component v-for="(data, id) in utilities" v-if="utility === id" :is="id" v-model="status"></component>
+            <component v-for="(data, id) in utilities" :key="id" v-if="utility === id" :is="id" v-model="status"></component>
           </div>
         `
       },
@@ -572,7 +631,7 @@ const setupPlugin = () => Plugin.register(id, {
     MenuBar.addAction(action, "tools")
     MenuBar.addAction(action2, "tools")
     document.addEventListener("keydown", copyText)
-    const utility = electron.getGlobal("process").argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
+    const utility = Blockbench.argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
     if (utility && utilities[utility]) {
       dialog.show()
       dialog.content_vue.utility = utility
@@ -580,11 +639,11 @@ const setupPlugin = () => Plugin.register(id, {
   },
   onunload() {
     document.removeEventListener("keydown", copyText)
-    dialog.close()
-    action.delete()
-    action2.delete()
-    Object.keys(utilities).forEach(e => BarItems[e].delete())
-    styles.delete()
+    dialog?.close()
+    action?.delete()
+    action2?.delete()
+    Object.keys(utilities).forEach(e => BarItems[e]?.delete())
+    styles?.delete()
     document.getElementById(`${id}-processing-styles`)?.remove()
   }
 })
@@ -680,7 +739,7 @@ function formatPath(path) {
 function exists(path) {
   return new Promise(async fulfil => {
     try {
-      await fs.promises.access(path)
+      await fs.promises.stat(path)
       fulfil(true)
     } catch {
       fulfil(false)
@@ -782,6 +841,7 @@ function getVersion(id) {
 
 async function getVersionData(id) {
   const version = getVersion(id)
+  if (!version) return
   if (version.data) {
     return version.data
   }
@@ -843,6 +903,7 @@ async function getVersionJar(id) {
     } else {
       output.log(`\`${id}\` was not found on your computer, downloading…`)
       const version = await getVersionData(id)
+      if (!version) return
       const client = await fetch(version.downloads.client.url).then(e => e.arrayBuffer())
       fs.promises.writeFile(jarPath, new Uint8Array(client))
       output.log(`\`${id}\` downloaded`)
@@ -1379,6 +1440,10 @@ const components = {
         }, () => Blockbench.showQuickMessage("Saved log"))
       }
     },
+    mounted() {
+      const el = this.$refs.log
+      el.scrollTop = el.scrollHeight
+    },
     styles: `
       .log {
         height: 256px;
@@ -1551,7 +1616,7 @@ const components = {
         deep: true
       },
       version: {
-        handler(val) {
+        handler(val, oldVal) {
           this.$emit("input", val)
         },
         immediate: true
@@ -1567,10 +1632,9 @@ const components = {
       align-items: center;
       gap: 8px;
 
-      bb-select {
+      .bb-select {
         flex: 1;
         min-width: 100px;
-        cursor: pointer;
       }
 
       label {
@@ -1605,9 +1669,8 @@ const components = {
       gap: 8px;
       align-items: center;
 
-      bb-select {
+      .bb-select {
         flex: 1;
-        cursor: pointer;
       }
     `,
     template: `
@@ -2047,6 +2110,55 @@ const components = {
       <div :style="{ width: width ? width + 'px' : 'initial' }"><slot></slot>:</div>
       <numeric-input class="tool disp_text" v-model.number="value" :min="min" :max="max" :step="step" />
     `
+  },
+  searchBar: {
+    props: {
+      value: String,
+      placeholder: {
+        type: String,
+        default: "Search…"
+      },
+      autofocus: {
+        type: Boolean,
+        default: true
+      }
+    },
+    mounted() {
+      if (!this.autofocus) return
+      this.$nextTick(() => {
+        if (!this.$refs.search) return
+        this.$refs.search.focus()
+        this.$refs.search.selectionStart = this.$refs.search.value.length
+        this.$refs.search.selectionEnd = this.$refs.search.value.length
+      })
+    },
+    styles: `
+      .search_bar {
+        width: 100%;
+        display: flex;
+        float: initial;
+
+        input {
+          padding-right: 32px;
+          text-overflow: ellipsis;
+        }
+
+        i {
+          pointer-events: none;
+
+          &.active {
+            pointer-events: initial;
+            cursor: pointer;
+          }
+        }
+      }
+    `,
+    template: `
+      <div class="search_bar">
+        <input type="text" class="dark_bordered" :placeholder="placeholder" :value="value" @input="$emit('input', $event.target.value)" ref="search">
+        <i :class="{ active: value }" class="material-icons" @click="$emit('input', ''); $refs.search.focus()">{{ value ? "clear" : "search" }}</i>
+      </div>
+    `
   }
 }
 
@@ -2274,7 +2386,7 @@ const utilities = {
               }
               if (data.pack) {
                 for (const key in data.pack) {
-                  if (!(key === "pack_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
+                  if (!(key === "pack_format" || key === "min_format" || key === "max_format" || key === "supported_formats" || key === "description")) delete data.pack[key]
                 }
               } else if (data.animation) {
                 for (const key in data.animation) {
@@ -2711,28 +2823,32 @@ const utilities = {
             this.done++
           }
           let packFormat
+          const mcmeta = {
+            pack: {
+              description: this.description || "Template Resource Pack",
+              pack_format: packFormat
+            }
+          }
           if (jar.files["version.json"]) {
             const data = JSON.parse(jar.files["version.json"].content)
             if (typeof data.pack_version === "number") {
-              packFormat = data.pack_version
+              mcmeta.pack.pack_format = data.pack_version.resource
+            } else if (data.pack_version.resource) {
+              mcmeta.pack.pack_format = data.pack_version.resource
             } else {
-              packFormat = data.pack_version.resource
+              mcmeta.pack.min_format = data.pack_version.resource_major
+              mcmeta.pack.max_format = data.pack_version.resource_major
             }
           } else if (jar.files["pack.mcmeta"]) {
-            packFormat = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
+            mcmeta.pack.pack_format = JSON.parse(jar.files["pack.mcmeta"].content).pack.pack_format
           } else if (this.version.startsWith("1.9") || this.version.startsWith("1.10") || this.version.startsWith("15w")) {
-            packFormat = 2
+            mcmeta.pack.pack_format = 2
           } else if (this.version.startsWith("1.11") || this.version.startsWith("1.12") || this.version.startsWith("16w") || this.version.startsWith("17w")) {
-            packFormat = 3
+            mcmeta.pack.pack_format = 3
           } else {
-            packFormat = 1
+            mcmeta.pack.pack_format = 1
           }
-          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify({
-            "pack": {
-              "pack_format": packFormat,
-              "description": this.description || "Template Resource Pack"
-            }
-          }, null, 2), "utf-8")
+          await fs.promises.writeFile(PathModule.join(folder, "pack.mcmeta"), JSON.stringify(mcmeta, null, 2), "utf-8")
           output.log("Created file `pack.mcmeta`")
           this.done++
           if (!await exists(PathModule.join(folder, "pack.png"))) {
@@ -3273,76 +3389,86 @@ const utilities = {
           }
 
           for (const file of files) {
-            const name = file.slice(0, -8)
-            let outputPath = ""
-            let fullOutputPath = this.outputFolder
-            if (this.subfolders) {
-              outputPath = name + "/"
-              fullOutputPath = PathModule.join(fullOutputPath, name)
-            }
-            const saveName = PathModule.join(fullOutputPath, `${name}.${batchExporterFormats[this.format].type}`)
-            if (await exists(saveName)) {
-              output.warn(`Skipping \`${file}\` as \`${outputPath}${name}.${batchExporterFormats[this.format].type}\` already exists`)
-              this.done++
-              continue
-            }
-            const data = autoParseJSON(await fs.promises.readFile(PathModule.join(this.inputFolder, file), "utf-8"), false)
-            if (!data) {
-              output.error(`Skipping \`${file}\` as it could not be read`)
-              this.done++
-              continue
-            }
-            if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
-              output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
-              this.done++
-              continue
-            }
-            newProject(Formats[data.meta.model_format])
-            Codecs.project.parse(data)
-            let compiled, mtl
-            if (this.format === "obj") {
-              const obj = Codecs.obj.compile(Object.assign({
-                all_files: true,
-                mtl_name: this.textures ? `${name}.mtl` : undefined
-              }, exportOptions))
-              compiled = obj.obj
-              mtl = obj.mtl
-            } else {
-              compiled = await Codecs[this.format].compile(exportOptions)
-            }
-            if (fullOutputPath !== this.outputFolder) {
-              await fs.promises.mkdir(fullOutputPath, { recursive: true })
-            }
-            await fs.promises.writeFile(saveName, Buffer.from(compiled), "utf-8")
-            output.log(`Exported \`${file}\` to \`${outputPath}${name}.${batchExporterFormats[this.format].type}\``)
-            if (this.format === "obj" && this.textures) {
-              if (await exists(saveName.slice(0, -3) + "mtl")) {
-                output.warn(`Skipping \`${file}\`'s material as \`${outputPath}${name}.mtl\` already exists`)
+            try {
+              const name = file.slice(0, -8)
+              let outputPath = ""
+              let fullOutputPath = this.outputFolder
+              if (this.subfolders) {
+                outputPath = name + "/"
+                fullOutputPath = PathModule.join(fullOutputPath, name)
+              }
+              const saveName = PathModule.join(fullOutputPath, `${name}.${batchExporterFormats[this.format].type}`)
+              if (await exists(saveName)) {
+                output.warn(`Skipping \`${file}\` as \`${outputPath}${name}.${batchExporterFormats[this.format].type}\` already exists`)
+                this.done++
+                continue
+              }
+              const data = autoParseJSON(await fs.promises.readFile(PathModule.join(this.inputFolder, file), "utf-8"), false)
+              if (!data) {
+                output.error(`Skipping \`${file}\` as it could not be read`)
+                this.done++
+                continue
+              }
+              if (data.meta.model_format !== this.format && !batchExporterSpecialFormats.includes(this.format)) {
+                output.warn(`Skipping \`${file}\` as it is in ${data.meta.model_format in Formats ? `the \`${Formats[data.meta.model_format].name}\`` : "an unknown"} format`)
+                this.done++
+                continue
+              }
+              if (!Formats[data.meta.model_format]) {
+                output.warn(`Skipping \`${file}\` as it uses an unknown model format: \`${data.meta.model_format}\``)
+                this.done++
+                continue
+              }
+              newProject(Formats[data.meta.model_format])
+              Codecs.project.parse(data)
+              let compiled, mtl
+              if (this.format === "obj") {
+                const obj = Codecs.obj.compile(Object.assign({
+                  all_files: true,
+                  mtl_name: this.textures ? `${name}.mtl` : undefined
+                }, exportOptions))
+                compiled = obj.obj
+                mtl = obj.mtl
               } else {
-                await fs.promises.writeFile(saveName.slice(0, -3) + "mtl", mtl, "utf-8")
-                output.log(`Exported \`${file}\`'s material to \`${outputPath}${name}.mtl\``)
+                compiled = await Codecs[this.format].compile(exportOptions)
               }
-            }
-            if (this.textures) {
-              for (const texture of data.textures) {
-                const name = texture.name.endsWith(".png") ? texture.name : texture.name + ".png"
-                let saveName
-                if (this.textureFolders && !batchExporterSpecialFormats.includes(this.format)) {
-                  await fs.promises.mkdir(PathModule.join(this.outputFolder, outputPath, "textures", texture.folder), { recursive: true })
-                  saveName = formatPath(PathModule.join(outputPath, "textures", texture.folder, name))
+              if (fullOutputPath !== this.outputFolder) {
+                await fs.promises.mkdir(fullOutputPath, { recursive: true })
+              }
+              await fs.promises.writeFile(saveName, Buffer.from(compiled), "utf-8")
+              output.log(`Exported \`${file}\` to \`${outputPath}${name}.${batchExporterFormats[this.format].type}\``)
+              if (this.format === "obj" && this.textures) {
+                if (await exists(saveName.slice(0, -3) + "mtl")) {
+                  output.warn(`Skipping \`${file}\`'s material as \`${outputPath}${name}.mtl\` already exists`)
                 } else {
-                  saveName = `${outputPath}${name}`
+                  await fs.promises.writeFile(saveName.slice(0, -3) + "mtl", mtl, "utf-8")
+                  output.log(`Exported \`${file}\`'s material to \`${outputPath}${name}.mtl\``)
                 }
-                const savePath = PathModule.join(this.outputFolder, saveName)
-                if (await exists(savePath)) {
-                  output.warn(`Skipping texture \`${name}\` from \`${file}\` as \`${saveName}\` already exists`)
-                  continue
-                }
-                await fs.promises.writeFile(savePath, Buffer.from(texture.source.split(",")[1], "base64"), "utf-8")
-                output.log(`Exported \`${name}\` from \`${file}\` to \`${saveName}\``)
               }
+              if (this.textures) {
+                for (const texture of data.textures) {
+                  const name = texture.name.endsWith(".png") ? texture.name : texture.name + ".png"
+                  let saveName
+                  if (this.textureFolders && !batchExporterSpecialFormats.includes(this.format)) {
+                    await fs.promises.mkdir(PathModule.join(this.outputFolder, outputPath, "textures", texture.folder), { recursive: true })
+                    saveName = formatPath(PathModule.join(outputPath, "textures", texture.folder, name))
+                  } else {
+                    saveName = `${outputPath}${name}`
+                  }
+                  const savePath = PathModule.join(this.outputFolder, saveName)
+                  if (await exists(savePath)) {
+                    output.warn(`Skipping texture \`${name}\` from \`${file}\` as \`${saveName}\` already exists`)
+                    continue
+                  }
+                  await fs.promises.writeFile(savePath, Buffer.from(texture.source.split(",")[1], "base64"), "utf-8")
+                  output.log(`Exported \`${name}\` from \`${file}\` to \`${saveName}\``)
+                }
+              }
+              await Project.close()
+            } catch (err) {
+              output.error(`Skipping \`${file}\` as it could not be read`)
+              console.error(err)
             }
-            await Project.close()
             this.done++
           }
 
@@ -4748,31 +4874,30 @@ const utilities = {
           this.status.finished = true
         },
         async save() {
-          const save = await electron.dialog.showSaveDialog({
-            title: "Save animation",
-            defaultPath: "animation",
-            filters: [
-              { name: "PNG", extensions: ["png"] }
-            ]
+          Blockbench.export({
+            extensions: ["png"],
+            type: "PNG",
+            name: "animation",
+            savetype: "buffer",
+            content: Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer())
+          }, async file => {
+            const mcmeta = {
+              animation: {}
+            }
+            if (this.delay > 1) {
+              mcmeta.animation.frametime = this.delay
+            }
+            if (this.interpolation) {
+              mcmeta.animation.interpolate = true
+            }
+            if (this.type === "vertical" && this.width !== this.height) {
+              mcmeta.animation.height = this.height
+            } else if (this.type === "horizonal") {
+              mcmeta.animation.width = this.width
+            }
+            await fs.promises.writeFile(file + ".mcmeta", JSON.stringify(mcmeta, null, 2))
+            Blockbench.showQuickMessage("Exported animation")
           })
-          if (save.cancelled) return
-          await fs.promises.writeFile(save.filePath, Buffer.from(await (await new Promise(fulfil => this.output.toBlob(fulfil))).arrayBuffer()))
-          const mcmeta = {
-            animation: {}
-          }
-          if (this.delay > 1) {
-            mcmeta.animation.frametime = this.delay
-          }
-          if (this.interpolation) {
-            mcmeta.animation.interpolate = true
-          }
-          if (this.type === "vertical" && this.width !== this.height) {
-            mcmeta.animation.height = this.height
-          } else if (this.type === "horizonal") {
-            mcmeta.animation.width = this.width
-          }
-          await fs.promises.writeFile(save.filePath + ".mcmeta", JSON.stringify(mcmeta, null, 2))
-          Blockbench.showQuickMessage("Exported animation")
         }
       },
       styles: `
@@ -4924,6 +5049,765 @@ const utilities = {
           <progress-bar :done="done" :total="total" />
           <output-log v-model="outputLog" />
           <button v-if="!status.processing" @click="status.finished = false">Done</button>
+        </div>
+      `
+    }
+  },
+  langBuilder: {
+    name: "Lang Builder",
+    icon: "glyphs",
+    tagline: "Easily make language file changes that support every language.",
+    description: "Lang Builder lets you define language key modifications using replacement, prefix, or suffix modes. Changes are applied to all vanilla language files.",
+    info: `
+      <h3>What is Lang Builder?</h3>
+      <p>
+        Lang Builder is a tool for creating and managing Minecraft language files for resource packs.
+        It allows you to quickly modify, remove, or add text entries across all in-game languages, without manually editing each file.
+        This is ideal for customising item names, UI text, or adding special characters and formatting consistently in multiple languages.
+      </p>
+      <br>
+      <h3>Features:</h3>
+      <ul>
+        <li>Supports multiple edit modes:
+          <ul>
+            <li><code>Replace</code> - Completely replace the original text</li>
+            <li><code>Blank</code> - Set the text to be empty</li>
+            <li><code>Prefix</code> - Add text before the original text</li>
+            <li><code>Suffix</code> - Add text after the original text</li>
+            <li><code>Prefix &amp; Suffix</code> - Add text both before and after the original text</li>
+          </ul>
+        </li>
+        <li>Automatically applies your changes to all the games language files</li>
+        <li>Exports valid JSON language files ready for use in a resource pack</li>
+      </ul>
+      <br>
+      <h3>How to Use:</h3>
+      <ol>
+        <li>Select a Minecraft Version to load, or select and load an existing config file</li>
+        <li>Add entries by clicking <strong>Add Entry</strong> and set the key, mode, and values</li>
+        <li>Choose your output folder</li>
+        <li>Click <strong>Build Languages</strong> to generate the language files</li>
+      </ol>
+      <br>
+      <h3>Warnings and Errors:</h3>
+      <p>Entry keys will be outlined with a <span style="margin: 0 2px; outline: 2px solid var(--color-warning); padding: 0 4px; background-color: var(--color-back);">Warning</span> when they key does not exist in the selected game version.</p>
+      <p style="margin-top: 4px;">Entry keys will be outlined with an <span style="margin: 0 2px; outline: 2px solid var(--color-error); padding: 0 2px; background-color: var(--color-back);">Error</span> when they are empty, or are duplicated.</p>
+    `,
+    component: {
+      data: {
+        version: "",
+        newVersion: "",
+        file: "",
+        outputLog,
+        languages: [],
+        lang: {},
+        data: [],
+        modes: {
+          replace: "Replace",
+          blank: "Blank",
+          prefix: "Prefix",
+          suffix: "Suffix",
+          prefixSuffix: "Prefix & Suffix"
+        },
+        folder: "",
+        sortCol: null,
+        sortDir: null,
+        filter: "",
+        state: "home",
+        savePath: null
+      },
+      computed: {
+        entryList() {
+          const filter = this.filter.toLowerCase()
+          return this.data.filter(e => e.key.toLowerCase().includes(filter) || e.mode.includes(filter) || e.value?.toLowerCase().includes(filter) || e.value2?.toLowerCase().includes(filter))
+        }
+      },
+      methods: {
+        async loadVersion() {
+          this.status.processing = true
+          this.state = "loading"
+          outputLog.length = 0
+          this.savePath = null
+
+          if (!(await this.load(this.version))) return
+
+          this.data = [{
+            key: "",
+            mode: "replace",
+            value: ""
+          }]
+
+          this.state = "loaded"
+          this.status.processing = false
+        },
+        async loadConfig() {
+          this.status.processing = true
+          this.state = "loading"
+          outputLog.length = 0
+
+          this.savePath = this.file.path
+
+          let data
+          try {
+            data = JSON.parse(this.file.content)
+          } catch {
+            output.error(`The file \`${PathModule.basename(this.file.path)}\` could not be read`)
+            this.state = "error"
+            this.status.processing = false
+            return
+          }
+
+          if (typeof data !== "object" || data === null || Array.isArray(data)) {
+            output.error(`The file \`${PathModule.basename(this.file.path)}\` is not a valid config file`)
+            this.state = "error"
+            this.status.processing = false
+            return
+          }
+
+          if (Object.values(data).every(v => typeof v === "string")) {
+            output.log(`Detected language file. Converting to entries array with replace mode`)
+            output.log(`Using selcted version \`${this.version}\``)
+            data = {
+              entries: Object.entries(data).map(([k, v]) => ({
+                key: k,
+                mode: "replace",
+                value: v
+              }))
+            }
+          }
+
+          if (!data.version) {
+            data.version = this.version
+            output.log(`Config missing version. Using selcted version \`${this.version}\``)
+          }
+
+          if (!(await this.load(data.version))) return
+
+          if (this.version !== data.version) {
+            this.version = data.version
+          }
+
+          if (typeof data.output === "string") {
+            this.folder = data.output
+          }
+
+          if (data.entries && !(this.validateEntries(data.entries))) {
+            this.state = "error"
+            this.status.processing = false
+            return
+          }
+
+          this.data = data.entries ?? [{
+            key: "",
+            mode: "replace",
+            value: ""
+          }]
+
+          this.state = "loaded"
+          this.status.processing = false
+        },
+        async load(version, errorState = "error") {
+          this.folder = ""
+          this.filter = ""
+
+          const jar = await getVersionJar(version)
+          if (!jar) {
+            output.error(`Unknown game version \`${version}\``)
+            this.state = errorState
+            this.status.processing = false
+            return
+          }
+
+          if (!jar.files["assets/minecraft/lang/en_us.json"]) {
+            output.error("Only game versions that use JSON language files are supported.")
+            this.state = errorState
+            this.status.processing = false
+            return
+          }
+
+          const assetsIndex = await getVersionAssetsIndex(version)
+          const root = getRoot(version)
+
+          const data = assetsIndex.objects["pack.mcmeta"]
+          const objectPath = `${data.hash.slice(0, 2)}/${data.hash}`
+          const fullPath = (await exists(PathModule.join(settings.ewan_minecraft_directory.value, "assets", "objects", objectPath)))
+            ? PathModule.join(settings.ewan_minecraft_directory.value, "assets", "objects", objectPath)
+            : PathModule.join(cacheDir, "objects", objectPath)
+
+          if (!await exists(fullPath)) {
+            const file = Buffer.from(await fetch(`https://resources.download.minecraft.net/${objectPath}`).then(r => r.arrayBuffer()))
+            await fs.promises.mkdir(PathModule.dirname(fullPath), { recursive: true })
+            await fs.promises.writeFile(fullPath, file)
+            output.log("Downloaded pack.mcmeta to cache")
+          }
+
+          const packMeta = JSON.parse(await fs.promises.readFile(fullPath, "utf-8"))
+          this.languages = packMeta.language
+          this.languages.en_us.data = JSON.parse(jar.files["assets/minecraft/lang/en_us.json"].content)
+          this.lang = this.languages.en_us.data
+
+          const codes = Object.keys(this.languages)
+
+          const results = await Promise.all(codes.map(async code => {
+            const langPath = `assets/minecraft/lang/${code}.json`
+            const entry = assetsIndex.objects[langPath.slice(root.length + 1)]
+            if (!entry) return [code, null]
+
+            const langObjectPath = `${entry.hash.slice(0, 2)}/${entry.hash}`
+            const filePath = (await exists(PathModule.join(settings.ewan_minecraft_directory.value, "assets", "objects", langObjectPath)))
+              ? PathModule.join(settings.ewan_minecraft_directory.value, "assets", "objects", langObjectPath)
+              : PathModule.join(cacheDir, "objects", langObjectPath)
+
+            if (!await exists(filePath)) {
+              const file = Buffer.from(await fetch(`https://resources.download.minecraft.net/${langObjectPath}`).then(r => r.arrayBuffer()))
+              await fs.promises.mkdir(PathModule.dirname(filePath), { recursive: true })
+              await fs.promises.writeFile(filePath, file)
+              output.log(`Downloaded ${code}.json to cache`)
+            }
+
+            const json = JSON.parse(await fs.promises.readFile(filePath, "utf-8"))
+            return [code, json]
+          }))
+
+          for (const [code, langData] of results) {
+            if (langData) this.languages[code].data = langData
+          }
+
+          this.keys = Object.fromEntries(
+            Object.entries(this.lang).map(([k, v]) => {
+              let str = `${k}: ${v}`
+              if (str.length > 100) str = str.slice(0, 99) + "…"
+              return [k, str]
+            })
+          )
+
+          return true
+        },
+        validateEntries(entries) {
+          if (!Array.isArray(entries)) {
+            output.error("Entries must be an array")
+            return
+          }
+
+          for (const [i, entry] of entries.entries()) {
+            if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+              output.error(`Entry ${i + 1}: Must be an object`)
+              return
+            }
+
+            if (typeof entry.key !== "string") {
+              output.error(`Entry ${i + 1}: Key must be a string`)
+              return
+            }
+            if (!entry.key) {
+              output.error(`Entry ${i + 1}: Key is required`)
+              return
+            }
+
+            if (typeof entry.mode !== "string" || !(entry.mode in this.modes)) {
+              output.error(`Entry ${i + 1}: Invalid mode`)
+              return
+            }
+
+            if (typeof entry.value !== "string" && !(entry.mode === "blank" && entry.value === undefined)) {
+              output.error(`Entry ${i + 1}: Value must be a string`)
+              return
+            }
+
+            if (entry.mode === "prefixSuffix") {
+              if (typeof entry.value2 !== "string") {
+                output.error(`Entry ${i + 1}: Value2 must be a string for Prefix & Suffix mode`)
+                return
+              }
+              if (!entry.value2) {
+                output.error(`Entry ${i + 1}: Value2 is required for Prefix & Suffix mode`)
+                return
+              }
+            }
+          }
+
+          return true
+        },
+        addEntry() {
+          this.data.push({
+            key: "",
+            mode: "replace",
+            value: ""
+          })
+          this.$nextTick(() => this.$refs.entries.scrollTop = this.$refs.entries.scrollHeight)
+        },
+        keyInput(entry) {
+          if (!entry.value && this.lang[entry.key]) {
+            entry.value = this.lang[entry.key]
+          }
+        },
+        keyInputFocus: evt => {
+          const el = evt.currentTarget
+          setTimeout(() => {
+            el.style.direction = "ltr"
+            el.scrollLeft = el.scrollWidth
+          }, 0)
+        },
+        keyInputBlur: evt => evt.currentTarget.style.direction = "rtl",
+        valuePlaceholder(entry) {
+          if (entry.mode === "replace") {
+            return this.lang[entry.key] ?? "Stone"
+          } else if (entry.mode === "suffix") {
+            return "Suffix"
+          } else {
+            return "Prefix"
+          }
+        },
+        changeMode(entry) {
+          if (entry.mode === "blank") {
+            delete entry.value
+          } else {
+            entry.value = ""
+          }
+          if (entry.mode === "prefixSuffix") {
+            entry.value2 = ""
+          } else {
+            delete entry.value2
+          }
+        },
+        cleanData() {
+          this.data = this.data.map(entry => {
+            const key = entry.key.trim() ?? ""
+            let mode = entry.mode
+
+            if (mode === "prefixSuffix") {
+              if (entry.value && !entry.value2) {
+                mode = "prefix"
+              } else if (!entry.value && entry.value2) {
+                mode = "suffix"
+                entry.value = entry.value2
+              }
+              if (mode !== "prefixSuffix") delete entry.value2
+            }
+
+            return { ...entry, key, mode }
+          }).filter(entry => {
+            if (!entry.key) return false
+            if (entry.mode === "prefix" && !entry.value) return false
+            if (entry.mode === "suffix" && !entry.value) return false
+            if (entry.mode === "prefixSuffix") return entry.value && entry.value2
+            return true
+          })
+        },
+        saveAs() {
+          this.cleanData()
+          if (!this.data.length) {
+            this.data.push({
+              key: "",
+              mode: "replace",
+              value: ""
+            })
+            Blockbench.showQuickMessage("Nothing to save")
+            return
+          }
+          Blockbench.export({
+            extensions: ["json"],
+            type: "Language Config",
+            name: "lang_config",
+            content: JSON.stringify({
+              version: this.version,
+              output: this.folder,
+              entries: this.data
+            }, null, 2)
+          }, path => {
+            this.savePath = path
+            Blockbench.showQuickMessage("Saved language config")
+          })
+        },
+        async save() {
+          this.cleanData()
+          if (!this.data.length) {
+            this.data.push({
+              key: "",
+              mode: "replace",
+              value: ""
+            })
+            Blockbench.showQuickMessage("Nothing to save")
+            return
+          }
+          if (!(await exists(PathModule.dirname(this.savePath)))) {
+            Blockbench.showQuickMessage("Save location not found")
+            this.savePath = null
+          }
+          await fs.promises.writeFile(this.savePath, JSON.stringify({
+            version: this.version,
+            output: this.folder,
+            entries: this.data
+          }, null, 2), "utf-8")
+          Blockbench.showQuickMessage("Saved language config")
+        },
+        entryOptions(evt, index) {
+          const menu = []
+          if (this.data.length > 1) {
+            menu.push({
+              id: "remove",
+              name: "Remove",
+              icon: "delete",
+              click: () => this.data.splice(index, 1)
+            })
+          }
+          new Menu("entry_context_menu", menu).open(evt)
+        },
+        changeSort(col) {
+          if (this.sortCol !== col) {
+            this.sortCol = col
+            this.sortDir = "up"
+          } else if (this.sortDir === "up") {
+            this.sortDir = "down"
+          } else {
+            this.sortCol = null
+            this.sortDir = null
+          }
+
+          const dir = this.sortDir === "down" ? -1 : 1
+
+          this.data.sort((a, b) => {
+            if (!this.sortCol || !this.sortDir) {
+              return a.key.localeCompare(b.key, undefined, { numeric: true, sensitivity: "base" })
+            }
+
+            if (this.sortCol === "key") {
+              return a.key.localeCompare(b.key, undefined, { numeric: true, sensitivity: "base" }) * dir
+            }
+
+            if (this.sortCol === "mode") {
+              const cmp = a.mode.localeCompare(b.mode, undefined, { numeric: true, sensitivity: "base" }) * dir
+              return cmp || a.key.localeCompare(b.key, undefined, { numeric: true, sensitivity: "base" })
+            }
+
+            if (this.sortCol === "value") {
+              return (a.value ?? "").localeCompare(b.value ?? "", undefined, { numeric: true, sensitivity: "base" }) * dir
+            }
+
+            return 0
+          })
+        },
+        async build() {
+          this.cleanData()
+          if (!this.data.length) {
+            this.data.push({
+              key: "",
+              mode: "replace",
+              value: ""
+            })
+            Blockbench.showQuickMessage("Nothing to save")
+            return
+          }
+
+          if (!await confirm("Build language files?", `Are you sure you want to build the language files?\n\nAny existing language files in the <code>${formatPath(this.folder)}</code> directory will be overwritten.`)) return
+
+          this.status.processing = true
+          this.state = "building"
+
+          await fs.promises.mkdir(this.folder, { recursive: true })
+
+          output.log(`Building to \`${formatPath(this.folder)}\``)
+
+          const sortedKeys = [...new Set(this.data.map(e => e.key))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }))
+
+          const codes = Object.keys(this.languages)
+
+          for (const code of codes) {
+            const base = this.languages[code].data
+            const out = {}
+
+            for (const entry of this.data) {
+              const orig = base[entry.key] ?? ""
+              let value
+
+              switch (entry.mode) {
+                case "replace":
+                  value = entry.value
+                  break
+                case "prefix":
+                  value = entry.value + orig
+                  break
+                case "suffix":
+                  value = orig + entry.value
+                  break
+                case "prefixSuffix":
+                  value = entry.value + orig + entry.value2
+                  break
+                case "blank":
+                  value = ""
+                  break
+                default:
+                  continue
+              }
+
+              out[entry.key] = value
+            }
+
+            const ordered = {}
+            for (const k of sortedKeys) {
+              if (k in out) ordered[k] = out[k]
+            }
+
+            let json = JSON.stringify(ordered, null, 2)
+            json = json.replace(/\\\\u([0-9a-fA-F]{4})/g, "\\u$1")
+
+            await fs.promises.writeFile(PathModule.join(this.folder, code + ".json"), json, "utf-8")
+            output.log(`Done \`${code}.json\``)
+          }
+
+          output.info("Build complete")
+
+          this.status.processing = false
+          this.state = "built"
+        },
+        async changeVersion() {
+          this.status.processing = true
+          this.state = "switching"
+
+          output.log(`Switching from \`${this.version}\` to \`${this.newVersion}\``)
+
+          if (!(await this.load(this.newVersion, "switchError"))) return
+
+          this.version = this.newVersion
+
+          this.state = "loaded"
+          this.status.processing = false
+        },
+        keyClass(entry) {
+          if (entry.key === "" || this.data.filter(e => e.key === entry.key).length > 1) return "error"
+          if (!this.lang[entry.key]) return "warning"
+        }
+      },
+      styles: `
+        > div {
+          margin-left: 2px;
+        }
+
+        input {
+          text-overflow: ellipsis;
+        }
+
+        .entries {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: calc(256px + 29px + 8px);
+          overflow-y: auto;
+          margin-top: -8px;
+          margin-left: -2px;
+          padding-bottom: 2px;
+
+          > button {
+            align-self: flex-start;
+          }
+        } 
+
+        .entry,
+        .entry-prop {
+          display: flex;
+          gap: 8px;
+
+          > * {
+            height: 32px;
+          }
+
+          &:first-child {
+            margin-left: 2px;
+          }
+
+          &.warning {
+            outline: 2px solid var(--color-warning);
+          }
+
+          &.error {
+            outline: 2px solid var(--color-error);
+          }
+        }
+
+        .entry-prop {
+          gap: 0;
+        }
+
+        .key-input {
+          width: 200px;
+          direction: rtl;
+          text-align: left;
+        }
+
+        .key-select {
+          width: 32px;
+          min-width: 32px;
+          padding: 0;
+          color: transparent;
+
+          &::before {
+            right: 50%;
+            transform: translate(50%, calc(-50% - 7px));
+            color: var(--color-text);
+            text-align: center;
+          }
+        }
+
+        .mode-select {
+          min-width: 126px;
+        }
+
+        .entry-value {
+          flex: 1;
+          min-width: 128px;
+        }
+
+        .column-titles {
+          display: flex;
+          gap: 16px;
+          border-bottom: 1px solid var(--color-border);
+          line-height: 1;
+          position: sticky;
+          top: 0;
+          background-color: var(--color-ui);
+          z-index: 1;
+          margin-left: 2px;
+
+          > * {
+            padding: 6px 0;
+          }
+
+          > :first-child {
+            width: 228px;
+          }
+
+          > :nth-child(2) {
+            width: 118px;
+          }
+
+          > :nth-child(3) {
+            flex: 1;
+          }
+
+          > :not(:last-child) {
+            cursor: pointer;
+            position: relative;
+
+            &::after {
+              content: "";
+              position: absolute;
+              top: 0;
+              bottom: 0;
+              right: -8px;
+              border-right: 1px solid var(--color-border);
+            }
+
+            &::before {
+              content: "arrow_upward";
+              position: absolute;
+              right: 0;
+              font-family: 'Material Icons';
+              opacity: 0;
+            }
+
+            &.down::before {
+              opacity: 1;
+              transform: scaleY(-1);
+            }
+
+            &.up::before {
+              opacity: 1;
+            }
+
+            &:hover {
+              color: var(--color-light);
+            }
+          }
+        }
+
+        .add-entry {
+          align-self: flex-start;
+          margin-top: -8px;
+        }
+
+        .output-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .component-folderSelector {
+            flex: 1;
+          }
+        }
+
+        .no-results {
+          height: 32px;
+        }
+      `,
+      template: `
+        <div v-if="state === 'home'">
+          <h3>Select a Minecraft version:</h3>
+          <version-selector v-model="version" />
+          <button @click="loadVersion">Load Version</button>
+          <div class="divider">OR</div>
+          <h3>Select a language config file:</h3>
+          <file-input v-model="file" title="Select your language config file" type="lang_config.json" :extensions="['json']" />
+          <button :disabled="!file" @click="loadConfig">Load Config</button>
+        </div>
+        <div v-else-if="state === 'loading' || state === 'error'">
+          <output-log v-model="outputLog" />
+          <button :disabled="state !== 'error'" @click="state = 'home'">Back</button>
+        </div>
+        <div v-else-if="state === 'loaded'" class="entry-builder">
+          <div class="button-row">
+            <button @click="state='home'">Back</button>
+            <button @click="state='change'">Minecraft Version: {{ version }}</button>
+          </div>
+          <div class="divider"></div>
+          <search-bar v-model="filter" placeholder="Filter…" />
+          <div v-if="entryList.length" class="entries" ref="entries">
+            <div class="column-titles">
+              <div :class="sortCol === 'key' ? sortDir : ''" @click="changeSort('key')">Key</div>
+              <div :class="sortCol === 'mode' ? sortDir : ''" @click="changeSort('mode')">Mode</div>
+              <div :class="sortCol === 'value' ? sortDir : ''" @click="changeSort('value')">Value</div>
+              <div style="width: 28px"></div>
+            </div>
+            <div v-for="(entry, index) in entryList" :key="index" class="entry">
+              <div class="entry-prop" :class="keyClass(entry)">
+                <input class="key-input" type="text" placeholder="block.minecraft.stone" v-model="entry.key" @input="keyInput(entry)" @focus="keyInputFocus" @blur="keyInputBlur">
+                <select-input class="key-select" v-model="entry.key" :options="keys" @input="keyInput(entry)" />
+              </div>
+              <select-input class="mode-select" v-model="entry.mode" :options="modes" @input="changeMode(entry)" />
+              <input class="entry-value" type="text" :placeholder="valuePlaceholder(entry)" v-model="entry.value" :style="{ visibility: entry.mode === 'blank' ? 'hidden' : 'initial' }">
+              <input class="entry-value" v-if="entry.mode === 'prefixSuffix'" type="text" placeholder="Suffix" v-model="entry.value2">
+              <button class="material-icons" @click="entryOptions($event, index)">menu</button>
+            </div>
+          </div>
+          <div v-else class="no-results">No results…</div>
+          <button class="add-entry" @click="addEntry"><i class="material-icons">add</i>Add Entry</button>
+          <div class="divider"></div>
+          <div class="output-bar">
+            <div>Output location:</div>
+            <folder-selector v-model="folder">folder to output the built language files to</folder-selector>
+          </div>
+          <div class="button-row">
+            <div class="button-row">
+              <button @click="saveAs"><i class="material-icons">save</i>Save Config…</button>
+              <button v-if="savePath" @click="save"><i class="material-icons">save</i>Quick Save</button>
+            </div>
+            <button :disabled="!folder" @click="build"><i class="material-icons">build</i>Build Languages</button>
+          </div>
+        </div>
+        <div v-else-if="state === 'building' || state === 'built'">
+          <output-log v-model="outputLog" />
+          <button :disabled="state !== 'built'" @click="state = 'loaded'">Back</button>
+        </div>
+        <div v-else-if="state === 'change'">
+          <h3>Select a new Minecraft version:</h3>
+          <version-selector v-model="newVersion" />
+          <div class="button-row">
+            <button @click="newVersion = version; state = 'loaded'">Back</button>
+            <button :disabled="version === newVersion" @click="changeVersion">Switch to {{ newVersion }}</button>
+          </div>
+        </div>
+        <div v-else-if="state === 'switching' || state === 'switchError'">
+          <output-log v-model="outputLog" />
+          <button :disabled="state !== 'switchError'" @click="state = 'loaded'">Back</button>
         </div>
       `
     }

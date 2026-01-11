@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "outDir": "'../../plugins",
+    // "noImplicitAny": true,
+    "module": "es2022",
+    "target": "es2023",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "types": ["blockbench-types", "jest"]
+    // "typeRoots": ["./node_modules/@types", "./node_modules/blockbench-types"]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -500,5 +500,63 @@
         ]
       }
     ]
+  },
+  "1.10.0": {
+    "title": "1.10.0",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Compatibility",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      }
+    ]
+  },
+  "1.10.1": {
+    "title": "1.10.1",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed custom textures failing to load"
+        ]
+      }
+    ]
+  },
+  "1.10.2": {
+    "title": "1.10.2",
+    "date": "2025-10-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed select menu styling"
+        ]
+      }
+    ]
+  },
+  "1.10.3": {
+    "title": "1.10.3",
+    "date": "2025-11-01",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated preset button styles to match the Blockbench 5.0 button design"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed presets failing to load"
+        ]
+      }
+    ]
   }
 }

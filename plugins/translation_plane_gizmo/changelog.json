@@ -1,0 +1,29 @@
+{
+	"1.0.1": {
+		"title": "1.0.1",
+		"author": "AnnJ",
+		"date": "2025-11-14",
+		"categories": [
+			{
+				"title": "Documentation",
+				"list": [
+					"Improved about.md with user-focused content",
+					"Fixed demo GIF path to use GitHub raw URL"
+				]
+			}
+		]
+	},
+	"1.0.0": {
+		"title": "1.0.0",
+		"author": "AnnJ",
+		"date": "2025-01-08",
+		"categories": [
+			{
+				"title": "Initial Release",
+				"list": [
+					"Created Plugin"
+				]
+			}
+		]
+	}
+}

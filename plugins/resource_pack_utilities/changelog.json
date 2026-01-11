@@ -190,5 +190,82 @@
         ]
       }
     ]
+  },
+  "1.8.0": {
+    "title": "1.8.0",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Lang Builder utility"
+        ]
+      },
+      {
+        "title": "Compatibility",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Temporarily removed command line argument support"
+        ]
+      }
+    ]
+  },
+  "1.9.0": {
+    "title": "1.9.0",
+    "date": "2025-10-15",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Updates",
+        "list": [
+          "Updated Pack Creator to support the new pack.mcmeta format",
+          "Updated JSON Optimiser to support the new pack.mcmeta format"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed ability to export from Animation Combiner"
+        ]
+      }
+    ]
+  },
+  "1.9.1": {
+    "title": "1.9.1",
+    "date": "2025-10-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Re-enabled command line argument support"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the back button hover colour"
+        ]
+      }
+    ]
+  },
+  "1.9.2": {
+    "title": "1.9.2",
+    "date": "2025-12-04",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed Batch Exporter crashing when loading bbmodels that have unknown model formats"
+        ]
+      }
+    ]
   }
 }
