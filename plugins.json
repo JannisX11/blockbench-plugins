@@ -1360,7 +1360,7 @@
 		"repository": "https://github.com/MinecraftBedrockArabic/blockbench-plugins/tree/master/plugins/block_multi_collisions"
 	},
 	"baked_ambient_occlusion": {
-		 "title": "Mr Salmon's Baked Ambient Occlusion",
+		"title": "Mr Salmon's Baked Ambient Occlusion",
     	"author": "Kai Salmon",
 		"description": "Baked Ambient Occlusion, creating instant shading",
 		"icon": "icon.png",

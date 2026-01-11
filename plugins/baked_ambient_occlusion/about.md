@@ -1,6 +1,11 @@
 # Mr Salmon's Baked Ambient Occlusion
 
-Generate instant shaded textures for your models with one click! This plugin bakes ambient occlusion directly onto your mesh textures by calculating how much ambient light can reach each pixel on the model. Ambient, in this context, means "equally from-all directions". Areas in crevices and divots receive less light than those at the edges, creating natural depth and shading effects. Pixels on the sharp edge of models recieve more light, so are highlighted.
+Generate instant shaded textures for your models with one click! 
+
+
+![Preview](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/examples/Promo.gif?raw=true)
+
+This plugin bakes ambient occlusion directly onto your mesh textures by calculating how much ambient light can reach each pixel on the model. Ambient, in this context, means "equally from-all directions". Areas in crevices and divots receive less light than those at the edges, creating natural depth and shading effects. Pixels on the sharp edge of models recieve more light, so are highlighted.
 
 To use this plugin, select a mesh and go to `Tools > Bake Ambient Occlusion`. Configure your settings in the dialog and click `Confirm` to start the baking process.
 
@@ -12,15 +17,15 @@ Ambient occlusion works by casting rays from each pixel on your model's surface 
 
 ### Colors and Opacity
 
-![Color Settings](settings_reference_guides/colors.gif)
-![AO Strength](settings_reference_guides/ao_strength.gif)
+![Color Settings](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/colors.gif?raw=true)
+![AO Strength](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/ao_strength.gif?raw=true)
 **Highlight Color & Opacity**: Sets the color and transparency used for well-lit, exposed areas of your model. These areas typically represent worn edges or surfaces that receive full ambient lighting.
 
 **Shadow Color & Opacity**: Sets the color and transparency used for occluded, shadowed areas. These areas represent crevices, corners, and recessed surfaces where dirt and grime would naturally accumulate.
 
 ### Gamma Correction
 
-![Gamma Settings](settings_reference_guides/gamma.gif)
+![Gamma Settings](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/gamma.gif?raw=true)
 
 **Highlight Gamma**: Controls the contrast and falloff of highlight areas. Lower values create more dramatic contrast with sharper transitions, while higher values create softer, more gradual highlights.
 
@@ -38,19 +43,19 @@ Ambient occlusion works by casting rays from each pixel on your model's surface 
 
 ### Occlusion Radius
 
-![Radius Settings](settings_reference_guides/radius.gif)
+![Radius Settings](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/radius.gif?raw=true)
 
 **Ambient Occlusion Radius (Pixels)**: Controls how far the occlusion effect extends from each surface. Larger values create larger shadows that affect more distant geometry, while smaller values create tighter, more localized effects. Use larger values for bigger models or higher-resolution textures.
 
 ### Ground Plane Simulation
 
-![Ground Plane](settings_reference_guides/ground_plane.gif)
+![Ground Plane](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/ground_plane.gif?raw=true)
 
 **Simulate Ground Plane**: Allows the ground beneath your model to occlude light. This creates natural contact shadows at the base of your model, making it appear more grounded. 
 
 ### Transparency Handling
 
-![Transparency Settings](settings_reference_guides/transparency.gif)
+![Transparency Settings](https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion/blob/main/settings_reference_guides/transparency.gif?raw=true)
 
 **Retain Texture Transparency**: Preserves the original alpha channel of your textures. When enabled, the ambient occlusion effect will respect existing transparent areas and not overwrite them completely.
 
@@ -70,13 +75,13 @@ Ambient occlusion works by casting rays from each pixel on your model's surface 
 - **For large models**: Increase ambient occlusion radius to 12-16
 - **For detailed textures**: Use higher sample counts and enable texture transparency sampling
 
-# Credit and Acknowledgments
+## Credit and Acknowledgments
 
 Plugin by Kai Salmon. 
 
-Massive performance gains were achieved by using [ThreeJS Bounding Volume Heiarachies 
+Massive performance gains were achieved by using [ThreeJS Bounding Volume Hierarchies 
 ](https://github.com/gkjohnson/three-mesh-bvh) by  Garrett Johnson. 
 
-# Source code and Contributions
+## Source code and Contributions
 
 You can contribute to the code and report any issues on [github](https://github.com/kaisalmon/MrsSalmonsBlockbenchBakedAmbientOcclusion/blob/main/about.md).
