@@ -1,5 +1,5 @@
 import {
-	MeshBVH,
+    MeshBVH,
 } from 'three-mesh-bvh';
 
 declare const THREE: typeof import('three');
@@ -29,18 +29,25 @@ interface FaceMapping {
 let button: Action;
 
 (Plugin as any).register('baked_ambient_occlusion', {
-    title: 'Mr Salmon\'s Baked Ambient Occlusion',
-    author: 'Kai Salmon',
-    icon: 'icon',
-    description: 'Baked Ambient Occlusion, creating instant shading',
-    version: '1.0.0',
-    variant: 'both',
+    "title": "Mr Salmon's Baked Ambient Occlusion",
+    "author": "Kai Salmon",
+    "description": "Baked Ambient Occlusion, creating instant shading",
+    "icon": "icon.png",
+    "version": "1.0.0",
+    "min_version": "4.8.0",
+    "variant": "both",
+    "repository": "https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion",
+    "has_changelog": false,
+    "tags": [
+        "Texture",
+        "Shading"
+    ],
     onload(): void {
         button = new Action('bake_ambient_occlusion', {
             name: 'Bake Ambient Occlusion',
             description: 'Perform ambient occlusion baking on selected meshes',
             icon: 'cake',
-            click: function(): void {
+            click: function (): void {
                 showAmbientOcclusionDialog();
             }
         });
@@ -78,7 +85,7 @@ function showAmbientOcclusionDialog(): void {
         });
         return;
     }
-    if(Mesh.selected.length > 1){
+    if (Mesh.selected.length > 1) {
         Blockbench.showToastNotification({
             text: 'Multiple meshes selected',
         });
@@ -88,10 +95,10 @@ function showAmbientOcclusionDialog(): void {
 
     // Load saved settings or use defaults
     const savedSettings = getPluginSettings();
-    
+
     const dialog = new Dialog('ambient_occlusion_config', {
         title: 'Ambient Occlusion Settings',
-        width: 400,
+        // width: 400,
         form: {
             highlight_color: {
                 label: 'Highlight Color',
@@ -188,7 +195,7 @@ function showAmbientOcclusionDialog(): void {
                 description: 'Consider texture transparency when calculating occlusion (slower but more accurate)'
             },
         },
-        onConfirm: async function(formResult: any) {
+        onConfirm: async function (formResult: any) {
             const options: BakeAmbientOcclusionOptions = {
                 onProgress: (progress: number) => {
                     Blockbench.setProgress(progress)
@@ -197,18 +204,18 @@ function showAmbientOcclusionDialog(): void {
                     const dialogObject: Element = (loadingDialog as any).object;
                     const titleElem = dialogObject.querySelector('.dialog_title');
                     if (titleElem) {
-                        if (elapsedMs > 3000 || progress > 0.2){
+                        if (elapsedMs > 3000 || progress > 0.2) {
                             const estimatedTotalMs = elapsedMs / progress;
                             const estimatedRemainingMs = estimatedTotalMs - elapsedMs;
                             const formattedTime = formatMsToReadableTime(estimatedRemainingMs);
                             titleElem.textContent = `Baking Ambient Occlusion (~ ${formattedTime} remaining)`;
-                        }else{
+                        } else {
                             titleElem.textContent = `Baking Ambient Occlusion`;
                         }
                     }
                 },
-                highlightColor: hexToColor('#'+formResult.highlight_color.toHex(), formResult.highlight_alpha),
-                shadowColor: hexToColor('#'+formResult.shadow_color.toHex(), formResult.shadow_alpha),
+                highlightColor: hexToColor('#' + formResult.highlight_color.toHex(), formResult.highlight_alpha),
+                shadowColor: hexToColor('#' + formResult.shadow_color.toHex(), formResult.shadow_alpha),
                 samples: formResult.samples,
                 ambientOcclusionRadius: formResult.ambient_occlusion_radius,
                 retainTextureTransparency: formResult.retain_texture_transparency,
@@ -218,7 +225,7 @@ function showAmbientOcclusionDialog(): void {
                 simulateGroundPlane: formResult.simulate_ground_plane,
                 sampleMethod: formResult.sample_method
             };
-            
+
             // Save settings for next session
             savePluginSettings({
                 highlightColor: options.highlightColor,
@@ -232,7 +239,7 @@ function showAmbientOcclusionDialog(): void {
                 simulateGroundPlane: options.simulateGroundPlane,
                 sampleMethod: options.sampleMethod
             });
-            
+
             const startTime = performance.now();
             const jobController = {
                 cancelled: false
@@ -245,28 +252,28 @@ function showAmbientOcclusionDialog(): void {
                 cancel_on_click_outside: false,
                 singleButton: true,
                 buttons: ['Cancel'],
-                onCancel: function() {
+                onCancel: function () {
                     jobController.cancelled = true;
                 }
             });
 
             loadingDialog.show();
-            try{
+            try {
                 await bakeAmbientOcclusion(options, jobController);
             } finally {
                 loadingDialog.hide();
-                Blockbench.setProgress(0); 
+                Blockbench.setProgress(0);
             }
         },
-        buttons: ['Confirm','Restore Defaults', 'Cancel'],
-        onButton(button_index:number, e:Event): void {
+        buttons: ['Confirm', 'Restore Defaults', 'Cancel'],
+        onButton(button_index: number, e: Event): void {
             if (button_index === 1) {
                 localStorage.removeItem('blockbench_baked_ao_settings');
                 showAmbientOcclusionDialog();
             }
         },
     });
-    
+
     dialog.show();
 }
 
@@ -304,7 +311,7 @@ async function bakeAmbientOcclusion(opts: BakeAmbientOcclusionOptions, jobContro
             }
             facesInMesh++;
         });
-        
+
         // Process each face
         const result = await processMeshFaces(mesh, hasSelectedFaces, opts, jobController);
         anyMissing = anyMissing || result.anyMissing;
@@ -334,13 +341,13 @@ function buildFaceMapping(mesh: Mesh): FaceMapping {
     // NOTE: This code duplicates some esoteric logic in from within Blockbench
     const faceIndexToBlockbenchFace = new Map<number, MeshFace>();
     let currentFaceIndex = 0;
-    
+
     for (let key in mesh.faces) {
         const face = mesh.faces[key];
         const vertices = face.vertices;
-        
+
         if (vertices.length < 3) continue;
-        
+
         if (vertices.length === 3) {
             faceIndexToBlockbenchFace.set(currentFaceIndex, face);
             currentFaceIndex += 1;
@@ -350,7 +357,7 @@ function buildFaceMapping(mesh: Mesh): FaceMapping {
             currentFaceIndex += 2;
         }
     }
-    
+
     return { faceIndexToBlockbenchFace };
 }
 
@@ -369,29 +376,29 @@ async function processMeshFaces(mesh: Mesh, hasSelectedFaces: boolean, opts: Bak
     let totalFacesProcessed = 0;
     const faces: MeshFace[] = [];
     mesh.forAllFaces((face: MeshFace) => faces.push(face));
-    
+
     // Group faces by texture
     const facesByTexture: Map<Texture, MeshFace[]> = new Map();
-    
+
     for (const face of faces) {
         const tex: Texture | undefined = face.getTexture();
         if (!tex) {
             anyMissing = true;
             continue;
         }
-        
+
         if (hasSelectedFaces && !face.isSelected()) continue;
-        
+
         anyWithTextures = true;
-        
+
         if (!facesByTexture.has(tex)) {
             facesByTexture.set(tex, []);
         }
         facesByTexture.get(tex)!.push(face);
     }
-    
+
     const [lowestY]: [number, number] = getHighestAndLowestY(mesh);
-    
+
     const groundPlane: THREE.Mesh | null = opts.simulateGroundPlane ? createGroundPlane(lowestY) : null;
 
     const geometry: THREE.BufferGeometry = (mesh.mesh as THREE.Mesh).geometry;
@@ -401,9 +408,9 @@ async function processMeshFaces(mesh: Mesh, hasSelectedFaces: boolean, opts: Bak
         maxDepth: 1000,
         maxLeafTris: 1,
     });
-    
+
     const faceMapping = buildFaceMapping(mesh);
-    
+
     try {
         for (const [texture, textureFaces] of facesByTexture) {
             const { pixelsProcessed, facesProcessed } = await processTextureWithFaces(
@@ -437,9 +444,9 @@ function createGroundPlane(lowestY: number) {
 }
 
 async function processTextureWithFaces(
-    texture: Texture, 
-    faces: MeshFace[], 
-    mesh: Mesh, 
+    texture: Texture,
+    faces: MeshFace[],
+    mesh: Mesh,
     groundPlane: THREE.Mesh | null,
     bvh: MeshBVH,
     faceMapping: FaceMapping,
@@ -449,17 +456,17 @@ async function processTextureWithFaces(
     pixelsProcessed: number;
     facesProcessed: number;
 }> {
-    
+
     const bestResults: Map<string, PixelResult> = new Map();
-    
+
     let facesProcessed: number = 0;
     for (const face of faces) {
         const occupationMatrix: Record<string, Record<string, boolean>> = face.getOccupationMatrix();
         const texture = face.getTexture();
-        if(!texture) continue;
+        if (!texture) continue;
         const pixelDensityU = texture.width / texture.uv_width;
         const pixelDensityV = texture.height / texture.uv_height;
-        if(pixelDensityU !== pixelDensityV) {
+        if (pixelDensityU !== pixelDensityV) {
             throw new Error(`Non-uniform pixel density detected for texture ${texture.name}`);
         }
         const pixelCoords: [number, number][] = [];
@@ -469,27 +476,27 @@ async function processTextureWithFaces(
                 const u = parseInt(uStr, 10);
                 const v = parseInt(vStr, 10);
                 if (value === true) {
-                    for(let x = 0; x < pixelDensityU; x++) {
-                       for(let y = 0; y < pixelDensityV; y++) {
-                           pixelCoords.push([Math.floor(u * pixelDensityU + x), Math.floor(v * pixelDensityV + y)]);
-                       }
+                    for (let x = 0; x < pixelDensityU; x++) {
+                        for (let y = 0; y < pixelDensityV; y++) {
+                            pixelCoords.push([Math.floor(u * pixelDensityU + x), Math.floor(v * pixelDensityV + y)]);
+                        }
                     }
                 }
             });
         });
-        
+
         let i = 0;
         // Process pixels for this face
         for (const [u, v] of pixelCoords) {
             const key: string = `${u},${v}`;
-            
+
             // Get x,y,z in 3d space of the face at this u,v
-            let {x, y, z} = face.UVToLocal([(u + 0.5)/pixelDensityU, (v + 0.5)/pixelDensityV]);
+            let { x, y, z } = face.UVToLocal([(u + 0.5) / pixelDensityU, (v + 0.5) / pixelDensityV]);
             const result = calculateAmbientOcclusion([x, y, z], [u, v], face, mesh, groundPlane, bvh, faceMapping, opts, generateFibonacciSpherePoints(opts.samples));
 
             if (result) {
                 const [color, backfaceRatio] = result;
-                
+
                 // Check if this is the best result for this pixel so far
                 const existing = bestResults.get(key);
                 if (!existing || backfaceRatio < existing.backfaceRatio) {
@@ -512,11 +519,11 @@ async function processTextureWithFaces(
         facesProcessed++;
         opts?.onProgress?.(facesProcessed / faces.length);
     }
-    
+
     let processedPixels: number = 0;
     texture.edit((htmlCanvasElement: HTMLCanvasElement) => {
         const ctx: CanvasRenderingContext2D = htmlCanvasElement.getContext('2d')!;
-        
+
         for (const [pixelKey, result] of bestResults) {
             const [u, v] = pixelKey.split(',').map(x => parseInt(x, 10));
             let [r, g, b, a] = result.color;
@@ -546,10 +553,10 @@ const vectorPool: VectorPool = {
 
 
 function calculateAmbientOcclusion(
-    position: [number, number, number], 
-    uv: [number, number], 
-    face: MeshFace, 
-    mesh: Mesh, 
+    position: [number, number, number],
+    uv: [number, number],
+    face: MeshFace,
+    mesh: Mesh,
     groundPlane: THREE.Mesh | null,
     bvh: MeshBVH,
     faceMapping: FaceMapping,
@@ -558,9 +565,9 @@ function calculateAmbientOcclusion(
 ): [[number, number, number, number], number] | null {
     const [x, y, z]: [number, number, number] = position;
     const [normalX, normalY, normalZ]: [number, number, number] = face.getNormal(true);
-    
+
     vectorPool.normal.set(normalX, normalY, normalZ);
-    
+
     let occlusion: number = 0;
     let backfaceHits: number = 0;
     const rayCount: number = opts.samples;
@@ -569,7 +576,7 @@ function calculateAmbientOcclusion(
         let direction: THREE.Vector3;
         vectorPool.origin.set(x, y, z)
             .addScaledVector(vectorPool.normal, 0.5);
-        if(opts.sampleMethod === 'random'){
+        if (opts.sampleMethod === 'random') {
             vectorPool.origin.x += (Math.random() - 0.5) * 0.5
             vectorPool.origin.y += (Math.random() - 0.5) * 0.5;
             vectorPool.origin.z += (Math.random() - 0.5) * 0.5;
@@ -579,21 +586,21 @@ function calculateAmbientOcclusion(
                 (Math.random() - 0.5) * 2
             ).normalize();
             direction = vectorPool.direction;
-        }else{
+        } else {
             direction = spherePoints[i];
         }
         const raycaster: THREE.Raycaster = new THREE.Raycaster(vectorPool.origin, direction, 0.001, opts.ambientOcclusionRadius);
 
-        const hit = bvh.raycastFirst( raycaster.ray, THREE.DoubleSide );
+        const hit = bvh.raycastFirst(raycaster.ray, THREE.DoubleSide);
         if (hit) {
             const faceNormal = hit.face!.normal!;
             const dot = vectorPool.direction.dot(faceNormal);
             if (dot > 0) {
                 backfaceHits += 1;
             }
-            if(!opts.sampleTextureTransparency){
+            if (!opts.sampleTextureTransparency) {
                 occlusion += 1;
-            }else{
+            } else {
                 // Use the optimized face lookup instead of the expensive linear search
                 const blockbenchFace = faceMapping.faceIndexToBlockbenchFace.get(hit.faceIndex!);
                 if (blockbenchFace) {
@@ -610,11 +617,11 @@ function calculateAmbientOcclusion(
                     occlusion += 1;
                 }
             }
-        }else{
+        } else {
             // Check if the ray intersects the ground plane
             const groundPlaneHit = groundPlane && raycaster.intersectObject(groundPlane).length > 0;
             if (groundPlaneHit) {
-                 occlusion += 1;
+                occlusion += 1;
             }
         }
     }
@@ -624,7 +631,7 @@ function calculateAmbientOcclusion(
 
     let t: number;
     let color: Color;
-    
+
     if (occlusionFactor < 0.5) {
         t = (0.5 - occlusionFactor) * 2;
         t = Math.pow(t, opts.shadowGamma);
@@ -647,29 +654,29 @@ function calculateAmbientOcclusion(
  * @returns [lowestY, highestY]
  */
 function getHighestAndLowestY(mesh: Mesh): [number, number] {
-    
+
     if (!mesh.mesh || !(mesh.mesh instanceof THREE.Mesh)) {
         console.log(mesh);
         throw new Error('Invalid mesh object');
     }
-    
+
     const geometry = mesh.mesh.geometry;
-    
+
     if (!geometry || !geometry.attributes || !geometry.attributes.position) {
         console.log(geometry);
         throw new Error('Mesh does not have valid geometry attributes');
     }
-    
+
     const positionAttribute: THREE.BufferAttribute = geometry.attributes.position as THREE.BufferAttribute;
     let highestY: number = -Infinity;
     let lowestY: number = Infinity;
-    
+
     for (let i: number = 0; i < positionAttribute.count; i++) {
         const y: number = positionAttribute.getY(i);
         if (y > highestY) highestY = y;
         if (y < lowestY) lowestY = y;
     }
-    
+
     return [lowestY, highestY];
 }
 
@@ -718,7 +725,7 @@ function getPluginSettings(): BakeAmbientOcclusionOptions {
         highlightGamma: 0.5,
         simulateGroundPlane: true
     };
-    
+
     if (savedSettings) {
         try {
             return { ...defaultSettings, ...JSON.parse(savedSettings) };
@@ -726,7 +733,7 @@ function getPluginSettings(): BakeAmbientOcclusionOptions {
             console.warn('Failed to parse saved AO settings, using defaults');
         }
     }
-    
+
     return defaultSettings;
 }
 
