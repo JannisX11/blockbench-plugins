@@ -1914,7 +1914,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.6.0",
+    version: "0.6.1",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -3219,9 +3219,6 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
         panel_setup_listener = Blockbench.on("select_mode", showCollectionPanel);
       }
       let on_finish_edit = Blockbench.on("generate_texture_template", (arg) => {
-        if (arg.texture) {
-          updateUVSize(arg.texture);
-        }
         for (let element of arg.elements) {
           if (typeof element.autouv != "number") continue;
           element.autouv = 1;

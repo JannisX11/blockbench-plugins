@@ -245,5 +245,18 @@
 				]
 			}
 		]
+	},
+	"0.6.1": {
+		"title": "0.4.1",
+		"date": "2026-01-12",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with pixel density when generating a template"
+				]
+			}
+		]
 	}
 }
