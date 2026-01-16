@@ -1358,5 +1358,19 @@
 			"Format: Bedrock Block"
 		],
 		"repository": "https://github.com/MinecraftBedrockArabic/blockbench-plugins/tree/master/plugins/block_multi_collisions"
+	},
+	"hytale_avatar_loader": {
+		"title": "Hytale Avatar Loader",
+		"author": "PasteDev",
+		"icon": "icon.png",
+		"description": "Loads Hytale avatar models with textures and colors from JSON files. Automatically applies gradient maps to greyscale textures based on color selections.",
+		"about": "This plugin allows you to load complete Hytale avatars from JSON files directly into Blockbench. It automatically processes all avatar components including body characteristics, haircuts, eyes, facial features, clothing, and accessories.\n\n**Key Features:**\n- Automatic gradient map processing for greyscale textures\n- Smart color preservation - maintains existing colors (like gold accents) while applying gradient maps\n- Batch processing of all avatar components\n- Timestamped temporary folders to prevent overwriting when loading multiple avatars\n- Support for all Hytale avatar components\n- Automatic detection of material types and appropriate gradient set application\n- Face and ear textures automatically use body characteristic skin color\n\n**How it works:**\n1. Select an avatar JSON file from your Hytale assets\n2. The plugin processes all textures, applying gradient maps based on the color selections in the JSON\n3. Processed textures are saved to a temporary folder with a timestamp\n4. All models and textures are automatically loaded into Blockbench\n\n**Requirements:**\n- Blockbench 5.0.7 or higher\n- Hytale assets folder structure\n- The plugin will request permissions to access files - accept these for the plugin to function correctly.",
+		"tags": ["Hytale"],
+		"version": "1.0.0",
+		"min_version": "5.0.7",
+		"variant": "desktop",
+		"creation_date": "2026-01-16",
+		"has_changelog": true,
+		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
 	}
 }
