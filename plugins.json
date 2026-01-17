@@ -19,8 +19,7 @@
 		"variant": "desktop",
 		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
 		"min_version": "4.12.0",
-		"has_changelog": true,
-		"max_version": "4.12.6"
+		"has_changelog": true
 	},
 	"animated_platforms": {
 		"title": "Animated Platforms",
