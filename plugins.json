@@ -1197,11 +1197,12 @@
 	},
 	"farsight": {
 		"title": "Farsight",
-  		"author": "Luther Gray",
-  		"icon": "visibility",
-  		"description": "Increases the Clipping Distance of Blockbench to see much larger maps & levels (configurable).",
-  		"version": "1.0.1",
-  		"variant": "both"
+		"author": "Luther Gray",
+		"icon": "visibility",
+		"description": "Increases the Clipping Distance of Blockbench to see much larger maps & levels (configurable).",
+		"version": "1.0.1",
+		"min_version": "4.8.0",
+		"variant": "both"
 	},
 	"reexport_on_save": {
 		"title": "Re-export on Save",

@@ -5,6 +5,7 @@ Plugin.register("farsight", {
   description:
     "Increases the Clipping Distance of Blockbench to see much larger maps & levels (configurable).",
   version: "1.0.1",
+  min_version: "4.8.0",
   variant: "both",
 
   onload() {
