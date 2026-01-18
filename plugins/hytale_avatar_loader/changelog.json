@@ -1,0 +1,23 @@
+{
+    "1.0.0": {
+        "title": "1.0.0",
+        "date": "2026-01-16",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Initial release of Hytale Avatar Loader",
+                    "Load complete Hytale avatars from JSON files",
+                    "Automatic gradient map processing for greyscale textures",
+                    "Smart color preservation - maintains existing colors (like gold accents) while applying gradient maps",
+                    "Batch processing of all avatar components (skin, hair, eyes, clothing, accessories)",
+                    "Timestamped temporary folders to prevent overwriting when loading multiple avatars",
+                    "Support for all Hytale avatar components including body characteristics, haircuts, eyes, facial features, clothing, and accessories",
+                    "Automatic detection of material types and appropriate gradient set application",
+                    "Face and ear textures automatically use body characteristic skin color"
+                ]
+            }
+        ]
+    }
+}
