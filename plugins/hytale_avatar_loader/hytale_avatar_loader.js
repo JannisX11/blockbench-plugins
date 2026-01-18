@@ -522,7 +522,7 @@ function applyGradientMap(baseImagePath, gradientMapPath, outputPath, fs, pathJo
                     const isSpecialTexture = basePathLower.includes('frilly_greyscale') ||
                                             basePathLower.includes('schoolsocks_greyscale') ||
                                             basePathLower.includes('paintspill_shirt_greyscale');
-                    const grayscaleThreshold = 3;
+                    const grayscaleThreshold = 1;
                     const whiteThreshold = isSpecialTexture ? 185 : 255;
                     
                     for (let i = 0; i < baseImageData.data.length; i += 4) {
