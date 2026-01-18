@@ -6,6 +6,7 @@
     <li>Automatic gradient map application to grayscale textures</li>
     <li>Preserves existing colors (like gold details) while applying gradients only to grayscale areas</li>
     <li>Processes all avatar components (skin, hair, eyes, clothing, accessories) in one operation</li>
+    <li>Automatic import of default Hytale character animations</li>
   </ul>
   <h3>Usage:</h3>
   <ol>
