@@ -1,5 +1,3 @@
-const AVATAR_BLACK_LOADER_ICON = 'data:image/png;base64,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'
-
 let loadAction;
 
 Plugin.register('hytale_avatar_loader', {
@@ -43,26 +41,22 @@ Plugin.register('hytale_avatar_loader', {
         Blockbench.on('finished_edit', hideAttachmentsFromOutliner);
         setTimeout(hideAttachmentsFromOutliner, 500);
         
+        const loadAvatarIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAAZQTFRFAAAAAAAApWe5zwAAAAJ0Uk5TAP9bkSK1AAAAj0lEQVR4nI3PQQ6CUAwE0KkkskRPwE3waOrN0HuY2Bv8sCAujDjTSkBX/s1Lmml/a+DrrgZUt9ZIPWzPK8bNhTQFon6sYVGRQx9MENUT4BQmRHuPIhPieIL6GCT2CpSHG/O74taUab/AbhXVjV806z+++7QR9MP8rfgsEZsRreZ5ClHU8xTPUzxPWRqSuMjfxpJZMWa9gqsAAAAASUVORK5CYII=';
+        
         loadAction = new Action('load_avatar', {
-            name: 'Load Avatar from JSON',
-            description: 'Loads a complete avatar from a JSON file',
-            icon: AVATAR_BLACK_LOADER_ICON || 'icon-player_head',
+            name: 'Load Hytale Avatar',
+            description: 'Loads a complete Hytale avatar from a JSON file',
+            icon: loadAvatarIcon,
             condition: {formats: ['hytale_character']},
             click: function() {
                 
                 function expandPath(path) {
                     if (path.includes('%appdata%')) {
                         try {
-                            const os = requireNativeModule('os');
-                            const appDataPath = process.env.APPDATA || (os.homedir ? pathJoin(os.homedir(), 'AppData', 'Roaming') : '');
+                            const appDataPath = SystemInfo.appdata_directory || '';
                             return path.replace(/%appdata%/gi, appDataPath);
                         } catch (err) {
-                            try {
-                                const appDataPath = process.env.APPDATA || '';
-                                return path.replace(/%appdata%/gi, appDataPath);
-                            } catch (e) {
-                                return path;
-                            }
+                            return path;
                         }
                     }
                     return path;
@@ -94,18 +88,19 @@ Plugin.register('hytale_avatar_loader', {
                 const skinFolderPath = expandPath('%appdata%\\Hytale\\UserData\\CachedPlayerSkins');
                 
                 Blockbench.showMessageBox({
-                    title: 'Skin JSON File Location',
-                    message: '**To load the avatar, you need to select the skin JSON file.**\n\n' +
-                             '**Location:**\n' +
-                             '`%appdata%\\Hytale\\UserData\\CachedPlayerSkins`\n\n' +
-                             'Navigate to this folder and select your avatar JSON file.',
+                    title: 'Select Avatar JSON File',
+                    message: '**Step 1: Select your avatar JSON file**\n\n' +
+                             'Navigate to the following folder and select your avatar JSON file:\n\n' +
+                             '📁 `%appdata%\\Hytale\\UserData\\CachedPlayerSkins`\n\n' +
+                             'The JSON file contains all your avatar customizations.',
                     buttons: ['OK']
                 }, () => {
                     Blockbench.import({
                         type: 'json',
                         extensions: ['json'],
                         multiple: false,
-                        title: 'Select Avatar JSON File'
+                        title: 'Select Avatar JSON File',
+                        startpath: skinFolderPath
                     }, async (files) => {
                         if (!files || files.length === 0) return;
                         
@@ -130,12 +125,14 @@ Plugin.register('hytale_avatar_loader', {
                         const assetsZipPath = expandPath('%appdata%\\Hytale\\install\\release\\package\\game\\latest');
                         
                         Blockbench.showMessageBox({
-                            title: 'Assets.zip Location',
-                            message: '**Now you need to select the Assets folder.**\n\n' +
-                                     '**Step 1:** Extract `Assets.zip` from:\n' +
-                                     '`%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n' +
-                                     '**Step 2:** Navigate to the extracted Assets folder and select it.\n\n' +
-                                     '⚠️ **IMPORTANT:** You must extract Assets.zip first before selecting the folder.',
+                            title: 'Select Assets Folder',
+                            message: '**Step 2: Select the extracted Assets folder**\n\n' +
+                                     '**Instructions:**\n\n' +
+                                     '1. Extract `Assets.zip` from:\n' +
+                                     '   📁 `%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n' +
+                                     '2. Navigate to the extracted Assets folder\n\n' +
+                                     '3. Select the Assets folder when prompted\n\n' +
+                                     '⚠️ **Important:** You must extract Assets.zip first before selecting the folder.',
                             buttons: ['OK']
                         }, () => {
                             if (typeof Blockbench.pickDirectory === 'function') {
@@ -257,8 +254,14 @@ async function loadAvatar(avatarData, assetsBasePath) {
         const actualAssetsPath = findAssetsPath(assetsBasePath);
         if (!actualAssetsPath) {
             Blockbench.showMessageBox({
-                title: 'Error',
-                message: `Could not find Assets folder.\n\nSelected path: ${assetsBasePath}\n\nPlease make sure you select the extracted Assets folder that contains the Cosmetics\\CharacterCreator directory.\n\nThe Assets folder should be extracted from Assets.zip and should contain:\n- Cosmetics\\CharacterCreator\\\n- Common\\`,
+                title: 'Error: Assets Folder Not Found',
+                message: `**Could not find the Assets folder**\n\n` +
+                         `**Selected path:**\n\`${assetsBasePath}\`\n\n` +
+                         `**Please verify:**\n\n` +
+                         `• You selected the extracted Assets folder (not the zip file)\n` +
+                         `• The folder contains: \`Cosmetics\\CharacterCreator\\\`\n` +
+                         `• The folder contains: \`Common\\\`\n\n` +
+                         `The Assets folder should be extracted from Assets.zip.`,
                 buttons: ['OK']
             });
             return;
@@ -268,8 +271,11 @@ async function loadAvatar(avatarData, assetsBasePath) {
         
         if (!fs.existsSync(characterCreatorPath)) {
             Blockbench.showMessageBox({
-                title: 'Error',
-                message: `Could not find CharacterCreator folder.\n\nAssets path: ${actualAssetsPath}\n\nExpected path: ${characterCreatorPath}\n\nPlease verify that the Assets folder is correctly extracted.`,
+                title: 'Error: CharacterCreator Folder Not Found',
+                message: `**Could not find CharacterCreator folder**\n\n` +
+                         `**Assets path:**\n\`${actualAssetsPath}\`\n\n` +
+                         `**Expected path:**\n\`${characterCreatorPath}\`\n\n` +
+                         `Please verify that the Assets folder is correctly extracted from Assets.zip.`,
                 buttons: ['OK']
             });
             return;
@@ -358,8 +364,13 @@ async function loadAvatar(avatarData, assetsBasePath) {
             
             if (Object.keys(mappings).length === 0) {
                 Blockbench.showMessageBox({
-                    title: 'Error',
-                    message: `Could not load mapping files.\n\nSearched path: ${characterCreatorPath}\n\nVerify that the Assets folder contains Cosmetics\\CharacterCreator with the JSON files.`,
+                    title: 'Error: Mapping Files Not Found',
+                    message: `**Could not load mapping files**\n\n` +
+                             `**Searched path:**\n\`${characterCreatorPath}\`\n\n` +
+                             `**Please verify:**\n\n` +
+                             `• The Assets folder contains \`Cosmetics\\CharacterCreator\\\`\n` +
+                             `• The CharacterCreator folder contains JSON mapping files\n` +
+                             `• The Assets folder was correctly extracted from Assets.zip`,
                     buttons: ['OK']
                 });
                 return;
@@ -500,13 +511,30 @@ function applyGradientMap(baseImagePath, gradientMapPath, outputPath, fs, pathJo
                     const outputImageData = outputCtx.createImageData(baseCanvas.width, baseCanvas.height);
                     
                     const isColorfulTexture = baseImagePath.toLowerCase().includes('colorful.png');
-                    const grayscaleThreshold = 15;
+                    const basePathLower = baseImagePath.toLowerCase().replace(/\\/g, '/');
+                    const isSkinTexture = basePathLower.includes('player_textures') || 
+                                         basePathLower.includes('faces') || 
+                                         basePathLower.includes('ears') ||
+                                         basePathLower.includes('mouths') ||
+                                         basePathLower.includes('makeup') ||
+                                         basePathLower.includes('cosmetics/head') ||
+                                         basePathLower.includes('earring');
+                    const isSpecialTexture = basePathLower.includes('frilly_greyscale') ||
+                                            basePathLower.includes('schoolsocks_greyscale') ||
+                                            basePathLower.includes('paintspill_shirt_greyscale');
+                    const grayscaleThreshold = 3;
+                    const whiteThreshold = isSpecialTexture ? 185 : 255;
                     
                     for (let i = 0; i < baseImageData.data.length; i += 4) {
                         const r = baseImageData.data[i];
                         const g = baseImageData.data[i + 1];
                         const b = baseImageData.data[i + 2];
                         const a = baseImageData.data[i + 3];
+                        
+                        const minChannel = Math.min(r, g, b);
+                        const maxChannel = Math.max(r, g, b);
+                        const avgChannel = (r + g + b) / 3;
+                        const isWhite = minChannel >= whiteThreshold && avgChannel >= whiteThreshold;
                         
                         if (isColorfulTexture) {
                             const luminance = Math.round(
@@ -515,15 +543,26 @@ function applyGradientMap(baseImagePath, gradientMapPath, outputPath, fs, pathJo
                                 b * 0.114
                             );
                             
+                            if (luminance >= whiteThreshold) {
+                                outputImageData.data[i] = 255;
+                                outputImageData.data[i + 1] = 255;
+                                outputImageData.data[i + 2] = 255;
+                                outputImageData.data[i + 3] = a;
+                            } else {
                             const gradientIndex = Math.min(255, Math.max(0, luminance)) * 4;
                             
                             outputImageData.data[i] = gradientMapData.data[gradientIndex];
                             outputImageData.data[i + 1] = gradientMapData.data[gradientIndex + 1];
                             outputImageData.data[i + 2] = gradientMapData.data[gradientIndex + 2];
                             outputImageData.data[i + 3] = a;
+                            }
                         } else {
-                            const maxChannel = Math.max(r, g, b);
-                            const minChannel = Math.min(r, g, b);
+                            if (isWhite && !isSkinTexture) {
+                                outputImageData.data[i] = r;
+                                outputImageData.data[i + 1] = g;
+                                outputImageData.data[i + 2] = b;
+                                outputImageData.data[i + 3] = a;
+                            } else {
                             const isGrayscale = (maxChannel - minChannel) <= grayscaleThreshold;
                             
                             if (isGrayscale) {
@@ -544,6 +583,7 @@ function applyGradientMap(baseImagePath, gradientMapPath, outputPath, fs, pathJo
                                 outputImageData.data[i + 1] = g;
                                 outputImageData.data[i + 2] = b;
                                 outputImageData.data[i + 3] = a;
+                                }
                             }
                         }
                     }

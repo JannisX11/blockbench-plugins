@@ -23,7 +23,7 @@ When you first use the plugin, Blockbench will request permissions to access the
 ## Usage
 
 1. Open Blockbench and ensure you're using the Hytale Character format
-2. Go to **File → Import → Load Avatar from JSON**
+2. Go to **File → Import → Load Hytale Avatar**
 3. Select your avatar JSON file from the CachedPlayerSkins folder
 4. Select the extracted Assets folder when prompted
 5. The plugin will automatically:
