@@ -1,14 +1,31 @@
 let loadAction;
 
+const links = {
+  website: {
+    text: "By Pastelito",
+    link: "https://pastelito.dev/",
+    icon: "far.fa-copy",
+    colour: "#33E38E"
+  },
+  twitter: {
+    text: "Twitter",
+    link: "https://x.com/MrPastelitoo_",
+    icon: "fab.fa-x-twitter",
+    colour: "#1DA1F2"
+  }
+}
+
 Plugin.register('hytale_avatar_loader', {
     title: 'Hytale Avatar Loader',
     author: 'PasteDev',
     description: 'Loads Hytale avatar models with textures and colors from JSON files',
     icon: 'icon.png',
-    version: '1.0.0',
+    version: '1.1.0',
     min_version: '5.0.7',
     variant: 'desktop',
     tags: ['Hytale'],
+    website: "https://pastelito.dev",
+    creation_date: "2026-01-16",
     onload() {
         Blockbench.addCSS(`
             .outliner_node.avatar_attachment_hidden {
@@ -1025,9 +1042,137 @@ async function loadAllModels(modelFiles, itemInfo, pathJoin, assetsBasePath) {
         if (typeof Canvas.updateView === 'function' && Project.root) {
             Canvas.updateView();
         }
+        await loadAnimations(pathJoin, assetsBasePath);
         Blockbench.showStatusMessage('Avatar loaded successfully', 3000);
     } catch (err) {
         Blockbench.showStatusMessage('Avatar processed', 3000);
+    }
+}
+
+async function loadAnimations(pathJoin, assetsBasePath) {
+    try {
+        const fs = requireNativeModule('fs');
+        if (!fs) return;
+        
+        const animationsPath = pathJoin(assetsBasePath, 'Common', 'Characters', 'Animations', 'Default');
+        
+        if (!fs.existsSync(animationsPath)) {
+            return;
+        }
+        
+        const files = fs.readdirSync(animationsPath);
+        const animationFiles = files.filter(file => 
+            file.endsWith('.blockyanim') && !file.endsWith('_FPS.blockyanim')
+        );
+        
+        if (animationFiles.length === 0) {
+            return;
+        }
+        
+        const animationPaths = animationFiles.map(file => pathJoin(animationsPath, file));
+        
+        Blockbench.read(animationPaths, { readtype: 'text' }, (files) => {
+            for (const file of files) {
+                if (!file || !file.content) continue;
+                try {
+                    const content = JSON.parse(file.content);
+                    parseAnimationFile(file, content);
+                } catch (err) {
+                    console.error(`Error parsing animation ${file.path}:`, err);
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Error loading animations:', err);
+    }
+}
+
+function parseAnimationFile(file, content) {
+    const FPS = 60;
+    const Animation = window.Animation;
+    
+    if (!Animation) {
+        console.error('Animation class not available');
+        return;
+    }
+    
+    function pathToName(path, includeExtension) {
+        if (typeof window.pathToName === 'function') {
+            return window.pathToName(path, includeExtension);
+        }
+        const parts = (path || '').split(/[/\\]/);
+        const fileName = parts[parts.length - 1] || '';
+        if (includeExtension) {
+            return fileName;
+        }
+        return fileName.replace(/\.[^.]*$/, '');
+    }
+    
+    const animation = new Animation({
+        name: pathToName(file.name || file.path, false),
+        length: content.duration / FPS,
+        loop: content.holdLastKeyframe ? "hold" : "loop",
+        path: file.path,
+        snapping: FPS
+    });
+    
+    const quaternion = new THREE.Quaternion();
+    const euler = new THREE.Euler(0, 0, 0, "ZYX");
+    
+    for (const name in content.nodeAnimations) {
+        const anim_data = content.nodeAnimations[name];
+        const group_name = name;
+        const group = Group.all.find((g) => g.name == group_name);
+        const uuid = group ? group.uuid : guid();
+        const ba = new BoneAnimator(uuid, animation, group_name);
+        animation.animators[uuid] = ba;
+        
+        const anim_channels = [
+            { channel: "rotation", keyframes: anim_data.orientation },
+            { channel: "position", keyframes: anim_data.position },
+            { channel: "scale", keyframes: anim_data.shapeStretch },
+            { channel: "visibility", keyframes: anim_data.shapeVisible }
+        ];
+        
+        for (const { channel, keyframes } of anim_channels) {
+            if (!keyframes || keyframes.length == 0) continue;
+            for (const kf_data of keyframes) {
+                let data_point;
+                if (channel == "visibility") {
+                    data_point = {
+                        visibility: kf_data.delta
+                    };
+                } else {
+                    const delta = kf_data.delta;
+                    if (channel == "rotation") {
+                        quaternion.set(delta.x, delta.y, delta.z, delta.w);
+                        euler.setFromQuaternion(quaternion.normalize(), "ZYX");
+                        data_point = {
+                            x: Math.radToDeg(euler.x),
+                            y: Math.radToDeg(euler.y),
+                            z: Math.radToDeg(euler.z)
+                        };
+                    } else {
+                        data_point = {
+                            x: delta.x,
+                            y: delta.y,
+                            z: delta.z
+                        };
+                    }
+                }
+                ba.addKeyframe({
+                    time: kf_data.time / FPS,
+                    channel,
+                    interpolation: kf_data.interpolationType == "smooth" ? "catmullrom" : "linear",
+                    data_points: [data_point]
+                });
+            }
+        }
+    }
+    
+    animation.add(false);
+    if (!Animation.selected && Animator.open) {
+        animation.select();
     }
 }
 
