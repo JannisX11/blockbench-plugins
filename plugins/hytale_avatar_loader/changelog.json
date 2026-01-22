@@ -1,7 +1,22 @@
 {
+    "1.1.1": {
+        "title": "1.1.1",
+        "date": "2026-01-22",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Improvements",
+                "list": [
+                    "Added Resolve Textures action for texture groups tied to avatar collections",
+                    "Resolve button now appears only when groups exist and hides after resolving",
+                    "UI and texture handling refactors to reduce duplicated logic"
+                ]
+            }
+        ]
+    },
     "1.1.0": {
         "title": "1.1.0",
-        "date": "2026-01-16",
+        "date": "2026-01-18",
         "author": "PasteDev",
         "categories": [
             {
