@@ -1,14 +1,32 @@
 let loadAction;
+let resolveTexturesAction;
+
+const links = {
+  website: {
+    text: "By Pastelito",
+    link: "https://pastelito.dev/",
+    icon: "far.fa-copy",
+    colour: "#33E38E"
+  },
+  twitter: {
+    text: "Twitter",
+    link: "https://x.com/MrPastelitoo_",
+    icon: "fab.fa-x-twitter",
+    colour: "#1DA1F2"
+  }
+}
 
 Plugin.register('hytale_avatar_loader', {
     title: 'Hytale Avatar Loader',
     author: 'PasteDev',
     description: 'Loads Hytale avatar models with textures and colors from JSON files',
     icon: 'icon.png',
-    version: '1.0.0',
+    version: '1.1.1',
     min_version: '5.0.7',
     variant: 'desktop',
     tags: ['Hytale'],
+    website: "https://pastelito.dev",
+    creation_date: "2026-01-16",
     onload() {
         Blockbench.addCSS(`
             .outliner_node.avatar_attachment_hidden {
@@ -165,9 +183,94 @@ Plugin.register('hytale_avatar_loader', {
         });
         
         MenuBar.addAction(loadAction, 'file.import');
+        
+        function getTextureGroupsFromCollections() {
+            if (typeof Collection === 'undefined' || !Collection.all || typeof TextureGroup === 'undefined' || !TextureGroup.all) return [];
+            const groups = [];
+            for (const collection of Collection.all) {
+                const group = TextureGroup.all.find(tg => tg.name === collection.name);
+                if (group) groups.push(group);
+            }
+            return groups;
+        }
+        
+        function getTexturesFromGroups(groups) {
+            if (!groups || groups.length === 0) return [];
+            const textures = [];
+            for (const group of groups) {
+                const groupTextures = typeof group.getTextures === 'function'
+                    ? group.getTextures()
+                    : Texture.all.filter(t => t.group === group.uuid);
+                textures.push(...groupTextures);
+            }
+            return textures.filter(Boolean);
+        }
+        
+        function resolveMissingTextures() {
+            const collectionGroups = getTextureGroupsFromCollections();
+            if (!collectionGroups || collectionGroups.length === 0) {
+                Blockbench.showMessageBox({
+                    title: 'Resolve Textures',
+                    message: 'No texture groups were found.',
+                    buttons: ['OK']
+                });
+                return;
+            }
+            const groupTextures = getTexturesFromGroups(collectionGroups);
+            Undo.initEdit({ textures: groupTextures, texture_groups: collectionGroups });
+            for (const group of collectionGroups) {
+                const textures = typeof group.getTextures === 'function'
+                    ? group.getTextures()
+                    : Texture.all.filter(t => t.group === group.uuid);
+                group.remove();
+                for (const texture of textures) {
+                    texture.group = '';
+                }
+            }
+            Undo.finishEdit('Resolve texture groups');
+            Blockbench.showStatusMessage('Resolved texture groups', 3000);
+            if (typeof BARS !== 'undefined' && typeof BARS.updateConditions === 'function') {
+                BARS.updateConditions();
+            }
+        }
+        
+        resolveTexturesAction = new Action('resolve_textures_hytale_avatar', {
+            name: 'Resolve Textures',
+            description: 'Resolve missing texture paths',
+            icon: 'fa-leaf',
+            category: 'textures',
+            condition: () => getTextureGroupsFromCollections().length > 0,
+            click: resolveMissingTextures
+        });
+        resolveTexturesAction.uniqueNode = true;
+        
+        function addResolveButtonToTexturesToolbar() {
+            const texturesPanel = Panels.textures || Interface?.Panels?.textures;
+            const panelToolbar = texturesPanel?.toolbars?.[0];
+            const listToolbar = (typeof Toolbars !== 'undefined' && Toolbars.texturelist) ? Toolbars.texturelist : null;
+            const toolbar = panelToolbar || listToolbar;
+            if (!toolbar) return false;
+            if (panelToolbar && panelToolbar !== toolbar) {
+                panelToolbar.remove(resolveTexturesAction, false);
+            }
+            if (listToolbar && listToolbar !== toolbar) {
+                listToolbar.remove(resolveTexturesAction, false);
+            }
+            if (!toolbar.children.includes(resolveTexturesAction)) toolbar.add(resolveTexturesAction, 3);
+            return true;
+        }
+        
+        let resolveToolbarAttempts = 0;
+        const resolveToolbarInterval = setInterval(() => {
+            if (addResolveButtonToTexturesToolbar() || resolveToolbarAttempts > 50) {
+                clearInterval(resolveToolbarInterval);
+            }
+            resolveToolbarAttempts++;
+        }, 200);
     },
     onunload() {
         if (loadAction) loadAction.delete();
+        if (resolveTexturesAction) resolveTexturesAction.delete();
     }
 });
 
@@ -179,6 +282,72 @@ function getPath() {
         }
     }
     return null;
+}
+
+function parseJsonFile(file) {
+    if (file && file.content) {
+        try {
+            return JSON.parse(file.content);
+        } catch (err) {
+        }
+    }
+    return null;
+}
+
+function ensureDir(fsSync, dir) {
+    if (!fsSync.existsSync(dir)) {
+        fsSync.mkdirSync(dir, { recursive: true });
+    }
+}
+
+function getRelativePathFromCommon(texturePath, commonPath) {
+    let relativePath = texturePath;
+    if (relativePath.startsWith(commonPath)) {
+        relativePath = relativePath.substring(commonPath.length);
+        if (relativePath.startsWith('/') || relativePath.startsWith('\\')) {
+            relativePath = relativePath.substring(1);
+        }
+    }
+    return relativePath;
+}
+
+function getOutputPathFromTexture(texturePath, commonPath, tempDir, pathJoin) {
+    const normalizedPath = getRelativePathFromCommon(texturePath, commonPath).replace(/\\/g, '/');
+    const pathParts = normalizedPath.split('/').filter(p => p);
+    const fileName = pathParts.pop();
+    const outputDir = pathJoin(tempDir, ...pathParts);
+    const outputPath = pathJoin(outputDir, fileName);
+    return { outputDir, outputPath };
+}
+
+function updateTextureUv(texture) {
+    if (!texture) return;
+    let width = texture.width;
+    let height = texture.height;
+    if ((!width || !height) && texture.img && texture.img.width && texture.img.height) {
+        width = texture.img.width;
+        height = texture.img.height;
+        texture.width = width;
+        texture.height = height;
+    }
+    if (width && height) {
+        if (texture.uv_width !== width || texture.uv_height !== height) {
+            texture.uv_width = width;
+            texture.uv_height = height;
+        }
+    }
+}
+
+function scheduleTextureUvUpdates(textures, delays, postUpdate) {
+    const run = () => {
+        for (const tex of textures) {
+            updateTextureUv(tex);
+        }
+        if (postUpdate) postUpdate();
+    };
+    for (const delay of delays) {
+        setTimeout(run, delay);
+    }
 }
 
 async function loadAvatar(avatarData, assetsBasePath) {
@@ -316,49 +485,17 @@ async function loadAvatar(avatarData, assetsBasePath) {
         
         Blockbench.read([hairColorsPath, eyeColorsPath, genericColorsPath, gradientSetsPath, ...mappingFilePaths], { readtype: 'text' }, (files) => {
             const mappings = {};
-            let hairColors = null;
-            let eyeColors = null;
-            let genericColors = null;
-            let gradientSets = null;
+            const parsedFiles = files.map(parseJsonFile);
+            const hairColors = parsedFiles[0];
+            const eyeColors = parsedFiles[1];
+            const genericColors = parsedFiles[2];
+            const gradientSets = parsedFiles[3];
             
-            if (files[0] && files[0].content) {
-                try {
-                    hairColors = JSON.parse(files[0].content);
-                } catch (err) {
-                }
-            }
-            
-            if (files[1] && files[1].content) {
-                try {
-                    eyeColors = JSON.parse(files[1].content);
-                } catch (err) {
-                }
-            }
-            
-            if (files[2] && files[2].content) {
-                try {
-                    genericColors = JSON.parse(files[2].content);
-                } catch (err) {
-                }
-            }
-            
-            if (files[3] && files[3].content) {
-                try {
-                    gradientSets = JSON.parse(files[3].content);
-                } catch (err) {
-                }
-            }
-            
-            for (let i = 4; i < files.length; i++) {
-                const file = files[i];
-                const key = Object.keys(mappingFiles)[i - 4];
-                const fileName = mappingFiles[key];
-                
-                if (file && file.content) {
-                    try {
-                        mappings[key] = JSON.parse(file.content);
-                    } catch (err) {
-                    }
+            const mappingKeys = Object.keys(mappingFiles);
+            for (let i = 0; i < mappingKeys.length; i++) {
+                const mappingData = parsedFiles[i + 4];
+                if (mappingData) {
+                    mappings[mappingKeys[i]] = mappingData;
                 }
             }
             
@@ -387,6 +524,7 @@ function getGradientSetForField(field, item, gradientSets, variantItem = null, i
     if (!gradientSets || !Array.isArray(gradientSets)) {
         return null;
     }
+    const findSet = (id) => gradientSets.find(gs => gs.Id === id);
     
     const fieldToGradientSet = {
         'bodyCharacteristic': 'Skin',
@@ -398,49 +536,45 @@ function getGradientSetForField(field, item, gradientSets, variantItem = null, i
     
     const gradientSetId = fieldToGradientSet[field];
     if (gradientSetId) {
-        const found = gradientSets.find(gs => gs.Id === gradientSetId);
+        const found = findSet(gradientSetId);
         if (found) return found;
     }
     
     const itemToUse = variantItem || item;
     
     if (itemToUse && itemToUse.GradientSet) {
-        const found = gradientSets.find(gs => gs.Id === itemToUse.GradientSet);
+        const found = findSet(itemToUse.GradientSet);
         if (found) return found;
     }
     
     if (itemToUse && itemToUse.MaterialType) {
-        const found = gradientSets.find(gs => gs.Id === itemToUse.MaterialType);
+        const found = findSet(itemToUse.MaterialType);
         if (found) return found;
     }
     
-    if (field === 'undertop' || field === 'overtop' || field === 'pants' || field === 'overpants' || 
-        field === 'shoes' || field === 'gloves' || field === 'cape' || field === 'headAccessory' ||
-        field === 'faceAccessory' || field === 'earAccessory' || field === 'underwear') {
+    const clothingFields = new Set([
+        'undertop', 'overtop', 'pants', 'overpants', 'shoes', 'gloves', 'cape',
+        'headAccessory', 'faceAccessory', 'earAccessory', 'underwear'
+    ]);
+    
+    if (clothingFields.has(field)) {
         
         const checkGradientSet = (searchText) => {
             const lowerText = searchText.toLowerCase();
-            if (lowerText.includes('colored_cotton') || lowerText.includes('coloredcotton') || lowerText.includes('colored_')) {
-                return gradientSets.find(gs => gs.Id === 'Colored_Cotton');
-            } else if (lowerText.includes('shiny_fabric') || lowerText.includes('shinyfabric')) {
-                return gradientSets.find(gs => gs.Id === 'Shiny_Fabric');
-            } else if (lowerText.includes('fantasy_cotton') || lowerText.includes('fantasycotton') || 
-                      (lowerText.includes('fantasy') && !lowerText.includes('dark'))) {
-                return gradientSets.find(gs => gs.Id === 'Fantasy_Cotton');
-            } else if (lowerText.includes('pastel_cotton') || lowerText.includes('pastelcotton') || lowerText.includes('pastel')) {
-                return gradientSets.find(gs => gs.Id === 'Pastel_Cotton');
-            } else if (lowerText.includes('faded_leather') || lowerText.includes('fadedleather') || lowerText.includes('leather')) {
-                return gradientSets.find(gs => gs.Id === 'Faded_Leather');
-            } else if (lowerText.includes('flashy_synthetic') || lowerText.includes('flashysynthetic') || lowerText.includes('synthetic')) {
-                return gradientSets.find(gs => gs.Id === 'Flashy_Synthetic');
-            } else if (lowerText.includes('jean') || lowerText.includes('jeans') || lowerText.includes('denim')) {
-                return gradientSets.find(gs => gs.Id === 'Jean_Generic');
-            } else if (lowerText.includes('dark_fantasy') || lowerText.includes('darkfantasy')) {
-                return gradientSets.find(gs => gs.Id === 'Fantasy_Cotton_Dark');
-            } else if (lowerText.includes('ornamented_metal') || lowerText.includes('ornamentedmetal') || lowerText.includes('metal')) {
-                return gradientSets.find(gs => gs.Id === 'Ornamented_Metal');
-            } else if (lowerText.includes('rotten_fabric') || lowerText.includes('rottenfabric')) {
-                return gradientSets.find(gs => gs.Id === 'Rotten_Fabric');
+            const matchers = [
+                ['Colored_Cotton', (t) => t.includes('colored_cotton') || t.includes('coloredcotton') || t.includes('colored_')],
+                ['Shiny_Fabric', (t) => t.includes('shiny_fabric') || t.includes('shinyfabric')],
+                ['Fantasy_Cotton', (t) => t.includes('fantasy_cotton') || t.includes('fantasycotton') || (t.includes('fantasy') && !t.includes('dark'))],
+                ['Pastel_Cotton', (t) => t.includes('pastel_cotton') || t.includes('pastelcotton') || t.includes('pastel')],
+                ['Faded_Leather', (t) => t.includes('faded_leather') || t.includes('fadedleather') || t.includes('leather')],
+                ['Flashy_Synthetic', (t) => t.includes('flashy_synthetic') || t.includes('flashysynthetic') || t.includes('synthetic')],
+                ['Jean_Generic', (t) => t.includes('jean') || t.includes('jeans') || t.includes('denim')],
+                ['Fantasy_Cotton_Dark', (t) => t.includes('dark_fantasy') || t.includes('darkfantasy')],
+                ['Ornamented_Metal', (t) => t.includes('ornamented_metal') || t.includes('ornamentedmetal') || t.includes('metal')],
+                ['Rotten_Fabric', (t) => t.includes('rotten_fabric') || t.includes('rottenfabric')]
+            ];
+            for (const [id, test] of matchers) {
+                if (test(lowerText)) return findSet(id);
             }
             return null;
         };
@@ -519,11 +653,8 @@ function applyGradientMap(baseImagePath, gradientMapPath, outputPath, fs, pathJo
                                          basePathLower.includes('makeup') ||
                                          basePathLower.includes('cosmetics/head') ||
                                          basePathLower.includes('earring');
-                    const isSpecialTexture = basePathLower.includes('frilly_greyscale') ||
-                                            basePathLower.includes('schoolsocks_greyscale') ||
-                                            basePathLower.includes('paintspill_shirt_greyscale');
                     const grayscaleThreshold = 1;
-                    const whiteThreshold = isSpecialTexture ? 185 : 255;
+                    const whiteThreshold = 255;
                     
                     for (let i = 0; i < baseImageData.data.length; i += 4) {
                         const r = baseImageData.data[i];
@@ -653,13 +784,8 @@ async function processTexturesWithGradientMaps(itemInfo, assetsBasePath, gradien
     const tempDir = pathJoin(baseTempDir, timestamp);
     
     try {
-        if (!fs.existsSync(baseTempDir)) {
-            fs.mkdirSync(baseTempDir, { recursive: true });
-        }
-        
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
+        ensureDir(fs, baseTempDir);
+        ensureDir(fs, tempDir);
     } catch (err) {
         throw new Error(`Failed to create temp directory: ${err.message}`);
     }
@@ -708,55 +834,25 @@ async function processTexturesWithGradientMaps(itemInfo, assetsBasePath, gradien
                 
                 if (fs.existsSync(gradientMapPath) && fs.existsSync(info.texturePath)) {
                     const commonPath = pathJoin(assetsBasePath, 'Common');
-                    let textureRelativePath = info.texturePath;
-                    if (textureRelativePath.startsWith(commonPath)) {
-                        textureRelativePath = textureRelativePath.substring(commonPath.length);
-                        if (textureRelativePath.startsWith(pathJoin.sep) || textureRelativePath.startsWith('/') || textureRelativePath.startsWith('\\')) {
-                            textureRelativePath = textureRelativePath.substring(1);
-                        }
-                    }
-                    
-                    const normalizedPath = textureRelativePath.replace(/\\/g, '/');
-                    const pathParts = normalizedPath.split('/').filter(p => p);
-                    const fileName = pathParts.pop();
-                    const outputDir = pathJoin(tempDir, ...pathParts);
-                    const outputPath = pathJoin(outputDir, fileName);
+                    const { outputDir, outputPath } = getOutputPathFromTexture(info.texturePath, commonPath, tempDir, pathJoin);
                     
                         try {
-                            if (!fs.existsSync(outputDir)) {
-                                fs.mkdirSync(outputDir, { recursive: true });
-                            }
-                            
-                            await applyGradientMap(info.texturePath, gradientMapPath, outputPath, fs, pathJoin);
-                            info.texturePath = outputPath;
-                            processedTextures.set(info.texturePath, outputPath);
-                            processedCount++;
-                        } catch (err) {
-                        }
+                        ensureDir(fs, outputDir);
+                        await applyGradientMap(info.texturePath, gradientMapPath, outputPath, fs, pathJoin);
+                        info.texturePath = outputPath;
+                        processedTextures.set(info.texturePath, outputPath);
+                        processedCount++;
+                    } catch (err) {
+                    }
                     continue;
                 }
             }
             
             const commonPath = pathJoin(assetsBasePath, 'Common');
-            let textureRelativePath = info.texturePath;
-            if (textureRelativePath.startsWith(commonPath)) {
-                textureRelativePath = textureRelativePath.substring(commonPath.length);
-                if (textureRelativePath.startsWith(pathJoin.sep) || textureRelativePath.startsWith('/') || textureRelativePath.startsWith('\\')) {
-                    textureRelativePath = textureRelativePath.substring(1);
-                }
-            }
-            
-            const normalizedPath = textureRelativePath.replace(/\\/g, '/');
-            const pathParts = normalizedPath.split('/').filter(p => p);
-            const fileName = pathParts.pop();
-            const outputDir = pathJoin(tempDir, ...pathParts);
-            const outputPath = pathJoin(outputDir, fileName);
+            const { outputDir, outputPath } = getOutputPathFromTexture(info.texturePath, commonPath, tempDir, pathJoin);
             
             try {
-                if (!fs.existsSync(outputDir)) {
-                    fs.mkdirSync(outputDir, { recursive: true });
-                }
-                
+                ensureDir(fs, outputDir);
                 const fsSync = requireNativeModule('fs');
                 fsSync.copyFileSync(info.texturePath, outputPath);
                 info.texturePath = outputPath;
@@ -795,25 +891,10 @@ async function processTexturesWithGradientMaps(itemInfo, assetsBasePath, gradien
         }
         
         const commonPath = pathJoin(assetsBasePath, 'Common');
-        let textureRelativePath = info.texturePath;
-        if (textureRelativePath.startsWith(commonPath)) {
-            textureRelativePath = textureRelativePath.substring(commonPath.length);
-            if (textureRelativePath.startsWith(pathJoin.sep) || textureRelativePath.startsWith('/') || textureRelativePath.startsWith('\\')) {
-                textureRelativePath = textureRelativePath.substring(1);
-            }
-        }
-        
-        const normalizedPath = textureRelativePath.replace(/\\/g, '/');
-        const pathParts = normalizedPath.split('/').filter(p => p);
-        const fileName = pathParts.pop();
-        const outputDir = pathJoin(tempDir, ...pathParts);
-        const outputPath = pathJoin(outputDir, fileName);
+        const { outputDir, outputPath } = getOutputPathFromTexture(info.texturePath, commonPath, tempDir, pathJoin);
         
         try {
-            if (!fs.existsSync(outputDir)) {
-                fs.mkdirSync(outputDir, { recursive: true });
-            }
-            
+            ensureDir(fs, outputDir);
             await applyGradientMap(info.texturePath, gradientMapPath, outputPath, fs, pathJoin);
             
             info.texturePath = outputPath;
@@ -1025,9 +1106,137 @@ async function loadAllModels(modelFiles, itemInfo, pathJoin, assetsBasePath) {
         if (typeof Canvas.updateView === 'function' && Project.root) {
             Canvas.updateView();
         }
+        await loadAnimations(pathJoin, assetsBasePath);
         Blockbench.showStatusMessage('Avatar loaded successfully', 3000);
     } catch (err) {
         Blockbench.showStatusMessage('Avatar processed', 3000);
+    }
+}
+
+async function loadAnimations(pathJoin, assetsBasePath) {
+    try {
+        const fs = requireNativeModule('fs');
+        if (!fs) return;
+        
+        const animationsPath = pathJoin(assetsBasePath, 'Common', 'Characters', 'Animations', 'Default');
+        
+        if (!fs.existsSync(animationsPath)) {
+            return;
+        }
+        
+        const files = fs.readdirSync(animationsPath);
+        const animationFiles = files.filter(file => 
+            file.endsWith('.blockyanim') && !file.endsWith('_FPS.blockyanim')
+        );
+        
+        if (animationFiles.length === 0) {
+            return;
+        }
+        
+        const animationPaths = animationFiles.map(file => pathJoin(animationsPath, file));
+        
+        Blockbench.read(animationPaths, { readtype: 'text' }, (files) => {
+            for (const file of files) {
+                if (!file || !file.content) continue;
+                try {
+                    const content = JSON.parse(file.content);
+                    parseAnimationFile(file, content);
+                } catch (err) {
+                    console.error(`Error parsing animation ${file.path}:`, err);
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Error loading animations:', err);
+    }
+}
+
+function parseAnimationFile(file, content) {
+    const FPS = 60;
+    const Animation = window.Animation;
+    
+    if (!Animation) {
+        console.error('Animation class not available');
+        return;
+    }
+    
+    function pathToName(path, includeExtension) {
+        if (typeof window.pathToName === 'function') {
+            return window.pathToName(path, includeExtension);
+        }
+        const parts = (path || '').split(/[/\\]/);
+        const fileName = parts[parts.length - 1] || '';
+        if (includeExtension) {
+            return fileName;
+        }
+        return fileName.replace(/\.[^.]*$/, '');
+    }
+    
+    const animation = new Animation({
+        name: pathToName(file.name || file.path, false),
+        length: content.duration / FPS,
+        loop: content.holdLastKeyframe ? "hold" : "loop",
+        path: file.path,
+        snapping: FPS
+    });
+    
+    const quaternion = new THREE.Quaternion();
+    const euler = new THREE.Euler(0, 0, 0, "ZYX");
+    
+    for (const name in content.nodeAnimations) {
+        const anim_data = content.nodeAnimations[name];
+        const group_name = name;
+        const group = Group.all.find((g) => g.name == group_name);
+        const uuid = group ? group.uuid : guid();
+        const ba = new BoneAnimator(uuid, animation, group_name);
+        animation.animators[uuid] = ba;
+        
+        const anim_channels = [
+            { channel: "rotation", keyframes: anim_data.orientation },
+            { channel: "position", keyframes: anim_data.position },
+            { channel: "scale", keyframes: anim_data.shapeStretch },
+            { channel: "visibility", keyframes: anim_data.shapeVisible }
+        ];
+        
+        for (const { channel, keyframes } of anim_channels) {
+            if (!keyframes || keyframes.length == 0) continue;
+            for (const kf_data of keyframes) {
+                let data_point;
+                if (channel == "visibility") {
+                    data_point = {
+                        visibility: kf_data.delta
+                    };
+                } else {
+                    const delta = kf_data.delta;
+                    if (channel == "rotation") {
+                        quaternion.set(delta.x, delta.y, delta.z, delta.w);
+                        euler.setFromQuaternion(quaternion.normalize(), "ZYX");
+                        data_point = {
+                            x: Math.radToDeg(euler.x),
+                            y: Math.radToDeg(euler.y),
+                            z: Math.radToDeg(euler.z)
+                        };
+                    } else {
+                        data_point = {
+                            x: delta.x,
+                            y: delta.y,
+                            z: delta.z
+                        };
+                    }
+                }
+                ba.addKeyframe({
+                    time: kf_data.time / FPS,
+                    channel,
+                    interpolation: kf_data.interpolationType == "smooth" ? "catmullrom" : "linear",
+                    data_points: [data_point]
+                });
+            }
+        }
+    }
+    
+    animation.add(false);
+    if (!Animation.selected && Animator.open) {
+        animation.select();
     }
 }
 
@@ -1053,33 +1262,15 @@ function loadMainModel(modelData, texturePath, filePath, info) {
             try {
                 let existingTexture = Texture.all.find(t => t.path === texturePath);
                 if (existingTexture) {
-                    if (existingTexture.uv_width !== existingTexture.width || existingTexture.uv_height !== existingTexture.height) {
-                        existingTexture.uv_width = existingTexture.width;
-                        existingTexture.uv_height = existingTexture.height;
-                    }
+                    updateTextureUv(existingTexture);
                     texturesToUse.push(existingTexture);
                 } else {
                     const texture = new Texture().fromPath(texturePath).add(false, true);
-                    const updateUVSize = () => {
-                        if (texture) {
-                            if (texture.width && texture.height) {
-                            texture.uv_width = texture.width;
-                            texture.uv_height = texture.height;
-                            } else if (texture.img && texture.img.width && texture.img.height) {
-                                texture.uv_width = texture.img.width;
-                                texture.uv_height = texture.img.height;
-                                if (texture.width !== texture.img.width) texture.width = texture.img.width;
-                                if (texture.height !== texture.img.height) texture.height = texture.img.height;
-                            }
-                            if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
-                                Canvas.updateAllFaces();
-                            }
+                    scheduleTextureUvUpdates([texture], [100, 300, 500, 1000], () => {
+                        if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
+                            Canvas.updateAllFaces();
                         }
-                    };
-                    setTimeout(updateUVSize, 100);
-                    setTimeout(updateUVSize, 300);
-                    setTimeout(updateUVSize, 500);
-                    setTimeout(updateUVSize, 1000);
+                    });
                     texturesToUse.push(texture);
                 }
             } catch (err) {
@@ -1092,10 +1283,7 @@ function loadMainModel(modelData, texturePath, filePath, info) {
                     if (tex.path !== texturePath && typeof tex.remove === 'function') {
                         tex.remove(true);
                     } else if (tex.path === texturePath) {
-                        if (tex.width && tex.height) {
-                            tex.uv_width = tex.width;
-                            tex.uv_height = tex.height;
-                        }
+                        updateTextureUv(tex);
                         if (texturesToUse.length === 0) {
                             texturesToUse.push(tex);
                         }
@@ -1103,10 +1291,7 @@ function loadMainModel(modelData, texturePath, filePath, info) {
                 }
             } else {
                 for (const tex of content.new_textures) {
-                    if (tex.width && tex.height) {
-                        tex.uv_width = tex.width;
-                        tex.uv_height = tex.height;
-                    }
+                    updateTextureUv(tex);
                 }
                 if (texturesToUse.length === 0) {
                     texturesToUse = content.new_textures;
@@ -1114,37 +1299,11 @@ function loadMainModel(modelData, texturePath, filePath, info) {
             }
         }
         
-        const updateAllUVSizes = () => {
-            for (const tex of texturesToUse) {
-                if (tex) {
-                    let width = tex.width;
-                    let height = tex.height;
-                    
-                    if (!width || !height) {
-                        if (tex.img && tex.img.width && tex.img.height) {
-                            width = tex.img.width;
-                            height = tex.img.height;
-                            tex.width = width;
-                            tex.height = height;
-                        }
-                    }
-                    
-                    if (width && height) {
-                        if (tex.uv_width !== width || tex.uv_height !== height) {
-                            tex.uv_width = width;
-                            tex.uv_height = height;
-                        }
-                    }
-                }
-            }
+        scheduleTextureUvUpdates(texturesToUse, [300, 600, 1000], () => {
             if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
                 Canvas.updateAllFaces();
             }
-        };
-        
-        setTimeout(updateAllUVSizes, 300);
-        setTimeout(updateAllUVSizes, 600);
-        setTimeout(updateAllUVSizes, 1000);
+        });
         
         if (texturesToUse.length > 0) {
             const primaryTexture = texturesToUse[0];
@@ -1243,33 +1402,15 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
             try {
                 let existingTexture = Texture.all.find(t => t.path === texturePath);
                 if (existingTexture) {
-                    if (existingTexture.uv_width !== existingTexture.width || existingTexture.uv_height !== existingTexture.height) {
-                        existingTexture.uv_width = existingTexture.width;
-                        existingTexture.uv_height = existingTexture.height;
-                    }
+                    updateTextureUv(existingTexture);
                     texturesToProcess.push(existingTexture);
                 } else {
                     const texture = new Texture().fromPath(texturePath).add(false);
-                    const updateUVSize = () => {
-                        if (texture) {
-                            if (texture.width && texture.height) {
-                            texture.uv_width = texture.width;
-                            texture.uv_height = texture.height;
-                            } else if (texture.img && texture.img.width && texture.img.height) {
-                                texture.uv_width = texture.img.width;
-                                texture.uv_height = texture.img.height;
-                                if (texture.width !== texture.img.width) texture.width = texture.img.width;
-                                if (texture.height !== texture.img.height) texture.height = texture.img.height;
-                            }
-                            if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
-                                Canvas.updateAllFaces();
-                            }
+                    scheduleTextureUvUpdates([texture], [100, 300, 500, 1000], () => {
+                        if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
+                            Canvas.updateAllFaces();
                         }
-                    };
-                    setTimeout(updateUVSize, 100);
-                    setTimeout(updateUVSize, 300);
-                    setTimeout(updateUVSize, 500);
-                    setTimeout(updateUVSize, 1000);
+                    });
                     texturesToProcess.push(texture);
                 }
             } catch (err) {
@@ -1277,17 +1418,11 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
         } else if (content.new_textures && content.new_textures.length > 0) {
             const matchingTexture = content.new_textures.find(t => t.path === texturePath);
             if (matchingTexture) {
-                if (matchingTexture.width && matchingTexture.height) {
-                    matchingTexture.uv_width = matchingTexture.width;
-                    matchingTexture.uv_height = matchingTexture.height;
-                }
+                updateTextureUv(matchingTexture);
                 texturesToProcess = [matchingTexture];
             } else {
                 const firstTexture = content.new_textures[0];
-                if (firstTexture.width && firstTexture.height) {
-                    firstTexture.uv_width = firstTexture.width;
-                    firstTexture.uv_height = firstTexture.height;
-                }
+                updateTextureUv(firstTexture);
                 texturesToProcess = [firstTexture];
             }
         }
@@ -1302,43 +1437,14 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
             
             for (const tex of texturesToProcess) {
                 tex.group = textureGroup.uuid;
-                if (tex.width && tex.height) {
-                    tex.uv_width = tex.width;
-                    tex.uv_height = tex.height;
-                }
+                updateTextureUv(tex);
             }
             
-            const updateAttachmentUVSizes = () => {
-                for (const tex of texturesToProcess) {
-                    if (tex) {
-                        let width = tex.width;
-                        let height = tex.height;
-                        
-                        if (!width || !height) {
-                            if (tex.img && tex.img.width && tex.img.height) {
-                                width = tex.img.width;
-                                height = tex.img.height;
-                                tex.width = width;
-                                tex.height = height;
-                            }
-                        }
-                        
-                        if (width && height) {
-                            if (tex.uv_width !== width || tex.uv_height !== height) {
-                                tex.uv_width = width;
-                                tex.uv_height = height;
-                            }
-                        }
-                    }
-                }
+            scheduleTextureUvUpdates(texturesToProcess, [300, 600, 1000], () => {
                 if (typeof Canvas !== 'undefined' && typeof Canvas.updateAllFaces === 'function') {
                     Canvas.updateAllFaces();
                 }
-            };
-            
-            setTimeout(updateAttachmentUVSizes, 300);
-            setTimeout(updateAttachmentUVSizes, 600);
-            setTimeout(updateAttachmentUVSizes, 1000);
+            });
             
             let texture = texturesToProcess.find(t => t.name && t.name.startsWith(attachmentName)) || texturesToProcess[0];
             if (texture && texture.uuid) {
