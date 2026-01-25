@@ -486,6 +486,7 @@
             let cube = new Cube({
               name,
               autouv: 1,
+              box_uv: false,
               rotation: [0, 0, 0],
               stretch,
               from: [
@@ -771,7 +772,6 @@
       rotate_cubes: true,
       per_texture_uv_size: true,
       stretch_cubes: true,
-      confidential: true,
       model_identifier: false,
       animation_loop_wrapping: true,
       quaternion_interpolation: true,
@@ -1009,7 +1009,7 @@
     const nodeAnimations = {};
     const file = {
       formatVersion: 1,
-      duration: animation.length * FPS,
+      duration: Math.round(animation.length * FPS),
       holdLastKeyframe: animation.loop == "hold",
       nodeAnimations
     };
@@ -1133,7 +1133,7 @@
         return original_save.call(this, ...args);
       }
       let animation;
-      animation = Animation2.selected;
+      animation = this;
       let content = compileJSON(compileAnimationFile(animation), Config.json_compile_options);
       if (isApp && this.path) {
         Blockbench.writeFile(this.path, { content }, (real_path) => {
@@ -1161,6 +1161,14 @@
         Animation2.prototype.save = original_save;
       }
     });
+    let save_all_listener = BarItems.save_all_animations.on("use", () => {
+      if (!isHytaleFormat()) return;
+      Animation2.all.forEach((animation) => {
+        if (!animation.saved) animation.save();
+      });
+      return false;
+    });
+    track(save_all_listener);
     let original_condition = BarItems.export_animation_file.condition;
     BarItems.export_animation_file.condition = () => {
       return Condition(original_condition) && !FORMAT_IDS.includes(Format.id);
@@ -1205,6 +1213,7 @@
       } else {
         texture.setAsDefaultTexture();
       }
+      UVEditor.vue.updateTexture();
     });
     track(handler);
   }
@@ -1439,7 +1448,9 @@
   function setupAnimation() {
     function displayVisibility(animator) {
       let group = animator.getGroup();
-      let scene_object = group.scene_object;
+      let main_shape = getMainShape(group);
+      if (!main_shape) return;
+      let scene_object = main_shape.scene_object;
       if (animator.muted.visibility) {
         scene_object.visible = group.visibility;
         return;
@@ -1473,7 +1484,12 @@
       condition: (point) => point.keyframe.channel == "visibility",
       default: true
     });
-    track(property);
+    let on_exit_anim_mode = Blockbench.on("unselect_mode", (arg) => {
+      if (isHytaleFormat() && arg.mode?.id == "animate") {
+        Canvas.updateVisibility();
+      }
+    });
+    track(property, on_exit_anim_mode);
     function weightedCubicBezier(t) {
       let P0 = 0, P1 = 0.05, P2 = 0.95, P3 = 1;
       let W0 = 2, W1 = 1, W2 = 2, W3 = 1;
@@ -1914,7 +1930,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.6.1",
+    version: "0.6.2",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -2201,6 +2217,7 @@
       this.dot.renderOrder = 900;
       this.dot.visible = false;
       Canvas.scene.add(this.dot);
+      Canvas.gizmos.push(this.dot);
       this.listener = Blockbench.on("update_selection", () => this.update());
       this.cameraListener = Blockbench.on("update_camera_position", () => this.updateScale());
       this.update();
