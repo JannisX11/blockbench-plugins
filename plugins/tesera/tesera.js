@@ -1,5 +1,7 @@
 (function() {
 
+    console.log('Loaded Tesera plugin')
+
     const info = {
         title: 'Tesera game plugin',
         author: 'Tesera',
@@ -15,10 +17,11 @@
     const property_name = 'madcraft'
     const removables = []
     const deletables = []
+    const toolbars = []
     const default_value = {flags: [], json: null, material: 'regular'}
     const default_value_string = JSON.stringify(default_value)
-    const madcraft_css = `
-    .madcraft-widget {
+    const tesera_css = `
+    .tesera-widget {
         position: relative;
         margin: 4px;
         width: 100%;
@@ -49,7 +52,7 @@
         font-family: var(--font-code);
         font-size: 14px;
     }
-    .madcraft-tag {
+    .tesera-tag {
         padding: 3px 8px;
         border-radius: 2px;
         background-color: var(--color-button);
@@ -57,13 +60,13 @@
         margin: 2px;
         line-height: 1em;
     }
-    .madcraft-tag:hover {
+    .tesera-tag:hover {
         background-color: rgba(255, 255, 255, .35);
     }
     .select_control_box {
         padding: 4px;
     }
-    .madcraft-delete-tag {
+    .tesera-delete-tag {
         border-radius: 50px;
         width: 16px;
         height: 16px;
@@ -74,10 +77,10 @@
         justify-content: center;
         cursor: pointer;
     }
-    .madcraft-delete-tag:hover {
+    .tesera-delete-tag:hover {
         background-color: var(--color-close);
     }
-    .madcraft-select {
+    .tesera-select {
         width: 100%;
         border-radius: 4px;
         appearance: auto;
@@ -96,6 +99,16 @@
     }
     .panel_menu_button {
         color: white;
+    }
+    #bb-tesera-anim-search
+        margin: 4px;
+        width: 100%;
+        padding-left: .9em;
+        margin: 0px;
+    }
+    #bb-tesera-anim-colors-button {
+        margin: 0px;
+        minWidth: auto;
     }
     `
 
@@ -154,9 +167,10 @@
             for(const control of this.controls) {
                 nodes.push(...control.nodes)
             }
-            this.node = Interface.createElement('div', {class: 'widget madcraft-widget'}, [
+            this.node = Interface.createElement('div', {class: 'widget tesera-widget'}, [
                 ...nodes
             ])
+            removables.push(this.node)
         }
 
     }
@@ -227,7 +241,7 @@
         createMultiSelectPropertyControl(property_name, options) {
 
             const div_flags = Interface.createElement('div', {})
-            const select = Interface.createElement('select', {class: 'madcraft-select'})
+            const select = Interface.createElement('select', {class: 'tesera-select'})
             const select_control_box = Interface.createElement('div', {class: 'select_control_box'}, [div_flags, select])
 
             const redrawSelect = () => {
@@ -249,8 +263,8 @@
                                 break
                             }
                         }
-                        const delete_tag_button = Interface.createElement('span', {class: 'madcraft-delete-tag', 'data-value': value}, ['×'])
-                        div_flags.appendChild(Interface.createElement('span', {class: 'madcraft-tag'}, [title, delete_tag_button]))
+                        const delete_tag_button = Interface.createElement('span', {class: 'tesera-delete-tag', 'data-value': value}, ['×'])
+                        div_flags.appendChild(Interface.createElement('span', {class: 'tesera-tag'}, [title, delete_tag_button]))
                         delete_tag_button.addEventListener('click', (e) => {
                             if(this.element) {
                                 const value = e.srcElement.dataset.value
@@ -305,7 +319,7 @@
 
         createSelectPropertyControl(property_name, options) {
 
-            const select = Interface.createElement('select', {class: 'madcraft-select'})
+            const select = Interface.createElement('select', {class: 'tesera-select'})
             const select_control_box = Interface.createElement('div', {class: 'select_control_box'}, [select])
 
             const redrawSelect = () => {
@@ -366,7 +380,84 @@
             children: widgets.map((w) => w.id)
         })
         Interface.Panels.element.addToolbar(toolbar)
-        removables.push(toolbar)
+        toolbars.push(toolbar)
+    }
+
+    // добавляем новый режим в UI
+    function initViewDisplay() {
+
+        // debugger
+
+        // const tooltipSlot = new DisplaySlot({
+        //     id: 'tooltip_view',
+        //     name: 'Tooltip View',
+        //     translation: [0, 8, 0],
+        //     rotation: [30, 225, 0],
+        //     scale: [0.65, 0.65, 0.65],
+        //     reference: 'player'
+        // });
+
+        // DisplayMode
+
+        const ID = 'tooltip_view';
+
+        // 1. Создаём точную копию структуры как у ground/fixed
+        DisplayMode[ID] = {
+            translation: [0, 8, 0],
+            rotation: [30, 225, 0],
+            scale: [0.65, 0.65, 0.65]
+        };
+
+        // 2. Создаём функцию загрузки — один в один как loadGround()
+        DisplayMode['load_' + ID] = function() {
+            DisplayMode.selected = ID;
+            loadDisp(ID);
+            display_preview.loadAnglePreset({
+                position: [-30, 45, -30],
+                target: [0, 8, 0]
+            });
+            setDisplayArea(10, 6, 10, 0, 8, 0, 0.65, 0.65, 0.65);
+            Canvas.ground_animation = false;
+            displayReferenceObjects.bar(['player']);
+            updateDisplayPreview();
+        };
+
+        /*
+            // 3. Добавляем кнопку в боковую панель
+            const NAME = 'Tooltip View';
+            new Action('display_' + ID, {
+                name: NAME,
+                icon: 'fa-info-circle',
+                click: DisplayMode['load_' + ID]
+            }).addTo('#display_panel_bar');
+
+            // 4. Добавляем в экспорт
+            const formats = ['bedrock', 'bedrock_old', 'java_block', 'optifine_entity', 'modded_entity'];
+            formats.forEach(f => {
+                if (Formats[f]?.display_slots) {
+                    Formats[f].display_slots.push(ID);
+                }
+            });
+
+            console.log('%c[tooltip_view] УСПЕШНО ЗАГРУЖЕН В 5.0.3', 'color: #00ff00; font-weight: bold');
+        */
+
+        // добавляем сохранение и экспорт
+        // const orig_toJSON = Model.prototype.export
+        // Model.prototype.export = function(format, options) {
+        //     const data = orig_toJSON.call(this, format, options)
+        //     if (!data.display) data.display = {}
+        //     const disp = DisplayMode.all['custom_view']
+        //     if (disp) {
+        //         data.display.custom_view = {
+        //             rotation: disp.rotation,
+        //             translation: disp.translation,
+        //             scale: disp.scale,
+        //         }
+        //     }
+        //     return data
+        // }
+
     }
 
     // Init display
@@ -434,19 +525,266 @@
         }
     }
 
+    const def_colors = {
+        idle:        '#DFCFBE',
+        firstperson: '#D65076',
+        emote:       '#f4d90a',
+        walk:        '#009B77',
+        sitting:     '#88B04B',
+        levitate:    '#92A8D1',
+        sneak:       '#B565A7',
+        sleep:       '#EFC050',
+        attack:      '#E15D44',
+    }
+
+    class TeseraProject {
+
+        constructor(id) {
+            this.id = id
+            this.groups = {}
+            this.save_key = `tesera_project_${id}`
+            this.load()
+        }
+
+        load() {
+            let saved_data = localStorage.getItem(this.save_key)
+            saved_data = saved_data ? JSON.parse(saved_data) : null
+            if(saved_data) {
+                Object.assign(this, saved_data)
+            }
+        }
+
+        save() {
+            const saved_data = {
+                groups: this.groups
+            }
+            localStorage.setItem(this.save_key, JSON.stringify(saved_data))
+        }
+
+        getGroup(name) {
+            let group = this.groups[name]
+            if(!group) {
+                group = this.groups[name] = {folded: false}
+            }
+            return group
+        }
+
+    }
+
+    class TeseraPlugin {
+        projects = new Map()
+        div
+        input
+        last_query = ''
+        anim_colors = {}
+        dialog = null
+        TeseraProjects = new Map()
+        panel = Interface.Panels.animations
+        colors_key = 'madcraft-anim_colors'
+
+        static on_keydown = async (e) => {
+            if(e.code !== 'KeyV' || !e.ctrlKey) return
+
+            const el = document.activeElement
+            if(
+                !el ||
+                !(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ||
+                el.readOnly ||
+                el.disabled
+            ) return
+
+            e.preventDefault()
+
+            const text = await navigator.clipboard.readText()
+
+            const start = el.selectionStart
+            const end   = el.selectionEnd
+
+            el.value =
+                el.value.slice(0, start) +
+                text +
+                el.value.slice(end)
+
+            const pos = start + text.length
+            el.setSelectionRange(pos, pos)
+
+            el.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+
+        constructor() {
+                
+            this.anim_colors = this.loadColors()
+
+            this.createDialog()
+
+            this.panel.on('update', (args) => {
+                // console.log('panel:on', args)
+                if(args.show) {
+                    this.addSearchField()
+                }
+            })
+
+        }
+
+        // dialog
+        createDialog() {
+            const that = this    
+            let prop = JSON.stringify(this.anim_colors, null, 4)
+            this.dialog = new Dialog({
+                id: this.colors_key,
+                title: 'Enter JSON Colors',
+                form: {
+                    custom_text: { label: 'Colors', type: 'textarea', value: prop },
+                },
+                onConfirm(form_result) {
+                    prop = form_result.custom_text
+                    that.saveColors(prop)
+                }
+            })
+        }
+
+        getProjectID() {
+            return Project.name
+        }
+
+        getProject() {
+            const id = this.getProjectID()
+            // return Project.tesera_project
+            let project = this.projects.get(id)
+            if(project) {
+                return project
+            }
+            project = new TeseraProject(id)
+            this.projects.set(project.id, project)
+            return project
+        }
+
+        loadColors() {
+            let str = localStorage.getItem(this.colors_key) || JSON.stringify(def_colors, null, 4)
+            let json = JSON.parse(str) || def_colors
+            return json
+        }
+
+        saveColors(colors) {
+            let json = JSON.parse(colors)
+            if(json) {
+                localStorage.setItem(this.colors_key, colors)
+                Object.assign(this.anim_colors, json)
+                this.filterAnimations(this.last_query)
+            }
+        }
+
+        toggleGroup(el, group_name, is_group) {
+            const { input } = this
+            el.style.backgroundColor = is_group ? '#ffffff22' : 'revert-layer'
+            // toggler
+            let toggler = el.querySelector('.icon-open-state')
+            if(!toggler) {
+                toggler = document.createElement('i')
+                toggler.classList.add('icon-open-state', 'fa', 'fa-angle-down')
+                toggler.style.display = 'flex'
+                toggler.style.alignItems = 'center'
+                toggler.onclick = () => {
+                    const project = this.getProject()
+                    const group = project.getGroup(group_name)
+                    group.folded = !group.folded
+                    project.save()
+                    this.filterAnimations(input.value)
+                }
+                el.prepend(toggler)
+            }
+            toggler.style.display = is_group ? 'flex' : 'none'
+            // 
+            for(const child of el.children) {
+                const classes = child.classList
+                if(classes.contains('material-icons') || classes.contains('in_list_button')) {
+                    child.style.display = is_group ? 'none' : 'unset'
+                } else if(child.tagName == 'LABEL') {
+                    child.style.textAlign = is_group ? 'center' : 'left'
+                }
+            }
+        }
+
+        filterAnimations(query) {
+            const lower = this.last_query = query.toLowerCase()
+            let group_name = '_root_'
+            const project = this.getProject()
+
+            Animator.animations.forEach(anim => {
+                const list_elem = this.panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
+                if (!list_elem) {
+                    console.log('no list_elem')
+                    return
+                }
+                const name = anim.name.toLowerCase()
+                let color = '#ffffff22'
+                for(const [key, value] of Object.entries(this.anim_colors)) {
+                    if(name.startsWith(key)) {
+                        color = value
+                        break
+                    }
+                }
+                let is_group = name.includes('888') || name.includes('---') || name.includes('===')
+                if(is_group) {
+                    group_name = name
+                }
+                const group_visible = !project.getGroup(group_name).folded
+                let is_visible = (name.includes(lower) && group_visible) || is_group
+                list_elem.style.borderLeft = `4px solid ${color}`
+                list_elem.style.display = is_visible ? 'revert-layer' : 'none'
+                this.toggleGroup(list_elem, group_name, is_group)
+            })
+        }
+
+        addSearchField() {
+            const anim_list = this.panel.node.querySelector('.toolbar')
+            if (!anim_list) return
+            let div = this.div
+            if (!div /*|| !document.body.contains(div)*/) {
+                div = this.div = document.createElement('div')
+                div.style.display = 'flex'
+                div.style.flexDirection = 'row'
+                const input = this.input = document.createElement('input')
+                input.id = 'bb-tesera-anim-search'
+                input.placeholder = 'Search animations...'
+                input.value = this.last_query
+                input.oninput = () => this.filterAnimations(input.value)
+                div.appendChild(input)
+                const button = document.createElement('button')
+                button.id = 'bb-tesera-anim-colors-button'
+                button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
+                button.onclick = () => this.dialog.show()
+                div.appendChild(button)
+                removables.push(this.div)
+                if (div.parentElement !== anim_list.parentElement) {
+                    anim_list.appendChild(div)
+                }
+                this.filterAnimations(this.input.value)
+            }
+        }
+
+    }
+
     Plugin.register('tesera', {
         ...info,
 
         onload() {
+
+            console.log('Loading Tesera plugin...')
+
+            // Keydown listener (Fix Ctrl+V and Ctrl+A in textarea and input)
+            window.addEventListener('keydown', TeseraPlugin.on_keydown)
             // Create new property for all Cubes
             deletables.push(new Property(Cube, 'instance', property_name, {default: null, exposed: true, label: "Tesera cube properties" }))
             // CSS
-            Blockbench.addCSS(madcraft_css)
+            Blockbench.addCSS(tesera_css)
             // Display
             initDisplay()
+            // Init display
+            initViewDisplay()
             // Create toolbars
-            createToolbar('Tesera JSON', [new TeseraJSONWidget('madcraft_cube_json_widget', {property_name, value_name: 'json'})])
-            createToolbar('Tesera material', [new TeseraSelectWidget('madcraft_cube_material_widget', {property_name, value_name: 'material', options: {
+            createToolbar('Tesera JSON', [new TeseraJSONWidget('tesera_cube_json_widget', {property_name, value_name: 'json'})])
+            createToolbar('Tesera material', [new TeseraSelectWidget('tesera_cube_material_widget', {property_name, value_name: 'material', options: {
                 'Regular':                  'regular',
                 'Singleface':               'singleface',
                 'Doubleface':               'doubleface',
@@ -456,7 +794,7 @@
                 'Decal 1':                  'decal1',
                 'Decal 2':                  'decal2',
             }})])
-            createToolbar('Tesera flags', [new TeseraMultiselectWidget('madcraft_cube_flags_widget', {property_name, value_name: 'flags', options: {
+            createToolbar('Tesera flags', [new TeseraMultiselectWidget('tesera_cube_flags_widget', {property_name, value_name: 'flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
                 'FLUID_ERASE':         'FLAG_FLUID_ERASE',
                 'LEAVES':              'FLAG_LEAVES',
@@ -473,247 +811,36 @@
                 'NORMAL_UP':           'FLAG_NORMAL_UP',
             }})])
 
-            // animations search
-
-            const def_colors = {
-                idle:        '#DFCFBE',
-                firstperson: '#D65076',
-                emote:       '#f4d90a',
-                walk:        '#009B77',
-                sitting:     '#88B04B',
-                levitate:    '#92A8D1',
-                sneak:       '#B565A7',
-                sleep:       '#EFC050',
-                attack:      '#E15D44',
-            }
-
-            class TeseraProject {
-x
-                constructor(id) {
-                    this.id = id
-                    this.groups = {}
-                    this.save_key = `madcraft_project_${id}`
-                    this.load()
-                }
-
-                load() {
-                    let saved_data = localStorage.getItem(this.save_key)
-                    saved_data = saved_data ? JSON.parse(saved_data) : null
-                    if(saved_data) {
-                        Object.assign(this, saved_data)
-                    }
-                }
-
-                save() {
-                    const saved_data = {
-                        groups: this.groups
-                    }
-                    localStorage.setItem(this.save_key, JSON.stringify(saved_data))
-                }
-
-                getGroup(name) {
-                    let group = this.groups[name]
-                    if(!group) {
-                        group = this.groups[name] = {folded: false}
-                    }
-                    return group
-                }
-
-            }
-
-            class TeseraPlugin {
-                projects = new Map()
-                div
-                input
-                last_query = ''
-                anim_colors = {}
-                dialog = null
-                MadCraftProjects = new Map()
-                panel = Interface.Panels.animations
-                colors_key = 'madcraft-anim_colors'
-    
-                constructor() {
-                        
-                    this.anim_colors = this.loadColors()
-
-                    this.createDialog()
-        
-                    this.panel.on('update', (args) => {
-                        console.log('panel:on', args)
-                        if(args.show) {
-                            this.addSearchField()
-                        }
-                    })
-
-                }
-
-                // dialog
-                createDialog() {
-                    const that = this    
-                    let prop = JSON.stringify(this.anim_colors, null, 4)
-                    this.dialog = new Dialog({
-                        id: this.colors_key,
-                        title: 'Enter JSON Colors',
-                        form: {
-                            custom_text: { label: 'Colors', type: 'textarea', value: prop },
-                        },
-                        onConfirm(form_result) {
-                            prop = form_result.custom_text
-                            that.saveColors(prop)
-                        }
-                    })
-                }
-
-                getProjectID() {
-                    return Project.name
-                }
-    
-                getProject() {
-                    const id = this.getProjectID()
-                    // return Project.madcraft_project
-                    let project = this.projects.get(id)
-                    if(project) {
-                        return project
-                    }
-                    project = new TeseraProject(id)
-                    this.projects.set(project.id, project)
-                    return project
-                }
-
-                loadColors() {
-                    let str = localStorage.getItem(this.colors_key) || JSON.stringify(def_colors, null, 4)
-                    let json = JSON.parse(str) || def_colors
-                    return json
-                }
-    
-                saveColors(colors) {
-                    let json = JSON.parse(colors)
-                    if(json) {
-                        localStorage.setItem(this.colors_key, colors)
-                        Object.assign(this.anim_colors, json)
-                        this.filterAnimations(this.last_query)
-                    }
-                }
-
-                toggleGroup(el, group_name, is_group) {
-                    const { input } = this
-                    el.style.backgroundColor = is_group ? '#ffffff22' : 'revert-layer'
-                    // toggler
-                    let toggler = el.querySelector('.icon-open-state')
-                    if(!toggler) {
-                        toggler = document.createElement('i')
-                        toggler.classList.add('icon-open-state', 'fa', 'fa-angle-down')
-                        toggler.style.display = 'flex'
-                        toggler.style.alignItems = 'center'
-                        toggler.onclick = () => {
-                            const project = this.getProject()
-                            const group = project.getGroup(group_name)
-                            group.folded = !group.folded
-                            project.save()
-                            this.filterAnimations(input.value)
-                        }
-                        el.prepend(toggler)
-                    }
-                    toggler.style.display = is_group ? 'flex' : 'none'
-                    // 
-                    for(const child of el.children) {
-                        const classes = child.classList
-                        if(classes.contains('material-icons') || classes.contains('in_list_button')) {
-                            child.style.display = is_group ? 'none' : 'unset'
-                        } else if(child.tagName == 'LABEL') {
-                            child.style.textAlign = is_group ? 'center' : 'left'
-                        }
-                    }
-                }
-
-                filterAnimations(query) {
-                    const lower = this.last_query = query.toLowerCase()
-                    let group_name = '_root_'
-                    const project = this.getProject()
-
-                    Animator.animations.forEach(anim => {
-                        const list_elem = this.panel.node.querySelector(`[anim_id="${anim.uuid}"]`)
-                        if (!list_elem) {
-                            console.log('no list_elem')
-                            return
-                        }
-                        const name = anim.name.toLowerCase()
-                        let color = '#ffffff22'
-                        for(const [key, value] of Object.entries(this.anim_colors)) {
-                            if(name.startsWith(key)) {
-                                color = value
-                                break
-                            }
-                        }
-                        let is_group = name.includes('888') || name.includes('---') || name.includes('===')
-                        if(is_group) {
-                            group_name = name
-                        }
-                        const group_visible = !project.getGroup(group_name).folded
-                        let is_visible = (name.includes(lower) && group_visible) || is_group
-                        list_elem.style.borderLeft = `4px solid ${color}`
-                        list_elem.style.display = is_visible ? 'revert-layer' : 'none'
-                        this.toggleGroup(list_elem, group_name, is_group)
-                    })
-                }
-
-                addSearchField() {
-                    const anim_list = this.panel.node.querySelector('.toolbar')
-                    if (!anim_list) return
-                    let div = this.div
-                    if (!div || !document.body.contains(div)) {
-                        div = this.div = document.createElement('div')
-                        div.style.display = 'flex'
-                        div.style.flexDirection = 'row'
-                        const input = this.input = document.createElement('input')
-                        input.placeholder = 'Search animations...'
-                        input.style.margin = '4px'
-                        input.style.width = '100%'
-                        input.style.paddingLeft = '.9em'
-                        input.style.margin = '0px'
-                        input.value = this.last_query
-                        input.oninput = () => this.filterAnimations(input.value)
-                        div.appendChild(input)
-                        const button = document.createElement('button')
-                        button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
-                        button.style.margin = '0px'
-                        button.style.minWidth = 'auto'
-                        button.onclick = () => this.dialog.show()
-                        div.appendChild(button)
-                    }
-                    if (div.parentElement !== anim_list.parentElement) {
-                        anim_list.appendChild(div)
-                    }
-                    this.filterAnimations(this.input.value)
-                }
-
-            }
-
-            const madcraft_plugin = new TeseraPlugin()
+            const tesera_plugin = new TeseraPlugin()
 
             Blockbench.on('load_project', data => {
-                // Project.madcraft_project = data.model.madcraft_project || {
+                // Project.tesera_project = data.model.tesera_project || {
                 //     groups: {}
                 // }
-                // Project.madcraft_project = data.model.madcraft_project || {
+                // Project.tesera_project = data.model.tesera_project || {
                 //     groups: {}
                 // }
-                madcraft_plugin.addSearchField()
+                tesera_plugin.addSearchField()
             })
             
             // Blockbench.on('save_project', (event) => {
-            //     event.model.madcraft_project = Project.madcraft_project
+            //     event.model.tesera_project = Project.tesera_project
             // })
-
 
         },
 
         onunload() {
+            console.log('Unloading Tesera plugin...')
+            window.removeEventListener('keydown', TeseraPlugin.on_keydown)
             deletables.forEach(action => {
                 action.delete();
             })
             removables.forEach(action => {
                 action.remove();
+            })
+            toolbars.forEach(toolbar => {
+                // Interface.Panels.element.removeToolbar(toolbar)
+                toolbar.remove()
             })
         }
 
