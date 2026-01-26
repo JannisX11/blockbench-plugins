@@ -14,10 +14,10 @@
         min_version: "4.8.0",
     }
 
-    const property_name = 'madcraft'
     const removables = []
     const deletables = []
     const toolbars = []
+    const listeners = []
     const default_value = {flags: [], json: null, material: 'regular'}
     const default_value_string = JSON.stringify(default_value)
     const tesera_css = `
@@ -112,6 +112,11 @@
     }
     `
 
+    function CreateBBListener(event, callback) {
+        Blockbench.on(event, callback)
+        listeners.push({event, callback})
+    }
+
     class TeseraPropertyEditWidget extends Widget {
 
         controls = []
@@ -124,6 +129,7 @@
             super(id, data)
             this.property_name = data.property_name
             this.value_name = data.value_name
+            // deletables.push(this)
         }
 
         cloneObject(object) {
@@ -131,14 +137,7 @@
         }
 
         getProps() {
-            if(this.props) {
-                return this.props
-            }
-            if(!this.element) {
-                return null
-            }
-            // clone default prop value
-            return this.props = this.element[this.property_name] = this.cloneObject(default_value)
+            return this.element?.[this.property_name] || null
         }
 
         setElementValue(name, value) {
@@ -171,10 +170,15 @@
                 ...nodes
             ])
             removables.push(this.node)
+            deletables.push(new Property(Cube, 'array', this.property_name, {
+                default: [],
+                exposed: true,
+            }))
         }
 
     }
 
+    /*
     // Edit JSON
     class TeseraJSONWidget extends TeseraPropertyEditWidget {
 
@@ -227,6 +231,7 @@
         }
 
     }
+    */
 
     // Editor multiselect
     class TeseraMultiselectWidget extends TeseraPropertyEditWidget {
@@ -234,8 +239,9 @@
         constructor(id, data) {
             super(id, data)
             this.type = 'flagsedit'
-            this.controls.push(this.createMultiSelectPropertyControl(this.value_name, data.options))
+            this.controls.push(this.createMultiSelectPropertyControl(this.property_name, data.options))
             this.createWidgetNode()
+
         }
 
         createMultiSelectPropertyControl(property_name, options) {
@@ -244,18 +250,22 @@
             const select = Interface.createElement('select', {class: 'tesera-select'})
             const select_control_box = Interface.createElement('div', {class: 'select_control_box'}, [div_flags, select])
 
+            removables.push(div_flags)
+            removables.push(select)
+            removables.push(select_control_box)
+
             const redrawSelect = () => {
                 const props = this.getProps()
                 const options_html = []
                 options_html.push(`<option value="">Add...</option>`)
                 for(const [title, value] of Object.entries(options)) {
-                    if(!props || !props[property_name].includes(value)) {
+                    if(!props || !props.includes(value)) {
                         options_html.push(`<option value="${value}">${title}</option>`)
                     }
                 }
                 if(props) {
                     div_flags.innerHTML = ''
-                    for(const value of props[property_name]) {
+                    for(const value of props) {
                         let title = value
                         for(let k in options) {
                             if(options[k] == value) {
@@ -264,17 +274,22 @@
                             }
                         }
                         const delete_tag_button = Interface.createElement('span', {class: 'tesera-delete-tag', 'data-value': value}, ['×'])
-                        div_flags.appendChild(Interface.createElement('span', {class: 'tesera-tag'}, [title, delete_tag_button]))
+                        const ttg = Interface.createElement('span', {class: 'tesera-tag'}, [title, delete_tag_button])
+                        removables.push(delete_tag_button, ttg)
+                        div_flags.appendChild(ttg)
                         delete_tag_button.addEventListener('click', (e) => {
                             if(this.element) {
                                 const value = e.srcElement.dataset.value
                                 if(value) {
                                     const props = this.getProps()
                                     if(props) {
-                                        const list = props[property_name]
+                                        const list = props
                                         const index = list.indexOf(value)
                                         if(index >= 0) {
+                                            Undo.initEdit({ elements: [this.element] })
                                             list.splice(index, 1)
+                                            this.element[property_name] = JSON.parse(JSON.stringify(list))
+                                            Undo.finishEdit('Edit Tesera Flags', { elements: [this.element] })
                                             redrawSelect()
                                         }
                                     }
@@ -293,7 +308,10 @@
                     if(value) {
                         const props = this.getProps()
                         if(props) {
-                            props[property_name].push(value)
+                            const before = JSON.parse(JSON.stringify(this.element[property_name]))
+                            Undo.initEdit({ elements: [this.element] })
+                            this.element[property_name] = [...before, value]
+                            Undo.finishEdit('Edit Tesera Flags')
                             redrawSelect()
                         }
                     }
@@ -302,52 +320,8 @@
 
             redrawSelect()
 
-            return {update: () => {redrawSelect()}, nodes: [select_control_box]}
-        }
-
-    }
-
-    // Editor select
-    class TeseraSelectWidget  extends TeseraPropertyEditWidget {
-
-        constructor(id, data) {
-            super(id, data)
-            this.type = 'selectedit'
-            this.controls.push(this.createSelectPropertyControl(this.value_name, data.options))
-            this.createWidgetNode()
-        }
-
-        createSelectPropertyControl(property_name, options) {
-
-            const select = Interface.createElement('select', {class: 'tesera-select'})
-            const select_control_box = Interface.createElement('div', {class: 'select_control_box'}, [select])
-
-            const redrawSelect = () => {
-                const props = this.getProps()
-                const options_html = []
-                options_html.push(`<option value="">Select...</option>`)
-                for(const [title, value] of Object.entries(options)) {
-                    const selected = props ? (props[property_name] == value ? 'selected' : null) : null
-                    options_html.push(`<option value="${value}" ${selected}>${title}</option>`)
-                }
-                select.innerHTML = options_html.join('\n')
-            }
-
-            //
-            select.addEventListener('change', (e) => {
-                if(this.element) {
-                    const value = e.srcElement.value
-                    if(value) {
-                        const props = this.getProps()
-                        if(props) {
-                            props[property_name] = value
-                            // redrawSelect()
-                        }
-                    }
-                }
-            })
-
-            redrawSelect()
+            CreateBBListener('undo', redrawSelect)
+            CreateBBListener('redo', redrawSelect)
 
             return {update: () => {redrawSelect()}, nodes: [select_control_box]}
         }
@@ -581,8 +555,10 @@
         TeseraProjects = new Map()
         panel = Interface.Panels.animations
         colors_key = 'madcraft-anim_colors'
+        storage_name = 'madcraft'
 
         static on_keydown = async (e) => {
+
             if(e.code !== 'KeyV' || !e.ctrlKey) return
 
             const el = document.activeElement
@@ -596,7 +572,6 @@
             e.preventDefault()
 
             const text = await navigator.clipboard.readText()
-
             const start = el.selectionStart
             const end   = el.selectionEnd
 
@@ -607,22 +582,22 @@
 
             const pos = start + text.length
             el.setSelectionRange(pos, pos)
-
             el.dispatchEvent(new Event('input', { bubbles: true }))
+
         }
 
         constructor() {
-                
-            this.anim_colors = this.loadColors()
 
+            this.anim_colors = this.loadColors()
+            this.createCubeProperties()
             this.createDialog()
 
-            this.panel.on('update', (args) => {
+            deletables.push(this.panel.on('update', (args) => {
                 // console.log('panel:on', args)
                 if(args.show) {
                     this.addSearchField()
                 }
-            })
+            }))
 
         }
 
@@ -641,6 +616,7 @@
                     that.saveColors(prop)
                 }
             })
+            deletables.push(this.dialog)
         }
 
         getProjectID() {
@@ -744,14 +720,18 @@
                 div = this.div = document.createElement('div')
                 div.style.display = 'flex'
                 div.style.flexDirection = 'row'
-                const input = this.input = document.createElement('input')
-                input.id = 'bb-tesera-anim-search'
+                const input = this.input = document.createElement('input', {id: 'bb-tesera-anim-search'})
+                    input.style.margin = '4px'
+                    input.style.width = '100%'
+                    input.style.paddingLeft = '.9em'
+                    input.style.margin = '0px'
                 input.placeholder = 'Search animations...'
                 input.value = this.last_query
                 input.oninput = () => this.filterAnimations(input.value)
                 div.appendChild(input)
-                const button = document.createElement('button')
-                button.id = 'bb-tesera-anim-colors-button'
+                const button = document.createElement('button', {id: 'bb-tesera-anim-colors-button'})
+                    button.style.margin = '0px'
+                    button.style.minWidth = 'auto'
                 button.innerHTML = '<i class="material-icons notranslate icon">tune</i>'
                 button.onclick = () => this.dialog.show()
                 div.appendChild(button)
@@ -763,38 +743,39 @@
             }
         }
 
-    }
+        /**
+         * Create properties for all Cubes
+         */
+        createCubeProperties() {
 
-    Plugin.register('tesera', {
-        ...info,
+            const { storage_name } = this
 
-        onload() {
+            // ---------- UI properties ----------
 
-            console.log('Loading Tesera plugin...')
+            deletables.push(new Property(Cube, 'string', 'tesera_material', {
+                default: 'regular',
+                exposed: true,
+                label: 'Material',
+                inputs: {
+                    element_panel: {
+                        input: {
+                            type: 'select',
+                            options: {
+                                regular: 'Regular',
+                                singleface: 'Singleface',
+                                doubleface: 'Doubleface',
+                                doubleface_solid: 'Doubleface solid',
+                                transparent: 'Transparent',
+                                doubleface_transparent: 'Doubleface + Transparent',
+                                decal1: 'Decal 1',
+                                decal2: 'Decal 2',
+                            },
+                        },
+                    },
+                },
+            }))
 
-            // Keydown listener (Fix Ctrl+V and Ctrl+A in textarea and input)
-            window.addEventListener('keydown', TeseraPlugin.on_keydown)
-            // Create new property for all Cubes
-            deletables.push(new Property(Cube, 'instance', property_name, {default: null, exposed: true, label: "Tesera cube properties" }))
-            // CSS
-            Blockbench.addCSS(tesera_css)
-            // Display
-            initDisplay()
-            // Init display
-            initViewDisplay()
-            // Create toolbars
-            createToolbar('Tesera JSON', [new TeseraJSONWidget('tesera_cube_json_widget', {property_name, value_name: 'json'})])
-            createToolbar('Tesera material', [new TeseraSelectWidget('tesera_cube_material_widget', {property_name, value_name: 'material', options: {
-                'Regular':                  'regular',
-                'Singleface':               'singleface',
-                'Doubleface':               'doubleface',
-                'Doubleface solid':         'doubleface_solid',
-                'Transparent':              'transparent',
-                'Doubleface + Transparent': 'doubleface_transparent',
-                'Decal 1':                  'decal1',
-                'Decal 2':                  'decal2',
-            }})])
-            createToolbar('Tesera flags', [new TeseraMultiselectWidget('tesera_cube_flags_widget', {property_name, value_name: 'flags', options: {
+            createToolbar('Tesera flags', [new TeseraMultiselectWidget('tesera_cube_flags_widget', {property_name: 'tesera_flags', options: {
                 'ENCHANTED_ANIMATION': 'FLAG_ENCHANTED_ANIMATION',
                 'FLUID_ERASE':         'FLAG_FLUID_ERASE',
                 'LEAVES':              'FLAG_LEAVES',
@@ -811,37 +792,142 @@
                 'NORMAL_UP':           'FLAG_NORMAL_UP',
             }})])
 
+            deletables.push(new Property(Cube, 'string', 'tesera_json', {
+                default: '',
+                exposed: true,
+                label: 'Tesera JSON',
+                inputs: {
+                    element_panel: {
+                        input: { type: 'textarea' },
+                    },
+                },
+            }))
+
+            // ---------- LOAD: tesera -> UI ----------
+
+            CreateBBListener('load_project', (data) => {
+                for(const el of data.model.elements) {
+                    if(!el[this.storage_name]) continue
+                    for(const k in el[this.storage_name]) {
+                        switch(k) {
+                            case 'json':
+                                el.tesera_json = el[this.storage_name].json ? JSON.stringify(el[this.storage_name].json, null, 4) : ''
+                                break
+                            default:
+                                el[`tesera_${k}`] = el[this.storage_name][k]
+                                break
+                        }
+                    }
+                    delete(el[this.storage_name])
+                }
+            })
+
+            // ---------- SAVE: UI -> madcraft ----------
+            CreateBBListener('save_project', (data) => {
+                for(const el of data.model.elements) {
+                    const tesera = {}
+                    for(const k in el) {
+                        if(!k.startsWith('tesera_')) continue
+                        const value = el[k]
+                        const ik = k.slice(7)
+                        switch(ik) {
+                            case 'json': {
+                                try {
+                                    tesera[ik] = JSON.parse(value) || null
+                                } catch {
+                                    tesera[ik] = null
+                                }
+                                break
+                            }
+                            default: {
+                                tesera[ik] = value
+                                break
+                            }
+                        }
+                        if(tesera[ik] == null || tesera[ik] === '' || (Array.isArray(tesera[ik]) && tesera[ik].length === 0)) {
+                            delete tesera[ik]
+                        }
+                        delete el[k]
+                    }
+                    if(Object.keys(tesera).length === 0) {
+                        delete el[this.storage_name]
+                        continue
+                    }
+                    if(Object.keys(tesera).length) {
+                        el[this.storage_name] = tesera
+                    }
+                }
+            })
+        }
+
+    }
+
+    Plugin.register('tesera', {
+        ...info,
+
+        onload() {
+
+            console.log('Loading Tesera plugin...')
+
             const tesera_plugin = new TeseraPlugin()
 
-            Blockbench.on('load_project', data => {
-                // Project.tesera_project = data.model.tesera_project || {
-                //     groups: {}
-                // }
-                // Project.tesera_project = data.model.tesera_project || {
-                //     groups: {}
-                // }
-                tesera_plugin.addSearchField()
-            })
-            
-            // Blockbench.on('save_project', (event) => {
-            //     event.model.tesera_project = Project.tesera_project
-            // })
+            // Keydown listener (Fix Ctrl+V and Ctrl+A in textarea and input)
+            window.addEventListener('keydown', TeseraPlugin.on_keydown)
+
+            // CSS
+            deletables.push(Blockbench.addCSS(tesera_css))
+
+            // Display
+            // initDisplay()
+            // Init display
+            // initViewDisplay()
+
+            /*
+                // Create toolbars
+                // createToolbar('Tesera JSON', [new TeseraJSONWidget('tesera_cube_json_widget', {property_name, value_name: 'json'})])
+
+                CreateBBListener('load_project', data => {
+
+                    CreateBBListener('load_project', () => {
+                        Cube.all.forEach(c => {
+                            const old = c[property_name]
+                            if(!old) return
+                            if(old.material) c.tesera_material = old.material
+                            if(Array.isArray(old.flags)) c.tesera_flags = old.flags
+                            if(old.json != null) c.tesera_json = JSON.stringify(old.json)
+                            c[property_name] = null
+                        })
+                    })
+                })
+            */
 
         },
 
         onunload() {
             console.log('Unloading Tesera plugin...')
             window.removeEventListener('keydown', TeseraPlugin.on_keydown)
-            deletables.forEach(action => {
-                action.delete();
-            })
-            removables.forEach(action => {
-                action.remove();
-            })
-            toolbars.forEach(toolbar => {
+            for(const item of deletables) {
+                item.delete()
+            }
+            for(const item of removables) {
+                item.remove()
+            }
+            for(const toolbar of toolbars) {
                 // Interface.Panels.element.removeToolbar(toolbar)
                 toolbar.remove()
-            })
+            }
+            for(const listener of listeners) {
+                Blockbench.removeListener(listener.event, listener.callback)
+            }
+            deletables.length = 0
+            removables.length = 0
+            toolbars.length = 0
+            listeners.length = 0
+
+            console.log(Interface.Panels.element.toolbars.length)
+            console.log(Interface.Panels.element.toolbars.map(t => t.id))
+            console.log(Object.keys(Cube.properties).filter(k => k.startsWith('tesera')))
+
         }
 
     })
