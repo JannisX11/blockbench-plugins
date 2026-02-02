@@ -321,7 +321,6 @@ Plugin.register('hytale_avatar_loader', {
                     }
                     return path;
                 }
-
                 function wrapPathForMessage(path, maxLength) {
                     if (!path || !maxLength) return path;
                     const parts = path.split('\\');
