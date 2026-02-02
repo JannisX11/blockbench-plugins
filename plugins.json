@@ -690,12 +690,12 @@
 		"min_version": "4.0.0",
 		"variant": "desktop"
 	},
-	"vintagestory_models": {
-		"title": "Vintage Story Models",
-		"author": "Malik12tree",
+	"vintagestory": {
+		"title": "Vintage Story",
+		"author": "Malik12tree, Crabb",
 		"icon": "park",
-		"description": "Allows to export VintageStory models.",
-		"version": "1.0.0",
+		"description": "Allows to export and import VintageStory models.",
+		"version": "1.0.2",
 		"variant": "both"
 	},
 	"endimations_exporter": {
