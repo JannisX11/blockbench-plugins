@@ -277,5 +277,29 @@
 				]
 			}
 		]
+	},
+	"0.7.0": {
+		"title": "0.7.0",
+		"date": "2026-02-02",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added UV Offset animation channel",
+					"Groups now share the same marker color as their main cube when opening blockymodel",
+					"Node visibility is now exported to and imported from blockymodels"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue where some attachment models imported with incorrect node offsets",
+					"Fixed export toggle not affecting which nodes are exported",
+					"Fixed pivot marker appearing at the pivot of the wrong group in some scenarios",
+					"Improved compatibility with Code View plugin"
+				]
+			}
+		]
 	}
 }
