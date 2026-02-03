@@ -698,6 +698,19 @@
 		"version": "1.0.0",
 		"variant": "both"
 	},
+	"fsk_animation_exporter": {
+		"title": "FSK Animation Exporter",
+		"author": "SnaveSutit & Marctron",
+		"icon": "video_file",
+		"description": "Converts Blockbench animations to FSK files.",
+		"about": "To export an animation, go to File -> Export -> Export FSK.",
+		"tags": ["Minecraft: Java Edition", ".fsk", "Fisk's Superheroes"],
+		"version": "1.0.0",
+		"min_version": "4.2.0",
+		"variant": "desktop",
+		"repository": "https://github.com/SnaveSutit/bbanim-to-fsk",
+		"bug_tracker": "https://github.com/SnaveSutit/bbanim-to-fsk/issues"
+	},
 	"endimations_exporter": {
 		"title": "Endimator Animations Exporter",
 		"author": "SmellyModder",
