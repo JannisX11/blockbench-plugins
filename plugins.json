@@ -1392,15 +1392,15 @@
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
 	},
-	{
-        "title": "PoseKey",
-        "author": "FroXaL",
-        "description": "Poses a unique keyframe on the entire group.",
-        "icon": "key",
-        "variant": "both",
-        "version": "3.0.0",
-        "min_version": "4.0.0",
-        "tags": ["animation", "keyframe", "workflow"],
-        "file": "posekey.js"
-    }
+	"posekey": {
+		"title": "PoseKey",
+		"author": "FroXaL",
+		"description": "Poses a unique keyframe on the entire group.",
+		"icon": "key",
+		"variant": "both",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"tags": ["animation", "keyframe", "workflow"],
+		"file": "posekey.js"
+	}
 }
