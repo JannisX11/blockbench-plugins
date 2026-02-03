@@ -737,7 +737,7 @@ function structure_importer_run(ev) {
 				'<button onclick="structure_importer_addResourcePack()" id="structure_importer_add">Add resourcepack'
 				],
 				"onOpen": function () {
-					pathSetting = Settings.get("default_assets")
+					pathSetting = Settings.get("structure_importer_default_assets")
 					if (pathSetting) {
 						var paths = JSON.parse(pathSetting)
 						if (paths.length > 0) {
@@ -992,8 +992,8 @@ MenuBar.addAction(new Action({
 	click: structure_importer_run
 }), "filter")
 
-	defaultAssetsSettings = new Setting("default_assets", {
-		name: "Assets",
+	defaultAssetsSettings = new Setting("structure_importer_default_assets", {
+		name: "Structure Importer Default Assets",
 		type: "text",
 		icon: "folder_close",
 		category: "defaults",
