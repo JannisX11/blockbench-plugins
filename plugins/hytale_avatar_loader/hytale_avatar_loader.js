@@ -21,43 +21,21 @@ Plugin.register('hytale_avatar_loader', {
     author: 'PasteDev',
     description: 'Loads Hytale avatar models with textures and colors from JSON files',
     icon: 'icon.png',
-    version: '1.1.1',
+    version: '1.1.2',
     min_version: '5.0.7',
     variant: 'desktop',
     tags: ['Hytale'],
     website: "https://pastelito.dev",
     creation_date: "2026-01-16",
     onload() {
+        if (window.hytaleAvatarLoaderInitialized) return;
+        window.hytaleAvatarLoaderInitialized = true;
+
         Blockbench.addCSS(`
-            .outliner_node.avatar_attachment_hidden {
-                display: none !important;
-            }
             .action_load_avatar .icon {
                 filter: brightness(1.2) contrast(1.1) !important;
             }
         `);
-        
-        function hideAttachmentsFromOutliner() {
-            if (!Panels.outliner?.node) return;
-            const outlinerNode = Panels.outliner.node;
-            
-            if (typeof Collection !== 'undefined' && Collection.all) {
-                for (const collection of Collection.all) {
-                    if (collection.export_codec === 'blockymodel') {
-                        for (const child of collection.getChildren()) {
-                            const node = outlinerNode.querySelector(`[id="${child.uuid}"]`);
-                            if (node) {
-                                node.classList.add('avatar_attachment_hidden');
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        Blockbench.on('update_selection', hideAttachmentsFromOutliner);
-        Blockbench.on('finished_edit', hideAttachmentsFromOutliner);
-        setTimeout(hideAttachmentsFromOutliner, 500);
         
         const loadAvatarIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAAZQTFRFAAAAAAAApWe5zwAAAAJ0Uk5TAP9bkSK1AAAAj0lEQVR4nI3PQQ6CUAwE0KkkskRPwE3waOrN0HuY2Bv8sCAujDjTSkBX/s1Lmml/a+DrrgZUt9ZIPWzPK8bNhTQFon6sYVGRQx9MENUT4BQmRHuPIhPieIL6GCT2CpSHG/O74taUab/AbhXVjV806z+++7QR9MP8rfgsEZsRreZ5ClHU8xTPUzxPWRqSuMjfxpJZMWa9gqsAAAAASUVORK5CYII=';
         
@@ -234,6 +212,9 @@ Plugin.register('hytale_avatar_loader', {
             }
         }
         
+        if (typeof BarItems !== 'undefined' && BarItems.resolve_textures_hytale_avatar) {
+            BarItems.resolve_textures_hytale_avatar.delete();
+        }
         resolveTexturesAction = new Action('resolve_textures_hytale_avatar', {
             name: 'Resolve Textures',
             description: 'Resolve missing texture paths',
@@ -250,13 +231,20 @@ Plugin.register('hytale_avatar_loader', {
             const listToolbar = (typeof Toolbars !== 'undefined' && Toolbars.texturelist) ? Toolbars.texturelist : null;
             const toolbar = panelToolbar || listToolbar;
             if (!toolbar) return false;
-            if (panelToolbar && panelToolbar !== toolbar) {
-                panelToolbar.remove(resolveTexturesAction, false);
+            const actionId = resolveTexturesAction?.id || 'resolve_textures_hytale_avatar';
+            const removeDuplicates = (tb) => {
+                if (!tb || !tb.children) return;
+                const dupes = tb.children.filter(child => child && child.id === actionId);
+                for (const child of dupes) {
+                    tb.remove(child, false);
+                }
+                tb.remove(resolveTexturesAction, false);
+            };
+            removeDuplicates(panelToolbar);
+            removeDuplicates(listToolbar);
+            if (!toolbar.children.includes(resolveTexturesAction)) {
+                toolbar.add(resolveTexturesAction, 3);
             }
-            if (listToolbar && listToolbar !== toolbar) {
-                listToolbar.remove(resolveTexturesAction, false);
-            }
-            if (!toolbar.children.includes(resolveTexturesAction)) toolbar.add(resolveTexturesAction, 3);
             return true;
         }
         
@@ -271,6 +259,7 @@ Plugin.register('hytale_avatar_loader', {
     onunload() {
         if (loadAction) loadAction.delete();
         if (resolveTexturesAction) resolveTexturesAction.delete();
+        window.hytaleAvatarLoaderInitialized = false;
     }
 });
 
@@ -1078,6 +1067,19 @@ function parseValue(value) {
     return { itemId, color, variant };
 }
 
+function normalizeBoneOffsets(nodes) {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes) {
+        if (!node) continue;
+        if (node.shape && node.shape.type === 'none' && node.shape.offset) {
+            node.shape.offset = { x: 0, y: 0, z: 0 };
+        }
+        if (node.children && Array.isArray(node.children)) {
+            normalizeBoneOffsets(node.children);
+        }
+    }
+}
+
 async function loadAllModels(modelFiles, itemInfo, pathJoin, assetsBasePath) {
     const isMainModel = (field) => field === 'bodyCharacteristic';
     
@@ -1366,6 +1368,7 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
     const attachmentName = collectionName;
     
     try {
+        normalizeBoneOffsets(modelData.nodes);
         const content = Codecs.blockymodel.parse(modelData, filePath, {attachment: attachmentName});
         
         if (!content || !content.new_groups) {
@@ -1452,319 +1455,7 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
             }
         }
         
-        setTimeout(() => {
-            if (Panels.outliner?.node) {
-                const outlinerNode = Panels.outliner.node;
-                for (const group of rootGroups) {
-                    const node = outlinerNode.querySelector(`[id="${group.uuid}"]`);
-                    if (node) {
-                        node.classList.add('avatar_attachment_hidden');
-                    }
-                    if (group.children) {
-                        for (const child of group.children) {
-                            if (child instanceof Group || child instanceof Cube) {
-                                const childNode = outlinerNode.querySelector(`[id="${child.uuid}"]`);
-                                if (childNode) {
-                                    childNode.classList.add('avatar_attachment_hidden');
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }, 100);
-        
         Canvas.updateAllFaces();
     } catch (err) {
-    }
-}
-
-function parseVector(vec, fallback = [0, 0, 0]) {
-    if (!vec) return fallback;
-    return [vec.x || 0, vec.y || 0, vec.z || 0];
-}
-
-function getMainShape(group) {
-    if (!group || !group.children) return null;
-    for (const child of group.children) {
-        if (child instanceof Cube) {
-            return child;
-        }
-    }
-    return null;
-}
-
-function getNodeOffset(group) {
-    const cube = getMainShape(group);
-    if (cube) {
-        const centerPos = [
-            (cube.from[0] + cube.to[0]) / 2,
-            (cube.from[1] + cube.to[1]) / 2,
-            (cube.from[2] + cube.to[2]) / 2
-        ];
-        return [
-            centerPos[0] - group.origin[0],
-            centerPos[1] - group.origin[1],
-            centerPos[2] - group.origin[2]
-        ];
-    }
-    return null;
-}
-
-function loadModelNodes(nodes, parent, texture = null, returnGroups = false, parentNode = null) {
-    const createdGroups = [];
-    const parentGroup = parent === 'root' ? Project.root : parent;
-    
-    nodes.forEach(node => {
-        if (!node) return;
-        
-        const quaternion = node.orientation ? {
-            x: node.orientation.x,
-            y: node.orientation.y,
-            z: node.orientation.z,
-            w: node.orientation.w
-        } : { x: 0, y: 0, z: 0, w: 1 };
-        
-        const q = new THREE.Quaternion();
-        q.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-        const euler = new THREE.Euler().setFromQuaternion(q.normalize(), 'ZYX');
-        const rotation = [
-            Math.roundTo(Math.radToDeg(euler.x), 3),
-            Math.roundTo(Math.radToDeg(euler.y), 3),
-            Math.roundTo(Math.radToDeg(euler.z), 3)
-        ];
-        
-        const offset = node.shape?.offset ? parseVector(node.shape.offset) : [0, 0, 0];
-        let origin = parseVector(node.position);
-        
-        if (parentGroup instanceof Group) {
-            const parentGeoOrigin = getMainShape(parentGroup)?.origin || parentGroup.origin;
-            if (parentGeoOrigin) {
-                origin = [
-                    origin[0] + parentGeoOrigin[0],
-                    origin[1] + parentGeoOrigin[1],
-                    origin[2] + parentGeoOrigin[2]
-                ];
-            }
-            if (returnGroups) {
-                const parentOffset = getNodeOffset(parentGroup);
-                if (parentOffset) {
-                    origin = [
-                        origin[0] + parentOffset[0],
-                        origin[1] + parentOffset[1],
-                        origin[2] + parentOffset[2]
-                    ];
-                }
-            }
-        }
-        
-        let group = null;
-        if (!node.shape?.settings?.isStaticBox && node.name) {
-            group = new Group({
-                name: node.name,
-                autouv: 1,
-                origin: origin,
-                rotation: rotation
-            });
-            
-            group.addTo(parentGroup);
-            group.init();
-            
-            if (node.shape?.settings?.isPiece !== undefined) {
-                group.extend({ is_piece: node.shape.settings.isPiece });
-            }
-            
-            if (returnGroups) {
-                createdGroups.push(group);
-            }
-        }
-        
-        if (node.shape && node.shape.type && node.shape.type !== 'none') {
-            const cubeData = node.shape;
-            const size = parseVector(cubeData.settings?.size, [16, 16, 16]);
-            const stretch = parseVector(cubeData.stretch, [1, 1, 1]);
-            
-            let adjustedSize = size.slice();
-            if (cubeData.type === 'quad') {
-                const axis = cubeData.settings?.normal?.substring(1) || 'Z';
-                if (axis === 'X') {
-                    adjustedSize = [0, size[1], size[0]];
-                } else if (axis === 'Y') {
-                    adjustedSize = [size[0], size[1], 0];
-                } else if (axis === 'Z') {
-                    adjustedSize[2] = 0;
-                }
-            }
-            
-            const cube = new Cube({
-                name: node.name || 'Cube',
-                autouv: 1,
-                rotation: [0, 0, 0],
-                stretch: stretch,
-                from: [
-                    -adjustedSize[0]/2 + origin[0] + offset[0],
-                    -adjustedSize[1]/2 + origin[1] + offset[1],
-                    -adjustedSize[2]/2 + origin[2] + offset[2]
-                ],
-                to: [
-                    adjustedSize[0]/2 + origin[0] + offset[0],
-                    adjustedSize[1]/2 + origin[1] + offset[1],
-                    adjustedSize[2]/2 + origin[2] + offset[2]
-                ]
-            });
-            
-            if (group) {
-                cube.origin.V3_set(
-                    Math.lerp(cube.from[0], cube.to[0], 0.5),
-                    Math.lerp(cube.from[1], cube.to[1], 0.5),
-                    Math.lerp(cube.from[2], cube.to[2], 0.5)
-                );
-            } else {
-                cube.extend({
-                    origin: origin,
-                    rotation: rotation
-                });
-            }
-            
-            if (cubeData.shadingMode) {
-                cube.extend({ shading_mode: cubeData.shadingMode });
-            }
-            if (cubeData.doubleSided !== undefined) {
-                cube.extend({ double_sided: cubeData.doubleSided });
-            }
-            
-            if (texture && cubeData.textureLayout) {
-                applyTextureToCube(cube, cubeData.textureLayout, texture, adjustedSize, cubeData.type, cubeData.settings?.normal);
-            }
-            
-            cube.addTo(group || parentGroup).init();
-        }
-        
-        if (node.children && Array.isArray(node.children)) {
-            const childParent = group || parentGroup;
-            const childGroups = loadModelNodes(node.children, childParent, texture, returnGroups, node);
-            if (returnGroups && childGroups) {
-                createdGroups.push(...childGroups);
-            }
-        }
-    });
-    
-    return returnGroups ? createdGroups : undefined;
-}
-
-function applyTextureToCube(cube, textureLayout, texture, size, shapeType, normal) {
-    const HytaleToBBDirection = {
-        back: 'north',
-        front: 'south',
-        left: 'west',
-        right: 'east',
-        top: 'up',
-        bottom: 'down'
-    };
-    
-    const normalFaces = {
-        '-X': 'west',
-        '+X': 'east',
-        '-Y': 'down',
-        '+Y': 'up',
-        '-Z': 'north',
-        '+Z': 'south'
-    };
-    
-    function resetFace(faceName) {
-        cube.faces[faceName].texture = null;
-        cube.faces[faceName].uv = [0, 0, 0, 0];
-    }
-    
-    function parseUVVector(vec, fallback = [0, 0]) {
-        if (!vec) return fallback;
-        return [vec.x || 0, vec.y || 0];
-    }
-    
-    let normalFace = null;
-    if (shapeType === 'quad' && normal) {
-        normalFace = normalFaces[normal];
-    }
-    
-    for (const key in HytaleToBBDirection) {
-        const faceName = HytaleToBBDirection[key];
-        let uvSource = textureLayout[key];
-        
-        if (normalFace === faceName) {
-            if (faceName !== 'south') resetFace('south');
-            uvSource = textureLayout['front'];
-        }
-        
-        if (!uvSource) {
-            resetFace(faceName);
-            continue;
-        }
-        
-        const uvOffset = parseUVVector(uvSource.offset);
-        let uvSize = [size[0], size[1]];
-        const uvMirror = [
-            uvSource.mirror?.x ? -1 : 1,
-            uvSource.mirror?.y ? -1 : 1
-        ];
-        const uvRotation = uvSource.angle || 0;
-        
-        if (key === 'left' || key === 'right') {
-            uvSize[0] = size[2];
-        } else if (key === 'top' || key === 'bottom') {
-            uvSize[1] = size[2];
-        }
-        
-        let result = [0, 0, 0, 0];
-        switch (uvRotation) {
-            case 90: {
-                [uvSize[0], uvSize[1]] = [uvSize[1], uvSize[0]];
-                [uvMirror[0], uvMirror[1]] = [uvMirror[1], uvMirror[0]];
-                uvMirror[0] *= -1;
-                result = [
-                    uvOffset[0],
-                    uvOffset[1] + uvSize[1] * uvMirror[1],
-                    uvOffset[0] + uvSize[0] * uvMirror[0],
-                    uvOffset[1]
-                ];
-                break;
-            }
-            case 270: {
-                [uvSize[0], uvSize[1]] = [uvSize[1], uvSize[0]];
-                [uvMirror[0], uvMirror[1]] = [uvMirror[1], uvMirror[0]];
-                uvMirror[1] *= -1;
-                result = [
-                    uvOffset[0] + uvSize[0] * uvMirror[0],
-                    uvOffset[1],
-                    uvOffset[0],
-                    uvOffset[1] + uvSize[1] * uvMirror[1]
-                ];
-                break;
-            }
-            case 180: {
-                uvMirror[0] *= -1;
-                uvMirror[1] *= -1;
-                result = [
-                    uvOffset[0] + uvSize[0] * uvMirror[0],
-                    uvOffset[1] + uvSize[1] * uvMirror[1],
-                    uvOffset[0],
-                    uvOffset[1]
-                ];
-                break;
-            }
-            case 0:
-            default: {
-                result = [
-                    uvOffset[0],
-                    uvOffset[1],
-                    uvOffset[0] + uvSize[0] * uvMirror[0],
-                    uvOffset[1] + uvSize[1] * uvMirror[1]
-                ];
-                break;
-            }
-        }
-        
-        cube.faces[faceName].rotation = uvRotation;
-        cube.faces[faceName].uv = result;
-        cube.faces[faceName].texture = texture;
     }
 }
