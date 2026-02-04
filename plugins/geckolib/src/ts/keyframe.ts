@@ -14,9 +14,13 @@ import {
 import {GECKOLIB_MODEL_ID} from "./constants";
 
 export function loadKeyframeOverrides() {
+    // @ts-ignore
     addMonkeypatch(Keyframe, "prototype", "getLerp", keyframeGetLerp);
+    // @ts-ignore
     addMonkeypatch(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
+    // @ts-ignore
     addMonkeypatch(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
+    // @ts-ignore
     addMonkeypatch(Keyframe, "prototype", "extend", keyframeExtend);
 
     addMonkeypatch(BarItems.reverse_keyframes, null, "click", onReverseKeyframes);
@@ -59,6 +63,7 @@ function lerp(start: number, stop: number, amt: number) {
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
     if (Format.id !== GECKOLIB_MODEL_ID)
+        // @ts-ignore
         return Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
 
     const easing = other.easing || EASING_DEFAULT;
@@ -140,6 +145,7 @@ function checkAndPatchKeyframeValues(vector: any[], channel: string) {
 // Replace the bedrock keyframe compilation with a custom handler
 function keyframeCompileBedrock() {
     if (Format.id !== GECKOLIB_MODEL_ID || !this.transform)
+        // @ts-ignore
         return Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
 
     if (this.interpolation == 'catmullrom') {
@@ -161,6 +167,7 @@ function keyframeCompileBedrock() {
 
 function keyframeGetUndoCopy() {
     const {easing, easingArgs} = this;
+    // @ts-ignore
     const result = Monkeypatches.get(Keyframe).getUndoCopy.apply(this, arguments);
 
     if (Format.id === GECKOLIB_MODEL_ID) {
@@ -199,6 +206,7 @@ function keyframeExtend(dataIn) {
         }
     }
 
+    // @ts-ignore
     return Monkeypatches.get(Keyframe).extend.apply(this, arguments);
 }
 

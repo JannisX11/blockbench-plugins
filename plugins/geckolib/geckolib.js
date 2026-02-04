@@ -41,8 +41,12 @@ ___CSS_LOADER_EXPORT___.push([module.id, `@font-face {
     font-variant: normal;
     text-transform: none;
     line-height: 1;
-    font-size: 1.4em;
     max-width: 24px;
+    margin-top: 4px;
+    font-size: 14px;
+    margin-left: -1px;
+    pointer-events: none;
+    display: block;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -6989,7 +6993,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.3","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.0-beta.1","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.4","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.6","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
 
 /***/ }),
 
@@ -8558,9 +8562,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadKeyframeOverrides() {
+    // @ts-ignore
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getLerp", keyframeGetLerp);
+    // @ts-ignore
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "compileBedrockKeyframe", keyframeCompileBedrock);
+    // @ts-ignore
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "getUndoCopy", keyframeGetUndoCopy);
+    // @ts-ignore
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(Keyframe, "prototype", "extend", keyframeExtend);
     (0,_utils__WEBPACK_IMPORTED_MODULE_2__.addMonkeypatch)(BarItems.reverse_keyframes, null, "click", onReverseKeyframes);
 }
@@ -8588,6 +8596,7 @@ function lerp(start, stop, amt) {
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 function keyframeGetLerp(other, axis, amount, allow_expression) {
     if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID)
+        // @ts-ignore
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getLerp.apply(this, arguments);
     const easing = other.easing || _easing__WEBPACK_IMPORTED_MODULE_3__.EASING_DEFAULT;
     let easingFunc = _easing__WEBPACK_IMPORTED_MODULE_3__.easingFunctions[easing];
@@ -8653,6 +8662,7 @@ function checkAndPatchKeyframeValues(vector, channel) {
 // Replace the bedrock keyframe compilation with a custom handler
 function keyframeCompileBedrock() {
     if (Format.id !== _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID || !this.transform)
+        // @ts-ignore
         return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).compileBedrockKeyframe.apply(this, arguments);
     if (this.interpolation == 'catmullrom') {
         const previous = this.getPreviousKeyframe.apply(this);
@@ -8669,6 +8679,7 @@ function keyframeCompileBedrock() {
 }
 function keyframeGetUndoCopy() {
     const { easing, easingArgs } = this;
+    // @ts-ignore
     const result = _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).getUndoCopy.apply(this, arguments);
     if (Format.id === _constants__WEBPACK_IMPORTED_MODULE_4__.GECKOLIB_MODEL_ID) {
         Object.assign(result, { easing });
@@ -8698,6 +8709,7 @@ function keyframeExtend(dataIn) {
                 this.easingArgs = data.easingArgs;
         }
     }
+    // @ts-ignore
     return _utils__WEBPACK_IMPORTED_MODULE_2__.Monkeypatches.get(Keyframe).extend.apply(this, arguments);
 }
 // Inject GeckoLib support for the reverse keyframes feature

@@ -242,5 +242,17 @@
         ]
       }
     ]
+  },
+  "4.2.4": {
+    "title": "4.2.4",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an issue where some keyframe icons displayed incorrectly."
+        ]
+      }
+    ]
   }
 }

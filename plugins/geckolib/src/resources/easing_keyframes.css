@@ -13,8 +13,12 @@
     font-variant: normal;
     text-transform: none;
     line-height: 1;
-    font-size: 1.4em;
     max-width: 24px;
+    margin-top: 4px;
+    font-size: 14px;
+    margin-left: -1px;
+    pointer-events: none;
+    display: block;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
