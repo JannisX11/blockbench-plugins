@@ -247,7 +247,7 @@
 		]
 	},
 	"0.6.1": {
-		"title": "0.4.1",
+		"title": "0.6.1",
 		"date": "2026-01-12",
 		"author": "JannisX11",
 		"categories": [
@@ -255,6 +255,49 @@
 				"title": "Fixes",
 				"list": [
 					"Fixed an issue with pixel density when generating a template"
+				]
+			}
+		]
+	},
+	"0.6.2": {
+		"title": "0.6.2",
+		"date": "2026-01-25",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed issue with saving multiple animations at once",
+					"Fixed visibility keyframe applying to child nodes",
+					"Fixed broken UV when importing attachment with default UV mode set to Box UV",
+					"Fixed texture update issue in UV editor when switching textures",
+					"Fixed animation length rounding issue in export",
+					"Fixed Hytale formats being hidden in Streamer Mode",
+					"Fixed group pivot marker appearing in screenshots"
+				]
+			}
+		]
+	},
+	"0.7.0": {
+		"title": "0.7.0",
+		"date": "2026-02-02",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added UV Offset animation channel",
+					"Groups now share the same marker color as their main cube when opening blockymodel",
+					"Node visibility is now exported to and imported from blockymodels"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue where some attachment models imported with incorrect node offsets",
+					"Fixed export toggle not affecting which nodes are exported",
+					"Fixed pivot marker appearing at the pivot of the wrong group in some scenarios",
+					"Improved compatibility with Code View plugin"
 				]
 			}
 		]
