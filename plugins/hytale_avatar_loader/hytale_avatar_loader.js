@@ -21,43 +21,21 @@ Plugin.register('hytale_avatar_loader', {
     author: 'PasteDev',
     description: 'Loads Hytale avatar models with textures and colors from JSON files',
     icon: 'icon.png',
-    version: '1.1.1',
+    version: '1.1.2',
     min_version: '5.0.7',
     variant: 'desktop',
     tags: ['Hytale'],
     website: "https://pastelito.dev",
     creation_date: "2026-01-16",
     onload() {
+        if (window.hytaleAvatarLoaderInitialized) return;
+        window.hytaleAvatarLoaderInitialized = true;
+
         Blockbench.addCSS(`
-            .outliner_node.avatar_attachment_hidden {
-                display: none !important;
-            }
             .action_load_avatar .icon {
                 filter: brightness(1.2) contrast(1.1) !important;
             }
         `);
-        
-        function hideAttachmentsFromOutliner() {
-            if (!Panels.outliner?.node) return;
-            const outlinerNode = Panels.outliner.node;
-            
-            if (typeof Collection !== 'undefined' && Collection.all) {
-                for (const collection of Collection.all) {
-                    if (collection.export_codec === 'blockymodel') {
-                        for (const child of collection.getChildren()) {
-                            const node = outlinerNode.querySelector(`[id="${child.uuid}"]`);
-                            if (node) {
-                                node.classList.add('avatar_attachment_hidden');
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        Blockbench.on('update_selection', hideAttachmentsFromOutliner);
-        Blockbench.on('finished_edit', hideAttachmentsFromOutliner);
-        setTimeout(hideAttachmentsFromOutliner, 500);
         
         const loadAvatarIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAAZQTFRFAAAAAAAApWe5zwAAAAJ0Uk5TAP9bkSK1AAAAj0lEQVR4nI3PQQ6CUAwE0KkkskRPwE3waOrN0HuY2Bv8sCAujDjTSkBX/s1Lmml/a+DrrgZUt9ZIPWzPK8bNhTQFon6sYVGRQx9MENUT4BQmRHuPIhPieIL6GCT2CpSHG/O74taUab/AbhXVjV806z+++7QR9MP8rfgsEZsRreZ5ClHU8xTPUzxPWRqSuMjfxpJZMWa9gqsAAAAASUVORK5CYII=';
         
@@ -234,6 +212,9 @@ Plugin.register('hytale_avatar_loader', {
             }
         }
         
+        if (typeof BarItems !== 'undefined' && BarItems.resolve_textures_hytale_avatar) {
+            BarItems.resolve_textures_hytale_avatar.delete();
+        }
         resolveTexturesAction = new Action('resolve_textures_hytale_avatar', {
             name: 'Resolve Textures',
             description: 'Resolve missing texture paths',
@@ -250,13 +231,20 @@ Plugin.register('hytale_avatar_loader', {
             const listToolbar = (typeof Toolbars !== 'undefined' && Toolbars.texturelist) ? Toolbars.texturelist : null;
             const toolbar = panelToolbar || listToolbar;
             if (!toolbar) return false;
-            if (panelToolbar && panelToolbar !== toolbar) {
-                panelToolbar.remove(resolveTexturesAction, false);
+            const actionId = resolveTexturesAction?.id || 'resolve_textures_hytale_avatar';
+            const removeDuplicates = (tb) => {
+                if (!tb || !tb.children) return;
+                const dupes = tb.children.filter(child => child && child.id === actionId);
+                for (const child of dupes) {
+                    tb.remove(child, false);
+                }
+                tb.remove(resolveTexturesAction, false);
+            };
+            removeDuplicates(panelToolbar);
+            removeDuplicates(listToolbar);
+            if (!toolbar.children.includes(resolveTexturesAction)) {
+                toolbar.add(resolveTexturesAction, 3);
             }
-            if (listToolbar && listToolbar !== toolbar) {
-                listToolbar.remove(resolveTexturesAction, false);
-            }
-            if (!toolbar.children.includes(resolveTexturesAction)) toolbar.add(resolveTexturesAction, 3);
             return true;
         }
         
@@ -271,6 +259,7 @@ Plugin.register('hytale_avatar_loader', {
     onunload() {
         if (loadAction) loadAction.delete();
         if (resolveTexturesAction) resolveTexturesAction.delete();
+        window.hytaleAvatarLoaderInitialized = false;
     }
 });
 
@@ -1078,6 +1067,19 @@ function parseValue(value) {
     return { itemId, color, variant };
 }
 
+function normalizeBoneOffsets(nodes) {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes) {
+        if (!node) continue;
+        if (node.shape && node.shape.type === 'none' && node.shape.offset) {
+            node.shape.offset = { x: 0, y: 0, z: 0 };
+        }
+        if (node.children && Array.isArray(node.children)) {
+            normalizeBoneOffsets(node.children);
+        }
+    }
+}
+
 async function loadAllModels(modelFiles, itemInfo, pathJoin, assetsBasePath) {
     const isMainModel = (field) => field === 'bodyCharacteristic';
     
@@ -1366,6 +1368,7 @@ function loadAttachmentModel(modelData, texturePath, filePath, info) {
     const attachmentName = collectionName;
     
     try {
+        normalizeBoneOffsets(modelData.nodes);
         const content = Codecs.blockymodel.parse(modelData, filePath, {attachment: attachmentName});
         
         if (!content || !content.new_groups) {
@@ -1494,24 +1497,7 @@ function getMainShape(group) {
     return null;
 }
 
-function getNodeOffset(group) {
-    const cube = getMainShape(group);
-    if (cube) {
-        const centerPos = [
-            (cube.from[0] + cube.to[0]) / 2,
-            (cube.from[1] + cube.to[1]) / 2,
-            (cube.from[2] + cube.to[2]) / 2
-        ];
-        return [
-            centerPos[0] - group.origin[0],
-            centerPos[1] - group.origin[1],
-            centerPos[2] - group.origin[2]
-        ];
-    }
-    return null;
-}
-
-function loadModelNodes(nodes, parent, texture = null, returnGroups = false, parentNode = null) {
+function loadModelNodes(nodes, parent, texture = null, returnGroups = false, parentNode = null, parentOffset = null) {
     const createdGroups = [];
     const parentGroup = parent === 'root' ? Project.root : parent;
     
@@ -1537,25 +1523,12 @@ function loadModelNodes(nodes, parent, texture = null, returnGroups = false, par
         const offset = node.shape?.offset ? parseVector(node.shape.offset) : [0, 0, 0];
         let origin = parseVector(node.position);
         
-        if (parentGroup instanceof Group) {
-            const parentGeoOrigin = getMainShape(parentGroup)?.origin || parentGroup.origin;
-            if (parentGeoOrigin) {
-                origin = [
-                    origin[0] + parentGeoOrigin[0],
-                    origin[1] + parentGeoOrigin[1],
-                    origin[2] + parentGeoOrigin[2]
-                ];
-            }
-            if (returnGroups) {
-                const parentOffset = getNodeOffset(parentGroup);
-                if (parentOffset) {
-                    origin = [
-                        origin[0] + parentOffset[0],
-                        origin[1] + parentOffset[1],
-                        origin[2] + parentOffset[2]
-                    ];
-                }
-            }
+        if (parentGroup instanceof Group && parentOffset) {
+            origin = [
+                origin[0] + parentOffset[0] + parentGroup.origin[0],
+                origin[1] + parentOffset[1] + parentGroup.origin[1],
+                origin[2] + parentOffset[2] + parentGroup.origin[2]
+            ];
         }
         
         let group = null;
@@ -1642,7 +1615,7 @@ function loadModelNodes(nodes, parent, texture = null, returnGroups = false, par
         
         if (node.children && Array.isArray(node.children)) {
             const childParent = group || parentGroup;
-            const childGroups = loadModelNodes(node.children, childParent, texture, returnGroups, node);
+            const childGroups = loadModelNodes(node.children, childParent, texture, returnGroups, node, offset);
             if (returnGroups && childGroups) {
                 createdGroups.push(...childGroups);
             }
