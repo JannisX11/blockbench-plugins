@@ -64,5 +64,20 @@
                 ]
             }
         ]
+    },
+    "1.2.0": {
+        "title": "1.2.0",
+        "date": "2026-02-01",
+        "author": "KevinLWorthington",
+        "categories": [
+            {
+                "title": "Download Avatar from crafthead.net",
+                "list": [
+                    "Added ability to fetch avatars directly from crafthead.net by username",
+                    "Asset path is now saved using LocalStorage",
+                    "Asset path can be changed in File > Preferences > Change Hytale Assets Folder"
+                ]
+            }
+        ]
     }
 }

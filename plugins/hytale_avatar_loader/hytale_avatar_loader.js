@@ -321,12 +321,31 @@ Plugin.register('hytale_avatar_loader', {
                     }
                     return path;
                 }
+
+                function wrapPathForMessage(path, maxLength) {
+                    if (!path || !maxLength) return path;
+                    const parts = path.split('\\');
+                    const lines = [];
+                    let currentLine = '';
+                    for (const part of parts) {
+                        const nextLine = currentLine ? `${currentLine}\\${part}` : part;
+                        if (nextLine.length > maxLength && currentLine) {
+                            lines.push(currentLine);
+                            currentLine = part;
+                        } else {
+                            currentLine = nextLine;
+                        }
+                    }
+                    if (currentLine) lines.push(currentLine);
+                    return lines.join('\n');
+                }
                 
                 const currentPath = localStorage.getItem('hytale_assets_path');
                 const assetsZipPath = expandPath('%appdata%\\Hytale\\install\\release\\package\\game\\latest');
+                const displayCurrentPath = currentPath ? wrapPathForMessage(currentPath, 48) : '';
                 
                 const message = currentPath 
-                    ? `**Current Assets Folder:**\n${currentPath}\n\n**Instructions:**\n\n1. Extract \`Assets.zip\` from:\n   📁 \`%appdata%\\Hytale\\install\\release\\package\\game\\latest\`\n\n2. Select the extracted Assets folder when prompted`
+                    ? `**Current Assets Folder:**\n${displayCurrentPath}\n\n**Instructions:**\n\n1. Extract \`Assets.zip\` from:\n   📁 \`%appdata%\\Hytale\\install\\release\\package\\game\\latest\`\n\n2. Select the extracted Assets folder when prompted`
                     : '**Instructions:**\n\n1. Extract `Assets.zip` from:\n   📁 `%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n2. Select the extracted Assets folder when prompted';
                 
                 Blockbench.showMessageBox({
@@ -348,7 +367,7 @@ Plugin.register('hytale_avatar_loader', {
                         
                         Blockbench.showMessageBox({
                             title: 'Success',
-                            message: `Assets folder updated to:\n${assetsDir}`,
+                            message: `Assets folder updated to:\n${wrapPathForMessage(assetsDir, 48)}`,
                             buttons: ['OK']
                         });
                     }

@@ -1384,7 +1384,7 @@
 		"title": "Hytale Avatar Loader",
 		"author": "PasteDev",
 		"icon": "icon.png",
-		"description": "Loads Hytale avatar models with textures and colors from JSON files. Automatically applies gradient maps to greyscale textures based on color selections and imports default animations.",
+		"description": "Loads Hytale avatar models with textures and colors from local JSON files or crafthead.net. Automatically applies gradient maps to greyscale textures based on color selections and imports default animations.",
 		"tags": ["Hytale"],
 		"version": "1.2.0",
 		"min_version": "5.0.7",
