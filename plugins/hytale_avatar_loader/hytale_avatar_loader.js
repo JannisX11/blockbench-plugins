@@ -178,7 +178,7 @@ Plugin.register('hytale_avatar_loader', {
         });
         
         loadFromUrlAction = new Action('load_avatar_from_url', {
-            name: 'Load Hytale Avatar from URL',
+            name: 'Load Hytale Avatar with Username',
             description: 'Loads a Hytale avatar from crafthead.net',
             icon: 'cloud_download',
             condition: {formats: ['hytale_character']},
