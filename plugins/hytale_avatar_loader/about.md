@@ -2,7 +2,7 @@
   <p>A Blockbench plugin for <strong>Hytale</strong> that loads complete avatar models with automatic texture processing and gradient map application.</p>
   <h3>Features:</h3>
   <ul>
-    <li>Automatic avatar loading from Hytale JSON files</li>
+    <li>Automatic avatar loading from local Hytale JSON files or crafthead.net</li>
     <li>Automatic gradient map application to grayscale textures</li>
     <li>Preserves existing colors (like gold details) while applying gradients only to grayscale areas</li>
     <li>Processes all avatar components (skin, hair, eyes, clothing, accessories) in one operation</li>
@@ -13,7 +13,10 @@
     <li>Open Blockbench and ensure you're using the Hytale Character format</li>
     <li>Go to <strong>File → Import → Load Hytale Avatar</strong></li>
     <li>Select your avatar JSON file from the CachedPlayerSkins folder</li>
+    <li>Or <strong>File → Import → Load Hytale Avatar from URL</strong></li>
     <li>Select the extracted Assets folder when prompted</li>
+    <li>To change the Assets folder locations:</li>
+    <li>Go to <strong>File → Preferences → Change Hytale Assets Folder</li>
   </ol>
   <p><strong>Note:</strong> The plugin requires file system access permissions to function properly.</p>
   <div style="flex: 1;"></div>
