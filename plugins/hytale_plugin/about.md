@@ -20,8 +20,9 @@ Select a Hytale format from the start screen and click Create New Model to get s
 
 ### Quality-of-life features that the Hytale team uses!
 * Hytale preview scene and player reference model, to use as a size reference
-* A thicker and always visible pivot marker to ensure the pivot point is well visible. The group pivot is also shown when editing child cubes, so you always know where geometry will rotate from when animating.
 * UV Cycling: Click in the UV editor multiple times to cycle between overlapping faces at that spot
+* Hold Alt while moving elements to duplicate them
+* A thicker and always visible pivot marker to ensure the pivot point is well visible. The group pivot is also shown when editing child cubes, so you always know where geometry will rotate from when animating.
 * Clear, outline-only UV editor mode to make it easier to work with overlapping UVs. Enable UV Outline Only in the settings
 * Copy-Paste with Magenta Alpha setting, to improve copy-pasting from and to Photoshop (which doesn't support copy pasting with transparency)
 * Toggle to lock attachments from editing, hiding them from the outliner and viewport selection

@@ -301,5 +301,24 @@
 				]
 			}
 		]
+	},
+	"0.8.0": {
+		"title": "0.8.0",
+		"date": "2026-02-07",
+		"author": "Kanno & JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added shortcut to hold Alt while moving elements to duplicate them"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with the import offset of hairstyle attachments"
+				]
+			}
+		]
 	}
 }
