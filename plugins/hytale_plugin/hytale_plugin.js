@@ -218,7 +218,7 @@
             }
           }
           node.shape.stretch = formatVector(stretch);
-          node.shape.visible = true;
+          node.shape.visible = cube.visibility;
           node.shape.doubleSided = cube.double_sided == true;
           node.shape.shadingMode = cube.shading_mode;
           node.shape.unwrapMode = "custom";
@@ -316,6 +316,7 @@
           }
         }
         function compileNode(element, name = element.name) {
+          if (!element.export) return void 0;
           if (!options.attachment) {
             let collection = Collection.all.find((c) => c.contains(element));
             if (collection) return;
@@ -355,7 +356,7 @@
               },
               textureLayout: {},
               unwrapMode: "custom",
-              visible: true,
+              visible: element.visibility,
               doubleSided: false,
               shadingMode: "flat"
             }
@@ -367,6 +368,7 @@
             let shape_count = 0;
             let child_cube_count = 0;
             for (let child of element.children ?? []) {
+              if (!child.export) continue;
               let result;
               if (qualifiesAsMainShape(child) && shape_count == 0) {
                 turnNodeIntoBox(node, child, element);
@@ -433,12 +435,9 @@
             let reference_node = getMainShape(parent_group) ?? parent_group;
             origin = reference_node.origin.slice();
             rotation = reference_node.rotation.slice();
-          } else if (parent_group instanceof Group) {
-            let parent_geo_origin = getMainShape(parent_group)?.origin ?? parent_group.origin;
-            if (parent_geo_origin) {
-              origin.V3_add(parent_geo_origin);
-              if (parent_offset) origin.V3_add(parent_offset);
-            }
+          } else if (parent_offset && parent_group instanceof Group) {
+            origin.V3_add(parent_offset);
+            origin.V3_add(parent_group.origin);
           }
           let group = null;
           if (!node.shape?.settings?.isStaticBox) {
@@ -446,7 +445,8 @@
               name,
               autouv: 1,
               origin,
-              rotation
+              rotation,
+              visibility: node.shape?.visible != false
             });
             new_groups.push(group);
             group.addTo(parent_group);
@@ -486,6 +486,8 @@
             let cube = new Cube({
               name,
               autouv: 1,
+              box_uv: false,
+              visibility: node.shape.visible != false,
               rotation: [0, 0, 0],
               stretch,
               from: [
@@ -500,6 +502,7 @@
               ]
             });
             if (group) {
+              group.color = cube.color;
               cube.origin.V3_set(
                 Math.lerp(cube.from[0], cube.to[0], 0.5),
                 Math.lerp(cube.from[1], cube.to[1], 0.5),
@@ -641,8 +644,11 @@
             cube.addTo(group || parent_group).init();
           }
           if (node.children?.length && group instanceof Group) {
+            if (args.attachment && node.shape.settings.isPiece) {
+              offset = [0, 0, 0];
+            }
             for (let child of node.children) {
-              parseNode(child, node, group);
+              parseNode(child, node, group, offset);
             }
           }
         }
@@ -765,11 +771,13 @@
       centered_grid: true,
       box_uv: false,
       optional_box_uv: true,
+      box_uv_float_size: true,
+      integer_size: true,
       uv_rotation: true,
       rotate_cubes: true,
       per_texture_uv_size: true,
+      texture_wrap_default: "clamp",
       stretch_cubes: true,
-      confidential: true,
       model_identifier: false,
       animation_loop_wrapping: true,
       quaternion_interpolation: true,
@@ -818,7 +826,23 @@
       block_size: 32,
       ...common
     });
+    let int_setting = new Setting("hytale_integer_size", {
+      name: "Hytale Integer Size",
+      category: "edit",
+      description: "Restrict cube sizes in hytale formats to full integers. Float values are technically supported but make UV mapping more difficult. Using stretch is recommended instead.",
+      type: "toggle",
+      value: true
+    });
+    track(int_setting);
+    const integer_size = { get: () => int_setting.value };
+    Object.defineProperty(format_character, "integer_size", integer_size);
+    Object.defineProperty(format_prop, "integer_size", integer_size);
+    const single_texture = { get: () => Collection.all.length == 0 };
+    Object.defineProperty(format_character, "single_texture", single_texture);
+    Object.defineProperty(format_prop, "single_texture", single_texture);
     codec.format = format_character;
+    format_character.codec = codec;
+    format_prop.codec = codec;
     track(format_character);
     track(format_prop);
     Language.addTranslations("en", {
@@ -906,13 +930,13 @@
     });
     let setting = new Setting("hytale_duplicate_bone_names", {
       name: "Duplicate Bone Names",
+      category: "edit",
       description: "Allow creating duplicate groups names in Hytale formats. Multiple groups with the same name can be used to apply animations to multiple nodes at once.",
       type: "toggle",
       value: false
     });
     let override = Group.addBehaviorOverride({
       condition: () => isHytaleFormat() && setting.value == true,
-      // @ts-ignore
       priority: 2,
       behavior: {
         unique_name: false
@@ -945,7 +969,8 @@
         { channel: "rotation", keyframes: anim_data.orientation },
         { channel: "position", keyframes: anim_data.position },
         { channel: "scale", keyframes: anim_data.shapeStretch },
-        { channel: "visibility", keyframes: anim_data.shapeVisible }
+        { channel: "visibility", keyframes: anim_data.shapeVisible },
+        { channel: "uv_offset", keyframes: anim_data.shapeUvOffset }
       ];
       for (let { channel, keyframes } of anim_channels) {
         if (!keyframes || keyframes.length == 0) continue;
@@ -954,6 +979,12 @@
           if (channel == "visibility") {
             data_point = {
               visibility: kf_data.delta
+            };
+          } else if (channel == "uv_offset") {
+            let delta = kf_data.delta;
+            data_point = {
+              x: delta.x,
+              y: -delta.y
             };
           } else {
             let delta = kf_data.delta;
@@ -992,7 +1023,7 @@
     const nodeAnimations = {};
     const file = {
       formatVersion: 1,
-      duration: animation.length * FPS,
+      duration: Math.round(animation.length * FPS),
       holdLastKeyframe: animation.loop == "hold",
       nodeAnimations
     };
@@ -1000,7 +1031,8 @@
       position: "position",
       rotation: "orientation",
       scale: "shapeStretch",
-      visibility: "shapeVisible"
+      visibility: "shapeVisible",
+      uv_offset: "shapeUvOffset"
     };
     for (let uuid in animation.animators) {
       let animator = animation.animators[uuid];
@@ -1019,6 +1051,12 @@
           let delta;
           if (channel == "visibility") {
             delta = data_point.visibility;
+          } else if (channel == "uv_offset") {
+            delta = {
+              x: parseFloat(data_point.x),
+              y: -parseFloat(data_point.y)
+            };
+            delta = new oneLiner(delta);
           } else {
             delta = {
               x: parseFloat(data_point.x),
@@ -1047,12 +1085,15 @@
             delta,
             interpolationType: kf.interpolation == "catmullrom" ? "smooth" : "linear"
           };
+          if (channel == "uv_offset") console.log(kf_output);
           timeline.push(kf_output);
           has_data = true;
         }
       }
       if (has_data) {
-        node_data.shapeUvOffset = [];
+        if (!node_data.shapeUvOffset) {
+          node_data.shapeUvOffset = [];
+        }
         nodeAnimations[name] = node_data;
       }
     }
@@ -1116,7 +1157,7 @@
         return original_save.call(this, ...args);
       }
       let animation;
-      animation = Animation2.selected;
+      animation = this;
       let content = compileJSON(compileAnimationFile(animation), Config.json_compile_options);
       if (isApp && this.path) {
         Blockbench.writeFile(this.path, { content }, (real_path) => {
@@ -1144,6 +1185,14 @@
         Animation2.prototype.save = original_save;
       }
     });
+    let save_all_listener = BarItems.save_all_animations.on("use", () => {
+      if (!isHytaleFormat()) return;
+      Animation2.all.forEach((animation) => {
+        if (!animation.saved) animation.save();
+      });
+      return false;
+    });
+    track(save_all_listener);
     let original_condition = BarItems.export_animation_file.condition;
     BarItems.export_animation_file.condition = () => {
       return Condition(original_condition) && !FORMAT_IDS.includes(Format.id);
@@ -1188,6 +1237,7 @@
       } else {
         texture.setAsDefaultTexture();
       }
+      UVEditor.vue.updateTexture();
     });
     track(handler);
   }
@@ -1286,7 +1336,7 @@
     let shared_delete = SharedActions.add("delete", {
       subject: "collection",
       priority: 1,
-      condition: () => Prop.active_panel == "collections" && isHytaleFormat() && Collection.selected.find((c) => c.export_codec === "blockymodel"),
+      condition: () => Prop.active_panel == "collections" && isHytaleFormat() && Collection.selected.some((c) => c.export_codec === "blockymodel"),
       run() {
         let collections = Collection.selected.slice();
         let remove_elements = [];
@@ -1422,7 +1472,9 @@
   function setupAnimation() {
     function displayVisibility(animator) {
       let group = animator.getGroup();
-      let scene_object = group.scene_object;
+      let main_shape = getMainShape(group);
+      if (!main_shape) return;
+      let scene_object = main_shape.scene_object;
       if (animator.muted.visibility) {
         scene_object.visible = group.visibility;
         return;
@@ -1451,12 +1503,79 @@
         displayVisibility(animator);
       }
     });
-    let property = new Property(KeyframeDataPoint, "boolean", "visibility", {
+    let vis_property = new Property(KeyframeDataPoint, "boolean", "visibility", {
       label: "Visibility",
       condition: (point) => point.keyframe.channel == "visibility",
       default: true
     });
-    track(property);
+    track(vis_property);
+    let on_exit_anim_mode = Blockbench.on("unselect_mode", (arg) => {
+      if (isHytaleFormat() && arg.mode?.id == "animate") {
+        Canvas.updateVisibility();
+      }
+    });
+    track(vis_property, on_exit_anim_mode);
+    function displayUVOffset(animator) {
+      let group = animator.getGroup();
+      let cube = getMainShape(group);
+      if (!cube) return;
+      let updateUV = (offset) => {
+        if (!offset || !offset[0] && !offset[1]) {
+          if (!cube.mesh.userData.uv_anim_offset) {
+            return;
+          } else {
+            cube.mesh.userData.uv_anim_offset = false;
+          }
+        } else {
+          cube.mesh.userData.uv_anim_offset = true;
+        }
+        offset = offset ?? [0, 0];
+        let fix_uvs = {};
+        for (let fkey in cube.faces) {
+          fix_uvs[fkey] = cube.faces[fkey].uv.slice();
+          cube.faces[fkey].uv[0] += offset[0];
+          cube.faces[fkey].uv[1] += offset[1];
+          cube.faces[fkey].uv[2] += offset[0];
+          cube.faces[fkey].uv[3] += offset[1];
+        }
+        Cube.preview_controller.updateUV(cube);
+        for (let fkey in cube.faces) {
+          cube.faces[fkey].uv.replace(fix_uvs[fkey]);
+        }
+      };
+      if (animator.muted.uv_offset) {
+        updateUV();
+        return;
+      }
+      let previous_keyframe;
+      let previous_time = -Infinity;
+      for (let keyframe of animator.uv_offset) {
+        if (keyframe.time <= Timeline.time && keyframe.time > previous_time) {
+          previous_keyframe = keyframe;
+          previous_time = keyframe.time;
+        }
+      }
+      if (previous_keyframe) {
+        updateUV(previous_keyframe.getArray());
+      } else if (true) {
+        updateUV();
+      }
+    }
+    BoneAnimator.addChannel("uv_offset", {
+      name: "UV Offset",
+      mutable: true,
+      transform: true,
+      max_data_points: 1,
+      condition: { formats: FORMAT_IDS },
+      displayFrame(animator, multiplier) {
+        displayUVOffset(animator);
+      }
+    });
+    let original_condition = KeyframeDataPoint.properties.z.condition;
+    KeyframeDataPoint.properties.z.condition = (point) => {
+      if (point.keyframe.channel == "uv_offset") return false;
+      return Condition(original_condition, point);
+    };
     function weightedCubicBezier(t) {
       let P0 = 0, P1 = 0.05, P2 = 0.95, P3 = 1;
       let W0 = 2, W1 = 1, W2 = 2, W3 = 1;
@@ -1482,6 +1601,7 @@
     });
     track(on_interpolate);
     let original_display_scale = BoneAnimator.prototype.displayScale;
+    let original_display_rotation = BoneAnimator.prototype.displayRotation;
     let original_show_default_pose = Animator.showDefaultPose;
     BoneAnimator.prototype.displayScale = function displayScale(array, multiplier = 1) {
       if (!array) return this;
@@ -1497,9 +1617,24 @@
           Cube.preview_controller.updateGeometry(target_shape);
           target_shape.stretch.V3_set(initial_stretch);
         }
-        return;
+        return this;
       }
-      original_display_scale.call(this, array, multiplier);
+      return original_display_scale.call(this, array, multiplier);
+    };
+    BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
+      if (isHytaleFormat() && array) {
+        let bone = this.group.scene_object;
+        let euler = Reusable.euler1.set(
+          Math.degToRad(array[0]) * multiplier,
+          Math.degToRad(array[1]) * multiplier,
+          Math.degToRad(array[2]) * multiplier,
+          bone.rotation.order
+        );
+        let q2 = Reusable.quat2.setFromEuler(euler);
+        bone.quaternion.multiply(q2);
+        return this;
+      }
+      return original_display_rotation.call(this, array, multiplier);
     };
     Animator.showDefaultPose = function(reduced_updates, ...args) {
       original_show_default_pose(reduced_updates, ...args);
@@ -1512,6 +1647,7 @@
     track({
       delete() {
         BoneAnimator.prototype.displayScale = original_display_scale;
+        BoneAnimator.prototype.displayRotation = original_display_rotation;
         Animator.showDefaultPose = original_show_default_pose;
       }
     });
@@ -1576,9 +1712,10 @@
             autouv: settings.autouv.value ? 1 : 0,
             // @ts-ignore
             double_sided: true,
+            box_uv: false,
             color
           }).init();
-          if (!base_quad.box_uv) base_quad.mapAutoUV();
+          base_quad.mapAutoUV();
           let group = getCurrentGroup();
           if (group) {
             base_quad.addTo(group);
@@ -1648,6 +1785,18 @@
     track(add_quad_action);
     let add_element_menu = BarItems.add_element.side_menu;
     add_element_menu.addAction(add_quad_action);
+    let set_uv_mode_original = Cube.prototype.setUVMode;
+    Cube.prototype.setUVMode = function(box_uv, ...args) {
+      if (isHytaleFormat()) {
+        if (cubeIsQuad(this) && box_uv) return;
+      }
+      return set_uv_mode_original.call(this, box_uv, ...args);
+    };
+    track({
+      delete() {
+        Cube.prototype.setUVMode = set_uv_mode_original;
+      }
+    });
     let inflate_condition_original = BarItems.slider_inflate.condition;
     BarItems.slider_inflate.condition = () => {
       if (isHytaleFormat()) return false;
@@ -1831,6 +1980,31 @@
     });
     check.name = "Hytale Node Count";
     track(check);
+    let uv_check = new ValidatorCheck("hytale_uv_size", {
+      update_triggers: ["update_selection"],
+      condition: { formats: FORMAT_IDS },
+      run() {
+        for (let texture of Texture.all) {
+          if (texture.uv_width != texture.width || texture.uv_height != texture.height) {
+            this.fail({
+              message: `The texture ${texture.name} has a resolution (${texture.width}x${texture.height}) that does not match its UV size (${texture.uv_width}x${texture.uv_height}). Ensure that your pixel density is 64 for characters and 32 for props.`,
+              buttons: [
+                {
+                  name: "Fix UV Size",
+                  icon: "build",
+                  click() {
+                    updateUVSize(texture);
+                    texture.select();
+                  }
+                }
+              ]
+            });
+          }
+        }
+      }
+    });
+    uv_check.name = "Hytale UV Size";
+    track(uv_check);
     let listener = Blockbench.on("display_model_stats", ({ stats }) => {
       if (!FORMAT_IDS.includes(Format.id)) return;
       let node_count = getNodeCount();
@@ -1842,7 +2016,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.5.0",
+    version: "0.8.0",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -1853,7 +2027,7 @@
     author: "JannisX11, Kanno",
     license: "GPL-3.0",
     dependencies: {
-      "blockbench-types": "^5.0.6"
+      "blockbench-types": "^5.1.0-beta.0-next.4"
     },
     devDependencies: {
       esbuild: "^0.25.9"
@@ -1866,6 +2040,7 @@
       name: "Copy-Paste with Magenta Alpha",
       description: "Copy image selections with magenta background and remove magenta when pasting to help transfer transparency to Photoshop",
       type: "toggle",
+      category: "paint",
       value: false
     });
     track(setting);
@@ -2128,6 +2303,7 @@
       this.dot.renderOrder = 900;
       this.dot.visible = false;
       Canvas.scene.add(this.dot);
+      Canvas.gizmos.push(this.dot);
       this.listener = Blockbench.on("update_selection", () => this.update());
       this.cameraListener = Blockbench.on("update_camera_position", () => this.updateScale());
       this.update();
@@ -2170,6 +2346,9 @@
     getRelevantGroup() {
       let sel = Outliner.selected[0];
       if (!sel) return null;
+      while (sel.parent instanceof OutlinerNode && sel.parent.selected) {
+        sel = sel.parent;
+      }
       if (sel instanceof Group) {
         return sel;
       }
@@ -3091,6 +3270,147 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track(Blockbench.on("select_format", updateSizes));
   }
 
+  // src/alt_duplicate.ts
+  function setupAltDuplicate() {
+    const keybindItem = new KeybindItem("hytale_duplicate_drag_modifier", {
+      name: "Duplicate While Dragging",
+      description: "Hold this key while dragging the gizmo to duplicate",
+      keybind: new Keybind({ key: 18 }),
+      category: "edit"
+    });
+    track(keybindItem);
+    let isDragging = false;
+    let modifierWasPressed = false;
+    let isCombinedUndoActive = false;
+    let combinedUndoCubesBefore = 0;
+    let combinedUndoGroups = [];
+    let originalInitEdit = null;
+    let originalFinishEdit = null;
+    function isModifierPressed(event) {
+      const kb = keybindItem.keybind;
+      if (kb.key === 18 || kb.alt) return event.altKey;
+      if (kb.key === 17 || kb.ctrl) return event.ctrlKey;
+      if (kb.key === 16 || kb.shift) return event.shiftKey;
+      return Pressing.alt;
+    }
+    function isModifierKey(event) {
+      const kb = keybindItem.keybind;
+      return event.keyCode === kb.key || event.key === "Alt" && (kb.key === 18 || kb.alt) || event.key === "Control" && (kb.key === 17 || kb.ctrl) || event.key === "Shift" && (kb.key === 16 || kb.shift);
+    }
+    function duplicateGroups() {
+      const allNewGroups = [];
+      const oldSelectedGroups = Group.multi_selected.slice();
+      Group.multi_selected.empty();
+      for (const group of oldSelectedGroups) {
+        group.selected = false;
+        const newGroup = group.duplicate();
+        newGroup.forEachChild((g) => allNewGroups.push(g), Group, true);
+        newGroup.multiSelect();
+        allNewGroups.push(newGroup);
+      }
+      return allNewGroups;
+    }
+    function duplicateElements() {
+      Outliner.selected.slice().forEach((obj, i) => {
+        if (obj.parent instanceof OutlinerElement && obj.parent.selected) return;
+        Outliner.selected[i] = obj.duplicate();
+      });
+    }
+    function performDuplicationForCombinedUndo(shouldInitEdit) {
+      const hasGroups = Group.all.some((g) => g.selected);
+      const hasElements = Outliner.selected.length > 0;
+      if (!hasGroups && !hasElements) return false;
+      combinedUndoCubesBefore = Outliner.elements.length;
+      combinedUndoGroups = [];
+      originalInitEdit = Undo.initEdit.bind(Undo);
+      originalFinishEdit = Undo.finishEdit.bind(Undo);
+      if (shouldInitEdit) {
+        originalInitEdit({ outliner: true, elements: [], groups: [], selection: true });
+      }
+      Undo.initEdit = () => {
+      };
+      Undo.finishEdit = () => {
+      };
+      if (hasGroups) {
+        combinedUndoGroups = duplicateGroups();
+      } else {
+        duplicateElements();
+      }
+      updateSelection();
+      isCombinedUndoActive = true;
+      return true;
+    }
+    function finishCombinedUndo() {
+      if (!isCombinedUndoActive) return;
+      isCombinedUndoActive = false;
+      if (originalInitEdit) Undo.initEdit = originalInitEdit;
+      if (originalFinishEdit) Undo.finishEdit = originalFinishEdit;
+      originalInitEdit = null;
+      originalFinishEdit = null;
+      Undo.finishEdit("Duplicate and move", {
+        outliner: true,
+        elements: Outliner.elements.slice(combinedUndoCubesBefore),
+        groups: combinedUndoGroups,
+        selection: true
+      });
+    }
+    function onMouseDown(event) {
+      if (isCombinedUndoActive) return;
+      const axis = Transformer?.axis;
+      const hasSelection = Outliner.selected.length > 0 || Group.all.some((g) => g.selected);
+      const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
+      if (!axis || !hasSelection || !isTransformTool) return;
+      if (isModifierPressed(event)) {
+        event.stopImmediatePropagation();
+        if (!performDuplicationForCombinedUndo(true)) return;
+        isDragging = true;
+        modifierWasPressed = true;
+        setTimeout(() => {
+          event.target?.dispatchEvent(new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            button: event.button,
+            buttons: event.buttons,
+            view: window,
+            pointerId: 1,
+            pointerType: "mouse"
+          }));
+        }, 0);
+      } else {
+        isDragging = true;
+        modifierWasPressed = false;
+      }
+    }
+    function onKeyDown(event) {
+      if (!isDragging || !isModifierKey(event) || modifierWasPressed) return;
+      const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
+      if (!isTransformTool) return;
+      modifierWasPressed = true;
+      const shouldInitEdit = isCombinedUndoActive;
+      if (isCombinedUndoActive) finishCombinedUndo();
+      performDuplicationForCombinedUndo(shouldInitEdit);
+    }
+    function onKeyUp(event) {
+      if (isModifierKey(event)) modifierWasPressed = false;
+    }
+    function onMouseUp() {
+      isDragging = false;
+      modifierWasPressed = false;
+      if (isCombinedUndoActive) setTimeout(finishCombinedUndo, 0);
+    }
+    const events = [
+      ["pointerdown", onMouseDown],
+      ["pointerup", onMouseUp],
+      ["mouseup", onMouseUp],
+      ["keydown", onKeyDown],
+      ["keyup", onKeyUp]
+    ];
+    events.forEach(([type, handler]) => document.addEventListener(type, handler, true));
+    track({ delete: () => events.forEach(([type, handler]) => document.removeEventListener(type, handler, true)) });
+  }
+
   // src/plugin.ts
   BBPlugin.register("hytale_plugin", {
     title: "Hytale Models",
@@ -3105,10 +3425,12 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     has_changelog: true,
     creation_date: "2025-12-22",
     contributes: {
-      formats: FORMAT_IDS
+      formats: FORMAT_IDS,
+      open_extensions: ["blockymodel"]
     },
     repository: "https://github.com/JannisX11/hytale-blockbench-plugin",
     bug_tracker: "https://github.com/JannisX11/hytale-blockbench-plugin/issues",
+    contributors: ["Hedaox"],
     onload() {
       setupFormats();
       setupElements();
@@ -3120,6 +3442,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       setupPhotoshopTools();
       setupUVCycling();
       setupTextureHandling();
+      setupAltDuplicate();
       setupNameOverlap();
       setupUVOutline();
       setupTempFixes();

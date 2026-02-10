@@ -221,5 +221,104 @@
 				]
 			}
 		]
+	},
+	"0.6.0": {
+		"title": "0.6.0",
+		"date": "2026-01-11",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Cube sizes are now limited to full integers by default. This can be disabled in the settings, however it is recommended to leave it on and use stretch instead.",
+					"Added a validator to flag textures with the wrong pixel density. In the future, UV size will automatically adapt to texture size.",
+					"Added info about scale keyframes to about page"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Unless attachments are loaded, UI will now adapt single-texture workflow",
+					"Fixed a preview issue with rotation keyframes",
+					"Quads are no longer created with Box UV enabled if Box UV is the project default, and can no longer be set to Box UV",
+					"Fixed settings categories"
+				]
+			}
+		]
+	},
+	"0.6.1": {
+		"title": "0.6.1",
+		"date": "2026-01-12",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with pixel density when generating a template"
+				]
+			}
+		]
+	},
+	"0.6.2": {
+		"title": "0.6.2",
+		"date": "2026-01-25",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed issue with saving multiple animations at once",
+					"Fixed visibility keyframe applying to child nodes",
+					"Fixed broken UV when importing attachment with default UV mode set to Box UV",
+					"Fixed texture update issue in UV editor when switching textures",
+					"Fixed animation length rounding issue in export",
+					"Fixed Hytale formats being hidden in Streamer Mode",
+					"Fixed group pivot marker appearing in screenshots"
+				]
+			}
+		]
+	},
+	"0.7.0": {
+		"title": "0.7.0",
+		"date": "2026-02-02",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added UV Offset animation channel",
+					"Groups now share the same marker color as their main cube when opening blockymodel",
+					"Node visibility is now exported to and imported from blockymodels"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue where some attachment models imported with incorrect node offsets",
+					"Fixed export toggle not affecting which nodes are exported",
+					"Fixed pivot marker appearing at the pivot of the wrong group in some scenarios",
+					"Improved compatibility with Code View plugin"
+				]
+			}
+		]
+	},
+	"0.8.0": {
+		"title": "0.8.0",
+		"date": "2026-02-07",
+		"author": "Kanno & JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added shortcut to hold Alt while moving elements to duplicate them"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed an issue with the import offset of hairstyle attachments"
+				]
+			}
+		]
 	}
 }

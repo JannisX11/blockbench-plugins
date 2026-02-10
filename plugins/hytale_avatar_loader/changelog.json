@@ -1,0 +1,68 @@
+{
+    "1.0.0": {
+        "title": "1.0.0",
+        "date": "2026-01-16",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Initial release of Hytale Avatar Loader",
+                    "Load complete Hytale avatars from JSON files",
+                    "Automatic gradient map processing for greyscale textures",
+                    "Smart color preservation - maintains existing colors (like gold accents) while applying gradient maps",
+                    "Batch processing of all avatar components (skin, hair, eyes, clothing, accessories)",
+                    "Timestamped temporary folders to prevent overwriting when loading multiple avatars",
+                    "Support for all Hytale avatar components including body characteristics, haircuts, eyes, facial features, clothing, and accessories",
+                    "Automatic detection of material types and appropriate gradient set application",
+                    "Face and ear textures automatically use body characteristic skin color"
+                ]
+            }
+        ]
+    },
+    "1.1.0": {
+        "title": "1.1.0",
+        "date": "2026-01-18",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Automatic animation import from Assets\\Common\\Characters\\Animations\\Default",
+                    "Imports all default Hytale character animations (excluding FPS variants)"
+                ]
+            }
+        ]
+    },
+    "1.1.1": {
+        "title": "1.1.1",
+        "date": "2026-01-22",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Improvements",
+                "list": [
+                    "Added Resolve Textures action for texture groups tied to avatar collections",
+                    "Resolve button now appears only when groups exist and hides after resolving",
+                    "UI and texture handling refactors to reduce duplicated logic"
+                ]
+            }
+        ]
+    },
+    "1.1.2": {
+        "title": "1.1.2",
+        "date": "2026-02-04",
+        "author": "PasteDev",
+        "categories": [
+            {
+                "title": "Fixes",
+                "list": [
+                    "Ensure avatar collections always show in the outliner",
+                    "Prevent duplicate Resolve Textures buttons in the textures toolbar",
+                    "Normalize bone offsets on attachment import for correct positioning",
+                    "Support for Hytale Models plugin v0.7.0"
+                ]
+            }
+        ]
+    }
+}
