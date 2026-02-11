@@ -1394,7 +1394,6 @@
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
 	},
-	
 	"baked_ambient_occlusion": {
 		"title": "Mr Salmon's Baked Ambient Occlusion",
     	"author": "Kai Salmon",

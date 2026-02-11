@@ -116,13 +116,22 @@ function showAmbientOcclusionDialog(): void {
                 description: 'Opacity of the highlight color overlay'
             },
             highlight_gamma: {
-                label: 'Highlight Gamma',
+                label: 'Highlight Softness',
                 type: 'range',
                 min: 0.2,
                 max: 2.0,
                 step: 0.1,
                 value: savedSettings.highlightGamma,
                 description: 'Gamma correction for highlight areas (lower = more contrast)'
+            },
+            ao_highlight_size: {
+                label: 'Highlight Size',
+                type: 'number',
+                min: 1,
+                max: 64,
+                step: 1,
+                value: savedSettings.aoHighlightSize,
+                description: 'Ray distance for highlight detection (rays going into the surface)'
             },
             shadow_color: {
                 label: 'Shadow Color',
@@ -140,13 +149,22 @@ function showAmbientOcclusionDialog(): void {
                 description: 'Opacity of the shadow color overlay'
             },
             shadow_gamma: {
-                label: 'Shadow Gamma',
+                label: 'Shadow Softness',
                 type: 'range',
                 min: 0.2,
                 max: 2.0,
                 step: 0.1,
                 value: savedSettings.shadowGamma,
                 description: 'Gamma correction for shadow areas (higher = softer shadows)'
+            },
+            ao_shadow_size: {
+                label: 'Shadow Size',
+                type: 'number',
+                min: 1,
+                max: 64,
+                step: 1,
+                value: savedSettings.aoShadowSize,
+                description: 'Ray distance for shadow detection (rays going away from the surface)'
             },
             samples: {
                 label: 'Samples per pixel',
@@ -166,15 +184,6 @@ function showAmbientOcclusionDialog(): void {
                 },
                 value: savedSettings.sampleMethod,
                 description: 'Method for sampling ambient occlusion rays. Random is slightly more accurate but noisier, uniform is smoother for less samples but is more prone to artifacts.'
-            },
-            ambient_occlusion_radius: {
-                label: 'Ambient Occlusion Radius',
-                type: 'number',
-                min: 1,
-                max: 32,
-                step: 1,
-                value: savedSettings.ambientOcclusionRadius,
-                description: 'Radius for ambient occlusion effect (Bigger is better for larger models or higher-resolution textures)'
             },
             simulate_ground_plane: {
                 label: 'Simulate Ground Plane',
@@ -217,7 +226,8 @@ function showAmbientOcclusionDialog(): void {
                 highlightColor: hexToColor('#' + formResult.highlight_color.toHex(), formResult.highlight_alpha),
                 shadowColor: hexToColor('#' + formResult.shadow_color.toHex(), formResult.shadow_alpha),
                 samples: formResult.samples,
-                ambientOcclusionRadius: formResult.ambient_occlusion_radius,
+                aoShadowSize: formResult.ao_shadow_size,
+                aoHighlightSize: formResult.ao_highlight_size,
                 retainTextureTransparency: formResult.retain_texture_transparency,
                 sampleTextureTransparency: formResult.sample_texture_transparency,
                 shadowGamma: formResult.shadow_gamma,
@@ -231,7 +241,8 @@ function showAmbientOcclusionDialog(): void {
                 highlightColor: options.highlightColor,
                 shadowColor: options.shadowColor,
                 samples: options.samples,
-                ambientOcclusionRadius: options.ambientOcclusionRadius,
+                aoShadowSize: options.aoShadowSize,
+                aoHighlightSize: options.aoHighlightSize,
                 retainTextureTransparency: options.retainTextureTransparency,
                 sampleTextureTransparency: options.sampleTextureTransparency,
                 shadowGamma: options.shadowGamma,
@@ -283,7 +294,8 @@ interface BakeAmbientOcclusionOptions {
     highlightColor: Color;
     shadowColor: Color;
     samples: number;
-    ambientOcclusionRadius: number;
+    aoShadowSize: number;
+    aoHighlightSize: number;
     retainTextureTransparency: boolean;
     sampleTextureTransparency: boolean;
     shadowGamma: number;
@@ -589,9 +601,11 @@ function calculateAmbientOcclusion(
         } else {
             direction = spherePoints[i];
         }
-        const raycaster: THREE.Raycaster = new THREE.Raycaster(vectorPool.origin, direction, 0.001, opts.ambientOcclusionRadius);
+        const rayDot = direction.dot(vectorPool.normal);
+        const radius = rayDot >= 0 ? opts.aoShadowSize : opts.aoHighlightSize;
+        const raycaster: THREE.Raycaster = new THREE.Raycaster(vectorPool.origin, direction, 0.001, radius);
 
-        const hit = bvh.raycastFirst(raycaster.ray, THREE.DoubleSide);
+        const hit = bvh.raycastFirst(raycaster.ray, THREE.DoubleSide, 0.001, radius);
         if (hit) {
             const faceNormal = hit.face!.normal!;
             const dot = vectorPool.direction.dot(faceNormal);
@@ -715,10 +729,11 @@ function getPluginSettings(): BakeAmbientOcclusionOptions {
     const savedSettings = localStorage.getItem('blockbench_baked_ao_settings');
     const defaultSettings = {
         sampleMethod: 'random' as 'random' | 'uniform',
-        highlightColor: { r: 231, g: 225, b: 164, a: 0.4 },
+        highlightColor: { r: 231, g: 230, b: 184, a: 0.3 },
         shadowColor: { r: 36, g: 11, b: 55, a: 0.5 },
         samples: 1000,
-        ambientOcclusionRadius: 8,
+        aoShadowSize: 32,
+        aoHighlightSize: 8,
         retainTextureTransparency: false,
         sampleTextureTransparency: false,
         shadowGamma: 1.0,
