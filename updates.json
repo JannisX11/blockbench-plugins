@@ -578,5 +578,10 @@
     "version": "1.1.1",
     "created": 1768738768363,
     "updated": 1769262278639
+  },
+  "baked_ambient_occlusion": {
+    "version": "1.0.0",
+    "created": 1771093398623,
+    "updated": 1771093398623
   }
 }
