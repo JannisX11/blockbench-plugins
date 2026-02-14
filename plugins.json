@@ -1393,5 +1393,15 @@
 		"website": "https://pastelito.dev",
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
+	},
+  	"hytale_hitbox_helper": {
+		"title": "Hytale Hitbox Helper",
+  		"author": "Marck.A.A",
+  		"version": "1.0.0",
+  		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
+  		"icon": "icon.png",
+  		"variant": "both",
+  		"tags": ["Hytale"]	
 	}
+	
 }
