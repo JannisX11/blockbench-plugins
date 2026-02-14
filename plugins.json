@@ -1393,5 +1393,20 @@
 		"website": "https://pastelito.dev",
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
+	},
+	"baked_ambient_occlusion": {
+		"title": "Mr Salmon's Baked Ambient Occlusion",
+    	"author": "Kai Salmon",
+		"description": "Baked Ambient Occlusion, creating instant shading",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"repository": "https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Shading"
+		]
 	}
 }
