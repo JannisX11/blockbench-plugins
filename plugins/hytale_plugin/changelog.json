@@ -320,5 +320,21 @@
 				]
 			}
 		]
+	},
+	"0.8.1": {
+		"title": "0.8.1",
+		"date": "2026-02-16",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Float values are no longer allowed in UV offset keyframes and are now rounded to fix compatibility",
+					"Fixed offset issues in saving attachment models",
+					"Fixed duplicated rotation when importing attachments",
+					"Fixed Alt + drag to duplicate still being active with no keybinding set"
+				]
+			}
+		]
 	}
 }
