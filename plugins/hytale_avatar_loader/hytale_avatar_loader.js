@@ -1,4 +1,6 @@
 let loadAction;
+let loadFromUrlAction;
+let changeAssetsFolderAction;
 let resolveTexturesAction;
 
 const links = {
@@ -19,9 +21,9 @@ const links = {
 Plugin.register('hytale_avatar_loader', {
     title: 'Hytale Avatar Loader',
     author: 'PasteDev',
-    description: 'Loads Hytale avatar models with textures and colors from JSON files',
+    description: 'Loads Hytale avatar models with textures and colors from local JSON files or from crafthead.net',
     icon: 'icon.png',
-    version: '1.1.2',
+    version: '1.2.0',
     min_version: '5.0.7',
     variant: 'desktop',
     tags: ['Hytale'],
@@ -118,17 +120,150 @@ Plugin.register('hytale_avatar_loader', {
                             return;
                         }
                         
+                        const cachedAssetsPath = localStorage.getItem('hytale_assets_path');
+                        
+                        if (cachedAssetsPath) {
+                            loadAvatar(avatarData, cachedAssetsPath).catch((err) => {
+                                Blockbench.showMessageBox({
+                                    title: 'Error',
+                                    message: `Error loading avatar: ${err.message}`,
+                                    buttons: ['OK']
+                                });
+                            });
+                        } else {
+                            const assetsZipPath = expandPath('%appdata%\\Hytale\\install\\release\\package\\game\\latest');
+                            
+                            Blockbench.showMessageBox({
+                                title: 'Select Assets Folder',
+                                message: '**Step 2: Select the extracted Assets folder**\n\n' +
+                                         '**Instructions:**\n\n' +
+                                         '1. Extract `Assets.zip` from:\n' +
+                                         '   📁 `%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n' +
+                                         '2. Navigate to the extracted Assets folder\n\n' +
+                                         '3. Select the Assets folder when prompted\n\n' +
+                                         '⚠️ **Important:** You must extract Assets.zip first before selecting the folder.\n\n' +
+                                         'This path will be saved for future use.',
+                                buttons: ['OK']
+                            }, () => {
+                                if (typeof Blockbench.pickDirectory === 'function') {
+                                    const assetsDir = Blockbench.pickDirectory({
+                                        title: 'Select Assets Folder (extracted)',
+                                        resource_id: 'avatar_assets_folder'
+                                    });
+                                    
+                                    if (!assetsDir) {
+                                        Blockbench.showMessageBox({
+                                            title: 'Error',
+                                            message: 'You must select the Assets folder',
+                                            buttons: ['OK']
+                                        });
+                                        return;
+                                    }
+                                    
+                                    localStorage.setItem('hytale_assets_path', assetsDir);
+                                    
+                                    loadAvatar(avatarData, assetsDir).catch((err) => {
+                                        Blockbench.showMessageBox({
+                                            title: 'Error',
+                                            message: `Error loading avatar: ${err.message}`,
+                                            buttons: ['OK']
+                                        });
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        
+        loadFromUrlAction = new Action('load_avatar_from_url', {
+            name: 'Load Hytale Avatar with Username',
+            description: 'Loads a Hytale avatar from crafthead.net',
+            icon: 'cloud_download',
+            condition: {formats: ['hytale_character']},
+            click: async function() {
+                function expandPath(path) {
+                    if (path.includes('%appdata%')) {
+                        try {
+                            const appDataPath = SystemInfo.appdata_directory || '';
+                            return path.replace(/%appdata%/gi, appDataPath);
+                        } catch (err) {
+                            return path;
+                        }
+                    }
+                    return path;
+                }
+                
+                const username = await new Promise((resolve) => {
+                    const dialog = new Dialog({
+                        id: 'hytale_username_dialog',
+                        title: 'Load Avatar from Crafthead',
+                        form: {
+                            username: {label: 'Username', type: 'text', value: ''}
+                        },
+                        onConfirm(formData) {
+                            dialog.hide();
+                            resolve(formData.username);
+                        },
+                        onCancel() {
+                            dialog.hide();
+                            resolve(null);
+                        }
+                    });
+                    dialog.show();
+                });
+                
+                if (!username || !username.trim()) {
+                    Blockbench.showMessageBox({
+                        title: 'No Username',
+                        message: 'Please enter a username to load.',
+                        buttons: ['OK']
+                    });
+                    return;
+                }
+                
+                try {
+                    Blockbench.showStatusMessage('Fetching avatar data...', 2000);
+                    const url = `https://crafthead.net/hytale/profile/${encodeURIComponent(username.trim())}`;
+                    
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch avatar: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Extract the skin data from the crafthead response
+                    const avatarData = data.skin || data;
+                    
+                    if (!avatarData || typeof avatarData !== 'object') {
+                        throw new Error('Invalid avatar data received from server');
+                    }
+                    
+                    const cachedAssetsPath = localStorage.getItem('hytale_assets_path');
+                    
+                    if (cachedAssetsPath) {
+                        loadAvatar(avatarData, cachedAssetsPath).catch((err) => {
+                            Blockbench.showMessageBox({
+                                title: 'Error',
+                                message: `Error loading avatar: ${err.message}`,
+                                buttons: ['OK']
+                            });
+                        });
+                    } else {
                         const assetsZipPath = expandPath('%appdata%\\Hytale\\install\\release\\package\\game\\latest');
                         
                         Blockbench.showMessageBox({
                             title: 'Select Assets Folder',
-                            message: '**Step 2: Select the extracted Assets folder**\n\n' +
+                            message: '**Select the extracted Assets folder**\n\n' +
                                      '**Instructions:**\n\n' +
                                      '1. Extract `Assets.zip` from:\n' +
                                      '   📁 `%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n' +
                                      '2. Navigate to the extracted Assets folder\n\n' +
                                      '3. Select the Assets folder when prompted\n\n' +
-                                     '⚠️ **Important:** You must extract Assets.zip first before selecting the folder.',
+                                     '⚠️ **Important:** You must extract Assets.zip first before selecting the folder.\n\n' +
+                                     'This path will be saved for future use.',
                             buttons: ['OK']
                         }, () => {
                             if (typeof Blockbench.pickDirectory === 'function') {
@@ -146,6 +281,8 @@ Plugin.register('hytale_avatar_loader', {
                                     return;
                                 }
                                 
+                                localStorage.setItem('hytale_assets_path', assetsDir);
+                                
                                 loadAvatar(avatarData, assetsDir).catch((err) => {
                                     Blockbench.showMessageBox({
                                         title: 'Error',
@@ -155,12 +292,91 @@ Plugin.register('hytale_avatar_loader', {
                                 });
                             }
                         });
+                    }
+                } catch (err) {
+                    Blockbench.showMessageBox({
+                        title: 'Error Loading Avatar',
+                        message: `Failed to load avatar from URL: ${err.message}`,
+                        buttons: ['OK']
                     });
+                    console.error('Error loading avatar from URL:', err);
+                }
+            }
+        });
+        
+        changeAssetsFolderAction = new Action('change_hytale_assets_folder', {
+            name: 'Change Hytale Assets Folder',
+            description: 'Change the location of the Hytale assets folder',
+            icon: 'folder_open',
+            condition: {formats: ['hytale_character']},
+            click: function() {
+                function expandPath(path) {
+                    if (path.includes('%appdata%')) {
+                        try {
+                            const appDataPath = SystemInfo.appdata_directory || '';
+                            return path.replace(/%appdata%/gi, appDataPath);
+                        } catch (err) {
+                            return path;
+                        }
+                    }
+                    return path;
+                }
+                function wrapPathForMessage(path, maxLength) {
+                    if (!path || !maxLength) return path;
+                    const parts = path.split('\\');
+                    const lines = [];
+                    let currentLine = '';
+                    for (const part of parts) {
+                        const nextLine = currentLine ? `${currentLine}\\${part}` : part;
+                        if (nextLine.length > maxLength && currentLine) {
+                            lines.push(currentLine);
+                            currentLine = part;
+                        } else {
+                            currentLine = nextLine;
+                        }
+                    }
+                    if (currentLine) lines.push(currentLine);
+                    return lines.join('\n');
+                }
+                
+                const currentPath = localStorage.getItem('hytale_assets_path');
+                const assetsZipPath = expandPath('%appdata%\\Hytale\\install\\release\\package\\game\\latest');
+                const displayCurrentPath = currentPath ? wrapPathForMessage(currentPath, 48) : '';
+                
+                const message = currentPath 
+                    ? `**Current Assets Folder:**\n${displayCurrentPath}\n\n**Instructions:**\n\n1. Extract \`Assets.zip\` from:\n   📁 \`%appdata%\\Hytale\\install\\release\\package\\game\\latest\`\n\n2. Select the extracted Assets folder when prompted`
+                    : '**Instructions:**\n\n1. Extract `Assets.zip` from:\n   📁 `%appdata%\\Hytale\\install\\release\\package\\game\\latest`\n\n2. Select the extracted Assets folder when prompted';
+                
+                Blockbench.showMessageBox({
+                    title: 'Change Assets Folder',
+                    message: message,
+                    buttons: ['OK']
+                }, () => {
+                    if (typeof Blockbench.pickDirectory === 'function') {
+                        const assetsDir = Blockbench.pickDirectory({
+                            title: 'Select Assets Folder (extracted)',
+                            resource_id: 'avatar_assets_folder'
+                        });
+                        
+                        if (!assetsDir) {
+                            return;
+                        }
+                        
+                        localStorage.setItem('hytale_assets_path', assetsDir);
+                        
+                        Blockbench.showMessageBox({
+                            title: 'Success',
+                            message: `Assets folder updated to:\n${wrapPathForMessage(assetsDir, 48)}`,
+                            buttons: ['OK']
+                        });
+                    }
                 });
             }
         });
         
         MenuBar.addAction(loadAction, 'file.import');
+        MenuBar.addAction(loadFromUrlAction, 'file.import');
+        MenuBar.addAction(changeAssetsFolderAction, 'file.preferences');
         
         function getTextureGroupsFromCollections() {
             if (typeof Collection === 'undefined' || !Collection.all || typeof TextureGroup === 'undefined' || !TextureGroup.all) return [];
@@ -258,6 +474,8 @@ Plugin.register('hytale_avatar_loader', {
     },
     onunload() {
         if (loadAction) loadAction.delete();
+        if (loadFromUrlAction) loadFromUrlAction.delete();
+        if (changeAssetsFolderAction) changeAssetsFolderAction.delete();
         if (resolveTexturesAction) resolveTexturesAction.delete();
         window.hytaleAvatarLoaderInitialized = false;
     }
@@ -971,7 +1189,7 @@ async function continueLoadingAvatar(avatarData, assetsBasePath, mappings, pathJ
                 const variantItem = item.Variants[variant];
                 modelPath = variantItem.Model;
                 
-                if (variantItem.Textures && color) {
+                if (variantItem.Textures && typeof variantItem.Textures === 'object' && !Array.isArray(variantItem.Textures) && color) {
                     if (variantItem.Textures[color]) {
                         texturePath = variantItem.Textures[color].Texture;
                     } else {
@@ -987,7 +1205,7 @@ async function continueLoadingAvatar(avatarData, assetsBasePath, mappings, pathJ
             } else {
                 modelPath = item.Model;
                 
-                if (item.Textures && color) {
+                if (item.Textures && typeof item.Textures === 'object' && !Array.isArray(item.Textures) && color) {
                     if (item.Textures[color]) {
                         texturePath = item.Textures[color].Texture;
                     } else {
