@@ -1,4 +1,4 @@
-/// <reference path="../types/index.d.ts" />
+/// <reference path="../../types/index.d.ts" />
 
 (function() {
 
@@ -8,7 +8,7 @@ Plugin.register('reference_models', {
 	title: 'Reference Models',
 	icon: 'fas.fa-monument',
 	author: 'JannisX11',
-	description: 'Load and view glTF reference models in Blockbench',
+	description: 'Load and view glTF/glb models or other project tabs as references in Blockbench',
 	version: '1.1.0',
 	min_version: '5.0.0',
 	variant: 'desktop',

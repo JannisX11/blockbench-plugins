@@ -685,7 +685,7 @@
 		"title": "Reference Models",
 		"author": "JannisX11",
 		"icon": "fas.fa-monument",
-		"description": "Load and view glTF reference models in Blockbench",
+		"description": "Load and view glTF/glb models or other project tabs as references in Blockbench",
 		"version": "1.1.0",
 		"min_version": "5.0.0",
 		"variant": "desktop"
