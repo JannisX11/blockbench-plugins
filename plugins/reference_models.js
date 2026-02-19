@@ -9,8 +9,8 @@ Plugin.register('reference_models', {
 	icon: 'fas.fa-monument',
 	author: 'JannisX11',
 	description: 'Load and view glTF reference models in Blockbench',
-	version: '1.0.2',
-	min_version: '4.0.0',
+	version: '1.0.3',
+	min_version: '5.0.0',
 	variant: 'desktop',
 	onload() {
 		class ReferenceModel extends OutlinerElement {
@@ -23,9 +23,6 @@ Plugin.register('reference_models', {
 				if (data && typeof data === 'object') {
 					this.extend(data)
 				}
-			}
-			get from() {
-				return this.origin;
 			}
 			getWorldCenter() {
 				return THREE.fastWorldPosition(this.mesh, Reusable.vec2);
@@ -57,13 +54,16 @@ Plugin.register('reference_models', {
 				el.uuid = this.uuid
 				return el;
 			}
+
+			static behavior = {
+				movable: true,
+				rotatable: true,
+				scalable: true
+			}
 		}
 			ReferenceModel.prototype.title = tl('data.reference_model');
 			ReferenceModel.prototype.type = 'reference_model';
 			ReferenceModel.prototype.icon = 'fas fa-monument';
-			ReferenceModel.prototype.movable = true;
-			ReferenceModel.prototype.scalable = true;
-			ReferenceModel.prototype.rotatable = true;
 			ReferenceModel.prototype.needsUniqueName = false;
 			ReferenceModel.prototype.menu = new Menu([
 				'change_reference_model_file',
@@ -82,15 +82,36 @@ Plugin.register('reference_models', {
 				Outliner.buttons.locked,
 				Outliner.buttons.visibility,
 			];
-		
+
 		new Property(ReferenceModel, 'string', 'name', {default: 'reference_model'})
 		new Property(ReferenceModel, 'string', 'path')
 		new Property(ReferenceModel, 'vector', 'origin');
 		new Property(ReferenceModel, 'vector', 'rotation');
-		new Property(ReferenceModel, 'vector', 'scale', {default: [1, 1, 1]});
+		new Property(ReferenceModel, 'vector', 'scale', {default: [16, 16, 16]});
 		new Property(ReferenceModel, 'boolean', 'visibility', {default: true});
+		new Property(ReferenceModel, 'boolean', 'wireframe', {
+			default: false,
+			inputs: {
+				element_panel: {
+					input: {label: 'Wireframe', type: 'checkbox'},
+					onChange() {
+						updateSelection();
+					}
+				}
+			}
+		});
 		
 		OutlinerElement.registerType(ReferenceModel, 'reference_model');
+
+		function loadReferenceModel(element, path) {
+			const loader = new THREE.GLTFLoader();
+			loader.setPath(PathModule.dirname(path) + PathModule.sep);
+			loader.load(PathModule.basename(path), gltf => {
+				if (element.mesh.children[0]) element.mesh.remove(element.mesh.children[0]);
+				element.mesh.add(gltf.scene);
+				element.preview_controller.updateTransform(element);
+			})
+		}
 		
 		new NodePreviewController(ReferenceModel, {
 			setup(element) {
@@ -100,17 +121,22 @@ Plugin.register('reference_models', {
 				mesh.name = element.uuid;
 				mesh.type = element.type;
 				mesh.isElement = true;
+				console.log(mesh, element.path)
 				if (element.path) {
-					let loader = new THREE.GLTFLoader().setPath(PathModule.dirname(element.path) + PathModule.sep);
-					loader.load(PathModule.basename(element.path), gltf => {
-						element.mesh.add(gltf.scene);
-						element.preview_controller.updateTransform(element);
-					})
+					loadReferenceModel(element, element.path)
 				}
 
 				// Update
 				this.updateTransform(element);
 				mesh.visible = element.visibility;
+			},
+			updateSelection(element) {
+				let w = element.wireframe;
+				element.mesh.traverse(object => {
+					if (object.material && 'wireframe' in object.material) {
+						object.material.wireframe = w;
+					}
+				})
 			}
 		})
 
@@ -134,8 +160,7 @@ Plugin.register('reference_models', {
 						})
 					}
 				}
-	
-				if (Group.selected) Group.selected.unselect()
+
 				base_reference_model.select()
 				Blockbench.dispatchEvent( 'add_reference_model', {object: base_reference_model} )
 	
@@ -147,15 +172,11 @@ Plugin.register('reference_models', {
 
 				}, files => {
 					let path = files[0].path;
-					let loader = new THREE.GLTFLoader().setPath(PathModule.dirname(path) + PathModule.sep);
 					base_reference_model.path = path;
 					base_reference_model.name = pathToName(path, false);
 					Undo.finishEdit('Add reference model', {outliner: true, elements: selected, selection: true});
 
-					loader.load(PathModule.basename(path), gltf => {
-						base_reference_model.mesh.add(gltf.scene);
-						base_reference_model.preview_controller.updateTransform(base_reference_model);
-					})
+					loadReferenceModel(base_reference_model, path);
 				})
 
 				return base_reference_model
@@ -177,16 +198,10 @@ Plugin.register('reference_models', {
 
 				}, files => {
 					let path = files[0].path;
-					let loader = new THREE.GLTFLoader().setPath(PathModule.dirname(path) + PathModule.sep);
 					for (let ref_model of ref_models) {
 						ref_model.path = path;
 						//Undo.finishEdit('Change reference model path');
-
-						loader.load(PathModule.basename(path), gltf => {
-							if (ref_model.mesh.children[0]) ref_model.mesh.remove(ref_model.mesh.children[0]);
-							ref_model.mesh.add(gltf.scene);
-							ref_model.preview_controller.updateTransform(ref_model);
-						})
+						loadReferenceModel(ref_model, path);
 					}
 				})
 
