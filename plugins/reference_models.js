@@ -9,7 +9,7 @@ Plugin.register('reference_models', {
 	icon: 'fas.fa-monument',
 	author: 'JannisX11',
 	description: 'Load and view glTF reference models in Blockbench',
-	version: '1.0.3',
+	version: '1.1.0',
 	min_version: '5.0.0',
 	variant: 'desktop',
 	onload() {
@@ -85,9 +85,10 @@ Plugin.register('reference_models', {
 
 		new Property(ReferenceModel, 'string', 'name', {default: 'reference_model'})
 		new Property(ReferenceModel, 'string', 'path')
+		new Property(ReferenceModel, 'string', 'project')
 		new Property(ReferenceModel, 'vector', 'origin');
 		new Property(ReferenceModel, 'vector', 'rotation');
-		new Property(ReferenceModel, 'vector', 'scale', {default: [16, 16, 16]});
+		new Property(ReferenceModel, 'vector', 'scale', {default: [1, 1, 1]});
 		new Property(ReferenceModel, 'boolean', 'visibility', {default: true});
 		new Property(ReferenceModel, 'boolean', 'wireframe', {
 			default: false,
@@ -109,9 +110,74 @@ Plugin.register('reference_models', {
 			loader.load(PathModule.basename(path), gltf => {
 				if (element.mesh.children[0]) element.mesh.remove(element.mesh.children[0]);
 				element.mesh.add(gltf.scene);
+				let base_size = Format.block_size;
+				gltf.scene.scale.set(base_size, base_size, base_size);
 				element.preview_controller.updateTransform(element);
 			})
 		}
+		function loadProjectAsRefModel(ref_model) {
+			let project = ModelProject.all.find(p => p.uuid == ref_model.project);
+			if (!project) return;
+			
+			if (ref_model.mesh.children[0]) ref_model.mesh.remove(ref_model.mesh.children[0]);
+			ref_model.mesh.add(project.model_3d);
+			ref_model.preview_controller.updateTransform(ref_model);
+		}
+
+		
+		function selectReferenceSource(ref_model) {
+			let project_options = {};
+			for (let project of ModelProject.all) {
+				if (project == Project) continue;
+				project_options[project.uuid] = project.name;
+			}
+			new Dialog({
+				id: 'reference_model_settings',
+				form: {
+					type: {type: "inline_select", options: {
+						file: '3D File',
+						project: 'Project tab'
+					}, value: ref_model.project ? 'project' : 'file'},
+					file: {
+						label: '3D File',
+						type: 'file',
+						extensions: ['gltf', 'glb'],
+						readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text'),
+						file_type: '3D Model',
+						value: ref_model.path,
+						condition: (result) => result.type == 'file',
+					},
+					project: {
+						type: 'select',
+						label: 'Project',
+						value: ref_model.project,
+						options: project_options,
+						condition: (result) => result.type == 'project',
+					}
+				},
+				onConfirm(result) {
+					Undo.initEdit({elements: [ref_model]});
+					console.log(result)
+					if (result.type == 'file') {
+						ref_model.path = result.file;
+						loadReferenceModel(ref_model, result.file);
+						ref_model.name = pathToName(result.file, true);
+					} else {
+						ref_model.project = result.project;
+						ref_model.name = ModelProject.all.find(p => p.uuid == result.project)?.getDisplayName() ?? 'Project';
+						loadProjectAsRefModel(ref_model);
+					}
+					Undo.finishEdit('Change reference model source');
+				}
+			}).show();
+		}
+		Blockbench.on('select_project', () => {
+			ReferenceModel.all.forEach(ref_model => {
+				if (ref_model.project) {
+					loadProjectAsRefModel(ref_model);
+				}
+			})
+		})
 		
 		new NodePreviewController(ReferenceModel, {
 			setup(element) {
@@ -124,6 +190,8 @@ Plugin.register('reference_models', {
 				console.log(mesh, element.path)
 				if (element.path) {
 					loadReferenceModel(element, element.path)
+				} else if (element.project) {
+					loadProjectAsRefModel(element);
 				}
 
 				// Update
@@ -165,7 +233,10 @@ Plugin.register('reference_models', {
 				Blockbench.dispatchEvent( 'add_reference_model', {object: base_reference_model} )
 	
 
-				Blockbench.import({
+				selectReferenceSource(base_reference_model);
+				Undo.finishEdit('Add reference model', {outliner: true, elements: [base_reference_model], selection: true});
+
+				/*Blockbench.import({
 					type: 'glTF Model',
 					extensions: ['gltf', 'glb'],
 					readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text')
@@ -177,35 +248,20 @@ Plugin.register('reference_models', {
 					Undo.finishEdit('Add reference model', {outliner: true, elements: selected, selection: true});
 
 					loadReferenceModel(base_reference_model, path);
-				})
+				})*/
 
 				return base_reference_model
 			}
 		})
 		change_model_action = new Action('change_reference_model_file', {
-			name: 'Change Reference Model File',
+			name: 'Change Reference Model',
 			icon: 'fas.fa-monument',
 			category: 'edit',
 			condition: () => (Modes.edit || Modes.paint) && ReferenceModel.selected[0],
 			click: function () {
 				let ref_models = ReferenceModel.selected;
-				//Undo.initEdit({elements: ref_models});
+				selectReferenceSource(ref_models[0]);
 
-				Blockbench.import({
-					type: 'glTF Model',
-					extensions: ['gltf', 'glb'],
-					readtype: file => (pathToExtension(file.path) == 'glb' ? 'binary' : 'text')
-
-				}, files => {
-					let path = files[0].path;
-					for (let ref_model of ref_models) {
-						ref_model.path = path;
-						//Undo.finishEdit('Change reference model path');
-						loadReferenceModel(ref_model, path);
-					}
-				})
-
-				return base_reference_model
 			}
 		})
 		Interface.Panels.outliner.menu.addAction(add_action, '3')
