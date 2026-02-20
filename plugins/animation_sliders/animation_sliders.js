@@ -9,7 +9,7 @@ Plugin.register('animation_sliders', {
 	author: 'JannisX11',
 	description: 'Adds multiple sliders to tweak keyframes',
 	tags: ['Animation'],
-	version: '0.4.0',
+	version: '0.5.0',
 	min_version: '4.8.0',
 	variant: 'both',
 	onload() {
@@ -42,21 +42,54 @@ Plugin.register('animation_sliders', {
 			condition: () => Animator.open,
 			children() {
 				return [
-					{icon: selected_axes.x ? 'check_box' : 'check_box_outline_blank', name: 'X', click() {selected_axes.x = !selected_axes.x}},
-					{icon: selected_axes.y ? 'check_box' : 'check_box_outline_blank', name: 'Y', click() {selected_axes.y = !selected_axes.y}},
-					{icon: selected_axes.z ? 'check_box' : 'check_box_outline_blank', name: 'Z', click() {selected_axes.z = !selected_axes.z}},
+					{
+						icon: () => selected_axes.x,
+						name: 'X',
+						click() {selected_axes.x = !selected_axes.x},
+						keybind: axis_selector.sub_keybinds.x.keybind
+					},
+					{
+						icon: () => selected_axes.y,
+						name: 'Y',
+						click() {selected_axes.y = !selected_axes.y},
+						keybind: axis_selector.sub_keybinds.y.keybind
+					},
+					{
+						icon: () => selected_axes.z,
+						name: 'Z',
+						click() {selected_axes.z = !selected_axes.z},
+						keybind: axis_selector.sub_keybinds.z.keybind
+					},
 					'_',
-					{icon: 'clear_all', name: 'Enable All', condition: () => {
-						let {length} = [selected_axes.x, selected_axes.y, selected_axes.z].filter(key => key);
-						return length != 3;
-					}, click() {
-						selected_axes.x = true; selected_axes.y = true; selected_axes.z = true;
-					}},
+					{
+						icon: 'clear_all',
+						name: 'Enable All',
+						keybind: axis_selector.sub_keybinds.enable_all.keybind,
+						condition: () => {
+							let {length} = [selected_axes.x, selected_axes.y, selected_axes.z].filter(key => key);
+							return length != 3;
+						},
+						click() {
+							selected_axes.x = true; selected_axes.y = true; selected_axes.z = true;
+						}
+					},
 				]
 			},
 			click(event) {
-				new Menu(this.children()).open(event.target);
+				new Menu('keyframe_slider_axis_selector', this.children(), {keep_open: true}).open(event.target);
 			}
+		});
+		axis_selector.addSubKeybind('x', 'Toggle X', null, () => {
+			selected_axes.x = !selected_axes.x
+		})
+		axis_selector.addSubKeybind('y', 'Toggle Y', null, () => {
+			selected_axes.y = !selected_axes.y
+		})
+		axis_selector.addSubKeybind('z', 'Toggle Z', null, () => {
+			selected_axes.z = !selected_axes.z
+		})
+		axis_selector.addSubKeybind('enable_all', 'Enable All', null, () => {
+			selected_axes.x = true; selected_axes.y = true; selected_axes.z = true;
 		})
 
 

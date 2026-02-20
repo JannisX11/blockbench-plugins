@@ -160,6 +160,7 @@
         }
         Settings.updateSettingsInProfiles();
       },
+      // MARK: Compile
       compile(options = {}) {
         let model = {
           nodes: [],
@@ -307,12 +308,14 @@
             node.shape.textureLayout[direction] = layout_face;
           }
         }
-        function getNodeOffset(group) {
+        function getNodeOffset(group, include_original_offset = true) {
           let cube = getMainShape(group);
           if (cube) {
             let center_pos = cube.from.slice().V3_add(cube.to).V3_divide(2, 2, 2);
             center_pos.V3_subtract(group.origin);
             return center_pos;
+          } else if (include_original_offset) {
+            return group.original_offset;
           }
         }
         function compileNode(element, name = element.name) {
@@ -335,12 +338,16 @@
             w: quaternion.w
           });
           let origin = element.origin.slice();
+          let offset = element instanceof Group ? getNodeOffset(element) : [0, 0, 0];
           if (element.parent instanceof Group) {
             origin.V3_subtract(element.parent.origin);
-            let offset = getNodeOffset(element.parent);
-            if (offset) {
-              origin.V3_subtract(offset);
+            let parent_offset = getNodeOffset(element.parent, !options.attachment);
+            if (parent_offset) {
+              origin.V3_subtract(parent_offset);
             }
+          }
+          if (options.attachment && element instanceof Group && element.is_piece && element.original_position?.some((v) => v)) {
+            origin = element.original_position;
           }
           let node = {
             id: node_id.toString(),
@@ -349,8 +356,8 @@
             orientation,
             shape: {
               type: "none",
-              offset: formatVector([0, 0, 0]),
-              stretch: formatVector([0, 0, 0]),
+              offset: formatVector(offset),
+              stretch: formatVector([1, 1, 1]),
               settings: {
                 isPiece: element instanceof Group && element.is_piece || false
               },
@@ -389,7 +396,10 @@
         }
         let nodes = Outliner.root.filter((node) => node instanceof Group || node instanceof Cube);
         if (options.attachment instanceof Collection) {
-          nodes = options.attachment.getChildren().filter((g) => g instanceof Group);
+          let in_collection = options.attachment.getChildren();
+          nodes = in_collection.filter((g) => {
+            return g instanceof Group;
+          });
         }
         for (let node of nodes) {
           let compiled = compileNode(node);
@@ -401,6 +411,7 @@
           return compileJSON(model, Config.json_compile_options);
         }
       },
+      // MARK: Parse
       parse(model, path, args = {}) {
         function parseVector(vec, fallback = [0, 0, 0]) {
           if (!vec) return fallback;
@@ -426,6 +437,7 @@
           let name = node.name;
           let offset = node.shape?.offset ? parseVector(node.shape?.offset) : [0, 0, 0];
           let origin = parseVector(node.position);
+          let original_position;
           let rotation = [
             Math.roundTo(Math.radToDeg(rotation_euler.x), 3),
             Math.roundTo(Math.radToDeg(rotation_euler.y), 3),
@@ -433,8 +445,8 @@
           ];
           if (args.attachment && !parent_node && parent_group instanceof Group) {
             let reference_node = getMainShape(parent_group) ?? parent_group;
+            original_position = origin;
             origin = reference_node.origin.slice();
-            rotation = reference_node.rotation.slice();
           } else if (parent_offset && parent_group instanceof Group) {
             origin.V3_add(parent_offset);
             origin.V3_add(parent_group.origin);
@@ -453,12 +465,15 @@
             if (!parent_node && args.attachment) {
               group.name = args.attachment + ":" + group.name;
               group.color = 1;
+              group.rotation.V3_set(0, 0, 0);
             }
             group.init();
-            group.extend({
-              // @ts-ignore
-              is_piece: node.shape?.settings?.isPiece ?? false
-            });
+            let custom_data = {
+              is_piece: node.shape?.settings?.isPiece ?? false,
+              original_position,
+              original_offset: offset
+            };
+            group.extend(custom_data);
           } else {
             name = name.replace(/--C\d+$/, "");
           }
@@ -701,6 +716,7 @@
         }
         return { new_groups, new_textures };
       },
+      // MARK: Other
       async export(options) {
         if (Object.keys(this.export_options).length) {
           let result = await this.promptExportOptions();
@@ -1053,8 +1069,8 @@
             delta = data_point.visibility;
           } else if (channel == "uv_offset") {
             delta = {
-              x: parseFloat(data_point.x),
-              y: -parseFloat(data_point.y)
+              x: Math.round(parseFloat(data_point.x)),
+              y: -Math.round(parseFloat(data_point.y))
             };
             delta = new oneLiner(delta);
           } else {
@@ -1520,6 +1536,9 @@
       let cube = getMainShape(group);
       if (!cube) return;
       let updateUV = (offset) => {
+        if (offset) {
+          offset = offset.map((v) => Math.round(v));
+        }
         if (!offset || !offset[0] && !offset[1]) {
           if (!cube.mesh.userData.uv_anim_offset) {
             return;
@@ -1698,6 +1717,14 @@
       }
     });
     track(is_piece_property);
+    let original_position_property = new Property(Group, "vector", "original_position", {
+      condition: { formats: FORMAT_IDS }
+    });
+    track(original_position_property);
+    let original_offset_property = new Property(Group, "vector", "original_offset", {
+      condition: { formats: FORMAT_IDS }
+    });
+    track(original_offset_property);
     let add_quad_action = new Action("hytale_add_quad", {
       name: "Add Quad",
       icon: "highlighter_size_5",
@@ -2016,7 +2043,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.8.0",
+    version: "0.8.1",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -3288,10 +3315,10 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     let originalFinishEdit = null;
     function isModifierPressed(event) {
       const kb = keybindItem.keybind;
-      if (kb.key === 18 || kb.alt) return event.altKey;
-      if (kb.key === 17 || kb.ctrl) return event.ctrlKey;
-      if (kb.key === 16 || kb.shift) return event.shiftKey;
-      return Pressing.alt;
+      if (kb.key === 18 || kb.alt) return event.altKey || Pressing.overrides.alt;
+      if (kb.key === 17 || kb.ctrl) return event.ctrlKey || Pressing.overrides.ctrl;
+      if (kb.key === 16 || kb.shift) return event.shiftKey || Pressing.overrides.shift;
+      if (kb.key === 91 || kb.ctrl) return event.metaKey || Pressing.overrides.ctrl;
     }
     function isModifierKey(event) {
       const kb = keybindItem.keybind;
