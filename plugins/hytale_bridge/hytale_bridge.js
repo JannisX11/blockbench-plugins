@@ -50,6 +50,7 @@ BBPlugin.register("hytale_bridge", {
     version: "0.1.0",
     description: "A Hytale/Blockbench plugin that bridges the two together seamlessly and effortlessly",
     tags: ["Hytale"],
+    dependencies: ["hytale_plugin"],
     variant: "desktop",
     min_version: "5.0.7",
     creation_date: "2026-2-10",
