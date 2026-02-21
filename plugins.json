@@ -1408,5 +1408,21 @@
 			"Texture",
 			"Shading"
 		]
+	},
+	"hytale_bridge": {
+		"title": "Hytale Bridge",
+		"author": "Tazer",
+		"icon": "icon.png",
+		"version": "0.1.0",
+		"description": "A Hytale/Blockbench plugin that bridges the two together seamlessly and effortlessly",
+		"tags": ["Hytale"],
+		"dependencies": ["hytale_plugin"],
+		"variant": "desktop",
+		"min_version": "5.0.7",
+		"creation_date": "2026-2-10",
+		"await_loading": true,
+		"has_changelog": true,
+		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
+		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
 	}
 }

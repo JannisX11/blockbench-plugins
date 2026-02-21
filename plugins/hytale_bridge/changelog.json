@@ -1,0 +1,15 @@
+{
+    "0.1.0": {
+        "title": "0.1.0",
+        "date": "2026-02-10",
+        "author": "Tazer",
+        "categories": [
+            {
+                "title": "Features",
+                "list": [
+                    "Initial release!"
+                ]
+            }
+        ]
+    }
+}
