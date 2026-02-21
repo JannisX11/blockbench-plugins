@@ -7,8 +7,9 @@
     BBPlugin.register('hytale_hitbox_helper', {
         title: 'Hytale Hitbox Helper',
         author: 'Marck.A.A',
-        icon: 'icon-format_hytale',
+        icon: 'icon.png',
         description: 'Tool to create easy Hytale hitboxes exportable to JSON.',
+		min_version: '4.8.0',
         version: '1.0.0',
         variant: 'both',
         onload() {
