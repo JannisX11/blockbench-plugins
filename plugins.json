@@ -233,6 +233,17 @@
 		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/cem_template_loader",
 		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[CEM Template Loader]"
 	},
+	"check_invalid_rotation": {
+		"title": "Invalid Rotation Checker",
+		"author": "AnnJ",
+		"description": "Detects non-standard rotations and warns before save/export.",
+		"icon": "warning",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": ["Rotation", "Validation", "Export"],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/check_invalid_rotation"
+	},
 	"optifine_player_models": {
 		"title": "OptiFine Player Models",
 		"icon": "icon-player",
