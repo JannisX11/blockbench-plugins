@@ -1394,6 +1394,16 @@
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
 	},
+  	"hytale_hitbox_helper": {
+		"title": "Hytale Hitbox Helper",
+		"author": "Marck.A.A",
+		"version": "1.0.0",
+		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
+		"icon": "icon.png",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"tags": ["Hytale"]	
+	},
 	"baked_ambient_occlusion": {
 		"title": "Mr Salmon's Baked Ambient Occlusion",
     	"author": "Kai Salmon",
