@@ -11,5 +11,19 @@
                 ]
             }
         ]
+    },
+    "0.1.1": {
+        "title": "0.1.1",
+        "date": "2026-02-22",
+        "author": "Tazer",
+        "categories": [
+            {
+                "title": "Changes",
+                "list": [
+                    "Changed default port in connection dialog to 5520, to match Hytale's",
+                    "Updated some descriptions to match the Hytale plugin better"
+                ]
+            }
+        ]
     }
 }
