@@ -1,12 +1,7 @@
-let net;
-let fs;
-let panel;
-let requestFileTreeAction;
-let connectToHytaleAction;
-let menu;
-let usedAddress = 'localhost:8651';
-
-// TODO: panel and actions icon
+let net, fs;
+let requestFileTreeAction, connectToHytaleAction;
+let panel, menu;
+let usedAddress = 'localhost:5520';
 
 const bridgeState = {
     client: null,
@@ -60,29 +55,20 @@ BBPlugin.register("hytale_bridge", {
     bug_tracker: "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues",
     onload() {
         createPanel();
-        try {
-            net = requireNativeModule('net');
-        } catch {
-            try {
-                net = require('net');
-            } catch {
-                // ERROR
-            }
-        }
 
-        try {
-            fs = requireNativeModule('fs');
-        } catch {
-            try {
-                fs = require('fs');
-            } catch {
-                // ERROR
-            }
-        }
+        net = require('net', {
+            message: "This permission is required to connect to the remote Hytale server socket.",
+            optional: false
+        })
+
+        fs = require('fs', {
+            message: "This permission is required to access stored files and encode their data when uploading.",
+            optional: false
+        })
 
         requestFileTreeAction = new Action('request_file_tree', {
             name: 'Request Hytale Files',
-            icon: 'add',
+            icon: 'cloud_download',
             click() {
                 if (bridgeState.client) requestFileTree();
             }
@@ -112,10 +98,11 @@ function createPanel() {
     panel = new Panel({
         id: 'hytale_file_browser',
         name: 'Hytale File Browser',
-        icon: 'add',
+        icon: 'folder_open',
         resizable: true,
         growable: true,
-        expand_button: true, default_side: 'left',
+        expand_button: true, 
+        default_side: 'left',
         default_position: {
             slot: 'left_bar',
             float_position: [0, 0],
