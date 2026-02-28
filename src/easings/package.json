@@ -1,0 +1,23 @@
+{
+	"name": "easings",
+	"private": true,
+	"version": "1.0.0",
+	"module": "src/index.ts",
+	"type": "module",
+	"author": {
+		"name": "Svdex",
+		"url": "http://svdex.moe"
+	},
+	"scripts": {
+		"watch": "esbuild src/index.ts --bundle --watch --minify --outfile=../../plugins/easings/easings.js --format=iife",
+		"build": "esbuild src/index.ts --bundle --minify --outfile=../../plugins/easings/easings.js --format=iife"
+	},
+	"devDependencies": {
+		"esbuild": "^0.25.6",
+		"eslint": "^9.37.0",
+		"prettier": "^3.6.2",
+		"prettier-plugin-multiline-arrays": "^4.0.3",
+		"prettier-plugin-organize-imports": "^4.1.0",
+		"typescript-eslint": "^8.36.0"
+	}
+}
