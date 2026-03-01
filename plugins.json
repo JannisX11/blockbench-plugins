@@ -1434,5 +1434,17 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"easings": {
+		"title": "Easings",
+		"author": "Svdex",
+		"version": "1.0.0",
+		"description": "Apply easing functions to Minecraft: Bedrock Edition animations.",
+		"icon": "stacked_line_chart",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition", "Animation"],
+		"website": "https://svdex.moe",
+		"min_version": "4.8.0",
+		"has_changelog": true
 	}
 }

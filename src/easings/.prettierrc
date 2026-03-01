@@ -1,0 +1,13 @@
+{
+	"tabWidth": 2,
+	"useTabs": true,
+	"printWidth": 100,
+	"overrides": [
+		{
+			"files": ["*.ts"],
+			"options": {
+				"plugins": ["prettier-plugin-organize-imports", "prettier-plugin-multiline-arrays"]
+			}
+		}
+	]
+}
