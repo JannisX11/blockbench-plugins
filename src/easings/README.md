@@ -1,6 +1,6 @@
 # Easings
 
-Apply easing to Minecraft: Bedrock Edition animations by utilizing `anim_time_update`. Easing calculations are based on [easings.net](https://easings.net/).
+Apply easing to Minecraft: Bedrock Edition animations by utilizing `anim_time_update`.
 
 > Easing can only be applied to animations with a default or empty anim time update and a defined animation length.
 
