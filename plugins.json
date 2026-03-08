@@ -131,6 +131,14 @@
 		"variant": "both",
 		"version": "1.2.2"
 	},
+	"bedrock_voxel_shape_exporter" : {
+		"title": "Voxel Shape Exporter",
+		"author": "DivinusArtem",
+		"description": "Exports Voxel Shape JSON for Minecraft Bedrock Behavior Pack Add-ons",
+		"icon": "fa-cubes",
+		"variant": "both",
+		"version": "0.1.0"
+	},
 	"player_statue_generator": {
 		"title": "Player Statue Generator",
 		"author": "Wither, dragonmaster95 and 3XH6R",
