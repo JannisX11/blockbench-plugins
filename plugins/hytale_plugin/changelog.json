@@ -356,5 +356,25 @@
 				]
 			}
 		]
+	},
+	"0.8.3": {
+		"title": "0.8.3",
+		"date": "2026-03-08",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added toast notification to explain per-shape keyframes not applying."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Alt + drag to duplicate activating when not in edit mode",
+					"Fixed blockymodel export failing in certain configurations"
+				]
+			}
+		]
 	}
 }

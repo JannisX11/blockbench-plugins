@@ -316,6 +316,8 @@
             return center_pos;
           } else if (include_original_offset) {
             return group.original_offset;
+          } else {
+            return [0, 0, 0];
           }
         }
         function compileNode(element, name = element.name) {
@@ -886,7 +888,7 @@
   }
   function setupNameOverlap() {
     Blockbench.on("finish_edit", (arg) => {
-      if (arg.aspects.keyframes && Animation.selected) {
+      if (isHytaleFormat() && arg.aspects.keyframes && Animation.selected) {
         let changes = false;
         let groups = {};
         if (Timeline.selected_animator) {
@@ -1680,6 +1682,38 @@
         Animator.showDefaultPose = original_show_default_pose;
       }
     });
+    const per_shape_channels = /* @__PURE__ */ new Set(["scale", "visibility", "uv_offset"]);
+    const on_init_edit = Blockbench.on("init_edit", (arg) => {
+      if (arg.aspects.keyframes?.length == 1 && per_shape_channels.has(arg.aspects.keyframes[0].channel)) {
+        let kf = arg.aspects.keyframes[0];
+        let group = kf.animator.group;
+        if (!group.name) return;
+        let shape = getMainShape(group);
+        if (shape) return;
+        if (document.getElementById("toast_notification_list").children.length) return;
+        Blockbench.showToastNotification({
+          // @ts-expect-error
+          id: "hytale_no_connected_shape_toast",
+          text: `The group "${group.name}" has no connected shape, so the ${kf.channel} animation will not apply. Click to learn more.`,
+          icon: "fa-cube",
+          expire: 20 * 1e3,
+          click: () => {
+            Blockbench.showMessageBox({
+              title: "No connected shape",
+              icon: "info",
+              width: 500,
+              message: `Scale, visibility, and UV animations only apply to one cube that's directly connected to the group. No shape is directly connected to this group.
+
+For Hytale, the first cube inside a group qualifies as directly connected if it matches the following criteria:
+* The cube must be directly parented to the group
+* The rotation value of the cube itself must be 0`
+            });
+            return true;
+          }
+        });
+      }
+    });
+    track(on_init_edit);
   }
 
   // src/element.ts
@@ -2053,7 +2087,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.8.2",
+    version: "0.8.3",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -2064,7 +2098,7 @@
     author: "JannisX11, Kanno",
     license: "GPL-3.0",
     dependencies: {
-      "blockbench-types": "^5.1.0-beta.0-next.5"
+      "blockbench-types": "^5.1.0-beta.2-next.1"
     },
     devDependencies: {
       esbuild: "^0.25.9"
@@ -3396,7 +3430,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       const axis = Transformer?.axis;
       const hasSelection = Outliner.selected.length > 0 || Group.all.some((g) => g.selected);
       const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
-      if (!axis || !hasSelection || !isTransformTool) return;
+      if (!axis || !hasSelection || !isTransformTool || !Modes.edit) return;
       if (isModifierPressed(event)) {
         event.stopImmediatePropagation();
         if (!performDuplicationForCombinedUndo(true)) return;
@@ -3423,7 +3457,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     function onKeyDown(event) {
       if (!isDragging || !isModifierKey(event) || modifierWasPressed) return;
       const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
-      if (!isTransformTool) return;
+      if (!isTransformTool || !Modes.edit) return;
       modifierWasPressed = true;
       const shouldInitEdit = isCombinedUndoActive;
       if (isCombinedUndoActive) finishCombinedUndo();
