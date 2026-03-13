@@ -64,7 +64,7 @@
         author: 'HamzaDev',
         icon: 'view_in_ar',
         version: '1.0.0',
-        description: 'A custom-designed item model definition exporter plugin for Punchy! With the extra panel added to the export section, you can quickly select bone texture, animation, and namespace settings and export the product.',
+        description: 'A custom-designed item model definition and compat exporter plugin for Punchy!',
         onload() {
             // COMPAT EXPORT ACTION
             this.compatExportAction = new Action('export_punchy_compat', {

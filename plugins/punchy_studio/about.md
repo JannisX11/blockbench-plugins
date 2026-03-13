@@ -4,6 +4,9 @@
 
 The core logic of this plugin is to streamline the development workflow by providing a fast and reliable environment for generating complex JSON templates. By automating the technical structuring of configuration files, it minimizes manual entry errors and significantly reduces the time required for asset implementation.
 
+# Definition - Compat
+With the extra panel added to the export section, you can quickly select bone texture, animation, and namespace settings and export the product.
+
 ---
 
 ### Technical Documentation
