@@ -1397,7 +1397,7 @@
   	"hytale_hitbox_helper": {
 		"title": "Hytale Hitbox Helper",
 		"author": "Marck.A.A",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
 		"icon": "icon.png",
 		"variant": "both",

@@ -3,11 +3,17 @@
 ## Features
 
 * **Dedicated Format:** Adds a new "Hytale Hitbox" project type.
-* **Optimized Workspace:** * Automatic **Wireframe** view mode on activation.
 * **Quick Add:** One-click button to add a standard 32x32x32 hitbox.
+* **Multiple Hitboxes:** It supports adding multiple Hitboxes.
 * **Smart Export:** * Exports strictly to Hytale's `.json` format.
     * Only exports elements named "hitbox" (case insensitive).
     * Automatic coordinate conversion (32 BB units = 1.0 Hytale unit).
+* **References:** You can import other reference block mode models; they do not interfere with the hitbox.
+
+## References Models
+
+If you go to **File > Import** you can Import a model to use it as reference, it has to be (.blockymodel)
+It wont be imported.
 
 ## How to Use
 
