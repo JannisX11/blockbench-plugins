@@ -3,11 +3,12 @@
 // =========================
 let iconExporterAction;
 const PLUGIN_BROWSER_ICON = 'icon.svg';
-const ACTION_ICON = 'photo_camera';
+const ACTION_ICON = 'data:image/png;base64,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';
 const ACTION_ICON_16 = 'photo_size_select_small';
 const ACTION_ICON_64 = 'photo_size_select_large';
 let activeResetButton = null;
 let cachedToolbarIconDataUrl = null;
+let toolbarIconDataUrlPromise = null;
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 let dialogCameraRestoreState = null;
 let dialogDefaultFramedCameraState = null;
@@ -18,6 +19,141 @@ const DEFAULT_EXPORT_PREFS = Object.freeze({
     output_folder: ''
 });
 let cachedExportPrefsText = '';
+const EXPORT_PREFS_LAST_WORKSPACE_KEY = 'menu_icon_exporter_last_workspace_v1';
+const EXPORT_PREFS_WORKSPACES_SNAPSHOT_KEY = 'menu_icon_exporter_workspaces_snapshot_v1';
+
+function getWorkspaceState() {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+        let raw = localStorage.getItem('workspaces');
+        if (!raw) return [];
+        let parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .map((workspace, index) => {
+                let name = workspace && typeof workspace.name === 'string' ? workspace.name.trim() : '';
+                let projects = workspace && Array.isArray(workspace.projects) ? workspace.projects : [];
+                let projectSignature = '[]';
+                try {
+                    projectSignature = JSON.stringify(projects);
+                } catch (error) {
+                    projectSignature = '[]';
+                }
+                return {
+                    name: name,
+                    active: workspace && workspace.active === true,
+                    index: index,
+                    projectSignature: projectSignature
+                };
+            })
+            .filter(workspace => !!workspace.name);
+    } catch (error) {
+        return [];
+    }
+}
+
+function getActiveWorkspaceName(workspaceState = null) {
+    let state = Array.isArray(workspaceState) ? workspaceState : getWorkspaceState();
+    if (!Array.isArray(state) || !state.length) return null;
+    let activeWorkspace = state.find(workspace => workspace.active === true);
+    if (!activeWorkspace) return null;
+    if (activeWorkspace.name === 'Default') return null;
+    return activeWorkspace.name;
+}
+
+function loadWorkspaceSnapshot() {
+    if (typeof localStorage === 'undefined') return [];
+    try {
+        let raw = localStorage.getItem(EXPORT_PREFS_WORKSPACES_SNAPSHOT_KEY);
+        if (!raw) return [];
+        let parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .filter(workspace => workspace && typeof workspace.name === 'string' && typeof workspace.index === 'number')
+            .map(workspace => ({
+                name: workspace.name,
+                index: workspace.index,
+                projectSignature: typeof workspace.projectSignature === 'string' ? workspace.projectSignature : '[]'
+            }));
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveWorkspaceSnapshot(workspaceState = []) {
+    if (typeof localStorage === 'undefined') return;
+    try {
+        let snapshot = workspaceState.map(workspace => ({
+            name: workspace.name,
+            index: workspace.index,
+            projectSignature: workspace.projectSignature
+        }));
+        localStorage.setItem(EXPORT_PREFS_WORKSPACES_SNAPSHOT_KEY, JSON.stringify(snapshot));
+    } catch (error) {
+    }
+}
+
+function migrateWorkspacePrefsOnRename(workspaceState = []) {
+    if (typeof localStorage === 'undefined') return;
+    if (!Array.isArray(workspaceState) || !workspaceState.length) return;
+
+    let previousState = loadWorkspaceSnapshot();
+    if (!previousState.length) return;
+
+    let currentNames = new Set(workspaceState.map(workspace => workspace.name));
+    let previousNames = new Set(previousState.map(workspace => workspace.name));
+
+    let removed = previousState.filter(workspace => workspace.name !== 'Default' && !currentNames.has(workspace.name));
+    let added = workspaceState.filter(workspace => workspace.name !== 'Default' && !previousNames.has(workspace.name));
+
+    if (removed.length !== 1 || added.length !== 1) return;
+
+    let previousWorkspace = removed[0];
+    let currentWorkspace = added[0];
+
+    if (previousWorkspace.index !== currentWorkspace.index) return;
+    if (previousWorkspace.projectSignature !== currentWorkspace.projectSignature) return;
+
+    let previousKey = `${EXPORT_PREFS_KEY}::${previousWorkspace.name}`;
+    let currentKey = `${EXPORT_PREFS_KEY}::${currentWorkspace.name}`;
+    if (localStorage.getItem(currentKey) !== null) return;
+
+    let previousValue = localStorage.getItem(previousKey);
+    if (typeof previousValue === 'string') {
+        localStorage.setItem(currentKey, previousValue);
+    }
+}
+
+function getExportPrefsKey() {
+    let workspaceState = getWorkspaceState();
+    let workspaceName = getActiveWorkspaceName(workspaceState);
+
+    if (typeof localStorage !== 'undefined') {
+        try {
+            migrateWorkspacePrefsOnRename(workspaceState);
+            let previousActiveWorkspace = localStorage.getItem(EXPORT_PREFS_LAST_WORKSPACE_KEY) || '';
+            if (workspaceName && previousActiveWorkspace && workspaceName !== previousActiveWorkspace) {
+                let previousStillExists = Array.isArray(workspaceState) && workspaceState.some(workspace => workspace.name === previousActiveWorkspace);
+                if (!previousStillExists) {
+                    let previousKey = `${EXPORT_PREFS_KEY}::${previousActiveWorkspace}`;
+                    let currentKey = `${EXPORT_PREFS_KEY}::${workspaceName}`;
+                    if (localStorage.getItem(currentKey) === null) {
+                        let previousValue = localStorage.getItem(previousKey);
+                        if (typeof previousValue === 'string') {
+                            localStorage.setItem(currentKey, previousValue);
+                        }
+                    }
+                }
+            }
+            localStorage.setItem(EXPORT_PREFS_LAST_WORKSPACE_KEY, workspaceName || '');
+            saveWorkspaceSnapshot(Array.isArray(workspaceState) ? workspaceState : []);
+        } catch (error) {
+        }
+    }
+
+    if (!workspaceName) return EXPORT_PREFS_KEY;
+    return `${EXPORT_PREFS_KEY}::${workspaceName}`;
+}
 const PLUGIN_REPOSITORY = 'https://github.com/HMC-Studios/Menu-Icon-Exporter';
 const PLUGIN_BUG_TRACKER = 'https://github.com/HMC-Studios/Menu-Icon-Exporter/issues';
 const PLUGIN_ABOUT = `Export Blockbench models as PNG icons with stable camera framing and fast export actions.
@@ -84,7 +220,8 @@ function normalizeExportPrefs(source = {}) {
 
 function loadExportPrefs() {
     try {
-        let raw = localStorage.getItem(EXPORT_PREFS_KEY);
+        let prefsKey = getExportPrefsKey();
+        let raw = localStorage.getItem(prefsKey);
         let normalized = normalizeExportPrefs(raw ? JSON.parse(raw) : DEFAULT_EXPORT_PREFS);
         cachedExportPrefsText = JSON.stringify(normalized);
         return normalized;
@@ -101,7 +238,8 @@ function saveExportPrefs(source = {}) {
     if (serialized === cachedExportPrefsText) return;
     cachedExportPrefsText = serialized;
     try {
-        localStorage.setItem(EXPORT_PREFS_KEY, serialized);
+        let prefsKey = getExportPrefsKey();
+        localStorage.setItem(prefsKey, serialized);
     } catch (error) {
     }
 }
@@ -129,7 +267,6 @@ Plugin.register('menu_icon_exporter', {
             icon: ACTION_ICON,
             category: 'file',
             keybind: new Keybind({key: 'i', ctrl: true, shift: true}),
-            condition: () => Project && Project.elements && Project.elements.length > 0,
             click: openIconExporterDialog
         });
  
@@ -138,7 +275,6 @@ Plugin.register('menu_icon_exporter', {
             description: 'Instantly export a 16×16 icon with default settings',
             icon: ACTION_ICON_16,
             category: 'file',
-            condition: () => Project && Project.elements && Project.elements.length > 0,
             click: () => quickExportIcon(16)
         });
 
@@ -147,7 +283,6 @@ Plugin.register('menu_icon_exporter', {
             description: 'Instantly export a 64×64 icon with default settings',
             icon: ACTION_ICON_64,
             category: 'file',
-            condition: () => Project && Project.elements && Project.elements.length > 0,
             click: () => quickExportIcon(64)
         });
 
@@ -155,15 +290,7 @@ Plugin.register('menu_icon_exporter', {
         MenuBar.addAction(this.quickExport16Action, 'file.export');
         MenuBar.addAction(this.quickExport64Action, 'file.export');
 
-        let toolbarIconDataUrl = getToolbarIconDataUrl();
-        if (toolbarIconDataUrl) {
-            this.iconExporterAction.setIcon(toolbarIconDataUrl);
-        } else {
-            let runtimeIconPath = getPluginRuntimeIconPath();
-            if (runtimeIconPath) {
-                this.iconExporterAction.setIcon(runtimeIconPath);
-            }
-        }
+        applyToolbarActionIcon(this.iconExporterAction);
     },
     
     onunload() {
@@ -207,6 +334,86 @@ function getToolbarIconDataUrl() {
     return cachedToolbarIconDataUrl;
 }
 
+function readBlobAsDataUrl(blob) {
+    return new Promise((resolve) => {
+        if (typeof FileReader === 'undefined' || !blob) {
+            resolve(null);
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = function() {
+            resolve(typeof reader.result === 'string' ? reader.result : null);
+        };
+        reader.onerror = function() {
+            resolve(null);
+        };
+        try {
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            resolve(null);
+        }
+    });
+}
+
+function getToolbarIconDataUrlAsync() {
+    if (cachedToolbarIconDataUrl) {
+        return Promise.resolve(cachedToolbarIconDataUrl);
+    }
+    if (toolbarIconDataUrlPromise) {
+        return toolbarIconDataUrlPromise;
+    }
+
+    let syncIcon = getToolbarIconDataUrl();
+    if (syncIcon) {
+        return Promise.resolve(syncIcon);
+    }
+
+    let iconPath = getPluginRuntimeIconPath();
+    if (!iconPath || typeof iconPath !== 'string' || !/^https?:\/\//i.test(iconPath) || typeof fetch !== 'function') {
+        return Promise.resolve(null);
+    }
+
+    toolbarIconDataUrlPromise = fetch(iconPath, {cache: 'no-store'})
+        .then(response => {
+            if (!response || !response.ok || typeof response.blob !== 'function') {
+                return null;
+            }
+            return response.blob();
+        })
+        .then(blob => readBlobAsDataUrl(blob))
+        .then(dataUrl => {
+            if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+                cachedToolbarIconDataUrl = dataUrl;
+                return dataUrl;
+            }
+            return null;
+        })
+        .catch(() => null)
+        .finally(() => {
+            toolbarIconDataUrlPromise = null;
+        });
+
+    return toolbarIconDataUrlPromise;
+}
+
+function applyToolbarActionIcon(action) {
+    if (!action || typeof action.setIcon !== 'function') {
+        return;
+    }
+
+    let syncIcon = getToolbarIconDataUrl();
+    if (syncIcon) {
+        action.setIcon(syncIcon);
+        return;
+    }
+
+    getToolbarIconDataUrlAsync().then(dataUrl => {
+        if (dataUrl) {
+            action.setIcon(dataUrl);
+        }
+    });
+}
+
 function getPluginRuntimeIconPath() {
     if (typeof Plugins === 'undefined' || !Plugins || !Array.isArray(Plugins.all)) {
         return null;
@@ -220,6 +427,13 @@ function getPluginRuntimeIconPath() {
     let iconPath = pluginInstance.getIcon();
     if (!iconPath || typeof iconPath !== 'string') {
         return null;
+    }
+
+    if (!/^https?:\/\//i.test(iconPath) && typeof pluginInstance.path === 'string' && /^https?:\/\//i.test(pluginInstance.path)) {
+        try {
+            iconPath = new URL(iconPath, pluginInstance.path).toString();
+        } catch (error) {
+        }
     }
 
     return iconPath;

@@ -13,6 +13,8 @@ Export Blockbench models as PNG icons with stable camera framing, live preview, 
 - Export quality options: Standard (4x), High (8x), Ultra (16x)
 - Quick export actions for 16x16 and 64x64 icons
 - Save mode options for ask-each-time or auto-save folder
+- Workspace-aware auto-save folder defaults when using the Workspaces plugin
+- Workspace rename-safe preferences so renamed workspaces keep the same saved default folder
 
 ## Usage
 
@@ -24,5 +26,6 @@ Quick 64x64: File -> Export -> Quick Export 64x64 Icon
 
 PNG output works across Blockbench formats and platforms.
 Platform-specific size, naming, and folder rules still apply.
+When Workspaces is installed, save mode and output folder preferences are remembered per active workspace, including workspace renames.
 
 by NET
