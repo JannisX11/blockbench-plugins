@@ -1434,5 +1434,19 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"batch_group_rename": {
+		"title": "Batch Group Rename",
+		"author": "zzz1999",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"variant": "both",
+		"description": "Batch rename all child groups under a selected group with hierarchical numbering (e.g. arm1, arm2, arm2_1, arm2_1_1).",
+		"tags": ["Utility"],
+		"min_version": "4.8.0",
+		"creation_date": "2026-03-20",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/batch_group_rename",
+		"bug_tracker": "https://github.com/zzz1999/batch_group_rename/issues"
 	}
 }
