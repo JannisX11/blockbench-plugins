@@ -1434,5 +1434,17 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"expand_bone_timeline": {
+		"title": "Expand Bone Timeline",
+		"author": "zzz1999",
+		"icon": "icon.png",
+		"version": "2.1.0",
+		"description": "expand bones in timeline from outliner context menu.",
+		"variant": "both",
+		"creation_date": "2026-03-21",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/expand_bone_timeline",
+		"bug_tracker": "https://github.com/zzz1999/expand_bone_timeline/issues"
 	}
 }
