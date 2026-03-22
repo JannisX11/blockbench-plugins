@@ -48,8 +48,6 @@
 
 			Group.prototype.menu.addAction(expandAction, '#');
 			Group.prototype.menu.addAction(collapseAction, '#');
-
-			Blockbench.showQuickMessage('Expand Bone Timeline loaded', 2000);
 		},
 
 		onunload() {
