@@ -398,5 +398,19 @@
 				]
 			}
 		]
+	},
+	"0.8.5": {
+		"title": "0.8.5",
+		"date": "2026-03-24",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed 5.1 compatibility issue",
+					"Fixed compile animation issue"
+				]
+			}
+		]
 	}
 }
