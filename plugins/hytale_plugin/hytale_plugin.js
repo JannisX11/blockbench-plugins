@@ -737,11 +737,13 @@
       async exportCollection(collection) {
         this.context = collection;
         await this.export({ attachment: collection });
+        if ("saved" in collection) collection.saved = true;
         this.context = null;
       },
       async writeCollection(collection) {
         this.context = collection;
         this.write(this.compile({ attachment: collection }), collection.export_path);
+        if ("saved" in collection) collection.saved = true;
         this.context = null;
       }
     });
@@ -983,6 +985,7 @@
       let uuid = group ? group.uuid : guid();
       let ba = new BoneAnimator(uuid, animation, group_name);
       animation.animators[uuid] = ba;
+      ba.group = group;
       const anim_channels = [
         { channel: "rotation", keyframes: anim_data.orientation },
         { channel: "position", keyframes: anim_data.position },
@@ -1455,6 +1458,7 @@
     track(import_as_attachment);
     let toolbar = Panels.collections.toolbars[0];
     toolbar.add(import_as_attachment);
+    MenuBar.menus.file.addAction(import_as_attachment, "import");
     function reloadAttachment(collection) {
       for (let child of collection.getChildren()) {
         child.remove();
@@ -1473,7 +1477,7 @@
     let reload_attachment_action = new Action("reload_hytale_attachment", {
       name: "Reload Attachment",
       icon: "refresh",
-      condition: () => Collection.selected.length && Modes.edit,
+      condition: () => Collection.selected.length && Modes.edit && isHytaleFormat(),
       click() {
         for (let collection of Collection.selected) {
           reloadAttachment(collection);
@@ -1652,21 +1656,23 @@
       }
       return original_display_scale.call(this, array, multiplier);
     };
-    BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
-      if (isHytaleFormat() && array) {
-        let bone = this.group.scene_object;
-        let euler = Reusable.euler1.set(
-          Math.degToRad(array[0]) * multiplier,
-          Math.degToRad(array[1]) * multiplier,
-          Math.degToRad(array[2]) * multiplier,
-          bone.rotation.order
-        );
-        let q2 = Reusable.quat2.setFromEuler(euler);
-        bone.quaternion.multiply(q2);
-        return this;
-      }
-      return original_display_rotation.call(this, array, multiplier);
-    };
+    if (Blockbench.isOlderThan("5.1.0-beta.4")) {
+      BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
+        if (isHytaleFormat() && array) {
+          let bone = this.group.scene_object;
+          let euler = Reusable.euler1.set(
+            Math.degToRad(array[0]) * multiplier,
+            Math.degToRad(array[1]) * multiplier,
+            Math.degToRad(array[2]) * multiplier,
+            bone.rotation.order
+          );
+          let q2 = Reusable.quat2.setFromEuler(euler);
+          bone.quaternion.multiply(q2);
+          return this;
+        }
+        return original_display_rotation.call(this, array, multiplier);
+      };
+    }
     Animator.showDefaultPose = function(reduced_updates, ...args) {
       original_show_default_pose(reduced_updates, ...args);
       if (isHytaleFormat()) {
@@ -1678,7 +1684,9 @@
     track({
       delete() {
         BoneAnimator.prototype.displayScale = original_display_scale;
-        BoneAnimator.prototype.displayRotation = original_display_rotation;
+        if (Blockbench.isOlderThan("5.1.0-beta.4")) {
+          BoneAnimator.prototype.displayRotation = original_display_rotation;
+        }
         Animator.showDefaultPose = original_show_default_pose;
       }
     });
@@ -2087,7 +2095,7 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.8.3",
+    version: "0.8.4",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
