@@ -1434,5 +1434,24 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"menu_icon_exporter": {
+		"title": "Menu Icon Exporter",
+		"author": "NET",
+		"description": "Export perfect menu/item icons with advanced camera controls",
+		"icon": "icon.svg",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
+		"creation_date": "2026-03-15",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Export"
+		],
+		"repository": "https://github.com/HMC-Studios/Menu-Icon-Exporter",
+		"bug_tracker": "https://github.com/HMC-Studios/Menu-Icon-Exporter/issues"
 	}
 }
