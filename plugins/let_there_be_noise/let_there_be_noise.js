@@ -8,11 +8,12 @@
     title: 'Let there Be Noise',
     author: 'Momoko',
     icon: 'grain',
-    description: 'Adds a noise adding function to BlockBench',
+    description: 'Adds a noise adding function to BlockBench, supports selections and colour channels',
     version: '1.0.0',
     min_version: '4.8.0',
     variant: 'both',
-
+    tags: ['Texture', 'Paint', 'Tool'],
+    creation_date: '2026-03-25',
     onload() {
     this.action = new Action('add_noise.apply', {
     name: 'Add Noise',
@@ -38,11 +39,18 @@
     id: 'add_noise.dialog',
     title: 'Add Noise',
     width: 500,
-    form: { //source used for checkerboard via https://css-tricks.com/
-    preview_box: { type: 'info', text: '<div style="margin-bottom:15px;text-align:center;background:repeating-conic-gradient(#222 0% 25%,#333 0% 50%) 50%/16px 16px;padding:10px;border-radius:4px"><canvas id="add_noise_preview" style="border:2px solid #555;image-rendering:pixelated;width:400px;height:auto"></canvas></div>' },
-    amount: { label: 'Amount', type: 'range', min: 0, max: 100, value: 20, step: 1, full_width: true },
-    coverage: { label: 'Coverage', type: 'range', min: 0, max: 100, value: 100, step: 1, full_width: true },
-    seed: { label: 'Seed', type: 'number', value: 1, step: 1, min: 0 }
+     form: { //source used for checkerboard via https://css-tricks.com/
+          preview_box: { type: 'info', text: '<div style="margin-bottom:15px;text-align:center;background:repeating-conic-gradient(#222 0% 25%,#333 0% 50%) 50%/16px 16px;padding:10px;border-radius:4px"><canvas id="add_noise_preview" style="border:2px solid #555;image-rendering:pixelated;width:400px;height:auto"></canvas></div>' },
+          amount: { label: 'Amount', type: 'range', min: 0, max: 100, value: 20, step: 1, full_width: true },
+          coverage: { label: 'Coverage', type: 'range', min: 0, max: 100, value: 100, step: 1, full_width: true },
+          seed: { label: 'Seed', type: 'number', value: 1, step: 1, min: 0 },
+          mode_separator: { type: 'info', text: '<hr>' },
+          channel_mode: { label: 'Mode', type: 'select', options: { 'uniform': 'Uniform (All Channels)', 'individual': 'Per-Channel Control' }, value: 'uniform' },
+          channel_separator: { type: 'info', text: '<h4>Channel Control</h4>', condition: (form) => form.channel_mode === 'individual' },
+          red_channel: { label: 'Red Channel (Metalness)', type: 'checkbox', value: true, condition: (form) => form.channel_mode === 'individual' },
+          green_channel: { label: 'Green Channel (Emissive)', type: 'checkbox', value: false, condition: (form) => form.channel_mode === 'individual' },
+          blue_channel: { label: 'Blue Channel (Roughness)', type: 'checkbox', value: false, condition: (form) => form.channel_mode === 'individual' },
+          alpha_channel: { label: 'Alpha Channel (Subsurface)', type: 'checkbox', value: false, condition: (form) => form.channel_mode === 'individual' }
     },
     onFormChange: function(data) {
     refreshPreview(tex, data);
@@ -123,8 +131,16 @@
     function processNoise(tex, data, srcData, useSelect) {
     const rng = mulberry32(seedTo32(data.seed));
     const out = new Uint8ClampedArray(srcData.data);
-    const amount =  Number(data.amount) || 0;
+    const amount = Number(data.amount) || 0;
     const coverage = (Number(data.coverage) || 0) / 100;
+
+    const isIndividualMode = data.channel_mode === 'individual';
+    const channels = {
+    r: isIndividualMode ? (data.red_channel === true) : true,
+    g: isIndividualMode ? (data.green_channel === true) : true,
+    b: isIndividualMode ? (data.blue_channel === true) : true,
+    a: isIndividualMode ? (data.alpha_channel === true) : false
+    };
 
     let select = (tex.selection && tex.selection.override !== true) ? tex.selection.array : null;
     if(select && select.length !== srcData.width * srcData.height) select = null;
@@ -148,10 +164,17 @@
     if(select[gi] <= 0) continue;}
     if(rng() > coverage) continue;
 
+    if(isIndividualMode) {
+    if(channels.r) { const nr = (rng() * 2 - 1) * amount; out[p] = clamp(out[p] + nr); }
+    if(channels.g) { const ng = (rng() * 2 - 1) * amount; out[p + 1] = clamp(out[p + 1] + ng); }
+    if(channels.b) { const nb = (rng() * 2 - 1) * amount; out[p + 2] = clamp(out[p + 2] + nb); }
+    if(channels.a) { const na = (rng() * 2 - 1) * amount; out[p + 3] = clamp(out[p + 3] + na); }
+    } else {
     const n = (rng() * 2 - 1) * amount;
     out[p] = clamp(out[p] + n);
     out[p + 1] = clamp(out[p + 1] + n);
     out[p + 2] = clamp(out[p + 2] + n);
+    }
     }}
     return new ImageData(out, srcData.width, srcData.height);
     }
