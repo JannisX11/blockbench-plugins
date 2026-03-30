@@ -28,7 +28,7 @@ class EasingsPlugin implements PluginOptions {
 	}
 	onload(): void {
 		this.actionApplyEasing();
-		this.actionApplyEasings();
+		this.actionManageEasings();
 	}
 	onunload(): void {
 		for (const action of this.actions) {
@@ -92,11 +92,11 @@ class EasingsPlugin implements PluginOptions {
 		});
 		this.actions.push(changeEasing);
 	}
-	protected actionApplyEasings() {
-		const changeEasings = new Action("easings.apply_easings", {
+	protected actionManageEasings() {
+		const changeEasings = new Action("easings.manage_easings", {
 			icon: this.icon,
-			name: "Apply Easings",
-			description: "Apply the easing functions of all animations in the current file.",
+			name: "Manage Easings",
+			description: "Manage easing functions for all animations in the current file.",
 			condition: () =>
 				this.formats.has(Format.id) && Animator.open && this.allAnimations.some(canBeEased),
 			click: () => this.easingsDialog.show(),
