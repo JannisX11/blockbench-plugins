@@ -44,7 +44,7 @@ function ease(options: EasingifyOptions) {
 }
 
 const EASING_HEADER = `'${packageJson.name}=${packageJson.version}';`;
-export function easingify(animation: BBAnimation, easing: Easing) {
+export function easingify(animation: BedrockAnimation, easing: Easing) {
 	const animationName = animation.name;
 	const easeIndex = EASING_NAMES.indexOf(easing);
 	const str =
@@ -54,7 +54,7 @@ export function easingify(animation: BBAnimation, easing: Easing) {
 	animation.anim_time_update = str;
 }
 
-export function getEasing(animation: BBAnimation) {
+export function getEasing(animation: BedrockAnimation) {
 	const molang = animation.anim_time_update;
 	if (!molang.startsWith(EASING_HEADER)) {
 		return;
@@ -74,7 +74,7 @@ export function getEasing(animation: BBAnimation) {
 	}
 }
 
-export function canBeEased(animation: BBAnimation) {
+export function canBeEased(animation: BedrockAnimation) {
 	const molang = animation.anim_time_update;
 	return molang.startsWith(EASING_HEADER) || (!molang && animation.length > 0);
 }

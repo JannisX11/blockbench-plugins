@@ -35,11 +35,17 @@ class EasingsPlugin implements PluginOptions {
 		}
 		this.actions = [];
 	}
-	protected getSelectedAnimation(): BBAnimation | undefined {
+	protected isBedrockAnimation(animation: BBAnimation): animation is BedrockAnimation {
+		return "anim_time_update" in animation && typeof animation.anim_time_update === "string";
+	}
+	protected getSelectedAnimation(): BedrockAnimation | undefined {
 		// @ts-expect-error: Animation is not typed correctly in blockbench types, it should be Animation | null.
 		if (Animator.open && Blockbench.Animation && Animation.selected !== null) {
 			// @ts-expect-error: Animation is not typed correctly in blockbench types, it should be Animation | null.
-			return Animation.selected;
+			const animation: BBAnimation = Animation.selected;
+			if (this.isBedrockAnimation(animation)) {
+				return animation;
+			}
 		}
 	}
 	protected actionApplyEasing() {
@@ -91,20 +97,26 @@ class EasingsPlugin implements PluginOptions {
 			name: "Apply Easings",
 			description: "Apply the easing functions of all animations in the current file.",
 			condition: () =>
-				this.formats.has(Format.id) && Animator.open && AnimationItem.all.some(canBeEased),
+				this.formats.has(Format.id) && Animator.open && this.allAnimations.some(canBeEased),
 			click: () => this.easingsDialog.show(),
 		});
 		this.actions.push(changeEasings);
 		MenuBar.addAction(changeEasings, "animation");
 	}
+	protected get allAnimations() {
+		if (!Animator.open) {
+			return [];
+		}
+		return AnimationItem.all.filter(this.isBedrockAnimation);
+	}
 	protected get easingsDialog() {
-		const allAnimations = AnimationItem.all;
+		const allAnimations = this.allAnimations;
 		const animations = allAnimations.reduce(
 			(acc, animation) => {
 				acc[animation.name.replaceAll(".", "_tkn_")] = animation;
 				return acc;
 			},
-			{} as Record<string, BBAnimation>,
+			{} as Record<string, BedrockAnimation>,
 		);
 		const easingList = ["None", ...EASING_NAMES];
 		const easingEntries = Object.fromEntries(
@@ -185,5 +197,6 @@ const plugin = new EasingsPlugin();
 BBPlugin.register(plugin.id, plugin);
 
 declare global {
-	type BBAnimation = (typeof AnimationItem.all)[number];
+	type BBAnimation = Omit<(typeof AnimationItem.all)[number], "anim_time_update">;
+	type BedrockAnimation = BBAnimation & { anim_time_update: string };
 }
