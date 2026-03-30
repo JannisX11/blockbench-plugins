@@ -18,6 +18,7 @@ class EasingsPlugin implements PluginOptions {
 	readonly tags = ["Minecraft: Bedrock Edition", "Animation"] satisfies [string, string];
 	readonly website = packageJson.author.url;
 	readonly min_version = "4.8.0";
+	readonly has_changelog = true;
 
 	actions: Action[] = [];
 	readonly formats = new Set(["bedrock", "bedrock_old"]);
