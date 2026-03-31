@@ -155,6 +155,12 @@
     for(let x = 0; x < srcData.width; x++){
     const p = (y * srcData.width + x) * 4;
 
+    const coverageVal = rng();
+    const nr = (rng() * 2 - 1) * amount;
+    const ng = (rng() * 2 - 1) * amount;
+    const nb = (rng() * 2 - 1) * amount;
+    const na = (rng() * 2 - 1) * amount;
+
     if(useSelect && bounds){
     if(x < x0 || y < y0 || x >= (x0 + w0) || y >= (y0 + h0)) continue;
     }
@@ -162,18 +168,17 @@
     if(select && useSelect) {
     const gi = y * tex_w + x;
     if(select[gi] <= 0) continue;}
-    if(rng() > coverage) continue;
+    if(coverageVal > coverage) continue;
 
     if(isIndividualMode) {
-    if(channels.r) { const nr = (rng() * 2 - 1) * amount; out[p] = clamp(out[p] + nr); }
-    if(channels.g) { const ng = (rng() * 2 - 1) * amount; out[p + 1] = clamp(out[p + 1] + ng); }
-    if(channels.b) { const nb = (rng() * 2 - 1) * amount; out[p + 2] = clamp(out[p + 2] + nb); }
-    if(channels.a) { const na = (rng() * 2 - 1) * amount; out[p + 3] = clamp(out[p + 3] + na); }
+    if(channels.r) out[p] = clamp(out[p] + nr);
+    if(channels.g) out[p + 1] = clamp(out[p + 1] + ng);
+    if(channels.b) out[p + 2] = clamp(out[p + 2] + nb);
+    if(channels.a) out[p + 3] = clamp(out[p + 3] + na);
     } else {
-    const n = (rng() * 2 - 1) * amount;
-    out[p] = clamp(out[p] + n);
-    out[p + 1] = clamp(out[p + 1] + n);
-    out[p + 2] = clamp(out[p + 2] + n);
+    out[p] = clamp(out[p] + nr);
+    out[p + 1] = clamp(out[p + 1] + nr);
+    out[p + 2] = clamp(out[p + 2] + nr);
     }
     }}
     return new ImageData(out, srcData.width, srcData.height);
