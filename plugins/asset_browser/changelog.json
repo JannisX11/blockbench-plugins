@@ -44,9 +44,9 @@
     "author": "Ewan Howell",
     "categories": [
       {
-        "title": "Compatibility",
+        "title": "Changes",
         "list": [
-          "Updated for Blockbench 5.0"
+          "Support for Blockbench v5.0.0"
         ]
       }
     ]
@@ -60,6 +60,21 @@
         "title": "Bug Fixes",
         "list": [
           "Fixed select menu styling"
+        ]
+      }
+    ]
+  },
+  "1.2.2": {
+    "title": "1.2.2",
+    "date": "2026-04-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed wrong icons showing for full major version Java Edition pre-releases and release candidates",
+          "Fixed to support new Minecraft version numbering system",
+          "Fixed version select dropdowns not updating their displayed value"
         ]
       }
     ]
