@@ -991,5 +991,24 @@
         ]
       }
     ]
+  },
+  "8.6.0": {
+    "title": "8.6.0",
+    "date": "2026-04-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Support for Blockbench v5.0.0"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed template texture generation when loading models"
+        ]
+      }
+    ]
   }
 }
