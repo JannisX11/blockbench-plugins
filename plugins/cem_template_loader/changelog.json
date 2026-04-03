@@ -1050,5 +1050,28 @@
         ]
       }
     ]
+  },
+  "9.1.0": {
+    "title": "9.1.0",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for the \"day_time\" and \"day_count\" animation variables",
+          "Added support for the \"anger_time_start\" animation variable",
+          "Added the \"Anger entity\" button to simulate \"anger_time\" countdown with delay",
+          "Added progress bars to animation buttons (hurt, death, attack, anger)"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the default location of the \"Animation Controller\" panel",
+          "Fixed stop button not resetting animation buttons"
+        ]
+      }
+    ]
   }
 }
