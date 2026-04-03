@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "9.0.1",
+      version: "9.0.2",
       min_version: "5.0.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -63,6 +63,10 @@
   }
 
   async function fetchData(path, fallback) {
+    if (path === "json/cem_template_models.json") {
+      const fs = require("fs")
+      return JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynem/src/assets/json/cem_template_models.json"))
+    }
     try {
       const r = await fetch(`${root}/${path}`)
       if (!r.ok) throw new Error
@@ -528,11 +532,11 @@
                     <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.id + '.webp'" loading="lazy">
                     <i v-if="model.variants && entity !== model.id && !search" class="material-icons">add</i>
                     <i v-if="model.variants && entity === model.id && !search" class="material-icons">remove</i>
-                    <div :style="{ textTransform: model.name ? null : 'capitalize' }">{{ model.name ?? model.id.replace(/_/g, " ") }}</div>
+                    <div :style="{ textTransform: model.name ? null : 'capitalize' }">{{ model.name ?? (model.file ?? model.id).replace(/_/g, " ") }}</div>
                   </div>
                   <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.id, hidden: search ? !submodel.id.includes(search) : entity !== model.id }" @click="selectSubentity(model, submodel)">
                     <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.id + '.webp'" loading="lazy">
-                    <div :style="{ textTransform: submodel.name ? null : 'capitalize' }">{{ submodel.name ?? submodel.id.replace(/_/g, " ") }}</div>
+                    <div :style="{ textTransform: submodel.name ? null : 'capitalize' }">{{ submodel.name ?? (submodel.file ?? submodel.id).replace(/_/g, " ") }}</div>
                   </div>
                 </template>
               </template>

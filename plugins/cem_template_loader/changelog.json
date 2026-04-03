@@ -1037,5 +1037,18 @@
         ]
       }
     ]
+  },
+  "9.0.2": {
+    "title": "9.0.2",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed display names falling back to the ID instead of the file name"
+        ]
+      }
+    ]
   }
 }
