@@ -1,11 +1,11 @@
 {
   "sam3dj": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 0
   },
   "animated_java": {
-    "version": "1.8.0",
+    "version": "1.8.1",
     "created": 1736294400000,
     "updated": 1761004800000
   },
@@ -55,7 +55,7 @@
     "updated": 0
   },
   "structure_importer": {
-    "version": "2.1.4",
+    "version": "2.1.7",
     "created": 0,
     "updated": 0
   },
@@ -85,7 +85,7 @@
     "updated": 0
   },
   "cem_template_loader": {
-    "version": "9.0.0",
+    "version": "9.0.1",
     "created": 1580601600000,
     "updated": 1775225580464
   },
@@ -130,7 +130,7 @@
     "updated": 1760832000000
   },
   "minecraft_title_generator": {
-    "version": "1.10.2",
+    "version": "1.10.3",
     "created": 1686355200000,
     "updated": 1760572800000
   },
@@ -145,12 +145,12 @@
     "updated": 1760227200000
   },
   "resource_pack_utilities": {
-    "version": "1.9.1",
+    "version": "1.9.2",
     "created": 1719792000000,
     "updated": 1760572800000
   },
   "asset_browser": {
-    "version": "1.2.1",
+    "version": "1.2.2",
     "created": 1748563200000,
     "updated": 1760572800000
   },
@@ -170,12 +170,12 @@
     "updated": 0
   },
   "animation_utils": {
-    "version": "4.1.2",
+    "version": "4.1.3",
     "created": 0,
     "updated": 0
   },
   "geckolib": {
-    "version": "4.2.1",
+    "version": "4.2.4",
     "created": 0,
     "updated": 0
   },
@@ -250,7 +250,7 @@
     "updated": 1761350400000
   },
   "minecraft_block_wizard": {
-    "version": "1.6.0",
+    "version": "1.6.1",
     "created": 1666656000000,
     "updated": 1767189707918
   },
@@ -295,7 +295,7 @@
     "updated": 0
   },
   "skin_packager": {
-    "version": "0.3.1",
+    "version": "0.3.2",
     "created": 0,
     "updated": 0
   },
@@ -345,7 +345,7 @@
     "updated": 0
   },
   "brush": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": 0,
     "updated": 0
   },
@@ -520,7 +520,7 @@
     "updated": 1763074905482
   },
   "translation_plane_gizmo": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": 1763076756774,
     "updated": 1763076756774
   },
@@ -530,7 +530,7 @@
     "updated": 1765964433931
   },
   "hytale_plugin": {
-    "version": "0.8.0",
+    "version": "0.8.5",
     "created": 1766421748990,
     "updated": 1770504111906
   },
@@ -585,12 +585,12 @@
     "updated": 1771093398623
   },
   "hytale_bridge": {
-    "version": "0.1.0",
+    "version": "0.1.1",
     "created": 1771677037011,
     "updated": 1771677037011
   },
   "hytale_hitbox_helper": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": 1771678722825,
     "updated": 1771678722825
   }
