@@ -1010,5 +1010,19 @@
         ]
       }
     ]
+  },
+  "9.0.0": {
+    "title": "9.0.0",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated to the new template model data format",
+          "Added category headings to the sidebar"
+        ]
+      }
+    ]
   }
 }

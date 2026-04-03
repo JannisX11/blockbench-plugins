@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.6.0",
+      version: "9.0.0",
       min_version: "5.0.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -471,20 +471,20 @@
           },
           close: () => loaderDialog.close(),
           selectEntity(model) {
-            if (this.entity !== model.name) {
-              this.entity = model.name
+            if (this.entity !== model.id) {
+              this.entity = model.id
             } else if (!this.subentity) {
               this.entity = null
             }
             this.subentity = null
           },
           selectSubentity(model, submodel) {
-            if (this.search && this.subentity === submodel.name) {
+            if (this.search && this.subentity === submodel.id) {
               this.entity = null
               this.subentity = null
-            } else if (this.subentity !== submodel.name) {
-              this.entity = model.name
-              this.subentity = submodel.name
+            } else if (this.subentity !== submodel.id) {
+              this.entity = model.id
+              this.subentity = submodel.id
             } else {
               this.subentity = null
             }
@@ -493,7 +493,7 @@
             const index = entities.indexOf(heading)
             for (let i = index + 1; i < entities.length; i++) {
               if (entities[i].type === "heading") break
-              if (entities[i].name.includes(this.search)) return false
+              if (entities[i].id.includes(this.search)) return false
             }
             return true
           }
@@ -506,7 +506,7 @@
             <div v-if="connection?.failed" class="cem-overlay">
               <h1>Connection Failed</h1>
               <p>Failed to load CEM Template data.</p>
-              <p>Please make sure you are connected to the internet, and can access this <a href="${root}/json/cem_template_models.json">cem_template_models.json</a> file.</p>
+              <p>Please make sure you are connected to the internet, and can access this <a href="${root}/json/cem_template_models_new.json">cem_template_models_new.json</a> file.</p>
               <p>If you are unable to access the cem_template_models.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.</p>
               <button @click="reload">Retry connection</button>
             </div>
@@ -524,15 +524,15 @@
               <template v-for="model of c.entities">
                 <div v-if="model.type === 'heading'" class="cem-model-heading" :class="{ hidden: areAllNextItemsHidden(c.entities, model) }">{{ model.text }}</div>
                 <template v-else>
-                  <div class="cem-model" :class="{ selected: entity === model.name && (!subentity || !search), 'child-selected': entity === model.name && subentity, hidden: !model.name.includes(search) }" @click="selectEntity(model)">
-                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
-                    <i v-if="model.variants && entity !== model.name && !search" class="material-icons">add</i>
-                    <i v-if="model.variants && entity === model.name && !search" class="material-icons">remove</i>
-                    <div :style="{ textTransform: model.display_name ? null : 'capitalize' }">{{ model.display_name ?? model.name.replace(/_/g, " ") }}</div>
+                  <div class="cem-model" :class="{ selected: entity === model.id && (!subentity || !search), 'child-selected': entity === model.id && subentity, hidden: !model.id.includes(search) }" @click="selectEntity(model)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.id + '.webp'" loading="lazy">
+                    <i v-if="model.variants && entity !== model.id && !search" class="material-icons">add</i>
+                    <i v-if="model.variants && entity === model.id && !search" class="material-icons">remove</i>
+                    <div :style="{ textTransform: model.name ? null : 'capitalize' }">{{ model.name ?? model.id.replace(/_/g, " ") }}</div>
                   </div>
-                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.name, hidden: search ? !submodel.name.includes(search) : entity !== model.name }" @click="selectSubentity(model, submodel)">
-                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.name + '.webp'" loading="lazy">
-                    <div :style="{ textTransform: submodel.display_name ? null : 'capitalize' }">{{ submodel.display_name ?? submodel.name.replace(/_/g, " ") }}</div>
+                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.id, hidden: search ? !submodel.id.includes(search) : entity !== model.id }" @click="selectSubentity(model, submodel)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.id + '.webp'" loading="lazy">
+                    <div :style="{ textTransform: submodel.name ? null : 'capitalize' }">{{ submodel.name ?? submodel.id.replace(/_/g, " ") }}</div>
                   </div>
                 </template>
               </template>
@@ -566,9 +566,9 @@
         if (!modelData.categories) {
           return this.content_vue.$forceUpdate()
         }
-        const categories = modelData.categories.map(e => [e.name, e])
+        const categories = modelData.categories.filter(e => !e.type).map(e => [e.name, e])
         loaderData.categories = Object.fromEntries(categories)
-        loaderData.entities = categories.flatMap(c => c[1].entities.map(e => [c[0], e.name]))
+        loaderData.entities = categories.flatMap(c => c[1].entities.map(e => [c[0], e.id]))
         loaderData.loading = false
         loaderData.built = true
       },
@@ -625,47 +625,78 @@
     delete window.cemTemplateModelsLoaded
   }
 
+  function resolvePopup(node, popups) {
+    const popup = node.popup
+    if (!popup) return undefined
+    const master = node.file ?? node.id
+    const display = node.name ?? String(master).split("_").filter(Boolean).map(p => p[0].toUpperCase() + p.slice(1)).join(" ")
+    if (Array.isArray(popup)) {
+      const [popupId, ...extra] = popup
+      const template = popups[popupId]
+      if (!template) return popupId
+      return template.replace(/\{(\d+)\}/g, (_, n) => [display, ...extra][Number(n)] ?? `{${n}}`)
+    }
+    if (typeof popup === "object") return popup
+    if (typeof popup === "string") {
+      const template = popups[popup]
+      if (template) return template.replace(/\{(\d+)\}/g, (_, n) => [display][Number(n)] ?? `{${n}}`)
+      return popup
+    }
+    return undefined
+  }
+
   window.loadCEMTemplateModels = async () => {
     if (window.cemTemplateModelsLoaded) return loadingPromise
-    loadingPromise = fetchData("json/cem_template_models.json")
+    loadingPromise = fetchData("json/cem_template_models_new.json")
     modelData = await loadingPromise
     window.cemTemplateModelsLoaded = true
     if (!modelData.categories) return
-    loaderDialog.sidebar.page = modelData.categories[0].name
-    loaderData.category = modelData.categories[0].name
+    const firstCategory = modelData.categories.find(c => !c.type)
+    loaderDialog.sidebar.page = firstCategory.name
+    loaderData.category = firstCategory.name
     modelData.entities = []
     for (const category of modelData.categories) {
+      if (category.type === "heading") {
+        loaderDialog.sidebar.pages["_" + category.text] = new MenuSeparator(category.text, category.text)
+        continue
+      }
       loaderDialog.sidebar.pages[category.name] = {
         label: category.name,
         icon: category.icon
       }
       for (let i = 0; i < category.entities.length; i++) {
         if (category.entities[i].type) continue
-        if (typeof category.entities[i] === "string") {
-          category.entities[i] = { name: category.entities[i] }
-        }
+        category.entities[i].popup = resolvePopup(category.entities[i], modelData.popups)
         modelData.entities.push(category.entities[i])
         if (category.entities[i].variants) {
           for (let j = 0; j < category.entities[i].variants.length; j++) {
-            if (typeof category.entities[i].variants[j] === "string") {
-              category.entities[i].variants[j] = { name: category.entities[i].variants[j] }
-            }
             if (!category.entities[i].variants[j].model) {
-              category.entities[i].variants[j].model = category.entities[i].model ?? category.entities[i].name
+              category.entities[i].variants[j].model = category.entities[i].model ?? category.entities[i].id
             }
+            category.entities[i].variants[j].popup = resolvePopup(category.entities[i].variants[j], modelData.popups)
             modelData.entities.push(category.entities[i].variants[j])
           }
         }
       }
     }
     BarItems.cem_template_loader_placeholder.delete()
-    BarItems.cem_template_loader.children = modelData.categories.map(e => new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
-      plugin: id,
-      name: `${e.name} Entities`,
-      description: e.description,
-      icon: e.icon,
-      click: () => openLoader(e.name)
-    }))
+    BarItems.cem_template_loader.children = []
+    for (let i = 0; i < modelData.categories.length; i++) {
+      const e = modelData.categories[i]
+      if (e.type === "heading") {
+        if (i > 0 && i < modelData.categories.length - 1) {
+          BarItems.cem_template_loader.children.push("_")
+        }
+        continue
+      }
+      BarItems.cem_template_loader.children.push(new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
+        plugin: id,
+        name: `${e.name} Entities`,
+        description: e.description,
+        icon: e.icon,
+        click: () => openLoader(e.name)
+      }))
+    }
     BarItems.cem_template_loader.children.push("_", {
       name: `Models v${modelData.version}`,
       id: "cem_template_loader_models_version",
@@ -694,17 +725,17 @@
   })
 
   async function loadModel(entity, loadTexture) {
-    const data = modelData.entities.find(e => e.name === entity)
+    const data = modelData.entities.find(e => e.id === entity)
     if (!data) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
-    const model = modelData.models[data.model ?? data.name]
+    const model = modelData.models[data.model ?? data.id]
     newProject(Formats.optifine_entity)
-    Project.name = data.file_name ?? data.name
-    Blockbench.setStatusBarText(data.name)
+    Project.name = data.file ?? data.id
+    Blockbench.setStatusBarText(data.id)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
     if (loadTexture && !data.textureless) {
       try {
-        const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.name]
+        const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.id]
         for (const [i, name] of textures.entries()) {
           const texture = await fetchData(`images/minecraft/entities/${entity}${i || ""}.png`, () => null)
           if (!texture) throw Error
@@ -721,17 +752,17 @@
     }
     if (!textureLoaded && !data.textureless) {
       const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
-      const textureNames = Array.isArray(data.texture_name) ? data.texture_name : [data.texture_name ?? data.name]
+      const textureNames = Array.isArray(data.texture) ? data.texture : [data.texture ?? data.id]
       const length = Math.max(textureData.length, textureNames.length)
       for (const cube of Cube.all) {
         cube.markAsSelected()
       }
       for (let i = 0; i < length; i++) {
         if (textureData[i]) {
-          new Texture({ name: textureNames[i] ?? data.name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
+          new Texture({ name: textureNames[i] ?? data.id }).fromDataURL("data:image/png;base64," + textureData[i]).add()
         } else {
           TextureGenerator.addBitmap({
-            name: textureNames[i] ?? data.name,
+            name: textureNames[i] ?? data.id,
             color: new tinycolor("#00000000"),
             type: "template",
             rearrange_uv: false,
