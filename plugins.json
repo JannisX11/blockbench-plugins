@@ -224,7 +224,7 @@
 		"author": "Ewan Howell",
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "9.0.0",
+		"version": "9.0.1",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"creation_date": "2020-02-02",

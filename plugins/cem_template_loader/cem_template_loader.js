@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "9.0.0",
+      version: "9.0.1",
       min_version: "5.0.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -506,7 +506,7 @@
             <div v-if="connection?.failed" class="cem-overlay">
               <h1>Connection Failed</h1>
               <p>Failed to load CEM Template data.</p>
-              <p>Please make sure you are connected to the internet, and can access this <a href="${root}/json/cem_template_models_new.json">cem_template_models_new.json</a> file.</p>
+              <p>Please make sure you are connected to the internet, and can access this <a href="${root}/json/cem_template_models.json">cem_template_models.json</a> file.</p>
               <p>If you are unable to access the cem_template_models.json file, it may be blocked by your computer or your internet service provider. If it is not your computer blocking it, you may be able to use a VPN to bypass the block. One good example is <a href="https://1.1.1.1/">Cloudflare WARP</a>, which is a free program that commonly resolves this issue.</p>
               <button @click="reload">Retry connection</button>
             </div>
@@ -647,7 +647,7 @@
 
   window.loadCEMTemplateModels = async () => {
     if (window.cemTemplateModelsLoaded) return loadingPromise
-    loadingPromise = fetchData("json/cem_template_models_new.json")
+    loadingPromise = fetchData("json/cem_template_models.json")
     modelData = await loadingPromise
     window.cemTemplateModelsLoaded = true
     if (!modelData.categories) return
@@ -737,7 +737,7 @@
       try {
         const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.id]
         for (const [i, name] of textures.entries()) {
-          const texture = await fetchData(`images/minecraft/entities/${entity}${i || ""}.png`, () => null)
+          const texture = await fetchData(`images/minecraft/entities/${entity}${i ? `_${i}` : ""}.png`, () => null)
           if (!texture) throw Error
           const tex = new Texture({ name }).fromDataURL(await getBase64FromBlob(await texture.blob())).add()
           if (!i && textures.length === 1) {

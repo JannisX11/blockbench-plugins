@@ -1024,5 +1024,18 @@
         ]
       }
     ]
+  },
+  "9.0.1": {
+    "title": "9.0.1",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed vanilla texture loading for entities with multiple textures"
+        ]
+      }
+    ]
   }
 }
