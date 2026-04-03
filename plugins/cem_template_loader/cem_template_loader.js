@@ -63,10 +63,6 @@
   }
 
   async function fetchData(path, fallback) {
-    if (path === "json/cem_template_models.json") {
-      const fs = require("fs")
-      return JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynem/src/assets/json/cem_template_models.json"))
-    }
     try {
       const r = await fetch(`${root}/${path}`)
       if (!r.ok) throw new Error
