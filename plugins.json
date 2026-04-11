@@ -1434,5 +1434,17 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"let_there_be_noise": {
+		"title": "Let there Be Noise",
+		"author": "Momoko",
+		"icon": "grain",
+		"description": "Adds a noise adding function to BlockBench, supports selections and colour channels",
+		"about": "Select a texture, then go to Image > Add Noise. Adjust the amount, coverage, and seed to control the effect. Supports selections.",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"creation_date": "2026-03-25",
+		"variant": "both",
+		"tags": ["Texture", "Paint", "Tool"]
 	}
 }
