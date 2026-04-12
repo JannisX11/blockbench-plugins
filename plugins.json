@@ -500,7 +500,7 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.8.5",
+		"version": "0.9.0",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
 		"contributes": {
@@ -512,7 +512,7 @@
 		"creation_date": "2025-12-22",
 		"await_loading": true,
 		"has_changelog": true,
-		"contributors": ["Hedaox"],
+		"contributors": ["Hedaox", "MelodicAlbuild"],
 		"repository": "https://github.com/JannisX11/hytale-blockbench-plugin",
 		"bug_tracker": "https://github.com/JannisX11/hytale-blockbench-plugin/issues"
 	},

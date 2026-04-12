@@ -1047,7 +1047,7 @@
     const nodeAnimations = {};
     const file = {
       formatVersion: 1,
-      duration: Math.round(animation.length * FPS),
+      duration: Math.round(animation.length * FPS) || FPS * 2,
       holdLastKeyframe: animation.loop == "hold",
       nodeAnimations
     };
@@ -1081,11 +1081,6 @@
             };
             delta = new oneLiner(delta);
           } else {
-            delta = {
-              x: parseFloat(data_point.x),
-              y: parseFloat(data_point.y),
-              z: parseFloat(data_point.z)
-            };
             if (channel == "rotation") {
               let euler = new THREE.Euler(
                 Math.degToRad(kf.calc("x")),
@@ -1099,6 +1094,12 @@
                 y: quaternion.y,
                 z: quaternion.z,
                 w: quaternion.w
+              };
+            } else {
+              delta = {
+                x: kf.calc("x"),
+                y: kf.calc("y"),
+                z: kf.calc("z")
               };
             }
             delta = new oneLiner(delta);
@@ -2095,7 +2096,7 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.8.5",
+    version: "0.9.0",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -2125,10 +2126,10 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
     track(setting);
     let shared_copy = SharedActions.add("copy", {
       subject: "image_content_photoshop",
-      condition: () => Prop.active_panel == "uv" && Modes.paint && Texture.getDefault() && FORMAT_IDS.includes(Format.id) && setting.value == true,
+      condition: () => Prop.active_panel == "uv" && Modes.paint && UVEditor.texture && FORMAT_IDS.includes(Format.id) && setting.value == true,
       priority: 2,
       run(event, cut) {
-        let texture = Texture.getDefault();
+        let texture = UVEditor.texture;
         let selection = texture.selection;
         let { canvas, ctx, offset } = texture.getActiveCanvas();
         if (selection.override != null) {
@@ -2184,10 +2185,10 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
     track(shared_copy);
     let shared_paste = SharedActions.add("paste", {
       subject: "image_content_photoshop",
-      condition: () => Prop.active_panel == "uv" && Modes.paint && Texture.getDefault() && FORMAT_IDS.includes(Format.id) && setting.value == true,
+      condition: () => Prop.active_panel == "uv" && Modes.paint && UVEditor.texture && FORMAT_IDS.includes(Format.id) && setting.value == true,
       priority: 2,
       run(event) {
-        let texture = Texture.getDefault();
+        let texture = UVEditor.texture;
         async function loadFromDataUrl(data_url) {
           let frame = new CanvasFrame();
           await frame.loadFromURL(data_url);
@@ -3349,6 +3350,501 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track(Blockbench.on("select_format", updateSizes));
   }
 
+  // src/uv_canvas_resize.ts
+  var CROP_CSS = `
+.uv_crop_overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+.uv_crop_box {
+    position: absolute;
+    border: 2px dashed var(--color-accent);
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: move;
+}
+.uv_crop_shade {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+.uv_crop_handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--color-accent);
+    border: 1px solid var(--color-light);
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+.uv_crop_handle.corner { width: 12px; height: 12px; }
+.uv_crop_handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.uv_crop_handle.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.uv_crop_handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.uv_crop_handle.e { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.uv_crop_handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+.uv_crop_handle.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.uv_crop_handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.uv_crop_handle.w { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.uv_crop_grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.uv_crop_grid_line {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.2);
+}
+.uv_crop_grid_line.h { left: 0; right: 0; height: 1px; }
+.uv_crop_grid_line.v { top: 0; bottom: 0; width: 1px; }
+.uv_crop_width {
+    position: absolute;
+    top: -4%;
+    left: 50%;
+    color: var(--color-light);
+    font-size: 24px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    transform-origin: center bottom;
+}
+.uv_crop_height {
+    position: absolute;
+    left: -4%;
+    top: 50%;
+    color: var(--color-light);
+    font-size: 24px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    transform-origin: right center;
+}
+`;
+  var UVCropTool = class {
+    overlay = null;
+    cropBox = null;
+    uvFrame = null;
+    bounds = { left: 0, top: 0, right: 64, bottom: 64 };
+    dragging = null;
+    dragStart = { x: 0, y: 0 };
+    boundsStart = { left: 0, top: 0, right: 0, bottom: 0 };
+    texture = null;
+    active = false;
+    unwatchers = [];
+    onDeactivate = null;
+    constructor(onDeactivate) {
+      this.onDeactivate = onDeactivate || null;
+    }
+    activate() {
+      const uvVue = UVEditor.vue;
+      this.texture = uvVue?.texture || Texture.getDefault();
+      if (!this.texture) {
+        Blockbench.showQuickMessage("No texture selected", 2e3);
+        return;
+      }
+      this.uvFrame = Panels.uv?.node?.querySelector("#uv_frame");
+      if (!this.uvFrame) {
+        Blockbench.showQuickMessage("UV panel not found", 2e3);
+        return;
+      }
+      this.active = true;
+      this.bounds = { left: 0, top: 0, right: this.texture.uv_width, bottom: this.texture.uv_height };
+      this.createOverlay();
+      this.updateDisplay();
+      this.addEventListeners();
+    }
+    deactivate() {
+      if (!this.active) return;
+      this.active = false;
+      this.removeOverlay();
+      this.removeEventListeners();
+      this.hideQuickMessage();
+      this.onDeactivate?.();
+    }
+    createOverlay() {
+      if (!this.uvFrame) return;
+      this.overlay = document.createElement("div");
+      this.overlay.className = "uv_crop_overlay";
+      for (const pos of ["top", "right", "bottom", "left"]) {
+        const shade = document.createElement("div");
+        shade.className = `uv_crop_shade shade_${pos}`;
+        this.overlay.appendChild(shade);
+      }
+      this.cropBox = document.createElement("div");
+      this.cropBox.className = "uv_crop_box";
+      this.cropBox.innerHTML = `
+            <div class="uv_crop_grid"></div>
+            <div class="uv_crop_handle corner nw" data-handle="nw"></div>
+            <div class="uv_crop_handle n" data-handle="n"></div>
+            <div class="uv_crop_handle corner ne" data-handle="ne"></div>
+            <div class="uv_crop_handle e" data-handle="e"></div>
+            <div class="uv_crop_handle corner se" data-handle="se"></div>
+            <div class="uv_crop_handle s" data-handle="s"></div>
+            <div class="uv_crop_handle corner sw" data-handle="sw"></div>
+            <div class="uv_crop_handle w" data-handle="w"></div>
+            <div class="uv_crop_width"></div>
+            <div class="uv_crop_height"></div>
+        `;
+      this.overlay.appendChild(this.cropBox);
+      this.uvFrame.appendChild(this.overlay);
+      Blockbench.showQuickMessage("Enter to apply, Esc to cancel, Shift for fine control", 36e5);
+    }
+    hideQuickMessage() {
+      const el = document.getElementById("quick_message_box");
+      if (el) el.remove();
+    }
+    removeOverlay() {
+      this.overlay?.remove();
+      this.overlay = null;
+      this.cropBox = null;
+    }
+    getScale() {
+      const vue = UVEditor.vue;
+      return vue?.inner_width / (this.texture?.uv_width || 64) || 1;
+    }
+    getInnerOffset() {
+      const vue = UVEditor.vue;
+      return { x: vue?.inner_left || 0, y: vue?.inner_top || 0 };
+    }
+    uvToScreen(uvX, uvY) {
+      const scale = this.getScale();
+      const offset = this.getInnerOffset();
+      return { x: offset.x + uvX * scale, y: offset.y + uvY * scale };
+    }
+    updateDisplay() {
+      if (!this.overlay || !this.cropBox || !this.uvFrame) return;
+      const topLeft = this.uvToScreen(this.bounds.left, this.bounds.top);
+      const bottomRight = this.uvToScreen(this.bounds.right, this.bounds.bottom);
+      const left = topLeft.x, top = topLeft.y;
+      const width = bottomRight.x - topLeft.x, height = bottomRight.y - topLeft.y;
+      Object.assign(this.cropBox.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`
+      });
+      const frameWidth = this.uvFrame.clientWidth;
+      const frameHeight = this.uvFrame.clientHeight;
+      const shades = {
+        top: { left: "0", top: "0", right: "0", height: `${Math.max(0, top)}px` },
+        bottom: { left: "0", bottom: "0", right: "0", height: `${Math.max(0, frameHeight - top - height)}px` },
+        left: { left: "0", top: `${Math.max(0, top)}px`, width: `${Math.max(0, left)}px`, height: `${height}px` },
+        right: { right: "0", top: `${Math.max(0, top)}px`, width: `${Math.max(0, frameWidth - left - width)}px`, height: `${height}px` }
+      };
+      for (const [pos, styles] of Object.entries(shades)) {
+        const el = this.overlay.querySelector(`.shade_${pos}`);
+        if (el) Object.assign(el.style, styles);
+      }
+      const uvFactor = this.texture ? this.texture.width / this.texture.uv_width : 1;
+      const pixelWidth = Math.round((this.bounds.right - this.bounds.left) * uvFactor);
+      const pixelHeight = Math.round((this.bounds.bottom - this.bounds.top) * uvFactor);
+      const widthEl = this.cropBox.querySelector(".uv_crop_width");
+      if (widthEl) {
+        widthEl.textContent = `${pixelWidth}px`;
+        widthEl.style.fontSize = "14px";
+        widthEl.style.transform = `translateX(-50%) translateY(calc(-100% - 4px))`;
+      }
+      const heightEl = this.cropBox.querySelector(".uv_crop_height");
+      if (heightEl) {
+        heightEl.textContent = `${pixelHeight}px`;
+        heightEl.style.fontSize = "14px";
+        heightEl.style.transform = `translateX(calc(-100% - 4px)) translateY(-50%)`;
+      }
+      this.updateGrid(width, height);
+    }
+    updateGrid(boxWidth, boxHeight) {
+      if (!this.cropBox || !this.texture) return;
+      const grid = this.cropBox.querySelector(".uv_crop_grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      const uvFactor = this.texture.width / this.texture.uv_width;
+      const gridStep = 32 / uvFactor;
+      const scale = this.getScale();
+      const cropWidth = this.bounds.right - this.bounds.left;
+      const cropHeight = this.bounds.bottom - this.bounds.top;
+      const firstV = Math.ceil(this.bounds.left / gridStep) * gridStep;
+      for (let uv = firstV; uv < this.bounds.right; uv += gridStep) {
+        if (uv <= this.bounds.left) continue;
+        const pct = (uv - this.bounds.left) / cropWidth * 100;
+        const line = document.createElement("div");
+        line.className = "uv_crop_grid_line v";
+        line.style.left = `${pct}%`;
+        grid.appendChild(line);
+      }
+      const firstH = Math.ceil(this.bounds.top / gridStep) * gridStep;
+      for (let uv = firstH; uv < this.bounds.bottom; uv += gridStep) {
+        if (uv <= this.bounds.top) continue;
+        const pct = (uv - this.bounds.top) / cropHeight * 100;
+        const line = document.createElement("div");
+        line.className = "uv_crop_grid_line h";
+        line.style.top = `${pct}%`;
+        grid.appendChild(line);
+      }
+    }
+    handleMouseDown = (e) => {
+      if (!this.active) return;
+      if (e.button === 1) return;
+      const target = e.target;
+      if (target.classList.contains("uv_crop_handle")) {
+        this.dragging = target.dataset.handle;
+      } else if (target.classList.contains("uv_crop_box") || target.closest(".uv_crop_box")) {
+        if (target.tagName === "BUTTON") return;
+        this.dragging = "move";
+      } else {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      this.dragStart = { x: e.clientX, y: e.clientY };
+      this.boundsStart = { ...this.bounds };
+      document.addEventListener("mousemove", this.handleMouseMove);
+      document.addEventListener("mouseup", this.handleMouseUp);
+    };
+    handleMouseMove = (e) => {
+      if (!this.dragging || !this.texture) return;
+      const scale = this.getScale();
+      const dx = (e.clientX - this.dragStart.x) / scale;
+      const dy = (e.clientY - this.dragStart.y) / scale;
+      const minSize = 1;
+      const b = this.boundsStart;
+      const handlers = {
+        move: () => {
+          this.bounds = { left: b.left + dx, right: b.right + dx, top: b.top + dy, bottom: b.bottom + dy };
+        },
+        nw: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        n: () => {
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        ne: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        e: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+        },
+        se: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        s: () => {
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        sw: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        w: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+        }
+      };
+      handlers[this.dragging]();
+      if (!e.shiftKey) {
+        this.snapToGrid();
+      }
+      this.snapToEdges();
+      this.updateDisplay();
+    };
+    // Snap bounds to 32px grid increments
+    snapToGrid() {
+      if (!this.texture) return;
+      const uvFactor = this.texture.width / this.texture.uv_width;
+      const gridStep = 32 / uvFactor;
+      const snap = (val) => Math.round(val / gridStep) * gridStep;
+      this.bounds.left = snap(this.bounds.left);
+      this.bounds.right = snap(this.bounds.right);
+      this.bounds.top = snap(this.bounds.top);
+      this.bounds.bottom = snap(this.bounds.bottom);
+    }
+    // Magnetic snap to original canvas edges
+    snapToEdges() {
+      if (!this.texture) return;
+      const snapThreshold = 3;
+      const edges = { left: 0, top: 0, right: this.texture.uv_width, bottom: this.texture.uv_height };
+      if (Math.abs(this.bounds.left - edges.left) < snapThreshold) this.bounds.left = edges.left;
+      if (Math.abs(this.bounds.left - edges.right) < snapThreshold) this.bounds.left = edges.right;
+      if (Math.abs(this.bounds.right - edges.left) < snapThreshold) this.bounds.right = edges.left;
+      if (Math.abs(this.bounds.right - edges.right) < snapThreshold) this.bounds.right = edges.right;
+      if (Math.abs(this.bounds.top - edges.top) < snapThreshold) this.bounds.top = edges.top;
+      if (Math.abs(this.bounds.top - edges.bottom) < snapThreshold) this.bounds.top = edges.bottom;
+      if (Math.abs(this.bounds.bottom - edges.top) < snapThreshold) this.bounds.bottom = edges.top;
+      if (Math.abs(this.bounds.bottom - edges.bottom) < snapThreshold) this.bounds.bottom = edges.bottom;
+    }
+    handleMouseUp = () => {
+      this.dragging = null;
+      document.removeEventListener("mousemove", this.handleMouseMove);
+      document.removeEventListener("mouseup", this.handleMouseUp);
+    };
+    handleKeyDown = (e) => {
+      if (!this.active) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.apply();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.deactivate();
+      }
+    };
+    addEventListeners() {
+      this.overlay?.addEventListener("mousedown", this.handleMouseDown);
+      this.uvFrame?.addEventListener("wheel", () => this.updateDisplay());
+      document.addEventListener("keydown", this.handleKeyDown);
+      Blockbench.on("resize_window", this.updateDisplay.bind(this));
+      const vue = UVEditor.vue;
+      if (vue?.$watch) {
+        for (const prop of ["zoom", "inner_left", "inner_top"]) {
+          this.unwatchers.push(vue.$watch(prop, () => this.updateDisplay()));
+        }
+        this.unwatchers.push(vue.$watch("texture", () => this.deactivate()));
+      }
+    }
+    removeEventListeners() {
+      this.overlay?.removeEventListener("mousedown", this.handleMouseDown);
+      document.removeEventListener("mousemove", this.handleMouseMove);
+      document.removeEventListener("mouseup", this.handleMouseUp);
+      document.removeEventListener("keydown", this.handleKeyDown);
+      Blockbench.removeListener("resize_window", this.updateDisplay);
+      this.unwatchers.forEach((fn) => fn());
+      this.unwatchers = [];
+    }
+    // Crops textures and adjusts UVs based on context (attachment vs main model)
+    apply() {
+      if (!this.texture) return;
+      const selectedTexture = this.texture;
+      const textureGroupUuid = selectedTexture.group;
+      const isAttachmentTexture = !!textureGroupUuid;
+      let texturesToCrop;
+      let elementsToAffect;
+      if (isAttachmentTexture) {
+        texturesToCrop = Texture.all.filter((t) => t.group === textureGroupUuid);
+        const relatedCollections = Collection.all.filter((c) => {
+          const collectionTexUuid = c.texture;
+          return texturesToCrop.some((t) => t.uuid === collectionTexUuid);
+        });
+        elementsToAffect = Outliner.elements.filter(
+          (el) => relatedCollections.some((c) => c.contains(el))
+        );
+      } else {
+        const collectionTextureUuids = new Set(
+          Collection.all.map((c) => c.texture).filter(Boolean)
+        );
+        texturesToCrop = Texture.all.filter(
+          (t) => !t.group && !collectionTextureUuids.has(t.uuid)
+        );
+        elementsToAffect = Outliner.elements.filter(
+          (el) => !Collection.all.some((c) => c.contains(el))
+        );
+      }
+      if (texturesToCrop.length === 0) {
+        Blockbench.showQuickMessage("No textures to crop", 2e3);
+        return;
+      }
+      const refUvFactor = selectedTexture.width / selectedTexture.uv_width;
+      const newWidth = Math.round((this.bounds.right - this.bounds.left) * refUvFactor);
+      const newHeight = Math.round((this.bounds.bottom - this.bounds.top) * refUvFactor);
+      if (newWidth < 1 || newHeight < 1) {
+        Blockbench.showQuickMessage("Invalid crop size", 2e3);
+        return;
+      }
+      Undo.initEdit({ textures: texturesToCrop, bitmap: true });
+      for (const texture of texturesToCrop) {
+        const uvFactor = texture.width / texture.uv_width;
+        const pixelLeft = Math.round(this.bounds.left * uvFactor);
+        const pixelTop = Math.round(this.bounds.top * uvFactor);
+        const pixelWidth = Math.round((this.bounds.right - this.bounds.left) * uvFactor);
+        const pixelHeight = Math.round((this.bounds.bottom - this.bounds.top) * uvFactor);
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = texture.width;
+        tempCanvas.height = texture.height;
+        tempCanvas.getContext("2d").drawImage(texture.img, 0, 0);
+        texture.width = texture.canvas.width = pixelWidth;
+        texture.height = texture.canvas.height = pixelHeight;
+        const ctx = texture.ctx;
+        ctx.clearRect(0, 0, pixelWidth, pixelHeight);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tempCanvas, -pixelLeft, -pixelTop);
+        texture.uv_width = pixelWidth / uvFactor;
+        texture.uv_height = pixelHeight / uvFactor;
+        texture.updateChangesAfterEdit();
+      }
+      Undo.finishEdit(isAttachmentTexture ? "Crop attachment texture" : "Crop model textures");
+      const cubes = elementsToAffect.filter((el) => el instanceof Cube && !!el.faces);
+      if (cubes.length && (this.bounds.left || this.bounds.top)) {
+        Undo.initEdit({ elements: cubes });
+        const offsetX = this.bounds.left;
+        const offsetY = this.bounds.top;
+        for (const cube of cubes) {
+          if (cube.box_uv) {
+            cube.uv_offset[0] -= offsetX;
+            cube.uv_offset[1] -= offsetY;
+          } else {
+            for (const key in cube.faces) {
+              const uv = cube.faces[key].uv;
+              uv[0] -= offsetX;
+              uv[1] -= offsetY;
+              uv[2] -= offsetX;
+              uv[3] -= offsetY;
+            }
+          }
+        }
+        Canvas.updateView({ elements: cubes, element_aspects: { uv: true } });
+        Undo.finishEdit("Adjust UV after cropping");
+      }
+      UVEditor.vue.$forceUpdate();
+      this.deactivate();
+    }
+  };
+  var cropTool = null;
+  var resizeToggle = null;
+  function setupUVCanvasResize() {
+    const style = Blockbench.addCSS(CROP_CSS);
+    track(style);
+    cropTool = new UVCropTool(() => {
+      resizeToggle?.set(false);
+    });
+    let originalReverseSelect = UVEditor.reverseSelect;
+    UVEditor.reverseSelect = function(...args) {
+      if (cropTool.active) return;
+      originalReverseSelect.call(UVEditor, ...args);
+    };
+    track({
+      delete() {
+        UVEditor.reverseSelect = originalReverseSelect;
+      }
+    });
+    resizeToggle = new Toggle("hytale_resize_uv_canvas", {
+      name: "Resize UV Canvas",
+      icon: "crop",
+      category: "uv",
+      condition: { formats: FORMAT_IDS, modes: ["edit"] },
+      onChange: (value) => {
+        if (value) {
+          cropTool?.activate();
+        } else {
+          cropTool?.deactivate();
+        }
+      }
+    });
+    track(resizeToggle);
+    Toolbars.uv_editor?.add(resizeToggle, 0);
+    track(Blockbench.on("select_mode", () => {
+      cropTool?.deactivate();
+      resizeToggle?.set(false);
+    }));
+    track({ delete: () => {
+      cropTool?.deactivate();
+      cropTool = null;
+      resizeToggle = null;
+    } });
+  }
+
   // src/alt_duplicate.ts
   function setupAltDuplicate() {
     const keybindItem = new KeybindItem("hytale_duplicate_drag_modifier", {
@@ -3490,6 +3986,151 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track({ delete: () => events.forEach(([type, handler]) => document.removeEventListener(type, handler, true)) });
   }
 
+  // src/change_orientation.ts
+  function canChangeParentGroup(cube) {
+    let parent = cube.parent;
+    if (parent instanceof Group == false || !parent.selected) return false;
+    if (parent.children.find((c) => c instanceof Cube == false || !c.selected)) return false;
+    return true;
+  }
+  function changeCubeOrientation(axis, direction) {
+    let affected_groups = [];
+    let changed_groups = [];
+    for (let cube of Cube.selected) {
+      if (canChangeParentGroup(cube)) affected_groups.safePush(cube.parent);
+    }
+    Undo.initEdit({ elements: Cube.selected, groups: affected_groups });
+    for (let cube of Cube.selected) {
+      let flip_direction = direction == -1;
+      if (axis == 1) flip_direction = !flip_direction;
+      let node_to_rotate = canChangeParentGroup(cube) ? cube.parent : cube;
+      let quat_initial = Reusable.quat2.copy(node_to_rotate.mesh.quaternion);
+      cube.roll(axis, flip_direction ? 3 : 1, node_to_rotate.origin);
+      if (changed_groups.includes(node_to_rotate)) {
+        continue;
+      } else if (node_to_rotate instanceof Group) {
+        changed_groups.push(node_to_rotate);
+      }
+      let change_euler = Reusable.euler1.set(0, 0, 0);
+      change_euler[getAxisLetter(axis)] = Math.degToRad(-direction * 90);
+      node_to_rotate.mesh.quaternion.multiplyQuaternions(quat_initial, Reusable.quat1.setFromEuler(change_euler));
+      let new_rotation = node_to_rotate.mesh.rotation.toArray().slice(0, 3).map((r) => Math.radToDeg(r));
+      node_to_rotate.rotation.V3_set(new_rotation.map((r) => Math.roundTo(r, 2)));
+      node_to_rotate.preview_controller.updateTransform(node_to_rotate);
+    }
+    ;
+    Undo.finishEdit("Change cube orientation");
+    updateSelection();
+  }
+  function setupChangeOrientation() {
+    let action = new Action("change_cube_orientation", {
+      name: "Change Orientation",
+      icon: "screen_rotation_up",
+      condition: { modes: ["edit"], selected: { cube: true } },
+      children: [
+        {
+          id: "x_plus",
+          name: "X+",
+          icon: "rotate_right",
+          color: "x",
+          click() {
+            changeCubeOrientation(0, 1);
+          }
+        },
+        {
+          id: "x_minus",
+          name: "X-",
+          icon: "rotate_left",
+          color: "x",
+          click() {
+            changeCubeOrientation(0, -1);
+          }
+        },
+        {
+          id: "y_plus",
+          name: "Y+",
+          icon: "rotate_right",
+          color: "y",
+          click() {
+            changeCubeOrientation(1, 1);
+          }
+        },
+        {
+          id: "y_minus",
+          name: "Y-",
+          icon: "rotate_left",
+          color: "y",
+          click() {
+            changeCubeOrientation(1, -1);
+          }
+        },
+        {
+          id: "z_plus",
+          name: "Z+",
+          icon: "rotate_right",
+          color: "z",
+          click() {
+            changeCubeOrientation(2, 1);
+          }
+        },
+        {
+          id: "z_minus",
+          name: "Z-",
+          icon: "rotate_left",
+          color: "z",
+          click() {
+            changeCubeOrientation(2, -1);
+          }
+        }
+      ],
+      click(e) {
+        new Menu("change_cube_orientation", this.children, {}).open(e.target);
+      }
+    });
+    for (let item of action.children) {
+      action.addSubKeybind(item.id, item.name, null, item.click);
+    }
+    MenuBar.menus.transform.addAction(action);
+    track(action);
+  }
+
+  // src/shortcuts.ts
+  function setupShortcuts() {
+    let last_brush_preset = Painter.default_brush_presets[0];
+    let brush_tool = BarItems.brush_tool;
+    let original_brush_trigger = brush_tool.trigger;
+    brush_tool.trigger = function(event) {
+      if (BARS.condition(this.condition, this)) {
+        if (this === Toolbox.selected) {
+          let options = brush_tool.side_menu.structure();
+          options = options.slice(0, -2);
+          let index = options.findIndex((option) => option.name == last_brush_preset?.name);
+          let next_index = (index + 1) % options.length;
+          let next_option = options[next_index];
+          next_option.click(null, event);
+          Blockbench.showQuickMessage(`Brush ${next_index + 1}: ${tl(next_option.name)}`);
+          return;
+        }
+        this.select();
+        return true;
+      } else if (this.modes && event instanceof KeyboardEvent == false) {
+        return this.switchModeAndSelect();
+      }
+      return false;
+    };
+    let originalApplyBrushPreset = Painter.loadBrushPreset;
+    Painter.loadBrushPreset = function(preset) {
+      last_brush_preset = preset;
+      originalApplyBrushPreset.call(Painter, preset);
+    };
+    track({
+      delete() {
+        brush_tool.trigger = original_brush_trigger;
+        Painter.loadBrushPreset = originalApplyBrushPreset;
+      }
+    });
+  }
+
   // src/plugin.ts
   BBPlugin.register("hytale_plugin", {
     title: "Hytale Models",
@@ -3509,7 +4150,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     },
     repository: "https://github.com/JannisX11/hytale-blockbench-plugin",
     bug_tracker: "https://github.com/JannisX11/hytale-blockbench-plugin/issues",
-    contributors: ["Hedaox"],
+    contributors: ["Hedaox", "MelodicAlbuild"],
     onload() {
       setupFormats();
       setupElements();
@@ -3525,7 +4166,10 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       setupNameOverlap();
       setupUVOutline();
       setupTempFixes();
+      setupChangeOrientation();
       setupPreviewScenes();
+      setupUVCanvasResize();
+      setupShortcuts();
       let panel_setup_listener;
       function showCollectionPanel() {
         const local_storage_key = "hytale_plugin:collection_panel_setup";
