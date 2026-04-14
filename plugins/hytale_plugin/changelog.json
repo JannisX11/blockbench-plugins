@@ -447,5 +447,18 @@
 				]
 			}
 		]
+	},
+	"0.9.1": {
+		"title": "0.9.1",
+		"date": "2026-04-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Switching brush presets is no longer assigned to the brush key by default, but can be reassigned in the keybinding settings"
+				]
+			}
+		]
 	}
 }

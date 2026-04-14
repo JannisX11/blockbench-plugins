@@ -2096,7 +2096,7 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.9.0",
+    version: "0.9.1",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -2107,7 +2107,7 @@ For Hytale, the first cube inside a group qualifies as directly connected if it 
     author: "JannisX11, Kanno",
     license: "GPL-3.0",
     dependencies: {
-      "blockbench-types": "^5.1.0-beta.2-next.1"
+      "blockbench-types": "^5.1.0"
     },
     devDependencies: {
       esbuild: "^0.25.9"
@@ -3833,7 +3833,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       }
     });
     track(resizeToggle);
-    Toolbars.uv_editor?.add(resizeToggle, 0);
+    Toolbars.uv_editor?.add(resizeToggle, 1);
     track(Blockbench.on("select_mode", () => {
       cropTool?.deactivate();
       resizeToggle?.set(false);
@@ -4096,28 +4096,24 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
 
   // src/shortcuts.ts
   function setupShortcuts() {
+    const brush_tool = BarItems.brush_tool;
     let last_brush_preset = Painter.default_brush_presets[0];
-    let brush_tool = BarItems.brush_tool;
-    let original_brush_trigger = brush_tool.trigger;
-    brush_tool.trigger = function(event) {
-      if (BARS.condition(this.condition, this)) {
-        if (this === Toolbox.selected) {
-          let options = brush_tool.side_menu.structure();
-          options = options.slice(0, -2);
-          let index = options.findIndex((option) => option.name == last_brush_preset?.name);
-          let next_index = (index + 1) % options.length;
-          let next_option = options[next_index];
-          next_option.click(null, event);
-          Blockbench.showQuickMessage(`Brush ${next_index + 1}: ${tl(next_option.name)}`);
-          return;
-        }
-        this.select();
-        return true;
-      } else if (this.modes && event instanceof KeyboardEvent == false) {
-        return this.switchModeAndSelect();
+    let selecting = false;
+    brush_tool.addSubKeybind("switch_preset", "Switch Preset", null, (event) => {
+      if (Toolbox.selected == brush_tool && !selecting) {
+        let options = brush_tool.side_menu.structure();
+        options = options.slice(0, -2);
+        let index = options.findIndex((option) => option.name == last_brush_preset?.name);
+        let next_index = (index + 1) % options.length;
+        let next_option = options[next_index];
+        next_option.click(null, event);
+        Blockbench.showQuickMessage(`Brush ${next_index + 1}: ${tl(next_option.name)}`);
       }
-      return false;
-    };
+    });
+    let select_listener = brush_tool.on("select", () => {
+      selecting = true;
+      setTimeout(() => selecting = false, 60);
+    });
     let originalApplyBrushPreset = Painter.loadBrushPreset;
     Painter.loadBrushPreset = function(preset) {
       last_brush_preset = preset;
@@ -4125,7 +4121,8 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     };
     track({
       delete() {
-        brush_tool.trigger = original_brush_trigger;
+        select_listener.delete();
+        delete brush_tool.sub_keybinds.switch_preset;
         Painter.loadBrushPreset = originalApplyBrushPreset;
       }
     });
