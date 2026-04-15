@@ -15,6 +15,7 @@
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
 import { invertMolang } from '../core/azure-utils.js';
+import { IKManager } from './azure-ik.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -697,6 +698,9 @@ export function registerAzureAnimationFormat() {
   // Hook Animator so our serialiser/parser run when azure_model is active
   _hookAnimator();
 
+  // Register FABRIK IK system
+  // IKManager.register();
+
   // Hide the built-in export/import actions for our format
   _hideBuiltinAnimationActions();
 
@@ -731,6 +735,7 @@ export function registerAzureAnimationFormat() {
 export function unregisterAzureAnimationFormat() {
   _unhookAnimator();
   _restoreBuiltinAnimationActions();
+  // IKManager.unregister();
 
   try { _exportAction?.delete(); } catch (_) {}
   try { _importAction?.delete(); } catch (_) {}
