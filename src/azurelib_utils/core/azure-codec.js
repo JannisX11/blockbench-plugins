@@ -4,14 +4,18 @@
  * Defines the Blockbench model format for AzureLib (.geo / .animation)
  * and handles project load, save, and import/export utilities.
  *
+ * Animation handling is now fully owned by azure-animation-tab.js.
+ * This file no longer hooks into Codecs.bedrock for animation I/O.
+ *
  * © 2025 AzureDoom — MIT License
  */
 
 import omit from 'lodash/omit';
 import AzureConfig, { DEFAULT_CONFIG, onSettingsChanged } from './azure-settings.js';
-import { EASING_DEFAULT, hasArgs } from '../animation/azure-easing.js';
 import { injectOverride, PatchRegistry, invertMolang as localInvert } from './azure-utils.js';
 import { registerKeyframeOverrides, unregisterKeyframeOverrides } from '../animation/azure-keyframes.js';
+import { registerAzureAnimationFormat, unregisterAzureAnimationFormat } from '../animation/azure-animation-tab.js';
+import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
 let hasNotifiedConversion = false;
@@ -25,15 +29,19 @@ export function registerAzureCodec() {
   Codecs.project.on('parse', handleProjectParse);
   Codecs.bedrock.on('compile', handleBedrockCompile);
 
-  injectOverride(Animator, null, 'buildFile', buildAnimationFile);
-  injectOverride(Animator, null, 'loadFile', loadAnimationFile);
+  // Register our custom animation format (replaces Bedrock animation tab)
+  registerAzureAnimationFormat();
 
+  // Keyframe interpolation overrides (getLerp, compileBedrockKeyframe, etc.)
   registerKeyframeOverrides();
+
+  // Animation panel UI (easing picker, catmullrom toggle, etc.)
+  initializeAnimationUI();
 
   Blockbench.on('close_project', resetDefaults);
   Blockbench.on('new_project', resetDefaults);
 
-  console.log('[AzureLib] Azure codec + keyframe overrides registered');
+  console.log('[AzureLib] Azure codec registered (unified animation tab)');
 }
 
 export function unregisterAzureCodec() {
@@ -41,7 +49,9 @@ export function unregisterAzureCodec() {
   Codecs.project.events.parse.remove(handleProjectParse);
   Codecs.bedrock.events.compile.remove(handleBedrockCompile);
 
+  unloadAnimationUI();
   unregisterKeyframeOverrides();
+  unregisterAzureAnimationFormat();
 
   format.delete();
   console.log('[AzureLib] Azure codec unregistered');
@@ -54,7 +64,7 @@ function resetDefaults() {
 }
 
 // ---------------------------------------------------------------------------
-// Handlers for compilation/parsing hooks
+// Project compile/parse hooks
 // ---------------------------------------------------------------------------
 
 function handleProjectCompile(event) {
@@ -133,488 +143,8 @@ function handleBedrockCompile(event) {
   }
 }
 
-function canonicalTimeKey(t) {
-  // "0.0" -> "0", "1.000" -> "1", keep "0.12" as-is
-  if (typeof t !== 'string') t = String(t);
-  return t.replace(/^(-?\d+)\.0+$/, '$1');
-}
-
-function unwrapVector(v) {
-  // handles [x,y,z] OR {vector:[x,y,z]} OR {vector:{vector:[x,y,z]}}
-  if (Array.isArray(v)) return v;
-  if (v && typeof v === 'object') {
-    if (Array.isArray(v.vector)) return v.vector;
-    if (v.vector && typeof v.vector === 'object' && Array.isArray(v.vector.vector)) return v.vector.vector;
-  }
-  return v;
-}
-
-function shouldFlattenKeyframeObj(obj) {
-  // flatten if it's basically only { vector: [...] } (or nested vector)
-  if (!obj || typeof obj !== 'object') return false;
-  if ('effect' in obj) return false;
-
-  const keys = Object.keys(obj);
-  const allowed = new Set(['vector', 'easing', 'easingArgs']);
-
-  // If it has extra keys (like lerp_mode, pre/post, etc), don't flatten
-  if (keys.some(k => !allowed.has(k))) return false;
-
-  const hasVector = 'vector' in obj;
-  if (!hasVector) return false;
-
-  // If easing/args actually matter, keep object
-  const hasEasing = !!obj.easing;
-  const hasArgs =
-    obj.easingArgs &&
-    ((Array.isArray(obj.easingArgs) && obj.easingArgs.length) ||
-      (typeof obj.easingArgs === 'object' && Object.keys(obj.easingArgs).length));
-
-  // If there's easing/args, keep object form
-  if (hasEasing || hasArgs) return false;
-
-  return true;
-}
-
-function normalizeChannel(channelData) {
-  if (!channelData || typeof channelData !== 'object' || Array.isArray(channelData)) return channelData;
-
-  if ('vector' in channelData && Object.keys(channelData).length === 1) {
-    const vec = unwrapVector(channelData.vector);
-    return { '0': vec };
-  }
-
-  const out = {};
-  for (const rawT of Object.keys(channelData)) {
-    const t = canonicalTimeKey(rawT);
-    const entry = channelData[rawT];
-
-    if (shouldFlattenKeyframeObj(entry)) {
-      out[t] = unwrapVector(entry.vector);
-    } else if (entry && typeof entry === 'object' && 'vector' in entry) {
-      out[t] = { ...entry, vector: unwrapVector(entry.vector) };
-    } else {
-      out[t] = entry;
-    }
-  }
-  return out;
-}
-
-const ensureEffectsAnimator = (anim) => {
-  if (!anim.animators.effects) {
-    anim.animators.effects = new EffectAnimator(anim);
-  }
-  return anim.animators.effects;
-};
-
-const forceEffectDataPoints = (keyframe, points) => {
-  if (!keyframe || !keyframe.data_points) return;
-
-  // If BB created vec3 datapoints, overwrite them with the effect objects
-  const dp0 = keyframe.data_points[0];
-  const looksLikeVec3 =
-    dp0 && typeof dp0 === 'object' && ('x' in dp0 || 'y' in dp0 || 'z' in dp0 || 'vector' in dp0);
-
-  if (looksLikeVec3) {
-    keyframe.data_points.length = 0;
-    for (const p of points) keyframe.data_points.push({ ...p });
-  }
-};
-
-const addEffectKeyframe = (effects, channel, time, points) => {
-  effects.addKeyframe({ channel, time, data_points: points });
-
-  const kf = effects.keyframes?.[effects.keyframes.length - 1];
-  if (kf && kf.channel === channel && Math.abs(kf.time - time) < 1e-6) {
-    forceEffectDataPoints(kf, points);
-  }
-};
-
 // ---------------------------------------------------------------------------
-// Animator overrides
-// ---------------------------------------------------------------------------
-
-function buildAnimationFile() {
-  const res = PatchRegistry.get(Animator).buildFile.apply(this, arguments);
-  if (Format.id !== 'azure_model') return res;
-
-  const animations = res.animations;
-  if (!animations) return res;
-
-  const flipArray = (array, channel) => {
-    if (!Array.isArray(array)) return array;
-    if (channel === 'position') array[0] = invertMolang(array[0]);
-    if (channel === 'rotation') {
-      array[0] = invertMolang(array[0]);
-      array[1] = invertMolang(array[1]);
-    }
-    return array;
-  };
-  for (const name in animations) {
-    const bbAnim =
-      Animation.all.find(a => a.name === name && a.path && animations[name]?.path && a.path === animations[name].path) ||
-      Animation.all.find(a => a.name === name);
-
-    if (!bbAnim) continue;
-  }
-
-  for (const animationName in animations) {
-    const bones = animations[animationName]?.bones;
-    if (!bones) continue;
-
-    for (const boneName in bones) {
-      const bone = bones[boneName];
-
-      for (const channel in bone) {
-        const group = bone[channel];
-        if (!group || typeof group !== 'object') continue;
-
-        for (const timestamp in group) {
-          let kf = group[timestamp];
-          if (kf == null) continue;
-
-          if (kf && typeof kf === 'object' && !Array.isArray(kf)) {
-            const merged = kf.pre || kf.post;
-            if (merged) {
-              if (merged.easing && !kf.easing) kf.easing = merged.easing;
-              if (merged.easingArgs && !kf.easingArgs) kf.easingArgs = merged.easingArgs;
-              if (merged.vector && !kf.vector) kf.vector = merged.vector;
-              Object.assign(kf, merged);
-            }
-
-            if (!kf.easing && kf.__keyframe_ref?.easing) {
-              kf.easing = kf.__keyframe_ref.easing;
-              if (kf.__keyframe_ref.easingArgs) kf.easingArgs = kf.__keyframe_ref.easingArgs;
-            }
-
-            delete kf.pre;
-            delete kf.post;
-          }
-
-          // Invert corrections for BB 5.0+
-          if (Blockbench.isNewerThan('4.99')) {
-            if (Array.isArray(kf)) {
-              flipArray(kf, channel);
-            } else if (kf && typeof kf === 'object' && Array.isArray(kf.vector)) {
-              kf.vector = flipArray(kf.vector, channel);
-            } else if (kf && typeof kf === 'object' && (kf.x !== undefined || kf.y !== undefined || kf.z !== undefined)) {
-              if (channel === 'rotation') {
-                kf.x = invertMolang(kf.x);
-                kf.y = invertMolang(kf.y);
-              } else if (channel === 'position') {
-                kf.x = invertMolang(kf.x);
-              }
-            }
-          }
-          group[timestamp] = kf;
-        }
-      }
-    }
-  }
-
-  for (const animName in animations) {
-    const bones = animations[animName]?.bones;
-    if (!bones) continue;
-
-    for (const boneName in bones) {
-      const bone = bones[boneName];
-
-      for (const channel in bone) {
-        const val = bone[channel];
-
-        if (channel === 'scale') {
-          if (typeof val === 'number') bone[channel] = { "0": [val, val, val] };
-          else if (Array.isArray(val)) bone[channel] = { "0": val };
-        } else if (channel === 'position' || channel === 'rotation') {
-          if (Array.isArray(val)) bone[channel] = { "0": val };
-        }
-      }
-    }
-  }
-
-  for (const animName in animations) {
-    const bones = animations[animName]?.bones;
-    if (!bones) continue;
-
-    for (const boneName in bones) {
-      const bone = bones[boneName];
-      for (const channel in bone) {
-        bone[channel] = normalizeChannel(bone[channel]);
-      }
-    }
-  }
-
-  const toTimeKey = (n) => {
-    const s = String(n);
-    return s.replace(/^(-?\d+)\.0+$/, '$1');
-  };
-  
-  for (const animName in animations) {
-    const outAnim = animations[animName];
-    if (!outAnim) continue;
-  
-    const bbAnim = Animation.all.find(a => a.name === animName) || null;
-    const effects = bbAnim ? ensureEffectsAnimator(bbAnim) : null;
-  
-    if (!effects || !Array.isArray(effects.keyframes) || effects.keyframes.length === 0) {
-      // Important: clear any default/compiled vector-ish data so we don't export junk
-      delete outAnim.sound_effects;
-      delete outAnim.particle_effects;
-      delete outAnim.timeline;
-      continue;
-    }
-  
-    const sound_effects = {};
-    const particle_effects = {};
-    const timeline = {};
-  
-    for (const kf of effects.keyframes) {
-      const time = toTimeKey(kf.time);
-  
-      if (kf.channel === 'sound') {
-        const points = (kf.data_points || []).map(p => {
-          if (typeof p === 'string') return { effect: p };
-          if (p && typeof p === 'object' && p.effect) return { effect: p.effect };
-          return null;
-        }).filter(Boolean);
-  
-        if (points.length === 1) sound_effects[time] = points[0];
-        else if (points.length > 1) sound_effects[time] = points;
-      }
-  
-      if (kf.channel === 'particle') {
-        const points = (kf.data_points || []).map(p => {
-          if (!p || typeof p !== 'object') return null;
-          const out = {};
-          if (p.effect) out.effect = p.effect;
-          if (p.locator !== undefined) out.locator = p.locator;
-          if (p.script !== undefined) out.script = p.script;
-          if (p.pre_effect_script !== undefined && out.script === undefined) out.script = p.pre_effect_script;
-          return Object.keys(out).length ? out : null;
-        }).filter(Boolean);
-  
-        if (points.length === 1) particle_effects[time] = points[0];
-        else if (points.length > 1) particle_effects[time] = points;
-      }
-  
-      if (kf.channel === 'timeline') {
-        const script = (kf.data_points && kf.data_points[0] && kf.data_points[0].script) || '';
-        if (script) timeline[time] = script;
-      }
-    }
-  
-    if (Object.keys(sound_effects).length) outAnim.sound_effects = sound_effects;
-    else delete outAnim.sound_effects;
-  
-    if (Object.keys(particle_effects).length) outAnim.particle_effects = particle_effects;
-    else delete outAnim.particle_effects;
-  
-    if (Object.keys(timeline).length) outAnim.timeline = timeline;
-    else delete outAnim.timeline;
-  }
-
-  return res;
-}
-
-// ---------------------------------------------------------------------------
-// Load animation file (unchanged except import fixes)
-// ---------------------------------------------------------------------------
-
-function loadAnimationFile(file, filter) {
-  if (Format?.id !== 'azure_model') {
-    return PatchRegistry.get(Animator).loadFile.apply(this, arguments);
-  }
-
-  const json = file.json || autoParseJSON(file.content);
-  if (!json || typeof json.animations !== 'object') return [];
-
-  const animationsOut = [];
-
-  const getPoints = (source, channel) => {
-    const applyFlip = (vec, channel) => {
-      if (!vec) return vec;
-      if (channel === 'position') vec.x = invertMolang(vec.x);
-      if (channel === 'rotation') {
-        vec.x = invertMolang(vec.x);
-        vec.y = invertMolang(vec.y);
-      }
-      return vec;
-    };
-
-    if (source && typeof source === 'object' && Array.isArray(source.vector)) {
-      return getPoints(source.vector, channel);
-    }
-
-    if (Array.isArray(source) && Blockbench.isNewerThan('4.99')) {
-      const vec = { x: source[0], y: source[1], z: source[2] };
-      applyFlip(vec, channel);
-      return [vec];
-    } else if (typeof source === 'number' || typeof source === 'string') {
-      return [{ x: source, y: source, z: source }];
-    } else if (source && typeof source === 'object') {
-      if (Array.isArray(source.vector)) return getPoints(source.vector, channel);
-
-      const arr = [];
-      if (source.pre) arr.push(getPoints(source.pre, channel)[0]);
-      if (source.post) {
-        const post = getPoints(source.post, channel)[0];
-        arr.push(post);
-      }
-      return arr.length ? arr : undefined;
-    }
-
-    return undefined;
-  };
-
-  for (const name in json.animations) {
-    if (filter && !filter.includes(name)) continue;
-    const src = json.animations[name];
-
-    const anim = new Animation({
-      name,
-      path: file.path,
-      loop:
-        src.loop === true
-          ? 'loop'
-          : src.loop === 'hold_on_last_frame'
-          ? 'hold'
-          : src.loop,
-      override: src.override_previous_animation,
-      anim_time_update:
-        typeof src.anim_time_update === 'string'
-          ? src.anim_time_update.replace(/;(?!$)/, ';\n')
-          : src.anim_time_update,
-      blend_weight:
-        typeof src.blend_weight === 'string'
-          ? src.blend_weight.replace(/;(?!$)/, ';\n')
-          : src.blend_weight,
-      length: src.animation_length,
-    }).add();
-
-    if (src.sound_effects || src.particle_effects || src.timeline || src.instructions) {
-      const effects = ensureEffectsAnimator(anim);
-    
-      // SOUND
-      if (src.sound_effects) {
-        for (const t in src.sound_effects) {
-          let sounds = src.sound_effects[t];
-          if (!(sounds instanceof Array)) sounds = [sounds];
-    
-          const points = sounds
-            .filter(Boolean)
-            .map(s => (typeof s === 'string' ? { effect: s } : { ...s }));
-    
-          addEffectKeyframe(effects, 'sound', parseFloat(t), points);
-        }
-      }
-    
-      // PARTICLE
-      if (src.particle_effects) {
-        for (const t in src.particle_effects) {
-          let particles = src.particle_effects[t];
-          if (!(particles instanceof Array)) particles = [particles];
-    
-          const points = particles
-            .filter(Boolean)
-            .map(p => {
-              const out = { ...p };
-              if (out.pre_effect_script && !out.script) out.script = out.pre_effect_script;
-              return out;
-            });
-    
-          addEffectKeyframe(effects, 'particle', parseFloat(t), points);
-        }
-      }
-    
-      // TIMELINE / INSTRUCTIONS
-      const timeline = src.timeline || src.instructions;
-      if (timeline) {
-        for (const t in timeline) {
-          const entry = timeline[t];
-          const script = entry instanceof Array ? entry.join('\n') : entry;
-          addEffectKeyframe(effects, 'timeline', parseFloat(t), [{ script }]);
-        }
-      }
-    }  
-
-    if (src.bones) {
-      for (const boneName in src.bones) {
-        const bone = src.bones[boneName];
-        const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-        const uuid = group ? group.uuid : guid();
-        const animator = new BoneAnimator(uuid, anim, boneName);
-        anim.animators[uuid] = animator;
-
-        for (const channel in bone) {
-          if (!Animator.possible_channels[channel]) continue;
-          const channelData = bone[channel];
-
-          const addKeyframe = (time, data) => {
-            const pts = getPoints(data, channel);
-            if (!pts) return;
-
-            const easingValue = data?.easing ?? channelData?.easing ?? EASING_DEFAULT;
-
-            animator.addKeyframe({
-              time,
-              channel,
-              easing: easingValue,
-              easingArgs:
-                Array.isArray(data?.easingArgs) && data.easingArgs.length
-                  ? data.easingArgs
-                  : Array.isArray(channelData?.easingArgs)
-                  ? channelData.easingArgs
-                  : undefined,
-              interpolation: data?.lerp_mode,
-              uniform: !(Array.isArray(data) || Array.isArray(data?.vector)),
-              data_points: pts,
-            });
-          };
-
-          if (
-            typeof channelData === 'string' ||
-            typeof channelData === 'number' ||
-            Array.isArray(channelData)
-          ) {
-            addKeyframe(0, channelData);
-          } else if (channelData && typeof channelData === 'object') {
-            if (channelData.post || channelData.pre || channelData.vector !== undefined) {
-              addKeyframe(0, channelData);
-            } else {
-              for (const t in channelData) {
-                const entry = channelData[t];
-                if (entry && typeof entry === 'object') {
-                  if (Array.isArray(entry.vector)) {
-                    addKeyframe(parseFloat(t), entry);
-                  } else if (Array.isArray(entry)) {
-                    addKeyframe(parseFloat(t), { vector: entry });
-                  } else {
-                    addKeyframe(parseFloat(t), entry);
-                  }
-                } else {
-                  addKeyframe(parseFloat(t), entry);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    anim.calculateSnappingFromKeyframes();
-
-    // Optional: nudge UI refresh in some versions
-    if (Animator.open && typeof Animator.preview === 'function') Animator.preview(true);
-
-    if (!Animation.selected && Animator.open) anim.select();
-    animationsOut.push(anim);
-  }
-
-  return animationsOut;
-}
-
-// ---------------------------------------------------------------------------
-// Export helpers (Display JSON handling)
+// Export helpers (Display JSON handling — unchanged from original)
 // ---------------------------------------------------------------------------
 
 export function maybeExportItemJson(options = {}, as) {
@@ -697,7 +227,7 @@ export function maybeImportItemJson() {
         return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
 
       Project.display_settings = {};
-      const OFFSET_Y = 4.0; // same offset used in maybeExportItemJson
+      const OFFSET_Y = 4.0;
       for (const [slot, data] of Object.entries(json.display)) {
         if (!DisplayMode.slots.includes(slot)) continue;
 
@@ -705,7 +235,6 @@ export function maybeImportItemJson() {
         const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
         const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
 
-        // Apply offset correction back into Blockbench space
         translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
 
         const slotObj = new DisplaySlot(slot);
@@ -720,7 +249,6 @@ export function maybeImportItemJson() {
     }
   );
 }
-
 
 // ---------------------------------------------------------------------------
 // Model format registration

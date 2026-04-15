@@ -1,8 +1,11 @@
 /**
  * AzureLib Animator — Keyframe Interpolation & Overrides
  * ------------------------------------------------------
- * Adds easing-aware keyframe interpolation and export behavior
- * for AzureLib’s animation format.
+ * Adds easing-aware keyframe interpolation and export behaviour
+ * for AzureLib's unified animation format.
+ *
+ * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
+ * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
  *
  * © 2025 AzureDoom — MIT License
  */
@@ -14,9 +17,10 @@ let ORIG = null;
 let ORIG_REVERSE_CONDITION = null;
 let PATCHED = false;
 
-/**
- * Capture original methods only once to avoid recursion loops.
- */
+// ---------------------------------------------------------------------------
+// Capture originals once
+// ---------------------------------------------------------------------------
+
 function captureOriginalsOnce() {
   if (ORIG) return;
   ORIG = {
@@ -32,19 +36,20 @@ function captureOriginalsOnce() {
   }
 }
 
-/**
- * Apply all AzureLib-specific keyframe patches safely.
- */
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
 export function registerKeyframeOverrides() {
   if (PATCHED) return;
   captureOriginalsOnce();
 
   if (!Keyframe.prototype._azurePatched) {
-    Keyframe.prototype.getLerp = getLerpOverride;
+    Keyframe.prototype.getLerp              = getLerpOverride;
     Keyframe.prototype.compileBedrockKeyframe = compileBedrockKeyframe;
-    Keyframe.prototype.getUndoCopy = getUndoCopy;
-    Keyframe.prototype.extend = extendKeyframe;
-    Keyframe.prototype._azurePatched = true;
+    Keyframe.prototype.getUndoCopy          = getUndoCopy;
+    Keyframe.prototype.extend               = extendKeyframe;
+    Keyframe.prototype._azurePatched        = true;
   }
 
   if (BarItems.reverse_keyframes && !BarItems.reverse_keyframes._azurePatched) {
@@ -56,20 +61,17 @@ export function registerKeyframeOverrides() {
   PATCHED = true;
 }
 
-/**
- * Unregister (restore) patched methods safely.
- */
 export function unregisterKeyframeOverrides() {
   if (!PATCHED || !ORIG) return;
   try {
     if (Keyframe.prototype._azurePatched) {
-      Keyframe.prototype.getLerp = ORIG.getLerp;
+      Keyframe.prototype.getLerp              = ORIG.getLerp;
       Keyframe.prototype.compileBedrockKeyframe = ORIG.compileBedrockKeyframe;
-      Keyframe.prototype.getUndoCopy = ORIG.getUndoCopy;
-      Keyframe.prototype.extend = ORIG.extend;
+      Keyframe.prototype.getUndoCopy          = ORIG.getUndoCopy;
+      Keyframe.prototype.extend               = ORIG.extend;
       delete Keyframe.prototype._azurePatched;
     }
-    if (BarItems.reverse_keyframes && BarItems.reverse_keyframes._azurePatched && ORIG_REVERSE_CONDITION) {
+    if (BarItems.reverse_keyframes?._azurePatched && ORIG_REVERSE_CONDITION) {
       BarItems.reverse_keyframes.condition = ORIG_REVERSE_CONDITION;
       delete BarItems.reverse_keyframes._azurePatched;
     }
@@ -78,15 +80,24 @@ export function unregisterKeyframeOverrides() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// getLerp — easing-aware interpolation
+// ---------------------------------------------------------------------------
+
 function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-/**
- * Override for easing-aware interpolation.
- */
 function getLerpOverride(other, axis, t) {
-  if (Format.id !== 'azure_model') {
+  if (Format?.id !== 'azure_model') {
+    return ORIG.getLerp.apply(this, arguments);
+  }
+
+  // All Blockbench-native interpolation modes: defer to Blockbench's own spline/bezier/step logic
+  if (other.interpolation === 'catmullrom' ||
+      other.interpolation === 'linear'     ||
+      other.interpolation === 'bezier'     ||
+      other.interpolation === 'step') {
     return ORIG.getLerp.apply(this, arguments);
   }
 
@@ -102,102 +113,241 @@ function getLerpOverride(other, axis, t) {
 
   const eased = func(t);
   const start = this.calc(axis);
-  const stop = other.calc(axis);
+  const stop  = other.calc(axis);
   const result = lerp(start, stop, eased);
 
   if (Number.isNaN(result)) throw new Error('[AzureLib] Invalid easing result');
   return result;
 }
 
-/**
- * Override for exporting keyframes with easing data.
- */
+// ---------------------------------------------------------------------------
+// compileBedrockKeyframe — unified serialiser
+// ---------------------------------------------------------------------------
+
 function compileBedrockKeyframe() {
-  // Always run our serializer when exporting Azure animations
-  if (Format.id !== 'azure_model') {
+  if (Format?.id !== 'azure_model') {
     return ORIG.compileBedrockKeyframe.apply(this, arguments);
   }
 
-  const getArray = (dp) => {
-    const vector = this.getArray(dp); // Blockbench's native vector for this datapoint
-    const out = Array.isArray(vector)
-      ? { vector }
-      : { vector: [vector.x, vector.y, vector.z] };
+  const base = ORIG.compileBedrockKeyframe.apply(this, arguments);
+  const cloneArray = arr => Array.isArray(arr) ? [...arr] : arr;
 
-    // Persist easing onto the serialized node
-    if (this.easing && this.easing !== 'linear') out.easing = this.easing;
+  // --- Bedrock lerp_mode keyframes (linear / catmullrom): keep pre/post/lerp_mode ---
+  if (this.interpolation === 'catmullrom') {
+    const lerpMode = 'catmullrom';
+    if (base && typeof base === 'object') {
+      return {
+        ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
+        post:      cloneArray(base.post || base),
+        lerp_mode: lerpMode,
+      };
+    }
+    return { post: cloneArray(base), lerp_mode: lerpMode };
+  }
+
+  // --- Bezier keyframes: Blockbench handles pre/post natively, pass through ---
+  if (this.interpolation === 'bezier') {
+    if (base && typeof base === 'object') {
+      return {
+        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
+        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
+      };
+    }
+    return base;
+  }
+
+  // --- Step transition: keep pre/post pair ---
+  const prev = this.getPreviousKeyframe?.();
+  if (this.data_points.length === 1 && prev && prev.interpolation === 'step') {
+    if (base && typeof base === 'object') {
+      return {
+        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
+        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
+      };
+    }
+    return base;
+  }
+
+  // --- If Blockbench emitted explicit pre/post transition data, keep raw ---
+  if (
+    base && typeof base === 'object' && !Array.isArray(base) &&
+    (base.pre !== undefined || base.post !== undefined)
+  ) {
+    return {
+      ...(base.pre       !== undefined ? { pre:       cloneArray(base.pre)       } : {}),
+      ...(base.post      !== undefined ? { post:      cloneArray(base.post)      } : {}),
+      ...(base.lerp_mode !== undefined ? { lerp_mode: base.lerp_mode             } : {}),
+    };
+  }
+
+  // --- AzureLib easing node ---
+  const withAzureVectorNode = value => {
+    // Already an object with extra fields? (e.g. existing easing data)
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const out = { ...value };
+      if (out.easing === undefined && this.easing !== undefined) {
+        out.easing = this.easing;
+      }
+      if (out.easingArgs === undefined && hasArgs(this.easing) &&
+          Array.isArray(this.easingArgs) && this.easingArgs.length) {
+        out.easingArgs = [...this.easingArgs];
+      }
+      return out;
+    }
+
+    // Plain array → Azure node
+    const out = { vector: cloneArray(value) };
+    if (this.easing && this.easing !== EASING_DEFAULT) {
+      out.easing = this.easing;
+    }
     if (hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
       out.easingArgs = [...this.easingArgs];
+    }
+
+    // Flatten to plain array if there are no extra fields
+    if (!out.easing && !out.easingArgs) {
+      return out.vector;
     }
     return out;
   };
 
-  const prev = this.getPreviousKeyframe?.();
-
-  if (this.interpolation === 'catmullrom') {
-    const includePre = (!prev && this.time > 0) || (prev && prev.interpolation !== 'catmullrom');
-    return {
-      pre: includePre ? getArray(0) : undefined,
-      post: getArray(includePre ? 1 : 0),
-      lerp_mode: this.interpolation,
-    };
-  }
-
-  if (this.data_points.length === 1) {
-    if (prev && prev.interpolation === 'step') {
-      return { pre: getArray.call(prev, 1), post: getArray() };
-    }
-    return getArray();
-  }
-
-  return { pre: getArray(0), post: getArray(1) };
+  return withAzureVectorNode(base);
 }
 
-/**
- * Override for undo system — preserve easing state.
- */
+// ---------------------------------------------------------------------------
+// getUndoCopy — preserve easing state in undo history
+// ---------------------------------------------------------------------------
+
 function getUndoCopy() {
   const base = ORIG.getUndoCopy.apply(this, arguments);
-  if (Format.id === 'azure_model') {
+  if (Format?.id === 'azure_model') {
     base.easing = this.easing;
-    if (hasArgs(this.easing)) base.easingArgs = this.easingArgs;
+    base.interpolation = this.interpolation;
+    if (hasArgs(this.easing)) base.easingArgs = this.easingArgs ? [...this.easingArgs] : undefined;
   }
   return base;
 }
 
-/**
- * Safe keyframe extend override (prevents recursion).
- */
+// ---------------------------------------------------------------------------
+// extend — parse keyframe data on load
+// ---------------------------------------------------------------------------
+
 function extendKeyframe(dataIn) {
   const data = Object.assign({}, dataIn);
 
-  if (Format.id === 'azure_model') {
-    if (typeof data.values === 'object') {
-      if (data.values.easing !== undefined) this.easing = data.values.easing;
-      if (Array.isArray(data.values.easingArgs)) this.easingArgs = data.values.easingArgs;
-
-      if (!Array.isArray(data.values) && Array.isArray(data.values.vector)) {
-        data.values = data.values.vector;
-      }
-    } else {
-      if (data.easing !== undefined) this.easing = data.easing;
-      if (Array.isArray(data.easingArgs)) this.easingArgs = data.easingArgs;
-    }
+  if (Format?.id !== 'azure_model') {
+    return ORIG.extend.apply(this, [data]);
   }
 
-  return ORIG.extend.apply(this, [data]);
+  const cloneVec = (vec, fallback = [0, 0, 0]) => {
+    if (!Array.isArray(vec)) return [...fallback];
+    return [
+      vec[0] !== undefined ? vec[0] : fallback[0],
+      vec[1] !== undefined ? vec[1] : fallback[1],
+      vec[2] !== undefined ? vec[2] : fallback[2],
+    ];
+  };
+
+  const unwrapNode = value => {
+    if (Array.isArray(value)) {
+      return { vector: cloneVec(value) };
+    }
+    if (value && typeof value === 'object') {
+      const out = {};
+      if (value.easing       !== undefined) out.easing       = value.easing;
+      if (value.interpolation !== undefined) out.interpolation = value.interpolation;
+      if (Array.isArray(value.easingArgs))   out.easingArgs   = [...value.easingArgs];
+      if (Array.isArray(value.vector))       { out.vector = cloneVec(value.vector); return out; }
+      if ('x' in value && 'y' in value && 'z' in value) {
+        out.vector = cloneVec([value.x, value.y, value.z]); return out;
+      }
+    }
+    return { vector: null };
+  };
+
+  const valuesNode = unwrapNode(data.values);
+  const preNode    = unwrapNode(data.pre);
+  const postNode   = unwrapNode(data.post);
+
+  // Apply easing from whichever node carries it
+  const easingSource = valuesNode.easing ?? data.easing ?? postNode.easing;
+  if (easingSource !== undefined)     this.easing      = easingSource;
+
+  // Apply interpolation only for explicit Bedrock modes (catmullrom / bezier / step).
+  // We intentionally IGNORE data.interpolation === 'linear' from Blockbench core because
+  // 'linear' is Blockbench's own default interp label and would shadow our Azure easing.
+  // 'linear' as a Bedrock lerp_mode is set via data.lerp_mode, not data.interpolation.
+  // Only store Blockbench-native interpolation modes that we explicitly support.
+  // We intentionally ignore data.interpolation === 'linear' (Blockbench's own default)
+  // because it would shadow Azure easings. lerp_mode:'linear' from JSON is also dropped —
+  // it is handled by AzureLib's own linear easing instead.
+  const BEDROCK_INTERP_MODES = new Set(['catmullrom', 'bezier', 'step']);
+  let rawInterp = data.interpolation ?? postNode.interpolation;
+  // Prefer explicit lerp_mode from JSON over Blockbench's data.interpolation default
+  if (data.lerp_mode !== undefined && data.lerp_mode !== 'linear') rawInterp = data.lerp_mode;
+
+  if (rawInterp !== undefined && BEDROCK_INTERP_MODES.has(rawInterp)) {
+    this.interpolation = rawInterp;
+  } else {
+    // Not a recognised Bedrock mode — clear so Azure easing applies
+    this.interpolation = undefined;
+  }
+
+  const easingArgsSource = valuesNode.easingArgs ?? data.easingArgs ?? postNode.easingArgs;
+  if (easingArgsSource !== undefined) this.easingArgs   = [...easingArgsSource];
+
+  // Strip Azure/Bedrock wrappers before handing off to Blockbench core
+  const plain = Object.assign({}, data);
+  ['values', 'pre', 'post'].forEach(key => {
+    if (plain[key] && typeof plain[key] === 'object' && !Array.isArray(plain[key])) {
+      delete plain[key];
+    }
+  });
+
+  const result = ORIG.extend.apply(this, [plain]);
+
+  // Re-hydrate axis data explicitly
+  const ensurePoint = idx => {
+    if (!Array.isArray(this.data_points)) this.data_points = [];
+    if (!this.data_points[idx]) this.data_points[idx] = {};
+    return this.data_points[idx];
+  };
+
+  const writeVector = (point, vec) => {
+    if (!vec) return;
+    point.x = vec[0];
+    point.y = vec[1];
+    point.z = vec[2];
+    delete point.vector;
+  };
+
+  if (preNode.vector && postNode.vector) {
+    writeVector(ensurePoint(0), preNode.vector);
+    writeVector(ensurePoint(1), postNode.vector);
+  } else if (preNode.vector) {
+    writeVector(ensurePoint(0), preNode.vector);
+  } else if (!preNode.vector && postNode.vector && this.interpolation === 'catmullrom') {
+    writeVector(ensurePoint(0), postNode.vector);
+  } else if (valuesNode.vector) {
+    writeVector(ensurePoint(0), valuesNode.vector);
+  } else if (postNode.vector) {
+    writeVector(ensurePoint(0), postNode.vector);
+  }
+
+  return result;
 }
 
-/**
- * Reverse keyframes guard for Azure format.
- */
+// ---------------------------------------------------------------------------
+// Reverse keyframes guard
+// ---------------------------------------------------------------------------
+
 function reverseCondition() {
   if (reverseCondition._inAzureCall) return false;
   try {
     reverseCondition._inAzureCall = true;
     if (!ORIG_REVERSE_CONDITION || typeof ORIG_REVERSE_CONDITION !== 'function') return false;
     const result = ORIG_REVERSE_CONDITION.call(BarItems.reverse_keyframes);
-    return result && Format.id !== 'azure_model';
+    return result && Format?.id !== 'azure_model';
   } finally {
     reverseCondition._inAzureCall = false;
   }
