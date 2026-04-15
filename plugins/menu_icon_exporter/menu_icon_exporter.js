@@ -2,10 +2,11 @@
 // Plugin state
 // =========================
 let iconExporterAction;
+let iconExporterPanel = null;
+let iconExporterPanelVue = null;
+let iconExporterPanelRequestedMode = 'panel';
 const PLUGIN_BROWSER_ICON = 'icon.svg';
 const ACTION_ICON = 'data:image/png;base64,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';
-const ACTION_ICON_16 = 'photo_size_select_small';
-const ACTION_ICON_64 = 'photo_size_select_large';
 let activeResetButton = null;
 let cachedToolbarIconDataUrl = null;
 let toolbarIconDataUrlPromise = null;
@@ -13,10 +14,15 @@ const WORLD_UP = new THREE.Vector3(0, 1, 0);
 let dialogCameraRestoreState = null;
 let dialogDefaultFramedCameraState = null;
 let isolatedDialogPreview = null;
-const EXPORT_PREFS_KEY = 'menu_icon_exporter_export_prefs_v1';
+const EXPORT_PREFS_KEY = 'menu_icon_exporter_export_prefs_v2';
 const DEFAULT_EXPORT_PREFS = Object.freeze({
     save_mode: 'ask_dialog',
-    output_folder: ''
+    output_folder: '',
+    icon_size: '',
+    custom_size: 48,
+    background: 'transparent',
+    custom_color: '#ff0000',
+    quality: 'high'
 });
 let cachedExportPrefsText = '';
 const EXPORT_PREFS_LAST_WORKSPACE_KEY = 'menu_icon_exporter_last_workspace_v1';
@@ -156,7 +162,7 @@ function getExportPrefsKey() {
 }
 const PLUGIN_REPOSITORY = 'https://github.com/HMC-Studios/Menu-Icon-Exporter';
 const PLUGIN_BUG_TRACKER = 'https://github.com/HMC-Studios/Menu-Icon-Exporter/issues';
-const PLUGIN_ABOUT = `Export Blockbench models as PNG icons with stable camera framing and fast export actions.
+const PLUGIN_ABOUT = `Export Blockbench models as PNG icons with stable camera framing.
 
 ![Menu Icon Exporter Preview](https://raw.githubusercontent.com/HMC-Studios/Menu-Icon-Exporter/main/images/plugin_example.png)
 
@@ -168,6 +174,7 @@ const PLUGIN_ABOUT = `Export Blockbench models as PNG icons with stable camera f
 - Transparent, solid, or custom background color
 - Export quality multipliers (4x, 8x, 16x)
 - Save mode options (ask each time or auto-save folder)
+- Two view modes: Float (dialog), Panel (sidebar)
 
 PNG output works across Blockbench formats and platforms.
 Platform-specific size, naming, and folder rules still apply.`;
@@ -177,6 +184,13 @@ Platform-specific size, naming, and folder rules still apply.`;
 // =========================
 function canUseAppFileSystem() {
     return typeof require === 'function' || typeof requireNativeModule === 'function';
+}
+
+let _pluginDialog = null;
+function _getDialog() {
+    if (_pluginDialog) return _pluginDialog;
+    try { _pluginDialog = require('dialog'); } catch (e) {}
+    return _pluginDialog;
 }
 
 function isBlockbench5OrNewer() {
@@ -206,15 +220,29 @@ function getNativeModule(moduleName, options = null) {
 }
 
 function normalizeExportPrefs(source = {}) {
-    let saveMode = source && source.save_mode === 'auto_folder' ? 'auto_folder' : 'ask_dialog';
-    let outputFolder = source && typeof source.output_folder === 'string' ? source.output_folder.trim() : '';
+    let s = source || {};
+    let saveMode = s.save_mode === 'auto_folder' ? 'auto_folder' : 'ask_dialog';
+    let outputFolder = typeof s.output_folder === 'string' ? s.output_folder.trim() : '';
     if (!canUseAppFileSystem()) {
         saveMode = 'ask_dialog';
         outputFolder = '';
     }
+    let validSizes = ['16', '32', '48', '64', '128', 'custom'];
+    let iconSize = validSizes.includes(String(s.icon_size)) ? String(s.icon_size) : '';
+    let customSize = (typeof s.custom_size === 'number' && s.custom_size >= 8 && s.custom_size <= 512) ? s.custom_size : 48;
+    let validBgs = ['transparent', 'white', 'black', 'gray', 'custom'];
+    let background = validBgs.includes(s.background) ? s.background : 'transparent';
+    let customColor = (typeof s.custom_color === 'string' && /^#[0-9a-fA-F]{6}$/.test(s.custom_color)) ? s.custom_color : '#ff0000';
+    let validQualities = ['standard', 'high', 'ultra'];
+    let quality = validQualities.includes(s.quality) ? s.quality : 'high';
     return {
         save_mode: saveMode,
-        output_folder: outputFolder
+        output_folder: outputFolder,
+        icon_size: iconSize,
+        custom_size: customSize,
+        background: background,
+        custom_color: customColor,
+        quality: quality
     };
 }
 
@@ -266,29 +294,19 @@ Plugin.register('menu_icon_exporter', {
             description: 'Export model as a menu/item icon with automatic framing',
             icon: ACTION_ICON,
             category: 'file',
-            keybind: new Keybind({key: 'i', ctrl: true, shift: true}),
             click: openIconExporterDialog
         });
- 
-        this.quickExport16Action = new Action('quick_export_16', {
-            name: 'Quick Export 16×16 Icon',
-            description: 'Instantly export a 16×16 icon with default settings',
-            icon: ACTION_ICON_16,
-            category: 'file',
-            click: () => quickExportIcon(16)
-        });
 
-        this.quickExport64Action = new Action('quick_export_64', {
-            name: 'Quick Export 64×64 Icon',
-            description: 'Instantly export a 64×64 icon with default settings',
-            icon: ACTION_ICON_64,
+        this.openPanelAction = new Action('open_icon_exporter_panel', {
+            name: 'Icon Exporter Panel',
+            description: 'Open the icon exporter as a sidebar panel',
+            icon: ACTION_ICON,
             category: 'file',
-            click: () => quickExportIcon(64)
+            click: () => switchToPanel()
         });
 
         MenuBar.addAction(this.iconExporterAction, 'file.export');
-        MenuBar.addAction(this.quickExport16Action, 'file.export');
-        MenuBar.addAction(this.quickExport64Action, 'file.export');
+        MenuBar.addAction(this.openPanelAction, 'file.export');
 
         applyToolbarActionIcon(this.iconExporterAction);
     },
@@ -300,10 +318,666 @@ Plugin.register('menu_icon_exporter', {
         disposeIsolatedDialogPreview();
         clearDialogCameraState();
         this.iconExporterAction?.delete();
-        this.quickExport16Action?.delete();
-        this.quickExport64Action?.delete();
+        this.openPanelAction?.delete();
+        destroyIconExporterPanel();
     }
 });
+
+// =========================
+// Panel helpers
+// =========================
+function getIconExporterPanel() {
+    if (iconExporterPanel) return iconExporterPanel;
+    if (Interface && Interface.Panels && Interface.Panels.menu_icon_exporter_panel) {
+        return Interface.Panels.menu_icon_exporter_panel;
+    }
+    return null;
+}
+
+function panelIsFloating(panel) {
+    if (!panel) return false;
+    try {
+        if (typeof panel.isInSidebar === 'function') return !panel.isInSidebar();
+    } catch (e) {}
+    try {
+        if (panel.position_data && panel.position_data.slot) {
+            return String(panel.position_data.slot).toLowerCase().includes('float');
+        }
+    } catch (e) {}
+    return false;
+}
+
+function refreshPanelLayout() {
+    try {
+        if (typeof Interface.updateSidebars === 'function') {
+            Interface.updateSidebars();
+        } else if (typeof updateInterfacePanels === 'function') {
+            updateInterfacePanels();
+        }
+    } catch (e) {}
+    applyResponsivePanelFill();
+    setTimeout(applyResponsivePanelFill, 0);
+}
+
+let miePanelResizeObserver = null;
+let miePanelObservedNode = null;
+let isApplyingMiePanelFill = false;
+
+function disconnectMiePanelResizeObserver() {
+    if (miePanelResizeObserver) {
+        try { miePanelResizeObserver.disconnect(); } catch (e) {}
+    }
+    miePanelResizeObserver = null;
+    miePanelObservedNode = null;
+}
+
+function ensureMiePanelResizeObserver(panel) {
+    if (typeof ResizeObserver !== 'function' || !panel || !panel.node) return;
+    if (miePanelObservedNode === panel.node && miePanelResizeObserver) return;
+    disconnectMiePanelResizeObserver();
+    try {
+        miePanelObservedNode = panel.node;
+        miePanelResizeObserver = new ResizeObserver(() => {
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(applyResponsivePanelFill);
+            } else {
+                applyResponsivePanelFill();
+            }
+        });
+        miePanelResizeObserver.observe(panel.node);
+    } catch (e) {}
+}
+
+function applyResponsivePanelFill() {
+    if (isApplyingMiePanelFill) return;
+    isApplyingMiePanelFill = true;
+    let panel = getIconExporterPanel();
+    if (!panel) { isApplyingMiePanelFill = false; return; }
+
+    try {
+        ensureMiePanelResizeObserver(panel);
+
+        let panelNode = panel.node;
+        if (!panelNode) return;
+
+        let bodyNode = panelNode.querySelector('.mie_panel_body');
+        if (!bodyNode) return;
+
+        let panelRect = panelNode.getBoundingClientRect();
+        let bodyRect = bodyNode.getBoundingClientRect();
+        if (!panelRect || !bodyRect) return;
+
+        let topOffset = Math.max(0, bodyRect.top - panelRect.top);
+        let availableHeight = Math.floor(panelRect.height - topOffset - 2);
+
+        if (Number.isFinite(availableHeight) && availableHeight > 80) {
+            bodyNode.style.height = availableHeight + 'px';
+            bodyNode.style.maxHeight = availableHeight + 'px';
+            bodyNode.style.overflowY = 'auto';
+            bodyNode.style.overflowX = 'hidden';
+        }
+    } catch (e) {
+    } finally {
+        isApplyingMiePanelFill = false;
+    }
+}
+
+function movePanelToSlot(targetSlot) {
+    let panel = getIconExporterPanel();
+    if (!panel) return false;
+
+    let slotNames = [targetSlot];
+    if (targetSlot === 'right_bar') slotNames.push('right');
+    if (targetSlot === 'left_bar') slotNames.push('left');
+    if (targetSlot === 'float') slotNames.push('floating');
+
+    let done = false;
+
+    for (let slot of slotNames) {
+        if (done) break;
+        try {
+            if (typeof panel.moveTo === 'function') {
+                panel.moveTo(slot);
+                done = true;
+            }
+        } catch (e) {}
+    }
+
+    if (!done) {
+        for (let slot of slotNames) {
+            if (done) break;
+            try {
+                if (typeof panel.customizePosition === 'function') {
+                    let opts = { slot: slot, folded: false };
+                    if (slot === 'float' || slot === 'floating') {
+                        opts.float_position = [120, 80];
+                        opts.float_size = [400, 700];
+                    }
+                    panel.customizePosition(opts);
+                    done = true;
+                }
+            } catch (e) {}
+        }
+    }
+
+    try { if (typeof panel.setupFloatHandles === 'function') panel.setupFloatHandles(); } catch (e) {}
+    try {
+        if (typeof panel.updateSlot === 'function') panel.updateSlot();
+        if (typeof panel.update === 'function') panel.update();
+    } catch (e) {}
+    try {
+        if (typeof panel.show === 'function') panel.show();
+        if (typeof panel.select === 'function') panel.select();
+        else if (typeof panel.selectTab === 'function') panel.selectTab(panel);
+    } catch (e) {}
+    refreshPanelLayout();
+    return done;
+}
+
+function destroyIconExporterPanel() {
+    disconnectMiePanelResizeObserver();
+    if (iconExporterPanelVue) {
+        iconExporterPanelVue = null;
+    }
+    let panel = getIconExporterPanel();
+    if (panel) {
+        try { if (typeof panel.delete === 'function') panel.delete(); } catch (e) {}
+    }
+    iconExporterPanel = null;
+}
+
+function collectCurrentFormState() {
+    let prefs = loadExportPrefs();
+    return {
+        auto_frame: true,
+        zoom_level: 1.0,
+        rotate_x: 0, rotate_y: 0, rotate_z: 0,
+        pan_x: 0, pan_y: 0,
+        icon_size: prefs.icon_size || getRecommendedSize(),
+        custom_size: prefs.custom_size,
+        background: prefs.background,
+        custom_color: prefs.custom_color,
+        quality: prefs.quality,
+        save_mode: prefs.save_mode,
+        output_folder: prefs.output_folder,
+        filename: getDefaultFilename()
+    };
+}
+
+function getDefaultFilename() {
+    if (!Project || !Project.name) return 'icon';
+    let name = Project.name;
+    name = name.replace(/\.geo\.json$/i, '').replace(/\.geo$/i, '');
+    name = name.replace(/\.[^.]+$/, '');
+    name = name.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return name + '_icon';
+}
+
+function switchToFloat() {
+    destroyIconExporterPanel();
+    openIconExporterDialog();
+}
+
+function switchToPanel() {
+    createIconExporterPanel('panel');
+}
+
+function getSlotForMode(mode) {
+    return 'right_bar';
+}
+
+function createIconExporterPanel(mode) {
+    iconExporterPanelRequestedMode = mode;
+    let targetSlot = getSlotForMode(mode);
+
+    if (iconExporterPanel) {
+        let panel = getIconExporterPanel();
+        if (panel) {
+            movePanelToSlot(targetSlot);
+            if (iconExporterPanelVue) {
+                iconExporterPanelVue.currentMode = mode;
+            }
+            return;
+        }
+    }
+
+    let panelStyle = document.getElementById('menu_icon_exporter_panel_style');
+    if (panelStyle) panelStyle.remove();
+    panelStyle = document.createElement('style');
+    panelStyle.id = 'menu_icon_exporter_panel_style';
+    panelStyle.textContent = `
+        .mie_panel_body { padding: 4px 6px; font-size: 12px; width: 100%; box-sizing: border-box; overflow-y: auto !important; overflow-x: hidden !important; }
+        .mie_section_header { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; cursor: pointer; background: rgba(255,255,255,0.03); user-select: none; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 2px; }
+        .mie_section_header:hover { background: rgba(255,255,255,0.06); }
+        .mie_section_header h4 { margin: 0; font-size: 12px; font-weight: 600; }
+        .mie_section_body { padding: 4px 6px 6px; width: 100%; box-sizing: border-box; }
+        .mie_row { display: flex; align-items: center; min-height: 28px; margin-bottom: 4px; gap: 6px; width: 100%; box-sizing: border-box; }
+        .mie_row label { flex: 0 0 auto; min-width: 55px; font-size: 11px; color: var(--color-subtle_text); white-space: nowrap; line-height: 28px; }
+        .mie_row select, .mie_row input[type="text"], .mie_row input[type="number"] { flex: 1 1 0; min-width: 0; width: 0; background: var(--color-back); border: 1px solid var(--color-border); color: var(--color-text); padding: 5px 6px; border-radius: 5px; font-size: 11px; box-sizing: border-box; height: 28px; }
+        .mie_row input[type="checkbox"] { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; }
+        .mie_row input[type="range"] { flex: 1 1 0; min-width: 0; width: 0; height: 18px; }
+        .mie_row .mie_range_val { flex: 0 0 24px; text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; line-height: 28px; }
+        .mie_preview_canvas { display: block; width: 128px; height: 128px; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; image-rendering: pixelated; margin: 0 auto 4px; box-sizing: border-box; }
+        .mie_btn { display: block; width: 100%; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; text-align: center; background: var(--color-button); color: var(--color-text); box-sizing: border-box; margin-bottom: 2px; }
+        .mie_btn:hover { background: var(--color-accent); color: #fff; }
+        .mie_btn_primary { background: linear-gradient(180deg, #4f95f7, #3e7ad6); color: #fff; }
+        .mie_btn_primary:hover { background: linear-gradient(180deg, #5fa3ff, #4a88e8); }
+        .mie_mode_bar { display: flex; gap: 3px; margin-bottom: 4px; width: 100%; box-sizing: border-box; }
+        .mie_mode_btn { flex: 1 1 0; padding: 4px 3px; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; cursor: pointer; font-size: 10px; font-weight: 600; text-align: center; background: rgba(255,255,255,0.04); color: var(--color-subtle_text); min-width: 0; }
+        .mie_mode_btn:hover { background: rgba(255,255,255,0.08); color: var(--color-text); }
+        .mie_mode_btn.active { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+        .mie_arrow { transition: transform 0.15s; font-size: 14px; }
+        .mie_arrow.collapsed { transform: rotate(-90deg); }
+        .mie_folder_row { display: flex; align-items: center; min-height: 28px; gap: 6px; margin-bottom: 4px; width: 100%; box-sizing: border-box; }
+        .mie_folder_row label { flex: 0 0 auto; min-width: 55px; font-size: 11px; color: var(--color-subtle_text); white-space: nowrap; line-height: 28px; }
+        .mie_folder_row input { flex: 1 1 0; min-width: 0; width: 0; background: var(--color-back); border: 1px solid var(--color-border); color: var(--color-text); padding: 5px 6px; border-radius: 5px; font-size: 11px; box-sizing: border-box; height: 28px; }
+        .mie_folder_row i { flex: 0 0 auto; cursor: pointer; font-size: 18px; opacity: 0.7; line-height: 28px; padding: 4px; pointer-events: auto; position: relative; z-index: 2; }
+        .mie_folder_row i:hover { opacity: 1; }
+    `;
+    document.head.appendChild(panelStyle);
+
+    iconExporterPanel = new Panel({
+        id: 'menu_icon_exporter_panel',
+        name: 'Icon Exporter',
+        icon: 'photo_camera',
+        default_side: 'right',
+        expand_button: true,
+        folded: false,
+        resizable: true,
+        growable: true,
+        min_height: 300,
+        onResize() {
+            applyResponsivePanelFill();
+            if (iconExporterPanelVue) {
+                if (typeof iconExporterPanelVue.layoutPanel === 'function') iconExporterPanelVue.layoutPanel();
+                else if (typeof iconExporterPanelVue.refreshPreview === 'function') iconExporterPanelVue.refreshPreview();
+            }
+        },
+        onFold() {
+            applyResponsivePanelFill();
+        },
+        component: {
+            name: 'icon-exporter-panel',
+            template: `
+                <div class="mie_panel_body" style="overflow-y:auto !important; overflow-x:hidden !important; width:100%; box-sizing:border-box;">
+                    <div class="mie_mode_bar">
+                        <div class="mie_mode_btn" @click="switchToFloat" title="Floating window">Float</div>
+                        <div class="mie_mode_btn" :class="{ active: currentMode === 'panel' }" @click="switchToPanel" title="Sidebar panel">Panel</div>
+                    </div>
+
+                    <div class="mie_section_header" @click="sections.preview = !sections.preview; $nextTick(() => layoutPanel())">
+                        <h4>Preview</h4>
+                        <i class="material-icons mie_arrow" :class="{ collapsed: !sections.preview }">expand_more</i>
+                    </div>
+                    <div class="mie_section_body" v-if="sections.preview">
+                        <canvas ref="panelPreviewCanvas" class="mie_preview_canvas" width="256" height="256"></canvas>
+                        <div style="text-align:center;font-size:11px;color:var(--color-subtle_text);margin-bottom:4px;">{{ previewSizeText }}</div>
+                        <button class="mie_btn mie_btn_primary" @click="resetCamera" :disabled="!hasManualAdjustments" :style="{ opacity: hasManualAdjustments ? 1 : 0.5 }">Reset Camera to Auto-Frame</button>
+                    </div>
+
+                    <div class="mie_section_header" @click="sections.camera = !sections.camera; $nextTick(() => layoutPanel())">
+                        <h4>Camera Controls</h4>
+                        <i class="material-icons mie_arrow" :class="{ collapsed: !sections.camera }">expand_more</i>
+                    </div>
+                    <div class="mie_section_body" v-if="sections.camera">
+                        <div class="mie_row"><label>Auto-frame</label><input type="checkbox" v-model="auto_frame" @change="onCameraChange"></div>
+                        <div class="mie_row"><label>Zoom</label><input type="range" min="0.5" max="3.0" step="0.1" v-model.number="zoom_level" @input="onCameraChange"><span class="mie_range_val">{{ formatVal(zoom_level) }}</span></div>
+                        <div class="mie_row"><label>Rotate X</label><input type="range" min="-180" max="180" step="5" v-model.number="rotate_x" @input="onCameraChange"><span class="mie_range_val">{{ rotate_x }}</span></div>
+                        <div class="mie_row"><label>Rotate Y</label><input type="range" min="-180" max="180" step="5" v-model.number="rotate_y" @input="onCameraChange"><span class="mie_range_val">{{ rotate_y }}</span></div>
+                        <div class="mie_row"><label>Rotate Z</label><input type="range" min="-180" max="180" step="5" v-model.number="rotate_z" @input="onCameraChange"><span class="mie_range_val">{{ rotate_z }}</span></div>
+                        <div class="mie_row"><label>Pan X</label><input type="range" min="-50" max="50" step="1" v-model.number="pan_x" @input="onCameraChange"><span class="mie_range_val">{{ pan_x }}</span></div>
+                        <div class="mie_row"><label>Pan Y</label><input type="range" min="-50" max="50" step="1" v-model.number="pan_y" @input="onCameraChange"><span class="mie_range_val">{{ pan_y }}</span></div>
+                    </div>
+
+                    <div class="mie_section_header" @click="sections.export = !sections.export; $nextTick(() => layoutPanel())">
+                        <h4>Export Settings</h4>
+                        <i class="material-icons mie_arrow" :class="{ collapsed: !sections.export }">expand_more</i>
+                    </div>
+                    <div class="mie_section_body" v-if="sections.export">
+                        <div class="mie_row"><label>Icon Size</label><select v-model="icon_size" @change="onSettingChange"><option value="16">16×16 - Tiny</option><option value="32">32×32 - Small</option><option value="48">48×48 - Medium</option><option value="64">64×64 - Large</option><option value="128">128×128 - XL</option><option value="custom">Custom...</option></select></div>
+                        <div class="mie_row" v-if="icon_size === 'custom'"><label>Custom Size</label><input type="number" min="8" max="512" v-model.number="custom_size" @input="onSettingChange"></div>
+                        <div class="mie_row"><label>Background</label><select v-model="background" @change="onSettingChange"><option value="transparent">Transparent</option><option value="white">White</option><option value="black">Black</option><option value="gray">Gray</option><option value="custom">Custom Color</option></select></div>
+                        <div class="mie_row" v-if="background === 'custom'"><label>Color</label><input type="color" v-model="custom_color" @input="onSettingChange"></div>
+                        <div class="mie_row"><label>Quality</label><select v-model="quality" @change="onSettingChange"><option value="standard">Standard (4x)</option><option value="high">High (8x)</option><option value="ultra">Ultra (16x)</option></select></div>
+                        <div class="mie_row"><label>Save Mode</label><select v-model="save_mode" @change="onSaveModeChange"><option value="ask_dialog">Ask every export</option><option v-if="canAutoSave" value="auto_folder">Auto-save to folder</option></select></div>
+                        <div class="mie_folder_row" v-if="save_mode === 'auto_folder'"><label>Folder</label><input type="text" :value="output_folder" readonly><i class="material-icons" @click.stop.prevent="browseFolder" title="Browse" role="button">folder</i><i class="material-icons" @click.stop.prevent="output_folder = ''" title="Clear" role="button">clear</i></div>
+                        <div class="mie_row"><label>Filename</label><input type="text" v-model="filename"></div>
+                        <button class="mie_btn mie_btn_primary" @click="doExport" style="margin-top:4px;">Export Icon</button>
+                    </div>
+                </div>
+            `,
+            data() {
+                let state = collectCurrentFormState();
+                return {
+                    sections: { preview: true, camera: true, export: true },
+                    currentMode: iconExporterPanelRequestedMode || 'panel',
+                    auto_frame: state.auto_frame,
+                    zoom_level: state.zoom_level,
+                    rotate_x: state.rotate_x,
+                    rotate_y: state.rotate_y,
+                    rotate_z: state.rotate_z,
+                    pan_x: state.pan_x,
+                    pan_y: state.pan_y,
+                    icon_size: state.icon_size,
+                    custom_size: state.custom_size,
+                    background: state.background,
+                    custom_color: state.custom_color,
+                    quality: state.quality,
+                    save_mode: state.save_mode,
+                    output_folder: state.output_folder,
+                    filename: state.filename,
+                    panelPreviewIsolated: null,
+                    panelBaseCameraPosition: null,
+                    panelBaseCameraTarget: null,
+                    panelBaseCameraUp: null,
+                    panelDefaultFramedState: null
+                };
+            },
+            computed: {
+                previewSizeText() {
+                    let s = this.icon_size === 'custom' ? this.custom_size : parseInt(this.icon_size);
+                    return s + '×' + s + ' pixels';
+                },
+                hasManualAdjustments() {
+                    return this.zoom_level !== 1.0 || this.rotate_x !== 0 || this.rotate_y !== 0 || this.rotate_z !== 0 || this.pan_x !== 0 || this.pan_y !== 0;
+                },
+                canAutoSave() {
+                    return canUseAppFileSystem();
+                }
+            },
+            methods: {
+                formatVal(v) {
+                    let n = Number(v);
+                    if (Math.abs(n - Math.round(n)) < 0.0001) return String(Math.round(n));
+                    return String(Math.round(n * 100) / 100);
+                },
+                switchToFloat() { switchToFloat(); },
+                switchToPanel() {
+                    this.currentMode = 'panel';
+                    movePanelToSlot(getSlotForMode('panel'));
+                },
+                getFormData() {
+                    return {
+                        icon_size: this.icon_size,
+                        custom_size: this.custom_size,
+                        background: this.background,
+                        custom_color: this.custom_color,
+                        auto_frame: this.auto_frame,
+                        zoom_level: this.zoom_level,
+                        rotate_x: this.rotate_x,
+                        rotate_y: this.rotate_y,
+                        rotate_z: this.rotate_z,
+                        pan_x: this.pan_x,
+                        pan_y: this.pan_y,
+                        quality: this.quality,
+                        save_mode: this.save_mode,
+                        output_folder: this.output_folder,
+                        filename: this.filename
+                    };
+                },
+                onCameraChange() {
+                    this.applyCameraFromState();
+                    this.refreshPreview();
+                },
+                onSettingChange() {
+                    saveExportPrefs(this.getFormData());
+                    this.refreshPreview();
+                },
+                onSaveModeChange() {
+                    saveExportPrefs(this.getFormData());
+                },
+                applyCameraFromState() {
+                    let preview = this.panelPreviewIsolated || getSelectedPreview();
+                    if (!preview || !preview.camera) return;
+
+                    if (!this.panelBaseCameraPosition || !this.panelBaseCameraTarget || !this.panelBaseCameraUp) {
+                        this.captureBaseCamera();
+                    }
+
+                    let camera = preview.camera;
+                    let values = {
+                        zoom_level: this.zoom_level,
+                        rotate_x: this.rotate_x,
+                        rotate_y: this.rotate_y,
+                        rotate_z: this.rotate_z,
+                        pan_x: this.pan_x,
+                        pan_y: this.pan_y
+                    };
+
+                    let newTarget = this.panelBaseCameraTarget.clone();
+                    let baseOffset = this.panelBaseCameraPosition.clone().sub(this.panelBaseCameraTarget);
+                    let baseUpNormal = this.panelBaseCameraUp.clone().normalize();
+                    let forward = this.panelBaseCameraTarget.clone().sub(this.panelBaseCameraPosition).normalize();
+                    let right = forward.clone().cross(baseUpNormal);
+                    if (right.lengthSq() === 0) right.set(1, 0, 0); else right.normalize();
+                    newTarget.add(right.multiplyScalar(values.pan_x * 2.0));
+                    newTarget.add(baseUpNormal.clone().multiplyScalar(values.pan_y * 2.0));
+
+                    let rotatedOffset = baseOffset.clone();
+                    let rotY = THREE.MathUtils.degToRad(values.rotate_y);
+                    let rotX = THREE.MathUtils.degToRad(values.rotate_x);
+                    let rotZ = THREE.MathUtils.degToRad(values.rotate_z);
+                    if (rotY !== 0) rotatedOffset.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(baseUpNormal, rotY));
+                    if (rotX !== 0) {
+                        let pitchAxis = baseUpNormal.clone().cross(rotatedOffset).normalize();
+                        if (pitchAxis.lengthSq() > 0) rotatedOffset.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(pitchAxis, rotX));
+                    }
+                    rotatedOffset.multiplyScalar(values.zoom_level);
+
+                    let newPos = newTarget.clone().add(rotatedOffset);
+                    camera.position.copy(newPos);
+                    let upVec = baseUpNormal.clone();
+                    if (rotZ !== 0) {
+                        let fwdAxis = newTarget.clone().sub(newPos).normalize();
+                        if (fwdAxis.lengthSq() > 0) upVec.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(fwdAxis, rotZ));
+                    }
+                    camera.up.copy(upVec);
+                    if (preview.controls && preview.controls.target) preview.controls.target.copy(newTarget);
+                    camera.lookAt(newTarget);
+                    if (camera.updateProjectionMatrix) camera.updateProjectionMatrix();
+                    if (preview.controls && preview.controls.update) preview.controls.update();
+                    if (typeof preview.render === 'function') preview.render();
+                },
+                captureBaseCamera() {
+                    let preview = this.panelPreviewIsolated || getSelectedPreview();
+                    if (!preview || !preview.camera) return;
+                    let camera = preview.camera;
+                    this.panelBaseCameraPosition = camera.position.clone();
+                    this.panelBaseCameraTarget = getCurrentPreviewTarget(camera, preview);
+                    camera.up.copy(WORLD_UP);
+                    if (preview.controls && preview.controls.target) preview.controls.target.copy(this.panelBaseCameraTarget);
+                    camera.lookAt(this.panelBaseCameraTarget);
+                    if (camera.updateProjectionMatrix) camera.updateProjectionMatrix();
+                    if (preview.controls && preview.controls.update) preview.controls.update();
+                    if (typeof preview.render === 'function') preview.render();
+                    this.panelBaseCameraUp = WORLD_UP.clone();
+                },
+                resetCamera() {
+                    this.zoom_level = 1.0;
+                    this.rotate_x = 0;
+                    this.rotate_y = 0;
+                    this.rotate_z = 0;
+                    this.pan_x = 0;
+                    this.pan_y = 0;
+                    this.auto_frame = true;
+                    this.panelBaseCameraPosition = null;
+                    this.panelBaseCameraTarget = null;
+                    this.panelBaseCameraUp = null;
+
+                    let preview = this.panelPreviewIsolated || getSelectedPreview();
+                    let mainPreview = Preview.selected || getSelectedPreview();
+                    if (mainPreview && preview && mainPreview !== preview) {
+                        let freshState = captureCameraState(mainPreview);
+                        if (freshState) applyCameraState(freshState, preview);
+                    }
+                    frameModelForIcon(this.getFormData()).then(() => {
+                        this.panelDefaultFramedState = captureCameraState(preview);
+                        this.captureBaseCamera();
+                        this.refreshPreview();
+                    });
+                },
+                refreshPreview() {
+                    this.$nextTick(() => {
+                        let canvas = this.$refs.panelPreviewCanvas;
+                        if (!canvas) return;
+                        let formData = this.getFormData();
+                        generateLivePreview(canvas, formData, this.panelPreviewIsolated);
+                    });
+                },
+                layoutPanel() {
+                    this.$nextTick(() => {
+                        let canvas = this.$refs.panelPreviewCanvas;
+                        if (!canvas || !this.sections.preview) {
+                            return;
+                        }
+                        let body = this.$el;
+                        if (!body) return;
+                        let bodyHeight = body.clientHeight;
+                        let bodyWidth = body.clientWidth;
+                        if (!bodyHeight || !bodyWidth) return;
+
+                        let otherHeight = 0;
+                        let children = body.children;
+                        for (let i = 0; i < children.length; i++) {
+                            let child = children[i];
+                            if (child === canvas) continue;
+                            if (child.contains && child.contains(canvas)) {
+                                continue;
+                            }
+                            otherHeight += child.offsetHeight + 2;
+                        }
+
+                        let previewTextAndBtn = 0;
+                        let canvasParent = canvas.parentElement;
+                        if (canvasParent) {
+                            let siblings = canvasParent.children;
+                            for (let i = 0; i < siblings.length; i++) {
+                                if (siblings[i] !== canvas) {
+                                    previewTextAndBtn += siblings[i].offsetHeight + 2;
+                                }
+                            }
+                        }
+
+                        let available = bodyHeight - otherHeight - previewTextAndBtn - 16;
+                        let maxByWidth = bodyWidth - 24;
+                        let size = Math.max(64, Math.min(available, maxByWidth, 400));
+                        canvas.style.width = size + 'px';
+                        canvas.style.height = size + 'px';
+                        this.refreshPreview();
+                    });
+                },
+                browseFolder() {
+                    if (!isApp) return;
+                    let dlg = _getDialog();
+                    if (!dlg) return;
+                    let result = dlg.showOpenDialogSync({ properties: ['openDirectory'], title: 'Select Output Folder' });
+                    if (result && result[0]) {
+                        this.output_folder = result[0];
+                        saveExportPrefs(this.getFormData());
+                    }
+                },
+                doExport() {
+                    if (!Format || !Project || !Project.elements || Project.elements.length === 0) {
+                        Blockbench.showMessageBox({ title: 'No Model', message: 'Please load a model first before exporting an icon.', icon: 'warning' });
+                        return;
+                    }
+                    let formData = this.getFormData();
+                    saveExportPrefs(formData);
+                    generateIcon(formData, null, false);
+                },
+                initPreview() {
+                    let mainPreview = Preview.selected;
+                    if (!mainPreview) return;
+
+                    try {
+                        this.panelPreviewIsolated = new Preview({
+                            id: 'menu_icon_exporter_panel_live_' + Date.now(),
+                            antialias: true,
+                            offscreen: true
+                        });
+                    } catch (e) {
+                        this.panelPreviewIsolated = null;
+                        return;
+                    }
+
+                    if (Preview.selected !== mainPreview) {
+                        mainPreview.select();
+                    }
+
+                    if (typeof this.panelPreviewIsolated.resize === 'function') {
+                        this.panelPreviewIsolated.resize(1024, 1024);
+                    } else if (this.panelPreviewIsolated.canvas) {
+                        this.panelPreviewIsolated.canvas.width = 1024;
+                        this.panelPreviewIsolated.canvas.height = 1024;
+                    }
+
+                    if (typeof this.panelPreviewIsolated.setProjectionMode === 'function' && typeof mainPreview.isOrtho === 'boolean') {
+                        this.panelPreviewIsolated.setProjectionMode(mainPreview.isOrtho);
+                    }
+                    if (mainPreview.camera && typeof this.panelPreviewIsolated.setFOV === 'function' && mainPreview.camera.fov) {
+                        this.panelPreviewIsolated.setFOV(mainPreview.camera.fov);
+                    }
+                    if (this.panelPreviewIsolated.camera && this.panelPreviewIsolated.camera.isPerspectiveCamera) {
+                        this.panelPreviewIsolated.camera.aspect = 1;
+                        if (this.panelPreviewIsolated.camera.updateProjectionMatrix) this.panelPreviewIsolated.camera.updateProjectionMatrix();
+                    }
+
+                    let initialState = captureCameraState(mainPreview);
+                    if (initialState) applyCameraState(initialState, this.panelPreviewIsolated);
+                    if (typeof this.panelPreviewIsolated.render === 'function') this.panelPreviewIsolated.render();
+
+                    this.captureBaseCamera();
+                    this.panelDefaultFramedState = captureCameraState(this.panelPreviewIsolated);
+                    this.applyCameraFromState();
+                    this.refreshPreview();
+                },
+                disposePreview() {
+                    if (this.panelPreviewIsolated) {
+                        try { this.panelPreviewIsolated.delete(); } catch (e) {}
+                        this.panelPreviewIsolated = null;
+                    }
+                }
+            },
+            mounted() {
+                iconExporterPanelVue = this;
+                this._mieResizeHandler = () => {
+                    applyResponsivePanelFill();
+                    if (iconExporterPanelVue) iconExporterPanelVue.layoutPanel();
+                };
+                window.addEventListener('resize', this._mieResizeHandler, true);
+                this.$nextTick(() => {
+                    this.initPreview();
+                    applyResponsivePanelFill();
+                    setTimeout(() => { applyResponsivePanelFill(); this.layoutPanel(); }, 50);
+                    setTimeout(() => { applyResponsivePanelFill(); this.layoutPanel(); }, 200);
+                    setTimeout(() => this.layoutPanel(), 500);
+                });
+            },
+            beforeDestroy() {
+                if (this._mieResizeHandler) {
+                    window.removeEventListener('resize', this._mieResizeHandler, true);
+                    this._mieResizeHandler = null;
+                }
+                this.disposePreview();
+                iconExporterPanelVue = null;
+            }
+        }
+    });
+
+    setTimeout(() => {
+        let panel = getIconExporterPanel();
+        if (panel) {
+            if (panel.folded !== undefined) panel.folded = false;
+            movePanelToSlot(targetSlot);
+            applyResponsivePanelFill();
+        }
+    }, 100);
+    setTimeout(() => {
+        movePanelToSlot(targetSlot);
+        applyResponsivePanelFill();
+    }, 300);
+    setTimeout(applyResponsivePanelFill, 500);
+}
 
 // =========================
 // Preview and camera utilities
@@ -852,6 +1526,36 @@ function clearNormalizedDialogInnerSize(dialog, selector) {
 }
 
 
+function syncConditionalBars(dialog) {
+    if (!dialog || !dialog.object) return;
+    let formResult = {};
+    try { formResult = dialog.getFormResult(); } catch (e) { return; }
+    let csBar = dialog.object.querySelector('.form_bar_custom_size');
+    if (csBar) csBar.classList.toggle('mie_show', formResult.icon_size === 'custom');
+    let ccBar = dialog.object.querySelector('.form_bar_custom_color');
+    if (ccBar) ccBar.classList.toggle('mie_show', formResult.background === 'custom');
+}
+
+function alignAutoFrameWithZoom(dialog) {
+    if (!dialog || !dialog.object) return;
+    let zoomInput = dialog.object.querySelector('.form_bar_zoom_level input[type="range"]');
+    let autoBar = dialog.object.querySelector('.form_bar_auto_frame');
+    let autoCheckbox = dialog.object.querySelector('.form_bar_auto_frame input[type="checkbox"]');
+    if (!zoomInput || !autoBar || !autoCheckbox) return;
+    autoCheckbox.style.removeProperty('transform');
+    let zoomRect = zoomInput.getBoundingClientRect();
+    let autoBarRect = autoBar.getBoundingClientRect();
+    let checkRect = autoCheckbox.getBoundingClientRect();
+    let deltaX = zoomRect.left - checkRect.left;
+    let zoomCenterY = autoBarRect.top + autoBarRect.height / 2;
+    let checkCenterY = checkRect.top + checkRect.height / 2;
+    let deltaY = (zoomCenterY - checkCenterY) - 14;
+    if (!isFinite(deltaX) || !isFinite(deltaY)) return;
+    deltaX = clampNumber(Math.round(deltaX), -120, 120);
+    deltaY = clampNumber(Math.round(deltaY), -24, 24);
+    autoCheckbox.style.setProperty('transform', `translate(${deltaX}px, ${deltaY}px)`);
+}
+
 // =========================
 // Plugin-specific wrappers
 // =========================
@@ -974,13 +1678,13 @@ function openIconExporterDialog() {
                 type: 'select',
                 options: {
                     '16': '16×16 - Tiny (UI elements)',
-                    '32': '32×32 - Small (inventory icons)', 
+                    '32': '32×32 - Small (inventory icons)',
                     '48': '48×48 - Medium (item icons)',
                     '64': '64×64 - Large (block icons)',
                     '128': '128×128 - Extra Large (detailed icons)',
                     'custom': 'Custom Size...'
                 },
-                value: getRecommendedSize(),
+                value: outputPrefs.icon_size || getRecommendedSize(),
                 onChange(formResult) {
                     updateLivePreview(dialog, formResult);
                 }
@@ -989,10 +1693,9 @@ function openIconExporterDialog() {
             custom_size: {
                 label: 'Custom Size (pixels)',
                 type: 'number',
-                value: 48,
+                value: outputPrefs.custom_size,
                 min: 8,
                 max: 512,
-                condition: (form) => form.icon_size === 'custom',
                 onChange(formResult) {
                     updateLivePreview(dialog, formResult);
                 }
@@ -1008,7 +1711,7 @@ function openIconExporterDialog() {
                     'gray': 'Gray (#808080)',
                     'custom': 'Custom Color'
                 },
-                value: 'transparent',
+                value: outputPrefs.background,
                 description: 'Background color for the exported icon',
                 onChange(formResult) {
                     updateLivePreview(dialog, formResult);
@@ -1018,9 +1721,8 @@ function openIconExporterDialog() {
             custom_color: {
                 label: 'Custom Background Color',
                 type: 'color',
-                value: '#ff0000',
-                description: 'Pick any color from the gradient spectrum',
-                condition: (formResult) => formResult.background === 'custom'
+                value: outputPrefs.custom_color,
+                description: 'Pick any color from the gradient spectrum'
             },
             
 
@@ -1102,7 +1804,7 @@ function openIconExporterDialog() {
                     'high': 'High Quality (8x render)',
                     'ultra': 'Ultra Quality (16x render)'
                 },
-                value: 'high',
+                value: outputPrefs.quality,
                 description: 'Higher quality takes longer but produces sharper icons'
             },
 
@@ -1164,12 +1866,16 @@ function openIconExporterDialog() {
         },
 
         onFormChange(formData) {
+            syncConditionalBars(dialog);
             let resolvedFormData = resolveFormData(dialog, dialog.getFormResult());
             saveExportPrefs(resolvedFormData);
             applyDialogBottomLayout(dialog, bottomMetaSection);
             handleFormCameraChange(dialog, resolvedFormData);
             requestAnimationFrame(() => {
                 normalizeIconExporterDialog(dialog);
+                requestAnimationFrame(() => {
+                    alignAutoFrameWithZoom(dialog);
+                });
             });
         }
     });
@@ -1194,6 +1900,10 @@ function openIconExporterDialog() {
             let style = document.createElement('style');
             style.id = 'menu_icon_exporter_dialog_style';
             style.textContent = `
+                #icon_exporter_dialog .form_bar.form_bar_custom_size:not(.mie_show) { display: none !important; }
+                #icon_exporter_dialog .export_bottom_section .form_bar.form_bar_custom_size:not(.mie_show) { display: none !important; }
+                #icon_exporter_dialog .form_bar.form_bar_custom_color:not(.mie_show) { display: none !important; }
+                #icon_exporter_dialog .export_bottom_section .form_bar.form_bar_custom_color:not(.mie_show) { display: none !important; }
                 #icon_exporter_dialog,
                 #icon_exporter_dialog .dialog_content,
                 #icon_exporter_dialog .form_wrapper,
@@ -1243,6 +1953,27 @@ function openIconExporterDialog() {
                     margin: 0 !important;
                     width: 100% !important;
                     min-width: 0 !important;
+                }
+                #icon_exporter_dialog .icon_exporter_left_column .form_bar.form_bar_auto_frame {
+                    display: flex !important;
+                    flex-flow: row nowrap !important;
+                    align-items: center !important;
+                }
+                #icon_exporter_dialog .icon_exporter_left_column .form_bar.form_bar_auto_frame > label.name_space_left {
+                    float: none !important;
+                    flex: 0 0 auto !important;
+                    width: var(--max_label_width, 180px) !important;
+                    box-sizing: content-box !important;
+                }
+                #icon_exporter_dialog .icon_exporter_left_column .form_bar.form_bar_auto_frame > input[type="checkbox"] {
+                    flex: 0 0 auto !important;
+                }
+                #icon_exporter_dialog .icon_exporter_left_column .form_bar.form_bar_auto_frame > .dialog_form_description {
+                    flex: 0 0 auto !important;
+                    margin-left: auto !important;
+                    padding-top: 0 !important;
+                    height: auto !important;
+                    align-self: center !important;
                 }
                 #icon_exporter_dialog .preview_section {
                     flex: 0 0 300px !important;
@@ -1307,33 +2038,36 @@ function openIconExporterDialog() {
                     min-width: 0 !important;
                     box-sizing: border-box !important;
                 }
+                
                 #icon_exporter_dialog .export_bottom_section .form_bar_output_folder {
-                    display: grid !important;
-                    grid-template-columns: minmax(0, var(--max_label_width, 180px)) minmax(0, 1fr) auto auto !important;
+                    display: flex !important;
                     align-items: center !important;
-                    column-gap: 10px !important;
+                    gap: 6px !important;
+                    min-width: 0 !important;
+                }
+                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > * {
+                    flex: 0 0 auto !important;
+                    align-self: center !important;
+                    margin: 0 !important;
                 }
                 #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > .name_space_left {
-                    grid-column: 1 !important;
+                    flex: 0 0 var(--max_label_width, 180px) !important;
                     min-width: 0 !important;
                     overflow: hidden !important;
                     text-overflow: ellipsis !important;
                 }
+                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > input,
                 #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > .input_wrapper {
-                    grid-column: 2 !important;
+                    flex: 1 1 0 !important;
+                    min-width: 0 !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder input[type="text"],
+                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder .dark_bordered {
                     width: 100% !important;
                     min-width: 0 !important;
                     box-sizing: border-box !important;
-                }
-                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > .dialog_form_description {
-                    grid-column: 4 !important;
-                    justify-self: start !important;
-                    margin-left: 4px !important;
-                }
-                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > i:not(.dialog_form_description),
-                #icon_exporter_dialog .export_bottom_section .form_bar_output_folder > .material-icons:not(.dialog_form_description) {
-                    grid-column: 3 !important;
-                    justify-self: center !important;
                 }
                 #icon_exporter_dialog .dialog_form_description {
                     flex: 0 0 auto !important;
@@ -1379,6 +2113,23 @@ function openIconExporterDialog() {
 
             if (formContainer) {
                 formContainer.classList.add('icon_exporter_layout_container');
+
+                let modeBar = document.createElement('div');
+                modeBar.className = 'mie_dialog_mode_bar';
+                modeBar.style.cssText = 'display:flex;gap:4px;margin-bottom:8px;';
+                let floatBtn = document.createElement('div');
+                floatBtn.textContent = 'Float';
+                floatBtn.className = 'mie_mode_btn active';
+                floatBtn.style.cssText = 'flex:1;padding:5px 4px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;text-align:center;background:var(--color-accent);color:#fff;border-color:var(--color-accent);';
+                let panelBtn = document.createElement('div');
+                panelBtn.textContent = 'Panel';
+                panelBtn.className = 'mie_mode_btn';
+                panelBtn.style.cssText = 'flex:1;padding:5px 4px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;text-align:center;background:rgba(255,255,255,0.04);color:var(--color-subtle_text);';
+                panelBtn.addEventListener('click', () => { dialog.cancel(); switchToPanel(); });
+                modeBar.appendChild(floatBtn);
+                modeBar.appendChild(panelBtn);
+                formContainer.appendChild(modeBar);
+
                 let topSection = Interface.createElement('div', {
                     class: 'icon_exporter_top_section'
                 });
@@ -1411,6 +2162,21 @@ function openIconExporterDialog() {
                 let dialogContent = dialog.object.querySelector('.dialog_content');
                 if (dialogContent) {
                     dialogContent.classList.add('icon_exporter_layout_container');
+
+                    let modeBar2 = document.createElement('div');
+                    modeBar2.className = 'mie_dialog_mode_bar';
+                    modeBar2.style.cssText = 'display:flex;gap:4px;margin-bottom:8px;';
+                    let floatBtn2 = document.createElement('div');
+                    floatBtn2.textContent = 'Float';
+                    floatBtn2.style.cssText = 'flex:1;padding:5px 4px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;text-align:center;background:var(--color-accent);color:#fff;border-color:var(--color-accent);';
+                    let panelBtn2 = document.createElement('div');
+                    panelBtn2.textContent = 'Panel';
+                    panelBtn2.style.cssText = 'flex:1;padding:5px 4px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;text-align:center;background:rgba(255,255,255,0.04);color:var(--color-subtle_text);';
+                    panelBtn2.addEventListener('click', () => { dialog.cancel(); switchToPanel(); });
+                    modeBar2.appendChild(floatBtn2);
+                    modeBar2.appendChild(panelBtn2);
+                    dialogContent.appendChild(modeBar2);
+
                     let topSection = Interface.createElement('div', {
                         class: 'icon_exporter_top_section'
                     });
@@ -1438,6 +2204,21 @@ function openIconExporterDialog() {
                     normalizeIconExporterDialog(dialog);
                 }
             }
+
+            (function fixFolderBrowseButton() {
+                let folderBar = dialog.object.querySelector('.form_bar_output_folder');
+                if (!folderBar) return;
+                let inputWrapper = folderBar.querySelector('.input_wrapper');
+                if (!inputWrapper) return;
+                let folderIcon = inputWrapper.querySelector('i.material-icons');
+                if (!folderIcon) return;
+                folderBar.insertBefore(folderIcon, inputWrapper.nextSibling);
+                folderIcon.style.cursor = 'pointer';
+                folderIcon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    inputWrapper.click();
+                });
+            })();
 
             let resetButton = document.createElement('button');
             resetButton.type = 'button';
@@ -1515,12 +2296,16 @@ function openIconExporterDialog() {
         } finally {
             requestAnimationFrame(() => {
                 normalizeIconExporterDialog(dialog);
-                if (preLayoutHideStyle && preLayoutHideStyle.parentNode) {
-                    preLayoutHideStyle.parentNode.removeChild(preLayoutHideStyle);
-                }
-                if (dialog.object) {
-                    dialog.object.style.opacity = '1';
-                }
+                syncConditionalBars(dialog);
+                requestAnimationFrame(() => {
+                    alignAutoFrameWithZoom(dialog);
+                    if (preLayoutHideStyle && preLayoutHideStyle.parentNode) {
+                        preLayoutHideStyle.parentNode.removeChild(preLayoutHideStyle);
+                    }
+                    if (dialog.object) {
+                        dialog.object.style.opacity = '1';
+                    }
+                });
             });
         }
 
@@ -1542,6 +2327,10 @@ function openIconExporterDialog() {
             lastCameraValues = getCameraValues(formData);
             updateResetButtonState(formData);
             await updateLivePreview(dialog, formData);
+            syncConditionalBars(dialog);
+            requestAnimationFrame(() => {
+                alignAutoFrameWithZoom(dialog);
+            });
         })();
     }, 0);
 }
@@ -1665,21 +2454,63 @@ async function updateLivePreview(dialog, formData) {
     }
 }
 
-function getPreviewSourceCanvas() {
-    if (isolatedDialogPreview && isolatedDialogPreview.canvas) {
-        if (typeof isolatedDialogPreview.render === 'function') {
-            isolatedDialogPreview.render();
+function hideSceneHelpers() {
+    let hidden = {};
+    if (typeof three_grid !== 'undefined' && three_grid) {
+        hidden.gridWasVisible = three_grid.visible;
+        three_grid.visible = false;
+    }
+    if (typeof Transformer !== 'undefined' && Transformer) {
+        hidden.transformerWasVisible = Transformer.visible;
+        Transformer.visible = false;
+    }
+    if (typeof Canvas !== 'undefined' && Canvas.outlines) {
+        hidden.outlinesWasVisible = Canvas.outlines.visible;
+        Canvas.outlines.visible = false;
+    }
+    return hidden;
+}
+
+function restoreSceneHelpers(hidden) {
+    if (!hidden) return;
+    if (hidden.gridWasVisible !== undefined && typeof three_grid !== 'undefined' && three_grid) {
+        three_grid.visible = hidden.gridWasVisible;
+    }
+    if (hidden.transformerWasVisible !== undefined && typeof Transformer !== 'undefined' && Transformer) {
+        Transformer.visible = hidden.transformerWasVisible;
+    }
+    if (hidden.outlinesWasVisible !== undefined && typeof Canvas !== 'undefined' && Canvas.outlines) {
+        Canvas.outlines.visible = hidden.outlinesWasVisible;
+    }
+}
+
+function getPreviewSourceCanvas(overridePreview) {
+    let hidden = hideSceneHelpers();
+    try {
+        if (overridePreview && overridePreview.canvas) {
+            if (typeof overridePreview.render === 'function') overridePreview.render();
+            return overridePreview.canvas;
         }
-        return isolatedDialogPreview.canvas;
+        if (isolatedDialogPreview && isolatedDialogPreview.canvas) {
+            if (typeof isolatedDialogPreview.render === 'function') {
+                isolatedDialogPreview.render();
+            }
+            return isolatedDialogPreview.canvas;
+        }
+        if (typeof Preview !== 'undefined' && Preview.selected) {
+            if (typeof Preview.selected.render === 'function') {
+                Preview.selected.render();
+            }
+            return Preview.selected.canvas;
+        }
+        let sourceCanvas = document.querySelector('#preview canvas');
+        if (!sourceCanvas) {
+            sourceCanvas = document.querySelector('.preview canvas');
+        }
+        return sourceCanvas;
+    } finally {
+        restoreSceneHelpers(hidden);
     }
-    if (typeof Preview !== 'undefined' && Preview.selected && Preview.selected.canvas) {
-        return Preview.selected.canvas;
-    }
-    let sourceCanvas = document.querySelector('#preview canvas');
-    if (!sourceCanvas) {
-        sourceCanvas = document.querySelector('.preview canvas');
-    }
-    return sourceCanvas;
 }
 
 function getBackgroundStyle(background) {
@@ -1693,7 +2524,7 @@ function getBackgroundStyle(background) {
     }
 }
 
-function generateLivePreview(canvas, formData) {
+function generateLivePreview(canvas, formData, overridePreview) {
     if (!canvas) return;
     
     let ctx = canvas.getContext('2d');
@@ -1739,7 +2570,7 @@ function generateLivePreview(canvas, formData) {
         ctx.fillRect(0, 0, previewSize, previewSize);
     }
     
-    let sourceCanvas = getPreviewSourceCanvas();
+    let sourceCanvas = getPreviewSourceCanvas(overridePreview);
     
     if (sourceCanvas) {
         let tempCanvas = document.createElement('canvas');
@@ -2415,22 +3246,28 @@ function exportFinalImage(blob, filename, iconSize, formData = {}) {
                     let savedPath = writeDataUrlToOutputFolder(dataURL, preferredFolder, fileNameWithExtension);
                     Blockbench.showMessageBox({
                         title: 'Export Complete',
-                        message: `${iconSize}×${iconSize} icon exported successfully.\n\nSaved to:\n${savedPath}`,
+                        message: `${iconSize}×${iconSize} icon exported successfully.`,
                         icon: 'check'
                     });
+                    Blockbench.showQuickMessage('Saved to: ' + savedPath, 3000);
                     return;
                 } catch (error) {
                     Blockbench.showQuickMessage('Auto-save failed, opening save dialog');
                 }
             }
             
+            let startPath = undefined;
+            if (preferredFolder) {
+                let sep = preferredFolder.includes('\\') ? '\\' : '/';
+                startPath = preferredFolder + sep + fileNameWithExtension;
+            }
             Blockbench.export({
                 type: 'PNG Image',
                 extensions: ['png'],
                 name: baseName,
                 content: dataURL,
                 savetype: 'image',
-                startpath: preferredFolder || undefined
+                startpath: startPath
             }, function(path) {
                 if (path) {
                     Blockbench.showMessageBox({
@@ -2456,45 +3293,4 @@ function exportFinalImage(blob, filename, iconSize, formData = {}) {
             icon: 'error'
         });
     }
-}
-
-// =========================
-// Quick export entrypoint
-// =========================
-async function quickExportIcon(size) {
-    if (!Format || !Project || !Project.elements || Project.elements.length === 0) {
-        Blockbench.showMessageBox({
-            title: 'No Model',
-            message: 'Please load a model first before exporting an icon.',
-            icon: 'warning'
-        });
-        return;
-    }
-
-    Blockbench.setStatusBarText('Preparing quick export...');
-    Blockbench.setProgress(0.1);
-    let restoreState = captureCameraState();
-    flattenCameraUp();
-    baseCameraPosition = null;
-    baseCameraTarget = null;
-    baseCameraUp = null;
-    let outputPrefs = loadExportPrefs();
-    
-    let formData = {
-        icon_size: size.toString(),
-        background: 'transparent',
-        auto_frame: true,
-        quality: 'high',
-        save_mode: outputPrefs.save_mode,
-        output_folder: outputPrefs.output_folder,
-        filename: function() {
-            let name = Project.name || 'model';
-            name = name.replace(/\.geo\.json$/i, '').replace(/\.geo$/i, '');
-            name = name.replace(/\.[^.]+$/, '');
-            name = name.replace(/[^a-zA-Z0-9_-]/g, '_');
-            return name + '_icon_' + size;
-        }()
-    };
-    
-    await generateIcon(formData, restoreState);
 }

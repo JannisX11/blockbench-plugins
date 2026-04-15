@@ -11,16 +11,16 @@ Export Blockbench models as PNG icons with stable camera framing, live preview, 
 - Size presets: 16, 32, 48, 64, 128, plus custom
 - Background options: transparent, white, black, gray, custom color
 - Export quality options: Standard (4x), High (8x), Ultra (16x)
-- Quick export actions for 16x16 and 64x64 icons
 - Save mode options for ask-each-time or auto-save folder
 - Workspace-aware auto-save folder defaults when using the Workspaces plugin
 - Workspace rename-safe preferences so renamed workspaces keep the same saved default folder
+- Two view modes: Float (dialog window) and Panel (sidebar)
 
 ## Usage
 
-Main export: File -> Export -> Export Menu Icon (Ctrl+Shift+I)
-Quick 16x16: File -> Export -> Quick Export 16x16 Icon
-Quick 64x64: File -> Export -> Quick Export 64x64 Icon
+- Float: File -> Export -> Export Menu Icon
+- Panel: File -> Export -> Icon Exporter Panel
+- Switch between Float and Panel using the mode bar at the top of any view
 
 ## Notes
 
