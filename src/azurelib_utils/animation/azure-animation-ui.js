@@ -140,7 +140,7 @@ function _renderInterpolationBar(panel, selected) {
 
   // Section heading — plain text, no background, matches BB's own keyframe labels
   const heading = document.createElement('p');
-  heading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
+  heading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
   heading.textContent = 'Interpolation';
   bar.appendChild(heading);
 
@@ -199,7 +199,7 @@ function _renderEasingBar(panel, selected) {
   // --- Section header ---
   const headerBar = _createBar('azl_bar_easing', panel);
   const easingHeading = document.createElement('p');
-  easingHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
+  easingHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
   easingHeading.textContent = 'AzureLib Easings';
   headerBar.appendChild(easingHeading);
 
