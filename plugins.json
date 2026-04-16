@@ -1434,5 +1434,13 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"no_java_limits": {
+		"title": "No Java Limits",
+		"author": "Rajdacz",
+		"icon": "zoom_out_map",
+		"version": "1.0.0",
+		"tags": ["Minecraft: Java Edition", "Display Entities"],
+		"variant": "both"
 	}
 }
