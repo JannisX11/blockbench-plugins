@@ -6993,7 +6993,7 @@ createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.4","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.6","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"geckolib","version":"4.2.5","private":true,"description":"GeckoLib Models & Animations","main":"index.js","scripts":{"prebuild":"npm run test","build":"npm run build:only","build:only":"webpack && npm run update_manifest","update_manifest":"node scripts/updateManifest.mjs","start":"webpack --watch --mode=development","lint":"eslint .","lint:fix":"eslint --fix .","tsc":"tsc --noEmit","pretest":"npm run lint && npm run tsc","test":"npm run test:only","test:only":"jest"},"author":"Eliot Lash, Tslat, Gecko, McHorse, matmat37000","license":"MIT","pluginOptions":{"title":"GeckoLib Models & Animations","description":"Create animated blocks, items, entities, and armor for the GeckoLib java mod library.","icon":"icon.png","tags":["Minecraft: Java Edition"],"variant":"both","min_version":"5.0.0","max_version":"6.0.0","await_loading":true,"has_changelog":true,"website":"https://github.com/bernie-g/geckolib/wiki","repository":"https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib","bug_tracker":"https://github.com/bernie-g/geckolib/issues"},"sideEffects":["./index.js"],"devDependencies":{"@types/jest":"^30.0.0","@types/lodash":"^4.17.20","@typescript-eslint/eslint-plugin":"^8.41.0","@typescript-eslint/parser":"^8.41.0","blockbench-types":"^5.0.6","css-loader":"^7.1.2","eol":"0.10.0","eslint":"^9.34.0","indent-string":"^5.0.0","jest":"^30.1.1","to-string-loader":"^1.2.0","ts-jest":"^29.4.1","ts-loader":"^9.5.4","typescript":"^5.9.2","webpack":"^5.101.3","webpack-cli":"^6.0.1"},"dependencies":{"lodash":"^4.17.21","semver":"7.7.2"}}');
 
 /***/ }),
 
@@ -7397,10 +7397,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _resources_armorTemplate_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../resources/armorTemplate.json */ "./resources/armorTemplate.json");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./ts/utils.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./ts/constants.ts");
+/* harmony import */ var _keyframe__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keyframe */ "./ts/keyframe.ts");
+
 
 
 
 const codec = Codecs.bedrock;
+// Cast as any to shut ts compiler
+const bedrock_format = Formats.bedrock;
+const animation_codec = bedrock_format.animation_codec;
+const original_loadFile = animation_codec.loadFile;
 // This gets automatically applied by Blockbench, we don't need to do anything with it
 const format = new ModelFormat(_constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID, {
     id: _constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_MODEL_ID,
@@ -7428,6 +7434,13 @@ const format = new ModelFormat(_constants__WEBPACK_IMPORTED_MODULE_2__.GECKOLIB_
 format.new = function () {
     if (newProject(this))
         return openProjectSettingsDialog();
+};
+// Override the animation code parser
+animation_codec.loadFile = function (file, animation_filter) {
+    debugger;
+    if ((0,_utils__WEBPACK_IMPORTED_MODULE_1__.isGeckoLibModel)())
+        return LoadFile(file, animation_filter);
+    return original_loadFile.apply(animation_codec, [file, animation_filter]);
 };
 /**
  * Open a GeckoLib-customised project settings dialog (usually found when creating a new project, or via the File -> Project... menu item
@@ -7711,6 +7724,191 @@ function buildDisplaySettingsJson(options = {}) {
             Project.saved = false;
     });
     return this;
+}
+/**
+ * When the animation file is being loaded into the project
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function LoadFile(file, exportingAnims) {
+    // eslint-disable-next-line no-undef
+    const json = file.json || autoParseJSON(file.content);
+    const path = file.path;
+    const new_animations = [];
+    function geoLoopToBbLoop(jsonLoop) {
+        if (jsonLoop) {
+            if (typeof jsonLoop === 'boolean')
+                return jsonLoop ? 'loop' : 'once';
+            if (typeof jsonLoop === 'string') {
+                if (jsonLoop === "hold_on_last_frame")
+                    return 'hold';
+                if (jsonLoop === "loop" || jsonLoop === "true")
+                    return 'loop';
+            }
+        }
+        return 'once';
+    }
+    function getKeyframeDataPoints(channel, source) {
+        if (source instanceof Array)
+            return invertAnimKeyframe(channel, [{ x: source[0], y: source[1], z: source[2] }]);
+        if (['number', 'string'].includes(typeof source))
+            return invertAnimKeyframe(channel, [{ x: source, y: source, z: source }]);
+        if (typeof source == 'object') {
+            if (source.vector)
+                return getKeyframeDataPoints(channel, source.vector);
+            const points = [];
+            if (source.pre)
+                points.push(getKeyframeDataPoints(channel, source.pre)[0]);
+            if (source.post)
+                points.push(getKeyframeDataPoints(channel, source.post)[0]);
+            return points;
+        }
+    }
+    // Because Blockbench now implicitly inverts rotation and position keyframes on export and import (??)
+    function invertAnimKeyframe(channel, value) {
+        if (channel != 'position' && channel != 'rotation')
+            return value;
+        if (value instanceof Array) {
+            switch (value.length) {
+                case 1: return [invertAnimKeyframe(channel, value[0])];
+                case 3: return [invertAnimKeyframe(channel, value[0]), channel == 'rotation' ? invertAnimKeyframe(channel, value[1]) : value[1], value[2]];
+                default: return value;
+            }
+        }
+        else if (typeof value == 'object') {
+            if (value.x)
+                value.x = invertMolang(value.x);
+            if (value.y && channel == 'rotation')
+                value.y = invertMolang(value.y);
+            return value;
+        }
+        return invertMolang(value);
+    }
+    if (json && typeof json.animations === 'object') {
+        for (const animName in json.animations) {
+            if (exportingAnims && !exportingAnims.includes(animName))
+                continue;
+            //Animation
+            const animData = json.animations[animName];
+            let animation = new Animation({
+                name: animName,
+                path,
+                loop: geoLoopToBbLoop(animData.loop),
+                override: animData.override_previous_animation,
+                anim_time_update: (typeof animData.anim_time_update == 'string'
+                    ? animData.anim_time_update.replace(/;(?!$)/, ';\n')
+                    : animData.anim_time_update),
+                blend_weight: (typeof animData.blend_weight == 'string'
+                    ? animData.blend_weight.replace(/;(?!$)/, ';\n')
+                    : animData.blend_weight),
+                length: animData.animation_length
+            });
+            animation = animation.add();
+            //Bones
+            if (animData.bones) {
+                for (const boneName in animData.bones) {
+                    const bone = animData.bones[boneName];
+                    const lowercase_bone_name = boneName.toLowerCase();
+                    const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name);
+                    const uuid = group ? group.uuid : guid();
+                    const boneAnimator = new _keyframe__WEBPACK_IMPORTED_MODULE_3__.GeckolibBoneAnimator(uuid, animation, boneName);
+                    animation.animators[uuid] = boneAnimator;
+                    //Channels
+                    for (const channel in bone) {
+                        if (Animator.possible_channels[channel]) {
+                            if (typeof bone[channel] === 'string' || typeof bone[channel] === 'number' || bone[channel] instanceof Array) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel]["easing"],
+                                    easingArgs: bone[channel]["easingArgs"],
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
+                                });
+                            }
+                            else if (typeof bone[channel] === 'object' && bone[channel].post) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
+                                    easingArgs: bone[channel]["easingArgs"],
+                                    interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
+                                    bezier_right_time: bone[channel].right_time,
+                                    bezier_left_time: bone[channel].left_time,
+                                    bezier_left_value: bone[channel].left,
+                                    bezier_right_value: bone[channel].right
+                                });
+                            }
+                            else if (typeof bone[channel] === 'object') {
+                                for (const timestamp in bone[channel]) {
+                                    boneAnimator.addKeyframe({
+                                        time: parseFloat(timestamp),
+                                        channel,
+                                        easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
+                                        easingArgs: bone[channel][timestamp].easingArgs,
+                                        interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
+                                        data_points: getKeyframeDataPoints(channel, bone[channel][timestamp]),
+                                        bezier_right_time: bone[channel][timestamp].right_time,
+                                        bezier_left_time: bone[channel][timestamp].left_time,
+                                        bezier_left_value: bone[channel][timestamp].left,
+                                        bezier_right_value: bone[channel][timestamp].right
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (animData.sound_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.sound_effects) {
+                    const sounds = animData.sound_effects[timestamp];
+                    animation.animators.effects.addKeyframe({
+                        channel: 'sound',
+                        time: parseFloat(timestamp),
+                        data_points: sounds instanceof Array ? sounds : [sounds]
+                    });
+                }
+            }
+            if (animData.particle_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.particle_effects) {
+                    let particles = animData.particle_effects[timestamp];
+                    if (!(particles instanceof Array))
+                        particles = [particles];
+                    particles.forEach(particle => {
+                        if (particle)
+                            particle.script = particle.pre_effect_script;
+                    });
+                    animation.animators.effects.addKeyframe({
+                        channel: 'particle',
+                        time: parseFloat(timestamp),
+                        data_points: particles
+                    });
+                }
+            }
+            if (animData.timeline) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+                for (const timestamp in animData.timeline) {
+                    const entry = animData.timeline[timestamp];
+                    const script = entry instanceof Array ? entry.join('\n') : entry;
+                    animation.animators.effects.addKeyframe({
+                        channel: 'timeline',
+                        time: parseFloat(timestamp),
+                        data_points: [{ script }]
+                    });
+                }
+            }
+            animation.calculateSnappingFromKeyframes();
+            if (!Animator.selected && Animator.open)
+                animation.select();
+            new_animations.push(animation);
+        }
+    }
+    return new_animations;
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (codec);
 
@@ -8140,7 +8338,7 @@ function addEventListeners() {
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('save_project', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectSave));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addEventListener)('convert_format', (0,_utils__WEBPACK_IMPORTED_MODULE_0__.onlyIfGeckoLib)(onProjectConvert));
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
-    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Animator, null, "loadFile", monkeypatchAnimatorLoadFile); // I'm touching it but it may be unused after my patch - matmat37000
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(Blockbench, null, "export", monkeypatchBlockbenchExport);
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.addMonkeypatch)(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
 }

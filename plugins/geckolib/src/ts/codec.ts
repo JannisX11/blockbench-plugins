@@ -1,5 +1,5 @@
 import armorTemplate from '../resources/armorTemplate.json';
-import {isEmpty, isValidPath} from './utils';
+import { isEmpty, isGeckoLibModel, isValidPath } from './utils';
 import {
     GECKOLIB_MODEL_ID,
     GeckoModelType, PROPERTY_FILEPATH_CACHE,
@@ -7,8 +7,13 @@ import {
     PROPERTY_MODID, SETTING_ALWAYS_SHOW_DISPLAY, SETTING_AUTO_PARTICLE_TEXTURE,
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
+import { GeckolibBoneAnimator } from './keyframe';
 
 const codec = Codecs.bedrock;
+// Cast as any to shut ts compiler
+const bedrock_format = Formats.bedrock as any;
+const animation_codec = bedrock_format.animation_codec;
+const original_loadFile = animation_codec.loadFile;
 
 // This gets automatically applied by Blockbench, we don't need to do anything with it
 export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
@@ -32,13 +37,22 @@ export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
     display_mode: false,
     animation_mode: true,
     codec: Codecs.project,
-})
+});
 
 // Override the new project panel to allow customisation
-format.new = function() {
+format.new = function () {
     if (newProject(this))
         return openProjectSettingsDialog();
 }
+
+// Override the animation code parser
+animation_codec.loadFile = function (file, animation_filter) {
+    debugger;
+    if (isGeckoLibModel())
+        return LoadFile(file, animation_filter);
+
+    return original_loadFile.apply(animation_codec, [file, animation_filter])
+};
 
 /**
  * Open a GeckoLib-customised project settings dialog (usually found when creating a new project, or via the File -> Project... menu item
@@ -51,7 +65,7 @@ export function openProjectSettingsDialog() {
 /**
  * Internal function for determining the placeholder value for the <code>model_identifier</code> form element in dialog windows
  */
-function getObjectIdPlaceholder(formResult?: {[key: string]: FormResultValue}) {
+function getObjectIdPlaceholder(formResult?: { [key: string]: FormResultValue }) {
     const name = formResult?.['name'] as string;
     const modelType = formResult?.[PROPERTY_MODEL_TYPE] as string;
 
@@ -78,7 +92,7 @@ function getObjectIdPlaceholder(formResult?: {[key: string]: FormResultValue}) {
  * Create the Project Settings dialog form for use in both new projects and editing existing ones
  */
 function createProjectSettingsForm(Project: ModelProject) {
-    const form = {format: {type: 'info', label: 'data.format', text: Format.name||'unknown', description: Format.description} as FormElementOptions}
+    const form = { format: { type: 'info', label: 'data.format', text: Format.name || 'unknown', description: Format.description } as FormElementOptions }
     const properties = ModelProject['properties'];
 
     const modelType = properties[PROPERTY_MODEL_TYPE];
@@ -89,7 +103,7 @@ function createProjectSettingsForm(Project: ModelProject) {
             label: modelType.label,
             description: modelType["description"],
             default: GeckoModelType.ENTITY.toUpperCase(),
-            value: typeof(currentType) === 'string' ?
+            value: typeof (currentType) === 'string' ?
                 GeckoModelType[currentType.toUpperCase()].toUpperCase() :
                 GeckoModelType.ENTITY.toUpperCase(),
             placeholder: modelType["placeholder"],
@@ -172,13 +186,13 @@ function createProjectSettingsForm(Project: ModelProject) {
  * Periodically check this is up-to-date with Blockbench to ensure ongoing compatibility
  * @return false if the user clicks <code>cancel</code>, otherwise true
  */
-function createProjectSettingsDialog(Project: ModelProject, form: {[formElement: string]: '_' | FormElementOptions}) {
+function createProjectSettingsDialog(Project: ModelProject, form: { [formElement: string]: '_' | FormElementOptions }) {
     const dialog = new Dialog({
         id: 'project',
         title: 'dialog.project.title',
         width: 500,
         form,
-        onConfirm: function(formResult) {
+        onConfirm: function (formResult) {
             let save;
             const box_uv = formResult['uv_mode'] == 'box_uv';
             const texture_width = Math.clamp(formResult['texture_size'][0], 1, Infinity);
@@ -187,7 +201,7 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
             if (Project.box_uv != box_uv || Project.texture_width != texture_width || Project.texture_height != texture_height) {
                 // Adjust UV Mapping if resolution changed
                 if (!Project.box_uv && !box_uv && !Format['per_texture_uv_size'] && (Project.texture_width != texture_width || Project.texture_height != texture_height)) {
-                    save = Undo.initEdit({elements: [...Cube.all, ...Mesh.all], uv_only: true, uv_mode: true} as UndoAspects)
+                    save = Undo.initEdit({ elements: [...Cube.all, ...Mesh.all], uv_only: true, uv_mode: true } as UndoAspects)
 
                     Cube.all.forEach(cube => {
                         for (const key in cube.faces) {
@@ -212,13 +226,13 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
                 // Convert UV mode per element
                 if (Project.box_uv != box_uv && ((box_uv && !Cube.all.find(cube => cube['box_uv'])) || (!box_uv && !Cube.all.find(cube => !cube['box_uv'])))) {
                     if (!save)
-                        save = Undo.initEdit({elements: Cube.all, uv_only: true, uv_mode: true} as UndoAspects);
+                        save = Undo.initEdit({ elements: Cube.all, uv_only: true, uv_mode: true } as UndoAspects);
 
                     Cube.all.forEach(cube => cube.setUVMode(box_uv));
                 }
 
                 if (!save)
-                    save = Undo.initEdit({uv_mode: true});
+                    save = Undo.initEdit({ uv_mode: true });
 
                 Project.texture_width = texture_width;
                 Project.texture_height = texture_height;
@@ -365,7 +379,7 @@ export function buildDisplaySettingsJson(options = {}) {
                 name = (Project[PROPERTY_MODEL_TYPE] == GeckoModelType.BLOCK ? "block/" : "item/") + name;
                 name = Project[PROPERTY_MODID] + ":" + name
 
-                modelProperties.textures = {'particle': name};
+                modelProperties.textures = { 'particle': name };
 
                 break
             }
@@ -388,6 +402,228 @@ export function buildDisplaySettingsJson(options = {}) {
     });
 
     return this;
+}
+
+/**
+ * When the animation file is being loaded into the project
+ * <p>
+ * The project <b><u>may not</u></b> be a GeckoLib project, so check it as necessary
+ */
+function LoadFile(file, exportingAnims) {
+    // eslint-disable-next-line no-undef
+    const json = file.json || autoParseJSON(file.content);
+    const path = file.path;
+    const new_animations = [];
+
+    function geoLoopToBbLoop(jsonLoop) {
+        if (jsonLoop) {
+            if (typeof jsonLoop === 'boolean')
+                return jsonLoop ? 'loop' : 'once'
+
+            if (typeof jsonLoop === 'string') {
+                if (jsonLoop === "hold_on_last_frame")
+                    return 'hold'
+
+                if (jsonLoop === "loop" || jsonLoop === "true")
+                    return 'loop'
+            }
+        }
+
+        return 'once'
+    }
+
+    function getKeyframeDataPoints(channel: string, source: any) {
+        if (source instanceof Array)
+            return invertAnimKeyframe(channel, [{ x: source[0], y: source[1], z: source[2] }])
+
+        if (['number', 'string'].includes(typeof source))
+            return invertAnimKeyframe(channel, [{ x: source, y: source, z: source }])
+
+        if (typeof source == 'object') {
+            if (source.vector)
+                return getKeyframeDataPoints(channel, source.vector);
+
+            const points = [];
+
+            if (source.pre)
+                points.push(getKeyframeDataPoints(channel, source.pre)[0])
+
+            if (source.post)
+                points.push(getKeyframeDataPoints(channel, source.post)[0])
+
+            return points;
+        }
+    }
+
+    // Because Blockbench now implicitly inverts rotation and position keyframes on export and import (??)
+    function invertAnimKeyframe(channel: string, value: any) {
+        if (channel != 'position' && channel != 'rotation')
+            return value;
+
+        if (value instanceof Array) {
+            switch (value.length) {
+                case 1: return [invertAnimKeyframe(channel, value[0])];
+                case 3: return [invertAnimKeyframe(channel, value[0]), channel == 'rotation' ? invertAnimKeyframe(channel, value[1]) : value[1], value[2]];
+                default: return value;
+            }
+        }
+        else if (typeof value == 'object') {
+            if (value.x)
+                value.x = invertMolang(value.x);
+
+            if (value.y && channel == 'rotation')
+                value.y = invertMolang(value.y);
+
+            return value;
+        }
+
+        return invertMolang(value);
+    }
+
+    if (json && typeof json.animations === 'object') {
+        for (const animName in json.animations) {
+            if (exportingAnims && !exportingAnims.includes(animName))
+                continue;
+
+            //Animation
+            const animData = json.animations[animName]
+            let animation: any = new Animation({
+                name: animName,
+                path,
+                loop: geoLoopToBbLoop(animData.loop),
+                override: animData.override_previous_animation,
+                anim_time_update: (typeof animData.anim_time_update == 'string'
+                    ? animData.anim_time_update.replace(/;(?!$)/, ';\n')
+                    : animData.anim_time_update),
+                blend_weight: (typeof animData.blend_weight == 'string'
+                    ? animData.blend_weight.replace(/;(?!$)/, ';\n')
+                    : animData.blend_weight),
+                length: animData.animation_length
+            } as any)
+
+            animation = animation.add()
+
+            //Bones
+            if (animData.bones) {
+                for (const boneName in animData.bones) {
+                    const bone = animData.bones[boneName]
+                    const lowercase_bone_name = boneName.toLowerCase();
+                    const group = Group.all.find(group => group.name.toLowerCase() == lowercase_bone_name)
+                    const uuid = group ? group.uuid : guid();
+
+                    const boneAnimator = new GeckolibBoneAnimator(uuid, animation, boneName);
+                    animation.animators[uuid] = boneAnimator;
+                    //Channels
+                    for (const channel in bone) {
+                        if (Animator.possible_channels[channel]) {
+                            if (typeof bone[channel] === 'string' || typeof bone[channel] === 'number' || bone[channel] instanceof Array) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel]["easing"],
+                                    easingArgs: bone[channel]["easingArgs"],
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
+                                })
+                            }
+                            else if (typeof bone[channel] === 'object' && bone[channel].post) {
+                                boneAnimator.addKeyframe({
+                                    time: 0,
+                                    channel,
+                                    easing: bone[channel].easing == "bezier" ? undefined : bone[channel].easing,
+                                    easingArgs: bone[channel]["easingArgs"],
+                                    interpolation: bone[channel].easing == "bezier" ? "bezier" : bone[channel].lerp_mode,
+                                    data_points: getKeyframeDataPoints(channel, bone[channel]),
+                                    bezier_right_time: bone[channel].right_time,
+                                    bezier_left_time: bone[channel].left_time,
+                                    bezier_left_value: bone[channel].left,
+                                    bezier_right_value: bone[channel].right
+                                });
+                            }
+                            else if (typeof bone[channel] === 'object') {
+                                for (const timestamp in bone[channel]) {
+                                    boneAnimator.addKeyframe({
+                                        time: parseFloat(timestamp),
+                                        channel,
+                                        easing: bone[channel][timestamp].easing == "bezier" ? undefined : bone[channel][timestamp].easing,
+                                        easingArgs: bone[channel][timestamp].easingArgs,
+                                        interpolation: bone[channel][timestamp].easing == "bezier" ? "bezier" : bone[channel][timestamp].lerp_mode,
+                                        data_points: getKeyframeDataPoints(channel, bone[channel][timestamp]),
+                                        bezier_right_time: bone[channel][timestamp].right_time,
+                                        bezier_left_time: bone[channel][timestamp].left_time,
+                                        bezier_left_value: bone[channel][timestamp].left,
+                                        bezier_right_value: bone[channel][timestamp].right
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (animData.sound_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+
+                for (const timestamp in animData.sound_effects) {
+                    const sounds = animData.sound_effects[timestamp];
+
+                    animation.animators.effects.addKeyframe({
+                        channel: 'sound',
+                        time: parseFloat(timestamp),
+                        data_points: sounds instanceof Array ? sounds : [sounds]
+                    })
+                }
+            }
+
+            if (animData.particle_effects) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+
+                for (const timestamp in animData.particle_effects) {
+                    let particles = animData.particle_effects[timestamp];
+
+                    if (!(particles instanceof Array))
+                        particles = [particles];
+
+                    particles.forEach(particle => {
+                        if (particle)
+                            particle.script = particle.pre_effect_script;
+                    })
+
+                    animation.animators.effects.addKeyframe({
+                        channel: 'particle',
+                        time: parseFloat(timestamp),
+                        data_points: particles
+                    })
+                }
+            }
+
+            if (animData.timeline) {
+                if (!animation.animators.effects)
+                    animation.animators.effects = new EffectAnimator(animation);
+
+                for (const timestamp in animData.timeline) {
+                    const entry = animData.timeline[timestamp];
+                    const script = entry instanceof Array ? entry.join('\n') : entry;
+
+                    animation.animators.effects.addKeyframe({
+                        channel: 'timeline',
+                        time: parseFloat(timestamp),
+                        data_points: [{ script }]
+                    })
+                }
+            }
+
+            animation.calculateSnappingFromKeyframes();
+
+            if (!Animator.selected && Animator.open)
+                animation.select()
+
+            new_animations.push(animation)
+        }
+    }
+
+    return new_animations
 }
 
 export default codec;
