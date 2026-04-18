@@ -14,6 +14,7 @@ function logError(error) {
 
 let PLUGIN_ID = process.argv[2];
 let CHANGED_FILES = process.env.CHANGED_FILES;
+console.log('changes', typeof CHANGED_FILES, CHANGED_FILES);
 if (CHANGED_FILES) {
 	console.log('changes', typeof CHANGED_FILES, CHANGED_FILES);
 	//let changes = CHANGED_FILES.split('\n');
