@@ -4,6 +4,7 @@
   "description": "Blockbench plugins repository.",
   "main": "index.js",
   "types": "types/index.d.ts",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JannisX11/blockbench-plugins.git"
@@ -13,6 +14,11 @@
   },
   "homepage": "https://github.com/JannisX11/blockbench-plugins#readme",
   "devDependencies": {
-    "blockbench-types": "^5.1.0"
+    "blockbench-types": "^5.1.0",
+    "compare-versions": "^6.1.1",
+    "image-size": "^2.0.2"
+  },
+  "scripts": {
+    "validate": "node ./scripts/validate.js"
   }
 }

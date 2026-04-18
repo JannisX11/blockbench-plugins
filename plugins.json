@@ -51,6 +51,7 @@
 		"about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
 		"tags": ["Minecraft: Java Edition"],
 		"icon": "compare",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"geenium_bedrock_entity_helper": {
@@ -60,6 +61,7 @@
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"deprecation_note": "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 		"icon": "pets",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"missing_texture_highlighter": {
@@ -93,6 +95,7 @@
 		"author": "TheDestruc7i0n",
 		"description": "Export models from Blockbench directly to BlockModels.com",
 		"icon": "web",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"plaster": {
@@ -138,6 +141,7 @@
 		"tags": ["Minecraft: Java Edition"],
 		"icon": "accessibility",
 		"min_version": "3.0.0",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"clone_brush": {

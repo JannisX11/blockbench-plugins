@@ -385,9 +385,9 @@
     "updated": 0
   },
   "explorer": {
-    "version": "1.0.5",
+    "version": "1.1.0",
     "created": 0,
-    "updated": 0
+    "updated": 1776286387152
   },
   "performance_audit": {
     "version": "1.1.2",
@@ -593,5 +593,25 @@
     "version": "1.0.1",
     "created": 1771678722825,
     "updated": 1771678722825
+  },
+  "animator": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "geenium_bedrock_entity_helper": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "blockmodels-exporter": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "player_statue_generator": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
   }
 }
