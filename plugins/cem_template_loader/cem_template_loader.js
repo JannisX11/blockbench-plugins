@@ -41,8 +41,8 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "8.5.1",
-      min_version: "4.12.0",
+      version: "9.1.1",
+      min_version: "5.0.0",
       variant: "both",
       creation_date: "2020-02-02",
       has_changelog: true,
@@ -63,6 +63,11 @@
   }
 
   async function fetchData(path, fallback) {
+    // if (path === "json/cem_template_models.json") {
+    //   const fs = require("fs")
+    //   return JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynem/src/assets/json/cem_template_models.json"))
+    // }
+    const currentRoot = connection.rootIndex
     try {
       const r = await fetch(`${root}/${path}`)
       if (!r.ok) throw new Error
@@ -74,14 +79,14 @@
       }
       return r
     } catch {
-      for (let x = connection.rootIndex + 1; x < connection.roots.length; x++) {
-        connection.rootIndex = x
+      for (let x = currentRoot + 1; x < connection.roots.length; x++) {
         try {
           const r = await fetch(`${connection.roots[x]}/${path}`)
           if (r.status !== 200) {
             throw new Error
           }
           root = connection.roots[x]
+          connection.rootIndex = x
           if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) {
             return r.json()
           }
@@ -471,20 +476,20 @@
           },
           close: () => loaderDialog.close(),
           selectEntity(model) {
-            if (this.entity !== model.name) {
-              this.entity = model.name
+            if (this.entity !== model.id) {
+              this.entity = model.id
             } else if (!this.subentity) {
               this.entity = null
             }
             this.subentity = null
           },
           selectSubentity(model, submodel) {
-            if (this.search && this.subentity === submodel.name) {
+            if (this.search && this.subentity === submodel.id) {
               this.entity = null
               this.subentity = null
-            } else if (this.subentity !== submodel.name) {
-              this.entity = model.name
-              this.subentity = submodel.name
+            } else if (this.subentity !== submodel.id) {
+              this.entity = model.id
+              this.subentity = submodel.id
             } else {
               this.subentity = null
             }
@@ -493,7 +498,7 @@
             const index = entities.indexOf(heading)
             for (let i = index + 1; i < entities.length; i++) {
               if (entities[i].type === "heading") break
-              if (entities[i].name.includes(this.search)) return false
+              if (entities[i].id.includes(this.search)) return false
             }
             return true
           }
@@ -524,15 +529,15 @@
               <template v-for="model of c.entities">
                 <div v-if="model.type === 'heading'" class="cem-model-heading" :class="{ hidden: areAllNextItemsHidden(c.entities, model) }">{{ model.text }}</div>
                 <template v-else>
-                  <div class="cem-model" :class="{ selected: entity === model.name && (!subentity || !search), 'child-selected': entity === model.name && subentity, hidden: !model.name.includes(search) }" @click="selectEntity(model)">
-                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.name + '.webp'" loading="lazy">
-                    <i v-if="model.variants && entity !== model.name && !search" class="material-icons">add</i>
-                    <i v-if="model.variants && entity === model.name && !search" class="material-icons">remove</i>
-                    <div :style="{ textTransform: model.display_name ? null : 'capitalize' }">{{ model.display_name ?? model.name.replace(/_/g, " ") }}</div>
+                  <div class="cem-model" :class="{ selected: entity === model.id && (!subentity || !search), 'child-selected': entity === model.id && subentity, hidden: !model.id.includes(search) }" @click="selectEntity(model)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.id + '.webp'" loading="lazy">
+                    <i v-if="model.variants && entity !== model.id && !search" class="material-icons">add</i>
+                    <i v-if="model.variants && entity === model.id && !search" class="material-icons">remove</i>
+                    <div :style="{ textTransform: model.name ? null : 'capitalize' }">{{ model.name ?? (model.file ?? model.id).replace(/_/g, " ") }}</div>
                   </div>
-                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.name, hidden: search ? !submodel.name.includes(search) : entity !== model.name }" @click="selectSubentity(model, submodel)">
-                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.name + '.webp'" loading="lazy">
-                    <div :style="{ textTransform: submodel.display_name ? null : 'capitalize' }">{{ submodel.display_name ?? submodel.name.replace(/_/g, " ") }}</div>
+                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.id, hidden: search ? !submodel.id.includes(search) : entity !== model.id }" @click="selectSubentity(model, submodel)">
+                    <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.id + '.webp'" loading="lazy">
+                    <div :style="{ textTransform: submodel.name ? null : 'capitalize' }">{{ submodel.name ?? (submodel.file ?? submodel.id).replace(/_/g, " ") }}</div>
                   </div>
                 </template>
               </template>
@@ -566,9 +571,9 @@
         if (!modelData.categories) {
           return this.content_vue.$forceUpdate()
         }
-        const categories = modelData.categories.map(e => [e.name, e])
+        const categories = modelData.categories.filter(e => !e.type).map(e => [e.name, e])
         loaderData.categories = Object.fromEntries(categories)
-        loaderData.entities = categories.flatMap(c => c[1].entities.map(e => [c[0], e.name]))
+        loaderData.entities = categories.flatMap(c => c[1].entities.map(e => [c[0], e.id]))
         loaderData.loading = false
         loaderData.built = true
       },
@@ -625,47 +630,78 @@
     delete window.cemTemplateModelsLoaded
   }
 
+  function resolvePopup(node, popups) {
+    const popup = node.popup
+    if (!popup) return undefined
+    const master = node.file ?? node.id
+    const display = node.name ?? String(master).split("_").filter(Boolean).map(p => p[0].toUpperCase() + p.slice(1)).join(" ")
+    if (Array.isArray(popup)) {
+      const [popupId, ...extra] = popup
+      const template = popups[popupId]
+      if (!template) return popupId
+      return template.replace(/\{(\d+)\}/g, (_, n) => [display, ...extra][Number(n)] ?? `{${n}}`)
+    }
+    if (typeof popup === "object") return popup
+    if (typeof popup === "string") {
+      const template = popups[popup]
+      if (template) return template.replace(/\{(\d+)\}/g, (_, n) => [display][Number(n)] ?? `{${n}}`)
+      return popup
+    }
+    return undefined
+  }
+
   window.loadCEMTemplateModels = async () => {
     if (window.cemTemplateModelsLoaded) return loadingPromise
     loadingPromise = fetchData("json/cem_template_models.json")
     modelData = await loadingPromise
     window.cemTemplateModelsLoaded = true
     if (!modelData.categories) return
-    loaderDialog.sidebar.page = modelData.categories[0].name
-    loaderData.category = modelData.categories[0].name
+    const firstCategory = modelData.categories.find(c => !c.type)
+    loaderDialog.sidebar.page = firstCategory.name
+    loaderData.category = firstCategory.name
     modelData.entities = []
     for (const category of modelData.categories) {
+      if (category.type === "heading") {
+        loaderDialog.sidebar.pages["_" + category.text] = new MenuSeparator(category.text, category.text)
+        continue
+      }
       loaderDialog.sidebar.pages[category.name] = {
         label: category.name,
         icon: category.icon
       }
       for (let i = 0; i < category.entities.length; i++) {
         if (category.entities[i].type) continue
-        if (typeof category.entities[i] === "string") {
-          category.entities[i] = { name: category.entities[i] }
-        }
+        category.entities[i].popup = resolvePopup(category.entities[i], modelData.popups)
         modelData.entities.push(category.entities[i])
         if (category.entities[i].variants) {
           for (let j = 0; j < category.entities[i].variants.length; j++) {
-            if (typeof category.entities[i].variants[j] === "string") {
-              category.entities[i].variants[j] = { name: category.entities[i].variants[j] }
-            }
             if (!category.entities[i].variants[j].model) {
-              category.entities[i].variants[j].model = category.entities[i].model ?? category.entities[i].name
+              category.entities[i].variants[j].model = category.entities[i].model ?? category.entities[i].id
             }
+            category.entities[i].variants[j].popup = resolvePopup(category.entities[i].variants[j], modelData.popups)
             modelData.entities.push(category.entities[i].variants[j])
           }
         }
       }
     }
     BarItems.cem_template_loader_placeholder.delete()
-    BarItems.cem_template_loader.children = modelData.categories.map(e => new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
-      plugin: id,
-      name: `${e.name} Entities`,
-      description: e.description,
-      icon: e.icon,
-      click: () => openLoader(e.name)
-    }))
+    BarItems.cem_template_loader.children = []
+    for (let i = 0; i < modelData.categories.length; i++) {
+      const e = modelData.categories[i]
+      if (e.type === "heading") {
+        if (i > 0 && i < modelData.categories.length - 1) {
+          BarItems.cem_template_loader.children.push("_")
+        }
+        continue
+      }
+      BarItems.cem_template_loader.children.push(new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
+        plugin: id,
+        name: `${e.name} Entities`,
+        description: e.description,
+        icon: e.icon,
+        click: () => openLoader(e.name)
+      }))
+    }
     BarItems.cem_template_loader.children.push("_", {
       name: `Models v${modelData.version}`,
       id: "cem_template_loader_models_version",
@@ -694,19 +730,19 @@
   })
 
   async function loadModel(entity, loadTexture) {
-    const data = modelData.entities.find(e => e.name === entity)
+    const data = modelData.entities.find(e => e.id === entity)
     if (!data) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
-    const model = modelData.models[data.model ?? data.name]
+    const model = modelData.models[data.model ?? data.id]
     newProject(Formats.optifine_entity)
-    Project.name = data.file_name ?? data.name
-    Blockbench.setStatusBarText(data.name)
+    Project.name = data.file ?? data.id
+    Blockbench.setStatusBarText(data.id)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
     if (loadTexture && !data.textureless) {
       try {
-        const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.name]
+        const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.id]
         for (const [i, name] of textures.entries()) {
-          const texture = await fetchData(`images/minecraft/entities/${entity}${i || ""}.png`, () => null)
+          const texture = await fetchData(`images/minecraft/entities/${entity}${i ? `_${i}` : ""}.png`, () => null)
           if (!texture) throw Error
           const tex = new Texture({ name }).fromDataURL(await getBase64FromBlob(await texture.blob())).add()
           if (!i && textures.length === 1) {
@@ -721,17 +757,17 @@
     }
     if (!textureLoaded && !data.textureless) {
       const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
-      const textureNames = Array.isArray(data.texture_name) ? data.texture_name : [data.texture_name ?? data.name]
+      const textureNames = Array.isArray(data.texture) ? data.texture : [data.texture ?? data.id]
       const length = Math.max(textureData.length, textureNames.length)
       for (const cube of Cube.all) {
-        cube.selectLow()
+        cube.markAsSelected()
       }
       for (let i = 0; i < length; i++) {
         if (textureData[i]) {
-          new Texture({ name: textureNames[i] ?? data.name }).fromDataURL("data:image/png;base64," + textureData[i]).add()
+          new Texture({ name: textureNames[i] ?? data.id }).fromDataURL("data:image/png;base64," + textureData[i]).add()
         } else {
           TextureGenerator.addBitmap({
-            name: textureNames[i] ?? data.name,
+            name: textureNames[i] ?? data.id,
             color: new tinycolor("#00000000"),
             type: "template",
             rearrange_uv: false,
@@ -1047,7 +1083,8 @@
     limb_swing: [0, false],
     hurt_time: [10, false],
     death_time: [0, false],
-    swing_progress: [0, false]
+    swing_progress: [0, false],
+    anger_time: [0, false, 0, 0]
   }
   const boolList = new Set([
     "is_aggressive",
@@ -1084,6 +1121,8 @@
     "true",
     "false",
     "time",
+    "day_time",
+    "day_count",
     "limb_swing",
     "limb_speed",
     "age",
@@ -1102,6 +1141,7 @@
     "hurt_time",
     "death_time",
     "anger_time",
+    "anger_time_start",
     "max_health",
     "pos_x",
     "pos_y",
@@ -1313,7 +1353,29 @@
         overflow-y: auto;
 
         .cem_animation_button {
-          height: initial
+          height: initial;
+          min-width: max-content;
+          flex: 1;
+
+          button {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+
+            &::before {
+              content: "";
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: var(--progress, 100%);
+              height: 3px;
+              background-color: var(--color-accent);
+            }
+
+            &:not(.cem_animation_button_disabled):hover::before {
+              background-color: var(--color-light);
+            }
+          }
         }
       }
       #cem_animation_editor {
@@ -1400,7 +1462,7 @@
         border-bottom: 12px solid transparent;
         border-left: 12px solid var(--color-error);
       }
-      .spacer, .cem_animation_range input {
+      .spacer {
         flex: 1;
       }
       .cem_animation_bool {
@@ -1428,6 +1490,7 @@
         width: 2em;
         margin-left: 2px;
         cursor: text;
+        min-width: 44px;
       }
       .cem_animation_button {
         height: 25px;
@@ -1468,22 +1531,21 @@
         white-space: nowrap;
         text-overflow: ellipsis;
       }
-      .cem_animation_range_number {
-        min-width: 60px;
-      }
       #cem_animation_controller_variables {
         position: relative;
-        margin-top: 24px;
         display: flex;
         flex-direction: column;
         gap: 8px;
+      }
+      #cem_animation_controller_variables:not(:empty) {
+        margin-top: 24px;
       }
       #cem_animation_controller_variables:not(:empty)::before {
         content: "";
         position: absolute;
         bottom: calc(100% + 10px);
-        left: 8px;
-        right: 8px;
+        left: 0;
+        right: 0;
         height: 1px;
         background-color: var(--color-border);
       }
@@ -1521,13 +1583,14 @@
     `)
     animationControlPanel = new Panel("cem_animation_controller", {
       name: "Animation Controller",
-      growable: true,
       condition: {
         formats: ["optifine_entity"],
         modes: ["edit"]
       },
       default_position: {
-        folded: true
+        folded: true,
+        slot: "left_bar",
+        sidebar_index: 99
       },
       component: {
         template: `
@@ -1941,6 +2004,26 @@
         ).appendTo(container)
         if (specials.get("swing_progress")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
       }
+      if (specials.has("anger_time")) {
+        let container = $("#cem_animation_buttons")
+        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
+        const button = E("div").addClass("cem_animation_button").append(
+          E("button").attr({
+            id: "cem_animation_anger_time_button",
+            title: 'Simulate the entity becoming angry. Runs "anger_time"'
+          }).text("Anger entity").on("click", evt => {
+            const start = Math.floor(Math.random() * 381) + 400
+            const delay = (Math.random() * 2 + 1) * 20
+            specials.set("anger_time", [start, true, start, delay])
+            button.children().first().removeClass("cem_animation_button_disabled")
+            const aggressiveBool = $("#cem_animation_is_aggressive_bool")
+            if (aggressiveBool) {
+              aggressiveBool.prop("checked", true)
+              bools.set("is_aggressive", true)
+            }
+          })
+        ).appendTo(container)
+      }
       prevTime = Date.now()
       Blockbench.on("render_frame", playAnimations)
     }
@@ -2056,6 +2139,31 @@
           specials.set("swing_progress", [0, false])
           $("#cem_animation_swing_progress_button").removeClass("cem_animation_button_disabled")
         }
+        if (specials.get("anger_time")?.[1] && specials.get("anger_time")[0] <= 0) {
+          specials.set("anger_time", [0, false, 0])
+          const aggressiveBool = $("#cem_animation_is_aggressive_bool")
+          if (aggressiveBool) {
+            aggressiveBool.prop("checked", false)
+            bools.set("is_aggressive", false)
+          }
+        }
+        if (specials.has("hurt_time")) {
+          const progress = specials.get("hurt_time")[1] ? (1 - specials.get("hurt_time")[0] / 10) * 100 : 100
+          document.getElementById("cem_animation_hurt_time_button")?.style.setProperty("--progress", progress + "%")
+        }
+        if (specials.has("death_time")) {
+          const progress = specials.get("death_time")[1] ? (specials.get("death_time")[0] / 20) * 100 : 100
+          document.getElementById("cem_animation_death_time_button")?.style.setProperty("--progress", progress + "%")
+        }
+        if (specials.has("swing_progress")) {
+          const progress = specials.get("swing_progress")[1] ? specials.get("swing_progress")[0] * 100 : 100
+          document.getElementById("cem_animation_swing_progress_button")?.style.setProperty("--progress", progress + "%")
+        }
+        if (specials.has("anger_time")) {
+          const a = specials.get("anger_time")
+          const progress = a[1] && a[2] ? (a[3] > 0 ? 0 : (1 - a[0] / a[2]) * 100) : 100
+          document.getElementById("cem_animation_anger_time_button")?.style.setProperty("--progress", progress + "%")
+        }
         if (frameCount === 1) {
           parents = {}
           for (const part of Group.all.filter(e => e.parent === "root")) {
@@ -2075,11 +2183,15 @@
         }
         context = Object.assign({
           time: time,
+          day_time: time % 24000,
+          day_count: Math.floor(time / 24000),
           age: time,
           limb_swing: specials.get("limb_swing")?.[1] ? specials.get("limb_swing")[0] += difference / 1.666 : specials.get("limb_swing")?.[0] ?? 0,
           hurt_time: specials.get("hurt_time")?.[1] ? specials.get("hurt_time")[0] -= difference : 0,
           death_time: specials.get("death_time")?.[1] ? specials.get("death_time")[0] += difference : 0,
           swing_progress: specials.get("swing_progress")?.[1] ? specials.get("swing_progress")[0] += difference / 4 : 0,
+          anger_time: specials.get("anger_time")?.[1] ? (specials.get("anger_time")[3] > 0 ? (specials.get("anger_time")[3] -= difference, specials.get("anger_time")[0]) : specials.get("anger_time")[0] -= difference) : 0,
+          anger_time_start: specials.get("anger_time")?.[2] ?? 0,
           frame_counter: frameCount % 720719,
           render: Object.fromEntries(renderVars.map(e => [e, 0]))
         }, constants, Object.fromEntries(bools), Object.fromEntries(Array.from(ranges.entries()).map(e => [e[0], e[1][1]])))
@@ -2168,9 +2280,24 @@
       playButton.css("display", "flex")
       stopButton.css("display", "none")
       pauseButton.text("pause").attr("title", "Pause the animations")
-      $("#cem_animation_hurt_time_button").addClass("cem_animation_button_disabled")
-      $("#cem_animation_death_time_button").addClass("cem_animation_button_disabled")
-      $("#cem_animation_swing_progress_button").addClass("cem_animation_button_disabled")
+      if (specials.has("hurt_time")) specials.set("hurt_time", [10, false])
+      if (specials.has("death_time")) specials.set("death_time", [0, false])
+      if (specials.has("swing_progress")) specials.set("swing_progress", [0, false])
+      if (specials.has("anger_time")) specials.set("anger_time", [0, false, 0])
+      $("#cem_animation_hurt_time_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
+      $("#cem_animation_death_time_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
+      $("#cem_animation_swing_progress_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
+      $("#cem_animation_anger_time_button").css("--progress", "100%")
+      const aggressiveBool = $("#cem_animation_is_aggressive_bool")
+      if (aggressiveBool.length) {
+        aggressiveBool.prop("checked", false)
+        bools.set("is_aggressive", false)
+      }
+      const hurtBool = $("#cem_animation_is_hurt_bool")
+      if (hurtBool.length) {
+        hurtBool.prop("checked", false)
+        bools.set("is_hurt", false)
+      }
       playing = false
       paused = false
     }
