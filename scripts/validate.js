@@ -7,7 +7,7 @@ import imageSize from "image-size";
 
 const Errors = [];
 function logError(error) {
-	console.error(error);
+	console.error('::error::' + error);
 	Errors.push(error);
 	process.exitCode = 1;
 }

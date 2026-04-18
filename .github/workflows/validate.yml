@@ -30,7 +30,4 @@ jobs:
           npm ci
           git fetch origin ${{ github.base_ref }}
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
-          echo "$CHANGED_FILES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          npm run validate explorer
+          CHANGED_FILES="$CHANGED_FILES" npm run validate explorer
