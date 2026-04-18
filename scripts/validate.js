@@ -5,21 +5,40 @@ import { compareVersions } from "compare-versions";
 import PLUGINS_JSON_META from '../plugins.json' with {type: "json"};
 import imageSize from "image-size";
 
-const Errors = [];
 function logError(error) {
-	console.error('::error::' + error);
-	Errors.push(error);
+	let prefix = CHANGED_FILES ? '::error::' : '';
+	console.error(prefix + error);
 	process.exitCode = 1;
 }
 
 let PLUGIN_ID = process.argv[2];
 let CHANGED_FILES = process.env.CHANGED_FILES;
-console.log('changes', typeof CHANGED_FILES, CHANGED_FILES);
+
+// Changed files
 if (CHANGED_FILES) {
-	console.log('changes', typeof CHANGED_FILES, CHANGED_FILES);
-	//let changes = CHANGED_FILES.split('\n');
+	let changes = CHANGED_FILES.replace(/\//g, '/').split('\n');
+	if (!PLUGIN_ID) {
+		for (let path of changes) {
+			if (path.startsWith('plugins/')) {
+				PLUGIN_ID = path.split(/[/.]/)[1];
+				console.log("::debug::Found Plugin ID: "+PLUGIN_ID);
+			}
+		}
+	}
+
+	let allowed_paths = [
+		'plugins.json',
+		`plugins/${PLUGIN_ID}`,
+		`src/${PLUGIN_ID}`,
+	];
+	for (let path of changes) {
+		if (!allowed_paths.some(match => path.startsWith(match))) {
+			logError(`Modifying "${path}" is not permitted as an update for "${PLUGIN_ID}"`);
+		}
+	}
 }
 
+// ID
 if (!PLUGIN_ID) {
 	logError("Plugin ID is not specified");
 	process.exit();
@@ -49,29 +68,13 @@ try {
 	process.exit();
 }
 
-
-/**
-TODO:
-icon file
-icon size and resolution
-semver
- */
-
-
-
-
-
-
-
-
-
+// Create sandbox to run plugin without errors
 const Plugin = {
 	register(_id, _options) {
 		id = _id;
 		source_meta = _options;
 	}
 }
-// Wildcard must be a function so it can be called
 const wildcard = new Proxy(function () {}, {
 	get(target, prop) {
 		if (prop === Symbol.toPrimitive) {
@@ -154,10 +157,12 @@ for (let key of all_fields) {
 	}
 }
 
+// About
 if (NEW_FORMAT && json_meta.about) {
 	logError(`About text specified in meta data. In format version 4.8 or newer, about text should be in about.md`);
 }
 
+// Changelog
 if (json_meta.has_changelog && !NEW_FORMAT) {
 	logError("Changelog is not supported in legacy format");
 }
@@ -172,6 +177,7 @@ if (json_meta.has_changelog) {let content_js = '';
 	}
 }
 
+// Icon validation
 if (json_meta.icon && (json_meta.icon.endsWith('.png') || json_meta.icon.endsWith('.svg'))) {
 	let icon_path = path.resolve(BASE_PATH, json_meta.icon);
 	if (!fs.existsSync(icon_path)) {
@@ -193,8 +199,18 @@ if (json_meta.icon && (json_meta.icon.endsWith('.png') || json_meta.icon.endsWit
 	}
 }
 
+// Semver
+//const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[a-z]+\.\d+)?$/;
+const SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+function validateVersion(v) {
+	if (!v.match(SEMVER_REGEX)) {
+		logError(`"${v}" is not a valid version number. See semver.org`)
+	}
+}
+validateVersion(json_meta.version);
+validateVersion(source_meta.version);
 
-
+// Pass?
 if (!process.exitCode) {
 	console.log(`Plugin "${PLUGIN_ID}" passed validation with no errors!`);
 }
