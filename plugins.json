@@ -224,8 +224,8 @@
 		"author": "Ewan Howell",
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "8.5.1",
-		"min_version": "4.12.0",
+		"version": "9.1.0",
+		"min_version": "5.0.0",
 		"variant": "both",
 		"creation_date": "2020-02-02",
 		"has_changelog": true,
@@ -413,7 +413,7 @@
 		"author": "Ewan Howell",
 		"description": "Browse the Minecraft assets from within Blockbench.",
 		"tags": ["Minecraft", "Assets", "Browser"],
-		"version": "1.2.1",
+		"version": "1.2.2",
 		"min_version": "5.0.0",
 		"variant": "desktop",
 		"website": "https://ewanhowell.com/plugins/asset-browser/",
@@ -500,7 +500,7 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.8.3",
+		"version": "0.9.1",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
 		"contributes": {
@@ -512,7 +512,7 @@
 		"creation_date": "2025-12-22",
 		"await_loading": true,
 		"has_changelog": true,
-		"contributors": ["Hedaox"],
+		"contributors": ["Hedaox", "MelodicAlbuild"],
 		"repository": "https://github.com/JannisX11/hytale-blockbench-plugin",
 		"bug_tracker": "https://github.com/JannisX11/hytale-blockbench-plugin/issues"
 	},
@@ -950,11 +950,11 @@
 		"icon": "fas.fa-folder-open",
 		"author": "JannisX11",
 		"description": "Navigate the files in your project from the sidebar in Blockbench!",
-		"about": "Use the folder icon in the left corner of the tab bar to open the explorer. Click files to peak into them, double click to jump into the file. Right click a file to bring up the context menu.",
 		"tags": ["Files"],
-		"version": "1.0.5",
-		"min_version": "4.6.0",
-		"variant": "desktop"
+		"version": "1.1.0",
+		"min_version": "5.1.0",
+		"variant": "desktop",
+		"has_changelog": true
 	},
 	"performance_audit": {
 		"title": "Performance Audit",

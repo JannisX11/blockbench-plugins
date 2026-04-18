@@ -34,7 +34,7 @@ The new structure is recommended for new plugins.
 These are the files that can be added to the plugin directory
 * `plugins/plugin_id/plugin_id.js`- The plugin Javascript file itself
 * `plugins/plugin_id/about.md`: Markdown file containing the plugin about + instructions.
-* `plugins/plugin_id/icon.png` or `icon.svg`: The plugin icon. Icons can be either PNG files with a resolution of 48x48, or they can be SVG files. To register an icon, set the icon field in the plugin meta data to the file name of the icon.
+* `plugins/plugin_id/icon.png` or `icon.svg`: The plugin icon. Icons can be either PNG or SVG files with a resolution of 48x48 - 96x96 and a maximum size of 12 KB. To register an icon, set the icon field in the plugin meta data to the file name of the icon.
 * `plugins/plugin_id/members.yml`: This file allows you to list Github users who have your permission to do changes to your model, without me having to check back with you. You can add two types of members: `maintainers` Can do anything with the plugin, including removing it entirely or modifying the members list. `developers` can contribute new versions of the plugin.
 * `plugins/plugin_id/LICENSE.MD`: Add a license if you want to license your plugin as open source. You can choose your license here: [choosealicense.com](https://choosealicense.com)
 * `plugins/plugin_id/changelog.json`: Add a changelog file for your plugin. Set `has_changelog` to `true` in the meta data to enable this. If you use VS Code (which I recommend), you'll automatically have autocomplete and validation for this file. Make sure to add new versions to the bottom of the file!

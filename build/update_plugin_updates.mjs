@@ -28,13 +28,9 @@ for (const [id, data] of Object.entries(plugins)) {
   const wentDown = nMaj < oMaj || (nMaj === oMaj && nMin < oMin) || (nMaj === oMaj && nMin === oMin && nPatch < oPatch)
   const onlyPatchChanged = nMaj === oMaj && nMin === oMin && nPatch !== oPatch
 
-  if (onlyPatchChanged) {
-    continue
-  }
-
   updates[id].version = data.version
 
-  if (wentDown) {
+  if (wentDown || onlyPatchChanged) {
     continue
   }
 
