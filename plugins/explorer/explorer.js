@@ -11,6 +11,7 @@ BBPlugin.register('explorer', {
 	icon: 'fas.fa-folder-open',
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
+	tags: ["Files"],
 	version: '1.1.0',
 	min_version: '5.1.0',
 	variant: 'desktop',
