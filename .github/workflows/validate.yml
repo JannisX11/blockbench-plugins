@@ -27,6 +27,7 @@ jobs:
 
       - name: Validate
         run: |
+          npm ci
           git fetch origin ${{ github.base_ref }}
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           echo "$CHANGED_FILES" >> $GITHUB_ENV
