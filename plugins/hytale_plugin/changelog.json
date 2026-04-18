@@ -356,5 +356,109 @@
 				]
 			}
 		]
+	},
+	"0.8.3": {
+		"title": "0.8.3",
+		"date": "2026-03-08",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added toast notification to explain per-shape keyframes not applying."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Alt + drag to duplicate activating when not in edit mode",
+					"Fixed blockymodel export failing in certain configurations"
+				]
+			}
+		]
+	},
+	"0.8.4": {
+		"title": "0.8.4",
+		"date": "2026-03-24",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Utilize new Blockbench 5.1 feature to mark collections as saved or unsaved",
+					"Added Import Attachment option to File > Import menu"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Compatibility with Blockbench 5.1 changes to quaternions",
+					"Fixed issue with importing animations in models with duplicate bone names",
+					"Fixed Reload Attachment option showing up in unrelated formats"
+				]
+			}
+		]
+	},
+	"0.8.5": {
+		"title": "0.8.5",
+		"date": "2026-03-24",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed 5.1 compatibility issue",
+					"Fixed compile animation issue"
+				]
+			}
+		]
+	},
+	"0.8.6": {
+		"title": "0.8.6 (internal-only)",
+		"date": "2026-04-02",
+		"author": "Kanno",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas"
+				]
+			}
+		]
+	},
+	"0.9.0": {
+		"title": "0.9.0",
+		"date": "2026-04-12",
+		"author": "Kanno, JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas",
+					"Added tool to change cube orientation while remaining static",
+					"Pressing the Brush Tool keybinding repeatedly now cycles through brush presets"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed copy-pasting texture with magenta Photoshop fix using the selected texture instead of UV editor texture",
+					"Fixed NaN export in animation if position or scale keyframe has non-numeric value"
+				]
+			}
+		]
+	},
+	"0.9.1": {
+		"title": "0.9.1",
+		"date": "2026-04-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Switching brush presets is no longer assigned to the brush key by default, but can be reassigned in the keybinding settings"
+				]
+			}
+		]
 	}
 }
