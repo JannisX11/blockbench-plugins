@@ -991,5 +991,87 @@
         ]
       }
     ]
+  },
+  "8.6.0": {
+    "title": "8.6.0",
+    "date": "2026-04-02",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Support for Blockbench v5.0.0"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed template texture generation when loading models"
+        ]
+      }
+    ]
+  },
+  "9.0.0": {
+    "title": "9.0.0",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Updated to the new template model data format",
+          "Added category headings to the sidebar"
+        ]
+      }
+    ]
+  },
+  "9.0.1": {
+    "title": "9.0.1",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed vanilla texture loading for entities with multiple textures"
+        ]
+      }
+    ]
+  },
+  "9.0.2": {
+    "title": "9.0.2",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed display names falling back to the ID instead of the file name"
+        ]
+      }
+    ]
+  },
+  "9.1.0": {
+    "title": "9.1.0",
+    "date": "2026-04-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added support for the \"day_time\" and \"day_count\" animation variables",
+          "Added support for the \"anger_time_start\" animation variable",
+          "Added the \"Anger entity\" button to simulate \"anger_time\" countdown with delay",
+          "Added progress bars to animation buttons (hurt, death, attack, anger)"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the default location of the \"Animation Controller\" panel",
+          "Fixed stop button not resetting animation buttons"
+        ]
+      }
+    ]
   }
 }
