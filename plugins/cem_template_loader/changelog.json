@@ -1073,5 +1073,18 @@
         ]
       }
     ]
+  },
+  "9.1.1": {
+    "title": "9.1.1",
+    "date": "2026-04-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the connection warning showing when the fallback URL loaded successfully"
+        ]
+      }
+    ]
   }
 }
