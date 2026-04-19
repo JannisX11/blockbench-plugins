@@ -27,6 +27,15 @@ import { IKManager } from './azure-ik.js';
 export const AZURE_ANIM_FORMAT_ID = 'azure_animation';
 export const FORMAT_VERSION = '1.8.0';
 
+/**
+ * Stores top-level animation include metadata by source file path so we can
+ * round-trip the user's custom include system without forcing a dedicated UI.
+ *
+ * Key: animation file path (or '' for unpathed/ephemeral files)
+ * Value: normalised includes array
+ */
+const animationIncludesByPath = new Map();
+
 /** Bedrock lerp modes that this plugin understands natively. */
 const BEDROCK_LERP_MODES = new Set(['linear', 'catmullrom']);
 
@@ -75,6 +84,233 @@ function normTime(t) {
   return String(t).replace(/^(-?\d+)\.0+$/, '$1');
 }
 
+function normalizeAnimationIncludes(includes) {
+  if (!Array.isArray(includes) || !includes.length) return [];
+
+  return includes
+    .filter(entry => entry && typeof entry === 'object')
+    .map(entry => ({
+      file_id: String(entry.file_id || '').trim(),
+      animations: Array.isArray(entry.animations)
+        ? entry.animations
+            .map(name => String(name || '').trim())
+            .filter(Boolean)
+        : [],
+    }))
+    .filter(entry => entry.file_id && entry.animations.length);
+}
+
+function cloneAnimationIncludes(includes) {
+  return normalizeAnimationIncludes(includes).map(entry => ({
+    file_id: entry.file_id,
+    animations: [...entry.animations],
+  }));
+}
+
+function getAnimationIncludesForPath(path) {
+  return cloneAnimationIncludes(animationIncludesByPath.get(path || '') || []);
+}
+
+function setAnimationIncludesForPath(path, includes) {
+  const key = path || '';
+  const normal = normalizeAnimationIncludes(includes);
+  if (normal.length) animationIncludesByPath.set(key, normal);
+  else animationIncludesByPath.delete(key);
+}
+
+function applyAnimationIncludes(out, includes) {
+  const normal = cloneAnimationIncludes(includes);
+  if (normal.length) out.includes = normal;
+  else delete out.includes;
+  return out;
+}
+
+
+function getIncludesTargetPath() {
+  const selected = Animation?.selected;
+  if (selected) return selected.path || '';
+
+  const uniquePaths = [...new Set(Animation.all.map(anim => anim.path || ''))];
+  if (uniquePaths.length === 1) return uniquePaths[0];
+
+  return '';
+}
+
+function getAnimationNamesForPath(path) {
+  return Animation.all
+    .filter(anim => (anim.path || '') === (path || '') && anim.name)
+    .map(anim => anim.name)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function findDuplicateIncludedAnimationNames(includes) {
+  const seen = new Map();
+  const duplicates = [];
+
+  includes.forEach((entry, entryIndex) => {
+    (entry.animations || []).forEach(name => {
+      const key = String(name || '').trim();
+      if (!key) return;
+
+      const previous = seen.get(key);
+      if (previous !== undefined) {
+        duplicates.push({ name: key, firstIndex: previous, secondIndex: entryIndex });
+      } else {
+        seen.set(key, entryIndex);
+      }
+    });
+  });
+
+  return duplicates;
+}
+
+function showAnimationIncludesDialog() {
+  const targetPath = getIncludesTargetPath();
+  const current = getAnimationIncludesForPath(targetPath);
+  const animationNames = getAnimationNamesForPath(targetPath);
+  const fileLabel = targetPath || 'Unsaved animation file';
+
+  const dialog = new Dialog({
+    id: 'azl_animation_includes_editor',
+    title: 'Edit Animation Includes',
+    width: 760,
+    component: {
+      data() {
+        return {
+          targetPath,
+          fileLabel,
+          rows: current.length
+            ? current.map(entry => ({
+                file_id: entry.file_id,
+                animations_text: entry.animations.join(', '),
+              }))
+            : [{ file_id: '', animations_text: '' }],
+          animationNames,
+          exampleAnimationNames: animationNames.join(', '),
+        };
+      },
+      methods: {
+        addRow() {
+          this.rows.push({ file_id: '', animations_text: '' });
+        },
+        removeRow(index) {
+          this.rows.splice(index, 1);
+          if (!this.rows.length) this.addRow();
+        },
+      },
+      template: `
+        <div class="dialog_content azure_includes_dialog" style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+          <div style="min-width:0;">
+            <p style="margin:0;"><strong>Editing file:</strong> <span style="word-break:break-all;">{{ fileLabel }}</span></p>
+            <p style="margin:6px 0 0 0;opacity:0.8;">
+              These entries are saved at the top level of the animation JSON as <code>includes</code>.
+            </p>
+            <p v-if="exampleAnimationNames" style="margin:6px 0 0 0;opacity:0.8;line-height:1.45;">
+              Animations currently in this file: <code style="white-space:pre-wrap;word-break:break-word;">{{ exampleAnimationNames }}</code>
+            </p>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong>Include Entries</strong>
+            <button
+              type="button"
+              style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;min-height:32px;white-space:nowrap;"
+              @click="addRow()"
+            >
+              Add Include
+            </button>
+          </div>
+          
+          <div style="display:flex;flex-direction:column;gap:12px;max-height:420px;overflow:auto;padding-right:4px;min-width:0;">
+            <div
+              v-for="(row, index) in rows"
+              :key="index"
+              style="display:block;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.03);box-sizing:border-box;min-width:0;"
+            >
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="font-weight:600;opacity:0.95;">Include {{ index + 1 }}</div>
+                <button
+                  type="button"
+                  style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;min-height:28px;white-space:nowrap;"
+                  @click="removeRow(index)"
+                >
+                  Remove
+                </button>
+              </div>
+          
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
+                  <span>File ID</span>
+                  <input
+                    type="text"
+                    class="dark_bordered"
+                    style="display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;"
+                    v-model="row.file_id"
+                    placeholder="mod_id:path/to/other_animation.json"
+                  />
+                </label>
+          
+                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
+                  <span>Animations (comma-separated)</span>
+                  <textarea
+                    class="dark_bordered"
+                    rows="3"
+                    style="display:block;width:100%;min-width:0;max-width:100%;resize:vertical;box-sizing:border-box;line-height:1.4;"
+                    v-model="row.animations_text"
+                    placeholder="animation_name_1, animation_name_2"
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+    },
+    onConfirm() {
+      const rows = dialog.content_vue?.rows || [];
+      const normalized = normalizeAnimationIncludes(rows.map(row => ({
+        file_id: row.file_id,
+        animations: String(row.animations_text || '')
+          .split(',')
+          .map(name => name.trim())
+          .filter(Boolean),
+      })));
+
+      const duplicates = findDuplicateIncludedAnimationNames(normalized);
+      if (duplicates.length) {
+        const preview = duplicates
+          .slice(0, 6)
+          .map(dup => `${dup.name} (entries ${dup.firstIndex + 1} and ${dup.secondIndex + 1})`)
+          .join('\n');
+      
+        if (typeof Blockbench.showMessageBox === 'function') {
+          Blockbench.showMessageBox({
+            title: 'Duplicate Included Animations',
+            message:
+              'Each included animation name must be unique across all include entries.\n\n' +
+              preview +
+              (duplicates.length > 6 ? `\n…and ${duplicates.length - 6} more.` : ''),
+          });
+        } else {
+          Blockbench.showQuickMessage('Duplicate included animation names detected.', 2400);
+        }
+      
+        return false;
+      }
+
+      setAnimationIncludesForPath(targetPath, normalized);
+      Blockbench.showQuickMessage(
+        normalized.length
+          ? `Saved ${normalized.length} animation include${normalized.length === 1 ? '' : 's'}.`
+          : 'Cleared animation includes.',
+        2000
+      );
+    },
+  });
+
+  dialog.show();
+}
+
 // ---------------------------------------------------------------------------
 // Animation file builder (export)
 // ---------------------------------------------------------------------------
@@ -85,10 +321,10 @@ function normTime(t) {
  * The codec itself uses compileFile(animations) so it can scope by file path.
  */
 export function buildAzureAnimationFile() {
-  const out = {
+  const out = applyAnimationIncludes({
     format_version: FORMAT_VERSION,
     animations: {},
-  };
+  }, getAnimationIncludesForPath(''));
 
   for (const anim of Animation.all) {
     if (!anim.name) continue;
@@ -336,6 +572,8 @@ function roundVal(v) {
 export function loadAzureAnimationFile(file, filter) {
   const json = file.json || (typeof autoParseJSON === 'function' ? autoParseJSON(file.content) : JSON.parse(file.content));
   if (!json || typeof json.animations !== 'object') return [];
+
+  setAnimationIncludesForPath(file?.path, json.includes);
 
   const animsOut = [];
 
@@ -741,7 +979,12 @@ export const azureAnimationCodec = (typeof AnimationCodec !== 'undefined')
       },
 
       compileFile(animations) {
-        const out = { format_version: FORMAT_VERSION, animations: {} };
+        const sharedPath = animations.length ? (animations[0].path || '') : '';
+        const samePath = animations.every(anim => (anim.path || '') === sharedPath);
+        const out = applyAnimationIncludes(
+          { format_version: FORMAT_VERSION, animations: {} },
+          samePath ? getAnimationIncludesForPath(sharedPath) : []
+        );
         for (const anim of animations) {
           if (!anim.name) continue;
           out.animations[anim.name] = serializeAnimation(anim);
@@ -757,10 +1000,10 @@ export const azureAnimationCodec = (typeof AnimationCodec !== 'undefined')
        * want to clobber sibling animations the user didn't touch.
        */
       saveAnimation(animation, save_as) {
-        const compileSingleFile = () => ({
+        const compileSingleFile = () => applyAnimationIncludes({
           format_version: FORMAT_VERSION,
           animations: { [animation.name]: serializeAnimation(animation) },
-        });
+        }, getAnimationIncludesForPath(animation.path));
 
         // Web build, or no path yet, or explicit "Save As" → open file dialog.
         if (!isApp || !animation.path || save_as) {
@@ -772,6 +1015,13 @@ export const azureAnimationCodec = (typeof AnimationCodec !== 'undefined')
             startpath: animation.path,
             content: serializeAnimationJson(compileSingleFile()),
           }, (real_path) => {
+            const previousPath = animation.path || '';
+            const includes = getAnimationIncludesForPath(previousPath);
+            setAnimationIncludesForPath(real_path, includes);
+            if (real_path !== previousPath && previousPath) {
+              animationIncludesByPath.delete(previousPath);
+            }
+
             animation.path = real_path;
             animation.saved = true;
             animation.saved_name = animation.name;
@@ -853,6 +1103,13 @@ export const azureAnimationCodec = (typeof AnimationCodec !== 'undefined')
           startpath: path,
           content,
         }, (real_path) => {
+          const previousPath = filterPath || '';
+          const includes = getAnimationIncludesForPath(previousPath);
+          setAnimationIncludesForPath(real_path, includes);
+          if (real_path !== previousPath && previousPath) {
+            animationIncludesByPath.delete(previousPath);
+          }
+
           animations.forEach(a => {
             a.path = real_path;
             a.saved = true;
@@ -899,6 +1156,8 @@ export function importAzureAnimation() {
 // these hooks just exist for symmetry with the rest of the plugin's lifecycle.
 // ---------------------------------------------------------------------------
 
+let editAnimationIncludesAction = null;
+
 export function registerAzureAnimationFormat() {
   if (!azureAnimationCodec) {
     console.warn(
@@ -907,12 +1166,29 @@ export function registerAzureAnimationFormat() {
     );
     return;
   }
+
+  if (!editAnimationIncludesAction) {
+    editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
+      name: 'Edit Animation Includes',
+      description: 'Edit AzureLib animation include entries for the current animation file',
+      icon: 'playlist_add',
+      category: 'animation',
+      condition: () => Format?.id === 'azure_model' && Animator.open,
+      click: () => showAnimationIncludesDialog(),
+    });
+
+    try { MenuBar.menus?.animation?.addAction(editAnimationIncludesAction); } catch (_) {}
+  }
+
   // Nothing else to do — Format.animation_codec is set on the ModelFormat
   // itself in azure-codec.js, which is what activates this codec.
   console.log('[AzureLib] Azure animation codec registered');
 }
 
 export function unregisterAzureAnimationFormat() {
+  editAnimationIncludesAction?.delete();
+  editAnimationIncludesAction = null;
+
   if (azureAnimationCodec && AnimationCodec?.codecs) {
     delete AnimationCodec.codecs[AZURE_ANIM_FORMAT_ID];
   }

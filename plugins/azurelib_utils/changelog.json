@@ -159,7 +159,9 @@
 			{
 				"title": "Changes",
 				"list": [
-					"Now support both Azurelib Easings and Bedrock easings in 1 project, allowing you to mix them"
+					"Now support both Azurelib Easings and Bedrock easings in 1 project, allowing you to mix them",
+					"Updates plugin to use the new AnimationCodec system from blockbench to help with future animation issues",
+					"Adds support for animation includes as per https://moddedmc.wiki/en/project/azurelib/latest/docs/misc/animating/animation_includes"
 				]
 			},
 			{
