@@ -58,6 +58,12 @@ export function registerKeyframeOverrides() {
     BarItems.reverse_keyframes._azurePatched = true;
   }
 
+  // Hook Blockbench's playback dispatcher so Azure-easing segments are
+  // actually interpolated. Without this, kf.interpolation === undefined
+  // (our marker for "Azure easing mode") falls through every branch in
+  // BoneAnimator.interpolate and the bone never updates between keyframes.
+  Blockbench.on('interpolate_keyframes', azureInterpolateListener);
+
   PATCHED = true;
 }
 
@@ -75,14 +81,94 @@ export function unregisterKeyframeOverrides() {
       BarItems.reverse_keyframes.condition = ORIG_REVERSE_CONDITION;
       delete BarItems.reverse_keyframes._azurePatched;
     }
+    try { Blockbench.removeListener('interpolate_keyframes', azureInterpolateListener); } catch { /* noop */ }
   } finally {
     PATCHED = false;
   }
 }
 
 // ---------------------------------------------------------------------------
+// interpolate_keyframes listener — drives Azure-easing playback
+// ---------------------------------------------------------------------------
+//
+// Blockbench's BoneAnimator.interpolate dispatches this event before its
+// own interpolation switch. If a listener returns { value: [x, y, z] }
+// the dispatcher returns that array directly and the built-in
+// linear/catmullrom/bezier branches are skipped.
+//
+// We use this for Azure-easing segments (kf.interpolation falsy or 'linear')
+// — without it, kf.interpolation === undefined doesn't match any of BB's
+// built-in branches and BoneAnimator.interpolate falls off the end without
+// returning a value, freezing the bone between keyframes.
+//
+// Returning undefined from the listener leaves BB's normal dispatch in
+// place, which is what we want for catmullrom/bezier/step segments.
+
+function azureInterpolateListener(args) {
+  if (Format?.id !== 'azure_model') return;
+
+  const before = args && args.keyframe_before;
+  const after  = args && args.keyframe_after;
+  if (!before || !after) return;
+
+  // Only handle Azure-easing segments. Anything that names a BB-native
+  // interpolation mode (catmullrom / bezier / step) is left to BB.
+  // 'linear' is treated as Azure-eligible because that's the default value
+  // BB stamps onto fresh keyframes — and it's also semantically a no-op
+  // when the easing happens to be plain linear.
+  const azureEligible = mode => !mode || mode === 'linear';
+  if (!azureEligible(before.interpolation) || !azureEligible(after.interpolation)) return;
+
+  // Defer to BB when either side carries molang expressions — the eased
+  // numeric path can't preserve string expressions and would silently
+  // change behaviour. (Safe: BB's linear→linear branch handles this case.)
+  if (before.has_expressions || after.has_expressions) return;
+
+  // Resolve easing from the destination keyframe. AzureLib reads easing
+  // off the "to" keyframe, mirroring the Java runtime.
+  const easing = after.easing || EASING_DEFAULT;
+  const fn = easingRegistry[easing] || easingRegistry.linear;
+
+  let eased;
+  if (hasArgs(easing)) {
+    const arg = (Array.isArray(after.easingArgs) && after.easingArgs.length)
+      ? after.easingArgs[0]
+      : getEasingArgDefault(easing);
+    eased = fn(args.t, arg);
+  } else {
+    eased = fn(args.t);
+  }
+
+  if (typeof eased !== 'number' || Number.isNaN(eased)) return;
+
+  // Match the data_point selection used by Keyframe.prototype.getLerp:
+  // earlier-in-time kf uses dp 1 if it has multiple, later kf uses dp 0.
+  // before.time < after.time is guaranteed here by BoneAnimator.interpolate.
+  const beforeDP = (before.data_points.length > 1) ? 1 : 0;
+  const afterDP  = 0;
+
+  const value = ['x', 'y', 'z'].map(axis => {
+    const a = before.calc(axis, beforeDP);
+    const b = after.calc(axis, afterDP);
+    return a + (b - a) * eased;
+  });
+
+  return { value };
+}
+
+// ---------------------------------------------------------------------------
 // getLerp — easing-aware interpolation
 // ---------------------------------------------------------------------------
+//
+// Reachable in two situations:
+//   1. BoneAnimator.interpolate's linear-only branch (only when both kfs
+//      have interpolation === 'linear'). With the event listener above,
+//      that branch is short-circuited for Azure-easing segments, so this
+//      path mostly handles plain linear→linear segments at runtime.
+//   2. The keyframe optimizer in animation.js (~line 1462) uses the same
+//      linear-only gate during bake/optimize and calls getLerp directly.
+//      We honour Azure easing there too so optimized output matches
+//      playback behaviour.
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
@@ -93,15 +179,24 @@ function getLerpOverride(other, axis, t) {
     return ORIG.getLerp.apply(this, arguments);
   }
 
-  // All Blockbench-native interpolation modes: defer to Blockbench's own spline/bezier/step logic
+  // Defer to Blockbench for explicit Bedrock spline/bezier/step modes.
+  // Note: 'linear' is intentionally NOT in this list — we want to apply
+  // the Azure easing curve when one is set, even if the kf carries
+  // BB's default interpolation === 'linear' marker.
   if (other.interpolation === 'catmullrom' ||
-      other.interpolation === 'linear'     ||
       other.interpolation === 'bezier'     ||
       other.interpolation === 'step') {
     return ORIG.getLerp.apply(this, arguments);
   }
 
   const easing = other.easing || EASING_DEFAULT;
+
+  // Plain linear with no custom easing → BB's original implementation
+  // is fine and preserves its allow_expression fast-path.
+  if (easing === EASING_DEFAULT && (!other.easingArgs || !other.easingArgs.length)) {
+    return ORIG.getLerp.apply(this, arguments);
+  }
+
   let func = easingRegistry[easing] || easingRegistry.linear;
 
   if (hasArgs(easing)) {
