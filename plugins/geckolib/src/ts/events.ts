@@ -27,7 +27,7 @@ export function addEventListeners() {
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
     addEventListener('convert_format', onlyIfGeckoLib(onProjectConvert));
     addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
-    addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile); // I'm touching it but it may be unused after my patch - matmat37000
+    addMonkeypatch(Codecs.bedrock.format.animation_codec, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
     addMonkeypatch(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
 }

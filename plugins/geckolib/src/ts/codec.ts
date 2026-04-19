@@ -8,12 +8,9 @@ import {
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
 import { GeckolibBoneAnimator } from './keyframe';
+import { FormResultValue } from 'blockbench-types/generated/interface/form';
 
 const codec = Codecs.bedrock;
-// Cast as any to shut ts compiler
-const bedrock_format = Formats.bedrock as any;
-const animation_codec = bedrock_format.animation_codec;
-const original_loadFile = animation_codec.loadFile;
 
 // This gets automatically applied by Blockbench, we don't need to do anything with it
 export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
@@ -37,6 +34,7 @@ export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
     display_mode: false,
     animation_mode: true,
     codec: Codecs.project,
+    animation_codec: Codecs.bedrock.format.animation_codec,
 });
 
 // Override the new project panel to allow customisation
@@ -44,15 +42,6 @@ format.new = function () {
     if (newProject(this))
         return openProjectSettingsDialog();
 }
-
-// Override the animation code parser
-animation_codec.loadFile = function (file, animation_filter) {
-    debugger;
-    if (isGeckoLibModel())
-        return LoadFile(file, animation_filter);
-
-    return original_loadFile.apply(animation_codec, [file, animation_filter])
-};
 
 /**
  * Open a GeckoLib-customised project settings dialog (usually found when creating a new project, or via the File -> Project... menu item
@@ -297,7 +286,7 @@ function createProjectSettingsDialog(Project: ModelProject, form: { [formElement
                     break;
             }
 
-            Format.display_mode = modelType === GeckoModelType.ITEM || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
+            Format.display_mode = modelType === GeckoModelType.ITEM || settings[SETTING_ALWAYS_SHOW_DISPLAY].value as boolean;
 
             dialog.hide();
         },
