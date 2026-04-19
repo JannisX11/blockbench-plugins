@@ -43,7 +43,7 @@
     "@types/lodash": "^4.17.20",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
-    "blockbench-types": "^5.1.0",
+    "blockbench-types": "^5.0.6",
     "css-loader": "^7.1.2",
     "eol": "0.10.0",
     "eslint": "^9.34.0",
