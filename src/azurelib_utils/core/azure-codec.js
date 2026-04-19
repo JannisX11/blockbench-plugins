@@ -4,8 +4,10 @@
  * Defines the Blockbench model format for AzureLib (.geo / .animation)
  * and handles project load, save, and import/export utilities.
  *
- * Animation handling is now fully owned by azure-animation-tab.js.
- * This file no longer hooks into Codecs.bedrock for animation I/O.
+ * Animation handling is fully owned by azure-animation-tab.js, which
+ * exports an AnimationCodec instance that we attach to the ModelFormat.
+ * Blockbench routes all animation import/export through that codec
+ * automatically — no Animator monkey-patching, no menu hiding.
  *
  * © 2025 AzureDoom — MIT License
  */
@@ -14,7 +16,11 @@ import omit from 'lodash/omit';
 import AzureConfig, { DEFAULT_CONFIG, onSettingsChanged } from './azure-settings.js';
 import { injectOverride, PatchRegistry, invertMolang as localInvert } from './azure-utils.js';
 import { registerKeyframeOverrides, unregisterKeyframeOverrides } from '../animation/azure-keyframes.js';
-import { registerAzureAnimationFormat, unregisterAzureAnimationFormat } from '../animation/azure-animation-tab.js';
+import {
+  registerAzureAnimationFormat,
+  unregisterAzureAnimationFormat,
+  azureAnimationCodec,
+} from '../animation/azure-animation-tab.js';
 import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
@@ -29,7 +35,9 @@ export function registerAzureCodec() {
   Codecs.project.on('parse', handleProjectParse);
   Codecs.bedrock.on('compile', handleBedrockCompile);
 
-  // Register our custom animation format (replaces Bedrock animation tab)
+  // Register our custom animation codec (replaces Bedrock animation tab).
+  // The codec instance itself is constructed at module load; this call is
+  // mostly a logging shim for symmetry with the rest of the lifecycle.
   registerAzureAnimationFormat();
 
   // Keyframe interpolation overrides (getLerp, compileBedrockKeyframe, etc.)
@@ -41,7 +49,7 @@ export function registerAzureCodec() {
   Blockbench.on('close_project', resetDefaults);
   Blockbench.on('new_project', resetDefaults);
 
-  console.log('[AzureLib] Azure codec registered (unified animation tab)');
+  console.log('[AzureLib] Azure codec registered (AnimationCodec-backed)');
 }
 
 export function unregisterAzureCodec() {
@@ -272,6 +280,12 @@ export const format = new ModelFormat({
   select_texture_for_particles: true,
   animation_mode: true,
   animation_files: true,
+  // Wire the AzureLib animation codec directly into the format.
+  // Blockbench's built-in "Import Animations" / "Export Animations…" /
+  // "Save All Animations" actions will route through this codec automatically.
+  // Falls back to undefined on older Blockbench builds where AnimationCodec
+  // isn't available, so the format still loads (animation I/O won't work).
+  animation_codec: azureAnimationCodec || undefined,
   locators: true,
   codec: Codecs.project,
   display_mode: true,
