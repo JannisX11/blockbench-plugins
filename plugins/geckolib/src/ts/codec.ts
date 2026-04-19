@@ -1,5 +1,5 @@
 import armorTemplate from '../resources/armorTemplate.json';
-import { isEmpty, isGeckoLibModel, isValidPath } from './utils';
+import { isEmpty, isValidPath } from './utils';
 import {
     GECKOLIB_MODEL_ID,
     GeckoModelType, PROPERTY_FILEPATH_CACHE,
@@ -7,7 +7,6 @@ import {
     PROPERTY_MODID, SETTING_ALWAYS_SHOW_DISPLAY, SETTING_AUTO_PARTICLE_TEXTURE,
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
-import { GeckolibBoneAnimator } from './keyframe';
 import { FormResultValue } from 'blockbench-types/generated/interface/form';
 
 const codec = Codecs.bedrock;
