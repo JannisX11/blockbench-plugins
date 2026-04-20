@@ -1,361 +1,471 @@
 /**
- * AzureLib Animator — Animation UI
- * --------------------------------
- * Provides Blockbench UI enhancements for AzureLib animated models:
- * - Easing picker with type (in/out/inout) and argument inputs
- * - Selection-driven keyframe toolbar rendering
- * - Safe runtime monkeypatches with automatic cleanup
+ * AzureLib Animator — Unified Animation UI
+ * ----------------------------------------
+ * Custom animation panel that replaces the Minecraft Bedrock animation tab.
+ * Supports AzureLib custom easings and Bedrock lerp_mode (catmullrom/linear)
+ * in one unified interface.
+ *
+ * UI features:
+ *   - Easing family picker (Azure easings: sine, quad, cubic … + linear/step)
+ *   - In / Out / InOut type toggle
+ *   - Numeric argument input for Back/Elastic/Bounce/Step
+ *   - Bedrock catmullrom toggle (sets interpolation, not easing)
+ *   - All controls update all selected keyframes atomically via the undo system
  *
  * © 2025 AzureDoom — MIT License
  */
 
 import { uniq } from 'lodash';
-import { injectOverride, PatchRegistry, hasArgs } from '../core/azure-utils';
+import { injectOverride, PatchRegistry } from '../core/azure-utils.js';
 import {
   EASING_TYPES,
   EASING_DEFAULT,
   getEasingArgDefault,
   parseEasingArg,
-} from './azure-easing';
+  hasArgs,
+} from './azure-easing.js';
 
 // ---------------------------------------------------------------------------
-// Public lifecycle
+// Lifecycle
 // ---------------------------------------------------------------------------
 
-/**
- * Wire up timeline/UI events and apply safe overrides used by AzureLib models.
- */
-export const initializeAnimationUI = () => {
-  Blockbench.on('display_animation_frame', onDisplayAnimationFrame);
+let _uiListeners = false;
+
+export function initializeAnimationUI() {
+  if (_uiListeners) return;
+
+  Blockbench.on('display_animation_frame', _onFrame);
   Blockbench.on('update_keyframe_selection', refreshKeyframeUI);
 
-  // Provide globally callable handlers used by the toolbar inputs
-  injectOverride(window, null, 'updateKeyframeEasing', applyKeyframeEasing);
-  injectOverride(window, null, 'updateKeyframeEasingArg', applyEasingArgument);
+  // Expose handlers globally so inline HTML oninput/onclick can call them
+  window._azureApplyEasing       = applyKeyframeEasing;
+  window._azureApplyEasingArg    = applyEasingArgument;
+  window._azureToggleCatmullrom  = toggleCatmullrom;  // kept for compat
+  window._azureSetInterpolation   = setInterpolation;
 
-  // Hide/disable Blockbench's stock interpolation control when Azure format is active
-  injectOverride(
-    BarItems.keyframe_interpolation,
-    null,
-    'condition',
-    () => Format.id !== 'azure_model' && PatchRegistry.get(BarItems.keyframe_interpolation).condition()
-  );
-};
+  // Suppress Blockbench's stock interpolation selector in Azure format
+  _patchStockInterpolationBar();
 
-/**
- * Undo event wiring and overrides.
- */
-export const unloadAnimationUI = () => {
-  Blockbench.removeListener('display_animation_frame', onDisplayAnimationFrame);
+  _uiListeners = true;
+  console.log('[AzureLib] Animation UI initialised');
+}
+
+export function unloadAnimationUI() {
+  if (!_uiListeners) return;
+
+  Blockbench.removeListener('display_animation_frame', _onFrame);
   Blockbench.removeListener('update_keyframe_selection', refreshKeyframeUI);
-};
+
+  delete window._azureApplyEasing;
+  delete window._azureApplyEasingArg;
+  delete window._azureToggleCatmullrom;
+
+  _cleanupKeyframePanel();
+  _uiListeners = false;
+}
 
 // ---------------------------------------------------------------------------
-// Global UI callbacks (event handlers / monkeypatched functions)
+// Keyframe panel refresh (main entry point)
 // ---------------------------------------------------------------------------
 
-/** Frame render hook (reserved for future use). */
-export const onDisplayAnimationFrame = () => {
-  // No-op; kept for parity and future diagnostics
-};
+const PANEL_BARS = [
+  'azl_bar_catmullrom',
+  'azl_bar_easing',
+  'azl_bar_easing_azure',
+  'azl_bar_easing_type',
+  'azl_bar_easing_arg',
+];
+
+export function refreshKeyframeUI() {
+  _cleanupKeyframePanel();
+
+  // Only show Azure controls when our format is active
+  if (Format?.id !== 'azure_model') return;
+
+  // Show/hide the stock pre/post toggle button
+  const addPrePost = document.querySelector('#keyframe_type_label > div');
+  if (addPrePost) addPrePost.hidden = true;
+
+  const selected = Timeline.selected;
+  if (!selected || !selected.length) return;
+
+  const keyframesByChannel = _groupByChannel(Timeline.keyframes);
+  const firstInChannel = kf => {
+    const ch = keyframesByChannel.get(kf.animator)?.[kf.channel] || [];
+    return ch.indexOf(kf) < 1;
+  };
+
+  // Only render for bone keyframes that are not the first in their channel
+  if (!selected.every(kf => kf.animator instanceof BoneAnimator && !firstInChannel(kf))) return;
+
+  const panel = document.getElementById('panel_keyframe');
+  if (!panel) return;
+
+  _renderInterpolationBar(panel, selected);
+  _renderEasingBar(panel, selected);
+}
+
+// ---------------------------------------------------------------------------
+// Bedrock interpolation bar
+// Blockbench stores these as kf.interpolation:
+//   undefined / null → AzureLib easing mode (our default)
+//   'catmullrom'     → Bedrock smooth spline (BB "Smooth")
+//   'bezier'         → Bezier curves (BB "Bezier")
+//   'step'           → Discrete step (BB "Step")
+// ---------------------------------------------------------------------------
 
 /**
- * Called by UI buttons to apply an easing name to all selected keyframes.
- * @param {string} easingId
+ * All Blockbench-native interpolation modes we expose.
+ * Selecting any of these sets kf.interpolation and clears kf.easing.
+ * "Azure Easing" is our own mode — clears interpolation, uses kf.easing instead.
+ */
+const BB_INTERP_MODES = [
+  { id: null,          label: 'Azure Easing', title: 'Use AzureLib custom easing (see section below)' },
+  { id: 'catmullrom',  label: 'Smooth',        title: 'Bedrock catmullrom spline (BB: Smooth)' },
+  { id: 'bezier',      label: 'Bezier',        title: 'Bezier curve interpolation (BB: Bezier)' },
+  { id: 'step',        label: 'Step',          title: 'Discrete step / hold (BB: Step)' },
+];
+
+function _renderInterpolationBar(panel, selected) {
+  // Read the shared interpolation across selected keyframes.
+  // null/undefined both mean "Azure easing mode".
+  const currentInterp = _readMulti(
+    selected,
+    kf => kf.interpolation ?? null,
+    null,
+    '(mixed)',
+  );
+
+  const bar = _createBar('azl_bar_catmullrom', panel);
+
+  // Section heading — plain text, no background, matches BB's own keyframe labels
+  const heading = document.createElement('p');
+  heading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
+  heading.textContent = 'Interpolation';
+  bar.appendChild(heading);
+
+  for (const { id, label, title } of BB_INTERP_MODES) {
+    const isActive = (currentInterp === id);
+    const btn = document.createElement('button');
+    btn.id = 'azl_btn_interp_' + (id ?? 'azure');
+    btn.className = 'dark_bordered';
+    btn.textContent = label;
+    btn.title = title;
+    btn.style.cssText = `padding:2px 10px;margin:1px;cursor:pointer;${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}`;
+    btn.onclick = () => window._azureSetInterpolation(id);
+    bar.appendChild(btn);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Easing bar
+// ---------------------------------------------------------------------------
+
+/**
+ * AzureLib easing families (custom Java-side easings).
+ * "linear" and "step" are special-cased (no In/Out/InOut variants).
+ */
+const AZURE_EASING_FAMILIES = [
+  { id: 'linear',  label: 'Linear'  },
+  { id: 'step',    label: 'Step'    },
+  { id: 'sine',    label: 'Sine'    },
+  { id: 'quad',    label: 'Quad'    },
+  { id: 'cubic',   label: 'Cubic'   },
+  { id: 'quart',   label: 'Quart'   },
+  { id: 'quint',   label: 'Quint'   },
+  { id: 'expo',    label: 'Expo'    },
+  { id: 'circ',    label: 'Circ'    },
+  { id: 'back',    label: 'Back'    },
+  { id: 'elastic', label: 'Elastic' },
+  { id: 'bounce',  label: 'Bounce'  },
+];
+
+const EASING_TYPES_LIST = [
+  { id: 'in',    label: 'In'    },
+  { id: 'out',   label: 'Out'   },
+  { id: 'inout', label: 'In/Out'},
+];
+
+function _renderEasingBar(panel, selected) {
+  // Don't show Azure easing picker when all selected have a Bedrock interpolation mode.
+  // (If interpolation is set, easing is irrelevant for those keyframes.)
+  const allBedrock = selected.every(kf => !!kf.interpolation);
+  const allCatmullrom = allBedrock; // alias kept for the checks below
+
+  const displayedEasing = _readMulti(selected, kf => kf.easing, EASING_DEFAULT, '(mixed)');
+  const currentFamily   = _easingFamilyOf(displayedEasing);
+  const currentType     = _easingTypeOf(displayedEasing);
+
+  // --- Section header ---
+  const headerBar = _createBar('azl_bar_easing', panel);
+  const easingHeading = document.createElement('p');
+  easingHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
+  easingHeading.textContent = 'AzureLib Easings';
+  headerBar.appendChild(easingHeading);
+
+  // --- Azure easing family buttons (icon + label inside each button) ---
+  const azureRow = _createBar('azl_bar_easing_azure', panel);
+  azureRow.style.flexWrap = 'wrap';
+
+  for (const { id, label } of AZURE_EASING_FAMILIES) {
+    const isSelected = !allCatmullrom && (id === currentFamily);
+    const icon = EASING_ICONS[id] || '';
+    const btn = document.createElement('button');
+    btn.id = `azl_kf_easing_${id}`;
+    btn.className = 'dark_bordered';
+    btn.title = `Switch to ${label} easing`;
+    btn.style.cssText = `
+      padding: 2px 6px;
+      margin: 1px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      ${isSelected ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
+    `;
+    btn.innerHTML = `${icon}<span>${label}</span>`;
+    btn.onclick = () => {
+      const nextEasing = _assembleEasingId(id, currentType);
+      applyKeyframeEasing(nextEasing);
+    };
+    azureRow.appendChild(btn);
+  }
+
+  // --- Type (In / Out / In/Out) row — only for families with variants ---
+  if (!allCatmullrom && currentFamily !== 'linear' && currentFamily !== 'step') {
+    const typeBar = _createBar('azl_bar_easing_type', panel);
+    const typeHeading = document.createElement('p');
+    typeHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
+    typeHeading.textContent = 'Type';
+    typeBar.appendChild(typeHeading);
+
+    for (const { id, label } of EASING_TYPES_LIST) {
+      const isActive = (id === currentType);
+      const btn = document.createElement('button');
+      btn.id = `azl_kf_type_${id}`;
+      btn.className = 'dark_bordered';
+      btn.textContent = label;
+      btn.style.cssText = `
+        padding: 2px 10px;
+        margin: 1px;
+        cursor: pointer;
+        ${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
+      `;
+      btn.onclick = () => {
+        const nextEasing = _assembleEasingId(currentFamily, id);
+        applyKeyframeEasing(nextEasing);
+      };
+      typeBar.appendChild(btn);
+    }
+  }
+
+  // --- Argument row (for Back/Elastic/Bounce/Step) ---
+  if (selected.every(kf => hasArgs(kf.easing))) {
+    const argLabel = _getArgLabel(selected[0].easing);
+    const defaultArg = getEasingArgDefault(selected[0].easing);
+    const currentArg = _readMulti(
+      selected,
+      kf => (Array.isArray(kf.easingArgs) && kf.easingArgs.length ? kf.easingArgs[0] : defaultArg),
+      defaultArg,
+      defaultArg,
+    );
+
+    const argBar = _createBar('azl_bar_easing_arg', panel);
+    argBar.innerHTML = `
+      <p style="margin:4px 0 2px 0;padding:0;color:var(--color-text);min-width:90px;">${argLabel}</p>
+      <input
+        type="number"
+        id="azl_easing_arg_input"
+        class="dark_bordered code keyframe_input tab_target"
+        value="${currentArg}"
+        oninput="window._azureApplyEasingArg(this)"
+        style="flex:1;margin-right:9px;">`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply an easing name to all selected keyframes.
+ * @param {string} easingId - e.g. 'easeInSine', 'linear', 'step'
  */
 export function applyKeyframeEasing(easingId) {
+  if (!easingId || easingId === '-') return;
   Undo.initEdit({ keyframes: Timeline.selected });
-  if (easingId === '-') return;
 
   Timeline.selected.forEach(kf => {
     kf.easing = easingId;
+    // Switching to an Azure easing clears any Bedrock interpolation mode
+    if (kf.interpolation) kf.interpolation = undefined;
   });
 
-  // Ensure easing argument field updates to reflect the new easing
-  if (typeof window.updateKeyframeSelection === 'function') {
-    window.updateKeyframeSelection();
-  }
-  Undo.finishEdit('edit keyframe easing');
+  Undo.finishEdit('Set keyframe easing');
+  refreshKeyframeUI();
 }
 
 /**
- * Called by the numeric input to apply the easing argument.
+ * Apply the numeric easing argument from the input field.
  * @param {HTMLInputElement} el
  */
 export function applyEasingArgument(el) {
-  Undo.initEdit({ keyframes: Timeline.selected });
   const raw = $(el).val();
-  if (raw === '-') return;
+  if (raw === '' || raw === '-') return;
+  Undo.initEdit({ keyframes: Timeline.selected });
 
-  const trimmed = String(raw).trim();
   Timeline.selected.forEach(kf => {
-    const parsed = parseEasingArg(kf, trimmed);
-    kf.easingArgs = [parsed];
+    kf.easingArgs = [parseEasingArg(kf, String(raw).trim())];
   });
 
-  Undo.finishEdit('edit keyframe easing argument');
+  Undo.finishEdit('Set keyframe easing argument');
 }
 
 /**
- * Rebuilds the easing UI for current selection when using the Azure model format.
+ * Set a Blockbench-native interpolation mode on all selected keyframes.
+ * @param {string|null} mode - 'catmullrom' | 'bezier' | 'step' | null
+ *   null means "Azure easing mode" — clears interpolation so kf.easing takes over.
  */
-export const refreshKeyframeUI = () => {
-  // Clear previous custom bars
-  $('#keyframe_bar_easing').remove();
-  $('#keyframe_bar_easing_type').remove();
-  $('#keyframe_bar_easing_arg1').remove();
+export function setInterpolation(mode) {
+  Undo.initEdit({ keyframes: Timeline.selected });
 
-  // Hide pre/post UI toggle button in Azure format (kept consistent with prior behavior)
-  const addPrePostButton = document.querySelector('#keyframe_type_label > div');
-  if (addPrePostButton) addPrePostButton.hidden = Format.id === 'azure_model';
+  Timeline.selected.forEach(kf => {
+    if (mode === null || mode === undefined) {
+      // Azure easing mode: clear BB interpolation
+      kf.interpolation = undefined;
+    } else {
+      // Bedrock interpolation: set mode, clear Azure easing
+      kf.interpolation = mode;
+      kf.easing = EASING_DEFAULT;
+      kf.easingArgs = undefined;
+    }
+  });
 
-  if (!Timeline.selected.length || Format.id !== 'azure_model') return;
+  Undo.finishEdit('Set keyframe interpolation');
+  refreshKeyframeUI();
+}
 
-  // Build quick lookup: keyframes grouped and ordered by animator+channel
-  const keyframesByChannel = Timeline.keyframes.reduce((acc, kf) => {
-    if (!acc.has(kf.animator)) acc.set(kf.animator, {});
-    const ch = acc.get(kf.animator);
+/** @deprecated use setInterpolation — kept for backward compatibility */
+export function toggleCatmullrom(forceValue) {
+  setInterpolation(forceValue === false ? null : 'catmullrom');
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function _onFrame() { /* reserved */ }
+
+function _createBar(id, parent) {
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'bar flex';
+  el.style.flexWrap = 'wrap';
+  el.style.alignItems = 'center';
+  el.style.gap = '2px';
+  el.style.marginTop = '4px';
+  parent.appendChild(el);
+  return el;
+}
+
+function _cleanupKeyframePanel() {
+  PANEL_BARS.forEach(id => document.getElementById(id)?.remove());
+  const prePost = document.querySelector('#keyframe_type_label > div');
+  if (prePost) prePost.hidden = false;
+}
+
+function _groupByChannel(keyframes) {
+  const map = new Map();
+  for (const kf of keyframes) {
+    if (!map.has(kf.animator)) map.set(kf.animator, {});
+    const ch = map.get(kf.animator);
     if (!ch[kf.channel]) ch[kf.channel] = [];
     ch[kf.channel].push(kf);
-    ch[kf.channel].sort((a, b) => (a.time === b.time ? 0 : a.time < b.time ? -1 : 1));
-    return acc;
-  }, new Map());
-
-  const firstInChannel = kf => keyframesByChannel.get(kf.animator)[kf.channel].indexOf(kf) < 1;
-
-  // Only render when all selected are bone keyframes and not the first in their channel
-  const validSelection =
-    Timeline.selected.every(kf => kf.animator instanceof BoneAnimator && !firstInChannel(kf));
-  if (!validSelection) return;
-
-  // Read a "multi-select" value (collapses to conflict token if not uniform)
-  const readMulti = (selector, def, conflict) => {
-    const selectorFn =
-      typeof selector === 'function' ? selector : x => (x?.[selector] === undefined ? def : x[selector]);
-
-    if (Timeline.selected.length > 1) {
-      const values = uniq(Timeline.selected.map(selectorFn));
-      return values.length === 1 ? values[0] : conflict;
-    }
-    return selectorFn(Timeline.selected[0]) ?? def;
-  };
-
-  const displayedEasing = readMulti('easing', EASING_DEFAULT, 'null');
-
-  // --- Build the primary Easing bar
-  const keyframePanel = document.getElementById('panel_keyframe');
-  if (!keyframePanel) return;
-
-  let easingBar = document.createElement('div');
-  keyframePanel.appendChild(easingBar);
-  easingBar.outerHTML = `
-    <div class="bar flex" style="flex-wrap: wrap" id="keyframe_bar_easing">
-      <label class="tl" style="font-weight: bolder; min-width: 47px;">Easing</label>
-    </div>`;
-  easingBar = document.getElementById('keyframe_bar_easing');
-
-  // Create easing icon buttons
-  const easingButtons = [
-    ['linear', 'Switch to Linear easing'],
-    ['step', 'Switch to Step easing'],
-    ['sine', 'Switch to Sine easing'],
-    ['quad', 'Switch to Quadratic easing'],
-    ['cubic', 'Switch to Cubic easing'],
-    ['quart', 'Switch to Quartic easing'],
-    ['quint', 'Switch to Quintic easing'],
-    ['expo', 'Switch to Exponential easing'],
-    ['circ', 'Switch to Circular easing'],
-    ['back', 'Switch to Back easing'],
-    ['elastic', 'Switch to Elastic easing'],
-    ['bounce', 'Switch to Bounce easing'],
-  ];
-
-  easingButtons.forEach(([id, title]) => {
-    appendIconButton(easingBar, id, title, () => {
-      const selectedEasing = $('.selected_kf_easing');
-      const selectedType = $('.selected_kf_easing_type');
-
-      const currentKey = selectedEasing.attr('id')?.substring(15) || 'linear';
-      const currentTypeKey = selectedType.length ? selectedType.attr('id').substring(15) : 'in';
-
-      const currentFull = assembleEasingId(currentKey, currentTypeKey, currentKey);
-      const nextFull = assembleEasingId(currentKey, currentTypeKey, id);
-
-      if (currentFull !== nextFull) {
-        applyKeyframeEasing(nextFull);
-      }
-    });
-  });
-
-  // Highlight current easing
-  const mainId = easingInterpolationOf(displayedEasing);
-  const mainBtn = document.getElementById('kf_easing_type_' + mainId);
-  if (mainBtn) {
-    mainBtn.style.stroke = 'var(--color-accent)';
-    mainBtn.classList.add('selected_kf_easing');
+    ch[kf.channel].sort((a, b) => a.time - b.time);
   }
-
-  // If the main easing is not linear/step, render type (in/out/inout) toggles
-  if (!(mainId === 'linear' || mainId === 'step')) {
-    let typeBar = document.createElement('div');
-    keyframePanel.appendChild(typeBar);
-    typeBar.outerHTML = `
-      <div class="bar flex" id="keyframe_bar_easing_type">
-        <label class="tl" style="font-weight: bolder; min-width: 47px;">Type</label>
-      </div>`;
-    typeBar = document.getElementById('keyframe_bar_easing_type');
-
-    [
-      ['in', 'Switch to In easing type'],
-      ['out', 'Switch to Out easing type'],
-      ['inout', 'Switch to In/Out easing type'],
-    ].forEach(([id, title]) => {
-      appendIconButton(typeBar, id, title, () => {
-        const selectedEasing = $('.selected_kf_easing');
-        const key = selectedEasing.attr('id')?.substring(15) || mainId;
-        const currentType = easingTypeOf(displayedEasing);
-        const currentFull = assembleEasingId(key, currentType, key);
-        const nextFull = assembleEasingId(key, currentType, id);
-        if (currentFull !== nextFull) {
-          applyKeyframeEasing(nextFull);
-        }
-      });
-    });
-
-    const activeType = easingTypeOf(displayedEasing);
-    const activeTypeBtn = document.getElementById('kf_easing_type_' + activeType);
-    if (activeTypeBtn) {
-      activeTypeBtn.style.stroke = 'var(--color-accent)';
-      activeTypeBtn.classList.add('selected_kf_easing_type');
-    }
-  }
-
-  // If the easing supports a numeric argument, render an input
-  const argLabel = readMulti(getArgLabelForKeyframe, null, null);
-  if (Timeline.selected.every(kf => hasArgs(kf.easing)) && argLabel !== null) {
-    const defaultArg = readMulti(getEasingArgDefault, null, null);
-    const [initialValue] = readMulti('easingArgs', [defaultArg], [defaultArg]);
-
-    let argBar = document.createElement('div');
-    keyframePanel.appendChild(argBar);
-    argBar.outerHTML = `
-      <div class="bar flex" id="keyframe_bar_easing_arg1">
-        <label class="tl" style="font-weight: bolder; min-width: 90px;">${argLabel}</label>
-        <input type="number" id="keyframe_easing_scale" class="dark_bordered code keyframe_input tab_target"
-               value="${initialValue}" oninput="updateKeyframeEasingArg(this)" style="flex: 1; margin-right: 9px;">
-      </div>`;
-  }
-};
-
-// ---------------------------------------------------------------------------
-// Helpers — ID assembly, parsing, UI and icons
-// ---------------------------------------------------------------------------
+  return map;
+}
 
 /**
- * Normalize an easing ID from parts and/or a requested change.
- * - Accepts "linear" / "step" directly
- * - Otherwise produces strings like "easeInCubic", "easeOutSine", "easeInOutBack"
+ * Read a value from all selected keyframes.
+ * If all values are equal, return it; otherwise return `conflict`.
  */
-function assembleEasingId(currentEasingName, currentType, requested) {
-  const toTypeId = t => (t === 'out' ? 'Out' : t === 'inout' ? 'InOut' : 'In');
-
-  // Direct linear/step
-  if (requested === 'linear' || requested === 'step') return requested;
-
-  // If the request is a type toggle, preserve the easing family
-  if (requested === 'in' || requested === 'out' || requested === 'inout') {
-    const typeId = toTypeId(requested);
-    const family = capFirst(currentEasingName);
-    return `ease${typeId}${family}`;
-  }
-
-  // Otherwise change easing family, keep current type
-  const typeId = toTypeId(currentType);
-  const family = capFirst(requested);
-  return `ease${typeId}${family}`;
+function _readMulti(selected, selector, def, conflict) {
+  const fn = typeof selector === 'function' ? selector : kf => kf[selector];
+  if (selected.length === 0) return def;
+  if (selected.length === 1) return fn(selected[0]) ?? def;
+  const values = uniq(selected.map(fn));
+  return values.length === 1 ? values[0] : conflict;
 }
 
-/** Return "sine", "quad", "linear", etc. */
-function easingInterpolationOf(name) {
-  const m = String(name).match(/^ease(?:InOut|In|Out)?([\w]+)$/);
-  return m ? m[1].toLowerCase() : name;
+/**
+ * Extract the easing family from a full easing name.
+ * 'easeInOutSine' → 'sine', 'linear' → 'linear'
+ */
+function _easingFamilyOf(name) {
+  if (!name || name === 'linear') return 'linear';
+  if (name === 'step') return 'step';
+  const m = String(name).match(/^ease(?:InOut|In|Out)([\w]+)$/i);
+  return m ? m[1].toLowerCase() : name.toLowerCase();
 }
 
-/** Return "in", "out", or "inout" (default "in" for unknown). */
-function easingTypeOf(name) {
-  const m = String(name).match(/^ease(InOut|In|Out)?/);
-  if (m && m[1]) return m[1].toLowerCase();
-  return 'in';
+/**
+ * Extract the easing type (in/out/inout) from a full easing name.
+ * 'easeInOutSine' → 'inout', 'easeOutBounce' → 'out', 'easeInQuad' → 'in'
+ */
+function _easingTypeOf(name) {
+  const m = String(name).match(/^ease(InOut|In|Out)/i);
+  if (!m) return 'in';
+  const raw = m[1].toLowerCase();
+  return raw === 'inout' ? 'inout' : raw;
 }
 
-function capFirst(s) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+/**
+ * Assemble a full easing ID from family + type.
+ * ('sine', 'out') → 'easeOutSine'
+ * ('linear', *) → 'linear'
+ * ('step', *) → 'step'
+ */
+function _assembleEasingId(family, type) {
+  if (family === 'linear') return 'linear';
+  if (family === 'step') return 'step';
+  const typeStr = type === 'inout' ? 'InOut' : type === 'out' ? 'Out' : 'In';
+  return `ease${typeStr}${family.charAt(0).toUpperCase()}${family.slice(1)}`;
 }
 
-function appendIconButton(bar, key, title, onClick) {
-  const div = document.createElement('div');
-  div.innerHTML = ICONS[key] || ICONS.linear;
-  div.id = 'kf_easing_type_' + key;
-  div.setAttribute('style', 'stroke:var(--color-text);margin:0;padding:3px;width:30px;height:30px');
-  div.setAttribute('title', title);
-  div.onclick = onClick;
-  bar.appendChild(div);
+function _getArgLabel(easing) {
+  if (!easing) return 'Arg';
+  if (easing.includes('Back')) return 'Overshoot';
+  if (easing.includes('Elastic')) return 'Bounciness';
+  if (easing.includes('Bounce')) return 'Bounciness';
+  if (easing === 'step') return 'Steps';
+  return 'Arg';
 }
 
-/** Derive label for the argument input field based on easing kind. */
-function getArgLabelForKeyframe(kf) {
-  switch (kf.easing) {
-    case EASING_TYPES.easeInBack:
-    case EASING_TYPES.easeOutBack:
-    case EASING_TYPES.easeInOutBack:
-      return 'Overshoot';
-    case EASING_TYPES.easeInElastic:
-    case EASING_TYPES.easeOutElastic:
-    case EASING_TYPES.easeInOutElastic:
-    case EASING_TYPES.easeInBounce:
-    case EASING_TYPES.easeOutBounce:
-    case EASING_TYPES.easeInOutBounce:
-      return 'Bounciness';
-    case EASING_TYPES.step:
-      return 'Steps';
-    default:
-      return 'N/A';
-  }
+function _patchStockInterpolationBar() {
+  if (!BarItems.keyframe_interpolation) return;
+  const orig = BarItems.keyframe_interpolation.condition;
+  BarItems.keyframe_interpolation.condition = function (...args) {
+    if (Format?.id === 'azure_model') return false;
+    return typeof orig === 'function' ? orig.apply(this, args) : true;
+  };
 }
 
 // ---------------------------------------------------------------------------
-// SVG icon map (inline, no external assets)
+// SVG easing curve icons (inline)
 // ---------------------------------------------------------------------------
 
-const ICONS = {
-  back:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.94165 c 3.17500003,0 4.23333333,2.91041 5.29166663,-4.7625" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  bounce:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 0.26458333,-0.26458 0.52916673,-0.26458 0.79375003,0 0.5291666,-0.52916 0.5291666,-0.52916 1.0583333,0 0.79375,-2.11666 1.5875,-2.11666 2.38125,0 0.2645833,-4.23333 1.0583333,-5.29165 1.0583333,-5.29165" style="fill:none;stroke-width:0.52899998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  circ:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 5.8208333,295.67706 5.8208333,293.82498 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  cubic:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 3.175,296.47081 4.7625,293.82498 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  elastic:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,295.67706 c 0.79375003,0 0.79375003,-0.26458 1.32291663,-0.26458 0.5291667,0 0.79375,0.52917 1.3229167,0.52917 0.5291667,0 1.0094474,-1.83865 1.3229167,-0.79375 0.79375,2.64583 1.3229166,1.32292 1.3229166,-3.96874" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  expo:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 4.23333333,0 5.29166663,-1.05833 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  in:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 4.23333333,0 5.29166663,-1.05833 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  inout:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 5.55625003,0 -0.26458334,-5.29166 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  out:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 0,-4.23333 1.05833333,-5.29166 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  quad:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 C 3.175,296.47081 4.7625,293.03123 5.8208333,291.17915" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  quart:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 3.17500003,0 4.23333333,-2.64583 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  quint:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 3.43958333,0 4.23333333,-1.85208 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  sine:
-    '<svg width="24" height="24" viewBox="0 0 6.3499999 6.3500002"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 c 1.32291663,0 4.23333333,-3.43958 5.29166663,-5.29166" style="fill:none;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  step:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="m 0.52916667,296.47081 0,-1.32291 H 1.8520833 v -1.32292 H 3.175 v -1.32292 h 1.3229167 v -1.32291 l 1.3229166,1e-5" style="fill:none;stroke-width:0.52899998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
-  linear:
-    '<svg viewBox="0 0 6.3499999 6.3500002" height="24" width="24"><g transform="translate(0,-290.64998)"><path d="M 0.52916667,296.47081 5.8208333,291.17915" style="fill:none;stroke-width:0.52916667;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/></g></svg>',
+const EASING_ICONS = {
+  linear:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  step:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 0,-1.32 H 1.85 v -1.32 H 3.17 v -1.33 h 1.32 v -1.32 l 1.33,1e-5" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  sine:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 1.85,5.82 4.76,2.38 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quad:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.04 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  cubic:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quart:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.17,0 4.23,-2.64 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quint:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.44,0 4.23,-1.85 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  expo:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 4.23,0 5.29,-1.06 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  circ:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 5.82,4.97 5.82,3.17 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  back:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.29 c 3.17,0 4.23,2.91 5.29,-4.76" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  elastic: '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.15 c 0.79,0 0.79,-0.26 1.32,-0.26 0.53,0 0.79,0.53 1.32,0.53 0.53,0 1.01,-1.84 1.32,-0.79 0.79,2.64 1.32,1.32 1.32,-3.97" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  bounce:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 0.26,-0.26 0.53,-0.26 0.79,0 0.53,-0.53 0.53,-0.53 1.06,0 0.79,-2.12 1.59,-2.12 2.38,0 0.26,-4.23 1.06,-5.29 1.06,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
 };

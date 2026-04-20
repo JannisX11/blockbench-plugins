@@ -412,5 +412,53 @@
 				]
 			}
 		]
+	},
+	"0.8.6": {
+		"title": "0.8.6 (internal-only)",
+		"date": "2026-04-02",
+		"author": "Kanno",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas"
+				]
+			}
+		]
+	},
+	"0.9.0": {
+		"title": "0.9.0",
+		"date": "2026-04-12",
+		"author": "Kanno, JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas",
+					"Added tool to change cube orientation while remaining static",
+					"Pressing the Brush Tool keybinding repeatedly now cycles through brush presets"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed copy-pasting texture with magenta Photoshop fix using the selected texture instead of UV editor texture",
+					"Fixed NaN export in animation if position or scale keyframe has non-numeric value"
+				]
+			}
+		]
+	},
+	"0.9.1": {
+		"title": "0.9.1",
+		"date": "2026-04-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Switching brush presets is no longer assigned to the brush key by default, but can be reassigned in the keybinding settings"
+				]
+			}
+		]
 	}
 }
