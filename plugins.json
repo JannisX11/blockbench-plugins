@@ -1439,6 +1439,23 @@
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
 	},
+	"myrlins_tools": {
+		"title": "Myrlins Tools",
+		"author": "Myrlin",
+		"description": "Hytale modding toolkit with box optimizer, art style validator, auto-repair, multi-engine export, template wizard, and model browser.",
+		"icon": "auto_fix_high",
+		"version": "3.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": [
+			"Hytale",
+			"Optimization",
+			"Validation",
+			"Export"
+		],
+		"has_changelog": true,
+		"website": "https://forge.myrlin.io/plugins"
+	},
 	"let_there_be_noise": {
 		"title": "Let there Be Noise",
 		"author": "Momoko",
