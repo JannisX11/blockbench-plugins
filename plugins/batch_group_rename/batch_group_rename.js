@@ -105,6 +105,10 @@
 		min_version: '4.8.0',
 		variant: 'both',
 		tags: ['Utility'],
+		creation_date: '2026-03-20',
+		has_changelog: false,
+		repository: 'https://github.com/zzz1999/batch_group_rename',
+		bug_tracker: 'https://github.com/zzz1999/batch_group_rename/issues',
 
 		onload() {
 			action = new Action('batch_group_rename_action', {
