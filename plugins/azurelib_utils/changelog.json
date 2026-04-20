@@ -150,5 +150,26 @@
 				]
 			}
 		]
+	},
+	"2.1.0": {
+		"title": "2.1.0",
+		"date": "2026-04-15",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Now support both Azurelib Easings and Bedrock easings in 1 project, allowing you to mix them",
+					"Updates plugin to use the new AnimationCodec system from blockbench to help with future animation issues",
+					"Adds support for animation includes as per https://moddedmc.wiki/en/project/azurelib/latest/docs/misc/animating/animation_includes"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes animation keyframe export due to BB 5.1 changes"
+				]
+			}
+		]
 	}
 }

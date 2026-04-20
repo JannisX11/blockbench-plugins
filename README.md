@@ -67,6 +67,14 @@ In order to submit your plugin, you need to meet a few requirements:
 * Plugins that utilize generative AI are not accepted into this repository but may be shared externally.
 * While it is the goal to keep the plugin API generally compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
 
+To help catch some common issues, you can use the validator script in the root of this repo to catch common issues.
+This script will also run in each pull request.
+
+```bash
+npm install
+npm run validate <plugin-id>
+```
+
 Once you are ready to submit your plugin, create a pull request.
 
 ## Updates
