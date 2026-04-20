@@ -4,10 +4,9 @@
  * Defines the Blockbench model format for AzureLib (.geo / .animation)
  * and handles project load, save, and import/export utilities.
  *
- * Animation handling is fully owned by azure-animation-tab.js, which
- * exports an AnimationCodec instance that we attach to the ModelFormat.
- * Blockbench routes all animation import/export through that codec
- * automatically — no Animator monkey-patching, no menu hiding.
+ * Animation handling is fully owned by azure-animation-tab.js.
+ * The animation codec is now created lazily at runtime so validation
+ * does not execute AnimationCodec construction during module evaluation.
  *
  * © 2025 AzureDoom — MIT License
  */
@@ -17,33 +16,32 @@ import AzureConfig, { DEFAULT_CONFIG, onSettingsChanged } from './azure-settings
 import { injectOverride, PatchRegistry, invertMolang as localInvert } from './azure-utils.js';
 import { registerKeyframeOverrides, unregisterKeyframeOverrides } from '../animation/azure-keyframes.js';
 import {
+  createAzureAnimationCodec,
   registerAzureAnimationFormat,
   unregisterAzureAnimationFormat,
-  azureAnimationCodec,
 } from '../animation/azure-animation-tab.js';
 import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
 let hasNotifiedConversion = false;
+let azureCodecRegistered = false;
 
 // ---------------------------------------------------------------------------
 // Lifecycle registration
 // ---------------------------------------------------------------------------
 
 export function registerAzureCodec() {
+  if (azureCodecRegistered) return;
+  azureCodecRegistered = true;
+
   Codecs.project.on('compile', handleProjectCompile);
   Codecs.project.on('parse', handleProjectParse);
   Codecs.bedrock.on('compile', handleBedrockCompile);
 
-  // Register our custom animation codec (replaces Bedrock animation tab).
-  // The codec instance itself is constructed at module load; this call is
-  // mostly a logging shim for symmetry with the rest of the lifecycle.
   registerAzureAnimationFormat();
+  format.animation_codec = createAzureAnimationCodec() || undefined;
 
-  // Keyframe interpolation overrides (getLerp, compileBedrockKeyframe, etc.)
   registerKeyframeOverrides();
-
-  // Animation panel UI (easing picker, catmullrom toggle, etc.)
   initializeAnimationUI();
 
   Blockbench.on('close_project', resetDefaults);
@@ -53,6 +51,9 @@ export function registerAzureCodec() {
 }
 
 export function unregisterAzureCodec() {
+  if (!azureCodecRegistered) return;
+  azureCodecRegistered = false;
+
   Codecs.project.events.compile.remove(handleProjectCompile);
   Codecs.project.events.parse.remove(handleProjectParse);
   Codecs.bedrock.events.compile.remove(handleBedrockCompile);
@@ -61,7 +62,8 @@ export function unregisterAzureCodec() {
   unregisterKeyframeOverrides();
   unregisterAzureAnimationFormat();
 
-  format.delete();
+  format.animation_codec = undefined;
+
   console.log('[AzureLib] Azure codec unregistered');
 }
 
@@ -120,7 +122,7 @@ function handleProjectParse(event) {
   // Invert corrections for BB 5.0+
   if (Blockbench.isNewerThan('4.99') && model.animations) {
     console.log('[AzureLib] Applying legacy animation inversion fix for Blockbench 5.0+');
-    for (const [name, anim] of Object.entries(model.animations)) {
+    for (const [, anim] of Object.entries(model.animations)) {
       for (const bone of Object.values(anim.bones || {})) {
         for (const [channel, frames] of Object.entries(bone)) {
           if (channel === 'rotation' || channel === 'position') {
@@ -143,6 +145,7 @@ function handleProjectParse(event) {
 
 function handleBedrockCompile(event) {
   if (Format.id !== 'azure_model') return;
+
   const geometry = event.model?.['minecraft:geometry'];
   if (geometry) {
     geometry.forEach(geo => {
@@ -158,11 +161,13 @@ function handleBedrockCompile(event) {
 export function maybeExportItemJson(options = {}, as) {
   const should = (key, fallback) => (options[key] === undefined ? fallback : options[key]);
   const model = {};
+
   if (should('comment', settings.credit.value)) model.credit = settings.credit.value;
   model.parent = 'builtin/entity';
   if (should('ambientocclusion', Project.ambientocclusion === false)) model.ambientocclusion = false;
-  if (Project.texture_width !== 16 || Project.texture_height !== 16)
+  if (Project.texture_width !== 16 || Project.texture_height !== 16) {
     model.texture_size = [Project.texture_width, Project.texture_height];
+  }
   if (should('front_gui_light', Project.front_gui_light)) model.gui_light = 'front';
   if (should('overrides', Project.overrides)) model.overrides = Project.overrides;
 
@@ -170,13 +175,14 @@ export function maybeExportItemJson(options = {}, as) {
     const display = {};
     for (const key in DisplayMode.slots) {
       const slot = DisplayMode.slots[key];
-      if (DisplayMode.slots.hasOwnProperty(key) && Project.display_settings[slot]?.export)
+      if (DisplayMode.slots.hasOwnProperty(key) && Project.display_settings[slot]?.export) {
         display[slot] = Project.display_settings[slot].export();
+      }
     }
     if (Object.keys(display).length) {
       model.display = display;
       const OFFSET_Y = 4.0;
-      for (const [slot, data] of Object.entries(display)) {
+      for (const [, data] of Object.entries(display)) {
         const tr = data?.translation;
         if (Array.isArray(tr)) tr[1] = Math.round((Number(tr[1] || 0) - OFFSET_Y) * 100) / 100;
       }
@@ -186,9 +192,11 @@ export function maybeExportItemJson(options = {}, as) {
   if (Project.textures && should('textures', Object.keys(Project.textures).length >= 1)) {
     for (const tex of Object.values(Project.textures)) {
       if (tex.particle || Object.keys(Project.textures).length === 1) {
-        let name = tex.name.replace('.png', '');
-        if (/^[_\-.a-z0-9/]+$/.test(name)) model.textures = { particle: name };
-        break;
+        const name = tex.name.replace('.png', '');
+        if (/^[_\-.a-z0-9/]+$/.test(name)) {
+          model.textures = { particle: name };
+          break;
+        }
       }
     }
   }
@@ -196,66 +204,63 @@ export function maybeExportItemJson(options = {}, as) {
   const jsonStr = JSON.stringify(model, null, 2);
   const path = AzureConfig.itemModelPath;
 
-  Blockbench.export(
-    {
-      resource_id: 'model',
-      type: Codecs.java_block.name,
-      extensions: ['json'],
-      name: codec.fileName().replace('.geo', '.item'),
-      startpath: path,
-      content: jsonStr,
-    },
-    realPath => {
-      AzureConfig.itemModelPath = realPath;
-    }
-  );
+  Blockbench.export({
+    resource_id: 'model',
+    type: Codecs.java_block.name,
+    extensions: ['json'],
+    name: codec.fileName().replace('.geo', '.item'),
+    startpath: path,
+    content: jsonStr,
+  }, realPath => {
+    AzureConfig.itemModelPath = realPath;
+  });
 
   return this;
 }
 
 export function maybeImportItemJson() {
-  Blockbench.import(
-    {
-      resource_id: 'model',
-      type: 'json',
-      extensions: ['json'],
-      readtype: 'text',
-      multiple: false,
-    },
-    files => {
-      if (!files?.[0]) return;
-      let json;
-      try {
-        json = JSON.parse(files[0].content);
-      } catch {
-        return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
-      }
+  Blockbench.import({
+    resource_id: 'model',
+    type: 'json',
+    extensions: ['json'],
+    readtype: 'text',
+    multiple: false,
+  }, files => {
+    if (!files?.[0]) return;
 
-      if (json.parent !== 'builtin/entity' || typeof json.display !== 'object')
-        return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
-
-      Project.display_settings = {};
-      const OFFSET_Y = 4.0;
-      for (const [slot, data] of Object.entries(json.display)) {
-        if (!DisplayMode.slots.includes(slot)) continue;
-
-        const rotation = Array.isArray(data.rotation) ? data.rotation.slice() : [0, 0, 0];
-        const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
-        const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
-
-        translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
-
-        const slotObj = new DisplaySlot(slot);
-        Object.assign(slotObj, { rotation, translation, scale });
-        Project.display_settings[slot] = slotObj;
-      }
-
-      Project.saved = false;
-      DisplayMode.vue.$forceUpdate();
-      DisplayMode.updateDisplayBase();
-      Blockbench.showQuickMessage('[AzureLib] Display settings imported.');
+    let json;
+    try {
+      json = JSON.parse(files[0].content);
+    } catch {
+      return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
     }
-  );
+
+    if (json.parent !== 'builtin/entity' || typeof json.display !== 'object') {
+      return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
+    }
+
+    Project.display_settings = {};
+    const OFFSET_Y = 4.0;
+
+    for (const [slot, data] of Object.entries(json.display)) {
+      if (!DisplayMode.slots.includes(slot)) continue;
+
+      const rotation = Array.isArray(data.rotation) ? data.rotation.slice() : [0, 0, 0];
+      const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
+      const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
+
+      translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
+
+      const slotObj = new DisplaySlot(slot);
+      Object.assign(slotObj, { rotation, translation, scale });
+      Project.display_settings[slot] = slotObj;
+    }
+
+    Project.saved = false;
+    DisplayMode.vue.$forceUpdate();
+    DisplayMode.updateDisplayBase();
+    Blockbench.showQuickMessage('[AzureLib] Display settings imported.');
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -280,12 +285,7 @@ export const format = new ModelFormat({
   select_texture_for_particles: true,
   animation_mode: true,
   animation_files: true,
-  // Wire the AzureLib animation codec directly into the format.
-  // Blockbench's built-in "Import Animations" / "Export Animations…" /
-  // "Save All Animations" actions will route through this codec automatically.
-  // Falls back to undefined on older Blockbench builds where AnimationCodec
-  // isn't available, so the format still loads (animation I/O won't work).
-  animation_codec: azureAnimationCodec || undefined,
+  animation_codec: undefined,
   locators: true,
   codec: Codecs.project,
   display_mode: true,
