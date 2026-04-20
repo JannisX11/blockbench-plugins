@@ -1439,6 +1439,20 @@
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
 	},
+	"expand_bone_timeline": {
+		"title": "Expand Bone Timeline",
+		"author": "zzz1999",
+		"icon": "account_tree",
+		"tags": ["Animation", "Timeline"],
+		"version": "2.2.0",
+		"min_version": "4.8.0",
+		"description": "Show or hide a bone and all its child bone animators in the timeline from the outliner context menu.",
+		"variant": "both",
+		"creation_date": "2026-03-21",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/expand_bone_timeline",
+		"bug_tracker": "https://github.com/zzz1999/expand_bone_timeline/issues"
+	},
 	"let_there_be_noise": {
 		"title": "Let there Be Noise",
 		"author": "Momoko",
