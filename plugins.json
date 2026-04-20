@@ -51,6 +51,7 @@
 		"about": "The animation is activated using \"/scoreboard players set @s animation 0\".\nTo use click Filter -> Save starting model the save the first model, and then click on File -> Export -> Export animation to download the ZIP file of the animation",
 		"tags": ["Minecraft: Java Edition"],
 		"icon": "compare",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"geenium_bedrock_entity_helper": {
@@ -60,6 +61,7 @@
 		"tags": ["Deprecated", "Minecraft: Bedrock Edition"],
 		"deprecation_note": "This plugin is no longer updated. To get models for texturing, use File > New > Minecraft Skin. To get Minecraft Bedrock Edition models, use the plugin 'Minecraft Entity Wizard'. To get template models for OptiFine CEM, use the plugin 'CEM Template Loader'.",
 		"icon": "pets",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"missing_texture_highlighter": {
@@ -93,6 +95,7 @@
 		"author": "TheDestruc7i0n",
 		"description": "Export models from Blockbench directly to BlockModels.com",
 		"icon": "web",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"plaster": {
@@ -138,6 +141,7 @@
 		"tags": ["Minecraft: Java Edition"],
 		"icon": "accessibility",
 		"min_version": "3.0.0",
+		"version": "1.0.0",
 		"variant": "both"
 	},
 	"clone_brush": {
@@ -224,7 +228,7 @@
 		"author": "Ewan Howell",
 		"description": "Load template Java Edition entity models for use with OptiFine CEM. Also includes an animation editor, so that you can create custom entity animations.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Templates"],
-		"version": "9.1.0",
+		"version": "9.1.1",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"creation_date": "2020-02-02",
@@ -353,7 +357,7 @@
 		"author": "Ewan Howell",
 		"description": "Create Minecraft-styled title models!",
 		"tags": ["Minecraft", "Title", "Logo"],
-		"version": "1.10.3",
+		"version": "1.10.4",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"creation_date": "2023-06-10",
@@ -648,7 +652,7 @@
 		"icon": "icon.png",
 		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
 		"tags": ["Minecraft: Bedrock Edition"],
-		"version": "1.8.2",
+		"version": "1.8.3",
 		"min_version": "4.8.0",
 		"variant": "both",
 		"creation_date": "2021-08-04",
@@ -1448,5 +1452,28 @@
 		"has_changelog": false,
 		"repository": "https://github.com/zzz1999/batch_group_rename",
 		"bug_tracker": "https://github.com/zzz1999/batch_group_rename/issues"
+  },
+	"let_there_be_noise": {
+		"title": "Let there Be Noise",
+		"author": "Momoko",
+		"icon": "grain",
+		"description": "Adds a noise adding function to BlockBench, supports selections and colour channels",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"creation_date": "2026-03-25",
+		"variant": "both",
+		"tags": ["Texture", "Paint", "Tool"]
+	},
+	"easings": {
+		"title": "Easings",
+		"author": "Svdex",
+		"version": "1.0.0",
+		"description": "Apply easing functions to Minecraft: Bedrock Edition animations.",
+		"icon": "stacked_line_chart",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition", "Animation"],
+		"website": "https://svdex.moe",
+		"min_version": "4.8.0",
+		"has_changelog": true
 	}
 }
