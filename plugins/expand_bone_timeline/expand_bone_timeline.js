@@ -1,35 +1,28 @@
 (function () {
-	const expandedGroups = new Set();
 	let expandAction, collapseAction;
-	let lastContextGroup = null;
 
 	BBPlugin.register('expand_bone_timeline', {
 		title: 'Expand Bone Timeline',
 		author: 'zzz1999',
-		description: 'Right-click a bone group to show/hide all child bone animators in the timeline',
+		description: 'Show or hide a bone and all its child bone animators in the timeline from the outliner context menu.',
 		icon: 'account_tree',
-		version: '2.1.0',
+		version: '2.2.0',
+		min_version: '4.0.0',
 		variant: 'both',
 
 		onload() {
-			// Capture the target group when the right-click menu opens
-			const origOpen = Group.prototype.menu.open;
-			Group.prototype.menu.open = function (event, group) {
-				lastContextGroup = group || Group.selected;
-				return origOpen.call(this, event, group);
-			};
-			Group.prototype.menu._origOpen = origOpen;
-
 			expandAction = new Action('expand_bone_animators', {
 				name: 'Show Child Animators',
 				description: 'Show this bone and all child bone animators in the timeline',
 				icon: 'unfold_more',
-				condition: () => Animator.open && Animation.selected,
+				category: 'animation',
+				condition: {modes: ['animate'], selected: {animation: true}},
 				click() {
-					const group = lastContextGroup || Group.selected;
-					if (!group) return;
-					expandDescendantAnimators(group);
-					expandedGroups.add(group.uuid);
+					const groups = Group.multi_selected;
+					if (!groups.length) return;
+					for (const group of groups) {
+						expandDescendantAnimators(group);
+					}
 				}
 			});
 
@@ -37,30 +30,24 @@
 				name: 'Hide Child Animators',
 				description: 'Remove this bone and all child bone animators from the timeline',
 				icon: 'unfold_less',
-				condition: () => Animator.open && Animation.selected,
+				category: 'animation',
+				condition: {modes: ['animate'], selected: {animation: true}},
 				click() {
-					const group = lastContextGroup || Group.selected;
-					if (!group) return;
-					collapseGroup(group);
-					expandedGroups.delete(group.uuid);
+					const groups = Group.multi_selected;
+					if (!groups.length) return;
+					for (const group of groups) {
+						collapseGroup(group);
+					}
 				}
 			});
 
-			Group.prototype.menu.addAction(expandAction, '#');
-			Group.prototype.menu.addAction(collapseAction, '#');
+			Group.prototype.menu.addAction(expandAction, '#settings');
+			Group.prototype.menu.addAction(collapseAction, '#settings');
 		},
 
 		onunload() {
 			expandAction.delete();
 			collapseAction.delete();
-			expandedGroups.clear();
-
-			// Restore original menu.open
-			if (Group.prototype.menu._origOpen) {
-				Group.prototype.menu.open = Group.prototype.menu._origOpen;
-				delete Group.prototype.menu._origOpen;
-			}
-			lastContextGroup = null;
 		}
 	});
 
@@ -81,44 +68,26 @@
 		if (!animation) return;
 
 		const allGroups = [parentGroup, ...getAllDescendantGroups(parentGroup)];
-		let changed = false;
 
 		for (const group of allGroups) {
-			const animator = animation.animators[group.uuid];
+			const animator = animation.getBoneAnimator(group);
 			if (animator && animator.keyframes && animator.keyframes.length > 0) {
-				if (!Timeline.animators.includes(animator)) {
-					Timeline.animators.push(animator);
-					changed = true;
-				}
+				animator.addToTimeline();
 			}
-		}
-
-		if (changed) {
-			updateKeyframeSelection();
-			Animator.preview();
 		}
 	}
 
 	function collapseGroup(parentGroup) {
-		const animation = Animation.selected;
-		if (!animation) return;
-
 		const allGroups = [parentGroup, ...getAllDescendantGroups(parentGroup)];
 		const uuidsToRemove = new Set(allGroups.map(g => g.uuid));
 
-		// Remove animators using splice to trigger Vue reactivity
-		for (let i = Timeline.animators.length - 1; i >= 0; i--) {
-			if (uuidsToRemove.has(Timeline.animators[i].uuid)) {
-				Timeline.animators.splice(i, 1);
+		Timeline.animators.slice().forEach(animator => {
+			if (uuidsToRemove.has(animator.uuid)) {
+				Timeline.animators.remove(animator);
 			}
-		}
+		});
 
-		for (const group of allGroups) {
-			expandedGroups.delete(group.uuid);
-		}
-
-		updateKeyframeSelection();
-		Animator.preview();
+		TickUpdates.keyframe_selection = true;
 	}
 
 })();
