@@ -1,0 +1,40 @@
+# Expand Bone Timeline
+
+A Blockbench plugin that speeds up animation workflow by adding or removing a bone and all its descendant bone animators from the Timeline with a single click.
+
+## What it does
+
+In Animate mode, right-click a bone group in the Outliner to reveal two new context menu options under the **Settings** section (alongside *Add All to Timeline*):
+
+- **Show Child Animators** — Adds the selected bone and all of its descendant bones (children, grandchildren, etc.) that have keyframe data in the current animation to the Timeline.
+- **Hide Child Animators** — Removes the selected bone and all of its descendants from the Timeline.
+
+This makes it much easier to work with complex rigs where related bones are grouped under a parent, such as an arm chain, finger hierarchy, or a multi-part tail.
+
+Both actions also work as keybindings or toolbar buttons. To bind a shortcut, go to **File → Preferences → Keybindings** and search for *Show Child Animators* or *Hide Child Animators*.
+
+## Installation
+
+1. Open Blockbench
+2. Go to **File → Plugins**
+3. Switch to the **Available** tab
+4. Search for **Expand Bone Timeline**
+5. Click **Install**
+
+## Usage
+
+1. Open a model with animations
+2. Switch to **Animate** mode
+3. Select an animation
+4. Right-click a bone group in the **Outliner**
+5. Click **Show Child Animators** or **Hide Child Animators**
+
+## Notes
+
+- Only descendant bones that have actual keyframe data in the currently selected animation will be shown. Empty bones are skipped.
+- The menu options only appear when in Animate mode with an animation selected.
+- Works with both Blockbench Desktop and Web versions.
+
+## License
+
+MIT
