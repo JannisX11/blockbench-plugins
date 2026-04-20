@@ -623,5 +623,10 @@
     "version": "1.0.0",
     "created": 1776530761043,
     "updated": 1776530761043
+  },
+  "expand_bone_timeline": {
+    "version": "2.2.0",
+    "created": 1776715194414,
+    "updated": 1776715194414
   }
 }
