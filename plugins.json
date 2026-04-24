@@ -1029,7 +1029,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "2.0.0",
+		"version": "2.1.0",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -1453,6 +1453,39 @@
 		"repository": "https://github.com/zzz1999/batch_group_rename",
 		"bug_tracker": "https://github.com/zzz1999/batch_group_rename/issues"
   },
+	"menu_icon_exporter": {
+		"title": "Menu Icon Exporter",
+		"author": "NET",
+		"description": "Export perfect menu/item icons with advanced camera controls",
+		"icon": "icon.svg",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
+		"creation_date": "2026-03-15",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Export"
+		],
+		"repository": "https://github.com/HMC-Studios/Menu-Icon-Exporter",
+		"bug_tracker": "https://github.com/HMC-Studios/Menu-Icon-Exporter/issues"
+	},
+	"expand_bone_timeline": {
+		"title": "Expand Bone Timeline",
+		"author": "zzz1999",
+		"icon": "account_tree",
+		"tags": ["Animation", "Timeline"],
+		"version": "2.2.0",
+		"min_version": "4.8.0",
+		"description": "Show or hide a bone and all its child bone animators in the timeline from the outliner context menu.",
+		"variant": "both",
+		"creation_date": "2026-03-21",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/expand_bone_timeline",
+		"bug_tracker": "https://github.com/zzz1999/expand_bone_timeline/issues"
+	},
 	"let_there_be_noise": {
 		"title": "Let there Be Noise",
 		"author": "Momoko",
