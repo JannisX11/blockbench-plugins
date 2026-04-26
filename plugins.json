@@ -1,13 +1,13 @@
 {
-	"Z-Fighting Fixer": {
-		"title":       "Z-Fighting Fixer",
-		"author":      "TVcraft01",
-		"description": "One-click fix for z-fighting on overlapping cube faces, including flat/2D blocks. Handles any number of overlapping cubes, fixes both sides of every conflict.",
-		"tags": ["Minecraft: Java Edition"],
-		"icon":        "layers_clear",
-		"version":     "3.3.0",
-		"variant":     "both",
-		"min_version": "4.0.0",
+	"z_fighter_fix": {
+		"title": "Z-Fighting Fixer",
+		"author": "TVcraft01",
+		"description": "One-click fix for z-fighting on overlapping cube faces, including flat/2D blocks. Handles any number of overlapping cubes, fixes both sides of every conflict, safe on already-fixed models.",
+		"tags": ["Minecraft", "Utility", "Editing"],
+		"icon": "layers_clear",
+		"version": "3.3.0",
+		"variant": "both",
+		"min_version": "4.8.0"
 	},
 	"sam3dj": {
 		"title": "sam3DJ",
