@@ -59,9 +59,9 @@ export function registerKeyframeOverrides() {
   }
 
   // Hook Blockbench's playback dispatcher so Azure-easing segments are
-  // actually interpolated. Without this, kf.interpolation === undefined
-  // (our marker for "Azure easing mode") falls through every branch in
-  // BoneAnimator.interpolate and the bone never updates between keyframes.
+  // actually interpolated. Without this, kf.interpolation === 'linear'
+  // (our marker for "Azure easing mode") would use BB's plain linear branch
+  // and ignore any Azure easing curve set on the keyframe.
   Blockbench.on('interpolate_keyframes', azureInterpolateListener);
 
   PATCHED = true;
@@ -389,8 +389,7 @@ function extendKeyframe(dataIn) {
   if (rawInterp !== undefined && BEDROCK_INTERP_MODES.has(rawInterp)) {
     this.interpolation = rawInterp;
   } else {
-    // Not a recognised Bedrock mode — clear so Azure easing applies
-    this.interpolation = undefined;
+    this.interpolation = 'linear';
   }
 
   const easingArgsSource = valuesNode.easingArgs ?? data.easingArgs ?? postNode.easingArgs;
@@ -413,11 +412,16 @@ function extendKeyframe(dataIn) {
     return this.data_points[idx];
   };
 
+  const toNum = v => {
+    if (typeof v !== 'string') return v;
+    const n = Number(v);
+    return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+  };
   const writeVector = (point, vec) => {
     if (!vec) return;
-    point.x = vec[0];
-    point.y = vec[1];
-    point.z = vec[2];
+    point.x = toNum(vec[0]);
+    point.y = toNum(vec[1]);
+    point.z = toNum(vec[2]);
     delete point.vector;
   };
 
