@@ -268,11 +268,16 @@ function compileBedrockKeyframe() {
     base && typeof base === 'object' && !Array.isArray(base) &&
     (base.pre !== undefined || base.post !== undefined)
   ) {
-    return {
+    const out = {
       ...(base.pre       !== undefined ? { pre:       cloneArray(base.pre)       } : {}),
       ...(base.post      !== undefined ? { post:      cloneArray(base.post)      } : {}),
       ...(base.lerp_mode !== undefined ? { lerp_mode: base.lerp_mode             } : {}),
     };
+    if (this.easing && this.easing !== EASING_DEFAULT) out.easing = this.easing;
+    if (hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
+      out.easingArgs = [...this.easingArgs];
+    }
+    return out;
   }
 
   // --- AzureLib easing node ---

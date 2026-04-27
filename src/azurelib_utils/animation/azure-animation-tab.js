@@ -485,7 +485,12 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   if (prevKf && prevKf.interpolation === 'step') {
     const preVec = extractKeyframePreVector(kf, channel)
       || extractKeyframeVector(prevKf, channel, true);
-    return { pre: preVec, post: vec };
+    const out = { pre: preVec, post: vec };
+    if (kf.easing && kf.easing !== EASING_DEFAULT) out.easing = kf.easing;
+    if (hasArgs(kf.easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
+      out.easingArgs = [...kf.easingArgs];
+    }
+    return out;
   }
 
   // --- AzureLib easing node (no Bedrock interpolation set) ---
@@ -493,7 +498,7 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   // Easing is only written when it differs from the default ('linear').
   // Easing is suppressed for Molang expression vectors (easing is meaningless there).
   const easing = kf.easing;
-  const vecHasMolang = vec.some(v => typeof v === 'string');
+  const vecHasMolang = vec.some(v => typeof v === 'string' && isNaN(Number(v)));
   const writeEasing  = easing && easing !== EASING_DEFAULT && !vecHasMolang;
   const writeArgs    = writeEasing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length;
 
