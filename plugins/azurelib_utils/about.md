@@ -1,6 +1,6 @@
 <p align="center">
 <img src="https://www.bisecthosting.com/images/CF/AzureLib/BH_AL_header.png" />
-<a href="https://discord.azuredoom.com/"> <img src="https://img.shields.io/discord/574529906076286996?color=red&label=Discord&logo=Discord&logoColor=red&style=for-the-badge" alt="discord"/> </a>
+<a href="https://discord.azuredoom.com/"> <img src="https://img.shields.io/discord/1323813706286759946?color=red&label=Discord&logo=Discord&logoColor=red&style=for-the-badge" alt="discord"/> </a>
 </p>
 <p align="center">
 AzureLib represents a branch derived from Geckolib 4.x, serving as an animation engine tailored for Minecraft Mods. It boasts various features, including support for intricate 3D keyframe-driven animations, over 30 different easing functions, concurrent animation capabilities, sound and particle keyframes, event-based keyframes, and numerous other functionalities.
@@ -26,15 +26,11 @@ Supported Minecraft versions:
 </p>
 
 ```
-- 1.15.2 Forge
-- 1.16.5 Forge/Fabric
 - 1.17.1 Forge/Fabric
-- 1.18.2 Forge/Fabric
 - 1.19.2 Forge/Fabric
 - 1.19.4 Forge/Fabric
 - 1.20.1 Forge/NeoForge/Fabric
-- 1.20.4+ NeoForge/Fabric
-- 1.21+ NeoForge/Fabric
+- 1.21.1 NeoForge/Fabric
 ```
 
 <p align="center">

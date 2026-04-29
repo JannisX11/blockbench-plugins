@@ -1,6 +1,6 @@
 {
   "name": "azurelib_utils",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": true,
   "description": "AzureLib Animator",
   "main": "index.js",
@@ -22,6 +22,7 @@
     "min_version": "4.8.0",
     "max_version": "15.0.0",
     "new_repository_format": "true",
+    "await_loading": true,
     "variant": "both",
     "creation_date": "2023-04-04",
     "contributes": {

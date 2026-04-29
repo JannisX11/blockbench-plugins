@@ -171,5 +171,21 @@
 				]
 			}
 		]
+	},
+	"2.1.1": {
+		"title": "2.1.1",
+		"date": "2026-04-27",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes an issue that was preventing Azurelib easings from exporting.",
+					"Fixes an issue with exporting display setting not being correct and incorrectly modifying the UI rendering as well.",
+					"Fixes an issue that was preventing Azurelib easings as importing correctly.",
+					"Fixes easings not being selected correctly when reimporting or opening old projects"
+				]
+			}
+		]
 	}
 }

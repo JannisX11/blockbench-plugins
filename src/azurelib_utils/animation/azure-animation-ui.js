@@ -128,13 +128,13 @@ const BB_INTERP_MODES = [
 
 function _renderInterpolationBar(panel, selected) {
   // Read the shared interpolation across selected keyframes.
-  // null/undefined both mean "Azure easing mode".
-  const currentInterp = _readMulti(
-    selected,
-    kf => kf.interpolation ?? null,
-    null,
-    '(mixed)',
-  );
+  // null/undefined/'linear' all mean "Azure easing mode" — 'linear' is our internal
+  // sentinel used to keep Blockbench's BarSelect happy (it rejects undefined).
+  const normalizeInterp = kf => {
+    const v = kf.interpolation;
+    return (!v || v === 'linear') ? null : v;
+  };
+  const currentInterp = _readMulti(selected, normalizeInterp, null, '(mixed)');
 
   const bar = _createBar('azl_bar_catmullrom', panel);
 
@@ -188,9 +188,10 @@ const EASING_TYPES_LIST = [
 
 function _renderEasingBar(panel, selected) {
   // Don't show Azure easing picker when all selected have a Bedrock interpolation mode.
-  // (If interpolation is set, easing is irrelevant for those keyframes.)
-  const allBedrock = selected.every(kf => !!kf.interpolation);
-  const allCatmullrom = allBedrock; // alias kept for the checks below
+  // 'linear' is our internal sentinel for Azure easing mode (not a real Bedrock interp),
+  // so it must NOT be treated as a Bedrock mode here.
+  const isBedrock = kf => !!kf.interpolation && kf.interpolation !== 'linear';
+  const allBedrock = selected.every(isBedrock);
 
   const displayedEasing = _readMulti(selected, kf => kf.easing, EASING_DEFAULT, '(mixed)');
   const currentFamily   = _easingFamilyOf(displayedEasing);
@@ -208,7 +209,7 @@ function _renderEasingBar(panel, selected) {
   azureRow.style.flexWrap = 'wrap';
 
   for (const { id, label } of AZURE_EASING_FAMILIES) {
-    const isSelected = !allCatmullrom && (id === currentFamily);
+    const isSelected = !allBedrock && (id === currentFamily);
     const icon = EASING_ICONS[id] || '';
     const btn = document.createElement('button');
     btn.id = `azl_kf_easing_${id}`;
@@ -232,7 +233,7 @@ function _renderEasingBar(panel, selected) {
   }
 
   // --- Type (In / Out / In/Out) row — only for families with variants ---
-  if (!allCatmullrom && currentFamily !== 'linear' && currentFamily !== 'step') {
+  if (!allBedrock && currentFamily !== 'linear' && currentFamily !== 'step') {
     const typeBar = _createBar('azl_bar_easing_type', panel);
     const typeHeading = document.createElement('p');
     typeHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
@@ -297,8 +298,9 @@ export function applyKeyframeEasing(easingId) {
 
   Timeline.selected.forEach(kf => {
     kf.easing = easingId;
-    // Switching to an Azure easing clears any Bedrock interpolation mode
-    if (kf.interpolation) kf.interpolation = undefined;
+    // Switching to an Azure easing clears any Bedrock interpolation mode.
+    // Use 'linear' (not undefined) so BB's BarSelect keyframe_interpolation stays valid.
+    if (kf.interpolation && kf.interpolation !== 'linear') kf.interpolation = 'linear';
   });
 
   Undo.finishEdit('Set keyframe easing');
@@ -331,8 +333,8 @@ export function setInterpolation(mode) {
 
   Timeline.selected.forEach(kf => {
     if (mode === null || mode === undefined) {
-      // Azure easing mode: clear BB interpolation
-      kf.interpolation = undefined;
+      // Azure easing mode: use 'linear' sentinel (not undefined) so BB's BarSelect stays valid.
+      kf.interpolation = 'linear';
     } else {
       // Bedrock interpolation: set mode, clear Azure easing
       kf.interpolation = mode;
