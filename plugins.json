@@ -56,7 +56,7 @@
 	},
 	"brush_tuna": {
 		"name": "brush_tuna",
-		"icon": "icon.svg",
+		"icon": "icon.png",
 		"title": "Brush Tuna",
 		"description": "Brush Tuna overhauls the Brush Presets system, providing an improved interface, and several new features.",
 		"version": "1.0.6",
