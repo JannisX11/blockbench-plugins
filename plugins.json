@@ -54,6 +54,22 @@
 		"version": "1.0.0",
 		"variant": "both"
 	},
+	"brush_tuna": {
+		"name": "brush_tuna",
+		"icon": "icon.svg",
+		"title": "Brush Tuna",
+		"version": "1.0.4",
+		"variant": "both",
+		"author": "SnaveSutit & Embody Games",
+		"tags": [
+			"Texture",
+			"Paint",
+			"Tool"
+		],
+		"min_blockbench_version": "5.1.4",
+		"bug_tracker": "https://github.com/SnaveSutit/brush-tuna/issues",
+		"has_changelog": true
+	},
 	"geenium_bedrock_entity_helper": {
 		"title": "Bedrock Entity Model Presets",
 		"author": "Geenium",
