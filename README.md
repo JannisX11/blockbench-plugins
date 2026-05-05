@@ -46,10 +46,17 @@ These are the files that can be added to the plugin directory
 
 ## Bundling
 
-* If you are writing a complex plugin and you are using a module bundler such as Webpack or Browserify, you are required to host your source code in this repository in the `src` folder of your plugin's directory.
-For plugins that use the legacy format, the source can be added to the `src` folder at the root of the repository.
+If your plugin exceeds a certain level of complexity, it can reach the point where it becomes necessary to use a Bundler, such as Webpack or esbuild, to build the plugin JS file.
 
-* Check out the webpack_template and the existing source folders to see how to set it up.
+This is possible, but comes with the requirement that the source code must be public and human-readable, and builds must be reprocable by anyone from the source.
+
+There are several options for keeping your source code:
+* You can keep the source code in the `src` folder of your plugin's directory. Good example: `plugins/geckolib/src`
+* In the root `src` folder. Example: `src/resourcepack_packager`. This is deprecated for new plugins.
+* In an external Git repository. This is recommended for large plugins with active development. Requirements are a min_version of 5.0.0 or higher, a link to the source repository in the plugin metadata, and passing the automatic validation with no errors.
+
+When bundling, obfuscation is not allowed. You may use minification if the bundle would otherwise become too large, otherwise consider leaving it unminified for transparency and easier debugging.
+
 
 ## Submission
 
@@ -63,9 +70,12 @@ In order to submit your plugin, you need to meet a few requirements:
 * Plugins should not be larger than 2 MB
 * Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * Plugins may not execute code from external sources. This includes separately hosted scripts, user inputs or files, or otherwise externally hosted or generated code. This also applies to rendering of HTML content.
-* This list of plugins is curated to some extent. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
 * Plugins that utilize generative AI are not accepted into this repository but may be shared externally.
-* While it is the goal to keep the plugin API generally compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
+
+This list of plugins is curated to some extent. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
+
+While it is the goal to keep the plugin API generally compatible across different Blockbench version, it can happen that a feature is changed or deprecated and your plugin must be updated in order to keep working.
+It is recommended to test all of your plugins during the beta phase before each Blockbench feature update!
 
 To help catch some common issues, you can use the validator script in the root of this repo to catch common issues.
 This script will also run in each pull request.
