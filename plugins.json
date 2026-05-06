@@ -1520,5 +1520,13 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"structure_to_model": {
+		"title": "Structure to Model",
+		"icon": "account_balance",
+		"author": "JannisX11 & Krozi",
+		"description": "Converts Minecraft Java structures (.nbt) into a model.",
+		"version": "1.0.0",
+		"variant": "desktop"
 	}
 }
