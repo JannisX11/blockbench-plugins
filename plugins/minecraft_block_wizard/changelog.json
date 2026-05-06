@@ -108,5 +108,21 @@
 				]
 			}
 		]
+	},
+	"1.7.0": {
+		"title": "1.7.0",
+		"date": "2026-05-06",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added Stairs block preset",
+					"Added Slab block preset",
+					"Added Fence block preset",
+					"Added warnings about functionality limitations in some presets"
+				]
+			}
+		]
 	}
 }
