@@ -35,5 +35,7 @@ export function modulo(a: number, b: number): number {
 }
 
 export function eulerDegreesFromQuat(quat: THREE.Quaternion): THREE.Vector3 {
-    return new THREE.Euler().setFromQuaternion(quat).toVector3().multiplyScalar(180/Math.PI);
+    const THREE = (window as any).THREE;
+    const euler = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
+    return new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
 }
