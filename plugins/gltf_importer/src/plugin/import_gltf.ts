@@ -83,8 +83,8 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         node.userData.gltfIndex = index;
     });
 
-    // Start recursive import with (0,0,0) as the base parent origin
-    importNode(sceneRoot, options, content, new THREE.Vector3());
+    // Start recursive import with (0,0,0) as the base parent origin and identity rotation
+    importNode(sceneRoot, options, content, new THREE.Vector3(), new THREE.Quaternion());
 
     if (options.animations) {
         await importAnimations(gltf, options, content, content.nodeToElementMap);
@@ -126,22 +126,27 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 }
 
 // MARK: 🟥 node
-function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3): Group|Mesh|null {
+function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Group|Mesh|null {
     // In Blockbench, child origins are calculated as: Parent_Origin + Local_Translation
     // This matches the glTF node tree structure when rotations are correctly applied to groups
     const localPos = node.position.clone().multiplyScalar(options.scale);
+    localPos.applyQuaternion(parentRotation); // Apply parent's rotation to local position
     const currentOrigin = parentOrigin.clone().add(localPos);
 
     switch (node.type) {
         case 'Group':
             // If this is not the root, it's representing one mesh with multiple primitives
             if (node.parent != undefined)
-                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin);
+                // For a THREE.Group representing multiple primitives, its children are THREE.Mesh objects.
+                // The rotation of this intermediate THREE.Group needs to be accumulated and passed to its children.
+                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin, parentRotation.clone().multiply(node.quaternion));
         case 'Object3D':
-            return importGroup(node, options, content, currentOrigin);
+            // This is a regular glTF node that becomes a Blockbench Group
+            return importGroup(node, options, content, currentOrigin, parentRotation);
         case 'Mesh':
         case 'SkinnedMesh':
-            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin);
+            // This is a glTF mesh that becomes a Blockbench Mesh
+            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin, parentRotation);
         default:
             console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
             return null;
@@ -149,7 +154,7 @@ function importNode(node: THREE.Object3D, options: ImportOptions, content: Impor
 }
 
 // MARK: 🟥 group
-function importGroup(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Group|null {
+function importGroup(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Group|null {
     let isRoot = node.parent == undefined;
     let group: Group|null = null;
 
@@ -158,7 +163,7 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
         group = new (window as any).Group({
             name: node.userData.name || node.name || 'group',
             origin: currentOrigin.toArray().map(round),
-            rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round),
+            rotation: [0, 0, 0], // Set group rotation to 0,0,0
         });
         group.init();
         
@@ -166,7 +171,9 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
         
         // Store resting local transform for animation calculation
         group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+        // Store the glTF node's rotation quaternion for animation and for passing to children
+        group.userData.gltfRotationQuaternion = node.quaternion.clone();
+        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round); // Keep original glTF rotation for animation calculations if needed
         group.userData.gltfScale = node.scale.clone().toArray().map(round);
 
         group.createUniqueName();
@@ -181,8 +188,10 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
     }
 
     // Child nodes
+    // The rotation to pass to children is the accumulated parentRotation *plus* this node's rotation
+    const accumulatedRotation = parentRotation.clone().multiply(node.quaternion);
     for (let child of node.children) {
-        let result = importNode(child, options, content, currentOrigin);
+        let result = importNode(child, options, content, currentOrigin, accumulatedRotation);
         result?.addTo(group ?? 'root');
     }
     
@@ -191,27 +200,30 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 
 // MARK: 🟥 mesh
 
-function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin);
+function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Mesh {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin, parentRotation);
 }
 
 // Meshes in glTFs are made of one or more primitives which can have different materials
 // THREE.js turns this into a Group with multiple meshes
 // In Blockbench we would like this to be one mesh again, and just set the different textures on the faces
 // We also de-duplicate vertices across primitives
-function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
+function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Mesh {
+
+    // Combine the node's rotation with the accumulated parent rotation
+    const combinedRotation = parentRotation.clone().multiply(node.quaternion);
 
     let mesh = new (window as any).Mesh({
         name: node.userData.name || node.name || 'mesh',
         origin: currentOrigin.toArray().map(round),
-        rotation:  eulerDegreesFromQuat(node.quaternion).toArray().map(round) as ArrayVector3,
+        rotation:  eulerDegreesFromQuat(combinedRotation).toArray().map(round) as ArrayVector3, // Apply combined rotation here
         vertices: {},
     });
 
     if (!mesh.userData) mesh.userData = {};
 
     mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round); // Keep original glTF rotation for animation
     mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
 
     content.elements.push(mesh);
