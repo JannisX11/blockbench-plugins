@@ -633,5 +633,10 @@
     "version": "1.0.0",
     "created": 1776715988139,
     "updated": 1776715988139
+  },
+  "no_java_limits": {
+    "version": "1.0.0",
+    "created": 1778439813605,
+    "updated": 1778439813605
   }
 }
