@@ -2303,6 +2303,12 @@
   function modulo(a, b) {
     return (a % b + b) % b;
   }
+  function makeEulerContinuous(currentDegree, previousDegree) {
+    let diff = currentDegree - previousDegree;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+    return previousDegree + diff;
+  }
   function eulerDegreesFromQuat(quat, order = "XYZ") {
     const THREE2 = window.THREE;
     const euler = new THREE2.Euler().setFromQuaternion(quat, order);
@@ -2482,9 +2488,16 @@
     } else if (property === "rotation") {
       const resting_rotation = element.userData.gltfRotation || [0, 0, 0];
       const THREE2 = window.THREE;
+      let prev_euler = null;
       for (let i = 0; i < track.times.length; i++) {
         const quat = new THREE2.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
         const euler = eulerDegreesFromQuat(quat, "ZYX");
+        if (prev_euler) {
+          euler.x = makeEulerContinuous(euler.x, prev_euler.x);
+          euler.y = makeEulerContinuous(euler.y, prev_euler.y);
+          euler.z = makeEulerContinuous(euler.z, prev_euler.z);
+        }
+        prev_euler = { x: euler.x, y: euler.y, z: euler.z };
         const val = [
           Math.roundTo(euler.x - resting_rotation[0], 4),
           Math.roundTo(euler.y - resting_rotation[1], 4),

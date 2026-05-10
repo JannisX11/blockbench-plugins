@@ -33,6 +33,16 @@ export function modulo(a: number, b: number): number {
     return ((a % b) + b) % b;
 }
 
+export function makeEulerContinuous(currentDegree: number, previousDegree: number): number {
+    let diff = currentDegree - previousDegree;
+
+    // Normalize the difference to be strictly between -180 and +180
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+
+    return previousDegree + diff;
+}
+
 export function eulerDegreesFromQuat(quat: THREE.Quaternion, order: THREE.EulerOrder = 'XYZ'): THREE.Vector3 {
     const THREE = (window as any).THREE;
     const euler = new THREE.Euler().setFromQuaternion(quat, order);

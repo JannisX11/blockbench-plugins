@@ -1,6 +1,6 @@
 import { GLTF } from './parse_gltf';
 import { ImportOptions, ImportedContent } from './import_gltf';
-import { eulerDegreesFromQuat } from './util';
+import {eulerDegreesFromQuat, makeEulerContinuous} from './util';
 
 /**
  * Converts glTF animations (THREE.AnimationClip) to Blockbench animations
@@ -163,12 +163,23 @@ function processTrack(
         }
     } else if (property === 'rotation') {
         const resting_rotation = element.userData.gltfRotation || [0, 0, 0];
-
         const THREE = (window as any).THREE;
+
+        // Track the previous frame's absolute euler to ensure smooth continuity
+        let prev_euler: THREE.Vector3 | null = null;
+
         for (let i = 0; i < track.times.length; i++) {
             const quat = new THREE.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
-
             const euler = eulerDegreesFromQuat(quat, 'ZYX');
+
+            if (prev_euler) {
+                euler.x = makeEulerContinuous(euler.x, prev_euler.x);
+                euler.y = makeEulerContinuous(euler.y, prev_euler.y);
+                euler.z = makeEulerContinuous(euler.z, prev_euler.z);
+            }
+
+            // Store this frame's raw euler for the next loop iteration
+            prev_euler = { x: euler.x, y: euler.y, z: euler.z } as THREE.Vector3;
 
             // Keyframe value is the offset from the resting local glTF rotation
             const val = [
