@@ -1423,6 +1423,15 @@
 			"Shading"
 		]
 	},
+	"punchy_studio": {
+		"title": "Punchy! Studio",
+		"author": "Hamz",
+		"description": "A specialized tool for generating item definitions and compatibility configurations for the Punchy! animation system.",
+		"version": "1.0.0",
+		"variant": "both",
+		"icon": "icon.svg",
+		"tags": ["Minecraft: Java Edition", "Exporter", "Animation"]
+	},
 	"hytale_bridge": {
 		"title": "Hytale Bridge",
 		"author": "Tazer",
