@@ -485,7 +485,12 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   if (prevKf && prevKf.interpolation === 'step') {
     const preVec = extractKeyframePreVector(kf, channel)
       || extractKeyframeVector(prevKf, channel, true);
-    return { pre: preVec, post: vec };
+    const out = { pre: preVec, post: vec };
+    if (kf.easing && kf.easing !== EASING_DEFAULT) out.easing = kf.easing;
+    if (hasArgs(kf.easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
+      out.easingArgs = [...kf.easingArgs];
+    }
+    return out;
   }
 
   // --- AzureLib easing node (no Bedrock interpolation set) ---
@@ -493,7 +498,7 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   // Easing is only written when it differs from the default ('linear').
   // Easing is suppressed for Molang expression vectors (easing is meaningless there).
   const easing = kf.easing;
-  const vecHasMolang = vec.some(v => typeof v === 'string');
+  const vecHasMolang = vec.some(v => typeof v === 'string' && isNaN(Number(v)));
   const writeEasing  = easing && easing !== EASING_DEFAULT && !vecHasMolang;
   const writeArgs    = writeEasing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length;
 
@@ -591,15 +596,16 @@ function parseAnimation(name, src, filePath) {
   const anim = new Animation({
     name,
     path: filePath,
-    loop: src.loop === true ? 'loop' : src.loop === 'hold_on_last_frame' ? 'hold' : src.loop,
-    override: src.override_previous_animation,
+    saved_name: name,
+    loop: src.loop === true ? 'loop' : src.loop === 'hold_on_last_frame' ? 'hold' : src.loop || 'once',
+    override: !!src.override_previous_animation,
     anim_time_update: typeof src.anim_time_update === 'string'
       ? src.anim_time_update.replace(/;(?!$)/, ';\n')
-      : src.anim_time_update,
+      : src.anim_time_update || '',
     blend_weight: typeof src.blend_weight === 'string'
       ? src.blend_weight.replace(/;(?!$)/, ';\n')
-      : src.blend_weight,
-    length: src.animation_length,
+      : src.blend_weight || '',
+    length: Number(src.animation_length || 0),
   }).add();
 
   // Effects
@@ -684,10 +690,21 @@ function parseChannel(boneAnim, channel, channelData) {
  *   2. AzureLib node        { vector, easing?, easingArgs? }
  *   3. Bedrock spline node  { post, pre?, lerp_mode }
  */
+
+function toNum(v) {
+  if (typeof v !== 'string') return v;
+  const n = Number(v);
+  return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+}
+
+function coerceVec(vec) {
+  return vec.map(toNum);
+}
+
 function parseKeyframeData(data, channel, time) {
   // --- 1. Plain array ---
   if (Array.isArray(data)) {
-    const vec = applyFlipOnLoad(data, channel);
+    const vec = applyFlipOnLoad(coerceVec(data), channel);
     return {
       easing: EASING_DEFAULT,
       easingArgs: undefined,
@@ -702,7 +719,7 @@ function parseKeyframeData(data, channel, time) {
   // --- 2. AzureLib node (has vector or easing) ---
   if (isAzureKeyframe(data) && !isBedrockKeyframe(data)) {
     const rawVec = unwrapToArray(data.vector || data) || [0, 0, 0];
-    const vec = applyFlipOnLoad(rawVec, channel);
+    const vec = applyFlipOnLoad(coerceVec(rawVec), channel);
     return {
       easing: data.easing || EASING_DEFAULT,
       easingArgs: Array.isArray(data.easingArgs) && data.easingArgs.length ? data.easingArgs : undefined,
@@ -729,11 +746,11 @@ function parseKeyframeData(data, channel, time) {
     const preRaw = unwrapToArray(data.pre);
 
     if (preRaw) {
-      const pre = applyFlipOnLoad(preRaw, channel);
+      const pre = applyFlipOnLoad(coerceVec(preRaw), channel);
       data_points.push({ x: pre[0], y: pre[1], z: pre[2] });
     }
 
-    const postVec = postRaw ? applyFlipOnLoad(postRaw, channel) : [0, 0, 0];
+    const postVec = postRaw ? applyFlipOnLoad(coerceVec(postRaw), channel) : [0, 0, 0];
     data_points.push({ x: postVec[0], y: postVec[1], z: postVec[2] });
 
     return {
@@ -746,9 +763,9 @@ function parseKeyframeData(data, channel, time) {
   }
 
   // Fallback — treat as raw vector object
-  const x = data.x ?? 0;
-  const y = data.y ?? 0;
-  const z = data.z ?? 0;
+  const x = toNum(data.x ?? 0);
+  const y = toNum(data.y ?? 0);
+  const z = toNum(data.z ?? 0);
   return {
     easing: EASING_DEFAULT,
     easingArgs: undefined,
@@ -937,125 +954,21 @@ export function createAzureAnimationCodec() {
       setAnimationIncludesForPath(path, json.includes || []);
 
       const created = [];
-      const entries = Object.entries(json.animations);
 
-      for (const [name, animData] of entries) {
+      for (const [name, animData] of Object.entries(json.animations)) {
         if (Array.isArray(animation_filter) && animation_filter.length && !animation_filter.includes(name)) {
           continue;
         }
 
-        const anim = new Animation({
-          name,
-          path,
-          saved_name: name,
-          loop:
-            animData.loop === true ? 'loop'
-            : animData.loop === 'hold_on_last_frame' ? 'hold'
-            : animData.loop || 'once',
-          override: !!animData.override_previous_animation,
-          anim_time_update: animData.anim_time_update || '',
-          blend_weight: animData.blend_weight || '',
-          length: Number(animData.animation_length || 0),
-        }).add();
-
+        // Delegate to parseAnimation which correctly handles bone UUID assignment,
+        // channel parsing (including numeric coercion and flip-on-load), and effects.
+        const anim = parseAnimation(name, animData, path);
         anim.saved = true;
-
-        if (animData.bones && typeof animData.bones === 'object') {
-          for (const [boneName, boneData] of Object.entries(animData.bones)) {
-            let animator = anim.animators[boneName];
-            if (!animator) {
-              animator = new BoneAnimator(boneName, anim);
-              anim.animators[boneName] = animator;
-            }
-
-            for (const channel of ['position', 'rotation', 'scale']) {
-              const channelData = boneData?.[channel];
-              if (!channelData) continue;
-
-              const addKf = (time, entry) => {
-                const parsedKf = parseKeyframeData(entry, channel, time);
-                if (!parsedKf) return;
-
-                const kf = animator.addKeyframe({
-                  time,
-                  channel,
-                  interpolation: parsedKf.interpolation,
-                  data_points: parsedKf.data_points,
-                  easing: parsedKf.easing,
-                  easingArgs: parsedKf.easingArgs,
-                  uniform: parsedKf.uniform,
-                });
-
-                if (kf && parsedKf.interpolation) {
-                  kf.interpolation = parsedKf.interpolation;
-                }
-                if (kf && parsedKf.easing) {
-                  kf.easing = parsedKf.easing;
-                }
-                if (kf && parsedKf.easingArgs) {
-                  kf.easingArgs = parsedKf.easingArgs;
-                }
-              };
-
-              if (Array.isArray(channelData) || isAzureKeyframe(channelData) || isBedrockKeyframe(channelData)) {
-                addKf(0, channelData);
-              } else if (typeof channelData === 'object') {
-                for (const rawT in channelData) {
-                  const time = parseFloat(rawT);
-                  if (Number.isNaN(time)) continue;
-                  addKf(time, channelData[rawT]);
-                }
-              }
-            }
-          }
-        }
-
-        const effectAnimator = anim.animators.effects;
-
-        if (effectAnimator) {
-          const addEffectKeyframe = (time, channel, data_points) => {
-            effectAnimator.addKeyframe({
-              time,
-              channel,
-              data_points,
-            });
-          };
-
-          if (animData.sound_effects && typeof animData.sound_effects === 'object') {
-            for (const [rawT, entry] of Object.entries(animData.sound_effects)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              const list = Array.isArray(entry) ? entry : [entry];
-              addEffectKeyframe(time, 'sound', list.map(p => typeof p === 'string' ? { effect: p } : { ...p }));
-            }
-          }
-
-          if (animData.particle_effects && typeof animData.particle_effects === 'object') {
-            for (const [rawT, entry] of Object.entries(animData.particle_effects)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              const list = Array.isArray(entry) ? entry : [entry];
-              addEffectKeyframe(time, 'particle', list.map(p => ({ ...p })));
-            }
-          }
-
-          if (animData.timeline && typeof animData.timeline === 'object') {
-            for (const [rawT, script] of Object.entries(animData.timeline)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              addEffectKeyframe(time, 'timeline', [{ script: String(script || '') }]);
-            }
-          }
-        }
-
         created.push(anim);
       }
 
       if (!auto_loaded && created.length) {
-        const first = created[0];
-        if (first) {
-          Animation.selected = first;
-        }
+        Animation.selected = created[0];
       }
 
       return created;

@@ -175,7 +175,7 @@
     "updated": 0
   },
   "geckolib": {
-    "version": "4.2.4",
+    "version": "4.2.5",
     "created": 0,
     "updated": 0
   },
@@ -250,9 +250,9 @@
     "updated": 1761350400000
   },
   "minecraft_block_wizard": {
-    "version": "1.6.1",
+    "version": "1.7.0",
     "created": 1666656000000,
-    "updated": 1767189707918
+    "updated": 1778102478437
   },
   "minecraft_item_wizard": {
     "version": "1.2.4",
@@ -420,7 +420,7 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "2.1.0",
+    "version": "2.1.1",
     "created": 1680566400000,
     "updated": 1776713189096
   },

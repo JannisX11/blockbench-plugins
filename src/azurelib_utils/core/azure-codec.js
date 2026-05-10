@@ -23,6 +23,7 @@ import {
 import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
+const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
 
 let hasNotifiedConversion = false;
 let azureCodecRegistered = false;
@@ -244,10 +245,14 @@ export function maybeExportItemJson(options = {}, as) {
     }
     if (Object.keys(display).length) {
       model.display = display;
-      const OFFSET_Y = 4.0;
       for (const [, data] of Object.entries(display)) {
-        const tr = data?.translation;
-        if (Array.isArray(tr)) tr[1] = Math.round((Number(tr[1] || 0) - OFFSET_Y) * 100) / 100;
+        if (Array.isArray(data?.translation)) {
+          data.translation = [
+            data.translation[0],
+            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
+            data.translation[2],
+          ];
+        }
       }
     }
   }
@@ -303,7 +308,6 @@ export function maybeImportItemJson() {
     }
 
     Project.display_settings = {};
-    const OFFSET_Y = 4.0;
 
     for (const [slot, data] of Object.entries(json.display)) {
       if (!DisplayMode.slots.includes(slot)) continue;
