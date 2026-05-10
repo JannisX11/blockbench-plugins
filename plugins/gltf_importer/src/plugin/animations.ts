@@ -136,7 +136,9 @@ function processTrack(
         }
     }
 
-    if (!element) return;
+    if (!element || element.type !== 'group') {
+        return;
+    }
 
     let animator = getAnimatorForElement(element, bbAnimation);
     if (!animator) return;
@@ -165,7 +167,8 @@ function processTrack(
         const THREE = (window as any).THREE;
         for (let i = 0; i < track.times.length; i++) {
             const quat = new THREE.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
-            const euler = eulerDegreesFromQuat(quat);
+
+            const euler = eulerDegreesFromQuat(quat, 'ZYX');
 
             // Keyframe value is the offset from the resting local glTF rotation
             const val = [

@@ -2459,7 +2459,9 @@
         );
       }
     }
-    if (!element) return;
+    if (!element || element.type !== "group") {
+      return;
+    }
     let animator = getAnimatorForElement(element, bbAnimation);
     if (!animator) return;
     if (property === "position") {
@@ -2482,7 +2484,7 @@
       const THREE2 = window.THREE;
       for (let i = 0; i < track.times.length; i++) {
         const quat = new THREE2.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
-        const euler = eulerDegreesFromQuat(quat);
+        const euler = eulerDegreesFromQuat(quat, "ZYX");
         const val = [
           Math.roundTo(euler.x - resting_rotation[0], 4),
           Math.roundTo(euler.y - resting_rotation[1], 4),
