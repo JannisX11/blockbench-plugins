@@ -308,24 +308,25 @@
     }
 
     BBPlugin.register(PLUGIN_ID, {
-        title: "No Java Limits",
-        author: "Rajdacz",
-        description:
-            "Allows creating infinite-sized models for use in display entities.",
-        icon: "zoom_out_map",
-        tags: ["Minecraft: Java Edition", "Display Entities"],
-        variant: "both",
-        version: "1.0.0",
-        onload() {
-            hookExport();
-            applyLargeLimits();
-            createActions();
-            suppressDialog = false;
-        },
-        onunload() {
-            unhookExport();
-            removeActions();
-            restoreOriginalLimits();
-        },
-    });
+		title: "No Java Limits",
+		author: "Rajdacz",
+		description:
+			"Allows creating infinite-sized models for use in display entities.",
+		icon: "zoom_out_map",
+		tags: ["Minecraft: Java Edition", "Display Entities"],
+		version: "1.0.0",
+		min_version: "4.8.0",
+		variant: "both",
+		onload() {
+			hookExport();
+			applyLargeLimits();
+			createActions();
+			suppressDialog = false;
+		},
+		onunload() {
+			unhookExport();
+			removeActions();
+			restoreOriginalLimits();
+		},
+	});
 })();
