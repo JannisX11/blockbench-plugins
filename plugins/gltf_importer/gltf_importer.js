@@ -2639,7 +2639,7 @@
     sceneRoot.traverse((node, index) => {
       node.userData.gltfIndex = index;
     });
-    importNode(sceneRoot, options, content, new THREE.Vector3(), new THREE.Quaternion());
+    importNode(sceneRoot, options, content, new THREE.Vector3());
     if (options.animations) {
       await importAnimations(gltf, options, content, content.nodeToElementMap);
     }
@@ -2665,41 +2665,40 @@
     }
     if (options.undoable)
       Undo.finishEdit("Import glTF");
-    Blockbench.update();
+    if (typeof window.Canvas?.updateAll === "function") {
+      window.Canvas.updateAll();
+    }
     return content;
   }
-  function importNode(node, options, content, parentOrigin, parentRotation) {
+  function importNode(node, options, content, parentOrigin) {
     const localPos = node.position.clone().multiplyScalar(options.scale);
-    localPos.applyQuaternion(parentRotation);
     const currentOrigin = parentOrigin.clone().add(localPos);
     switch (node.type) {
       case "Group":
         if (node.parent != void 0)
-          return importMeshPrimitives(node, node.children, options, content, currentOrigin, parentRotation.clone().multiply(node.quaternion));
+          return importMeshPrimitives(node, node.children, options, content, currentOrigin);
       case "Object3D":
-        return importGroup(node, options, content, currentOrigin, parentRotation);
+        return importGroup(node, options, content, currentOrigin);
       case "Mesh":
       case "SkinnedMesh":
-        return importSingleMesh(node, options, content, currentOrigin, parentRotation);
+        return importSingleMesh(node, options, content, currentOrigin);
       default:
         console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
         return null;
     }
   }
-  function importGroup(node, options, content, currentOrigin, parentRotation) {
+  function importGroup(node, options, content, currentOrigin) {
     let isRoot = node.parent == void 0;
     let group = null;
     if (options.groups && !isRoot) {
       group = new window.Group({
         name: node.userData.name || node.name || "group",
         origin: currentOrigin.toArray().map(round),
-        rotation: [0, 0, 0]
-        // Set group rotation to 0,0,0
+        rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round)
       });
       group.init();
       if (!group.userData) group.userData = {};
       group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-      group.userData.gltfRotationQuaternion = node.quaternion.clone();
       group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
       group.userData.gltfScale = node.scale.clone().toArray().map(round);
       group.createUniqueName();
@@ -2711,23 +2710,20 @@
       if (node.uuid) content.nodeToElementMap.set(node.uuid, group);
       if (node.userData.gltfIndex !== void 0) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, group);
     }
-    const accumulatedRotation = parentRotation.clone().multiply(node.quaternion);
     for (let child of node.children) {
-      let result = importNode(child, options, content, currentOrigin, accumulatedRotation);
+      let result = importNode(child, options, content, currentOrigin);
       result?.addTo(group ?? "root");
     }
     return group;
   }
-  function importSingleMesh(node, options, content, currentOrigin, parentRotation) {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin, parentRotation);
+  function importSingleMesh(node, options, content, currentOrigin) {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin);
   }
-  function importMeshPrimitives(node, primitives, options, content, currentOrigin, parentRotation) {
-    const combinedRotation = parentRotation.clone().multiply(node.quaternion);
+  function importMeshPrimitives(node, primitives, options, content, currentOrigin) {
     let mesh = new window.Mesh({
       name: node.userData.name || node.name || "mesh",
       origin: currentOrigin.toArray().map(round),
-      rotation: eulerDegreesFromQuat(combinedRotation).toArray().map(round),
-      // Apply combined rotation here
+      rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round),
       vertices: {}
     });
     if (!mesh.userData) mesh.userData = {};

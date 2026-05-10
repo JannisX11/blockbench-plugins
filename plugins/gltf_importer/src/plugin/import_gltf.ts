@@ -78,20 +78,20 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
     // Navigate node tree and import what we find
     let sceneRoot = gltf.scene as unknown as THREE.Group;
-    
+
     sceneRoot.traverse((node, index) => {
         node.userData.gltfIndex = index;
     });
 
-    // Start recursive import with (0,0,0) as the base parent origin and identity rotation
-    importNode(sceneRoot, options, content, new THREE.Vector3(), new THREE.Quaternion());
+    // Start recursive import with (0,0,0) as the base parent origin
+    importNode(sceneRoot, options, content, new THREE.Vector3());
 
     if (options.animations) {
         await importAnimations(gltf, options, content, content.nodeToElementMap);
     }
 
     content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s: any) =>
-        s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 )
+            s.wrapS == undefined || s.wrapT == undefined || s.wrapS === 10497 || s.wrapT === 10497 )
         ?? false;
 
     if (content.animations.length > 0) {
@@ -103,7 +103,7 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         if ((window as any).Timeline && typeof (window as any).Timeline.update === 'function') {
             (window as any).Timeline.update();
         }
-        
+
         if (!(window as any).Animation.selected && content.animations.length > 0) {
             content.animations[0].select();
         }
@@ -119,34 +119,30 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     if (options.undoable)
         Undo.finishEdit('Import glTF');
 
-    // Force Blockbench to update after import
-    Blockbench.update();
+    if (typeof (window as any).Canvas?.updateAll === 'function') {
+        (window as any).Canvas.updateAll()
+    }
 
     return content;
 }
 
 // MARK: 🟥 node
-function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Group|Mesh|null {
+function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3): Group|Mesh|null {
     // In Blockbench, child origins are calculated as: Parent_Origin + Local_Translation
     // This matches the glTF node tree structure when rotations are correctly applied to groups
     const localPos = node.position.clone().multiplyScalar(options.scale);
-    localPos.applyQuaternion(parentRotation); // Apply parent's rotation to local position
     const currentOrigin = parentOrigin.clone().add(localPos);
 
     switch (node.type) {
         case 'Group':
             // If this is not the root, it's representing one mesh with multiple primitives
             if (node.parent != undefined)
-                // For a THREE.Group representing multiple primitives, its children are THREE.Mesh objects.
-                // The rotation of this intermediate THREE.Group needs to be accumulated and passed to its children.
-                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin, parentRotation.clone().multiply(node.quaternion));
+                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin);
         case 'Object3D':
-            // This is a regular glTF node that becomes a Blockbench Group
-            return importGroup(node, options, content, currentOrigin, parentRotation);
+            return importGroup(node, options, content, currentOrigin);
         case 'Mesh':
         case 'SkinnedMesh':
-            // This is a glTF mesh that becomes a Blockbench Mesh
-            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin, parentRotation);
+            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin);
         default:
             console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
             return null;
@@ -154,7 +150,7 @@ function importNode(node: THREE.Object3D, options: ImportOptions, content: Impor
 }
 
 // MARK: 🟥 group
-function importGroup(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Group|null {
+function importGroup(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Group|null {
     let isRoot = node.parent == undefined;
     let group: Group|null = null;
 
@@ -163,23 +159,21 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
         group = new (window as any).Group({
             name: node.userData.name || node.name || 'group',
             origin: currentOrigin.toArray().map(round),
-            rotation: [0, 0, 0], // Set group rotation to 0,0,0
+            rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round),
         });
         group.init();
-        
+
         if (!group.userData) group.userData = {};
-        
+
         // Store resting local transform for animation calculation
         group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-        // Store the glTF node's rotation quaternion for animation and for passing to children
-        group.userData.gltfRotationQuaternion = node.quaternion.clone();
-        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round); // Keep original glTF rotation for animation calculations if needed
+        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
         group.userData.gltfScale = node.scale.clone().toArray().map(round);
 
         group.createUniqueName();
         group.openUp();
         content.groups.push(group);
-        
+
         const name = node.userData.name || node.name || 'group';
         content.nodeToElementMap.set(name, group);
         if (node.name) content.nodeToElementMap.set(node.name, group);
@@ -188,46 +182,41 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
     }
 
     // Child nodes
-    // The rotation to pass to children is the accumulated parentRotation *plus* this node's rotation
-    const accumulatedRotation = parentRotation.clone().multiply(node.quaternion);
     for (let child of node.children) {
-        let result = importNode(child, options, content, currentOrigin, accumulatedRotation);
+        let result = importNode(child, options, content, currentOrigin);
         result?.addTo(group ?? 'root');
     }
-    
+
     return group;
 }
 
 // MARK: 🟥 mesh
 
-function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Mesh {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin, parentRotation);
+function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin);
 }
 
 // Meshes in glTFs are made of one or more primitives which can have different materials
 // THREE.js turns this into a Group with multiple meshes
 // In Blockbench we would like this to be one mesh again, and just set the different textures on the faces
 // We also de-duplicate vertices across primitives
-function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, parentRotation: THREE.Quaternion): Mesh {
-
-    // Combine the node's rotation with the accumulated parent rotation
-    const combinedRotation = parentRotation.clone().multiply(node.quaternion);
+function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
 
     let mesh = new (window as any).Mesh({
         name: node.userData.name || node.name || 'mesh',
         origin: currentOrigin.toArray().map(round),
-        rotation:  eulerDegreesFromQuat(combinedRotation).toArray().map(round) as ArrayVector3, // Apply combined rotation here
+        rotation:  eulerDegreesFromQuat(node.quaternion).toArray().map(round) as ArrayVector3,
         vertices: {},
     });
 
     if (!mesh.userData) mesh.userData = {};
 
     mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round); // Keep original glTF rotation for animation
+    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
     mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
 
     content.elements.push(mesh);
-    
+
     const name = node.userData.name || node.name || 'mesh';
     content.nodeToElementMap.set(name, mesh);
     if (node.name) content.nodeToElementMap.set(node.name, mesh);
@@ -292,7 +281,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     let faces: MeshFace[] = [];
 
     // TODO: auto uv if not present somehow?
-    
+
     // Construct faces by using the primitive's original vertex index to look up UV and unique vertex key
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
         if (primitive.geometry.index == undefined)
@@ -303,7 +292,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             let uvWidth  = texture?.uv_width  ?? Project?.texture_width  ?? 16;
             let uvHeight = texture?.uv_height ?? Project?.texture_height ?? 16;
             let v1Uv: ArrayVector2, v2Uv: ArrayVector2, v3Uv: ArrayVector2;
-            
+
             // Original vertex index
             let v1Idx = primitive.geometry.index.array[faceIndex*3];
             let v2Idx = primitive.geometry.index.array[faceIndex*3 + 1];
@@ -353,7 +342,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
             let facesMergedIntoQuad = options.mergeQuads && (() => {
                 if (faces.length < 1)
                     return false; // Can't be first face
-                
+
                 let lastFace = faces[faces.length - 1];
                 if (lastFace.vertices.length !== 3)
                     return false; // Previous face must be a tri
@@ -374,7 +363,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
                 let face2VertAafterB = (lastFace.vertices.indexOf(sharedVertexKeys[0]) + 1) % 3 === lastFace.vertices.indexOf(sharedVertexKeys[1]);
                 if (face1VertAafterB === face2VertAafterB)
                     return false; // The order of the shared vertices should be reversed
-                
+
                 let newVertexKey = nonSharedVertexKeys[0];
 
                 // TODO:
@@ -415,7 +404,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
 // MARK: 🟥 textures
 async function prepareTextureCacheKeys(gltf: GLTF): Promise<{[textureId: string]: string}> {
-    
+
     // The GLTF loader's internal texture cache holds information 
     // on texture's sources inside the cache keys
     // We extract these keys so we can later use it to load the textures ourselves
@@ -423,7 +412,7 @@ async function prepareTextureCacheKeys(gltf: GLTF): Promise<{[textureId: string]
 
     // Await all the texture promises
     let textures = await Promise.all(Object.values(textureCache));
-    
+
     // Strip suffix (probably the sampler index or something, don't care)
     let cacheKeys = Object.keys(textureCache).map(key => key.substring(0, key.lastIndexOf(':')));
 
@@ -453,7 +442,7 @@ function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, opti
     // No cache key means no texture
     if (cacheKey == undefined) {
 
-    // If the cache key is a number, that means the texture is embedded in a buffer
+        // If the cache key is a number, that means the texture is embedded in a buffer
     } else if (isStringNumber(cacheKey)) {
         if (!(threeTexture.image instanceof ImageBitmap)) {
             console.warn('Imported texture has unknown format: ', threeTexture.image);
@@ -462,11 +451,11 @@ function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, opti
             bbTexture = new (window as any).Texture().fromDataURL(dataUri);
         }
 
-    // Embededd data uri
+        // Embededd data uri
     } else if (cacheKey.startsWith('data:')) {
         bbTexture = new (window as any).Texture().fromDataURL(cacheKey);
 
-    // Otherwise the texture is from a file
+        // Otherwise the texture is from a file
     } else {
         let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
         bbTexture = new (window as any).Texture().fromPath(absoluteTexturePath);
