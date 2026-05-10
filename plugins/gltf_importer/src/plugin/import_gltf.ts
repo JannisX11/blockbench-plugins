@@ -128,25 +128,36 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
 // MARK: 🟥 node
 function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3): Group|Mesh|null {
-    // In Blockbench, child origins are calculated as: Parent_Origin + Local_Translation
-    // This matches the glTF node tree structure when rotations are correctly applied to groups
-    const localPos = node.position.clone().multiplyScalar(options.scale);
-    const currentOrigin = parentOrigin.clone().add(localPos);
+    // Calculate Absolute Rest-Pose World Origin
+    const restWorldPos = getRestWorldPosition(node);
+    const currentOrigin = restWorldPos.multiplyScalar(options.scale);
 
+    const localPos = node.position.clone().multiplyScalar(options.scale);
+    
     switch (node.type) {
         case 'Group':
             // If this is not the root, it's representing one mesh with multiple primitives
             if (node.parent != undefined)
-                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin);
+                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin, localPos);
         case 'Object3D':
             return importGroup(node, options, content, currentOrigin);
         case 'Mesh':
         case 'SkinnedMesh':
-            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin);
+            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin, localPos);
         default:
             console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
             return null;
     }
+}
+
+function getRestWorldPosition(node: THREE.Object3D): THREE.Vector3 {
+    let pos = new THREE.Vector3();
+    let current: THREE.Object3D | null = node;
+    while (current) {
+        pos.add(current.position);
+        current = current.parent;
+    }
+    return pos;
 }
 
 // MARK: 🟥 group
@@ -156,18 +167,25 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 
     // Only create outliner group if the option is enabled and if the current node is not the root
     if (options.groups && !isRoot) {
+        const groupName = node.userData.name || node.name || 'group';
+        const groupOrigin = currentOrigin.toArray().map(round);
+        // Use 'ZXY' order for groups
+        const groupRotation = eulerDegreesFromQuat(node.quaternion, 'ZYX').toArray().map(round);
+
         group = new (window as any).Group({
-            name: node.userData.name || node.name || 'group',
-            origin: currentOrigin.toArray().map(round),
-            rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round),
+            name: groupName,
+            origin: groupOrigin,
+            rotation: groupRotation,
         });
         group.init();
+
+        console.log(`[gltf_importer]: Created Group: ${groupName}, Origin: (${groupOrigin.join(', ')}), Rotation: (${groupRotation.join(', ')})`);
 
         if (!group.userData) group.userData = {};
 
         // Store resting local transform for animation calculation
         group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+        group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, 'ZYX').toArray().map(round); // Also use 'ZXY' for userData
         group.userData.gltfScale = node.scale.clone().toArray().map(round);
 
         group.createUniqueName();
@@ -192,27 +210,33 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 
 // MARK: 🟥 mesh
 
-function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin);
+function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, localPos: THREE.Vector3): Mesh {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin, localPos);
 }
 
 // Meshes in glTFs are made of one or more primitives which can have different materials
 // THREE.js turns this into a Group with multiple meshes
 // In Blockbench we would like this to be one mesh again, and just set the different textures on the faces
 // We also de-duplicate vertices across primitives
-function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
+function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, localPos: THREE.Vector3): Mesh {
+
+    const meshName = node.userData.name || node.name || 'mesh';
+    const meshOrigin = currentOrigin.toArray().map(round);
+
+    const meshRotation = eulerDegreesFromQuat(node.quaternion, 'XYZ').toArray().map(round) as ArrayVector3;
 
     let mesh = new (window as any).Mesh({
-        name: node.userData.name || node.name || 'mesh',
-        origin: currentOrigin.toArray().map(round),
-        rotation:  eulerDegreesFromQuat(node.quaternion).toArray().map(round) as ArrayVector3,
+        name: meshName,
+        origin: meshOrigin,
+        rotation:  meshRotation,
         vertices: {},
     });
 
+    console.log(`[gltf_importer]: Created Mesh: ${meshName}, Origin: (${meshOrigin.join(', ')}), Rotation: (${meshRotation.join(', ')})`);
     if (!mesh.userData) mesh.userData = {};
 
     mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, 'XYZ').toArray().map(round); // Also use 'XYZ' for userData
     mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
 
     content.elements.push(mesh);

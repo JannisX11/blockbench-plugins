@@ -12,8 +12,7 @@ export function valuesAndIndices<T>(array: T[]): [T, number][] {
 }
 
 export function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): string {
-    let canvas = document.createElement('canvas');
-    canvas.width = imageBitmap.width;
+    let canvas = document.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
 
     let ctx = canvas.getContext('2d');
@@ -34,8 +33,10 @@ export function modulo(a: number, b: number): number {
     return ((a % b) + b) % b;
 }
 
-export function eulerDegreesFromQuat(quat: THREE.Quaternion): THREE.Vector3 {
+export function eulerDegreesFromQuat(quat: THREE.Quaternion, order: THREE.EulerOrder = 'XYZ'): THREE.Vector3 {
     const THREE = (window as any).THREE;
-    const euler = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
-    return new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
+    const euler = new THREE.Euler().setFromQuaternion(quat, order);
+    const degrees = new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
+    console.log(`[gltf_importer]: Quaternion: (${quat.x.toFixed(4)}, ${quat.y.toFixed(4)}, ${quat.z.toFixed(4)}, ${quat.w.toFixed(4)}) -> Euler (${order}): (${degrees.x.toFixed(4)}, ${degrees.y.toFixed(4)}, ${degrees.z.toFixed(4)})`);
+    return degrees;
 }

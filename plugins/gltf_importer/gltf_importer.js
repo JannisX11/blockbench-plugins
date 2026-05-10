@@ -2289,8 +2289,7 @@
     return array.map((v, i) => [v, i]);
   }
   function imageBitmapToDataUri(imageBitmap, type = "image/png", quality) {
-    let canvas = document.createElement("canvas");
-    canvas.width = imageBitmap.width;
+    let canvas = document.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
     let ctx = canvas.getContext("2d");
     if (ctx == void 0)
@@ -2304,10 +2303,12 @@
   function modulo(a, b) {
     return (a % b + b) % b;
   }
-  function eulerDegreesFromQuat(quat) {
+  function eulerDegreesFromQuat(quat, order = "XYZ") {
     const THREE2 = window.THREE;
-    const euler = new THREE2.Euler().setFromQuaternion(quat, "XYZ");
-    return new THREE2.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
+    const euler = new THREE2.Euler().setFromQuaternion(quat, order);
+    const degrees = new THREE2.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
+    console.log(`[gltf_importer]: Quaternion: (${quat.x.toFixed(4)}, ${quat.y.toFixed(4)}, ${quat.z.toFixed(4)}, ${quat.w.toFixed(4)}) -> Euler (${order}): (${degrees.x.toFixed(4)}, ${degrees.y.toFixed(4)}, ${degrees.z.toFixed(4)})`);
+    return degrees;
   }
 
   // plugin/vector_hash_map.ts
@@ -2671,35 +2672,49 @@
     return content;
   }
   function importNode(node, options, content, parentOrigin) {
+    const restWorldPos = getRestWorldPosition(node);
+    const currentOrigin = restWorldPos.multiplyScalar(options.scale);
     const localPos = node.position.clone().multiplyScalar(options.scale);
-    const currentOrigin = parentOrigin.clone().add(localPos);
     switch (node.type) {
       case "Group":
         if (node.parent != void 0)
-          return importMeshPrimitives(node, node.children, options, content, currentOrigin);
+          return importMeshPrimitives(node, node.children, options, content, currentOrigin, localPos);
       case "Object3D":
         return importGroup(node, options, content, currentOrigin);
       case "Mesh":
       case "SkinnedMesh":
-        return importSingleMesh(node, options, content, currentOrigin);
+        return importSingleMesh(node, options, content, currentOrigin, localPos);
       default:
         console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
         return null;
     }
   }
+  function getRestWorldPosition(node) {
+    let pos = new THREE.Vector3();
+    let current = node;
+    while (current) {
+      pos.add(current.position);
+      current = current.parent;
+    }
+    return pos;
+  }
   function importGroup(node, options, content, currentOrigin) {
     let isRoot = node.parent == void 0;
     let group = null;
     if (options.groups && !isRoot) {
+      const groupName = node.userData.name || node.name || "group";
+      const groupOrigin = currentOrigin.toArray().map(round);
+      const groupRotation = eulerDegreesFromQuat(node.quaternion, "ZYX").toArray().map(round);
       group = new window.Group({
-        name: node.userData.name || node.name || "group",
-        origin: currentOrigin.toArray().map(round),
-        rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round)
+        name: groupName,
+        origin: groupOrigin,
+        rotation: groupRotation
       });
       group.init();
+      console.log(`[gltf_importer]: Created Group: ${groupName}, Origin: (${groupOrigin.join(", ")}), Rotation: (${groupRotation.join(", ")})`);
       if (!group.userData) group.userData = {};
       group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-      group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+      group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "ZYX").toArray().map(round);
       group.userData.gltfScale = node.scale.clone().toArray().map(round);
       group.createUniqueName();
       group.openUp();
@@ -2716,19 +2731,23 @@
     }
     return group;
   }
-  function importSingleMesh(node, options, content, currentOrigin) {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin);
+  function importSingleMesh(node, options, content, currentOrigin, localPos) {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin, localPos);
   }
-  function importMeshPrimitives(node, primitives, options, content, currentOrigin) {
+  function importMeshPrimitives(node, primitives, options, content, currentOrigin, localPos) {
+    const meshName = node.userData.name || node.name || "mesh";
+    const meshOrigin = currentOrigin.toArray().map(round);
+    const meshRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
     let mesh = new window.Mesh({
-      name: node.userData.name || node.name || "mesh",
-      origin: currentOrigin.toArray().map(round),
-      rotation: eulerDegreesFromQuat(node.quaternion).toArray().map(round),
+      name: meshName,
+      origin: meshOrigin,
+      rotation: meshRotation,
       vertices: {}
     });
+    console.log(`[gltf_importer]: Created Mesh: ${meshName}, Origin: (${meshOrigin.join(", ")}), Rotation: (${meshRotation.join(", ")})`);
     if (!mesh.userData) mesh.userData = {};
     mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion).toArray().map(round);
+    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
     mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
     content.elements.push(mesh);
     const name = node.userData.name || node.name || "mesh";
