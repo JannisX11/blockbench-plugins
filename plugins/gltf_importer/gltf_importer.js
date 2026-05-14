@@ -2289,7 +2289,8 @@
     return array.map((v, i) => [v, i]);
   }
   function imageBitmapToDataUri(imageBitmap, type = "image/png", quality) {
-    let canvas = document.width = imageBitmap.width;
+    let canvas = document.createElement("canvas");
+    canvas.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
     let ctx = canvas.getContext("2d");
     if (ctx == void 0)

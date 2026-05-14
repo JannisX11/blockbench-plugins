@@ -12,7 +12,8 @@ export function valuesAndIndices<T>(array: T[]): [T, number][] {
 }
 
 export function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): string {
-    let canvas = document.width = imageBitmap.width;
+    let canvas = document.createElement('canvas'); // Corrected line
+    canvas.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
 
     let ctx = canvas.getContext('2d');
@@ -47,5 +48,6 @@ export function eulerDegreesFromQuat(quat: THREE.Quaternion, order: THREE.EulerO
     const THREE = (window as any).THREE;
     const euler = new THREE.Euler().setFromQuaternion(quat, order);
     const degrees = new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
+    console.log(`[gltf_importer]: Quaternion: (${quat.x.toFixed(4)}, ${quat.y.toFixed(4)}, ${quat.z.toFixed(4)}, ${quat.w.toFixed(4)}) -> Euler (${order}): (${degrees.x.toFixed(4)}, ${degrees.y.toFixed(4)}, ${degrees.z.toFixed(4)})`);
     return degrees;
 }
