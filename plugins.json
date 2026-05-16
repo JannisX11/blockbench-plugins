@@ -1455,16 +1455,20 @@
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
 	},
-	"no_java_limits": {
-		"title": "No Java Limits",
-		"author": "Rajdacz",
-		"description": "Allows creating infinite-sized models for use in display entities.",
-		"icon": "zoom_out_map",
-		"tags": ["Minecraft: Java Edition", "Display Entities"],
+	"batch_group_rename": {
+		"title": "Batch Group Rename",
+		"author": "zzz1999",
+		"icon": "drive_file_rename_outline",
 		"version": "1.0.0",
+		"variant": "both",
+		"description": "Batch rename all child groups under a selected group with hierarchical numbering (e.g. arm1, arm2, arm2_1, arm2_1_1).",
+		"tags": ["Utility"],
 		"min_version": "4.8.0",
-		"variant": "both"
-	},
+		"creation_date": "2026-03-20",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/batch_group_rename",
+		"bug_tracker": "https://github.com/zzz1999/batch_group_rename/issues"
+  },
 	"menu_icon_exporter": {
 		"title": "Menu Icon Exporter",
 		"author": "NET",
