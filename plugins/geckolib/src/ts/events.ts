@@ -27,7 +27,7 @@ export function addEventListeners() {
     addEventListener('save_project', onlyIfGeckoLib(onProjectSave));
     addEventListener('convert_format', onlyIfGeckoLib(onProjectConvert));
     addMonkeypatch(Animator, null, "buildFile", monkeypatchAnimatorBuildFile);
-    addMonkeypatch(Animator, null, "loadFile", monkeypatchAnimatorLoadFile);
+    addMonkeypatch(Codecs.bedrock.format.animation_codec, null, "loadFile", monkeypatchAnimatorLoadFile);
     addMonkeypatch(Blockbench, null, "export", monkeypatchBlockbenchExport);
     addMonkeypatch(BarItems, 'project_window', "click", monkeypatchProjectWindowClick);
 }
@@ -53,7 +53,7 @@ function onProjectParse(e: any) {
     }
 
     // Because the project hasn't had its model properties applied at this stage
-    Format.display_mode = (e.model[PROPERTY_MODEL_TYPE] && e.model[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
+    Format.display_mode = (e.model[PROPERTY_MODEL_TYPE] && e.model[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value as boolean;
 }
 
 /**
