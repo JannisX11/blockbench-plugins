@@ -2314,7 +2314,6 @@
     const THREE2 = window.THREE;
     const euler = new THREE2.Euler().setFromQuaternion(quat, order);
     const degrees = new THREE2.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
-    console.log(`[gltf_importer]: Quaternion: (${quat.x.toFixed(4)}, ${quat.y.toFixed(4)}, ${quat.z.toFixed(4)}, ${quat.w.toFixed(4)}) -> Euler (${order}): (${degrees.x.toFixed(4)}, ${degrees.y.toFixed(4)}, ${degrees.z.toFixed(4)})`);
     return degrees;
   }
 
