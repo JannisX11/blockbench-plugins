@@ -12,7 +12,7 @@ export function valuesAndIndices<T>(array: T[]): [T, number][] {
 }
 
 export function imageBitmapToDataUri(imageBitmap: ImageBitmap, type = 'image/png', quality?: number): string {
-    let canvas = document.createElement('canvas');
+    let canvas = document.createElement('canvas'); // Corrected line
     canvas.width = imageBitmap.width;
     canvas.height = imageBitmap.height;
 
@@ -34,6 +34,19 @@ export function modulo(a: number, b: number): number {
     return ((a % b) + b) % b;
 }
 
-export function eulerDegreesFromQuat(quat: THREE.Quaternion): THREE.Vector3 {
-    return new THREE.Euler().setFromQuaternion(quat).toVector3().multiplyScalar(180/Math.PI);
+export function makeEulerContinuous(currentDegree: number, previousDegree: number): number {
+    let diff = currentDegree - previousDegree;
+
+    // Normalize the difference to be strictly between -180 and +180
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+
+    return previousDegree + diff;
+}
+
+export function eulerDegreesFromQuat(quat: THREE.Quaternion, order: THREE.EulerOrder = 'XYZ'): THREE.Vector3 {
+    const THREE = (window as any).THREE;
+    const euler = new THREE.Euler().setFromQuaternion(quat, order);
+    const degrees = new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
+    return degrees;
 }
