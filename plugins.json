@@ -54,6 +54,22 @@
 		"version": "1.0.0",
 		"variant": "both"
 	},
+	"brush_tuna": {
+		"icon": "icon.png",
+		"title": "Brush Tuna",
+		"description": "Brush Tuna overhauls the Brush Presets system, providing an improved interface, and several new features.",
+		"version": "1.0.6",
+		"variant": "both",
+		"author": "SnaveSutit & Embody Games",
+		"tags": [
+			"Texture",
+			"Paint",
+			"Tool"
+		],
+		"min_version": "5.1.4",
+		"bug_tracker": "https://github.com/SnaveSutit/brush-tuna/issues",
+		"has_changelog": true
+	},
 	"geenium_bedrock_entity_helper": {
 		"title": "Bedrock Entity Model Presets",
 		"author": "Geenium",
@@ -1438,6 +1454,16 @@
 		"has_changelog": true,
 		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
 		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"no_java_limits": {
+		"title": "No Java Limits",
+		"author": "Rajdacz",
+		"description": "Allows creating infinite-sized models for use in display entities.",
+		"icon": "zoom_out_map",
+		"tags": ["Minecraft: Java Edition", "Display Entities"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both"
 	},
 	"menu_icon_exporter": {
 		"title": "Menu Icon Exporter",
