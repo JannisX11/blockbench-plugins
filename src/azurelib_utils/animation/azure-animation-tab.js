@@ -515,8 +515,27 @@ function serializeKeyframe(kf, channel, allKeyframes) {
  * Non-zero numbers are negated directly.
  */
 function safeInvert(v) {
+  v = normalizeAxisValue(v);
   if (typeof v === 'string') return invertMolang(v);
   if (typeof v === 'number') return v === 0 ? 0 : -v;
+  return v;
+}
+
+function normalizeAxisValue(v) {
+  // Treat empty UI values as real numeric zero
+  if (v === null || v === undefined) return 0;
+
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+
+    // This catches '', '\n', '   ', etc.
+    if (trimmed === '') return 0;
+
+    // Preserve Molang expressions, but convert numeric strings
+    const n = Number(trimmed);
+    return Number.isNaN(n) ? v : n;
+  }
+
   return v;
 }
 
@@ -524,9 +543,9 @@ function extractKeyframeVector(kf, channel, applyInversion) {
   const dp = kf.data_points?.[kf.data_points.length > 1 ? 1 : 0] || kf.data_points?.[0];
   if (!dp) return [0, 0, 0];
 
-  let x = dp.x ?? 0;
-  let y = dp.y ?? 0;
-  let z = dp.z ?? 0;
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
 
   if (applyInversion && Blockbench.isNewerThan('4.99')) {
     if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
@@ -540,9 +559,9 @@ function extractKeyframePreVector(kf, channel) {
   if (!kf.data_points || kf.data_points.length < 2) return null;
   const dp = kf.data_points[0];
 
-  let x = dp.x ?? 0;
-  let y = dp.y ?? 0;
-  let z = dp.z ?? 0;
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
 
   if (Blockbench.isNewerThan('4.99')) {
     if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
