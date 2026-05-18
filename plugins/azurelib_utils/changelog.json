@@ -187,5 +187,18 @@
 				]
 			}
 		]
+	},
+	"2.1.2": {
+		"title": "2.1.2",
+		"date": "2026-05-18",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix blank keyframe axes exporting as newline strings."
+				]
+			}
+		]
 	}
 }
