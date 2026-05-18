@@ -14,6 +14,10 @@
       <p>Batch Exporter is a tool that will export every bbmodel file within a folder to an output folder using the selected format.</p>
     </li>
     <li>
+      <h3>Bed Converter</h3>
+      <p>Bed Converter is a tool that splits a bed entity texture into the per-face textures used by the new bed block model format.</p>
+    </li>
+    <li>
       <h3>Chest Converter</h3>
       <p>Chest Converter is a tool that will convert the chest textures between the 1.14 format 1.15 format.</p>
     </li>
