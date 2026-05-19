@@ -1520,5 +1520,14 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"uv_wrapper": {
+		"title": "UV Wrapper",
+		"icon": "texture",
+		"author": "nklbdev",
+		"description": "Transfer UVs and textures from one face to another in real time",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both"
 	}
 }
