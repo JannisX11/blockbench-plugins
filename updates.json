@@ -643,5 +643,10 @@
     "version": "1.0.6",
     "created": 1778520382148,
     "updated": 1778520382148
+  },
+  "batch_group_rename": {
+    "version": "1.0.0",
+    "created": 1779487482745,
+    "updated": 1779487482745
   }
 }
