@@ -2265,13 +2265,11 @@
   async function parseGltf(file) {
     let loadingManager = new THREE.LoadingManager();
     let gltfLoader = createGltfLoader(loadingManager);
-    let gltf = await parseGltfWithLoader(gltfLoader, file);
-    return gltf;
+    return await parseGltfWithLoader(gltfLoader, file);
   }
   function createGltfLoader(loadingManager = void 0) {
     let _GLTFLoaderClass = THREE["GLTFLoader"];
-    let loader = new _GLTFLoaderClass(loadingManager);
-    return loader;
+    return new _GLTFLoaderClass(loadingManager);
   }
   function parseGltfWithLoader(loader, file) {
     return new Promise((resolve, reject) => loader.parse(file.content, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
@@ -2310,11 +2308,12 @@
     while (diff < -180) diff += 360;
     return previousDegree + diff;
   }
+  function isStringNumber(str) {
+    return !isNaN(Number(str));
+  }
   function eulerDegreesFromQuat(quat, order = "XYZ") {
-    const THREE2 = window.THREE;
-    const euler = new THREE2.Euler().setFromQuaternion(quat, order);
-    const degrees = new THREE2.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
-    return degrees;
+    const euler = new THREE.Euler().setFromQuaternion(quat, order);
+    return new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
   }
 
   // plugin/vector_hash_map.ts
@@ -2361,19 +2360,19 @@
       return this.backingMap[this.getHashCode(key)];
     }
     getKeyValuePair(key) {
-      return this.getBucket(key)?.find(([k, v]) => k.every((c, i) => c === key[i]));
+      return this.getBucket(key)?.find(([k]) => k.every((c, i) => c === key[i]));
     }
   };
 
   // plugin/animations.ts
   async function importAnimations(gltf, options, content, nodeToElementMap) {
-    let fps = window.Project?.fps || 24;
+    let fps = Project?.fps || 24;
     if (typeof fps !== "number") fps = 24;
-    const AnimationClass = window.Animation;
-    if (!AnimationClass) {
+    if (typeof Animation === "undefined") {
       console.error("[gltf_importer]: Blockbench Animation class not found!");
       return;
     }
+    const AnimationClass = window.Animation;
     if (gltf.animations && gltf.animations.length > 0) {
       for (let i = 0; i < gltf.animations.length; i++) {
         const clip = gltf.animations[i];
@@ -2383,7 +2382,7 @@
           length: clip.duration || 0
         }).add();
         if (typeof bbAnimation.init === "function") bbAnimation.init();
-        const project = window.Project;
+        const project = Project;
         if (project?.animations && !project.animations.includes(bbAnimation)) {
           project.animations.push(bbAnimation);
         }
@@ -2410,7 +2409,7 @@
               length: clip.duration || 0
             }).add();
             if (typeof bbAnimation.init === "function") bbAnimation.init();
-            const project = window.Project;
+            const project = Project;
             if (project?.animations && !project.animations.includes(bbAnimation)) {
               project.animations.push(bbAnimation);
             }
@@ -2429,17 +2428,12 @@
     if (content.animations.length > 0) {
       setTimeout(() => {
         try {
-          if (content.animations[0] && typeof content.animations[0].select === "function") {
-            content.animations[0].select();
+          const firstAnim = content.animations[0];
+          if (firstAnim && typeof firstAnim.select === "function") {
+            firstAnim.select();
           }
         } catch (e) {
         }
-        const Animator = window.Animator;
-        if (Animator) {
-          if (typeof Animator.updateContent === "function") Animator.updateContent();
-          if (typeof Animator.updateApp === "function") Animator.updateApp();
-        }
-        if (window.Timeline?.update) window.Timeline.update();
       }, 100);
     }
   }
@@ -2454,13 +2448,13 @@
     const { targetName, property, morphIndex } = trackNameParts;
     let element = nodeToElementMap.get(targetName);
     if (!element) {
-      element = window.Outliner?.all.find((el) => el.name === targetName);
+      element = Outliner?.elements.find((el) => el.name === targetName);
     }
     if (!element) {
       const nodeIndexMatch = targetName.match(/^node_(\d+)$/);
       if (nodeIndexMatch) {
         const index = parseInt(nodeIndexMatch[1], 10);
-        element = window.Outliner?.all.find(
+        element = Outliner?.elements.find(
           (el) => el.userData && el.userData.gltfIndex === index
         );
       }
@@ -2487,10 +2481,9 @@
       }
     } else if (property === "rotation") {
       const resting_rotation = element.userData.gltfRotation || [0, 0, 0];
-      const THREE2 = window.THREE;
       let prev_euler = null;
       for (let i = 0; i < track.times.length; i++) {
-        const quat = new THREE2.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
+        const quat = new THREE.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
         const euler = eulerDegreesFromQuat(quat, "ZYX");
         if (prev_euler) {
           euler.x = makeEulerContinuous(euler.x, prev_euler.x);
@@ -2522,7 +2515,7 @@
     }
   }
   function addKeyframeToAnimator(animator, time, property, value) {
-    const KeyframeClass = window.Keyframe;
+    const KeyframeClass = Keyframe;
     if (!animator) return;
     if (!animator.channels) animator.channels = {};
     if (!animator.channels[property]) {
@@ -2535,7 +2528,7 @@
     if (!Array.isArray(animator[property])) {
       animator[property] = [];
     }
-    let data_point = {};
+    let data_point;
     if (Array.isArray(value) && value.length === 3) {
       data_point = { x: value[0].toString(), y: value[1].toString(), z: value[2].toString() };
     } else {
@@ -2575,7 +2568,7 @@
     if (!bbAnimation.animators) {
       bbAnimation.animators = {};
     }
-    let animator = null;
+    let animator;
     const id = element.uuid;
     if (bbAnimation.animators instanceof Map) {
       animator = bbAnimation.animators.get(id);
@@ -2583,7 +2576,7 @@
       animator = bbAnimation.animators[id];
     }
     if (!animator) {
-      const AnimatorClass = element.constructor.animator || window.GeneralAnimator || window.BoneAnimator;
+      const AnimatorClass = element.constructor.animator || GeneralAnimator || BoneAnimator;
       if (typeof AnimatorClass === "function") {
         console.log(`[gltf_importer]: Manually creating animator for ${element.name} using ${AnimatorClass.name}`);
         animator = new AnimatorClass(id, bbAnimation);
@@ -2599,7 +2592,7 @@
     return animator;
   }
   function parseTrackName(trackName, nodeToElementMap) {
-    const match = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?\]\.(position|quaternion|scale|rotation|weights)/) || trackName.match(/^(.+?)\.(position|quaternion|scale|rotation|weights)/);
+    const match = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.(position|quaternion|scale|rotation|weights)/) || trackName.match(/^(.+?)\.(position|quaternion|scale|rotation|weights)/);
     if (match) {
       let target = match[1];
       let property = match[2];
@@ -2610,7 +2603,7 @@
       }
       return { targetName: target, property: property === "quaternion" ? "rotation" : property };
     }
-    const morphMatch = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?\]\.morphTargetInfluences\[(\d+)\]/) || trackName.match(/^(.+?)\.morphTargetInfluences\[(\d+)\]/);
+    const morphMatch = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.morphTargetInfluences\[(\d+)]/) || trackName.match(/^(.+?)\.morphTargetInfluences\[(\d+)]/);
     if (morphMatch) {
       let target = morphMatch[1];
       if (/^\d+$/.test(target)) target = `node_${target}`;
@@ -2626,7 +2619,7 @@
     if (gltf.scene) {
       gltf.scene.updateMatrixWorld(true);
     }
-    const project = window.Project;
+    const project = Project;
     const fps = project?.fps || 24;
     console.log(`[gltf_importer]: Starting import into project. Format: ${project?.format?.id || "none"}. FPS: ${fps}`);
     if (options.cameras === "NOT_INSTALLED" && gltf.cameras.length !== 0)
@@ -2648,28 +2641,23 @@
         outliner: true,
         selection: true,
         textures: content.textures,
-        animations: window.Project?.animations || []
+        animations: Project?.animations || []
       });
     }
     let sceneRoot = gltf.scene;
-    sceneRoot.traverse((node, index) => {
-      node.userData.gltfIndex = index;
+    let nodeIndex = 0;
+    sceneRoot.traverse((node) => {
+      node.userData.gltfIndex = nodeIndex++;
     });
-    importNode(sceneRoot, options, content, new THREE.Vector3());
+    importNode(sceneRoot, options, content);
     if (options.animations) {
       await importAnimations(gltf, options, content, content.nodeToElementMap);
     }
     content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497) ?? false;
     if (content.animations.length > 0) {
       console.log(`[gltf_importer]: Finalizing ${content.animations.length} animations`);
-      if (window.Animator) {
-        if (typeof window.Animator.updateContent === "function") window.Animator.updateContent();
-        if (typeof window.Animator.updateApp === "function") window.Animator.updateApp();
-      }
-      if (window.Timeline && typeof window.Timeline.update === "function") {
-        window.Timeline.update();
-      }
-      if (!window.Animation.selected && content.animations.length > 0) {
+      const AnimationClass = window.Animation;
+      if (AnimationClass && !AnimationClass.selected && content.animations.length > 0) {
         content.animations[0].select();
       }
     }
@@ -2681,24 +2669,23 @@
     }
     if (options.undoable)
       Undo.finishEdit("Import glTF");
-    if (typeof window.Canvas?.updateAll === "function") {
-      window.Canvas.updateAll();
+    if (typeof Canvas?.updateAll === "function") {
+      Canvas.updateAll();
     }
     return content;
   }
-  function importNode(node, options, content, parentOrigin) {
+  function importNode(node, options, content) {
     const restWorldPos = getRestWorldPosition(node);
     const currentOrigin = restWorldPos.multiplyScalar(options.scale);
-    const localPos = node.position.clone().multiplyScalar(options.scale);
     switch (node.type) {
       case "Group":
         if (node.parent != void 0)
-          return importMeshPrimitives(node, node.children, options, content, currentOrigin, localPos);
+          return importMeshPrimitives(node, node.children, options, content, currentOrigin);
       case "Object3D":
         return importGroup(node, options, content, currentOrigin);
       case "Mesh":
       case "SkinnedMesh":
-        return importSingleMesh(node, options, content, currentOrigin, localPos);
+        return importSingleMesh(node, options, content, currentOrigin);
       default:
         console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
         return null;
@@ -2720,7 +2707,7 @@
       const groupName = node.userData.name || node.name || "group";
       const groupOrigin = currentOrigin.toArray().map(round);
       const groupRotation = eulerDegreesFromQuat(node.quaternion, "ZYX").toArray().map(round);
-      group = new window.Group({
+      group = new Group({
         name: groupName,
         origin: groupOrigin,
         rotation: groupRotation
@@ -2741,36 +2728,35 @@
       if (node.userData.gltfIndex !== void 0) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, group);
     }
     for (let child of node.children) {
-      let result = importNode(child, options, content, currentOrigin);
+      let result = importNode(child, options, content);
       result?.addTo(group ?? "root");
     }
     return group;
   }
-  function importSingleMesh(node, options, content, currentOrigin, localPos) {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin, localPos);
+  function importSingleMesh(node, options, content, currentOrigin) {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin);
   }
-  function importMeshPrimitives(node, primitives, options, content, currentOrigin, localPos) {
+  function importMeshPrimitives(node, primitives, options, content, currentOrigin) {
     const meshName = node.userData.name || node.name || "mesh";
     const meshOrigin = currentOrigin.toArray().map(round);
     const meshRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
-    let mesh = new window.Mesh({
+    let mesh = new Mesh({
       name: meshName,
       origin: meshOrigin,
       rotation: meshRotation,
       vertices: {}
     });
     console.log(`[gltf_importer]: Created Mesh: ${meshName}, Origin: (${meshOrigin.join(", ")}), Rotation: (${meshRotation.join(", ")})`);
-    if (!mesh.userData) mesh.userData = {};
-    mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
-    mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
+    const userData = mesh.userData = mesh.userData || {};
+    userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
+    userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
+    userData.gltfScale = node.scale.clone().toArray().map(round);
     content.elements.push(mesh);
     const name = node.userData.name || node.name || "mesh";
     content.nodeToElementMap.set(name, mesh);
     if (node.name) content.nodeToElementMap.set(node.name, mesh);
     if (node.uuid) content.nodeToElementMap.set(node.uuid, mesh);
     if (node.userData.gltfIndex !== void 0) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, mesh);
-    let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
     let primitiveTextures = primitives.map((p) => importTexture(p.material, options, content));
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
@@ -2796,7 +2782,7 @@
         primitiveToUniqueVertexIndices[primitiveIndex].push(uniqueVertexIndices.get(vertex));
       }
     }
-    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => window.bbuid(4));
+    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => guid());
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v, i) => [vertexKeys[i], v]));
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
@@ -2859,7 +2845,7 @@
           return true;
         })();
         if (!facesMergedIntoQuad) {
-          faces.push(new window.MeshFace(mesh, {
+          faces.push(new MeshFace(mesh, {
             vertices: faceVertexKeys,
             uv,
             texture
@@ -2875,8 +2861,7 @@
     let textureCache = gltf.parser.textureCache;
     let textures = await Promise.all(Object.values(textureCache));
     let cacheKeys = Object.keys(textureCache).map((key) => key.substring(0, key.lastIndexOf(":")));
-    let textureCacheKeys = Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
-    return textureCacheKeys;
+    return Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
   }
   function importTexture(threeMaterial, options, content) {
     let threeTexture = threeMaterial?.map;
@@ -2896,18 +2881,19 @@
         console.warn("Imported texture has unknown format: ", threeTexture.image);
       } else {
         let dataUri = imageBitmapToDataUri(threeTexture.image, "image/png", 1);
-        bbTexture = new window.Texture().fromDataURL(dataUri);
+        bbTexture = new Texture().fromDataURL(dataUri);
       }
     } else if (cacheKey.startsWith("data:")) {
-      bbTexture = new window.Texture().fromDataURL(cacheKey);
+      bbTexture = new Texture().fromDataURL(cacheKey);
     } else {
       let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
       bbTexture = new window.Texture().fromPath(absoluteTexturePath);
     }
     if (bbTexture != void 0) {
-      bbTexture.name = threeTexture.name || "texture", bbTexture.add(false);
+      bbTexture.name = threeTexture.name || "texture";
+      bbTexture.add(false);
       content.textures.push(bbTexture);
-      if (threeMaterial?.side !== THREE.FrontSide && bbTexture != void 0)
+      if (threeMaterial?.side !== THREE.FrontSide)
         bbTexture.render_sides = "double";
     }
     content.texturesById[threeTexture.uuid] = bbTexture;
@@ -2921,7 +2907,7 @@
     description: "Import .GLTF and .GLB models",
     icon: "icon.png",
     creation_date: "2025-09-25",
-    version: "1.1.0",
+    version: "1.2.0",
     variant: "desktop",
     min_version: "4.12.6",
     has_changelog: false,

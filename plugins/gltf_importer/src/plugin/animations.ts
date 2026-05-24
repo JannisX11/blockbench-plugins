@@ -1,5 +1,5 @@
-import { GLTF } from './parse_gltf';
-import { ImportOptions, ImportedContent } from './import_gltf';
+import { type GLTF } from './parse_gltf';
+import { type ImportOptions, type ImportedContent } from './import_gltf';
 import {eulerDegreesFromQuat, makeEulerContinuous} from './util';
 
 /**
@@ -11,14 +11,14 @@ export async function importAnimations(
     content: ImportedContent,
     nodeToElementMap: Map<string, any>
 ): Promise<void> {
-    let fps = (window as any).Project?.fps || 24;
+    let fps = Project?.fps || 24;
     if (typeof fps !== 'number') fps = 24;
 
-    const AnimationClass = (window as any).Animation;
-    if (!AnimationClass) {
+    if (typeof Animation === 'undefined') {
         console.error('[gltf_importer]: Blockbench Animation class not found!');
         return;
     }
+    const AnimationClass = (window as any).Animation;
 
     if (gltf.animations && gltf.animations.length > 0) {
         for (let i = 0; i < gltf.animations.length; i++) {
@@ -32,7 +32,7 @@ export async function importAnimations(
 
             if (typeof bbAnimation.init === 'function') bbAnimation.init();
 
-            const project = (window as any).Project;
+            const project = Project;
             if (project?.animations && !project.animations.includes(bbAnimation)) {
                 project.animations.push(bbAnimation);
             }
@@ -66,7 +66,7 @@ export async function importAnimations(
 
                     if (typeof bbAnimation.init === 'function') bbAnimation.init();
 
-                    const project = (window as any).Project;
+                    const project = Project;
                     if (project?.animations && !project.animations.includes(bbAnimation)) {
                         project.animations.push(bbAnimation);
                     }
@@ -88,17 +88,11 @@ export async function importAnimations(
     if (content.animations.length > 0) {
         setTimeout(() => {
             try {
-                if (content.animations[0] && typeof content.animations[0].select === 'function') {
-                    content.animations[0].select();
+                const firstAnim = content.animations[0];
+                if (firstAnim && typeof firstAnim.select === 'function') {
+                    firstAnim.select();
                 }
             } catch (e) {}
-
-            const Animator = (window as any).Animator;
-            if (Animator) {
-                if (typeof Animator.updateContent === 'function') Animator.updateContent();
-                if (typeof Animator.updateApp === 'function') Animator.updateApp();
-            }
-            if ((window as any).Timeline?.update) (window as any).Timeline.update();
         }, 100);
     }
 }
@@ -123,14 +117,14 @@ function processTrack(
 
     let element = nodeToElementMap.get(targetName);
     if (!element) {
-        element = (window as any).Outliner?.all.find((el: any) => el.name === targetName);
+        element = Outliner?.elements.find((el: any) => el.name === targetName);
     }
 
     if (!element) {
         const nodeIndexMatch = targetName.match(/^node_(\d+)$/);
         if (nodeIndexMatch) {
             const index = parseInt(nodeIndexMatch[1], 10);
-            element = (window as any).Outliner?.all.find((el: any) =>
+            element = Outliner?.elements.find((el: any) =>
                 (el.userData && el.userData.gltfIndex === index)
             );
         }
@@ -163,7 +157,6 @@ function processTrack(
         }
     } else if (property === 'rotation') {
         const resting_rotation = element.userData.gltfRotation || [0, 0, 0];
-        const THREE = (window as any).THREE;
 
         // Track the previous frame's absolute euler to ensure smooth continuity
         let prev_euler: THREE.Vector3 | null = null;
@@ -212,7 +205,7 @@ function addKeyframeToAnimator(
     property: string,
     value: any
 ): void {
-    const KeyframeClass = (window as any).Keyframe;
+    const KeyframeClass = Keyframe;
     if (!animator) return;
 
     // Ensure animator structure is correct for the Keyframe constructor
@@ -231,7 +224,7 @@ function addKeyframeToAnimator(
     }
 
     // Format data points for Blockbench KeyframeDataPoint.extend
-    let data_point: any = {};
+    let data_point: any;
     if (Array.isArray(value) && value.length === 3) {
         data_point = { x: value[0].toString(), y: value[1].toString(), z: value[2].toString() };
     } else {
@@ -284,7 +277,7 @@ function getAnimatorForElement(element: any, bbAnimation: any): any {
         bbAnimation.animators = {};
     }
 
-    let animator = null;
+    let animator;
     const id = element.uuid;
 
     if (bbAnimation.animators instanceof Map) {
@@ -295,7 +288,7 @@ function getAnimatorForElement(element: any, bbAnimation: any): any {
 
     if (!animator) {
         // Try to use the element's preferred animator class
-        const AnimatorClass = element.constructor.animator || (window as any).GeneralAnimator || (window as any).BoneAnimator;
+        const AnimatorClass = element.constructor.animator || GeneralAnimator || BoneAnimator;
         if (typeof AnimatorClass === 'function') {
             console.log(`[gltf_importer]: Manually creating animator for ${element.name} using ${AnimatorClass.name}`);
 
@@ -318,7 +311,7 @@ function getAnimatorForElement(element: any, bbAnimation: any): any {
 }
 
 function parseTrackName(trackName: string, nodeToElementMap: Map<string, any>): { targetName: string; property: string; morphIndex?: number } | null {
-    const match = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?\]\.(position|quaternion|scale|rotation|weights)/) ||
+    const match = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.(position|quaternion|scale|rotation|weights)/) ||
         trackName.match(/^(.+?)\.(position|quaternion|scale|rotation|weights)/);
 
     if (match) {
@@ -332,8 +325,8 @@ function parseTrackName(trackName: string, nodeToElementMap: Map<string, any>): 
         return { targetName: target, property: property === 'quaternion' ? 'rotation' : property };
     }
 
-    const morphMatch = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?\]\.morphTargetInfluences\[(\d+)\]/) ||
-        trackName.match(/^(.+?)\.morphTargetInfluences\[(\d+)\]/);
+    const morphMatch = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.morphTargetInfluences\[(\d+)]/) ||
+        trackName.match(/^(.+?)\.morphTargetInfluences\[(\d+)]/);
     if (morphMatch) {
         let target = morphMatch[1];
         if (/^\d+$/.test(target)) target = `node_${target}`;

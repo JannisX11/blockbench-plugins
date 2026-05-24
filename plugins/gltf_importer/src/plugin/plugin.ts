@@ -10,7 +10,7 @@ BBPlugin.register('gltf_importer', {
     description:   'Import .GLTF and .GLB models',
     icon:          'icon.png',
     creation_date: '2025-09-25',
-    version:       '1.1.0',
+    version:       '1.2.0',
     variant:       'desktop',
     min_version:   '4.12.6',
     has_changelog: false,   

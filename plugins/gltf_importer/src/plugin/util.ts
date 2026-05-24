@@ -44,9 +44,11 @@ export function makeEulerContinuous(currentDegree: number, previousDegree: numbe
     return previousDegree + diff;
 }
 
+export function isStringNumber(str: string): boolean {
+    return !isNaN(Number(str));
+}
+
 export function eulerDegreesFromQuat(quat: THREE.Quaternion, order: THREE.EulerOrder = 'XYZ'): THREE.Vector3 {
-    const THREE = (window as any).THREE;
     const euler = new THREE.Euler().setFromQuaternion(quat, order);
-    const degrees = new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180/Math.PI);
-    return degrees;
+    return new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
 }

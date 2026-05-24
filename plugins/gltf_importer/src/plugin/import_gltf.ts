@@ -1,7 +1,14 @@
-import { GLTF, parseGltf } from './parse_gltf';
-import { arrayEquals, eulerDegreesFromQuat, imageBitmapToDataUri, modulo, valuesAndIndices } from './util';
-import { VectorHashMap } from './vector_hash_map';
-import { importAnimations } from './animations';
+import {type GLTF, parseGltf} from './parse_gltf';
+import {
+    arrayEquals,
+    eulerDegreesFromQuat,
+    imageBitmapToDataUri,
+    isStringNumber,
+    modulo,
+    valuesAndIndices
+} from './util';
+import {VectorHashMap} from './vector_hash_map';
+import {importAnimations} from './animations';
 
 export type ImportOptions = {
     file: Filesystem.FileResult,
@@ -19,7 +26,7 @@ export type ImportedContent = {
     groups:     Group[],
     elements:   OutlinerElement[],
     textures:   Texture[],
-    animations: BBAnimation[],
+    animations: _Animation[],
     // Used for displaying warnings
     uvOutOfBounds:         boolean,
     usesRepeatingWrapMode: boolean,
@@ -46,7 +53,7 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
         gltf.scene.updateMatrixWorld(true);
     }
 
-    const project = (window as any).Project;
+    const project = Project;
     const fps = project?.fps || 24;
     console.log(`[gltf_importer]: Starting import into project. Format: ${project?.format?.id || 'none'}. FPS: ${fps}`);
 
@@ -72,19 +79,20 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
             outliner: true,
             selection: true,
             textures: content.textures,
-            animations: (window as any).Project?.animations || [],
+            animations: Project?.animations || [],
         });
     }
 
     // Navigate node tree and import what we find
     let sceneRoot = gltf.scene as unknown as THREE.Group;
 
-    sceneRoot.traverse((node, index) => {
-        node.userData.gltfIndex = index;
+    let nodeIndex = 0;
+    sceneRoot.traverse((node) => {
+        node.userData.gltfIndex = nodeIndex++;
     });
 
     // Start recursive import with (0,0,0) as the base parent origin
-    importNode(sceneRoot, options, content, new THREE.Vector3());
+    importNode(sceneRoot, options, content);
 
     if (options.animations) {
         await importAnimations(gltf, options, content, content.nodeToElementMap);
@@ -96,15 +104,9 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
 
     if (content.animations.length > 0) {
         console.log(`[gltf_importer]: Finalizing ${content.animations.length} animations`);
-        if ((window as any).Animator) {
-            if (typeof (window as any).Animator.updateContent === 'function') (window as any).Animator.updateContent();
-            if (typeof (window as any).Animator.updateApp === 'function') (window as any).Animator.updateApp();
-        }
-        if ((window as any).Timeline && typeof (window as any).Timeline.update === 'function') {
-            (window as any).Timeline.update();
-        }
 
-        if (!(window as any).Animation.selected && content.animations.length > 0) {
+        const AnimationClass = (window as any).Animation;
+        if (AnimationClass && !AnimationClass.selected && content.animations.length > 0) {
             content.animations[0].select();
         }
     }
@@ -119,31 +121,29 @@ export async function importGltf(options: ImportOptions): Promise<ImportedConten
     if (options.undoable)
         Undo.finishEdit('Import glTF');
 
-    if (typeof (window as any).Canvas?.updateAll === 'function') {
-        (window as any).Canvas.updateAll()
+    if (typeof Canvas?.updateAll === 'function') {
+        Canvas.updateAll();
     }
 
     return content;
 }
 
 // MARK: 🟥 node
-function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent, parentOrigin: THREE.Vector3): Group|Mesh|null {
+function importNode(node: THREE.Object3D, options: ImportOptions, content: ImportedContent): Group|Mesh|null {
     // Calculate Absolute Rest-Pose World Origin
     const restWorldPos = getRestWorldPosition(node);
     const currentOrigin = restWorldPos.multiplyScalar(options.scale);
-
-    const localPos = node.position.clone().multiplyScalar(options.scale);
     
     switch (node.type) {
         case 'Group':
             // If this is not the root, it's representing one mesh with multiple primitives
             if (node.parent != undefined)
-                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin, localPos);
+                return importMeshPrimitives(node as THREE.Group, node.children as THREE.Mesh[], options, content, currentOrigin);
         case 'Object3D':
             return importGroup(node, options, content, currentOrigin);
         case 'Mesh':
         case 'SkinnedMesh':
-            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin, localPos);
+            return importSingleMesh(node as THREE.Mesh, options, content, currentOrigin);
         default:
             console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
             return null;
@@ -168,11 +168,11 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
     // Only create outliner group if the option is enabled and if the current node is not the root
     if (options.groups && !isRoot) {
         const groupName = node.userData.name || node.name || 'group';
-        const groupOrigin = currentOrigin.toArray().map(round);
+        const groupOrigin = currentOrigin.toArray().map(round) as ArrayVector3;
         // Use 'ZXY' order for groups
-        const groupRotation = eulerDegreesFromQuat(node.quaternion, 'ZYX').toArray().map(round);
+        const groupRotation = eulerDegreesFromQuat(node.quaternion, 'ZYX').toArray().map(round) as ArrayVector3;
 
-        group = new (window as any).Group({
+        group = new Group({
             name: groupName,
             origin: groupOrigin,
             rotation: groupRotation,
@@ -201,7 +201,7 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 
     // Child nodes
     for (let child of node.children) {
-        let result = importNode(child, options, content, currentOrigin);
+        let result = importNode(child, options, content);
         result?.addTo(group ?? 'root');
     }
 
@@ -210,22 +210,22 @@ function importGroup(node: THREE.Object3D, options: ImportOptions, content: Impo
 
 // MARK: 🟥 mesh
 
-function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, localPos: THREE.Vector3): Mesh {
-    return importMeshPrimitives(node, [node], options, content, currentOrigin, localPos);
+function importSingleMesh(node: THREE.Mesh, options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin);
 }
 
 // Meshes in glTFs are made of one or more primitives which can have different materials
 // THREE.js turns this into a Group with multiple meshes
 // In Blockbench we would like this to be one mesh again, and just set the different textures on the faces
 // We also de-duplicate vertices across primitives
-function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3, localPos: THREE.Vector3): Mesh {
+function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], options: ImportOptions, content: ImportedContent, currentOrigin: THREE.Vector3): Mesh {
 
     const meshName = node.userData.name || node.name || 'mesh';
-    const meshOrigin = currentOrigin.toArray().map(round);
+    const meshOrigin = currentOrigin.toArray().map(round) as ArrayVector3;
 
     const meshRotation = eulerDegreesFromQuat(node.quaternion, 'XYZ').toArray().map(round) as ArrayVector3;
 
-    let mesh = new (window as any).Mesh({
+    let mesh = new Mesh({
         name: meshName,
         origin: meshOrigin,
         rotation:  meshRotation,
@@ -233,11 +233,11 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     });
 
     console.log(`[gltf_importer]: Created Mesh: ${meshName}, Origin: (${meshOrigin.join(', ')}), Rotation: (${meshRotation.join(', ')})`);
-    if (!mesh.userData) mesh.userData = {};
-
-    mesh.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
-    mesh.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, 'XYZ').toArray().map(round); // Also use 'XYZ' for userData
-    mesh.userData.gltfScale = node.scale.clone().toArray().map(round);
+    
+    const userData = (mesh as any).userData = (mesh as any).userData || {};
+    userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
+    userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, 'XYZ').toArray().map(round); // Also use 'XYZ' for userData
+    userData.gltfScale = node.scale.clone().toArray().map(round);
 
     content.elements.push(mesh);
 
@@ -246,9 +246,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     if (node.name) content.nodeToElementMap.set(node.name, mesh);
     if (node.uuid) content.nodeToElementMap.set(node.uuid, mesh);
     if (node.userData.gltfIndex !== undefined) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, mesh);
-
-    let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
-
+    
     // Lookup of primitive to texture
     let primitiveTextures = primitives.map(p => importTexture((p.material as any), options, content));
 
@@ -300,7 +298,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
         }
     }
 
-    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => (window as any).bbuid(4));
+    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => guid());
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v,i) => [vertexKeys[i], v]));
     let faces: MeshFace[] = [];
 
@@ -411,7 +409,7 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
             // If not quad, create new face
             if (!facesMergedIntoQuad) {
-                faces.push(new (window as any).MeshFace(mesh, {
+                faces.push(new MeshFace(mesh, {
                     vertices: faceVertexKeys,
                     uv: uv,
                     texture: texture,
@@ -440,8 +438,7 @@ async function prepareTextureCacheKeys(gltf: GLTF): Promise<{[textureId: string]
     // Strip suffix (probably the sampler index or something, don't care)
     let cacheKeys = Object.keys(textureCache).map(key => key.substring(0, key.lastIndexOf(':')));
 
-    let textureCacheKeys = Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
-    return textureCacheKeys;
+    return Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
 }
 
 function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, options: ImportOptions, content: ImportedContent): Texture|undefined {
@@ -472,12 +469,12 @@ function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, opti
             console.warn('Imported texture has unknown format: ', threeTexture.image);
         } else {
             let dataUri = imageBitmapToDataUri(threeTexture.image, 'image/png', 1);
-            bbTexture = new (window as any).Texture().fromDataURL(dataUri);
+            bbTexture = new Texture().fromDataURL(dataUri);
         }
 
         // Embededd data uri
     } else if (cacheKey.startsWith('data:')) {
-        bbTexture = new (window as any).Texture().fromDataURL(cacheKey);
+        bbTexture = new Texture().fromDataURL(cacheKey);
 
         // Otherwise the texture is from a file
     } else {
@@ -487,12 +484,12 @@ function importTexture(threeMaterial: THREE.MeshStandardMaterial|undefined, opti
     // TODO: are we sure it cant still be some other stupid thing?
 
     if (bbTexture != undefined) {
-        bbTexture.name = threeTexture.name || 'texture',
+        bbTexture.name = threeTexture.name || 'texture'
             bbTexture.add(false);
         content.textures.push(bbTexture);
 
         // Make double-sided if necesary
-        if (threeMaterial?.side !== THREE.FrontSide && bbTexture != undefined)
+        if (threeMaterial?.side !== THREE.FrontSide)
             bbTexture.render_sides = 'double';
     }
 
