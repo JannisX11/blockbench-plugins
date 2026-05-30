@@ -1534,5 +1534,19 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"sb_worn_display": {
+		"title": "SB Worn Display Editor",
+		"author": "hrmcngs",
+		"icon": "backpack",
+		"description": "Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.",
+		"tags": ["Minecraft: Java Edition", "Modeling"],
+		"version": "4.2.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"website": "https://github.com/hrmcngs/sb-worn-display-blockbench",
+		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
+		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
+		"creation_date": "2026-05-31"
 	}
 }
