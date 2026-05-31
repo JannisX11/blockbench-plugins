@@ -2265,13 +2265,11 @@
   async function parseGltf(file) {
     let loadingManager = new THREE.LoadingManager();
     let gltfLoader = createGltfLoader(loadingManager);
-    let gltf = await parseGltfWithLoader(gltfLoader, file);
-    return gltf;
+    return await parseGltfWithLoader(gltfLoader, file);
   }
   function createGltfLoader(loadingManager = void 0) {
     let _GLTFLoaderClass = THREE["GLTFLoader"];
-    let loader = new _GLTFLoaderClass(loadingManager);
-    return loader;
+    return new _GLTFLoaderClass(loadingManager);
   }
   function parseGltfWithLoader(loader, file) {
     return new Promise((resolve, reject) => loader.parse(file.content, PathModule.dirname(file.path) + PathModule.sep, resolve, reject));
@@ -2304,8 +2302,18 @@
   function modulo(a, b) {
     return (a % b + b) % b;
   }
-  function eulerDegreesFromQuat(quat) {
-    return new THREE.Euler().setFromQuaternion(quat).toVector3().multiplyScalar(180 / Math.PI);
+  function makeEulerContinuous(currentDegree, previousDegree) {
+    let diff = currentDegree - previousDegree;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+    return previousDegree + diff;
+  }
+  function isStringNumber(str) {
+    return !isNaN(Number(str));
+  }
+  function eulerDegreesFromQuat(quat, order = "XYZ") {
+    const euler = new THREE.Euler().setFromQuaternion(quat, order);
+    return new THREE.Vector3(euler.x, euler.y, euler.z).multiplyScalar(180 / Math.PI);
   }
 
   // plugin/vector_hash_map.ts
@@ -2352,13 +2360,268 @@
       return this.backingMap[this.getHashCode(key)];
     }
     getKeyValuePair(key) {
-      return this.getBucket(key)?.find(([k, v]) => k.every((c, i) => c === key[i]));
+      return this.getBucket(key)?.find(([k]) => k.every((c, i) => c === key[i]));
     }
   };
 
+  // plugin/animations.ts
+  async function importAnimations(gltf, options, content, nodeToElementMap) {
+    let fps = Project?.fps || 24;
+    if (typeof fps !== "number") fps = 24;
+    if (typeof Animation === "undefined") {
+      console.error("[gltf_importer]: Blockbench Animation class not found!");
+      return;
+    }
+    const AnimationClass = window.Animation;
+    if (gltf.animations && gltf.animations.length > 0) {
+      for (let i = 0; i < gltf.animations.length; i++) {
+        const clip = gltf.animations[i];
+        console.log(`[gltf_importer]: Processing glTF animation: "${clip.name || i}" (${clip.tracks.length} tracks)`);
+        const bbAnimation = new AnimationClass({
+          name: clip.name || `animation_${i}`,
+          length: clip.duration || 0
+        }).add();
+        if (typeof bbAnimation.init === "function") bbAnimation.init();
+        const project = Project;
+        if (project?.animations && !project.animations.includes(bbAnimation)) {
+          project.animations.push(bbAnimation);
+        }
+        console.log(`[gltf_importer]: Created animation: "${bbAnimation.name}", length: ${bbAnimation.length}s`);
+        for (const track of clip.tracks) {
+          processTrack(track, bbAnimation, nodeToElementMap, fps, options);
+        }
+        if (getAnimatorCount(bbAnimation) > 0) {
+          content.animations.push(bbAnimation);
+        } else {
+          console.warn(`[gltf_importer]: No matching elements found for animation "${bbAnimation.name}"`);
+          bbAnimation.remove();
+        }
+      }
+    }
+    const sceneRoot = gltf.scene;
+    if (sceneRoot) {
+      sceneRoot.traverse((node) => {
+        if (node.animations && node.animations.length > 0) {
+          for (let i = 0; i < node.animations.length; i++) {
+            const clip = node.animations[i];
+            const bbAnimation = new AnimationClass({
+              name: clip.name || `${node.name || "node"}_anim_${i}`,
+              length: clip.duration || 0
+            }).add();
+            if (typeof bbAnimation.init === "function") bbAnimation.init();
+            const project = Project;
+            if (project?.animations && !project.animations.includes(bbAnimation)) {
+              project.animations.push(bbAnimation);
+            }
+            for (const track of clip.tracks) {
+              processTrack(track, bbAnimation, nodeToElementMap, fps, options);
+            }
+            if (getAnimatorCount(bbAnimation) > 0) {
+              content.animations.push(bbAnimation);
+            } else {
+              bbAnimation.remove();
+            }
+          }
+        }
+      });
+    }
+    if (content.animations.length > 0) {
+      setTimeout(() => {
+        try {
+          const firstAnim = content.animations[0];
+          if (firstAnim && typeof firstAnim.select === "function") {
+            firstAnim.select();
+          }
+        } catch (e) {
+        }
+      }, 100);
+    }
+  }
+  function getAnimatorCount(bbAnimation) {
+    if (!bbAnimation.animators) return 0;
+    if (bbAnimation.animators instanceof Map) return bbAnimation.animators.size;
+    return Object.keys(bbAnimation.animators).length;
+  }
+  function processTrack(track, bbAnimation, nodeToElementMap, fps, options) {
+    const trackNameParts = parseTrackName(track.name, nodeToElementMap);
+    if (!trackNameParts) return;
+    const { targetName, property, morphIndex } = trackNameParts;
+    let element = nodeToElementMap.get(targetName);
+    if (!element) {
+      element = Outliner?.elements.find((el) => el.name === targetName);
+    }
+    if (!element) {
+      const nodeIndexMatch = targetName.match(/^node_(\d+)$/);
+      if (nodeIndexMatch) {
+        const index = parseInt(nodeIndexMatch[1], 10);
+        element = Outliner?.elements.find(
+          (el) => el.userData && el.userData.gltfIndex === index
+        );
+      }
+    }
+    if (!element || element.type !== "group") {
+      return;
+    }
+    let animator = getAnimatorForElement(element, bbAnimation);
+    if (!animator) return;
+    if (property === "position") {
+      const resting_local_pos = element.userData.gltfTranslation || [0, 0, 0];
+      for (let i = 0; i < track.times.length; i++) {
+        const gltf_pos = [
+          track.values[i * 3] * options.scale,
+          track.values[i * 3 + 1] * options.scale,
+          track.values[i * 3 + 2] * options.scale
+        ];
+        const val = [
+          Math.roundTo(gltf_pos[0] - resting_local_pos[0], 4),
+          Math.roundTo(gltf_pos[1] - resting_local_pos[1], 4),
+          Math.roundTo(gltf_pos[2] - resting_local_pos[2], 4)
+        ];
+        addKeyframeToAnimator(animator, track.times[i], "position", val);
+      }
+    } else if (property === "rotation") {
+      const resting_rotation = element.userData.gltfRotation || [0, 0, 0];
+      let prev_euler = null;
+      for (let i = 0; i < track.times.length; i++) {
+        const quat = new THREE.Quaternion(track.values[i * 4], track.values[i * 4 + 1], track.values[i * 4 + 2], track.values[i * 4 + 3]);
+        const euler = eulerDegreesFromQuat(quat, "ZYX");
+        if (prev_euler) {
+          euler.x = makeEulerContinuous(euler.x, prev_euler.x);
+          euler.y = makeEulerContinuous(euler.y, prev_euler.y);
+          euler.z = makeEulerContinuous(euler.z, prev_euler.z);
+        }
+        prev_euler = { x: euler.x, y: euler.y, z: euler.z };
+        const val = [
+          Math.roundTo(euler.x - resting_rotation[0], 4),
+          Math.roundTo(euler.y - resting_rotation[1], 4),
+          Math.roundTo(euler.z - resting_rotation[2], 4)
+        ];
+        addKeyframeToAnimator(animator, track.times[i], "rotation", val);
+      }
+    } else if (property === "scale") {
+      const resting_scale = element.userData.gltfScale || [1, 1, 1];
+      for (let i = 0; i < track.times.length; i++) {
+        const val = [
+          Math.roundTo(track.values[i * 3] / resting_scale[0], 4),
+          Math.roundTo(track.values[i * 3 + 1] / resting_scale[1], 4),
+          Math.roundTo(track.values[i * 3 + 2] / resting_scale[2], 4)
+        ];
+        addKeyframeToAnimator(animator, track.times[i], "scale", val);
+      }
+    } else if (property === "morphTargetInfluences" || property === "weights") {
+      for (let i = 0; i < track.times.length; i++) {
+        addKeyframeToAnimator(animator, track.times[i], `morph_${morphIndex || 0}`, Math.roundTo(track.values[i], 4));
+      }
+    }
+  }
+  function addKeyframeToAnimator(animator, time, property, value) {
+    const KeyframeClass = Keyframe;
+    if (!animator) return;
+    if (!animator.channels) animator.channels = {};
+    if (!animator.channels[property]) {
+      animator.channels[property] = {
+        name: property,
+        transform: ["position", "rotation", "scale"].includes(property),
+        keyframes: []
+      };
+    }
+    if (!Array.isArray(animator[property])) {
+      animator[property] = [];
+    }
+    let data_point;
+    if (Array.isArray(value) && value.length === 3) {
+      data_point = { x: value[0].toString(), y: value[1].toString(), z: value[2].toString() };
+    } else {
+      data_point = { x: value.toString(), y: value.toString(), z: value.toString() };
+    }
+    const keyframe_data = {
+      channel: property,
+      time,
+      data_points: [data_point]
+    };
+    if (typeof animator.addKeyframe === "function") {
+      try {
+        animator.addKeyframe(keyframe_data);
+        return;
+      } catch (e) {
+      }
+    }
+    if (KeyframeClass) {
+      try {
+        const keyframe = new KeyframeClass(keyframe_data, null, animator);
+        if (!animator[property].includes(keyframe)) {
+          animator[property].push(keyframe);
+        }
+      } catch (e) {
+        console.error(`[gltf_importer]: Keyframe creation failed for ${property}:`, e);
+      }
+    }
+  }
+  function getAnimatorForElement(element, bbAnimation) {
+    if (!element || !bbAnimation) return null;
+    if (typeof bbAnimation.getBoneAnimator === "function") {
+      try {
+        return bbAnimation.getBoneAnimator(element);
+      } catch (e) {
+      }
+    }
+    if (!bbAnimation.animators) {
+      bbAnimation.animators = {};
+    }
+    let animator;
+    const id = element.uuid;
+    if (bbAnimation.animators instanceof Map) {
+      animator = bbAnimation.animators.get(id);
+    } else {
+      animator = bbAnimation.animators[id];
+    }
+    if (!animator) {
+      const AnimatorClass = element.constructor.animator || GeneralAnimator || BoneAnimator;
+      if (typeof AnimatorClass === "function") {
+        console.log(`[gltf_importer]: Manually creating animator for ${element.name} using ${AnimatorClass.name}`);
+        animator = new AnimatorClass(id, bbAnimation);
+        if (!animator.animation) animator.animation = bbAnimation;
+        if (bbAnimation.animators instanceof Map) {
+          bbAnimation.animators.set(id, animator);
+        } else {
+          bbAnimation.animators[id] = animator;
+        }
+        if (typeof animator.init === "function") animator.init();
+      }
+    }
+    return animator;
+  }
+  function parseTrackName(trackName, nodeToElementMap) {
+    const match = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.(position|quaternion|scale|rotation|weights)/) || trackName.match(/^(.+?)\.(position|quaternion|scale|rotation|weights)/);
+    if (match) {
+      let target = match[1];
+      let property = match[2];
+      if (/^\d+$/.test(target)) target = `node_${target}`;
+      if (target.includes(".")) {
+        const parts = target.split(".");
+        target = nodeToElementMap.has(parts[0]) ? parts[0] : parts[parts.length - 1];
+      }
+      return { targetName: target, property: property === "quaternion" ? "rotation" : property };
+    }
+    const morphMatch = trackName.match(/(?:^|\.)(?:nodes|bones)\["?(.*?)"?]\.morphTargetInfluences\[(\d+)]/) || trackName.match(/^(.+?)\.morphTargetInfluences\[(\d+)]/);
+    if (morphMatch) {
+      let target = morphMatch[1];
+      if (/^\d+$/.test(target)) target = `node_${target}`;
+      return { targetName: target, property: "morphTargetInfluences", morphIndex: parseInt(morphMatch[2]) };
+    }
+    return null;
+  }
+
   // plugin/import_gltf.ts
+  var round = (n) => Math.round(n * 1e4) / 1e4;
   async function importGltf(options) {
     let gltf = await parseGltf(options.file);
+    if (gltf.scene) {
+      gltf.scene.updateMatrixWorld(true);
+    }
+    const project = Project;
+    const fps = project?.fps || 24;
+    console.log(`[gltf_importer]: Starting import into project. Format: ${project?.format?.id || "none"}. FPS: ${fps}`);
     if (options.cameras === "NOT_INSTALLED" && gltf.cameras.length !== 0)
       return "UNSUPPORTED_CAMERAS";
     let content = {
@@ -2370,22 +2633,34 @@
       usesRepeatingWrapMode: false,
       unsupportedArmatures: false,
       texturesById: {},
-      textureCacheKeys: await prepareTextureCacheKeys(gltf)
+      textureCacheKeys: await prepareTextureCacheKeys(gltf),
+      nodeToElementMap: /* @__PURE__ */ new Map()
     };
     if (options.undoable) {
-      let rootGroup = Outliner.root.find((n) => n instanceof Group);
       Undo.initEdit({
         outliner: true,
         selection: true,
-        group: rootGroup,
-        elements: content.elements,
         textures: content.textures,
-        animations: content.animations
+        animations: Project?.animations || []
       });
     }
     let sceneRoot = gltf.scene;
+    let nodeIndex = 0;
+    sceneRoot.traverse((node) => {
+      node.userData.gltfIndex = nodeIndex++;
+    });
     importNode(sceneRoot, options, content);
+    if (options.animations) {
+      await importAnimations(gltf, options, content, content.nodeToElementMap);
+    }
     content.usesRepeatingWrapMode = gltf.parser.json.samplers?.some((s) => s.wrapS == void 0 || s.wrapT == void 0 || s.wrapS === 10497 || s.wrapT === 10497) ?? false;
+    if (content.animations.length > 0) {
+      console.log(`[gltf_importer]: Finalizing ${content.animations.length} animations`);
+      const AnimationClass = window.Animation;
+      if (AnimationClass && !AnimationClass.selected && content.animations.length > 0) {
+        content.animations[0].select();
+      }
+    }
     if (options.selectResult) {
       Outliner.selected.empty();
       Outliner.selected.push(...content.elements);
@@ -2394,38 +2669,63 @@
     }
     if (options.undoable)
       Undo.finishEdit("Import glTF");
+    if (typeof Canvas?.updateAll === "function") {
+      Canvas.updateAll();
+    }
     return content;
   }
   function importNode(node, options, content) {
+    const restWorldPos = getRestWorldPosition(node);
+    const currentOrigin = restWorldPos.multiplyScalar(options.scale);
     switch (node.type) {
       case "Group":
         if (node.parent != void 0)
-          return importMeshPrimitives(node, node.children, options, content);
-      // else it's the root, treat as group
-      // fall through...
+          return importMeshPrimitives(node, node.children, options, content, currentOrigin);
       case "Object3D":
-        return importGroup(node, options, content);
+        return importGroup(node, options, content, currentOrigin);
       case "Mesh":
       case "SkinnedMesh":
-        return importSingleMesh(node, options, content);
+        return importSingleMesh(node, options, content, currentOrigin);
       default:
         console.warn(`[gltf_importer]: Skipping unknown node type "${node.type}"`);
         return null;
     }
   }
-  function importGroup(node, options, content) {
+  function getRestWorldPosition(node) {
+    let pos = new THREE.Vector3();
+    let current = node;
+    while (current) {
+      pos.add(current.position);
+      current = current.parent;
+    }
+    return pos;
+  }
+  function importGroup(node, options, content, currentOrigin) {
     let isRoot = node.parent == void 0;
     let group = null;
     if (options.groups && !isRoot) {
+      const groupName = node.userData.name || node.name || "group";
+      const groupOrigin = currentOrigin.toArray().map(round);
+      const groupRotation = eulerDegreesFromQuat(node.quaternion, "ZYX").toArray().map(round);
       group = new Group({
-        name: node.userData.name || node.name || "group",
-        origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
-        rotation: eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray()
+        name: groupName,
+        origin: groupOrigin,
+        rotation: groupRotation
       });
       group.init();
+      console.log(`[gltf_importer]: Created Group: ${groupName}, Origin: (${groupOrigin.join(", ")}), Rotation: (${groupRotation.join(", ")})`);
+      if (!group.userData) group.userData = {};
+      group.userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
+      group.userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "ZYX").toArray().map(round);
+      group.userData.gltfScale = node.scale.clone().toArray().map(round);
       group.createUniqueName();
       group.openUp();
       content.groups.push(group);
+      const name = node.userData.name || node.name || "group";
+      content.nodeToElementMap.set(name, group);
+      if (node.name) content.nodeToElementMap.set(node.name, group);
+      if (node.uuid) content.nodeToElementMap.set(node.uuid, group);
+      if (node.userData.gltfIndex !== void 0) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, group);
     }
     for (let child of node.children) {
       let result = importNode(child, options, content);
@@ -2433,18 +2733,30 @@
     }
     return group;
   }
-  function importSingleMesh(node, options, content) {
-    return importMeshPrimitives(node, [node], options, content);
+  function importSingleMesh(node, options, content, currentOrigin) {
+    return importMeshPrimitives(node, [node], options, content, currentOrigin);
   }
-  function importMeshPrimitives(node, primitives, options, content) {
+  function importMeshPrimitives(node, primitives, options, content, currentOrigin) {
+    const meshName = node.userData.name || node.name || "mesh";
+    const meshOrigin = currentOrigin.toArray().map(round);
+    const meshRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
     let mesh = new Mesh({
-      name: node.userData.name || node.name || "mesh",
-      origin: node.getWorldPosition(new THREE.Vector3()).multiplyScalar(options.scale).toArray(),
-      rotation: eulerDegreesFromQuat(node.getWorldQuaternion(new THREE.Quaternion())).toArray(),
+      name: meshName,
+      origin: meshOrigin,
+      rotation: meshRotation,
       vertices: {}
     });
+    console.log(`[gltf_importer]: Created Mesh: ${meshName}, Origin: (${meshOrigin.join(", ")}), Rotation: (${meshRotation.join(", ")})`);
+    const userData = mesh.userData = mesh.userData || {};
+    userData.gltfTranslation = node.position.clone().multiplyScalar(options.scale).toArray().map(round);
+    userData.gltfRotation = eulerDegreesFromQuat(node.quaternion, "XYZ").toArray().map(round);
+    userData.gltfScale = node.scale.clone().toArray().map(round);
     content.elements.push(mesh);
-    let scale = node.getWorldScale(new THREE.Vector3()).multiplyScalar(options.scale);
+    const name = node.userData.name || node.name || "mesh";
+    content.nodeToElementMap.set(name, mesh);
+    if (node.name) content.nodeToElementMap.set(node.name, mesh);
+    if (node.uuid) content.nodeToElementMap.set(node.uuid, mesh);
+    if (node.userData.gltfIndex !== void 0) content.nodeToElementMap.set(`node_${node.userData.gltfIndex}`, mesh);
     let primitiveTextures = primitives.map((p) => importTexture(p.material, options, content));
     let uniqueVertices = [];
     let uniqueVertexIndices = new VectorHashMap();
@@ -2455,10 +2767,13 @@
         let x = primitive.geometry.attributes.position.array[vertexIndex * 3];
         let y = primitive.geometry.attributes.position.array[vertexIndex * 3 + 1];
         let z = primitive.geometry.attributes.position.array[vertexIndex * 3 + 2];
+        const vertexVec = new THREE.Vector3(x, y, z);
+        vertexVec.multiply(node.scale);
+        vertexVec.multiplyScalar(options.scale);
         let vertex = [
-          x * scale.x,
-          y * scale.y,
-          z * scale.z
+          vertexVec.x,
+          vertexVec.y,
+          vertexVec.z
         ];
         if (!uniqueVertexIndices.has(vertex)) {
           let newUniqueVertexIndex = uniqueVertices.push(vertex) - 1;
@@ -2467,7 +2782,7 @@
         primitiveToUniqueVertexIndices[primitiveIndex].push(uniqueVertexIndices.get(vertex));
       }
     }
-    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => bbuid(4));
+    let vertexKeys = Array.from({ length: uniqueVertices.length }, () => guid());
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v, i) => [vertexKeys[i], v]));
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
@@ -2546,8 +2861,7 @@
     let textureCache = gltf.parser.textureCache;
     let textures = await Promise.all(Object.values(textureCache));
     let cacheKeys = Object.keys(textureCache).map((key) => key.substring(0, key.lastIndexOf(":")));
-    let textureCacheKeys = Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
-    return textureCacheKeys;
+    return Object.fromEntries(cacheKeys.map((key, i) => [textures[i].uuid, key]));
   }
   function importTexture(threeMaterial, options, content) {
     let threeTexture = threeMaterial?.map;
@@ -2573,12 +2887,13 @@
       bbTexture = new Texture().fromDataURL(cacheKey);
     } else {
       let absoluteTexturePath = PathModule.join(PathModule.dirname(options.file.path), cacheKey);
-      bbTexture = new Texture().fromPath(absoluteTexturePath);
+      bbTexture = new window.Texture().fromPath(absoluteTexturePath);
     }
     if (bbTexture != void 0) {
-      bbTexture.name = threeTexture.name || "texture", bbTexture.add(false);
+      bbTexture.name = threeTexture.name || "texture";
+      bbTexture.add(false);
       content.textures.push(bbTexture);
-      if (threeMaterial?.side !== THREE.FrontSide && bbTexture != void 0)
+      if (threeMaterial?.side !== THREE.FrontSide)
         bbTexture.render_sides = "double";
     }
     content.texturesById[threeTexture.uuid] = bbTexture;
@@ -2592,7 +2907,7 @@
     description: "Import .GLTF and .GLB models",
     icon: "icon.png",
     creation_date: "2025-09-25",
-    version: "1.1.0",
+    version: "1.2.0",
     variant: "desktop",
     min_version: "4.12.6",
     has_changelog: false,
@@ -2644,11 +2959,11 @@
           //     label: 'Import Cameras',
           //     value: isPluginInstalled('cameras'),
           // },
-          // ['animations']: {
-          //     type: 'checkbox',
-          //     label: 'Import Animations',
-          //     value: true,
-          // },
+          ["animations"]: {
+            type: "checkbox",
+            label: "Import Animations",
+            value: true
+          },
           // ['quads']: {
           //     type: 'checkbox',
           //     label: 'Merge Quads',
@@ -2657,7 +2972,7 @@
           ["info_sep"]: "_",
           ["info"]: {
             type: "info",
-            text: "It is currently not possible to import armatures, animations or cameras."
+            text: "It is currently not possible to import armatures or cameras."
           }
         },
         onConfirm(formOptions) {
