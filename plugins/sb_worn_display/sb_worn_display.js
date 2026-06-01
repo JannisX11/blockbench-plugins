@@ -66,14 +66,19 @@
     // ─── custom slot loader ────────────────────────────────────────────
     // DisplayMode.loadHead() を踏み台にカメラ/Reference バーを設定し
     // その後 slot をカスタムキーに差し替える。
-    function loadCustomSlot(target) {
+    function loadCustomSlot(target, options) {
+        // options.silent     : true なら通知メッセージを出さない
+        // options.autoEnterDisplay : false なら Display モードへの自動切替を抑止
+        // options.skipCameraReset  : true なら DisplayMode.loadHead() をスキップ
+        //                             (タブ切替時に視点が暴れるのを防ぐ)
+        const opts = options || {};
         const p = getProject();
         if (!p) {
-            Blockbench.showQuickMessage('モデルを開いてください', 1500);
+            if (!opts.silent) Blockbench.showQuickMessage('モデルを開いてください', 1500);
             return;
         }
         if (typeof DisplayMode === 'undefined' || !DisplayMode.loadHead) {
-            Blockbench.showQuickMessage('DisplayMode が利用できません', 1500);
+            if (!opts.silent) Blockbench.showQuickMessage('DisplayMode が利用できません', 1500);
             return;
         }
 
@@ -82,17 +87,20 @@
             p.display_settings[target.key] = new DisplaySlot(target.key);
         }
 
-        // Display モードに居ない場合は切替
-        try {
-            if (typeof Modes !== 'undefined' && Modes.options && Modes.options.display && !Modes.display) {
-                Modes.options.display.select();
-            }
-        } catch (e) { }
+        if (opts.autoEnterDisplay !== false) {
+            try {
+                if (typeof Modes !== 'undefined' && Modes.options && Modes.options.display && !Modes.display) {
+                    Modes.options.display.select();
+                }
+            } catch (e) { }
+        }
 
-        try {
-            DisplayMode.loadHead();
-        } catch (e) {
-            console.warn('[' + PLUGIN_ID + '] loadHead failed', e);
+        if (!opts.skipCameraReset) {
+            try {
+                DisplayMode.loadHead();
+            } catch (e) {
+                console.warn('[' + PLUGIN_ID + '] loadHead failed', e);
+            }
         }
 
         DisplayMode.display_slot = target.key;
@@ -107,6 +115,22 @@
         // radio の checked 状態を同期 (Blockbench 本体の :checked ハイライトに乗る)
         const radio = document.getElementById(safeId(target.key));
         if (radio) radio.checked = true;
+    }
+
+    // タブ切替 (select_project) 用: 旧プロジェクトの slot オブジェクトを参照
+    // したまま残ると DisplayMode.updateDisplayBase が古い値を読みに行き、
+    // モデルが変な位置に飛ぶ。新プロジェクトの display_settings に再バインド
+    // するだけの軽量パス。Display モードに居なければ何もしない。
+    function rebindActiveCustomSlot() {
+        if (typeof DisplayMode === 'undefined') return;
+        if (typeof Modes === 'undefined' || !Modes.display) return;
+        const target = TARGETS.find((t) => t.key === DisplayMode.display_slot);
+        if (!target) return;
+        loadCustomSlot(target, {
+            silent: true,
+            autoEnterDisplay: false,
+            skipCameraReset: true,
+        });
     }
 
     // ─── DOM injection: standard Blockbench slot-row format ────────────
@@ -298,7 +322,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.2.1',
+        version: '4.2.2',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -326,12 +350,15 @@
             injectCustomBar();
 
             try {
-                modeListener = () => setTimeout(injectCustomBar, 50);
+                modeListener = () => setTimeout(() => {
+                    injectCustomBar();
+                    rebindActiveCustomSlot();
+                }, 50);
                 Blockbench.on('select_mode', modeListener);
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.2.1 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.2.2 loaded — '
                 + TARGETS.length + ' custom display slots available');
         },
 
