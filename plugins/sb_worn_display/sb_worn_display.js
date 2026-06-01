@@ -117,20 +117,49 @@
         if (radio) radio.checked = true;
     }
 
-    // タブ切替 (select_project) 用: 旧プロジェクトの slot オブジェクトを参照
-    // したまま残ると DisplayMode.updateDisplayBase が古い値を読みに行き、
-    // モデルが変な位置に飛ぶ。新プロジェクトの display_settings に再バインド
-    // するだけの軽量パス。Display モードに居なければ何もしない。
+    // タブ切替 (select_project) 用: 旧プロジェクトの slot オブジェクトを
+    // 参照したまま残ると updateDisplayBase が古い値を読みに行き、モデルが
+    // 変な位置に飛ぶ。新プロジェクトの display_settings に再バインドする。
+    //
+    // 過去版 (v4.2.2) では loadHead をスキップしてカメラリセット回避をして
+    // いたが、loadHead は同時に Reference Model バーの再ポピュレートも
+    // やるため、スキップすると人型モデル (player 等) が消える副作用が出た。
+    // 現実装: loadHead は呼ぶが、その前後でカメラ位置を save/restore して
+    // ユーザーの視点だけは維持する。
     function rebindActiveCustomSlot() {
         if (typeof DisplayMode === 'undefined') return;
         if (typeof Modes === 'undefined' || !Modes.display) return;
         const target = TARGETS.find((t) => t.key === DisplayMode.display_slot);
         if (!target) return;
+
+        // カメラ状態を一時退避
+        let savedPos = null, savedTarget = null;
+        try {
+            if (typeof display_preview !== 'undefined'
+                && display_preview.camPers && display_preview.controls) {
+                savedPos = display_preview.camPers.position.toArray();
+                savedTarget = display_preview.controls.target.toArray();
+            }
+        } catch (e) { }
+
+        // フル再セットアップ (slot + Vue + Reference Model バー)
         loadCustomSlot(target, {
             silent: true,
             autoEnterDisplay: false,
-            skipCameraReset: true,
+            skipCameraReset: false,
         });
+
+        // カメラ視点だけ復元
+        try {
+            if (savedPos && savedTarget
+                && typeof display_preview !== 'undefined'
+                && display_preview.camPers && display_preview.controls) {
+                display_preview.camPers.position.fromArray(savedPos);
+                display_preview.controls.target.fromArray(savedTarget);
+                if (display_preview.controls.update) display_preview.controls.update();
+                if (display_preview.render) display_preview.render();
+            }
+        } catch (e) { }
     }
 
     // ─── DOM injection: standard Blockbench slot-row format ────────────
@@ -322,7 +351,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.2.2',
+        version: '4.2.3',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -358,7 +387,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.2.2 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.2.3 loaded — '
                 + TARGETS.length + ' custom display slots available');
         },
 
