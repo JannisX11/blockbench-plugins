@@ -346,105 +346,127 @@
         ].join('\n');
     }
 
-    function applyImport(sourceDisplay, result) {
+    // 全 TARGETS をループしてチェック済み slot × チェック済み field を一括置換。
+    // ソース側のキーは TARGETS と同名 (= match by key) を採用。
+    // 編集中スロットが置換対象だった場合は Vue を再バインドして slider にも反映。
+    function applyBulkImport(sourceDisplay, result) {
         const p = getProject();
         if (!p) {
             Blockbench.showQuickMessage('モデルを開いてください', 1500);
             return;
         }
-        const src = sourceDisplay[result.sourceKey];
-        if (!src) {
-            Blockbench.showQuickMessage('ソースに対象キー無し: ' + result.sourceKey, 1800);
-            return;
-        }
         if (!p.display_settings) p.display_settings = {};
-        if (!p.display_settings[result.targetKey]) {
-            p.display_settings[result.targetKey] = new DisplaySlot(result.targetKey);
-        }
-        const dst = p.display_settings[result.targetKey];
-        const applied = [];
-        if (result.useRotation && Array.isArray(src.rotation)) {
-            dst.rotation = src.rotation.slice();
-            applied.push('rotation');
-        }
-        if (result.useTranslation && Array.isArray(src.translation)) {
-            dst.translation = src.translation.slice();
-            applied.push('translation');
-        }
-        if (result.useScale && Array.isArray(src.scale)) {
-            dst.scale = src.scale.slice();
-            applied.push('scale');
-        }
-        if (applied.length === 0) {
-            Blockbench.showQuickMessage('何もチェックされていません', 1500);
+
+        const useFields = {
+            rotation: !!result.useRotation,
+            translation: !!result.useTranslation,
+            scale: !!result.useScale,
+        };
+        if (!useFields.rotation && !useFields.translation && !useFields.scale) {
+            Blockbench.showQuickMessage('置換するフィールドが選択されていません', 1800);
             return;
         }
+
+        const detail = [];
+        const replacedKeys = [];
+
+        TARGETS.forEach((target) => {
+            const flag = result['slot_' + safeId(target.key)];
+            if (!flag) return;
+            const src = sourceDisplay[target.key];
+            if (!src) return;
+            if (!p.display_settings[target.key]) {
+                p.display_settings[target.key] = new DisplaySlot(target.key);
+            }
+            const dst = p.display_settings[target.key];
+            const applied = [];
+            ['rotation', 'translation', 'scale'].forEach((f) => {
+                if (useFields[f] && Array.isArray(src[f])) {
+                    dst[f] = src[f].slice();
+                    applied.push(f);
+                }
+            });
+            if (applied.length > 0) {
+                detail.push(target.key + ' ← (' + applied.join(' + ') + ')');
+                replacedKeys.push(target.key);
+            }
+        });
+
+        if (replacedKeys.length === 0) {
+            Blockbench.showQuickMessage('置換対象がありませんでした (ソースに該当キーが無いか、何もチェックされていない)', 2500);
+            return;
+        }
+
         if (p.saved !== undefined) p.saved = false;
+
+        // 編集中スロットが置換対象だった場合、Vue 側の slot 参照も同じオブジェクト
+        // に張り直して slider 値を即時更新する。
+        try {
+            if (typeof DisplayMode !== 'undefined' && DisplayMode.display_slot
+                && replacedKeys.includes(DisplayMode.display_slot)) {
+                const active = p.display_settings[DisplayMode.display_slot];
+                DisplayMode.slot = active;
+                if (DisplayMode.vue && DisplayMode.vue._data) {
+                    DisplayMode.vue._data.slot = active;
+                }
+                if (DisplayMode.vue && DisplayMode.vue.$forceUpdate) DisplayMode.vue.$forceUpdate();
+            }
+        } catch (e) { }
         try { DisplayMode.updateDisplayBase(); } catch (e) { }
-        try { if (DisplayMode.vue && DisplayMode.vue.$forceUpdate) DisplayMode.vue.$forceUpdate(); } catch (e) { }
+
         Blockbench.showQuickMessage(
-            result.targetKey + ' ← ' + result.sourceKey + ' (' + applied.join(' + ') + ')',
-            2800);
+            replacedKeys.length + ' slot 置換完了: ' + detail.join(' / '),
+            3500);
     }
 
     function openImportDialog(sourceDisplay, sourceFileName) {
         const sourceKeys = Object.keys(sourceDisplay);
-        const customKeys = TARGETS.map((t) => t.key);
 
-        // Default target = 現在 Display パネルで選択中のカスタムキー (あれば)
-        let defaultTarget = customKeys[0];
-        if (typeof DisplayMode !== 'undefined'
-            && customKeys.includes(DisplayMode.display_slot)) {
-            defaultTarget = DisplayMode.display_slot;
-        }
-        // Default source = ターゲットと同名キーがあればそれ、無ければ先頭
-        let defaultSource = sourceKeys.includes(defaultTarget) ? defaultTarget : sourceKeys[0];
+        // TARGETS 各キーごとのチェックボックス + ソース有無表示
+        const slotFields = {};
+        const slotInfoLines = [];
+        TARGETS.forEach((target) => {
+            const has = sourceKeys.includes(target.key);
+            const id = 'slot_' + safeId(target.key);
+            slotFields[id] = {
+                label: target.key + (has ? '' : '  — source に無し'),
+                type: 'checkbox',
+                value: has, // ソースに同名キーがあれば初期 ON
+            };
+            slotInfoLines.push((has ? '✓ ' : '✗ ') + target.key
+                + (has ? ' — ' + formatSlotPreview(sourceDisplay[target.key]).split('\n').map(s => s.trim()).join(' / ') : ''));
+        });
 
-        const sourceOptions = {};
-        sourceKeys.forEach((k) => { sourceOptions[k] = k; });
-        const targetOptions = {};
-        customKeys.forEach((k) => { targetOptions[k] = k; });
+        const formDef = {
+            _src_info: {
+                type: 'info',
+                text: 'Source: ' + sourceFileName + '\n\n'
+                    + 'カスタムキー対応状況:\n  ' + slotInfoLines.join('\n  '),
+            },
+            _div0: '_',
+            _fields_label: {
+                type: 'info',
+                text: '取り込むフィールド (全対象スロットに共通):',
+            },
+            useRotation: { label: 'Rotation (X / Y / Z)', type: 'checkbox', value: true },
+            useTranslation: { label: 'Translation (X / Y / Z)', type: 'checkbox', value: true },
+            useScale: { label: 'Scale (X / Y / Z)', type: 'checkbox', value: true },
+            _div1: '_',
+            _slots_label: {
+                type: 'info',
+                text: '置換するターゲットスロット (同名キーから自動取り込み):',
+            },
+        };
+        Object.assign(formDef, slotFields);
 
         const dlg = new Dialog({
             id: 'sb_import_display_dialog',
-            title: 'Import display values from ' + sourceFileName,
-            width: 560,
-            form: {
-                _src_info: {
-                    type: 'info',
-                    text: 'Source file: ' + sourceFileName
-                        + '\nKeys with display data: ' + sourceKeys.join(', '),
-                },
-                sourceKey: {
-                    label: 'Source slot',
-                    type: 'select',
-                    options: sourceOptions,
-                    value: defaultSource,
-                },
-                targetKey: {
-                    label: 'Target slot',
-                    type: 'select',
-                    options: targetOptions,
-                    value: defaultTarget,
-                },
-                _div1: '_',
-                _fields_label: {
-                    type: 'info',
-                    text: 'Replace which fields (checked fields will overwrite):',
-                },
-                useRotation: { label: 'Rotation (X / Y / Z)', type: 'checkbox', value: true },
-                useTranslation: { label: 'Translation (X / Y / Z)', type: 'checkbox', value: true },
-                useScale: { label: 'Scale (X / Y / Z)', type: 'checkbox', value: true },
-                _div2: '_',
-                _preview: {
-                    type: 'info',
-                    text: 'Source values preview (' + defaultSource + '):\n'
-                        + formatSlotPreview(sourceDisplay[defaultSource]),
-                },
-            },
+            title: 'Bulk import display values from ' + sourceFileName,
+            width: 600,
+            form: formDef,
             buttons: ['dialog.confirm', 'dialog.cancel'],
             onConfirm(result) {
-                applyImport(sourceDisplay, result);
+                applyBulkImport(sourceDisplay, result);
                 dlg.hide();
             },
         });
@@ -726,7 +748,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.5.0',
+        version: '4.6.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -752,10 +774,11 @@
 
             // Tools メニューに Import アクション (別モデルから display 値を取り込み)
             const aImport = new Action('custom_disp_import', {
-                name: 'Import display values from another model…',
-                description: '別の .json / .bbmodel ファイルを開いて display 値 '
-                    + '(Rotation / Translation / Scale) を取り込む。'
-                    + 'ソース/ターゲットのスロットと取り込む項目をダイアログで選択。',
+                name: 'Bulk import display values from another model…',
+                description: '別の .json / .bbmodel ファイルを開き、複数の '
+                    + 'カスタムスロット (SB Worn / MAW Back / MAW Belt) の display '
+                    + '値を一括置換する。スロットごとのチェックと取り込みフィールド '
+                    + '(Rotation / Translation / Scale) はダイアログで選択。',
                 icon: 'file_download',
                 category: 'edit',
                 click() { importDisplayFromFile(); },
@@ -820,8 +843,8 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.5.0 loaded — '
-                + '(Center Model + Center Pivot + built-in Center View in outliner ctx menu) — '
+            console.log('[' + PLUGIN_ID + '] v4.6.0 loaded — '
+                + '(bulk import + Center Model + Center Pivot + built-in Center View) — '
                 + TARGETS.length + ' custom display slots available');
         },
 
