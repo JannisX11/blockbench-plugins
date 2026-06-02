@@ -486,6 +486,219 @@
         });
     }
 
+    // ─── Center model at origin ───────────────────────────────────────
+    // 全要素の bounding box 中心を (0,0,0) に揃える。Display モードの
+    // 回転はワールド原点を軸に回るので、モデルが原点に居る = 回転が
+    // モデル中心軸で行われる (= 実質的にピボットが中心になる)。
+    //
+    // 対応する要素タイプ:
+    //   - Cube         : from / to / origin
+    //   - Mesh         : vertices (record) / origin
+    //   - Locator/Null : position
+    //   - Group        : origin (グループ全体のピボット)
+
+    function computeModelBBox() {
+        if (!Array.isArray(Project.elements) || Project.elements.length === 0) return null;
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+        let any = false;
+        const expand = (x, y, z) => {
+            if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return;
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+            any = true;
+        };
+        Project.elements.forEach((el) => {
+            if (Array.isArray(el.from) && Array.isArray(el.to)) {
+                expand(el.from[0], el.from[1], el.from[2]);
+                expand(el.to[0], el.to[1], el.to[2]);
+            }
+            if (el.vertices && typeof el.vertices === 'object') {
+                Object.values(el.vertices).forEach((v) => {
+                    if (Array.isArray(v) && v.length >= 3) expand(v[0], v[1], v[2]);
+                });
+            }
+            if (Array.isArray(el.position)
+                && !Array.isArray(el.from) && !el.vertices) {
+                expand(el.position[0], el.position[1], el.position[2]);
+            }
+        });
+        if (!any) return null;
+        return {
+            min: [minX, minY, minZ],
+            max: [maxX, maxY, maxZ],
+            center: [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2],
+            size: [maxX - minX, maxY - minY, maxZ - minZ],
+        };
+    }
+
+    function applyCenterModel(cx, cy, cz) {
+        const elements = Project.elements || [];
+        const groups = (typeof Group !== 'undefined' && Group.all) ? Group.all : [];
+
+        try {
+            if (typeof Undo !== 'undefined' && Undo.initEdit) {
+                Undo.initEdit({ elements: elements, group: groups });
+            }
+        } catch (e) { }
+
+        const sub = (a) => [a[0] - cx, a[1] - cy, a[2] - cz];
+
+        elements.forEach((el) => {
+            if (Array.isArray(el.from)) el.from = sub(el.from);
+            if (Array.isArray(el.to)) el.to = sub(el.to);
+            if (Array.isArray(el.origin)) el.origin = sub(el.origin);
+            if (Array.isArray(el.position)) el.position = sub(el.position);
+            if (el.vertices && typeof el.vertices === 'object') {
+                Object.keys(el.vertices).forEach((k) => {
+                    const v = el.vertices[k];
+                    if (Array.isArray(v) && v.length >= 3) {
+                        el.vertices[k] = [v[0] - cx, v[1] - cy, v[2] - cz];
+                    }
+                });
+            }
+            try { if (typeof el.preview_controller !== 'undefined' && el.preview_controller && el.preview_controller.updateGeometry) el.preview_controller.updateGeometry(el); } catch (e) { }
+        });
+
+        groups.forEach((g) => {
+            if (Array.isArray(g.origin)) g.origin = sub(g.origin);
+        });
+
+        try { Canvas.updateAll(); } catch (e) { }
+        try { if (typeof Canvas !== 'undefined' && Canvas.updateAllPositions) Canvas.updateAllPositions(); } catch (e) { }
+
+        try {
+            if (typeof Undo !== 'undefined' && Undo.finishEdit) {
+                Undo.finishEdit('Center model at origin');
+            }
+        } catch (e) { }
+
+        if (Project && Project.saved !== undefined) Project.saved = false;
+    }
+
+    // ─── Center view on selection (or all if none selected) ───────────
+    // 選択中の要素 (無ければ全要素) の bbox 中心にカメラの注視点を合わせる。
+    // 表示モードとエディットモードのどちらでも、現在アクティブな preview
+    // の controls.target を書き換える。ジオメトリは一切いじらない。
+
+    function computeBBoxOf(elements) {
+        if (!Array.isArray(elements) || elements.length === 0) return null;
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+        let any = false;
+        const expand = (x, y, z) => {
+            if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return;
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+            any = true;
+        };
+        elements.forEach((el) => {
+            if (Array.isArray(el.from) && Array.isArray(el.to)) {
+                expand(el.from[0], el.from[1], el.from[2]);
+                expand(el.to[0], el.to[1], el.to[2]);
+            } else if (el.vertices && typeof el.vertices === 'object') {
+                Object.values(el.vertices).forEach((v) => {
+                    if (Array.isArray(v) && v.length >= 3) expand(v[0], v[1], v[2]);
+                });
+            } else if (Array.isArray(el.position)) {
+                expand(el.position[0], el.position[1], el.position[2]);
+            } else if (Array.isArray(el.origin)) {
+                expand(el.origin[0], el.origin[1], el.origin[2]);
+            }
+        });
+        if (!any) return null;
+        return {
+            center: [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2],
+            size: [maxX - minX, maxY - minY, maxZ - minZ],
+        };
+    }
+
+    function getActivePreview() {
+        if (typeof Modes !== 'undefined' && Modes.display
+            && typeof display_preview !== 'undefined') {
+            return display_preview;
+        }
+        if (typeof Preview !== 'undefined' && Preview.selected) return Preview.selected;
+        if (typeof main_preview !== 'undefined') return main_preview;
+        if (typeof display_preview !== 'undefined') return display_preview;
+        return null;
+    }
+
+    function centerViewOnSelection() {
+        const preview = getActivePreview();
+        if (!preview || !preview.controls || !preview.controls.target) {
+            Blockbench.showQuickMessage('プレビューが見つかりません', 1500);
+            return;
+        }
+        // 選択優先、無ければグループ展開した全要素
+        let elements = [];
+        if (typeof selected !== 'undefined' && Array.isArray(selected) && selected.length > 0) {
+            elements = selected.slice();
+        }
+        // selected はメッシュ片や cube 個別なので、グループも処理対象に
+        if (typeof Group !== 'undefined' && Group.selected && elements.length === 0) {
+            elements = (Group.selected.children || []).slice();
+        }
+        if (elements.length === 0) {
+            elements = (Project && Array.isArray(Project.elements)) ? Project.elements : [];
+        }
+        const bbox = computeBBoxOf(elements);
+        if (!bbox) {
+            Blockbench.showQuickMessage('bbox 計算可能な要素無し', 1500);
+            return;
+        }
+        const [cx, cy, cz] = bbox.center;
+        try {
+            preview.controls.target.set(cx, cy, cz);
+            if (preview.controls.update) preview.controls.update();
+            if (preview.render) preview.render();
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] centerView failed', e);
+            Blockbench.showQuickMessage('カメラ操作に失敗', 1500);
+            return;
+        }
+        Blockbench.showQuickMessage(
+            'View 中心 → [' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ', ' + cz.toFixed(2) + ']',
+            1800);
+    }
+
+    function centerModelAtOrigin() {
+        const p = getProject();
+        if (!p) {
+            Blockbench.showQuickMessage('モデルを開いてください', 1500);
+            return;
+        }
+        const bbox = computeModelBBox();
+        if (!bbox) {
+            Blockbench.showQuickMessage('要素が見つかりません', 1500);
+            return;
+        }
+        const [cx, cy, cz] = bbox.center;
+        if (Math.abs(cx) < 0.001 && Math.abs(cy) < 0.001 && Math.abs(cz) < 0.001) {
+            Blockbench.showQuickMessage('既に原点中心です', 1500);
+            return;
+        }
+        const fmt = (n) => (n >= 0 ? '+' : '') + n.toFixed(3);
+        Blockbench.showMessageBox({
+            title: 'Center Model at Origin',
+            message: 'BBox 中心: [' + cx.toFixed(3) + ', ' + cy.toFixed(3) + ', ' + cz.toFixed(3) + ']\n'
+                + 'BBox サイズ: [' + bbox.size[0].toFixed(3) + ', ' + bbox.size[1].toFixed(3) + ', ' + bbox.size[2].toFixed(3) + ']\n\n'
+                + '全要素 (cube / mesh / locator) とグループ origin を以下だけ平行移動します:\n'
+                + '  [' + fmt(-cx) + ', ' + fmt(-cy) + ', ' + fmt(-cz) + ']\n\n'
+                + 'これでモデル中心が (0,0,0) に揃い、Display モードの Rotation が\n'
+                + 'モデル中心軸を中心に回るようになります。\n\n'
+                + '(ジオメトリを直接書き換えます。Ctrl+Z で取り消し可能)',
+            buttons: ['Apply', 'Cancel'],
+        }, function (btn) {
+            if (btn !== 0) return;
+            applyCenterModel(cx, cy, cz);
+            Blockbench.showQuickMessage(
+                'モデル中心化完了: [' + fmt(-cx) + ', ' + fmt(-cy) + ', ' + fmt(-cz) + ']', 2500);
+        });
+    }
+
     // ─── DisplayMode.slots registration ────────────────────────────────
     // 保存/読込時に DisplayMode.slots に含まれる key だけが処理されるので
     // ここで push しておかないと開き直したとき値が消える。
@@ -513,7 +726,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.3.0',
+        version: '4.4.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -550,6 +763,43 @@
             try { MenuBar.addAction(aImport, 'tools'); } catch (e) { }
             actions.push(aImport);
 
+            // Center Model アクション (ジオメトリを動かす破壊的操作・Undo 可)
+            const aCenter = new Action('custom_disp_center_model', {
+                name: 'Center Model at Origin',
+                description: 'モデル全要素 (cube / mesh / locator) の bounding box '
+                    + '中心を (0,0,0) に揃え、Display モードの Rotation がモデル '
+                    + '中心を軸に回るようにする。Ctrl+Z で取り消し可能。',
+                icon: 'center_focus_strong',
+                category: 'edit',
+                click() { centerModelAtOrigin(); },
+            });
+            try { MenuBar.addAction(aCenter, 'tools'); } catch (e) { }
+            actions.push(aCenter);
+
+            // Center View アクション (カメラ注視点を選択要素中心へ移動・非破壊)
+            const aCenterView = new Action('custom_disp_center_view', {
+                name: 'Center View on Selection',
+                description: '選択要素 (無ければ全要素) の bbox 中心にカメラの '
+                    + '注視点を合わせる。ジオメトリは変更しない非破壊操作。',
+                icon: 'filter_center_focus',
+                category: 'view',
+                click() { centerViewOnSelection(); },
+            });
+            try { MenuBar.addAction(aCenterView, 'tools'); } catch (e) { }
+            actions.push(aCenterView);
+
+            // Outliner コンテキストメニュー (Cube / Group / Mesh の右クリック) にも追加
+            const ctxMenuTargets = [];
+            try { if (typeof Cube !== 'undefined' && Cube.prototype && Cube.prototype.menu) ctxMenuTargets.push(Cube.prototype.menu); } catch (e) { }
+            try { if (typeof Group !== 'undefined' && Group.prototype && Group.prototype.menu) ctxMenuTargets.push(Group.prototype.menu); } catch (e) { }
+            try { if (typeof Mesh !== 'undefined' && Mesh.prototype && Mesh.prototype.menu) ctxMenuTargets.push(Mesh.prototype.menu); } catch (e) { }
+            ctxMenuTargets.forEach((menu) => {
+                if (menu && typeof menu.addAction === 'function') {
+                    try { menu.addAction(aCenterView); } catch (e) { }
+                    try { menu.addAction(aCenter); } catch (e) { }
+                }
+            });
+
             setupObserver();
             injectCustomBar();
 
@@ -562,7 +812,8 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.3.0 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.4.0 loaded — '
+                + '(Center Model + Center View also in outliner context menu) — '
                 + TARGETS.length + ' custom display slots available');
         },
 
