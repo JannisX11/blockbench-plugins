@@ -372,7 +372,9 @@
         ].join('\n');
     }
 
-    // 全 TARGETS をループしてチェック済み slot × チェック済み field を一括置換。
+    // 全 TARGETS をループしてチェック済み slot × チェック済み axis を一括置換。
+    // 軸単位 (rotation.X / rotation.Y / rotation.Z / translation.X / … / scale.Z)
+    // 計 9 軸を独立にチェックできる = 真の部分置換。
     // ソース側のキーは TARGETS と同名 (= match by key) を採用。
     // 編集中スロットが置換対象だった場合は Vue を再バインドして slider にも反映。
     function applyBulkImport(sourceDisplay, result) {
@@ -383,15 +385,22 @@
         }
         if (!p.display_settings) p.display_settings = {};
 
-        const useFields = {
-            rotation: !!result.useRotation,
-            translation: !!result.useTranslation,
-            scale: !!result.useScale,
+        // チャンネル × 軸の chosen フラグ
+        const channelAxisFlags = {
+            rotation:    [!!result.useRotX,   !!result.useRotY,   !!result.useRotZ],
+            translation: [!!result.useTransX, !!result.useTransY, !!result.useTransZ],
+            scale:       [!!result.useScaleX, !!result.useScaleY, !!result.useScaleZ],
         };
-        if (!useFields.rotation && !useFields.translation && !useFields.scale) {
-            Blockbench.showQuickMessage('置換するフィールドが選択されていません', 1800);
+        const anyAxisChecked = Object.values(channelAxisFlags)
+            .some((arr) => arr.some(Boolean));
+        if (!anyAxisChecked) {
+            Blockbench.showQuickMessage('置換する軸が1つも選択されていません', 1800);
             return;
         }
+        const channelDefaults = {
+            rotation: [0, 0, 0], translation: [0, 0, 0], scale: [1, 1, 1],
+        };
+        const axisLetters = ['X', 'Y', 'Z'];
 
         const detail = [];
         const replacedKeys = [];
@@ -405,15 +414,31 @@
                 p.display_settings[target.key] = new DisplaySlot(target.key);
             }
             const dst = p.display_settings[target.key];
-            const applied = [];
-            ['rotation', 'translation', 'scale'].forEach((f) => {
-                if (useFields[f] && Array.isArray(src[f])) {
-                    dst[f] = src[f].slice();
-                    applied.push(f);
+            const channelSummary = [];
+
+            Object.keys(channelAxisFlags).forEach((channel) => {
+                const axisFlags = channelAxisFlags[channel];
+                if (!axisFlags.some(Boolean)) return;          // この channel 全 OFF
+                if (!Array.isArray(src[channel])) return;       // source に値なし
+                if (!Array.isArray(dst[channel])) {
+                    dst[channel] = channelDefaults[channel].slice();
+                }
+                const next = dst[channel].slice();
+                const writtenAxes = [];
+                for (let i = 0; i < 3; i++) {
+                    if (axisFlags[i] && typeof src[channel][i] === 'number') {
+                        next[i] = src[channel][i];
+                        writtenAxes.push(axisLetters[i]);
+                    }
+                }
+                if (writtenAxes.length > 0) {
+                    dst[channel] = next;                        // 配列差替で Vue 反応
+                    channelSummary.push(channel + '.' + writtenAxes.join(''));
                 }
             });
-            if (applied.length > 0) {
-                detail.push(target.key + ' ← (' + applied.join(' + ') + ')');
+
+            if (channelSummary.length > 0) {
+                detail.push(target.key + ' ← ' + channelSummary.join(' + '));
                 replacedKeys.push(target.key);
             }
         });
@@ -463,6 +488,7 @@
                 + (has ? ' — ' + formatSlotPreview(sourceDisplay[target.key]).split('\n').map(s => s.trim()).join(' / ') : ''));
         });
 
+        // 9 軸チェックボックス (Rotation/Translation/Scale × X/Y/Z) で部分置換可
         const formDef = {
             _src_info: {
                 type: 'info',
@@ -470,13 +496,18 @@
                     + 'カスタムキー対応状況:\n  ' + slotInfoLines.join('\n  '),
             },
             _div0: '_',
-            _fields_label: {
-                type: 'info',
-                text: '取り込むフィールド (全対象スロットに共通):',
-            },
-            useRotation: { label: 'Rotation (X / Y / Z)', type: 'checkbox', value: true },
-            useTranslation: { label: 'Translation (X / Y / Z)', type: 'checkbox', value: true },
-            useScale: { label: 'Scale (X / Y / Z)', type: 'checkbox', value: true },
+            _rot_label: { type: 'info', text: '【Rotation】 取り込む軸:' },
+            useRotX: { label: 'Rotation X', type: 'checkbox', value: true },
+            useRotY: { label: 'Rotation Y', type: 'checkbox', value: true },
+            useRotZ: { label: 'Rotation Z', type: 'checkbox', value: true },
+            _trans_label: { type: 'info', text: '【Translation】 取り込む軸:' },
+            useTransX: { label: 'Translation X', type: 'checkbox', value: true },
+            useTransY: { label: 'Translation Y', type: 'checkbox', value: true },
+            useTransZ: { label: 'Translation Z', type: 'checkbox', value: true },
+            _scale_label: { type: 'info', text: '【Scale】 取り込む軸:' },
+            useScaleX: { label: 'Scale X', type: 'checkbox', value: true },
+            useScaleY: { label: 'Scale Y', type: 'checkbox', value: true },
+            useScaleZ: { label: 'Scale Z', type: 'checkbox', value: true },
             _div1: '_',
             _slots_label: {
                 type: 'info',
@@ -774,7 +805,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.6.1',
+        version: '4.7.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -803,8 +834,8 @@
                 name: 'Bulk import display values from another model…',
                 description: '別の .json / .bbmodel ファイルを開き、複数の '
                     + 'カスタムスロット (SB Worn / MAW Back / MAW Belt) の display '
-                    + '値を一括置換する。スロットごとのチェックと取り込みフィールド '
-                    + '(Rotation / Translation / Scale) はダイアログで選択。',
+                    + '値を一括置換する。スロット × 9 軸 (Rotation/Translation/Scale '
+                    + '各 X/Y/Z) を個別にチェック可能 — 真の部分置換。',
                 icon: 'file_download',
                 category: 'edit',
                 click() { importDisplayFromFile(); },
@@ -869,7 +900,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.6.1 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.7.0 loaded — '
                 + '(bulk import + Center Model + Center Pivot + built-in Center View) — '
                 + TARGETS.length + ' custom display slots available');
         },
