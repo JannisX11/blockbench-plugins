@@ -372,10 +372,9 @@
         ].join('\n');
     }
 
-    // 全 TARGETS をループしてチェック済み slot × チェック済み axis を一括置換。
-    // 軸単位 (rotation.X / rotation.Y / rotation.Z / translation.X / … / scale.Z)
-    // 計 9 軸を独立にチェックできる = 真の部分置換。
-    // ソース側のキーは TARGETS と同名 (= match by key) を採用。
+    // ソースに存在する全 display キー (vanilla = gui/head/ground/firstperson_*/
+    // thirdperson_*/fixed/on_shelf/embedded + custom = TARGETS の key) を
+    // チェック候補とし、チェック済み slot × チェック済み 9 軸を一括置換。
     // 編集中スロットが置換対象だった場合は Vue を再バインドして slider にも反映。
     function applyBulkImport(sourceDisplay, result) {
         const p = getProject();
@@ -405,15 +404,15 @@
         const detail = [];
         const replacedKeys = [];
 
-        TARGETS.forEach((target) => {
-            const flag = result['slot_' + safeId(target.key)];
+        Object.keys(sourceDisplay).forEach((key) => {
+            const flag = result['slot_' + safeId(key)];
             if (!flag) return;
-            const src = sourceDisplay[target.key];
-            if (!src) return;
-            if (!p.display_settings[target.key]) {
-                p.display_settings[target.key] = new DisplaySlot(target.key);
+            const src = sourceDisplay[key];
+            if (!src || typeof src !== 'object') return;
+            if (!p.display_settings[key]) {
+                p.display_settings[key] = new DisplaySlot(key);
             }
-            const dst = p.display_settings[target.key];
+            const dst = p.display_settings[key];
             const channelSummary = [];
 
             Object.keys(channelAxisFlags).forEach((channel) => {
@@ -438,8 +437,8 @@
             });
 
             if (channelSummary.length > 0) {
-                detail.push(target.key + ' ← ' + channelSummary.join(' + '));
-                replacedKeys.push(target.key);
+                detail.push(key + ' ← ' + channelSummary.join(' + '));
+                replacedKeys.push(key);
             }
         });
 
@@ -473,19 +472,34 @@
     function openImportDialog(sourceDisplay, sourceFileName) {
         const sourceKeys = Object.keys(sourceDisplay);
 
-        // TARGETS 各キーごとのチェックボックス + ソース有無表示
+        // vanilla を先 (Blockbench の Slot 行と同じ順序)、その後 custom (TARGETS)、
+        // その他 (未知の名前空間など) は末尾。ソース内のキーすべてが対象候補。
+        const VANILLA_ORDER = [
+            'thirdperson_righthand', 'thirdperson_lefthand',
+            'firstperson_righthand', 'firstperson_lefthand',
+            'head', 'gui', 'ground', 'fixed', 'on_shelf', 'embedded',
+        ];
+        const customKeys = TARGETS.map((t) => t.key);
+        const orderedKeys = [];
+        VANILLA_ORDER.forEach((k) => { if (sourceKeys.includes(k)) orderedKeys.push(k); });
+        customKeys.forEach((k) => { if (sourceKeys.includes(k) && !orderedKeys.includes(k)) orderedKeys.push(k); });
+        sourceKeys.forEach((k) => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
+
+        // 各キーのチェックボックスを生成。デフォルト ON で「全部置換」をワンクリック化。
         const slotFields = {};
         const slotInfoLines = [];
-        TARGETS.forEach((target) => {
-            const has = sourceKeys.includes(target.key);
-            const id = 'slot_' + safeId(target.key);
+        orderedKeys.forEach((key) => {
+            const id = 'slot_' + safeId(key);
+            const isCustom = customKeys.includes(key);
+            const isVanilla = VANILLA_ORDER.includes(key);
+            const tag = isVanilla ? '(vanilla)' : (isCustom ? '(custom)' : '(other)');
             slotFields[id] = {
-                label: target.key + (has ? '' : '  — source に無し'),
+                label: key + ' ' + tag,
                 type: 'checkbox',
-                value: has, // ソースに同名キーがあれば初期 ON
+                value: true,
             };
-            slotInfoLines.push((has ? '✓ ' : '✗ ') + target.key
-                + (has ? ' — ' + formatSlotPreview(sourceDisplay[target.key]).split('\n').map(s => s.trim()).join(' / ') : ''));
+            slotInfoLines.push('✓ ' + key + ' ' + tag
+                + ' — ' + formatSlotPreview(sourceDisplay[key]).split('\n').map((s) => s.trim()).join(' / '));
         });
 
         // 9 軸チェックボックス (Rotation/Translation/Scale × X/Y/Z) で部分置換可
@@ -511,7 +525,7 @@
             _div1: '_',
             _slots_label: {
                 type: 'info',
-                text: '置換するターゲットスロット (同名キーから自動取り込み):',
+                text: '置換するターゲットスロット (ソースに存在する vanilla + custom 全部):',
             },
         };
         Object.assign(formDef, slotFields);
@@ -805,7 +819,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.7.0',
+        version: '4.8.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -832,10 +846,11 @@
             // Tools メニューに Import アクション (別モデルから display 値を取り込み)
             const aImport = new Action('custom_disp_import', {
                 name: 'Bulk import display values from another model…',
-                description: '別の .json / .bbmodel ファイルを開き、複数の '
-                    + 'カスタムスロット (SB Worn / MAW Back / MAW Belt) の display '
-                    + '値を一括置換する。スロット × 9 軸 (Rotation/Translation/Scale '
-                    + '各 X/Y/Z) を個別にチェック可能 — 真の部分置換。',
+                description: '別の .json / .bbmodel ファイルを開き、ソース内の '
+                    + '全 display スロット (vanilla: head/gui/ground/firstperson_*/'
+                    + 'thirdperson_*/fixed/on_shelf/embedded + custom: SB Worn / '
+                    + 'MAW Back / MAW Belt 等) を一括置換する。スロット × 9 軸 '
+                    + '(Rotation/Translation/Scale 各 X/Y/Z) を個別にチェック可能。',
                 icon: 'file_download',
                 category: 'edit',
                 click() { importDisplayFromFile(); },
@@ -900,7 +915,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.7.0 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.8.0 loaded — '
                 + '(bulk import + Center Model + Center Pivot + built-in Center View) — '
                 + TARGETS.length + ' custom display slots available');
         },
