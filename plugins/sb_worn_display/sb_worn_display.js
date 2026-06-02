@@ -175,11 +175,37 @@
     //   </div>
 
     function buildCustomBar() {
-        const label = document.createElement('p');
+        // 本体の "Rotation" 横にある reset アイコン (.tool.head_right) と同じ
+        // パターン: <div class="bar display_slot_section_bar"> で
+        // panel_toolbar_label と head_right ボタンを横並びにする。
+        const label = document.createElement('div');
         label.id = CUSTOM_LABEL_ID;
-        label.className = 'panel_toolbar_label';
+        label.className = 'bar display_slot_section_bar';
         label.setAttribute(INJECTED_ATTR, 'label');
-        label.textContent = 'Custom Slot';
+
+        const labelText = document.createElement('p');
+        labelText.className = 'panel_toolbar_label';
+        labelText.textContent = 'Custom Slot';
+        label.appendChild(labelText);
+
+        // 別モデルから値をインポート (Tools メニューと同じ動線・ダイアログ)
+        const importBtn = document.createElement('div');
+        importBtn.className = 'tool head_right';
+        importBtn.setAttribute(INJECTED_ATTR, 'import-btn');
+        const importTip = document.createElement('div');
+        importTip.className = 'tooltip';
+        importTip.textContent = '別モデルから display 値を一括 import';
+        importBtn.appendChild(importTip);
+        const importIcon = document.createElement('i');
+        importIcon.className = 'material-icons';
+        importIcon.textContent = 'file_download';
+        importBtn.appendChild(importIcon);
+        importBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            importDisplayFromFile();
+        });
+        label.appendChild(importBtn);
 
         const bar = document.createElement('div');
         bar.id = CUSTOM_BAR_ID;
@@ -748,7 +774,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.6.0',
+        version: '4.6.1',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -843,7 +869,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.6.0 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.6.1 loaded — '
                 + '(bulk import + Center Model + Center Pivot + built-in Center View) — '
                 + TARGETS.length + ' custom display slots available');
         },
