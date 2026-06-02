@@ -324,6 +324,168 @@
         dlg.show();
     }
 
+    // ─── Import display values from another model file ────────────────
+    // 別のモデルファイル (.json / .bbmodel) を開き、その display 値を
+    // 現在のプロジェクトのカスタムスロットに取り込む。
+    // ダイアログで「ソーススロット」「ターゲットスロット」「Rotation/
+    // Translation/Scale のどれを取り込むか」を選択できるので、部分置換可。
+
+    function formatSlotPreview(slot) {
+        if (!slot) return '(empty)';
+        const fmt = (a, def) => {
+            const arr = Array.isArray(a) ? a : def;
+            return '[' + arr.map((n) => {
+                const num = Number(n);
+                return isFinite(num) ? Number(num.toFixed(3)) : 0;
+            }).join(', ') + ']';
+        };
+        return [
+            'rotation:    ' + fmt(slot.rotation, [0, 0, 0]),
+            'translation: ' + fmt(slot.translation, [0, 0, 0]),
+            'scale:       ' + fmt(slot.scale, [1, 1, 1]),
+        ].join('\n');
+    }
+
+    function applyImport(sourceDisplay, result) {
+        const p = getProject();
+        if (!p) {
+            Blockbench.showQuickMessage('モデルを開いてください', 1500);
+            return;
+        }
+        const src = sourceDisplay[result.sourceKey];
+        if (!src) {
+            Blockbench.showQuickMessage('ソースに対象キー無し: ' + result.sourceKey, 1800);
+            return;
+        }
+        if (!p.display_settings) p.display_settings = {};
+        if (!p.display_settings[result.targetKey]) {
+            p.display_settings[result.targetKey] = new DisplaySlot(result.targetKey);
+        }
+        const dst = p.display_settings[result.targetKey];
+        const applied = [];
+        if (result.useRotation && Array.isArray(src.rotation)) {
+            dst.rotation = src.rotation.slice();
+            applied.push('rotation');
+        }
+        if (result.useTranslation && Array.isArray(src.translation)) {
+            dst.translation = src.translation.slice();
+            applied.push('translation');
+        }
+        if (result.useScale && Array.isArray(src.scale)) {
+            dst.scale = src.scale.slice();
+            applied.push('scale');
+        }
+        if (applied.length === 0) {
+            Blockbench.showQuickMessage('何もチェックされていません', 1500);
+            return;
+        }
+        if (p.saved !== undefined) p.saved = false;
+        try { DisplayMode.updateDisplayBase(); } catch (e) { }
+        try { if (DisplayMode.vue && DisplayMode.vue.$forceUpdate) DisplayMode.vue.$forceUpdate(); } catch (e) { }
+        Blockbench.showQuickMessage(
+            result.targetKey + ' ← ' + result.sourceKey + ' (' + applied.join(' + ') + ')',
+            2800);
+    }
+
+    function openImportDialog(sourceDisplay, sourceFileName) {
+        const sourceKeys = Object.keys(sourceDisplay);
+        const customKeys = TARGETS.map((t) => t.key);
+
+        // Default target = 現在 Display パネルで選択中のカスタムキー (あれば)
+        let defaultTarget = customKeys[0];
+        if (typeof DisplayMode !== 'undefined'
+            && customKeys.includes(DisplayMode.display_slot)) {
+            defaultTarget = DisplayMode.display_slot;
+        }
+        // Default source = ターゲットと同名キーがあればそれ、無ければ先頭
+        let defaultSource = sourceKeys.includes(defaultTarget) ? defaultTarget : sourceKeys[0];
+
+        const sourceOptions = {};
+        sourceKeys.forEach((k) => { sourceOptions[k] = k; });
+        const targetOptions = {};
+        customKeys.forEach((k) => { targetOptions[k] = k; });
+
+        const dlg = new Dialog({
+            id: 'sb_import_display_dialog',
+            title: 'Import display values from ' + sourceFileName,
+            width: 560,
+            form: {
+                _src_info: {
+                    type: 'info',
+                    text: 'Source file: ' + sourceFileName
+                        + '\nKeys with display data: ' + sourceKeys.join(', '),
+                },
+                sourceKey: {
+                    label: 'Source slot',
+                    type: 'select',
+                    options: sourceOptions,
+                    value: defaultSource,
+                },
+                targetKey: {
+                    label: 'Target slot',
+                    type: 'select',
+                    options: targetOptions,
+                    value: defaultTarget,
+                },
+                _div1: '_',
+                _fields_label: {
+                    type: 'info',
+                    text: 'Replace which fields (checked fields will overwrite):',
+                },
+                useRotation: { label: 'Rotation (X / Y / Z)', type: 'checkbox', value: true },
+                useTranslation: { label: 'Translation (X / Y / Z)', type: 'checkbox', value: true },
+                useScale: { label: 'Scale (X / Y / Z)', type: 'checkbox', value: true },
+                _div2: '_',
+                _preview: {
+                    type: 'info',
+                    text: 'Source values preview (' + defaultSource + '):\n'
+                        + formatSlotPreview(sourceDisplay[defaultSource]),
+                },
+            },
+            buttons: ['dialog.confirm', 'dialog.cancel'],
+            onConfirm(result) {
+                applyImport(sourceDisplay, result);
+                dlg.hide();
+            },
+        });
+        dlg.show();
+    }
+
+    function importDisplayFromFile() {
+        if (typeof Blockbench === 'undefined' || !Blockbench.import) {
+            Blockbench.showQuickMessage('Blockbench.import が利用できません', 1500);
+            return;
+        }
+        Blockbench.import({
+            resource_id: 'sb_import_display',
+            extensions: ['json', 'bbmodel'],
+            type: 'JSON / Blockbench model',
+            readtype: 'text',
+        }, function (files) {
+            if (!files || !files[0] || !files[0].content) return;
+            const file = files[0];
+            let parsed;
+            try { parsed = JSON.parse(file.content); }
+            catch (e) {
+                Blockbench.showMessageBox({
+                    title: 'JSON parse error',
+                    message: 'Failed to parse file:\n' + (e && e.message ? e.message : e),
+                });
+                return;
+            }
+            const displayData = parsed.display || parsed.display_settings;
+            if (!displayData || typeof displayData !== 'object'
+                || Object.keys(displayData).length === 0) {
+                Blockbench.showMessageBox({
+                    title: 'No display data',
+                    message: 'This file has no `display` section.',
+                });
+                return;
+            }
+            openImportDialog(displayData, file.name || 'unknown');
+        });
+    }
+
     // ─── DisplayMode.slots registration ────────────────────────────────
     // 保存/読込時に DisplayMode.slots に含まれる key だけが処理されるので
     // ここで push しておかないと開き直したとき値が消える。
@@ -351,7 +513,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.2.3',
+        version: '4.3.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -375,6 +537,19 @@
                 actions.push(aEdit);
             });
 
+            // Tools メニューに Import アクション (別モデルから display 値を取り込み)
+            const aImport = new Action('custom_disp_import', {
+                name: 'Import display values from another model…',
+                description: '別の .json / .bbmodel ファイルを開いて display 値 '
+                    + '(Rotation / Translation / Scale) を取り込む。'
+                    + 'ソース/ターゲットのスロットと取り込む項目をダイアログで選択。',
+                icon: 'file_download',
+                category: 'edit',
+                click() { importDisplayFromFile(); },
+            });
+            try { MenuBar.addAction(aImport, 'tools'); } catch (e) { }
+            actions.push(aImport);
+
             setupObserver();
             injectCustomBar();
 
@@ -387,7 +562,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.2.3 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.3.0 loaded — '
                 + TARGETS.length + ' custom display slots available');
         },
 
