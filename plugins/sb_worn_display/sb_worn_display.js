@@ -537,11 +537,15 @@
         const elements = Project.elements || [];
         const groups = (typeof Group !== 'undefined' && Group.all) ? Group.all : [];
 
+        // Undo: outliner: true でグループ origin の差分まで含めて snapshot を取る。
+        // (v4.4.0 では group: groups 渡しで Undo が効かなかったので修正)
         try {
             if (typeof Undo !== 'undefined' && Undo.initEdit) {
-                Undo.initEdit({ elements: elements, group: groups });
+                Undo.initEdit({ elements: elements, outliner: true });
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] Undo.initEdit failed', e);
+        }
 
         const sub = (a) => [a[0] - cx, a[1] - cy, a[2] - cz];
 
@@ -558,7 +562,7 @@
                     }
                 });
             }
-            try { if (typeof el.preview_controller !== 'undefined' && el.preview_controller && el.preview_controller.updateGeometry) el.preview_controller.updateGeometry(el); } catch (e) { }
+            try { if (el.preview_controller && el.preview_controller.updateGeometry) el.preview_controller.updateGeometry(el); } catch (e) { }
         });
 
         groups.forEach((g) => {
@@ -572,15 +576,14 @@
             if (typeof Undo !== 'undefined' && Undo.finishEdit) {
                 Undo.finishEdit('Center model at origin');
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] Undo.finishEdit failed', e);
+        }
 
         if (Project && Project.saved !== undefined) Project.saved = false;
     }
 
-    // ─── Center view on selection (or all if none selected) ───────────
-    // 選択中の要素 (無ければ全要素) の bbox 中心にカメラの注視点を合わせる。
-    // 表示モードとエディットモードのどちらでも、現在アクティブな preview
-    // の controls.target を書き換える。ジオメトリは一切いじらない。
+    // ─── BBox helpers (shared by Center Model + Center Pivot) ────────
 
     function computeBBoxOf(elements) {
         if (!Array.isArray(elements) || elements.length === 0) return null;
@@ -604,8 +607,6 @@
                 });
             } else if (Array.isArray(el.position)) {
                 expand(el.position[0], el.position[1], el.position[2]);
-            } else if (Array.isArray(el.origin)) {
-                expand(el.origin[0], el.origin[1], el.origin[2]);
             }
         });
         if (!any) return null;
@@ -615,53 +616,52 @@
         };
     }
 
-    function getActivePreview() {
-        if (typeof Modes !== 'undefined' && Modes.display
-            && typeof display_preview !== 'undefined') {
-            return display_preview;
-        }
-        if (typeof Preview !== 'undefined' && Preview.selected) return Preview.selected;
-        if (typeof main_preview !== 'undefined') return main_preview;
-        if (typeof display_preview !== 'undefined') return display_preview;
-        return null;
+    // ─── Center pivot of groups (non-destructive) ─────────────────────
+    // 各グループの origin (ピボット) を、その子要素の bbox 中心に設定する。
+    // モデル自体のジオメトリは移動しない。Blockbench 標準の "Center Pivot"
+    // と同じだが、Tools / outliner ctx menu からまとめて呼べるようにする。
+
+    function applyCenterPivots(targetGroups) {
+        if (!Array.isArray(targetGroups) || targetGroups.length === 0) return 0;
+        try { Undo.initEdit({ outliner: true, group: targetGroups }); } catch (e) { }
+        let count = 0;
+        targetGroups.forEach((g) => {
+            if (!g || !Array.isArray(g.children)) return;
+            const bbox = computeBBoxOf(g.children);
+            if (!bbox) return;
+            g.origin = bbox.center.slice();
+            count++;
+        });
+        try { Canvas.updateAll(); } catch (e) { }
+        try { Undo.finishEdit('Center pivot of groups'); } catch (e) { }
+        if (Project && Project.saved !== undefined && count > 0) Project.saved = false;
+        return count;
     }
 
-    function centerViewOnSelection() {
-        const preview = getActivePreview();
-        if (!preview || !preview.controls || !preview.controls.target) {
-            Blockbench.showQuickMessage('プレビューが見つかりません', 1500);
+    function centerPivotOfGroups() {
+        const p = getProject();
+        if (!p) {
+            Blockbench.showQuickMessage('モデルを開いてください', 1500);
             return;
         }
-        // 選択優先、無ければグループ展開した全要素
-        let elements = [];
-        if (typeof selected !== 'undefined' && Array.isArray(selected) && selected.length > 0) {
-            elements = selected.slice();
-        }
-        // selected はメッシュ片や cube 個別なので、グループも処理対象に
-        if (typeof Group !== 'undefined' && Group.selected && elements.length === 0) {
-            elements = (Group.selected.children || []).slice();
-        }
-        if (elements.length === 0) {
-            elements = (Project && Array.isArray(Project.elements)) ? Project.elements : [];
-        }
-        const bbox = computeBBoxOf(elements);
-        if (!bbox) {
-            Blockbench.showQuickMessage('bbox 計算可能な要素無し', 1500);
+        if (typeof Group === 'undefined') {
+            Blockbench.showQuickMessage('Group API が利用できません', 1500);
             return;
         }
-        const [cx, cy, cz] = bbox.center;
-        try {
-            preview.controls.target.set(cx, cy, cz);
-            if (preview.controls.update) preview.controls.update();
-            if (preview.render) preview.render();
-        } catch (e) {
-            console.warn('[' + PLUGIN_ID + '] centerView failed', e);
-            Blockbench.showQuickMessage('カメラ操作に失敗', 1500);
+        // 選択中グループあればそれ、無ければ全グループ
+        let targets = [];
+        if (Group.selected) {
+            targets = [Group.selected];
+        } else if (Array.isArray(Group.all)) {
+            targets = Group.all.slice();
+        }
+        if (targets.length === 0) {
+            Blockbench.showQuickMessage('対象グループがありません', 1500);
             return;
         }
+        const count = applyCenterPivots(targets);
         Blockbench.showQuickMessage(
-            'View 中心 → [' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ', ' + cz.toFixed(2) + ']',
-            1800);
+            count + ' グループのピボットを子 bbox 中心に設定しました', 2200);
     }
 
     function centerModelAtOrigin() {
@@ -726,7 +726,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.4.0',
+        version: '4.5.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -776,28 +776,36 @@
             try { MenuBar.addAction(aCenter, 'tools'); } catch (e) { }
             actions.push(aCenter);
 
-            // Center View アクション (カメラ注視点を選択要素中心へ移動・非破壊)
-            const aCenterView = new Action('custom_disp_center_view', {
-                name: 'Center View on Selection',
-                description: '選択要素 (無ければ全要素) の bbox 中心にカメラの '
-                    + '注視点を合わせる。ジオメトリは変更しない非破壊操作。',
-                icon: 'filter_center_focus',
-                category: 'view',
-                click() { centerViewOnSelection(); },
+            // Center Pivot of Groups アクション (各グループの origin を子 bbox 中心に・非破壊)
+            const aCenterPivot = new Action('custom_disp_center_pivots', {
+                name: 'Center Pivot of Groups',
+                description: '選択中のグループ (無ければ全グループ) の origin '
+                    + 'を子要素の bbox 中心に設定。モデルジオメトリは動かさず、'
+                    + '回転ピボットだけモデル中心へ移す。Ctrl+Z で取り消し可能。',
+                icon: 'gps_fixed',
+                category: 'edit',
+                click() { centerPivotOfGroups(); },
             });
-            try { MenuBar.addAction(aCenterView, 'tools'); } catch (e) { }
-            actions.push(aCenterView);
+            try { MenuBar.addAction(aCenterPivot, 'tools'); } catch (e) { }
+            actions.push(aCenterPivot);
 
-            // Outliner コンテキストメニュー (Cube / Group / Mesh の右クリック) にも追加
+            // Outliner コンテキストメニュー (Cube / Group / Mesh の右クリック) にも追加。
+            // Center View は Blockbench 本体の "focus_on_selection" (= 'センタービュー')
+            // をそのまま参照するので自前実装はしない。
             const ctxMenuTargets = [];
             try { if (typeof Cube !== 'undefined' && Cube.prototype && Cube.prototype.menu) ctxMenuTargets.push(Cube.prototype.menu); } catch (e) { }
             try { if (typeof Group !== 'undefined' && Group.prototype && Group.prototype.menu) ctxMenuTargets.push(Group.prototype.menu); } catch (e) { }
             try { if (typeof Mesh !== 'undefined' && Mesh.prototype && Mesh.prototype.menu) ctxMenuTargets.push(Mesh.prototype.menu); } catch (e) { }
+
+            const builtInCenterView = (typeof BarItems !== 'undefined') ? BarItems.focus_on_selection : null;
+
             ctxMenuTargets.forEach((menu) => {
-                if (menu && typeof menu.addAction === 'function') {
-                    try { menu.addAction(aCenterView); } catch (e) { }
-                    try { menu.addAction(aCenter); } catch (e) { }
+                if (!menu || typeof menu.addAction !== 'function') return;
+                if (builtInCenterView) {
+                    try { menu.addAction(builtInCenterView); } catch (e) { }
                 }
+                try { menu.addAction(aCenter); } catch (e) { }
+                try { menu.addAction(aCenterPivot); } catch (e) { }
             });
 
             setupObserver();
@@ -812,8 +820,8 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.4.0 loaded — '
-                + '(Center Model + Center View also in outliner context menu) — '
+            console.log('[' + PLUGIN_ID + '] v4.5.0 loaded — '
+                + '(Center Model + Center Pivot + built-in Center View in outliner ctx menu) — '
                 + TARGETS.length + ' custom display slots available');
         },
 
