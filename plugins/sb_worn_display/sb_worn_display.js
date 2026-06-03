@@ -128,19 +128,26 @@
         // 置くが、ベルトや背中の slot ならもっと下の腰・胸あたりが基準として
         // 自然なので、ここで display_area (= モデルが乗ってる Three.js Object3D)
         // の Y を上書きする)。
-        // display_area は Blockbench 本体ではモジュールスコープのグローバル変数
-        // として定義されているので window.display_area から取る。念のため
-        // DisplayMode.display_area / DisplayMode.display_base もフォールバック。
+        //
+        // 同時に da.rotation.z = π (180°) を入れる。Minecraft の
+        // LivingEntityRenderer は entity 描画時に scale(-1, -1, 1) で X+Y を
+        // 反転させており、Blockbench はそれを適用していないため display 値が
+        // 同じでも見え方が点対称になる (= roll 180° ずれる)。Z軸 180° 回転は
+        // (x,y,z) → (-x,-y,z) の変換になり scale(-1,-1,1) と等価で、これで
+        // Blockbench プレビューが in-game と一致する。
         if (typeof target.anchorY === 'number') {
             const da = (typeof display_area !== 'undefined') ? display_area
                 : (DisplayMode.display_area || DisplayMode.display_base || null);
             if (da && da.position) {
                 try {
                     da.position.y = target.anchorY;
+                    if (da.rotation) {
+                        da.rotation.z = Math.PI; // = 180° (Minecraft の scale(-1,-1,1) 相殺)
+                    }
                     if (typeof da.updateMatrixWorld === 'function') da.updateMatrixWorld();
                     if (typeof Transformer !== 'undefined' && Transformer.center) Transformer.center();
                 } catch (e) {
-                    console.warn('[' + PLUGIN_ID + '] anchorY apply failed', e);
+                    console.warn('[' + PLUGIN_ID + '] anchorY/rotation apply failed', e);
                 }
             }
         }
@@ -854,7 +861,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.9.0',
+        version: '4.9.1',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
