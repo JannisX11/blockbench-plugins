@@ -28,21 +28,34 @@
 (function () {
     const PLUGIN_ID = 'sb_worn_display';
 
+    // anchorY: Display プレビューで co (display_area) を置く Y 座標。
+    //   loadHead() のデフォルトは y=28 (顔の中心) だが、custom slot ごとに
+    //   別のリファレンス点に動かしたい場合 anchorY で上書きする。
+    //   プレイヤーリファレンス (32px tall Steve) の基準:
+    //     y=28: 顔の中心
+    //     y=24: 首・頭の付け根 (head bone pivot)
+    //     y=18: 胸・腕の中心
+    //     y=12: 腰・ベルト位置 (body bone pivot in Minecraft)
+    //     y= 8: 太もも
+    //     y= 0: 足元
     const TARGETS = [
         {
             key: 'sophisticatedbackpacks:worn',
             tooltip: 'SB Worn (背中・SB) — sophisticatedbackpacks:worn',
             icon: 'backpack',
+            anchorY: 18, // 胸 (バックパック装着位置)
         },
         {
             key: 'the_four_primitives_and_weapons:back',
             tooltip: 'MAW Saya Back (背中・MAW鞘) — the_four_primitives_and_weapons:back',
             icon: 'straighten',
+            anchorY: 18, // 胸〜背中の中心
         },
         {
             key: 'the_four_primitives_and_weapons:belt',
             tooltip: 'MAW Saya Belt (ベルト・MAW鞘) — the_four_primitives_and_weapons:belt',
             icon: 'linear_scale',
+            anchorY: 12, // 腰・ベルト位置
         },
     ];
 
@@ -110,6 +123,28 @@
         }
 
         try { DisplayMode.updateDisplayBase(); } catch (e) { }
+
+        // custom slot 固有の anchor Y を適用 (loadHead は y=24+ で「顔」基準に
+        // 置くが、ベルトや背中の slot ならもっと下の腰・胸あたりが基準として
+        // 自然なので、ここで display_area (= モデルが乗ってる Three.js Object3D)
+        // の Y を上書きする)。
+        // display_area は Blockbench 本体ではモジュールスコープのグローバル変数
+        // として定義されているので window.display_area から取る。念のため
+        // DisplayMode.display_area / DisplayMode.display_base もフォールバック。
+        if (typeof target.anchorY === 'number') {
+            const da = (typeof display_area !== 'undefined') ? display_area
+                : (DisplayMode.display_area || DisplayMode.display_base || null);
+            if (da && da.position) {
+                try {
+                    da.position.y = target.anchorY;
+                    if (typeof da.updateMatrixWorld === 'function') da.updateMatrixWorld();
+                    if (typeof Transformer !== 'undefined' && Transformer.center) Transformer.center();
+                } catch (e) {
+                    console.warn('[' + PLUGIN_ID + '] anchorY apply failed', e);
+                }
+            }
+        }
+
         try { if (DisplayMode.vue && DisplayMode.vue.$forceUpdate) DisplayMode.vue.$forceUpdate(); } catch (e) { }
 
         // radio の checked 状態を同期 (Blockbench 本体の :checked ハイライトに乗る)
@@ -819,7 +854,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.8.0',
+        version: '4.9.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -915,7 +950,7 @@
                 Blockbench.on('select_project', modeListener);
             } catch (e) { }
 
-            console.log('[' + PLUGIN_ID + '] v4.8.0 loaded — '
+            console.log('[' + PLUGIN_ID + '] v4.9.0 loaded — '
                 + '(bulk import + Center Model + Center Pivot + built-in Center View) — '
                 + TARGETS.length + ' custom display slots available');
         },
