@@ -43,27 +43,50 @@
     //   を同じ文字列でグルーピングする。例えば 'back' を付けた slot は、
     //   どれかが編集されると 200ms 以内に他の同 group メンバーに値が伝播する。
     //   背中装着の SB worn と MAW back saya は同じ位置なので同期させる。
+    //
+    // preview transform (display_area の Three.js Object3D を上書きするための値):
+    //   anchorX / anchorY / anchorZ : preview 上の display_area の position
+    //     - 指定しない軸は 0 にリセット (前 slot の値の残留を防ぐ)
+    //     - anchorY だけ指定すれば「水平 (X/Z) は body center、垂直は anchorY」
+    //   previewRotationX / previewRotationY / previewRotationZ : display_area の回転 (rad)
+    //     - in-game レンダラ (SB / MAW / armor 等) が JSON display 値の前に独自の
+    //       回転を被せてくる場合があるので、preview でそれを模倣して合わせる
+    //     - 例: SB の BackpackLayerRenderer は内部で Y-180° flip しているので
+    //       SB worn 系の slot は previewRotationY = Math.PI を指定
+    //     - 例: MAW saya は LivingEntityRenderer の scale(-1,-1,1) 経由で Z-180°
+    //       相当の flip があるので previewRotationZ = Math.PI
+    //     - 指定無しの軸は 0 にリセット (前 slot からの残留防止)
+    //   previewScale : display_area の uniform scale
+    //     - loadHead 直後は 0.625 (head 用) になっているので、フルサイズの
+    //       backpack を player ボディに重ねたいときは 1.0 で上書き
+    //     - 指定しないと loadHead の 0.625 が残る (saya は今までそれで OK だった)
     const TARGETS = [
         {
             key: 'sophisticatedbackpacks:worn',
             tooltip: 'SB Worn (背中・SB) — sophisticatedbackpacks:worn',
             icon: 'backpack',
-            anchorY: 18, // 胸 (バックパック装着位置)
-            syncGroup: 'back',
+            anchorY: 13,                  // 胸中心 (model center を Y≈18 の胸に合わせる用に低めに)
+            anchorZ: 2,                   // 後ろ寄りすぎたので前に補正 (in-game の SB renderer 模倣)
+            previewScale: 0.7,            // SB renderer 内部の縮小 (1.0 だと浮く・0.5 だと小さすぎた)
+            previewRotationY: Math.PI,    // SB renderer の内部 Y-180 flip を模倣
+            // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
         },
         {
             key: 'the_four_primitives_and_weapons:back',
             tooltip: 'MAW Saya Back (背中・MAW鞘) — the_four_primitives_and_weapons:back',
             icon: 'straighten',
             anchorY: 18, // 胸〜背中の中心
-            syncGroup: 'back',
+            // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
+            previewRotationZ: Math.PI, // saya は LivingEntityRenderer の scale(-1,-1,1) 相殺
+            // previewScale 無し → loadHead の 0.625 を継承 (saya は今までこれで OK)
         },
         {
             key: 'the_four_primitives_and_weapons:belt',
             tooltip: 'MAW Saya Belt (ベルト・MAW鞘) — the_four_primitives_and_weapons:belt',
             icon: 'linear_scale',
             anchorY: 12, // 腰・ベルト位置
-            // (belt は独立)
+            previewRotationZ: Math.PI, // saya は LivingEntityRenderer の scale(-1,-1,1) 相殺
+            // (belt は同期独立、previewScale は loadHead 継承)
         },
         {
             // Backpack-Arsenal のカスタムバックパックを「胸甲 (chestplate) スタイル」で
@@ -71,13 +94,14 @@
             //   ItemDisplayContext.create("backpack_arsenal:chestplate", ...)
             // を登録し、armor / curios chest スロット描画時にこの context を指定して
             // baked model の applyTransform を呼べば、ここで編集した値が反映される。
-            // syncGroup='back' にしてあるので、sb worn / MAW back と同じ値を共有する
-            // (背中側の rotation/translation/scale を流用するため)。
             key: 'backpack_arsenal:chestplate',
             tooltip: 'Backpack Arsenal Chestplate (胸甲・カスタムバックパック) — backpack_arsenal:chestplate',
             icon: 'shield',
-            anchorY: 18, // 胸 — 体幹中央
-            syncGroup: 'back',
+            anchorY: 13,                  // 胸中心 (SB worn と同じ調整値)
+            anchorZ: 2,                   // SB worn と同じ前向き補正
+            previewScale: 0.7,            // SB Curios renderer の内部縮小に合わせる
+            previewRotationY: Math.PI,    // SB の Curios renderer 経由で描画されるので Y-180 を模倣
+            // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
         },
     ];
 
@@ -260,30 +284,63 @@
 
         try { DisplayMode.updateDisplayBase(); } catch (e) { }
 
-        // custom slot 固有の anchor Y を適用 (loadHead は y=24+ で「顔」基準に
-        // 置くが、ベルトや背中の slot ならもっと下の腰・胸あたりが基準として
-        // 自然なので、ここで display_area (= モデルが乗ってる Three.js Object3D)
-        // の Y を上書きする)。
+        // custom slot 固有の preview transform を適用。
         //
-        // 同時に da.rotation.z = π (180°) を入れる。Minecraft の
-        // LivingEntityRenderer は entity 描画時に scale(-1, -1, 1) で X+Y を
-        // 反転させており、Blockbench はそれを適用していないため display 値が
-        // 同じでも見え方が点対称になる (= roll 180° ずれる)。Z軸 180° 回転は
-        // (x,y,z) → (-x,-y,z) の変換になり scale(-1,-1,1) と等価で、これで
-        // Blockbench プレビューが in-game と一致する。
-        if (typeof target.anchorY === 'number') {
+        // loadHead 直後の display_area の状態:
+        //   position = (0, ~28, ~0)        ← 顔の前
+        //   rotation = (0, 0, 0)
+        //   scale    = (0.625, 0.625, 0.625)  ← head 用の縮小
+        //
+        // 我々の override:
+        //   anchorX/Y/Z      → position 上書き (指定の無い軸はリセットせず loadHead 値を維持)
+        //                       ※ anchorY を指定した slot は X/Z も 0 に下書きされる
+        //                          (body center に置きたい == 「めり込む」感じ)
+        //   previewRotationZ → rotation.z 上書き (未指定なら 0 にリセット — saya の π が
+        //                       次の slot に残るのを防ぐ)
+        //   previewScale     → scale を uniform で上書き (未指定なら loadHead 値継承)
+        //
+        // display_area は Blockbench 本体ではモジュールスコープのグローバル変数
+        // として定義されているので window.display_area から取る。念のため
+        // DisplayMode.display_area / DisplayMode.display_base もフォールバック。
+        const hasAnyOverride =
+            typeof target.anchorY === 'number'
+            || typeof target.anchorX === 'number'
+            || typeof target.anchorZ === 'number'
+            || typeof target.previewRotationX === 'number'
+            || typeof target.previewRotationY === 'number'
+            || typeof target.previewRotationZ === 'number'
+            || typeof target.previewScale === 'number';
+        if (hasAnyOverride) {
             const da = (typeof display_area !== 'undefined') ? display_area
                 : (DisplayMode.display_area || DisplayMode.display_base || null);
             if (da && da.position) {
                 try {
-                    da.position.y = target.anchorY;
+                    // anchorY を指定した slot は X/Z も 0 = body center にデフォルト
+                    // 寄せる (個別に anchorX / anchorZ で上書き可能)。
+                    if (typeof target.anchorY === 'number') {
+                        da.position.x = (typeof target.anchorX === 'number') ? target.anchorX : 0;
+                        da.position.y = target.anchorY;
+                        da.position.z = (typeof target.anchorZ === 'number') ? target.anchorZ : 0;
+                    } else {
+                        if (typeof target.anchorX === 'number') da.position.x = target.anchorX;
+                        if (typeof target.anchorZ === 'number') da.position.z = target.anchorZ;
+                    }
                     if (da.rotation) {
-                        da.rotation.z = Math.PI; // = 180° (Minecraft の scale(-1,-1,1) 相殺)
+                        // 各軸とも未指定なら 0 にリセット (前 slot の残留防止)
+                        da.rotation.x = (typeof target.previewRotationX === 'number')
+                            ? target.previewRotationX : 0;
+                        da.rotation.y = (typeof target.previewRotationY === 'number')
+                            ? target.previewRotationY : 0;
+                        da.rotation.z = (typeof target.previewRotationZ === 'number')
+                            ? target.previewRotationZ : 0;
+                    }
+                    if (typeof target.previewScale === 'number' && da.scale && da.scale.set) {
+                        da.scale.set(target.previewScale, target.previewScale, target.previewScale);
                     }
                     if (typeof da.updateMatrixWorld === 'function') da.updateMatrixWorld();
                     if (typeof Transformer !== 'undefined' && Transformer.center) Transformer.center();
                 } catch (e) {
-                    console.warn('[' + PLUGIN_ID + '] anchorY/rotation apply failed', e);
+                    console.warn('[' + PLUGIN_ID + '] preview transform apply failed', e);
                 }
             }
         }
@@ -1015,7 +1072,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.11.0',
+        version: '4.12.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
