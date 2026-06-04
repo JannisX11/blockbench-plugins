@@ -38,24 +38,31 @@
     //     y=12: 腰・ベルト位置 (body bone pivot in Minecraft)
     //     y= 8: 太もも
     //     y= 0: 足元
+    // syncGroup: 同じ値 (rotation / translation / scale) を共有させたいスロット
+    //   を同じ文字列でグルーピングする。例えば 'back' を付けた slot は、
+    //   どれかが編集されると 200ms 以内に他の同 group メンバーに値が伝播する。
+    //   背中装着の SB worn と MAW back saya は同じ位置なので同期させる。
     const TARGETS = [
         {
             key: 'sophisticatedbackpacks:worn',
             tooltip: 'SB Worn (背中・SB) — sophisticatedbackpacks:worn',
             icon: 'backpack',
             anchorY: 18, // 胸 (バックパック装着位置)
+            syncGroup: 'back',
         },
         {
             key: 'the_four_primitives_and_weapons:back',
             tooltip: 'MAW Saya Back (背中・MAW鞘) — the_four_primitives_and_weapons:back',
             icon: 'straighten',
             anchorY: 18, // 胸〜背中の中心
+            syncGroup: 'back',
         },
         {
             key: 'the_four_primitives_and_weapons:belt',
             tooltip: 'MAW Saya Belt (ベルト・MAW鞘) — the_four_primitives_and_weapons:belt',
             icon: 'linear_scale',
             anchorY: 12, // 腰・ベルト位置
+            // (belt は独立)
         },
     ];
 
@@ -74,6 +81,120 @@
 
     function getProject() {
         return (typeof Project !== 'undefined') ? Project : null;
+    }
+
+    // ─── syncGroup: cross-slot value mirroring ─────────────────────────
+    // 同じ syncGroup を持つ TARGETS は rotation/translation/scale を共有する。
+    // 編集中スロットを 200ms 周期で polling、変更があれば peer slot にコピー。
+    // 切替時には「非デフォルトの値を持つ peer」を canonical として採用し、
+    // 全 group メンバーに伝播してから polling 開始。
+
+    let syncTimer = null;
+    let syncLastSnap = null;
+    let syncActiveKey = null;
+
+    function snapshotSlotData(slot) {
+        if (!slot) return '';
+        return JSON.stringify({
+            r: (slot.rotation || []).slice(),
+            t: (slot.translation || []).slice(),
+            s: (slot.scale || []).slice(),
+        });
+    }
+
+    function isDefaultSlot(slot) {
+        if (!slot) return true;
+        const eq = (a, def) => Array.isArray(a) && a.length === def.length
+            && a.every((v, i) => v === def[i]);
+        return eq(slot.rotation, [0, 0, 0])
+            && eq(slot.translation, [0, 0, 0])
+            && eq(slot.scale, [1, 1, 1]);
+    }
+
+    function applySlotDataTo(key, source) {
+        if (!source) return;
+        const p = getProject();
+        if (!p) return;
+        if (!p.display_settings) p.display_settings = {};
+        if (!p.display_settings[key]) {
+            p.display_settings[key] = new DisplaySlot(key);
+        }
+        const dst = p.display_settings[key];
+        if (Array.isArray(source.rotation)) dst.rotation = source.rotation.slice();
+        if (Array.isArray(source.translation)) dst.translation = source.translation.slice();
+        if (Array.isArray(source.scale)) dst.scale = source.scale.slice();
+    }
+
+    function propagateToSyncPeers(target) {
+        if (!target || !target.syncGroup) return;
+        const p = getProject();
+        if (!p || !p.display_settings) return;
+        const src = p.display_settings[target.key];
+        if (!src) return;
+        TARGETS
+            .filter((t) => t.syncGroup === target.syncGroup && t.key !== target.key)
+            .forEach((peer) => applySlotDataTo(peer.key, src));
+    }
+
+    // syncGroup 内で「canonical」(基準にすべき) slot を選ぶ:
+    //   1. 引数 preferKey の slot が非デフォルト値を持つならそれ
+    //   2. 同 group の他 peer のうち非デフォルト値を持つ最初のもの
+    //   3. 全部デフォルトなら preferKey
+    function pickCanonicalInGroup(syncGroup, preferKey) {
+        const p = getProject();
+        if (!p || !p.display_settings) return preferKey;
+        const peers = TARGETS.filter((t) => t.syncGroup === syncGroup);
+        const preferred = peers.find((t) => t.key === preferKey);
+        if (preferred) {
+            const d = p.display_settings[preferred.key];
+            if (d && !isDefaultSlot(d)) return preferred.key;
+        }
+        for (const t of peers) {
+            const d = p.display_settings[t.key];
+            if (d && !isDefaultSlot(d)) return t.key;
+        }
+        return preferKey;
+    }
+
+    function stopSync() {
+        if (syncTimer) {
+            clearInterval(syncTimer);
+            syncTimer = null;
+        }
+        syncLastSnap = null;
+        syncActiveKey = null;
+    }
+
+    function startSyncFor(target) {
+        stopSync();
+        if (!target || !target.syncGroup) return;
+        const peers = TARGETS.filter((t) => t.syncGroup === target.syncGroup && t.key !== target.key);
+        if (peers.length === 0) return;
+        syncActiveKey = target.key;
+        const p = getProject();
+        if (!p || !p.display_settings) return;
+        syncLastSnap = snapshotSlotData(p.display_settings[target.key]);
+
+        syncTimer = setInterval(() => {
+            try {
+                // アクティブな slot が他に切り替わってたら polling 終了
+                if (typeof DisplayMode === 'undefined'
+                    || DisplayMode.display_slot !== syncActiveKey) {
+                    stopSync();
+                    return;
+                }
+                const cp = getProject();
+                if (!cp || !cp.display_settings) return;
+                const cur = cp.display_settings[syncActiveKey];
+                if (!cur) return;
+                const snap = snapshotSlotData(cur);
+                if (snap === syncLastSnap) return;
+                syncLastSnap = snap;
+                propagateToSyncPeers(target);
+            } catch (e) {
+                console.warn('[' + PLUGIN_ID + '] sync poll failed', e);
+            }
+        }, 200);
     }
 
     // ─── custom slot loader ────────────────────────────────────────────
@@ -150,6 +271,24 @@
                     console.warn('[' + PLUGIN_ID + '] anchorY/rotation apply failed', e);
                 }
             }
+        }
+
+        // syncGroup 設定があれば、まず canonical を pick して値を揃え、
+        // その後 polling 開始 (アクティブ slot の編集が peer に伝播する)。
+        if (target.syncGroup) {
+            const canonicalKey = pickCanonicalInGroup(target.syncGroup, target.key);
+            if (canonicalKey && canonicalKey !== target.key && p.display_settings[canonicalKey]) {
+                applySlotDataTo(target.key, p.display_settings[canonicalKey]);
+                DisplayMode.slot = p.display_settings[target.key];
+                if (DisplayMode.vue && DisplayMode.vue._data) {
+                    DisplayMode.vue._data.slot = p.display_settings[target.key];
+                }
+                try { DisplayMode.updateDisplayBase(); } catch (e) { }
+            }
+            propagateToSyncPeers(target);
+            startSyncFor(target);
+        } else {
+            stopSync();
         }
 
         try { if (DisplayMode.vue && DisplayMode.vue.$forceUpdate) DisplayMode.vue.$forceUpdate(); } catch (e) { }
@@ -861,7 +1000,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.9.2',
+        version: '4.10.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
@@ -963,6 +1102,7 @@
         },
 
         onunload() {
+            stopSync();
             teardownObserver();
             removeInjected();
             unregisterSlotsFromDisplayMode();
