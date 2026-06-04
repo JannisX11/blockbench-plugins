@@ -7,9 +7,10 @@
  * ようにする。スライダーは本体の Display パネルそのままを流用。
  *
  * カスタム display key:
- *   - sophisticatedbackpacks:worn       (SB の Curios back 装備時)
- *   - the_four_primitives_and_weapons:back  (MAW saya の Curios back 装備時)
- *   - the_four_primitives_and_weapons:belt  (MAW saya の Curios belt 装備時)
+ *   - sophisticatedbackpacks:worn          (SB の Curios back 装備時)
+ *   - the_four_primitives_and_weapons:back (MAW saya の Curios back 装備時)
+ *   - the_four_primitives_and_weapons:belt (MAW saya の Curios belt 装備時)
+ *   - backpack_arsenal:chestplate          (Backpack-Arsenal の胸甲スタイル装着時)
  *
  * 仕組み:
  *   1. displayReferenceObjects.slots (= DisplayMode.slots) に key を push
@@ -63,6 +64,20 @@
             icon: 'linear_scale',
             anchorY: 12, // 腰・ベルト位置
             // (belt は独立)
+        },
+        {
+            // Backpack-Arsenal のカスタムバックパックを「胸甲 (chestplate) スタイル」で
+            // 装着・描画する用の display context。mod 側で
+            //   ItemDisplayContext.create("backpack_arsenal:chestplate", ...)
+            // を登録し、armor / curios chest スロット描画時にこの context を指定して
+            // baked model の applyTransform を呼べば、ここで編集した値が反映される。
+            // syncGroup='back' にしてあるので、sb worn / MAW back と同じ値を共有する
+            // (背中側の rotation/translation/scale を流用するため)。
+            key: 'backpack_arsenal:chestplate',
+            tooltip: 'Backpack Arsenal Chestplate (胸甲・カスタムバックパック) — backpack_arsenal:chestplate',
+            icon: 'shield',
+            anchorY: 18, // 胸 — 体幹中央
+            syncGroup: 'back',
         },
     ];
 
@@ -998,9 +1013,9 @@
         title: 'SB Worn Display Editor',
         author: 'hrmcngs',
         icon: 'backpack',
-        description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt) visually in the 3D viewport, using the same sliders as the vanilla slots.',
+        description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.10.0',
+        version: '4.11.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
