@@ -65,10 +65,18 @@
             key: 'sophisticatedbackpacks:worn',
             tooltip: 'SB Worn (背中・SB) — sophisticatedbackpacks:worn',
             icon: 'backpack',
-            anchorY: 13,                  // 胸中心 (model center を Y≈18 の胸に合わせる用に低めに)
-            anchorZ: 2,                   // 後ろ寄りすぎたので前に補正 (in-game の SB renderer 模倣)
-            previewScale: 0.7,            // SB renderer 内部の縮小 (1.0 だと浮く・0.5 だと小さすぎた)
-            previewRotationY: Math.PI,    // SB renderer の内部 Y-180 flip を模倣
+            // SB の BackpackLayerRenderer.translateRotateAndScale をそのまま再現:
+            //   mulPose(YP.180) + mulPose(ZP.180) + translate(0, -0.25, -0.3)
+            // + 外側 LivingEntityRenderer の translate(0,1.5,0) + scale(-1,-1,1) も合成
+            // = vertex (x,y,z) → (-x, y+20, -z+4.8) ピクセル単位
+            // = Y軸 180° 回転 + translate(0, 20, 4.8) と等価
+            // これで preview がプレイヤーの胸・上部体幹に正しく embed され、
+            // in-game の SB worn と同じ位置・向きになる。
+            anchorY: 20,                  // 胸上部 (SB の合成 Y オフセット)
+            anchorZ: 4.8,                 // 前方への合成 Z オフセット
+            previewScale: 1.0,            // SB は内部 scale 無し
+            previewRotationY: Math.PI,    // SB 合成回転 = Y-180 のみ
+            // previewRotationZ 不要 (SB の Z-180 は LivingEntityRenderer scale flip と相殺)
             // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
         },
         {
@@ -97,10 +105,12 @@
             key: 'backpack_arsenal:chestplate',
             tooltip: 'Backpack Arsenal Chestplate (胸甲・カスタムバックパック) — backpack_arsenal:chestplate',
             icon: 'shield',
-            anchorY: 13,                  // 胸中心 (SB worn と同じ調整値)
-            anchorZ: 2,                   // SB worn と同じ前向き補正
-            previewScale: 0.7,            // SB Curios renderer の内部縮小に合わせる
-            previewRotationY: Math.PI,    // SB の Curios renderer 経由で描画されるので Y-180 を模倣
+            // BA は SB の BackpackCurioRenderer を流用しているので、SB worn と
+            // 完全に同じ transform を再現 (SB のソース translateRotateAndScale から計算済)
+            anchorY: 20,
+            anchorZ: 4.8,
+            previewScale: 1.0,
+            previewRotationY: Math.PI,
             // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
         },
     ];
@@ -1072,7 +1082,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.12.0',
+        version: '4.12.1',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
