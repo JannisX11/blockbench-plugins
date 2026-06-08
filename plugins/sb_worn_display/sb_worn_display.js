@@ -83,18 +83,30 @@
             key: 'the_four_primitives_and_weapons:back',
             tooltip: 'MAW Saya Back (背中・MAW鞘) — the_four_primitives_and_weapons:back',
             icon: 'straighten',
-            anchorY: 18, // 胸〜背中の中心
+            // MAW の ScabbardCurioRenderer (back slot) をそのまま再現:
+            //   body.translateAndRotate + translate(0, 0.375, 0) blocks + scale(2/3)
+            // + 外側 LivingEntityRenderer の translate(0, 1.5, 0) + scale(-1,-1,1)
+            // = vertex (x,y,z) → (-2x/3, 18-2y/3, 2z/3) ピクセル単位
+            // = Z軸 180° 回転 + scale 2/3 + translate(0, 18, 0) と等価
+            anchorY: 18,                      // 体幹の中央 (合成 Y オフセット)
+            anchorZ: 0,
+            previewScale: 2 / 3,              // MAW renderer の scale(2/3, 2/3, 2/3)
+            previewRotationZ: Math.PI,        // X+Y flip (= Z 軸 180° 回転) を再現
             // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
-            previewRotationZ: Math.PI, // saya は LivingEntityRenderer の scale(-1,-1,1) 相殺
-            // previewScale 無し → loadHead の 0.625 を継承 (saya は今までこれで OK)
         },
         {
             key: 'the_four_primitives_and_weapons:belt',
             tooltip: 'MAW Saya Belt (ベルト・MAW鞘) — the_four_primitives_and_weapons:belt',
             icon: 'linear_scale',
-            anchorY: 12, // 腰・ベルト位置
-            previewRotationZ: Math.PI, // saya は LivingEntityRenderer の scale(-1,-1,1) 相殺
-            // (belt は同期独立、previewScale は loadHead 継承)
+            // MAW の ScabbardCurioRenderer (belt slot) をそのまま再現:
+            //   body.translateAndRotate + translate(0, 0.75, 0) blocks + scale(2/3)
+            // + 外側 LivingEntityRenderer の translate(0, 1.5, 0) + scale(-1,-1,1)
+            // = vertex (x,y,z) → (-2x/3, 12-2y/3, 2z/3) ピクセル単位
+            // = Z軸 180° 回転 + scale 2/3 + translate(0, 12, 0) と等価
+            anchorY: 12,                      // 腰・ベルト位置 (合成 Y オフセット)
+            anchorZ: 0,
+            previewScale: 2 / 3,              // MAW renderer の scale(2/3, 2/3, 2/3)
+            previewRotationZ: Math.PI,        // X+Y flip (= Z 軸 180° 回転) を再現
         },
         {
             // Backpack-Arsenal のカスタムバックパックを「胸甲 (chestplate) スタイル」で
@@ -1082,7 +1094,7 @@
         icon: 'backpack',
         description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.12.1',
+        version: '4.12.2',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
