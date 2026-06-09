@@ -125,6 +125,32 @@
             previewRotationY: Math.PI,
             // syncGroup なし — 各 slot 独立 (saya / backpack / chestplate は別 renderer)
         },
+        {
+            // Backpack-Arsenal のバックパックを「ワールドにブロックとして設置」した時の
+            // 描画用 display context。SB の BackpackBlockEntityRenderer は FIXED を
+            // 使うが、 BA は自前 BER (ArsenalBackpackBlockEntityRenderer) で
+            //   ItemDisplayContext.create("backpack_arsenal:placed", ..., FIXED)
+            // を指定して描画する。 fallback が FIXED なので JSON に display.placed が
+            // 無ければ FIXED と同じ見た目になる。
+            //
+            // BER の transform は translate(0.5, 0, 0.5) + Y軸 facing 回転のみで、
+            // 内部 scale や rotation の追加は無し (= 純粋に display 値だけが効く)。
+            // よって preview transform は identity 相当でよい。
+            //
+            // referenceMode: 'fixed' でプレイヤー reference を消し、アイテムフレーム風の
+            // ベースに切り替える。 装着系 (worn / back / belt / chestplate) は身体と
+            // 重ねて見たいので loadHead のままだが、 設置ブロックは player と無関係なので
+            // プレイヤーが映ると邪魔になる。
+            key: 'backpack_arsenal:placed',
+            tooltip: 'Backpack Arsenal Placed Block (設置ブロック) — backpack_arsenal:placed',
+            icon: 'view_in_ar',           // 3D box icon (block らしさ)
+            referenceMode: 'placed_block', // 'placed_block' = loadFixed + 額縁 hide + ブロック guide
+                                             // (床平面 + 中心マーカー + 16x16x16 輪郭)
+                                             // 床位置とブロック中心が一目でわかるプレビュー
+            // anchor / previewScale / previewRotation は未指定 (= loadFixed のデフォルト
+            //   item frame ライクな表示をそのまま使う)
+            // syncGroup なし — 設置ブロックは独立 (装着系とは別 transform 系統)
+        },
     ];
 
     const REF_BAR_ID = 'display_ref_bar';
@@ -258,8 +284,256 @@
         }, 200);
     }
 
+    // target.referenceMode に応じて DisplayMode の reference loader を選ぶ。
+    //   'fixed'  → loadFixed + 額縁 mesh を非表示 (素のモデルだけ見たい placed block 用)
+    //   'ground' → loadGround (ドロップ品風)
+    //   'gui'    → loadGUI (GUI 表示)
+    //   'block'  → loadFixed + 自作の "床ブロック" reference (上記とは別の世界感プレビュー)
+    //   未指定   → loadHead (デフォルト、プレイヤーの体に重ねて見る装着系用)
+    // 指定があっても該当 loader が Blockbench に存在しない場合は loadHead に
+    // フォールバック (古い Blockbench でもクラッシュしない)。
+    function pickReferenceLoader(target) {
+        const mode = target && target.referenceMode;
+        if (mode === 'fixed' && typeof DisplayMode.loadFixed === 'function') {
+            // loadFixed は item frame mesh を画面に出してしまうので、 frame だけ
+            // 隠してモデル単体プレビューにする (placed block の見た目を素で見たい用)。
+            return function () {
+                DisplayMode.loadFixed();
+                hideReferenceSiblingsExceptDisplayArea();
+            };
+        }
+        if (mode === 'placed_block' && typeof DisplayMode.loadFixed === 'function') {
+            // 'fixed' + ブロック guide。 床平面 + 中心マーカー + 16x16x16 輪郭で
+            // 「ブロックとして置かれた時の足元 / 中心 / 占有範囲」が一目でわかる。
+            return function () {
+                DisplayMode.loadFixed();
+                hideReferenceSiblingsExceptDisplayArea();
+                addBlockGuide();
+            };
+        }
+        if (mode === 'ground' && typeof DisplayMode.loadGround === 'function') return DisplayMode.loadGround;
+        if (mode === 'gui'    && typeof DisplayMode.loadGUI    === 'function') return DisplayMode.loadGUI;
+        if (mode === 'block') {
+            // ベース: loadFixed → frame mesh hide → 床ブロック追加 (旧版)
+            return function () {
+                if (typeof DisplayMode.loadFixed === 'function') {
+                    DisplayMode.loadFixed();
+                    hideReferenceSiblingsExceptDisplayArea();
+                } else {
+                    DisplayMode.loadHead();
+                }
+                addBlockFloorReference();
+            };
+        }
+        return DisplayMode.loadHead;
+    }
+
+    // ─── reference sibling hider ──────────────────────────────────────
+    // loadFixed が display_area の親シーンに追加する item frame mesh 等を hide する。
+    // display_area 自身 (= 編集モデル) は触らない。
+    // 元の visible は {@link hiddenSiblings} に退避し、 次の slot 切替時に
+    // {@link restoreHiddenSiblings} で復元する。
+
+    let hiddenSiblings = [];
+
+    function hideReferenceSiblingsExceptDisplayArea() {
+        try {
+            const da = (typeof display_area !== 'undefined') ? display_area
+                : (DisplayMode.display_area || DisplayMode.display_base || null);
+            if (!da || !da.parent || !Array.isArray(da.parent.children)) return;
+            da.parent.children.forEach((child) => {
+                if (child !== da && child.visible !== false) {
+                    hiddenSiblings.push({ obj: child, prev: child.visible });
+                    child.visible = false;
+                }
+            });
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] hideReferenceSiblings failed', e);
+        }
+    }
+
+    function restoreHiddenSiblings() {
+        try {
+            hiddenSiblings.forEach(({ obj, prev }) => {
+                if (obj) obj.visible = prev !== false;
+            });
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] restoreHiddenSiblings failed', e);
+        }
+        hiddenSiblings = [];
+    }
+
+    // ─── block guide (placed_block 用) ─────────────────────────────────
+    // MC で 1 ブロックは model 座標 0..16 を占める。 設置ブロック表示の編集中、
+    // 「ブロックが置かれる床」「床の中心(モデルがどこを基準に立つか)」と
+    // 「MC ワールド座標系の軸方向」 を視覚化する。
+    //
+    //   1. 床平面     : y=0 に 16x16 の半透明 plane (青系) — 設置時の足元の高さ
+    //   2. 中心マーカー: (8, 0, 8) に小さな赤球 — 床の中心 (= 設置時の基準点)
+    //   3. XYZ 軸     : 床の中心から各 +8 unit に伸びる色付き矢印
+    //                   Red = +X (East),  Green = +Y (Up),  Blue = +Z (South)
+    //                   MC convention に合わせる。
+    //
+    // 全部 1 つの Group に入れて名前で識別 / 一括削除する。
+    const BLOCK_GUIDE_NAME = 'sb_custom_block_guide';
+
+    function addBlockGuide() {
+        if (typeof THREE === 'undefined') return;
+        try {
+            const scene = getDisplayScene();
+            if (!scene || !scene.add) return;
+            removeBlockGuide(); // 二重追加防止
+
+            const guide = new THREE.Group();
+            guide.name = BLOCK_GUIDE_NAME;
+
+            // (1) 床平面 — y=0 で 16x16
+            const floorGeo = new THREE.PlaneGeometry(16, 16);
+            const floorMat = new THREE.MeshBasicMaterial({
+                color: 0x4488ff,
+                transparent: true,
+                opacity: 0.18,
+                side: THREE.DoubleSide,
+                depthWrite: false, // モデル裏にあっても見える
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;  // XY 平面 → XZ 平面 (水平)
+            floor.position.set(8, 0, 8);      // ブロック中心 X/Z, 高さ 0
+            guide.add(floor);
+
+            // (2) 中心マーカー — 床の中心 (8, 0, 8) に半径 0.4 の赤い球
+            //  「ブロック中心 (8,8,8)」 ではなく 「床に面した中心」 を示すので y=0。
+            const centerGeo = new THREE.SphereGeometry(0.4, 12, 8);
+            const centerMat = new THREE.MeshBasicMaterial({
+                color: 0xff3344,
+                transparent: true,
+                opacity: 0.9,
+                depthWrite: false,
+            });
+            const centerMarker = new THREE.Mesh(centerGeo, centerMat);
+            centerMarker.position.set(8, 0, 8);
+            guide.add(centerMarker);
+
+            // (3) XYZ 軸 — 床の中心から +8 unit (= 0.5 block) の矢印 3本
+            //   +X = East  (赤)
+            //   +Y = Up    (緑)
+            //   +Z = South (青)
+            //   Three.js の ArrowHelper は (dir, origin, length, color, headLength, headWidth)。
+            //   origin は (8, 0, 8) 床中心。 length=8 で半ブロック分。
+            const axisOrigin = new THREE.Vector3(8, 0, 8);
+            const axisLength = 8;
+            const headLen = 1.6;
+            const headWid = 1.0;
+
+            const xArrow = new THREE.ArrowHelper(
+                new THREE.Vector3(1, 0, 0), axisOrigin, axisLength,
+                0xff4444, headLen, headWid);
+            const yArrow = new THREE.ArrowHelper(
+                new THREE.Vector3(0, 1, 0), axisOrigin, axisLength,
+                0x44dd44, headLen, headWid);
+            const zArrow = new THREE.ArrowHelper(
+                new THREE.Vector3(0, 0, 1), axisOrigin, axisLength,
+                0x4488ff, headLen, headWid);
+
+            // ArrowHelper の構成要素 (line + cone) の material を depthWrite=false に
+            // して、 モデル裏に隠れた軸も薄く透けて見えるようにする。
+            [xArrow, yArrow, zArrow].forEach((arrow) => {
+                if (arrow.line && arrow.line.material) {
+                    arrow.line.material.depthWrite = false;
+                    arrow.line.material.transparent = true;
+                    arrow.line.material.opacity = 0.95;
+                }
+                if (arrow.cone && arrow.cone.material) {
+                    arrow.cone.material.depthWrite = false;
+                    arrow.cone.material.transparent = true;
+                    arrow.cone.material.opacity = 0.95;
+                }
+            });
+
+            guide.add(xArrow);
+            guide.add(yArrow);
+            guide.add(zArrow);
+
+            scene.add(guide);
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] addBlockGuide failed', e);
+        }
+    }
+
+    function removeBlockGuide() {
+        try {
+            const scene = getDisplayScene();
+            if (!scene) return;
+            const existing = scene.getObjectByName
+                ? scene.getObjectByName(BLOCK_GUIDE_NAME)
+                : null;
+            if (!existing) return;
+            if (scene.remove) scene.remove(existing);
+            existing.traverse && existing.traverse((obj) => {
+                if (obj.geometry && obj.geometry.dispose) obj.geometry.dispose();
+                if (obj.material && obj.material.dispose) obj.material.dispose();
+            });
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] removeBlockGuide failed', e);
+        }
+    }
+
+    // ─── block floor reference (custom) ────────────────────────────────
+    // Blockbench に「ワールドに置かれたブロックの足元」reference は無いので、
+    // 単純な土色 cube を display_area の親シーンに足す。
+    // 名前で識別して二重追加・他 slot 残留を防ぐ。
+    const BLOCK_FLOOR_NAME = 'sb_custom_block_floor';
+
+    function getDisplayScene() {
+        const da = (typeof display_area !== 'undefined') ? display_area
+            : (DisplayMode.display_area || DisplayMode.display_base || null);
+        if (!da) return null;
+        // display_area の親 (= 表示シーン直下) に追加する。
+        // da.parent が無い場合 (loader 前) はそのまま da を返す (later add される)。
+        return da.parent || da;
+    }
+
+    function removeBlockFloorReference() {
+        try {
+            const scene = getDisplayScene();
+            if (!scene) return;
+            const existing = scene.getObjectByName
+                ? scene.getObjectByName(BLOCK_FLOOR_NAME)
+                : null;
+            if (existing) {
+                if (scene.remove) scene.remove(existing);
+                if (existing.geometry && existing.geometry.dispose) existing.geometry.dispose();
+                if (existing.material && existing.material.dispose) existing.material.dispose();
+            }
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] removeBlockFloorReference failed', e);
+        }
+    }
+
+    function addBlockFloorReference() {
+        if (typeof THREE === 'undefined') return;
+        try {
+            const scene = getDisplayScene();
+            if (!scene || !scene.add) return;
+            // 既存があれば一旦消す (slot 切替時に loadCustomSlot からも remove するが念のため)。
+            removeBlockFloorReference();
+
+            // モデル座標 (0..16) に対して床: y=-1 で 16x1x16 の cube。
+            // grass topっぽい緑緑灰 / dirt 系の褐色を反映した dual-material はやり過ぎなので
+            // 単色 (土・草の中間色) で十分。
+            const geo = new THREE.BoxGeometry(16, 1, 16);
+            const mat = new THREE.MeshLambertMaterial({ color: 0x7da34d, transparent: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(8, -0.5, 8);   // モデル中央 (8,_,8) に合わせて足元 y=-0.5
+            mesh.name = BLOCK_FLOOR_NAME;
+            scene.add(mesh);
+        } catch (e) {
+            console.warn('[' + PLUGIN_ID + '] addBlockFloorReference failed', e);
+        }
+    }
+
     // ─── custom slot loader ────────────────────────────────────────────
-    // DisplayMode.loadHead() を踏み台にカメラ/Reference バーを設定し
+    // pickReferenceLoader() を踏み台にカメラ/Reference バーを設定し
     // その後 slot をカスタムキーに差し替える。
     function loadCustomSlot(target, options) {
         // options.silent     : true なら通知メッセージを出さない
@@ -290,11 +564,21 @@
             } catch (e) { }
         }
 
+        // slot 切替の度に、前 slot が残した自作 reference (床ブロック等) を確実に消す。
+        // referenceMode === 'block' の slot に切り替わる場合は pickReferenceLoader
+        // 内で再度 add される。それ以外の slot に切り替わる場合はこれで消えたまま。
+        removeBlockFloorReference();
+        removeBlockGuide();
+        // 前 slot で hide した item frame / player などの reference を一旦復元する。
+        // referenceMode === 'fixed' / 'placed_block' の slot に切り替わる場合は
+        // pickReferenceLoader 内で再度 hide される。
+        restoreHiddenSiblings();
+
         if (!opts.skipCameraReset) {
             try {
-                DisplayMode.loadHead();
+                pickReferenceLoader(target)();
             } catch (e) {
-                console.warn('[' + PLUGIN_ID + '] loadHead failed', e);
+                console.warn('[' + PLUGIN_ID + '] reference loader failed', e);
             }
         }
 
@@ -1092,9 +1376,9 @@
         title: 'SB Worn Display Editor',
         author: 'hrmcngs',
         icon: 'backpack',
-        description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate) visually in the 3D viewport, using the same sliders as the vanilla slots.',
+        description: 'Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate / placed) visually in the 3D viewport, using the same sliders as the vanilla slots.',
         tags: ['Minecraft: Java Edition', 'Modeling'],
-        version: '4.12.2',
+        version: '4.13.0',
         min_version: '4.8.0',
         variant: 'both',
         website: 'https://github.com/hrmcngs/sb-worn-display-blockbench',
