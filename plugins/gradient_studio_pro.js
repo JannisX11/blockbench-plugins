@@ -2212,9 +2212,11 @@ var updateAllTextures;
 Plugin.register('gradient_studio_pro', {
     title: 'Gradient Studio PRO',
     author: 'OrionDragon',
-    description: 'Advanced hybrid gradient mapping with lightness preservation and smart island analysis. Processing in background workers.',
+    description: 'Advanced hybrid gradient mapping tool with lightness preservation and smart island analysis.',
+    about: '<div align="center"><img src="https://raw.githubusercontent.com/OrionTheDragon/blockbench-plugins/master/plugins/gradient_studio_pro.png" width="200" alt="Logo"><h1>Gradient Studio PRO</h1><p><b>[EN]</b> Advanced hybrid gradient mapping tool with lightness preservation and smart island analysis. Processing in background workers allows you to seamlessly recolor complex textures without freezing the editor!</p><p><b>[RU]</b> Продвинутый инструмент градиентного маппинга с сохранением яркости и умным анализом пиксельных островов. Фоновая обработка позволяет перекрашивать текстуры без зависаний редактора!</p><hr><h3>☕ Support the Creator / Поддержать автора</h3><p><i>If this plugin saves your time, you can support its development! / Если плагин сэкономил вам время, вы можете угостить меня кофе!</i></p><a href="https://paypal.me/Dralink96" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal"></a>&nbsp;<a href="https://www.donationalerts.com/r/orion_dragon" target="_blank"><img src="https://img.shields.io/badge/Donate-DonationAlerts-FF7D00?style=for-the-badge&logo=coffeescript&logoColor=white" alt="DonationAlerts"></a></div>',
     icon: 'format_paint',
-    version: '3.1.0',
+    tags: ['texture', 'color', 'gradient', 'tool'],
+    version: '1.0.0',
     variant: 'both',
     onload() {
         updateAllTextures = function() {
