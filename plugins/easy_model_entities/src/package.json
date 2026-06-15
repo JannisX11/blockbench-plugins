@@ -1,0 +1,28 @@
+{
+  "name": "easy_model_entities",
+  "version": "0.1.0",
+  "description": "Export Blockbench projects into Easy Model Entities Data Pack and Resource Pack files.",
+  "author": "Markus Bordihn",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "blockbench-types": "^4.9.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "jest": "^29.7.0",
+    "webpack": "^5.80.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "transform": {
+      "\\.md$": "<rootDir>/tests/mdTransform.js"
+    }
+  }
+}
