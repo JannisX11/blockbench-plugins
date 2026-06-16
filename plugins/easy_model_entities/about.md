@@ -1,4 +1,4 @@
-# Easy Model Entities Exporter
+# Easy Model Entities
 
 > **Beta:** This is an early release to gather feedback. Some settings, file formats and the export
 > output may still change before the final version. Please report problems and ideas on the
