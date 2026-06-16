@@ -22,14 +22,10 @@ class ModelDimensions {
   static FALLBACK = {
     width: 0.6,
     height: 0.8,
-    eyeHeight: 0.5,
-    visibleBoundsWidth: 1.2,
-    visibleBoundsHeight: 1,
-    visibleBoundsOffset: [0, 0.5, 0]
+    eyeHeight: 0.5
   };
 
   static #EYE_HEIGHT_FACTOR = {biped: 0.9, quadruped: 0.8, static: 0.85};
-  static #BOUNDS_MARGIN = 1.1;
 
   static #round(value, digits) {
     const factor = Math.pow(10, digits == null ? 3 : digits);
@@ -47,42 +43,27 @@ class ModelDimensions {
 
   static deriveDimensions(bounds, bodyType) {
     if (!ModelDimensions.#isUsableBounds(bounds)) {
-      return {
-        ...ModelDimensions.FALLBACK,
-        visibleBoundsOffset: ModelDimensions.FALLBACK.visibleBoundsOffset.slice()
-      };
+      return {...ModelDimensions.FALLBACK};
     }
 
-    const extentX = Math.max(0, bounds.maxX - bounds.minX)
-        / ModelDimensions.PIXELS_PER_BLOCK;
-    const extentY = Math.max(0, bounds.maxY - bounds.minY)
-        / ModelDimensions.PIXELS_PER_BLOCK;
-    const extentZ = Math.max(0, bounds.maxZ - bounds.minZ)
+    const width = Math.max(
+        Math.max(0, bounds.maxX - bounds.minX),
+        Math.max(0, bounds.maxZ - bounds.minZ)
+    ) / ModelDimensions.PIXELS_PER_BLOCK;
+    const height = Math.max(0, bounds.maxY - bounds.minY)
         / ModelDimensions.PIXELS_PER_BLOCK;
 
-    const width = Math.max(extentX, extentZ);
-    const height = extentY;
     if (width <= 0 || height <= 0) {
-      return {
-        ...ModelDimensions.FALLBACK,
-        visibleBoundsOffset: ModelDimensions.FALLBACK.visibleBoundsOffset.slice()
-      };
+      return {...ModelDimensions.FALLBACK};
     }
 
-    const eyeHeightFactor =
-        ModelDimensions.#EYE_HEIGHT_FACTOR[bodyType] == null
-            ? ModelDimensions.#EYE_HEIGHT_FACTOR.static
-            : ModelDimensions.#EYE_HEIGHT_FACTOR[bodyType];
+    const eyeHeightFactor = ModelDimensions.#EYE_HEIGHT_FACTOR[bodyType]
+        ?? ModelDimensions.#EYE_HEIGHT_FACTOR.static;
 
     return {
       width: ModelDimensions.#round(width),
       height: ModelDimensions.#round(height),
-      eyeHeight: ModelDimensions.#round(height * eyeHeightFactor),
-      visibleBoundsWidth: ModelDimensions.#round(
-          width * ModelDimensions.#BOUNDS_MARGIN),
-      visibleBoundsHeight: ModelDimensions.#round(
-          height * ModelDimensions.#BOUNDS_MARGIN),
-      visibleBoundsOffset: [0, ModelDimensions.#round(height / 2), 0]
+      eyeHeight: ModelDimensions.#round(height * eyeHeightFactor)
     };
   }
 
@@ -95,9 +76,6 @@ class ModelDimensions {
     settings.dimensions.width = modelDimensions.width;
     settings.dimensions.height = modelDimensions.height;
     settings.dimensions.eyeHeight = modelDimensions.eyeHeight;
-    settings.rendering.visibleBoundsWidth = modelDimensions.visibleBoundsWidth;
-    settings.rendering.visibleBoundsHeight = modelDimensions.visibleBoundsHeight;
-    settings.rendering.visibleBoundsOffset = modelDimensions.visibleBoundsOffset.slice();
     return settings;
   }
 }

@@ -1,3 +1,22 @@
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 const {
   settingsToForm,
   formToSettings,
@@ -7,14 +26,7 @@ const {
 } = require('../ui/exportDialog');
 const {fixtureSettings} = require('./fixtureData');
 
-const MODEL_DIMS = {
-  width: 1,
-  height: 2,
-  eyeHeight: 1.8,
-  visibleBoundsWidth: 1.1,
-  visibleBoundsHeight: 2.2,
-  visibleBoundsOffset: [0.0, 1, 0.0]
-};
+const MODEL_DIMS = {width: 1, height: 2, eyeHeight: 1.8};
 
 describe('exportDialog mapping', () => {
   test('settings survive a form round-trip', () => {
@@ -76,7 +88,6 @@ describe('presetFormValues', () => {
         expect(values.animationMode).toBe('none');
         expect(values.width).toBe(1);
         expect(values.height).toBe(2);
-        expect(values.visibleBoundsHeight).toBe(2.2);
         expect(values.namespace).toBeUndefined();
         expect(values.profileId).toBeUndefined();
         expect(values.targetVersion).toBeUndefined();
@@ -94,7 +105,6 @@ describe('resolveExportSettings', () => {
           preset: 'statue',
           namespace: 'example.org',
           profileId: 'statue',
-          version: 'v2',
           targetVersion: '1.20.1',
           customize: false,
           width: 999,
@@ -108,7 +118,6 @@ describe('resolveExportSettings', () => {
         expect(settings.dimensions.height).toBe(2);
         expect(settings.namespace).toBe('example.org');
         expect(settings.profileId).toBe('statue');
-        expect(settings.version).toBe('v2');
       });
 
   test('custom preset keeps the stored base settings', () => {

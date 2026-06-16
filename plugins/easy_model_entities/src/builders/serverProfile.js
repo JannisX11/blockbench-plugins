@@ -33,12 +33,10 @@ const DEFAULT_FOLLOW_RANGE = 16;
 
 function effectiveDefaults(settings) {
   const preset = settings.presetType;
-  const move = settings.host.movementType;
-  const movement = movementDefaults(preset, move);
-  const mode = behaviorModeFor(preset, move);
-  const dimensions = settings.modelType === MODEL_TYPE_BLOCK_ENTITY
-      ? presetDefaults(preset, MODEL_TYPE_BLOCK_ENTITY).dimensions
-      : presetDimensions(preset);
+  const movementType = settings.host.movementType;
+  const movement = movementDefaults(preset, movementType);
+  const mode = behaviorModeFor(preset, movementType);
+
   return {
     movement: {
       speed: movement.speed,
@@ -48,14 +46,16 @@ function effectiveDefaults(settings) {
     behavior: {
       mode: mode,
       look_at_players: mode === 'idle_only' || mode === 'ambient',
-      random_stroll: move === 'ground' && mode === 'ambient'
+      random_stroll: movementType === 'ground' && mode === 'ambient'
     },
     attributes: {
       max_health: DEFAULT_MAX_HEALTH,
       movement_speed: settings.movement.speed,
       follow_range: DEFAULT_FOLLOW_RANGE
     },
-    dimensions: dimensions
+    dimensions: settings.modelType === MODEL_TYPE_BLOCK_ENTITY
+        ? presetDefaults(preset, MODEL_TYPE_BLOCK_ENTITY).dimensions
+        : presetDimensions(preset)
   };
 }
 
@@ -66,7 +66,9 @@ function buildEntity(settings, custom) {
   if (!custom) {
     return {};
   }
+
   const host = settings.host;
+
   return {
     type: host.entityType,
     movement_type: host.movementType,
@@ -83,6 +85,7 @@ function buildDimensions(settings, defaults, custom) {
   if (custom) {
     return values;
   }
+
   return diffFlat(values, {
     width: defaults.dimensions.width,
     height: defaults.dimensions.height,
@@ -101,9 +104,6 @@ function buildServerProfile(settings) {
     model_type: modelType,
     preset_type: settings.presetType
   };
-  if (settings.version) {
-    profile.version = settings.version;
-  }
 
   // The server profile lives in a "<model_type>/<id>" subfolder, so its derived
   // id differs from the flat render profile id. The render profile must be named
@@ -119,7 +119,6 @@ function buildServerProfile(settings) {
   assignIfPresent(profile, 'dimensions',
       buildDimensions(settings, defaults, custom));
 
-  // Block entities ignore movement, behavior and attributes.
   if (!blockEntity) {
     assignIfPresent(profile, 'movement', diffFlat({
       speed: settings.movement.speed,

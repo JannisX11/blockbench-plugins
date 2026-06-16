@@ -26,17 +26,25 @@ const {
 const {ModelDimensions} = require('./model/ModelDimensions');
 const {PresetDetector} = require('./model/PresetDetector');
 const {ResourceLocation} = require('./utils/ResourceLocation');
+const {resolveTextures} = require('./utils/TextureResolver');
 const {Validator} = require('./model/Validator');
 const {buildPackBundle, buildModProjectFiles} = require('./builders/exporter');
 const {BlockbenchAdapter} = require('./BlockbenchAdapter');
 const {openExportDialog} = require('./ui/exportDialog');
 const {registerTranslations, t} = require('./i18n/translations');
-const actionIconSvg = require('./resources/action_icon.svg');
+const exportIconSvg = require('./resources/export_icon.svg');
+const createIconSvg = require('./resources/create_icon.svg');
+const {FORMAT_ID, registerEmeFormat, unregisterEmeFormat} = require(
+    './format/EmeFormat');
+const {registerEmeCodecHooks, unregisterEmeCodecHooks} = require(
+    './format/EmeCodecHooks');
 
+const MODDED_ENTITY_FORMAT_ID = 'modded_entity';
 const ACTION_ID = 'eme_export';
 const SETTING_ID = 'eme_enable_customization';
 const EXPERIMENTAL_SETTING_ID = 'eme_enable_experimental';
-const ACTION_ICON = 'data:image/svg+xml,' + encodeURIComponent(actionIconSvg);
+const EXPORT_ICON = 'data:image/svg+xml,' + encodeURIComponent(exportIconSvg);
+const CREATE_ICON = 'data:image/svg+xml,' + encodeURIComponent(createIconSvg);
 let exportAction;
 let projectProperty;
 let customizationSetting;
@@ -46,6 +54,7 @@ function customizationEnabled() {
   if (customizationSetting && typeof customizationSetting.value === 'boolean') {
     return customizationSetting.value;
   }
+
   return false;
 }
 
@@ -53,6 +62,7 @@ function experimentalEnabled() {
   if (experimentalSetting && typeof experimentalSetting.value === 'boolean') {
     return experimentalSetting.value;
   }
+
   return false;
 }
 
@@ -91,17 +101,21 @@ function resolveDialogState() {
         ModelDimensions.deriveDimensions(bounds, settings.host.bodyType));
     customize = false;
     exportType = 'packs';
-    const projectName = BlockbenchAdapter.getProjectName();
-    if (projectName) {
-      settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
-    }
   }
 
-  const modelDimensions = ModelDimensions.deriveDimensions(bounds,
-      settings.host.bodyType);
+  // Derive the profile id from the model name/file whenever none has been set
+  // yet (empty or still the placeholder default).
+  const projectName = BlockbenchAdapter.getProjectName();
+  if (projectName
+      && (!settings.profileId || settings.profileId
+          === getDefaults().profileId)) {
+    settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
+  }
+
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
-    modelDimensions
+    modelDimensions: ModelDimensions.deriveDimensions(bounds,
+        settings.host.bodyType)
   };
 }
 
@@ -110,16 +124,13 @@ function formatIssues(issues) {
 }
 
 function collectContext() {
-  const stats = BlockbenchAdapter.getModelStats();
-  return Object.assign({}, stats, {
-    textureCount: BlockbenchAdapter.getTextureCount(),
-    visibleBoundsManual: true
-  });
+  return Object.assign({}, BlockbenchAdapter.getModelStats());
 }
 
 function runExport(settings, target) {
-  const context = collectContext();
-  const result = Validator.validateSettings(settings, context);
+  const textureResolution = resolveTextures(
+      BlockbenchAdapter.collectTextures(), settings);
+  const result = Validator.validateSettings(settings, collectContext());
 
   if (!result.valid) {
     Blockbench.showMessageBox({
@@ -130,7 +141,7 @@ function runExport(settings, target) {
     return;
   }
 
-  const doExport = () => performExport(settings, target);
+  const doExport = () => performExport(settings, target, textureResolution);
 
   if (result.warnings.length > 0) {
     Blockbench.showMessageBox(
@@ -153,10 +164,10 @@ function runExport(settings, target) {
   }
 }
 
-function performExport(settings, target) {
+function performExport(settings, target, textureResolution) {
   const options = {
     modelBytes: BlockbenchAdapter.getModelBytes(),
-    textureBytes: BlockbenchAdapter.getTextureBytes()
+    textureResolution
   };
 
   BlockbenchAdapter.saveSettings(settings);
@@ -169,8 +180,8 @@ function performExport(settings, target) {
 }
 
 function exportToZip(settings, options) {
-  const bundle = buildPackBundle(settings, options);
-  BlockbenchAdapter.exportPackBundle(bundle,
+  BlockbenchAdapter.exportPackBundle(
+      buildPackBundle(settings, options),
       `${settings.namespace}_${settings.profileId}_eme`)
   .then(() => {
     Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
@@ -227,6 +238,7 @@ function openDialog() {
     Blockbench.showQuickMessage('Open a project first', 1500);
     return;
   }
+
   const state = resolveDialogState();
   openExportDialog({
     settings: state.settings,
@@ -247,16 +259,22 @@ BBPlugin.register('easy_model_entities', {
   icon: 'icon.png',
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
-  tags: ['Minecraft: Java Edition', 'Exporter', 'Entity'],
+  tags: ['Minecraft: Java Edition', 'Format', 'Exporter', 'Entity'],
   version: '0.1.0',
   min_version: '4.9.0',
   variant: 'desktop',
+  await_loading: true,
   has_changelog: true,
-  website: 'https://github.com/MarkusBordihn/BOs-Easy-Model-Entities',
+  contributes: {
+    formats: ['eme_entity']
+  },
+  website: 'https://www.curseforge.com/minecraft/mc-mods/easy-model-entities',
   repository: 'https://github.com/MarkusBordihn/BOs-Easy-Model-Entities',
   bug_tracker: 'https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues',
   onload() {
     registerTranslations();
+    registerEmeFormat(CREATE_ICON);
+    registerEmeCodecHooks();
 
     projectProperty = new Property(ModelProject, 'object',
         BlockbenchAdapter.PROJECT_PROPERTY, {
@@ -280,9 +298,11 @@ BBPlugin.register('easy_model_entities', {
     });
 
     exportAction = new Action(ACTION_ID, {
-      name: 'Export Easy Model Entities Pack',
+      name: 'Export Easy Model Entity Pack',
       description: 'Export the current project as Easy Model Entities Data Pack and Resource Pack.',
-      icon: ACTION_ICON,
+      icon: EXPORT_ICON,
+      condition: () => typeof Format !== 'undefined' && Format
+          && (Format.id === FORMAT_ID || Format.id === MODDED_ENTITY_FORMAT_ID),
       click() {
         openDialog();
       }
@@ -291,6 +311,8 @@ BBPlugin.register('easy_model_entities', {
     MenuBar.addAction(exportAction, 'file.export');
   },
   onunload() {
+    unregisterEmeCodecHooks();
+    unregisterEmeFormat();
     if (exportAction) {
       exportAction.delete();
     }

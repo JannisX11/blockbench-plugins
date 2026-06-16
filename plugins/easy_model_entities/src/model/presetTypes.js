@@ -165,30 +165,28 @@ function presetDimensions(presetType) {
   }
 }
 
-// [visibleBoundsWidth, visibleBoundsHeight, visibleBoundsOffsetY, shadowRadius]
-function presetRenderBounds(presetType) {
+// Shadow radius the mod derives per render preset (ModelRenderSettings).
+function presetShadowRadius(presetType) {
   switch (presetType) {
     case 'quadruped_still':
     case 'quadruped_wandering':
-      return [0.9, 0.9, 0.45, 0.45];
+      return 0.45;
     case 'aquatic_still':
     case 'aquatic_swimming':
-      return [0.7, 0.4, 0.2, 0.25];
     case 'winged_still':
     case 'winged_wandering':
-      return [0.6, 0.9, 0.45, 0.25];
     case 'winged_humanoid_still':
     case 'winged_humanoid_wandering':
-      return [0.6, 0.8, 0.4, 0.25];
+      return 0.25;
     case 'arthropod_still':
     case 'arthropod_wandering':
-      return [1.4, 0.9, 0.45, 0.7];
+      return 0.7;
     case 'cuboid_still':
     case 'cuboid_hopping':
     case 'floating_still':
-      return [1.0, 1.0, 0.5, 0.5];
+      return 0.5;
     default:
-      return [0.6, 1.8, 0.9, 0.3];
+      return 0.3;
   }
 }
 
@@ -198,12 +196,15 @@ function behaviorModeFor(presetType, move) {
   if (isMoving(presetType)) {
     return 'ambient';
   }
+
   if (isStill(presetType)) {
     return 'idle_only';
   }
+
   if (presetType === 'custom') {
     return move === 'ground' ? 'idle_only' : 'static';
   }
+
   return 'static';
 }
 
@@ -239,25 +240,18 @@ function blockEntityAnimationMode(presetType) {
 }
 
 // Block entities ignore movement/behavior/attributes; the host is always a
-// static cuboid block. Render bounds default to a 1x1x1 block.
+// static cuboid block.
 function blockEntityPresetDefaults(presetType) {
   return {
     schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_BLOCK_ENTITY,
     presetType: presetType,
-    version: '',
     host: {entityType: '', movementType: 'static', bodyType: 'static'},
     dimensions: {...BLOCK_ENTITY_DIMENSIONS},
     movement: {speed: 0, stepHeight: 0, gravity: false},
     behavior: {mode: 'static', lookAtPlayers: false, randomStroll: false},
     attributes: {maxHealth: 10, movementSpeed: 0, followRange: 16},
-    rendering: {
-      scale: 1,
-      shadowRadius: 0.5,
-      visibleBoundsWidth: 1.0,
-      visibleBoundsHeight: 1.0,
-      visibleBoundsOffset: [0, 0.5, 0]
-    },
+    rendering: {scale: 1, shadowRadius: 0.5},
     animation: {
       mode: blockEntityAnimationMode(presetType),
       swingSpeed: 1,
@@ -266,48 +260,38 @@ function blockEntityPresetDefaults(presetType) {
   };
 }
 
-// Full settings object matching the mod defaults for the given preset type.
 function presetDefaults(presetType, modelType) {
   if (modelType === MODEL_TYPE_BLOCK_ENTITY) {
     return blockEntityPresetDefaults(presetType);
   }
+
   const move = movementType(presetType);
   const ground = move === 'ground';
   const speed = ground ? 0.22 : 0;
-  const stepHeight = ground ? 0.6 : 0;
-  const gravity = presetType === 'static' || ground;
   const mode = behaviorMode(presetType);
-  const lookAtPlayers = mode === 'idle_only' || mode === 'ambient';
-  const randomStroll = ground && mode === 'ambient';
-  const dimensions = presetDimensions(presetType);
-  const [boundsWidth, boundsHeight, boundsOffsetY, shadowRadius] =
-      presetRenderBounds(presetType);
 
   return {
     schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_ENTITY,
     presetType: presetType,
-    version: '',
     host: {
       entityType: entityType(presetType),
       movementType: move,
       bodyType: bodyType(presetType)
     },
-    dimensions: dimensions,
-    movement: {speed: speed, stepHeight: stepHeight, gravity: gravity},
+    dimensions: presetDimensions(presetType),
+    movement: {
+      speed: speed,
+      stepHeight: ground ? 0.6 : 0,
+      gravity: presetType === 'static' || ground
+    },
     behavior: {
       mode: mode,
-      lookAtPlayers: lookAtPlayers,
-      randomStroll: randomStroll
+      lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
+      randomStroll: ground && mode === 'ambient'
     },
     attributes: {maxHealth: 10, movementSpeed: speed, followRange: 16},
-    rendering: {
-      scale: 1,
-      shadowRadius: shadowRadius,
-      visibleBoundsWidth: boundsWidth,
-      visibleBoundsHeight: boundsHeight,
-      visibleBoundsOffset: [0, boundsOffsetY, 0]
-    },
+    rendering: {scale: 1, shadowRadius: presetShadowRadius(presetType)},
     animation: {
       mode: animationMode(presetType),
       swingSpeed: 1,
@@ -320,27 +304,16 @@ module.exports = {
   SCHEMA_VERSION,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY,
-  MODEL_TYPES,
-  GROUND_ENTITY,
-  STATIC_ENTITY,
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   SELECTABLE_PRESET_TYPES,
-  STABLE_PRESET_TYPES,
   isStablePreset,
   isCustom,
-  isStill,
-  isMoving,
   bodyType,
-  movementType,
-  entityType,
-  behaviorMode,
   behaviorModeFor,
   movementDefaults,
   animationMode,
-  blockEntityAnimationMode,
   presetDimensions,
-  presetRenderBounds,
-  presetDefaults,
-  blockEntityPresetDefaults
+  presetShadowRadius,
+  presetDefaults
 };

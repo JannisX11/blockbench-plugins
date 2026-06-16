@@ -18,9 +18,7 @@
  */
 
 const {
-  SCHEMA_VERSION,
   PRESET_TYPES,
-  BLOCK_ENTITY_PRESET_TYPES,
   SELECTABLE_PRESET_TYPES,
   MODEL_TYPE_ENTITY,
   presetDefaults
@@ -42,6 +40,7 @@ function deepMerge(target, source) {
       result[key] = value;
     }
   });
+
   return result;
 }
 
@@ -62,13 +61,10 @@ function applyTemplate(presetType, modelType) {
 }
 
 module.exports = {
-  SCHEMA_VERSION,
   DEFAULT_PRESET,
   PRESET_TYPES,
-  BLOCK_ENTITY_PRESET_TYPES,
   SELECTABLE_PRESET_TYPES,
   getDefaults,
   applyTemplate,
-  presetDefaults,
   deepMerge
 };

@@ -21,31 +21,62 @@ const {buildServerProfile} = require('./serverProfile');
 const {buildRenderProfile} = require('./renderProfile');
 const {buildDataPackMcmeta, buildResourcePackMcmeta} = require('./packMeta');
 const {buildReadme} = require('./readme');
+const {hashString} = require('../utils/hash');
 
 function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
-function buildProfiles(settings) {
-  return {
-    serverProfile: buildServerProfile(settings),
-    renderProfile: buildRenderProfile(settings)
-  };
+// The version stamp is a content hash of the server profile, i.e. of exactly
+// the server-relevant settings (type, preset, dimensions, behavior, …) and not
+// of the model geometry or textures. Both profiles receive the same stamp so
+// the mod's server/client parity check always matches; it only changes when a
+// server-relevant setting changes. Model-only exports have no server profile
+// and stay version-less (the mod's own runtime contract owns the version).
+function stampVersion(serverProfile, renderProfile) {
+  if (!serverProfile) {
+    return;
+  }
+
+  const version = hashString(toJson(serverProfile));
+  serverProfile.version = version;
+  renderProfile.version = version;
+}
+
+function buildProfiles(settings, textureResolution) {
+  const serverProfile = buildServerProfile(settings);
+  const renderProfile = buildRenderProfile(settings, textureResolution);
+  stampVersion(serverProfile, renderProfile);
+
+  return {serverProfile, renderProfile};
 }
 
 function dataPaths(settings) {
-  const ns = settings.namespace;
+  const namespace = settings.namespace;
   const id = settings.profileId;
-  // Server profiles live in an entity/ or block_entity/ subfolder. Models and
-  // textures stay at the mod's auto-resolved default location so the render
-  // profile never has to spell out a model/texture path.
+  // Server profiles live in an entity/ or block_entity/ subfolder. The model
+  // stays at the mod's auto-resolved default location so the render profile
+  // never has to spell out a model path.
   const modelType = settings.modelType || 'entity';
+
   return {
-    profile: `data/${ns}/easy_model_entities/profiles/${modelType}/${id}.json`,
-    renderProfile: `assets/${ns}/easy_model_entities/render_profiles/${id}.json`,
-    model: `assets/${ns}/easy_model_entities/models/${id}.bbmodel`,
-    texture: `assets/${ns}/textures/entity/${id}.png`
+    profile: `data/${namespace}/easy_model_entities/profiles/${modelType}/${id}.json`,
+    renderProfile: `assets/${namespace}/easy_model_entities/render_profiles/${id}.json`,
+    model: `assets/${namespace}/easy_model_entities/models/${id}.bbmodel`
   };
+}
+
+// One binary entry per custom (packed) texture; external textures are
+// referenced by resource location and never written.
+function textureFiles(settings, textureResolution) {
+  const namespace = settings.namespace;
+  const packed = (textureResolution && textureResolution.packed) || [];
+
+  return packed.map((entry) => ({
+    path: `assets/${namespace}/textures/entity/${entry.fileName}`,
+    content: entry.bytes,
+    binary: true
+  }));
 }
 
 function datapackFiles(settings, serverProfile) {
@@ -70,19 +101,34 @@ function resourcepackFiles(settings, renderProfile, options) {
     },
     {path: paths.renderProfile, content: toJson(renderProfile), binary: false},
     {path: paths.model, content: options.modelBytes, binary: true},
-    {path: paths.texture, content: options.textureBytes, binary: true}
+    ...textureFiles(settings, options.textureResolution)
   ];
 }
 
-// Bundle to wrap into the outer export ZIP: a ready-to-drop datapack.zip and
-// resourcepack.zip plus an install README.
+// Inner pack file names are prefixed with the profile id so a user dropping
+// several exported packs into one folder never overwrites another model's pack.
+function packFileNames(settings) {
+  return {
+    datapack: `${settings.profileId}_datapack.zip`,
+    resourcepack: `${settings.profileId}_resourcepack.zip`
+  };
+}
+
 function buildPackBundle(settings, options) {
   const opts = options || {};
-  const {serverProfile, renderProfile} = buildProfiles(settings);
+  const {serverProfile, renderProfile} = buildProfiles(settings,
+      opts.textureResolution);
+  const fileNames = packFileNames(settings);
+
   return {
-    readme: {path: 'README.md', content: buildReadme(settings), binary: false},
+    readme: {
+      path: 'README.md', content: buildReadme(settings, fileNames),
+      binary: false
+    },
     datapack: datapackFiles(settings, serverProfile),
     resourcepack: resourcepackFiles(settings, renderProfile, opts),
+    datapackFileName: fileNames.datapack,
+    resourcepackFileName: fileNames.resourcepack,
     serverProfile,
     renderProfile
   };
@@ -90,15 +136,16 @@ function buildPackBundle(settings, options) {
 
 function buildModProjectFiles(settings, options) {
   const opts = options || {};
-  const renderProfile = buildRenderProfile(settings);
+  const renderProfile = buildRenderProfile(settings, opts.textureResolution);
   const paths = dataPaths(settings);
 
   const files = [];
-  let serverProfile = null;
   // Model-only export (mod integration, e.g. the Mimic example): the mod ships
   // its own entity classes, so no server profile / data pack is written.
-  if (!settings.modelOnly) {
-    serverProfile = buildServerProfile(settings);
+  const serverProfile = settings.modelOnly ? null : buildServerProfile(
+      settings);
+  stampVersion(serverProfile, renderProfile);
+  if (serverProfile) {
     files.push({
       path: paths.profile, content: toJson(serverProfile),
       binary: false
@@ -111,15 +158,12 @@ function buildModProjectFiles(settings, options) {
         binary: false
       },
       {path: paths.model, content: opts.modelBytes, binary: true},
-      {path: paths.texture, content: opts.textureBytes, binary: true});
+      ...textureFiles(settings, opts.textureResolution));
 
   return {files, serverProfile, renderProfile};
 }
 
 module.exports = {
   buildPackBundle,
-  buildModProjectFiles,
-  dataPaths,
-  datapackFiles,
-  resourcepackFiles
+  buildModProjectFiles
 };

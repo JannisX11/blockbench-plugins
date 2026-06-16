@@ -20,18 +20,25 @@
 const {ResourceLocation} = require('../utils/ResourceLocation');
 const TEMPLATE = require('../resources/readme.md');
 
-function buildReadme(settings) {
+function buildReadme(settings, fileNames) {
   const id = ResourceLocation.buildResourceLocation(settings.namespace,
       settings.profileId);
   const modelType = settings.modelType || 'entity';
   const serverProfileId = ResourceLocation.buildResourceLocation(
       settings.namespace, `${modelType}/${settings.profileId}`);
+  const names = fileNames || {
+    datapack: `${settings.profileId}_datapack.zip`,
+    resourcepack: `${settings.profileId}_resourcepack.zip`
+  };
+
   return TEMPLATE
   .replaceAll('{{id}}', id)
   .replaceAll('{{serverProfileId}}', serverProfileId)
   .replaceAll('{{mcVersion}}',
       `Minecraft: Java Edition ${settings.targetVersion}`)
-  .replaceAll('{{folderName}}', `${settings.namespace}_eme`);
+  .replaceAll('{{folderName}}', `${settings.namespace}_eme`)
+  .replaceAll('{{datapackFile}}', names.datapack)
+  .replaceAll('{{resourcepackFile}}', names.resourcepack);
 }
 
 module.exports = {buildReadme};

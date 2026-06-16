@@ -58,6 +58,7 @@ function presetOptions(modelType, experimental, ensure) {
   ids.forEach((id) => {
     options[id] = presetLabel(id);
   });
+
   return options;
 }
 
@@ -124,6 +125,7 @@ function versionOptions() {
     options[version.id] = version.enabled ? version.label
         : `${version.label} (coming soon)`;
   });
+
   return options;
 }
 
@@ -131,7 +133,6 @@ function settingsToForm(settings) {
   return {
     namespace: settings.namespace,
     profileId: settings.profileId,
-    version: settings.version || '',
     targetVersion: settings.targetVersion,
     hostEntityType: settings.host.entityType,
     movementType: settings.host.movementType,
@@ -148,9 +149,6 @@ function settingsToForm(settings) {
     followRange: settings.attributes.followRange,
     scale: settings.rendering.scale,
     shadowRadius: settings.rendering.shadowRadius,
-    visibleBoundsWidth: settings.rendering.visibleBoundsWidth,
-    visibleBoundsHeight: settings.rendering.visibleBoundsHeight,
-    visibleBoundsOffset: settings.rendering.visibleBoundsOffset.slice(),
     animationMode: settings.animation.mode,
     swingSpeed: settings.animation.swingSpeed,
     walkSpeedMultiplier: settings.animation.walkSpeedMultiplier
@@ -162,7 +160,6 @@ function formToSettings(form, base) {
     schemaVersion: base.schemaVersion,
     modelType: base.modelType,
     presetType: base.presetType,
-    version: base.version || '',
     namespace: String(form.namespace || '').trim(),
     profileId: String(form.profileId || '').trim(),
     targetVersion: base.targetVersion,
@@ -193,10 +190,7 @@ function formToSettings(form, base) {
     },
     rendering: {
       scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius),
-      visibleBoundsWidth: Number(form.visibleBoundsWidth),
-      visibleBoundsHeight: Number(form.visibleBoundsHeight),
-      visibleBoundsOffset: (form.visibleBoundsOffset || [0, 0, 0]).map(Number)
+      shadowRadius: Number(form.shadowRadius)
     },
     animation: {
       mode: form.animationMode,
@@ -220,25 +214,22 @@ function activePreset(form) {
 }
 
 function presetFormValues(presetType, modelType, modelDimensions) {
-  const settings = ModelDimensions.applyModelDimensions(
-      applyTemplate(presetType, modelType), modelDimensions);
-  const form = settingsToForm(settings);
+  const form = settingsToForm(ModelDimensions.applyModelDimensions(
+      applyTemplate(presetType, modelType), modelDimensions));
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
-  delete form.version;
+
   return form;
 }
 
 function resolveExportSettings(form, base, modelDimensions) {
   const exportType = form.exportType || 'packs';
-  const modelOnly = exportType === 'model_only';
   const modelType = activeModelType(form);
-  const blockEntity = modelType === MODEL_TYPE_BLOCK_ENTITY;
   const preset = activePreset(form);
 
   let settings;
-  if (!blockEntity && preset === 'custom') {
+  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
     settings = deepMerge(getDefaults(), base);
   } else {
     settings = ModelDimensions.applyModelDimensions(
@@ -250,7 +241,6 @@ function resolveExportSettings(form, base, modelDimensions) {
   settings.presetType = preset;
   settings.namespace = String(form.namespace || '').trim();
   settings.profileId = String(form.profileId || '').trim();
-  settings.version = String(form.version || '').trim();
   settings.targetVersion = form.targetVersion;
 
   if (form.customize) {
@@ -260,7 +250,8 @@ function resolveExportSettings(form, base, modelDimensions) {
   settings.customize = !!form.customize;
   settings.exportType = exportType;
   settings.exportTarget = exportType === 'packs' ? 'packs' : 'mod_project';
-  settings.modelOnly = modelOnly;
+  settings.modelOnly = exportType === 'model_only';
+
   return settings;
 }
 
@@ -325,12 +316,6 @@ function buildFormConfig(settings, ui) {
     profileId: {
       label: t('eme.field.profileId'), type: 'text',
       value: values.profileId
-    },
-    version: {
-      label: t('eme.field.version'),
-      type: 'text',
-      value: values.version,
-      placeholder: 'v1'
     },
     targetVersion: {
       label: t('eme.field.targetVersion'),
@@ -448,21 +433,6 @@ function buildFormConfig(settings, ui) {
           label: t('eme.field.shadowRadius'), type: 'number',
           value: values.shadowRadius, step: 0.1
         }, showRender),
-    visibleBoundsWidth: advancedField(
-        {
-          label: t('eme.field.visibleBoundsWidth'), type: 'number',
-          value: values.visibleBoundsWidth, step: 0.1
-        }, showRender),
-    visibleBoundsHeight: advancedField(
-        {
-          label: t('eme.field.visibleBoundsHeight'), type: 'number',
-          value: values.visibleBoundsHeight, step: 0.1
-        }, showRender),
-    visibleBoundsOffset: advancedField(
-        {
-          label: t('eme.field.visibleBoundsOffset'), type: 'vector',
-          value: values.visibleBoundsOffset
-        }, showRender),
 
     animation_header: advancedField(
         {type: 'info', text: `### ${t('eme.section.animation')}`},
@@ -514,9 +484,7 @@ function openExportDialog(options) {
       const key = `${modelType}|${preset}`;
       if (key !== lastKey) {
         lastKey = key;
-        const isCustomEntity = modelType === MODEL_TYPE_ENTITY
-            && preset === 'custom';
-        if (!isCustomEntity) {
+        if (modelType !== MODEL_TYPE_ENTITY || preset !== 'custom') {
           dialog.setFormValues(
               presetFormValues(preset, modelType, modelDimensions), false);
         }
@@ -531,6 +499,7 @@ function openExportDialog(options) {
     }
   });
   dialog.show();
+
   return dialog;
 }
 

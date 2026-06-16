@@ -17,43 +17,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {applyTemplate} = require('../model/templates');
-const {resolveTextures} = require('../utils/TextureResolver');
+// Deterministic, dependency-free 32-bit FNV-1a hash rendered as 8 hex chars.
+// Used to derive a stable content version stamp without requiring node crypto.
+function hashString(value) {
+  let hash = 0x811c9dc5;
+  const text = String(value);
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.codePointAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
 
-const FIXTURE_MODEL_BYTES = '{"meta":{"format_version":"4.5"},"name":"lizard"}';
-const FIXTURE_TEXTURE_BYTES = Uint8Array.from(
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-
-function fixtureSettings() {
-  const settings = applyTemplate('quadruped_wandering');
-  settings.namespace = 'example';
-  settings.profileId = 'lizard';
-
-  return settings;
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
-// A single custom texture at index 0, matching the legacy default path
-// assets/<ns>/textures/entity/<id>.png.
-function fixtureTextureResolution(settings) {
-  return resolveTextures([
-    {
-      index: 0, name: '', namespace: '', folder: '', path: '',
-      bytes: FIXTURE_TEXTURE_BYTES
-    }
-  ], settings || fixtureSettings());
-}
-
-function fixtureExportOptions(settings) {
-  return {
-    modelBytes: FIXTURE_MODEL_BYTES,
-    textureResolution: fixtureTextureResolution(settings)
-  };
-}
-
-module.exports = {
-  FIXTURE_MODEL_BYTES,
-  FIXTURE_TEXTURE_BYTES,
-  fixtureSettings,
-  fixtureTextureResolution,
-  fixtureExportOptions
-};
+module.exports = {hashString};

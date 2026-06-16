@@ -24,11 +24,10 @@ function valuesDiffer(a, b) {
   if (Array.isArray(a) || Array.isArray(b)) {
     return JSON.stringify(a) !== JSON.stringify(b);
   }
+
   return a !== b;
 }
 
-// Returns a new object containing only the keys whose value differs from the
-// matching key in defaults.
 function diffFlat(values, defaults) {
   const result = {};
   Object.keys(values).forEach((key) => {
@@ -36,6 +35,7 @@ function diffFlat(values, defaults) {
       result[key] = values[key];
     }
   });
+
   return result;
 }
 
@@ -43,11 +43,10 @@ function isEmpty(object) {
   return !object || Object.keys(object).length === 0;
 }
 
-// Assigns section to target under key only when it has at least one entry.
 function assignIfPresent(target, key, section) {
   if (!isEmpty(section)) {
     target[key] = section;
   }
 }
 
-module.exports = {valuesDiffer, diffFlat, isEmpty, assignIfPresent};
+module.exports = {diffFlat, assignIfPresent};

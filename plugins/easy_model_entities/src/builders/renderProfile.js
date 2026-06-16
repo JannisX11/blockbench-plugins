@@ -20,7 +20,7 @@
 const {
   bodyType,
   animationMode,
-  presetRenderBounds,
+  presetShadowRadius,
   isCustom,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
@@ -33,29 +33,13 @@ function renderPresetType(settings) {
       ? 'static' : settings.presetType;
 }
 
-function buildModelReference(settings) {
-  return `${settings.namespace}:easy_model_entities/models/${settings.profileId}`;
-}
-
-function buildTextureReference(settings) {
-  return `${settings.namespace}:textures/entity/${settings.profileId}.png`;
-}
-
 function buildRendering(settings) {
-  const [boundsWidth, boundsHeight, boundsOffsetY, shadowRadius] =
-      presetRenderBounds(renderPresetType(settings));
   return diffFlat({
     scale: settings.rendering.scale,
-    shadow_radius: settings.rendering.shadowRadius,
-    visible_bounds_width: settings.rendering.visibleBoundsWidth,
-    visible_bounds_height: settings.rendering.visibleBoundsHeight,
-    visible_bounds_offset: settings.rendering.visibleBoundsOffset.slice()
+    shadow_radius: settings.rendering.shadowRadius
   }, {
     scale: 1,
-    shadow_radius: shadowRadius,
-    visible_bounds_width: boundsWidth,
-    visible_bounds_height: boundsHeight,
-    visible_bounds_offset: [0, boundsOffsetY, 0]
+    shadow_radius: presetShadowRadius(renderPresetType(settings))
   });
 }
 
@@ -75,10 +59,11 @@ function buildAnimation(settings) {
     delete animation.swing_speed;
     delete animation.walk_speed_multiplier;
   }
+
   return animation;
 }
 
-function buildRenderProfile(settings) {
+function buildRenderProfile(settings, textureResolution) {
   const renderPreset = renderPresetType(settings);
   const custom = settings.modelType !== MODEL_TYPE_BLOCK_ENTITY
       && isCustom(settings.presetType);
@@ -86,17 +71,21 @@ function buildRenderProfile(settings) {
     schema_version: settings.schemaVersion,
     preset_type: renderPreset
   };
-  if (settings.version) {
-    profile.version = settings.version;
-  }
 
   if (custom || settings.host.bodyType !== bodyType(renderPreset)) {
     profile.body_type = settings.host.bodyType;
   }
 
-  // model and texture follow the mod's conventional default path
-  // (namespace:easy_model_entities/models/id and namespace:textures/entity/id.png),
-  // so they are omitted and resolved automatically by the mod.
+  // The model and the index-0 texture follow the mod's conventional default
+  // path (namespace:easy_model_entities/models/id and
+  // namespace:textures/entity/id.png), so they are omitted whenever they match
+  // the default. Only deviating texture locations (e.g. vanilla index 0 or any
+  // index > 0) are spelled out for the mod's ModelTextureResolver.
+  if (textureResolution && textureResolution.texture) {
+    profile.texture = textureResolution.texture;
+  }
+  assignIfPresent(profile, 'textures',
+      textureResolution && textureResolution.textures);
 
   assignIfPresent(profile, 'rendering', buildRendering(settings));
   assignIfPresent(profile, 'animation', buildAnimation(settings));
@@ -105,7 +94,5 @@ function buildRenderProfile(settings) {
 }
 
 module.exports = {
-  buildRenderProfile,
-  buildModelReference,
-  buildTextureReference
+  buildRenderProfile
 };

@@ -26,7 +26,6 @@ const EN = {
   'eme.field.preset': 'Preset',
   'eme.field.namespace': 'Namespace (mod id)',
   'eme.field.profileId': 'Profile ID',
-  'eme.field.version': 'Version (optional)',
   'eme.field.targetVersion': 'Minecraft Version',
   'eme.field.exportType': 'Export Type',
   'eme.field.modelType': 'Type',
@@ -46,9 +45,6 @@ const EN = {
   'eme.field.followRange': 'Follow Range',
   'eme.field.scale': 'Scale',
   'eme.field.shadowRadius': 'Shadow Radius',
-  'eme.field.visibleBoundsWidth': 'Visible Bounds Width',
-  'eme.field.visibleBoundsHeight': 'Visible Bounds Height',
-  'eme.field.visibleBoundsOffset': 'Visible Bounds Offset',
   'eme.field.animationMode': 'Animation Mode',
   'eme.field.swingSpeed': 'Swing Speed',
   'eme.field.walkSpeedMultiplier': 'Walk Speed Multiplier',
@@ -114,7 +110,6 @@ const DE = {
   'eme.field.preset': 'Vorlage',
   'eme.field.namespace': 'Namespace (Mod-ID)',
   'eme.field.profileId': 'Profil-ID',
-  'eme.field.version': 'Version (optional)',
   'eme.field.targetVersion': 'Minecraft-Version',
   'eme.field.exportType': 'Export-Typ',
   'eme.field.modelType': 'Typ',
@@ -134,9 +129,6 @@ const DE = {
   'eme.field.followRange': 'Folgereichweite',
   'eme.field.scale': 'Skalierung',
   'eme.field.shadowRadius': 'Schattenradius',
-  'eme.field.visibleBoundsWidth': 'Sichtbarkeitsbox-Breite',
-  'eme.field.visibleBoundsHeight': 'Sichtbarkeitsbox-Höhe',
-  'eme.field.visibleBoundsOffset': 'Sichtbarkeitsbox-Versatz',
   'eme.field.animationMode': 'Animationsmodus',
   'eme.field.swingSpeed': 'Schwunggeschwindigkeit',
   'eme.field.walkSpeedMultiplier': 'Geh-Geschwindigkeitsfaktor',
@@ -213,6 +205,7 @@ function t(key) {
       return translated;
     }
   }
+
   return EN[key] || key;
 }
 

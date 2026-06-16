@@ -53,6 +53,7 @@ class Validator {
       });
       return false;
     }
+
     return true;
   }
 
@@ -150,13 +151,6 @@ class Validator {
           {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
     }
 
-    if (Validator.#isFiniteNumber(ctx.textureCount) && ctx.textureCount > 1) {
-      warnings.push({
-        code: 'MULTIPLE_TEXTURES',
-        message: 'Project has multiple textures; only the active texture is exported'
-      });
-    }
-
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
       if (ctx.textureWidth > Validator.BUDGETS.maxTextureSize
@@ -194,21 +188,13 @@ class Validator {
       });
     }
 
-    const missingParts = Validator.getMissingBodyParts(settings.host.bodyType,
-        ctx.boneNames || []);
-    missingParts.forEach((part) => {
+    Validator.getMissingBodyParts(settings.host.bodyType,
+        ctx.boneNames || []).forEach((part) => {
       warnings.push({
         code: 'MISSING_BODY_PART',
         message: `Missing recommended body part: ${part}`
       });
     });
-
-    if (ctx.visibleBoundsManual === false) {
-      warnings.push({
-        code: 'VISIBLE_BOUNDS_DEFAULT',
-        message: 'Visible bounds were not set manually'
-      });
-    }
 
     return {errors, warnings, valid: errors.length === 0};
   }
@@ -217,6 +203,7 @@ class Validator {
     const required = Validator.REQUIRED_BODY_PARTS[bodyType] || [];
     const present = new Set(
         (boneNames || []).map((name) => String(name).toLowerCase()));
+
     return required.filter((part) => !present.has(part));
   }
 
@@ -228,6 +215,7 @@ class Validator {
         message: 'Empty output path'
       };
     }
+
     const normalized = relativePath.replaceAll('\\', '/');
     if (normalized.includes('..')) {
       return {
@@ -236,6 +224,7 @@ class Validator {
         message: 'Path traversal detected'
       };
     }
+
     if (/^([a-zA-Z]:\/|\/)/.test(normalized)) {
       return {
         valid: false,
@@ -243,6 +232,7 @@ class Validator {
         message: 'Absolute paths are not allowed'
       };
     }
+
     return {valid: true, root: outputRoot, path: normalized};
   }
 }

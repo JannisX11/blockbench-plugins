@@ -6,18 +6,32 @@ mod on **{{mcVersion}}**.
 > **Beta:** The exporter is still in beta. The pack format may change in a future version, so you
 > might need to re-export this pack after updating the plugin or the mod.
 
-This archive contains two ready-to-use packs that belong together:
+This archive contains two ready-to-use packs that belong together. Their file names are prefixed
+with the model id so several exported packs can live in the same folder without overwriting each
+other:
 
-- `datapack.zip`: the server-side entity profile (gameplay data)
-- `resourcepack.zip`: the model, texture and render profile (visuals)
+- `{{datapackFile}}`: the server-side entity profile (gameplay data)
+- `{{resourcepackFile}}`: the model, texture and render profile (visuals)
 
 Profile ID: `{{serverProfileId}}`
+
+## Model Format
+
+This pack was exported using the **Easy Model Entity** format (`eme_entity`), which is provided by
+this plugin and tailored specifically for the Easy Model Entities mod. If you need to re-edit the
+model, open it in Blockbench and select **Easy Model Entity** as the format. Alternatively, the
+standard **Modded Entity** format (built into Blockbench) is also supported and can be exported
+with the same plugin.
 
 ## Requirements
 
 You need the **Easy Model Entities** mod installed for **{{mcVersion}}** (Forge or Fabric).
-Without the mod these files do nothing. Get the mod from its distribution page (CurseForge /
-Modrinth) and install it like any other mod before using this pack.
+Without the mod these files do nothing. Get the mod from:
+
+- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)
+- [Modrinth](https://modrinth.com/mod/easy-model-entities)
+
+Install it like any other mod before using this pack.
 
 ## Installation
 
@@ -25,7 +39,7 @@ You do not need to unpack anything — just move the two ZIP files into the righ
 
 ### 1. Resource Pack (visuals, client side)
 
-Move `resourcepack.zip` into your Minecraft resourcepacks folder:
+Move `{{resourcepackFile}}` into your Minecraft resourcepacks folder:
 
 - Windows: `%appdata%\.minecraft\resourcepacks\`
 - Linux: `~/.minecraft/resourcepacks/`
@@ -35,7 +49,7 @@ Then start Minecraft and enable the pack under **Options > Resource Packs**.
 
 ### 2. Data Pack (gameplay, world / server side)
 
-Move `datapack.zip` into your world's `datapacks` folder:
+Move `{{datapackFile}}` into your world's `datapacks` folder:
 
 - Single player: `.minecraft/saves/<world>/datapacks/`
 - Dedicated server: `<server folder>/world/datapacks/`

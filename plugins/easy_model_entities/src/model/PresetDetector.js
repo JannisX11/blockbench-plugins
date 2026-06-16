@@ -43,10 +43,12 @@ class PresetDetector {
     if (!bounds) {
       return null;
     }
-    const keys = ['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'];
-    if (!keys.every((key) => Number.isFinite(bounds[key]))) {
+
+    if (!['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
+        (key) => Number.isFinite(bounds[key]))) {
       return null;
     }
+
     return {
       x: Math.max(0, bounds.maxX - bounds.minX),
       y: Math.max(0, bounds.maxY - bounds.minY),
@@ -54,7 +56,6 @@ class PresetDetector {
     };
   }
 
-  // Returns {presetType, reason}.
   static detect(stats, bounds) {
     const names = PresetDetector.#names(stats);
     const hasWings = PresetDetector.#any(names, 'wing');
@@ -89,9 +90,8 @@ class PresetDetector {
 
     const extents = PresetDetector.#extents(bounds);
     if (extents && extents.x > 0 && extents.y > 0 && extents.z > 0) {
-      const max = Math.max(extents.x, extents.y, extents.z);
-      const min = Math.min(extents.x, extents.y, extents.z);
-      if (max / min <= PresetDetector.#CUBE_RATIO) {
+      if (Math.max(extents.x, extents.y, extents.z) / Math.min(extents.x,
+          extents.y, extents.z) <= PresetDetector.#CUBE_RATIO) {
         return {presetType: 'cuboid_still', reason: 'cube-like proportions'};
       }
       if (extents.y < Math.max(extents.x, extents.z) * 0.5) {

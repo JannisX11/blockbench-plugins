@@ -29,30 +29,46 @@ class BlockbenchAdapter {
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.codePointAt(i) & 0xff;
     }
+
     return bytes;
   }
 
-  // The texture currently selected/active in Blockbench; only this texture is
-  // exported when the project contains multiple textures.
-  static getActiveTexture() {
+  static #firstTexture() {
     if (typeof Texture === 'undefined') {
       return null;
     }
-    return Texture.selected || Texture.getDefault() || (Texture.all?.[0])
-        || null;
+
+    return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
-  static getTextureCount() {
+  static #textureIndex(texture, position) {
+    const id = parseInt(texture?.id, 10);
+
+    return Number.isInteger(id) && id >= 0 ? id : position;
+  }
+
+  // All project textures as plain descriptors for TextureResolver. External
+  // (vanilla / other-mod) textures are referenced by location; custom textures
+  // carry their PNG bytes to be packed.
+  static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
-      return 0;
+      return [];
     }
-    return Texture.all.length;
+
+    return Texture.all.map((texture, position) => ({
+      index: BlockbenchAdapter.#textureIndex(texture, position),
+      name: texture.name || '',
+      namespace: texture.namespace || '',
+      folder: texture.folder || '',
+      path: texture.path || '',
+      bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
+    }));
   }
 
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const texture = BlockbenchAdapter.getActiveTexture();
+    const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
     groups.forEach((group) => {
@@ -88,6 +104,7 @@ class BlockbenchAdapter {
     if (cubes.length === 0) {
       return null;
     }
+
     const bounds = {
       minX: Infinity,
       minY: Infinity,
@@ -106,6 +123,7 @@ class BlockbenchAdapter {
       bounds.maxY = Math.max(bounds.maxY, from[1], to[1]);
       bounds.maxZ = Math.max(bounds.maxZ, from[2], to[2]);
     });
+
     return bounds;
   }
 
@@ -113,34 +131,31 @@ class BlockbenchAdapter {
     if (typeof Project === 'undefined' || !Project) {
       return '';
     }
+
     if (Project.geometry_name) {
       return Project.geometry_name;
     }
+
     if (Project.name) {
       return Project.name;
     }
+
     if (typeof Project.getDisplayName === 'function') {
       return Project.getDisplayName(false);
     }
     return '';
   }
 
-  static getTextureBytes() {
-    const texture = BlockbenchAdapter.getActiveTexture();
-    if (!texture) {
-      return new Uint8Array(0);
-    }
-    return BlockbenchAdapter.#base64ToBytes(texture.getBase64());
-  }
-
   static loadSettings() {
     if (typeof Project === 'undefined' || !Project) {
       return null;
     }
+
     const stored = Project[BlockbenchAdapter.PROJECT_PROPERTY];
     if (stored && typeof stored === 'object') {
       return structuredClone(stored);
     }
+
     return null;
   }
 
@@ -159,6 +174,7 @@ class BlockbenchAdapter {
     files.forEach((file) => {
       zip.file(file.path, file.content);
     });
+
     return zip.generateAsync({type: 'uint8array'});
   }
 
@@ -172,8 +188,9 @@ class BlockbenchAdapter {
     ]).then(([datapackZip, resourcepackZip]) => {
       const outer = new JSZip();
       outer.file(bundle.readme.path, bundle.readme.content);
-      outer.file('datapack.zip', datapackZip);
-      outer.file('resourcepack.zip', resourcepackZip);
+      outer.file(bundle.datapackFileName || 'datapack.zip', datapackZip);
+      outer.file(bundle.resourcepackFileName || 'resourcepack.zip',
+          resourcepackZip);
       return outer.generateAsync({type: 'blob'});
     }).then((content) => {
       return new Promise((resolve) => {
@@ -194,6 +211,7 @@ class BlockbenchAdapter {
   static listExistingFiles(rootDir, files) {
     const fs = require('fs');
     const path = require('path');
+
     return files
     .map((file) => path.join(rootDir, file.path))
     .filter((fullPath) => fs.existsSync(fullPath));

@@ -17,43 +17,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {applyTemplate} = require('../model/templates');
-const {resolveTextures} = require('../utils/TextureResolver');
+const {BlockbenchAdapter} = require('../BlockbenchAdapter');
+const {FORMAT_ID} = require('./EmeFormat');
 
-const FIXTURE_MODEL_BYTES = '{"meta":{"format_version":"4.5"},"name":"lizard"}';
-const FIXTURE_TEXTURE_BYTES = Uint8Array.from(
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const EME_SETTINGS_KEY = 'emeSettings';
 
-function fixtureSettings() {
-  const settings = applyTemplate('quadruped_wandering');
-  settings.namespace = 'example';
-  settings.profileId = 'lizard';
+function handleCompile(event) {
+  if (Format?.id !== FORMAT_ID) {
+    return;
+  }
 
-  return settings;
+  const settings = BlockbenchAdapter.loadSettings();
+  if (settings) {
+    event.model[EME_SETTINGS_KEY] = settings;
+  }
 }
 
-// A single custom texture at index 0, matching the legacy default path
-// assets/<ns>/textures/entity/<id>.png.
-function fixtureTextureResolution(settings) {
-  return resolveTextures([
-    {
-      index: 0, name: '', namespace: '', folder: '', path: '',
-      bytes: FIXTURE_TEXTURE_BYTES
-    }
-  ], settings || fixtureSettings());
+function handleParse(event) {
+  const formatId = event.model?.meta?.model_format || event.model?.model_format;
+  if (formatId !== FORMAT_ID) {
+    return;
+  }
+
+  const settings = event.model[EME_SETTINGS_KEY];
+  if (settings && typeof settings === 'object') {
+    BlockbenchAdapter.saveSettings(settings);
+  }
 }
 
-function fixtureExportOptions(settings) {
-  return {
-    modelBytes: FIXTURE_MODEL_BYTES,
-    textureResolution: fixtureTextureResolution(settings)
-  };
+function registerEmeCodecHooks() {
+  Codecs.project.on('compile', handleCompile);
+  Codecs.project.on('parse', handleParse);
 }
 
-module.exports = {
-  FIXTURE_MODEL_BYTES,
-  FIXTURE_TEXTURE_BYTES,
-  fixtureSettings,
-  fixtureTextureResolution,
-  fixtureExportOptions
-};
+function unregisterEmeCodecHooks() {
+  Codecs.project.events?.compile?.remove?.(handleCompile);
+  Codecs.project.events?.parse?.remove?.(handleParse);
+}
+
+module.exports = {registerEmeCodecHooks, unregisterEmeCodecHooks};
