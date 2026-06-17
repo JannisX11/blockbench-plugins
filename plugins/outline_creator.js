@@ -6,7 +6,7 @@ Plugin.register('outline_creator', {
     description: 'Creates stylistic outlines for cubes and meshes using negative scale values.',
     about: 'Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.',
     author: 'Wither',
-    version: '1.1.0',
+    version: '1.1.1',
     min_version: '4.2.0',
     variant: 'both',
 
@@ -101,21 +101,25 @@ function createOutline(outline_thickness) {
 
     // Mesh handling
     for (const mesh of Mesh.selected) {
-        mesh.duplicate();
-        mesh.oldVertices = {};
+        let outline = mesh.duplicate();
 
-        for (const key in mesh.vertices) {
-            mesh.oldVertices[key] = mesh.vertices[key].slice();
+        const oldShading = outline.shading;
+        outline.shading = "smooth";
+        // calculateNormals() only works with smooth shading???
+        const normals = outline.calculateNormals();
+
+        outline.shading = oldShading;
+
+        for (const key in outline.vertices) {
+            const v = outline.vertices[key];
+            const n = normals[key];
+            const normalizeBy = Math.abs(n[0])+Math.abs(n[1])+Math.abs(n[2]);
+
+            v[0] += (n[0]/normalizeBy) * (outline_thickness * 2);
+            v[1] += (n[1]/normalizeBy) * (outline_thickness * 2);
+            v[2] += (n[2]/normalizeBy) * (outline_thickness * 2);
         }
-
-        mesh.forAllFaces(face => {
-            face.invert();
-        })
-
-        mesh.resize(outline_thickness * 2, 0, false, false, true);
-        mesh.resize(outline_thickness, 1, false, false, true);
-        mesh.resize(outline_thickness * 2, 2, false, false, true);
-        mesh.name = mesh.name + "_outline";
+        outline.name += "_outline";
     }
 
     Canvas.updateView({
