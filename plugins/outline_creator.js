@@ -110,6 +110,10 @@ function createOutline(outline_thickness) {
 
         outline.shading = oldShading;
 
+        outline.forAllFaces(face => {
+            face.invert();
+        })
+
         for (const key in outline.vertices) {
             const v = outline.vertices[key];
             const n = normals[key];
