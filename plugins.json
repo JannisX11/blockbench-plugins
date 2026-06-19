@@ -138,7 +138,7 @@
 		"description": "Creates stylistic outlines for cubes and meshes using negative scale values.",
 		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.",
 		"icon": "crop_square",
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
