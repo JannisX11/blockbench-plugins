@@ -87,11 +87,11 @@
 		title: 'Name Guard',
 		author: 'Dedou3D',
 		description: 'Clean folder and cube names for safe ModelEngine exports.',
-		about: 'Name Guard cleans folder and cube names so your models export safely.\n\nBefore:\n`Right Arm`\n- `Cube`\n- `Cube`\n\nAfter:\n`right_arm`\n- `right_arm`\n- `right_arm`',
 		icon: 'drive_file_rename_outline',
 		version: '1.0.0',
 		variant: 'both',
 		min_version: '4.0.0',
+		new_repository_format: true,
 		tags: ['Minecraft', 'ModelEngine', 'Utility'],
 		onload() {
 			cleanNamesAction = new Action('clean_name_guard_names', {

@@ -77,11 +77,11 @@
 		title: 'Armor Exploded View',
 		author: 'Dedou3D',
 		description: 'Toggle a configurable exploded view for humanoid armor parts.',
-		about: 'Armor Exploded View spreads recognized humanoid armor parts apart so each section is easier to inspect. Toggle it again to restore the model to its original positions.',
 		icon: 'open_with',
 		variant: 'both',
 		version: '1.0.0',
 		min_version: '4.0.0',
+		new_repository_format: true,
 		tags: ['Minecraft', 'Armor', 'Utility'],
 		onload() {
 			registerActions();

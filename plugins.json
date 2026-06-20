@@ -1534,5 +1534,38 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"armor_exploded_view": {
+		"title": "Armor Exploded View",
+		"author": "Dedou3D",
+		"description": "Toggle a configurable exploded view for humanoid armor parts.",
+		"icon": "open_with",
+		"variant": "both",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "Armor", "Utility"]
+	},
+	"hitbox_guard": {
+		"title": "Hitbox Guard",
+		"author": "Dedou3D",
+		"description": "Create a hitbox for your models.",
+		"icon": "select_all",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
+	},
+	"name_guard": {
+		"title": "Name Guard",
+		"author": "Dedou3D",
+		"description": "Clean folder and cube names for safe ModelEngine exports.",
+		"icon": "drive_file_rename_outline",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
 	}
 }

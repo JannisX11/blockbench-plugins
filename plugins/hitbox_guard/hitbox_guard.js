@@ -68,11 +68,11 @@
 		title: 'Hitbox Guard',
 		author: 'Dedou3D',
 		description: 'Create a hitbox for your models.',
-		about: 'Hitbox Guard creates a hidden `hitbox` folder with a hidden `hitbox` cube sized 14 x 32 x 14. It is made for entity workflows where a clean hitbox marker is required without manually building it every time.',
 		icon: 'select_all',
 		version: '1.0.0',
 		variant: 'both',
 		min_version: '4.0.0',
+		new_repository_format: true,
 		tags: ['Minecraft', 'ModelEngine', 'Utility'],
 		onload() {
 			createHitboxAction = new Action('create_hitbox_guard_hitbox', {
