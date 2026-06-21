@@ -36,6 +36,8 @@
 				name: HITBOX_GROUP_NAME,
 				origin: [0, 0, 0]
 			}).init();
+		} else {
+			group.visibility = true;
 		}
 
 		removeExistingHitbox(group);
@@ -54,11 +56,17 @@
 		});
 
 		cube.addTo(group).init();
+		Canvas.updateAll();
+
 		cube.visibility = false;
 		group.visibility = false;
 		Undo.finishEdit('Create hitbox');
 
-		Canvas.updateAll();
+		if (Canvas.updateVisibility) {
+			Canvas.updateVisibility();
+		} else {
+			Canvas.updateAll();
+		}
 		group.select();
 		Blockbench.showQuickMessage('Hitbox created: 14 x 32 x 14');
 	}
