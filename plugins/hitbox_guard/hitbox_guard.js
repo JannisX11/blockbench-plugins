@@ -34,11 +34,8 @@
 		if (!group) {
 			group = new Group({
 				name: HITBOX_GROUP_NAME,
-				origin: [0, 0, 0],
-				visibility: false
+				origin: [0, 0, 0]
 			}).init();
-		} else {
-			group.visibility = false;
 		}
 
 		removeExistingHitbox(group);
@@ -52,11 +49,13 @@
 			origin: [0, 0, 0],
 			color: 3,
 			box_uv: true,
-			visibility: false,
+			visibility: true,
 			locked: false
 		});
 
 		cube.addTo(group).init();
+		cube.visibility = false;
+		group.visibility = false;
 		Undo.finishEdit('Create hitbox');
 
 		Canvas.updateAll();
