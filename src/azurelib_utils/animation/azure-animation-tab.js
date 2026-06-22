@@ -400,7 +400,14 @@ function serializeAnimation(anim) {
     for (const kf of effects.keyframes) {
       const t = normTime(roundTime(kf.time));
       if (kf.channel === 'sound') {
-        const pts = (kf.data_points || []).map(p => (typeof p === 'string' ? { effect: p } : { ...p })).filter(p => p.effect);
+        const pts = (kf.data_points || []).map(p => {
+          const effect = typeof p === 'string' ? p : p.effect;
+          if (!effect) return null;
+          const o = { effect };
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return o;
+        }).filter(Boolean);
         if (pts.length === 1) sounds[t] = pts[0];
         else if (pts.length > 1) sounds[t] = pts;
       } else if (kf.channel === 'particle') {
