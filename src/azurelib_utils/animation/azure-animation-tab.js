@@ -375,12 +375,16 @@ function serializeAnimation(anim) {
         }
         boneOut[channel] = node;
       } else {
-        const channelOut = {};
-        for (const kf of keyframes) {
+        const channelIsEasing = keyframes.some(
+            kf => kf.easing && kf.easing !== EASING_DEFAULT
+        );
+
+        const entries = keyframes.map(kf => {
           const t = normTime(roundTime(kf.time));
-          channelOut[t] = serializeKeyframe(kf, channel, keyframes);
-        }
-        boneOut[channel] = channelOut;
+          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
+          return [t, serialized];
+        });
+        boneOut[channel] = Object.fromEntries(entries);
       }
     }
 
@@ -459,12 +463,12 @@ const BB_INTERP_TO_LERP_MODE = {
  *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
  *   No easing     → [x, y, z]   (plain array shorthand)
  */
-function serializeKeyframe(kf, channel, allKeyframes) {
+function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
   const vec    = extractKeyframeVector(kf, channel, true);
   const interp = kf.interpolation;
 
   // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
-  if (interp === 'catmullrom') {
+  if (interp === 'catmullrom' && !channelIsEasing) {
     const node = { post: vec, lerp_mode: 'catmullrom' };
     const preVec = extractKeyframePreVector(kf, channel);
     if (preVec) node.pre = preVec;
