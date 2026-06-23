@@ -13,12 +13,15 @@
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
 		"description": "Effortlessly craft complex animations for Minecraft: Java Edition",
-		"version": "1.8.1",
+		"version": "1.10.0",
 		"await_loading": true,
 		"icon": "icon.svg",
 		"variant": "desktop",
 		"tags": ["Minecraft: Java Edition", "Animation", "Display Entities"],
-		"min_version": "4.12.0",
+		"min_version": "5.1.4",
+		"repository": "https://github.com/animated-java/animated-java",
+		"bug_tracker": "https://github.com/animated-java/animated-java/issues",
+		"website": "https://animated-java.dev",
 		"has_changelog": true
 	},
 	"animated_platforms": {
