@@ -47,9 +47,6 @@ class BlockbenchAdapter {
     return Number.isInteger(id) && id >= 0 ? id : position;
   }
 
-  // All project textures as plain descriptors for TextureResolver. External
-  // (vanilla / other-mod) textures are referenced by location; custom textures
-  // carry their PNG bytes to be packed.
   static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
       return [];
@@ -68,6 +65,8 @@ class BlockbenchAdapter {
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
+    const animations =
+        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
     const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
@@ -88,6 +87,7 @@ class BlockbenchAdapter {
       hasTexture: !!texture,
       cubeCount: cubes.length,
       boneCount: groups.length,
+      animationCount: animations.length,
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
       textureWidth: texture ? texture.width : undefined,
@@ -125,6 +125,15 @@ class BlockbenchAdapter {
     });
 
     return bounds;
+  }
+
+  static getModelCubes() {
+    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+
+    return cubes.map((cube) => ({
+      from: (cube.from || [0, 0, 0]).slice(),
+      to: (cube.to || [0, 0, 0]).slice()
+    }));
   }
 
   static getProjectName() {
@@ -178,9 +187,6 @@ class BlockbenchAdapter {
     return zip.generateAsync({type: 'uint8array'});
   }
 
-  // Wraps a ready-to-drop datapack.zip and resourcepack.zip plus the README
-  // into a single outer ZIP, so the user can move the inner ZIPs straight into
-  // their datapacks/ and resourcepacks/ folders without unpacking.
   static exportPackBundle(bundle, name) {
     return Promise.all([
       BlockbenchAdapter.#zipToUint8(bundle.datapack),

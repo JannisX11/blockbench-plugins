@@ -17,25 +17,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType and the
-// per-preset defaults derived by EasyModelProfileParser / ModelRenderProfileParser.
-// This file is the single source of truth the plugin uses to compute minimal
-// (diff-based) profiles, so it must stay in sync with the mod.
+// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType.
 
 const SCHEMA_VERSION = '0.1.0';
 
-// Mirrors de.markusbordihn.easymodelentities.data.profile.ModelType.
 const MODEL_TYPE_ENTITY = 'entity';
 const MODEL_TYPE_BLOCK_ENTITY = 'block_entity';
 const MODEL_TYPES = [MODEL_TYPE_ENTITY, MODEL_TYPE_BLOCK_ENTITY];
 
+const BODY_TYPES = [
+  'static',
+  'biped',
+  'quadruped',
+  'aquatic',
+  'amphibious',
+  'winged',
+  'winged_humanoid',
+  'arthropod',
+  'cuboid',
+  'floating'
+];
+
+const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
+const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
+const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
+const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
+
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
 const STATIC_ENTITY = 'easy_model_entities:static_entity';
+const AQUATIC_ENTITY = 'easy_model_entities:aquatic_entity';
+const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
 
-// All ModelPresetType values in serialized form.
 const PRESET_TYPES = [
   'custom',
   'static',
@@ -46,6 +61,8 @@ const PRESET_TYPES = [
   'quadruped_wandering',
   'aquatic_still',
   'aquatic_swimming',
+  'amphibious_still',
+  'amphibious_wandering',
   'winged_still',
   'winged_wandering',
   'winged_humanoid_still',
@@ -57,7 +74,6 @@ const PRESET_TYPES = [
   'floating_still'
 ];
 
-// All ModelBlockEntityPresetType values in serialized form.
 const BLOCK_ENTITY_PRESET_TYPES = [
   'static',
   'ticking',
@@ -65,8 +81,6 @@ const BLOCK_ENTITY_PRESET_TYPES = [
   'animated_randomly'
 ];
 
-// Presets the mod marks as stable for pack authors; experimental ones are hidden
-// in the UI behind the "Show experimental presets" setting.
 const STABLE_PRESET_TYPES = new Set([
   'static',
   'statue',
@@ -74,12 +88,24 @@ const STABLE_PRESET_TYPES = new Set([
   'humanoid_wandering',
   'quadruped_still',
   'quadruped_wandering',
+  'aquatic_still',
+  'aquatic_swimming',
+  'amphibious_still',
+  'amphibious_wandering',
+  'winged_still',
+  'winged_wandering',
+  'winged_humanoid_still',
+  'winged_humanoid_wandering',
+  'arthropod_still',
+  'arthropod_wandering',
+  'cuboid_still',
+  'cuboid_hopping',
+  'floating_still',
   // Block entity stable presets.
   'animated',
   'animated_randomly'
 ]);
 
-// Presets selectable as a starting point in the UI (custom handled separately).
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
 
 function isStablePreset(presetType) {
@@ -111,6 +137,9 @@ function bodyType(presetType) {
     case 'aquatic_still':
     case 'aquatic_swimming':
       return 'aquatic';
+    case 'amphibious_still':
+    case 'amphibious_wandering':
+      return 'amphibious';
     case 'winged_still':
     case 'winged_wandering':
       return 'winged';
@@ -130,11 +159,34 @@ function bodyType(presetType) {
   }
 }
 
+function isAquatic(presetType) {
+  return presetType === 'aquatic_still' || presetType === 'aquatic_swimming';
+}
+
+function isAmphibious(presetType) {
+  return presetType === 'amphibious_still'
+      || presetType === 'amphibious_wandering';
+}
+
 function movementType(presetType) {
+  if (isAquatic(presetType)) {
+    return 'water';
+  }
+  if (isAmphibious(presetType)) {
+    return 'amphibious';
+  }
+
   return isMoving(presetType) ? 'ground' : 'static';
 }
 
 function entityType(presetType) {
+  if (isAquatic(presetType)) {
+    return AQUATIC_ENTITY;
+  }
+  if (isAmphibious(presetType)) {
+    return AMPHIBIOUS_ENTITY;
+  }
+
   return isMoving(presetType) || presetType === 'static' ? GROUND_ENTITY
       : STATIC_ENTITY;
 }
@@ -147,6 +199,9 @@ function presetDimensions(presetType) {
     case 'aquatic_still':
     case 'aquatic_swimming':
       return {width: 0.7, height: 0.4, eyeHeight: 0.25};
+    case 'amphibious_still':
+    case 'amphibious_wandering':
+      return {width: 0.9, height: 0.6, eyeHeight: 0.4};
     case 'winged_still':
     case 'winged_wandering':
       return {width: 0.6, height: 0.9, eyeHeight: 0.6};
@@ -165,11 +220,12 @@ function presetDimensions(presetType) {
   }
 }
 
-// Shadow radius the mod derives per render preset (ModelRenderSettings).
 function presetShadowRadius(presetType) {
   switch (presetType) {
     case 'quadruped_still':
     case 'quadruped_wandering':
+    case 'amphibious_still':
+    case 'amphibious_wandering':
       return 0.45;
     case 'aquatic_still':
     case 'aquatic_swimming':
@@ -190,8 +246,6 @@ function presetShadowRadius(presetType) {
   }
 }
 
-// Behavior mode the mod derives for a preset, given the resolved movement type
-// (only relevant for the custom preset where movement type can vary).
 function behaviorModeFor(presetType, move) {
   if (isMoving(presetType)) {
     return 'ambient';
@@ -202,7 +256,7 @@ function behaviorModeFor(presetType, move) {
   }
 
   if (presetType === 'custom') {
-    return move === 'ground' ? 'idle_only' : 'static';
+    return move === 'ground' || move === 'amphibious' ? 'idle_only' : 'static';
   }
 
   return 'static';
@@ -212,13 +266,28 @@ function behaviorMode(presetType) {
   return behaviorModeFor(presetType, movementType(presetType));
 }
 
-// Movement defaults the mod derives from the resolved movement type.
+function wandersByMovement(move) {
+  return move === 'ground' || move === 'amphibious' || move === 'water';
+}
+
+function defaultSpeed(move) {
+  switch (move) {
+    case 'ground':
+      return 0.22;
+    case 'amphibious':
+      return 0.15;
+    case 'water':
+      return 0.1;
+    default:
+      return 0;
+  }
+}
+
 function movementDefaults(presetType, move) {
-  const ground = move === 'ground';
   return {
-    speed: ground ? 0.22 : 0,
-    stepHeight: ground ? 0.6 : 0,
-    gravity: presetType === 'static' || ground
+    speed: defaultSpeed(move),
+    stepHeight: move === 'ground' || move === 'amphibious' ? 0.6 : 0,
+    gravity: presetType === 'static' || move !== 'static'
   };
 }
 
@@ -227,7 +296,6 @@ function animationMode(presetType) {
   || presetType === 'statue' ? 'none' : 'automatic';
 }
 
-// Animation mode the mod derives for a block entity preset.
 function blockEntityAnimationMode(presetType) {
   switch (presetType) {
     case 'animated':
@@ -239,8 +307,26 @@ function blockEntityAnimationMode(presetType) {
   }
 }
 
-// Block entities ignore movement/behavior/attributes; the host is always a
-// static cuboid block.
+function defaultRenderingSettings(presetType) {
+  return {
+    scale: 1,
+    shadowRadius: presetShadowRadius(presetType),
+    visibleBoundsWidth: 0,
+    visibleBoundsHeight: 0,
+    visibleBoundsOffset: [0, 0, 0]
+  };
+}
+
+function defaultAnimationSettings(mode) {
+  return {
+    mode: mode,
+    swingSpeed: 1,
+    walkSpeedMultiplier: 1,
+    idleStrength: 1,
+    gait: 'natural'
+  };
+}
+
 function blockEntityPresetDefaults(presetType) {
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -251,12 +337,8 @@ function blockEntityPresetDefaults(presetType) {
     movement: {speed: 0, stepHeight: 0, gravity: false},
     behavior: {mode: 'static', lookAtPlayers: false, randomStroll: false},
     attributes: {maxHealth: 10, movementSpeed: 0, followRange: 16},
-    rendering: {scale: 1, shadowRadius: 0.5},
-    animation: {
-      mode: blockEntityAnimationMode(presetType),
-      swingSpeed: 1,
-      walkSpeedMultiplier: 1
-    }
+    rendering: defaultRenderingSettings('cuboid_still'),
+    animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
   };
 }
 
@@ -266,8 +348,7 @@ function presetDefaults(presetType, modelType) {
   }
 
   const move = movementType(presetType);
-  const ground = move === 'ground';
-  const speed = ground ? 0.22 : 0;
+  const movement = movementDefaults(presetType, move);
   const mode = behaviorMode(presetType);
 
   return {
@@ -281,22 +362,22 @@ function presetDefaults(presetType, modelType) {
     },
     dimensions: presetDimensions(presetType),
     movement: {
-      speed: speed,
-      stepHeight: ground ? 0.6 : 0,
-      gravity: presetType === 'static' || ground
+      speed: movement.speed,
+      stepHeight: movement.stepHeight,
+      gravity: movement.gravity
     },
     behavior: {
       mode: mode,
       lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
-      randomStroll: ground && mode === 'ambient'
+      randomStroll: wandersByMovement(move) && mode === 'ambient'
     },
-    attributes: {maxHealth: 10, movementSpeed: speed, followRange: 16},
-    rendering: {scale: 1, shadowRadius: presetShadowRadius(presetType)},
-    animation: {
-      mode: animationMode(presetType),
-      swingSpeed: 1,
-      walkSpeedMultiplier: 1
-    }
+    attributes: {
+      maxHealth: 10,
+      movementSpeed: movement.speed,
+      followRange: 16
+    },
+    rendering: defaultRenderingSettings(presetType),
+    animation: defaultAnimationSettings(animationMode(presetType))
   };
 }
 
@@ -304,14 +385,21 @@ module.exports = {
   SCHEMA_VERSION,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY,
+  MODEL_TYPES,
+  BODY_TYPES,
+  MOVEMENT_TYPES,
+  BEHAVIOR_MODES,
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  ANIMATION_MODES,
+  GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
   isStablePreset,
   isCustom,
   bodyType,
   behaviorModeFor,
   movementDefaults,
+  wandersByMovement,
   animationMode,
   presetDimensions,
   presetShadowRadius,

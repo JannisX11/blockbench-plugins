@@ -47,22 +47,27 @@ describe('exportDialog mapping', () => {
 });
 
 describe('presetOptions', () => {
-  test('without experimental, only stable entity presets are shown', () => {
-    const options = presetOptions('entity', false);
-    expect(Object.keys(options)).toEqual([
-      'static', 'statue', 'humanoid_still', 'humanoid_wandering',
-      'quadruped_still', 'quadruped_wandering'
-    ]);
-    expect(options.custom).toBeUndefined();
-    expect(options.floating_still).toBeUndefined();
-  });
+  test('without experimental, every selectable preset is shown (custom hidden)',
+      () => {
+        const options = presetOptions('entity', false);
+        expect(Object.keys(options)).toEqual([
+          'static', 'statue', 'humanoid_still', 'humanoid_wandering',
+          'quadruped_still', 'quadruped_wandering', 'aquatic_still',
+          'aquatic_swimming', 'amphibious_still', 'amphibious_wandering',
+          'winged_still', 'winged_wandering', 'winged_humanoid_still',
+          'winged_humanoid_wandering', 'arthropod_still', 'arthropod_wandering',
+          'cuboid_still', 'cuboid_hopping', 'floating_still'
+        ]);
+        expect(options.custom).toBeUndefined();
+        expect(options.floating_still).toBeDefined();
+      });
 
-  test('experimental reveals custom and every selectable preset, no WIP mark',
+  test('experimental reveals custom on top of every selectable preset',
       () => {
         const options = presetOptions('entity', true);
         expect(Object.keys(options)[0]).toBe('custom');
-        expect(Object.keys(options)).toHaveLength(18);
-        expect(options.floating_still).toBeDefined();
+        expect(Object.keys(options)).toHaveLength(20);
+        expect(options.amphibious_wandering).toBeDefined();
         expect(options.floating_still).not.toMatch(/WIP/);
       });
 

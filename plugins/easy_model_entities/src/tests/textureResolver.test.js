@@ -19,7 +19,8 @@
 
 const {
   parseExternalLocation,
-  resolveTextures
+  resolveTextures,
+  describeTextureSource
 } = require('../utils/TextureResolver');
 
 const SETTINGS = {namespace: 'example', profileId: 'lizard'};
@@ -49,6 +50,29 @@ describe('parseExternalLocation', () => {
       namespace: '', folder: 'block', name: 'eye_texture', path: ''
     })).toBeNull();
   });
+
+  test('keeps a non-minecraft assets path custom when no namespace is set',
+      () => {
+        expect(parseExternalLocation({
+          namespace: '', folder: 'block', name: 'disguised_chestling',
+          path: 'D:/x/assets/easy_model_entities_examples/textures/entity/'
+              + 'disguised_chestling_1.png'
+        })).toBeNull();
+      });
+});
+
+describe('describeTextureSource', () => {
+  test('labels a no-namespace texture as custom', () => {
+    expect(describeTextureSource({
+      namespace: '', folder: 'block', name: 'disguised_chestling.png', path: ''
+    })).toEqual({external: false, label: 'Custom Texture'});
+  });
+
+  test('labels a namespaced texture with its compact location', () => {
+    expect(describeTextureSource({
+      namespace: 'minecraft', folder: 'entity/chest', name: 'normal.png'
+    })).toEqual({external: true, label: 'minecraft:entity/chest/normal'});
+  });
 });
 
 describe('resolveTextures', () => {
@@ -63,6 +87,42 @@ describe('resolveTextures', () => {
     expect(result.textures).toEqual({});
     expect(result.packed).toEqual([{fileName: 'lizard.png', bytes: BYTES}]);
   });
+
+  test('foreign-namespace index 0 is referenced, not packed', () => {
+    const result = resolveTextures(
+        [{
+          index: 0, namespace: 'othermod', folder: 'entity', name: 'thing',
+          path: '', bytes: BYTES
+        }],
+        SETTINGS);
+    expect(result.texture).toBe('othermod:textures/entity/thing.png');
+    expect(result.textures).toEqual({});
+    expect(result.packed).toEqual([]);
+  });
+
+  test('packs a custom index 1 that lives under a non-minecraft assets tree',
+      () => {
+        const result = resolveTextures([
+          {
+            index: 0, namespace: 'minecraft', folder: 'entity/chest',
+            name: 'normal.png', path: '', bytes: BYTES
+          },
+          {
+            index: 1, namespace: '', folder: 'block',
+            name: 'disguised_chestling.png',
+            path: 'D:/x/assets/easy_model_entities_examples/textures/entity/'
+                + 'disguised_chestling_1.png',
+            bytes: BYTES
+          }
+        ], SETTINGS);
+
+        expect(result.texture).toBe(
+            'minecraft:textures/entity/chest/normal.png');
+        expect(result.textures).toEqual(
+            {1: 'example:textures/entity/lizard_1.png'});
+        expect(result.packed).toEqual(
+            [{fileName: 'lizard_1.png', bytes: BYTES}]);
+      });
 
   test('mixes a vanilla index 0 with a custom index 1', () => {
     const result = resolveTextures([

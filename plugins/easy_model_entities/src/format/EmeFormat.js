@@ -43,6 +43,7 @@ function registerEmeFormat(icon) {
     box_uv: true,
     optional_box_uv: true,
     single_texture: false,
+    texture_folder: true,
     bone_rig: true,
     centered_grid: true,
     animated_textures: false,

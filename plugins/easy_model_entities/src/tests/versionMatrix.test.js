@@ -25,10 +25,10 @@ const {
 } = require('../model/versionMatrix');
 
 describe('versionMatrix', () => {
-  test('default version is 1.20.1 and enabled', () => {
+  test('default version is 1.20.1; all four versions are enabled', () => {
     expect(getDefaultVersionId()).toBe('1.20.1');
     const enabled = getEnabledVersions().map((v) => v.id);
-    expect(enabled).toEqual(['1.20.1']);
+    expect(enabled).toEqual(['1.20.1', '1.21.1', '1.21.11', '26.1.2']);
   });
 
   test('exposes the full selectable version list', () => {
@@ -36,13 +36,28 @@ describe('versionMatrix', () => {
         ['1.20.1', '1.21.1', '1.21.11', '26.1.2']);
   });
 
-  test('1.20.1 maps to pack_format 15 / 15', () => {
+  test('legacy versions use a single integer pack_format', () => {
     expect(getPackFormats('1.20.1')).toEqual(
-        {dataFormat: 15, resourceFormat: 15});
+        {data: {packFormat: 15}, resource: {packFormat: 15}});
+    expect(getPackFormats('1.21.1')).toEqual(
+        {data: {packFormat: 48}, resource: {packFormat: 34}});
   });
 
-  test('disabled versions return no pack formats', () => {
-    expect(getPackFormats('1.21.1')).toBeNull();
+  test('1.21.11 uses the min/max format scheme', () => {
+    expect(getPackFormats('1.21.11')).toEqual({
+      data: {packFormat: 94, minFormat: [94, 1], maxFormat: [94, 1]},
+      resource: {packFormat: 75, minFormat: [75, 0], maxFormat: [75, 0]}
+    });
+  });
+
+  test('26.1.2 uses the min/max format scheme', () => {
+    expect(getPackFormats('26.1.2')).toEqual({
+      data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
+      resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]}
+    });
+  });
+
+  test('unknown versions return no pack formats', () => {
     expect(getPackFormats('does-not-exist')).toBeNull();
   });
 });

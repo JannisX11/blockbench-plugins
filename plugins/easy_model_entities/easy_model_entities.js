@@ -53,9 +53,6 @@ class BlockbenchAdapter {
     return Number.isInteger(id) && id >= 0 ? id : position;
   }
 
-  // All project textures as plain descriptors for TextureResolver. External
-  // (vanilla / other-mod) textures are referenced by location; custom textures
-  // carry their PNG bytes to be packed.
   static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
       return [];
@@ -74,6 +71,8 @@ class BlockbenchAdapter {
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
+    const animations =
+        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
     const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
@@ -94,6 +93,7 @@ class BlockbenchAdapter {
       hasTexture: !!texture,
       cubeCount: cubes.length,
       boneCount: groups.length,
+      animationCount: animations.length,
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
       textureWidth: texture ? texture.width : undefined,
@@ -131,6 +131,15 @@ class BlockbenchAdapter {
     });
 
     return bounds;
+  }
+
+  static getModelCubes() {
+    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+
+    return cubes.map((cube) => ({
+      from: (cube.from || [0, 0, 0]).slice(),
+      to: (cube.to || [0, 0, 0]).slice()
+    }));
   }
 
   static getProjectName() {
@@ -184,9 +193,6 @@ class BlockbenchAdapter {
     return zip.generateAsync({type: 'uint8array'});
   }
 
-  // Wraps a ready-to-drop datapack.zip and resourcepack.zip plus the README
-  // into a single outer ZIP, so the user can move the inner ZIPs straight into
-  // their datapacks/ and resourcepacks/ folders without unpacking.
   static exportPackBundle(bundle, name) {
     return Promise.all([
       BlockbenchAdapter.#zipToUint8(bundle.datapack),
@@ -447,27 +453,35 @@ module.exports = {
 
 const {getPackFormats} = __webpack_require__(954);
 
-function buildMcmeta(settings, packFormat, description) {
+function buildPack(descriptor, description) {
+  const pack = {pack_format: descriptor.packFormat};
+  if (descriptor.minFormat) {
+    pack.min_format = descriptor.minFormat;
+  }
+  if (descriptor.maxFormat) {
+    pack.max_format = descriptor.maxFormat;
+  }
+  pack.description = description;
+
+  return {pack};
+}
+
+function buildMcmeta(settings, kind, description) {
   const formats = getPackFormats(settings.targetVersion);
   if (!formats) {
     throw new Error(
         `Unsupported or disabled target version: ${settings.targetVersion}`);
   }
-  return {
-    pack: {
-      pack_format: formats[packFormat],
-      description: description
-    }
-  };
+  return buildPack(formats[kind], description);
 }
 
 function buildDataPackMcmeta(settings) {
-  return buildMcmeta(settings, 'dataFormat',
+  return buildMcmeta(settings, 'data',
       'Easy Model Entities server profiles');
 }
 
 function buildResourcePackMcmeta(settings) {
-  return buildMcmeta(settings, 'resourceFormat',
+  return buildMcmeta(settings, 'resource',
       'Easy Model Entities render assets');
 }
 
@@ -617,20 +631,25 @@ const {
 } = __webpack_require__(151);
 const {diffFlat, assignIfPresent} = __webpack_require__(640);
 
-// Block entities render as a static cuboid block, so they always use the
-// "static" render preset regardless of their server-side block entity preset.
 function renderPresetType(settings) {
   return settings.modelType === MODEL_TYPE_BLOCK_ENTITY
       ? 'static' : settings.presetType;
 }
 
 function buildRendering(settings) {
+  const rendering = settings.rendering;
   return diffFlat({
-    scale: settings.rendering.scale,
-    shadow_radius: settings.rendering.shadowRadius
+    scale: rendering.scale,
+    shadow_radius: rendering.shadowRadius,
+    visible_bounds_width: rendering.visibleBoundsWidth ?? 0,
+    visible_bounds_height: rendering.visibleBoundsHeight ?? 0,
+    visible_bounds_offset: rendering.visibleBoundsOffset || [0, 0, 0]
   }, {
     scale: 1,
-    shadow_radius: presetShadowRadius(renderPresetType(settings))
+    shadow_radius: presetShadowRadius(renderPresetType(settings)),
+    visible_bounds_width: 0,
+    visible_bounds_height: 0,
+    visible_bounds_offset: [0, 0, 0]
   });
 }
 
@@ -639,16 +658,23 @@ function buildAnimation(settings) {
   const animation = diffFlat({
     mode: settings.animation.mode,
     swing_speed: settings.animation.swingSpeed,
-    walk_speed_multiplier: settings.animation.walkSpeedMultiplier
+    walk_speed_multiplier: settings.animation.walkSpeedMultiplier,
+    idle_strength: settings.animation.idleStrength ?? 1,
+    gait: settings.animation.gait || 'natural'
   }, {
     mode: defaultMode,
     swing_speed: 1,
-    walk_speed_multiplier: 1
+    walk_speed_multiplier: 1,
+    idle_strength: 1,
+    gait: 'natural'
   });
+
   // Animation timing is meaningless when animation is disabled.
   if (settings.animation.mode === 'none') {
     delete animation.swing_speed;
     delete animation.walk_speed_multiplier;
+    delete animation.idle_strength;
+    delete animation.gait;
   }
 
   return animation;
@@ -667,11 +693,6 @@ function buildRenderProfile(settings, textureResolution) {
     profile.body_type = settings.host.bodyType;
   }
 
-  // The model and the index-0 texture follow the mod's conventional default
-  // path (namespace:easy_model_entities/models/id and
-  // namespace:textures/entity/id.png), so they are omitted whenever they match
-  // the default. Only deviating texture locations (e.g. vanilla index 0 or any
-  // index > 0) are spelled out for the mod's ModelTextureResolver.
   if (textureResolution && textureResolution.texture) {
     profile.texture = textureResolution.texture;
   }
@@ -718,6 +739,7 @@ const {
   presetDimensions,
   movementDefaults,
   behaviorModeFor,
+  wandersByMovement,
   isCustom,
   MODEL_TYPE_BLOCK_ENTITY,
   MODEL_TYPE_ENTITY
@@ -742,7 +764,7 @@ function effectiveDefaults(settings) {
     behavior: {
       mode: mode,
       look_at_players: mode === 'idle_only' || mode === 'ambient',
-      random_stroll: movementType === 'ground' && mode === 'ambient'
+      random_stroll: wandersByMovement(movementType) && mode === 'ambient'
     },
     attributes: {
       max_health: DEFAULT_MAX_HEALTH,
@@ -866,6 +888,7 @@ module.exports = {buildServerProfile};
  */
 
 const {BlockbenchAdapter} = __webpack_require__(833);
+const {pickModelSettings} = __webpack_require__(668);
 const {FORMAT_ID} = __webpack_require__(995);
 
 const EME_SETTINGS_KEY = 'emeSettings';
@@ -877,7 +900,7 @@ function handleCompile(event) {
 
   const settings = BlockbenchAdapter.loadSettings();
   if (settings) {
-    event.model[EME_SETTINGS_KEY] = settings;
+    event.model[EME_SETTINGS_KEY] = pickModelSettings(settings);
   }
 }
 
@@ -956,6 +979,7 @@ function registerEmeFormat(icon) {
     box_uv: true,
     optional_box_uv: true,
     single_texture: false,
+    texture_folder: true,
     bone_rig: true,
     centered_grid: true,
     animated_textures: false,
@@ -1037,9 +1061,16 @@ const EN = {
   'eme.field.followRange': 'Follow Range',
   'eme.field.scale': 'Scale',
   'eme.field.shadowRadius': 'Shadow Radius',
+  'eme.field.visibleBoundsWidth': 'Visible Bounds Width (0 = auto)',
+  'eme.field.visibleBoundsHeight': 'Visible Bounds Height (0 = auto)',
+  'eme.field.visibleBoundsOffsetX': 'Visible Bounds Offset X',
+  'eme.field.visibleBoundsOffsetY': 'Visible Bounds Offset Y',
+  'eme.field.visibleBoundsOffsetZ': 'Visible Bounds Offset Z',
   'eme.field.animationMode': 'Animation Mode',
   'eme.field.swingSpeed': 'Swing Speed',
   'eme.field.walkSpeedMultiplier': 'Walk Speed Multiplier',
+  'eme.field.idleStrength': 'Idle Strength',
+  'eme.field.gait': 'Gait',
   'eme.section.host': 'Host',
   'eme.section.dimensions': 'Dimensions',
   'eme.section.movement': 'Movement',
@@ -1061,6 +1092,8 @@ const EN = {
   'eme.preset.quadruped_wandering': 'Quadruped (4 legs, ground, wandering)',
   'eme.preset.aquatic_still': 'Aquatic (fish, still)',
   'eme.preset.aquatic_swimming': 'Aquatic (fish, swimming)',
+  'eme.preset.amphibious_still': 'Amphibious (land/water, still)',
+  'eme.preset.amphibious_wandering': 'Amphibious (land/water, wandering)',
   'eme.preset.winged_still': 'Winged (bird, perched)',
   'eme.preset.winged_wandering': 'Winged (bird, flying)',
   'eme.preset.winged_humanoid_still': 'Winged humanoid (standing)',
@@ -1074,13 +1107,19 @@ const EN = {
   'eme.body.biped': 'Biped (2 legs)',
   'eme.body.quadruped': 'Quadruped (4 legs)',
   'eme.body.aquatic': 'Aquatic',
+  'eme.body.amphibious': 'Amphibious',
   'eme.body.winged': 'Winged',
   'eme.body.winged_humanoid': 'Winged humanoid',
   'eme.body.arthropod': 'Arthropod',
   'eme.body.cuboid': 'Cuboid',
   'eme.body.floating': 'Floating',
   'eme.movement.ground': 'Ground',
+  'eme.movement.water': 'Water',
+  'eme.movement.amphibious': 'Amphibious',
   'eme.movement.static': 'Static',
+  'eme.gait.natural': 'Natural',
+  'eme.gait.feline': 'Feline (light, quick)',
+  'eme.gait.ungulate': 'Ungulate (heavy, slow)',
   'eme.behavior.idle_only': 'Idle only',
   'eme.behavior.ambient': 'Ambient (wanders)',
   'eme.behavior.static': 'Static',
@@ -1090,6 +1129,8 @@ const EN = {
   'eme.animation.none': 'None',
   'eme.entity.ground_entity': 'Ground entity',
   'eme.entity.static_entity': 'Static entity',
+  'eme.entity.aquatic_entity': 'Aquatic entity',
+  'eme.entity.amphibious_entity': 'Amphibious entity',
   'eme.modelType.entity': 'Entity',
   'eme.modelType.block_entity': 'Block Entity',
   'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
@@ -1121,9 +1162,16 @@ const DE = {
   'eme.field.followRange': 'Folgereichweite',
   'eme.field.scale': 'Skalierung',
   'eme.field.shadowRadius': 'Schattenradius',
+  'eme.field.visibleBoundsWidth': 'Sichtbarkeitsbox-Breite (0 = auto)',
+  'eme.field.visibleBoundsHeight': 'Sichtbarkeitsbox-Höhe (0 = auto)',
+  'eme.field.visibleBoundsOffsetX': 'Sichtbarkeitsbox-Versatz X',
+  'eme.field.visibleBoundsOffsetY': 'Sichtbarkeitsbox-Versatz Y',
+  'eme.field.visibleBoundsOffsetZ': 'Sichtbarkeitsbox-Versatz Z',
   'eme.field.animationMode': 'Animationsmodus',
   'eme.field.swingSpeed': 'Schwunggeschwindigkeit',
   'eme.field.walkSpeedMultiplier': 'Geh-Geschwindigkeitsfaktor',
+  'eme.field.idleStrength': 'Leerlauf-Intensität',
+  'eme.field.gait': 'Gangart',
   'eme.section.host': 'Host',
   'eme.section.dimensions': 'Abmessungen',
   'eme.section.movement': 'Bewegung',
@@ -1145,6 +1193,8 @@ const DE = {
   'eme.preset.quadruped_wandering': 'Vierbeiner (4 Beine, Boden, umherlaufend)',
   'eme.preset.aquatic_still': 'Wassertier (Fisch, ruhend)',
   'eme.preset.aquatic_swimming': 'Wassertier (Fisch, schwimmend)',
+  'eme.preset.amphibious_still': 'Amphibie (Land/Wasser, ruhend)',
+  'eme.preset.amphibious_wandering': 'Amphibie (Land/Wasser, umherlaufend)',
   'eme.preset.winged_still': 'Geflügelt (Vogel, sitzend)',
   'eme.preset.winged_wandering': 'Geflügelt (Vogel, fliegend)',
   'eme.preset.winged_humanoid_still': 'Geflügelter Humanoid (stehend)',
@@ -1158,13 +1208,19 @@ const DE = {
   'eme.body.biped': 'Zweibeiner (2 Beine)',
   'eme.body.quadruped': 'Vierbeiner (4 Beine)',
   'eme.body.aquatic': 'Wassertier',
+  'eme.body.amphibious': 'Amphibie',
   'eme.body.winged': 'Geflügelt',
   'eme.body.winged_humanoid': 'Geflügelter Humanoid',
   'eme.body.arthropod': 'Gliederfüßer',
   'eme.body.cuboid': 'Quaderförmig',
   'eme.body.floating': 'Schwebend',
   'eme.movement.ground': 'Boden',
+  'eme.movement.water': 'Wasser',
+  'eme.movement.amphibious': 'Amphibisch',
   'eme.movement.static': 'Statisch',
+  'eme.gait.natural': 'Natürlich',
+  'eme.gait.feline': 'Katzenartig (leicht, schnell)',
+  'eme.gait.ungulate': 'Huftier (schwer, langsam)',
   'eme.behavior.idle_only': 'Nur Leerlauf',
   'eme.behavior.ambient': 'Umgebung (läuft umher)',
   'eme.behavior.static': 'Statisch',
@@ -1174,6 +1230,8 @@ const DE = {
   'eme.animation.none': 'Keine',
   'eme.entity.ground_entity': 'Boden-Entität',
   'eme.entity.static_entity': 'Statische Entität',
+  'eme.entity.aquatic_entity': 'Wasser-Entität',
+  'eme.entity.amphibious_entity': 'Amphibien-Entität',
   'eme.modelType.entity': 'Entität',
   'eme.modelType.block_entity': 'Block-Entität',
   'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
@@ -1445,10 +1503,16 @@ const {
 class Validator {
   static BUDGETS = {
     maxTextureSize: 2048,
-    maxModelFileSize: 2 * 1024 * 1024,
+    softTextureSize: 128,
+    maxModelFileSizeBytes: 2 * 1024 * 1024,
+    softModelFileSizeBytes: 1024 * 1024,
     maxCubeCount: 512,
+    softCubeCount: 384,
     maxBoneCount: 128,
-    maxHierarchyDepth: 32
+    softBoneCount: 96,
+    maxHierarchyDepth: 32,
+    softHierarchyDepth: 24,
+    maxAnimationCount: 16
   };
 
   static REQUIRED_BODY_PARTS = {
@@ -1473,6 +1537,18 @@ class Validator {
     }
 
     return true;
+  }
+
+  static #warnIfOverBudget(warnings, value, soft, max, softWarning,
+      maxWarning) {
+    if (!Validator.#isFiniteNumber(value)) {
+      return;
+    }
+    if (value > max) {
+      warnings.push(maxWarning);
+    } else if (value > soft) {
+      warnings.push(softWarning);
+    }
   }
 
   static validateSettings(settings, context) {
@@ -1571,38 +1647,62 @@ class Validator {
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
-      if (ctx.textureWidth > Validator.BUDGETS.maxTextureSize
-          || ctx.textureHeight > Validator.BUDGETS.maxTextureSize) {
-        warnings.push({
-          code: 'LARGE_TEXTURE',
-          message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
+      const textureSize = Math.max(ctx.textureWidth, ctx.textureHeight);
+      Validator.#warnIfOverBudget(warnings, textureSize,
+          Validator.BUDGETS.softTextureSize, Validator.BUDGETS.maxTextureSize,
+          {
+            code: 'SOFT_TEXTURE_SIZE',
+            message: `Texture larger than ${Validator.BUDGETS.softTextureSize}x${Validator.BUDGETS.softTextureSize}`
+          },
+          {
+            code: 'LARGE_TEXTURE',
+            message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
+          });
+    }
+    Validator.#warnIfOverBudget(warnings, ctx.modelFileSize,
+        Validator.BUDGETS.softModelFileSizeBytes,
+        Validator.BUDGETS.maxModelFileSizeBytes,
+        {
+          code: 'SOFT_MODEL_SIZE',
+          message: 'Model file larger than 1 MB'
+        },
+        {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
+    Validator.#warnIfOverBudget(warnings, ctx.cubeCount,
+        Validator.BUDGETS.softCubeCount, Validator.BUDGETS.maxCubeCount,
+        {
+          code: 'SOFT_CUBE_COUNT',
+          message: `More than ${Validator.BUDGETS.softCubeCount} cubes`
+        },
+        {
+          code: 'HIGH_CUBE_COUNT',
+          message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
         });
-      }
-    }
-    if (Validator.#isFiniteNumber(ctx.modelFileSize) && ctx.modelFileSize
-        > Validator.BUDGETS.maxModelFileSize) {
-      warnings.push(
-          {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
-    }
-    if (Validator.#isFiniteNumber(ctx.cubeCount) && ctx.cubeCount
-        > Validator.BUDGETS.maxCubeCount) {
+    Validator.#warnIfOverBudget(warnings, ctx.boneCount,
+        Validator.BUDGETS.softBoneCount, Validator.BUDGETS.maxBoneCount,
+        {
+          code: 'SOFT_BONE_COUNT',
+          message: `More than ${Validator.BUDGETS.softBoneCount} bones`
+        },
+        {
+          code: 'HIGH_BONE_COUNT',
+          message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
+        });
+    Validator.#warnIfOverBudget(warnings, ctx.hierarchyDepth,
+        Validator.BUDGETS.softHierarchyDepth,
+        Validator.BUDGETS.maxHierarchyDepth,
+        {
+          code: 'SOFT_HIERARCHY_DEPTH',
+          message: `Hierarchy deeper than ${Validator.BUDGETS.softHierarchyDepth}`
+        },
+        {
+          code: 'DEEP_HIERARCHY',
+          message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
+        });
+    if (Validator.#isFiniteNumber(ctx.animationCount)
+        && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
       warnings.push({
-        code: 'HIGH_CUBE_COUNT',
-        message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
-      });
-    }
-    if (Validator.#isFiniteNumber(ctx.boneCount) && ctx.boneCount
-        > Validator.BUDGETS.maxBoneCount) {
-      warnings.push({
-        code: 'HIGH_BONE_COUNT',
-        message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
-      });
-    }
-    if (Validator.#isFiniteNumber(ctx.hierarchyDepth) && ctx.hierarchyDepth
-        > Validator.BUDGETS.maxHierarchyDepth) {
-      warnings.push({
-        code: 'DEEP_HIERARCHY',
-        message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
+        code: 'HIGH_ANIMATION_COUNT',
+        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations`
       });
     }
 
@@ -1660,6 +1760,122 @@ module.exports = {Validator};
 
 /***/ },
 
+/***/ 508
+(module) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+class VisibleBounds {
+  static PIXELS_PER_BLOCK = 16;
+
+  static #empty() {
+    return {width: 0, height: 0, offset: [0, 0, 0]};
+  }
+
+  static #round(value) {
+    return Math.round(value * 1000) / 1000;
+  }
+
+  static #usableCubes(cubes) {
+    if (!Array.isArray(cubes)) {
+      return [];
+    }
+
+    return cubes.filter((cube) =>
+        cube && Array.isArray(cube.from) && Array.isArray(cube.to)
+        && cube.from.length === 3 && cube.to.length === 3
+        && [...cube.from, ...cube.to].every((value) => Number.isFinite(value)));
+  }
+
+  static #bounds(cubes) {
+    const bounds = {
+      min: [Infinity, Infinity, Infinity],
+      max: [-Infinity, -Infinity, -Infinity]
+    };
+    cubes.forEach((cube) => {
+      for (let axis = 0; axis < 3; axis++) {
+        bounds.min[axis] = Math.min(bounds.min[axis], cube.from[axis],
+            cube.to[axis]);
+        bounds.max[axis] = Math.max(bounds.max[axis], cube.from[axis],
+            cube.to[axis]);
+      }
+    });
+
+    return bounds;
+  }
+
+  static derive(cubes) {
+    const usable = VisibleBounds.#usableCubes(cubes);
+    if (usable.length === 0) {
+      return VisibleBounds.#empty();
+    }
+
+    const ppb = VisibleBounds.PIXELS_PER_BLOCK;
+    const bounds = VisibleBounds.#bounds(usable);
+    const xExtent = bounds.max[0] - bounds.min[0];
+    const yExtent = bounds.max[1] - bounds.min[1];
+    const zExtent = bounds.max[2] - bounds.min[2];
+    const width = Math.max(xExtent, zExtent) / ppb;
+    const height = yExtent / ppb;
+
+    if (width <= 0 || height <= 0) {
+      return VisibleBounds.#empty();
+    }
+
+    return {
+      width: VisibleBounds.#round(width),
+      height: VisibleBounds.#round(height),
+      offset: [
+        VisibleBounds.#round(((bounds.min[0] + bounds.max[0]) / 2) / ppb),
+        VisibleBounds.#round(bounds.min[1] / ppb),
+        VisibleBounds.#round(((bounds.min[2] + bounds.max[2]) / 2) / ppb)
+      ]
+    };
+  }
+
+  static hasVisibleBounds(settings) {
+    const rendering = settings && settings.rendering;
+    return !!rendering && rendering.visibleBoundsWidth > 0
+        && rendering.visibleBoundsHeight > 0;
+  }
+
+  static applyVisibleBounds(settings, derived, options) {
+    if (!derived || !settings || !settings.rendering) {
+      return settings;
+    }
+    if (options?.preserveExisting && VisibleBounds.hasVisibleBounds(settings)) {
+      return settings;
+    }
+
+    settings.rendering.visibleBoundsWidth = derived.width;
+    settings.rendering.visibleBoundsHeight = derived.height;
+    settings.rendering.visibleBoundsOffset = derived.offset.slice();
+    return settings;
+  }
+}
+
+module.exports = {VisibleBounds};
+
+
+/***/ },
+
 /***/ 151
 (module) {
 
@@ -1682,25 +1898,40 @@ module.exports = {Validator};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType and the
-// per-preset defaults derived by EasyModelProfileParser / ModelRenderProfileParser.
-// This file is the single source of truth the plugin uses to compute minimal
-// (diff-based) profiles, so it must stay in sync with the mod.
+// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType.
 
 const SCHEMA_VERSION = '0.1.0';
 
-// Mirrors de.markusbordihn.easymodelentities.data.profile.ModelType.
 const MODEL_TYPE_ENTITY = 'entity';
 const MODEL_TYPE_BLOCK_ENTITY = 'block_entity';
-const MODEL_TYPES = (/* unused pure expression or super */ null && ([MODEL_TYPE_ENTITY, MODEL_TYPE_BLOCK_ENTITY]));
+const MODEL_TYPES = [MODEL_TYPE_ENTITY, MODEL_TYPE_BLOCK_ENTITY];
+
+const BODY_TYPES = [
+  'static',
+  'biped',
+  'quadruped',
+  'aquatic',
+  'amphibious',
+  'winged',
+  'winged_humanoid',
+  'arthropod',
+  'cuboid',
+  'floating'
+];
+
+const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
+const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
+const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
+const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
 const STATIC_ENTITY = 'easy_model_entities:static_entity';
+const AQUATIC_ENTITY = 'easy_model_entities:aquatic_entity';
+const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
 
-// All ModelPresetType values in serialized form.
 const PRESET_TYPES = [
   'custom',
   'static',
@@ -1711,6 +1942,8 @@ const PRESET_TYPES = [
   'quadruped_wandering',
   'aquatic_still',
   'aquatic_swimming',
+  'amphibious_still',
+  'amphibious_wandering',
   'winged_still',
   'winged_wandering',
   'winged_humanoid_still',
@@ -1722,7 +1955,6 @@ const PRESET_TYPES = [
   'floating_still'
 ];
 
-// All ModelBlockEntityPresetType values in serialized form.
 const BLOCK_ENTITY_PRESET_TYPES = [
   'static',
   'ticking',
@@ -1730,8 +1962,6 @@ const BLOCK_ENTITY_PRESET_TYPES = [
   'animated_randomly'
 ];
 
-// Presets the mod marks as stable for pack authors; experimental ones are hidden
-// in the UI behind the "Show experimental presets" setting.
 const STABLE_PRESET_TYPES = new Set([
   'static',
   'statue',
@@ -1739,12 +1969,24 @@ const STABLE_PRESET_TYPES = new Set([
   'humanoid_wandering',
   'quadruped_still',
   'quadruped_wandering',
+  'aquatic_still',
+  'aquatic_swimming',
+  'amphibious_still',
+  'amphibious_wandering',
+  'winged_still',
+  'winged_wandering',
+  'winged_humanoid_still',
+  'winged_humanoid_wandering',
+  'arthropod_still',
+  'arthropod_wandering',
+  'cuboid_still',
+  'cuboid_hopping',
+  'floating_still',
   // Block entity stable presets.
   'animated',
   'animated_randomly'
 ]);
 
-// Presets selectable as a starting point in the UI (custom handled separately).
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
 
 function isStablePreset(presetType) {
@@ -1776,6 +2018,9 @@ function bodyType(presetType) {
     case 'aquatic_still':
     case 'aquatic_swimming':
       return 'aquatic';
+    case 'amphibious_still':
+    case 'amphibious_wandering':
+      return 'amphibious';
     case 'winged_still':
     case 'winged_wandering':
       return 'winged';
@@ -1795,11 +2040,34 @@ function bodyType(presetType) {
   }
 }
 
+function isAquatic(presetType) {
+  return presetType === 'aquatic_still' || presetType === 'aquatic_swimming';
+}
+
+function isAmphibious(presetType) {
+  return presetType === 'amphibious_still'
+      || presetType === 'amphibious_wandering';
+}
+
 function movementType(presetType) {
+  if (isAquatic(presetType)) {
+    return 'water';
+  }
+  if (isAmphibious(presetType)) {
+    return 'amphibious';
+  }
+
   return isMoving(presetType) ? 'ground' : 'static';
 }
 
 function entityType(presetType) {
+  if (isAquatic(presetType)) {
+    return AQUATIC_ENTITY;
+  }
+  if (isAmphibious(presetType)) {
+    return AMPHIBIOUS_ENTITY;
+  }
+
   return isMoving(presetType) || presetType === 'static' ? GROUND_ENTITY
       : STATIC_ENTITY;
 }
@@ -1812,6 +2080,9 @@ function presetDimensions(presetType) {
     case 'aquatic_still':
     case 'aquatic_swimming':
       return {width: 0.7, height: 0.4, eyeHeight: 0.25};
+    case 'amphibious_still':
+    case 'amphibious_wandering':
+      return {width: 0.9, height: 0.6, eyeHeight: 0.4};
     case 'winged_still':
     case 'winged_wandering':
       return {width: 0.6, height: 0.9, eyeHeight: 0.6};
@@ -1830,11 +2101,12 @@ function presetDimensions(presetType) {
   }
 }
 
-// Shadow radius the mod derives per render preset (ModelRenderSettings).
 function presetShadowRadius(presetType) {
   switch (presetType) {
     case 'quadruped_still':
     case 'quadruped_wandering':
+    case 'amphibious_still':
+    case 'amphibious_wandering':
       return 0.45;
     case 'aquatic_still':
     case 'aquatic_swimming':
@@ -1855,8 +2127,6 @@ function presetShadowRadius(presetType) {
   }
 }
 
-// Behavior mode the mod derives for a preset, given the resolved movement type
-// (only relevant for the custom preset where movement type can vary).
 function behaviorModeFor(presetType, move) {
   if (isMoving(presetType)) {
     return 'ambient';
@@ -1867,7 +2137,7 @@ function behaviorModeFor(presetType, move) {
   }
 
   if (presetType === 'custom') {
-    return move === 'ground' ? 'idle_only' : 'static';
+    return move === 'ground' || move === 'amphibious' ? 'idle_only' : 'static';
   }
 
   return 'static';
@@ -1877,13 +2147,28 @@ function behaviorMode(presetType) {
   return behaviorModeFor(presetType, movementType(presetType));
 }
 
-// Movement defaults the mod derives from the resolved movement type.
+function wandersByMovement(move) {
+  return move === 'ground' || move === 'amphibious' || move === 'water';
+}
+
+function defaultSpeed(move) {
+  switch (move) {
+    case 'ground':
+      return 0.22;
+    case 'amphibious':
+      return 0.15;
+    case 'water':
+      return 0.1;
+    default:
+      return 0;
+  }
+}
+
 function movementDefaults(presetType, move) {
-  const ground = move === 'ground';
   return {
-    speed: ground ? 0.22 : 0,
-    stepHeight: ground ? 0.6 : 0,
-    gravity: presetType === 'static' || ground
+    speed: defaultSpeed(move),
+    stepHeight: move === 'ground' || move === 'amphibious' ? 0.6 : 0,
+    gravity: presetType === 'static' || move !== 'static'
   };
 }
 
@@ -1892,7 +2177,6 @@ function animationMode(presetType) {
   || presetType === 'statue' ? 'none' : 'automatic';
 }
 
-// Animation mode the mod derives for a block entity preset.
 function blockEntityAnimationMode(presetType) {
   switch (presetType) {
     case 'animated':
@@ -1904,8 +2188,26 @@ function blockEntityAnimationMode(presetType) {
   }
 }
 
-// Block entities ignore movement/behavior/attributes; the host is always a
-// static cuboid block.
+function defaultRenderingSettings(presetType) {
+  return {
+    scale: 1,
+    shadowRadius: presetShadowRadius(presetType),
+    visibleBoundsWidth: 0,
+    visibleBoundsHeight: 0,
+    visibleBoundsOffset: [0, 0, 0]
+  };
+}
+
+function defaultAnimationSettings(mode) {
+  return {
+    mode: mode,
+    swingSpeed: 1,
+    walkSpeedMultiplier: 1,
+    idleStrength: 1,
+    gait: 'natural'
+  };
+}
+
 function blockEntityPresetDefaults(presetType) {
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -1916,12 +2218,8 @@ function blockEntityPresetDefaults(presetType) {
     movement: {speed: 0, stepHeight: 0, gravity: false},
     behavior: {mode: 'static', lookAtPlayers: false, randomStroll: false},
     attributes: {maxHealth: 10, movementSpeed: 0, followRange: 16},
-    rendering: {scale: 1, shadowRadius: 0.5},
-    animation: {
-      mode: blockEntityAnimationMode(presetType),
-      swingSpeed: 1,
-      walkSpeedMultiplier: 1
-    }
+    rendering: defaultRenderingSettings('cuboid_still'),
+    animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
   };
 }
 
@@ -1931,8 +2229,7 @@ function presetDefaults(presetType, modelType) {
   }
 
   const move = movementType(presetType);
-  const ground = move === 'ground';
-  const speed = ground ? 0.22 : 0;
+  const movement = movementDefaults(presetType, move);
   const mode = behaviorMode(presetType);
 
   return {
@@ -1946,22 +2243,22 @@ function presetDefaults(presetType, modelType) {
     },
     dimensions: presetDimensions(presetType),
     movement: {
-      speed: speed,
-      stepHeight: ground ? 0.6 : 0,
-      gravity: presetType === 'static' || ground
+      speed: movement.speed,
+      stepHeight: movement.stepHeight,
+      gravity: movement.gravity
     },
     behavior: {
       mode: mode,
       lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
-      randomStroll: ground && mode === 'ambient'
+      randomStroll: wandersByMovement(move) && mode === 'ambient'
     },
-    attributes: {maxHealth: 10, movementSpeed: speed, followRange: 16},
-    rendering: {scale: 1, shadowRadius: presetShadowRadius(presetType)},
-    animation: {
-      mode: animationMode(presetType),
-      swingSpeed: 1,
-      walkSpeedMultiplier: 1
-    }
+    attributes: {
+      maxHealth: 10,
+      movementSpeed: movement.speed,
+      followRange: 16
+    },
+    rendering: defaultRenderingSettings(presetType),
+    animation: defaultAnimationSettings(animationMode(presetType))
   };
 }
 
@@ -1969,14 +2266,21 @@ module.exports = {
   SCHEMA_VERSION,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY,
+  MODEL_TYPES,
+  BODY_TYPES,
+  MOVEMENT_TYPES,
+  BEHAVIOR_MODES,
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  ANIMATION_MODES,
+  GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
   isStablePreset,
   isCustom,
   bodyType,
   behaviorModeFor,
   movementDefaults,
+  wandersByMovement,
   animationMode,
   presetDimensions,
   presetShadowRadius,
@@ -2014,8 +2318,41 @@ const {
   MODEL_TYPE_ENTITY,
   presetDefaults
 } = __webpack_require__(151);
+const {getDefaultVersionId} = __webpack_require__(954);
 
 const DEFAULT_PRESET = 'statue';
+
+const MODEL_SETTING_KEYS = [
+  'schemaVersion',
+  'modelType',
+  'presetType',
+  'namespace',
+  'profileId',
+  'targetVersion',
+  'customize',
+  'host',
+  'dimensions',
+  'movement',
+  'behavior',
+  'attributes',
+  'rendering',
+  'animation'
+];
+
+function pickModelSettings(settings) {
+  if (!settings || typeof settings !== 'object') {
+    return settings;
+  }
+
+  const picked = {};
+  MODEL_SETTING_KEYS.forEach((key) => {
+    if (settings[key] !== undefined) {
+      picked[key] = settings[key];
+    }
+  });
+
+  return picked;
+}
 
 function deepMerge(target, source) {
   const result = Array.isArray(target) ? target.slice() : ({
@@ -2039,13 +2376,10 @@ function getDefaults() {
   return deepMerge(presetDefaults(DEFAULT_PRESET), {
     namespace: 'example_org',
     profileId: 'entity',
-    targetVersion: '1.20.1'
+    targetVersion: getDefaultVersionId()
   });
 }
 
-// Full settings object for a preset type, including the identity fields. The
-// model type disambiguates presets that exist for both entities and block
-// entities (e.g. "static").
 function applyTemplate(presetType, modelType) {
   return deepMerge(getDefaults(),
       presetDefaults(presetType, modelType || MODEL_TYPE_ENTITY));
@@ -2057,7 +2391,8 @@ module.exports = {
   SELECTABLE_PRESET_TYPES,
   getDefaults,
   applyTemplate,
-  deepMerge
+  deepMerge,
+  pickModelSettings
 };
 
 
@@ -2091,30 +2426,30 @@ const VERSIONS = [
   {
     id: '1.20.1',
     label: 'Minecraft 1.20.1',
-    dataFormat: 15,
-    resourceFormat: 15,
+    data: {packFormat: 15},
+    resource: {packFormat: 15},
     enabled: true
   },
   {
     id: '1.21.1',
     label: 'Minecraft 1.21.1',
-    dataFormat: 48,
-    resourceFormat: 34,
-    enabled: false
+    data: {packFormat: 48},
+    resource: {packFormat: 34},
+    enabled: true
   },
   {
     id: '1.21.11',
     label: 'Minecraft 1.21.11',
-    dataFormat: null,
-    resourceFormat: null,
-    enabled: false
+    data: {packFormat: 94, minFormat: [94, 1], maxFormat: [94, 1]},
+    resource: {packFormat: 75, minFormat: [75, 0], maxFormat: [75, 0]},
+    enabled: true
   },
   {
     id: '26.1.2',
     label: 'Minecraft 26.1.2',
-    dataFormat: null,
-    resourceFormat: null,
-    enabled: false
+    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
+    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    enabled: true
   }
 ];
 
@@ -2136,12 +2471,12 @@ function getDefaultVersionId() {
 
 function getPackFormats(id) {
   const version = getVersion(id);
-  if (!version?.enabled) {
+  if (!version?.enabled || !version.data || !version.resource) {
     return null;
   }
   return {
-    dataFormat: version.dataFormat,
-    resourceFormat: version.resourceFormat
+    data: version.data,
+    resource: version.resource
   };
 }
 
@@ -2177,119 +2512,30 @@ module.exports = {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {getVersions} = __webpack_require__(954);
 const {getDefaults, applyTemplate, deepMerge} = __webpack_require__(668);
 const {
-  SELECTABLE_PRESET_TYPES,
-  BLOCK_ENTITY_PRESET_TYPES,
-  isStablePreset,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
 const {ModelDimensions} = __webpack_require__(763);
+const {VisibleBounds} = __webpack_require__(508);
 const {t} = __webpack_require__(16);
-
-function presetLabel(id) {
-  return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
-}
-
-function entityPresetIds(experimental) {
-  return experimental
-      ? ['custom', ...SELECTABLE_PRESET_TYPES]
-      : SELECTABLE_PRESET_TYPES.filter(isStablePreset);
-}
-
-function blockPresetIds(experimental) {
-  return experimental
-      ? BLOCK_ENTITY_PRESET_TYPES.slice()
-      : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
-}
-
-// Experimental (WIP) presets are hidden unless the experimental setting is on.
-// `ensure` keeps an already-selected preset visible even when experimental is
-// off, so reopening a project that used one never breaks the dropdown.
-function presetOptions(modelType, experimental, ensure) {
-  const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
-      ? blockPresetIds(experimental) : entityPresetIds(experimental);
-  if (ensure && !ids.includes(ensure)) {
-    ids.push(ensure);
-  }
-  const options = {};
-  ids.forEach((id) => {
-    options[id] = presetLabel(id);
-  });
-
-  return options;
-}
-
-function modelTypeOptions() {
-  return {
-    [MODEL_TYPE_ENTITY]: t('eme.modelType.entity'),
-    [MODEL_TYPE_BLOCK_ENTITY]: t('eme.modelType.block_entity')
-  };
-}
-
-function exportTypeOptions() {
-  return {
-    packs: t('eme.exportType.packs'),
-    mod_project: t('eme.exportType.mod_project'),
-    model_only: t('eme.exportType.model_only')
-  };
-}
-
-function hostEntityTypeOptions() {
-  return {
-    'easy_model_entities:ground_entity': t('eme.entity.ground_entity'),
-    'easy_model_entities:static_entity': t('eme.entity.static_entity')
-  };
-}
-
-function movementTypeOptions() {
-  return {ground: t('eme.movement.ground'), static: t('eme.movement.static')};
-}
-
-function bodyTypeOptions() {
-  return {
-    static: t('eme.body.static'),
-    biped: t('eme.body.biped'),
-    quadruped: t('eme.body.quadruped'),
-    aquatic: t('eme.body.aquatic'),
-    winged: t('eme.body.winged'),
-    winged_humanoid: t('eme.body.winged_humanoid'),
-    arthropod: t('eme.body.arthropod'),
-    cuboid: t('eme.body.cuboid'),
-    floating: t('eme.body.floating')
-  };
-}
-
-function behaviorModeOptions() {
-  return {
-    idle_only: t('eme.behavior.idle_only'),
-    ambient: t('eme.behavior.ambient'),
-    static: t('eme.behavior.static'),
-    external_owner: t('eme.behavior.external_owner')
-  };
-}
-
-function animationModeOptions() {
-  return {
-    automatic: t('eme.animation.automatic'),
-    random_idle: t('eme.animation.random_idle'),
-    none: t('eme.animation.none')
-  };
-}
-
-function versionOptions() {
-  const options = {};
-  getVersions().forEach((version) => {
-    options[version.id] = version.enabled ? version.label
-        : `${version.label} (coming soon)`;
-  });
-
-  return options;
-}
+const {
+  presetOptions,
+  modelTypeOptions,
+  exportTypeOptions,
+  hostEntityTypeOptions,
+  movementTypeOptions,
+  bodyTypeOptions,
+  gaitOptions,
+  behaviorModeOptions,
+  animationModeOptions,
+  versionOptions
+} = __webpack_require__(664);
 
 function settingsToForm(settings) {
+  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
+
   return {
     namespace: settings.namespace,
     profileId: settings.profileId,
@@ -2309,9 +2555,16 @@ function settingsToForm(settings) {
     followRange: settings.attributes.followRange,
     scale: settings.rendering.scale,
     shadowRadius: settings.rendering.shadowRadius,
+    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
+    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
+    visibleBoundsOffsetX: offset[0],
+    visibleBoundsOffsetY: offset[1],
+    visibleBoundsOffsetZ: offset[2],
     animationMode: settings.animation.mode,
     swingSpeed: settings.animation.swingSpeed,
-    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier
+    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
+    idleStrength: settings.animation.idleStrength ?? 1,
+    gait: settings.animation.gait || 'natural'
   };
 }
 
@@ -2350,19 +2603,25 @@ function formToSettings(form, base) {
     },
     rendering: {
       scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius)
+      shadowRadius: Number(form.shadowRadius),
+      visibleBoundsWidth: Number(form.visibleBoundsWidth),
+      visibleBoundsHeight: Number(form.visibleBoundsHeight),
+      visibleBoundsOffset: [
+        Number(form.visibleBoundsOffsetX),
+        Number(form.visibleBoundsOffsetY),
+        Number(form.visibleBoundsOffsetZ)
+      ]
     },
     animation: {
       mode: form.animationMode,
       swingSpeed: Number(form.swingSpeed),
-      walkSpeedMultiplier: Number(form.walkSpeedMultiplier)
+      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
+      idleStrength: Number(form.idleStrength),
+      gait: form.gait
     }
   };
 }
 
-// Active preset depends on whether a block entity datapack is being authored.
-// Model-only export still authors a render (body) preset, so it uses the entity
-// preset list.
 function activeModelType(form) {
   return form.exportType === 'model_only'
       ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
@@ -2373,9 +2632,12 @@ function activePreset(form) {
       ? (form.blockPreset || 'static') : (form.preset || 'custom');
 }
 
-function presetFormValues(presetType, modelType, modelDimensions) {
-  const form = settingsToForm(ModelDimensions.applyModelDimensions(
-      applyTemplate(presetType, modelType), modelDimensions));
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const settings = ModelDimensions.applyModelDimensions(
+      applyTemplate(presetType, modelType), modelDimensions);
+  VisibleBounds.applyVisibleBounds(settings, visibleBounds);
+  const form = settingsToForm(settings);
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
@@ -2383,7 +2645,7 @@ function presetFormValues(presetType, modelType, modelDimensions) {
   return form;
 }
 
-function resolveExportSettings(form, base, modelDimensions) {
+function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
   const exportType = form.exportType || 'packs';
   const modelType = activeModelType(form);
   const preset = activePreset(form);
@@ -2394,6 +2656,7 @@ function resolveExportSettings(form, base, modelDimensions) {
   } else {
     settings = ModelDimensions.applyModelDimensions(
         applyTemplate(preset, modelType), modelDimensions);
+    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
   }
 
   settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
@@ -2593,6 +2856,31 @@ function buildFormConfig(settings, ui) {
           label: t('eme.field.shadowRadius'), type: 'number',
           value: values.shadowRadius, step: 0.1
         }, showRender),
+    visibleBoundsWidth: advancedField(
+        {
+          label: t('eme.field.visibleBoundsWidth'), type: 'number',
+          value: values.visibleBoundsWidth, step: 0.1
+        }, showRender),
+    visibleBoundsHeight: advancedField(
+        {
+          label: t('eme.field.visibleBoundsHeight'), type: 'number',
+          value: values.visibleBoundsHeight, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetX: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetX'), type: 'number',
+          value: values.visibleBoundsOffsetX, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetY: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetY'), type: 'number',
+          value: values.visibleBoundsOffsetY, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetZ: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetZ'), type: 'number',
+          value: values.visibleBoundsOffsetZ, step: 0.1
+        }, showRender),
 
     animation_header: advancedField(
         {type: 'info', text: `### ${t('eme.section.animation')}`},
@@ -2612,7 +2900,18 @@ function buildFormConfig(settings, ui) {
         {
           label: t('eme.field.walkSpeedMultiplier'), type: 'number',
           value: values.walkSpeedMultiplier, step: 0.1
-        }, showRender)
+        }, showRender),
+    idleStrength: advancedField(
+        {
+          label: t('eme.field.idleStrength'), type: 'number',
+          value: values.idleStrength, step: 0.1
+        }, showRender),
+    gait: advancedField({
+      label: t('eme.field.gait'),
+      type: 'select',
+      options: gaitOptions(),
+      value: values.gait
+    }, showRender)
   });
 
   return config;
@@ -2621,8 +2920,7 @@ function buildFormConfig(settings, ui) {
 function openExportDialog(options) {
   const settings = options.settings;
   const modelDimensions = options.modelDimensions;
-  // Tracks the active model type + preset so advanced fields refill whenever the
-  // user switches between entity/block entity or picks a different preset.
+  const visibleBounds = options.visibleBounds;
   let lastKey = `${activeModelType(options)}|${activePreset(options)}`;
 
   const dialog = new Dialog({
@@ -2646,13 +2944,14 @@ function openExportDialog(options) {
         lastKey = key;
         if (modelType !== MODEL_TYPE_ENTITY || preset !== 'custom') {
           dialog.setFormValues(
-              presetFormValues(preset, modelType, modelDimensions), false);
+              presetFormValues(preset, modelType, modelDimensions,
+                  visibleBounds), false);
         }
       }
     },
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
-          modelDimensions);
+          modelDimensions, visibleBounds);
       // Records that experimental presets were available for this export.
       finalSettings.experimental = !!options.experimental;
       options.onExport(finalSettings, finalSettings.exportTarget);
@@ -2671,6 +2970,247 @@ module.exports = {
   resolveExportSettings,
   openExportDialog
 };
+
+
+/***/ },
+
+/***/ 664
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {getVersions} = __webpack_require__(954);
+const {
+  SELECTABLE_PRESET_TYPES,
+  BLOCK_ENTITY_PRESET_TYPES,
+  isStablePreset,
+  MODEL_TYPE_ENTITY,
+  MODEL_TYPE_BLOCK_ENTITY
+} = __webpack_require__(151);
+const {t} = __webpack_require__(16);
+
+function presetLabel(id) {
+  return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
+}
+
+function entityPresetIds(experimental) {
+  return experimental
+      ? ['custom', ...SELECTABLE_PRESET_TYPES]
+      : SELECTABLE_PRESET_TYPES.filter(isStablePreset);
+}
+
+function blockPresetIds(experimental) {
+  return experimental
+      ? BLOCK_ENTITY_PRESET_TYPES.slice()
+      : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
+}
+
+// Experimental (WIP) presets are hidden unless the experimental setting is on.
+function presetOptions(modelType, experimental, ensure) {
+  const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
+      ? blockPresetIds(experimental) : entityPresetIds(experimental);
+  if (ensure && !ids.includes(ensure)) {
+    ids.push(ensure);
+  }
+  const options = {};
+  ids.forEach((id) => {
+    options[id] = presetLabel(id);
+  });
+
+  return options;
+}
+
+function modelTypeOptions() {
+  return {
+    [MODEL_TYPE_ENTITY]: t('eme.modelType.entity'),
+    [MODEL_TYPE_BLOCK_ENTITY]: t('eme.modelType.block_entity')
+  };
+}
+
+function exportTypeOptions() {
+  return {
+    packs: t('eme.exportType.packs'),
+    mod_project: t('eme.exportType.mod_project'),
+    model_only: t('eme.exportType.model_only')
+  };
+}
+
+function hostEntityTypeOptions() {
+  return {
+    'easy_model_entities:ground_entity': t('eme.entity.ground_entity'),
+    'easy_model_entities:static_entity': t('eme.entity.static_entity'),
+    'easy_model_entities:aquatic_entity': t('eme.entity.aquatic_entity'),
+    'easy_model_entities:amphibious_entity': t('eme.entity.amphibious_entity')
+  };
+}
+
+function movementTypeOptions() {
+  return {
+    ground: t('eme.movement.ground'),
+    water: t('eme.movement.water'),
+    amphibious: t('eme.movement.amphibious'),
+    static: t('eme.movement.static')
+  };
+}
+
+function bodyTypeOptions() {
+  return {
+    static: t('eme.body.static'),
+    biped: t('eme.body.biped'),
+    quadruped: t('eme.body.quadruped'),
+    aquatic: t('eme.body.aquatic'),
+    amphibious: t('eme.body.amphibious'),
+    winged: t('eme.body.winged'),
+    winged_humanoid: t('eme.body.winged_humanoid'),
+    arthropod: t('eme.body.arthropod'),
+    cuboid: t('eme.body.cuboid'),
+    floating: t('eme.body.floating')
+  };
+}
+
+function gaitOptions() {
+  return {
+    natural: t('eme.gait.natural'),
+    feline: t('eme.gait.feline'),
+    ungulate: t('eme.gait.ungulate')
+  };
+}
+
+function behaviorModeOptions() {
+  return {
+    idle_only: t('eme.behavior.idle_only'),
+    ambient: t('eme.behavior.ambient'),
+    static: t('eme.behavior.static'),
+    external_owner: t('eme.behavior.external_owner')
+  };
+}
+
+function animationModeOptions() {
+  return {
+    automatic: t('eme.animation.automatic'),
+    random_idle: t('eme.animation.random_idle'),
+    none: t('eme.animation.none')
+  };
+}
+
+function versionOptions() {
+  const options = {};
+  getVersions().forEach((version) => {
+    options[version.id] = version.enabled ? version.label
+        : `${version.label} (coming soon)`;
+  });
+
+  return options;
+}
+
+module.exports = {
+  presetOptions,
+  modelTypeOptions,
+  exportTypeOptions,
+  hostEntityTypeOptions,
+  movementTypeOptions,
+  bodyTypeOptions,
+  gaitOptions,
+  behaviorModeOptions,
+  animationModeOptions,
+  versionOptions
+};
+
+
+/***/ },
+
+/***/ 317
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {describeTextureSource} = __webpack_require__(834);
+
+let patchedVue = null;
+let originalGetDescription = null;
+
+function texturesPanelVue() {
+  const panel = (typeof Panels !== 'undefined' && Panels.textures)
+      || (typeof Interface !== 'undefined' && Interface.Panels
+          && Interface.Panels.textures);
+
+  return (panel && panel.inside_vue) || null;
+}
+
+function patchTexturePanel(formatId) {
+  const vue = texturesPanelVue();
+  if (!vue || typeof vue.getDescription !== 'function'
+      || originalGetDescription) {
+    return;
+  }
+
+  const original = vue.getDescription.bind(vue);
+  patchedVue = vue;
+  originalGetDescription = original;
+  vue.getDescription = function (texture) {
+    const base = original(texture);
+    try {
+      if (typeof Format !== 'undefined' && Format && Format.id === formatId) {
+        const {label} = describeTextureSource({
+          namespace: texture.namespace,
+          folder: texture.folder,
+          name: texture.name,
+          path: texture.path
+        });
+
+        return `${base} - ${label}`;
+      }
+    } catch (error) {
+      // Display nicety only; never break the panel render.
+    }
+
+    return base;
+  };
+}
+
+function unpatchTexturePanel() {
+  if (patchedVue && originalGetDescription) {
+    patchedVue.getDescription = originalGetDescription;
+  }
+  patchedVue = null;
+  originalGetDescription = null;
+}
+
+module.exports = {patchTexturePanel, unpatchTexturePanel};
 
 
 /***/ },
@@ -2804,26 +3344,35 @@ function customLocation(settings, index) {
 }
 
 function parseExternalLocation(descriptor) {
+  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
+  if (namespace) {
+    const folder = trimSlashes(String(descriptor.folder || '').trim());
+    const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
+    if (!name) {
+      return null;
+    }
+    const rest = folder ? `${folder.toLowerCase()}/${name}` : name;
+
+    return `${namespace}:textures/${rest}.png`;
+  }
+
   const path = String(descriptor.path || '').replace(/\\/g, '/');
   const match = path.match(ASSETS_PATTERN);
-  if (match) {
-    return `${match[1].toLowerCase()}:textures/${match[2].toLowerCase()}.png`;
+  if (match && match[1].toLowerCase() === 'minecraft') {
+    return `minecraft:textures/${match[2].toLowerCase()}.png`;
   }
 
-  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
-  if (!namespace) {
-    return null;
-  }
+  return null;
+}
 
-  const folder = trimSlashes(String(descriptor.folder || '').trim());
-  const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
-  if (!name) {
-    return null;
-  }
-
-  const rest = folder ? `${folder.toLowerCase()}/${name}` : name;
-
-  return `${namespace}:textures/${rest}.png`;
+function describeTextureSource(descriptor) {
+  const location = parseExternalLocation(descriptor);
+  return location
+      ? {
+        external: true, label: location.replace(':textures/', ':').replace(
+            /\.png$/i, '')
+      }
+      : {external: false, label: 'Custom Texture'};
 }
 
 function resolveTextures(descriptors, settings) {
@@ -2844,8 +3393,6 @@ function resolveTextures(descriptors, settings) {
       });
     }
 
-    // Index 0 follows the mod's default path unless it deviates (e.g. vanilla);
-    // every other index is always spelled out in the textures map.
     if (index === 0) {
       if (location !== defaultLocation) {
         texture = location;
@@ -2858,7 +3405,11 @@ function resolveTextures(descriptors, settings) {
   return {texture, textures, packed};
 }
 
-module.exports = {resolveTextures, parseExternalLocation};
+module.exports = {
+  resolveTextures,
+  parseExternalLocation,
+  describeTextureSource
+};
 
 
 /***/ },
@@ -2996,9 +3547,11 @@ const {
   DEFAULT_PRESET
 } = __webpack_require__(668);
 const {ModelDimensions} = __webpack_require__(763);
+const {VisibleBounds} = __webpack_require__(508);
 const {PresetDetector} = __webpack_require__(858);
 const {ResourceLocation} = __webpack_require__(20);
 const {resolveTextures} = __webpack_require__(834);
+const {patchTexturePanel, unpatchTexturePanel} = __webpack_require__(317);
 const {Validator} = __webpack_require__(229);
 const {buildPackBundle, buildModProjectFiles} = __webpack_require__(869);
 const {BlockbenchAdapter} = __webpack_require__(833);
@@ -3042,6 +3595,7 @@ function resolveDialogState() {
   const storedSettings = BlockbenchAdapter.loadSettings();
   const stats = BlockbenchAdapter.getModelStats();
   const bounds = BlockbenchAdapter.getModelBounds();
+  const visibleBounds = VisibleBounds.derive(BlockbenchAdapter.getModelCubes());
 
   let settings;
   let preset;
@@ -3075,8 +3629,6 @@ function resolveDialogState() {
     exportType = 'packs';
   }
 
-  // Derive the profile id from the model name/file whenever none has been set
-  // yet (empty or still the placeholder default).
   const projectName = BlockbenchAdapter.getProjectName();
   if (projectName
       && (!settings.profileId || settings.profileId
@@ -3084,8 +3636,13 @@ function resolveDialogState() {
     settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
   }
 
+  VisibleBounds.applyVisibleBounds(settings, visibleBounds, {
+    preserveExisting: !!storedSettings
+  });
+
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
+    visibleBounds,
     modelDimensions: ModelDimensions.deriveDimensions(bounds,
         settings.host.bodyType)
   };
@@ -3222,6 +3779,7 @@ function openDialog() {
     showCustomization: customizationEnabled(),
     experimental: experimentalEnabled(),
     modelDimensions: state.modelDimensions,
+    visibleBounds: state.visibleBounds,
     onExport: runExport
   });
 }
@@ -3281,8 +3839,11 @@ BBPlugin.register('easy_model_entities', {
     });
 
     MenuBar.addAction(exportAction, 'file.export');
+
+    patchTexturePanel(FORMAT_ID);
   },
   onunload() {
+    unpatchTexturePanel();
     unregisterEmeCodecHooks();
     unregisterEmeFormat();
     if (exportAction) {

@@ -101,14 +101,38 @@ describe('validateSettings', () => {
       cubeCount: 1000,
       boneCount: 200,
       hierarchyDepth: 50,
+      animationCount: 17,
       boneNames: QUADRUPED_BONES
     });
     expect(result.valid).toBe(true);
     expect(codes(result.warnings)).toEqual(
         expect.arrayContaining(
             ['LARGE_TEXTURE', 'LARGE_MODEL', 'HIGH_CUBE_COUNT',
-              'HIGH_BONE_COUNT', 'DEEP_HIERARCHY'])
+              'HIGH_BONE_COUNT', 'DEEP_HIERARCHY',
+              'HIGH_ANIMATION_COUNT'])
     );
+  });
+
+  test('warns about soft performance budgets without blocking', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      textureWidth: 256,
+      textureHeight: 128,
+      modelFileSize: 1536 * 1024,
+      cubeCount: 400,
+      boneCount: 100,
+      hierarchyDepth: 25,
+      animationCount: 16,
+      boneNames: QUADRUPED_BONES
+    });
+    expect(result.valid).toBe(true);
+    expect(codes(result.warnings)).toEqual(
+        expect.arrayContaining(
+            ['SOFT_TEXTURE_SIZE', 'SOFT_MODEL_SIZE', 'SOFT_CUBE_COUNT',
+              'SOFT_BONE_COUNT', 'SOFT_HIERARCHY_DEPTH'])
+    );
+    expect(codes(result.warnings)).not.toContain('HIGH_ANIMATION_COUNT');
   });
 
   test('warns about missing body parts per body type', () => {

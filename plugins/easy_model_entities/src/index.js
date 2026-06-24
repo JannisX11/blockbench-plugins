@@ -24,9 +24,11 @@ const {
   DEFAULT_PRESET
 } = require('./model/templates');
 const {ModelDimensions} = require('./model/ModelDimensions');
+const {VisibleBounds} = require('./model/VisibleBounds');
 const {PresetDetector} = require('./model/PresetDetector');
 const {ResourceLocation} = require('./utils/ResourceLocation');
 const {resolveTextures} = require('./utils/TextureResolver');
+const {patchTexturePanel, unpatchTexturePanel} = require('./ui/texturePanel');
 const {Validator} = require('./model/Validator');
 const {buildPackBundle, buildModProjectFiles} = require('./builders/exporter');
 const {BlockbenchAdapter} = require('./BlockbenchAdapter');
@@ -70,6 +72,7 @@ function resolveDialogState() {
   const storedSettings = BlockbenchAdapter.loadSettings();
   const stats = BlockbenchAdapter.getModelStats();
   const bounds = BlockbenchAdapter.getModelBounds();
+  const visibleBounds = VisibleBounds.derive(BlockbenchAdapter.getModelCubes());
 
   let settings;
   let preset;
@@ -103,8 +106,6 @@ function resolveDialogState() {
     exportType = 'packs';
   }
 
-  // Derive the profile id from the model name/file whenever none has been set
-  // yet (empty or still the placeholder default).
   const projectName = BlockbenchAdapter.getProjectName();
   if (projectName
       && (!settings.profileId || settings.profileId
@@ -112,8 +113,13 @@ function resolveDialogState() {
     settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
   }
 
+  VisibleBounds.applyVisibleBounds(settings, visibleBounds, {
+    preserveExisting: !!storedSettings
+  });
+
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
+    visibleBounds,
     modelDimensions: ModelDimensions.deriveDimensions(bounds,
         settings.host.bodyType)
   };
@@ -250,6 +256,7 @@ function openDialog() {
     showCustomization: customizationEnabled(),
     experimental: experimentalEnabled(),
     modelDimensions: state.modelDimensions,
+    visibleBounds: state.visibleBounds,
     onExport: runExport
   });
 }
@@ -309,8 +316,11 @@ BBPlugin.register('easy_model_entities', {
     });
 
     MenuBar.addAction(exportAction, 'file.export');
+
+    patchTexturePanel(FORMAT_ID);
   },
   onunload() {
+    unpatchTexturePanel();
     unregisterEmeCodecHooks();
     unregisterEmeFormat();
     if (exportAction) {

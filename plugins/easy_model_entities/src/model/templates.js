@@ -23,8 +23,41 @@ const {
   MODEL_TYPE_ENTITY,
   presetDefaults
 } = require('./presetTypes');
+const {getDefaultVersionId} = require('./versionMatrix');
 
 const DEFAULT_PRESET = 'statue';
+
+const MODEL_SETTING_KEYS = [
+  'schemaVersion',
+  'modelType',
+  'presetType',
+  'namespace',
+  'profileId',
+  'targetVersion',
+  'customize',
+  'host',
+  'dimensions',
+  'movement',
+  'behavior',
+  'attributes',
+  'rendering',
+  'animation'
+];
+
+function pickModelSettings(settings) {
+  if (!settings || typeof settings !== 'object') {
+    return settings;
+  }
+
+  const picked = {};
+  MODEL_SETTING_KEYS.forEach((key) => {
+    if (settings[key] !== undefined) {
+      picked[key] = settings[key];
+    }
+  });
+
+  return picked;
+}
 
 function deepMerge(target, source) {
   const result = Array.isArray(target) ? target.slice() : ({
@@ -48,13 +81,10 @@ function getDefaults() {
   return deepMerge(presetDefaults(DEFAULT_PRESET), {
     namespace: 'example_org',
     profileId: 'entity',
-    targetVersion: '1.20.1'
+    targetVersion: getDefaultVersionId()
   });
 }
 
-// Full settings object for a preset type, including the identity fields. The
-// model type disambiguates presets that exist for both entities and block
-// entities (e.g. "static").
 function applyTemplate(presetType, modelType) {
   return deepMerge(getDefaults(),
       presetDefaults(presetType, modelType || MODEL_TYPE_ENTITY));
@@ -66,5 +96,6 @@ module.exports = {
   SELECTABLE_PRESET_TYPES,
   getDefaults,
   applyTemplate,
-  deepMerge
+  deepMerge,
+  pickModelSettings
 };

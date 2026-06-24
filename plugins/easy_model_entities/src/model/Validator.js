@@ -27,10 +27,16 @@ const {
 class Validator {
   static BUDGETS = {
     maxTextureSize: 2048,
-    maxModelFileSize: 2 * 1024 * 1024,
+    softTextureSize: 128,
+    maxModelFileSizeBytes: 2 * 1024 * 1024,
+    softModelFileSizeBytes: 1024 * 1024,
     maxCubeCount: 512,
+    softCubeCount: 384,
     maxBoneCount: 128,
-    maxHierarchyDepth: 32
+    softBoneCount: 96,
+    maxHierarchyDepth: 32,
+    softHierarchyDepth: 24,
+    maxAnimationCount: 16
   };
 
   static REQUIRED_BODY_PARTS = {
@@ -55,6 +61,18 @@ class Validator {
     }
 
     return true;
+  }
+
+  static #warnIfOverBudget(warnings, value, soft, max, softWarning,
+      maxWarning) {
+    if (!Validator.#isFiniteNumber(value)) {
+      return;
+    }
+    if (value > max) {
+      warnings.push(maxWarning);
+    } else if (value > soft) {
+      warnings.push(softWarning);
+    }
   }
 
   static validateSettings(settings, context) {
@@ -153,38 +171,62 @@ class Validator {
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
-      if (ctx.textureWidth > Validator.BUDGETS.maxTextureSize
-          || ctx.textureHeight > Validator.BUDGETS.maxTextureSize) {
-        warnings.push({
-          code: 'LARGE_TEXTURE',
-          message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
+      const textureSize = Math.max(ctx.textureWidth, ctx.textureHeight);
+      Validator.#warnIfOverBudget(warnings, textureSize,
+          Validator.BUDGETS.softTextureSize, Validator.BUDGETS.maxTextureSize,
+          {
+            code: 'SOFT_TEXTURE_SIZE',
+            message: `Texture larger than ${Validator.BUDGETS.softTextureSize}x${Validator.BUDGETS.softTextureSize}`
+          },
+          {
+            code: 'LARGE_TEXTURE',
+            message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
+          });
+    }
+    Validator.#warnIfOverBudget(warnings, ctx.modelFileSize,
+        Validator.BUDGETS.softModelFileSizeBytes,
+        Validator.BUDGETS.maxModelFileSizeBytes,
+        {
+          code: 'SOFT_MODEL_SIZE',
+          message: 'Model file larger than 1 MB'
+        },
+        {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
+    Validator.#warnIfOverBudget(warnings, ctx.cubeCount,
+        Validator.BUDGETS.softCubeCount, Validator.BUDGETS.maxCubeCount,
+        {
+          code: 'SOFT_CUBE_COUNT',
+          message: `More than ${Validator.BUDGETS.softCubeCount} cubes`
+        },
+        {
+          code: 'HIGH_CUBE_COUNT',
+          message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
         });
-      }
-    }
-    if (Validator.#isFiniteNumber(ctx.modelFileSize) && ctx.modelFileSize
-        > Validator.BUDGETS.maxModelFileSize) {
-      warnings.push(
-          {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
-    }
-    if (Validator.#isFiniteNumber(ctx.cubeCount) && ctx.cubeCount
-        > Validator.BUDGETS.maxCubeCount) {
+    Validator.#warnIfOverBudget(warnings, ctx.boneCount,
+        Validator.BUDGETS.softBoneCount, Validator.BUDGETS.maxBoneCount,
+        {
+          code: 'SOFT_BONE_COUNT',
+          message: `More than ${Validator.BUDGETS.softBoneCount} bones`
+        },
+        {
+          code: 'HIGH_BONE_COUNT',
+          message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
+        });
+    Validator.#warnIfOverBudget(warnings, ctx.hierarchyDepth,
+        Validator.BUDGETS.softHierarchyDepth,
+        Validator.BUDGETS.maxHierarchyDepth,
+        {
+          code: 'SOFT_HIERARCHY_DEPTH',
+          message: `Hierarchy deeper than ${Validator.BUDGETS.softHierarchyDepth}`
+        },
+        {
+          code: 'DEEP_HIERARCHY',
+          message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
+        });
+    if (Validator.#isFiniteNumber(ctx.animationCount)
+        && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
       warnings.push({
-        code: 'HIGH_CUBE_COUNT',
-        message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
-      });
-    }
-    if (Validator.#isFiniteNumber(ctx.boneCount) && ctx.boneCount
-        > Validator.BUDGETS.maxBoneCount) {
-      warnings.push({
-        code: 'HIGH_BONE_COUNT',
-        message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
-      });
-    }
-    if (Validator.#isFiniteNumber(ctx.hierarchyDepth) && ctx.hierarchyDepth
-        > Validator.BUDGETS.maxHierarchyDepth) {
-      warnings.push({
-        code: 'DEEP_HIERARCHY',
-        message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
+        code: 'HIGH_ANIMATION_COUNT',
+        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations`
       });
     }
 

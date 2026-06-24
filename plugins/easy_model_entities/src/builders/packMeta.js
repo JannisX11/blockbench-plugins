@@ -19,27 +19,35 @@
 
 const {getPackFormats} = require('../model/versionMatrix');
 
-function buildMcmeta(settings, packFormat, description) {
+function buildPack(descriptor, description) {
+  const pack = {pack_format: descriptor.packFormat};
+  if (descriptor.minFormat) {
+    pack.min_format = descriptor.minFormat;
+  }
+  if (descriptor.maxFormat) {
+    pack.max_format = descriptor.maxFormat;
+  }
+  pack.description = description;
+
+  return {pack};
+}
+
+function buildMcmeta(settings, kind, description) {
   const formats = getPackFormats(settings.targetVersion);
   if (!formats) {
     throw new Error(
         `Unsupported or disabled target version: ${settings.targetVersion}`);
   }
-  return {
-    pack: {
-      pack_format: formats[packFormat],
-      description: description
-    }
-  };
+  return buildPack(formats[kind], description);
 }
 
 function buildDataPackMcmeta(settings) {
-  return buildMcmeta(settings, 'dataFormat',
+  return buildMcmeta(settings, 'data',
       'Easy Model Entities server profiles');
 }
 
 function buildResourcePackMcmeta(settings) {
-  return buildMcmeta(settings, 'resourceFormat',
+  return buildMcmeta(settings, 'resource',
       'Easy Model Entities render assets');
 }
 

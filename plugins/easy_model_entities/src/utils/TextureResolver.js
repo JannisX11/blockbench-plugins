@@ -47,26 +47,35 @@ function customLocation(settings, index) {
 }
 
 function parseExternalLocation(descriptor) {
+  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
+  if (namespace) {
+    const folder = trimSlashes(String(descriptor.folder || '').trim());
+    const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
+    if (!name) {
+      return null;
+    }
+    const rest = folder ? `${folder.toLowerCase()}/${name}` : name;
+
+    return `${namespace}:textures/${rest}.png`;
+  }
+
   const path = String(descriptor.path || '').replace(/\\/g, '/');
   const match = path.match(ASSETS_PATTERN);
-  if (match) {
-    return `${match[1].toLowerCase()}:textures/${match[2].toLowerCase()}.png`;
+  if (match && match[1].toLowerCase() === 'minecraft') {
+    return `minecraft:textures/${match[2].toLowerCase()}.png`;
   }
 
-  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
-  if (!namespace) {
-    return null;
-  }
+  return null;
+}
 
-  const folder = trimSlashes(String(descriptor.folder || '').trim());
-  const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
-  if (!name) {
-    return null;
-  }
-
-  const rest = folder ? `${folder.toLowerCase()}/${name}` : name;
-
-  return `${namespace}:textures/${rest}.png`;
+function describeTextureSource(descriptor) {
+  const location = parseExternalLocation(descriptor);
+  return location
+      ? {
+        external: true, label: location.replace(':textures/', ':').replace(
+            /\.png$/i, '')
+      }
+      : {external: false, label: 'Custom Texture'};
 }
 
 function resolveTextures(descriptors, settings) {
@@ -87,8 +96,6 @@ function resolveTextures(descriptors, settings) {
       });
     }
 
-    // Index 0 follows the mod's default path unless it deviates (e.g. vanilla);
-    // every other index is always spelled out in the textures map.
     if (index === 0) {
       if (location !== defaultLocation) {
         texture = location;
@@ -101,4 +108,8 @@ function resolveTextures(descriptors, settings) {
   return {texture, textures, packed};
 }
 
-module.exports = {resolveTextures, parseExternalLocation};
+module.exports = {
+  resolveTextures,
+  parseExternalLocation,
+  describeTextureSource
+};

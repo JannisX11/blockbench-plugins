@@ -28,16 +28,18 @@ const {
 const {presetDefaults} = require('../model/presetTypes');
 
 describe('templates', () => {
-  test('exposes the 18 mod preset types', () => {
-    expect(PRESET_TYPES).toHaveLength(18);
+  test('exposes the 20 mod preset types', () => {
+    expect(PRESET_TYPES).toHaveLength(20);
     expect(PRESET_TYPES).toContain('custom');
     expect(PRESET_TYPES).toContain('quadruped_wandering');
+    expect(PRESET_TYPES).toContain('amphibious_still');
+    expect(PRESET_TYPES).toContain('amphibious_wandering');
     expect(PRESET_TYPES).toContain('floating_still');
   });
 
   test('selectable presets exclude custom', () => {
     expect(SELECTABLE_PRESET_TYPES).not.toContain('custom');
-    expect(SELECTABLE_PRESET_TYPES).toHaveLength(17);
+    expect(SELECTABLE_PRESET_TYPES).toHaveLength(19);
   });
 
   test('getDefaults carries identity fields and the default preset', () => {

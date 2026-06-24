@@ -18,6 +18,7 @@
  */
 
 const {BlockbenchAdapter} = require('../BlockbenchAdapter');
+const {pickModelSettings} = require('../model/templates');
 const {FORMAT_ID} = require('./EmeFormat');
 
 const EME_SETTINGS_KEY = 'emeSettings';
@@ -29,7 +30,7 @@ function handleCompile(event) {
 
   const settings = BlockbenchAdapter.loadSettings();
   if (settings) {
-    event.model[EME_SETTINGS_KEY] = settings;
+    event.model[EME_SETTINGS_KEY] = pickModelSettings(settings);
   }
 }
 

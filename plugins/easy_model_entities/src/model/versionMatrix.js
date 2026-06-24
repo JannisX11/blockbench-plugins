@@ -23,30 +23,30 @@ const VERSIONS = [
   {
     id: '1.20.1',
     label: 'Minecraft 1.20.1',
-    dataFormat: 15,
-    resourceFormat: 15,
+    data: {packFormat: 15},
+    resource: {packFormat: 15},
     enabled: true
   },
   {
     id: '1.21.1',
     label: 'Minecraft 1.21.1',
-    dataFormat: 48,
-    resourceFormat: 34,
-    enabled: false
+    data: {packFormat: 48},
+    resource: {packFormat: 34},
+    enabled: true
   },
   {
     id: '1.21.11',
     label: 'Minecraft 1.21.11',
-    dataFormat: null,
-    resourceFormat: null,
-    enabled: false
+    data: {packFormat: 94, minFormat: [94, 1], maxFormat: [94, 1]},
+    resource: {packFormat: 75, minFormat: [75, 0], maxFormat: [75, 0]},
+    enabled: true
   },
   {
     id: '26.1.2',
     label: 'Minecraft 26.1.2',
-    dataFormat: null,
-    resourceFormat: null,
-    enabled: false
+    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
+    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    enabled: true
   }
 ];
 
@@ -68,12 +68,12 @@ function getDefaultVersionId() {
 
 function getPackFormats(id) {
   const version = getVersion(id);
-  if (!version?.enabled) {
+  if (!version?.enabled || !version.data || !version.resource) {
     return null;
   }
   return {
-    dataFormat: version.dataFormat,
-    resourceFormat: version.resourceFormat
+    data: version.data,
+    resource: version.resource
   };
 }
 

@@ -26,20 +26,25 @@ const {
 } = require('../model/presetTypes');
 const {diffFlat, assignIfPresent} = require('./profileDiff');
 
-// Block entities render as a static cuboid block, so they always use the
-// "static" render preset regardless of their server-side block entity preset.
 function renderPresetType(settings) {
   return settings.modelType === MODEL_TYPE_BLOCK_ENTITY
       ? 'static' : settings.presetType;
 }
 
 function buildRendering(settings) {
+  const rendering = settings.rendering;
   return diffFlat({
-    scale: settings.rendering.scale,
-    shadow_radius: settings.rendering.shadowRadius
+    scale: rendering.scale,
+    shadow_radius: rendering.shadowRadius,
+    visible_bounds_width: rendering.visibleBoundsWidth ?? 0,
+    visible_bounds_height: rendering.visibleBoundsHeight ?? 0,
+    visible_bounds_offset: rendering.visibleBoundsOffset || [0, 0, 0]
   }, {
     scale: 1,
-    shadow_radius: presetShadowRadius(renderPresetType(settings))
+    shadow_radius: presetShadowRadius(renderPresetType(settings)),
+    visible_bounds_width: 0,
+    visible_bounds_height: 0,
+    visible_bounds_offset: [0, 0, 0]
   });
 }
 
@@ -48,16 +53,23 @@ function buildAnimation(settings) {
   const animation = diffFlat({
     mode: settings.animation.mode,
     swing_speed: settings.animation.swingSpeed,
-    walk_speed_multiplier: settings.animation.walkSpeedMultiplier
+    walk_speed_multiplier: settings.animation.walkSpeedMultiplier,
+    idle_strength: settings.animation.idleStrength ?? 1,
+    gait: settings.animation.gait || 'natural'
   }, {
     mode: defaultMode,
     swing_speed: 1,
-    walk_speed_multiplier: 1
+    walk_speed_multiplier: 1,
+    idle_strength: 1,
+    gait: 'natural'
   });
+
   // Animation timing is meaningless when animation is disabled.
   if (settings.animation.mode === 'none') {
     delete animation.swing_speed;
     delete animation.walk_speed_multiplier;
+    delete animation.idle_strength;
+    delete animation.gait;
   }
 
   return animation;
@@ -76,11 +88,6 @@ function buildRenderProfile(settings, textureResolution) {
     profile.body_type = settings.host.bodyType;
   }
 
-  // The model and the index-0 texture follow the mod's conventional default
-  // path (namespace:easy_model_entities/models/id and
-  // namespace:textures/entity/id.png), so they are omitted whenever they match
-  // the default. Only deviating texture locations (e.g. vanilla index 0 or any
-  // index > 0) are spelled out for the mod's ModelTextureResolver.
   if (textureResolution && textureResolution.texture) {
     profile.texture = textureResolution.texture;
   }

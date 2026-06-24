@@ -22,6 +22,7 @@ const {
   presetDimensions,
   movementDefaults,
   behaviorModeFor,
+  wandersByMovement,
   isCustom,
   MODEL_TYPE_BLOCK_ENTITY,
   MODEL_TYPE_ENTITY
@@ -46,7 +47,7 @@ function effectiveDefaults(settings) {
     behavior: {
       mode: mode,
       look_at_players: mode === 'idle_only' || mode === 'ambient',
-      random_stroll: movementType === 'ground' && mode === 'ambient'
+      random_stroll: wandersByMovement(movementType) && mode === 'ambient'
     },
     attributes: {
       max_health: DEFAULT_MAX_HEALTH,

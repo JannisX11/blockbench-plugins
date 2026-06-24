@@ -17,119 +17,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {getVersions} = require('../model/versionMatrix');
 const {getDefaults, applyTemplate, deepMerge} = require('../model/templates');
 const {
-  SELECTABLE_PRESET_TYPES,
-  BLOCK_ENTITY_PRESET_TYPES,
-  isStablePreset,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
 const {ModelDimensions} = require('../model/ModelDimensions');
+const {VisibleBounds} = require('../model/VisibleBounds');
 const {t} = require('../i18n/translations');
-
-function presetLabel(id) {
-  return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
-}
-
-function entityPresetIds(experimental) {
-  return experimental
-      ? ['custom', ...SELECTABLE_PRESET_TYPES]
-      : SELECTABLE_PRESET_TYPES.filter(isStablePreset);
-}
-
-function blockPresetIds(experimental) {
-  return experimental
-      ? BLOCK_ENTITY_PRESET_TYPES.slice()
-      : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
-}
-
-// Experimental (WIP) presets are hidden unless the experimental setting is on.
-// `ensure` keeps an already-selected preset visible even when experimental is
-// off, so reopening a project that used one never breaks the dropdown.
-function presetOptions(modelType, experimental, ensure) {
-  const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
-      ? blockPresetIds(experimental) : entityPresetIds(experimental);
-  if (ensure && !ids.includes(ensure)) {
-    ids.push(ensure);
-  }
-  const options = {};
-  ids.forEach((id) => {
-    options[id] = presetLabel(id);
-  });
-
-  return options;
-}
-
-function modelTypeOptions() {
-  return {
-    [MODEL_TYPE_ENTITY]: t('eme.modelType.entity'),
-    [MODEL_TYPE_BLOCK_ENTITY]: t('eme.modelType.block_entity')
-  };
-}
-
-function exportTypeOptions() {
-  return {
-    packs: t('eme.exportType.packs'),
-    mod_project: t('eme.exportType.mod_project'),
-    model_only: t('eme.exportType.model_only')
-  };
-}
-
-function hostEntityTypeOptions() {
-  return {
-    'easy_model_entities:ground_entity': t('eme.entity.ground_entity'),
-    'easy_model_entities:static_entity': t('eme.entity.static_entity')
-  };
-}
-
-function movementTypeOptions() {
-  return {ground: t('eme.movement.ground'), static: t('eme.movement.static')};
-}
-
-function bodyTypeOptions() {
-  return {
-    static: t('eme.body.static'),
-    biped: t('eme.body.biped'),
-    quadruped: t('eme.body.quadruped'),
-    aquatic: t('eme.body.aquatic'),
-    winged: t('eme.body.winged'),
-    winged_humanoid: t('eme.body.winged_humanoid'),
-    arthropod: t('eme.body.arthropod'),
-    cuboid: t('eme.body.cuboid'),
-    floating: t('eme.body.floating')
-  };
-}
-
-function behaviorModeOptions() {
-  return {
-    idle_only: t('eme.behavior.idle_only'),
-    ambient: t('eme.behavior.ambient'),
-    static: t('eme.behavior.static'),
-    external_owner: t('eme.behavior.external_owner')
-  };
-}
-
-function animationModeOptions() {
-  return {
-    automatic: t('eme.animation.automatic'),
-    random_idle: t('eme.animation.random_idle'),
-    none: t('eme.animation.none')
-  };
-}
-
-function versionOptions() {
-  const options = {};
-  getVersions().forEach((version) => {
-    options[version.id] = version.enabled ? version.label
-        : `${version.label} (coming soon)`;
-  });
-
-  return options;
-}
+const {
+  presetOptions,
+  modelTypeOptions,
+  exportTypeOptions,
+  hostEntityTypeOptions,
+  movementTypeOptions,
+  bodyTypeOptions,
+  gaitOptions,
+  behaviorModeOptions,
+  animationModeOptions,
+  versionOptions
+} = require('./exportDialogOptions');
 
 function settingsToForm(settings) {
+  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
+
   return {
     namespace: settings.namespace,
     profileId: settings.profileId,
@@ -149,9 +60,16 @@ function settingsToForm(settings) {
     followRange: settings.attributes.followRange,
     scale: settings.rendering.scale,
     shadowRadius: settings.rendering.shadowRadius,
+    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
+    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
+    visibleBoundsOffsetX: offset[0],
+    visibleBoundsOffsetY: offset[1],
+    visibleBoundsOffsetZ: offset[2],
     animationMode: settings.animation.mode,
     swingSpeed: settings.animation.swingSpeed,
-    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier
+    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
+    idleStrength: settings.animation.idleStrength ?? 1,
+    gait: settings.animation.gait || 'natural'
   };
 }
 
@@ -190,19 +108,25 @@ function formToSettings(form, base) {
     },
     rendering: {
       scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius)
+      shadowRadius: Number(form.shadowRadius),
+      visibleBoundsWidth: Number(form.visibleBoundsWidth),
+      visibleBoundsHeight: Number(form.visibleBoundsHeight),
+      visibleBoundsOffset: [
+        Number(form.visibleBoundsOffsetX),
+        Number(form.visibleBoundsOffsetY),
+        Number(form.visibleBoundsOffsetZ)
+      ]
     },
     animation: {
       mode: form.animationMode,
       swingSpeed: Number(form.swingSpeed),
-      walkSpeedMultiplier: Number(form.walkSpeedMultiplier)
+      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
+      idleStrength: Number(form.idleStrength),
+      gait: form.gait
     }
   };
 }
 
-// Active preset depends on whether a block entity datapack is being authored.
-// Model-only export still authors a render (body) preset, so it uses the entity
-// preset list.
 function activeModelType(form) {
   return form.exportType === 'model_only'
       ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
@@ -213,9 +137,12 @@ function activePreset(form) {
       ? (form.blockPreset || 'static') : (form.preset || 'custom');
 }
 
-function presetFormValues(presetType, modelType, modelDimensions) {
-  const form = settingsToForm(ModelDimensions.applyModelDimensions(
-      applyTemplate(presetType, modelType), modelDimensions));
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const settings = ModelDimensions.applyModelDimensions(
+      applyTemplate(presetType, modelType), modelDimensions);
+  VisibleBounds.applyVisibleBounds(settings, visibleBounds);
+  const form = settingsToForm(settings);
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
@@ -223,7 +150,7 @@ function presetFormValues(presetType, modelType, modelDimensions) {
   return form;
 }
 
-function resolveExportSettings(form, base, modelDimensions) {
+function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
   const exportType = form.exportType || 'packs';
   const modelType = activeModelType(form);
   const preset = activePreset(form);
@@ -234,6 +161,7 @@ function resolveExportSettings(form, base, modelDimensions) {
   } else {
     settings = ModelDimensions.applyModelDimensions(
         applyTemplate(preset, modelType), modelDimensions);
+    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
   }
 
   settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
@@ -433,6 +361,31 @@ function buildFormConfig(settings, ui) {
           label: t('eme.field.shadowRadius'), type: 'number',
           value: values.shadowRadius, step: 0.1
         }, showRender),
+    visibleBoundsWidth: advancedField(
+        {
+          label: t('eme.field.visibleBoundsWidth'), type: 'number',
+          value: values.visibleBoundsWidth, step: 0.1
+        }, showRender),
+    visibleBoundsHeight: advancedField(
+        {
+          label: t('eme.field.visibleBoundsHeight'), type: 'number',
+          value: values.visibleBoundsHeight, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetX: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetX'), type: 'number',
+          value: values.visibleBoundsOffsetX, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetY: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetY'), type: 'number',
+          value: values.visibleBoundsOffsetY, step: 0.1
+        }, showRender),
+    visibleBoundsOffsetZ: advancedField(
+        {
+          label: t('eme.field.visibleBoundsOffsetZ'), type: 'number',
+          value: values.visibleBoundsOffsetZ, step: 0.1
+        }, showRender),
 
     animation_header: advancedField(
         {type: 'info', text: `### ${t('eme.section.animation')}`},
@@ -452,7 +405,18 @@ function buildFormConfig(settings, ui) {
         {
           label: t('eme.field.walkSpeedMultiplier'), type: 'number',
           value: values.walkSpeedMultiplier, step: 0.1
-        }, showRender)
+        }, showRender),
+    idleStrength: advancedField(
+        {
+          label: t('eme.field.idleStrength'), type: 'number',
+          value: values.idleStrength, step: 0.1
+        }, showRender),
+    gait: advancedField({
+      label: t('eme.field.gait'),
+      type: 'select',
+      options: gaitOptions(),
+      value: values.gait
+    }, showRender)
   });
 
   return config;
@@ -461,8 +425,7 @@ function buildFormConfig(settings, ui) {
 function openExportDialog(options) {
   const settings = options.settings;
   const modelDimensions = options.modelDimensions;
-  // Tracks the active model type + preset so advanced fields refill whenever the
-  // user switches between entity/block entity or picks a different preset.
+  const visibleBounds = options.visibleBounds;
   let lastKey = `${activeModelType(options)}|${activePreset(options)}`;
 
   const dialog = new Dialog({
@@ -486,13 +449,14 @@ function openExportDialog(options) {
         lastKey = key;
         if (modelType !== MODEL_TYPE_ENTITY || preset !== 'custom') {
           dialog.setFormValues(
-              presetFormValues(preset, modelType, modelDimensions), false);
+              presetFormValues(preset, modelType, modelDimensions,
+                  visibleBounds), false);
         }
       }
     },
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
-          modelDimensions);
+          modelDimensions, visibleBounds);
       // Records that experimental presets were available for this export.
       finalSettings.experimental = !!options.experimental;
       options.onExport(finalSettings, finalSettings.exportTarget);
