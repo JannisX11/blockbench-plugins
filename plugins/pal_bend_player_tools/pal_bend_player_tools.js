@@ -64,6 +64,21 @@
         scale: ["scaleX", "scaleY", "scaleZ"],
         bend: ["bend"]
     };
+    const VECTOR_AXES = ["x", "y", "z"];
+    const PAL_RENDER_BONES = ["torso", "head", "right_arm", "left_arm", "right_leg", "left_leg", "right_item", "left_item", "cape", "elytra"];
+    const PAL_DEFAULT_PIVOTS = {
+        right_item: [6, 12, -2],
+        left_item: [-6, 12, -2],
+        right_arm: [5, 22, 0],
+        left_arm: [-5, 22, 0],
+        right_leg: [2, 12, 0],
+        left_leg: [-2, 12, 0],
+        torso: [0, 24, 0],
+        head: [0, 24, 0],
+        body: [0, 12, 0],
+        cape: [0, 24, 2],
+        elytra: [0, 24, 2]
+    };
     const ANIM_TRANSFORMS = ["position", "rotation", "scale", "bend"];
     const EASING_NAMES = {
         linear: "LINEAR",
@@ -231,7 +246,7 @@
                 }),
                 new Action("pal_bend_import_animation", {
                     name: "PAL：导入 animations/emote 到玩家模型",
-                    description: "导入 PAL bend animations 或 Emotecraft emote，并转换为 *_bend.rotation.x",
+                    description: "导入 PAL bend animations 或 Emotecraft emote，并转换为 *_bend.rotation.x/y/z",
                     icon: "file_upload",
                     click: importAnimationFile
                 }),
@@ -623,11 +638,15 @@
                     showError("文件不是 emote JSON，也不是带 animations 字段的动画 JSON。");
                     return;
                 }
+                const importProfile = getImportProfile(animationsJson, !!(data && data.emote));
                 animationsJson = normalizeAnimationBoneNames(animationsJson);
-                const modelAnimations = mirrorFacingForBlockbench(convertToBendableModelFormat(animationsJson, {
+                let modelAnimations = convertToBendableModelFormat(animationsJson, {
                     keepPalBend: false,
                     helperSign: 1
-                }));
+                });
+                if (importProfile.sourceRig) modelAnimations = bakeAnimationHierarchyToFlat(modelAnimations, importProfile.sourceRig);
+                if (importProfile.unbakeFlatToCurrent) modelAnimations = unbakeCurrentProjectHierarchyForPal(modelAnimations);
+                modelAnimations = mirrorFacingForBlockbench(modelAnimations);
                 const result = loadAnimationsIntoProject(modelAnimations);
                 Blockbench.showQuickMessage(`已导入 ${result.created} 个动画${result.missing ? `，${result.missing} 个骨骼未匹配` : ""}`, 2600);
             } catch (error) {
@@ -700,7 +719,8 @@
             return;
         }
 
-        const modelAnimations = mirrorFacingForPal(normalizeAnimationBoneNames(compileAnimationsFromProject(animations)));
+        let modelAnimations = mirrorFacingForPal(normalizeAnimationBoneNames(compileAnimationsFromProject(animations)));
+        modelAnimations = bakeCurrentProjectHierarchyForPal(modelAnimations);
         const palBendAnimations = modelAnimationsToPalBend(modelAnimations, {
             helperSign: 1,
             keepHelpers: false
@@ -845,7 +865,7 @@
                 });
                 if (Object.keys(boneOut).length) animObj.bones[boneName] = boneOut;
             });
-            out.animations[animation.name || "animation"] = animObj;
+            out.animations[uniqueAnimationKey(out.animations, animation.name || "animation")] = animObj;
         });
         return out;
     }
@@ -1001,6 +1021,78 @@
         return Object.assign({}, clone(base), clone(incoming));
     }
 
+    function getImportProfile(data, isEmote) {
+        const profile = {
+            sourceRig: null,
+            unbakeFlatToCurrent: false
+        };
+        if (isEmote) {
+            profile.unbakeFlatToCurrent = true;
+            return profile;
+        }
+        if (!data || !data.animations) return profile;
+        const metadataRig = getHierarchyMetadataRig(data);
+        if (metadataRig) {
+            profile.sourceRig = metadataRig;
+            profile.unbakeFlatToCurrent = true;
+            return profile;
+        }
+        let sawPalBone = false;
+        let sawHelperBone = false;
+        let sawDragoncoreBone = false;
+        Object.values(data.animations || {}).forEach(animObj => {
+            Object.keys((animObj && animObj.bones) || {}).forEach(rawName => {
+                const normalized = getCorrectPlayerBoneName(rawName);
+                if (normalized.endsWith(HELPER_SUFFIX)) sawHelperBone = true;
+                if (isDragoncoreRawBoneName(rawName)) sawDragoncoreBone = true;
+                if (PAL_DEFAULT_PIVOTS[normalized] || BEND_HELPER_BONES[normalized]) sawPalBone = true;
+            });
+        });
+        if (sawDragoncoreBone) {
+            profile.sourceRig = getDragoncoreCompatiblePalRig();
+            profile.unbakeFlatToCurrent = true;
+            return profile;
+        }
+        if (sawPalBone && !sawHelperBone) {
+            profile.unbakeFlatToCurrent = true;
+        }
+        return profile;
+    }
+
+    function getHierarchyMetadataRig(data) {
+        const parentsObj = data.parents || firstAnimationObjectWith(data, "parents");
+        const modelObj = data.model || firstAnimationObjectWith(data, "model");
+        if (!parentsObj && !modelObj) return null;
+        const parents = {};
+        const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
+        Object.keys(parentsObj || {}).forEach(rawName => {
+            const child = getCorrectPlayerBoneName(rawName);
+            const parent = getCorrectPlayerBoneName(parentsObj[rawName]);
+            if (child && parent && child !== parent) parents[child] = parent;
+        });
+        Object.keys(modelObj || {}).forEach(rawName => {
+            const boneName = getCorrectPlayerBoneName(rawName);
+            const pivot = modelObj[rawName] && modelObj[rawName].pivot;
+            if (boneName && Array.isArray(pivot)) pivots[boneName] = cleanNumber(pivot.slice(0, 3));
+        });
+        return {parents, pivots};
+    }
+
+    function firstAnimationObjectWith(data, key) {
+        const anim = Object.values((data && data.animations) || {}).find(animObj => animObj && animObj[key]);
+        return anim ? anim[key] : null;
+    }
+
+    function isDragoncoreRawBoneName(name) {
+        const raw = String(name || "").trim();
+        return raw === "root" || Object.values(PAL_TO_DRAGONCORE_BONES).includes(raw);
+    }
+
+    function hasCurrentProjectHierarchy() {
+        if (!globalThis.Group || !Array.isArray(Group.all)) return false;
+        return Group.all.some(group => group && group.name && group.parent && group.parent.name);
+    }
+
     function convertToBendableModelFormat(animationsJson, options = {}) {
         const keepPalBend = !!options.keepPalBend;
         const helperSign = options.helperSign === undefined ? 1 : Number(options.helperSign);
@@ -1056,10 +1148,438 @@
         return out;
     }
 
+    // PAL updates humanoid parts independently, so parented Blockbench rigs need a flat baked export.
+    function bakeCurrentProjectHierarchyForPal(data) {
+        const rig = getCurrentProjectPalRig();
+        if (!rig || !rig.parents || !Object.keys(rig.parents).length) return data;
+        return bakeAnimationHierarchyToFlat(data, rig);
+    }
+
+    function unbakeCurrentProjectHierarchyForPal(data) {
+        const rig = getCurrentProjectPalRig();
+        if (!rig || !rig.parents || !Object.keys(rig.parents).length) return data;
+        return unbakeFlatAnimationHierarchyForEdit(data, rig);
+    }
+
+    function getCurrentProjectPalRig() {
+        const parents = {};
+        const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
+        if (!globalThis.Group || !Array.isArray(Group.all)) return {parents, pivots};
+        Group.all.forEach(group => {
+            if (!group || !group.name) return;
+            const boneName = getCorrectPlayerBoneName(group.name);
+            if (!boneName) return;
+            pivots[boneName] = blockbenchPivotToPal(group.origin || group.pivot || [0, 0, 0]);
+            const parent = group.parent;
+            if (parent && parent.name) {
+                const parentName = getCorrectPlayerBoneName(parent.name);
+                if (parentName && parentName !== boneName) parents[boneName] = parentName;
+            }
+        });
+        return {parents, pivots};
+    }
+
+    function getDragoncoreCompatiblePalRig() {
+        const parents = {};
+        const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
+        Object.keys(DRAGONCORE_COMPATIBLE_BONE_SETUP).forEach(boneName => {
+            const setup = DRAGONCORE_COMPATIBLE_BONE_SETUP[boneName];
+            if (setup.parent !== null && setup.parent !== undefined) parents[boneName] = setup.parent;
+            if (setup.pivot) pivots[boneName] = blockbenchPivotToPal(setup.pivot);
+        });
+        return {parents, pivots};
+    }
+
+    function blockbenchPivotToPal(pivot) {
+        const vector = Array.isArray(pivot) ? pivot : [0, 0, 0];
+        return cleanNumber([
+            -numberOr(vector[0], 0),
+            numberOr(vector[1], 0),
+            numberOr(vector[2], 0)
+        ]);
+    }
+
+    function bakeAnimationHierarchyToFlat(data, rig) {
+        const out = clone(data);
+        Object.values(out.animations || {}).forEach(animObj => {
+            const bones = animObj && animObj.bones;
+            if (!bones || typeof bones !== "object") return;
+            const sourceBones = clone(bones);
+            const targets = getHierarchyBakeTargets(bones, rig);
+            targets.forEach(boneName => bakeBoneHierarchyTrack(bones, sourceBones, boneName, rig));
+            removeEmptyBones(bones);
+        });
+        return out;
+    }
+
+    function unbakeFlatAnimationHierarchyForEdit(data, rig) {
+        const out = clone(data);
+        Object.values(out.animations || {}).forEach(animObj => {
+            const bones = animObj && animObj.bones;
+            if (!bones || typeof bones !== "object") return;
+            const targets = getHierarchyBakeTargets(bones, rig)
+                .sort((a, b) => getBakeParentChain(a, rig.parents).length - getBakeParentChain(b, rig.parents).length);
+            targets.forEach(boneName => unbakeBoneHierarchyTrack(bones, boneName, rig));
+            removeEmptyBones(bones);
+        });
+        return out;
+    }
+
+    function getHierarchyBakeTargets(bones, rig) {
+        const targets = new Set();
+        Object.keys(bones).forEach(name => {
+            if (!name.endsWith(HELPER_SUFFIX)) targets.add(name);
+        });
+        Object.keys(rig.parents || {}).forEach(name => {
+            if (name.endsWith(HELPER_SUFFIX)) return;
+            if (PAL_RENDER_BONES.includes(name) || bones[name] || chainHasAnimatedTransform(name, bones, rig)) targets.add(name);
+        });
+        return Array.from(targets).filter(name => !name.endsWith(HELPER_SUFFIX) && getBakeParentChain(name, rig.parents).length);
+    }
+
+    function chainHasAnimatedTransform(boneName, bones, rig) {
+        if (boneHasTransformTracks(bones[boneName])) return true;
+        return getBakeParentChain(boneName, rig.parents).some(parent => boneHasTransformTracks(bones[parent]));
+    }
+
+    function boneHasTransformTracks(bone) {
+        return !!(bone && typeof bone === "object" && (bone.position !== undefined || bone.rotation !== undefined || bone.scale !== undefined));
+    }
+
+    function bakeBoneHierarchyTrack(outBones, sourceBones, boneName, rig) {
+        const parentChain = getBakeParentChain(boneName, rig.parents);
+        if (!parentChain.length) return;
+        if (!chainHasAnimatedTransform(boneName, sourceBones, rig)) return;
+        const times = getBakeTimes(sourceBones, boneName, parentChain);
+        if (!times.length) return;
+        const sourceBone = sourceBones[boneName] && typeof sourceBones[boneName] === "object" ? sourceBones[boneName] : {};
+        const bakedBone = clone(sourceBone);
+        const positionTrack = {};
+        const rotationTrack = {};
+        const scaleTrack = {};
+        let hasPosition = false;
+        let hasRotation = false;
+        let hasScale = false;
+        times.forEach(time => {
+            const baked = sampleBakedBoneTransform(sourceBones, boneName, parentChain, rig, time);
+            const easing = findBakeEasing(sourceBones, boneName, parentChain, time);
+            const timeKey = formatSeconds(time);
+            positionTrack[timeKey] = makeBakedTrackKey(baked.position, easing);
+            rotationTrack[timeKey] = makeBakedTrackKey(baked.rotation.map(radToDeg), easing);
+            scaleTrack[timeKey] = makeBakedTrackKey(baked.scale, easing);
+            if (!vectorNearlyEquals(baked.position, [0, 0, 0])) hasPosition = true;
+            if (!vectorNearlyEquals(baked.rotation, [0, 0, 0])) hasRotation = true;
+            if (!vectorNearlyEquals(baked.scale, [1, 1, 1])) hasScale = true;
+        });
+        if (hasPosition || sourceBone.position !== undefined || parentChain.some(parent => sourceBones[parent] && sourceBones[parent].position !== undefined)) bakedBone.position = positionTrack;
+        if (hasRotation || sourceBone.rotation !== undefined || parentChain.some(parent => sourceBones[parent] && sourceBones[parent].rotation !== undefined)) bakedBone.rotation = rotationTrack;
+        if (hasScale || sourceBone.scale !== undefined || parentChain.some(parent => sourceBones[parent] && sourceBones[parent].scale !== undefined)) bakedBone.scale = scaleTrack;
+        outBones[boneName] = bakedBone;
+    }
+
+    function unbakeBoneHierarchyTrack(bones, boneName, rig) {
+        const parentChain = getBakeParentChain(boneName, rig.parents);
+        if (!parentChain.length) return;
+        const sourceBone = bones[boneName] && typeof bones[boneName] === "object" ? bones[boneName] : {};
+        if (!boneHasTransformTracks(sourceBone)) return;
+        const times = getBakeTimes(bones, boneName, parentChain);
+        if (!times.length) return;
+        const unbakedBone = clone(sourceBone);
+        const positionTrack = {};
+        const rotationTrack = {};
+        const scaleTrack = {};
+        let hasPosition = false;
+        let hasRotation = false;
+        let hasScale = false;
+        times.forEach(time => {
+            const unbaked = sampleUnbakedBoneTransform(bones, boneName, parentChain, rig, time);
+            const easing = findBakeEasing(bones, boneName, parentChain, time);
+            const timeKey = formatSeconds(time);
+            positionTrack[timeKey] = makeBakedTrackKey(unbaked.position, easing);
+            rotationTrack[timeKey] = makeBakedTrackKey(unbaked.rotation.map(radToDeg), easing);
+            scaleTrack[timeKey] = makeBakedTrackKey(unbaked.scale, easing);
+            if (!vectorNearlyEquals(unbaked.position, [0, 0, 0])) hasPosition = true;
+            if (!vectorNearlyEquals(unbaked.rotation, [0, 0, 0])) hasRotation = true;
+            if (!vectorNearlyEquals(unbaked.scale, [1, 1, 1])) hasScale = true;
+        });
+        if (hasPosition || sourceBone.position !== undefined) unbakedBone.position = positionTrack;
+        else delete unbakedBone.position;
+        if (hasRotation || sourceBone.rotation !== undefined) unbakedBone.rotation = rotationTrack;
+        else delete unbakedBone.rotation;
+        if (hasScale || sourceBone.scale !== undefined) unbakedBone.scale = scaleTrack;
+        else delete unbakedBone.scale;
+        bones[boneName] = unbakedBone;
+    }
+
+    function getBakeParentChain(boneName, parents) {
+        const chain = [];
+        const seen = new Set([boneName]);
+        let parent = parents && parents[boneName];
+        while (parent && !seen.has(parent)) {
+            seen.add(parent);
+            if (!isOwnBendHelperParent(boneName, parent)) chain.unshift(parent);
+            parent = parents[parent];
+        }
+        return chain;
+    }
+
+    function isOwnBendHelperParent(boneName, parentName) {
+        return parentName && parentName.endsWith(HELPER_SUFFIX) && parentName.slice(0, -HELPER_SUFFIX.length) === boneName;
+    }
+
+    function getBakeTimes(bones, boneName, parentChain) {
+        const times = new Set([0]);
+        [boneName, ...parentChain].forEach(name => {
+            const bone = bones[name];
+            if (!bone || typeof bone !== "object") return;
+            ["position", "rotation", "scale"].forEach(channel => collectTrackTimes(bone[channel], times));
+        });
+        return Array.from(times).sort((a, b) => a - b);
+    }
+
+    function collectTrackTimes(track, times) {
+        if (track === undefined || track === null) return;
+        if (Array.isArray(track) || isNum(track) || typeof track === "string" || looksLikeSingleKeyframe(track)) {
+            times.add(0);
+            return;
+        }
+        if (typeof track === "object") {
+            Object.keys(track).forEach(time => {
+                const n = Number(time);
+                if (!Number.isNaN(n)) times.add(n);
+            });
+        }
+    }
+
+    function sampleBakedBoneTransform(bones, boneName, parentChain, rig, time) {
+        let matrix = matrixIdentity();
+        parentChain.forEach(parentName => {
+            const parentTransform = sampleBoneTransform(bones[parentName], time);
+            matrix = prepPalBoneMatrix(matrix, parentTransform, getRigPivot(rig, parentName));
+        });
+        return applyPalParentMatrixToTransform(sampleBoneTransform(bones[boneName], time), matrix, getRigPivot(rig, boneName));
+    }
+
+    function sampleUnbakedBoneTransform(bones, boneName, parentChain, rig, time) {
+        let matrix = matrixIdentity();
+        parentChain.forEach(parentName => {
+            const parentTransform = sampleBoneTransform(bones[parentName], time);
+            matrix = prepPalBoneMatrix(matrix, parentTransform, getRigPivot(rig, parentName));
+        });
+        return removePalParentMatrixFromTransform(sampleBoneTransform(bones[boneName], time), matrix, getRigPivot(rig, boneName));
+    }
+
+    function sampleBoneTransform(bone, time) {
+        return {
+            position: sampleTrackVector(bone && bone.position, "position", time, [0, 0, 0]),
+            rotation: sampleTrackVector(bone && bone.rotation, "rotation", time, [0, 0, 0]).map(degToRad),
+            scale: sampleTrackVector(bone && bone.scale, "scale", time, [1, 1, 1])
+        };
+    }
+
+    function sampleTrackVector(track, channel, time, fallback) {
+        if (track === undefined || track === null) return fallback.slice();
+        if (Array.isArray(track) || isNum(track) || typeof track === "string" || looksLikeSingleKeyframe(track)) {
+            return cleanNumber(valueToVector(track, channel));
+        }
+        if (typeof track !== "object") return fallback.slice();
+        const samples = Object.keys(track).map(key => ({time: Number(key), value: track[key]}))
+            .filter(entry => !Number.isNaN(entry.time))
+            .sort((a, b) => a.time - b.time);
+        if (!samples.length) return fallback.slice();
+        const exact = samples.find(entry => Math.abs(entry.time - time) < 1e-6);
+        if (exact) return cleanNumber(valueToVector(exact.value, channel));
+        let prev = null;
+        let next = null;
+        samples.forEach(entry => {
+            if (entry.time <= time && (!prev || entry.time > prev.time)) prev = entry;
+            if (entry.time >= time && (!next || entry.time < next.time)) next = entry;
+        });
+        if (prev && next && prev !== next) {
+            const a = valueToVector(prev.value, channel);
+            const b = valueToVector(next.value, channel);
+            const alpha = (time - prev.time) / Math.max(next.time - prev.time, 1e-9);
+            if (a.every(isFiniteNumberLike) && b.every(isFiniteNumberLike)) {
+                return cleanNumber(a.map((value, index) => Number(value) + (Number(b[index]) - Number(value)) * alpha));
+            }
+        }
+        return cleanNumber(valueToVector((prev || next).value, channel));
+    }
+
+    function findBakeEasing(bones, boneName, parentChain, time) {
+        for (const name of [boneName, ...parentChain.slice().reverse()]) {
+            const bone = bones[name];
+            if (!bone || typeof bone !== "object") continue;
+            for (const channel of ["position", "rotation", "scale"]) {
+                const key = findExactTrackKey(bone[channel], time);
+                if (!key || typeof key !== "object" || Array.isArray(key)) continue;
+                const out = {};
+                ["lerp_mode", "easing", "easingArgs"].forEach(prop => {
+                    if (key[prop] !== undefined) out[prop] = clone(key[prop]);
+                });
+                if (Object.keys(out).length) return out;
+            }
+        }
+        return {};
+    }
+
+    function findExactTrackKey(track, time) {
+        if (track === undefined || track === null) return null;
+        if (Array.isArray(track) || isNum(track) || typeof track === "string" || looksLikeSingleKeyframe(track)) return Math.abs(time) < 1e-6 ? track : null;
+        if (typeof track !== "object") return null;
+        const key = Object.keys(track).find(t => Math.abs(Number(t) - time) < 1e-6);
+        return key === undefined ? null : track[key];
+    }
+
+    function makeBakedTrackKey(vector, easing) {
+        const key = {vector: cleanNumber(vector)};
+        if (easing && typeof easing === "object") {
+            ["lerp_mode", "easing", "easingArgs"].forEach(prop => {
+                if (easing[prop] !== undefined) key[prop] = clone(easing[prop]);
+            });
+        }
+        return key;
+    }
+
+    function getRigPivot(rig, boneName) {
+        return (rig.pivots && rig.pivots[boneName]) || PAL_DEFAULT_PIVOTS[boneName] || [0, 0, 0];
+    }
+
+    function prepPalBoneMatrix(matrix, transform, pivot) {
+        matrix = matrixTranslate(matrix, pivot[0], pivot[1], pivot[2]);
+        matrix = matrixTranslate(matrix, -transform.position[0], transform.position[1], -transform.position[2]);
+        matrix = matrixRotateZYX(matrix, transform.rotation);
+        matrix = matrixScale(matrix, transform.scale[0], transform.scale[1], transform.scale[2]);
+        matrix = matrixTranslate(matrix, -pivot[0], -pivot[1], -pivot[2]);
+        return matrix;
+    }
+
+    function applyPalParentMatrixToTransform(transform, matrix, pivot) {
+        let outMatrix = matrixTranslate(matrix, pivot[0], pivot[1], pivot[2]);
+        outMatrix = matrixRotateZYX(outMatrix, transform.rotation);
+        const matrixScaleValue = matrixGetScale(outMatrix);
+        return {
+            position: cleanNumber([
+                transform.position[0] - outMatrix[12] + pivot[0],
+                transform.position[1] + outMatrix[13] - pivot[1],
+                transform.position[2] - outMatrix[14] - pivot[2]
+            ]),
+            rotation: cleanNumber(matrixGetEulerZYX(outMatrix)),
+            scale: cleanNumber(transform.scale.map((value, index) => value * matrixScaleValue[index]))
+        };
+    }
+
+    function removePalParentMatrixFromTransform(transform, matrix, pivot) {
+        const basis = matrixTranslate(matrix, pivot[0], pivot[1], pivot[2]);
+        const basisScale = matrixGetScale(basis).map(value => value || 1);
+        const flatRotation = matrixRotateZYX(matrixIdentity(), transform.rotation);
+        const localRotationMatrix = matrixMultiply(matrixInvert(basis), flatRotation);
+        const localRotation = matrixGetEulerZYX(localRotationMatrix);
+        const positionedMatrix = matrixRotateZYX(basis, localRotation);
+        return {
+            position: cleanNumber([
+                transform.position[0] - (-positionedMatrix[12] + pivot[0]),
+                transform.position[1] - (positionedMatrix[13] - pivot[1]),
+                transform.position[2] - (-positionedMatrix[14] - pivot[2])
+            ]),
+            rotation: cleanNumber(localRotation),
+            scale: cleanNumber(transform.scale.map((value, index) => value / basisScale[index]))
+        };
+    }
+
+    function matrixIdentity() {
+        return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+    }
+
+    function matrixMultiply(a, b) {
+        const out = new Array(16).fill(0);
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                out[col * 4 + row] =
+                    a[0 * 4 + row] * b[col * 4 + 0] +
+                    a[1 * 4 + row] * b[col * 4 + 1] +
+                    a[2 * 4 + row] * b[col * 4 + 2] +
+                    a[3 * 4 + row] * b[col * 4 + 3];
+            }
+        }
+        return out;
+    }
+
+    function matrixInvert(m) {
+        const out = new Array(16);
+        out[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+        out[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+        out[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+        out[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+        out[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+        out[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+        out[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+        out[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+        out[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+        out[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+        out[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+        out[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+        out[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+        out[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+        out[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+        out[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+        const det = m[0] * out[0] + m[1] * out[4] + m[2] * out[8] + m[3] * out[12];
+        if (Math.abs(det) < 1e-12) return matrixIdentity();
+        return out.map(value => value / det);
+    }
+
+    function matrixTranslate(matrix, x, y, z) {
+        return matrixMultiply(matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
+    }
+
+    function matrixScale(matrix, x, y, z) {
+        return matrixMultiply(matrix, [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1]);
+    }
+
+    function matrixRotateZYX(matrix, rotation) {
+        const [x, y, z] = rotation;
+        const cx = Math.cos(x), sx = Math.sin(x);
+        const cy = Math.cos(y), sy = Math.sin(y);
+        const cz = Math.cos(z), sz = Math.sin(z);
+        const rz = [cz, sz, 0, 0, -sz, cz, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+        const ry = [cy, 0, -sy, 0, 0, 1, 0, 0, sy, 0, cy, 0, 0, 0, 0, 1];
+        const rx = [1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1];
+        return matrixMultiply(matrixMultiply(matrixMultiply(matrix, rz), ry), rx);
+    }
+
+    function matrixGetScale(matrix) {
+        return [
+            Math.hypot(matrix[0], matrix[1], matrix[2]),
+            Math.hypot(matrix[4], matrix[5], matrix[6]),
+            Math.hypot(matrix[8], matrix[9], matrix[10])
+        ];
+    }
+
+    function matrixGetEulerZYX(matrix) {
+        const scale = matrixGetScale(matrix).map(value => value || 1);
+        const m00 = matrix[0] / scale[0];
+        const m10 = matrix[1] / scale[0];
+        const m20 = matrix[2] / scale[0];
+        const m21 = matrix[6] / scale[1];
+        const m22 = matrix[10] / scale[2];
+        const y = Math.asin(clamp(-m20, -1, 1));
+        const cy = Math.cos(y);
+        let x;
+        let z;
+        if (Math.abs(cy) > 1e-6) {
+            x = Math.atan2(m21, m22);
+            z = Math.atan2(m10, m00);
+        } else {
+            x = 0;
+            z = Math.atan2(-matrix[4] / scale[1], matrix[5] / scale[1]);
+        }
+        return [x, y, z];
+    }
+
     function bendKeyToHelperRotationKey(value, helperSign) {
-        const out = {post: [applySign(vectorX(value, 0), helperSign), 0, 0]};
+        const out = {post: applySignToVector(valueToVector(value, "bend"), helperSign)};
         if (value && typeof value === "object" && !Array.isArray(value) && value.pre !== undefined) {
-            out.pre = [applySign(vectorX(value.pre, 0), helperSign), 0, 0];
+            out.pre = applySignToVector(valueToVector(value.pre, "bend"), helperSign);
         }
         const lerp = copyLerpFromKey(value);
         if (lerp !== undefined) out.lerp_mode = lerp;
@@ -1069,16 +1589,16 @@
     function helperFrameToBendFrame(frame, helperSign) {
         if (frame && typeof frame === "object" && !Array.isArray(frame)) {
             const out = {};
-            if (frame.pre !== undefined) out.pre = applySign(vectorX(frame.pre, 0), helperSign);
-            if (frame.post !== undefined) out.post = applySign(vectorX(frame.post, 0), helperSign);
-            else if (frame.vector !== undefined || frame.value !== undefined) out.post = applySign(vectorX(frame, 0), helperSign);
-            ["lerp_mode", "easing", "easingArgs", "easingX", "easingArgsX"].forEach(key => {
+            if (frame.pre !== undefined) out.pre = bendFramePayload(applySignToVector(valueToVector(frame.pre, "bend"), helperSign));
+            if (frame.post !== undefined) out.post = bendFramePayload(applySignToVector(valueToVector(frame.post, "bend"), helperSign));
+            else if (frame.vector !== undefined || frame.value !== undefined) out.post = bendFramePayload(applySignToVector(valueToVector(frame, "bend"), helperSign));
+            ["lerp_mode", "easing", "easingArgs", "easingX", "easingArgsX", "easingY", "easingArgsY", "easingZ", "easingArgsZ"].forEach(key => {
                 if (frame[key] !== undefined) out[key] = clone(frame[key]);
             });
-            if (!Object.keys(out).length) out.post = applySign(vectorX(frame, 0), helperSign);
+            if (!Object.keys(out).length) out.post = bendFramePayload(applySignToVector(valueToVector(frame, "bend"), helperSign));
             return out;
         }
-        return {post: applySign(vectorX(frame, 0), helperSign)};
+        return {post: bendFramePayload(applySignToVector(valueToVector(frame, "bend"), helperSign))};
     }
 
     function parseEmoteToIR(data, nameHint) {
@@ -1144,10 +1664,12 @@
             });
         });
         const body = ir.bones.body;
-        if (body && body.bend.x.length) {
+        if (body && VECTOR_AXES.some(axis => body.bend[axis].length)) {
             const torso = ensureBone(ir, "torso");
-            torso.bend.x.push(...body.bend.x);
-            body.bend.x = [];
+            VECTOR_AXES.forEach(axis => {
+                torso.bend[axis].push(...body.bend[axis]);
+                body.bend[axis] = [];
+            });
             if (!boneHasAnyKeyframes(body)) delete ir.bones.body;
         }
         if (!ir.metadata.easeBeforeKeyframe) {
@@ -1181,12 +1703,11 @@
                 const boneName = getCorrectPlayerBoneName(rawBoneName);
                 const bone = ensureBone(ir, boneName);
                 ANIM_TRANSFORMS.forEach(transform => {
-                    getAnimationEntries((bones[rawBoneName] || {})[transform]).forEach(([seconds, element]) => {
-                        const [vector, easings, args] = elementVectorAndEasing(element);
+                    getAnimationEntries((bones[rawBoneName] || {})[transform], transform).forEach(([seconds, element]) => {
+                        const [vector, easings, args] = elementVectorAndEasing(element, transform);
                         const fullVector = vector.slice();
                         while (fullVector.length < 3) fullVector.push(SKIP);
-                        ["x", "y", "z"].forEach((axis, index) => {
-                            if (transform === "bend" && axis !== "x") return;
+                        VECTOR_AXES.forEach((axis, index) => {
                             const raw = fullVector[index];
                             if (isSkip(raw)) return;
                             const internal = parseAnimValueToInternal(raw, transform);
@@ -1230,7 +1751,7 @@
                 const transformOut = {};
                 Object.keys(timeMap).map(Number).sort((a, b) => a - b).forEach(tick => {
                     const entry = timeMap[tick];
-                    const used = ["x", "y", "z"].filter((axis, index) => !isSkip(entry.vector[index]));
+                    const used = VECTOR_AXES.filter((axis, index) => !isSkip(entry.vector[index]));
                     const keyObj = {vector: cleanNumber(entry.vector)};
                     if (used.length) {
                         const vals = used.map(axis => normalizeEasing(entry.axisEasing[axis] || DEFAULT_EASING));
@@ -1243,7 +1764,7 @@
                             });
                         }
                     }
-                    transformOut[formatSeconds(tick / 20)] = keyObj;
+                    transformOut[formatSeconds(tick / 20)] = transform === "bend" ? bendKeyForAnimationJson(keyObj) : keyObj;
                 });
                 boneOut[transform] = transformOut;
             });
@@ -1329,7 +1850,7 @@
             position: {x: [], y: [], z: []},
             rotation: {x: [], y: [], z: []},
             scale: {x: [], y: [], z: []},
-            bend: {x: []}
+            bend: {x: [], y: [], z: []}
         };
     }
 
@@ -1369,9 +1890,9 @@
         return ANIM_TRANSFORMS.some(transform => Object.values(bone[transform]).some(keys => keys.length));
     }
 
-    function getAnimationEntries(element) {
+    function getAnimationEntries(element, channel) {
         if (element === undefined || element === null) return [];
-        if (isNum(element)) return [[0, [element, element, element]]];
+        if (isNum(element)) return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element]]];
         if (Array.isArray(element)) return [[0, element]];
         if (typeof element === "object") {
             if (element.vector !== undefined) return [[0, element]];
@@ -1418,7 +1939,7 @@
             out.sort((a, b) => a[0] - b[0]);
             return out;
         }
-        return [[0, [element, element, element]]];
+        return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element]]];
     }
 
     function extractBedrockKeyframe(keyframe) {
@@ -1430,7 +1951,7 @@
         return Array.isArray(keyframe.post) ? keyframe.post : extractBedrockKeyframe(keyframe.post);
     }
 
-    function elementVectorAndEasing(element) {
+    function elementVectorAndEasing(element, channel) {
         if (Array.isArray(element)) return [element, {}, {}];
         if (element && typeof element === "object") {
             const vector = element.vector !== undefined ? element.vector : extractBedrockKeyframe(element);
@@ -1449,8 +1970,8 @@
             }
             return [vector, easings, args];
         }
-        if (isNum(element)) return [[element, element, element], {}, {}];
-        return [[element, element, element], {}, {}];
+        if (isNum(element)) return [channel === "bend" ? [element, 0, 0] : [element, element, element], {}, {}];
+        return [channel === "bend" ? [element, 0, 0] : [element, element, element], {}, {}];
     }
 
     function parseAnimValueToInternal(value, transform) {
@@ -1593,6 +2114,44 @@
         return value;
     }
 
+    function bendFramePayload(vector) {
+        const out = valueToVector(vector, "bend");
+        return hasNonZeroYZ(out) ? cleanNumber(out) : cleanZero(firstNonSkip(out, 0));
+    }
+
+    function bendKeyForAnimationJson(keyObj) {
+        const vector = valueToVector(keyObj.vector, "bend");
+        const scalar = bendFramePayload(vector);
+        if (!hasNonZeroYZ(vector)) {
+            const out = {};
+            if (keyObj.easing !== undefined) out.easing = keyObj.easing;
+            if (keyObj.easingArgs !== undefined) out.easingArgs = keyObj.easingArgs;
+            if (keyObj.easingX !== undefined) out.easingX = keyObj.easingX;
+            if (keyObj.easingArgsX !== undefined) out.easingArgsX = keyObj.easingArgsX;
+            out.post = scalar;
+            return out;
+        }
+        const out = {post: cleanNumber(vector)};
+        ["easing", "easingArgs", "easingX", "easingArgsX", "easingY", "easingArgsY", "easingZ", "easingArgsZ"].forEach(key => {
+            if (keyObj[key] !== undefined) out[key] = keyObj[key];
+        });
+        return out;
+    }
+
+    function hasNonZeroYZ(vector) {
+        return axisHasValue(vector[1]) || axisHasValue(vector[2]);
+    }
+
+    function axisHasValue(value) {
+        if (isSkip(value) || value === undefined || value === null) return false;
+        if (isNum(value)) return Math.abs(Number(value)) > 1e-12;
+        if (typeof value === "string") {
+            const n = Number(value.trim());
+            return Number.isNaN(n) || Math.abs(n) > 1e-12;
+        }
+        return true;
+    }
+
     function vectorX(value, defaultValue) {
         if (value === undefined || value === null) return defaultValue;
         if (isNum(value) || typeof value === "string") return cleanZero(value);
@@ -1604,6 +2163,11 @@
             if (value.pre !== undefined) return vectorX(value.pre, defaultValue);
         }
         return defaultValue;
+    }
+
+    function applySignToVector(vector, sign) {
+        const out = valueToVector(vector, "bend");
+        return cleanNumber(out.map(value => applySign(value, sign)));
     }
 
     function firstNonSkip(values, defaultValue) {
@@ -1664,6 +2228,14 @@
         if (!existing.has(base)) return base;
         let index = 2;
         while (existing.has(`${base}_${index}`)) index += 1;
+        return `${base}_${index}`;
+    }
+
+    function uniqueAnimationKey(map, name) {
+        const base = safeAnimationName(name);
+        if (!map[base]) return base;
+        let index = 2;
+        while (map[`${base}_${index}`]) index += 1;
         return `${base}_${index}`;
     }
 
@@ -1759,6 +2331,18 @@
     function numberOr(value, fallback) {
         const n = Number(value);
         return Number.isFinite(n) ? n : fallback;
+    }
+
+    function isFiniteNumberLike(value) {
+        return isNum(value) || (typeof value === "string" && Number.isFinite(Number(value)));
+    }
+
+    function vectorNearlyEquals(a, b) {
+        return VECTOR_AXES.every((_axis, index) => Math.abs(numberOr(a[index], 0) - numberOr(b[index], 0)) < 1e-9);
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
     }
 
     function parseTimestamp(value) {
