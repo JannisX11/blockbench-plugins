@@ -39,7 +39,7 @@
 		"icon": "icon.png",
 		"description": "Create, import, and export PlayerAnimationLibrary and Emotecraft player bend animations.",
 		"tags": ["Minecraft: Java Edition", "Animation", "Tools"],
-		"version": "0.1.0",
+		"version": "0.3.0",
 		"variant": "both",
 		"min_version": "4.8.0",
 		"repository": "https://github.com/kltyton/Pal-bend-player-tools",
