@@ -33,6 +33,18 @@
 		"website": "https://www.cazfps.com/links",
 		"tags": ["Minecraft", "Animation", "Tools"]
 	},
+	"pal_bend_player_tools": {
+		"title": "PAL Bend Player Tools",
+		"author": "kltyton",
+		"icon": "icon.png",
+		"description": "Create, import, and export PlayerAnimationLibrary and Emotecraft player bend animations.",
+		"tags": ["Minecraft: Java Edition", "Animation", "Tools"],
+		"version": "0.1.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"repository": "https://github.com/kltyton/Pal-bend-player-tools",
+		"bug_tracker": "https://github.com/kltyton/Pal-bend-player-tools/issues"
+	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
 		"author": "DoubleFelix",
