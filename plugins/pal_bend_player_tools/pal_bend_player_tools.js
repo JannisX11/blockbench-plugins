@@ -644,9 +644,10 @@
                     keepPalBend: false,
                     helperSign: 1
                 });
-                if (importProfile.sourceRig) modelAnimations = bakeAnimationHierarchyToFlat(modelAnimations, importProfile.sourceRig);
-                if (importProfile.unbakeFlatToCurrent) modelAnimations = unbakeCurrentProjectHierarchyForPal(modelAnimations);
-                modelAnimations = mirrorFacingForBlockbench(modelAnimations);
+                const sourceMatchesCurrentRig = importProfile.sourceRig && rigsAreEquivalent(importProfile.sourceRig, getCurrentProjectPalRig());
+                if (importProfile.sourceRig && !sourceMatchesCurrentRig) modelAnimations = bakeAnimationHierarchyToFlat(modelAnimations, importProfile.sourceRig);
+                if (importProfile.unbakeFlatToCurrent && !sourceMatchesCurrentRig) modelAnimations = unbakeCurrentProjectHierarchyForPal(modelAnimations);
+                if (!sourceMatchesCurrentRig) modelAnimations = mirrorFacingForBlockbench(modelAnimations);
                 const result = loadAnimationsIntoProject(modelAnimations);
                 Blockbench.showQuickMessage(`已导入 ${result.created} 个动画${result.missing ? `，${result.missing} 个骨骼未匹配` : ""}`, 2600);
             } catch (error) {
@@ -772,17 +773,18 @@
                 name: uniqueAnimationName(name),
                 length: numberOr(animObj.animation_length, 0),
                 snapping: 20,
-                loop: animObj.loop === true || String(animObj.loop).toLowerCase() === "true" ? "loop" : "once"
+                loop: blockbenchLoopForAnimation(animObj.loop)
             }).add();
             if (typeof bbAnimation.init === "function") bbAnimation.init();
             const bones = animObj.bones || {};
             Object.keys(bones).forEach(boneName => {
                 const group = findGroupByName(boneName);
+                const animator = group
+                    ? getAnimatorForGroup(group, bbAnimation, boneName)
+                    : getDetachedAnimatorForBone(boneName, bbAnimation);
                 if (!group) {
                     missing += 1;
-                    return;
                 }
-                const animator = getAnimatorForGroup(group, bbAnimation, boneName);
                 const bone = bones[boneName] || {};
                 ["position", "rotation", "scale"].forEach(channel => {
                     if (bone[channel]) addJsonTrackToAnimator(animator, channel, bone[channel]);
@@ -806,7 +808,7 @@
     }
 
     function addJsonTrackToAnimator(animator, channel, track) {
-        getAnimationEntries(track).forEach(([time, element]) => {
+        getAnimationEntries(track).forEach(([time, element, timeKey]) => {
             const key = jsonElementToBlockbenchKey(element, channel);
             if (!key) return;
             const keyframeData = {
@@ -814,6 +816,8 @@
                 time,
                 data_points: key.dataPoints
             };
+            if (timeKey !== undefined) keyframeData.pal_time_key = String(timeKey);
+            if (key.style) keyframeData.pal_key_style = key.style;
             if (key.easing && key.easing !== DEFAULT_EASING) keyframeData.easing = easingForAnimation(key.easing);
             if (key.interpolation) keyframeData.interpolation = key.interpolation;
             if (key.easingArgs) keyframeData.easingArgs = key.easingArgs;
@@ -825,8 +829,9 @@
         let interpolation;
         let easing = DEFAULT_EASING;
         let easingArgs;
+        const style = Array.isArray(element) ? "array" : undefined;
         if (element && typeof element === "object" && !Array.isArray(element)) {
-            easing = normalizeEasing(element.easing || element.lerp_mode || DEFAULT_EASING);
+            easing = normalizeEasing(element.easing || DEFAULT_EASING);
             easingArgs = element.easingArgs;
             if (element.lerp_mode === "catmullrom") interpolation = "catmullrom";
             if (element.lerp_mode === "bezier" || (element.pre !== undefined && element.post !== undefined)) interpolation = "bezier";
@@ -839,7 +844,7 @@
             dataPoints.push(vectorDataPoint(valueToVector(element, channel)));
         }
         if (!dataPoints.length) return null;
-        return {dataPoints, easing, interpolation, easingArgs};
+        return {dataPoints, easing, interpolation, easingArgs, style};
     }
 
     function compileAnimationsFromProject(animations) {
@@ -852,7 +857,8 @@
                 animation_length: cleanNumber(numberOr(animation.length, 0)),
                 bones: {}
             };
-            if (animation.loop === "loop" || animation.loop === true) animObj.loop = true;
+            const loopValue = animationLoopForJson(animation.loop);
+            if (loopValue !== undefined) animObj.loop = loopValue;
             Object.keys(animation.animators || {}).forEach(id => {
                 const animator = animation.animators[id];
                 if (!animator) return;
@@ -873,21 +879,34 @@
     function blockbenchKeyframesToTrack(keyframes, channel) {
         const track = {};
         keyframes.slice().sort((a, b) => a.time - b.time).forEach(keyframe => {
-            const time = formatSeconds(numberOr(keyframe.time, 0));
+            const keyframeTime = numberOr(keyframe.time, 0);
+            const time = keyframe.pal_time_key !== undefined && Math.abs(Number(keyframe.pal_time_key) - keyframeTime) < 1e-6
+                ? String(keyframe.pal_time_key)
+                : formatSeconds(keyframeTime);
             const points = Array.isArray(keyframe.data_points) && keyframe.data_points.length
                 ? keyframe.data_points
                 : [{x: keyframe.get ? keyframe.get("x") : 0, y: keyframe.get ? keyframe.get("y") : 0, z: keyframe.get ? keyframe.get("z") : 0}];
             const post = dataPointVector(points[points.length - 1], channel);
+            const hasInterpolation = !!(keyframe.interpolation && keyframe.interpolation !== "linear");
+            const hasEasing = !!(keyframe.easing && normalizeEasing(keyframe.easing) !== DEFAULT_EASING);
+            if (keyframe.pal_key_style === "array" && points.length <= 1 && !hasInterpolation && !hasEasing) {
+                track[time] = post;
+                return;
+            }
             const obj = {vector: post};
             if (points.length > 1) {
                 obj.pre = dataPointVector(points[0], channel);
                 obj.post = post;
                 delete obj.vector;
             }
-            if (keyframe.interpolation && keyframe.interpolation !== "linear") {
+            if (hasInterpolation) {
+                if (points.length <= 1) {
+                    obj.post = post;
+                    delete obj.vector;
+                }
                 obj.lerp_mode = keyframe.interpolation;
             }
-            if (keyframe.easing && normalizeEasing(keyframe.easing) !== DEFAULT_EASING) {
+            if (hasEasing) {
                 obj.easing = easingForAnimation(keyframe.easing);
             }
             track[time] = obj;
@@ -981,6 +1000,18 @@
         if (!animator) {
             animator = new BoneAnimator(group.uuid, animation, fallbackName || group.name);
             animation.animators[group.uuid] = animator;
+            if (typeof animator.init === "function") animator.init();
+        }
+        return animator;
+    }
+
+    function getDetachedAnimatorForBone(boneName, animation) {
+        if (!animation.animators) animation.animators = {};
+        const id = `pal_missing_${normalizeBoneKey(boneName)}`;
+        let animator = animation.animators[id];
+        if (!animator) {
+            animator = new BoneAnimator(id, animation, boneName);
+            animation.animators[id] = animator;
             if (typeof animator.init === "function") animator.init();
         }
         return animator;
@@ -1188,6 +1219,30 @@
             if (setup.pivot) pivots[boneName] = blockbenchPivotToPal(setup.pivot);
         });
         return {parents, pivots};
+    }
+
+    function rigsAreEquivalent(a, b) {
+        if (!a || !b) return false;
+        const parentBones = new Set([
+            ...Object.keys(a.parents || {}),
+            ...Object.keys(b.parents || {})
+        ]);
+        for (const boneName of parentBones) {
+            const parentA = (a.parents && a.parents[boneName]) || null;
+            const parentB = (b.parents && b.parents[boneName]) || null;
+            if (parentA !== parentB) return false;
+        }
+        const pivotBones = new Set([
+            ...Object.keys(a.pivots || {}),
+            ...Object.keys(b.pivots || {}),
+            ...parentBones
+        ]);
+        for (const boneName of pivotBones) {
+            const pivotA = getRigPivot(a, boneName);
+            const pivotB = getRigPivot(b, boneName);
+            if (!vectorNearlyEquals(pivotA, pivotB)) return false;
+        }
+        return true;
     }
 
     function blockbenchPivotToPal(pivot) {
@@ -1892,14 +1947,15 @@
 
     function getAnimationEntries(element, channel) {
         if (element === undefined || element === null) return [];
-        if (isNum(element)) return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element]]];
-        if (Array.isArray(element)) return [[0, element]];
+        if (isNum(element)) return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element], "0"]];
+        if (Array.isArray(element)) return [[0, element, "0"]];
+        if (looksLikeSingleKeyframe(element)) return [[0, element, "0"]];
         if (typeof element === "object") {
-            if (element.vector !== undefined) return [[0, element]];
+            if (element.vector !== undefined) return [[0, element, "0"]];
             if (element.value !== undefined) {
                 const obj = clone(element);
                 obj.vector = [obj.value, 0, 0];
-                return [[0, obj]];
+                return [[0, obj, "0"]];
             }
             const out = [];
             Object.keys(element).forEach(key => {
@@ -1909,37 +1965,16 @@
                     value = clone(value);
                     if (value.value !== undefined) {
                         value.vector = [value.value, 0, 0];
-                        out.push([timestamp, value]);
+                        out.push([timestamp, value, key]);
                         return;
                     }
-                    if (value.vector === undefined) {
-                        let added = false;
-                        if (value.pre !== undefined) {
-                            const preVector = extractBedrockKeyframe(value.pre);
-                            if (value.easing !== undefined) {
-                                const obj = {vector: preVector, easing: value.easing};
-                                if (value.easingArgs !== undefined) obj.easingArgs = value.easingArgs;
-                                out.push([timestamp === 0 ? timestamp : timestamp - 0.001, obj]);
-                            } else {
-                                out.push([timestamp === 0 ? timestamp : timestamp - 0.001, preVector]);
-                            }
-                            added = true;
-                        }
-                        if (value.post !== undefined) {
-                            const postVector = extractBedrockKeyframe(value.post);
-                            if (value.lerp_mode !== undefined) out.push([timestamp, {vector: postVector, easing: value.lerp_mode}]);
-                            else out.push([timestamp, postVector]);
-                            return;
-                        }
-                        if (added) return;
-                    }
                 }
-                out.push([timestamp, value]);
+                out.push([timestamp, value, key]);
             });
             out.sort((a, b) => a[0] - b[0]);
             return out;
         }
-        return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element]]];
+        return [[0, channel === "bend" ? [element, 0, 0] : [element, element, element], "0"]];
     }
 
     function extractBedrockKeyframe(keyframe) {
@@ -2192,6 +2227,20 @@
             return `(${sign})*(${value})`;
         }
         return value;
+    }
+
+    function blockbenchLoopForAnimation(value) {
+        const raw = String(value === undefined || value === null ? "" : value).toLowerCase();
+        if (value === true || raw === "true" || raw === "loop") return "loop";
+        if (raw === "hold" || raw === "hold_on_last_frame") return "hold";
+        return "once";
+    }
+
+    function animationLoopForJson(value) {
+        const raw = String(value === undefined || value === null ? "" : value).toLowerCase();
+        if (value === true || raw === "true" || raw === "loop") return true;
+        if (raw === "hold" || raw === "hold_on_last_frame") return "hold_on_last_frame";
+        return undefined;
     }
 
     function removeEmptyBones(bones) {
