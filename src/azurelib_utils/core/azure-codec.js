@@ -54,7 +54,7 @@ export function ensureAzureFormat() {
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
-    single_texture: false,
+    single_texture: true,
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
