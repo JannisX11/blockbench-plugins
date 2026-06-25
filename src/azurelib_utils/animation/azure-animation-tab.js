@@ -13,7 +13,7 @@
  * Built on Blockbench's AnimationCodec API — no monkey-patching of
  * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';

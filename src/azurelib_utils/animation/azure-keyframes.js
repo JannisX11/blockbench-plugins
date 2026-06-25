@@ -7,7 +7,7 @@
  * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
  * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { hasArgs } from '../core/azure-utils.js';

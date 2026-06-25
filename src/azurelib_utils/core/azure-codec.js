@@ -8,7 +8,7 @@
  * The animation codec is now created lazily at runtime so validation
  * does not execute AnimationCodec construction during module evaluation.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import omit from 'lodash/omit';
@@ -54,7 +54,7 @@ export function ensureAzureFormat() {
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
-    single_texture: true,
+    single_texture: false,
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,

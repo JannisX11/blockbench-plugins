@@ -4,7 +4,7 @@
  * Defines runtime configuration, SDK targets, and automatic
  * template loading for armor models.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import armorTemplate from '../templates/armorTemplate.json';
