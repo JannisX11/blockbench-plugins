@@ -13,140 +13,68 @@
   "elements": [
     {
       "name": "dontTouch",
-      "from": [
-        -4,
-        24,
-        -4
-      ],
-      "to": [
-        4,
-        32,
-        4
-      ],
+      "from": [-4, 24, -4],
+      "to": [4, 32, 4],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        0,
-        0,
-        0
-      ],
+      "origin": [0, 0, 0],
       "uuid": "9675593e-b27d-b70e-e1ea-1fc29f46a294"
     },
     {
       "name": "dontTouch",
-      "from": [
-        -4,
-        12,
-        -2
-      ],
-      "to": [
-        4,
-        24,
-        2
-      ],
+      "from": [-4, 12, -2],
+      "to": [4, 24, 2],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        0,
-        24,
-        0
-      ],
+      "origin": [0, 24, 0],
       "uuid": "fa43156a-2a62-948c-082f-483d525f6d1f"
     },
     {
       "name": "dontTouch",
-      "from": [
-        4,
-        12,
-        -2
-      ],
-      "to": [
-        8,
-        24,
-        2
-      ],
+      "from": [4, 12, -2],
+      "to": [8, 24, 2],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        4,
-        22,
-        0
-      ],
+      "origin": [4, 22, 0],
       "uuid": "aa51170c-8b32-fb62-71f1-58ac0b7785a8"
     },
     {
       "name": "dontTouch",
-      "from": [
-        -8,
-        12,
-        -2
-      ],
-      "to": [
-        -4,
-        24,
-        2
-      ],
+      "from": [-8, 12, -2],
+      "to": [-4, 24, 2],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        4,
-        22,
-        0
-      ],
+      "origin": [4, 22, 0],
       "uuid": "bf2c2539-20e3-cfcc-94c0-491734019889"
     },
     {
       "name": "dontTouch",
-      "from": [
-        -4,
-        0,
-        -2
-      ],
-      "to": [
-        0,
-        12,
-        2
-      ],
+      "from": [-4, 0, -2],
+      "to": [0, 12, 2],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        4,
-        22,
-        0
-      ],
+      "origin": [4, 22, 0],
       "uuid": "17b9bae0-356a-9bba-fad9-4672e2671191"
     },
     {
       "name": "dontTouch",
-      "from": [
-        0,
-        0,
-        -2
-      ],
-      "to": [
-        4,
-        12,
-        2
-      ],
+      "from": [0, 0, -2],
+      "to": [4, 12, 2],
       "autouv": 1,
       "color": 0,
       "export": false,
       "locked": true,
-      "origin": [
-        4,
-        22,
-        0
-      ],
+      "origin": [4, 22, 0],
       "uuid": "7b31bac4-dc40-2b93-1204-7bbdcfe7d924"
     },
     {
@@ -159,6 +87,132 @@
       "locked": true,
       "origin": [0, 12, 0],
       "uuid": "aa51250c-8b32-fb62-71f1-58ac0b7785a8"
+    },
+
+    {
+      "name": "armorHead_layer1",
+      "from": [-4, 24, -4],
+      "to": [4, 32, 4],
+      "inflate": 0.75,
+      "autouv": 0,
+      "color": 1,
+      "export": true,
+      "locked": false,
+      "origin": [0, 24, 0],
+      "uv_offset": [0, 0],
+      "uuid": "a1000001-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "armorHead_layer2",
+      "from": [-4, 24, -4],
+      "to": [4, 32, 4],
+      "inflate": 1,
+      "autouv": 0,
+      "color": 1,
+      "export": true,
+      "locked": false,
+      "origin": [0, 24, 0],
+      "uv_offset": [32, 0],
+      "uuid": "a1000002-0000-0000-0000-000000000002"
+    },
+
+    {
+      "name": "armorBody_cube",
+      "from": [-4, 12, -2],
+      "to": [4, 24, 2],
+      "inflate": 0.75,
+      "autouv": 0,
+      "color": 2,
+      "export": true,
+      "locked": false,
+      "origin": [0, 24, 0],
+      "uv_offset": [4, 16],
+      "uuid": "a2000001-0000-0000-0000-000000000001"
+    },
+
+    {
+      "name": "armorRightArm_cube",
+      "from": [-8, 12, -2],
+      "to": [-4, 24, 2],
+      "inflate": 0.7,
+      "autouv": 0,
+      "color": 4,
+      "export": true,
+      "locked": false,
+      "origin": [-5, 22, 0],
+      "uv_offset": [4, 32],
+      "uuid": "a4000001-0000-0000-0000-000000000001"
+    },
+
+    {
+      "name": "armorLeftArm_cube",
+      "from": [4, 12, -2],
+      "to": [8, 24, 2],
+      "inflate": 0.7,
+      "autouv": 0,
+      "color": 4,
+      "export": true,
+      "locked": false,
+      "mirror_uv": true,
+      "origin": [5, 22, 0],
+      "uv_offset": [20, 32],
+      "uuid": "a5000001-0000-0000-0000-000000000001"
+    },
+
+    {
+      "name": "armorLeftLeg_cube",
+      "from": [0, 0, -2],
+      "to": [4, 12, 2],
+      "inflate": 0.5,
+      "autouv": 0,
+      "color": 5,
+      "export": true,
+      "locked": false,
+      "mirror_uv": true,
+      "origin": [-2, 12, 0],
+      "uv_offset": [20, 48],
+      "uuid": "a6000001-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "armorLeftBoot_cube",
+      "from": [0, 0, -2],
+      "to": [4, 12, 2],
+      "inflate": 0.7,
+      "autouv": 0,
+      "color": 5,
+      "export": true,
+      "locked": false,
+      "mirror_uv": true,
+      "origin": [-2, 12, 0],
+      "uv_offset": [20, 64],
+      "uuid": "a6000002-0000-0000-0000-000000000002"
+    },
+
+    {
+      "name": "armorRightLeg_cube",
+      "from": [-4, 0, -2],
+      "to": [0, 12, 2],
+      "inflate": 0.5,
+      "autouv": 0,
+      "color": 5,
+      "export": true,
+      "locked": false,
+      "origin": [2, 12, 0],
+      "uv_offset": [4, 48],
+      "uuid": "a7000001-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "armorRightBoot_cube",
+      "from": [-4, 0, -2],
+      "to": [0, 12, 2],
+      "inflate": 0.7,
+      "autouv": 0,
+      "color": 5,
+      "export": true,
+      "locked": false,
+      "origin": [2, 12, 0],
+      "uv_offset": [4, 64],
+      "uuid": "a7000002-0000-0000-0000-000000000002"
     }
   ],
   "outliner": [
@@ -169,11 +223,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        0,
-        24,
-        0
-      ],
+      "origin": [0, 24, 0],
       "children": [
         "9675593e-b27d-b70e-e1ea-1fc29f46a294",
         {
@@ -183,13 +233,10 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            0,
-            24,
-            0
-          ],
+          "origin": [0, 24, 0],
           "children": [
-            
+            "a1000001-0000-0000-0000-000000000001",
+            "a1000002-0000-0000-0000-000000000002"
           ]
         }
       ]
@@ -201,11 +248,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        0,
-        24,
-        0
-      ],
+      "origin": [0, 24, 0],
       "children": [
         "fa43156a-2a62-948c-082f-483d525f6d1f",
         {
@@ -215,13 +258,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            0,
-            24,
-            0
-          ],
+          "origin": [0, 24, 0],
           "children": [
-            
+            "a2000001-0000-0000-0000-000000000001"
           ]
         }
       ]
@@ -233,11 +272,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        5,
-        22,
-        0
-      ],
+      "origin": [5, 22, 0],
       "children": [
         "aa51170c-8b32-fb62-71f1-58ac0b7785a8",
         {
@@ -247,13 +282,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            5,
-            22,
-            0
-          ],
+          "origin": [5, 22, 0],
           "children": [
-            
+            "a4000001-0000-0000-0000-000000000001"
           ]
         }
       ]
@@ -265,11 +296,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        -5,
-        22,
-        0
-      ],
+      "origin": [-5, 22, 0],
       "children": [
         "bf2c2539-20e3-cfcc-94c0-491734019889",
         {
@@ -279,13 +306,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            -5,
-            22,
-            0
-          ],
+          "origin": [-5, 22, 0],
           "children": [
-            
+            "a5000001-0000-0000-0000-000000000001"
           ]
         }
       ]
@@ -297,11 +320,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        0,
-        12,
-        0
-      ],
+      "origin": [0, 12, 0],
       "children": [
         "aa51250c-8b32-fb62-71f1-58ac0b7785a8",
         {
@@ -311,14 +330,8 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            0,
-            12,
-            0
-          ],
-          "children": [
-            
-          ]
+          "origin": [0, 12, 0],
+          "children": []
         }
       ]
     },
@@ -329,11 +342,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        -2,
-        12,
-        0
-      ],
+      "origin": [-2, 12, 0],
       "children": [
         "17b9bae0-356a-9bba-fad9-4672e2671191",
         {
@@ -343,13 +352,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            -2,
-            12,
-            0
-          ],
+          "origin": [-2, 12, 0],
           "children": [
-            
+            "a6000001-0000-0000-0000-000000000001"
           ]
         },
         {
@@ -359,13 +364,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            -2,
-            12,
-            0
-          ],
+          "origin": [-2, 12, 0],
           "children": [
-            
+            "a6000002-0000-0000-0000-000000000002"
           ]
         }
       ]
@@ -377,11 +378,7 @@
       "isOpen": true,
       "visibility": true,
       "autouv": 0,
-      "origin": [
-        2,
-        12,
-        0
-      ],
+      "origin": [2, 12, 0],
       "children": [
         "7b31bac4-dc40-2b93-1204-7bbdcfe7d924",
         {
@@ -391,13 +388,9 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            2,
-            12,
-            0
-          ],
+          "origin": [2, 12, 0],
           "children": [
-            
+            "a7000001-0000-0000-0000-000000000001"
           ]
         },
         {
@@ -407,19 +400,13 @@
           "isOpen": true,
           "visibility": true,
           "autouv": 0,
-          "origin": [
-            2,
-            12,
-            0
-          ],
+          "origin": [2, 12, 0],
           "children": [
-            
+            "a7000002-0000-0000-0000-000000000002"
           ]
         }
       ]
     }
   ],
-  "textures": [
-    
-  ]
+  "textures": []
 }
