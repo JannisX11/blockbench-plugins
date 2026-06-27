@@ -110,7 +110,11 @@ const sandbox = new Proxy({
 });
 
 vm.createContext(sandbox);
-vm.runInContext(content_js, sandbox);
+try {
+	vm.runInContext(content_js, sandbox);
+} catch (err) {
+	console.error("Failed to run plugin in sandbox", err)
+}
 
 
 if (!source_meta) {
@@ -203,7 +207,7 @@ if (json_meta.icon && (json_meta.icon.endsWith('.png') || json_meta.icon.endsWit
 //const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[a-z]+\.\d+)?$/;
 const SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function validateVersion(v) {
-	if (!v.match(SEMVER_REGEX)) {
+	if (typeof v != 'string' || !v.match(SEMVER_REGEX)) {
 		logError(`"${v}" is not a valid version number. See semver.org`)
 	}
 }
