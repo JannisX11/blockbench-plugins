@@ -1,0 +1,24 @@
+{
+  "0.1.0": {
+    "title": "Beta Release for testing and feedback",
+    "author": "Markus Bordihn",
+    "date": "2026-06-13",
+    "categories": [
+      {
+        "title": "Features",
+        "list": [
+          "Export the current project as Easy Model Entities Data Pack and Resource Pack files.",
+          "Preset auto-detection from bone names (humanoid, quadruped, aquatic, winged, arthropod, cuboid, floating, static).",
+          "Three export types: Standalone ZIP archive, write into mod project, or model-only for mod integrations.",
+          "Entity and Block Entity support with separate server profile subfolders.",
+          "Minimal (diff-based) profile output: only fields that differ from the mod defaults are written.",
+          "Minecraft target version selector (1.20.1 available).",
+          "Optional advanced customization of dimensions, movement, behavior, attributes, rendering and animation.",
+          "Experimental presets hidden behind a Blockbench setting (off by default).",
+          "Validation with blocking errors and performance budget warnings.",
+          "EN and DE translations."
+        ]
+      }
+    ]
+  }
+}
