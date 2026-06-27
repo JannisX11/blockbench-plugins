@@ -807,10 +807,8 @@
 
 		var html = '<div style="border-top:1px solid var(--color-border);margin-top:8px;padding-top:8px;">';
 		html += '<table style="width:100%;border-collapse:collapse;">' + rows.join('') + '</table>';
-		html += '<p style="margin:8px 0 0;opacity:0.8;">UV coordinates and base cube sizes stay <b>unchanged</b>. ' +
-			'Only loaded animations can be changed; external <code>.blockyanim</code> files are left alone.</p>';
 		if (notes.length) {
-			html += '<p style="margin:6px 0 0;">' + notes.join('<br>') + '</p>';
+			html += '<p style="margin:8px 0 0;">' + notes.join('<br>') + '</p>';
 		}
 		html += '</div>';
 		return html;
