@@ -762,6 +762,15 @@
 		"has_changelog": true,
 		"tags": ["Format: Generic Model", "Mesh", "Tool"]
 	},
+	"fly_mode": {
+		"title": "Fly Mode",
+		"icon": "sports_esports",
+		"author": "nklbdev",
+		"description": "Adds a FPS-fly viewport navigation mode",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both"
+	},
 	"wasd_controls": {
 		"title": "WASD Controls",
 		"icon": "sports_esports",
