@@ -762,6 +762,15 @@
 		"has_changelog": true,
 		"tags": ["Format: Generic Model", "Mesh", "Tool"]
 	},
+	"uv_locker": {
+		"title": "UV Locker",
+		"icon": "lock",
+		"author": "nklbdev",
+		"description": "Lock UV coordinates when moving vertices in 3D (like Blender's Fix Face Attributes)",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both"
+	},
 	"fly_mode": {
 		"title": "Fly Mode",
 		"icon": "sports_esports",
