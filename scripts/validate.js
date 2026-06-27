@@ -170,8 +170,8 @@ if (NEW_FORMAT && json_meta.about) {
 if (json_meta.has_changelog && !NEW_FORMAT) {
 	logError("Changelog is not supported in legacy format");
 }
-if (json_meta.has_changelog) {let content_js = '';
-	let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+if (json_meta.has_changelog) {
 	try {
 		let changelog_content = fs.readFileSync(changelog_path);
 		JSON.parse(changelog_content)
@@ -179,6 +179,8 @@ if (json_meta.has_changelog) {let content_js = '';
 		logError("Could not load changelog: " + err);
 		process.exit();
 	}
+} else if (fs.existsSync(changelog_path)) {
+	logError("Changelog file was found, but not used because the flag \"has_changelog\": true is missing.");
 }
 
 // Icon validation
