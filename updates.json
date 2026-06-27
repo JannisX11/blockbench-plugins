@@ -5,9 +5,9 @@
     "updated": 0
   },
   "animated_java": {
-    "version": "1.8.1",
+    "version": "1.10.1",
     "created": 1736294400000,
-    "updated": 1761004800000
+    "updated": 1782338671538
   },
   "armor_stand_animator": {
     "version": "1.1.0",
@@ -35,7 +35,7 @@
     "updated": 0
   },
   "outline_creator": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 0
   },
@@ -420,7 +420,7 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "2.1.2",
+    "version": "2.1.3",
     "created": 1680566400000,
     "updated": 1776713189096
   },
@@ -515,9 +515,9 @@
     "updated": 1756684800000
   },
   "gltf_importer": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "created": 1758758400000,
-    "updated": 1763074905482
+    "updated": 1780260186003
   },
   "translation_plane_gizmo": {
     "version": "1.0.1",
@@ -643,5 +643,15 @@
     "version": "1.0.6",
     "created": 1778520382148,
     "updated": 1778520382148
+  },
+  "batch_group_rename": {
+    "version": "1.3.0",
+    "created": 1779487482745,
+    "updated": 1782554831306
+  },
+  "fly_mode": {
+    "version": "1.0.0",
+    "created": 1782560115978,
+    "updated": 1782560115978
   }
 }
