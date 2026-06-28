@@ -15,4 +15,6 @@ What you can set:
 
 Everything happens in one undo step. If something goes wrong it restores the model instead of leaving it half-scaled.
 
+**Bake pose, keep animations.** It also wraps the native *Bake Animation Pose into Model*. Baking a pose changes the model's rest pose, which normally breaks your other animations (they're stored relative to the old rest). With the re-base option (ticked by default in the popup), every loaded animation is shifted onto the new rest pose in the same undo step, so they keep playing. Rotation and position are re-based; scale is left to the native action, which doesn't bake it.
+
 Standalone add-on. It doesn't modify the official Hytale plugin.

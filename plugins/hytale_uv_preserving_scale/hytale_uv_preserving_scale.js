@@ -10,7 +10,7 @@
  * Standalone add-on for the official Hytale plugin. It doesn't import or modify
  * it; it just checks the active format id, so load order doesn't matter.
  *
- * Author: Peakzone
+ * Author: CODEFELICE
  */
 
 (function () {
@@ -136,6 +136,25 @@
 			var t = raw.trim();
 			if (t === '') return raw;
 			return '(' + raw + ') * ' + s;
+		}
+		return raw;
+	}
+
+	// Re-base a keyframe value by subtracting a constant offset. Used after a pose
+	// is baked into the model: every keyframe of the channel is shifted by the
+	// baked offset, so the animation keeps playing relative to the new rest pose.
+	function rebaseKeyframeValue(raw, offset) {
+		if (!offset) return raw;
+		if (typeof raw === 'number') {
+			return Number.isFinite(raw) ? normalizeZero(raw - offset) : raw;
+		}
+		if (typeof raw === 'string') {
+			if (isPlainNumberString(raw)) {
+				return normalizeZero(parseFloat(raw) - offset);
+			}
+			var t = raw.trim();
+			if (t === '') return raw;
+			return '(' + raw + ') - (' + offset + ')';
 		}
 		return raw;
 	}
@@ -483,6 +502,7 @@
 		transformGroupData: transformGroupData,
 		isPlainNumberString: isPlainNumberString,
 		scaleKeyframeValue: scaleKeyframeValue,
+		rebaseKeyframeValue: rebaseKeyframeValue,
 		validateScaleFactor: validateScaleFactor,
 		nearlyEqual: nearlyEqual,
 		vecNearlyEqual: vecNearlyEqual,
@@ -527,6 +547,13 @@
 		return v.map(function (n) {
 			return String(Math.round(n * 10000) / 10000);
 		}).join(', ');
+	}
+
+	// Escape any dynamic text before it goes into the summary's innerHTML.
+	function esc(s) {
+		return String(s == null ? '' : s)
+			.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 	}
 
 	// Walk the chosen scope and split it into cubes, groups and anything we
@@ -780,7 +807,7 @@
 				'</td><td style="padding:2px 0;">' + val + '</td></tr>';
 		}
 		function warn(t) {
-			return '<span style="color:var(--color-warning,#e1a948);">⚠ ' + (t || '') + '</span>';
+			return '<span style="color:var(--color-warning,#e1a948);">⚠ ' + esc(t || '') + '</span>';
 		}
 
 		var rows = [];
@@ -991,6 +1018,391 @@
 		}
 	}
 
+	// --- Bake-pose interception --------------------------------------------
+	// Wraps the native "Bake Animation Pose into Model" action so we can offer to
+	// re-base every loaded animation onto the newly baked rest pose, in one undo.
+
+	var bakeActionRef = null;
+	var bakeOriginalClick = null;
+	var bakeWrapper = null;
+	var bakeActionPatched = false;
+	var activeBakeDialog = null;
+
+	var BAKE_DEG2RAD = Math.PI / 180;
+	var BAKE_RAD2DEG = 180 / Math.PI;
+
+	// Rotation math runs through Blockbench's own THREE quaternions so it matches how
+	// Hytale interpolates rotation. Plain euler math doesn't (slerp != lerp).
+	function bakeHasThree() {
+		return typeof THREE !== 'undefined' && THREE && typeof THREE.Quaternion === 'function' && typeof THREE.Euler === 'function';
+	}
+	function bakeBoneOrder(g) {
+		return (g && g.scene_object && g.scene_object.rotation && g.scene_object.rotation.order) || 'ZYX';
+	}
+	function eulerDegToQuat(e, order) {
+		return new THREE.Quaternion().setFromEuler(new THREE.Euler(e[0] * BAKE_DEG2RAD, e[1] * BAKE_DEG2RAD, e[2] * BAKE_DEG2RAD, order || 'ZYX'));
+	}
+	function quatToEulerDeg(q, order) {
+		var e = new THREE.Euler().setFromQuaternion(q, order || 'ZYX');
+		return [e.x * BAKE_RAD2DEG, e.y * BAKE_RAD2DEG, e.z * BAKE_RAD2DEG];
+	}
+
+	function getBakeAction() {
+		return (typeof BarItems !== 'undefined' && BarItems.bake_animation_into_model) ? BarItems.bake_animation_into_model : null;
+	}
+
+	function installBakeIntercept() {
+		var action = getBakeAction();
+		if (!action || bakeActionPatched || typeof action.click !== 'function') return;
+		bakeActionRef = action;
+		bakeOriginalClick = action.click;
+		bakeWrapper = function () {
+			// Only intercept for Hytale formats; everything else stays native.
+			if (!isHytaleActiveFormat()) {
+				return bakeOriginalClick.apply(this, arguments);
+			}
+			openBakeDialog();
+		};
+		action.click = bakeWrapper;
+		bakeActionPatched = true;
+	}
+
+	function removeBakeIntercept() {
+		try {
+			// Only restore if our wrapper is still the installed handler. If another
+			// plugin has since wrapped it, leave their patch alone rather than clobber it.
+			if (bakeActionPatched && bakeActionRef && bakeOriginalClick && bakeActionRef.click === bakeWrapper) {
+				bakeActionRef.click = bakeOriginalClick;
+			}
+		} catch (e) { console.error('[' + TITLE + '] bake intercept cleanup failed:', e); }
+		bakeActionPatched = false;
+		bakeActionRef = null;
+		bakeOriginalClick = null;
+		bakeWrapper = null;
+		try { if (activeBakeDialog) { activeBakeDialog.delete(); activeBakeDialog = null; } } catch (e) { /* ignore */ }
+	}
+
+	function callOriginalBake() {
+		if (typeof bakeOriginalClick === 'function') {
+			try { bakeOriginalClick.call(bakeActionRef); }
+			catch (e) { console.error('[' + TITLE + '] native bake failed:', e); }
+		}
+	}
+
+	function openBakeDialog() {
+		if (activeBakeDialog) { try { activeBakeDialog.delete(); } catch (e) { /* ignore */ } activeBakeDialog = null; }
+		var dialog = new Dialog('hytale_uv_preserving_scale_bake_dialog', {
+			title: 'Bake Animation Pose into Model',
+			width: 480,
+			form: {
+				rebase: {
+					label: 'Re-base loaded animations',
+					type: 'checkbox',
+					value: true,
+					description: 'Bakes the current pose into the model and shifts every loaded animation so they keep playing correctly relative to the new rest pose. Uncheck for the plain native bake.'
+				}
+			},
+			onConfirm: function (result) {
+				runBakeWithOptionalRebase(!!(result && result.rebase));
+			}
+		});
+		activeBakeDialog = dialog;
+		dialog.show();
+	}
+
+	function bakeMultiplier(animation) {
+		try {
+			if (animation.blend_weight && typeof Animator !== 'undefined' && Animator.MolangParser && typeof Animator.MolangParser.parse === 'function') {
+				return Math.max(0, Animator.MolangParser.parse(animation.blend_weight));
+			}
+		} catch (e) { /* fall through */ }
+		return 1;
+	}
+
+	function playingAnimations() {
+		var anims = (typeof Animator !== 'undefined' && Array.isArray(Animator.animations)) ? Animator.animations
+			: ((typeof Animation !== 'undefined' && Animation.all) ? Animation.all : []);
+		return anims.filter(function (a) { return a && a.playing; });
+	}
+
+	function resolveAnimatorGroupUuid(an) {
+		var grp = null;
+		try { grp = (typeof an.getGroup === 'function') ? an.getGroup() : null; } catch (e) { grp = null; }
+		if (!grp) grp = an.group || null;
+		return grp ? grp.uuid : an.uuid;
+	}
+
+	// Per bone: the pose offset the native bake adds at the current frame (rotation
+	// euler + position), read via interpolate() like the native action. For rotation
+	// we also stash K0^-1 in stored-keyframe space for re-basing the keyframes.
+	//
+	// Gotcha: Hytale interpolates rotation as quaternions. A key K (degrees) is
+	// composed as F*K with the bone's rest F, and interpolate() returns euler(F*K) - F.
+	// New rest after baking is F*K0, so keeping loaded anims unchanged means multiplying
+	// every key by K0^-1 = (F^-1*F')^-1. Captured before rest is touched, while F is
+	// still the current rest.
+	function captureBakeOffsets() {
+		var offsets = {};
+		var playing = playingAnimations();
+		if (!playing.length) return offsets;
+		var groups = (typeof Group !== 'undefined' && Group.all) ? Group.all : [];
+		for (var gi = 0; gi < groups.length; gi++) {
+			var g = groups[gi];
+			var rot = [0, 0, 0], pos = [0, 0, 0], any = false;
+			for (var pi = 0; pi < playing.length; pi++) {
+				var a = playing[pi];
+				var an = (typeof a.getBoneAnimator === 'function') ? a.getBoneAnimator(g) : null;
+				if (!an) continue;
+				var mult = bakeMultiplier(a);
+				if (an.channels && an.channels.rotation && typeof an.interpolate === 'function') {
+					var r = an.interpolate('rotation');
+					if (Array.isArray(r)) { rot[0] += r[0] * mult; rot[1] += r[1] * mult; rot[2] += r[2] * mult; any = true; }
+				}
+				if (an.channels && an.channels.position && typeof an.interpolate === 'function') {
+					var p = an.interpolate('position');
+					if (Array.isArray(p)) { pos[0] += p[0] * mult; pos[1] += p[1] * mult; pos[2] += p[2] * mult; any = true; }
+				}
+			}
+			if (any && (rot[0] || rot[1] || rot[2] || pos[0] || pos[1] || pos[2])) {
+				var order = bakeBoneOrder(g);
+				var rec = { rot: rot, pos: pos, order: order, restDeg: [g.rotation[0], g.rotation[1], g.rotation[2]] };
+				if ((rot[0] || rot[1] || rot[2]) && bakeHasThree()) {
+					// F = current rest, F' = setFromEuler(rest + pose) = the new rest the
+					// native bake lands on. K0 = F^-1*F'; store K0^-1 for the key re-base.
+					var qF = eulerDegToQuat(rec.restDeg, order);
+					var qFnew = eulerDegToQuat([rec.restDeg[0] + rot[0], rec.restDeg[1] + rot[1], rec.restDeg[2] + rot[2]], order);
+					rec.rotInv = qF.clone().conjugate().multiply(qFnew).conjugate(); // (F^-1*F')^-1 = K0^-1
+				}
+				offsets[g.uuid] = rec;
+			}
+		}
+		return offsets;
+	}
+
+	// Reproduce the native bake for bones: rotation added to the bone euler,
+	// position added to the origin and propagated to all descendants. Scale is
+	// ignored (as the native bake does); Hytale models contain no meshes.
+	function applyBakeToRestPose(offsets) {
+		var groups = (typeof Group !== 'undefined' && Group.all) ? Group.all : [];
+		function propagate(node, pos) {
+			if (typeof Group !== 'undefined' && node instanceof Group) {
+				node.origin[0] += pos[0]; node.origin[1] += pos[1]; node.origin[2] += pos[2];
+				if (node.children) for (var i = 0; i < node.children.length; i++) propagate(node.children[i], pos);
+			} else {
+				if (node.from) { node.from[0] += pos[0]; node.from[1] += pos[1]; node.from[2] += pos[2]; }
+				if (node.to) { node.to[0] += pos[0]; node.to[1] += pos[1]; node.to[2] += pos[2]; }
+				if (node.origin && node.origin !== node.from) { node.origin[0] += pos[0]; node.origin[1] += pos[1]; node.origin[2] += pos[2]; }
+			}
+		}
+		for (var gi = 0; gi < groups.length; gi++) {
+			var g = groups[gi];
+			var off = offsets[g.uuid];
+			if (!off) continue;
+			// Add the interpolated pose straight onto the bone euler, exactly like the
+			// native bake. interpolate() already returned euler(F*K) - F, so this lands
+			// the rest rotation on euler(F*K) = the displayed pose. (A quaternion compose
+			// here would NOT match the native action — the fix-rotation term is the point.)
+			g.rotation[0] += off.rot[0]; g.rotation[1] += off.rot[1]; g.rotation[2] += off.rot[2];
+			propagate(g, off.pos);
+		}
+	}
+
+	function rebaseChannelKeyframes(keyframes, off) {
+		if (!keyframes || !keyframes.length || (!off[0] && !off[1] && !off[2])) return [];
+		var touched = [];
+		for (var i = 0; i < keyframes.length; i++) {
+			var kf = keyframes[i];
+			if (!kf || !kf.data_points) continue;
+			for (var dp = 0; dp < kf.data_points.length; dp++) {
+				kf.set('x', rebaseKeyframeValue(kf.get('x', dp), off[0]), dp);
+				kf.set('y', rebaseKeyframeValue(kf.get('y', dp), off[1]), dp);
+				kf.set('z', rebaseKeyframeValue(kf.get('z', dp), off[2]), dp);
+			}
+			touched.push(kf);
+		}
+		return touched;
+	}
+
+	// Re-base rotation keyframes in stored-keyframe space: each key K becomes K0^-1*K
+	// (quaternion), the exact inverse of how Blockbench slerps Hytale rotations, so the
+	// animation plays identically relative to the new rest pose. q0inv (= K0^-1) is
+	// precomputed in captureBakeOffsets while the bone's rest rotation is still intact.
+	function rebaseRotationKeyframesQuat(keyframes, q0inv, order) {
+		if (!keyframes || !keyframes.length || !q0inv) return [];
+		var touched = [];
+		for (var i = 0; i < keyframes.length; i++) {
+			var kf = keyframes[i];
+			if (!kf || !kf.data_points) continue;
+			for (var dp = 0; dp < kf.data_points.length; dp++) {
+				var ex = Number(kf.get('x', dp)), ey = Number(kf.get('y', dp)), ez = Number(kf.get('z', dp));
+				if (!isFinite(ex) || !isFinite(ey) || !isFinite(ez)) continue; // leave expression keys alone
+				var ne = quatToEulerDeg(q0inv.clone().multiply(eulerDegToQuat([ex, ey, ez], order)), order);
+				kf.set('x', normalizeZero(ne[0]), dp);
+				kf.set('y', normalizeZero(ne[1]), dp);
+				kf.set('z', normalizeZero(ne[2]), dp);
+			}
+			touched.push(kf);
+		}
+		return touched;
+	}
+
+	// Re-base every loaded animation against the baked pose, per matching bone:
+	// rotation by quaternion (K0^-1 * key), position by subtraction.
+	function rebaseLoadedAnimations(offsets) {
+		var anims = (typeof Animation !== 'undefined' && Animation.all) ? Animation.all : [];
+		var changedAnims = [], changedKfs = [];
+		for (var ai = 0; ai < anims.length; ai++) {
+			var a = anims[ai];
+			if (!a || !a.animators) continue;
+			var animChanged = false;
+			for (var uuid in a.animators) {
+				var an = a.animators[uuid];
+				if (!an) continue;
+				if (typeof BoneAnimator !== 'undefined' && !(an instanceof BoneAnimator)) continue;
+				var off = offsets[resolveAnimatorGroupUuid(an)];
+				if (!off) continue;
+				// rotInv is set whenever there's a rotation offset (THREE is always present
+				// in Blockbench); no offset means nothing to re-base on that channel.
+				var t1 = off.rotInv ? rebaseRotationKeyframesQuat(an.rotation, off.rotInv, off.order) : [];
+				var t2 = rebaseChannelKeyframes(an.position, off.pos);
+				if (t1.length || t2.length) { animChanged = true; changedKfs = changedKfs.concat(t1, t2); }
+			}
+			if (animChanged) changedAnims.push(a);
+		}
+		return { animations: changedAnims, keyframes: changedKfs };
+	}
+
+	// After re-basing, the playing animation must collapse to ~0 at the current
+	// frame for every baked bone (= the new rest pose). Otherwise roll back.
+	function validateBakeRebase(offsets) {
+		var playing = playingAnimations();
+		var tol = 1e-3;
+		for (var pi = 0; pi < playing.length; pi++) {
+			var a = playing[pi];
+			if (!a.animators) continue;
+			for (var uuid in a.animators) {
+				var an = a.animators[uuid];
+				if (!an) continue;
+				if (typeof BoneAnimator !== 'undefined' && !(an instanceof BoneAnimator)) continue;
+				if (!offsets[resolveAnimatorGroupUuid(an)]) continue;
+				if (an.channels && an.channels.rotation && typeof an.interpolate === 'function') {
+					var r = an.interpolate('rotation');
+					if (Array.isArray(r) && (Math.abs(r[0]) > tol || Math.abs(r[1]) > tol || Math.abs(r[2]) > tol)) {
+						return { ok: false, error: 'rotation re-base self-check failed' };
+					}
+				}
+				if (an.channels && an.channels.position && typeof an.interpolate === 'function') {
+					var p = an.interpolate('position');
+					if (Array.isArray(p) && (Math.abs(p[0]) > tol || Math.abs(p[1]) > tol || Math.abs(p[2]) > tol)) {
+						return { ok: false, error: 'position re-base self-check failed' };
+					}
+				}
+			}
+		}
+		return { ok: true };
+	}
+
+	function collectBakeKeyframeSnapshots(keyframes, out) {
+		if (!keyframes) return;
+		for (var i = 0; i < keyframes.length; i++) {
+			var kf = keyframes[i];
+			if (!kf || !kf.data_points) continue;
+			var dps = [];
+			for (var dp = 0; dp < kf.data_points.length; dp++) {
+				dps.push({ x: kf.get('x', dp), y: kf.get('y', dp), z: kf.get('z', dp) });
+			}
+			out.push({ kf: kf, dps: dps });
+		}
+	}
+
+	function snapshotBakeState(offsets) {
+		var groups = (typeof Group !== 'undefined' && Group.all) ? Group.all.slice() : [];
+		var cubes = (typeof Cube !== 'undefined' && Cube.all) ? Cube.all.slice() : [];
+		var gs = groups.map(function (g) { return { g: g, rotation: g.rotation.slice(), origin: g.origin.slice() }; });
+		var cs = cubes.map(function (c) { return { c: c, from: c.from.slice(), to: c.to.slice(), origin: c.origin.slice() }; });
+		var kfs = [];
+		var anims = (typeof Animation !== 'undefined' && Animation.all) ? Animation.all : [];
+		for (var ai = 0; ai < anims.length; ai++) {
+			var a = anims[ai];
+			if (!a || !a.animators) continue;
+			for (var uuid in a.animators) {
+				var an = a.animators[uuid];
+				if (typeof BoneAnimator !== 'undefined' && !(an instanceof BoneAnimator)) continue;
+				if (!offsets[resolveAnimatorGroupUuid(an)]) continue;
+				collectBakeKeyframeSnapshots(an.rotation, kfs);
+				collectBakeKeyframeSnapshots(an.position, kfs);
+			}
+		}
+		return { groups: gs, cubes: cs, keyframes: kfs };
+	}
+
+	function restoreBakeState(snap) {
+		snap.groups.forEach(function (s) { writeVec(s.g.rotation, s.rotation); writeVec(s.g.origin, s.origin); });
+		snap.cubes.forEach(function (s) { writeVec(s.c.from, s.from); writeVec(s.c.to, s.to); writeVec(s.c.origin, s.origin); });
+		snap.keyframes.forEach(function (s) {
+			s.dps.forEach(function (vals, i) { s.kf.set('x', vals.x, i); s.kf.set('y', vals.y, i); s.kf.set('z', vals.z, i); });
+		});
+	}
+
+	function refreshAfterBake(cubes, groups) {
+		try {
+			if (typeof Canvas === 'undefined') return;
+			Canvas.updateView({ elements: cubes, element_aspects: { transform: true, geometry: true }, groups: groups, selection: true });
+			if (typeof Canvas.updateAllBones === 'function') Canvas.updateAllBones();
+		} catch (e) { console.error('[' + TITLE + '] refresh after bake failed:', e); }
+	}
+
+	// Bake the pose and re-base all animations as ONE undo step. If re-base is
+	// off, or nothing is playing to bake, the plain native bake runs instead.
+	function runBakeWithOptionalRebase(doRebase) {
+		var offsets = doRebase ? captureBakeOffsets() : {};
+		if (!doRebase || !Object.keys(offsets).length) {
+			callOriginalBake();
+			return;
+		}
+
+		var groups = (typeof Group !== 'undefined' && Group.all) ? Group.all.slice() : [];
+		var cubes = (typeof Cube !== 'undefined' && Cube.all) ? Cube.all.slice() : [];
+		var anims = (typeof Animation !== 'undefined' && Animation.all) ? Animation.all.slice() : [];
+		var snapshot = snapshotBakeState(offsets);
+
+		var aspects = { elements: cubes, groups: groups, outliner: true, selection: true };
+		if (anims.length) aspects.animations = anims;
+
+		var editStarted = false;
+		try {
+			Undo.initEdit(aspects);
+			editStarted = true;
+
+			applyBakeToRestPose(offsets);
+			var changed = rebaseLoadedAnimations(offsets);
+
+			var v = validateBakeRebase(offsets);
+			if (!v.ok) throw new Error('Post-operation validation failed: ' + v.error);
+
+			refreshAfterBake(cubes, groups);
+			changed.animations.forEach(function (a) { a.saved = false; });
+			if (typeof Project !== 'undefined' && Project) Project.saved = false;
+
+			Undo.finishEdit('Bake animation pose into model (re-based)', aspects);
+
+			// Match the native bake, which leaves you in edit mode afterwards.
+			try {
+				if (typeof Modes !== 'undefined' && Modes.options && Modes.options.edit && typeof Modes.options.edit.select === 'function') {
+					Modes.options.edit.select();
+				}
+			} catch (e) { /* ignore */ }
+
+			Blockbench.showQuickMessage('Pose baked, ' + changed.animations.length + ' animation(s) re-based', 3000);
+		} catch (err) {
+			console.error('[' + TITLE + '] bake + re-base failed, rolling back:', err);
+			try { restoreBakeState(snapshot); } catch (e) { console.error('bake restore failed:', e); }
+			try { if (editStarted) Undo.cancelEdit(); } catch (e) { console.error('Undo.cancelEdit failed:', e); }
+			try { refreshAfterBake(cubes, groups); } catch (e) { /* already logged */ }
+			Blockbench.showMessageBox({ title: TITLE, message: 'Bake + re-base failed and the model was restored.\n\nReason: ' + (err && err.message ? err.message : err) });
+		}
+	}
+
 	// --- Plugin lifecycle --------------------------------------------------
 
 	Plugin.register(PLUGIN_ID, {
@@ -1014,6 +1426,7 @@
 				click: function () { openDialog(); }
 			});
 			MenuBar.menus.tools.addAction(pluginAction);
+			installBakeIntercept();
 		},
 		onunload: function () {
 			try {
@@ -1022,6 +1435,7 @@
 			try {
 				if (pluginAction) { pluginAction.delete(); pluginAction = null; }
 			} catch (e) { console.error('[' + TITLE + '] action cleanup failed:', e); }
+			removeBakeIntercept();
 			lastFormValues = null;
 		}
 	});
