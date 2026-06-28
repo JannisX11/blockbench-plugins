@@ -530,6 +530,7 @@
 	var activeDialog = null;
 	var pluginAction = null;
 	var lastFormValues = null; // keep inputs around when reopening after an error
+	var animLoadAttempted = null; // the Project we already tried to lazy-load animations for
 
 	function isHytaleActiveFormat() {
 		return (typeof Format !== 'undefined') && !!Format && HYTALE_FORMAT_IDS.indexOf(Format.id) !== -1;
@@ -850,6 +851,30 @@
 		}
 	}
 
+	// The Hytale plugin loads a model's .blockyanim files lazily, via a one-shot
+	// 'select_mode' listener that only fires the first time you enter animate mode.
+	// So if you load a model and scale straight away (still in edit mode), those
+	// animations aren't in the project yet and can't be scaled. Fire that same event
+	// to trigger the load now — without switching modes, so the current selection,
+	// pose and mode stay exactly as they are. It's a no-op once they're loaded.
+	function ensureHytaleAnimationsLoaded() {
+		try {
+			if (!isHytaleActiveFormat()) return;
+			if (typeof Animation === 'undefined' || !Animation.all || Animation.all.length) return;
+			if (typeof Animator !== 'undefined' && Animator.open) return; // animate mode already loads them
+			if (typeof Blockbench === 'undefined' || typeof Blockbench.dispatchEvent !== 'function') return;
+			if (typeof Modes === 'undefined' || !Modes.options || !Modes.options.animate) return;
+			// Try at most once per project: if there was nothing to load, don't keep
+			// re-firing the event every time the dialog opens.
+			var proj = (typeof Project !== 'undefined') ? Project : null;
+			if (proj && animLoadAttempted === proj) return;
+			animLoadAttempted = proj;
+			Blockbench.dispatchEvent('select_mode', { mode: Modes.options.animate });
+		} catch (e) {
+			console.error('[' + TITLE + '] could not pre-load animations:', e);
+		}
+	}
+
 	function openDialog() {
 		if (!isHytaleActiveFormat()) {
 			Blockbench.showMessageBox({
@@ -868,6 +893,8 @@
 		var hasAnims = countLoadedPositionAnimations() > 0;
 		var summaryEl = document.createElement('div');
 		var presetMap = [0.25, 0.5, 2, 4];
+		var prevScope = 'all'; // so we can suggest a sensible pivot when the scope changes
+		var restoring = false; // don't re-suggest a pivot while restoring saved values
 
 		var dialog = new Dialog(DIALOG_ID, {
 			title: TITLE,
@@ -922,6 +949,19 @@
 			},
 			lines: [summaryEl],
 			onFormChange: function (result) {
+				// A sub-selection should scale in place, so steer the pivot to the
+				// selection's own root (and back to model origin for the whole model).
+				// Only swaps the origin<->root pair, never a custom or restored pivot.
+				var scopeChanged = result.scope !== prevScope;
+				prevScope = result.scope;
+				if (scopeChanged && !restoring) {
+					var swapFrom = result.scope === 'selection' ? 'origin' : 'root';
+					var swapTo = result.scope === 'selection' ? 'root' : 'origin';
+					if (result.pivot === swapFrom && activeDialog && activeDialog.setFormValues) {
+						activeDialog.setFormValues({ pivot: swapTo });
+						return; // re-fires onFormChange, which refreshes the summary
+					}
+				}
 				lastFormValues = result;
 				updateSummary(summaryEl, result);
 			},
@@ -936,7 +976,9 @@
 		activeDialog = dialog;
 		dialog.show();
 		if (lastFormValues) {
+			restoring = true;
 			try { dialog.setFormValues(lastFormValues); } catch (e) { /* ignore */ }
+			restoring = false;
 		}
 		updateSummary(summaryEl, dialog.getFormResult ? dialog.getFormResult() : {});
 	}
@@ -1423,7 +1465,7 @@
 				icon: 'photo_size_select_large',
 				category: 'tools',
 				condition: function () { return isHytaleActiveFormat(); },
-				click: function () { openDialog(); }
+				click: function () { ensureHytaleAnimationsLoaded(); openDialog(); }
 			});
 			MenuBar.menus.tools.addAction(pluginAction);
 			installBakeIntercept();

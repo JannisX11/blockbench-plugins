@@ -10,7 +10,7 @@ What you can set:
 
 * Scale factor, with presets (×0.25, ×0.5, ×2, ×4).
 * Scale the whole model or just the selected hierarchy.
-* Pivot: model origin, the selected root, or a custom point.
+* Pivot: model origin, the selected root, or a custom point. Picking "Selected Hierarchy" defaults to the selected root, so the part scales in place.
 * Optionally scale the position keyframes of loaded animations. Rotation, stretch, visibility and UV channels are left alone.
 
 Everything happens in one undo step. If something goes wrong it restores the model instead of leaving it half-scaled.
