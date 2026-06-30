@@ -2323,6 +2323,7 @@
                     if (bone[channel]) addJsonTrackToAnimator(animator, channel, bone[channel]);
                 });
             });
+            addEffectTracksToAnimation(bbAnimation, animObj);
             if (typeof bbAnimation.calculateSnappingFromKeyframes === "function") {
                 bbAnimation.calculateSnappingFromKeyframes();
             }
@@ -2546,6 +2547,159 @@
         });
     }
 
+    function isEffectAnimator(animator, id) {
+        if (!animator) return false;
+        if (id === "effects") return true;
+        if (typeof EffectAnimator !== "undefined" && animator instanceof EffectAnimator) return true;
+        return Array.isArray(animator.sound) || Array.isArray(animator.particle) || Array.isArray(animator.timeline);
+    }
+
+    function getEffectsAnimator(animation) {
+        if (!animation || !animation.animators) return null;
+        if (!animation.animators.effects) {
+            if (typeof EffectAnimator === "undefined") return null;
+            animation.animators.effects = new EffectAnimator(animation);
+        }
+        return animation.animators.effects;
+    }
+
+    function effectPayloadToArray(payload) {
+        if (payload === undefined || payload === null) return [];
+        return Array.isArray(payload) ? payload : [payload];
+    }
+
+    function effectPointHasData(point) {
+        return !!(point && typeof point === "object" && !Array.isArray(point) && point.effect !== undefined && point.effect !== "");
+    }
+
+    function sanitizeEffectPoint(point, channel) {
+        if (!point || typeof point !== "object" || Array.isArray(point)) return clone(point);
+        const out = clone(point);
+        if (channel === "particle") {
+            if (out.pre_effect_script === undefined && out.script !== undefined) out.pre_effect_script = out.script;
+            delete out.script;
+        } else if (channel === "sound") {
+            delete out.script;
+            delete out.pre_effect_script;
+            delete out.bind_to_actor;
+        }
+        Object.keys(out).forEach(key => {
+            if (out[key] === undefined || out[key] === "") delete out[key];
+        });
+        return out;
+    }
+
+    function normalizeTimelineScript(script) {
+        const lines = String(script || "").split("\n").map(line => line.trim()).filter(Boolean);
+        return lines.map(line => {
+            if (line.endsWith(";") || line.startsWith("/")) return line;
+            return `${line};`;
+        });
+    }
+
+    function compileEffectKeyframeFallback(keyframe, channel) {
+        const dataPoints = effectPayloadToArray(keyframe && keyframe.data_points);
+        if (channel === "timeline") {
+            const lines = [];
+            dataPoints.forEach(point => normalizeTimelineScript(point && point.script).forEach(line => lines.push(line)));
+            if (!lines.length) return undefined;
+            return lines.length === 1 ? lines[0] : lines;
+        }
+        const points = dataPoints.map(point => sanitizeEffectPoint(point, channel)).filter(effectPointHasData);
+        if (!points.length) return undefined;
+        return points.length === 1 ? points[0] : points;
+    }
+
+    function compileEffectKeyframe(keyframe, channel) {
+        if (keyframe && typeof keyframe.compileBedrockKeyframe === "function") {
+            const compiled = keyframe.compileBedrockKeyframe();
+            if (channel === "timeline") return compiled;
+            const points = effectPayloadToArray(compiled).map(point => sanitizeEffectPoint(point, channel)).filter(effectPointHasData);
+            if (!points.length) return undefined;
+            return Array.isArray(compiled) ? points : points[0];
+        }
+        return compileEffectKeyframeFallback(keyframe, channel);
+    }
+
+    function mergeEffectPayload(target, timeKey, payload, channel) {
+        if (payload === undefined || payload === null) return;
+        if (channel === "timeline") {
+            const incoming = effectPayloadToArray(payload).map(line => String(line || "").trim()).filter(Boolean);
+            if (!incoming.length) return;
+            if (target[timeKey] === undefined) {
+                target[timeKey] = incoming.length === 1 ? incoming[0] : incoming;
+            } else {
+                target[timeKey] = effectPayloadToArray(target[timeKey]).concat(incoming);
+            }
+            return;
+        }
+        const incoming = effectPayloadToArray(payload).map(point => sanitizeEffectPoint(point, channel)).filter(effectPointHasData);
+        if (!incoming.length) return;
+        if (target[timeKey] === undefined) {
+            target[timeKey] = incoming.length === 1 ? incoming[0] : incoming;
+        } else {
+            target[timeKey] = effectPayloadToArray(target[timeKey]).concat(incoming);
+        }
+    }
+
+    function addEffectChannelToJson(effects, animObj, channel, jsonField) {
+        const keyframes = Array.isArray(effects && effects[channel]) ? effects[channel].slice() : [];
+        if (!keyframes.length) return;
+        const jsonTrack = {};
+        keyframes
+            .sort((a, b) => numberOr(a && a.time, 0) - numberOr(b && b.time, 0))
+            .forEach(keyframe => {
+                const payload = compileEffectKeyframe(keyframe, channel);
+                const timeKey = formatSeconds(numberOr(keyframe && keyframe.time, 0));
+                mergeEffectPayload(jsonTrack, timeKey, payload, channel);
+            });
+        if (Object.keys(jsonTrack).length) animObj[jsonField] = jsonTrack;
+    }
+
+    function addEffectTracksFromAnimation(animation, animObj) {
+        const effects = animation && animation.animators && animation.animators.effects;
+        if (!effects) return;
+        addEffectChannelToJson(effects, animObj, "sound", "sound_effects");
+        addEffectChannelToJson(effects, animObj, "particle", "particle_effects");
+        addEffectChannelToJson(effects, animObj, "timeline", "timeline");
+    }
+
+    function addEffectJsonChannelToAnimator(effects, jsonTrack, channel) {
+        if (!effects || !jsonTrack || typeof jsonTrack !== "object" || typeof effects.addKeyframe !== "function") return;
+        Object.keys(jsonTrack).forEach(timeKey => {
+            const time = Number(timeKey);
+            if (!Number.isFinite(time)) return;
+            const value = jsonTrack[timeKey];
+            if (channel === "timeline") {
+                const script = Array.isArray(value) ? value.join("\n") : value;
+                effects.addKeyframe({
+                    channel,
+                    time,
+                    data_points: [{script: String(script || "")}]
+                });
+                return;
+            }
+            const points = effectPayloadToArray(value).map(point => {
+                const out = clone(point);
+                if (channel === "particle" && out && typeof out === "object" && !Array.isArray(out) && out.script === undefined && out.pre_effect_script !== undefined) {
+                    out.script = out.pre_effect_script;
+                }
+                return out;
+            }).filter(point => point && typeof point === "object");
+            if (!points.length) return;
+            effects.addKeyframe({channel, time, data_points: points});
+        });
+    }
+
+    function addEffectTracksToAnimation(animation, animObj) {
+        if (!animObj || (!animObj.sound_effects && !animObj.particle_effects && !animObj.timeline)) return;
+        const effects = getEffectsAnimator(animation);
+        if (!effects) return;
+        addEffectJsonChannelToAnimator(effects, animObj.sound_effects, "sound");
+        addEffectJsonChannelToAnimator(effects, animObj.particle_effects, "particle");
+        addEffectJsonChannelToAnimator(effects, animObj.timeline, "timeline");
+    }
+
     function jsonElementToBlockbenchKey(element, channel) {
         let interpolation;
         let easing = DEFAULT_EASING;
@@ -2580,9 +2734,11 @@
             };
             const loopValue = animationLoopForJson(animation.loop);
             if (loopValue !== undefined) animObj.loop = loopValue;
+            addEffectTracksFromAnimation(animation, animObj);
             Object.keys(animation.animators || {}).forEach(id => {
                 const animator = animation.animators[id];
                 if (!animator) return;
+                if (isEffectAnimator(animator, id)) return;
                 const boneName = animator.name || findGroupNameByUuid(id);
                 if (!boneName) return;
                 const boneOut = {};
