@@ -1,4 +1,11 @@
 {
+    "voxelizer": {
+         "title": "Voxelizer",
+         "author": "PAT1519",
+         "description": "Converts Mesh geometry into standard Java Cubes while preserving original position, size, and rotation.",
+         "version": "1.0.0",
+         "variant": "both"
+  },
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
