@@ -57,9 +57,7 @@ function registerEmeFormat(icon) {
       if (Project && !Project.model_identifier && Project.name) {
         Project.model_identifier = toModelIdentifier(Project.name);
       }
-    },
-    onDeactivation() {
-    },
+    }
   });
 }
 

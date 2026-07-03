@@ -21,9 +21,9 @@ const {
   settingsToForm,
   formToSettings,
   presetFormValues,
-  resolveExportSettings,
-  presetOptions
-} = require('../ui/exportDialog');
+  resolveExportSettings
+} = require('../ui/exportSettingsMapping');
+const {presetOptions} = require('../ui/exportDialogOptions');
 const {fixtureSettings} = require('./fixtureData');
 
 const MODEL_DIMS = {width: 1, height: 2, eyeHeight: 1.8};

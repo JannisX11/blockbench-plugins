@@ -27,9 +27,8 @@ class ModelDimensions {
 
   static #EYE_HEIGHT_FACTOR = {biped: 0.9, quadruped: 0.8, static: 0.85};
 
-  static #round(value, digits) {
-    const factor = Math.pow(10, digits == null ? 3 : digits);
-    return Math.round(value * factor) / factor;
+  static #round(value) {
+    return Math.round(value * 1000) / 1000;
   }
 
   static #isUsableBounds(bounds) {
@@ -67,7 +66,6 @@ class ModelDimensions {
     };
   }
 
-  // mutates settings in-place and returns it
   static applyModelDimensions(settings, modelDimensions) {
     if (!modelDimensions) {
       return settings;

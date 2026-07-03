@@ -41,6 +41,7 @@ const BODY_TYPES = [
 const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
+const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
@@ -50,6 +51,9 @@ const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
+
+const DEFAULT_MAX_HEALTH = 10;
+const DEFAULT_FOLLOW_RANGE = 16;
 
 const PRESET_TYPES = [
   'custom',
@@ -336,7 +340,11 @@ function blockEntityPresetDefaults(presetType) {
     dimensions: {...BLOCK_ENTITY_DIMENSIONS},
     movement: {speed: 0, stepHeight: 0, gravity: false},
     behavior: {mode: 'static', lookAtPlayers: false, randomStroll: false},
-    attributes: {maxHealth: 10, movementSpeed: 0, followRange: 16},
+    attributes: {
+      maxHealth: DEFAULT_MAX_HEALTH,
+      movementSpeed: 0,
+      followRange: DEFAULT_FOLLOW_RANGE
+    },
     rendering: defaultRenderingSettings('cuboid_still'),
     animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
   };
@@ -372,9 +380,9 @@ function presetDefaults(presetType, modelType) {
       randomStroll: wandersByMovement(move) && mode === 'ambient'
     },
     attributes: {
-      maxHealth: 10,
+      maxHealth: DEFAULT_MAX_HEALTH,
       movementSpeed: movement.speed,
-      followRange: 16
+      followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings(presetType),
     animation: defaultAnimationSettings(animationMode(presetType))
@@ -388,10 +396,13 @@ module.exports = {
   MODEL_TYPES,
   BODY_TYPES,
   MOVEMENT_TYPES,
+  DEFAULT_MAX_HEALTH,
+  DEFAULT_FOLLOW_RANGE,
   BEHAVIOR_MODES,
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
+  ANIMATION_CLIPS,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
   isStablePreset,
@@ -403,5 +414,7 @@ module.exports = {
   animationMode,
   presetDimensions,
   presetShadowRadius,
-  presetDefaults
+  presetDefaults,
+  defaultRenderingSettings,
+  defaultAnimationSettings
 };

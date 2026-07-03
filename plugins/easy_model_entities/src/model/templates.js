@@ -17,12 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {
-  PRESET_TYPES,
-  SELECTABLE_PRESET_TYPES,
-  MODEL_TYPE_ENTITY,
-  presetDefaults
-} = require('./presetTypes');
+const {MODEL_TYPE_ENTITY, presetDefaults} = require('./presetTypes');
 const {getDefaultVersionId} = require('./versionMatrix');
 
 const DEFAULT_PRESET = 'statue';
@@ -92,8 +87,6 @@ function applyTemplate(presetType, modelType) {
 
 module.exports = {
   DEFAULT_PRESET,
-  PRESET_TYPES,
-  SELECTABLE_PRESET_TYPES,
   getDefaults,
   applyTemplate,
   deepMerge,

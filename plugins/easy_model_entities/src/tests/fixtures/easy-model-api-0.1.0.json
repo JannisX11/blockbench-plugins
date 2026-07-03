@@ -75,6 +75,12 @@
       "random_idle",
       "none"
     ],
+    "animation_clips": [
+      "idle",
+      "walk",
+      "swim",
+      "fly"
+    ],
     "gaits": [
       "natural",
       "feline",

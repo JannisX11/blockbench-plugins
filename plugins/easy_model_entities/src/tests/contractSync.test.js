@@ -30,6 +30,7 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
+  ANIMATION_CLIPS,
   GAIT_TYPES
 } = require('../model/presetTypes');
 const {applyTemplate} = require('../model/templates');
@@ -55,6 +56,8 @@ describe('mod API contract sync', () => {
         sorted(contract.enums.block_entity_preset_types));
     expect(sorted(ANIMATION_MODES)).toEqual(
         sorted(contract.enums.animation_modes));
+    expect(sorted(ANIMATION_CLIPS)).toEqual(
+        sorted(contract.enums.animation_clips));
     expect(sorted(GAIT_TYPES)).toEqual(sorted(contract.enums.gaits));
   });
 

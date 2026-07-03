@@ -21,11 +21,13 @@ const {
   getDefaults,
   applyTemplate,
   DEFAULT_PRESET,
-  PRESET_TYPES,
-  SELECTABLE_PRESET_TYPES,
   deepMerge
 } = require('../model/templates');
-const {presetDefaults} = require('../model/presetTypes');
+const {
+  presetDefaults,
+  PRESET_TYPES,
+  SELECTABLE_PRESET_TYPES
+} = require('../model/presetTypes');
 
 describe('templates', () => {
   test('exposes the 20 mod preset types', () => {

@@ -58,10 +58,6 @@ function getVersion(id) {
   return VERSIONS.find((version) => version.id === id) || null;
 }
 
-function getEnabledVersions() {
-  return getVersions().filter((version) => version.enabled);
-}
-
 function getDefaultVersionId() {
   return DEFAULT_VERSION_ID;
 }
@@ -79,7 +75,6 @@ function getPackFormats(id) {
 
 module.exports = {
   getVersions,
-  getEnabledVersions,
   getDefaultVersionId,
   getPackFormats
 };

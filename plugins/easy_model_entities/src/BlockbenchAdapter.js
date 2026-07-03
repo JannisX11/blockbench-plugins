@@ -17,6 +17,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {Validator} = require('./model/Validator');
+
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
 
@@ -62,6 +64,43 @@ class BlockbenchAdapter {
     }));
   }
 
+  static #isNumericValue(value) {
+    if (typeof value === 'number') {
+      return Number.isFinite(value);
+    }
+
+    return typeof value === 'string' && value.trim() !== ''
+        && Number.isFinite(Number(value));
+  }
+
+  static #summarizeAnimation(animation) {
+    const channels = new Set();
+    let hasExpression = false;
+
+    Object.values(animation.animators || {}).forEach((animator) => {
+      (animator.keyframes || []).forEach((keyframe) => {
+        if (keyframe.channel) {
+          channels.add(keyframe.channel);
+        }
+        (keyframe.data_points || []).forEach((point) => {
+          ['x', 'y', 'z'].forEach((axis) => {
+            const value = point?.[axis];
+            if (value !== undefined && value !== null
+                && !BlockbenchAdapter.#isNumericValue(value)) {
+              hasExpression = true;
+            }
+          });
+        });
+      });
+    });
+
+    return {
+      name: animation.name || '',
+      channels: [...channels],
+      hasExpression: hasExpression
+    };
+  }
+
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
@@ -88,6 +127,8 @@ class BlockbenchAdapter {
       cubeCount: cubes.length,
       boneCount: groups.length,
       animationCount: animations.length,
+      animations: animations.map(
+          (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
       textureWidth: texture ? texture.width : undefined,
@@ -227,6 +268,10 @@ class BlockbenchAdapter {
     const fs = require('fs');
     const path = require('path');
     files.forEach((file) => {
+      const result = Validator.validateOutputPath(rootDir, file.path);
+      if (!result.valid) {
+        throw new Error(`${result.code}: ${result.message} (${file.path})`);
+      }
       const fullPath = path.join(rootDir, file.path);
       fs.mkdirSync(path.dirname(fullPath), {recursive: true});
       const data =

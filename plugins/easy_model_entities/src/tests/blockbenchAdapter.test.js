@@ -17,40 +17,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {applyTemplate} = require('../model/templates');
-const {resolveTextures} = require('../utils/TextureResolver');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
-const FIXTURE_MODEL_BYTES = '{"meta":{"format_version":"4.5"},"name":"lizard"}';
-const FIXTURE_TEXTURE_BYTES = Uint8Array.from(
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const {BlockbenchAdapter} = require('../BlockbenchAdapter');
 
-function fixtureSettings() {
-  const settings = applyTemplate('quadruped_wandering');
-  settings.namespace = 'example';
-  settings.profileId = 'lizard';
+describe('writeToDirectory', () => {
+  let rootDir;
 
-  return settings;
-}
+  beforeEach(() => {
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eme-test-'));
+  });
 
-function fixtureTextureResolution(settings) {
-  return resolveTextures([
-    {
-      index: 0, name: '', namespace: '', folder: '', path: '',
-      bytes: FIXTURE_TEXTURE_BYTES
-    }
-  ], settings || fixtureSettings());
-}
+  afterEach(() => {
+    fs.rmSync(rootDir, {recursive: true, force: true});
+  });
 
-function fixtureExportOptions(settings) {
-  return {
-    modelBytes: FIXTURE_MODEL_BYTES,
-    textureResolution: fixtureTextureResolution(settings)
-  };
-}
+  test('writes files below the output root', () => {
+    BlockbenchAdapter.writeToDirectory(rootDir,
+        [{path: 'data/example/profile.json', content: '{}'}]);
+    expect(fs.readFileSync(
+        path.join(rootDir, 'data/example/profile.json'), 'utf8')).toBe('{}');
+  });
 
-module.exports = {
-  FIXTURE_MODEL_BYTES,
-  FIXTURE_TEXTURE_BYTES,
-  fixtureSettings,
-  fixtureExportOptions
-};
+  test('rejects path traversal', () => {
+    expect(() => BlockbenchAdapter.writeToDirectory(rootDir,
+        [{path: '../escape.json', content: '{}'}])).toThrow('PATH_TRAVERSAL');
+    expect(fs.existsSync(path.join(rootDir, '..', 'escape.json'))).toBe(false);
+  });
+
+  test('rejects absolute paths', () => {
+    expect(() => BlockbenchAdapter.writeToDirectory(rootDir,
+        [{path: 'C:/escape.json', content: '{}'}])).toThrow('ABSOLUTE_PATH');
+  });
+});

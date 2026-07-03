@@ -21,8 +21,11 @@ const {ResourceLocation} = require('../utils/ResourceLocation');
 const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  ANIMATION_CLIPS,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('./presetTypes');
+
+const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
 
 class Validator {
   static BUDGETS = {
@@ -105,8 +108,6 @@ class Validator {
       });
     }
     const blockEntity = settings.modelType === MODEL_TYPE_BLOCK_ENTITY;
-
-    // Block entity host type is derived by the mod; only entities carry one.
     if (!blockEntity
         && !ResourceLocation.isValidResourceLocation(
             settings.host.entityType)) {
@@ -224,11 +225,36 @@ class Validator {
         });
     if (Validator.#isFiniteNumber(ctx.animationCount)
         && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
-      warnings.push({
+      errors.push({
         code: 'HIGH_ANIMATION_COUNT',
-        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations`
+        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations; the mod refuses to load the model`
       });
     }
+
+    (ctx.animations || []).forEach((animation) => {
+      const name = String(animation.name || '').toLowerCase();
+      if (!ANIMATION_CLIPS.includes(name)) {
+        warnings.push({
+          code: 'NON_STANDARD_ANIMATION',
+          message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
+              ', ')} and is ignored by the mod`
+        });
+      }
+      if (animation.hasExpression) {
+        warnings.push({
+          code: 'UNSUPPORTED_ANIMATION_EXPRESSION',
+          message: `Animation "${animation.name}" uses expressions; the mod only supports numeric keyframes and drops the clip`
+        });
+      }
+      (animation.channels || []).forEach((channel) => {
+        if (!SUPPORTED_ANIMATION_CHANNELS.has(channel)) {
+          warnings.push({
+            code: 'UNSUPPORTED_ANIMATION_CHANNEL',
+            message: `Animation "${animation.name}" uses the "${channel}" channel which is ignored by the mod`
+          });
+        }
+      });
+    });
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {

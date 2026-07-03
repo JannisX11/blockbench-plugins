@@ -23,6 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {Validator} = __webpack_require__(229);
+
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
 
@@ -68,6 +70,43 @@ class BlockbenchAdapter {
     }));
   }
 
+  static #isNumericValue(value) {
+    if (typeof value === 'number') {
+      return Number.isFinite(value);
+    }
+
+    return typeof value === 'string' && value.trim() !== ''
+        && Number.isFinite(Number(value));
+  }
+
+  static #summarizeAnimation(animation) {
+    const channels = new Set();
+    let hasExpression = false;
+
+    Object.values(animation.animators || {}).forEach((animator) => {
+      (animator.keyframes || []).forEach((keyframe) => {
+        if (keyframe.channel) {
+          channels.add(keyframe.channel);
+        }
+        (keyframe.data_points || []).forEach((point) => {
+          ['x', 'y', 'z'].forEach((axis) => {
+            const value = point?.[axis];
+            if (value !== undefined && value !== null
+                && !BlockbenchAdapter.#isNumericValue(value)) {
+              hasExpression = true;
+            }
+          });
+        });
+      });
+    });
+
+    return {
+      name: animation.name || '',
+      channels: [...channels],
+      hasExpression: hasExpression
+    };
+  }
+
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
@@ -94,6 +133,8 @@ class BlockbenchAdapter {
       cubeCount: cubes.length,
       boneCount: groups.length,
       animationCount: animations.length,
+      animations: animations.map(
+          (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
       textureWidth: texture ? texture.width : undefined,
@@ -233,6 +274,10 @@ class BlockbenchAdapter {
     const fs = __webpack_require__(896);
     const path = __webpack_require__(928);
     files.forEach((file) => {
+      const result = Validator.validateOutputPath(rootDir, file.path);
+      if (!result.valid) {
+        throw new Error(`${result.code}: ${result.message} (${file.path})`);
+      }
       const fullPath = path.join(rootDir, file.path);
       fs.mkdirSync(path.dirname(fullPath), {recursive: true});
       const data =
@@ -625,7 +670,8 @@ module.exports = {buildReadme};
 const {
   bodyType,
   animationMode,
-  presetShadowRadius,
+  defaultRenderingSettings,
+  defaultAnimationSettings,
   isCustom,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
@@ -636,40 +682,37 @@ function renderPresetType(settings) {
       ? 'static' : settings.presetType;
 }
 
+function toRenderingJson(values) {
+  return {
+    scale: values.scale,
+    shadow_radius: values.shadowRadius,
+    visible_bounds_width: values.visibleBoundsWidth ?? 0,
+    visible_bounds_height: values.visibleBoundsHeight ?? 0,
+    visible_bounds_offset: values.visibleBoundsOffset || [0, 0, 0]
+  };
+}
+
 function buildRendering(settings) {
-  const rendering = settings.rendering;
-  return diffFlat({
-    scale: rendering.scale,
-    shadow_radius: rendering.shadowRadius,
-    visible_bounds_width: rendering.visibleBoundsWidth ?? 0,
-    visible_bounds_height: rendering.visibleBoundsHeight ?? 0,
-    visible_bounds_offset: rendering.visibleBoundsOffset || [0, 0, 0]
-  }, {
-    scale: 1,
-    shadow_radius: presetShadowRadius(renderPresetType(settings)),
-    visible_bounds_width: 0,
-    visible_bounds_height: 0,
-    visible_bounds_offset: [0, 0, 0]
-  });
+  return diffFlat(toRenderingJson(settings.rendering),
+      toRenderingJson(defaultRenderingSettings(renderPresetType(settings))));
+}
+
+function toAnimationJson(values) {
+  return {
+    mode: values.mode,
+    swing_speed: values.swingSpeed,
+    walk_speed_multiplier: values.walkSpeedMultiplier,
+    idle_strength: values.idleStrength ?? 1,
+    gait: values.gait || 'natural'
+  };
 }
 
 function buildAnimation(settings) {
-  const defaultMode = animationMode(renderPresetType(settings));
-  const animation = diffFlat({
-    mode: settings.animation.mode,
-    swing_speed: settings.animation.swingSpeed,
-    walk_speed_multiplier: settings.animation.walkSpeedMultiplier,
-    idle_strength: settings.animation.idleStrength ?? 1,
-    gait: settings.animation.gait || 'natural'
-  }, {
-    mode: defaultMode,
-    swing_speed: 1,
-    walk_speed_multiplier: 1,
-    idle_strength: 1,
-    gait: 'natural'
-  });
+  const defaults = defaultAnimationSettings(
+      animationMode(renderPresetType(settings)));
+  const animation = diffFlat(toAnimationJson(settings.animation),
+      toAnimationJson(defaults));
 
-  // Animation timing is meaningless when animation is disabled.
   if (settings.animation.mode === 'none') {
     delete animation.swing_speed;
     delete animation.walk_speed_multiplier;
@@ -741,13 +784,12 @@ const {
   behaviorModeFor,
   wandersByMovement,
   isCustom,
+  DEFAULT_MAX_HEALTH,
+  DEFAULT_FOLLOW_RANGE,
   MODEL_TYPE_BLOCK_ENTITY,
   MODEL_TYPE_ENTITY
 } = __webpack_require__(151);
 const {diffFlat, assignIfPresent} = __webpack_require__(640);
-
-const DEFAULT_MAX_HEALTH = 10;
-const DEFAULT_FOLLOW_RANGE = 16;
 
 function effectiveDefaults(settings) {
   const preset = settings.presetType;
@@ -777,9 +819,6 @@ function effectiveDefaults(settings) {
   };
 }
 
-// Entity host settings. The mod derives type/movement_type/body_type from the
-// preset, so only the "custom" preset needs to spell them out; non-custom
-// presets emit nothing here.
 function buildEntity(settings, custom) {
   if (!custom) {
     return {};
@@ -823,9 +862,6 @@ function buildServerProfile(settings) {
     preset_type: settings.presetType
   };
 
-  // The server profile lives in a "<model_type>/<id>" subfolder, so its derived
-  // id differs from the flat render profile id. The render profile must be named
-  // explicitly or the mod would look for "<model_type>/<id>" instead.
   profile.client = {
     render_profile: `${settings.namespace}:${settings.profileId}`
   };
@@ -993,9 +1029,7 @@ function registerEmeFormat(icon) {
       if (Project && !Project.model_identifier && Project.name) {
         Project.model_identifier = toModelIdentifier(Project.name);
       }
-    },
-    onDeactivation() {
-    },
+    }
   });
 }
 
@@ -1296,9 +1330,8 @@ class ModelDimensions {
 
   static #EYE_HEIGHT_FACTOR = {biped: 0.9, quadruped: 0.8, static: 0.85};
 
-  static #round(value, digits) {
-    const factor = Math.pow(10, digits == null ? 3 : digits);
-    return Math.round(value * factor) / factor;
+  static #round(value) {
+    return Math.round(value * 1000) / 1000;
   }
 
   static #isUsableBounds(bounds) {
@@ -1336,7 +1369,6 @@ class ModelDimensions {
     };
   }
 
-  // mutates settings in-place and returns it
   static applyModelDimensions(settings, modelDimensions) {
     if (!modelDimensions) {
       return settings;
@@ -1375,11 +1407,6 @@ module.exports = {ModelDimensions};
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-// Suggests the most likely ModelPresetType from a model's bone names and bounds.
-// Pure and side-effect free so it can be unit tested in isolation. Always
-// suggests a "still" variant (the safe default); the user can switch to a
-// moving variant in the dialog.
 
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
@@ -1497,8 +1524,11 @@ const {ResourceLocation} = __webpack_require__(20);
 const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  ANIMATION_CLIPS,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
+
+const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
 
 class Validator {
   static BUDGETS = {
@@ -1581,8 +1611,6 @@ class Validator {
       });
     }
     const blockEntity = settings.modelType === MODEL_TYPE_BLOCK_ENTITY;
-
-    // Block entity host type is derived by the mod; only entities carry one.
     if (!blockEntity
         && !ResourceLocation.isValidResourceLocation(
             settings.host.entityType)) {
@@ -1700,11 +1728,36 @@ class Validator {
         });
     if (Validator.#isFiniteNumber(ctx.animationCount)
         && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
-      warnings.push({
+      errors.push({
         code: 'HIGH_ANIMATION_COUNT',
-        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations`
+        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations; the mod refuses to load the model`
       });
     }
+
+    (ctx.animations || []).forEach((animation) => {
+      const name = String(animation.name || '').toLowerCase();
+      if (!ANIMATION_CLIPS.includes(name)) {
+        warnings.push({
+          code: 'NON_STANDARD_ANIMATION',
+          message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
+              ', ')} and is ignored by the mod`
+        });
+      }
+      if (animation.hasExpression) {
+        warnings.push({
+          code: 'UNSUPPORTED_ANIMATION_EXPRESSION',
+          message: `Animation "${animation.name}" uses expressions; the mod only supports numeric keyframes and drops the clip`
+        });
+      }
+      (animation.channels || []).forEach((channel) => {
+        if (!SUPPORTED_ANIMATION_CHANNELS.has(channel)) {
+          warnings.push({
+            code: 'UNSUPPORTED_ANIMATION_CHANNEL',
+            message: `Animation "${animation.name}" uses the "${channel}" channel which is ignored by the mod`
+          });
+        }
+      });
+    });
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {
@@ -1922,6 +1975,7 @@ const BODY_TYPES = [
 const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
+const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
@@ -1931,6 +1985,9 @@ const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
+
+const DEFAULT_MAX_HEALTH = 10;
+const DEFAULT_FOLLOW_RANGE = 16;
 
 const PRESET_TYPES = [
   'custom',
@@ -2217,7 +2274,11 @@ function blockEntityPresetDefaults(presetType) {
     dimensions: {...BLOCK_ENTITY_DIMENSIONS},
     movement: {speed: 0, stepHeight: 0, gravity: false},
     behavior: {mode: 'static', lookAtPlayers: false, randomStroll: false},
-    attributes: {maxHealth: 10, movementSpeed: 0, followRange: 16},
+    attributes: {
+      maxHealth: DEFAULT_MAX_HEALTH,
+      movementSpeed: 0,
+      followRange: DEFAULT_FOLLOW_RANGE
+    },
     rendering: defaultRenderingSettings('cuboid_still'),
     animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
   };
@@ -2253,9 +2314,9 @@ function presetDefaults(presetType, modelType) {
       randomStroll: wandersByMovement(move) && mode === 'ambient'
     },
     attributes: {
-      maxHealth: 10,
+      maxHealth: DEFAULT_MAX_HEALTH,
       movementSpeed: movement.speed,
-      followRange: 16
+      followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings(presetType),
     animation: defaultAnimationSettings(animationMode(presetType))
@@ -2269,10 +2330,13 @@ module.exports = {
   MODEL_TYPES,
   BODY_TYPES,
   MOVEMENT_TYPES,
+  DEFAULT_MAX_HEALTH,
+  DEFAULT_FOLLOW_RANGE,
   BEHAVIOR_MODES,
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
+  ANIMATION_CLIPS,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
   isStablePreset,
@@ -2284,7 +2348,9 @@ module.exports = {
   animationMode,
   presetDimensions,
   presetShadowRadius,
-  presetDefaults
+  presetDefaults,
+  defaultRenderingSettings,
+  defaultAnimationSettings
 };
 
 
@@ -2312,12 +2378,7 @@ module.exports = {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {
-  PRESET_TYPES,
-  SELECTABLE_PRESET_TYPES,
-  MODEL_TYPE_ENTITY,
-  presetDefaults
-} = __webpack_require__(151);
+const {MODEL_TYPE_ENTITY, presetDefaults} = __webpack_require__(151);
 const {getDefaultVersionId} = __webpack_require__(954);
 
 const DEFAULT_PRESET = 'statue';
@@ -2387,8 +2448,6 @@ function applyTemplate(presetType, modelType) {
 
 module.exports = {
   DEFAULT_PRESET,
-  PRESET_TYPES,
-  SELECTABLE_PRESET_TYPES,
   getDefaults,
   applyTemplate,
   deepMerge,
@@ -2461,10 +2520,6 @@ function getVersion(id) {
   return VERSIONS.find((version) => version.id === id) || null;
 }
 
-function getEnabledVersions() {
-  return getVersions().filter((version) => version.enabled);
-}
-
 function getDefaultVersionId() {
   return DEFAULT_VERSION_ID;
 }
@@ -2482,7 +2537,6 @@ function getPackFormats(id) {
 
 module.exports = {
   getVersions,
-  getEnabledVersions,
   getDefaultVersionId,
   getPackFormats
 };
@@ -2512,13 +2566,10 @@ module.exports = {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {getDefaults, applyTemplate, deepMerge} = __webpack_require__(668);
 const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
-const {ModelDimensions} = __webpack_require__(763);
-const {VisibleBounds} = __webpack_require__(508);
 const {t} = __webpack_require__(16);
 const {
   presetOptions,
@@ -2532,151 +2583,13 @@ const {
   animationModeOptions,
   versionOptions
 } = __webpack_require__(664);
-
-function settingsToForm(settings) {
-  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
-
-  return {
-    namespace: settings.namespace,
-    profileId: settings.profileId,
-    targetVersion: settings.targetVersion,
-    hostEntityType: settings.host.entityType,
-    movementType: settings.host.movementType,
-    bodyType: settings.host.bodyType,
-    width: settings.dimensions.width,
-    height: settings.dimensions.height,
-    eyeHeight: settings.dimensions.eyeHeight,
-    speed: settings.movement.speed,
-    stepHeight: settings.movement.stepHeight,
-    gravity: settings.movement.gravity,
-    behaviorMode: settings.behavior.mode,
-    maxHealth: settings.attributes.maxHealth,
-    movementSpeed: settings.attributes.movementSpeed,
-    followRange: settings.attributes.followRange,
-    scale: settings.rendering.scale,
-    shadowRadius: settings.rendering.shadowRadius,
-    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
-    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
-    visibleBoundsOffsetX: offset[0],
-    visibleBoundsOffsetY: offset[1],
-    visibleBoundsOffsetZ: offset[2],
-    animationMode: settings.animation.mode,
-    swingSpeed: settings.animation.swingSpeed,
-    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
-    idleStrength: settings.animation.idleStrength ?? 1,
-    gait: settings.animation.gait || 'natural'
-  };
-}
-
-function formToSettings(form, base) {
-  return {
-    schemaVersion: base.schemaVersion,
-    modelType: base.modelType,
-    presetType: base.presetType,
-    namespace: String(form.namespace || '').trim(),
-    profileId: String(form.profileId || '').trim(),
-    targetVersion: base.targetVersion,
-    host: {
-      entityType: form.hostEntityType,
-      movementType: form.movementType,
-      bodyType: form.bodyType
-    },
-    dimensions: {
-      width: Number(form.width),
-      height: Number(form.height),
-      eyeHeight: Number(form.eyeHeight)
-    },
-    movement: {
-      speed: Number(form.speed),
-      stepHeight: Number(form.stepHeight),
-      gravity: !!form.gravity
-    },
-    behavior: {
-      mode: form.behaviorMode,
-      lookAtPlayers: base.behavior ? base.behavior.lookAtPlayers : true,
-      randomStroll: base.behavior ? base.behavior.randomStroll : false
-    },
-    attributes: {
-      maxHealth: Number(form.maxHealth),
-      movementSpeed: Number(form.movementSpeed),
-      followRange: Number(form.followRange)
-    },
-    rendering: {
-      scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius),
-      visibleBoundsWidth: Number(form.visibleBoundsWidth),
-      visibleBoundsHeight: Number(form.visibleBoundsHeight),
-      visibleBoundsOffset: [
-        Number(form.visibleBoundsOffsetX),
-        Number(form.visibleBoundsOffsetY),
-        Number(form.visibleBoundsOffsetZ)
-      ]
-    },
-    animation: {
-      mode: form.animationMode,
-      swingSpeed: Number(form.swingSpeed),
-      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
-      idleStrength: Number(form.idleStrength),
-      gait: form.gait
-    }
-  };
-}
-
-function activeModelType(form) {
-  return form.exportType === 'model_only'
-      ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
-}
-
-function activePreset(form) {
-  return activeModelType(form) === MODEL_TYPE_BLOCK_ENTITY
-      ? (form.blockPreset || 'static') : (form.preset || 'custom');
-}
-
-function presetFormValues(presetType, modelType, modelDimensions,
-    visibleBounds) {
-  const settings = ModelDimensions.applyModelDimensions(
-      applyTemplate(presetType, modelType), modelDimensions);
-  VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  const form = settingsToForm(settings);
-  delete form.namespace;
-  delete form.profileId;
-  delete form.targetVersion;
-
-  return form;
-}
-
-function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
-  const exportType = form.exportType || 'packs';
-  const modelType = activeModelType(form);
-  const preset = activePreset(form);
-
-  let settings;
-  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
-    settings = deepMerge(getDefaults(), base);
-  } else {
-    settings = ModelDimensions.applyModelDimensions(
-        applyTemplate(preset, modelType), modelDimensions);
-    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  }
-
-  settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
-  settings.modelType = modelType;
-  settings.presetType = preset;
-  settings.namespace = String(form.namespace || '').trim();
-  settings.profileId = String(form.profileId || '').trim();
-  settings.targetVersion = form.targetVersion;
-
-  if (form.customize) {
-    settings = formToSettings(form, settings);
-  }
-  // Remembered so a customized project reopens with its values (and target).
-  settings.customize = !!form.customize;
-  settings.exportType = exportType;
-  settings.exportTarget = exportType === 'packs' ? 'packs' : 'mod_project';
-  settings.modelOnly = exportType === 'model_only';
-
-  return settings;
-}
+const {
+  settingsToForm,
+  activeModelType,
+  activePreset,
+  presetFormValues,
+  resolveExportSettings
+} = __webpack_require__(807);
 
 function advancedField(field, showCustomize) {
   return Object.assign({condition: showCustomize}, field);
@@ -2691,11 +2604,8 @@ function buildFormConfig(settings, ui) {
   const blockEntitySelected = (form) =>
       standalone(form) && form.modelType === MODEL_TYPE_BLOCK_ENTITY;
   const customizeOn = (form) => allowCustomize && !!form.customize;
-  // Server-profile advanced fields only make sense for a standalone datapack.
   const showServer = (form) => customizeOn(form) && standalone(form);
-  // Host/movement/behavior/attributes only apply to standalone entities.
   const showEntity = (form) => showServer(form) && !blockEntitySelected(form);
-  // Render-profile advanced fields apply to every export kind.
   const showRender = customizeOn;
 
   const experimental = !!state.experimental;
@@ -2952,7 +2862,6 @@ function openExportDialog(options) {
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
           modelDimensions, visibleBounds);
-      // Records that experimental presets were available for this export.
       finalSettings.experimental = !!options.experimental;
       options.onExport(finalSettings, finalSettings.exportTarget);
     }
@@ -2963,11 +2872,6 @@ function openExportDialog(options) {
 }
 
 module.exports = {
-  presetOptions,
-  settingsToForm,
-  formToSettings,
-  presetFormValues,
-  resolveExportSettings,
   openExportDialog
 };
 
@@ -3000,11 +2904,25 @@ const {getVersions} = __webpack_require__(954);
 const {
   SELECTABLE_PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  MOVEMENT_TYPES,
+  BODY_TYPES,
+  GAIT_TYPES,
+  BEHAVIOR_MODES,
+  ANIMATION_MODES,
   isStablePreset,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
 const {t} = __webpack_require__(16);
+
+function optionsFromEnum(values, prefix) {
+  const options = {};
+  values.forEach((id) => {
+    options[id] = t(`${prefix}.${id}`);
+  });
+
+  return options;
+}
 
 function presetLabel(id) {
   return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
@@ -3018,11 +2936,10 @@ function entityPresetIds(experimental) {
 
 function blockPresetIds(experimental) {
   return experimental
-      ? BLOCK_ENTITY_PRESET_TYPES.slice()
+      ? [...BLOCK_ENTITY_PRESET_TYPES]
       : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
 }
 
-// Experimental (WIP) presets are hidden unless the experimental setting is on.
 function presetOptions(modelType, experimental, ensure) {
   const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
       ? blockPresetIds(experimental) : entityPresetIds(experimental);
@@ -3062,52 +2979,23 @@ function hostEntityTypeOptions() {
 }
 
 function movementTypeOptions() {
-  return {
-    ground: t('eme.movement.ground'),
-    water: t('eme.movement.water'),
-    amphibious: t('eme.movement.amphibious'),
-    static: t('eme.movement.static')
-  };
+  return optionsFromEnum(MOVEMENT_TYPES, 'eme.movement');
 }
 
 function bodyTypeOptions() {
-  return {
-    static: t('eme.body.static'),
-    biped: t('eme.body.biped'),
-    quadruped: t('eme.body.quadruped'),
-    aquatic: t('eme.body.aquatic'),
-    amphibious: t('eme.body.amphibious'),
-    winged: t('eme.body.winged'),
-    winged_humanoid: t('eme.body.winged_humanoid'),
-    arthropod: t('eme.body.arthropod'),
-    cuboid: t('eme.body.cuboid'),
-    floating: t('eme.body.floating')
-  };
+  return optionsFromEnum(BODY_TYPES, 'eme.body');
 }
 
 function gaitOptions() {
-  return {
-    natural: t('eme.gait.natural'),
-    feline: t('eme.gait.feline'),
-    ungulate: t('eme.gait.ungulate')
-  };
+  return optionsFromEnum(GAIT_TYPES, 'eme.gait');
 }
 
 function behaviorModeOptions() {
-  return {
-    idle_only: t('eme.behavior.idle_only'),
-    ambient: t('eme.behavior.ambient'),
-    static: t('eme.behavior.static'),
-    external_owner: t('eme.behavior.external_owner')
-  };
+  return optionsFromEnum(BEHAVIOR_MODES, 'eme.behavior');
 }
 
 function animationModeOptions() {
-  return {
-    automatic: t('eme.animation.automatic'),
-    random_idle: t('eme.animation.random_idle'),
-    none: t('eme.animation.none')
-  };
+  return optionsFromEnum(ANIMATION_MODES, 'eme.animation');
 }
 
 function versionOptions() {
@@ -3131,6 +3019,192 @@ module.exports = {
   behaviorModeOptions,
   animationModeOptions,
   versionOptions
+};
+
+
+/***/ },
+
+/***/ 807
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {getDefaults, applyTemplate, deepMerge} = __webpack_require__(668);
+const {
+  MODEL_TYPE_ENTITY,
+  MODEL_TYPE_BLOCK_ENTITY
+} = __webpack_require__(151);
+const {ModelDimensions} = __webpack_require__(763);
+const {VisibleBounds} = __webpack_require__(508);
+
+function settingsToForm(settings) {
+  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
+
+  return {
+    namespace: settings.namespace,
+    profileId: settings.profileId,
+    targetVersion: settings.targetVersion,
+    hostEntityType: settings.host.entityType,
+    movementType: settings.host.movementType,
+    bodyType: settings.host.bodyType,
+    width: settings.dimensions.width,
+    height: settings.dimensions.height,
+    eyeHeight: settings.dimensions.eyeHeight,
+    speed: settings.movement.speed,
+    stepHeight: settings.movement.stepHeight,
+    gravity: settings.movement.gravity,
+    behaviorMode: settings.behavior.mode,
+    maxHealth: settings.attributes.maxHealth,
+    movementSpeed: settings.attributes.movementSpeed,
+    followRange: settings.attributes.followRange,
+    scale: settings.rendering.scale,
+    shadowRadius: settings.rendering.shadowRadius,
+    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
+    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
+    visibleBoundsOffsetX: offset[0],
+    visibleBoundsOffsetY: offset[1],
+    visibleBoundsOffsetZ: offset[2],
+    animationMode: settings.animation.mode,
+    swingSpeed: settings.animation.swingSpeed,
+    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
+    idleStrength: settings.animation.idleStrength ?? 1,
+    gait: settings.animation.gait || 'natural'
+  };
+}
+
+function formToSettings(form, base) {
+  return {
+    schemaVersion: base.schemaVersion,
+    modelType: base.modelType,
+    presetType: base.presetType,
+    namespace: String(form.namespace || '').trim(),
+    profileId: String(form.profileId || '').trim(),
+    targetVersion: base.targetVersion,
+    host: {
+      entityType: form.hostEntityType,
+      movementType: form.movementType,
+      bodyType: form.bodyType
+    },
+    dimensions: {
+      width: Number(form.width),
+      height: Number(form.height),
+      eyeHeight: Number(form.eyeHeight)
+    },
+    movement: {
+      speed: Number(form.speed),
+      stepHeight: Number(form.stepHeight),
+      gravity: !!form.gravity
+    },
+    behavior: {
+      mode: form.behaviorMode,
+      lookAtPlayers: base.behavior ? base.behavior.lookAtPlayers : true,
+      randomStroll: base.behavior ? base.behavior.randomStroll : false
+    },
+    attributes: {
+      maxHealth: Number(form.maxHealth),
+      movementSpeed: Number(form.movementSpeed),
+      followRange: Number(form.followRange)
+    },
+    rendering: {
+      scale: Number(form.scale),
+      shadowRadius: Number(form.shadowRadius),
+      visibleBoundsWidth: Number(form.visibleBoundsWidth),
+      visibleBoundsHeight: Number(form.visibleBoundsHeight),
+      visibleBoundsOffset: [
+        Number(form.visibleBoundsOffsetX),
+        Number(form.visibleBoundsOffsetY),
+        Number(form.visibleBoundsOffsetZ)
+      ]
+    },
+    animation: {
+      mode: form.animationMode,
+      swingSpeed: Number(form.swingSpeed),
+      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
+      idleStrength: Number(form.idleStrength),
+      gait: form.gait
+    }
+  };
+}
+
+function activeModelType(form) {
+  return form.exportType === 'model_only'
+      ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
+}
+
+function activePreset(form) {
+  return activeModelType(form) === MODEL_TYPE_BLOCK_ENTITY
+      ? (form.blockPreset || 'static') : (form.preset || 'custom');
+}
+
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const settings = ModelDimensions.applyModelDimensions(
+      applyTemplate(presetType, modelType), modelDimensions);
+  VisibleBounds.applyVisibleBounds(settings, visibleBounds);
+  const form = settingsToForm(settings);
+  delete form.namespace;
+  delete form.profileId;
+  delete form.targetVersion;
+
+  return form;
+}
+
+function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
+  const exportType = form.exportType || 'packs';
+  const modelType = activeModelType(form);
+  const preset = activePreset(form);
+
+  let settings;
+  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
+    settings = deepMerge(getDefaults(), base);
+  } else {
+    settings = ModelDimensions.applyModelDimensions(
+        applyTemplate(preset, modelType), modelDimensions);
+    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
+  }
+
+  settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
+  settings.modelType = modelType;
+  settings.presetType = preset;
+  settings.namespace = String(form.namespace || '').trim();
+  settings.profileId = String(form.profileId || '').trim();
+  settings.targetVersion = form.targetVersion;
+
+  if (form.customize) {
+    settings = formToSettings(form, settings);
+  }
+  settings.customize = !!form.customize;
+  settings.exportType = exportType;
+  settings.exportTarget = exportType === 'packs' ? 'packs' : 'mod_project';
+  settings.modelOnly = exportType === 'model_only';
+
+  return settings;
+}
+
+module.exports = {
+  settingsToForm,
+  formToSettings,
+  activeModelType,
+  activePreset,
+  presetFormValues,
+  resolveExportSettings
 };
 
 
@@ -3652,14 +3726,11 @@ function formatIssues(issues) {
   return issues.map((issue) => `• ${issue.message}`).join('\n');
 }
 
-function collectContext() {
-  return Object.assign({}, BlockbenchAdapter.getModelStats());
-}
-
 function runExport(settings, target) {
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
-  const result = Validator.validateSettings(settings, collectContext());
+  const result = Validator.validateSettings(settings,
+      BlockbenchAdapter.getModelStats());
 
   if (!result.valid) {
     Blockbench.showMessageBox({
@@ -3790,7 +3861,7 @@ BBPlugin.register('easy_model_entities', {
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
   tags: ['Minecraft: Java Edition', 'Format', 'Exporter', 'Entity'],
-  version: '0.1.0',
+  version: '1.0.0',
   min_version: '4.9.0',
   variant: 'desktop',
   await_loading: true,

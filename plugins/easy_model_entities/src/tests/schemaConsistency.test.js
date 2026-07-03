@@ -17,8 +17,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {applyTemplate, deepMerge, SELECTABLE_PRESET_TYPES} = require(
-    '../model/templates');
+const {applyTemplate, deepMerge} = require('../model/templates');
+const {SELECTABLE_PRESET_TYPES} = require('../model/presetTypes');
 const {buildServerProfile} = require('../builders/serverProfile');
 const {buildRenderProfile} = require('../builders/renderProfile');
 
@@ -28,10 +28,6 @@ function withId(settings) {
   return settings;
 }
 
-// If the plugin's preset defaults exactly mirror the mod's, an unmodified
-// preset must reduce to just the model_type, preset_type and the required
-// client.render_profile link (the mod fills in every other value from
-// preset_type), proving the two stay in sync.
 describe('preset defaults mirror the mod (minimal output)', () => {
   describe.each(SELECTABLE_PRESET_TYPES)('%s', (preset) => {
     const settings = withId(applyTemplate(preset));

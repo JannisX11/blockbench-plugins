@@ -24,13 +24,12 @@ const {
   behaviorModeFor,
   wandersByMovement,
   isCustom,
+  DEFAULT_MAX_HEALTH,
+  DEFAULT_FOLLOW_RANGE,
   MODEL_TYPE_BLOCK_ENTITY,
   MODEL_TYPE_ENTITY
 } = require('../model/presetTypes');
 const {diffFlat, assignIfPresent} = require('./profileDiff');
-
-const DEFAULT_MAX_HEALTH = 10;
-const DEFAULT_FOLLOW_RANGE = 16;
 
 function effectiveDefaults(settings) {
   const preset = settings.presetType;
@@ -60,9 +59,6 @@ function effectiveDefaults(settings) {
   };
 }
 
-// Entity host settings. The mod derives type/movement_type/body_type from the
-// preset, so only the "custom" preset needs to spell them out; non-custom
-// presets emit nothing here.
 function buildEntity(settings, custom) {
   if (!custom) {
     return {};
@@ -106,9 +102,6 @@ function buildServerProfile(settings) {
     preset_type: settings.presetType
   };
 
-  // The server profile lives in a "<model_type>/<id>" subfolder, so its derived
-  // id differs from the flat render profile id. The render profile must be named
-  // explicitly or the mod would look for "<model_type>/<id>" instead.
   profile.client = {
     render_profile: `${settings.namespace}:${settings.profileId}`
   };

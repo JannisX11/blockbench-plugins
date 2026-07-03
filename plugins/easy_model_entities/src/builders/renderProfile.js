@@ -20,7 +20,8 @@
 const {
   bodyType,
   animationMode,
-  presetShadowRadius,
+  defaultRenderingSettings,
+  defaultAnimationSettings,
   isCustom,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
@@ -31,40 +32,37 @@ function renderPresetType(settings) {
       ? 'static' : settings.presetType;
 }
 
+function toRenderingJson(values) {
+  return {
+    scale: values.scale,
+    shadow_radius: values.shadowRadius,
+    visible_bounds_width: values.visibleBoundsWidth ?? 0,
+    visible_bounds_height: values.visibleBoundsHeight ?? 0,
+    visible_bounds_offset: values.visibleBoundsOffset || [0, 0, 0]
+  };
+}
+
 function buildRendering(settings) {
-  const rendering = settings.rendering;
-  return diffFlat({
-    scale: rendering.scale,
-    shadow_radius: rendering.shadowRadius,
-    visible_bounds_width: rendering.visibleBoundsWidth ?? 0,
-    visible_bounds_height: rendering.visibleBoundsHeight ?? 0,
-    visible_bounds_offset: rendering.visibleBoundsOffset || [0, 0, 0]
-  }, {
-    scale: 1,
-    shadow_radius: presetShadowRadius(renderPresetType(settings)),
-    visible_bounds_width: 0,
-    visible_bounds_height: 0,
-    visible_bounds_offset: [0, 0, 0]
-  });
+  return diffFlat(toRenderingJson(settings.rendering),
+      toRenderingJson(defaultRenderingSettings(renderPresetType(settings))));
+}
+
+function toAnimationJson(values) {
+  return {
+    mode: values.mode,
+    swing_speed: values.swingSpeed,
+    walk_speed_multiplier: values.walkSpeedMultiplier,
+    idle_strength: values.idleStrength ?? 1,
+    gait: values.gait || 'natural'
+  };
 }
 
 function buildAnimation(settings) {
-  const defaultMode = animationMode(renderPresetType(settings));
-  const animation = diffFlat({
-    mode: settings.animation.mode,
-    swing_speed: settings.animation.swingSpeed,
-    walk_speed_multiplier: settings.animation.walkSpeedMultiplier,
-    idle_strength: settings.animation.idleStrength ?? 1,
-    gait: settings.animation.gait || 'natural'
-  }, {
-    mode: defaultMode,
-    swing_speed: 1,
-    walk_speed_multiplier: 1,
-    idle_strength: 1,
-    gait: 'natural'
-  });
+  const defaults = defaultAnimationSettings(
+      animationMode(renderPresetType(settings)));
+  const animation = diffFlat(toAnimationJson(settings.animation),
+      toAnimationJson(defaults));
 
-  // Animation timing is meaningless when animation is disabled.
   if (settings.animation.mode === 'none') {
     delete animation.swing_speed;
     delete animation.walk_speed_multiplier;

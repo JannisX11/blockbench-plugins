@@ -129,14 +129,11 @@ function formatIssues(issues) {
   return issues.map((issue) => `• ${issue.message}`).join('\n');
 }
 
-function collectContext() {
-  return Object.assign({}, BlockbenchAdapter.getModelStats());
-}
-
 function runExport(settings, target) {
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
-  const result = Validator.validateSettings(settings, collectContext());
+  const result = Validator.validateSettings(settings,
+      BlockbenchAdapter.getModelStats());
 
   if (!result.valid) {
     Blockbench.showMessageBox({
@@ -267,7 +264,7 @@ BBPlugin.register('easy_model_entities', {
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
   tags: ['Minecraft: Java Edition', 'Format', 'Exporter', 'Entity'],
-  version: '0.1.0',
+  version: '1.0.0',
   min_version: '4.9.0',
   variant: 'desktop',
   await_loading: true,

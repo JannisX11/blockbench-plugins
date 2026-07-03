@@ -17,11 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Suggests the most likely ModelPresetType from a model's bone names and bounds.
-// Pure and side-effect free so it can be unit tested in isolation. Always
-// suggests a "still" variant (the safe default); the user can switch to a
-// moving variant in the dialog.
-
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
 

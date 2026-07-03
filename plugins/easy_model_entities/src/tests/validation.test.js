@@ -101,15 +101,13 @@ describe('validateSettings', () => {
       cubeCount: 1000,
       boneCount: 200,
       hierarchyDepth: 50,
-      animationCount: 17,
       boneNames: QUADRUPED_BONES
     });
     expect(result.valid).toBe(true);
     expect(codes(result.warnings)).toEqual(
         expect.arrayContaining(
             ['LARGE_TEXTURE', 'LARGE_MODEL', 'HIGH_CUBE_COUNT',
-              'HIGH_BONE_COUNT', 'DEEP_HIERARCHY',
-              'HIGH_ANIMATION_COUNT'])
+              'HIGH_BONE_COUNT', 'DEEP_HIERARCHY'])
     );
   });
 
@@ -133,6 +131,52 @@ describe('validateSettings', () => {
               'SOFT_BONE_COUNT', 'SOFT_HIERARCHY_DEPTH'])
     );
     expect(codes(result.warnings)).not.toContain('HIGH_ANIMATION_COUNT');
+  });
+
+  test('rejects more animations than the mod accepts', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      animationCount: 17,
+      boneNames: QUADRUPED_BONES
+    });
+    expect(result.valid).toBe(false);
+    expect(codes(result.errors)).toContain('HIGH_ANIMATION_COUNT');
+  });
+
+  test('standard animation clips produce no warnings', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      animationCount: 2,
+      animations: [
+        {name: 'idle', channels: ['rotation'], hasExpression: false},
+        {name: 'WALK', channels: ['rotation', 'position'], hasExpression: false}
+      ],
+      boneNames: QUADRUPED_BONES
+    });
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toHaveLength(0);
+  });
+
+  test('warns about animations the mod ignores or drops', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      animationCount: 3,
+      animations: [
+        {name: 'attack', channels: ['rotation'], hasExpression: false},
+        {name: 'walk', channels: ['rotation'], hasExpression: true},
+        {name: 'idle', channels: ['rotation', 'scale'], hasExpression: false}
+      ],
+      boneNames: QUADRUPED_BONES
+    });
+    expect(result.valid).toBe(true);
+    expect(codes(result.warnings)).toEqual(
+        expect.arrayContaining(
+            ['NON_STANDARD_ANIMATION', 'UNSUPPORTED_ANIMATION_EXPRESSION',
+              'UNSUPPORTED_ANIMATION_CHANNEL'])
+    );
   });
 
   test('warns about missing body parts per body type', () => {

@@ -21,11 +21,25 @@ const {getVersions} = require('../model/versionMatrix');
 const {
   SELECTABLE_PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
+  MOVEMENT_TYPES,
+  BODY_TYPES,
+  GAIT_TYPES,
+  BEHAVIOR_MODES,
+  ANIMATION_MODES,
   isStablePreset,
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
 const {t} = require('../i18n/translations');
+
+function optionsFromEnum(values, prefix) {
+  const options = {};
+  values.forEach((id) => {
+    options[id] = t(`${prefix}.${id}`);
+  });
+
+  return options;
+}
 
 function presetLabel(id) {
   return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
@@ -39,11 +53,10 @@ function entityPresetIds(experimental) {
 
 function blockPresetIds(experimental) {
   return experimental
-      ? BLOCK_ENTITY_PRESET_TYPES.slice()
+      ? [...BLOCK_ENTITY_PRESET_TYPES]
       : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
 }
 
-// Experimental (WIP) presets are hidden unless the experimental setting is on.
 function presetOptions(modelType, experimental, ensure) {
   const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
       ? blockPresetIds(experimental) : entityPresetIds(experimental);
@@ -83,52 +96,23 @@ function hostEntityTypeOptions() {
 }
 
 function movementTypeOptions() {
-  return {
-    ground: t('eme.movement.ground'),
-    water: t('eme.movement.water'),
-    amphibious: t('eme.movement.amphibious'),
-    static: t('eme.movement.static')
-  };
+  return optionsFromEnum(MOVEMENT_TYPES, 'eme.movement');
 }
 
 function bodyTypeOptions() {
-  return {
-    static: t('eme.body.static'),
-    biped: t('eme.body.biped'),
-    quadruped: t('eme.body.quadruped'),
-    aquatic: t('eme.body.aquatic'),
-    amphibious: t('eme.body.amphibious'),
-    winged: t('eme.body.winged'),
-    winged_humanoid: t('eme.body.winged_humanoid'),
-    arthropod: t('eme.body.arthropod'),
-    cuboid: t('eme.body.cuboid'),
-    floating: t('eme.body.floating')
-  };
+  return optionsFromEnum(BODY_TYPES, 'eme.body');
 }
 
 function gaitOptions() {
-  return {
-    natural: t('eme.gait.natural'),
-    feline: t('eme.gait.feline'),
-    ungulate: t('eme.gait.ungulate')
-  };
+  return optionsFromEnum(GAIT_TYPES, 'eme.gait');
 }
 
 function behaviorModeOptions() {
-  return {
-    idle_only: t('eme.behavior.idle_only'),
-    ambient: t('eme.behavior.ambient'),
-    static: t('eme.behavior.static'),
-    external_owner: t('eme.behavior.external_owner')
-  };
+  return optionsFromEnum(BEHAVIOR_MODES, 'eme.behavior');
 }
 
 function animationModeOptions() {
-  return {
-    automatic: t('eme.animation.automatic'),
-    random_idle: t('eme.animation.random_idle'),
-    none: t('eme.animation.none')
-  };
+  return optionsFromEnum(ANIMATION_MODES, 'eme.animation');
 }
 
 function versionOptions() {
