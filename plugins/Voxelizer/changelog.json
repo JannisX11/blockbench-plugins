@@ -1,0 +1,23 @@
+{
+    "1.0.0": {
+        "title": "1.0.0",
+        "date": "2026-07-04",
+        "author": "honzajan722,PAT1519",
+        "categories": [
+            {
+                "title": "New Features",
+                "list": [
+                    "Initial pre-release stub for repository and structure preparation.",
+                    "Configured custom plugin icon and multi-platform variant configuration for both desktop and web."
+                ]
+            },
+            {
+                "title": "Changes",
+                "list": [
+                    "ATTENTION: This version does not contain functional code yet. It is prepared for repository registration.",
+                    "Full mesh-to-cube conversion features and tools will be implemented and fully active in the next release."
+                ]
+            }
+        ]
+    }
+}
