@@ -1,4 +1,24 @@
 {
+	"text_generator": {
+		"title": "Text Generator",
+		"author": "Speaway",
+		"description": "Create stunning 3D block-style text for Minecraft models in Blockbench. Default Minecraft-style letters plus curated block fonts (auto-loaded) or optional custom .ttf/.otf upload, adjustable size and depth, outlines, presets, and full Unicode/emoji support — perfect for resource packs, maps, and Bedrock/Java block models.",
+		"icon": "text_fields",
+		"version": "2.4.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Font"]
+	},
+	"item_generator": {
+		"title": "Item Generator",
+		"author": "Speaway",
+		"description": "Minecraft block & item generator with live vanilla textures from mcasset.cloud.",
+		"icon": "fas.fa-cube",
+		"version": "2.1.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Generator"]
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
