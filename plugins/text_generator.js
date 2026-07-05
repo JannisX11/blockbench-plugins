@@ -17,7 +17,7 @@
     const PLUGIN_ID = 'text_generator';
     const PLUGIN_NAME = 'Text Generator';
     const PLUGIN_AUTHOR = 'Speaway';
-    const PLUGIN_VERSION = '2.4.1';
+    const PLUGIN_VERSION = '1.0.0';
     const PLUGIN_DESCRIPTION = 'Create stunning 3D block-style text for Minecraft models in Blockbench. Default Minecraft-style letters plus curated block fonts (auto-loaded) or optional custom .ttf/.otf upload, adjustable size and depth, outlines, presets, and full Unicode/emoji support -- perfect for resource packs, maps, and Bedrock/Java block models.';
     const DEFAULT_TEXT_COLOR = 0x55FF55;
     const TGP_TEXT_ROOT_PREFIX = 'Text: ';

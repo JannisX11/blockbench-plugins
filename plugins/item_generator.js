@@ -1290,7 +1290,7 @@
     author: "Speaway",
     description: "Minecraft block & item generator with live vanilla textures from mcasset.cloud.",
     icon: "fas.fa-cube",
-    version: "2.1.0",
+    version: "1.0.0",
     min_version: "4.10.0",
     variant: "desktop",
     await_loading: true,
