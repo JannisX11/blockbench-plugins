@@ -18,7 +18,7 @@
     const PLUGIN_NAME = 'Text Generator';
     const PLUGIN_AUTHOR = 'Speaway';
     const PLUGIN_VERSION = '2.4.1';
-    const PLUGIN_DESCRIPTION = 'Create stunning 3D block-style text for Minecraft models in Blockbench. Default Minecraft-style letters plus curated block fonts (auto-loaded) or optional custom .ttf/.otf upload, adjustable size and depth, outlines, presets, and full Unicode/emoji support — perfect for resource packs, maps, and Bedrock/Java block models.';
+    const PLUGIN_DESCRIPTION = 'Create stunning 3D block-style text for Minecraft models in Blockbench. Default Minecraft-style letters plus curated block fonts (auto-loaded) or optional custom .ttf/.otf upload, adjustable size and depth, outlines, presets, and full Unicode/emoji support -- perfect for resource packs, maps, and Bedrock/Java block models.';
     const DEFAULT_TEXT_COLOR = 0x55FF55;
     const TGP_TEXT_ROOT_PREFIX = 'Text: ';
     const TGP_META_KEY = 'tgp_text_settings';
@@ -1842,7 +1842,7 @@
 
         return new Dialog({
             id: 'text_generator',
-            title: isEditMode ? PLUGIN_NAME + ' — Edit Text' : PLUGIN_NAME,
+            title: isEditMode ? PLUGIN_NAME + ' -- Edit Text' : PLUGIN_NAME,
             width: 720,
             cancel_on_click_outside: false,
             lines: [`
@@ -1896,7 +1896,7 @@
                     condition: () => !!isEditMode
                 },
 
-                // === METİN ===
+                // === TEXT INPUT ===
                 text: {
                     label: 'Text',
                     type: 'textarea',
@@ -1929,7 +1929,7 @@
                     condition: () => true
                 },
 
-                // === STİL ===
+                // === STYLE ===
                 style_section: { type: 'info', text: '<div class="section_title">✨ Text Style</div>' },
                 bold: {
                     label: 'Bold',
@@ -2187,7 +2187,7 @@
                         <li><b>Outline:</b> Colored border around text pixels</li>
                         <li><b>Text Styles:</b> Bold, Italic, Underline, Strikethrough</li>
                         <li><b>Layout:</b> Spacing and alignment controls</li>
-                        <li><b>Outliner:</b> Text → Letter → Cube hierarchy</li>
+                        <li><b>Outliner:</b> Text -> Letter -> Cube hierarchy</li>
                         <li><b>Edit:</b> Double-click a Text group to reopen settings</li>
                         <li><b>Unicode:</b> Full emoji and special character support</li>
                         <li><b>Live Preview:</b> Real-time 3D preview</li>
@@ -2204,7 +2204,7 @@
     }
 
     // ============================================
-    // PLUGIN BROWSER — hide empty Settings tab
+    // PLUGIN BROWSER -- hide empty Settings tab
     // Blockbench shows Settings for all installed plugins; we have none.
     // ============================================
     function syncPluginBrowserSettingsTab() {
@@ -2258,7 +2258,7 @@
         title: PLUGIN_NAME,
         author: PLUGIN_AUTHOR,
         description: PLUGIN_DESCRIPTION,
-        about: '**Text Generator** by [Speaway](https://speaway.com) turns any text into Minecraft-style 3D cube geometry.\n\n## Features\n- Default Minecraft-style + curated block fonts + custom upload\n- Size, depth (0 = paper-thin), spacing, alignment\n- Colored outline border\n- Bold, italic, underline, strikethrough\n- Saveable presets\n- Unicode and emoji support\n- Double-click a Text group in the outliner to edit and regenerate\n\n## How to use\nGo to **Tools → Text Generator**, enter your text, adjust settings, and click Generate.',
+        about: '**Text Generator** by [Speaway](https://speaway.com) turns any text into Minecraft-style 3D cube geometry.\n\n## Features\n- Default Minecraft-style + curated block fonts + custom upload\n- Size, depth (0 = paper-thin), spacing, alignment\n- Colored outline border\n- Bold, italic, underline, strikethrough\n- Saveable presets\n- Unicode and emoji support\n- Double-click a Text group in the outliner to edit and regenerate\n\n## How to use\nGo to **Tools -> Text Generator**, enter your text, adjust settings, and click Generate.',
         icon: PLUGIN_ICON,
         version: PLUGIN_VERSION,
         variant: 'both',

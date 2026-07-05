@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  // â”€â”€â”€ CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- CSS ----------------------------------------------------------------------
 
   const CSS = `
 .igp-root {
@@ -72,7 +72,7 @@
 }
 `;
 
-  // â”€â”€â”€ MCAsset Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- MCAsset Loader -----------------------------------------------------------
 
   var MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
   var MCASSET_CDN = "https://assets.mcasset.cloud";
@@ -114,7 +114,7 @@
     };
   }
 
-  // â”€â”€â”€ Block Face Grouping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Block Face Grouping ------------------------------------------------------
 
   var FACE_SUFFIXES = ["top", "bottom", "north", "south", "east", "west", "side", "front", "back"];
   var FACE_TO_BB = {
@@ -342,7 +342,7 @@
     getError: function () { return catalogError; },
   };
 
-  // â”€â”€â”€ Texture Cache & Resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Texture Cache & Resolver -------------------------------------------------
 
   var textureCache = new Map();
   var textureCacheOrder = [];
@@ -390,7 +390,7 @@
     textureCacheOrder.length = 0;
   }
 
-  // â”€â”€â”€ Texture Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Texture Helpers ----------------------------------------------------------
 
   function createAndApplyTexture(cubes, name, hexColor) {
     try {
@@ -442,7 +442,7 @@
       })
       .catch(function (e) {
         console.warn("[IGP] Vanilla texture failed, using fallback:", e.message);
-        Blockbench.showQuickMessage("Texture unavailable â€” using placeholder", 2000);
+        Blockbench.showQuickMessage("Texture unavailable -- using placeholder", 2000);
         createAndApplyTexture(cubes, name, fallbackHex);
       });
   }
@@ -470,7 +470,7 @@
         return applyFaceTextures(cube, entry.faces, label);
       })).catch(function (e) {
         console.warn("[IGP] Multi-face texture failed, using fallback:", e.message);
-        Blockbench.showQuickMessage("Texture unavailable â€” using placeholder", 2000);
+        Blockbench.showQuickMessage("Texture unavailable -- using placeholder", 2000);
         createAndApplyTexture(cubes, label, "#9B9B9B");
       });
     }
@@ -494,7 +494,7 @@
     });
   }
 
-  // â”€â”€â”€ Spawn Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Spawn Helpers ------------------------------------------------------------
 
   var SPAWN_PIVOT = [-8, 0, -8];
 
@@ -534,7 +534,7 @@
     });
   }
 
-  // â”€â”€â”€ Block Spawns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Block Spawns -------------------------------------------------------------
 
   function spawnStandardBlock(label, entry) {
     label = label || "Block";
@@ -609,7 +609,7 @@
     return finishSpawn([c], label, entry);
   }
 
-  // â”€â”€â”€ Item Spawns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Item Spawns --------------------------------------------------------------
 
   function spawnExtrudedItem(label, entry) {
     label = label || "Item";
@@ -758,7 +758,7 @@
     return finishSpawn([head, shaft], label, entry);
   }
 
-  // â”€â”€â”€ Model JSON Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Model JSON Loader --------------------------------------------------------
 
   var modelCache = new Map();
 
@@ -815,7 +815,7 @@
     return MCASSET_CDN + "/" + version + "/assets/minecraft/textures/" + ref.replace(/^minecraft:/, '') + ".png";
   }
 
-  // â”€â”€â”€ Model-Based Spawner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Model-Based Spawner ------------------------------------------------------
 
   function spawnFromModelJson(label, model, version, fallbackEntry) {
     var textures = model.textures || {};
@@ -1053,7 +1053,7 @@
                           (headModel.elements && headModel.elements.length);
 
         if (!hasElements) {
-          // No elements in model JSON — fall back to two simple cubes
+          // No elements in model JSON -- fall back to two simple cubes
           return resolveTexture(entry.url).then(function (dataUrl) {
             Undo.initEdit({ elements: [], outliner: true });
             var tex = new Texture({ name: label.replace(/\s+/g, '_') + '_tex' });
@@ -1091,7 +1091,7 @@
     });
   }
 
-  // â”€â”€â”€ Spawn Router â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Spawn Router -------------------------------------------------------------
 
   function spawnFromEntry(entry) {
     var label   = entry.name;
@@ -1129,7 +1129,7 @@
     return spawnStandardBlock(label, entry);
   }
 
-  // â”€â”€â”€ Lazy Icon Observer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Lazy Icon Observer -------------------------------------------------------
 
   var iconObserver = null;
 
@@ -1159,7 +1159,7 @@
     });
   }
 
-  // â”€â”€â”€ Plugin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Plugin -------------------------------------------------------------------
 
   var styleEl = null;
   var igpPanel = null;
@@ -1181,7 +1181,7 @@
           '  </div>',
           '  <template v-else>',
           '    <input class="igp-search" type="text" v-model="queryInput"',
-          '      placeholder="Search blocks & itemsâ€¦" />',
+          '      placeholder="Search blocks & items..." />',
           '    <div class="igp-tabs">',
           '      <button class="igp-tab" v-for="t in tabList" :key="t.id"',
           '        :class="{active: cat === t.id}" @click="setCat(t.id)">',
@@ -1207,7 +1207,7 @@
         data: function () {
           return {
             ready: catalogReady,
-            loadingText: "Loading Minecraft texturesâ€¦",
+            loadingText: "Loading Minecraft textures...",
             queryInput: "",
             query: "",
             cat: "blocks",
@@ -1232,8 +1232,8 @@
             });
           },
           footerText: function () {
-            var text = "MC " + mcVersion + " Â· mcasset.cloud";
-            if (McAssetLoader.getError()) text += " Â· " + McAssetLoader.getError();
+            var text = "MC " + mcVersion + " * mcasset.cloud";
+            if (McAssetLoader.getError()) text += " * " + McAssetLoader.getError();
             return text;
           },
         },
@@ -1273,10 +1273,10 @@
             var self = this;
             spawnFromEntry(entry)
               .then(function () {
-                Blockbench.showQuickMessage("âœ“ " + entry.name + " spawned", 1500);
+                Blockbench.showQuickMessage("[OK] " + entry.name + " spawned", 1500);
               })
               .catch(function (e) {
-                Blockbench.showQuickMessage("âœ— " + e.message, 2500);
+                Blockbench.showQuickMessage("[X] " + e.message, 2500);
                 console.error("[IGP]", e);
               });
           },
@@ -1306,14 +1306,14 @@
       if (cached && cached !== mcVersion) clearTextureCache();
 
       return McAssetLoader.init().then(function (version) {
-        console.log("[IGP] Catalog ready â€” MC " + version
+        console.log("[IGP] Catalog ready -- MC " + version
           + " (" + CATALOG.blocks.length + " blocks, " + CATALOG.items.length + " items)");
         createPanel();
       }).catch(function (err) {
         console.error("[IGP] Init failed:", err);
         catalogReady = true;
         createPanel();
-        Blockbench.showQuickMessage("IGP: catalog load failed â€” search may be empty", 3000);
+        Blockbench.showQuickMessage("IGP: catalog load failed -- search may be empty", 3000);
       });
     },
 
