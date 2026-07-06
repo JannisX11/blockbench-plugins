@@ -86,6 +86,9 @@ function buildRenderProfile(settings, textureResolution) {
     profile.body_type = settings.host.bodyType;
   }
 
+  profile.model =
+      `${settings.namespace}:easy_model_entities/models/${settings.profileId}`;
+
   if (textureResolution && textureResolution.texture) {
     profile.texture = textureResolution.texture;
   }

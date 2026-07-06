@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "budgets": {
     "max_model_file_size_bytes": 2097152,
     "soft_model_file_size_bytes": 1048576,

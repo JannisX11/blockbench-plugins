@@ -19,7 +19,7 @@
 
 // Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType.
 
-const SCHEMA_VERSION = '0.1.0';
+const SCHEMA_VERSION = '0.2.0';
 
 const MODEL_TYPE_ENTITY = 'entity';
 const MODEL_TYPE_BLOCK_ENTITY = 'block_entity';

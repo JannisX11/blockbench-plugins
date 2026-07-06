@@ -40,7 +40,7 @@ describe('buildPackBundle', () => {
     ]);
     expect(bundle.resourcepack.map((f) => f.path).sort()).toEqual([
       'assets/example/easy_model_entities/models/lizard.bbmodel',
-      'assets/example/easy_model_entities/render_profiles/lizard.json',
+      'assets/example/easy_model_entities/render_profiles/entity/lizard.json',
       'assets/example/textures/entity/lizard.png',
       'pack.mcmeta'
     ].sort());
@@ -61,18 +61,19 @@ describe('buildPackBundle', () => {
   });
 
   test(
-      'profiles carry model_type, preset_type, render link, no obsolete fields',
+      'profiles carry model_type, preset_type, aligned model ref, no obsolete fields',
       () => {
         const server = JSON.parse(fileByPath(bundle.datapack,
             ENTITY_PROFILE_PATH).content);
         const render = JSON.parse(fileByPath(bundle.resourcepack,
-            'assets/example/easy_model_entities/render_profiles/lizard.json')
+            'assets/example/easy_model_entities/render_profiles/entity/lizard.json')
             .content);
         expect(server.model_type).toBe('entity');
         expect(server.preset_type).toBe('quadruped_wandering');
-        expect(server.schema_version).toBe('0.1.0');
-        expect(server.client.render_profile).toBe('example:lizard');
+        expect(server.schema_version).toBe('0.2.0');
+        expect(server.client).toBeUndefined();
         expect(render.preset_type).toBe('quadruped_wandering');
+        expect(render.model).toBe('example:easy_model_entities/models/lizard');
         expect(server.host).toBeUndefined();
         expect(server.pack_pair).toBeUndefined();
         expect(server.id).toBeUndefined();
@@ -104,7 +105,7 @@ describe('buildModProjectFiles', () => {
         fixtureExportOptions());
     expect(files.map((f) => f.path)).toEqual([
       ENTITY_PROFILE_PATH,
-      'assets/example/easy_model_entities/render_profiles/lizard.json',
+      'assets/example/easy_model_entities/render_profiles/entity/lizard.json',
       'assets/example/easy_model_entities/models/lizard.bbmodel',
       'assets/example/textures/entity/lizard.png'
     ]);
@@ -137,7 +138,7 @@ describe('model-only export (mod integration)', () => {
             fixtureExportOptions(settings));
         expect(serverProfile).toBeNull();
         expect(files.map((f) => f.path)).toEqual([
-          'assets/example/easy_model_entities/render_profiles/chestling.json',
+          'assets/example/easy_model_entities/render_profiles/entity/chestling.json',
           'assets/example/easy_model_entities/models/chestling.bbmodel',
           'assets/example/textures/entity/chestling.png'
         ]);
@@ -213,7 +214,7 @@ describe('mixed vanilla + custom textures', () => {
         ['assets/example/textures/entity/lizard_1.png']);
 
     const render = JSON.parse(fileByPath(files,
-        'assets/example/easy_model_entities/render_profiles/lizard.json')
+        'assets/example/easy_model_entities/render_profiles/entity/lizard.json')
         .content);
     expect(render.texture).toBe('minecraft:textures/entity/chest/normal.png');
     expect(render.textures).toEqual(
@@ -229,11 +230,15 @@ describe('block entity export uses the block_entity subfolder', () => {
     return settings;
   }
 
-  test('server profile lands under profiles/block_entity', () => {
-    const settings = blockSettings();
-    const {files} = buildModProjectFiles(settings,
-        fixtureExportOptions(settings));
-    expect(files.map((f) => f.path)).toContain(
-        'data/example/easy_model_entities/profiles/block_entity/shrine.json');
-  });
+  test('server and render profiles land under the block_entity subfolder',
+      () => {
+        const settings = blockSettings();
+        const {files} = buildModProjectFiles(settings,
+            fixtureExportOptions(settings));
+        const paths = files.map((f) => f.path);
+        expect(paths).toContain(
+            'data/example/easy_model_entities/profiles/block_entity/shrine.json');
+        expect(paths).toContain(
+            'assets/example/easy_model_entities/render_profiles/block_entity/shrine.json');
+      });
 });

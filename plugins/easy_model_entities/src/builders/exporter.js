@@ -54,20 +54,16 @@ function buildProfiles(settings, textureResolution) {
 function dataPaths(settings) {
   const namespace = settings.namespace;
   const id = settings.profileId;
-  // Server profiles live in an entity/ or block_entity/ subfolder. The model
-  // stays at the mod's auto-resolved default location so the render profile
-  // never has to spell out a model path.
   const modelType = settings.modelType || 'entity';
 
   return {
     profile: `data/${namespace}/easy_model_entities/profiles/${modelType}/${id}.json`,
-    renderProfile: `assets/${namespace}/easy_model_entities/render_profiles/${id}.json`,
+    renderProfile:
+        `assets/${namespace}/easy_model_entities/render_profiles/${modelType}/${id}.json`,
     model: `assets/${namespace}/easy_model_entities/models/${id}.bbmodel`
   };
 }
 
-// One binary entry per custom (packed) texture; external textures are
-// referenced by resource location and never written.
 function textureFiles(settings, textureResolution) {
   const namespace = settings.namespace;
   const packed = (textureResolution && textureResolution.packed) || [];
@@ -105,8 +101,6 @@ function resourcepackFiles(settings, renderProfile, options) {
   ];
 }
 
-// Inner pack file names are prefixed with the profile id so a user dropping
-// several exported packs into one folder never overwrites another model's pack.
 function packFileNames(settings) {
   return {
     datapack: `${settings.profileId}_datapack.zip`,
@@ -140,8 +134,6 @@ function buildModProjectFiles(settings, options) {
   const paths = dataPaths(settings);
 
   const files = [];
-  // Model-only export (mod integration, e.g. the Mimic example): the mod ships
-  // its own entity classes, so no server profile / data pack is written.
   const serverProfile = settings.modelOnly ? null : buildServerProfile(
       settings);
   stampVersion(serverProfile, renderProfile);

@@ -102,10 +102,6 @@ function buildServerProfile(settings) {
     preset_type: settings.presetType
   };
 
-  profile.client = {
-    render_profile: `${settings.namespace}:${settings.profileId}`
-  };
-
   if (!blockEntity) {
     assignIfPresent(profile, 'entity', buildEntity(settings, custom));
   }

@@ -32,21 +32,22 @@ describe('preset defaults mirror the mod (minimal output)', () => {
   describe.each(SELECTABLE_PRESET_TYPES)('%s', (preset) => {
     const settings = withId(applyTemplate(preset));
 
-    test('server profile reduces to identity + render link', () => {
+    test('server profile reduces to identity only', () => {
       expect(buildServerProfile(settings)).toEqual({
-        schema_version: '0.1.0',
+        schema_version: '0.2.0',
         model_type: 'entity',
-        preset_type: preset,
-        client: {render_profile: 'example:lizard'}
-      });
-    });
-
-    test('render profile reduces to schema_version + preset_type', () => {
-      expect(buildRenderProfile(settings)).toEqual({
-        schema_version: '0.1.0',
         preset_type: preset
       });
     });
+
+    test('render profile reduces to schema_version, preset_type and model',
+        () => {
+          expect(buildRenderProfile(settings)).toEqual({
+            schema_version: '0.2.0',
+            preset_type: preset,
+            model: 'example:easy_model_entities/models/lizard'
+          });
+        });
   });
 });
 
@@ -79,14 +80,13 @@ describe('block entity profiles', () => {
     return settings;
   }
 
-  test('server profile carries model_type, render link and no entity behavior',
+  test('server profile carries model_type and no entity behavior',
       () => {
         const profile = buildServerProfile(blockSettings('animated_randomly'));
         expect(profile).toEqual({
-          schema_version: '0.1.0',
+          schema_version: '0.2.0',
           model_type: 'block_entity',
-          preset_type: 'animated_randomly',
-          client: {render_profile: 'example:shrine'}
+          preset_type: 'animated_randomly'
         });
         expect(profile.entity).toBeUndefined();
         expect(profile.movement).toBeUndefined();
@@ -118,10 +118,9 @@ describe('customized settings emit only the deviating values', () => {
 
   test('server profile contains the stone turtle overrides only', () => {
     expect(buildServerProfile(settings)).toEqual({
-      schema_version: '0.1.0',
+      schema_version: '0.2.0',
       model_type: 'entity',
       preset_type: 'quadruped_wandering',
-      client: {render_profile: 'example:lizard'},
       dimensions: {width: 1.2, height: 0.85},
       movement: {speed: 0.06, step_height: 0.4},
       attributes: {max_health: 12, follow_range: 12}

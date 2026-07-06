@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const contract = require('./fixtures/easy-model-api-0.1.0.json');
+const contract = require('./fixtures/easy-model-api-0.2.0.json');
 const {buildRenderProfile} = require('../builders/renderProfile');
 const {buildServerProfile} = require('../builders/serverProfile');
 const {Validator} = require('../model/Validator');
@@ -89,14 +89,15 @@ describe('mod example style stays minimal', () => {
     settings.profileId = 'little_explorer';
 
     expect(buildServerProfile(settings)).toEqual({
-      schema_version: '0.1.0',
+      schema_version: '0.2.0',
       model_type: 'entity',
-      preset_type: 'humanoid_wandering',
-      client: {render_profile: 'easy_model_entities_examples:little_explorer'}
+      preset_type: 'humanoid_wandering'
     });
     expect(buildRenderProfile(settings)).toEqual({
-      schema_version: '0.1.0',
-      preset_type: 'humanoid_wandering'
+      schema_version: '0.2.0',
+      preset_type: 'humanoid_wandering',
+      model:
+          'easy_model_entities_examples:easy_model_entities/models/little_explorer'
     });
   });
 
@@ -106,14 +107,14 @@ describe('mod example style stays minimal', () => {
     settings.profileId = 'shrine';
 
     expect(buildServerProfile(settings)).toEqual({
-      schema_version: '0.1.0',
+      schema_version: '0.2.0',
       model_type: 'block_entity',
-      preset_type: 'animated_randomly',
-      client: {render_profile: 'easy_model_entities_examples:shrine'}
+      preset_type: 'animated_randomly'
     });
     expect(buildRenderProfile(settings)).toEqual({
-      schema_version: '0.1.0',
+      schema_version: '0.2.0',
       preset_type: 'static',
+      model: 'easy_model_entities_examples:easy_model_entities/models/shrine',
       rendering: {shadow_radius: 0.5},
       animation: {mode: 'random_idle'}
     });

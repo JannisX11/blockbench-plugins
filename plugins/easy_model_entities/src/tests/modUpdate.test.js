@@ -72,7 +72,7 @@ describe('pickModelSettings keeps reopen-critical settings', () => {
     expect(picked.modelOnly).toBeUndefined();
     expect(picked.experimental).toBeUndefined();
     // Model-defining data is retained.
-    expect(picked.schemaVersion).toBe('0.1.0');
+    expect(picked.schemaVersion).toBe('0.2.0');
     expect(picked.presetType).toBe('humanoid_wandering');
     expect(picked.host).toEqual(full.host);
     expect(picked.rendering).toEqual(full.rendering);
