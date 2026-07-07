@@ -70,5 +70,24 @@
 				]
 			}
 		]
+	},
+	"1.3.2": {
+		"title": "1.3.2",
+		"date": "2026-07-07",
+		"author": "bay4lly",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added ZIP export fallback for \"Export as ZIP\" option on the web version of Blockbench"
+				]
+			},
+			{
+				"title": "Bug fixes",
+				"list": [
+					"Fixed animation import"
+				]
+			}
+		]
 	}
 }

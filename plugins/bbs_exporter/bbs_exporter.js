@@ -1,4 +1,28 @@
-(function() {
+(function ()
+{
+    const IS_BLOCKBENCH5_OR_GT = Blockbench.isNewerThan('4.99');
+
+    function processValue(v, group, component)
+    {
+        if (!v)
+        {
+            return v;
+        }
+
+        if (IS_BLOCKBENCH5_OR_GT)
+        {
+            if (
+                (group === "p" && component === "x") ||
+                (group === "r" && (component === "x" || component === "y"))
+            )
+            {
+                return invertMolang(v);
+            }
+        }
+
+        return v;
+    }
+
     var exportAction, importAction;
     var lastOptions = {};
     var sides = {
@@ -22,7 +46,7 @@
 
     function areThereObjects(objects)
     {
-        for (let i = 0; i < objects.length; i++) 
+        for (let i = 0; i < objects.length; i++)
         {
             if (objects[i].type === "group")
             {
@@ -50,7 +74,7 @@
             for (let i = 0; i < objects.length; i++)
             {
                 var object = objects[i];
-    
+
                 if (object.type === "group")
                 {
                     groups[object.name] = createModelGroup(object, groups);
@@ -195,7 +219,7 @@
             {
                 /* Triangulate a quad */
                 var sorted = face.getSortedVertices();
-                
+
                 pushVertexKey(sorted[0], face);
                 pushVertexKey(sorted[1], face);
                 pushVertexKey(sorted[2], face);
@@ -266,7 +290,7 @@
             var out = [
                 keyframe.time,
                 keyframe.interpolation,
-                getExpression(data, "x", typeGroup === "r" || typeGroup === "p"), getExpression(data, "y", typeGroup === "r"), getExpression(data, "z", false)
+                getExpression(data, typeGroup, "x"), getExpression(data, typeGroup, "y"), getExpression(data, typeGroup, "z")
             ];
 
             keyframes.push(out);
@@ -275,15 +299,14 @@
         return keyframes;
     }
 
-    function getExpression(data, component, invert)
+    function getExpression(data, group, component)
     {
         var value = data[component] || 0;
         var parsed = parseFloat(value);
-        var inverter = invert && Blockbench.isNewerThan('4.99') ? invertMolang : (v) => v;
 
         if (!isNaN(value) && !isNaN(parsed))
         {
-            return inverter(parsed);
+            return processValue(parsed, group, component);
         }
 
         if (typeof value === "string")
@@ -296,7 +319,7 @@
             }
         }
 
-        return inverter(value);
+        return processValue(parsed, group, component);
     }
 
     function compile()
@@ -445,13 +468,15 @@
 
     function importChannel(animator, name, channel)
     {
-        channel.forEach(kf => 
+        var group = name[0];
+
+        channel.forEach(kf =>
         {
             animator.addKeyframe({
                 channel: name,
                 time: kf[0],
                 interpolation: kf[1],
-                data_points: [{x: kf[2], y: kf[3], z: kf[4]}]
+                data_points: [{ x: processValue(kf[2], group, "x"), y: processValue(kf[3], group, "y"), z: processValue(kf[4], group, "z") }]
             });
         });
     }
@@ -585,11 +610,13 @@
         load_filter: {
             type: "json",
             extensions: ["json"],
-            condition: (file) => {
+            condition: (file) =>
+            {
                 return file && file.model && file.model.groups && file.model.texture;
             }
         },
-        load(content, file) {
+        load(content, file)
+        {
             if (!Undo)
             {
                 setupProject(Formats.free);
@@ -597,10 +624,12 @@
 
             importBBS(content);
         },
-        compile(options) {
+        compile(options)
+        {
             return autoStringify(compile());
         },
-        fileName() {
+        fileName()
+        {
             var name = Project.name || "model";
 
             return name.endsWith("bbs") ? name : name + ".bbs";
@@ -633,13 +662,16 @@
                 value: false
             },
             exportAsFolder: {
-                label: "Export to folder",
-                description: "When enabled, you can pick the folder where .bbs.json and the texture would be exported to.",
+                label: (typeof isApp !== 'undefined' && isApp) ? "Export to folder" : "Export as ZIP",
+                description: (typeof isApp !== 'undefined' && isApp)
+                    ? "When enabled, you can pick the folder where .bbs.json and the texture would be exported to."
+                    : "When enabled, exports the model and its textures compiled into a ZIP file.",
                 type: "checkbox",
                 value: false
             }
         },
-        onConfirm: function(formData) {
+        onConfirm: function (formData)
+        {
             this.hide();
 
             lastOptions.model = formData.exportModel;
@@ -647,28 +679,81 @@
 
             if (formData.exportAsFolder)
             {
-                var folder = Blockbench.pickDirectory({
-                    title: "Export destination..."
-                });
-
-                if (folder)
+                if (typeof isApp !== 'undefined' && isApp)
                 {
-                    Blockbench.writeFile(PathModule.join(folder, "model.bbs.json"), {
-                        content: autoStringify(compile())
+                    var folder = Blockbench.pickDirectory({
+                        title: "Export destination..."
                     });
 
-                    Texture.all.forEach((t) => 
+                    if (folder)
                     {
-                        if (t.error) 
+                        Blockbench.writeFile(PathModule.join(folder, "model.bbs.json"), {
+                            content: autoStringify(compile())
+                        });
+
+                        var usedNames = {};
+
+                        Texture.all.forEach((t) =>
+                        {
+                            if (t.error)
+                            {
+                                return;
+                            }
+
+                            var base = t.name.endsWith(".png") ? t.name.slice(0, -4) : t.name;
+                            var name = base + ".png";
+                            var n = 1;
+
+                            while (usedNames[name])
+                            {
+                                name = base + "_" + (n++) + ".png";
+                            }
+
+                            usedNames[name] = true;
+
+                            Blockbench.writeFile(PathModule.join(folder, name), {
+                                content: t.source,
+                                savetype: 'image'
+                            });
+                        });
+                    }
+                }
+                else
+                {
+                    var zip = new JSZip();
+                    zip.file("model.bbs.json", autoStringify(compile()));
+
+                    var usedNames = {};
+
+                    Texture.all.forEach((t) =>
+                    {
+                        if (t.error)
                         {
                             return;
                         }
-                        
-                        var name = t.name.endsWith(".png") ? t.name : t.name + ".png";
-                        
-                        Blockbench.writeFile(PathModule.join(folder, name), {
-                            content: t.source,
-                            savetype: 'image'
+
+                        var base = t.name.endsWith(".png") ? t.name.slice(0, -4) : t.name;
+                        var name = base + ".png";
+                        var n = 1;
+
+                        while (usedNames[name])
+                        {
+                            name = base + "_" + (n++) + ".png";
+                        }
+
+                        usedNames[name] = true;
+
+                        zip.file(name, t.getBase64(), {base64: true});
+                    });
+
+                    zip.generateAsync({type: "blob"}).then((blob) =>
+                    {
+                        Blockbench.export({
+                            type: "Zip Archive",
+                            extensions: ["zip"],
+                            name: (typeof Project !== 'undefined' && Project && Project.name) || "model",
+                            content: blob,
+                            savetype: "zip"
                         });
                     });
                 }
@@ -700,17 +785,20 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS mod.",
         icon: "icon.png",
-        version: "1.3.1",
+        version: "1.3.2",
         min_version: "4.8.0",
         variant: "both",
+        tags: ["Exporter", "Importer"],
         has_changelog: true,
-        onload() {
+        onload()
+        {
             exportAction = new Action("bbs_exporter", {
                 name: "Export BBS model",
                 category: "file",
                 description: "Export model as a BBS (.bbs.json) model",
                 icon: "fa-file-export",
-                click() {
+                click()
+                {
                     exportDialog.show();
                 }
             });
@@ -720,12 +808,14 @@
                 category: "file",
                 description: "Import a BBS model (.bbs.json) model",
                 icon: "fa-file-import",
-                click() {
+                click()
+                {
                     Blockbench.import({
                         extensions: ['bbs.json'],
                         type: 'BBS model',
                         readtype: 'text',
-                    }, (files) => {
+                    }, (files) =>
+                    {
                         importBBS(JSON.parse(files[0].content));
                     });
                 }
@@ -734,7 +824,8 @@
             MenuBar.addAction(exportAction, "file.export");
             MenuBar.addAction(importAction, "file.import");
         },
-        onunload() {
+        onunload()
+        {
             exportAction.delete();
             importAction.delete();
         }
