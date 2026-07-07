@@ -1,4 +1,23 @@
-(function() {
+(function () {
+    const IS_BLOCKBENCH5_OR_GT = Blockbench.isNewerThan('4.99');
+
+    function processValue(v, group, component) {
+        if (!v) {
+            return v;
+        }
+
+        if (IS_BLOCKBENCH5_OR_GT) {
+            if (
+                (group === "p" && component === "x") ||
+                (group === "r" && (component === "x" || component === "y"))
+            ) {
+                return invertMolang(v);
+            }
+        }
+
+        return v;
+    }
+
     var exportAction, importAction;
     var lastOptions = {};
     var sides = {
@@ -20,12 +39,9 @@
 
     /* Model exporter code */
 
-    function areThereObjects(objects)
-    {
-        for (let i = 0; i < objects.length; i++) 
-        {
-            if (objects[i].type === "group")
-            {
+    function areThereObjects(objects) {
+        for (let i = 0; i < objects.length; i++) {
+            if (objects[i].type === "group") {
                 return true;
             }
         }
@@ -33,26 +49,21 @@
         return false;
     }
 
-    function createHierarchy(objects)
-    {
+    function createHierarchy(objects) {
         var groups = {};
         var createAnchor = !areThereObjects(objects);
 
-        if (createAnchor)
-        {
+        if (createAnchor) {
             var group = new Group();
 
             group.children = objects;
             groups.anchor = createModelGroup(group, groups);
         }
-        else
-        {
-            for (let i = 0; i < objects.length; i++)
-            {
+        else {
+            for (let i = 0; i < objects.length; i++) {
                 var object = objects[i];
-    
-                if (object.type === "group")
-                {
+
+                if (object.type === "group") {
                     groups[object.name] = createModelGroup(object, groups);
                 }
             }
@@ -61,57 +72,47 @@
         return groups;
     }
 
-    function createModelGroup(o, groups)
-    {
+    function createModelGroup(o, groups) {
         var group = {};
         var cubes = [];
         var meshes = [];
 
         group.origin = o.origin.slice();
 
-        if (!o.rotation.allEqual(0))
-        {
+        if (!o.rotation.allEqual(0)) {
             group.rotate = o.rotation.slice();
         }
 
-        if (typeof o.parent.name === "string")
-        {
+        if (typeof o.parent.name === "string") {
             group.parent = o.parent.name;
         }
 
-        for (let i = 0; i < o.children.length; i++)
-        {
+        for (let i = 0; i < o.children.length; i++) {
             var object = o.children[i];
 
-            if (object.type === "group")
-            {
+            if (object.type === "group") {
                 groups[object.name] = createModelGroup(object, groups);
             }
-            else if (object.type === "cube")
-            {
+            else if (object.type === "cube") {
                 cubes.push(createCube(object));
             }
-            else if (object.type === "mesh")
-            {
+            else if (object.type === "mesh") {
                 meshes.push(createMesh(object));
             }
         }
 
-        if (cubes.length > 0)
-        {
+        if (cubes.length > 0) {
             group.cubes = cubes;
         }
 
-        if (meshes.length > 0)
-        {
+        if (meshes.length > 0) {
             group.meshes = meshes;
         }
 
         return group;
     }
 
-    function createCube(c)
-    {
+    function createCube(c) {
         var cube = {};
         var uvs = {};
 
@@ -119,26 +120,21 @@
         cube.from = c.from.slice();
         cube.size = c.size();
 
-        if (c.inflate !== 0)
-        {
+        if (c.inflate !== 0) {
             cube.offset = c.inflate;
         }
 
-        if (!c.rotation.allEqual(0))
-        {
+        if (!c.rotation.allEqual(0)) {
             cube.rotate = c.rotation.slice();
         }
 
-        Object.keys(CubeFace.opposite).forEach(key =>
-        {
+        Object.keys(CubeFace.opposite).forEach(key => {
             var face = c.faces[key];
 
-            if (face && face.texture !== null)
-            {
+            if (face && face.texture !== null) {
                 var uv = face.uv.slice();
 
-                if (face.rotation !== 0)
-                {
+                if (face.rotation !== 0) {
                     uv.push(face.rotation);
                 }
 
@@ -146,22 +142,19 @@
             }
         });
 
-        if (Object.keys(uvs).length > 0)
-        {
+        if (Object.keys(uvs).length > 0) {
             cube.uvs = uvs;
         }
 
         return cube;
     }
 
-    function createMesh(c)
-    {
+    function createMesh(c) {
         var mesh = {};
         var vertices = [];
         var uvs = [];
 
-        var pushVertexKey = (k, f) =>
-        {
+        var pushVertexKey = (k, f) => {
             var v = c.vertices[k];
             var u = f.uv[k];
 
@@ -174,28 +167,23 @@
 
         mesh.origin = c.origin.slice();
 
-        if (!c.rotation.allEqual(0))
-        {
+        if (!c.rotation.allEqual(0)) {
             mesh.rotate = c.rotation.slice();
         }
 
-        for (var key in c.faces)
-        {
+        for (var key in c.faces) {
             var face = c.faces[key];
             var vertexKeys = face.vertices;
 
-            if (vertexKeys.length == 3)
-            {
-                for (var i = 0; i < vertexKeys.length; i++)
-                {
+            if (vertexKeys.length == 3) {
+                for (var i = 0; i < vertexKeys.length; i++) {
                     pushVertexKey(vertexKeys[i], face);
                 }
             }
-            else if (vertexKeys.length == 4)
-            {
+            else if (vertexKeys.length == 4) {
                 /* Triangulate a quad */
                 var sorted = face.getSortedVertices();
-                
+
                 pushVertexKey(sorted[0], face);
                 pushVertexKey(sorted[1], face);
                 pushVertexKey(sorted[2], face);
@@ -214,21 +202,18 @@
 
     /* Animation exporting code */
 
-    function createAnimation(a)
-    {
+    function createAnimation(a) {
         var animation = {
             groups: {}
         };
 
         animation.duration = a.length;
 
-        for (let key in a.animators)
-        {
+        for (let key in a.animators) {
             var animator = a.animators[key];
             var group = createAnimationGroup(animator);
 
-            if (Object.keys(group).length > 0)
-            {
+            if (Object.keys(group).length > 0) {
                 animation.groups[animator.name] = group;
             }
         }
@@ -236,8 +221,7 @@
         return animation;
     }
 
-    function createAnimationGroup(a)
-    {
+    function createAnimationGroup(a) {
         var group = {};
         var translate = createAnimationKeyframes(a.position, "p");
         var scale = createAnimationKeyframes(a.scale, "s");
@@ -250,23 +234,20 @@
         return group;
     }
 
-    function createAnimationKeyframes(g, typeGroup)
-    {
-        if (!g)
-        {
+    function createAnimationKeyframes(g, typeGroup) {
+        if (!g) {
             return [];
         }
 
         var keyframes = [];
 
-        for (let i = 0; i < g.length; i++)
-        {
+        for (let i = 0; i < g.length; i++) {
             var keyframe = g[i];
             var data = keyframe.data_points[0];
             var out = [
                 keyframe.time,
                 keyframe.interpolation,
-                getExpression(data, "x", typeGroup === "r" || typeGroup === "p"), getExpression(data, "y", typeGroup === "r"), getExpression(data, "z", false)
+                getExpression(data, typeGroup, "x"), getExpression(data, typeGroup, "y"), getExpression(data, typeGroup, "z")
             ];
 
             keyframes.push(out);
@@ -275,55 +256,43 @@
         return keyframes;
     }
 
-    function getExpression(data, component, invert)
-    {
+    function getExpression(data, group, component) {
         var value = data[component] || 0;
         var parsed = parseFloat(value);
-        var inverter = invert && Blockbench.isNewerThan('4.99') ? invertMolang : (v) => v;
 
-        if (!isNaN(value) && !isNaN(parsed))
-        {
-            return inverter(parsed);
+        if (!isNaN(value) && !isNaN(parsed)) {
+            return processValue(parsed, group, component);
         }
 
-        if (typeof value === "string")
-        {
+        if (typeof value === "string") {
             value = value.trim();
 
-            if (!value)
-            {
+            if (!value) {
                 return 0;
             }
         }
 
-        return inverter(value);
+        return processValue(parsed, group, component);
     }
 
-    function compile()
-    {
-        function findTextureSize()
-        {
+    function compile() {
+        function findTextureSize() {
             var c = Cube.all;
             var keys = Object.keys(sides);
 
-            for (var i = 0; i < c.length; i++)
-            {
+            for (var i = 0; i < c.length; i++) {
                 var cube = c[i];
 
-                for (var j = 0; j < keys.length; j++)
-                {
+                for (var j = 0; j < keys.length; j++) {
                     var face = cube.faces[keys[j]];
 
-                    if (face)
-                    {
+                    if (face) {
                         var textureUuid = face.texture;
 
-                        for (var k = 0; k < Texture.all.length; k++)
-                        {
+                        for (var k = 0; k < Texture.all.length; k++) {
                             var texture = Texture.all[k];
 
-                            if (texture && texture.uuid == textureUuid)
-                            {
+                            if (texture && texture.uuid == textureUuid) {
                                 return [texture.uv_width, texture.uv_height];
                             }
                         }
@@ -339,13 +308,11 @@
             animations: {}
         };
 
-        if (lastOptions.model)
-        {
+        if (lastOptions.model) {
             var texture = [Project.texture_width, Project.texture_height];
             var textureSize = findTextureSize();
 
-            if (textureSize)
-            {
+            if (textureSize) {
                 texture = textureSize;
             }
 
@@ -355,10 +322,8 @@
             };
         }
 
-        if (lastOptions.animations)
-        {
-            Animation.all.forEach(animation =>
-            {
+        if (lastOptions.animations) {
+            Animation.all.forEach(animation => {
                 output.animations[animation.name] = createAnimation(animation);
             });
         }
@@ -366,17 +331,13 @@
         return output;
     }
 
-    function compileFirstCubes()
-    {
+    function compileFirstCubes() {
         var group = Group.selected;
         var cubes = [];
 
-        if (group)
-        {
-            for (var child of group.children)
-            {
-                if (child.type === "cube")
-                {
+        if (group) {
+            for (var child of group.children) {
+                if (child.type === "cube") {
                     cubes.push(createCube(child));
                 }
             }
@@ -387,20 +348,17 @@
 
     /* Import */
 
-    function importBBS(json)
-    {
+    function importBBS(json) {
         Undo.initEdit({
             outliner: true,
             animations: []
         });
 
-        try
-        {
+        try {
             if (json.model) importModel(json.model);
             if (json.animations) importAnimations(json.animations);
         }
-        catch (e)
-        {
+        catch (e) {
             console.log(e);
         }
 
@@ -408,10 +366,8 @@
         Canvas.updateAll();
     }
 
-    function importAnimations(animations)
-    {
-        for (var key in animations)
-        {
+    function importAnimations(animations) {
+        for (var key in animations) {
             var animationObject = animations[key];
             var data = {
                 name: key,
@@ -425,12 +381,10 @@
         }
     }
 
-    function importGroup(key, groupObject, animation)
-    {
+    function importGroup(key, groupObject, animation) {
         var group = Group.all.find(o => o.name === key);
 
-        if (!group)
-        {
+        if (!group) {
             return;
         }
 
@@ -443,21 +397,20 @@
         if (groupObject.scale) importChannel(animator, "scale", groupObject.scale);
     }
 
-    function importChannel(animator, name, channel)
-    {
-        channel.forEach(kf => 
-        {
+    function importChannel(animator, name, channel) {
+        var group = name[0];
+
+        channel.forEach(kf => {
             animator.addKeyframe({
                 channel: name,
                 time: kf[0],
                 interpolation: kf[1],
-                data_points: [{x: kf[2], y: kf[3], z: kf[4]}]
+                data_points: [{ x: processValue(kf[2], group, "x"), y: processValue(kf[3], group, "y"), z: processValue(kf[4], group, "z") }]
             });
         });
     }
 
-    function importModel(model)
-    {
+    function importModel(model) {
         var texture = model.texture;
         var relations = {};
         var groups = {};
@@ -465,8 +418,7 @@
         Project.texture_width = texture[0];
         Project.texture_height = texture[1];
 
-        for (var key in model.groups)
-        {
+        for (var key in model.groups) {
             var groupObject = model.groups[key];
             var data = {
                 name: key
@@ -486,14 +438,12 @@
             groups[key] = group;
         }
 
-        for (var key in relations)
-        {
+        for (var key in relations) {
             groups[key].addTo(groups[relations[key]]);
         }
     }
 
-    function importCube(cubeObject, group)
-    {
+    function importCube(cubeObject, group) {
         var cube = new Cube({
             origin: cubeObject.origin || [0, 0, 0],
             from: cubeObject.from,
@@ -506,15 +456,13 @@
             inflate: cubeObject.offset || 0
         });
 
-        Object.keys(cubeObject.uvs).forEach(key =>
-        {
+        Object.keys(cubeObject.uvs).forEach(key => {
             var uv = cubeObject.uvs[key];
             var face = cube.faces[sidesInverse[key]];
 
             face.uv = uv.slice(0, 4);
 
-            if (uv.length >= 5)
-            {
+            if (uv.length >= 5) {
                 face.rotation = uv[4];
             }
         });
@@ -523,13 +471,11 @@
         cube.addTo(group);
     }
 
-    function importMesh(meshObject, group)
-    {
+    function importMesh(meshObject, group) {
         var vertices = {};
         var faces = {};
 
-        for (var i = 0, c = meshObject.vertices.length / 9; i < c; i++)
-        {
+        for (var i = 0, c = meshObject.vertices.length / 9; i < c; i++) {
             var a1 = [
                 meshObject.vertices[i * 9],
                 meshObject.vertices[i * 9 + 1],
@@ -590,8 +536,7 @@
             }
         },
         load(content, file) {
-            if (!Undo)
-            {
+            if (!Undo) {
                 setupProject(Formats.free);
             }
 
@@ -633,63 +578,81 @@
                 value: false
             },
             exportAsFolder: {
-                label: "Export to folder",
-                description: "When enabled, you can pick the folder where .bbs.json and the texture would be exported to.",
+                label: (typeof isApp !== 'undefined' && isApp) ? "Export to folder" : "Export as ZIP",
+                description: (typeof isApp !== 'undefined' && isApp)
+                    ? "When enabled, you can pick the folder where .bbs.json and the texture would be exported to."
+                    : "When enabled, exports the model and its textures compiled into a ZIP file.",
                 type: "checkbox",
                 value: false
             }
         },
-        onConfirm: function(formData) {
+        onConfirm: function (formData) {
             this.hide();
 
             lastOptions.model = formData.exportModel;
             lastOptions.animations = formData.exportAnimations;
 
-            if (formData.exportAsFolder)
-            {
-                var folder = Blockbench.pickDirectory({
-                    title: "Export destination..."
-                });
-
-                if (folder)
-                {
-                    Blockbench.writeFile(PathModule.join(folder, "model.bbs.json"), {
-                        content: autoStringify(compile())
+            if (formData.exportAsFolder) {
+                if (typeof isApp !== 'undefined' && isApp) {
+                    var folder = Blockbench.pickDirectory({
+                        title: "Export destination..."
                     });
 
-                    Texture.all.forEach((t) => 
-                    {
-                        if (t.error) 
-                        {
+                    if (folder) {
+                        Blockbench.writeFile(PathModule.join(folder, "model.bbs.json"), {
+                            content: autoStringify(compile())
+                        });
+
+                        Texture.all.forEach((t) => {
+                            if (t.error) {
+                                return;
+                            }
+
+                            var name = t.name.endsWith(".png") ? t.name : t.name + ".png";
+
+                            Blockbench.writeFile(PathModule.join(folder, name), {
+                                content: t.source,
+                                savetype: 'image'
+                            });
+                        });
+                    }
+                } else {
+                    var zip = new JSZip();
+                    zip.file("model.bbs.json", autoStringify(compile()));
+
+                    Texture.all.forEach((t) => {
+                        if (t.error) {
                             return;
                         }
-                        
+
                         var name = t.name.endsWith(".png") ? t.name : t.name + ".png";
-                        
-                        Blockbench.writeFile(PathModule.join(folder, name), {
-                            content: t.source,
-                            savetype: 'image'
+                        zip.file(name, t.getBase64(), {base64: true});
+                    });
+
+                    zip.generateAsync({type: "blob"}).then((blob) => {
+                        Blockbench.export({
+                            type: "Zip Archive",
+                            extensions: ["zip"],
+                            name: (typeof Project !== 'undefined' && Project && Project.name) || "model",
+                            content: blob,
+                            savetype: "zip"
                         });
                     });
                 }
             }
-            else if (formData.copyToBuffer)
-            {
+            else if (formData.copyToBuffer) {
                 var data = {};
 
-                if (formData.copyOnlyFirst)
-                {
+                if (formData.copyOnlyFirst) {
                     data = compileFirstCubes();
                 }
-                else
-                {
+                else {
                     data = compile();
                 }
 
                 Clipbench.setText(autoStringify(data));
             }
-            else
-            {
+            else {
                 bbsCodec.export();
             }
         }
@@ -700,7 +663,7 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS mod.",
         icon: "icon.png",
-        version: "1.3.1",
+        version: "1.3.2",
         min_version: "4.8.0",
         variant: "both",
         has_changelog: true,
