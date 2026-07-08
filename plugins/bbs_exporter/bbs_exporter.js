@@ -317,6 +317,7 @@
             {
                 return 0;
             }
+            return processValue(value, group, component);
         }
 
         return processValue(parsed, group, component);
