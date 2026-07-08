@@ -786,7 +786,7 @@
         author: "McHorse",
         description: "Adds actions to export/import models in BBS format, which is used by BBS mod.",
         icon: "icon.png",
-        version: "1.3.2",
+        version: "1.3.3",
         min_version: "4.8.0",
         variant: "both",
         tags: ["Exporter", "Importer"],
