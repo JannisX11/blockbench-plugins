@@ -1147,6 +1147,20 @@
 		"min_version": "4.8.0",
 		"variant": "both"
 	},
+	"easing_peasy": {
+		"title": "Easing Peasy",
+		"author": "Titus Evans (SnaveSutit)",
+		"description": "Adds easing curves to animation keyframes, simplifying the process of creating smooth animations.",
+		"version": "1.0.0",
+		"await_loading": true,
+		"icon": "icon.svg",
+		"variant": "both",
+		"tags": ["Animation", "Easing", "Tools"],
+		"min_version": "5.1.4",
+		"repository": "https://github.com/snavesutit/easing-peasy-blockbench-plugin",
+		"bug_tracker": "https://github.com/snavesutit/easing-peasy-blockbench-plugin/issues",
+		"has_changelog": true
+	},
 	"bedrock_block_transforms": {
 		"title": "Bedrock Block Transformation Preview",
 		"author": "JannisX11",
