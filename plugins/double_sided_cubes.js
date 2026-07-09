@@ -30,14 +30,15 @@
 						if (!!new_cube.box_uv) {
 							new_cube.setUVMode(false);
 						}
-						// cube.duplicate() will sometimes change the name of the duplicated cube, 
-						//   so we base this on cube.name instead of new_cube.name.
-						new_cube.name = cube.name + " inverted";
-						// Place new_cube immediately after cube in the outliner
-						new_cube.sortInBefore(cube, 1);
+						// Invert new_cube
 						for (i=0; i<3; i++){
 							new_cube.flip(i, 0, false)
 						};
+						// cube.duplicate() and new_cube.flip(...) will sometimes change new_cube.name, 
+						//   so we make sure to set the name here, and base it on cube.name instead
+						new_cube.name = cube.name + " inverted";
+						// Place new_cube immediately after cube in the outliner
+						new_cube.sortInBefore(cube, 1);
 						new_cube.from = [...cube.to];
 						new_cube.to = [...cube.from];
 						new_cube.inflate = -new_cube.inflate;
