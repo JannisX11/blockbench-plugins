@@ -12,11 +12,11 @@
 		variant: 'both',
 		onload() {
 			cube_action = new Action({
-				id:"create_double_sided_cubes",
+				id: "create_double_sided_cubes",
 				name: 'Create Double Sided Cube',
 				icon: 'flip_to_back',
 				category: 'edit',
-				condition: () => !Project.box_uv,
+				condition: () => !Project.box_uv || Project.optional_box_uv,
 				click: function(ev) {
 					if (selected.length === 0) {
 						Blockbench.showMessage('No cubes selected', 'center')
@@ -26,10 +26,15 @@
 					let cubes = [];
 					Cube.selected.forEach((cube) => {
 						const new_cube = cube.duplicate();
-						new_cube.name = new_cube.name + " inverted";
-						if (cube.parent !== "root") {
-							new_cube.addTo(cube.parent);
-						};
+						// Set the new cube to Per-Face UV if it was using Box UV
+						if (!!new_cube.box_uv) {
+							new_cube.setUVMode(false);
+						}
+						// cube.duplicate() will sometimes change the name of the duplicated cube, 
+						//   so we base this on cube.name instead of new_cube.name.
+						new_cube.name = cube.name + " inverted";
+						// Place new_cube immediately after cube in the outliner
+						new_cube.sortInBefore(cube, 1);
 						for (i=0; i<3; i++){
 							new_cube.flip(i, 0, false)
 						};
