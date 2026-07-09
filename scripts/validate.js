@@ -62,7 +62,8 @@ const BASE_PATH = path.join(import.meta.dirname, '..', NEW_FORMAT ? 'plugins/'+P
 
 let content_js = '';
 try {
-	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
+	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'), {encoding: 'utf8'});
+	content_js = content_js.replace(/throw /g, '')
 } catch (err) {
 	logError("Could not find plugin source file at " + path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
 	process.exit();
@@ -98,6 +99,7 @@ const wildcard = new Proxy(function () {}, {
 // Sandbox that pretends every global exists
 const sandbox = new Proxy({
 	Plugin,
+	Object,
 	BBPlugin: Plugin,
 }, {
 	has() {
