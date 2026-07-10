@@ -1151,7 +1151,7 @@
 		"title": "Easing Peasy",
 		"author": "Titus Evans (SnaveSutit)",
 		"description": "Adds easing curves to animation keyframes, simplifying the process of creating smooth animations.",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"await_loading": true,
 		"icon": "icon.svg",
 		"variant": "both",
