@@ -1157,8 +1157,8 @@
 		"variant": "both",
 		"tags": ["Animation", "Easing", "Tools"],
 		"min_version": "5.1.4",
-		"repository": "https://github.com/snavesutit/easing-peasy-blockbench-plugin",
-		"bug_tracker": "https://github.com/snavesutit/easing-peasy-blockbench-plugin/issues",
+		"repository": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin",
+		"bug_tracker": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin/issues",
 		"has_changelog": true
 	},
 	"bedrock_block_transforms": {
