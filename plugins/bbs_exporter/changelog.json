@@ -89,5 +89,18 @@
 				]
 			}
 		]
+	},
+	"1.3.3": {
+		"title": "1.3.3",
+		"date": "2026-07-08",
+		"author": "bay4lly",
+		"categories": [
+			{
+				"title": "Bug fixes",
+				"list": [
+					"Fixed an issue where Molang expression were ignored during export in certain situations."
+				]
+			}
+		]
 	}
 }
