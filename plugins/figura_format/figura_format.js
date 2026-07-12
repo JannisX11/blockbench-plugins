@@ -42,7 +42,7 @@
 		icon: "icon.svg",
 		description: "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
 		tags: ["Minecraft: Java Edition", "Figura"],
-		version: "0.1.3",
+		version: "0.1.4",
 		min_version: "4.8.0",
 		variant: "both",
 		await_loading: true,
@@ -113,7 +113,13 @@
 				condition: () => Format === format && (Group.selected != null || Outliner.selected.length === 1),
 				click() {
 					let path = []
-					let element = Group.selected || Outliner.selected[0]
+					let element
+					if (parseInt(Blockbench.version[0]) < 5) {
+						element = Group.selected || Outliner.selected[0] // < v5
+					}
+					else {
+						element = Group.selected[0] || Outliner.selected[0] // >= v5
+					}
 					while (element !== "root") {
 						path.unshift(element.name)
 						element = element.parent;
