@@ -1086,5 +1086,27 @@
         ]
       }
     ]
+  },
+  "9.2.0": {
+    "title": "9.2.0",
+    "date": "2026-07-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Searches now match against entity names as well as entity IDs",
+          "Word order no longer matters in multi word searches",
+          "Search results are now ordered by relevance",
+          "Searches now show how many results were found in other categories, with links to switch to them"
+        ]
+      },
+      {
+        "title": "Removed Features",
+        "list": [
+          "Removed the \"Load vanilla texture\" option. The vanilla texture is now always loaded, with a blank template texture only being created if it fails to load"
+        ]
+      }
+    ]
   }
 }
