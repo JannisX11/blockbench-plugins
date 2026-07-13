@@ -165,7 +165,7 @@ describe('validateSettings', () => {
       hasTexture: true,
       animationCount: 3,
       animations: [
-        {name: 'attack', channels: ['rotation'], hasExpression: false},
+        {name: 'dance', channels: ['rotation'], hasExpression: false},
         {name: 'walk', channels: ['rotation'], hasExpression: true},
         {name: 'idle', channels: ['rotation', 'scale'], hasExpression: false}
       ],

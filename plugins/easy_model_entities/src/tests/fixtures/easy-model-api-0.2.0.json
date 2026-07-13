@@ -79,7 +79,10 @@
       "idle",
       "walk",
       "swim",
-      "fly"
+      "fly",
+      "hurt",
+      "death",
+      "attack"
     ],
     "gaits": [
       "natural",

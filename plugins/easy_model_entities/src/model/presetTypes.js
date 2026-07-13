@@ -41,7 +41,7 @@ const BODY_TYPES = [
 const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
-const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly'];
+const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death', 'attack'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
