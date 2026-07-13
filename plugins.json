@@ -1555,5 +1555,16 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"name_guard": {
+		"title": "Name Guard",
+		"author": "Dedou3D",
+		"description": "Clean folder and cube names for safe ModelEngine exports.",
+		"icon": "drive_file_rename_outline",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
 	}
 }
