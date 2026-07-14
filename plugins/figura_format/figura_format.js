@@ -35,6 +35,13 @@
 	function getValidLuaIndex(str) {
 		return isValidLuaIdentifier(str) ? `.${str}` : `["${str}"]`
 	}
+	const bbv5 = (()=>{
+		let bbv5 = true;
+		try {
+			bbv5 = parseInt(Blockbench.version[0]) >= 5;
+		} catch {}
+		return bbv5;
+	})();
 
 	BBPlugin.register('figura_format', {
 		title: "Figura Model Format",
@@ -42,7 +49,7 @@
 		icon: "icon.svg",
 		description: "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
 		tags: ["Minecraft: Java Edition", "Figura"],
-		version: "0.1.4",
+		version: "0.1.5",
 		min_version: "4.8.0",
 		variant: "both",
 		await_loading: true,
@@ -114,11 +121,11 @@
 				click() {
 					let path = []
 					let element
-					if (parseInt(Blockbench.version[0]) < 5) {
-						element = Group.selected || Outliner.selected[0] // < v5
+					if (bbv5) {
+						element = Group.selected[0] || Outliner.selected[0] // >= v5
 					}
 					else {
-						element = Group.selected[0] || Outliner.selected[0] // >= v5
+						element = Group.selected || Outliner.selected[0] // < v5
 					}
 					while (element !== "root") {
 						path.unshift(element.name)
@@ -534,7 +541,8 @@
 			// In the Texture Properties Dialog specifically, remove the Render Mode field
 			const DialogBuild = Dialog.prototype.build
 			Dialog.prototype.build = function () {
-				if (Format === format && this.id == 'texture_edit') delete this.form.render_mode
+				if (!bbv5 && Format === format && this.id == 'texture_edit') delete this.form.render_mode
+				if (bbv5 && Format === format && this.id == 'texture_edit') delete this.form_config.render_mode
 				DialogBuild.call(this)
 			}
 
