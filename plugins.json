@@ -1555,5 +1555,16 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+	"hitbox_guard": {
+		"title": "Hitbox Guard",
+		"author": "Dedou3D",
+		"description": "Create a hitbox for your models.",
+		"icon": "select_all",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
 	}
 }
