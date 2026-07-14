@@ -1389,6 +1389,16 @@
 		"has_changelog": true,
 		"repository": "https://github.com/Jatzylap/Java-Block-Sequencer"
 	},
+	"texture_browser": {
+		"title": "Texture Browser",
+		"icon": "image_search",
+		"author": "nklbdev",
+		"description": "Browse textures from a local folder and assign them to selected faces",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"tags": ["Texture", "Viewport", "Utility"]
+	},
 	"texture_downscaler": {
 		"title": "Texture Downscaler",
 		"author": "0x13F",
