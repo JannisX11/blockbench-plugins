@@ -17,8 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType.
-
 const SCHEMA_VERSION = '0.2.0';
 
 const MODEL_TYPE_ENTITY = 'entity';
@@ -41,7 +39,8 @@ const BODY_TYPES = [
 const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
-const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death', 'attack'];
+const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
+  'attack'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';

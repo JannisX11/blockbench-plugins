@@ -17,10 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Descriptive, human-readable labels so users see e.g. "Quadruped (4 legs,
-// ground, standing)" instead of the cryptic "quadruped_still". Registered with
-// Blockbench's translation system; falls back to English outside Blockbench.
-
 const EN = {
   'eme.dialog.title': 'Easy Model Entities Export',
   'eme.field.preset': 'Preset',
@@ -231,7 +227,6 @@ function registerTranslations() {
   }
 }
 
-// Resolves a key via Blockbench's tl() when available, otherwise English.
 function t(key) {
   if (typeof tl === 'function') {
     const translated = tl(key);

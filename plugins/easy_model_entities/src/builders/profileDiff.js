@@ -17,9 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Helpers to emit minimal (diff-based) profiles: only values that deviate from
-// the defaults the mod derives from preset_type are written.
-
 function valuesDiffer(a, b) {
   if (Array.isArray(a) || Array.isArray(b)) {
     return JSON.stringify(a) !== JSON.stringify(b);

@@ -54,7 +54,6 @@ function patchTexturePanel(formatId) {
         return `${base} - ${label}`;
       }
     } catch (error) {
-      // Display nicety only; never break the panel render.
     }
 
     return base;

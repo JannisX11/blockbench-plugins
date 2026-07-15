@@ -17,8 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Deterministic, dependency-free 32-bit FNV-1a hash rendered as 8 hex chars.
-// Used to derive a stable content version stamp without requiring node crypto.
 function hashString(value) {
   let hash = 0x811c9dc5;
   const text = String(value);

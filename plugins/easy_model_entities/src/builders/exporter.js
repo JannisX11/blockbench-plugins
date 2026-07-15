@@ -27,12 +27,6 @@ function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
-// The version stamp is a content hash of the server profile, i.e. of exactly
-// the server-relevant settings (type, preset, dimensions, behavior, …) and not
-// of the model geometry or textures. Both profiles receive the same stamp so
-// the mod's server/client parity check always matches; it only changes when a
-// server-relevant setting changes. Model-only exports have no server profile
-// and stay version-less (the mod's own runtime contract owns the version).
 function stampVersion(serverProfile, renderProfile) {
   if (!serverProfile) {
     return;

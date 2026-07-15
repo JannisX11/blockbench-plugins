@@ -17,10 +17,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Resolves Blockbench textures to mod resource locations. A texture that lives
-// under an existing assets/<ns>/textures tree (vanilla or another mod) is only
-// referenced; everything else is a custom texture packed as a PNG file.
-
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
 function stripPng(value) {

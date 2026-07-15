@@ -330,12 +330,6 @@ function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
-// The version stamp is a content hash of the server profile, i.e. of exactly
-// the server-relevant settings (type, preset, dimensions, behavior, …) and not
-// of the model geometry or textures. Both profiles receive the same stamp so
-// the mod's server/client parity check always matches; it only changes when a
-// server-relevant setting changes. Model-only exports have no server profile
-// and stay version-less (the mod's own runtime contract owns the version).
 function stampVersion(serverProfile, renderProfile) {
   if (!serverProfile) {
     return;
@@ -548,9 +542,6 @@ module.exports = {buildDataPackMcmeta, buildResourcePackMcmeta};
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-// Helpers to emit minimal (diff-based) profiles: only values that deviate from
-// the defaults the mod derives from preset_type are written.
 
 function valuesDiffer(a, b) {
   if (Array.isArray(a) || Array.isArray(b)) {
@@ -1058,10 +1049,6 @@ module.exports = {FORMAT_ID, registerEmeFormat, unregisterEmeFormat};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Descriptive, human-readable labels so users see e.g. "Quadruped (4 legs,
-// ground, standing)" instead of the cryptic "quadruped_still". Registered with
-// Blockbench's translation system; falls back to English outside Blockbench.
-
 const EN = {
   'eme.dialog.title': 'Easy Model Entities Export',
   'eme.field.preset': 'Preset',
@@ -1272,7 +1259,6 @@ function registerTranslations() {
   }
 }
 
-// Resolves a key via Blockbench's tl() when available, otherwise English.
 function t(key) {
   if (typeof tl === 'function') {
     const translated = tl(key);
@@ -1942,8 +1928,6 @@ module.exports = {VisibleBounds};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Mirrors de.markusbordihn.easymodelentities.profile.ModelPresetType.
-
 const SCHEMA_VERSION = '0.2.0';
 
 const MODEL_TYPE_ENTITY = 'entity';
@@ -1966,7 +1950,8 @@ const BODY_TYPES = [
 const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
-const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death', 'attack'];
+const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
+  'attack'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
@@ -3260,7 +3245,6 @@ function patchTexturePanel(formatId) {
         return `${base} - ${label}`;
       }
     } catch (error) {
-      // Display nicety only; never break the panel render.
     }
 
     return base;
@@ -3340,7 +3324,6 @@ class ResourceLocation {
     return `${namespace}:${path}`;
   }
 
-  // e.g. "My Model.bbmodel" -> "my_model"
   static sanitizeProfileId(name) {
     const base = String(name || '')
     .replace(/\.[^.]+$/, '')
@@ -3378,10 +3361,6 @@ module.exports = {ResourceLocation};
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-// Resolves Blockbench textures to mod resource locations. A texture that lives
-// under an existing assets/<ns>/textures tree (vanilla or another mod) is only
-// referenced; everything else is a custom texture packed as a PNG file.
 
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
@@ -3501,8 +3480,6 @@ module.exports = {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Deterministic, dependency-free 32-bit FNV-1a hash rendered as 8 hex chars.
-// Used to derive a stable content version stamp without requiring node crypto.
 function hashString(value) {
   let hash = 0x811c9dc5;
   const text = String(value);

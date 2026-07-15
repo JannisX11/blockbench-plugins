@@ -55,7 +55,6 @@ class ResourceLocation {
     return `${namespace}:${path}`;
   }
 
-  // e.g. "My Model.bbmodel" -> "my_model"
   static sanitizeProfileId(name) {
     const base = String(name || '')
     .replace(/\.[^.]+$/, '')

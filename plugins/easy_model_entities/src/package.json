@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "blockbench-types": "5.1.0",
+    "blockbench-types": "^5.1.0",
     "copy-webpack-plugin": "14.0.0",
     "jest": "30.4.2",
     "webpack": "5.107.2",

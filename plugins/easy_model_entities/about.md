@@ -15,7 +15,8 @@ installed** in Minecraft for them to work. Without the mod the generated files d
 
 1. Open or create your model in Blockbench using the **Easy Model Entity** format
    (File > New > Easy Model Entity), this is the recommended format for this plugin.
-   Alternatively, the built-in **Modded Entity** format (File > New > Java/Modded Entity) is also supported. Block and item formats are not supported.
+   Alternatively, the built-in **Modded Entity** format (File > New > Java/Modded Entity) is also
+   supported. Block and item formats are not supported.
 2. Run **File > Export > Export Easy Model Entities**.
 3. Choose the **Export Type**:
     - **Standalone: Data Pack + Resource Pack (ZIP)** — a single archive with a `datapack.zip` and a
