@@ -1,0 +1,14 @@
+{
+    "1.0.0": {
+        "release_date": "2025-01-19",
+        "changes": [
+            "Initial release of the UV Wrapper plugin.",
+            "Transfer UVs and textures from a source face to target faces by dragging.",
+            "Three modifier keys: pick source (Alt), fill flat plane (Shift), planar projection (Ctrl).",
+            "All modifier keys are remappable in Settings → Edit.",
+            "Color-coded face overlays: orange (source), blue (hovered), green (targets).",
+            "Full undo/redo support for wrapped faces.",
+            "Works in Edit mode with Textured and UV view modes."
+        ]
+    }
+}
