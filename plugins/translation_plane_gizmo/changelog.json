@@ -1,4 +1,17 @@
 {
+		"1.0.2": {
+		"title": "1.0.",
+		"author": "AnnJ",
+		"date": "2025-06-04",
+		"categories": [
+			{
+				"title": "Correction of the selection",
+				"list": [
+					"Prioritize movement over selection when the Gadget plan is selected."
+				]
+			}
+		]
+	},
 	"1.0.1": {
 		"title": "1.0.1",
 		"author": "AnnJ",
