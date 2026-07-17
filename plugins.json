@@ -1555,5 +1555,16 @@
 		"website": "https://svdex.moe",
 		"min_version": "4.8.0",
 		"has_changelog": true
+	},
+    "uvtex_tools": {
+		"title": "UV-Tex Tools",
+		"description": "Tools for UV cleanup, texture analysis, and flat textured geometry",
+		"author": "QMakar",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "5.0.0",
+		"icon": "icon.png",
+        "repository": "https://github.com/CoMakar/blockbench-uv-tex-tools",
+        "tags": ["UV", "Texture", "Cube"]
 	}
 }
