@@ -1544,6 +1544,16 @@
 		"variant": "both",
 		"tags": ["Texture", "Paint", "Tool"]
 	},
+	"add_tint": {
+		"title": "addTint",
+		"author": "YOHEMAL",
+		"description": "Adds multiple Minecraft tint indices and tint color previews.",
+		"icon": "format_color_fill",
+		"version": "0.4.1",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Utility"]
+	},
 	"easings": {
 		"title": "Easings",
 		"author": "Svdex",
