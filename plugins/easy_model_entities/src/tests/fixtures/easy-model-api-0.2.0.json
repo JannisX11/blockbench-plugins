@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.2.0",
+  "budgets": {
+    "max_model_file_size_bytes": 2097152,
+    "soft_model_file_size_bytes": 1048576,
+    "max_texture_size": 2048,
+    "soft_texture_size": 128,
+    "max_bone_count": 128,
+    "soft_bone_count": 96,
+    "max_cube_count": 512,
+    "soft_cube_count": 384,
+    "max_hierarchy_depth": 32,
+    "soft_hierarchy_depth": 24,
+    "max_animation_count": 16
+  },
+  "enums": {
+    "model_types": [
+      "entity",
+      "block_entity"
+    ],
+    "body_types": [
+      "static",
+      "biped",
+      "quadruped",
+      "aquatic",
+      "amphibious",
+      "winged",
+      "winged_humanoid",
+      "arthropod",
+      "cuboid",
+      "floating"
+    ],
+    "movement_types": [
+      "ground",
+      "water",
+      "amphibious",
+      "static"
+    ],
+    "behavior_modes": [
+      "idle_only",
+      "ambient",
+      "static",
+      "external_owner"
+    ],
+    "preset_types": [
+      "custom",
+      "static",
+      "statue",
+      "aquatic_still",
+      "aquatic_swimming",
+      "amphibious_still",
+      "amphibious_wandering",
+      "arthropod_still",
+      "arthropod_wandering",
+      "cuboid_hopping",
+      "cuboid_still",
+      "floating_still",
+      "humanoid_still",
+      "humanoid_wandering",
+      "quadruped_still",
+      "quadruped_wandering",
+      "winged_humanoid_still",
+      "winged_humanoid_wandering",
+      "winged_still",
+      "winged_wandering"
+    ],
+    "block_entity_preset_types": [
+      "static",
+      "ticking",
+      "animated",
+      "animated_randomly"
+    ],
+    "animation_modes": [
+      "automatic",
+      "random_idle",
+      "none"
+    ],
+    "animation_clips": [
+      "idle",
+      "walk",
+      "swim",
+      "fly",
+      "hurt",
+      "death",
+      "attack"
+    ],
+    "gaits": [
+      "natural",
+      "feline",
+      "ungulate"
+    ]
+  },
+  "status_codes": {
+    "server": [
+      "ACTIVE",
+      "INVALID_JSON",
+      "INVALID_SCHEMA_VERSION",
+      "INVALID_MODEL_TYPE",
+      "INVALID_RESOURCE_LOCATION",
+      "INVALID_DIMENSIONS",
+      "INVALID_HOST_ENTITY",
+      "INVALID_HOST_BLOCK_ENTITY",
+      "DISABLED"
+    ],
+    "render": [
+      "ACTIVE",
+      "INVALID_JSON",
+      "INVALID_SCHEMA_VERSION",
+      "INVALID_RESOURCE_LOCATION",
+      "INVALID_BODY_TYPE",
+      "INVALID_ANIMATION_MODE",
+      "INVALID_RENDER_SETTINGS",
+      "MISSING_RENDER_PROFILE",
+      "MISSING_MODEL",
+      "MISSING_TEXTURE",
+      "MODEL_DECODE_FAILED",
+      "CLIENT_ASSET_MISMATCH",
+      "CLIENT_BODY_TYPE_MISMATCH",
+      "FALLBACK_ACTIVE"
+    ]
+  },
+  "diagnostic_severities": [
+    "INFO",
+    "WARNING",
+    "ERROR"
+  ]
+}
