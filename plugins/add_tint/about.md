@@ -9,7 +9,7 @@ Add multiple Tint Indices to Minecraft Java model faces and preview their colors
 - Set or remove any `tintindex` on selected faces
 - Edit preview colors for each Tint Index in real time
 - Preview the texture multiplied by its tint color
-- Convert textures to tint-friendly grayscale
+- Convert only selected face UV areas to tint-friendly grayscale
 - Use the dedicated panel or the UV Editor context menu
 - Undo and Redo support
 
@@ -34,7 +34,7 @@ Minecraft Javaモデルの面に複数のTint Indexを設定し、Blockbenchの3
 - 選択面へ任意の `tintindex` を設定・削除
 - Tint Indexごとのプレビュー色をリアルタイム編集
 - テクスチャとTint色を乗算したプレビュー
-- Tint向けにテクスチャをグレースケール化
+- 選択面のUV領域だけをTint向けにグレースケール化
 - UV Editorの右クリックメニューと専用パネルから操作
 - Undo / Redo対応
 

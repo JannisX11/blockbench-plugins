@@ -18,9 +18,9 @@ const ADD_TINT_TRANSLATIONS = {
     select_textured_faces: 'Select one or more textured cube faces first.',
     grayscale_edit: 'Grayscale tint texture',
     grayscale_undo: 'Grayscale tint textures',
-    grayscale_complete: 'Converted {count} texture(s) to grayscale.',
+    grayscale_complete: 'Converted the selected face area on {count} texture(s) to grayscale.',
     grayscale_title: 'Grayscale Tint Textures',
-    grayscale_explanation: 'The following textures will be converted to grayscale. Alpha and brightness are preserved, and the operation can be undone.',
+    grayscale_explanation: 'Only the UV areas used by the selected faces on the following textures will be converted to grayscale. Alpha and brightness are preserved, and the operation can be undone.',
     no_tint_indices: 'This model does not use any tint indices yet.',
     tint_index: 'Tint Index {index}',
     tint_color_description: 'Preview color for tintindex {index}.',
@@ -55,7 +55,7 @@ const ADD_TINT_TRANSLATIONS = {
     action_set_tint: 'addTint: Set Tint Index',
     action_set_tint_description: 'Set a Minecraft tint index and preview color on selected cube faces.',
     action_grayscale: 'addTint: Grayscale Tint Textures',
-    action_grayscale_description: 'Convert textures used by selected faces to tint-friendly grayscale.',
+    action_grayscale_description: 'Convert only the UV areas used by selected faces to tint-friendly grayscale.',
     action_edit_colors: 'addTint: Edit Preview Colors',
     action_edit_colors_description: 'Edit every tint color used in the current model with live preview.',
   },
@@ -65,9 +65,9 @@ const ADD_TINT_TRANSLATIONS = {
     select_textured_faces: 'テクスチャが割り当てられたCubeの面を1つ以上選択してください。',
     grayscale_edit: 'Tintテクスチャをグレースケール化',
     grayscale_undo: 'Tintテクスチャをグレースケール化',
-    grayscale_complete: '{count}個のテクスチャをグレースケール化しました。',
+    grayscale_complete: '{count}個のテクスチャ上の選択面領域をグレースケール化しました。',
     grayscale_title: 'Tintテクスチャをグレースケール化',
-    grayscale_explanation: '次のテクスチャをグレースケール化します。透明度と明るさは維持され、Undoで元に戻せます。',
+    grayscale_explanation: '次のテクスチャ上で、選択面が使用するUV領域だけをグレースケール化します。透明度と明るさは維持され、Undoで元に戻せます。',
     no_tint_indices: 'このモデルにはTint Indexがまだ設定されていません。',
     tint_index: 'Tint Index {index}',
     tint_color_description: 'tintindex {index}のプレビュー色です。',
@@ -102,7 +102,7 @@ const ADD_TINT_TRANSLATIONS = {
     action_set_tint: 'addTint: Tint Indexを設定',
     action_set_tint_description: '選択したCubeの面へMinecraft Tint Indexとプレビュー色を設定します。',
     action_grayscale: 'addTint: Tintテクスチャをグレースケール化',
-    action_grayscale_description: '選択面が使用するテクスチャをTint向けのグレースケールへ変換します。',
+    action_grayscale_description: '選択面が使用するUV領域だけをTint向けのグレースケールへ変換します。',
     action_edit_colors: 'addTint: プレビュー色を編集',
     action_edit_colors_description: '現在のモデルで使用中の全Tint色をリアルタイムプレビューで編集します。',
   },
@@ -326,60 +326,130 @@ function getSelectedCubeFaces() {
 }
 
 /**
- * Returns each texture only once, even when several selected faces use it.
- * @returns {Texture[]}
+ * Groups the selected face UV rectangles by texture.
+ * @returns {Array<{texture: Texture, uvRects: Array<{x: number, y: number, width: number, height: number}>}>}
  */
-function getSelectedFaceTextures() {
-  const textures = new Set();
+function getSelectedFaceTextureRegions() {
+  /** @type {Map<Texture, Array<{x: number, y: number, width: number, height: number}>>} */
+  const textureRegions = new Map();
   getSelectedCubeFaces().faces.forEach(({cube, faceKey}) => {
-    const texture = cube.faces[faceKey].getTexture();
-    if (texture) textures.add(texture);
+    const face = cube.faces[faceKey];
+    const texture = face.getTexture();
+    if (!texture) return;
+
+    const bounds = face.getBoundingRect();
+    const uvRect = {
+      x: Math.min(bounds.ax, bounds.bx),
+      y: Math.min(bounds.ay, bounds.by),
+      width: Math.abs(bounds.bx - bounds.ax),
+      height: Math.abs(bounds.by - bounds.ay),
+    };
+    if (uvRect.width <= 0 || uvRect.height <= 0) return;
+
+    const regions = textureRegions.get(texture) || [];
+    regions.push(uvRect);
+    textureRegions.set(texture, regions);
   });
-  return /** @type {Texture[]} */ ([...textures]);
+  return [...textureRegions].map(([texture, uvRects]) => ({texture, uvRects}));
 }
 
 /**
- * Converts RGB pixels to luminance while preserving alpha.
- * @param {CanvasRenderingContext2D} context
- * @param {number} width
- * @param {number} height
+ * Converts UV-space rectangles to pixel rectangles for every animation frame.
+ * @param {Texture} texture
+ * @param {Array<{x: number, y: number, width: number, height: number}>} uvRects
+ * @returns {Array<{x: number, y: number, width: number, height: number}>}
  */
-function grayscaleCanvas(context, width, height) {
+function getTexturePixelRegions(texture, uvRects) {
+  const uvWidth = texture.getUVWidth();
+  const uvHeight = texture.getUVHeight();
+  const frameCount = texture.frameCount || 1;
+  const frameHeight = texture.height / frameCount;
+  if (uvWidth <= 0 || uvHeight <= 0 || texture.width <= 0 || frameHeight <= 0) return [];
+
+  const scaleX = texture.width / uvWidth;
+  const scaleY = frameHeight / uvHeight;
+  /** @type {Array<{x: number, y: number, width: number, height: number}>} */
+  const regions = [];
+
+  uvRects.forEach((uvRect) => {
+    const left = Math.max(0, Math.floor(uvRect.x * scaleX));
+    const right = Math.min(texture.width, Math.ceil((uvRect.x + uvRect.width) * scaleX));
+    const topInFrame = Math.max(0, Math.floor(uvRect.y * scaleY));
+    const bottomInFrame = Math.min(frameHeight, Math.ceil((uvRect.y + uvRect.height) * scaleY));
+    if (right <= left || bottomInFrame <= topInFrame) return;
+
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      const frameOffset = frame * frameHeight;
+      regions.push({
+        x: left,
+        y: Math.floor(frameOffset + topInFrame),
+        width: right - left,
+        height: Math.ceil(frameOffset + bottomInFrame) - Math.floor(frameOffset + topInFrame),
+      });
+    }
+  });
+
+  return regions;
+}
+
+/**
+ * Converts RGB pixels inside global texture rectangles to luminance while
+ * preserving alpha. Canvas offsets account for cropped/positioned layers.
+ * @param {CanvasRenderingContext2D} context
+ * @param {Array<{x: number, y: number, width: number, height: number}>} regions
+ * @param {[number, number]} offset
+ */
+function grayscaleCanvasRegions(context, regions, offset = [0, 0]) {
+  const width = context.canvas.width;
+  const height = context.canvas.height;
   if (width < 1 || height < 1) return;
   const imageData = context.getImageData(0, 0, width, height);
   const pixels = imageData.data;
 
-  for (let offset = 0; offset < pixels.length; offset += 4) {
-    const luminance = Math.round(
-      pixels[offset] * 0.299
-      + pixels[offset + 1] * 0.587
-      + pixels[offset + 2] * 0.114,
-    );
-    pixels[offset] = luminance;
-    pixels[offset + 1] = luminance;
-    pixels[offset + 2] = luminance;
-  }
+  regions.forEach((region) => {
+    const left = Math.max(0, region.x - offset[0]);
+    const top = Math.max(0, region.y - offset[1]);
+    const right = Math.min(width, region.x + region.width - offset[0]);
+    const bottom = Math.min(height, region.y + region.height - offset[1]);
+
+    for (let y = top; y < bottom; y += 1) {
+      for (let x = left; x < right; x += 1) {
+        const pixelOffset = (y * width + x) * 4;
+        const luminance = Math.round(
+          pixels[pixelOffset] * 0.299
+          + pixels[pixelOffset + 1] * 0.587
+          + pixels[pixelOffset + 2] * 0.114,
+        );
+        pixels[pixelOffset] = luminance;
+        pixels[pixelOffset + 1] = luminance;
+        pixels[pixelOffset + 2] = luminance;
+      }
+    }
+  });
 
   context.putImageData(imageData, 0, 0);
 }
 
 /**
- * @param {Texture[]} textures
+ * @param {Array<{texture: Texture, uvRects: Array<{x: number, y: number, width: number, height: number}>}>} textureRegions
  */
-function grayscaleTextures(textures) {
-  if (!textures.length) return;
+function grayscaleTextureRegions(textureRegions) {
+  if (!textureRegions.length) return;
+
+  const textures = textureRegions.map(({texture}) => texture);
 
   Undo.initEdit({textures, bitmap: true});
-  textures.forEach((texture) => {
+  textureRegions.forEach(({texture, uvRects}) => {
     if (!texture.internal) texture.convertToInternal();
+    const pixelRegions = getTexturePixelRegions(texture, uvRects);
 
     if (texture.layers_enabled && texture.layers.length) {
       texture.layers.forEach((layer) => {
-        grayscaleCanvas(layer.ctx, layer.canvas.width, layer.canvas.height);
+        grayscaleCanvasRegions(layer.ctx, pixelRegions, layer.offset);
       });
       texture.updateLayerChanges(true);
     } else {
-      grayscaleCanvas(texture.ctx, texture.canvas.width, texture.canvas.height);
+      grayscaleCanvasRegions(texture.ctx, pixelRegions);
     }
 
     texture.updateChangesAfterEdit();
@@ -401,13 +471,13 @@ function grayscaleTextures(textures) {
 }
 
 function openGrayscaleTintDialog() {
-  const textures = getSelectedFaceTextures();
-  if (!textures.length) {
+  const textureRegions = getSelectedFaceTextureRegions();
+  if (!textureRegions.length) {
     Blockbench.showQuickMessage(addTintText('select_textured_faces'), 2500);
     return;
   }
 
-  const textureNames = textures.map((texture) => `- ${texture.name}`).join('\n');
+  const textureNames = textureRegions.map(({texture}) => `- ${texture.name}`).join('\n');
   new Dialog({
     id: 'add_tint_grayscale_dialog',
     title: addTintText('grayscale_title'),
@@ -423,7 +493,7 @@ function openGrayscaleTintDialog() {
       },
     },
     onConfirm() {
-      grayscaleTextures(textures);
+      grayscaleTextureRegions(textureRegions);
     },
   }).show();
 }
@@ -718,7 +788,7 @@ function registerAddTintPanel() {
           return getSelectedCubeFaces().faces.length > 0;
         },
         hasSelectedTextures() {
-          return getSelectedFaceTextures().length > 0;
+          return getSelectedFaceTextureRegions().length > 0;
         },
         hasSelectedTint() {
           return getSelectedCubeFaces().faces.some(
@@ -915,7 +985,7 @@ Plugin.register('add_tint', {
   author: 'YOHEMAL',
   description: addTintText('plugin_description'),
   icon: 'format_color_fill',
-  version: '0.4.1',
+  version: '0.4.2',
   min_version: '5.0.0',
   variant: 'both',
   tags: ['Minecraft: Java Edition', 'Utility'],
