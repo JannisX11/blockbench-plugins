@@ -313,7 +313,6 @@ function openExportDialog(options) {
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
           modelDimensions, visibleBounds);
-      finalSettings.experimental = !!options.experimental;
       options.onExport(finalSettings, finalSettings.exportTarget);
     }
   });

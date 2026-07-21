@@ -195,4 +195,21 @@ describe('resolveExportSettings', () => {
     expect(settings.presetType).toBe('cuboid_still');
     expect(settings.exportTarget).toBe('mod_project');
   });
+
+  test.each(['resource_pack', 'data_pack'])(
+      'single pack export %s keeps the packs target and the model type',
+      (exportType) => {
+        const form = {
+          exportType,
+          modelType: 'block_entity',
+          blockPreset: 'static',
+          namespace: 'example',
+          profileId: 'shrine',
+          targetVersion: '1.20.1'
+        };
+        const settings = resolveExportSettings(form, base, MODEL_DIMS);
+        expect(settings.exportTarget).toBe('packs');
+        expect(settings.modelOnly).toBe(false);
+        expect(settings.modelType).toBe('block_entity');
+      });
 });

@@ -43,19 +43,13 @@ class BlockbenchAdapter {
     return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
-  static #textureIndex(texture, position) {
-    const id = parseInt(texture?.id, 10);
-
-    return Number.isInteger(id) && id >= 0 ? id : position;
-  }
-
   static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
       return [];
     }
 
     return Texture.all.map((texture, position) => ({
-      index: BlockbenchAdapter.#textureIndex(texture, position),
+      index: position,
       name: texture.name || '',
       namespace: texture.namespace || '',
       folder: texture.folder || '',
@@ -219,19 +213,27 @@ class BlockbenchAdapter {
     }
   }
 
-  static #zipToUint8(files) {
+  static #zipTo(files, outputType) {
     const zip = new JSZip();
     files.forEach((file) => {
       zip.file(file.path, file.content);
     });
 
-    return zip.generateAsync({type: 'uint8array'});
+    return zip.generateAsync({type: outputType});
   }
 
-  static exportPackBundle(bundle, name) {
+  static #bundleBlob(bundle) {
+    if (!bundle.datapack) {
+      return BlockbenchAdapter.#zipTo(bundle.resourcepack, 'blob');
+    }
+
+    if (!bundle.resourcepack) {
+      return BlockbenchAdapter.#zipTo(bundle.datapack, 'blob');
+    }
+
     return Promise.all([
-      BlockbenchAdapter.#zipToUint8(bundle.datapack),
-      BlockbenchAdapter.#zipToUint8(bundle.resourcepack)
+      BlockbenchAdapter.#zipTo(bundle.datapack, 'uint8array'),
+      BlockbenchAdapter.#zipTo(bundle.resourcepack, 'uint8array')
     ]).then(([datapackZip, resourcepackZip]) => {
       const outer = new JSZip();
       outer.file(bundle.readme.path, bundle.readme.content);
@@ -239,7 +241,11 @@ class BlockbenchAdapter {
       outer.file(bundle.resourcepackFileName || 'resourcepack.zip',
           resourcepackZip);
       return outer.generateAsync({type: 'blob'});
-    }).then((content) => {
+    });
+  }
+
+  static exportPackBundle(bundle, name) {
+    return BlockbenchAdapter.#bundleBlob(bundle).then((content) => {
       return new Promise((resolve) => {
         Blockbench.export(
             {
@@ -268,7 +274,7 @@ class BlockbenchAdapter {
     const fs = require('fs');
     const path = require('path');
     files.forEach((file) => {
-      const result = Validator.validateOutputPath(rootDir, file.path);
+      const result = Validator.validateOutputPath(file.path);
       if (!result.valid) {
         throw new Error(`${result.code}: ${result.message} (${file.path})`);
       }

@@ -49,19 +49,13 @@ class BlockbenchAdapter {
     return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
-  static #textureIndex(texture, position) {
-    const id = parseInt(texture?.id, 10);
-
-    return Number.isInteger(id) && id >= 0 ? id : position;
-  }
-
   static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
       return [];
     }
 
     return Texture.all.map((texture, position) => ({
-      index: BlockbenchAdapter.#textureIndex(texture, position),
+      index: position,
       name: texture.name || '',
       namespace: texture.namespace || '',
       folder: texture.folder || '',
@@ -225,19 +219,27 @@ class BlockbenchAdapter {
     }
   }
 
-  static #zipToUint8(files) {
+  static #zipTo(files, outputType) {
     const zip = new JSZip();
     files.forEach((file) => {
       zip.file(file.path, file.content);
     });
 
-    return zip.generateAsync({type: 'uint8array'});
+    return zip.generateAsync({type: outputType});
   }
 
-  static exportPackBundle(bundle, name) {
+  static #bundleBlob(bundle) {
+    if (!bundle.datapack) {
+      return BlockbenchAdapter.#zipTo(bundle.resourcepack, 'blob');
+    }
+
+    if (!bundle.resourcepack) {
+      return BlockbenchAdapter.#zipTo(bundle.datapack, 'blob');
+    }
+
     return Promise.all([
-      BlockbenchAdapter.#zipToUint8(bundle.datapack),
-      BlockbenchAdapter.#zipToUint8(bundle.resourcepack)
+      BlockbenchAdapter.#zipTo(bundle.datapack, 'uint8array'),
+      BlockbenchAdapter.#zipTo(bundle.resourcepack, 'uint8array')
     ]).then(([datapackZip, resourcepackZip]) => {
       const outer = new JSZip();
       outer.file(bundle.readme.path, bundle.readme.content);
@@ -245,7 +247,11 @@ class BlockbenchAdapter {
       outer.file(bundle.resourcepackFileName || 'resourcepack.zip',
           resourcepackZip);
       return outer.generateAsync({type: 'blob'});
-    }).then((content) => {
+    });
+  }
+
+  static exportPackBundle(bundle, name) {
+    return BlockbenchAdapter.#bundleBlob(bundle).then((content) => {
       return new Promise((resolve) => {
         Blockbench.export(
             {
@@ -274,7 +280,7 @@ class BlockbenchAdapter {
     const fs = __webpack_require__(896);
     const path = __webpack_require__(928);
     files.forEach((file) => {
-      const result = Validator.validateOutputPath(rootDir, file.path);
+      const result = Validator.validateOutputPath(file.path);
       if (!result.valid) {
         throw new Error(`${result.code}: ${result.message} (${file.path})`);
       }
@@ -325,17 +331,31 @@ const {buildRenderProfile} = __webpack_require__(255);
 const {buildDataPackMcmeta, buildResourcePackMcmeta} = __webpack_require__(600);
 const {buildReadme} = __webpack_require__(250);
 const {hashString} = __webpack_require__(803);
+const {
+  EXPORT_TYPE_PACKS,
+  includesDataPack,
+  includesResourcePack,
+  isSinglePackExport
+} = __webpack_require__(984);
 
 function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
-function stampVersion(serverProfile, renderProfile) {
+function pairingVersion(settings, serverProfile) {
+  if (isSinglePackExport(settings.exportType) && settings.lastExportedVersion) {
+    return settings.lastExportedVersion;
+  }
+
+  return hashString(toJson(serverProfile || buildServerProfile(settings)));
+}
+
+function stampVersion(settings, serverProfile, renderProfile) {
   if (!serverProfile) {
     return;
   }
 
-  const version = hashString(toJson(serverProfile));
+  const version = pairingVersion(settings, serverProfile);
   serverProfile.version = version;
   renderProfile.version = version;
 }
@@ -343,7 +363,7 @@ function stampVersion(serverProfile, renderProfile) {
 function buildProfiles(settings, textureResolution) {
   const serverProfile = buildServerProfile(settings);
   const renderProfile = buildRenderProfile(settings, textureResolution);
-  stampVersion(serverProfile, renderProfile);
+  stampVersion(settings, serverProfile, renderProfile);
 
   return {serverProfile, renderProfile};
 }
@@ -409,15 +429,19 @@ function buildPackBundle(settings, options) {
   const opts = options || {};
   const {serverProfile, renderProfile} = buildProfiles(settings,
       opts.textureResolution);
+  const exportType = settings.exportType || EXPORT_TYPE_PACKS;
   const fileNames = packFileNames(settings);
+  const withDataPack = includesDataPack(exportType);
+  const withResourcePack = includesResourcePack(exportType);
 
   return {
-    readme: {
+    readme: withDataPack && withResourcePack ? {
       path: 'README.md', content: buildReadme(settings, fileNames),
       binary: false
-    },
-    datapack: datapackFiles(settings, serverProfile),
-    resourcepack: resourcepackFiles(settings, renderProfile, opts),
+    } : null,
+    datapack: withDataPack ? datapackFiles(settings, serverProfile) : null,
+    resourcepack: withResourcePack
+        ? resourcepackFiles(settings, renderProfile, opts) : null,
     datapackFileName: fileNames.datapack,
     resourcepackFileName: fileNames.resourcepack,
     serverProfile,
@@ -433,7 +457,7 @@ function buildModProjectFiles(settings, options) {
   const files = [];
   const serverProfile = settings.modelOnly ? null : buildServerProfile(
       settings);
-  stampVersion(serverProfile, renderProfile);
+  stampVersion(settings, serverProfile, renderProfile);
   if (serverProfile) {
     files.push({
       path: paths.profile, content: toJson(serverProfile),
@@ -454,7 +478,8 @@ function buildModProjectFiles(settings, options) {
 
 module.exports = {
   buildPackBundle,
-  buildModProjectFiles
+  buildModProjectFiles,
+  pairingVersion
 };
 
 
@@ -608,19 +633,13 @@ function buildReadme(settings, fileNames) {
   const modelType = settings.modelType || 'entity';
   const serverProfileId = ResourceLocation.buildResourceLocation(
       settings.namespace, `${modelType}/${settings.profileId}`);
-  const names = fileNames || {
-    datapack: `${settings.profileId}_datapack.zip`,
-    resourcepack: `${settings.profileId}_resourcepack.zip`
-  };
-
   return TEMPLATE
   .replaceAll('{{id}}', id)
   .replaceAll('{{serverProfileId}}', serverProfileId)
   .replaceAll('{{mcVersion}}',
       `Minecraft: Java Edition ${settings.targetVersion}`)
-  .replaceAll('{{folderName}}', `${settings.namespace}_eme`)
-  .replaceAll('{{datapackFile}}', names.datapack)
-  .replaceAll('{{resourcepackFile}}', names.resourcepack);
+  .replaceAll('{{datapackFile}}', fileNames.datapack)
+  .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
 }
 
 module.exports = {buildReadme};
@@ -1051,6 +1070,8 @@ module.exports = {FORMAT_ID, registerEmeFormat, unregisterEmeFormat};
 
 const EN = {
   'eme.dialog.title': 'Easy Model Entities Export',
+  'eme.action.export': 'Export Easy Model Entity',
+  'eme.action.exportDescription': 'Export the current project for Easy Model Entities.',
   'eme.field.preset': 'Preset',
   'eme.field.namespace': 'Namespace (mod id)',
   'eme.field.profileId': 'Profile ID',
@@ -1145,13 +1166,17 @@ const EN = {
   'eme.entity.amphibious_entity': 'Amphibious entity',
   'eme.modelType.entity': 'Entity',
   'eme.modelType.block_entity': 'Block Entity',
-  'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.packs': 'Complete: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.resource_pack': 'Update: Resource Pack only (ZIP)',
+  'eme.exportType.data_pack': 'Update: Data Pack only (ZIP)',
   'eme.exportType.mod_project': 'Standalone: write into mod project',
   'eme.exportType.model_only': 'Model only: mod integration (no data pack)'
 };
 
 const DE = {
   'eme.dialog.title': 'Easy Model Entities Export',
+  'eme.action.export': 'Easy Model Entity exportieren',
+  'eme.action.exportDescription': 'Exportiert das aktuelle Projekt für Easy Model Entities.',
   'eme.field.preset': 'Vorlage',
   'eme.field.namespace': 'Namespace (Mod-ID)',
   'eme.field.profileId': 'Profil-ID',
@@ -1246,7 +1271,9 @@ const DE = {
   'eme.entity.amphibious_entity': 'Amphibien-Entität',
   'eme.modelType.entity': 'Entität',
   'eme.modelType.block_entity': 'Block-Entität',
-  'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.packs': 'Komplett: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.resource_pack': 'Update: Nur Resource Pack (ZIP)',
+  'eme.exportType.data_pack': 'Update: Nur Data Pack (ZIP)',
   'eme.exportType.mod_project': 'Standalone: in Mod-Projekt schreiben',
   'eme.exportType.model_only': 'Nur Modell: Mod-Integration (kein Data Pack)'
 };
@@ -1649,6 +1676,7 @@ class Validator {
       errors.push(
           {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
     }
+    (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
@@ -1755,7 +1783,7 @@ class Validator {
     return required.filter((part) => !present.has(part));
   }
 
-  static validateOutputPath(outputRoot, relativePath) {
+  static validateOutputPath(relativePath) {
     if (typeof relativePath !== 'string' || relativePath.length === 0) {
       return {
         valid: false,
@@ -1781,7 +1809,7 @@ class Validator {
       };
     }
 
-    return {valid: true, root: outputRoot, path: normalized};
+    return {valid: true, path: normalized};
   }
 }
 
@@ -1902,6 +1930,69 @@ class VisibleBounds {
 }
 
 module.exports = {VisibleBounds};
+
+
+/***/ },
+
+/***/ 984
+(module) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const EXPORT_TYPE_PACKS = 'packs';
+const EXPORT_TYPE_RESOURCE_PACK = 'resource_pack';
+const EXPORT_TYPE_DATA_PACK = 'data_pack';
+const EXPORT_TYPE_MOD_PROJECT = 'mod_project';
+const EXPORT_TYPE_MODEL_ONLY = 'model_only';
+
+const ZIP_EXPORT_TYPES = [EXPORT_TYPE_PACKS, EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK];
+
+function isZipExport(exportType) {
+  return ZIP_EXPORT_TYPES.includes(exportType);
+}
+
+function includesDataPack(exportType) {
+  return exportType !== EXPORT_TYPE_RESOURCE_PACK;
+}
+
+function includesResourcePack(exportType) {
+  return exportType !== EXPORT_TYPE_DATA_PACK;
+}
+
+function isSinglePackExport(exportType) {
+  return exportType === EXPORT_TYPE_RESOURCE_PACK
+      || exportType === EXPORT_TYPE_DATA_PACK;
+}
+
+module.exports = {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  EXPORT_TYPE_MODEL_ONLY,
+  isZipExport,
+  includesDataPack,
+  includesResourcePack,
+  isSinglePackExport
+};
 
 
 /***/ },
@@ -2323,7 +2414,6 @@ module.exports = {
   wandersByMovement,
   animationMode,
   presetDimensions,
-  presetShadowRadius,
   presetDefaults,
   defaultRenderingSettings,
   defaultAnimationSettings
@@ -2373,7 +2463,8 @@ const MODEL_SETTING_KEYS = [
   'behavior',
   'attributes',
   'rendering',
-  'animation'
+  'animation',
+  'lastExportedVersion'
 ];
 
 function pickModelSettings(settings) {
@@ -2482,6 +2573,13 @@ const VERSIONS = [
   {
     id: '26.1.2',
     label: 'Minecraft 26.1.2',
+    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
+    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    enabled: true
+  },
+  {
+    id: '26.2',
+    label: 'Minecraft 26.2',
     data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
     resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
     enabled: true
@@ -2838,7 +2936,6 @@ function openExportDialog(options) {
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
           modelDimensions, visibleBounds);
-      finalSettings.experimental = !!options.experimental;
       options.onExport(finalSettings, finalSettings.exportTarget);
     }
   });
@@ -2889,6 +2986,13 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  EXPORT_TYPE_MODEL_ONLY
+} = __webpack_require__(984);
 const {t} = __webpack_require__(16);
 
 function optionsFromEnum(values, prefix) {
@@ -2939,9 +3043,11 @@ function modelTypeOptions() {
 
 function exportTypeOptions() {
   return {
-    packs: t('eme.exportType.packs'),
-    mod_project: t('eme.exportType.mod_project'),
-    model_only: t('eme.exportType.model_only')
+    [EXPORT_TYPE_PACKS]: t('eme.exportType.packs'),
+    [EXPORT_TYPE_RESOURCE_PACK]: t('eme.exportType.resource_pack'),
+    [EXPORT_TYPE_DATA_PACK]: t('eme.exportType.data_pack'),
+    [EXPORT_TYPE_MOD_PROJECT]: t('eme.exportType.mod_project'),
+    [EXPORT_TYPE_MODEL_ONLY]: t('eme.exportType.model_only')
   };
 }
 
@@ -3027,6 +3133,12 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_MODEL_ONLY,
+  EXPORT_TYPE_MOD_PROJECT,
+  isZipExport
+} = __webpack_require__(984);
 const {ModelDimensions} = __webpack_require__(763);
 const {VisibleBounds} = __webpack_require__(508);
 
@@ -3120,7 +3232,7 @@ function formToSettings(form, base) {
 }
 
 function activeModelType(form) {
-  return form.exportType === 'model_only'
+  return form.exportType === EXPORT_TYPE_MODEL_ONLY
       ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
 }
 
@@ -3143,7 +3255,7 @@ function presetFormValues(presetType, modelType, modelDimensions,
 }
 
 function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
-  const exportType = form.exportType || 'packs';
+  const exportType = form.exportType || EXPORT_TYPE_PACKS;
   const modelType = activeModelType(form);
   const preset = activePreset(form);
 
@@ -3167,9 +3279,11 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
     settings = formToSettings(form, settings);
   }
   settings.customize = !!form.customize;
+  settings.lastExportedVersion = base.lastExportedVersion;
   settings.exportType = exportType;
-  settings.exportTarget = exportType === 'packs' ? 'packs' : 'mod_project';
-  settings.modelOnly = exportType === 'model_only';
+  settings.exportTarget = isZipExport(exportType)
+      ? EXPORT_TYPE_PACKS : EXPORT_TYPE_MOD_PROJECT;
+  settings.modelOnly = exportType === EXPORT_TYPE_MODEL_ONLY;
 
   return settings;
 }
@@ -3341,7 +3455,7 @@ module.exports = {ResourceLocation};
 /***/ },
 
 /***/ 834
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /*
  * Copyright 2026 Markus Bordihn
@@ -3362,6 +3476,8 @@ module.exports = {ResourceLocation};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {ResourceLocation} = __webpack_require__(20);
+
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
 function stripPng(value) {
@@ -3370,10 +3486,6 @@ function stripPng(value) {
 
 function trimSlashes(value) {
   return value.replace(/^\/+|\/+$/g, '');
-}
-
-function defaultTextureLocation(settings) {
-  return `${settings.namespace}:textures/entity/${settings.profileId}.png`;
 }
 
 function customFileName(settings, index) {
@@ -3412,25 +3524,42 @@ function parseExternalLocation(descriptor) {
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
-      ? {
-        external: true, label: location.replace(':textures/', ':').replace(
-            /\.png$/i, '')
-      }
-      : {external: false, label: 'Custom Texture'};
+      ? {label: location.replace(':textures/', ':').replace(/\.png$/i, '')}
+      : {label: 'Custom Texture'};
 }
 
 function resolveTextures(descriptors, settings) {
-  const defaultLocation = defaultTextureLocation(settings);
   const textures = {};
   const packed = [];
+  const issues = [];
+  const resolvedIndices = new Set();
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
     const index = Number.isInteger(descriptor.index) ? descriptor.index
         : position;
-    let location = parseExternalLocation(descriptor);
-    if (!location) {
-      location = customLocation(settings, index);
+    if (resolvedIndices.has(index)) {
+      issues.push({
+        code: 'DUPLICATE_TEXTURE_INDEX',
+        message: `Texture slot ${index} is assigned more than once`
+      });
+      return;
+    }
+
+    const externalLocation = parseExternalLocation(descriptor);
+    if (externalLocation
+        && !ResourceLocation.isValidResourceLocation(externalLocation)) {
+      issues.push({
+        code: 'INVALID_TEXTURE_LOCATION',
+        message: `Texture slot ${index} points to the invalid location `
+            + `${externalLocation}, check its namespace and folder`
+      });
+      return;
+    }
+
+    resolvedIndices.add(index);
+    const location = externalLocation || customLocation(settings, index);
+    if (!externalLocation) {
       packed.push({
         fileName: customFileName(settings, index),
         bytes: descriptor.bytes
@@ -3438,15 +3567,20 @@ function resolveTextures(descriptors, settings) {
     }
 
     if (index === 0) {
-      if (location !== defaultLocation) {
-        texture = location;
-      }
+      texture = location;
     } else {
       textures[index] = location;
     }
   });
 
-  return {texture, textures, packed};
+  if (!texture && resolvedIndices.size > 0) {
+    issues.push({
+      code: 'MISSING_TEXTURE_INDEX',
+      message: 'Texture slot 0 is missing, the model has no primary texture'
+    });
+  }
+
+  return {texture, textures, packed, issues};
 }
 
 module.exports = {
@@ -3516,7 +3650,7 @@ module.exports = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!
 (module) {
 
 "use strict";
-module.exports = "# {{id}} - Easy Model Entities pack\n\nGenerated by the **Easy Model Entities Exporter** Blockbench plugin for the **Easy Model Entities**\nmod on **{{mcVersion}}**.\n\n> **Beta:** The exporter is still in beta. The pack format may change in a future version, so you\n> might need to re-export this pack after updating the plugin or the mod.\n\nThis archive contains two ready-to-use packs that belong together. Their file names are prefixed\nwith the model id so several exported packs can live in the same folder without overwriting each\nother:\n\n- `{{datapackFile}}`: the server-side entity profile (gameplay data)\n- `{{resourcepackFile}}`: the model, texture and render profile (visuals)\n\nProfile ID: `{{serverProfileId}}`\n\n## Model Format\n\nThis pack was exported using the **Easy Model Entity** format (`eme_entity`), which is provided by\nthis plugin and tailored specifically for the Easy Model Entities mod. If you need to re-edit the\nmodel, open it in Blockbench and select **Easy Model Entity** as the format. Alternatively, the\nstandard **Modded Entity** format (built into Blockbench) is also supported and can be exported\nwith the same plugin.\n\n## Requirements\n\nYou need the **Easy Model Entities** mod installed for **{{mcVersion}}** (Forge or Fabric).\nWithout the mod these files do nothing. Get the mod from:\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod before using this pack.\n\n## Installation\n\nYou do not need to unpack anything — just move the two ZIP files into the right folders.\n\n### 1. Resource Pack (visuals, client side)\n\nMove `{{resourcepackFile}}` into your Minecraft resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nThen start Minecraft and enable the pack under **Options > Resource Packs**.\n\n### 2. Data Pack (gameplay, world / server side)\n\nMove `{{datapackFile}}` into your world's `datapacks` folder:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Dedicated server: `<server folder>/world/datapacks/`\n\nLoad the world (or run `/reload` in game). On a dedicated server the Easy Model Entities mod must be\ninstalled on the server as well.\n\n> Install **both** packs. The data pack defines the entity, the resource pack provides its model and\n> texture.\n";
+module.exports = "# {{id}} - Easy Model Entities pack\n\nA custom Blockbench model that appears in Minecraft as an entity you can spawn — no coding and no\nextra mod needed for this model. Made with the **Easy Model Entities Exporter** Blockbench plugin\nfor **{{mcVersion}}**.\n\n> **Note:** This is an early release. The pack format may still change, so you might need to\n> re-export this pack after updating the plugin or the mod.\n\nProfile ID: `{{serverProfileId}}`\n\n## What you need\n\nThe **Easy Model Entities** mod for **{{mcVersion}}** (Forge, NeoForge or Fabric, depending on the\nMinecraft version). Without the mod these files do nothing at all.\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod first. In multiplayer it has to be installed on the server too.\n\n## Installation\n\nTwo files belong together — do not unpack them, just move them into the right folder:\n\n- `{{datapackFile}}` — the entity itself (size, movement, behavior)\n- `{{resourcepackFile}}` — how it looks (model, texture, animations)\n\n### 1. Resource Pack\n\nMove `{{resourcepackFile}}` into your resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nStart Minecraft and enable it under **Options > Resource Packs**.\n\n### 2. Data Pack\n\nMove `{{datapackFile}}` into your world's datapacks folder:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Dedicated server: `<server folder>/world/datapacks/`\n\nLoad the world, or run `/reload` if it is already open.\n\n> **Install both.** With only the resource pack the model shows up but cannot be spawned. With only\n> the data pack the entity exists but renders as a pink placeholder box.\n\n## Using it in game\n\nLook for the spawn item in the creative inventory: entities are in the **Easy Model Entities** tab,\nblock entities in **Easy Model Block Entities**. Place it like a spawn egg.\n\n## What this model can do\n\nMovement and behavior come from a fixed set of presets built into the mod — wandering, swimming,\nflying, standing still and so on. The preset was chosen at export time.\n\nAnimations are played from the clips in the Blockbench project. The mod recognises these names:\n\n| Clip     | When it plays        |\n|----------|----------------------|\n| `idle`   | standing still       |\n| `walk`   | moving on the ground |\n| `swim`   | moving in water      |\n| `fly`    | flying               |\n| `attack` | attacking            |\n\nClips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own —\nthey need the `/easy_model_entities set_animation` command or another mod driving them.\n\nEverything else is ignored: clips with other names are not played, and there is no scripting or\ncustom AI. A model without any matching clip simply renders without animation.\n\n## Updating this pack\n\nChanged only the model, texture or animations? Re-export just the resource pack and replace that\nfile. Changed entity data such as size or movement? Re-export just the data pack. Either way the\nupdated pack still matches the one you already installed. If both changed, export the complete\nbundle again and replace both files.\n";
 
 /***/ },
 
@@ -3595,7 +3729,18 @@ const {ResourceLocation} = __webpack_require__(20);
 const {resolveTextures} = __webpack_require__(834);
 const {patchTexturePanel, unpatchTexturePanel} = __webpack_require__(317);
 const {Validator} = __webpack_require__(229);
-const {buildPackBundle, buildModProjectFiles} = __webpack_require__(869);
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  isSinglePackExport
+} = __webpack_require__(984);
+const {
+  buildPackBundle,
+  buildModProjectFiles,
+  pairingVersion
+} = __webpack_require__(869);
 const {BlockbenchAdapter} = __webpack_require__(833);
 const {openExportDialog} = __webpack_require__(924);
 const {registerTranslations, t} = __webpack_require__(16);
@@ -3650,9 +3795,7 @@ function resolveDialogState() {
     settings = deepMerge(getDefaults(), storedSettings);
     modelType = settings.modelType || 'entity';
     customize = !!storedSettings.customize;
-    exportType = storedSettings.exportType
-        || (storedSettings.exportTarget === 'mod_project' ? 'mod_project'
-            : 'packs');
+    exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
     if (modelType === 'block_entity') {
       preset = 'custom';
       blockPreset = settings.presetType || 'static';
@@ -3694,11 +3837,26 @@ function formatIssues(issues) {
   return issues.map((issue) => `• ${issue.message}`).join('\n');
 }
 
+function pairingWarnings(settings) {
+  if (!isSinglePackExport(settings.exportType) || settings.lastExportedVersion) {
+    return [];
+  }
+
+  return [{
+    code: 'NO_PAIRED_EXPORT',
+    message: 'This project has no earlier export to pair with, so the single '
+        + 'pack may not match the installed one. Export both packs instead'
+  }];
+}
+
 function runExport(settings, target) {
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
-  const result = Validator.validateSettings(settings,
-      BlockbenchAdapter.getModelStats());
+  const result = Validator.validateSettings(settings, {
+    ...BlockbenchAdapter.getModelStats(),
+    textureIssues: textureResolution.issues
+  });
+  const warnings = [...result.warnings, ...pairingWarnings(settings)];
 
   if (!result.valid) {
     Blockbench.showMessageBox({
@@ -3711,12 +3869,12 @@ function runExport(settings, target) {
 
   const doExport = () => performExport(settings, target, textureResolution);
 
-  if (result.warnings.length > 0) {
+  if (warnings.length > 0) {
     Blockbench.showMessageBox(
         {
           title: t('eme.dialog.title'),
           message: 'The following warnings were found:\n\n' + formatIssues(
-              result.warnings) + '\n\nExport anyway?',
+              warnings) + '\n\nExport anyway?',
           buttons: ['Export', 'Cancel'],
           confirm: 0,
           cancel: 1
@@ -3738,19 +3896,34 @@ function performExport(settings, target, textureResolution) {
     textureResolution
   };
 
-  BlockbenchAdapter.saveSettings(settings);
+  BlockbenchAdapter.saveSettings({
+    ...settings,
+    lastExportedVersion: pairingVersion(settings)
+  });
 
-  if (target === 'mod_project') {
+  if (target === EXPORT_TYPE_MOD_PROJECT) {
     exportToModProject(settings, options);
   } else {
     exportToZip(settings, options);
   }
 }
 
+function zipExportName(settings) {
+  const base = `${settings.namespace}_${settings.profileId}`;
+  if (settings.exportType === EXPORT_TYPE_RESOURCE_PACK) {
+    return `${base}_resourcepack`;
+  }
+
+  if (settings.exportType === EXPORT_TYPE_DATA_PACK) {
+    return `${base}_datapack`;
+  }
+
+  return `${base}_eme`;
+}
+
 function exportToZip(settings, options) {
   BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options),
-      `${settings.namespace}_${settings.profileId}_eme`)
+      buildPackBundle(settings, options), zipExportName(settings))
   .then(() => {
     Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
   })
@@ -3867,8 +4040,8 @@ BBPlugin.register('easy_model_entities', {
     });
 
     exportAction = new Action(ACTION_ID, {
-      name: 'Export Easy Model Entity Pack',
-      description: 'Export the current project as Easy Model Entities Data Pack and Resource Pack.',
+      name: t('eme.action.export'),
+      description: t('eme.action.exportDescription'),
       icon: EXPORT_ICON,
       condition: () => typeof Format !== 'undefined' && Format
           && (Format.id === FORMAT_ID || Format.id === MODDED_ENTITY_FORMAT_ID),

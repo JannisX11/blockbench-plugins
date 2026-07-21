@@ -22,17 +22,31 @@ const {buildRenderProfile} = require('./renderProfile');
 const {buildDataPackMcmeta, buildResourcePackMcmeta} = require('./packMeta');
 const {buildReadme} = require('./readme');
 const {hashString} = require('../utils/hash');
+const {
+  EXPORT_TYPE_PACKS,
+  includesDataPack,
+  includesResourcePack,
+  isSinglePackExport
+} = require('../model/exportTypes');
 
 function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
-function stampVersion(serverProfile, renderProfile) {
+function pairingVersion(settings, serverProfile) {
+  if (isSinglePackExport(settings.exportType) && settings.lastExportedVersion) {
+    return settings.lastExportedVersion;
+  }
+
+  return hashString(toJson(serverProfile || buildServerProfile(settings)));
+}
+
+function stampVersion(settings, serverProfile, renderProfile) {
   if (!serverProfile) {
     return;
   }
 
-  const version = hashString(toJson(serverProfile));
+  const version = pairingVersion(settings, serverProfile);
   serverProfile.version = version;
   renderProfile.version = version;
 }
@@ -40,7 +54,7 @@ function stampVersion(serverProfile, renderProfile) {
 function buildProfiles(settings, textureResolution) {
   const serverProfile = buildServerProfile(settings);
   const renderProfile = buildRenderProfile(settings, textureResolution);
-  stampVersion(serverProfile, renderProfile);
+  stampVersion(settings, serverProfile, renderProfile);
 
   return {serverProfile, renderProfile};
 }
@@ -106,15 +120,19 @@ function buildPackBundle(settings, options) {
   const opts = options || {};
   const {serverProfile, renderProfile} = buildProfiles(settings,
       opts.textureResolution);
+  const exportType = settings.exportType || EXPORT_TYPE_PACKS;
   const fileNames = packFileNames(settings);
+  const withDataPack = includesDataPack(exportType);
+  const withResourcePack = includesResourcePack(exportType);
 
   return {
-    readme: {
+    readme: withDataPack && withResourcePack ? {
       path: 'README.md', content: buildReadme(settings, fileNames),
       binary: false
-    },
-    datapack: datapackFiles(settings, serverProfile),
-    resourcepack: resourcepackFiles(settings, renderProfile, opts),
+    } : null,
+    datapack: withDataPack ? datapackFiles(settings, serverProfile) : null,
+    resourcepack: withResourcePack
+        ? resourcepackFiles(settings, renderProfile, opts) : null,
     datapackFileName: fileNames.datapack,
     resourcepackFileName: fileNames.resourcepack,
     serverProfile,
@@ -130,7 +148,7 @@ function buildModProjectFiles(settings, options) {
   const files = [];
   const serverProfile = settings.modelOnly ? null : buildServerProfile(
       settings);
-  stampVersion(serverProfile, renderProfile);
+  stampVersion(settings, serverProfile, renderProfile);
   if (serverProfile) {
     files.push({
       path: paths.profile, content: toJson(serverProfile),
@@ -151,5 +169,6 @@ function buildModProjectFiles(settings, options) {
 
 module.exports = {
   buildPackBundle,
-  buildModProjectFiles
+  buildModProjectFiles,
+  pairingVersion
 };

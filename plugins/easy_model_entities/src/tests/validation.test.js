@@ -74,6 +74,18 @@ describe('validateSettings', () => {
     expect(codes(result.errors)).toContain('INVALID_NUMERIC');
   });
 
+  test('blocks the export on texture resolution issues', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      boneNames: QUADRUPED_BONES,
+      textureIssues: [
+        {code: 'INVALID_TEXTURE_LOCATION', message: 'bad location'}]
+    });
+    expect(result.valid).toBe(false);
+    expect(codes(result.errors)).toContain('INVALID_TEXTURE_LOCATION');
+  });
+
   test('flags missing model and texture', () => {
     const result = Validator.validateSettings(fixtureSettings(),
         {hasModel: false, hasTexture: false});
@@ -209,17 +221,16 @@ describe('getMissingBodyParts', () => {
 
 describe('validateOutputPath', () => {
   test('accepts a clean relative path', () => {
-    expect(Validator.validateOutputPath('/root',
+    expect(Validator.validateOutputPath(
         'data/example/profiles/lizard.json').valid).toBe(true);
   });
 
   test('rejects traversal and absolute paths', () => {
-    expect(Validator.validateOutputPath('/root', '../../etc/passwd').code).toBe(
+    expect(Validator.validateOutputPath('../../etc/passwd').code).toBe(
         'PATH_TRAVERSAL');
-    expect(Validator.validateOutputPath('/root', '/etc/passwd').code).toBe(
+    expect(Validator.validateOutputPath('/etc/passwd').code).toBe(
         'ABSOLUTE_PATH');
-    expect(
-        Validator.validateOutputPath('/root', 'C:/Windows/system32').code).toBe(
+    expect(Validator.validateOutputPath('C:/Windows/system32').code).toBe(
         'ABSOLUTE_PATH');
   });
 });

@@ -30,7 +30,18 @@ const {ResourceLocation} = require('./utils/ResourceLocation');
 const {resolveTextures} = require('./utils/TextureResolver');
 const {patchTexturePanel, unpatchTexturePanel} = require('./ui/texturePanel');
 const {Validator} = require('./model/Validator');
-const {buildPackBundle, buildModProjectFiles} = require('./builders/exporter');
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  isSinglePackExport
+} = require('./model/exportTypes');
+const {
+  buildPackBundle,
+  buildModProjectFiles,
+  pairingVersion
+} = require('./builders/exporter');
 const {BlockbenchAdapter} = require('./BlockbenchAdapter');
 const {openExportDialog} = require('./ui/exportDialog');
 const {registerTranslations, t} = require('./i18n/translations');
@@ -85,9 +96,7 @@ function resolveDialogState() {
     settings = deepMerge(getDefaults(), storedSettings);
     modelType = settings.modelType || 'entity';
     customize = !!storedSettings.customize;
-    exportType = storedSettings.exportType
-        || (storedSettings.exportTarget === 'mod_project' ? 'mod_project'
-            : 'packs');
+    exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
     if (modelType === 'block_entity') {
       preset = 'custom';
       blockPreset = settings.presetType || 'static';
@@ -129,11 +138,26 @@ function formatIssues(issues) {
   return issues.map((issue) => `• ${issue.message}`).join('\n');
 }
 
+function pairingWarnings(settings) {
+  if (!isSinglePackExport(settings.exportType) || settings.lastExportedVersion) {
+    return [];
+  }
+
+  return [{
+    code: 'NO_PAIRED_EXPORT',
+    message: 'This project has no earlier export to pair with, so the single '
+        + 'pack may not match the installed one. Export both packs instead'
+  }];
+}
+
 function runExport(settings, target) {
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
-  const result = Validator.validateSettings(settings,
-      BlockbenchAdapter.getModelStats());
+  const result = Validator.validateSettings(settings, {
+    ...BlockbenchAdapter.getModelStats(),
+    textureIssues: textureResolution.issues
+  });
+  const warnings = [...result.warnings, ...pairingWarnings(settings)];
 
   if (!result.valid) {
     Blockbench.showMessageBox({
@@ -146,12 +170,12 @@ function runExport(settings, target) {
 
   const doExport = () => performExport(settings, target, textureResolution);
 
-  if (result.warnings.length > 0) {
+  if (warnings.length > 0) {
     Blockbench.showMessageBox(
         {
           title: t('eme.dialog.title'),
           message: 'The following warnings were found:\n\n' + formatIssues(
-              result.warnings) + '\n\nExport anyway?',
+              warnings) + '\n\nExport anyway?',
           buttons: ['Export', 'Cancel'],
           confirm: 0,
           cancel: 1
@@ -173,19 +197,34 @@ function performExport(settings, target, textureResolution) {
     textureResolution
   };
 
-  BlockbenchAdapter.saveSettings(settings);
+  BlockbenchAdapter.saveSettings({
+    ...settings,
+    lastExportedVersion: pairingVersion(settings)
+  });
 
-  if (target === 'mod_project') {
+  if (target === EXPORT_TYPE_MOD_PROJECT) {
     exportToModProject(settings, options);
   } else {
     exportToZip(settings, options);
   }
 }
 
+function zipExportName(settings) {
+  const base = `${settings.namespace}_${settings.profileId}`;
+  if (settings.exportType === EXPORT_TYPE_RESOURCE_PACK) {
+    return `${base}_resourcepack`;
+  }
+
+  if (settings.exportType === EXPORT_TYPE_DATA_PACK) {
+    return `${base}_datapack`;
+  }
+
+  return `${base}_eme`;
+}
+
 function exportToZip(settings, options) {
   BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options),
-      `${settings.namespace}_${settings.profileId}_eme`)
+      buildPackBundle(settings, options), zipExportName(settings))
   .then(() => {
     Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
   })
@@ -302,8 +341,8 @@ BBPlugin.register('easy_model_entities', {
     });
 
     exportAction = new Action(ACTION_ID, {
-      name: 'Export Easy Model Entity Pack',
-      description: 'Export the current project as Easy Model Entities Data Pack and Resource Pack.',
+      name: t('eme.action.export'),
+      description: t('eme.action.exportDescription'),
       icon: EXPORT_ICON,
       condition: () => typeof Format !== 'undefined' && Format
           && (Format.id === FORMAT_ID || Format.id === MODDED_ENTITY_FORMAT_ID),

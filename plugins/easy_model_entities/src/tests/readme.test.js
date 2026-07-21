@@ -21,7 +21,10 @@ const {buildReadme} = require('../builders/readme');
 const {fixtureSettings} = require('./fixtureData');
 
 describe('buildReadme', () => {
-  const readme = buildReadme(fixtureSettings());
+  const readme = buildReadme(fixtureSettings(), {
+    datapack: 'lizard_datapack.zip',
+    resourcepack: 'lizard_resourcepack.zip'
+  });
 
   test('states the mod requirement and Java Edition target', () => {
     expect(readme).toContain('Easy Model Entities');

@@ -36,7 +36,8 @@ const MODEL_SETTING_KEYS = [
   'behavior',
   'attributes',
   'rendering',
-  'animation'
+  'animation',
+  'lastExportedVersion'
 ];
 
 function pickModelSettings(settings) {

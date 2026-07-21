@@ -169,6 +169,7 @@ class Validator {
       errors.push(
           {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
     }
+    (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
@@ -275,7 +276,7 @@ class Validator {
     return required.filter((part) => !present.has(part));
   }
 
-  static validateOutputPath(outputRoot, relativePath) {
+  static validateOutputPath(relativePath) {
     if (typeof relativePath !== 'string' || relativePath.length === 0) {
       return {
         valid: false,
@@ -301,7 +302,7 @@ class Validator {
       };
     }
 
-    return {valid: true, root: outputRoot, path: normalized};
+    return {valid: true, path: normalized};
   }
 }
 

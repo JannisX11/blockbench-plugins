@@ -65,27 +65,28 @@ describe('describeTextureSource', () => {
   test('labels a no-namespace texture as custom', () => {
     expect(describeTextureSource({
       namespace: '', folder: 'block', name: 'disguised_chestling.png', path: ''
-    })).toEqual({external: false, label: 'Custom Texture'});
+    })).toEqual({label: 'Custom Texture'});
   });
 
   test('labels a namespaced texture with its compact location', () => {
     expect(describeTextureSource({
       namespace: 'minecraft', folder: 'entity/chest', name: 'normal.png'
-    })).toEqual({external: true, label: 'minecraft:entity/chest/normal'});
+    })).toEqual({label: 'minecraft:entity/chest/normal'});
   });
 });
 
 describe('resolveTextures', () => {
-  test('single custom texture maps to the default path and is packed', () => {
+  test('single custom texture is packed and referenced explicitly', () => {
     const result = resolveTextures(
         [{
           index: 0, namespace: '', folder: '', name: '', path: '',
           bytes: BYTES
         }],
         SETTINGS);
-    expect(result.texture).toBeNull();
+    expect(result.texture).toBe('example:textures/entity/lizard.png');
     expect(result.textures).toEqual({});
     expect(result.packed).toEqual([{fileName: 'lizard.png', bytes: BYTES}]);
+    expect(result.issues).toEqual([]);
   });
 
   test('foreign-namespace index 0 is referenced, not packed', () => {
@@ -98,6 +99,7 @@ describe('resolveTextures', () => {
     expect(result.texture).toBe('othermod:textures/entity/thing.png');
     expect(result.textures).toEqual({});
     expect(result.packed).toEqual([]);
+    expect(result.issues).toEqual([]);
   });
 
   test('packs a custom index 1 that lives under a non-minecraft assets tree',
@@ -141,5 +143,73 @@ describe('resolveTextures', () => {
         {1: 'example:textures/entity/lizard_1.png'});
     expect(result.packed).toEqual(
         [{fileName: 'lizard_1.png', bytes: BYTES}]);
+    expect(result.issues).toEqual([]);
+  });
+
+  test('mixes a custom index 0 with a vanilla index 1', () => {
+    const result = resolveTextures([
+      {
+        index: 0, namespace: '', folder: 'block', name: 'body', path: '',
+        bytes: BYTES
+      },
+      {
+        index: 1, namespace: 'minecraft', folder: 'entity/chest',
+        name: 'normal.png', path: '', bytes: BYTES
+      }
+    ], SETTINGS);
+
+    expect(result.texture).toBe('example:textures/entity/lizard.png');
+    expect(result.textures).toEqual(
+        {1: 'minecraft:textures/entity/chest/normal.png'});
+    expect(result.packed).toEqual([{fileName: 'lizard.png', bytes: BYTES}]);
+    expect(result.issues).toEqual([]);
+  });
+
+  test('reports a texture location with an unusable namespace', () => {
+    const result = resolveTextures(
+        [{
+          index: 0, namespace: 'My Mod', folder: 'entity', name: 'thing',
+          path: '', bytes: BYTES
+        }],
+        SETTINGS);
+
+    expect(result.texture).toBeNull();
+    expect(result.issues.map((issue) => issue.code)).toEqual(
+        ['INVALID_TEXTURE_LOCATION']);
+  });
+
+  test('reports a duplicate texture slot instead of overwriting it', () => {
+    const result = resolveTextures([
+      {
+        index: 1, namespace: 'minecraft', folder: 'entity/chest',
+        name: 'normal.png', path: '', bytes: BYTES
+      },
+      {
+        index: 1, namespace: 'othermod', folder: 'entity', name: 'thing',
+        path: '', bytes: BYTES
+      }
+    ], SETTINGS);
+
+    expect(result.textures).toEqual(
+        {1: 'minecraft:textures/entity/chest/normal.png'});
+    expect(result.issues.map((issue) => issue.code)).toEqual(
+        ['DUPLICATE_TEXTURE_INDEX', 'MISSING_TEXTURE_INDEX']);
+  });
+
+  test('reports a model that has no texture in slot 0', () => {
+    const result = resolveTextures(
+        [{
+          index: 1, namespace: 'othermod', folder: 'entity', name: 'thing',
+          path: '', bytes: BYTES
+        }],
+        SETTINGS);
+
+    expect(result.texture).toBeNull();
+    expect(result.issues.map((issue) => issue.code)).toEqual(
+        ['MISSING_TEXTURE_INDEX']);
+  });
+
+  test('reports nothing for a project without any texture', () => {
+    expect(resolveTextures([], SETTINGS).issues).toEqual([]);
   });
 });

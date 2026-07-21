@@ -17,6 +17,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {ResourceLocation} = require('./ResourceLocation');
+
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
 function stripPng(value) {
@@ -25,10 +27,6 @@ function stripPng(value) {
 
 function trimSlashes(value) {
   return value.replace(/^\/+|\/+$/g, '');
-}
-
-function defaultTextureLocation(settings) {
-  return `${settings.namespace}:textures/entity/${settings.profileId}.png`;
 }
 
 function customFileName(settings, index) {
@@ -67,25 +65,42 @@ function parseExternalLocation(descriptor) {
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
-      ? {
-        external: true, label: location.replace(':textures/', ':').replace(
-            /\.png$/i, '')
-      }
-      : {external: false, label: 'Custom Texture'};
+      ? {label: location.replace(':textures/', ':').replace(/\.png$/i, '')}
+      : {label: 'Custom Texture'};
 }
 
 function resolveTextures(descriptors, settings) {
-  const defaultLocation = defaultTextureLocation(settings);
   const textures = {};
   const packed = [];
+  const issues = [];
+  const resolvedIndices = new Set();
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
     const index = Number.isInteger(descriptor.index) ? descriptor.index
         : position;
-    let location = parseExternalLocation(descriptor);
-    if (!location) {
-      location = customLocation(settings, index);
+    if (resolvedIndices.has(index)) {
+      issues.push({
+        code: 'DUPLICATE_TEXTURE_INDEX',
+        message: `Texture slot ${index} is assigned more than once`
+      });
+      return;
+    }
+
+    const externalLocation = parseExternalLocation(descriptor);
+    if (externalLocation
+        && !ResourceLocation.isValidResourceLocation(externalLocation)) {
+      issues.push({
+        code: 'INVALID_TEXTURE_LOCATION',
+        message: `Texture slot ${index} points to the invalid location `
+            + `${externalLocation}, check its namespace and folder`
+      });
+      return;
+    }
+
+    resolvedIndices.add(index);
+    const location = externalLocation || customLocation(settings, index);
+    if (!externalLocation) {
       packed.push({
         fileName: customFileName(settings, index),
         bytes: descriptor.bytes
@@ -93,15 +108,20 @@ function resolveTextures(descriptors, settings) {
     }
 
     if (index === 0) {
-      if (location !== defaultLocation) {
-        texture = location;
-      }
+      texture = location;
     } else {
       textures[index] = location;
     }
   });
 
-  return {texture, textures, packed};
+  if (!texture && resolvedIndices.size > 0) {
+    issues.push({
+      code: 'MISSING_TEXTURE_INDEX',
+      message: 'Texture slot 0 is missing, the model has no primary texture'
+    });
+  }
+
+  return {texture, textures, packed, issues};
 }
 
 module.exports = {

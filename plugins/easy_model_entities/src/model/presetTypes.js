@@ -412,7 +412,6 @@ module.exports = {
   wandersByMovement,
   animationMode,
   presetDimensions,
-  presetShadowRadius,
   presetDefaults,
   defaultRenderingSettings,
   defaultAnimationSettings

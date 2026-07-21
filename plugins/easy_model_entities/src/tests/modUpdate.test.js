@@ -62,16 +62,17 @@ describe('pickModelSettings keeps reopen-critical settings', () => {
       exportType: 'packs',
       exportTarget: 'packs',
       modelOnly: false,
-      experimental: true
+      experimental: true,
+      lastExportedVersion: 'abc123'
     };
     const picked = pickModelSettings(full);
     expect(picked.targetVersion).toBe('1.21.11');
     expect(picked.customize).toBe(true);
+    expect(picked.lastExportedVersion).toBe('abc123');
     expect(picked.exportType).toBeUndefined();
     expect(picked.exportTarget).toBeUndefined();
     expect(picked.modelOnly).toBeUndefined();
     expect(picked.experimental).toBeUndefined();
-    // Model-defining data is retained.
     expect(picked.schemaVersion).toBe('0.2.0');
     expect(picked.presetType).toBe('humanoid_wandering');
     expect(picked.host).toEqual(full.host);

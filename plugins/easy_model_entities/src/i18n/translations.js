@@ -19,6 +19,8 @@
 
 const EN = {
   'eme.dialog.title': 'Easy Model Entities Export',
+  'eme.action.export': 'Export Easy Model Entity',
+  'eme.action.exportDescription': 'Export the current project for Easy Model Entities.',
   'eme.field.preset': 'Preset',
   'eme.field.namespace': 'Namespace (mod id)',
   'eme.field.profileId': 'Profile ID',
@@ -113,13 +115,17 @@ const EN = {
   'eme.entity.amphibious_entity': 'Amphibious entity',
   'eme.modelType.entity': 'Entity',
   'eme.modelType.block_entity': 'Block Entity',
-  'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.packs': 'Complete: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.resource_pack': 'Update: Resource Pack only (ZIP)',
+  'eme.exportType.data_pack': 'Update: Data Pack only (ZIP)',
   'eme.exportType.mod_project': 'Standalone: write into mod project',
   'eme.exportType.model_only': 'Model only: mod integration (no data pack)'
 };
 
 const DE = {
   'eme.dialog.title': 'Easy Model Entities Export',
+  'eme.action.export': 'Easy Model Entity exportieren',
+  'eme.action.exportDescription': 'Exportiert das aktuelle Projekt für Easy Model Entities.',
   'eme.field.preset': 'Vorlage',
   'eme.field.namespace': 'Namespace (Mod-ID)',
   'eme.field.profileId': 'Profil-ID',
@@ -214,7 +220,9 @@ const DE = {
   'eme.entity.amphibious_entity': 'Amphibien-Entität',
   'eme.modelType.entity': 'Entität',
   'eme.modelType.block_entity': 'Block-Entität',
-  'eme.exportType.packs': 'Standalone: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.packs': 'Komplett: Data Pack + Resource Pack (ZIP)',
+  'eme.exportType.resource_pack': 'Update: Nur Resource Pack (ZIP)',
+  'eme.exportType.data_pack': 'Update: Nur Data Pack (ZIP)',
   'eme.exportType.mod_project': 'Standalone: in Mod-Projekt schreiben',
   'eme.exportType.model_only': 'Nur Modell: Mod-Integration (kein Data Pack)'
 };

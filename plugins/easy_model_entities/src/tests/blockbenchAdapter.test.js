@@ -52,3 +52,41 @@ describe('writeToDirectory', () => {
         [{path: 'C:/escape.json', content: '{}'}])).toThrow('ABSOLUTE_PATH');
   });
 });
+
+describe('collectTextures', () => {
+  const emptyPixel = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAA'
+      + 'DUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+  function texture(id, name) {
+    return {
+      id, name, namespace: '', folder: 'block', path: '',
+      getBase64: () => emptyPixel
+    };
+  }
+
+  afterEach(() => {
+    delete global.Texture;
+  });
+
+  test('uses the slot position as index, not the Blockbench texture id', () => {
+    global.Texture = {all: [texture('2', 'dawn_sparrow.png')]};
+
+    expect(BlockbenchAdapter.collectTextures().map(
+        (descriptor) => descriptor.index)).toEqual([0]);
+  });
+
+  test('numbers multiple textures by slot position regardless of their ids',
+      () => {
+        global.Texture = {
+          all: [texture('chest_texture', 'normal.png'),
+            texture('7', 'disguised_chestling.png')]
+        };
+
+        expect(BlockbenchAdapter.collectTextures().map(
+            (descriptor) => descriptor.index)).toEqual([0, 1]);
+      });
+
+  test('returns an empty list when no textures are loaded', () => {
+    expect(BlockbenchAdapter.collectTextures()).toEqual([]);
+  });
+});

@@ -17,22 +17,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {ResourceLocation} = require('../utils/ResourceLocation');
-const TEMPLATE = require('../resources/readme.md');
+const EXPORT_TYPE_PACKS = 'packs';
+const EXPORT_TYPE_RESOURCE_PACK = 'resource_pack';
+const EXPORT_TYPE_DATA_PACK = 'data_pack';
+const EXPORT_TYPE_MOD_PROJECT = 'mod_project';
+const EXPORT_TYPE_MODEL_ONLY = 'model_only';
 
-function buildReadme(settings, fileNames) {
-  const id = ResourceLocation.buildResourceLocation(settings.namespace,
-      settings.profileId);
-  const modelType = settings.modelType || 'entity';
-  const serverProfileId = ResourceLocation.buildResourceLocation(
-      settings.namespace, `${modelType}/${settings.profileId}`);
-  return TEMPLATE
-  .replaceAll('{{id}}', id)
-  .replaceAll('{{serverProfileId}}', serverProfileId)
-  .replaceAll('{{mcVersion}}',
-      `Minecraft: Java Edition ${settings.targetVersion}`)
-  .replaceAll('{{datapackFile}}', fileNames.datapack)
-  .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
+const ZIP_EXPORT_TYPES = [EXPORT_TYPE_PACKS, EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK];
+
+function isZipExport(exportType) {
+  return ZIP_EXPORT_TYPES.includes(exportType);
 }
 
-module.exports = {buildReadme};
+function includesDataPack(exportType) {
+  return exportType !== EXPORT_TYPE_RESOURCE_PACK;
+}
+
+function includesResourcePack(exportType) {
+  return exportType !== EXPORT_TYPE_DATA_PACK;
+}
+
+function isSinglePackExport(exportType) {
+  return exportType === EXPORT_TYPE_RESOURCE_PACK
+      || exportType === EXPORT_TYPE_DATA_PACK;
+}
+
+module.exports = {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  EXPORT_TYPE_MODEL_ONLY,
+  isZipExport,
+  includesDataPack,
+  includesResourcePack,
+  isSinglePackExport
+};

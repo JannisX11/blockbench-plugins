@@ -86,6 +86,67 @@ describe('buildPackBundle', () => {
     expect(meta.easy_model_entities).toBeUndefined();
   });
 
+  test('resource pack export omits the data pack and the bundle README', () => {
+    const settings = fixtureSettings();
+    settings.exportType = 'resource_pack';
+    const singlePack = buildPackBundle(settings, fixtureExportOptions());
+
+    expect(singlePack.datapack).toBeNull();
+    expect(singlePack.readme).toBeNull();
+    expect(singlePack.resourcepack.map((file) => file.path)).toContain(
+        'assets/example/textures/entity/lizard.png');
+  });
+
+  test('data pack export omits the resource pack and the bundle README', () => {
+    const settings = fixtureSettings();
+    settings.exportType = 'data_pack';
+    const singlePack = buildPackBundle(settings, fixtureExportOptions());
+
+    expect(singlePack.resourcepack).toBeNull();
+    expect(singlePack.readme).toBeNull();
+    expect(singlePack.datapack.map((file) => file.path)).toContain(
+        ENTITY_PROFILE_PATH);
+  });
+
+  test('single pack exports keep the version of the complete export', () => {
+    const settings = fixtureSettings();
+    const complete = buildPackBundle(settings, fixtureExportOptions());
+    settings.exportType = 'resource_pack';
+    const resourceOnly = buildPackBundle(settings, fixtureExportOptions());
+
+    expect(resourceOnly.renderProfile.version).toBe(
+        complete.serverProfile.version);
+  });
+
+  test('a data pack export keeps pairing after the entity data changed', () => {
+    const settings = fixtureSettings();
+    const paired = buildPackBundle(settings, fixtureExportOptions())
+        .serverProfile.version;
+
+    settings.lastExportedVersion = paired;
+    settings.exportType = 'data_pack';
+    settings.dimensions = {...settings.dimensions, height: 3.25};
+    const dataOnly = buildPackBundle(settings, fixtureExportOptions());
+
+    expect(dataOnly.serverProfile.dimensions.height).toBe(3.25);
+    expect(dataOnly.serverProfile.version).toBe(paired);
+  });
+
+  test('a complete export mints a new version when the entity data changed',
+      () => {
+        const settings = fixtureSettings();
+        const paired = buildPackBundle(settings, fixtureExportOptions())
+            .serverProfile.version;
+
+        settings.lastExportedVersion = paired;
+        settings.dimensions = {...settings.dimensions, height: 3.25};
+        const complete = buildPackBundle(settings, fixtureExportOptions());
+
+        expect(complete.serverProfile.version).not.toBe(paired);
+        expect(complete.renderProfile.version).toBe(
+            complete.serverProfile.version);
+      });
+
   test('writes model and texture bytes unchanged as binary entries', () => {
     const opts = fixtureExportOptions();
     const model = fileByPath(bundle.resourcepack,

@@ -30,6 +30,13 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT,
+  EXPORT_TYPE_MODEL_ONLY
+} = require('../model/exportTypes');
 const {t} = require('../i18n/translations');
 
 function optionsFromEnum(values, prefix) {
@@ -80,9 +87,11 @@ function modelTypeOptions() {
 
 function exportTypeOptions() {
   return {
-    packs: t('eme.exportType.packs'),
-    mod_project: t('eme.exportType.mod_project'),
-    model_only: t('eme.exportType.model_only')
+    [EXPORT_TYPE_PACKS]: t('eme.exportType.packs'),
+    [EXPORT_TYPE_RESOURCE_PACK]: t('eme.exportType.resource_pack'),
+    [EXPORT_TYPE_DATA_PACK]: t('eme.exportType.data_pack'),
+    [EXPORT_TYPE_MOD_PROJECT]: t('eme.exportType.mod_project'),
+    [EXPORT_TYPE_MODEL_ONLY]: t('eme.exportType.model_only')
   };
 }
 

@@ -47,6 +47,13 @@ const VERSIONS = [
     data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
     resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
     enabled: true
+  },
+  {
+    id: '26.2',
+    label: 'Minecraft 26.2',
+    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
+    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    enabled: true
   }
 ];
 

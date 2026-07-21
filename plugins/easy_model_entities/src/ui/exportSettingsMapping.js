@@ -22,6 +22,12 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_MODEL_ONLY,
+  EXPORT_TYPE_MOD_PROJECT,
+  isZipExport
+} = require('../model/exportTypes');
 const {ModelDimensions} = require('../model/ModelDimensions');
 const {VisibleBounds} = require('../model/VisibleBounds');
 
@@ -115,7 +121,7 @@ function formToSettings(form, base) {
 }
 
 function activeModelType(form) {
-  return form.exportType === 'model_only'
+  return form.exportType === EXPORT_TYPE_MODEL_ONLY
       ? MODEL_TYPE_ENTITY : (form.modelType || MODEL_TYPE_ENTITY);
 }
 
@@ -138,7 +144,7 @@ function presetFormValues(presetType, modelType, modelDimensions,
 }
 
 function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
-  const exportType = form.exportType || 'packs';
+  const exportType = form.exportType || EXPORT_TYPE_PACKS;
   const modelType = activeModelType(form);
   const preset = activePreset(form);
 
@@ -162,9 +168,11 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
     settings = formToSettings(form, settings);
   }
   settings.customize = !!form.customize;
+  settings.lastExportedVersion = base.lastExportedVersion;
   settings.exportType = exportType;
-  settings.exportTarget = exportType === 'packs' ? 'packs' : 'mod_project';
-  settings.modelOnly = exportType === 'model_only';
+  settings.exportTarget = isZipExport(exportType)
+      ? EXPORT_TYPE_PACKS : EXPORT_TYPE_MOD_PROJECT;
+  settings.modelOnly = exportType === EXPORT_TYPE_MODEL_ONLY;
 
   return settings;
 }
