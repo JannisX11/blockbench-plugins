@@ -771,6 +771,17 @@
 		"min_version": "5.0.0",
 		"variant": "both"
 	},
+	"freecam": {
+		"title": "Freecam",
+		"icon": "videocam",
+		"author": "Dmitriy",
+		"description": "Adds a fly camera mode for viewport navigation",
+		"version": "1.0.2",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"repository": "https://github.com/wantid/blockbench-freecam/tree/main/freecam",
+		"tags": ["Tool", "UX"]
+	},
 	"fly_mode": {
 		"title": "Fly Mode",
 		"icon": "sports_esports",
