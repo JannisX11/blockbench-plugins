@@ -4001,7 +4001,7 @@ BBPlugin.register('easy_model_entities', {
   icon: 'icon.png',
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
-  tags: ['Minecraft: Java Edition', 'Format', 'Exporter', 'Entity'],
+  tags: ['Minecraft: Java Edition', 'Format', 'Entity'],
   version: '1.0.0',
   min_version: '4.9.0',
   variant: 'desktop',
