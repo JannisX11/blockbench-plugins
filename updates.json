@@ -658,5 +658,10 @@
     "version": "1.0.0",
     "created": 1782560392835,
     "updated": 1782560392835
+  },
+  "sb_worn_display": {
+    "version": "4.13.0",
+    "created": 1785061632147,
+    "updated": 1785061632147
   }
 }
