@@ -109,5 +109,18 @@
 				]
 			}
 		]
+	},
+	"1.8.3": {
+		"title": "1.8.3",
+		"date": "2026-04-20",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed missing entity sounds in some presets"
+				]
+			}
+		]
 	}
 }

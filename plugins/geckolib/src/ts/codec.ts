@@ -1,5 +1,5 @@
 import armorTemplate from '../resources/armorTemplate.json';
-import {isEmpty, isValidPath} from './utils';
+import { isEmpty, isValidPath } from './utils';
 import {
     GECKOLIB_MODEL_ID,
     GeckoModelType, PROPERTY_FILEPATH_CACHE,
@@ -7,6 +7,7 @@ import {
     PROPERTY_MODID, SETTING_ALWAYS_SHOW_DISPLAY, SETTING_AUTO_PARTICLE_TEXTURE,
     SETTING_REMEMBER_EXPORT_LOCATIONS
 } from "./constants";
+import { FormResultValue } from 'blockbench-types/generated/interface/form';
 
 const codec = Codecs.bedrock;
 
@@ -32,10 +33,11 @@ export const format = new ModelFormat(GECKOLIB_MODEL_ID, {
     display_mode: false,
     animation_mode: true,
     codec: Codecs.project,
-})
+    animation_codec: Codecs.bedrock.format.animation_codec,
+});
 
 // Override the new project panel to allow customisation
-format.new = function() {
+format.new = function () {
     if (newProject(this))
         return openProjectSettingsDialog();
 }
@@ -51,7 +53,7 @@ export function openProjectSettingsDialog() {
 /**
  * Internal function for determining the placeholder value for the <code>model_identifier</code> form element in dialog windows
  */
-function getObjectIdPlaceholder(formResult?: {[key: string]: FormResultValue}) {
+function getObjectIdPlaceholder(formResult?: { [key: string]: FormResultValue }) {
     const name = formResult?.['name'] as string;
     const modelType = formResult?.[PROPERTY_MODEL_TYPE] as string;
 
@@ -78,7 +80,7 @@ function getObjectIdPlaceholder(formResult?: {[key: string]: FormResultValue}) {
  * Create the Project Settings dialog form for use in both new projects and editing existing ones
  */
 function createProjectSettingsForm(Project: ModelProject) {
-    const form = {format: {type: 'info', label: 'data.format', text: Format.name||'unknown', description: Format.description} as FormElementOptions}
+    const form = { format: { type: 'info', label: 'data.format', text: Format.name || 'unknown', description: Format.description } as FormElementOptions }
     const properties = ModelProject['properties'];
 
     const modelType = properties[PROPERTY_MODEL_TYPE];
@@ -89,7 +91,7 @@ function createProjectSettingsForm(Project: ModelProject) {
             label: modelType.label,
             description: modelType["description"],
             default: GeckoModelType.ENTITY.toUpperCase(),
-            value: typeof(currentType) === 'string' ?
+            value: typeof (currentType) === 'string' ?
                 GeckoModelType[currentType.toUpperCase()].toUpperCase() :
                 GeckoModelType.ENTITY.toUpperCase(),
             placeholder: modelType["placeholder"],
@@ -172,13 +174,13 @@ function createProjectSettingsForm(Project: ModelProject) {
  * Periodically check this is up-to-date with Blockbench to ensure ongoing compatibility
  * @return false if the user clicks <code>cancel</code>, otherwise true
  */
-function createProjectSettingsDialog(Project: ModelProject, form: {[formElement: string]: '_' | FormElementOptions}) {
+function createProjectSettingsDialog(Project: ModelProject, form: { [formElement: string]: '_' | FormElementOptions }) {
     const dialog = new Dialog({
         id: 'project',
         title: 'dialog.project.title',
         width: 500,
         form,
-        onConfirm: function(formResult) {
+        onConfirm: function (formResult) {
             let save;
             const box_uv = formResult['uv_mode'] == 'box_uv';
             const texture_width = Math.clamp(formResult['texture_size'][0], 1, Infinity);
@@ -187,7 +189,7 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
             if (Project.box_uv != box_uv || Project.texture_width != texture_width || Project.texture_height != texture_height) {
                 // Adjust UV Mapping if resolution changed
                 if (!Project.box_uv && !box_uv && !Format['per_texture_uv_size'] && (Project.texture_width != texture_width || Project.texture_height != texture_height)) {
-                    save = Undo.initEdit({elements: [...Cube.all, ...Mesh.all], uv_only: true, uv_mode: true} as UndoAspects)
+                    save = Undo.initEdit({ elements: [...Cube.all, ...Mesh.all], uv_only: true, uv_mode: true } as UndoAspects)
 
                     Cube.all.forEach(cube => {
                         for (const key in cube.faces) {
@@ -212,13 +214,13 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
                 // Convert UV mode per element
                 if (Project.box_uv != box_uv && ((box_uv && !Cube.all.find(cube => cube['box_uv'])) || (!box_uv && !Cube.all.find(cube => !cube['box_uv'])))) {
                     if (!save)
-                        save = Undo.initEdit({elements: Cube.all, uv_only: true, uv_mode: true} as UndoAspects);
+                        save = Undo.initEdit({ elements: Cube.all, uv_only: true, uv_mode: true } as UndoAspects);
 
                     Cube.all.forEach(cube => cube.setUVMode(box_uv));
                 }
 
                 if (!save)
-                    save = Undo.initEdit({uv_mode: true});
+                    save = Undo.initEdit({ uv_mode: true });
 
                 Project.texture_width = texture_width;
                 Project.texture_height = texture_height;
@@ -283,7 +285,7 @@ function createProjectSettingsDialog(Project: ModelProject, form: {[formElement:
                     break;
             }
 
-            Format.display_mode = modelType === GeckoModelType.ITEM || settings[SETTING_ALWAYS_SHOW_DISPLAY].value;
+            Format.display_mode = modelType === GeckoModelType.ITEM || settings[SETTING_ALWAYS_SHOW_DISPLAY].value as boolean;
 
             dialog.hide();
         },
@@ -365,7 +367,7 @@ export function buildDisplaySettingsJson(options = {}) {
                 name = (Project[PROPERTY_MODEL_TYPE] == GeckoModelType.BLOCK ? "block/" : "item/") + name;
                 name = Project[PROPERTY_MODID] + ":" + name
 
-                modelProperties.textures = {'particle': name};
+                modelProperties.textures = { 'particle': name };
 
                 break
             }
@@ -389,5 +391,6 @@ export function buildDisplaySettingsJson(options = {}) {
 
     return this;
 }
+
 
 export default codec;

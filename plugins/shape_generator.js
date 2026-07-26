@@ -6,8 +6,8 @@
         icon: 'pages',
         author: 'dragonmaster95',
         description: 'Generates shapes.',
-        version: '0.0.3',
-        min_version: '3.0.2',
+        version: '0.0.4',
+        min_version: '5.0.5',
         variant: 'both',
         onload() {
             ShapeGeneratorAction = new Action("generate_shape", {
@@ -1223,7 +1223,8 @@ function buildCube(fromX,fromY,fromZ,toX,toY,toZ,origin,axis,rotation,group) {
     	name: group.name,
     	from: [fromX, fromY, fromZ],
         to: [toX, toY, toZ],
-        rotation: {origin: origin.slice(), axis: axis, angle: rotation}
+        origin: origin.slice(),
+		rotation: [axis == 'x' ? rotation : 0, axis == 'y' ? rotation : 0, axis == 'z' ? rotation : 0]
     }).addTo(group).init()
 /*    selected.length = 0;
     selected.push(cube.index());

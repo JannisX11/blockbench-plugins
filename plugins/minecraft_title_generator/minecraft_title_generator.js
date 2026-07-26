@@ -1,5 +1,6 @@
 (async () => {
   const repo = "ewanhowell5195/MinecraftTitleGenerator"
+  const branch = "main"
   const thumbnail = "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvX8AKEBcw//M///MfgAe2jSQp2iSPOr+nSXPHOng7ov8TUKa/ZLlkuWT5VVyOy1FKKXNFRBwtJ0mU3YktcTmu31JKKVPklPlPZXoA"
   const shapeThumbnail = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAsAQMAAAA+dijMAAAABlBMVEUAAAD///+l2Z/dAAAAE0lEQVQIW2NggAP7////DAcCDgA7eYDpLi6r7QAAAABJRU5ErkJggg=="
   const fonts = {
@@ -98,8 +99,8 @@
   }
   const connection = {
     roots: [
-      `https://raw.githubusercontent.com/${repo}/main`,
-      `https://cdn.jsdelivr.net/gh/${repo}`
+      `https://raw.githubusercontent.com/${repo}/${branch}`,
+      `https://cdn.jsdelivr.net/gh/${repo}@${branch}`
     ],
     rootIndex: 0
   }
@@ -241,7 +242,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.10.3",
+    version: "1.10.4",
     min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",
@@ -3408,18 +3409,19 @@
   })
 
   async function fetchData(path, fallback) {
+    const currentRoot = connection.rootIndex
     try {
       const r = await fetch(`${root}/${path}`)
       if (r.status !== 200) throw new Error
       if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
       return r
     } catch {
-      for (let x = connection.rootIndex + 1; x < connection.roots.length; x++) {
-        connection.rootIndex = x
+      for (let x = currentRoot + 1; x < connection.roots.length; x++) {
         try {
           const r = await fetch(`${connection.roots[x]}/${path}`)
           if (r.status !== 200) throw new Error
           root = connection.roots[x]
+          connection.rootIndex = x
           if (r.headers.get("Content-Type")?.startsWith("text/plain") || r.headers.get("Content-Type")?.startsWith("application/json")) return r.json()
           return r
         } catch {}

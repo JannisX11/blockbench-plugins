@@ -558,5 +558,24 @@
         ]
       }
     ]
+  },
+  "1.10.4": {
+    "title": "1.10.4",
+    "date": "2026-04-18",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Changes",
+        "list": [
+          "Made the repository branch easier to change in the code for testing purposes"
+        ]
+      },
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the \"Failed to load textures and fonts\" warning showing when the fallback URL loaded successfully"
+        ]
+      }
+    ]
   }
 }

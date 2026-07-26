@@ -1,13 +1,13 @@
 {
   "sam3dj": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 0
   },
   "animated_java": {
-    "version": "1.8.0",
+    "version": "1.10.2",
     "created": 1736294400000,
-    "updated": 1761004800000
+    "updated": 1782338671538
   },
   "armor_stand_animator": {
     "version": "1.1.0",
@@ -35,7 +35,7 @@
     "updated": 0
   },
   "outline_creator": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 0
   },
@@ -55,7 +55,7 @@
     "updated": 0
   },
   "structure_importer": {
-    "version": "2.1.4",
+    "version": "2.1.7",
     "created": 0,
     "updated": 0
   },
@@ -85,9 +85,9 @@
     "updated": 0
   },
   "cem_template_loader": {
-    "version": "8.5.1",
+    "version": "9.2.0",
     "created": 1580601600000,
-    "updated": 1760486400000
+    "updated": 1783893204621
   },
   "optifine_player_models": {
     "version": "1.5.0",
@@ -130,7 +130,7 @@
     "updated": 1760832000000
   },
   "minecraft_title_generator": {
-    "version": "1.10.2",
+    "version": "1.10.4",
     "created": 1686355200000,
     "updated": 1760572800000
   },
@@ -145,12 +145,12 @@
     "updated": 1760227200000
   },
   "resource_pack_utilities": {
-    "version": "1.9.1",
+    "version": "1.10.0",
     "created": 1719792000000,
-    "updated": 1760572800000
+    "updated": 1779139186810
   },
   "asset_browser": {
-    "version": "1.2.1",
+    "version": "1.2.2",
     "created": 1748563200000,
     "updated": 1760572800000
   },
@@ -170,12 +170,12 @@
     "updated": 0
   },
   "animation_utils": {
-    "version": "4.1.2",
+    "version": "4.1.3",
     "created": 0,
     "updated": 0
   },
   "geckolib": {
-    "version": "4.2.1",
+    "version": "4.2.5",
     "created": 0,
     "updated": 0
   },
@@ -225,9 +225,9 @@
     "updated": 0
   },
   "animation_sliders": {
-    "version": "0.4.0",
+    "version": "0.5.0",
     "created": 0,
-    "updated": 0
+    "updated": 1771523210049
   },
   "voxel_shape_generator": {
     "version": "0.2.0",
@@ -245,14 +245,14 @@
     "updated": 0
   },
   "minecraft_entity_wizard": {
-    "version": "1.8.2",
+    "version": "1.8.3",
     "created": 1628035200000,
     "updated": 1761350400000
   },
   "minecraft_block_wizard": {
-    "version": "1.5.2",
+    "version": "1.7.0",
     "created": 1666656000000,
-    "updated": 1761350400000
+    "updated": 1778102478437
   },
   "minecraft_item_wizard": {
     "version": "1.2.4",
@@ -260,9 +260,9 @@
     "updated": 1761350400000
   },
   "reference_models": {
-    "version": "1.0.2",
+    "version": "1.1.0",
     "created": 0,
-    "updated": 0
+    "updated": 1771505381549
   },
   "vintagestory_models": {
     "version": "1.0.0",
@@ -295,7 +295,7 @@
     "updated": 0
   },
   "skin_packager": {
-    "version": "0.3.1",
+    "version": "0.3.2",
     "created": 0,
     "updated": 0
   },
@@ -345,7 +345,7 @@
     "updated": 0
   },
   "brush": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": 0,
     "updated": 0
   },
@@ -370,7 +370,7 @@
     "updated": 0
   },
   "bbs_exporter": {
-    "version": "1.3.1",
+    "version": "1.3.3",
     "created": 1714608000000,
     "updated": 1760400000000
   },
@@ -385,9 +385,9 @@
     "updated": 0
   },
   "explorer": {
-    "version": "1.0.5",
+    "version": "1.1.0",
     "created": 0,
-    "updated": 0
+    "updated": 1776286387152
   },
   "performance_audit": {
     "version": "1.1.2",
@@ -420,9 +420,9 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "1.0.12",
+    "version": "2.1.3",
     "created": 1680566400000,
-    "updated": 1760486400000
+    "updated": 1776713189096
   },
   "cube_inverter": {
     "version": "1.0.0",
@@ -430,7 +430,7 @@
     "updated": 0
   },
   "figura_format": {
-    "version": "0.1.3",
+    "version": "0.1.5",
     "created": 1689984000000,
     "updated": 1689984000000
   },
@@ -515,13 +515,153 @@
     "updated": 1756684800000
   },
   "gltf_importer": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "created": 1758758400000,
-    "updated": 1763074905482
+    "updated": 1780260186003
   },
   "translation_plane_gizmo": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": 1763076756774,
     "updated": 1763076756774
+  },
+  "shape_generator": {
+    "version": "0.0.4",
+    "created": 1765964433931,
+    "updated": 1765964433931
+  },
+  "hytale_plugin": {
+    "version": "0.9.1",
+    "created": 1766421748990,
+    "updated": 1776021669799
+  },
+  "texture_downscaler": {
+    "version": "1.0.0",
+    "created": 1766497657176,
+    "updated": 1766497657176
+  },
+  "smudge_brush": {
+    "version": "1.0.0",
+    "created": 1766790102010,
+    "updated": 1766790102010
+  },
+  "java_block_animation_exporter": {
+    "version": "1.0.0",
+    "created": 1766859185469,
+    "updated": 1766859185469
+  },
+  "animated_platforms": {
+    "version": "1.0.0",
+    "created": 1766862509962,
+    "updated": 1766862509962
+  },
+  "java_block_sequencer": {
+    "version": "1.0.0",
+    "created": 1766970388550,
+    "updated": 1766970388550
+  },
+  "block_multi_collisions": {
+    "version": "1.0.0",
+    "created": 1767891679712,
+    "updated": 1767891679712
+  },
+  "transparency_fix": {
+    "version": "2.1.0",
+    "created": 1768678498580,
+    "updated": 1768678498580
+  },
+  "farsight": {
+    "version": "1.0.1",
+    "created": 1768678815290,
+    "updated": 1768678815290
+  },
+  "hytale_avatar_loader": {
+    "version": "1.2.0",
+    "created": 1768738768363,
+    "updated": 1771095730771
+  },
+  "baked_ambient_occlusion": {
+    "version": "1.0.0",
+    "created": 1771093398623,
+    "updated": 1771093398623
+  },
+  "hytale_bridge": {
+    "version": "0.1.1",
+    "created": 1771677037011,
+    "updated": 1771677037011
+  },
+  "hytale_hitbox_helper": {
+    "version": "1.0.1",
+    "created": 1771678722825,
+    "updated": 1771678722825
+  },
+  "animator": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "geenium_bedrock_entity_helper": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "blockmodels-exporter": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "player_statue_generator": {
+    "version": "1.0.0",
+    "created": 1776515943658,
+    "updated": 1776515943658
+  },
+  "easings": {
+    "version": "1.0.0",
+    "created": 1776527910925,
+    "updated": 1776527910925
+  },
+  "let_there_be_noise": {
+    "version": "1.0.0",
+    "created": 1776530761043,
+    "updated": 1776530761043
+  },
+  "expand_bone_timeline": {
+    "version": "2.2.0",
+    "created": 1776715194414,
+    "updated": 1776715194414
+  },
+  "menu_icon_exporter": {
+    "version": "1.0.0",
+    "created": 1776715988139,
+    "updated": 1776715988139
+  },
+  "no_java_limits": {
+    "version": "1.0.0",
+    "created": 1778439813605,
+    "updated": 1778439813605
+  },
+  "brush_tuna": {
+    "version": "1.0.6",
+    "created": 1778520382148,
+    "updated": 1778520382148
+  },
+  "batch_group_rename": {
+    "version": "1.3.0",
+    "created": 1779487482745,
+    "updated": 1782554831306
+  },
+  "fly_mode": {
+    "version": "1.0.0",
+    "created": 1782560115978,
+    "updated": 1782560115978
+  },
+  "uv_locker": {
+    "version": "1.0.0",
+    "created": 1782560392835,
+    "updated": 1782560392835
+  },
+  "sb_worn_display": {
+    "version": "4.13.0",
+    "created": 1785061632147,
+    "updated": 1785061632147
   }
 }

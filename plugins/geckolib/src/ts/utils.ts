@@ -55,7 +55,7 @@ export const onlyIfGeckoLib = (callback: (data: object) => void) => {
  * <p>
  * This should be done in <code>codec.ts#loadCodec</code> or in the plugin creation in <code>index.ts</code>
  */
-export const addEventListener = (eventName: EventName, callback: (data: object) => void) => {
+export const addEventListener = (eventName: BlockbenchEventName, callback: (data: object) => void) => {
   Blockbench.on(eventName, callback)
 }
 
@@ -64,7 +64,7 @@ export const addEventListener = (eventName: EventName, callback: (data: object) 
  * <p>
  * All registered event listeners should be removed when the plugin or codec is unloaded
  */
-export const removeEventListener = (eventName: EventName, callback: (data: object) => void) => {
+export const removeEventListener = (eventName: BlockbenchEventName, callback: (data: object) => void) => {
   Blockbench.removeListener(eventName, callback)
 }
 
@@ -112,7 +112,7 @@ export const isValidNamespace = (namespace: string) => {
 /**
  * Whether a map-like object has no defined keys or values
  */
-export const isEmpty = (object = {}) => Object.keys(object).length === 0;
+export const isEmpty = (object = {}) => !object || Object.keys(object).length === 0;
 
 /**
  * Whether the currently focussed model is a GeckoLib model
@@ -122,4 +122,31 @@ export const isGeckoLibModel = () => Format.id === GECKOLIB_MODEL_ID;
 /**
  * Whether the current project is a GeckoLib model that has or uses item render perspective transforms
  */
-export const hasModelDisplaySettings = () => isGeckoLibModel() && Project && ((Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM || !isEmpty(Project.display_settings)) || settings[SETTING_ALWAYS_SHOW_DISPLAY].value);
+export const shouldShowDisplayPanel = () => {
+  if (!isGeckoLibModel() || !Project)
+    return false;
+
+  if (settings[SETTING_ALWAYS_SHOW_DISPLAY].value)
+    return true;
+
+  return Project[PROPERTY_MODEL_TYPE] === GeckoModelType.ITEM || !isEmpty(Project.display_settings);
+}
+
+/**
+ * Determine the GeckoModelType of the current project (as best as possible), or null if it is not a GeckoLib model.
+ */
+export const determineModelType = (optionalModel?: any) => {
+  if (!isGeckoLibModel() || !Project)
+    return null;
+
+  if (Project[PROPERTY_MODEL_TYPE] && typeof Project[PROPERTY_MODEL_TYPE] === 'string')
+    return Project[PROPERTY_MODEL_TYPE];
+
+  if (optionalModel && !isEmpty(optionalModel.display))
+    return GeckoModelType.ITEM;
+
+  if (!isEmpty(Project.display_settings))
+    return GeckoModelType.ITEM;
+
+  return GeckoModelType.ENTITY;
+}

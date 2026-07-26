@@ -667,7 +667,7 @@ const DynamicsCheckList = {
 				for (const settingKey in dynamic.settings) {
 					const setting = dynamic.settings[settingKey];
 					
-					form[settingKey] = {label: idToTitle(settingKey), type: Blockbench.isNewerThan('4.5.0-beta') ? 'range': 'number', value: setting[0]};
+					form[settingKey] = {label: idToTitle(settingKey), type: Blockbench.isNewerThan('4.5.0-beta.1') ? 'range': 'number', value: setting[0]};
 					
 					if (1 in setting)
 						form[settingKey].min = setting[1];
@@ -721,7 +721,7 @@ BBPlugin.register('brush', {
 	icon: "fa-brush",
 	author: "Malik12tree",
 	description: "Create/Use custom brushes with dynamic behavior!",
-	version: "1.0.0",
+	version: "1.0.1",
 	min_version: "4.4.0",
 	variant: "both",
 	tags: ["Paint", "Customization", "Interface"],

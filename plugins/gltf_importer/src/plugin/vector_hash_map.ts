@@ -59,7 +59,7 @@ export class VectorHashMap<TKey extends number[], TValue> {
     }
 
     getKeyValuePair(key: TKey): [TKey, TValue]|undefined {
-        return this.getBucket(key)?.find(([k,v]) => k.every((c,i) => c === key[i]));
+        return this.getBucket(key)?.find(([k]) => k.every((c,i) => c === key[i]));
     }
 
 }

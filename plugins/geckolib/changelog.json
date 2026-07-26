@@ -228,5 +228,43 @@
         ]
       }
     ]
+  },
+  "4.2.3": {
+    "title": "4.2.3",
+    "author": "Tslat",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Further fix situations where the model type property would not save properly",
+          "Fixed an issue with importing animations with sound keyframes",
+          "Properly update the project's settings when converting from another format to GeckoLib"
+        ]
+      }
+    ]
+  },
+  "4.2.4": {
+    "title": "4.2.4",
+    "author": "Zigy",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an issue where some keyframe icons displayed incorrectly."
+        ]
+      }
+    ]
+  },
+  "4.2.5": {
+    "title": "4.2.5",
+    "author": "matmat37000",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an issue where importing an existing animation.json file will cause GeckoLib frame keys to be reset."
+        ]
+      }
+    ]
   }
 }

@@ -69,7 +69,7 @@ Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft", "Assets", "Browser"],
-  version: "1.2.1",
+  version: "1.2.2",
   min_version: "5.0.0",
   variant: "desktop",
   creation_date: "2025-05-30",
@@ -948,7 +948,7 @@ Plugin.register(id, {
         data: {
           type: storage.type ?? "release",
           manifest,
-          selectedVersions: {},
+          selectedVersions: Object.fromEntries(Object.keys(manifest.types).map(k => [k, null])),
           version: null,
           versionSearch: "",
           recentVersions: storage.recents,
@@ -990,7 +990,7 @@ Plugin.register(id, {
           exporting: false,
           mode: "assets",
           compareType: storage.compareType ?? "release",
-          compareSelectedVersions: {},
+          compareSelectedVersions: Object.fromEntries(Object.keys(manifest.types).map(k => [k, null])),
           compareVersion: null,
           recentComparisons: storage.recentComparisons,
           suggestedComparisons: []
@@ -1829,7 +1829,7 @@ Plugin.register(id, {
             else if (id.includes("forge")) return customIcons.forge
             else if (id.includes("neoforge")) return customIcons.neoforge
             else if (id.includes("fabric")) return customIcons.fabric
-            else if (id.includes("preview") || /^\d{2}w\d{2}[a-z]$/.test(id) || /^\d+\.\d+\.\d+-(?:pre|rc)\d+$/.test(id)) icon = "update"
+            else if (id.includes("preview") || /^\d{2}w\d{2}[a-z]$/.test(id) || /^\d+\.\d+(?:\.\d+)?-(?:snapshot|pre|rc)-?\d+$/.test(id)) icon = "update"
             else if (id.startsWith("v")) icon = "icon-format_bedrock"
             else if (/^[\d\.]+$/.test(id)) icon = "icon-format_java"
             const element = Blockbench.getIconNode(icon)

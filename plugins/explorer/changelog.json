@@ -1,0 +1,42 @@
+{
+	"1.0.0": {
+		"title": "1.0.0",
+		"date": "2023-01-17",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Initial release"
+				]
+			}
+		]
+	},
+	"1.1.0": {
+		"title": "1.1.0",
+		"date": "2026-04-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added support for deep search (can be turned off in settings)",
+					"Updated design",
+					"Added Favorites list",
+					"Replaced Back button with Back to and Up to buttons",
+					"Added Drop In option to file context menu, which is the equivalent of drag-and-dropping the file into Blockbench",
+					"Added Open File Location option in file context menu",
+					"Display loading status and errors messages",
+					"Added support for more image extensions",
+					"Added Hytale icons"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed broken context menu options which require shell access"
+				]
+			}
+		]
+	}
+}

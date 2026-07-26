@@ -1,0 +1,20 @@
+{
+	"1.0.0": {
+		"title": "v1.0.0",
+		"author": "Minato",
+		"date": "2025-12-28",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Initial release",
+					"Visual wireframe preview of up to 16 collision boxes in 3D viewport",
+					"Numeric controls for size/offset with automatic Bedrock bounds validation",
+					"Box index navigation to edit multiple collision boxes",
+					"Auto-generate collision boxes from visible model cubes",
+					"Copy to clipboard with visual feedback"
+				]
+			}
+		]
+	}
+}

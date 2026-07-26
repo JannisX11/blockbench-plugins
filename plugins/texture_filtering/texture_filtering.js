@@ -7,7 +7,7 @@ Plugin.register('texture_filtering', {
 
     title:         'Texture Filtering',
     author:        'HeyItsDuke, 0x13F',
-    description:   'Toggles between Nearest (Blockbench default) and Linear texture filtering',
+    description:   'Toggles between Nearest (Pixelated, Blockbench default) and Linear texture filtering (Soft/Blurry)',
     icon:          'deblur',
     creation_date: '2025-09-01',
     version:       '1.0.0',

@@ -10,7 +10,7 @@ BBPlugin.register('gltf_importer', {
     description:   'Import .GLTF and .GLB models',
     icon:          'icon.png',
     creation_date: '2025-09-25',
-    version:       '1.1.0',
+    version:       '1.2.0',
     variant:       'desktop',
     min_version:   '4.12.6',
     has_changelog: false,   
@@ -78,11 +78,11 @@ BBPlugin.register('gltf_importer', {
                 //     label: 'Import Cameras',
                 //     value: isPluginInstalled('cameras'),
                 // },
-                // ['animations']: {
-                //     type: 'checkbox',
-                //     label: 'Import Animations',
-                //     value: true,
-                // },
+                ['animations']: {
+                    type: 'checkbox',
+                    label: 'Import Animations',
+                    value: true,
+                },
                 // ['quads']: {
                 //     type: 'checkbox',
                 //     label: 'Merge Quads',
@@ -91,7 +91,7 @@ BBPlugin.register('gltf_importer', {
                 ['info_sep']: '_',
                 ['info']: {
                     type: 'info',
-                    text: 'It is currently not possible to import armatures, animations or cameras.',
+                    text: 'It is currently not possible to import armatures or cameras.',
                 },
             },
     

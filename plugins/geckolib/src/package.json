@@ -1,6 +1,6 @@
 {
   "name": "geckolib",
-  "version": "4.2.2",
+  "version": "4.2.5",
   "private": true,
   "description": "GeckoLib Models & Animations",
   "main": "index.js",
@@ -17,7 +17,7 @@
     "test": "npm run test:only",
     "test:only": "jest"
   },
-  "author": "Eliot Lash, Tslat, Gecko, McHorse",
+  "author": "Eliot Lash, Tslat, Gecko, McHorse, matmat37000",
   "license": "MIT",
   "pluginOptions": {
     "title": "GeckoLib Models & Animations",
@@ -43,7 +43,7 @@
     "@types/lodash": "^4.17.20",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
-    "blockbench-types": "^5.0.0-beta.1",
+    "blockbench-types": "^5.0.6",
     "css-loader": "^7.1.2",
     "eol": "0.10.0",
     "eslint": "^9.34.0",
