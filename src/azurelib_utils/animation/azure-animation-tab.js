@@ -13,7 +13,7 @@
  * Built on Blockbench's AnimationCodec API — no monkey-patching of
  * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
@@ -375,12 +375,16 @@ function serializeAnimation(anim) {
         }
         boneOut[channel] = node;
       } else {
-        const channelOut = {};
-        for (const kf of keyframes) {
+        const channelIsEasing = keyframes.some(
+            kf => kf.easing && kf.easing !== EASING_DEFAULT
+        );
+
+        const entries = keyframes.map(kf => {
           const t = normTime(roundTime(kf.time));
-          channelOut[t] = serializeKeyframe(kf, channel, keyframes);
-        }
-        boneOut[channel] = channelOut;
+          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
+          return [t, serialized];
+        });
+        boneOut[channel] = Object.fromEntries(entries);
       }
     }
 
@@ -400,7 +404,14 @@ function serializeAnimation(anim) {
     for (const kf of effects.keyframes) {
       const t = normTime(roundTime(kf.time));
       if (kf.channel === 'sound') {
-        const pts = (kf.data_points || []).map(p => (typeof p === 'string' ? { effect: p } : { ...p })).filter(p => p.effect);
+        const pts = (kf.data_points || []).map(p => {
+          const effect = typeof p === 'string' ? p : p.effect;
+          if (!effect) return null;
+          const o = { effect };
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return o;
+        }).filter(Boolean);
         if (pts.length === 1) sounds[t] = pts[0];
         else if (pts.length > 1) sounds[t] = pts;
       } else if (kf.channel === 'particle') {
@@ -452,12 +463,12 @@ const BB_INTERP_TO_LERP_MODE = {
  *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
  *   No easing     → [x, y, z]   (plain array shorthand)
  */
-function serializeKeyframe(kf, channel, allKeyframes) {
+function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
   const vec    = extractKeyframeVector(kf, channel, true);
   const interp = kf.interpolation;
 
   // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
-  if (interp === 'catmullrom') {
+  if (interp === 'catmullrom' && !channelIsEasing) {
     const node = { post: vec, lerp_mode: 'catmullrom' };
     const preVec = extractKeyframePreVector(kf, channel);
     if (preVec) node.pre = preVec;

@@ -68,6 +68,7 @@ In order to submit your plugin, you need to meet a few requirements:
 * In total, you can provide up to three plugin tags
 * THE PLUGIN META DATA NEEDS TO BE THE SAME in the plugin file itself and in the file `plugins.json`.
 * Plugins should not be larger than 2 MB
+* Plugins must be written in English language, both the user-facing text and the code. You can optionally implement other languages though, for which Blockbench provides APIs like `tl()` and `Language.addTranslations()`.
 * Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * Plugins may not execute code from external sources. This includes separately hosted scripts, user inputs or files, or otherwise externally hosted or generated code. This also applies to rendering of HTML content.
 * Plugins that utilize generative AI are not accepted into this repository but may be shared externally.

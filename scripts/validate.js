@@ -62,7 +62,8 @@ const BASE_PATH = path.join(import.meta.dirname, '..', NEW_FORMAT ? 'plugins/'+P
 
 let content_js = '';
 try {
-	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
+	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'), {encoding: 'utf8'});
+	content_js = content_js.replace(/throw /g, '')
 } catch (err) {
 	logError("Could not find plugin source file at " + path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
 	process.exit();
@@ -98,6 +99,7 @@ const wildcard = new Proxy(function () {}, {
 // Sandbox that pretends every global exists
 const sandbox = new Proxy({
 	Plugin,
+	Object,
 	BBPlugin: Plugin,
 }, {
 	has() {
@@ -110,7 +112,11 @@ const sandbox = new Proxy({
 });
 
 vm.createContext(sandbox);
-vm.runInContext(content_js, sandbox);
+try {
+	vm.runInContext(content_js, sandbox);
+} catch (err) {
+	console.error("Failed to run plugin in sandbox", err)
+}
 
 
 if (!source_meta) {
@@ -166,8 +172,8 @@ if (NEW_FORMAT && json_meta.about) {
 if (json_meta.has_changelog && !NEW_FORMAT) {
 	logError("Changelog is not supported in legacy format");
 }
-if (json_meta.has_changelog) {let content_js = '';
-	let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+if (json_meta.has_changelog) {
 	try {
 		let changelog_content = fs.readFileSync(changelog_path);
 		JSON.parse(changelog_content)
@@ -175,6 +181,8 @@ if (json_meta.has_changelog) {let content_js = '';
 		logError("Could not load changelog: " + err);
 		process.exit();
 	}
+} else if (fs.existsSync(changelog_path)) {
+	logError("Changelog file was found, but not used because the flag \"has_changelog\": true is missing.");
 }
 
 // Icon validation
@@ -203,7 +211,7 @@ if (json_meta.icon && (json_meta.icon.endsWith('.png') || json_meta.icon.endsWit
 //const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[a-z]+\.\d+)?$/;
 const SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function validateVersion(v) {
-	if (!v.match(SEMVER_REGEX)) {
+	if (typeof v != 'string' || !v.match(SEMVER_REGEX)) {
 		logError(`"${v}" is not a valid version number. See semver.org`)
 	}
 }
