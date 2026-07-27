@@ -1,4 +1,35 @@
 {
+	"item_generator": {
+		"title": "Item Generator",
+		"author": "Speaway",
+		"description": "Minecraft block & item generator with live vanilla textures from mcasset.cloud.",
+		"icon": "fas.fa-cube",
+		"version": "2.1.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"await_loading": true,
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Generator"]
+	},
+	"text_generator": {
+		"title": "Text Generator",
+		"author": "Speaway",
+		"description": "Create stunning 3D block-style text for Minecraft models in Blockbench. Default Minecraft-style letters plus curated block fonts (auto-loaded) or optional custom .ttf/.otf upload, adjustable size and depth, outlines, presets, and full Unicode/emoji support -- perfect for resource packs, maps, and Bedrock/Java block models.",
+		"icon": "text_fields",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Font"]
+	},
+	"recordshots": {
+		"title": "Recordshots",
+		"author": "Speaway",
+		"description": "Screenshot and Record in one plugin: batch stills from camera angles, or in Animate mode export transparent APNG/GIF/PNG sequence or MP4 via FFmpeg. Optional per-texture variant mode for block packs.",
+		"icon": "photo_camera",
+		"version": "1.3.1",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Utility"]
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
