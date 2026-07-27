@@ -1,4 +1,15 @@
 {
+	"item_generator": {
+		"title": "Item Generator",
+		"author": "Speaway",
+		"description": "Minecraft block & item generator with live vanilla textures from mcasset.cloud.",
+		"icon": "fas.fa-cube",
+		"version": "2.1.0",
+		"min_version": "4.10.0",
+		"variant": "desktop",
+		"await_loading": true,
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Generator"]
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
