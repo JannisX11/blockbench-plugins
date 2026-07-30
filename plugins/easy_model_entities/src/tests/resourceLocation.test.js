@@ -68,9 +68,66 @@ describe('sanitizeProfileId', () => {
     expect(ResourceLocation.isValidPath(id)).toBe(true);
   });
 
-  test('falls back to "entity" for empty or unusable names', () => {
+  test('falls back to "entity" for empty names', () => {
     expect(ResourceLocation.sanitizeProfileId('')).toBe('entity');
-    expect(ResourceLocation.sanitizeProfileId('!!!')).toBe('entity');
+    expect(ResourceLocation.sanitizeProfileId('   ')).toBe('entity');
     expect(ResourceLocation.sanitizeProfileId(undefined)).toBe('entity');
+    expect(ResourceLocation.sanitizeProfileId(null)).toBe('entity');
+  });
+
+  test('keeps dots that are not a model file extension', () => {
+    expect(ResourceLocation.sanitizeProfileId('Stone Turtle v1.5')).toBe(
+        'stone_turtle_v1.5');
+    expect(ResourceLocation.sanitizeProfileId('turtle.json')).toBe('turtle');
+  });
+
+  test('transliterates umlauts and accents instead of dropping them', () => {
+    expect(ResourceLocation.sanitizeProfileId('Bär')).toBe('baer');
+    expect(ResourceLocation.sanitizeProfileId('Wächter Groß')).toBe(
+        'waechter_gross');
+    expect(ResourceLocation.sanitizeProfileId('Café Crème')).toBe('cafe_creme');
+    expect(ResourceLocation.sanitizeProfileId('Blåhaj Øst')).toBe(
+        'blaahaj_oest');
+    expect(ResourceLocation.sanitizeProfileId('Ñandú')).toBe('nandu');
+    expect(ResourceLocation.sanitizeProfileId('Cat & Dog')).toBe('cat_and_dog');
+  });
+
+  test('gives non latin names a stable and unique id', () => {
+    const japanese = ResourceLocation.sanitizeProfileId('モデル');
+    const cyrillic = ResourceLocation.sanitizeProfileId('Модель');
+    const emoji = ResourceLocation.sanitizeProfileId('🐢');
+
+    expect(ResourceLocation.isValidPath(japanese)).toBe(true);
+    expect(ResourceLocation.isValidPath(cyrillic)).toBe(true);
+    expect(ResourceLocation.isValidPath(emoji)).toBe(true);
+    expect(new Set([japanese, cyrillic, emoji]).size).toBe(3);
+    expect(ResourceLocation.sanitizeProfileId('モデル')).toBe(japanese);
+  });
+
+  test('every sanitized id is a valid path', () => {
+    const names = [
+      'My Model.bbmodel', '  --Cool!!Robot--  ', 'Bär', 'モデル', '🐢', '!!!',
+      'a/../b', '///', 'ΑΒΓ αβγ', 'Ünïcødé Tëst', 'Ａｎｇｅｌ', 'İstanbul'
+    ];
+    names.forEach((name) => {
+      expect(ResourceLocation.isValidPath(
+          ResourceLocation.sanitizeProfileId(name))).toBe(true);
+    });
+  });
+});
+
+describe('sanitizeNamespace', () => {
+  test('produces a valid namespace without slashes', () => {
+    expect(ResourceLocation.sanitizeNamespace('Beispiel Örg')).toBe(
+        'beispiel_oerg');
+    expect(ResourceLocation.sanitizeNamespace('my/namespace')).toBe(
+        'my_namespace');
+    expect(ResourceLocation.isValidNamespace(
+        ResourceLocation.sanitizeNamespace('モデル'))).toBe(true);
+  });
+
+  test('falls back to the default namespace', () => {
+    expect(ResourceLocation.sanitizeNamespace('')).toBe('example_org');
+    expect(ResourceLocation.sanitizeNamespace(undefined)).toBe('example_org');
   });
 });

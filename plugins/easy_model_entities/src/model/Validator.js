@@ -86,13 +86,15 @@ class Validator {
     if (!ResourceLocation.isValidNamespace(settings.namespace)) {
       errors.push({
         code: 'INVALID_NAMESPACE',
-        message: `Invalid namespace: ${settings.namespace}`
+        message: `Invalid namespace: ${settings.namespace}, use for example `
+            + `${ResourceLocation.sanitizeNamespace(settings.namespace)}`
       });
     }
     if (!ResourceLocation.isValidPath(settings.profileId)) {
       errors.push({
         code: 'INVALID_PROFILE_ID',
-        message: `Invalid profile ID: ${settings.profileId}`
+        message: `Invalid profile ID: ${settings.profileId}, use for example `
+            + `${ResourceLocation.sanitizeProfileId(settings.profileId)}`
       });
     }
 
