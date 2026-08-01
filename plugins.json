@@ -1569,5 +1569,19 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
+	},
+	"geckolib_model_importer": {
+		"title": "GeckoLib Model Importer",
+		"author": "MopicMP",
+		"icon": "view_in_ar",
+		"description": "Import glTF models — including straight from Sketchfab — into GeckoLib: bones, cubes, textures and animations.",
+		"tags": ["Minecraft: Java Edition", "Import", "Animation"],
+		"version": "0.1.0",
+		"variant": "both",
+		"min_version": "4.9.0",
+		"website": "https://github.com/MopicMP/geckolib-model-importer",
+		"repository": "https://github.com/MopicMP/geckolib-model-importer",
+		"bug_tracker": "https://github.com/MopicMP/geckolib-model-importer/issues",
+		"creation_date": "2026-08-01"
 	}
 }
