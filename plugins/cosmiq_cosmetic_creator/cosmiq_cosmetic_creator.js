@@ -6,8 +6,6 @@
     const PLUGIN_VERSION = '0.17.0';
     const PLUGIN_AUTHOR = 'Cosmiq Team';
     const PLUGIN_CREATION_DATE = '2026-08-01';
-    const COSMIQ_PREVIEW_FILE_PREFIX = 'particles/';
-    const COSMIQ_PREVIEW_SOUND_DIRECTORY = 'media/';
     const PROJECT_WEBSITE_URL = 'https://cosmiq.gg/';
     const CREATOR_GUIDES_URL = 'https://guides.cosmiq.gg/';
     const COMMUNITY_DISCORD_URL = 'https://discord.cosmiq.gg/';
@@ -155,7 +153,6 @@
     });
 
     const RESOURCE_TYPES = Object.freeze({
-        PARTICLE_TEMPLATE: 'particle_template',
         PARTICLE_EFFECT: 'particle_effect',
         SOUND: 'sound'
     });
@@ -166,77 +163,6 @@
         NODE_VISIBILITY: 'node_visibility',
         COMMENT: 'comment'
     });
-    const DEV_PREVIEW_SCHEMA = 'cosmiq.dev-preview.v1';
-    const DEV_PREVIEW_REQUEST_FILE = 'preview-request.json';
-    const DEV_PREVIEW_ROOT_STORAGE_KEY = 'cosmiq.creator.minecraftDevRoot.v1';
-    const DEV_PREVIEW_DIRECTORIES = Object.freeze({
-        accessory: 'cosmetics',
-        emote: 'emotes',
-        cape: 'capes'
-    });
-    const PARTICLE_PRESETS = Object.freeze([
-        Object.freeze({
-            id: 'sparkle',
-            label: 'Sparkle',
-            assetRef: 'cosmiq:particle/sparkle',
-            bounds: Object.freeze({maxParticles: 16, maxDurationMs: 900, maxRatePerSecond: 24})
-        }),
-        Object.freeze({
-            id: 'burst',
-            label: 'Burst',
-            assetRef: 'cosmiq:particle/burst',
-            bounds: Object.freeze({maxParticles: 24, maxDurationMs: 600, maxRatePerSecond: 40})
-        }),
-        Object.freeze({
-            id: 'trail',
-            label: 'Trail',
-            assetRef: 'cosmiq:particle/trail',
-            bounds: Object.freeze({maxParticles: 32, maxDurationMs: 2000, maxRatePerSecond: 20})
-        }),
-        Object.freeze({
-            id: 'ring',
-            label: 'Ring',
-            assetRef: 'cosmiq:particle/ring',
-            bounds: Object.freeze({maxParticles: 32, maxDurationMs: 1200, maxRatePerSecond: 32})
-        }),
-        Object.freeze({
-            id: 'smoke_puff',
-            label: 'Smoke Puff',
-            assetRef: 'cosmiq:particle/smoke_puff',
-            bounds: Object.freeze({maxParticles: 12, maxDurationMs: 1800, maxRatePerSecond: 12})
-        }),
-        Object.freeze({
-            id: 'ender_implode',
-            label: 'Cosmiq Ender Implode',
-            assetRef: 'cosmiq:particle/ender_implode',
-            bounds: Object.freeze({maxParticles: 58, maxDurationMs: 200, maxRatePerSecond: 300})
-        }),
-        Object.freeze({
-            id: 'ender_explode',
-            label: 'Cosmiq Ender Explode',
-            assetRef: 'cosmiq:particle/ender_explode',
-            bounds: Object.freeze({maxParticles: 39, maxDurationMs: 200, maxRatePerSecond: 200})
-        }),
-        Object.freeze({
-            id: 'ender_burst',
-            label: 'Cosmiq Ender Burst',
-            assetRef: 'cosmiq:particle/ender_burst',
-            bounds: Object.freeze({maxParticles: 58, maxDurationMs: 200, maxRatePerSecond: 300})
-        }),
-        Object.freeze({
-            id: 'ender_stripes',
-            label: 'Cosmiq Ender Stripes',
-            assetRef: 'cosmiq:particle/ender_stripes',
-            bounds: Object.freeze({maxParticles: 50, maxDurationMs: 1000, maxRatePerSecond: 50})
-        }),
-        Object.freeze({
-            id: 'ender_wave',
-            label: 'Cosmiq Ender Wave',
-            assetRef: 'cosmiq:particle/ender_wave',
-            bounds: Object.freeze({maxParticles: 1, maxDurationMs: 1, maxRatePerSecond: 1})
-        })
-    ]);
-
     const BODY_SLOTS = Object.freeze([
         'cosmiq:slot/head',
         'cosmiq:slot/body',
@@ -397,7 +323,6 @@
     ]);
     const TEMPLATE_VALUES = Object.freeze(['cosmetic_static', 'cosmetic_animated']);
     const EMOTE_TEMPLATE_VALUES = Object.freeze(['emote_player', 'emote_with_props']);
-    const COMPATIBILITY_PROFILES = Object.freeze(['cross_version', 'advanced']);
     const PROJECT_KINDS = Object.freeze({
         COSMETIC: 'cosmetic',
         EMOTE: 'emote',
@@ -864,27 +789,17 @@
         return normalizeProjectId(raw);
     }
 
-    function particlePresetById(value) {
-        const id = normalizeToken(value);
-        return PARTICLE_PRESETS.find(function (preset) { return preset.id === id; }) || null;
-    }
-
     function isParticleResource(resource) {
-        return !!resource && (
-            resource.type === RESOURCE_TYPES.PARTICLE_TEMPLATE ||
-            resource.type === RESOURCE_TYPES.PARTICLE_EFFECT
-        );
+        return !!resource && resource.type === RESOURCE_TYPES.PARTICLE_EFFECT;
     }
 
     function normalizeResourceReference(value) {
         const source = value && typeof value === 'object' ? value : {};
         const type = String(source.type || '').trim().toLowerCase();
-        const preset = particlePresetById(source.presetId);
         const authored = type === RESOURCE_TYPES.PARTICLE_EFFECT;
-        const assetRef = normalizeAssetRef(source.assetRef) ||
-            (type === RESOURCE_TYPES.PARTICLE_TEMPLATE && preset ? preset.assetRef : '');
+        const assetRef = normalizeAssetRef(source.assetRef);
         const displayName = boundedCreatorString(
-            source.displayName || (preset && preset.label) || (type === RESOURCE_TYPES.SOUND ? 'Sound Reference' : ''),
+            source.displayName || (type === RESOURCE_TYPES.SOUND ? 'Sound Reference' : ''),
             AUTHORING_LIMITS.displayNameCharacters
         );
         const normalized = {
@@ -892,14 +807,13 @@
             type: type,
             displayName: displayName,
             assetRef: assetRef,
-            presetId: type === RESOURCE_TYPES.PARTICLE_TEMPLATE && preset ? preset.id : '',
             soundKind: type === RESOURCE_TYPES.SOUND && SOUND_REFERENCE_TYPES.indexOf(source.soundKind) !== -1
                 ? source.soundKind
                 : (type === RESOURCE_TYPES.SOUND ? 'sound_effect' : ''),
             embeddedOgg: type === RESOURCE_TYPES.SOUND && typeof source.embeddedOgg === 'string'
                 ? source.embeddedOgg
                 : null,
-            referenceOnly: type === RESOURCE_TYPES.PARTICLE_TEMPLATE,
+            referenceOnly: false,
             rawMediaIncluded: type === RESOURCE_TYPES.SOUND && typeof source.embeddedOgg === 'string'
         };
         if (authored) {
@@ -3459,11 +3373,6 @@
             '.cosmiq-format-actions{display:grid;gap:6px}',
             '.cosmiq-format-actions>button{display:flex;width:100%;min-height:40px;align-items:center;justify-content:center;gap:7px;margin:0;font-size:15px}',
             '.cosmiq-format-actions>button>i{font-size:20px}',
-            '.cosmiq-panel{height:100%;overflow-y:auto;color:var(--color-text,#eee)}.cosmiq-panel section{padding:12px;border-bottom:1px solid var(--color-border,#343640)}',
-            '.cosmiq-panel h3{margin:0 0 8px;font-size:16px}.cosmiq-panel label{display:block;margin:8px 0;color:var(--color-subtle_text,#aaa);font-size:12px}.cosmiq-panel input,.cosmiq-panel select,.cosmiq-panel textarea{box-sizing:border-box;width:100%;margin-top:4px}',
-            '.cosmiq-panel-help{margin:5px 0 9px;color:var(--color-subtle_text,#999);font-size:11px;line-height:1.35}.cosmiq-panel-presets{display:grid;grid-template-columns:1fr 1fr;gap:5px}',
-            '.cosmiq-panel-list{margin:9px 0 0;padding:0;list-style:none}.cosmiq-panel-list li{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid var(--color-border,#343640)}.cosmiq-panel-list small{color:var(--color-subtle_text,#999);overflow-wrap:anywhere}.cosmiq-panel-list span{display:flex;gap:5px}',
-            '.cosmiq-panel-inventory{display:grid;grid-template-columns:1fr auto;gap:3px 10px;margin:9px 0}.cosmiq-panel-inventory dt,.cosmiq-panel-inventory dd{margin:0}.cosmiq-panel-issues{padding-left:18px;font-size:11px}.cosmiq-panel-issues .error{color:#ff8ba3}.cosmiq-panel-issues .warning{color:#ffd873}',
             '@media(max-width:620px){.cosmiq-creation-grid{grid-template-columns:1fr}.cosmiq-creation-picker{padding:18px}.cosmiq-creation-card{min-height:220px}.cosmiq-creation-image{height:140px}.cosmiq-wizard-step{justify-content:center}.cosmiq-wizard-step small{display:none}.cosmiq-wizard-step:not(:last-child):after{right:-12px;left:50%}}'
         ].join('');
         document.head.appendChild(pluginStyle);
@@ -3841,7 +3750,6 @@
         'playerAppearance'
     ]);
     const COSMIQ_LOCAL_ID_PATTERN = /^[a-z][a-z0-9._-]{0,63}$/;
-    const COSMIQ_BUILTIN_ID_PATTERN = /^cosmiq:[a-z0-9._/-]{1,127}$/;
 
     function CosmiqValidationError(code, message, location) {
         const instance = new Error(code + ': ' + message);
@@ -7148,21 +7056,7 @@
         resources.forEach(function (resource) {
             const id = cosmiqAllocatedId(resource.displayName || resource.id, 'resource', allocated);
             resourceIdBySource[resource.id] = id;
-            if (resource.type === RESOURCE_TYPES.PARTICLE_TEMPLATE) {
-                const preset = particlePresetById(resource.presetId);
-                if (!preset) cosmiqFail('kind.invariant_violation', 'Particle preset cannot be normalized.');
-                particles.push({
-                    id: id,
-                    template: preset.id,
-                    textureId: null,
-                    maxParticles: preset.bounds.maxParticles,
-                    durationMs: preset.bounds.maxDurationMs,
-                    ratePerSecond: preset.bounds.maxRatePerSecond,
-                    size: 0.08,
-                    color: [1, 1, 1, 1],
-                    localVelocity: [0, 0.4, 0]
-                });
-            } else if (resource.type === RESOURCE_TYPES.SOUND) {
+            if (resource.type === RESOURCE_TYPES.SOUND) {
                 if (!resource.embeddedOgg) {
                     cosmiqFail(
                         'media.invalid_ogg_vorbis',
@@ -7966,7 +7860,6 @@
             type: true,
             displayName: true,
             assetRef: true,
-            presetId: true,
             profileId: true,
             appearance: true,
             emitter: true,
@@ -8067,14 +7960,13 @@
                 resourceIds[resource.id] = true;
                 resourcesById[resource.id] = resource;
             }
-            if (resource.type !== RESOURCE_TYPES.PARTICLE_TEMPLATE &&
-                resource.type !== RESOURCE_TYPES.PARTICLE_EFFECT &&
+            if (resource.type !== RESOURCE_TYPES.PARTICLE_EFFECT &&
                 resource.type !== RESOURCE_TYPES.SOUND) {
                 issues.push(makeIssue(
                     'error',
                     'COSMIQ_RESOURCE_TYPE_INVALID',
                     'Resource ' + (resource.id || '(unnamed)') +
-                        ' must be particle_template, particle_effect, or sound.'
+                        ' must be particle_effect or sound.'
                 ));
             }
             const rawDisplayName = String(sourceResource.displayName == null ? '' : sourceResource.displayName);
@@ -8093,20 +7985,6 @@
                     'COSMIQ_RESOURCE_REF_MISSING',
                     'Resource ' + (resource.displayName || resource.id || '(unnamed)') +
                         ' has no embedded runtime media.'
-                ));
-            } else if (resource.type === RESOURCE_TYPES.PARTICLE_TEMPLATE &&
-                !IDENTIFIER_PATTERN.test(resource.assetRef)) {
-                issues.push(makeIssue(
-                    'error',
-                    'COSMIQ_RESOURCE_REF_INVALID',
-                    'Resource assetRef must be a lowercase namespaced identifier.'
-                ));
-            }
-            if (resource.type === RESOURCE_TYPES.PARTICLE_TEMPLATE && !resource.presetId) {
-                issues.push(makeIssue(
-                    'error',
-                    'COSMIQ_PARTICLE_PRESET_INVALID',
-                    'Particle resources must select one of the five bounded Cosmiq presets.'
                 ));
             }
             if (resource.type === RESOURCE_TYPES.PARTICLE_EFFECT &&
@@ -8483,57 +8361,6 @@
                 unsupportedMedia: ['non_ogg_audio', 'gif', 'remote_url', 'filesystem_path']
             },
             issues: issues
-        };
-    }
-
-    function buildPanelViewState(snapshot) {
-        const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
-        const nodes = Array.isArray(source.nodes) ? source.nodes : [];
-        const animations = Array.isArray(source.animations) ? source.animations : [];
-        const textures = Array.isArray(source.textures) ? source.textures : [];
-        const result = buildAuthoringMetadata(source);
-        const markers = [];
-        Object.keys(result.metadata.timelineMarkers).forEach(function (animationUuid) {
-            const animation = animations.find(function (candidate) {
-                return candidate && candidate.uuid === animationUuid;
-            });
-            result.metadata.timelineMarkers[animationUuid].forEach(function (marker) {
-                markers.push(Object.assign({
-                    animationUuid: animationUuid,
-                    animationName: animation ? animation.name : animationUuid
-                }, marker));
-            });
-        });
-        const resources = result.metadata.resourceReferences;
-        const cues = result.metadata.timelineCues;
-        return {
-            resources: resources,
-            cues: cues,
-            markers: markers,
-            locatorBindings: result.metadata.effectLocatorBindings,
-            issues: result.issues,
-            inventory: {
-                projectKind: source.project && source.project.kind || PROJECT_KINDS.COSMETIC,
-                actors: nodes.filter(function (node) { return node.role === ROLES.EMOTE_ACTOR; }).length,
-                geometry: nodes.filter(function (node) {
-                    return node.type === 'cube' || node.type === 'mesh';
-                }).length,
-                textures: textures.length,
-                animations: animations.length,
-                markers: markers.length,
-                locators: Object.keys(result.metadata.effectLocatorBindings).length,
-                particleTemplates: resources.filter(function (resource) {
-                    return isParticleResource(resource);
-                }).length,
-                sounds: resources.filter(function (resource) {
-                    return resource.type === RESOURCE_TYPES.SOUND;
-                }).length,
-                comments: cues.filter(function (cue) { return cue.type === CUE_TYPES.COMMENT; }).length,
-                unresolved: result.issues.filter(function (issue) {
-                    return issue.severity === 'error' || issue.severity === 'warning';
-                }).length
-            },
-            unsupportedMedia: result.metadata.unsupportedMedia.slice()
         };
     }
 
@@ -10773,15 +10600,10 @@
     let validatorCheck = null;
     let activeDialog = null;
     let pluginStyle = null;
-    let pendingEmoteDraft = defaultEmoteDraft();
     let cosmiqMenu = null;
-    let cosmiqPanel = null;
     const actions = [];
     const properties = [];
     const listeners = [];
-    const nativePreviewEffectKeys = new Set();
-    const panelComponentInstances = new Set();
-    let panelRefreshTimer = null;
 
     function isCosmiqProject() {
         return typeof Format !== 'undefined' && Format && Format.id === FORMAT_ID;
@@ -11625,196 +11447,12 @@
         return handle;
     }
 
-    function reconcileLiveAuthoringState(markDirty) {
-        if (!isCosmiqProject() || typeof Project === 'undefined' || !Project) {
-            return null;
-        }
-        const result = reconcileAuthoringState(liveSnapshot());
-        if (result.removedCueIds.length > 0 || result.renamedCueIds.length > 0) {
-            applyAuthoringState(result.state, markDirty !== false);
-        }
-        return result;
-    }
-
-    function onCreateUndoSave(event) {
-        if (!isCosmiqProject() || !event || !event.save || !event.aspects) {
-            return;
-        }
-        const aspects = event.aspects;
-        if (!aspects.cosmiq_authoring && !aspects.animations && !aspects.elements &&
-            !aspects.outliner && !aspects.groups && !aspects.group) {
-            return;
-        }
-        const reconciled = reconcileLiveAuthoringState(false);
-        const state = reconciled ? reconciled.state : currentAuthoringState();
-        event.save.cosmiq_authoring = {
-            resources: state.resources.map(normalizeResourceReference),
-            cues: state.cues.map(normalizeTimelineCue)
-        };
-    }
-
-    function onLoadUndoSave(event) {
-        if (!isCosmiqProject() || !event || !event.save || !event.save.cosmiq_authoring) {
-            return;
-        }
-        applyAuthoringState(event.save.cosmiq_authoring, false);
-        refreshMetadata(false);
-        syncNativeEffectPreviews(false);
-        schedulePanelRefresh();
-    }
-
-    function onRelevantEditorChange(event) {
-        if (isCosmiqProject() && event && event.aspects && (
-            event.aspects.cosmiq_authoring || event.aspects.animations ||
-            event.aspects.elements || event.aspects.outliner ||
-            event.aspects.groups || event.aspects.group
-        )) {
-            synchronizeCueMarkerTimesFromEffectKeys(
-                currentAuthoringState(),
-                typeof Blockbench !== 'undefined' && Blockbench.Animation
-                    ? Blockbench.Animation.all
-                    : []
-            );
-            reconcileLiveAuthoringState(false);
-            refreshMetadata(false);
-            syncNativeEffectPreviews(false);
-        }
-        schedulePanelRefresh();
-    }
-
-    function buildEffectPreviewHydrationPlan(animations, projectSavePath, modules) {
-        modules = modules || {};
-        const path = modules.path || (typeof require === 'function' ? require('node:path') : null);
-        const fs = modules.fs || (typeof require === 'function' ? require('node:fs') : null);
-        const plan = {
-            references: [],
-            particlePaths: [],
-            missingPaths: []
-        };
-        if (!path || !fs || !projectSavePath) {
-            return plan;
-        }
-        const projectDirectory = path.dirname(projectSavePath);
-        const seenParticlePaths = new Set();
-        (animations || []).forEach(function (animation) {
-            const effectAnimator = animation && animation.animators
-                ? animation.animators.effects
-                : null;
-            (effectAnimator && effectAnimator.keyframes || []).forEach(function (keyframe) {
-                (keyframe.data_points || []).forEach(function (dataPoint, dataPointIndex) {
-                    const originalPath = String(dataPoint && dataPoint.file || '').trim();
-                    if (!originalPath || /^[a-z][a-z0-9+.-]*:\/\//i.test(originalPath)) {
-                        return;
-                    }
-                    const absolutePath = path.normalize(
-                        path.isAbsolute(originalPath)
-                            ? originalPath
-                            : path.resolve(projectDirectory, originalPath)
-                    );
-                    if (!fs.existsSync(absolutePath)) {
-                        plan.missingPaths.push(absolutePath);
-                        return;
-                    }
-                    const reference = {
-                        animationUuid: animation.uuid || '',
-                        keyframeUuid: keyframe.uuid || '',
-                        dataPointIndex: dataPointIndex,
-                        channel: keyframe.channel || '',
-                        originalPath: originalPath,
-                        absolutePath: absolutePath,
-                        dataPoint: dataPoint
-                    };
-                    plan.references.push(reference);
-                    if (reference.channel === 'particle' && !seenParticlePaths.has(absolutePath)) {
-                        seenParticlePaths.add(absolutePath);
-                        plan.particlePaths.push(absolutePath);
-                    }
-                });
-            });
-        });
-        return plan;
-    }
-
-    function makeEffectPreviewReferencesPortable(animations, projectSavePath, modules) {
-        modules = modules || {};
-        const path = modules.path || (typeof require === 'function' ? require('node:path') : null);
-        if (!path || !projectSavePath) {
-            return 0;
-        }
-        const projectDirectory = path.dirname(projectSavePath);
-        let updatedCount = 0;
-        (animations || []).forEach(function (animation) {
-            const effectAnimator = animation && animation.animators
-                ? animation.animators.effects
-                : null;
-            (effectAnimator && effectAnimator.keyframes || []).forEach(function (keyframe) {
-                (keyframe.data_points || []).forEach(function (dataPoint) {
-                    const sourcePath = String(dataPoint && dataPoint.file || '').trim();
-                    if (!sourcePath || !path.isAbsolute(sourcePath)) {
-                        return;
-                    }
-                    const relativePath = path.relative(projectDirectory, sourcePath);
-                    if (!relativePath || relativePath === '..' ||
-                        relativePath.indexOf('..' + path.sep) === 0 ||
-                        path.isAbsolute(relativePath)) {
-                        return;
-                    }
-                    dataPoint.file = relativePath.split(path.sep).join('/');
-                    updatedCount++;
-                });
-            });
-        });
-        return updatedCount;
-    }
-
-    function hydrateEffectPreviewReferences() {
-        if (!isCosmiqProject() || typeof Project === 'undefined' || !Project ||
-            typeof Animator === 'undefined') {
-            return null;
-        }
-        const fs = typeof require === 'function' ? require('node:fs') : null;
-        const path = typeof require === 'function' ? require('node:path') : null;
-        const animations = typeof Animation !== 'undefined' && Animation.all
-            ? Animation.all
-            : (Blockbench.Animation && Blockbench.Animation.all || []);
-        const plan = buildEffectPreviewHydrationPlan(
-            animations,
-            Project.save_path,
-            {fs: fs, path: path}
-        );
-        plan.references.forEach(function (reference) {
-            reference.dataPoint.file = reference.absolutePath;
-        });
-        if (fs && typeof Animator.loadParticleEmitter === 'function') {
-            plan.particlePaths.forEach(function (particlePath) {
-                if (Animator.particle_effects && Animator.particle_effects[particlePath]) {
-                    return;
-                }
-                try {
-                    Animator.loadParticleEmitter(
-                        particlePath,
-                        fs.readFileSync(particlePath, 'utf8')
-                    );
-                } catch (error) {
-                    console.warn('[Cosmiq Creator] Could not load particle preview asset:', particlePath, error);
-                }
-            });
-        }
-        return plan;
-    }
-
     function onSaveProject(event) {
         if (!isCosmiqProject() || !event || !event.model) {
             return;
         }
         const result = refreshMetadata(false);
         if (result) {
-            const previewPlan = buildEffectPreviewPlan(liveSnapshot());
-            writePortableEffectPaths(event.model, previewPlan);
-            makeEffectPreviewReferencesPortable(
-                event.model.animations,
-                Project.save_path
-            );
             event.model.cosmiq_project_kind = activeCosmiqProjectKind();
             if (result.metadata.kind === PROJECT_KINDS.EMOTE) {
                 event.model.cosmiq_emote_actor_count = result.metadata.emote.actorCount;
@@ -11830,7 +11468,6 @@
 
     function onLoadProject() {
         if (!isCosmiqProject()) {
-            schedulePanelRefresh();
             return;
         }
         Project.cosmiq_project_kind = projectKindFromMetadata(
@@ -11840,17 +11477,9 @@
         const repairedPreciseLegs = repairPreciseLegHierarchy();
         const repairedCapeParent = repairCapeUpperTorsoHierarchy();
         restoreAnimationPropertiesFromMetadata();
-        const reconciled = reconcileLiveAuthoringState(true);
-        if (repairedPreciseLegs || repairedCapeParent || (reconciled &&
-            (reconciled.removedCueIds.length > 0 || reconciled.renamedCueIds.length > 0))) {
+        if (repairedPreciseLegs || repairedCapeParent) {
             refreshMetadata(true);
         }
-        applyAppearanceToReferenceCubes(
-            Project.cosmiq && Project.cosmiq.playerAppearance
-        );
-        syncNativeEffectPreviews(false);
-        hydrateEffectPreviewReferences();
-        schedulePanelRefresh();
     }
 
     function anchorOptions() {
@@ -11861,1544 +11490,8 @@
         return options;
     }
 
-    function triggerOptions() {
-        const options = {};
-        TRIGGERS.forEach(function (trigger) {
-            const prefix = trigger.kind === 'player_event' ? '[Event] ' : '';
-            const availability = trigger.crossVersion ? '' : ' (modern optional)';
-            options[trigger.id] = prefix + trigger.label + availability;
-        });
-        return options;
-    }
-
-    function textureOptions() {
-        const options = {none: 'No texture selected yet'};
-        (Texture.all || []).forEach(function (texture) {
-            if (texture.cosmiq_role !== ROLES.REFERENCE) {
-                options[texture.uuid] = texture.name;
-            }
-        });
-        return options;
-    }
-
-    function selectedLiveTexture() {
-        if (typeof Texture === 'undefined') return null;
-        if (Texture.selected) return Texture.selected;
-        const selected = (Texture.all || []).find(function (texture) { return texture.selected === true; });
-        return selected || (typeof Texture.getDefault === 'function' ? Texture.getDefault() : null);
-    }
-
-    function showTextureVariantDialog() {
-        const target = selectedLiveTexture();
-        if (!target || target.cosmiq_role === ROLES.REFERENCE) {
-            Blockbench.showQuickMessage('Select a runtime texture before configuring a variant.');
-            return;
-        }
-        const bases = {};
-        (Texture.all || []).forEach(function (texture) {
-            if (texture !== target && texture.cosmiq_role !== ROLES.REFERENCE) {
-                bases[texture.uuid] = texture.name || texture.uuid;
-            }
-        });
-        if (Object.keys(bases).length === 0) {
-            Blockbench.showQuickMessage('Add the base texture before adding its variant texture.');
-            return;
-        }
-        activeDialog = new Dialog('cosmiq_texture_variant', {
-            title: 'Cosmiq Texture Variant',
-            width: 560,
-            form: {
-                variant_id: {
-                    label: 'Variant ID', type: 'text', value: target.cosmiq_variant_id || '',
-                    description: 'Lowercase token. Leave blank to make this a normal/default texture.'
-                },
-                base_texture: {
-                    label: 'Replaces Base Texture', type: 'select', options: bases,
-                    value: target.cosmiq_variant_base && bases[target.cosmiq_variant_base]
-                        ? target.cosmiq_variant_base : Object.keys(bases)[0]
-                }
-            },
-            onConfirm: function (form) {
-                const id = String(form.variant_id || '').trim().toLowerCase();
-                if (id && !/^[a-z0-9][a-z0-9._-]{0,31}$/.test(id)) {
-                    Blockbench.showQuickMessage('Variant ID must be a lowercase token up to 32 characters.');
-                    return false;
-                }
-                Undo.initEdit({textures: [target]});
-                target.cosmiq_variant_id = id;
-                target.cosmiq_variant_base = id ? String(form.base_texture || '') : '';
-                Undo.finishEdit('Configure Cosmiq texture variant', {textures: [target]});
-                refreshMetadata(true);
-                activeDialog.hide();
-                Blockbench.showQuickMessage(id ? 'Saved texture variant ' + id + '.' : 'Removed texture variant assignment.');
-                return true;
-            }
-        });
-        activeDialog.show();
-    }
-
-    function selectedGroup() {
-        const selected = Group.selected;
-        if (Array.isArray(selected)) {
-            return selected[0] || null;
-        }
-        return selected || Group.first_selected || null;
-    }
-
     function selectedAnimation() {
         return Blockbench.Animation.selected || null;
-    }
-
-    function uniqueNamespacedId(projectId, category, seed, existingValues) {
-        const used = Object.create(null);
-        (Array.isArray(existingValues) ? existingValues : []).forEach(function (value) {
-            if (value) used[value] = true;
-        });
-        const base = runtimeId(normalizeProjectId(projectId) || 'creator:untitled', category, seed);
-        let candidate = base;
-        let suffix = 2;
-        while (used[candidate]) {
-            candidate = base + '_' + suffix++;
-        }
-        return candidate;
-    }
-
-    function makeParticlePresetReference(projectId, presetId, existingResources) {
-        const preset = particlePresetById(presetId);
-        if (!preset) {
-            throw new Error('Choose one of the bounded particle presets.');
-        }
-        const existing = Array.isArray(existingResources) ? existingResources : [];
-        return normalizeResourceReference({
-            id: uniqueNamespacedId(
-                projectId,
-                'resource',
-                'particle_' + preset.id,
-                existing.map(function (resource) { return resource && resource.id; })
-            ),
-            type: RESOURCE_TYPES.PARTICLE_TEMPLATE,
-            displayName: preset.label,
-            assetRef: preset.assetRef,
-            presetId: preset.id
-        });
-    }
-
-    function makeAuthoredParticleReference(projectId, values, existingResources) {
-        const source = values && typeof values === 'object' ? values : {};
-        const profileId = normalizeToken(source.profileId);
-        const displayName = boundedCreatorString(
-            source.displayName || profileId,
-            AUTHORING_LIMITS.displayNameCharacters
-        );
-        if (!profileId || !displayName || !source.appearance || !source.emitter) {
-            throw new Error(
-                'Authored particles need a display name, profile ID, appearance, and emitter.'
-            );
-        }
-        const existing = Array.isArray(existingResources) ? existingResources : [];
-        return normalizeResourceReference({
-            id: uniqueNamespacedId(
-                projectId,
-                'resource',
-                'particle_' + profileId,
-                existing.map(function (resource) { return resource && resource.id; })
-            ),
-            type: RESOURCE_TYPES.PARTICLE_EFFECT,
-            displayName: displayName,
-            profileId: profileId,
-            appearance: cosmiqClone(source.appearance),
-            emitter: cosmiqClone(source.emitter),
-            editorStatus: source.editorStatus,
-            runtimeExport: source.runtimeExport !== false
-        });
-    }
-
-    function makeParticleDraftReference(projectId, displayName, textureUuid, existingResources) {
-        const profileId = normalizeToken(displayName);
-        if (!profileId) {
-            throw new Error('Name the particle before creating it.');
-        }
-        return makeAuthoredParticleReference(projectId, {
-            displayName: boundedCreatorString(displayName, AUTHORING_LIMITS.displayNameCharacters),
-            profileId: profileId,
-            editorStatus: 'placeholder',
-            runtimeExport: false,
-            appearance: {
-                textureUuid: boundedCreatorString(textureUuid, 128),
-                uvRegions: [[0, 0, 64, 64]],
-                material: 'additive',
-                facing: 'camera',
-                rgbaCurve: [
-                    {at: 0, rgba: [0.65, 0.35, 1, 1]},
-                    {at: 1, rgba: [0.2, 0.9, 0.75, 0]}
-                ],
-                rgbaInput: 'particle_age'
-            },
-            emitter: {
-                lifetime: 'finite',
-                emission: 'instant',
-                startDelayMs: 0,
-                instantCount: 12,
-                maxActive: 12,
-                durationMs: 100,
-                ratePerSecond: 12,
-                size: 0.25,
-                offset: [0, 0, 0],
-                shape: 'sphere',
-                halfDimensions: [0, 0, 0],
-                radius: 0.15,
-                surfaceOnly: false,
-                direction: 'outward',
-                localVelocity: [0, 0, 0],
-                speed: [2, 4],
-                accelerationMin: [0, -1, 0],
-                accelerationMax: [0, -1, 0],
-                linearDrag: 0.5,
-                particleLifetimeSeconds: [0.5, 1],
-                sizeCurve: [1, 0.7, 0]
-            }
-        }, existingResources);
-    }
-
-    function makeSoundReference(projectId, values, existingResources) {
-        const source = values && typeof values === 'object' ? values : {};
-        const embeddedOgg = typeof source.embeddedOgg === 'string' ? source.embeddedOgg : '';
-        if (!/^data:audio\/ogg;base64,[A-Za-z0-9+/]*={0,2}$/.test(embeddedOgg)) {
-            throw new Error('Choose one embedded .ogg file before adding a sound.');
-        }
-        const soundKind = SOUND_REFERENCE_TYPES.indexOf(source.soundKind) !== -1
-            ? source.soundKind
-            : 'sound_effect';
-        const displayName = boundedCreatorString(
-            source.displayName || (soundKind === 'music' ? 'Music Reference' : 'Sound Reference'),
-            AUTHORING_LIMITS.displayNameCharacters
-        );
-        if (!displayName) {
-            throw new Error('Sound references need a display name.');
-        }
-        const existing = Array.isArray(existingResources) ? existingResources : [];
-        return normalizeResourceReference({
-            id: uniqueNamespacedId(
-                projectId,
-                'resource',
-                soundKind + '_' + normalizeToken(displayName),
-                existing.map(function (resource) { return resource && resource.id; })
-            ),
-            type: RESOURCE_TYPES.SOUND,
-            displayName: displayName,
-            assetRef: '',
-            soundKind: soundKind,
-            embeddedOgg: embeddedOgg
-        });
-    }
-
-    function makeTimelineCueReference(projectId, values, existingCues) {
-        const source = values && typeof values === 'object' ? values : {};
-        const type = String(source.type || '').trim().toLowerCase();
-        if ([CUE_TYPES.PARTICLE, CUE_TYPES.SOUND, CUE_TYPES.NODE_VISIBILITY, CUE_TYPES.COMMENT].indexOf(type) === -1) {
-            throw new Error('Cue type must be particle, sound, node_visibility, or comment.');
-        }
-        const existing = Array.isArray(existingCues) ? existingCues : [];
-        return normalizeTimelineCue(Object.assign({}, source, {
-            id: normalizeAssetRef(source.id) || uniqueNamespacedId(
-                projectId,
-                'cue',
-                type + '_' + boundedCreatorString(source.animationUuid, 128),
-                existing.map(function (cue) { return cue && cue.id; })
-            )
-        }));
-    }
-
-    function previewNumber(value, fallback) {
-        const numeric = Number(value);
-        return Number.isFinite(numeric) ? numeric : fallback;
-    }
-
-    function previewVector(values, fallback) {
-        const source = Array.isArray(values) ? values : [];
-        return [0, 1, 2].map(function (index) {
-            return previewNumber(source[index], fallback[index]);
-        });
-    }
-
-    function previewArgbHex(rgba) {
-        const source = previewVector(rgba, [1, 1, 1]).concat([
-            previewNumber(Array.isArray(rgba) ? rgba[3] : null, 1)
-        ]);
-        const channels = [source[3], source[0], source[1], source[2]];
-        return '#' + channels.map(function (value) {
-            return Math.round(Math.max(0, Math.min(1, value)) * 255)
-                .toString(16)
-                .padStart(2, '0');
-        }).join('');
-    }
-
-    function previewResourceSlug(resource) {
-        const source = resource && typeof resource === 'object' ? resource : {};
-        const idPart = String(source.id || '').split('/').pop();
-        return normalizeToken(source.profileId || idPart || source.displayName || 'particle');
-    }
-
-    function previewFileKey(projectId, resource, locator) {
-        const resourcePart = previewResourceSlug(resource) || 'particle';
-        const locatorPart = normalizeToken(locator && locator.uuid).slice(0, 8) || 'root';
-        return COSMIQ_PREVIEW_FILE_PREFIX +
-            resourcePart + '__' + locatorPart + '.particle.json';
-    }
-
-    function previewBundlePath(savePath, bundleFile) {
-        const sourcePath = String(savePath || '');
-        const relative = String(bundleFile || '').replace(/\\/g, '/').replace(/^\/+/, '');
-        const splitAt = Math.max(sourcePath.lastIndexOf('/'), sourcePath.lastIndexOf('\\'));
-        if (splitAt === -1) {
-            return relative;
-        }
-        const separator = sourcePath.lastIndexOf('\\') > sourcePath.lastIndexOf('/') ? '\\' : '/';
-        return sourcePath.slice(0, splitAt + 1) + relative.replace(/\//g, separator);
-    }
-
-    function buildParticlePreviewDefinition(resource, locator, texture) {
-        const source = resource && typeof resource === 'object' ? resource : {};
-        const appearance = source.appearance && typeof source.appearance === 'object'
-            ? source.appearance
-            : {};
-        const emitter = source.emitter && typeof source.emitter === 'object'
-            ? source.emitter
-            : {};
-        const textureSource = texture && typeof texture === 'object' ? texture : {};
-        const textureWidth = Math.max(1, Math.floor(previewNumber(textureSource.width, 1)));
-        const textureHeight = Math.max(1, Math.floor(previewNumber(textureSource.height, 1)));
-        const locatorOrigin = previewVector(locator && locator.origin, [0, 0, 0]);
-        const authoredOffset = previewVector(emitter.offset, [0, 0, 0]);
-        const offset = locatorOrigin.map(function (value, index) {
-            return value / 16 + authoredOffset[index];
-        });
-        const uvRegion = Array.isArray(appearance.uvRegions) && Array.isArray(appearance.uvRegions[0])
-            ? appearance.uvRegions[0]
-            : [0, 0, textureWidth, textureHeight];
-        const gradient = {};
-        const rgbaCurve = Array.isArray(appearance.rgbaCurve) && appearance.rgbaCurve.length > 0
-            ? appearance.rgbaCurve
-            : [{at: 0, rgba: [1, 1, 1, 1]}];
-        rgbaCurve.forEach(function (point) {
-            gradient[String(previewNumber(point && point.at, 0))] =
-                previewArgbHex(point && point.rgba);
-        });
-
-        const accelerationMin = previewVector(emitter.accelerationMin, [0, 0, 0]);
-        const accelerationMax = previewVector(emitter.accelerationMax, accelerationMin);
-        const speed = Array.isArray(emitter.speed) ? emitter.speed : [0, 0];
-        const components = {
-            'minecraft:emitter_local_space': {
-                position: false,
-                rotation: false,
-                velocity: false
-            },
-            'minecraft:emitter_lifetime_once': {
-                active_time: Math.max(0.05, previewNumber(emitter.durationMs, 200) / 1000)
-            },
-            'minecraft:particle_lifetime_expression': {
-                max_lifetime: Math.max(
-                    0.01,
-                    previewNumber(
-                        Array.isArray(emitter.particleLifetimeSeconds)
-                            ? emitter.particleLifetimeSeconds[1]
-                            : null,
-                        previewNumber(
-                            Array.isArray(emitter.particleLifetimeSeconds)
-                                ? emitter.particleLifetimeSeconds[0]
-                                : null,
-                            0.5
-                        )
-                    )
-                )
-            },
-            'minecraft:particle_initial_speed': (
-                previewNumber(speed[0], 0) + previewNumber(speed[1], previewNumber(speed[0], 0))
-            ) / 2,
-            'minecraft:particle_motion_dynamic': {
-                linear_acceleration: accelerationMin.map(function (value, index) {
-                    return (value + accelerationMax[index]) / 2;
-                }),
-                linear_drag_coefficient: Math.max(0, previewNumber(emitter.linearDrag, 0))
-            },
-            'minecraft:particle_appearance_billboard': {
-                size: [
-                    Math.max(0.001, previewNumber(emitter.size, 0.25)),
-                    Math.max(0.001, previewNumber(emitter.size, 0.25))
-                ],
-                facing_camera_mode: appearance.facing === 'velocity'
-                    ? 'lookat_direction'
-                    : 'lookat_xyz',
-                uv: {
-                    texture_width: textureWidth,
-                    texture_height: textureHeight,
-                    uv: [
-                        previewNumber(uvRegion[0], 0),
-                        previewNumber(uvRegion[1], 0)
-                    ],
-                    uv_size: [
-                        Math.max(1, previewNumber(uvRegion[2], textureWidth)),
-                        Math.max(1, previewNumber(uvRegion[3], textureHeight))
-                    ]
-                }
-            },
-            'minecraft:particle_appearance_tinting': {
-                color: {
-                    gradient: gradient,
-                    interpolant: /^particle_random_[1-4]$/.test(String(appearance.rgbaInput || ''))
-                        ? 'variable.' + appearance.rgbaInput
-                        : 'variable.particle_age / variable.particle_lifetime'
-                }
-            }
-        };
-
-        if (emitter.emission === 'instant') {
-            components['minecraft:emitter_rate_instant'] = {
-                num_particles: Math.max(1, Math.floor(previewNumber(emitter.instantCount, 1)))
-            };
-        } else {
-            components['minecraft:emitter_rate_steady'] = {
-                spawn_rate: Math.max(0, previewNumber(emitter.ratePerSecond, 20)),
-                max_particles: Math.max(1, Math.floor(previewNumber(emitter.maxActive, 50)))
-            };
-        }
-
-        if (emitter.shape === 'box') {
-            components['minecraft:emitter_shape_box'] = {
-                offset: offset,
-                half_dimensions: previewVector(emitter.halfDimensions, [0.1, 0.1, 0.1]),
-                surface_only: emitter.surfaceOnly === true,
-                direction: emitter.direction === 'inward' ? 'inwards' : 'outwards'
-            };
-        } else if (emitter.shape === 'sphere') {
-            components['minecraft:emitter_shape_sphere'] = {
-                offset: offset,
-                radius: Math.max(0, previewNumber(emitter.radius, 0.25)),
-                surface_only: emitter.surfaceOnly === true,
-                direction: emitter.direction === 'inward' ? 'inwards' : 'outwards'
-            };
-        } else if (emitter.shape === 'disc') {
-            components['minecraft:emitter_shape_disc'] = {
-                offset: offset,
-                radius: Math.max(0, previewNumber(emitter.radius, 0.25)),
-                plane_normal: previewVector(emitter.planeNormal, [0, 1, 0]),
-                surface_only: emitter.surfaceOnly === true,
-                direction: emitter.direction === 'inward' ? 'inwards' : 'outwards'
-            };
-        } else {
-            let direction = [0, 0, -1];
-            if (emitter.direction === 'random_xy_forward') {
-                direction = ['math.random(-1, 1)', 'math.random(-1, 1)', 1];
-            } else if (emitter.direction === 'random_xy_backward') {
-                direction = ['math.random(-1, 1)', 'math.random(-1, 1)', -1];
-            } else if (emitter.direction === 'authored' || emitter.direction === 'custom') {
-                direction = previewVector(emitter.localVelocity, [0, 0, -1]);
-            }
-            components['minecraft:emitter_shape_point'] = {
-                offset: offset,
-                direction: direction
-            };
-        }
-
-        const identifier = 'cosmiq:' + (previewResourceSlug(source) || 'particle');
-        return {
-            identifier: identifier,
-            textureUuid: String(appearance.textureUuid || ''),
-            offset: offset,
-            definition: {
-                format_version: '1.10.0',
-                particle_effect: {
-                    description: {
-                        identifier: identifier,
-                        basic_render_parameters: {
-                            material: appearance.material === 'additive'
-                                ? 'particles_add'
-                                : 'particles_blend',
-                            texture: 'textures/particle/particles'
-                        }
-                    },
-                    components: components
-                }
-            }
-        };
-    }
-
-    function buildEffectPreviewPlan(snapshot) {
-        const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
-        const project = source.project && typeof source.project === 'object' ? source.project : {};
-        const savePath = String(project.savePath || '');
-        const resources = Array.isArray(project.resourceReferences) ? project.resourceReferences : [];
-        const cues = Array.isArray(project.timelineCues) ? project.timelineCues : [];
-        const nodes = Array.isArray(source.nodes) ? source.nodes : [];
-        const animations = Array.isArray(source.animations) ? source.animations : [];
-        const textures = Array.isArray(source.textures) ? source.textures : [];
-        const resourcesById = Object.create(null);
-        const nodesByUuid = Object.create(null);
-        const animationsByUuid = Object.create(null);
-        const texturesByUuid = Object.create(null);
-        resources.forEach(function (resource) {
-            if (resource && resource.id) resourcesById[resource.id] = resource;
-        });
-        nodes.forEach(function (node) {
-            if (node && node.uuid) nodesByUuid[node.uuid] = node;
-        });
-        animations.forEach(function (animation) {
-            if (animation && animation.uuid) animationsByUuid[animation.uuid] = animation;
-        });
-        textures.forEach(function (texture) {
-            if (texture && texture.uuid) texturesByUuid[texture.uuid] = texture;
-        });
-
-        const particles = [];
-        const sounds = [];
-        const skipped = [];
-        cues.forEach(function (rawCue) {
-            const cue = normalizeTimelineCue(rawCue);
-            const animation = animationsByUuid[cue.animationUuid];
-            const resource = resourcesById[cue.resourceId];
-            const timeSeconds = Number.isFinite(Number(rawCue && rawCue.timeSeconds))
-                ? Number(rawCue.timeSeconds)
-                : previewNumber(rawCue && rawCue.atMs, 0) / 1000;
-            if (!animation || !resource || timeSeconds < 0) {
-                skipped.push({cueId: cue.id, reason: 'missing_animation_or_resource'});
-                return;
-            }
-            if (cue.type === CUE_TYPES.PARTICLE && resource.type === RESOURCE_TYPES.PARTICLE_EFFECT) {
-                const locator = nodesByUuid[cue.locatorUuid];
-                const texture = resource.appearance &&
-                    texturesByUuid[resource.appearance.textureUuid];
-                if (!locator || !texture) {
-                    skipped.push({cueId: cue.id, reason: 'missing_locator_or_texture'});
-                    return;
-                }
-                const preview = buildParticlePreviewDefinition(resource, locator, texture);
-                const bundleFile = previewFileKey(project.id, resource, locator);
-                particles.push({
-                    cueId: cue.id,
-                    animationUuid: cue.animationUuid,
-                    timeSeconds: timeSeconds,
-                    resourceId: resource.id,
-                    locatorUuid: locator.uuid,
-                    bundleFile: bundleFile,
-                    file: previewBundlePath(savePath, bundleFile),
-                    effect: preview.identifier,
-                    textureUuid: preview.textureUuid,
-                    offset: preview.offset,
-                    definition: preview.definition
-                });
-                return;
-            }
-            if (cue.type === CUE_TYPES.SOUND && resource.type === RESOURCE_TYPES.SOUND &&
-                /^data:audio\/ogg;base64,[A-Za-z0-9+/]*={0,2}$/.test(resource.embeddedOgg || '')) {
-                const legacyFileName = normalizeToken(resource.displayName || 'sound') + '.ogg';
-                const bundleFile = COSMIQ_PREVIEW_SOUND_DIRECTORY + legacyFileName;
-                sounds.push({
-                    cueId: cue.id,
-                    animationUuid: cue.animationUuid,
-                    timeSeconds: timeSeconds,
-                    resourceId: resource.id,
-                    bundleFile: bundleFile,
-                    file: previewBundlePath(savePath, bundleFile),
-                    embeddedOgg: resource.embeddedOgg,
-                    legacyFileName: legacyFileName
-                });
-                return;
-            }
-            skipped.push({cueId: cue.id, reason: 'unsupported_preview_resource'});
-        });
-        return {
-            particles: particles,
-            sounds: sounds,
-            skipped: skipped
-        };
-    }
-
-    function markerAtResolvedTime(markers, atMs) {
-        const time = Number(atMs);
-        if (!Number.isFinite(time)) {
-            return null;
-        }
-        const matches = (Array.isArray(markers) ? markers : []).filter(function (marker) {
-            return marker && Number.isFinite(Number(marker.atMs)) &&
-                Math.abs(Number(marker.atMs) - time) <= 1;
-        });
-        return matches.length === 1 ? matches[0] : null;
-    }
-
-    function reconcileAuthoringState(snapshot) {
-        const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
-        const project = source.project && typeof source.project === 'object' ? source.project : {};
-        const resources = (Array.isArray(project.resourceReferences) ? project.resourceReferences : [])
-            .map(normalizeResourceReference);
-        const resourcesById = Object.create(null);
-        resources.forEach(function (resource) {
-            if (resource.id) resourcesById[resource.id] = resource;
-        });
-        const locatorsByUuid = Object.create(null);
-        const nodesByUuid = Object.create(null);
-        (Array.isArray(source.nodes) ? source.nodes : []).forEach(function (node) {
-            if (node && node.uuid) nodesByUuid[node.uuid] = node;
-            if (node && node.uuid && (
-                node.role === ROLES.PARTICLE_EFFECT_LOCATOR ||
-                node.role === ROLES.SOUND_EFFECT_LOCATOR
-            )) {
-                locatorsByUuid[node.uuid] = node;
-            }
-        });
-        const animationsByUuid = Object.create(null);
-        (Array.isArray(source.animations) ? source.animations : []).forEach(function (animation) {
-            if (animation && animation.uuid) {
-                animationsByUuid[animation.uuid] = {
-                    animation: animation,
-                    markers: collectTimelineMarkers(animation.markers)
-                };
-            }
-        });
-
-        const cues = [];
-        const removedCueIds = [];
-        const renamedCueIds = [];
-        (Array.isArray(project.timelineCues) ? project.timelineCues : [])
-            .forEach(function (rawCue) {
-                const cue = normalizeTimelineCue(rawCue);
-                const animationRecord = animationsByUuid[cue.animationUuid];
-                if (!cue.id || !animationRecord) {
-                    removedCueIds.push(cue.id || '');
-                    return;
-                }
-                let marker = animationRecord.markers.find(function (candidate) {
-                    return candidate.name === cue.markerName;
-                }) || null;
-                if (!marker) {
-                    marker = markerAtResolvedTime(
-                        animationRecord.markers,
-                        rawCue && rawCue.atMs != null
-                            ? rawCue.atMs
-                            : Number(rawCue && rawCue.timeSeconds) * 1000
-                    );
-                    if (marker) {
-                        cue.markerName = marker.name;
-                        renamedCueIds.push(cue.id);
-                    }
-                }
-                if (!marker) {
-                    removedCueIds.push(cue.id);
-                    return;
-                }
-
-                if (cue.endMarkerName) {
-                    let endMarker = animationRecord.markers.find(function (candidate) {
-                        return candidate.name === cue.endMarkerName;
-                    }) || null;
-                    if (!endMarker) {
-                        endMarker = markerAtResolvedTime(
-                            animationRecord.markers,
-                            rawCue && rawCue.endAtMs != null
-                                ? rawCue.endAtMs
-                                : Number(rawCue && rawCue.endTimeSeconds) * 1000
-                        );
-                        if (endMarker) {
-                            cue.endMarkerName = endMarker.name;
-                            if (renamedCueIds.indexOf(cue.id) === -1) renamedCueIds.push(cue.id);
-                        }
-                    }
-                    if (!endMarker || endMarker.atMs <= marker.atMs) {
-                        removedCueIds.push(cue.id);
-                        return;
-                    }
-                }
-
-                if (cue.type === CUE_TYPES.NODE_VISIBILITY) {
-                    const target = cue.nodeUuid && nodesByUuid[cue.nodeUuid];
-                    if (!target || [ROLES.OBJECT_ACTOR, ROLES.OBJECT_ACTOR_NODE].indexOf(target.role) === -1) {
-                        removedCueIds.push(cue.id);
-                        return;
-                    }
-                } else if (cue.type !== CUE_TYPES.COMMENT) {
-                    const resource = cue.resourceId && resourcesById[cue.resourceId];
-                    const locator = cue.locatorUuid && locatorsByUuid[cue.locatorUuid];
-                    const expectedLocatorRole = cue.type === CUE_TYPES.PARTICLE
-                        ? ROLES.PARTICLE_EFFECT_LOCATOR
-                        : ROLES.SOUND_EFFECT_LOCATOR;
-                    if (cue.type === CUE_TYPES.SOUND && cue.locatorUuid && !locator) {
-                        cue.locatorUuid = null;
-                    }
-                    const resourceMatches = cue.type === CUE_TYPES.PARTICLE
-                        ? isParticleResource(resource)
-                        : resource && resource.type === RESOURCE_TYPES.SOUND;
-                    if (!resourceMatches ||
-                        (cue.type === CUE_TYPES.PARTICLE && !locator) ||
-                        (locator && (
-                            locator.role !== expectedLocatorRole ||
-                            normalizeAssetRef(locator.resourceId) !== cue.resourceId
-                        ))) {
-                        removedCueIds.push(cue.id);
-                        return;
-                    }
-                }
-                cues.push(cue);
-            });
-        return {
-            state: {resources: resources, cues: cues},
-            removedCueIds: removedCueIds,
-            renamedCueIds: renamedCueIds
-        };
-    }
-
-    function currentAuthoringState() {
-        if (typeof Project === 'undefined' || !Project) {
-            return {resources: [], cues: []};
-        }
-        return authoringStateFromMetadata(Project.cosmiq);
-    }
-
-    function applyAuthoringState(state, markDirty) {
-        if (typeof Project === 'undefined' || !Project || !isCosmiqProject()) {
-            throw new Error('Open a Cosmiq project before editing resources or timeline cues.');
-        }
-        const source = state && typeof state === 'object' ? state : {};
-        const resources = (Array.isArray(source.resources) ? source.resources : [])
-            .map(normalizeResourceReference);
-        const cues = (Array.isArray(source.cues) ? source.cues : [])
-            .map(normalizeTimelineCue);
-        Project.cosmiq = Object.assign({}, Project.cosmiq || {}, {
-            authoringSchema: 'cosmiq.blockbench.cues.v0',
-            resourceReferences: resources,
-            timelineCues: cues
-        });
-        if (markDirty !== false) Project.saved = false;
-        return {resources: resources, cues: cues};
-    }
-
-    function disposeNativePreviewRegistration(file) {
-        if (typeof Animator === 'undefined' || !Animator.particle_effects ||
-            !Animator.particle_effects[file]) {
-            nativePreviewEffectKeys.delete(file);
-            return;
-        }
-        const registered = Animator.particle_effects[file];
-        Object.keys(registered.emitters || {}).forEach(function (key) {
-            const emitter = registered.emitters[key];
-            if (emitter && emitter.local_space && typeof emitter.local_space.removeFromParent === 'function') {
-                emitter.local_space.removeFromParent();
-            }
-            if (emitter && emitter.global_space && typeof emitter.global_space.removeFromParent === 'function') {
-                emitter.global_space.removeFromParent();
-            }
-        });
-        delete Animator.particle_effects[file];
-        nativePreviewEffectKeys.delete(file);
-    }
-
-    function nativePreviewFileExists(file) {
-        if (/^data:audio\/ogg;base64,/i.test(String(file || ''))) {
-            return true;
-        }
-        if (typeof fs !== 'undefined' && fs && typeof fs.existsSync === 'function') {
-            return fs.existsSync(file);
-        }
-        if (typeof require === 'function') {
-            try {
-                return require('fs').existsSync(file);
-            } catch (error) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    function synchronizeCueMarkerTimesFromEffectKeys(state, animations) {
-        const cues = Array.isArray(state && state.cues) ? state.cues : [];
-        const cuesById = Object.create(null);
-        cues.forEach(function (cue) {
-            if (cue && cue.id) cuesById[cue.id] = cue;
-        });
-        let moved = 0;
-        (Array.isArray(animations) ? animations : []).forEach(function (animation) {
-            const effects = animation && animation.animators && animation.animators.effects;
-            const keyframes = effects && Array.isArray(effects.particle)
-                ? effects.particle
-                : (effects && Array.isArray(effects.keyframes)
-                    ? effects.keyframes.filter(function (keyframe) {
-                        return keyframe && keyframe.channel === 'particle';
-                    })
-                    : []);
-            keyframes.forEach(function (keyframe) {
-                const point = keyframe && keyframe.data_points && keyframe.data_points[0];
-                const match = /^cosmiq\.cue=(.+)$/.exec(String(point && point.script || ''));
-                const cue = match && cuesById[match[1]];
-                const time = Number(keyframe && keyframe.time);
-                if (!cue || cue.animationUuid !== animation.uuid || !Number.isFinite(time)) return;
-                const marker = (animation.markers || []).find(function (candidate) {
-                    return candidate && String(candidate.name || '') === cue.markerName;
-                });
-                if (!marker || Math.abs(Number(marker.time) - time) <= 0.0001) return;
-                const delta = time - Number(marker.time);
-                marker.time = time;
-                const endMarker = cue.endMarkerName && (animation.markers || []).find(function (candidate) {
-                    return candidate && String(candidate.name || '') === cue.endMarkerName;
-                });
-                if (endMarker && Number.isFinite(Number(endMarker.time))) {
-                    endMarker.time = Math.max(time + 0.001, Number(endMarker.time) + delta);
-                }
-                moved += 1;
-            });
-        });
-        return moved;
-    }
-
-    function registerNativeParticlePreview(item) {
-        if (typeof Animator === 'undefined' || typeof Wintersky === 'undefined' ||
-            typeof WinterskyScene === 'undefined' || !Wintersky.Config) {
-            return false;
-        }
-        Animator.particle_effects = Animator.particle_effects || {};
-        disposeNativePreviewRegistration(item.file);
-        const config = new Wintersky.Config(
-            WinterskyScene,
-            cosmiqClone(item.definition),
-            {path: item.file}
-        );
-        const texture = typeof Texture !== 'undefined' && (Texture.all || []).find(function (candidate) {
-            return candidate.uuid === item.textureUuid;
-        });
-        if (texture && texture.source) {
-            config.preview_texture = texture.source;
-            if (typeof config.updateTexture === 'function') {
-                config.updateTexture();
-            }
-        }
-        Animator.particle_effects[item.file] = {
-            config: config,
-            emitters: {}
-        };
-        nativePreviewEffectKeys.add(item.file);
-        return true;
-    }
-
-    function soundPreviewMatchesPlan(keyframe, sounds) {
-        const point = keyframe && keyframe.data_points && keyframe.data_points[0];
-        const file = String(point && point.file || '');
-        if (/^data:audio\/ogg;base64,/i.test(file)) {
-            return true;
-        }
-        const normalized = file.replace(/\\/g, '/').toLowerCase();
-        return sounds.some(function (sound) {
-            return keyframe && Math.abs(Number(keyframe.time) - sound.timeSeconds) <= 0.0001 &&
-                normalized.endsWith('/' + sound.legacyFileName.toLowerCase());
-        });
-    }
-
-    function syncNativeEffectPreviews(markDirty) {
-        if (!isCosmiqProject() || typeof Project === 'undefined' || !Project ||
-            typeof Blockbench === 'undefined' || !Blockbench.Animation ||
-            typeof EffectAnimator === 'undefined') {
-            return {
-                particleKeyframes: 0,
-                soundKeyframes: 0,
-                registeredParticles: 0,
-                skipped: []
-            };
-        }
-        const wasSaved = Project.saved;
-        const plan = buildEffectPreviewPlan(liveSnapshot());
-        const availableParticles = plan.particles.filter(function (item) {
-            return !!(item && item.definition && item.textureUuid);
-        });
-        const availableSounds = plan.sounds.map(function (item) {
-            if (nativePreviewFileExists(item.file)) {
-                return item;
-            }
-            return Object.assign({}, item, {file: item.embeddedOgg});
-        });
-        const activeKeys = new Set(availableParticles.map(function (item) { return item.file; }));
-        Array.from(nativePreviewEffectKeys).forEach(function (file) {
-            if (!activeKeys.has(file)) {
-                disposeNativePreviewRegistration(file);
-            }
-        });
-        availableParticles.forEach(registerNativeParticlePreview);
-
-        const particlesByAnimation = Object.create(null);
-        const soundsByAnimation = Object.create(null);
-        availableParticles.forEach(function (item) {
-            (particlesByAnimation[item.animationUuid] =
-                particlesByAnimation[item.animationUuid] || []).push(item);
-        });
-        availableSounds.forEach(function (item) {
-            (soundsByAnimation[item.animationUuid] =
-                soundsByAnimation[item.animationUuid] || []).push(item);
-        });
-
-        (Blockbench.Animation.all || []).forEach(function (animation) {
-            const particleItems = particlesByAnimation[animation.uuid] || [];
-            const soundItems = soundsByAnimation[animation.uuid] || [];
-            let effects = animation.animators && animation.animators.effects;
-            if (!effects && (particleItems.length > 0 || soundItems.length > 0)) {
-                effects = animation.animators.effects = new EffectAnimator(animation);
-            }
-            if (!effects) return;
-
-            for (let index = effects.particle.length - 1; index >= 0; index -= 1) {
-                const point = effects.particle[index].data_points &&
-                    effects.particle[index].data_points[0];
-                if (String(point && point.effect || '').indexOf('cosmiq:') === 0 ||
-                    String(point && point.file || '').indexOf(COSMIQ_PREVIEW_FILE_PREFIX) === 0) {
-                    effects.particle.splice(index, 1);
-                }
-            }
-            for (let index = effects.sound.length - 1; index >= 0; index -= 1) {
-                if (soundPreviewMatchesPlan(effects.sound[index], soundItems)) {
-                    effects.sound.splice(index, 1);
-                }
-            }
-
-            particleItems.forEach(function (item) {
-                effects.addKeyframe({
-                    channel: 'particle',
-                    time: item.timeSeconds,
-                    data_points: [{
-                        effect: item.effect,
-                        locator: '',
-                        file: item.file,
-                        script: 'cosmiq.cue=' + item.cueId
-                    }]
-                });
-            });
-            soundItems.forEach(function (item) {
-                effects.addKeyframe({
-                    channel: 'sound',
-                    time: item.timeSeconds,
-                    data_points: [{file: item.file}]
-                });
-            });
-        });
-
-        if (markDirty === true) {
-            Project.saved = false;
-        } else {
-            Project.saved = wasSaved;
-        }
-        if (typeof Canvas !== 'undefined' && typeof Canvas.updateAll === 'function') {
-            Canvas.updateAll();
-        }
-        return {
-            particleKeyframes: availableParticles.length,
-            soundKeyframes: availableSounds.length,
-            registeredParticles: nativePreviewEffectKeys.size,
-            skipped: plan.skipped.slice()
-        };
-    }
-
-    function writePortableEffectPaths(model, plan) {
-        const sourceModel = model && typeof model === 'object' ? model : {};
-        const sourcePlan = plan && typeof plan === 'object' ? plan : {particles: [], sounds: []};
-        const particlesByAnimation = Object.create(null);
-        const soundsByAnimation = Object.create(null);
-        (sourcePlan.particles || []).forEach(function (item) {
-            (particlesByAnimation[item.animationUuid] =
-                particlesByAnimation[item.animationUuid] || []).push(item);
-        });
-        (sourcePlan.sounds || []).forEach(function (item) {
-            (soundsByAnimation[item.animationUuid] =
-                soundsByAnimation[item.animationUuid] || []).push(item);
-        });
-        (sourceModel.animations || []).forEach(function (animation) {
-            const particleItems = particlesByAnimation[animation.uuid] || [];
-            const soundItems = soundsByAnimation[animation.uuid] || [];
-            const effects = animation.animators && animation.animators.effects;
-            (effects && effects.keyframes || []).forEach(function (keyframe) {
-                const point = keyframe.data_points && keyframe.data_points[0];
-                if (!point) return;
-                const time = Number(keyframe.time);
-                if (keyframe.channel === 'particle') {
-                    const match = particleItems.find(function (item) {
-                        return Math.abs(time - item.timeSeconds) <= 0.0001 &&
-                            point.effect === item.effect;
-                    });
-                    if (match) point.file = match.bundleFile;
-                } else if (keyframe.channel === 'sound') {
-                    const match = soundItems.find(function (item) {
-                        return Math.abs(time - item.timeSeconds) <= 0.0001;
-                    });
-                    if (match) point.file = match.bundleFile;
-                }
-            });
-        });
-        return sourceModel;
-    }
-
-    function storeAuthoringState(state) {
-        return applyAuthoringState(state, true);
-    }
-
-    function commitAuthoringStateEdit(message, callback) {
-        const state = currentAuthoringState();
-        const aspects = {cosmiq_authoring: true};
-        const canUndo = typeof Undo !== 'undefined' &&
-            typeof Undo.initEdit === 'function' && typeof Undo.finishEdit === 'function';
-        let undoStarted = false;
-        try {
-            if (canUndo) {
-                Undo.initEdit(aspects);
-                undoStarted = true;
-            }
-            const output = callback(state);
-            storeAuthoringState(state);
-            if (canUndo) {
-                Undo.finishEdit(message, aspects);
-                undoStarted = false;
-            }
-            refreshMetadata(true);
-            syncNativeEffectPreviews(true);
-            schedulePanelRefresh();
-            return output;
-        } catch (error) {
-            if (undoStarted && typeof Undo.cancelEdit === 'function') {
-                Undo.cancelEdit(true);
-            }
-            throw error;
-        }
-    }
-
-    function addParticlePresetResource(presetId) {
-        return commitAuthoringStateEdit('Add Cosmiq particle reference', function (state) {
-            const resource = makeParticlePresetReference(
-                Project.cosmiq_project_id || 'creator:untitled',
-                presetId,
-                state.resources
-            );
-            state.resources.push(resource);
-            return resource;
-        });
-    }
-
-    function addSoundReference(values) {
-        return commitAuthoringStateEdit('Add Cosmiq sound reference', function (state) {
-            const resource = makeSoundReference(
-                Project.cosmiq_project_id || 'creator:untitled',
-                values,
-                state.resources
-            );
-            state.resources.push(resource);
-            return resource;
-        });
-    }
-
-    function cosmiqParticlePlaceholderDataUrl() {
-        if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
-            return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ' +
-                'AAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9WQAAAABJRU5ErkJggg==';
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        const context = canvas.getContext('2d');
-        const gradient = context.createLinearGradient(0, 0, 64, 64);
-        gradient.addColorStop(0, '#b67aff');
-        gradient.addColorStop(1, '#3ae0b2');
-        context.fillStyle = gradient;
-        context.fillRect(4, 4, 56, 56);
-        context.fillStyle = '#160f29';
-        context.font = 'bold 42px sans-serif';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText('C', 32, 34);
-        return canvas.toDataURL('image/png');
-    }
-
-    function ensureParticlePlaceholderTexture() {
-        if (typeof Texture === 'undefined') {
-            throw new Error('This Blockbench build does not expose textures.');
-        }
-        const existing = (Texture.all || []).find(function (texture) {
-            return texture && texture.cosmiq_role === 'particle_sprite' &&
-                texture.name === 'Cosmiq Particle Placeholder.png';
-        });
-        if (existing) return existing;
-        const texture = new Texture({
-            name: 'Cosmiq Particle Placeholder.png',
-            folder: 'particles',
-            width: 64,
-            height: 64
-        });
-        texture.cosmiq_role = 'particle_sprite';
-        texture.fromDataURL(cosmiqParticlePlaceholderDataUrl()).add(false);
-        texture.cosmiq_role = 'particle_sprite';
-        return texture;
-    }
-
-    function selectedParticleLocator() {
-        const selected = typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
-            ? Outliner.selected
-            : [];
-        return selected.find(function (node) {
-            return node && node.cosmiq_role === ROLES.PARTICLE_EFFECT_LOCATOR;
-        }) || null;
-    }
-
-    function spawnParticleLocator() {
-        if (typeof Locator === 'undefined') {
-            throw new Error('This Blockbench build does not expose Locator objects.');
-        }
-        const created = [];
-        const aspects = {elements: created, outliner: true, cosmiq_authoring: true};
-        if (typeof Undo !== 'undefined' && typeof Undo.initEdit === 'function') {
-            Undo.initEdit(aspects);
-        }
-        const locator = new Locator({
-            name: 'Particle Locator - Name Me Next',
-            position: [0, 0, 0],
-            rotation: [0, 0, 0],
-            export: false,
-            cosmiq_role: ROLES.PARTICLE_EFFECT_LOCATOR,
-            cosmiq_resource_id: ''
-        });
-        const parent = selectedGroup() || (
-            typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
-                ? Outliner.selected[0]
-                : null
-        );
-        locator.cosmiq_role = ROLES.PARTICLE_EFFECT_LOCATOR;
-        locator.cosmiq_resource_id = '';
-        locator.cosmiq_effect_locator_id = runtimeId(
-            Project.cosmiq_project_id || 'creator:untitled',
-            'locator',
-            locator.uuid
-        );
-        locator.export = false;
-        locator.addTo(parent).init();
-        if (typeof locator.createUniqueName === 'function') locator.createUniqueName();
-        created.push(locator);
-        if (typeof locator.select === 'function') locator.select();
-        if (typeof BarItems !== 'undefined' && BarItems.move_tool &&
-            typeof BarItems.move_tool.select === 'function') {
-            BarItems.move_tool.select();
-        }
-        if (typeof Undo !== 'undefined' && typeof Undo.finishEdit === 'function') {
-            Undo.finishEdit('Spawn Cosmiq particle locator', aspects);
-        }
-        if (typeof Project !== 'undefined' && Project) Project.saved = false;
-        schedulePanelRefresh();
-        return locator;
-    }
-
-    function createNamedParticle(displayName) {
-        if (!isCosmiqProject()) {
-            throw new Error('Open a Cosmiq project before creating a particle.');
-        }
-        const locator = selectedParticleLocator();
-        if (!locator) {
-            throw new Error('Select the Particle Locator in the Outliner before creating a particle.');
-        }
-        if (locator.cosmiq_resource_id) {
-            throw new Error('The selected Particle Locator already has a named particle.');
-        }
-        const texture = ensureParticlePlaceholderTexture();
-        const state = currentAuthoringState();
-        const resource = makeParticleDraftReference(
-            Project.cosmiq_project_id || 'creator:untitled',
-            displayName,
-            texture.uuid,
-            state.resources
-        );
-        const aspects = {elements: [locator], outliner: true, cosmiq_authoring: true};
-        if (typeof Undo !== 'undefined' && typeof Undo.initEdit === 'function') {
-            Undo.initEdit(aspects);
-        }
-        locator.name = 'Particle Locator - ' + resource.displayName;
-        locator.cosmiq_resource_id = resource.id;
-        state.resources.push(resource);
-        storeAuthoringState(state);
-        if (typeof Undo !== 'undefined' && typeof Undo.finishEdit === 'function') {
-            Undo.finishEdit('Create named Cosmiq particle', aspects);
-        }
-        refreshMetadata(true);
-        schedulePanelRefresh();
-        return resource;
-    }
-
-    function useNamedParticle(resourceValue) {
-        const resource = normalizeResourceReference(resourceValue);
-        const locator = effectLocatorForResource(resource.id);
-        if (!locator) {
-            throw new Error('Select this particle\'s Locator in the Outliner, or create a new locator.');
-        }
-        return createTimelineCueBinding({
-            type: CUE_TYPES.PARTICLE,
-            resourceId: resource.id,
-            locator: locator
-        });
-    }
-
-    function removeResourceReference(resourceId) {
-        const normalizedId = normalizeAssetRef(resourceId);
-        return commitAuthoringStateEdit('Remove Cosmiq resource reference', function (state) {
-            if (state.cues.some(function (cue) { return cue.resourceId === normalizedId; })) {
-                throw new Error('Remove this resource\'s timeline cues first.');
-            }
-            let locatorExists = false;
-            walkLiveOutliner(function (node) {
-                if (node && node.cosmiq_resource_id === normalizedId) locatorExists = true;
-            });
-            if (locatorExists) {
-                throw new Error('Remove this resource\'s Locator from the Outliner first.');
-            }
-            const index = state.resources.findIndex(function (resource) {
-                return resource.id === normalizedId;
-            });
-            if (index === -1) throw new Error('Resource reference no longer exists.');
-            return state.resources.splice(index, 1)[0];
-        });
-    }
-
-    function walkLiveOutliner(visitor) {
-        function walk(children) {
-            (children || []).forEach(function (node) {
-                visitor(node);
-                if (node.children) walk(node.children);
-            });
-        }
-        walk(typeof Outliner !== 'undefined' ? Outliner.root : []);
-    }
-
-    function effectLocatorForResource(resourceId) {
-        let selectedMatch = null;
-        let firstMatch = null;
-        const selected = typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
-            ? Outliner.selected
-            : [];
-        walkLiveOutliner(function (node) {
-            if (!node || node.cosmiq_resource_id !== resourceId || (
-                node.cosmiq_role !== ROLES.PARTICLE_EFFECT_LOCATOR &&
-                node.cosmiq_role !== ROLES.SOUND_EFFECT_LOCATOR
-            )) {
-                return;
-            }
-            if (!firstMatch) firstMatch = node;
-            if (selected.indexOf(node) !== -1) selectedMatch = node;
-        });
-        return selectedMatch || firstMatch;
-    }
-
-    function createEffectLocator(resourceValue, options) {
-        if (typeof Locator === 'undefined') {
-            throw new Error('This Blockbench build does not expose Locator objects.');
-        }
-        const settings = options && typeof options === 'object' ? options : {};
-        const resource = normalizeResourceReference(resourceValue);
-        if (!resource.id || (!isParticleResource(resource) &&
-            resource.type !== RESOURCE_TYPES.SOUND)) {
-            throw new Error('Choose a particle or sound resource before placing a locator.');
-        }
-        const role = isParticleResource(resource)
-            ? ROLES.PARTICLE_EFFECT_LOCATOR
-            : ROLES.SOUND_EFFECT_LOCATOR;
-        const label = isParticleResource(resource) ? 'Particle' : 'Sound';
-        const created = Array.isArray(settings.createdElements) ? settings.createdElements : [];
-        const ownsUndo = settings.undo !== false;
-        const aspects = {elements: created, outliner: true, cosmiq_authoring: true};
-        if (ownsUndo && typeof Undo !== 'undefined' && typeof Undo.initEdit === 'function') {
-            Undo.initEdit(aspects);
-        }
-        const locator = new Locator({
-            name: label + ' Cue - ' + resource.displayName,
-            position: [0, 0, 0],
-            rotation: [0, 0, 0],
-            export: false,
-            cosmiq_role: role,
-            cosmiq_resource_id: resource.id
-        });
-        const parent = selectedGroup() || (
-            typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
-                ? Outliner.selected[0]
-                : null
-        );
-        locator.cosmiq_role = role;
-        locator.cosmiq_resource_id = resource.id;
-        locator.cosmiq_effect_locator_id = runtimeId(
-            Project.cosmiq_project_id || 'creator:untitled',
-            'locator',
-            locator.uuid
-        );
-        locator.export = false;
-        locator.addTo(parent).init();
-        if (typeof locator.createUniqueName === 'function') locator.createUniqueName();
-        created.push(locator);
-        if (typeof locator.select === 'function') locator.select();
-        if (typeof BarItems !== 'undefined' && BarItems.move_tool &&
-            typeof BarItems.move_tool.select === 'function') {
-            BarItems.move_tool.select();
-        }
-        if (ownsUndo && typeof Undo !== 'undefined' && typeof Undo.finishEdit === 'function') {
-            Undo.finishEdit('Add Cosmiq effect locator', aspects);
-        }
-        if (typeof Project !== 'undefined' && Project) Project.saved = false;
-        if (ownsUndo && settings.refresh !== false) refreshMetadata(true);
-        return locator;
-    }
-
-    function markerNameForCue(type, cueId, ending) {
-        const suffix = ending ? '.end' : '';
-        const budget = AUTHORING_LIMITS.markerNameCharacters - suffix.length;
-        const seed = stableKey(cueId).slice(0, Math.max(1, budget - type.length - 8));
-        return ('cosmiq.' + type + '.' + seed).slice(0, budget) + suffix;
-    }
-
-    function uniqueMarkerName(animation, desiredName) {
-        const used = Object.create(null);
-        (animation && Array.isArray(animation.markers) ? animation.markers : []).forEach(function (marker) {
-            const name = marker && marker.name !== 0 ? String(marker.name || '').trim() : '';
-            if (name) used[name] = true;
-        });
-        let candidate = boundedCreatorString(desiredName, AUTHORING_LIMITS.markerNameCharacters);
-        const base = candidate || 'cosmiq.cue';
-        let suffix = 2;
-        while (used[candidate]) {
-            const ending = '.' + suffix++;
-            candidate = base.slice(0, AUTHORING_LIMITS.markerNameCharacters - ending.length) + ending;
-        }
-        return candidate;
-    }
-
-    function markerAtTime(animation, timeSeconds) {
-        return (animation && Array.isArray(animation.markers) ? animation.markers : []).find(function (marker) {
-            return marker && Number.isFinite(Number(marker.time)) &&
-                Math.abs(Number(marker.time) - timeSeconds) < 0.001;
-        }) || null;
-    }
-
-    function ensureTimelineMarker(animation, timeSeconds, desiredName, color) {
-        const existing = markerAtTime(animation, timeSeconds);
-        if (existing) {
-            const currentName = existing.name === 0 ? '' : String(existing.name || '').trim();
-            if (!currentName) existing.name = uniqueMarkerName(animation, desiredName);
-            return existing;
-        }
-        if (typeof TimelineMarker === 'undefined') {
-            throw new Error('This Blockbench build does not expose timeline markers.');
-        }
-        const marker = new TimelineMarker({
-            time: timeSeconds,
-            name: uniqueMarkerName(animation, desiredName),
-            color: color
-        });
-        if (!Array.isArray(animation.markers)) animation.markers = [];
-        animation.markers.push(marker);
-        return marker;
-    }
-
-    function createTimelineCueBinding(options) {
-        if (!isCosmiqProject()) {
-            throw new Error('Open a Cosmiq project before adding a timeline cue.');
-        }
-        const settings = options && typeof options === 'object' ? options : {};
-        const type = String(settings.type || '').trim().toLowerCase();
-        if ([CUE_TYPES.PARTICLE, CUE_TYPES.SOUND, CUE_TYPES.NODE_VISIBILITY, CUE_TYPES.COMMENT].indexOf(type) === -1) {
-            throw new Error('Cue type must be particle, sound, node_visibility, or comment.');
-        }
-        const animation = settings.animation || selectedAnimation();
-        if (!animation || !animation.uuid) {
-            throw new Error('Select an animation before adding a timeline cue.');
-        }
-        let timeSeconds = settings.timeSeconds == null
-            ? Number(typeof Timeline !== 'undefined' ? Timeline.time : Number.NaN)
-            : Number(settings.timeSeconds);
-        if (typeof Timeline !== 'undefined' && typeof Timeline.snapTime === 'function') {
-            timeSeconds = Timeline.snapTime(timeSeconds);
-        }
-        const animationLength = Number(animation.length);
-        if (!Number.isFinite(timeSeconds) || timeSeconds < 0 ||
-            (Number.isFinite(animationLength) && timeSeconds > animationLength)) {
-            throw new Error('The cue time must be inside the selected animation.');
-        }
-        let endTimeSeconds = settings.endTimeSeconds;
-        if (endTimeSeconds === '' || endTimeSeconds == null) {
-            endTimeSeconds = null;
-        } else {
-            endTimeSeconds = Number(endTimeSeconds);
-            if (typeof Timeline !== 'undefined' && typeof Timeline.snapTime === 'function') {
-                endTimeSeconds = Timeline.snapTime(endTimeSeconds);
-            }
-            if (!Number.isFinite(endTimeSeconds) || endTimeSeconds <= timeSeconds ||
-                (Number.isFinite(animationLength) && endTimeSeconds > animationLength)) {
-                throw new Error('Optional end time must be after the cue and inside the animation.');
-            }
-        }
-
-        const state = currentAuthoringState();
-        let resource = null;
-        let locator = null;
-        let shouldCreateLocator = false;
-        let visibilityNode = null;
-        if (type === CUE_TYPES.NODE_VISIBILITY) {
-            if (!isCosmiqEmoteProject()) {
-                throw new Error('Node-visibility cues are Emote-only.');
-            }
-            visibilityNode = liveNodeByUuid(settings.nodeUuid);
-            if (!visibilityNode || [
-                ROLES.OBJECT_ACTOR,
-                ROLES.OBJECT_ACTOR_NODE
-            ].indexOf(visibilityNode.cosmiq_role) === -1) {
-                throw new Error('Choose an Emote Prop node for the visibility cue.');
-            }
-        } else if (type !== CUE_TYPES.COMMENT) {
-            const requestedResourceId = normalizeAssetRef(settings.resourceId);
-            resource = state.resources.find(function (candidate) {
-                return candidate.id === requestedResourceId;
-            }) || null;
-            const matchingType = type === CUE_TYPES.PARTICLE
-                ? isParticleResource(resource)
-                : resource && resource.type === RESOURCE_TYPES.SOUND;
-            if (!matchingType) {
-                throw new Error('Choose a matching resource before adding this cue.');
-            }
-            locator = settings.locator || effectLocatorForResource(resource.id);
-            shouldCreateLocator = !locator && (
-                type === CUE_TYPES.PARTICLE || settings.createLocator === true
-            );
-            if (type === CUE_TYPES.PARTICLE && !locator && !shouldCreateLocator) {
-                throw new Error('Place an effect locator before adding this cue.');
-            }
-        }
-        const comment = type === CUE_TYPES.COMMENT
-            ? boundedCreatorString(settings.comment, AUTHORING_LIMITS.commentCharacters)
-            : '';
-        if (type === CUE_TYPES.COMMENT && !comment) {
-            throw new Error('Creator comments cannot be empty.');
-        }
-
-        const createdElements = [];
-        const aspects = {
-            animations: [animation],
-            cosmiq_authoring: true
-        };
-        if (shouldCreateLocator) {
-            aspects.elements = createdElements;
-            aspects.outliner = true;
-        }
-        const canUndo = typeof Undo !== 'undefined' &&
-            typeof Undo.initEdit === 'function' && typeof Undo.finishEdit === 'function';
-        let undoStarted = false;
-        try {
-            if (canUndo) {
-                Undo.initEdit(aspects);
-                undoStarted = true;
-            }
-            if (shouldCreateLocator) {
-                locator = createEffectLocator(resource, {
-                    undo: false,
-                    refresh: false,
-                    createdElements: createdElements
-                });
-            }
-            if (type === CUE_TYPES.PARTICLE && (!locator || !locator.uuid)) {
-                throw new Error('Place an effect locator before adding this cue.');
-            }
-            const cueDraft = makeTimelineCueReference(Project.cosmiq_project_id || 'creator:untitled', {
-                type: type,
-                animationUuid: animation.uuid,
-                resourceId: resource ? resource.id : null,
-                locatorUuid: locator ? locator.uuid : null,
-                nodeUuid: visibilityNode ? visibilityNode.uuid : null,
-                visible: type === CUE_TYPES.NODE_VISIBILITY ? settings.visible === true : null,
-                comment: comment,
-                runtimeExport: resource ? resource.runtimeExport !== false : true
-            }, state.cues);
-            const marker = ensureTimelineMarker(
-                animation,
-                timeSeconds,
-                markerNameForCue(type, cueDraft.id, false),
-                type === CUE_TYPES.PARTICLE ? 4 :
-                    (type === CUE_TYPES.SOUND ? 3 : (type === CUE_TYPES.NODE_VISIBILITY ? 2 : 6))
-            );
-            const markerName = marker.name === 0 ? '' : String(marker.name || '').trim();
-            let endMarker = null;
-            if (endTimeSeconds != null) {
-                endMarker = ensureTimelineMarker(
-                    animation,
-                    endTimeSeconds,
-                    markerNameForCue(type, cueDraft.id, true),
-                    type === CUE_TYPES.PARTICLE ? 4 :
-                        (type === CUE_TYPES.SOUND ? 3 : (type === CUE_TYPES.NODE_VISIBILITY ? 2 : 6))
-                );
-            }
-            const cue = normalizeTimelineCue(Object.assign({}, cueDraft, {
-                markerName: markerName,
-                endMarkerName: endMarker && endMarker.name !== 0
-                    ? String(endMarker.name || '').trim()
-                    : null
-            }));
-            state.cues.push(cue);
-            storeAuthoringState(state);
-            if (canUndo) {
-                Undo.finishEdit('Add Cosmiq timeline cue', aspects);
-                undoStarted = false;
-            }
-            refreshMetadata(true);
-            if (typeof Animator !== 'undefined' && typeof Animator.preview === 'function') Animator.preview();
-            return {cue: cue, marker: marker, endMarker: endMarker, locator: locator};
-        } catch (error) {
-            if (undoStarted && typeof Undo.cancelEdit === 'function') {
-                Undo.cancelEdit(true);
-            }
-            throw error;
-        }
-    }
-
-    function removeTimelineCueBinding(cueId) {
-        const normalizedId = normalizeAssetRef(cueId);
-        const state = currentAuthoringState();
-        const index = state.cues.findIndex(function (cue) { return cue.id === normalizedId; });
-        if (index === -1) {
-            throw new Error('Timeline cue no longer exists.');
-        }
-        const cue = state.cues[index];
-        const animation = (Blockbench.Animation.all || []).find(function (candidate) {
-            return candidate.uuid === cue.animationUuid;
-        }) || null;
-        const aspects = {cosmiq_authoring: true};
-        if (animation) aspects.animations = [animation];
-        const canUndo = typeof Undo !== 'undefined' &&
-            typeof Undo.initEdit === 'function' && typeof Undo.finishEdit === 'function';
-        let undoStarted = false;
-        try {
-            if (canUndo) {
-                Undo.initEdit(aspects);
-                undoStarted = true;
-            }
-            state.cues.splice(index, 1);
-            if (animation && Array.isArray(animation.markers)) {
-                [cue.markerName, cue.endMarkerName].filter(Boolean).forEach(function (markerName) {
-                    const stillReferenced = state.cues.some(function (otherCue) {
-                        return otherCue.animationUuid === cue.animationUuid &&
-                            (otherCue.markerName === markerName || otherCue.endMarkerName === markerName);
-                    });
-                    if (!stillReferenced) {
-                        for (let markerIndex = animation.markers.length - 1; markerIndex >= 0; markerIndex--) {
-                            const marker = animation.markers[markerIndex];
-                            const name = marker && marker.name !== 0 ? String(marker.name || '').trim() : '';
-                            if (name === markerName) animation.markers.splice(markerIndex, 1);
-                        }
-                    }
-                });
-            }
-            storeAuthoringState(state);
-            if (canUndo) {
-                Undo.finishEdit('Remove Cosmiq timeline cue', aspects);
-                undoStarted = false;
-            }
-            refreshMetadata(true);
-            schedulePanelRefresh();
-            if (typeof Animator !== 'undefined' && typeof Animator.preview === 'function') Animator.preview();
-            return cue;
-        } catch (error) {
-            if (undoStarted && typeof Undo.cancelEdit === 'function') {
-                Undo.cancelEdit(true);
-            }
-            throw error;
-        }
     }
 
     const PLAYER_APPEARANCE_PARTS = Object.freeze([
@@ -13431,362 +11524,6 @@
             return {part: part.id, layers: byPart[part.id].slice()};
         });
         return occlusions.length ? {occlusions: occlusions} : null;
-    }
-
-    function currentAppearanceBodyGroup() {
-        const anchor = typeof Project !== 'undefined' && Project && Project.cosmiq &&
-            Project.cosmiq.cosmetic && Project.cosmiq.cosmetic.attachmentAnchorId;
-        const definition = PLAYER_APPEARANCE_PARTS.find(function (part) {
-            return anchor === (
-                part.id === 'body'
-                    ? 'cosmiq:player/torso'
-                    : 'cosmiq:player/' + part.id
-            );
-        });
-        return definition ? definition.group : null;
-    }
-
-    function playerAppearancePanelState() {
-        const appearance = normalizePlayerAppearance(
-            typeof Project !== 'undefined' && Project && Project.cosmiq
-                ? Project.cosmiq.playerAppearance
-                : null
-        );
-        const occlusions = appearance ? appearance.occlusions : [];
-        const bodyGroup = currentAppearanceBodyGroup();
-        return PLAYER_APPEARANCE_PARTS.map(function (part) {
-            const current = occlusions.find(function (entry) {
-                return entry.part === part.id;
-            });
-            return {
-                id: part.id,
-                label: part.label,
-                enabled: bodyGroup == null || part.group === bodyGroup,
-                base: !!current && current.layers.indexOf('base') !== -1,
-                outer: !!current && current.layers.indexOf('outer') !== -1
-            };
-        });
-    }
-
-    function referenceCubeAppearanceKey(cube) {
-        const name = String(cube && cube.name || '').trim().toLowerCase();
-        const mappings = {
-            'head': 'head:base',
-            'hat layer': 'head:outer',
-            'body': 'body:base',
-            'body layer': 'body:outer',
-            'left arm': 'left_arm:base',
-            'left arm layer': 'left_arm:outer',
-            'right arm': 'right_arm:base',
-            'right arm layer': 'right_arm:outer',
-            'left leg': 'left_leg:base',
-            'left leg layer': 'left_leg:outer',
-            'right leg': 'right_leg:base',
-            'right leg layer': 'right_leg:outer'
-        };
-        return mappings[name] || '';
-    }
-
-    function referenceCubeMatchesPreviewVariant(cube) {
-        const parentName = String(
-            cube && cube.parent && cube.parent.name || ''
-        ).trim().toLowerCase();
-        const active = typeof Project !== 'undefined' && Project
-            ? String(Project.cosmiq_camera_model_variant || 'wide').trim().toLowerCase()
-            : 'wide';
-        if (parentName.indexOf(' slim') !== -1) return active === 'slim';
-        if (parentName.indexOf(' wide') !== -1) return active !== 'slim';
-        return true;
-    }
-
-    function applyAppearanceToReferenceCubes(appearance) {
-        if (typeof Cube === 'undefined' || !Array.isArray(Cube.all)) return;
-        const normalized = normalizePlayerAppearance(appearance);
-        const hidden = Object.create(null);
-        (normalized ? normalized.occlusions : []).forEach(function (entry) {
-            entry.layers.forEach(function (layer) {
-                hidden[entry.part + ':' + layer] = true;
-            });
-        });
-        Cube.all.forEach(function (cube) {
-            if (!cube || cube.cosmiq_role !== ROLES.REFERENCE) return;
-            const key = referenceCubeAppearanceKey(cube);
-            if (!key) return;
-            cube.visibility = referenceCubeMatchesPreviewVariant(cube) && !hidden[key];
-        });
-        if (typeof Canvas !== 'undefined' && typeof Canvas.updateVisibility === 'function') {
-            Canvas.updateVisibility();
-        }
-    }
-
-    function storePlayerAppearanceFromPanel(parts) {
-        if (typeof Project === 'undefined' || !Project) return null;
-        const occlusions = (Array.isArray(parts) ? parts : [])
-            .filter(function (part) {
-                return part && part.enabled !== false && (part.base || part.outer);
-            })
-            .map(function (part) {
-                return {
-                    part: part.id,
-                    layers: ['base', 'outer'].filter(function (layer) {
-                        return part[layer] === true;
-                    })
-                };
-            })
-            .sort(function (left, right) {
-                return cosmiqCompareText(left.part, right.part);
-            });
-        const appearance = occlusions.length ? {occlusions: occlusions} : null;
-        Project.cosmiq = Object.assign({}, Project.cosmiq || {}, {
-            playerAppearance: appearance
-        });
-        applyAppearanceToReferenceCubes(appearance);
-        refreshMetadata(true);
-        return appearance;
-    }
-
-    function currentPanelViewState() {
-        if (!isCosmiqProject() || typeof Project === 'undefined' || !Project) {
-            return buildPanelViewState({
-                project: {kind: PROJECT_KINDS.COSMETIC, resourceReferences: [], timelineCues: []},
-                nodes: [],
-                animations: [],
-                textures: []
-            });
-        }
-        return buildPanelViewState(liveSnapshot());
-    }
-
-    function refreshMountedPanelComponents() {
-        panelRefreshTimer = null;
-        panelComponentInstances.forEach(function (instance) {
-            if (instance && typeof instance.refresh === 'function') {
-                instance.refresh();
-            }
-        });
-    }
-
-    function schedulePanelRefresh() {
-        if (panelRefreshTimer != null || panelComponentInstances.size === 0) {
-            return;
-        }
-        panelRefreshTimer = setTimeout(refreshMountedPanelComponents, 0);
-    }
-
-    function mountPanelComponent(instance) {
-        if (instance) panelComponentInstances.add(instance);
-        schedulePanelRefresh();
-    }
-
-    function unmountPanelComponent(instance) {
-        if (instance) panelComponentInstances.delete(instance);
-    }
-
-    function panelOperationError(error) {
-        const message = error && error.message ? error.message : String(error);
-        if (typeof Blockbench !== 'undefined' && typeof Blockbench.showQuickMessage === 'function') {
-            Blockbench.showQuickMessage(message, 2600);
-        }
-    }
-
-    function cosmiqPanelComponent() {
-        return {
-            data: function () {
-                return {
-                    view: currentPanelViewState(),
-                    appearanceParts: playerAppearancePanelState(),
-                    particleName: '',
-                    soundName: '',
-                    soundKind: 'sound_effect',
-                    soundEmbeddedOgg: null,
-                    soundFileName: '',
-                    commentText: '',
-                    optionalEndTime: ''
-                };
-            },
-            mounted: function () {
-                mountPanelComponent(this);
-            },
-            beforeUnmount: function () {
-                unmountPanelComponent(this);
-            },
-            unmounted: function () {
-                unmountPanelComponent(this);
-            },
-            beforeDestroy: function () {
-                unmountPanelComponent(this);
-            },
-            methods: {
-                refresh: function () {
-                    this.view = currentPanelViewState();
-                    this.appearanceParts = playerAppearancePanelState();
-                },
-                updatePlayerAppearance: function () {
-                    try {
-                        storePlayerAppearanceFromPanel(this.appearanceParts);
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                spawnParticleLocator: function () {
-                    try {
-                        spawnParticleLocator();
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                createParticle: function () {
-                    try {
-                        createNamedParticle(this.particleName);
-                        this.particleName = '';
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                useParticle: function (resource) {
-                    try {
-                        useNamedParticle(resource);
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                addSound: function () {
-                    try {
-                        addSoundReference({
-                            displayName: this.soundName,
-                            soundKind: this.soundKind,
-                            embeddedOgg: this.soundEmbeddedOgg
-                        });
-                        this.soundName = '';
-                        this.soundEmbeddedOgg = null;
-                        this.soundFileName = '';
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                selectSoundFile: function (event) {
-                    const file = event && event.target && event.target.files && event.target.files[0];
-                    if (!file) return;
-                    if (!/\.ogg$/i.test(file.name || '') || file.size < 1 || file.size > 16 * 1024 * 1024) {
-                        panelOperationError(new Error('Choose an Ogg Vorbis file no larger than 16 MiB.'));
-                        event.target.value = '';
-                        return;
-                    }
-                    const component = this;
-                    const reader = new FileReader();
-                    reader.onload = function () {
-                        const result = String(reader.result || '');
-                        if (!/^data:audio\/ogg;base64,/i.test(result)) {
-                            panelOperationError(new Error('The selected file is not reported as audio/ogg.'));
-                            return;
-                        }
-                        component.soundEmbeddedOgg = result.replace(/^data:audio\/ogg;base64,/i, 'data:audio/ogg;base64,');
-                        component.soundFileName = file.name;
-                        if (!component.soundName) component.soundName = file.name.replace(/\.ogg$/i, '');
-                    };
-                    reader.onerror = function () {
-                        panelOperationError(new Error('The selected Ogg file could not be read.'));
-                    };
-                    reader.readAsDataURL(file);
-                },
-                placeLocator: function (resource) {
-                    try {
-                        createEffectLocator(resource);
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                removeResource: function (resource) {
-                    try {
-                        removeResourceReference(resource.id);
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                addResourceCue: function (resource) {
-                    try {
-                        createTimelineCueBinding({
-                            type: isParticleResource(resource)
-                                ? CUE_TYPES.PARTICLE
-                                : CUE_TYPES.SOUND,
-                            resourceId: resource.id,
-                            endTimeSeconds: this.optionalEndTime
-                        });
-                        this.optionalEndTime = '';
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                removeCue: function (cue) {
-                    try {
-                        removeTimelineCueBinding(cue.id);
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                addCommentCue: function () {
-                    try {
-                        createTimelineCueBinding({
-                            type: CUE_TYPES.COMMENT,
-                            comment: this.commentText,
-                            endTimeSeconds: this.optionalEndTime
-                        });
-                        this.commentText = '';
-                        this.optionalEndTime = '';
-                        this.refresh();
-                    } catch (error) {
-                        panelOperationError(error);
-                    }
-                },
-                formatCueTime: function (cue) {
-                    if (cue.atMs == null) return 'unresolved';
-                    return cue.endAtMs == null
-                        ? cue.atMs + ' ms'
-                        : cue.atMs + '-' + cue.endAtMs + ' ms';
-                }
-            },
-            template: [
-                '<div class="cosmiq-panel">',
-                '  <div v-if="view.inventory.projectKind === \'cape\'" class="cosmiq-cape-coming-soon"><strong>[COMING SOON]</strong><h2>Local Cape Authoring Only</h2><p>.bbmodel package export and upload are not available yet.</p></div>',
-                '  <section v-if="view.inventory.projectKind === \'cosmetic\'"><h3>Player Body Replacement</h3><p class="cosmiq-panel-help">Hide only the vanilla base or outer skin layers replaced by this accessory. The Blockbench mannequin and Minecraft preview update from the same package contract.</p>',
-                '    <div v-for="part in appearanceParts" :key="part.id" v-show="part.enabled" class="cosmiq-appearance-part"><b>{{ part.label }}</b><label><input v-model="part.base" type="checkbox" @change="updatePlayerAppearance"> Base</label><label><input v-model="part.outer" type="checkbox" @change="updatePlayerAppearance"> Outer</label></div>',
-                '  </section>',
-                '  <section><h3>Particles</h3><p class="cosmiq-panel-help">1. Spawn a locator. 2. Drag it onto the animated body part in the Outliner. 3. Keep it selected and name the particle. 4. Click the named particle at the playhead to add its keyframe. The Cosmiq logo is only a visible placeholder; finish behavior and the one shared atlas in the website Particle Editor.</p>',
-                '    <button type="button" @click="spawnParticleLocator">Spawn Particle Locator</button>',
-                '    <label>Name Particle<input v-model.trim="particleName" maxlength="64" placeholder="Ender Burst"></label>',
-                '    <button type="button" :disabled="!particleName" @click="createParticle">Create Particle</button>',
-                '    <ul class="cosmiq-panel-list"><li v-for="resource in view.resources" v-if="resource.type === \'particle_effect\' || resource.type === \'particle_template\'" :key="resource.id"><b>{{ resource.displayName }}</b><small>{{ resource.editorStatus === \'placeholder\' ? \'Website setup pending\' : resource.type }}</small><span><button type="button" @click="useParticle(resource)">{{ resource.displayName }}</button><button type="button" @click="removeResource(resource)">Remove</button></span></li></ul>',
-                '  </section>',
-                '  <section><h3>Sound</h3><p class="cosmiq-panel-help">Sound and music use one embedded Ogg Vorbis resource, then a cue at the selected animation playhead.</p>',
-                '    <label>Sound / music name<input v-model.trim="soundName" maxlength="64" placeholder="Landing chime"></label>',
-                '    <label>Reference type<select v-model="soundKind"><option value="sound_effect">Sound Effect</option><option value="music">Music</option></select></label>',
-                '    <label>Embedded Ogg Vorbis<input type="file" accept=".ogg,audio/ogg" @change="selectSoundFile"></label>',
-                '    <button type="button" :disabled="!soundEmbeddedOgg" @click="addSound">Add Embedded Sound</button>',
-                '    <p class="cosmiq-panel-help">{{ soundFileName || \'No Ogg selected\' }}</p>',
-                '    <ul class="cosmiq-panel-list"><li v-for="resource in view.resources" v-if="resource.type === \'sound\'" :key="resource.id"><b>{{ resource.displayName }}</b><small>embedded Ogg</small><span><button type="button" @click="placeLocator(resource)">Place Locator</button><button type="button" @click="addResourceCue(resource)">Add Cue</button><button type="button" @click="removeResource(resource)">Remove</button></span></li></ul>',
-                '  </section>',
-                '  <section><h3>Timeline Cues</h3><p class="cosmiq-panel-help">Cues use the selected animation and current playhead marker. Same-time cues share one marker because Blockbench persists one marker per timestamp. Optional end time is in seconds.</p>',
-                '    <label>Optional end time<input v-model.trim="optionalEndTime" inputmode="decimal" placeholder="1.25"></label>',
-                '    <label>Creator comment<textarea v-model.trim="commentText" maxlength="512" placeholder="Source-only note for later"></textarea></label>',
-                '    <button type="button" @click="addCommentCue">Add Creator Comment</button>',
-                '    <ul class="cosmiq-panel-list"><li v-for="cue in view.cues" :key="cue.id"><b>{{ cue.type }} - {{ formatCueTime(cue) }}</b><small>{{ cue.markerName }}<template v-if="cue.sourceOnly"> - source only</template></small><span><button type="button" @click="removeCue(cue)">Remove Cue</button></span></li></ul>',
-                '  </section>',
-                '  <section><h3>Export Review</h3><button type="button" @click="refresh">Refresh Review</button>',
-                '    <dl class="cosmiq-panel-inventory"><dt>Actors</dt><dd>{{ view.inventory.actors }}</dd><dt>Geometry</dt><dd>{{ view.inventory.geometry }}</dd><dt>Textures / images</dt><dd>{{ view.inventory.textures }}</dd><dt>Animations</dt><dd>{{ view.inventory.animations }}</dd><dt>Markers</dt><dd>{{ view.inventory.markers }}</dd><dt>Effect locators</dt><dd>{{ view.inventory.locators }}</dd><dt>Particles</dt><dd>{{ view.inventory.particleTemplates }}</dd><dt>Sounds</dt><dd>{{ view.inventory.sounds }}</dd><dt>Creator comments</dt><dd>{{ view.inventory.comments }}</dd><dt>Unresolved</dt><dd>{{ view.inventory.unresolved }}</dd></dl>',
-                '    <ul class="cosmiq-panel-issues"><li v-for="issue in view.issues.slice(0, 12)" :key="issue.code + issue.message" :class="issue.severity">{{ issue.code }}: {{ issue.message }}</li></ul>',
-                '  </section>',
-                '</div>'
-            ].join('')
-        };
     }
 
     function selectedOutlinerNodes() {
@@ -14449,21 +12186,6 @@
         });
     }
 
-    function createCosmeticProject(form) {
-        const settings = form || {};
-        if (settings.cape_template === true) {
-            return launchBaseTemplateCreation(PROJECT_KINDS.CAPE, {
-                name: settings.creation_name,
-                resolution: settings.resolution || '64x32',
-                visibleBody: settings.initial_visible_variant || 'wide'
-            });
-        }
-        return launchBaseTemplateCreation(PROJECT_KINDS.COSMETIC, {
-            name: settings.creation_name,
-            visibleBody: settings.initial_visible_variant || 'wide'
-        });
-    }
-
     function createCapeTemplateProject() {
         return startBaseTemplateProject(PROJECT_KINDS.CAPE, defaultCapeTemplateDraft());
     }
@@ -14865,75 +12587,6 @@
         activeDialog.show();
     }
 
-    function showPackageMetadataDialog() {
-        const snapshot = liveSnapshot();
-        const project = snapshot.project;
-        const sourceMetadata = buildSourceMetadata(snapshot).metadata;
-        const armWidthInspection = inspectArmWidthGeometry(snapshot);
-        const derivedBodySlots = bodySlotsFromNodeBindings(sourceMetadata.nodeBindings);
-        const currentBodySlots = derivedBodySlots.length > 0
-            ? derivedBodySlots
-            : normalizeBodySlots(project.bodySlots);
-        const currentAnimationMode = project.template === 'cosmetic_animated'
-            ? ANIMATION_MODES.ANIMATED
-            : ANIMATION_MODES.STATIC;
-        const currentModelVariant = sourceMetadata.cosmetic && sourceMetadata.cosmetic.modelVariant
-            ? sourceMetadata.cosmetic.modelVariant
-            : modelVariantFromNodeBindings(sourceMetadata.nodeBindings, project.modelVariant);
-        activeDialog = new Dialog('cosmiq_package_metadata', {
-            title: 'Cosmiq Content Details',
-            width: 620,
-            form: {
-                category: {
-                    label: 'Category',
-                    type: 'info',
-                    text: 'Accessories'
-                },
-                animation_mode: {
-                    label: 'Animation',
-                    type: 'info',
-                    text: currentAnimationMode === ANIMATION_MODES.ANIMATED ? 'Animated' : 'Static'
-                },
-                body_slots: {
-                    label: 'Body Slots',
-                    type: 'info',
-                    text: (currentBodySlots.join(', ') || 'Not resolved') +
-                        '\n\nDerived from the precise player anchors used by this model.'
-                },
-                model_variant: {
-                    label: 'Derived Player Model Variant',
-                    type: 'info',
-                    text: currentModelVariant + '\n\nDerived from renderable geometry placed under Wide and Slim.'
-                },
-                arm_width_mode: {
-                    label: 'Does This Accessory Depend on Arm Width?',
-                    description: 'No uses the same authored model on Wide and Slim players. Yes requires a matching model in each branch.',
-                    type: 'select',
-                    options: {
-                        unconfigured: 'Choose an answer',
-                        shared: 'No - use the same model for Wide and Slim',
-                        dependent: 'Yes - use separate Wide and Slim models'
-                    },
-                    value: armWidthInspection.configuredMode,
-                    condition: function () { return armWidthInspection.hasArmGeometry; }
-                }
-            },
-            onConfirm: function (form) {
-                if (!armWidthInspection.hasArmGeometry) return true;
-                const selectedMode = normalizeArmWidthMode(form.arm_width_mode);
-                if (selectedMode === ARM_WIDTH_MODES.UNCONFIGURED) {
-                    Blockbench.showQuickMessage('Choose whether this accessory depends on arm width.');
-                    return false;
-                }
-                Project.cosmiq_arm_width_mode = selectedMode;
-                refreshMetadata(true);
-                schedulePanelRefresh();
-                return true;
-            }
-        });
-        activeDialog.show();
-    }
-
     function armWidthBranchSummary(inspection) {
         const variants = Object.keys(inspection.authoredVariants).filter(function (variant) {
             return inspection.authoredVariants[variant];
@@ -14980,7 +12633,6 @@
                 }
                 Project.cosmiq_arm_width_mode = selectedMode;
                 refreshMetadata(true);
-                schedulePanelRefresh();
                 if (typeof onConfigured === 'function') {
                     setTimeout(onConfigured, 0);
                 }
@@ -14989,204 +12641,6 @@
         });
         activeDialog.show();
         return true;
-    }
-
-    function nearestLiveAnchorGroup(node) {
-        let current = node;
-        const seen = {};
-        while (current && current.parent && current.parent !== 'root') {
-            current = current.parent;
-            if (!current || !current.uuid || seen[current.uuid]) {
-                return null;
-            }
-            seen[current.uuid] = true;
-            if (current.cosmiq_role === ROLES.ANCHOR && isKnownAnchor(current.cosmiq_anchor)) {
-                return current;
-            }
-        }
-        return null;
-    }
-
-    function nearestLiveModelVariant(node) {
-        let current = node;
-        const seen = {};
-        while (current && current.parent && current.parent !== 'root') {
-            current = current.parent;
-            if (!current || !current.uuid || seen[current.uuid]) {
-                return 'universal';
-            }
-            seen[current.uuid] = true;
-            if (current.cosmiq_model_branch === 'wide' || current.cosmiq_model_branch === 'slim') {
-                return current.cosmiq_model_branch;
-            }
-        }
-        return 'universal';
-    }
-
-    function showAddStateAnimationDialog() {
-        const target = selectedGroup();
-        if (!target || !nearestLiveAnchorGroup(target)) {
-            Blockbench.showMessageBox({
-                title: 'Select An Accessory Group',
-                message: 'Select an animatable group beneath one of the Cosmiq player anchor parents.',
-                buttons: ['OK']
-            });
-            return;
-        }
-        activeDialog = new Dialog('cosmiq_add_state_animation', {
-            title: 'Add Accessory State Animation',
-            width: 540,
-            form: {
-                trigger: {
-                    label: 'Player State Or Event',
-                    type: 'select',
-                    value: 'walking',
-                    options: triggerOptions()
-                },
-                length_seconds: {
-                    label: 'Duration (seconds)',
-                    type: 'number',
-                    value: 1,
-                    min: 0.05,
-                    max: LIMITS.animationSeconds,
-                    step: 0.05
-                },
-                transition_ms: {
-                    label: 'Crossfade Duration (ms)',
-                    type: 'number',
-                    value: 150,
-                    min: 0,
-                    max: 5000,
-                    step: 10
-                },
-                priority: {
-                    label: 'Priority',
-                    type: 'number',
-                    value: 100,
-                    min: 0,
-                    max: 1000,
-                    step: 1
-                },
-                loop: {
-                    label: 'Loop Clip',
-                    type: 'checkbox',
-                    value: true
-                },
-                fallback: {
-                    label: 'Use As Fallback',
-                    description: 'Exactly one fallback is required when state animations are used.',
-                    type: 'checkbox',
-                    value: false
-                }
-            },
-            onConfirm: function (form) {
-                const trigger = triggerById[form.trigger];
-                if (!trigger) {
-                    return false;
-                }
-                const duplicate = (Blockbench.Animation.all || []).some(function (animation) {
-                    return animation.cosmiq_trigger_kind === trigger.kind &&
-                        normalizeToken(animation.cosmiq_trigger) === trigger.id;
-                });
-                if (duplicate) {
-                    Blockbench.showQuickMessage('An animation is already bound to ' + trigger.label + '.');
-                    return false;
-                }
-                Undo.initEdit({animations: []});
-                const animation = createBoundAnimation(target, trigger, {
-                    lengthSeconds: Math.max(0.05, Math.min(LIMITS.animationSeconds, Number(form.length_seconds) || 1)),
-                    transitionMs: Math.max(0, Math.min(5000, Math.round(Number(form.transition_ms) || 0))),
-                    priority: Math.max(0, Math.min(1000, Math.round(Number(form.priority) || 0))),
-                    fallback: form.fallback === true,
-                    loop: trigger.kind === 'player_event' ? false : form.loop === true
-                });
-                Undo.finishEdit('Add Cosmiq state animation', {animations: [animation]});
-                animation.select();
-                refreshMetadata(true);
-                activeDialog.hide();
-                Blockbench.showQuickMessage('Added ' + animation.name + ' for ' + target.name + '.');
-                return true;
-            }
-        });
-        activeDialog.show();
-    }
-
-    function showConfigureAnimationDialog() {
-        const animation = selectedAnimation();
-        if (!animation) {
-            Blockbench.showQuickMessage('Select an animation first.');
-            return;
-        }
-        const parsed = resolveTrigger(animation.cosmiq_trigger_kind, animation.cosmiq_trigger) ||
-            (parseAnimationName(animation.name)
-                ? triggerById[parseAnimationName(animation.name).triggerId]
-                : triggerById.idle);
-        activeDialog = new Dialog('cosmiq_configure_state_animation', {
-            title: 'Configure Accessory Animation State',
-            width: 540,
-            form: {
-                trigger: {
-                    label: 'Player State Or Event',
-                    type: 'select',
-                    value: parsed.id,
-                    options: triggerOptions()
-                },
-                transition_ms: {
-                    label: 'Crossfade Duration (ms)',
-                    type: 'number',
-                    value: Number(animation.cosmiq_transition_ms) || 150,
-                    min: 0,
-                    max: 5000,
-                    step: 10
-                },
-                priority: {
-                    label: 'Priority',
-                    type: 'number',
-                    value: Number(animation.cosmiq_priority) || 100,
-                    min: 0,
-                    max: 1000,
-                    step: 1
-                },
-                fallback: {
-                    label: 'Use As Fallback',
-                    type: 'checkbox',
-                    value: animation.cosmiq_fallback === true || parsed.id === 'idle'
-                },
-                rename: {
-                    label: 'Rename To Canonical State Name',
-                    type: 'checkbox',
-                    value: true
-                }
-            },
-            onConfirm: function (form) {
-                const trigger = triggerById[form.trigger];
-                if (!trigger) {
-                    return false;
-                }
-                Undo.initEdit({animations: [animation]});
-                animation.cosmiq_clip_id = animation.cosmiq_clip_id || runtimeId(
-                    normalizeProjectId(Project.cosmiq_project_id) || 'creator:untitled',
-                    'animation',
-                    animation.uuid
-                );
-                animation.cosmiq_trigger_kind = trigger.kind;
-                animation.cosmiq_trigger = trigger.id;
-                animation.cosmiq_transition_ms = Math.max(0, Math.min(5000, Math.round(Number(form.transition_ms) || 0)));
-                animation.cosmiq_priority = Math.max(0, Math.min(1000, Math.round(Number(form.priority) || 0)));
-                animation.cosmiq_fallback = form.fallback === true || trigger.id === 'idle';
-                if (trigger.kind === 'player_event') {
-                    animation.loop = 'once';
-                }
-                if (form.rename) {
-                    animation.name = (trigger.kind === 'player_event' ? 'event.' : 'state.') + trigger.id;
-                }
-                Undo.finishEdit('Configure Cosmiq animation state', {animations: [animation]});
-                refreshMetadata(true);
-                activeDialog.hide();
-                return true;
-            }
-        });
-        activeDialog.show();
     }
 
     function emoteActorOptions() {
@@ -15209,115 +12663,6 @@
             scene: 'Combined Scene - all actors and Object-Actors',
             actor: 'Individual Actor - one numbered player role'
         };
-    }
-
-    function showConfigureEmoteLogicDialog() {
-        const snapshot = liveSnapshot();
-        const sourceResult = buildEmoteSourceMetadata(snapshot);
-        const animationBindings = sourceResult.metadata.animationBindings || {};
-        const currentLogic = Project.cosmiq && Project.cosmiq.logic
-            ? Project.cosmiq.logic
-            : defaultEmoteLogicGraph(animationBindings);
-        const currentOutcomes = Project.cosmiq && Array.isArray(Project.cosmiq.outcomeSets)
-            ? Project.cosmiq.outcomeSets
-            : [];
-        activeDialog = new Dialog('cosmiq_configure_emote_logic', {
-            title: 'Cosmiq Declarative Emote Logic',
-            width: 760,
-            form: {
-                logic_json: {
-                    label: 'Logic JSON',
-                    description: 'Declarative states, events, and actions only. JavaScript and commands are not supported.',
-                    type: 'textarea',
-                    value: JSON.stringify(currentLogic, null, 2)
-                },
-                outcome_sets_json: {
-                    label: 'Outcome Sets JSON',
-                    description: 'Array of records such as [{"id":"coin","values":["heads","tails"]}].',
-                    type: 'textarea',
-                    value: JSON.stringify(currentOutcomes, null, 2)
-                }
-            },
-            onConfirm: function (form) {
-                let logic;
-                let outcomeSets;
-                try {
-                    logic = JSON.parse(String(form.logic_json || ''));
-                    outcomeSets = JSON.parse(String(form.outcome_sets_json || '[]'));
-                } catch (error) {
-                    Blockbench.showQuickMessage('Logic and Outcome Sets must be valid JSON.');
-                    return false;
-                }
-                if (!logic || typeof logic !== 'object' || Array.isArray(logic) ||
-                    !Array.isArray(outcomeSets)) {
-                    Blockbench.showQuickMessage('Logic must be an object and Outcome Sets must be an array.');
-                    return false;
-                }
-                const inspection = inspectEmoteLogicAttachment('', logic, animationBindings);
-                const errors = inspection.issues.filter(function (issue) { return issue.severity === 'error'; });
-                if (errors.length) {
-                    Blockbench.showQuickMessage(errors[0].message);
-                    return false;
-                }
-                Project.cosmiq = Project.cosmiq && typeof Project.cosmiq === 'object' ? Project.cosmiq : {};
-                Project.cosmiq.logic = cosmiqClone(logic);
-                Project.cosmiq.logicSource = '';
-                Project.cosmiq.outcomeSets = cosmiqClone(outcomeSets);
-                Project.saved = false;
-                refreshMetadata(true);
-                schedulePanelRefresh();
-                return true;
-            }
-        });
-        activeDialog.show();
-    }
-
-    function showAddNodeVisibilityCueDialog() {
-        const animation = selectedAnimation();
-        const selected = typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
-            ? Outliner.selected[0]
-            : null;
-        if (!animation || !selected || [
-            ROLES.OBJECT_ACTOR,
-            ROLES.OBJECT_ACTOR_NODE
-        ].indexOf(selected.cosmiq_role) === -1) {
-            Blockbench.showQuickMessage('Select an Emote animation and one Prop node first.');
-            return;
-        }
-        activeDialog = new Dialog('cosmiq_add_node_visibility_cue', {
-            title: 'Add Prop Visibility Cue',
-            form: {
-                time_seconds: {
-                    label: 'Time (seconds)',
-                    type: 'number',
-                    min: 0,
-                    max: Number(animation.length) || LIMITS.animationSeconds,
-                    value: Number(typeof Timeline !== 'undefined' ? Timeline.time : 0) || 0
-                },
-                visible: {
-                    label: 'Visible From This Cue',
-                    type: 'checkbox',
-                    value: true
-                }
-            },
-            onConfirm: function (form) {
-                try {
-                    createTimelineCueBinding({
-                        type: CUE_TYPES.NODE_VISIBILITY,
-                        animation: animation,
-                        timeSeconds: Number(form.time_seconds),
-                        nodeUuid: selected.uuid,
-                        visible: form.visible === true,
-                        createLocator: false
-                    });
-                } catch (error) {
-                    Blockbench.showQuickMessage(error.message);
-                    return false;
-                }
-                return true;
-            }
-        });
-        activeDialog.show();
     }
 
     function showAddEmoteAnimationDialog() {
@@ -15580,65 +12925,6 @@
         return applied;
     }
 
-
-    function reserveParticleMarkerDialog() {
-        const selected = selectedOutlinerNodes();
-        const node = selected.length === 1 ? selected[0] : null;
-        const type = node ? nodeType(node) : '';
-        if (!node || (type !== 'cube' && type !== 'locator')) {
-            Blockbench.showMessageBox({
-                title: 'Select One Marker',
-                message: 'Select one cube or locator. This only reserves future emitter metadata; it does not create particles.',
-                buttons: ['OK']
-            });
-            return;
-        }
-        const inferredTexture = type === 'cube' ? cubeTextures(node)[0] : '';
-        activeDialog = new Dialog('cosmiq_reserve_particle_marker', {
-            title: 'Reserve Future Particle Emitter Marker',
-            width: 540,
-            form: {
-                emitter_id: {
-                    label: 'Emitter Source Name',
-                    description: 'Used to create a stable source ID. Particles remain disabled.',
-                    type: 'text',
-                    value: node.cosmiq_particle_id || parseParticleMarkerName(node.name) || 'sparkle'
-                },
-                texture: {
-                    label: 'Future Particle Texture',
-                    type: 'select',
-                    value: node.cosmiq_particle_texture || inferredTexture || 'none',
-                    options: textureOptions()
-                }
-            },
-            onConfirm: function (form) {
-                const emitterId = normalizeToken(form.emitter_id);
-                if (!emitterId) {
-                    Blockbench.showQuickMessage('Emitter name needs at least one letter or number.');
-                    return false;
-                }
-                Undo.initEdit({outliner: true, elements: type === 'cube' ? [node] : []});
-                node.name = 'particle.' + emitterId;
-                node.cosmiq_role = ROLES.PARTICLE_MARKER;
-                node.cosmiq_particle_id = emitterId;
-                node.cosmiq_particle_texture = form.texture === 'none' ? '' : form.texture;
-                node.export = false;
-                Undo.finishEdit('Reserve Cosmiq particle emitter marker', {
-                    outliner: true,
-                    elements: type === 'cube' ? [node] : []
-                });
-                refreshMetadata(true);
-                activeDialog.hide();
-                Blockbench.showMessageBox({
-                    title: 'Future Marker Reserved',
-                    message: 'The marker is excluded from Cosmiq cosmetic geometry. Particle schemas, preview, budgets, and runtime emission are intentionally not enabled yet.',
-                    buttons: ['OK']
-                });
-                return true;
-            }
-        });
-        activeDialog.show();
-    }
 
     function issueSummary(result) {
         const errors = result.issues.filter(function (issue) { return issue.severity === 'error'; });
@@ -16341,7 +13627,7 @@
             return reviewText(resource.displayName || resource.id) + ' &mdash; ' +
                 reviewText(resource.type === RESOURCE_TYPES.SOUND
                     ? 'embedded Ogg Vorbis'
-                    : resource.presetId || resource.assetRef);
+                    : resource.assetRef || 'authored particle effect');
         };
         const cueRow = function (cue) {
             return reviewText(cue.id || cue.markerName) + ' &mdash; ' + reviewText(cue.markerName) + ' at ' +
@@ -16465,79 +13751,9 @@
         activeDialog.show();
     }
 
-    function showCosmeticExportReview() {
-        showCreatorExportReview();
-    }
-
-    function defaultMinecraftDevelopmentRoot(platform, environment, homeDirectory) {
-        const currentPlatform = String(platform || '').toLowerCase();
-        const env = environment && typeof environment === 'object' ? environment : {};
-        const home = String(homeDirectory || '').trim();
-        if (currentPlatform === 'win32') {
-            const appData = String(env.APPDATA || '').trim();
-            return appData ? appData + '\\.minecraft\\cosmiq\\dev' : '';
-        }
-        if (currentPlatform === 'darwin') {
-            return home ? home + '/Library/Application Support/minecraft/cosmiq/dev' : '';
-        }
-        return home ? home + '/.minecraft/cosmiq/dev' : '';
-    }
-
-    function storedMinecraftDevelopmentRoot() {
-        if (typeof localStorage !== 'undefined') {
-            const stored = String(localStorage.getItem(DEV_PREVIEW_ROOT_STORAGE_KEY) || '').trim();
-            if (stored) return stored;
-        }
-        if (typeof require === 'function') {
-            try {
-                const processModule = require('node:process');
-                const os = require('node:os');
-                return defaultMinecraftDevelopmentRoot(
-                    processModule.platform,
-                    processModule.env,
-                    os.homedir()
-                );
-            } catch (error) {
-                // Browser-only Blockbench cannot infer a local Minecraft directory.
-            }
-        }
-        return '';
-    }
-
-    function rememberMinecraftDevelopmentRoot(value) {
-        const root = String(value || '').trim();
-        if (root && typeof localStorage !== 'undefined') {
-            localStorage.setItem(DEV_PREVIEW_ROOT_STORAGE_KEY, root);
-        }
-        return root;
-    }
-
-    function chooseMinecraftDevelopmentRoot() {
-        if (typeof Blockbench === 'undefined' || typeof Blockbench.pickDirectory !== 'function') {
-            return '';
-        }
-        const selected = Blockbench.pickDirectory({
-            title: 'Choose Minecraft cosmiq/dev Folder',
-            resource_id: 'cosmiq_minecraft_dev_root',
-            startpath: storedMinecraftDevelopmentRoot()
-        });
-        return rememberMinecraftDevelopmentRoot(selected);
-    }
-
-    function directPreviewFileName(candidate) {
-        const source = String(candidate && candidate.filename || '').trim().toLowerCase();
-        const fileName = source.replace(/[^a-z0-9._-]+/g, '_').replace(/^[._-]+|[._-]+$/g, '');
-        if (!fileName || fileName.indexOf('/') !== -1 || fileName.indexOf('\\') !== -1) {
-            throw new Error('The development preview filename is invalid.');
-        }
-        return fileName.endsWith('.' + PACKAGE_EXTENSION)
-            ? fileName
-            : fileName + '.' + PACKAGE_EXTENSION;
-    }
-
-    function previewPackageBytes(content) {
+    function packageContentBytes(content) {
         if (typeof Buffer === 'undefined') {
-            throw new Error('In-game preview requires the Blockbench desktop application.');
+            throw new Error('Path-aware export requires the Blockbench desktop application.');
         }
         if (content instanceof ArrayBuffer) return Buffer.from(new Uint8Array(content));
         if (ArrayBuffer.isView(content)) {
@@ -16634,7 +13850,7 @@
                 throw new Error('Agent export refuses to overwrite a directory or symbolic link.');
             }
         }
-        const packageBytes = previewPackageBytes(candidate.content);
+        const packageBytes = packageContentBytes(candidate.content);
         writeAtomicDevelopmentFile(fs, path, destination, packageBytes);
         const writtenBytes = fs.readFileSync(destination);
         const sha256 = cryptoModule.createHash('sha256').update(writtenBytes).digest('hex');
@@ -16645,93 +13861,6 @@
             outputPath: destination,
             sha256: sha256
         };
-    }
-
-    function writeDevelopmentPreviewPackage(candidate, developmentRoot, dependencies) {
-        if (!candidate || !candidate.content || !candidate.manifest ||
-            candidate.issues.some(function (issue) { return issue.severity === 'error'; })) {
-            throw new Error('Only a valid reviewed Cosmiq package can be previewed in Minecraft.');
-        }
-        const modules = dependencies || {};
-        const fs = modules.fs || (typeof require === 'function' ? require('node:fs') : null);
-        const path = modules.path || (typeof require === 'function' ? require('node:path') : null);
-        const cryptoModule = modules.crypto ||
-            (typeof require === 'function' ? require('node:crypto') : null);
-        if (!fs || !path || !cryptoModule) {
-            throw new Error('In-game preview requires the Blockbench desktop application.');
-        }
-        const requestedRoot = path.resolve(String(developmentRoot || '').trim());
-        if (!fs.existsSync(requestedRoot) || !fs.statSync(requestedRoot).isDirectory() ||
-            fs.lstatSync(requestedRoot).isSymbolicLink()) {
-            throw new Error('Choose an existing, non-symbolic-link Minecraft cosmiq/dev folder.');
-        }
-        const root = fs.realpathSync(requestedRoot);
-        const directoryName = DEV_PREVIEW_DIRECTORIES[candidate.assetKind];
-        if (!directoryName) {
-            throw new Error('This Cosmiq asset kind cannot be previewed in Minecraft.');
-        }
-        const contentDirectory = path.join(root, directoryName);
-        if (!fs.existsSync(contentDirectory)) fs.mkdirSync(contentDirectory);
-        if (!fs.statSync(contentDirectory).isDirectory() ||
-            fs.lstatSync(contentDirectory).isSymbolicLink() ||
-            path.dirname(fs.realpathSync(contentDirectory)) !== root) {
-            throw new Error('The Minecraft development content folder is unsafe.');
-        }
-        const fileName = directPreviewFileName(candidate);
-        const packageBytes = previewPackageBytes(candidate.content);
-        const packageHash = cryptoModule.createHash('sha256').update(packageBytes).digest('hex');
-        const packagePath = path.join(contentDirectory, fileName);
-        writeAtomicDevelopmentFile(fs, path, packagePath, packageBytes);
-        const request = canonicalCosmiqJson({
-            assetKind: candidate.assetKind,
-            fileName: fileName,
-            packageSha256: packageHash,
-            requestedAtEpochMillis: Date.now(),
-            schemaVersion: DEV_PREVIEW_SCHEMA
-        });
-        const requestPath = path.join(root, DEV_PREVIEW_REQUEST_FILE);
-        writeAtomicDevelopmentFile(fs, path, requestPath, Buffer.from(request, 'utf8'));
-        return {
-            assetKind: candidate.assetKind,
-            fileName: fileName,
-            packagePath: packagePath,
-            packageSha256: packageHash,
-            requestPath: requestPath
-        };
-    }
-
-    function previewInMinecraft(candidate, quiet) {
-        if (!candidate && !quiet && isCosmiqCosmeticProject()) {
-            const armWidthInspection = inspectArmWidthGeometry(liveSnapshot());
-            if (armWidthInspection.requiresChoice) {
-                showArmWidthModeDialog(function () { previewInMinecraft(null, false); });
-                return null;
-            }
-        }
-        const reviewed = candidate || compileLiveCreatorExportCandidate();
-        if (!reviewed) return null;
-        let root = storedMinecraftDevelopmentRoot();
-        try {
-            const fs = typeof require === 'function' ? require('node:fs') : null;
-            if (!root || !fs || !fs.existsSync(root)) root = chooseMinecraftDevelopmentRoot();
-            if (!root) return null;
-            const result = writeDevelopmentPreviewPackage(reviewed, root);
-            rememberMinecraftDevelopmentRoot(root);
-            if (!quiet) {
-                Blockbench.showQuickMessage(
-                    'Minecraft preview requested: ' + result.fileName,
-                    2600
-                );
-            }
-            return result;
-        } catch (error) {
-            Blockbench.showMessageBox({
-                title: 'Cosmiq In-Game Preview Failed',
-                message: error && error.message ? error.message : String(error),
-                buttons: ['OK']
-            });
-            return null;
-        }
     }
 
     function performCreatorPackageExport(candidate) {
@@ -16761,10 +13890,6 @@
                     : 'Exported the exact Cosmiq Accessory Blockbench package.';
             Blockbench.showQuickMessage(message);
         });
-    }
-
-    function performCosmeticPackageExport(candidate) {
-        performCreatorPackageExport(candidate || compileLiveCreatorExportCandidate());
     }
 
     function animationOverwriteAccepted(result) {
@@ -17090,7 +14215,6 @@
                 Project.cosmiq_camera_model_variant = form.model_variant || 'wide';
                 Project.cosmiq_camera_visible_props = String(form.visible_props || '').trim();
                 Project.saved = false;
-                schedulePanelRefresh();
                 return true;
             }
         });
@@ -17242,7 +14366,6 @@
     }
 
     function cleanup() {
-        Array.from(nativePreviewEffectKeys).forEach(disposeNativePreviewRegistration);
         if (activeDialog) {
             activeDialog.delete();
             activeDialog = null;
@@ -17251,15 +14374,6 @@
             pluginStyle.parentNode.removeChild(pluginStyle);
         }
         pluginStyle = null;
-        if (panelRefreshTimer != null) {
-            clearTimeout(panelRefreshTimer);
-            panelRefreshTimer = null;
-        }
-        panelComponentInstances.clear();
-        if (cosmiqPanel) {
-            cosmiqPanel.delete();
-            cosmiqPanel = null;
-        }
         actions.splice(0).forEach(function (action) {
             action.delete();
         });
@@ -17323,13 +14437,6 @@
                 registerListener('save_project', onSaveProject);
                 registerListener('load_project', onLoadProject);
                 registerListener('select_project', onLoadProject);
-                registerListener('create_undo_save', onCreateUndoSave);
-                registerListener('load_undo_save', onLoadUndoSave);
-                registerListener('finished_edit', onRelevantEditorChange);
-                registerListener('undo', onRelevantEditorChange);
-                registerListener('redo', onRelevantEditorChange);
-                registerListener('select_animation', onRelevantEditorChange);
-                registerListener('update_selection', onRelevantEditorChange);
                 if (wasActive && creatorFormat && typeof creatorFormat.select === 'function') {
                     creatorFormat.select();
                     onLoadProject();
@@ -17345,7 +14452,6 @@
         PLUGIN_VERSION: PLUGIN_VERSION,
         PLUGIN_AUTHOR: PLUGIN_AUTHOR,
         PLUGIN_CREATION_DATE: PLUGIN_CREATION_DATE,
-        COSMIQ_PREVIEW_FILE_PREFIX: COSMIQ_PREVIEW_FILE_PREFIX,
         PROJECT_WEBSITE_URL: PROJECT_WEBSITE_URL,
         CREATOR_GUIDES_URL: CREATOR_GUIDES_URL,
         COMMUNITY_DISCORD_URL: COMMUNITY_DISCORD_URL,
@@ -17373,10 +14479,6 @@
         RESOURCE_TYPES: RESOURCE_TYPES,
         SOUND_REFERENCE_TYPES: SOUND_REFERENCE_TYPES,
         CUE_TYPES: CUE_TYPES,
-        DEV_PREVIEW_SCHEMA: DEV_PREVIEW_SCHEMA,
-        DEV_PREVIEW_REQUEST_FILE: DEV_PREVIEW_REQUEST_FILE,
-        DEV_PREVIEW_DIRECTORIES: DEV_PREVIEW_DIRECTORIES,
-        PARTICLE_PRESETS: PARTICLE_PRESETS,
         ROLES: ROLES,
         BLOCKBENCH_NODE_ROLE_VALUES: BLOCKBENCH_NODE_ROLE_VALUES,
         BLOCKBENCH_PLAYER_BONE_VALUES: BLOCKBENCH_PLAYER_BONE_VALUES,
@@ -17412,7 +14514,6 @@
         TRIGGERS: TRIGGERS,
         PLAYER_APPEARANCE_PARTS: PLAYER_APPEARANCE_PARTS,
         normalizePlayerAppearance: normalizePlayerAppearance,
-        referenceCubeAppearanceKey: referenceCubeAppearanceKey,
         normalizeToken: normalizeToken,
         normalizeProjectId: normalizeProjectId,
         normalizeAssetRef: normalizeAssetRef,
@@ -17424,7 +14525,6 @@
         resourceContainsRawMedia: resourceContainsRawMedia,
         collectTimelineMarkers: collectTimelineMarkers,
         buildAuthoringMetadata: buildAuthoringMetadata,
-        buildPanelViewState: buildPanelViewState,
         creationTypeComponent: creationTypeComponent,
         bodyTypeComponent: bodyTypeComponent,
         emoteRigTypeComponent: emoteRigTypeComponent,
@@ -17433,24 +14533,6 @@
         wizardProgressMarkup: wizardProgressMarkup,
         wizardPageHeading: wizardPageHeading,
         formatPageComponent: formatPageComponent,
-        cosmiqPanelComponent: cosmiqPanelComponent,
-        makeParticlePresetReference: makeParticlePresetReference,
-        makeAuthoredParticleReference: makeAuthoredParticleReference,
-        makeParticleDraftReference: makeParticleDraftReference,
-        makeSoundReference: makeSoundReference,
-        makeTimelineCueReference: makeTimelineCueReference,
-        previewArgbHex: previewArgbHex,
-        previewFileKey: previewFileKey,
-        previewBundlePath: previewBundlePath,
-        buildParticlePreviewDefinition: buildParticlePreviewDefinition,
-        buildEffectPreviewPlan: buildEffectPreviewPlan,
-        writePortableEffectPaths: writePortableEffectPaths,
-        markerNameForCue: markerNameForCue,
-        markerAtResolvedTime: markerAtResolvedTime,
-        reconcileAuthoringState: reconcileAuthoringState,
-        synchronizeCueMarkerTimesFromEffectKeys: synchronizeCueMarkerTimesFromEffectKeys,
-        markerAtTime: markerAtTime,
-        ensureTimelineMarker: ensureTimelineMarker,
         normalizeEmoteDraftName: normalizeEmoteDraftName,
         normalizeCreationName: normalizeCreationName,
         creationCategoryLabel: creationCategoryLabel,
@@ -17553,22 +14635,9 @@
         exportDiagnosticData: exportDiagnosticData,
         exportDiagnosticJson: exportDiagnosticJson,
         exportReviewComponent: exportReviewComponent,
-        defaultMinecraftDevelopmentRoot: defaultMinecraftDevelopmentRoot,
-        directPreviewFileName: directPreviewFileName,
         mcpActionRequest: mcpActionRequest,
         writeCreatorPackageToPath: writeCreatorPackageToPath,
-        writeDevelopmentPreviewPackage: writeDevelopmentPreviewPackage,
         exportCosmiqProjectAction: exportCosmiqProjectAction,
-        createEffectLocator: createEffectLocator,
-        spawnParticleLocator: spawnParticleLocator,
-        createNamedParticle: createNamedParticle,
-        useNamedParticle: useNamedParticle,
-        createTimelineCueBinding: createTimelineCueBinding,
-        removeTimelineCueBinding: removeTimelineCueBinding,
-        removeResourceReference: removeResourceReference,
-        syncNativeEffectPreviews: syncNativeEffectPreviews,
-        buildEffectPreviewHydrationPlan: buildEffectPreviewHydrationPlan,
-        makeEffectPreviewReferencesPortable: makeEffectPreviewReferencesPortable,
         showPreviewCameraDialog: showPreviewCameraDialog,
         registerBlockbenchPlugin: registerBlockbenchPlugin
     };
