@@ -2649,13 +2649,8 @@ function buildAtlasDataURL(images, layout) {
 }
 
 /** Builds a project from an unpacked archive. */
-function buildFromFiles(files, sourceName, opts, meta) {
+function buildFromFiles(files, sourceName, opts) {
 	const report = [];
-	// Import numbers are collected apart from the report text: they are what
-	// later shows how failing models differ.
-	const stats = { source: sourceName };
-	const markKey = meta && meta.key;
-	const remember = () => recordModel(markKey, Object.assign({ stats }, meta));
 
 	// A probe parse in glTF units: both the texture size and the model bounds are
 	// needed to pick the coordinate scale.
@@ -2721,21 +2716,13 @@ function buildFromFiles(files, sourceName, opts, meta) {
 		for (let a = 0; a < 3; a++) { if (q[a] < lo[a]) lo[a] = q[a]; if (q[a] > hi[a]) hi[a] = q[a]; }
 	}
 	const sizeUnits = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
-	stats.sizeUnits = +sizeUnits.toFixed(3);
-	stats.images = images.length;
-	// Formats go into the journal: without them there is no view of what archives
-	// actually arrive — and eight models failed unnoticed on exactly this.
-	stats.formats = [...new Set(sized.map(i => (i.mime || '?').replace('image/', '')))].join(',');
-	if (images.length < sized.length) stats.imagesSkipped = sized.length - images.length;
-	stats.atlas = layout.width + 'x' + layout.height;
 	// Texel density is computed on the probe parse: there the UV are normalised
 	// and the size is taken from each object's own texture.
 	const density = texelScale(probe.objects, i => images[remap[i] >= 0 ? remap[i] : mainIndex].size);
 
 	// How much UV spills outside its texture. In glTF that is legal — the texture
 	// tiles — but an atlas cannot tile: the coordinate wanders onto a neighbouring
-	// image. Prime suspect for the broken texture complaints, so it is measured
-	// and written into the journal.
+	// image, which is the usual cause of a model arriving with the wrong texture.
 	let uvTotal = 0, uvOutside = 0, noMaterial = 0;
 	for (const o of probe.objects) {
 		if (o.image < 0) noMaterial++;
@@ -2747,10 +2734,9 @@ function buildFromFiles(files, sourceName, opts, meta) {
 			}
 		}
 	}
-	stats.uvOutside = uvTotal ? +(100 * uvOutside / uvTotal).toFixed(1) : 0;
-	stats.noMaterial = noMaterial;
-	if (stats.uvOutside > 0.5) {
-		report.push(`UV outside the texture: ${stats.uvOutside}% — in glTF that means tiling, `
+	const uvOutsideShare = uvTotal ? +(100 * uvOutside / uvTotal).toFixed(1) : 0;
+	if (uvOutsideShare > 0.5) {
+		report.push(`UV outside the texture: ${uvOutsideShare}% — in glTF that means tiling, `
 			+ 'but an atlas cannot tile, so the texture may land wrong');
 	}
 
@@ -2762,17 +2748,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 			? Number(opts.scale_mode)
 			: autoScale;
 
-	// Both the algorithm's suggestion and the human's choice go into the journal.
-	// The giant size complaint appears 20 times in the notes, but tweaking the
-	// coefficient blindly would mean changing two variables at once. First we
-	// collect auto/manual pairs: they show whether there is a systematic bias and
-	// in which direction, not merely that someone disliked the result.
-	stats.autoScale = autoScale;
-	stats.scaleSource = custom > 0 ? 'manual' : (opts && opts.scale_mode !== 'auto') ? 'from list' : 'auto';
-	if (chosenScale !== autoScale) stats.scaleRatio = +(chosenScale / autoScale).toFixed(3);
-	stats.rotX = rotate[0];
-	stats.rotY = rotate[1];
-	stats.recenter = !!(opts && opts.recenter);
 	report.push(`Coordinate scale: ${chosenScale}`
 		+ (custom > 0 ? ' (set manually)' : density > 0 ? ` (from texel density ${density.toFixed(2)})` : '')
 		+ ` — bounds ${sizeUnits.toFixed(2)} units → ${(sizeUnits * chosenScale).toFixed(1)} px`);
@@ -2812,8 +2787,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 		}
 	}
 
-	stats.scale = chosenScale;
-	stats.density = +density.toFixed(3);
 	const parsed = parseGLTFFiles(files, {
 		scale: chosenScale, offset, rotate,
 		uvWidth: size.width, uvHeight: size.height,
@@ -2830,9 +2803,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 	if (wrapNotes.length) {
 		report.push('Export wrapper:');
 		for (const w of wrapNotes) report.push('  ' + w);
-		stats.wrapper = wrapNotes.join(' | ');
-	} else {
-		stats.wrapper = 'none';
 	}
 
 	// Many exporters merge every cube into one mesh (708 triangles instead of 59
@@ -2850,10 +2820,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 		}));
 	}
 	parsed.objects = split;
-	stats.objects = parsed.objects.length;
-	stats.splitFrom = splitCount;
-	stats.animations = parsed.animations.length;
-	stats.warnings = parsed.warnings.slice(0, 6);
 	if (splitCount) {
 		report.push(`Merged meshes split: ${splitCount} → ${split.length} objects`);
 	}
@@ -2880,18 +2846,12 @@ function buildFromFiles(files, sourceName, opts, meta) {
 	}
 	parsed.objects = parsed.objects.filter(o => !o.drop);
 	if (degenerate) report.push(`Degenerate fragments dropped: ${degenerate}`);
-	stats.notBoxes = notBoxes.length;
-	stats.degenerate = degenerate;
-	stats.badMode = badMode;
 	if (notBoxes.length) {
-		stats.notBoxExamples = notBoxes.slice(0, 3);
 		report.push(`Not boxes: ${notBoxes.length} — `
 			+ (badMode === 'skip' ? 'skipped' : badMode === 'box' ? 'replaced with their bounding box' : 'import cancelled'));
 		for (const n of notBoxes.slice(0, 5)) report.push('  ' + n);
 	}
 	if (notBoxes.length && badMode === 'abort') {
-		stats.result = 'rejected: not cubes';
-		remember();
 		Blockbench.showMessageBox({
 			title: 'This model is not made of cubes',
 			message: `Could not represent ${notBoxes.length} of ${parsed.objects.length} objects as cubes.\n\n`
@@ -2944,14 +2904,11 @@ function buildFromFiles(files, sourceName, opts, meta) {
 		const approx = boxFromBounds(obj.faces);
 		if (approx) { solved.push({ obj, sol: approx }); approximated++; }
 	}
-	stats.approximated = approximated;
-	stats.skipped = skipped.length;
 	// The approximation share is the only honest measure of result quality.
 	// Without it the import succeeded even on models that turned out to be almost
 	// entirely wedges and bevels: the project opened, looked like mush, and there
 	// was no way to tell why. Better to say plainly that the model does not fit.
 	const approxShare = solved.length ? Math.round(100 * approximated / solved.length) : 0;
-	stats.approxShare = approxShare;
 	if (approximated) {
 		report.push(`Approximated with a bounding box: ${approximated} of ${solved.length} (${approxShare}%)`);
 		report.push(approxShare >= 30
@@ -2975,7 +2932,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 	const coplanar = wantZFight
 		? resolveCoplanar(solved.map(s => s.sol))
 		: { inflate: solved.map(() => 0), pairs: 0, capped: 0, skipped: 0 };
-	stats.coplanarPairs = coplanar.pairs;
 	if (coplanar.skipped) {
 		report.push(`Coplanar face separation skipped: ${coplanar.skipped} objects — too many`);
 	}
@@ -3021,20 +2977,6 @@ function buildFromFiles(files, sourceName, opts, meta) {
 	}
 	if (parsed.warnings.length) lines.push('', 'Warnings:', ...parsed.warnings.slice(0, 8));
 	lines.push('', calibration);
-
-	// The outcome is recorded on the success path too: without it the journal is
-	// blind to working models and there is nothing to compare failures against.
-	//
-	// notBoxes is NOT touched here: it was counted above and says how many objects
-	// had to be approximated. This used to reset it to zero, and the journal
-	// showed zero non-cubes for every imported model, even while examples of
-	// non-cubes sat in the same record. On such data it is easy to draw exactly
-	// the opposite conclusion about what separates working models from broken ones.
-	stats.cubes = solved.length;
-	stats.approximated = approximated;
-	stats.bones = parsed.hierarchy.length;
-	stats.result = 'imported';
-	remember();
 
 	Canvas.updateAll();
 	console.log('[geckolib-import] import\n' + lines.join('\n'));
@@ -3136,42 +3078,6 @@ function showImportReport(info) {
 	}
 }
 
-// --------------------------------------------------- model journal
-
-const MARKS_KEY = PLUGIN_ID + '_marks';
-const MARK_LABELS = { ok: '✅ works', issues: '⚠️ has problems', fail: '❌ will not load' };
-
-/**
- * A journal of tested models.
- *
- * It stores not only the mark but the import numbers: without them a mark
- * explains nothing and diagnosing what went wrong starts from scratch.
- */
-function loadMarks() {
-	try { return JSON.parse(localStorage.getItem(MARKS_KEY) || '{}') || {}; }
-	catch (e) { return {}; }
-}
-
-function saveMarks(marks) {
-	try { localStorage.setItem(MARKS_KEY, JSON.stringify(marks)); } catch (e) { /* storage full */ }
-}
-
-/** Adds model details without overwriting a mark that is already set. */
-function recordModel(key, patch) {
-	if (!key) return;
-	const marks = loadMarks();
-	const prev = marks[key] || {};
-	marks[key] = Object.assign({}, prev, patch, {
-		key,
-		updated: new Date().toISOString().slice(0, 19).replace('T', ' '),
-	});
-	saveMarks(marks);
-}
-
-function setMark(key, status) {
-	recordModel(key, { status });
-}
-
 // ------------------------------------------------------- Sketchfab browser
 
 const SKETCHFAB_API = 'https://api.sketchfab.com/v3';
@@ -3266,12 +3172,6 @@ function addSketchfabStyles() {
 		.mtc_sf_card:hover { background-color: var(--color-selected); }
 		.mtc_sf_card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 2px;
 			background: var(--color-back); }
-		.mtc_sf_marks { display: flex; gap: 4px; margin-top: 3px; }
-		.mtc_sf_mark { opacity: 0.3; cursor: pointer; font-size: 13px; line-height: 1;
-			padding: 1px 3px; border-radius: 3px; }
-		.mtc_sf_mark:hover { opacity: 0.7; }
-		.mtc_sf_mark.active { opacity: 1; background: var(--color-accent); }
-		.mtc_sf_note.has_note { opacity: 1; }
 		.mtc_sf_more { display: flex; align-items: center; justify-content: center;
 			min-height: 90px; font-weight: bold; }
 		.mtc_sf_name { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3346,33 +3246,15 @@ function openSketchfabBrowser() {
 				say('unpacked, asking for settings…');
 				dialog.hide();
 				askImportOptions(opts => {
-					const meta = {
-						key: 'sf:' + model.uid,
-						name: model.name,
-						author: (model.user && model.user.displayName) || '',
-						license: (model.license && model.license.label) || '',
-						url: model.viewerUrl || '',
-					};
-					const built = buildFromFiles(entries, model.name || 'sketchfab', opts, meta);
+					const built = buildFromFiles(entries, model.name || 'sketchfab', opts);
 					// attribution is always printed, even without a license.txt in the archive
 					console.log('[geckolib-import] Sketchfab: «' + model.name + '» — '
-						+ meta.author + ', ' + meta.license);
+						+ ((model.user && model.user.displayName) || '?') + ', '
+						+ ((model.license && model.license.label) || 'licence not stated'));
 					return built;
 				});
 			})
 			.catch(e => say('failed: ' + ((e && e.message) || e)));
-	};
-
-	const paintMarks = (bar, key) => {
-		const rec = loadMarks()[key] || {};
-		for (const b of bar.querySelectorAll('.mtc_sf_mark')) {
-			if (b.dataset.status) b.classList.toggle('active', b.dataset.status === rec.status);
-		}
-		const note = bar.querySelector('.mtc_sf_note');
-		if (note) {
-			note.classList.toggle('has_note', !!rec.note);
-			note.title = rec.note ? 'Note: ' + rec.note : 'Note';
-		}
 	};
 
 	let nextUrl = null;
@@ -3422,45 +3304,6 @@ function openSketchfabBrowser() {
 			card.querySelector('.mtc_sf_lic').textContent =
 				((m.license && m.license.label) || '') + (kb ? ' · ' + (kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB') : '');
 			card.addEventListener('click', () => importModel(m));
-
-			// Marks are set by a click without starting the import.
-			const key = 'sf:' + m.uid;
-			const bar = document.createElement('div');
-			bar.className = 'mtc_sf_marks';
-			for (const st of ['ok', 'issues', 'fail']) {
-				const b = document.createElement('span');
-				b.className = 'mtc_sf_mark';
-				b.textContent = MARK_LABELS[st].split(' ')[0];
-				b.title = MARK_LABELS[st];
-				b.dataset.status = st;
-				b.addEventListener('click', e => {
-					e.stopPropagation();   // otherwise the tile would trigger an import
-					const marks = loadMarks();
-					const now = marks[key] && marks[key].status === st ? '' : st;
-					setMark(key, now);
-					recordModel(key, { name: m.name, author: (m.user && m.user.displayName) || '',
-						license: (m.license && m.license.label) || '', url: m.viewerUrl || '' });
-					paintMarks(bar, key);
-					say(now ? 'marked: ' + MARK_LABELS[now] : 'mark removed');
-					// for a problem model, ask right away what exactly went wrong
-					if (now === 'issues' || now === 'fail') {
-						askNote(key, m.name, () => { paintMarks(bar, key); say('note saved'); });
-					}
-				});
-				bar.appendChild(b);
-			}
-
-			const noteBtn = document.createElement('span');
-			noteBtn.className = 'mtc_sf_mark mtc_sf_note';
-			noteBtn.textContent = '📝';
-			noteBtn.title = 'Note';
-			noteBtn.addEventListener('click', e => {
-				e.stopPropagation();
-				askNote(key, m.name, () => { paintMarks(bar, key); say('note saved'); });
-			});
-			bar.appendChild(noteBtn);
-			card.appendChild(bar);
-			paintMarks(bar, key);
 			results.appendChild(card);
 		}
 		// the more button stays the last tile so the grid is not broken
@@ -3722,119 +3565,6 @@ function registerStartScreenFormat() {
 	}
 }
 
-/**
- * A note on a model.
- *
- * A has problems mark without a description says nothing a week later, so for
- * problem models this window opens right after the mark is set.
- */
-function askNote(key, name, onSaved) {
-	const cur = (loadMarks()[key] || {});
-	new Dialog({
-		id: PLUGIN_ID + '_note',
-		title: 'Note: ' + (name || key),
-		form: {
-			note: {
-				label: 'What went wrong', type: 'textarea', height: 120,
-				value: cur.note || '',
-			},
-			hint: {
-				type: 'info',
-				text: 'Be specific: what exactly went wrong, which part of the model, with which settings. '
-					+ 'The journal records the import numbers itself, so there is no need to repeat them.',
-			},
-		},
-		onConfirm(form) {
-			recordModel(key, { note: (form.note || '').trim() });
-			this.hide();
-			if (onSaved) onSaved();
-		},
-	}).show();
-}
-
-/**
- * A summary of the model journal.
- *
- * The point is not the marks themselves but the comparison: if every will not
- * load shares a trait — many non-cubes, say, or the same scale — it shows up
- * here. That is why the journal accumulates import numbers at all.
- */
-function showMarksReport() {
-	const marks = loadMarks();
-	const all = Object.values(marks);
-	if (!all.length) {
-		Blockbench.showMessageBox({ title: 'Model journal', message: 'Nothing marked yet.' });
-		return;
-	}
-
-	const byStatus = { ok: [], issues: [], fail: [], '': [] };
-	for (const m of all) (byStatus[m.status || ''] = byStatus[m.status || ''] || []).push(m);
-
-	const lines = [`Total in journal: ${all.length}`];
-	for (const st of ['ok', 'issues', 'fail', '']) {
-		const list = byStatus[st] || [];
-		if (list.length) lines.push(`  ${st ? MARK_LABELS[st] : 'unmarked'}: ${list.length}`);
-	}
-
-	// Group averages are compared: that is how a trait separating problem models
-	const num = (list, pick) => {
-		const vs = list.map(pick).filter(v => typeof v === 'number' && isFinite(v));
-		return vs.length ? (vs.reduce((a, b) => a + b, 0) / vs.length) : null;
-	};
-	const fields = [
-		['objects', m => m.stats && m.stats.objects],
-		['non-cubes', m => m.stats && m.stats.notBoxes],
-		['textures', m => m.stats && m.stats.images],
-		['scale', m => m.stats && m.stats.scale],
-		['animations', m => m.stats && m.stats.animations],
-		['meshes split', m => m.stats && m.stats.splitFrom],
-	];
-	lines.push('', 'Averages by group:');
-	lines.push('  metric'.padEnd(20) + ['ok', 'issues', 'fail'].map(x => x.padStart(9)).join(''));
-	for (const [name, pick] of fields) {
-		const row = ['ok', 'issues', 'fail'].map(st => {
-			const v = num(byStatus[st] || [], pick);
-			return (v === null ? '—' : v.toFixed(1)).padStart(9);
-		}).join('');
-		lines.push('  ' + name.padEnd(18) + row);
-	}
-
-	const noNote = (byStatus.issues || []).concat(byStatus.fail || []).filter(m => !m.note);
-	if (noNote.length) {
-		lines.push('', `Without a note: ${noNote.length} — their cause is unknown:`);
-		for (const m of noNote.slice(0, 6)) lines.push('  ' + (m.name || m.key));
-	}
-
-	const failed = (byStatus.fail || []).concat(byStatus.issues || []);
-	if (failed.length) {
-		lines.push('', 'Problem models:');
-		for (const m of failed.slice(0, 12)) {
-			const st = m.stats || {};
-			lines.push(`  ${MARK_LABELS[m.status] ? MARK_LABELS[m.status].slice(0, 2) : '  '} ${(m.name || m.key || '').slice(0, 34)}`
-				+ ` — ${st.result || 'did not import'}`
-				+ (st.notBoxes ? `, non-cubes ${st.notBoxes}` : '')
-				+ (st.images > 1 ? `, textures ${st.images}` : '')
-				+ (st.scale !== undefined ? `, ×${st.scale}` : ''));
-			if (m.note) lines.push('      note: ' + m.note.split(String.fromCharCode(10)).join(' / '));
-			if (st.notBoxExamples && st.notBoxExamples.length) {
-				lines.push('      ' + st.notBoxExamples[0]);
-			}
-		}
-	}
-
-	new Dialog({
-		id: PLUGIN_ID + '_marks_report',
-		title: 'Model journal',
-		form: {
-			hint: { type: 'info', text: 'Select and copy (Ctrl+A, Ctrl+C) to analyse it in detail.' },
-			dump: { label: '', type: 'textarea', value: lines.join(String.fromCharCode(10)), height: 380 },
-			raw: { label: '', type: 'textarea', value: JSON.stringify(marks, null, 1), height: 120 },
-		},
-		singleButton: true,
-	}).show();
-	console.log('[geckolib-import] model journal', marks);
-}
-
 // ------------------------------------------------------- environment diagnostics
 
 /**
@@ -3906,7 +3636,6 @@ let action;
 let envAction;
 let importAction;
 let sketchfabAction;
-let marksAction;
 
 Plugin.register(PLUGIN_ID, {
 	title: 'GeckoLib Model Importer',
@@ -3961,15 +3690,6 @@ Plugin.register(PLUGIN_ID, {
 		});
 		MenuBar.addAction(envAction, 'help');
 
-		marksAction = new Action(PLUGIN_ID + '_marks', {
-			name: 'Journal of tested models',
-			description: 'Summary of marks and import numbers',
-			icon: 'fact_check',
-			condition: () => true,
-			click: showMarksReport,
-		});
-		MenuBar.addAction(marksAction, 'help');
-
 		importAction = new Action(PLUGIN_ID + '_import', {
 			name: 'GeckoLib from ZIP (glTF + texture)',
 			description: 'Builds a ready GeckoLib model from an archive with glTF and textures',
@@ -3997,7 +3717,6 @@ Plugin.register(PLUGIN_ID, {
 		if (envAction) envAction.delete();
 		if (importAction) importAction.delete();
 		if (sketchfabAction) sketchfabAction.delete();
-		if (marksAction) marksAction.delete();
 		if (importFormat && importFormat.delete) importFormat.delete();
 		if (sketchfabCSS && sketchfabCSS.delete) sketchfabCSS.delete();
 	},
