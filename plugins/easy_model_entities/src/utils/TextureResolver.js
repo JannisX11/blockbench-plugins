@@ -62,6 +62,12 @@ function parseExternalLocation(descriptor) {
   return null;
 }
 
+function packPath(location) {
+  const [namespace, resourcePath] = location.split(':');
+
+  return `assets/${namespace}/${resourcePath}`;
+}
+
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
@@ -73,7 +79,9 @@ function resolveTextures(descriptors, settings) {
   const textures = {};
   const packed = [];
   const issues = [];
+  const referencedOnly = [];
   const resolvedIndices = new Set();
+  const includeExternal = settings.includeExternalTextures !== false;
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
@@ -100,11 +108,11 @@ function resolveTextures(descriptors, settings) {
 
     resolvedIndices.add(index);
     const location = externalLocation || customLocation(settings, index);
-    if (!externalLocation) {
-      packed.push({
-        fileName: customFileName(settings, index),
-        bytes: descriptor.bytes
-      });
+    const vanilla = location.startsWith('minecraft:');
+    if (!externalLocation || (includeExternal && !vanilla)) {
+      packed.push({path: packPath(location), bytes: descriptor.bytes});
+    } else if (!vanilla) {
+      referencedOnly.push(location);
     }
 
     if (index === 0) {
@@ -121,7 +129,7 @@ function resolveTextures(descriptors, settings) {
     });
   }
 
-  return {texture, textures, packed, issues};
+  return {texture, textures, packed, referencedOnly, issues};
 }
 
 module.exports = {

@@ -24,6 +24,7 @@
  */
 
 const {Validator} = __webpack_require__(229);
+const {parseExternalLocation} = __webpack_require__(834);
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -62,6 +63,21 @@ class BlockbenchAdapter {
       path: texture.path || '',
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
+  }
+
+  static #externalTextureLocations() {
+    if (typeof Texture === 'undefined' || !Texture.all) {
+      return [];
+    }
+
+    return Texture.all
+    .map((texture) => parseExternalLocation({
+      namespace: texture.namespace,
+      folder: texture.folder,
+      name: texture.name,
+      path: texture.path
+    }))
+    .filter((location) => location && !location.startsWith('minecraft:'));
   }
 
   static #isNumericValue(value) {
@@ -131,6 +147,7 @@ class BlockbenchAdapter {
           (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
+      externalTextures: BlockbenchAdapter.#externalTextureLocations(),
       textureWidth: texture ? texture.width : undefined,
       textureHeight: texture ? texture.height : undefined
     };
@@ -202,7 +219,8 @@ class BlockbenchAdapter {
     }
 
     const stored = Project[BlockbenchAdapter.PROJECT_PROPERTY];
-    if (stored && typeof stored === 'object') {
+    if (stored && typeof stored === 'object' && Object.keys(stored).length
+        > 0) {
       return structuredClone(stored);
     }
 
@@ -331,6 +349,7 @@ const {buildRenderProfile} = __webpack_require__(255);
 const {buildDataPackMcmeta, buildResourcePackMcmeta} = __webpack_require__(600);
 const {buildReadme} = __webpack_require__(250);
 const {hashString} = __webpack_require__(803);
+const {MODEL_TYPE_ENTITY} = __webpack_require__(151);
 const {
   EXPORT_TYPE_PACKS,
   includesDataPack,
@@ -371,7 +390,7 @@ function buildProfiles(settings, textureResolution) {
 function dataPaths(settings) {
   const namespace = settings.namespace;
   const id = settings.profileId;
-  const modelType = settings.modelType || 'entity';
+  const modelType = settings.modelType || MODEL_TYPE_ENTITY;
 
   return {
     profile: `data/${namespace}/easy_model_entities/profiles/${modelType}/${id}.json`,
@@ -381,12 +400,11 @@ function dataPaths(settings) {
   };
 }
 
-function textureFiles(settings, textureResolution) {
-  const namespace = settings.namespace;
+function textureFiles(textureResolution) {
   const packed = (textureResolution && textureResolution.packed) || [];
 
   return packed.map((entry) => ({
-    path: `assets/${namespace}/textures/entity/${entry.fileName}`,
+    path: entry.path,
     content: entry.bytes,
     binary: true
   }));
@@ -414,7 +432,7 @@ function resourcepackFiles(settings, renderProfile, options) {
     },
     {path: paths.renderProfile, content: toJson(renderProfile), binary: false},
     {path: paths.model, content: options.modelBytes, binary: true},
-    ...textureFiles(settings, options.textureResolution)
+    ...textureFiles(options.textureResolution)
   ];
 }
 
@@ -471,7 +489,7 @@ function buildModProjectFiles(settings, options) {
         binary: false
       },
       {path: paths.model, content: opts.modelBytes, binary: true},
-      ...textureFiles(settings, opts.textureResolution));
+      ...textureFiles(opts.textureResolution));
 
   return {files, serverProfile, renderProfile};
 }
@@ -902,6 +920,129 @@ module.exports = {buildServerProfile};
 
 /***/ },
 
+/***/ 579
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {BlockbenchAdapter} = __webpack_require__(833);
+const {
+  buildPackBundle,
+  buildModProjectFiles,
+  pairingVersion
+} = __webpack_require__(869);
+const {
+  EXPORT_TYPE_RESOURCE_PACK,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MOD_PROJECT
+} = __webpack_require__(984);
+
+function zipExportName(settings) {
+  const base = `${settings.namespace}_${settings.profileId}`;
+  if (settings.exportType === EXPORT_TYPE_RESOURCE_PACK) {
+    return `${base}_resourcepack`;
+  }
+
+  if (settings.exportType === EXPORT_TYPE_DATA_PACK) {
+    return `${base}_datapack`;
+  }
+
+  return `${base}_eme`;
+}
+
+function exportToZip(settings, options) {
+  return BlockbenchAdapter.exportPackBundle(
+      buildPackBundle(settings, options), zipExportName(settings))
+  .then(() => {
+    Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
+  })
+  .catch((error) => {
+    Blockbench.showMessageBox({title: 'Export failed', message: String(error)});
+  });
+}
+
+function exportToModProject(settings, options) {
+  const rootDir = BlockbenchAdapter.pickDirectory(
+      'Select src/main/resources directory');
+  if (!rootDir) {
+    return;
+  }
+
+  const {files} = buildModProjectFiles(settings, options);
+  const existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
+
+  const write = () => {
+    try {
+      BlockbenchAdapter.writeToDirectory(rootDir, files);
+      Blockbench.showQuickMessage(
+          'Easy Model Entities files written to mod project', 1500);
+    } catch (error) {
+      Blockbench.showMessageBox(
+          {title: 'Export failed', message: String(error)});
+    }
+  };
+
+  if (existing.length > 0) {
+    Blockbench.showMessageBox(
+        {
+          title: 'Overwrite existing files?',
+          message: `${existing.length} file(s) already exist and will be overwritten:\n\n`
+              + existing.join('\n'),
+          buttons: ['Overwrite', 'Cancel'],
+          confirm: 0,
+          cancel: 1
+        },
+        (button) => {
+          if (button === 0) {
+            write();
+          }
+        }
+    );
+  } else {
+    write();
+  }
+}
+
+function performExport(settings, target, textureResolution) {
+  BlockbenchAdapter.saveSettings({
+    ...settings,
+    lastExportedVersion: pairingVersion(settings)
+  });
+
+  const options = {
+    modelBytes: BlockbenchAdapter.getModelBytes(),
+    textureResolution
+  };
+
+  if (target === EXPORT_TYPE_MOD_PROJECT) {
+    return exportToModProject(settings, options);
+  }
+
+  return exportToZip(settings, options);
+}
+
+module.exports = {performExport, zipExportName};
+
+
+/***/ },
+
 /***/ 670
 (module, __unused_webpack_exports, __webpack_require__) {
 
@@ -936,8 +1077,13 @@ function handleCompile(event) {
   }
 
   const settings = BlockbenchAdapter.loadSettings();
-  if (settings) {
-    event.model[EME_SETTINGS_KEY] = pickModelSettings(settings);
+  if (!settings) {
+    return;
+  }
+
+  const picked = pickModelSettings(settings);
+  if (Object.keys(picked).length > 0) {
+    event.model[EME_SETTINGS_KEY] = picked;
   }
 }
 
@@ -1079,6 +1225,10 @@ const EN = {
   'eme.field.exportType': 'Export Type',
   'eme.field.modelType': 'Type',
   'eme.field.customize': 'Customize settings',
+  'eme.field.includeExternalTextures': 'Include external textures',
+  'eme.field.includeExternalTexturesDescription':
+      'Copy textures from other namespaces into the resource pack instead of '
+      + 'only referencing them. Vanilla minecraft: textures are never copied.',
   'eme.field.hostEntityType': 'Host Entity Type',
   'eme.field.movementType': 'Movement Type',
   'eme.field.bodyType': 'Body Type',
@@ -1184,6 +1334,10 @@ const DE = {
   'eme.field.exportType': 'Export-Typ',
   'eme.field.modelType': 'Typ',
   'eme.field.customize': 'Einstellungen anpassen',
+  'eme.field.includeExternalTextures': 'Externe Texturen mitliefern',
+  'eme.field.includeExternalTexturesDescription':
+      'Texturen aus anderen Namespaces ins Resource Pack kopieren statt sie nur '
+      + 'zu referenzieren. Vanilla-Texturen (minecraft:) werden nie kopiert.',
   'eme.field.hostEntityType': 'Host-Entität',
   'eme.field.movementType': 'Bewegungsart',
   'eme.field.bodyType': 'Körpertyp',
@@ -1391,7 +1545,7 @@ module.exports = {ModelDimensions};
 /***/ },
 
 /***/ 858
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /*
  * Copyright 2026 Markus Bordihn
@@ -1412,8 +1566,11 @@ module.exports = {ModelDimensions};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {standardClipNames} = __webpack_require__(151);
+
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
+  static #ANIMATED_FALLBACK_PRESET = 'floating_still';
 
   static #names(stats) {
     const boneNames = (stats && stats.boneNames) || [];
@@ -1489,6 +1646,13 @@ class PresetDetector {
       }
     }
 
+    if (standardClipNames(stats && stats.animations).length > 0) {
+      return {
+        presetType: PresetDetector.#ANIMATED_FALLBACK_PRESET,
+        reason: 'animation clips without distinguishing limbs'
+      };
+    }
+
     return {presetType: 'statue', reason: 'no distinguishing limbs'};
   }
 
@@ -1529,7 +1693,8 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_CLIPS,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  standardClipNames
 } = __webpack_require__(151);
 
 const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
@@ -1547,6 +1712,13 @@ class Validator {
     maxHierarchyDepth: 32,
     softHierarchyDepth: 24,
     maxAnimationCount: 16
+  };
+
+  static LIMITS = {
+    minDimension: 0.01,
+    maxDimension: 8,
+    maxMovementSpeed: 2,
+    maxStepHeight: 2
   };
 
   static REQUIRED_BODY_PARTS = {
@@ -1571,6 +1743,31 @@ class Validator {
     }
 
     return true;
+  }
+
+  static #validateRange(errors, code, label, value, minimum, maximum) {
+    if (!Validator.#validateNumeric(errors, label, value)
+        || (value >= minimum && value <= maximum)) {
+      return;
+    }
+
+    errors.push({
+      code: code,
+      message: `${label} must be between ${minimum} and ${maximum}`
+    });
+  }
+
+  static #validateNonNegative(errors, code, label, value) {
+    Validator.#validateRange(errors, code, label, value, 0,
+        Number.MAX_VALUE);
+  }
+
+  static #validatePositive(errors, code, label, value) {
+    if (!Validator.#validateNumeric(errors, label, value) || value > 0) {
+      return;
+    }
+
+    errors.push({code: code, message: `${label} must be greater than 0`});
   }
 
   static #warnIfOverBudget(warnings, value, soft, max, softWarning,
@@ -1633,42 +1830,46 @@ class Validator {
       });
     }
 
+    const limits = Validator.LIMITS;
     const {width, height, eyeHeight} = settings.dimensions;
-    const widthValid = Validator.#validateNumeric(errors, 'dimensions.width',
-        width);
-    const heightValid = Validator.#validateNumeric(errors, 'dimensions.height',
-        height);
-    const eyeValid = Validator.#validateNumeric(errors, 'dimensions.eye_height',
-        eyeHeight);
-    if (widthValid && width <= 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'width must be greater than 0'
-      });
-    }
-    if (heightValid && height <= 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'height must be greater than 0'
-      });
-    }
-    if (eyeValid && eyeHeight < 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'eye_height must not be negative'
-      });
-    }
-    if (eyeValid && heightValid && eyeHeight > height) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'eye_height must not exceed height'
-      });
-    }
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.width',
+        width, limits.minDimension, limits.maxDimension);
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.height',
+        height, limits.minDimension, limits.maxDimension);
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS',
+        'dimensions.eye_height', eyeHeight, 0,
+        Number.isFinite(height) ? height : limits.maxDimension);
 
-    Validator.#validateNumeric(errors, 'movement.speed',
-        settings.movement.speed);
-    Validator.#validateNumeric(errors, 'movement.step_height',
-        settings.movement.stepHeight);
+    Validator.#validateRange(errors, 'INVALID_MOVEMENT', 'movement.speed',
+        settings.movement.speed, 0, limits.maxMovementSpeed);
+    Validator.#validateRange(errors, 'INVALID_MOVEMENT',
+        'movement.step_height', settings.movement.stepHeight, 0,
+        limits.maxStepHeight);
+
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.max_health', settings.attributes.maxHealth);
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.movement_speed', settings.attributes.movementSpeed);
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.follow_range', settings.attributes.followRange);
+
+    const rendering = settings.rendering;
+    Validator.#validatePositive(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.scale', rendering.scale);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.shadow_radius', rendering.shadowRadius);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.visible_bounds_width', rendering.visibleBoundsWidth ?? 0);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.visible_bounds_height', rendering.visibleBoundsHeight ?? 0);
+
+    const animation = settings.animation;
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.swing_speed', animation.swingSpeed);
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.walk_speed_multiplier', animation.walkSpeedMultiplier);
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.idle_strength', animation.idleStrength ?? 1);
 
     if (ctx.hasModel === false) {
       errors.push(
@@ -1679,6 +1880,17 @@ class Validator {
           {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
     }
     (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
+
+    const referencedTextures = ctx.referencedTextures || [];
+    if (referencedTextures.length > 0) {
+      warnings.push({
+        code: 'EXTERNAL_TEXTURE_REFERENCE',
+        message: `${referencedTextures.join(
+                ', ')} stays a reference and is not `
+            + 'part of the export; the mod or pack providing it has to be '
+            + 'installed, or enable "Include external textures"'
+      });
+    }
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
@@ -1745,9 +1957,9 @@ class Validator {
       const name = String(animation.name || '').toLowerCase();
       if (!ANIMATION_CLIPS.includes(name)) {
         warnings.push({
-          code: 'NON_STANDARD_ANIMATION',
+          code: 'CUSTOM_ANIMATION_CLIP',
           message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
-              ', ')} and is ignored by the mod`
+              ', ')} and is never played automatically; it can only be played by name via command or API`
         });
       }
       if (animation.hasExpression) {
@@ -1765,6 +1977,19 @@ class Validator {
         }
       });
     });
+
+    const clipNames = standardClipNames(ctx.animations);
+    if (!blockEntity && clipNames.length > 0
+        && (settings.animation.mode === 'none'
+            || settings.host.bodyType === 'static')) {
+      warnings.push({
+        code: 'ANIMATIONS_NEVER_PLAYED',
+        message: `The preset ${settings.presetType} renders without animation, `
+            + `so the mod never plays ${clipNames.join(
+                ', ')}; pick an animated `
+            + 'preset instead'
+      });
+    }
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {
@@ -2044,7 +2269,7 @@ const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
 const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
-  'attack'];
+  'attack', 'sit'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
@@ -2114,6 +2339,12 @@ const STABLE_PRESET_TYPES = new Set([
 ]);
 
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
+
+function standardClipNames(animations) {
+  return (animations || [])
+  .map((animation) => String(animation.name || '').toLowerCase())
+  .filter((name) => ANIMATION_CLIPS.includes(name));
+}
 
 function isStablePreset(presetType) {
   return STABLE_PRESET_TYPES.has(presetType);
@@ -2408,6 +2639,7 @@ module.exports = {
   ANIMATION_CLIPS,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
+  standardClipNames,
   isStablePreset,
   isCustom,
   bodyType,
@@ -2459,6 +2691,7 @@ const MODEL_SETTING_KEYS = [
   'profileId',
   'targetVersion',
   'customize',
+  'includeExternalTextures',
   'host',
   'dimensions',
   'movement',
@@ -2646,6 +2879,8 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
+const {EXPORT_TYPE_DATA_PACK} = __webpack_require__(984);
+const {Validator} = __webpack_require__(229);
 const {t} = __webpack_require__(16);
 const {
   presetOptions,
@@ -2672,6 +2907,7 @@ function advancedField(field, showCustomize) {
 }
 
 function buildFormConfig(settings, ui) {
+  const limits = Validator.LIMITS;
   const values = settingsToForm(settings);
   const state = ui || {};
   const allowCustomize = !!state.showCustomization;
@@ -2734,6 +2970,16 @@ function buildFormConfig(settings, ui) {
     }
   };
 
+  if (state.hasExternalTextures) {
+    config.includeExternalTextures = {
+      label: t('eme.field.includeExternalTextures'),
+      description: t('eme.field.includeExternalTexturesDescription'),
+      type: 'checkbox',
+      value: settings.includeExternalTextures !== false,
+      condition: (form) => form.exportType !== EXPORT_TYPE_DATA_PACK
+    };
+  }
+
   if (allowCustomize) {
     config.customize = {
       label: t('eme.field.customize'),
@@ -2770,17 +3016,18 @@ function buildFormConfig(settings, ui) {
     width: advancedField(
         {
           label: t('eme.field.width'), type: 'number', value: values.width,
-          step: 0.1
+          step: 0.1, min: limits.minDimension, max: limits.maxDimension
         }, showServer),
     height: advancedField(
         {
           label: t('eme.field.height'), type: 'number', value: values.height,
-          step: 0.1
+          step: 0.1, min: limits.minDimension, max: limits.maxDimension
         }, showServer),
     eyeHeight: advancedField(
         {
           label: t('eme.field.eyeHeight'), type: 'number',
-          value: values.eyeHeight, step: 0.1
+          value: values.eyeHeight, step: 0.1, min: 0,
+          max: limits.maxDimension
         }, showServer),
 
     movement_header: advancedField(
@@ -2788,12 +3035,13 @@ function buildFormConfig(settings, ui) {
     speed: advancedField(
         {
           label: t('eme.field.speed'), type: 'number', value: values.speed,
-          step: 0.01
+          step: 0.01, min: 0, max: limits.maxMovementSpeed
         }, showEntity),
     stepHeight: advancedField(
         {
           label: t('eme.field.stepHeight'), type: 'number',
-          value: values.stepHeight, step: 0.1
+          value: values.stepHeight, step: 0.1, min: 0,
+          max: limits.maxStepHeight
         }, showEntity),
     gravity: advancedField(
         {
@@ -2816,17 +3064,17 @@ function buildFormConfig(settings, ui) {
     maxHealth: advancedField(
         {
           label: t('eme.field.maxHealth'), type: 'number',
-          value: values.maxHealth, step: 0.5
+          value: values.maxHealth, step: 0.5, min: 0
         }, showEntity),
     movementSpeed: advancedField(
         {
           label: t('eme.field.movementSpeed'), type: 'number',
-          value: values.movementSpeed, step: 0.01
+          value: values.movementSpeed, step: 0.01, min: 0
         }, showEntity),
     followRange: advancedField(
         {
           label: t('eme.field.followRange'), type: 'number',
-          value: values.followRange, step: 1
+          value: values.followRange, step: 1, min: 0
         }, showEntity),
 
     rendering_header: advancedField(
@@ -2835,22 +3083,22 @@ function buildFormConfig(settings, ui) {
     scale: advancedField(
         {
           label: t('eme.field.scale'), type: 'number', value: values.scale,
-          step: 0.1
+          step: 0.1, min: limits.minDimension
         }, showRender),
     shadowRadius: advancedField(
         {
           label: t('eme.field.shadowRadius'), type: 'number',
-          value: values.shadowRadius, step: 0.1
+          value: values.shadowRadius, step: 0.1, min: 0
         }, showRender),
     visibleBoundsWidth: advancedField(
         {
           label: t('eme.field.visibleBoundsWidth'), type: 'number',
-          value: values.visibleBoundsWidth, step: 0.1
+          value: values.visibleBoundsWidth, step: 0.1, min: 0
         }, showRender),
     visibleBoundsHeight: advancedField(
         {
           label: t('eme.field.visibleBoundsHeight'), type: 'number',
-          value: values.visibleBoundsHeight, step: 0.1
+          value: values.visibleBoundsHeight, step: 0.1, min: 0
         }, showRender),
     visibleBoundsOffsetX: advancedField(
         {
@@ -2880,17 +3128,17 @@ function buildFormConfig(settings, ui) {
     swingSpeed: advancedField(
         {
           label: t('eme.field.swingSpeed'), type: 'number',
-          value: values.swingSpeed, step: 0.1
+          value: values.swingSpeed, step: 0.1, min: 0
         }, showRender),
     walkSpeedMultiplier: advancedField(
         {
           label: t('eme.field.walkSpeedMultiplier'), type: 'number',
-          value: values.walkSpeedMultiplier, step: 0.1
+          value: values.walkSpeedMultiplier, step: 0.1, min: 0
         }, showRender),
     idleStrength: advancedField(
         {
           label: t('eme.field.idleStrength'), type: 'number',
-          value: values.idleStrength, step: 0.1
+          value: values.idleStrength, step: 0.1, min: 0
         }, showRender),
     gait: advancedField({
       label: t('eme.field.gait'),
@@ -2920,7 +3168,8 @@ function openExportDialog(options) {
       exportType: options.exportType,
       customize: options.customize,
       showCustomization: options.showCustomization,
-      experimental: options.experimental
+      experimental: options.experimental,
+      hasExternalTextures: options.hasExternalTextures
     }),
     onFormChange(form) {
       const modelType = activeModelType(form);
@@ -3281,6 +3530,7 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
     settings = formToSettings(form, settings);
   }
   settings.customize = !!form.customize;
+  settings.includeExternalTextures = form.includeExternalTextures !== false;
   settings.lastExportedVersion = base.lastExportedVersion;
   settings.exportType = exportType;
   settings.exportTarget = isZipExport(exportType)
@@ -3437,14 +3687,6 @@ class ResourceLocation {
         && ResourceLocation.isValidPath(parts[1]);
   }
 
-  static parseResourceLocation(value) {
-    if (!ResourceLocation.isValidResourceLocation(value)) {
-      return null;
-    }
-    const parts = value.split(':');
-    return {namespace: parts[0], path: parts[1]};
-  }
-
   static buildResourceLocation(namespace, path) {
     return `${namespace}:${path}`;
   }
@@ -3558,6 +3800,12 @@ function parseExternalLocation(descriptor) {
   return null;
 }
 
+function packPath(location) {
+  const [namespace, resourcePath] = location.split(':');
+
+  return `assets/${namespace}/${resourcePath}`;
+}
+
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
@@ -3569,7 +3817,9 @@ function resolveTextures(descriptors, settings) {
   const textures = {};
   const packed = [];
   const issues = [];
+  const referencedOnly = [];
   const resolvedIndices = new Set();
+  const includeExternal = settings.includeExternalTextures !== false;
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
@@ -3596,11 +3846,11 @@ function resolveTextures(descriptors, settings) {
 
     resolvedIndices.add(index);
     const location = externalLocation || customLocation(settings, index);
-    if (!externalLocation) {
-      packed.push({
-        fileName: customFileName(settings, index),
-        bytes: descriptor.bytes
-      });
+    const vanilla = location.startsWith('minecraft:');
+    if (!externalLocation || (includeExternal && !vanilla)) {
+      packed.push({path: packPath(location), bytes: descriptor.bytes});
+    } else if (!vanilla) {
+      referencedOnly.push(location);
     }
 
     if (index === 0) {
@@ -3617,7 +3867,7 @@ function resolveTextures(descriptors, settings) {
     });
   }
 
-  return {texture, textures, packed, issues};
+  return {texture, textures, packed, referencedOnly, issues};
 }
 
 module.exports = {
@@ -3687,7 +3937,7 @@ module.exports = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!
 (module) {
 
 "use strict";
-module.exports = "# {{id}} - Easy Model Entities pack\n\nA custom Blockbench model that appears in Minecraft as an entity you can spawn — no coding and no\nextra mod needed for this model. Made with the **Easy Model Entities Exporter** Blockbench plugin\nfor **{{mcVersion}}**.\n\n> **Note:** This is an early release. The pack format may still change, so you might need to\n> re-export this pack after updating the plugin or the mod.\n\nProfile ID: `{{serverProfileId}}`\n\n## What you need\n\nThe **Easy Model Entities** mod for **{{mcVersion}}** (Forge, NeoForge or Fabric, depending on the\nMinecraft version). Without the mod these files do nothing at all.\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod first. In multiplayer it has to be installed on the server too.\n\n## Installation\n\nTwo files belong together — do not unpack them, just move them into the right folder:\n\n- `{{datapackFile}}` — the entity itself (size, movement, behavior)\n- `{{resourcepackFile}}` — how it looks (model, texture, animations)\n\n### 1. Resource Pack\n\nMove `{{resourcepackFile}}` into your resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nStart Minecraft and enable it under **Options > Resource Packs**.\n\n### 2. Data Pack\n\nMove `{{datapackFile}}` into your world's datapacks folder:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Dedicated server: `<server folder>/world/datapacks/`\n\nLoad the world, or run `/reload` if it is already open.\n\n> **Install both.** With only the resource pack the model shows up but cannot be spawned. With only\n> the data pack the entity exists but renders as a pink placeholder box.\n\n## Using it in game\n\nLook for the spawn item in the creative inventory: entities are in the **Easy Model Entities** tab,\nblock entities in **Easy Model Block Entities**. Place it like a spawn egg.\n\n## What this model can do\n\nMovement and behavior come from a fixed set of presets built into the mod — wandering, swimming,\nflying, standing still and so on. The preset was chosen at export time.\n\nAnimations are played from the clips in the Blockbench project. The mod recognises these names:\n\n| Clip     | When it plays        |\n|----------|----------------------|\n| `idle`   | standing still       |\n| `walk`   | moving on the ground |\n| `swim`   | moving in water      |\n| `fly`    | flying               |\n| `attack` | attacking            |\n\nClips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own —\nthey need the `/easy_model_entities set_animation` command or another mod driving them.\n\nEverything else is ignored: clips with other names are not played, and there is no scripting or\ncustom AI. A model without any matching clip simply renders without animation.\n\n## Updating this pack\n\nChanged only the model, texture or animations? Re-export just the resource pack and replace that\nfile. Changed entity data such as size or movement? Re-export just the data pack. Either way the\nupdated pack still matches the one you already installed. If both changed, export the complete\nbundle again and replace both files.\n";
+module.exports = "# {{id}} - Easy Model Entities pack\n\nA custom Blockbench model that appears in Minecraft as an entity you can spawn — no coding and no\nextra mod needed for this model. Made with the **Easy Model Entities Exporter** Blockbench plugin\nfor **{{mcVersion}}**.\n\n> **Note:** This is an early release. The pack format may still change, so you might need to\n> re-export this pack after updating the plugin or the mod.\n\nProfile ID: `{{serverProfileId}}`\n\n## What you need\n\nThe **Easy Model Entities** mod for **{{mcVersion}}** (Forge, NeoForge or Fabric, depending on the\nMinecraft version). Without the mod these files do nothing at all.\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod first. In multiplayer it has to be installed on the server too.\n\n## Installation\n\nTwo files belong together — do not unpack them, just move them into the right folder:\n\n- `{{datapackFile}}` — the entity itself (size, movement, behavior)\n- `{{resourcepackFile}}` — how it looks (model, texture, animations)\n\n### 1. Resource Pack\n\nMove `{{resourcepackFile}}` into your resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nStart Minecraft and enable it under **Options > Resource Packs**.\n\n### 2. Data Pack\n\nMove `{{datapackFile}}` into your world's datapacks folder:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Dedicated server: `<server folder>/world/datapacks/`\n\nLoad the world, or run `/reload` if it is already open.\n\n> **Install both.** With only the resource pack the model shows up but cannot be spawned. With only\n> the data pack the entity exists but renders as a pink placeholder box.\n\n## Using it in game\n\nLook for the spawn item in the creative inventory: entities are in the **Easy Model Entities** tab,\nblock entities in **Easy Model Block Entities**. Place it like a spawn egg.\n\n## What this model can do\n\nMovement and behavior come from a fixed set of presets built into the mod — wandering, swimming,\nflying, standing still and so on. The preset was chosen at export time.\n\nAnimations are played from the clips in the Blockbench project. These names play automatically:\n\n| Clip     | When it plays        |\n|----------|----------------------|\n| `idle`   | standing still       |\n| `walk`   | moving on the ground |\n| `swim`   | moving in water      |\n| `fly`    | flying               |\n| `attack` | attacking            |\n| `sit`    | sitting              |\n\nClips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own.\nClips with any other name are kept as custom clips and are played by name, for example with\n`/easy_model_entities animation play entity <targets> <clip>`.\n\nThere is no scripting or custom AI. A model without any matching clip simply renders without\nanimation.\n\n## Updating this pack\n\nChanged only the model, texture or animations? Re-export just the resource pack and replace that\nfile. Changed entity data such as size or movement? Re-export just the data pack. Either way the\nupdated pack still matches the one you already installed. If both changed, export the complete\nbundle again and replace both files.\n";
 
 /***/ },
 
@@ -3759,6 +4009,10 @@ const {
   applyTemplate,
   DEFAULT_PRESET
 } = __webpack_require__(668);
+const {
+  MODEL_TYPE_ENTITY,
+  MODEL_TYPE_BLOCK_ENTITY
+} = __webpack_require__(151);
 const {ModelDimensions} = __webpack_require__(763);
 const {VisibleBounds} = __webpack_require__(508);
 const {PresetDetector} = __webpack_require__(858);
@@ -3768,16 +4022,9 @@ const {patchTexturePanel, unpatchTexturePanel} = __webpack_require__(317);
 const {Validator} = __webpack_require__(229);
 const {
   EXPORT_TYPE_PACKS,
-  EXPORT_TYPE_RESOURCE_PACK,
-  EXPORT_TYPE_DATA_PACK,
-  EXPORT_TYPE_MOD_PROJECT,
   isSinglePackExport
 } = __webpack_require__(984);
-const {
-  buildPackBundle,
-  buildModProjectFiles,
-  pairingVersion
-} = __webpack_require__(869);
+const {performExport} = __webpack_require__(579);
 const {BlockbenchAdapter} = __webpack_require__(833);
 const {openExportDialog} = __webpack_require__(924);
 const {registerTranslations, t} = __webpack_require__(16);
@@ -3799,20 +4046,8 @@ let projectProperty;
 let customizationSetting;
 let experimentalSetting;
 
-function customizationEnabled() {
-  if (customizationSetting && typeof customizationSetting.value === 'boolean') {
-    return customizationSetting.value;
-  }
-
-  return false;
-}
-
-function experimentalEnabled() {
-  if (experimentalSetting && typeof experimentalSetting.value === 'boolean') {
-    return experimentalSetting.value;
-  }
-
-  return false;
+function settingEnabled(setting) {
+  return !!setting && typeof setting.value === 'boolean' && setting.value;
 }
 
 function resolveDialogState() {
@@ -3830,10 +4065,10 @@ function resolveDialogState() {
 
   if (storedSettings) {
     settings = deepMerge(getDefaults(), storedSettings);
-    modelType = settings.modelType || 'entity';
+    modelType = settings.modelType || MODEL_TYPE_ENTITY;
     customize = !!storedSettings.customize;
     exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
-    if (modelType === 'block_entity') {
+    if (modelType === MODEL_TYPE_BLOCK_ENTITY) {
       preset = 'custom';
       blockPreset = settings.presetType || 'static';
     } else {
@@ -3843,12 +4078,16 @@ function resolveDialogState() {
   } else {
     preset = PresetDetector.detectPresetType(stats, bounds);
     blockPreset = 'static';
-    modelType = 'entity';
+    modelType = MODEL_TYPE_ENTITY;
     settings = applyTemplate(preset);
-    ModelDimensions.applyModelDimensions(settings,
-        ModelDimensions.deriveDimensions(bounds, settings.host.bodyType));
     customize = false;
-    exportType = 'packs';
+    exportType = EXPORT_TYPE_PACKS;
+  }
+
+  const modelDimensions = ModelDimensions.deriveDimensions(bounds,
+      settings.host.bodyType);
+  if (!storedSettings) {
+    ModelDimensions.applyModelDimensions(settings, modelDimensions);
   }
 
   const projectName = BlockbenchAdapter.getProjectName();
@@ -3864,9 +4103,8 @@ function resolveDialogState() {
 
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
-    visibleBounds,
-    modelDimensions: ModelDimensions.deriveDimensions(bounds,
-        settings.host.bodyType)
+    visibleBounds, modelDimensions,
+    hasExternalTextures: (stats.externalTextures || []).length > 0
   };
 }
 
@@ -3875,7 +4113,8 @@ function formatIssues(issues) {
 }
 
 function pairingWarnings(settings) {
-  if (!isSinglePackExport(settings.exportType) || settings.lastExportedVersion) {
+  if (!isSinglePackExport(settings.exportType)
+      || settings.lastExportedVersion) {
     return [];
   }
 
@@ -3891,7 +4130,8 @@ function runExport(settings, target) {
       BlockbenchAdapter.collectTextures(), settings);
   const result = Validator.validateSettings(settings, {
     ...BlockbenchAdapter.getModelStats(),
-    textureIssues: textureResolution.issues
+    textureIssues: textureResolution.issues,
+    referencedTextures: textureResolution.referencedOnly
   });
   const warnings = [...result.warnings, ...pairingWarnings(settings)];
 
@@ -3927,90 +4167,6 @@ function runExport(settings, target) {
   }
 }
 
-function performExport(settings, target, textureResolution) {
-  const options = {
-    modelBytes: BlockbenchAdapter.getModelBytes(),
-    textureResolution
-  };
-
-  BlockbenchAdapter.saveSettings({
-    ...settings,
-    lastExportedVersion: pairingVersion(settings)
-  });
-
-  if (target === EXPORT_TYPE_MOD_PROJECT) {
-    exportToModProject(settings, options);
-  } else {
-    exportToZip(settings, options);
-  }
-}
-
-function zipExportName(settings) {
-  const base = `${settings.namespace}_${settings.profileId}`;
-  if (settings.exportType === EXPORT_TYPE_RESOURCE_PACK) {
-    return `${base}_resourcepack`;
-  }
-
-  if (settings.exportType === EXPORT_TYPE_DATA_PACK) {
-    return `${base}_datapack`;
-  }
-
-  return `${base}_eme`;
-}
-
-function exportToZip(settings, options) {
-  BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options), zipExportName(settings))
-  .then(() => {
-    Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
-  })
-  .catch((error) => {
-    Blockbench.showMessageBox({title: 'Export failed', message: String(error)});
-  });
-}
-
-function exportToModProject(settings, options) {
-  const rootDir = BlockbenchAdapter.pickDirectory(
-      'Select src/main/resources directory');
-  if (!rootDir) {
-    return;
-  }
-
-  const {files} = buildModProjectFiles(settings, options);
-  const existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
-
-  const write = () => {
-    try {
-      BlockbenchAdapter.writeToDirectory(rootDir, files);
-      Blockbench.showQuickMessage(
-          'Easy Model Entities files written to mod project', 1500);
-    } catch (error) {
-      Blockbench.showMessageBox(
-          {title: 'Export failed', message: String(error)});
-    }
-  };
-
-  if (existing.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: 'Overwrite existing files?',
-          message: `${existing.length} file(s) already exist and will be overwritten:\n\n`
-              + existing.join('\n'),
-          buttons: ['Overwrite', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            write();
-          }
-        }
-    );
-  } else {
-    write();
-  }
-}
-
 function openDialog() {
   if (!Project) {
     Blockbench.showQuickMessage('Open a project first', 1500);
@@ -4025,10 +4181,11 @@ function openDialog() {
     modelType: state.modelType,
     customize: state.customize,
     exportType: state.exportType,
-    showCustomization: customizationEnabled(),
-    experimental: experimentalEnabled(),
+    showCustomization: settingEnabled(customizationSetting),
+    experimental: settingEnabled(experimentalSetting),
     modelDimensions: state.modelDimensions,
     visibleBounds: state.visibleBounds,
+    hasExternalTextures: state.hasExternalTextures,
     onExport: runExport
   });
 }

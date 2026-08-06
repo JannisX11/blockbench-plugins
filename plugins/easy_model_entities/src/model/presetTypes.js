@@ -40,7 +40,7 @@ const MOVEMENT_TYPES = ['ground', 'water', 'amphibious', 'static'];
 const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
 const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
-  'attack'];
+  'attack', 'sit'];
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
@@ -110,6 +110,12 @@ const STABLE_PRESET_TYPES = new Set([
 ]);
 
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
+
+function standardClipNames(animations) {
+  return (animations || [])
+  .map((animation) => String(animation.name || '').toLowerCase())
+  .filter((name) => ANIMATION_CLIPS.includes(name));
+}
 
 function isStablePreset(presetType) {
   return STABLE_PRESET_TYPES.has(presetType);
@@ -404,6 +410,7 @@ module.exports = {
   ANIMATION_CLIPS,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
+  standardClipNames,
   isStablePreset,
   isCustom,
   bodyType,

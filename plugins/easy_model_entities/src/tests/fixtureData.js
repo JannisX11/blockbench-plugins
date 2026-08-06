@@ -52,5 +52,6 @@ module.exports = {
   FIXTURE_MODEL_BYTES,
   FIXTURE_TEXTURE_BYTES,
   fixtureSettings,
+  fixtureTextureResolution,
   fixtureExportOptions
 };

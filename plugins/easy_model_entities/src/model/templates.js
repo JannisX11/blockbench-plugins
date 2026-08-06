@@ -30,6 +30,7 @@ const MODEL_SETTING_KEYS = [
   'profileId',
   'targetVersion',
   'customize',
+  'includeExternalTextures',
   'host',
   'dimensions',
   'movement',

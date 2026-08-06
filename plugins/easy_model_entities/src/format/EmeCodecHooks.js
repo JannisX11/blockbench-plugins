@@ -29,8 +29,13 @@ function handleCompile(event) {
   }
 
   const settings = BlockbenchAdapter.loadSettings();
-  if (settings) {
-    event.model[EME_SETTINGS_KEY] = pickModelSettings(settings);
+  if (!settings) {
+    return;
+  }
+
+  const picked = pickModelSettings(settings);
+  if (Object.keys(picked).length > 0) {
+    event.model[EME_SETTINGS_KEY] = picked;
   }
 }
 

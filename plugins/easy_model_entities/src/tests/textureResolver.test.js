@@ -85,11 +85,13 @@ describe('resolveTextures', () => {
         SETTINGS);
     expect(result.texture).toBe('example:textures/entity/lizard.png');
     expect(result.textures).toEqual({});
-    expect(result.packed).toEqual([{fileName: 'lizard.png', bytes: BYTES}]);
+    expect(result.packed).toEqual(
+        [{path: 'assets/example/textures/entity/lizard.png', bytes: BYTES}]);
+    expect(result.referencedOnly).toEqual([]);
     expect(result.issues).toEqual([]);
   });
 
-  test('foreign-namespace index 0 is referenced, not packed', () => {
+  test('foreign-namespace texture is packed under its own namespace', () => {
     const result = resolveTextures(
         [{
           index: 0, namespace: 'othermod', folder: 'entity', name: 'thing',
@@ -98,8 +100,36 @@ describe('resolveTextures', () => {
         SETTINGS);
     expect(result.texture).toBe('othermod:textures/entity/thing.png');
     expect(result.textures).toEqual({});
-    expect(result.packed).toEqual([]);
+    expect(result.packed).toEqual(
+        [{path: 'assets/othermod/textures/entity/thing.png', bytes: BYTES}]);
+    expect(result.referencedOnly).toEqual([]);
     expect(result.issues).toEqual([]);
+  });
+
+  test('foreign-namespace texture stays a reference when excluded', () => {
+    const result = resolveTextures(
+        [{
+          index: 0, namespace: 'othermod', folder: 'entity', name: 'thing',
+          path: '', bytes: BYTES
+        }],
+        {...SETTINGS, includeExternalTextures: false});
+    expect(result.texture).toBe('othermod:textures/entity/thing.png');
+    expect(result.packed).toEqual([]);
+    expect(result.referencedOnly).toEqual(
+        ['othermod:textures/entity/thing.png']);
+    expect(result.issues).toEqual([]);
+  });
+
+  test('vanilla textures are never packed and never reported', () => {
+    const result = resolveTextures(
+        [{
+          index: 0, namespace: 'minecraft', folder: 'entity/chest',
+          name: 'normal.png', path: '', bytes: BYTES
+        }],
+        {...SETTINGS, includeExternalTextures: true});
+    expect(result.texture).toBe('minecraft:textures/entity/chest/normal.png');
+    expect(result.packed).toEqual([]);
+    expect(result.referencedOnly).toEqual([]);
   });
 
   test('packs a custom index 1 that lives under a non-minecraft assets tree',
@@ -122,8 +152,10 @@ describe('resolveTextures', () => {
             'minecraft:textures/entity/chest/normal.png');
         expect(result.textures).toEqual(
             {1: 'example:textures/entity/lizard_1.png'});
-        expect(result.packed).toEqual(
-            [{fileName: 'lizard_1.png', bytes: BYTES}]);
+        expect(result.packed).toEqual([
+          {
+            path: 'assets/example/textures/entity/lizard_1.png', bytes: BYTES
+          }]);
       });
 
   test('mixes a vanilla index 0 with a custom index 1', () => {
@@ -142,7 +174,7 @@ describe('resolveTextures', () => {
     expect(result.textures).toEqual(
         {1: 'example:textures/entity/lizard_1.png'});
     expect(result.packed).toEqual(
-        [{fileName: 'lizard_1.png', bytes: BYTES}]);
+        [{path: 'assets/example/textures/entity/lizard_1.png', bytes: BYTES}]);
     expect(result.issues).toEqual([]);
   });
 
@@ -161,7 +193,8 @@ describe('resolveTextures', () => {
     expect(result.texture).toBe('example:textures/entity/lizard.png');
     expect(result.textures).toEqual(
         {1: 'minecraft:textures/entity/chest/normal.png'});
-    expect(result.packed).toEqual([{fileName: 'lizard.png', bytes: BYTES}]);
+    expect(result.packed).toEqual(
+        [{path: 'assets/example/textures/entity/lizard.png', bytes: BYTES}]);
     expect(result.issues).toEqual([]);
   });
 

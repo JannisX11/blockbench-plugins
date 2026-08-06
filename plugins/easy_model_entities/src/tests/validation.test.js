@@ -66,6 +66,54 @@ describe('validateSettings', () => {
         (c) => c === 'INVALID_DIMENSIONS').length).toBeGreaterThanOrEqual(2);
   });
 
+  test('rejects dimensions larger than the mod accepts', () => {
+    const s = fixtureSettings();
+    s.dimensions = {width: 9, height: 12, eyeHeight: 1};
+    const result = Validator.validateSettings(s,
+        {hasModel: true, hasTexture: true});
+    expect(codes(result.errors).filter(
+        (c) => c === 'INVALID_DIMENSIONS').length).toBe(2);
+  });
+
+  test('rejects movement values outside the mod range', () => {
+    const s = fixtureSettings();
+    s.movement = {speed: 3, stepHeight: -0.5, gravity: true};
+    const result = Validator.validateSettings(s,
+        {hasModel: true, hasTexture: true});
+    expect(codes(result.errors).filter(
+        (c) => c === 'INVALID_MOVEMENT').length).toBe(2);
+  });
+
+  test('rejects negative attributes', () => {
+    const s = fixtureSettings();
+    s.attributes = {maxHealth: -1, movementSpeed: -1, followRange: -1};
+    const result = Validator.validateSettings(s,
+        {hasModel: true, hasTexture: true});
+    expect(codes(result.errors).filter(
+        (c) => c === 'INVALID_ATTRIBUTES').length).toBe(3);
+  });
+
+  test('rejects a non-positive scale and negative render settings', () => {
+    const s = fixtureSettings();
+    s.rendering.scale = 0;
+    s.rendering.shadowRadius = -0.5;
+    s.rendering.visibleBoundsWidth = -1;
+    const result = Validator.validateSettings(s,
+        {hasModel: true, hasTexture: true});
+    expect(codes(result.errors).filter(
+        (c) => c === 'INVALID_RENDER_SETTINGS').length).toBe(3);
+  });
+
+  test('rejects negative animation settings', () => {
+    const s = fixtureSettings();
+    s.animation.swingSpeed = -1;
+    s.animation.idleStrength = -1;
+    const result = Validator.validateSettings(s,
+        {hasModel: true, hasTexture: true});
+    expect(codes(result.errors).filter(
+        (c) => c === 'INVALID_ANIMATION_SETTINGS').length).toBe(2);
+  });
+
   test('rejects NaN/Infinity dimensions', () => {
     const s = fixtureSettings();
     s.dimensions = {width: NaN, height: Infinity, eyeHeight: 0.5};
@@ -160,10 +208,15 @@ describe('validateSettings', () => {
     const result = Validator.validateSettings(fixtureSettings(), {
       hasModel: true,
       hasTexture: true,
-      animationCount: 2,
+      animationCount: 3,
       animations: [
         {name: 'idle', channels: ['rotation'], hasExpression: false},
-        {name: 'WALK', channels: ['rotation', 'position'], hasExpression: false}
+        {
+          name: 'WALK',
+          channels: ['rotation', 'position'],
+          hasExpression: false
+        },
+        {name: 'sit', channels: ['rotation'], hasExpression: false}
       ],
       boneNames: QUADRUPED_BONES
     });
@@ -171,7 +224,7 @@ describe('validateSettings', () => {
     expect(result.warnings).toHaveLength(0);
   });
 
-  test('warns about animations the mod ignores or drops', () => {
+  test('warns about custom clips and animations the mod drops', () => {
     const result = Validator.validateSettings(fixtureSettings(), {
       hasModel: true,
       hasTexture: true,
@@ -186,9 +239,47 @@ describe('validateSettings', () => {
     expect(result.valid).toBe(true);
     expect(codes(result.warnings)).toEqual(
         expect.arrayContaining(
-            ['NON_STANDARD_ANIMATION', 'UNSUPPORTED_ANIMATION_EXPRESSION',
+            ['CUSTOM_ANIMATION_CLIP', 'UNSUPPORTED_ANIMATION_EXPRESSION',
               'UNSUPPORTED_ANIMATION_CHANNEL'])
     );
+  });
+
+  test('warns when the preset silences the clips of the project', () => {
+    const s = fixtureSettings();
+    s.presetType = 'statue';
+    s.host.bodyType = 'static';
+    s.animation.mode = 'none';
+    const result = Validator.validateSettings(s, {
+      hasModel: true,
+      hasTexture: true,
+      animations: [{name: 'idle'}, {name: 'walk'}]
+    });
+    expect(result.valid).toBe(true);
+    expect(codes(result.warnings)).toContain('ANIMATIONS_NEVER_PLAYED');
+    expect(result.warnings.find(
+        (warning) => warning.code === 'ANIMATIONS_NEVER_PLAYED').message)
+    .toContain('idle, walk');
+  });
+
+  test('animated presets with clips produce no animation warning', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      boneNames: QUADRUPED_BONES,
+      animations: [{name: 'idle'}]
+    });
+    expect(codes(result.warnings)).not.toContain('ANIMATIONS_NEVER_PLAYED');
+  });
+
+  test('warns about textures that stay a reference', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      boneNames: QUADRUPED_BONES,
+      referencedTextures: ['othermod:textures/entity/thing.png']
+    });
+    expect(result.valid).toBe(true);
+    expect(codes(result.warnings)).toContain('EXTERNAL_TEXTURE_REFERENCE');
   });
 
   test('warns about missing body parts per body type', () => {

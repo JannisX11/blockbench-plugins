@@ -21,6 +21,8 @@ const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
+const {EXPORT_TYPE_DATA_PACK} = require('../model/exportTypes');
+const {Validator} = require('../model/Validator');
 const {t} = require('../i18n/translations');
 const {
   presetOptions,
@@ -47,6 +49,7 @@ function advancedField(field, showCustomize) {
 }
 
 function buildFormConfig(settings, ui) {
+  const limits = Validator.LIMITS;
   const values = settingsToForm(settings);
   const state = ui || {};
   const allowCustomize = !!state.showCustomization;
@@ -109,6 +112,16 @@ function buildFormConfig(settings, ui) {
     }
   };
 
+  if (state.hasExternalTextures) {
+    config.includeExternalTextures = {
+      label: t('eme.field.includeExternalTextures'),
+      description: t('eme.field.includeExternalTexturesDescription'),
+      type: 'checkbox',
+      value: settings.includeExternalTextures !== false,
+      condition: (form) => form.exportType !== EXPORT_TYPE_DATA_PACK
+    };
+  }
+
   if (allowCustomize) {
     config.customize = {
       label: t('eme.field.customize'),
@@ -145,17 +158,18 @@ function buildFormConfig(settings, ui) {
     width: advancedField(
         {
           label: t('eme.field.width'), type: 'number', value: values.width,
-          step: 0.1
+          step: 0.1, min: limits.minDimension, max: limits.maxDimension
         }, showServer),
     height: advancedField(
         {
           label: t('eme.field.height'), type: 'number', value: values.height,
-          step: 0.1
+          step: 0.1, min: limits.minDimension, max: limits.maxDimension
         }, showServer),
     eyeHeight: advancedField(
         {
           label: t('eme.field.eyeHeight'), type: 'number',
-          value: values.eyeHeight, step: 0.1
+          value: values.eyeHeight, step: 0.1, min: 0,
+          max: limits.maxDimension
         }, showServer),
 
     movement_header: advancedField(
@@ -163,12 +177,13 @@ function buildFormConfig(settings, ui) {
     speed: advancedField(
         {
           label: t('eme.field.speed'), type: 'number', value: values.speed,
-          step: 0.01
+          step: 0.01, min: 0, max: limits.maxMovementSpeed
         }, showEntity),
     stepHeight: advancedField(
         {
           label: t('eme.field.stepHeight'), type: 'number',
-          value: values.stepHeight, step: 0.1
+          value: values.stepHeight, step: 0.1, min: 0,
+          max: limits.maxStepHeight
         }, showEntity),
     gravity: advancedField(
         {
@@ -191,17 +206,17 @@ function buildFormConfig(settings, ui) {
     maxHealth: advancedField(
         {
           label: t('eme.field.maxHealth'), type: 'number',
-          value: values.maxHealth, step: 0.5
+          value: values.maxHealth, step: 0.5, min: 0
         }, showEntity),
     movementSpeed: advancedField(
         {
           label: t('eme.field.movementSpeed'), type: 'number',
-          value: values.movementSpeed, step: 0.01
+          value: values.movementSpeed, step: 0.01, min: 0
         }, showEntity),
     followRange: advancedField(
         {
           label: t('eme.field.followRange'), type: 'number',
-          value: values.followRange, step: 1
+          value: values.followRange, step: 1, min: 0
         }, showEntity),
 
     rendering_header: advancedField(
@@ -210,22 +225,22 @@ function buildFormConfig(settings, ui) {
     scale: advancedField(
         {
           label: t('eme.field.scale'), type: 'number', value: values.scale,
-          step: 0.1
+          step: 0.1, min: limits.minDimension
         }, showRender),
     shadowRadius: advancedField(
         {
           label: t('eme.field.shadowRadius'), type: 'number',
-          value: values.shadowRadius, step: 0.1
+          value: values.shadowRadius, step: 0.1, min: 0
         }, showRender),
     visibleBoundsWidth: advancedField(
         {
           label: t('eme.field.visibleBoundsWidth'), type: 'number',
-          value: values.visibleBoundsWidth, step: 0.1
+          value: values.visibleBoundsWidth, step: 0.1, min: 0
         }, showRender),
     visibleBoundsHeight: advancedField(
         {
           label: t('eme.field.visibleBoundsHeight'), type: 'number',
-          value: values.visibleBoundsHeight, step: 0.1
+          value: values.visibleBoundsHeight, step: 0.1, min: 0
         }, showRender),
     visibleBoundsOffsetX: advancedField(
         {
@@ -255,17 +270,17 @@ function buildFormConfig(settings, ui) {
     swingSpeed: advancedField(
         {
           label: t('eme.field.swingSpeed'), type: 'number',
-          value: values.swingSpeed, step: 0.1
+          value: values.swingSpeed, step: 0.1, min: 0
         }, showRender),
     walkSpeedMultiplier: advancedField(
         {
           label: t('eme.field.walkSpeedMultiplier'), type: 'number',
-          value: values.walkSpeedMultiplier, step: 0.1
+          value: values.walkSpeedMultiplier, step: 0.1, min: 0
         }, showRender),
     idleStrength: advancedField(
         {
           label: t('eme.field.idleStrength'), type: 'number',
-          value: values.idleStrength, step: 0.1
+          value: values.idleStrength, step: 0.1, min: 0
         }, showRender),
     gait: advancedField({
       label: t('eme.field.gait'),
@@ -295,7 +310,8 @@ function openExportDialog(options) {
       exportType: options.exportType,
       customize: options.customize,
       showCustomization: options.showCustomization,
-      experimental: options.experimental
+      experimental: options.experimental,
+      hasExternalTextures: options.hasExternalTextures
     }),
     onFormChange(form) {
       const modelType = activeModelType(form);

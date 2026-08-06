@@ -18,6 +18,7 @@
  */
 
 const {Validator} = require('./model/Validator');
+const {parseExternalLocation} = require('./utils/TextureResolver');
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -56,6 +57,21 @@ class BlockbenchAdapter {
       path: texture.path || '',
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
+  }
+
+  static #externalTextureLocations() {
+    if (typeof Texture === 'undefined' || !Texture.all) {
+      return [];
+    }
+
+    return Texture.all
+    .map((texture) => parseExternalLocation({
+      namespace: texture.namespace,
+      folder: texture.folder,
+      name: texture.name,
+      path: texture.path
+    }))
+    .filter((location) => location && !location.startsWith('minecraft:'));
   }
 
   static #isNumericValue(value) {
@@ -125,6 +141,7 @@ class BlockbenchAdapter {
           (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
       boneNames: groups.map((group) => group.name),
+      externalTextures: BlockbenchAdapter.#externalTextureLocations(),
       textureWidth: texture ? texture.width : undefined,
       textureHeight: texture ? texture.height : undefined
     };
@@ -196,7 +213,8 @@ class BlockbenchAdapter {
     }
 
     const stored = Project[BlockbenchAdapter.PROJECT_PROPERTY];
-    if (stored && typeof stored === 'object') {
+    if (stored && typeof stored === 'object' && Object.keys(stored).length
+        > 0) {
       return structuredClone(stored);
     }
 

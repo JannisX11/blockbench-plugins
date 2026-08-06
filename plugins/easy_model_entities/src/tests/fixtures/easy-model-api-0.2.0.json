@@ -1,5 +1,10 @@
 {
   "schema_version": "0.2.0",
+  "api_version": "2.0.0",
+  "supported_schema_versions": [
+    "0.1.0",
+    "0.2.0"
+  ],
   "budgets": {
     "max_model_file_size_bytes": 2097152,
     "soft_model_file_size_bytes": 1048576,
@@ -75,6 +80,18 @@
       "random_idle",
       "none"
     ],
+    "animation_states": [
+      "auto",
+      "idle",
+      "walk",
+      "run",
+      "hurt",
+      "death",
+      "swim",
+      "fly",
+      "attack",
+      "sit"
+    ],
     "animation_clips": [
       "idle",
       "walk",
@@ -82,7 +99,26 @@
       "fly",
       "hurt",
       "death",
-      "attack"
+      "attack",
+      "sit"
+    ],
+    "animation_loops": [
+      "clip",
+      "loop",
+      "once"
+    ],
+    "animation_switch_timings": [
+      "immediate",
+      "after_current"
+    ],
+    "playback_modes": [
+      "once",
+      "loop",
+      "repeat"
+    ],
+    "animation_types": [
+      "standard",
+      "custom"
     ],
     "gaits": [
       "natural",

@@ -22,6 +22,7 @@ const {buildRenderProfile} = require('./renderProfile');
 const {buildDataPackMcmeta, buildResourcePackMcmeta} = require('./packMeta');
 const {buildReadme} = require('./readme');
 const {hashString} = require('../utils/hash');
+const {MODEL_TYPE_ENTITY} = require('../model/presetTypes');
 const {
   EXPORT_TYPE_PACKS,
   includesDataPack,
@@ -62,7 +63,7 @@ function buildProfiles(settings, textureResolution) {
 function dataPaths(settings) {
   const namespace = settings.namespace;
   const id = settings.profileId;
-  const modelType = settings.modelType || 'entity';
+  const modelType = settings.modelType || MODEL_TYPE_ENTITY;
 
   return {
     profile: `data/${namespace}/easy_model_entities/profiles/${modelType}/${id}.json`,
@@ -72,12 +73,11 @@ function dataPaths(settings) {
   };
 }
 
-function textureFiles(settings, textureResolution) {
-  const namespace = settings.namespace;
+function textureFiles(textureResolution) {
   const packed = (textureResolution && textureResolution.packed) || [];
 
   return packed.map((entry) => ({
-    path: `assets/${namespace}/textures/entity/${entry.fileName}`,
+    path: entry.path,
     content: entry.bytes,
     binary: true
   }));
@@ -105,7 +105,7 @@ function resourcepackFiles(settings, renderProfile, options) {
     },
     {path: paths.renderProfile, content: toJson(renderProfile), binary: false},
     {path: paths.model, content: options.modelBytes, binary: true},
-    ...textureFiles(settings, options.textureResolution)
+    ...textureFiles(options.textureResolution)
   ];
 }
 
@@ -162,7 +162,7 @@ function buildModProjectFiles(settings, options) {
         binary: false
       },
       {path: paths.model, content: opts.modelBytes, binary: true},
-      ...textureFiles(settings, opts.textureResolution));
+      ...textureFiles(opts.textureResolution));
 
   return {files, serverProfile, renderProfile};
 }

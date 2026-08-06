@@ -17,8 +17,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {standardClipNames} = require('./presetTypes');
+
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
+  static #ANIMATED_FALLBACK_PRESET = 'floating_still';
 
   static #names(stats) {
     const boneNames = (stats && stats.boneNames) || [];
@@ -92,6 +95,13 @@ class PresetDetector {
       if (extents.y < Math.max(extents.x, extents.z) * 0.5) {
         return {presetType: 'aquatic_still', reason: 'flat proportions'};
       }
+    }
+
+    if (standardClipNames(stats && stats.animations).length > 0) {
+      return {
+        presetType: PresetDetector.#ANIMATED_FALLBACK_PRESET,
+        reason: 'animation clips without distinguishing limbs'
+      };
     }
 
     return {presetType: 'statue', reason: 'no distinguishing limbs'};

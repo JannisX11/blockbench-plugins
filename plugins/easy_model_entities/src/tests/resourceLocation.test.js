@@ -40,16 +40,13 @@ describe('resourceLocation', () => {
     expect(ResourceLocation.isValidPath('Upper')).toBe(false);
   });
 
-  test('validates and parses full resource locations', () => {
+  test('validates full resource locations', () => {
     expect(ResourceLocation.isValidResourceLocation('example:lizard')).toBe(
         true);
     expect(ResourceLocation.isValidResourceLocation(
         'easy_model_entities:ground_entity')).toBe(true);
     expect(ResourceLocation.isValidResourceLocation('no_colon')).toBe(false);
     expect(ResourceLocation.isValidResourceLocation('a:b:c')).toBe(false);
-    expect(ResourceLocation.parseResourceLocation('example:lizard')).toEqual(
-        {namespace: 'example', path: 'lizard'});
-    expect(ResourceLocation.parseResourceLocation('bad')).toBeNull();
   });
 });
 

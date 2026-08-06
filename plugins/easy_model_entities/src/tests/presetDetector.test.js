@@ -81,6 +81,22 @@ describe('PresetDetector.detectPresetType', () => {
     expect(PresetDetector.detectPresetType(stats(undefined))).toBe('statue');
   });
 
+  test('prefers an animated preset over statue when clips exist', () => {
+    const animated = {
+      boneNames: ['root', 'body', 'head'],
+      animations: [{name: 'idle'}, {name: 'dance'}]
+    };
+    expect(PresetDetector.detectPresetType(animated)).toBe('floating_still');
+  });
+
+  test('keeps statue when only custom clips exist', () => {
+    const animated = {
+      boneNames: ['root', 'body', 'head'],
+      animations: [{name: 'dance'}]
+    };
+    expect(PresetDetector.detectPresetType(animated)).toBe('statue');
+  });
+
   test('detect returns a human readable reason', () => {
     const result = PresetDetector.detect(stats(['front_left_leg']));
     expect(result.presetType).toBe('quadruped_still');

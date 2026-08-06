@@ -168,6 +168,7 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
     settings = formToSettings(form, settings);
   }
   settings.customize = !!form.customize;
+  settings.includeExternalTextures = form.includeExternalTextures !== false;
   settings.lastExportedVersion = base.lastExportedVersion;
   settings.exportType = exportType;
   settings.exportTarget = isZipExport(exportType)

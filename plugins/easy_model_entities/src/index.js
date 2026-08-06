@@ -23,6 +23,10 @@ const {
   applyTemplate,
   DEFAULT_PRESET
 } = require('./model/templates');
+const {
+  MODEL_TYPE_ENTITY,
+  MODEL_TYPE_BLOCK_ENTITY
+} = require('./model/presetTypes');
 const {ModelDimensions} = require('./model/ModelDimensions');
 const {VisibleBounds} = require('./model/VisibleBounds');
 const {PresetDetector} = require('./model/PresetDetector');
@@ -32,16 +36,9 @@ const {patchTexturePanel, unpatchTexturePanel} = require('./ui/texturePanel');
 const {Validator} = require('./model/Validator');
 const {
   EXPORT_TYPE_PACKS,
-  EXPORT_TYPE_RESOURCE_PACK,
-  EXPORT_TYPE_DATA_PACK,
-  EXPORT_TYPE_MOD_PROJECT,
   isSinglePackExport
 } = require('./model/exportTypes');
-const {
-  buildPackBundle,
-  buildModProjectFiles,
-  pairingVersion
-} = require('./builders/exporter');
+const {performExport} = require('./exportFlow');
 const {BlockbenchAdapter} = require('./BlockbenchAdapter');
 const {openExportDialog} = require('./ui/exportDialog');
 const {registerTranslations, t} = require('./i18n/translations');
@@ -63,20 +60,8 @@ let projectProperty;
 let customizationSetting;
 let experimentalSetting;
 
-function customizationEnabled() {
-  if (customizationSetting && typeof customizationSetting.value === 'boolean') {
-    return customizationSetting.value;
-  }
-
-  return false;
-}
-
-function experimentalEnabled() {
-  if (experimentalSetting && typeof experimentalSetting.value === 'boolean') {
-    return experimentalSetting.value;
-  }
-
-  return false;
+function settingEnabled(setting) {
+  return !!setting && typeof setting.value === 'boolean' && setting.value;
 }
 
 function resolveDialogState() {
@@ -94,10 +79,10 @@ function resolveDialogState() {
 
   if (storedSettings) {
     settings = deepMerge(getDefaults(), storedSettings);
-    modelType = settings.modelType || 'entity';
+    modelType = settings.modelType || MODEL_TYPE_ENTITY;
     customize = !!storedSettings.customize;
     exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
-    if (modelType === 'block_entity') {
+    if (modelType === MODEL_TYPE_BLOCK_ENTITY) {
       preset = 'custom';
       blockPreset = settings.presetType || 'static';
     } else {
@@ -107,12 +92,16 @@ function resolveDialogState() {
   } else {
     preset = PresetDetector.detectPresetType(stats, bounds);
     blockPreset = 'static';
-    modelType = 'entity';
+    modelType = MODEL_TYPE_ENTITY;
     settings = applyTemplate(preset);
-    ModelDimensions.applyModelDimensions(settings,
-        ModelDimensions.deriveDimensions(bounds, settings.host.bodyType));
     customize = false;
-    exportType = 'packs';
+    exportType = EXPORT_TYPE_PACKS;
+  }
+
+  const modelDimensions = ModelDimensions.deriveDimensions(bounds,
+      settings.host.bodyType);
+  if (!storedSettings) {
+    ModelDimensions.applyModelDimensions(settings, modelDimensions);
   }
 
   const projectName = BlockbenchAdapter.getProjectName();
@@ -128,9 +117,8 @@ function resolveDialogState() {
 
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
-    visibleBounds,
-    modelDimensions: ModelDimensions.deriveDimensions(bounds,
-        settings.host.bodyType)
+    visibleBounds, modelDimensions,
+    hasExternalTextures: (stats.externalTextures || []).length > 0
   };
 }
 
@@ -139,7 +127,8 @@ function formatIssues(issues) {
 }
 
 function pairingWarnings(settings) {
-  if (!isSinglePackExport(settings.exportType) || settings.lastExportedVersion) {
+  if (!isSinglePackExport(settings.exportType)
+      || settings.lastExportedVersion) {
     return [];
   }
 
@@ -155,7 +144,8 @@ function runExport(settings, target) {
       BlockbenchAdapter.collectTextures(), settings);
   const result = Validator.validateSettings(settings, {
     ...BlockbenchAdapter.getModelStats(),
-    textureIssues: textureResolution.issues
+    textureIssues: textureResolution.issues,
+    referencedTextures: textureResolution.referencedOnly
   });
   const warnings = [...result.warnings, ...pairingWarnings(settings)];
 
@@ -191,90 +181,6 @@ function runExport(settings, target) {
   }
 }
 
-function performExport(settings, target, textureResolution) {
-  const options = {
-    modelBytes: BlockbenchAdapter.getModelBytes(),
-    textureResolution
-  };
-
-  BlockbenchAdapter.saveSettings({
-    ...settings,
-    lastExportedVersion: pairingVersion(settings)
-  });
-
-  if (target === EXPORT_TYPE_MOD_PROJECT) {
-    exportToModProject(settings, options);
-  } else {
-    exportToZip(settings, options);
-  }
-}
-
-function zipExportName(settings) {
-  const base = `${settings.namespace}_${settings.profileId}`;
-  if (settings.exportType === EXPORT_TYPE_RESOURCE_PACK) {
-    return `${base}_resourcepack`;
-  }
-
-  if (settings.exportType === EXPORT_TYPE_DATA_PACK) {
-    return `${base}_datapack`;
-  }
-
-  return `${base}_eme`;
-}
-
-function exportToZip(settings, options) {
-  BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options), zipExportName(settings))
-  .then(() => {
-    Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
-  })
-  .catch((error) => {
-    Blockbench.showMessageBox({title: 'Export failed', message: String(error)});
-  });
-}
-
-function exportToModProject(settings, options) {
-  const rootDir = BlockbenchAdapter.pickDirectory(
-      'Select src/main/resources directory');
-  if (!rootDir) {
-    return;
-  }
-
-  const {files} = buildModProjectFiles(settings, options);
-  const existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
-
-  const write = () => {
-    try {
-      BlockbenchAdapter.writeToDirectory(rootDir, files);
-      Blockbench.showQuickMessage(
-          'Easy Model Entities files written to mod project', 1500);
-    } catch (error) {
-      Blockbench.showMessageBox(
-          {title: 'Export failed', message: String(error)});
-    }
-  };
-
-  if (existing.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: 'Overwrite existing files?',
-          message: `${existing.length} file(s) already exist and will be overwritten:\n\n`
-              + existing.join('\n'),
-          buttons: ['Overwrite', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            write();
-          }
-        }
-    );
-  } else {
-    write();
-  }
-}
-
 function openDialog() {
   if (!Project) {
     Blockbench.showQuickMessage('Open a project first', 1500);
@@ -289,10 +195,11 @@ function openDialog() {
     modelType: state.modelType,
     customize: state.customize,
     exportType: state.exportType,
-    showCustomization: customizationEnabled(),
-    experimental: experimentalEnabled(),
+    showCustomization: settingEnabled(customizationSetting),
+    experimental: settingEnabled(experimentalSetting),
     modelDimensions: state.modelDimensions,
     visibleBounds: state.visibleBounds,
+    hasExternalTextures: state.hasExternalTextures,
     onExport: runExport
   });
 }

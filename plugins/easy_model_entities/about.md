@@ -21,43 +21,52 @@ Your model becomes a spawnable entity or a block entity, with a spawn item in th
 inventory. Size, movement and behavior come from a **fixed set of presets** built into the mod
 (wandering, swimming, flying, standing still and so on) — you pick one, you do not script your own.
 
-Animations are played from your Blockbench clips, but only these names are recognised:
+Animations are played from your Blockbench clips. These names are played automatically:
 
-| Clip | When it plays |
-| --- | --- |
-| `idle` | standing still |
-| `walk` | moving on the ground |
-| `swim` | moving in water |
-| `fly` | flying |
-| `attack` | attacking |
+| Clip     | When it plays        |
+|----------|----------------------|
+| `idle`   | standing still       |
+| `walk`   | moving on the ground |
+| `swim`   | moving in water      |
+| `fly`    | flying               |
+| `attack` | attacking            |
+| `sit`    | sitting              |
 
-`hurt` and `death` clips are loaded too, but the mod does not trigger them on its own — they need
-the `set_animation` command or another mod driving them. Clips with any other name are ignored, and
-a model without a matching clip simply renders without animation.
+`hurt` and `death` clips are loaded too, but the mod does not trigger them on its own. Clips with
+any other name are kept as custom clips and are played by name via the
+`/easy_model_entities animation` command or by another mod. A model without a matching clip simply
+renders without animation.
 
 ## How to use
 
-1. Open or create your model in Blockbench using the **Easy Model Entity** format
-   (File > New > Easy Model Entity). The built-in **Modded Entity** format also works. Block and
-   item formats are not supported.
+1. Open or create your model in Blockbench using the **Easy Model Entity** format (File > New > Easy
+   Model Entity). The built-in **Modded Entity** format also works. Block and item formats are not
+   supported.
 2. Run **File > Export > Export Easy Model Entity**.
 3. Choose the **Export Type**:
-   - **Complete: Data Pack + Resource Pack (ZIP)** — one archive with both packs and a README that
-     explains how to install them. Use this the first time and for sharing.
-   - **Update: Resource Pack only (ZIP)** — after changing the model, texture or animations.
-   - **Update: Data Pack only (ZIP)** — after changing entity data such as size or movement.
-   - **Standalone: write into mod project** — writes all files into a selected `src/main/resources`
-     directory.
-   - **Model only: mod integration (no data pack)** — writes only the render profile, model and
-     texture. Use this when your mod ships its own entity classes and needs the visual side only.
+
+- **Complete: Data Pack + Resource Pack (ZIP)** — one archive with both packs and a README that
+  explains how to install them. Use this the first time and for sharing.
+- **Update: Resource Pack only (ZIP)** — after changing the model, texture or animations.
+- **Update: Data Pack only (ZIP)** — after changing entity data such as size or movement.
+- **Standalone: write into mod project** — writes all files into a selected `src/main/resources`
+  directory.
+- **Model only: mod integration (no data pack)** — writes only the render profile, model and
+  texture. Use this when your mod ships its own entity classes and needs the visual side only.
+
 4. Choose the **Type** (not shown for *Model only*, which is always an entity):
-   - **Entity** — a living entity controlled by the mod's built-in AI presets.
-   - **Block Entity** — a static block that can play animations.
+
+- **Entity** — a living entity controlled by the mod's built-in AI presets.
+- **Block Entity** — a static block that can play animations.
+
 5. Pick a **Preset** that matches your model. The plugin auto-detects a fitting one from your bone
    names, so most models need nothing else. Tick **Customize settings** (requires the *Show advanced
    customization* Blockbench setting) only to fine-tune dimensions, movement, attributes, rendering
    or animation.
 6. Set the **Namespace (mod id)** and **Profile ID**, and choose the Minecraft target version.
+7. If the project uses textures from another namespace, **Include external textures** decides
+   whether they are copied into the resource pack (default) or only referenced. Referenced textures
+   need the mod or pack that provides them; vanilla `minecraft:` textures are never copied.
 
 The two update exports save you from re-installing both packs for a small change. They keep the
 pairing of your last full export, so the updated pack still matches the one already installed. If

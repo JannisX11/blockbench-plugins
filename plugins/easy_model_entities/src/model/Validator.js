@@ -22,7 +22,8 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_CLIPS,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  standardClipNames
 } = require('./presetTypes');
 
 const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
@@ -40,6 +41,13 @@ class Validator {
     maxHierarchyDepth: 32,
     softHierarchyDepth: 24,
     maxAnimationCount: 16
+  };
+
+  static LIMITS = {
+    minDimension: 0.01,
+    maxDimension: 8,
+    maxMovementSpeed: 2,
+    maxStepHeight: 2
   };
 
   static REQUIRED_BODY_PARTS = {
@@ -64,6 +72,31 @@ class Validator {
     }
 
     return true;
+  }
+
+  static #validateRange(errors, code, label, value, minimum, maximum) {
+    if (!Validator.#validateNumeric(errors, label, value)
+        || (value >= minimum && value <= maximum)) {
+      return;
+    }
+
+    errors.push({
+      code: code,
+      message: `${label} must be between ${minimum} and ${maximum}`
+    });
+  }
+
+  static #validateNonNegative(errors, code, label, value) {
+    Validator.#validateRange(errors, code, label, value, 0,
+        Number.MAX_VALUE);
+  }
+
+  static #validatePositive(errors, code, label, value) {
+    if (!Validator.#validateNumeric(errors, label, value) || value > 0) {
+      return;
+    }
+
+    errors.push({code: code, message: `${label} must be greater than 0`});
   }
 
   static #warnIfOverBudget(warnings, value, soft, max, softWarning,
@@ -126,42 +159,46 @@ class Validator {
       });
     }
 
+    const limits = Validator.LIMITS;
     const {width, height, eyeHeight} = settings.dimensions;
-    const widthValid = Validator.#validateNumeric(errors, 'dimensions.width',
-        width);
-    const heightValid = Validator.#validateNumeric(errors, 'dimensions.height',
-        height);
-    const eyeValid = Validator.#validateNumeric(errors, 'dimensions.eye_height',
-        eyeHeight);
-    if (widthValid && width <= 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'width must be greater than 0'
-      });
-    }
-    if (heightValid && height <= 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'height must be greater than 0'
-      });
-    }
-    if (eyeValid && eyeHeight < 0) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'eye_height must not be negative'
-      });
-    }
-    if (eyeValid && heightValid && eyeHeight > height) {
-      errors.push({
-        code: 'INVALID_DIMENSIONS',
-        message: 'eye_height must not exceed height'
-      });
-    }
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.width',
+        width, limits.minDimension, limits.maxDimension);
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.height',
+        height, limits.minDimension, limits.maxDimension);
+    Validator.#validateRange(errors, 'INVALID_DIMENSIONS',
+        'dimensions.eye_height', eyeHeight, 0,
+        Number.isFinite(height) ? height : limits.maxDimension);
 
-    Validator.#validateNumeric(errors, 'movement.speed',
-        settings.movement.speed);
-    Validator.#validateNumeric(errors, 'movement.step_height',
-        settings.movement.stepHeight);
+    Validator.#validateRange(errors, 'INVALID_MOVEMENT', 'movement.speed',
+        settings.movement.speed, 0, limits.maxMovementSpeed);
+    Validator.#validateRange(errors, 'INVALID_MOVEMENT',
+        'movement.step_height', settings.movement.stepHeight, 0,
+        limits.maxStepHeight);
+
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.max_health', settings.attributes.maxHealth);
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.movement_speed', settings.attributes.movementSpeed);
+    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
+        'attributes.follow_range', settings.attributes.followRange);
+
+    const rendering = settings.rendering;
+    Validator.#validatePositive(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.scale', rendering.scale);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.shadow_radius', rendering.shadowRadius);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.visible_bounds_width', rendering.visibleBoundsWidth ?? 0);
+    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
+        'rendering.visible_bounds_height', rendering.visibleBoundsHeight ?? 0);
+
+    const animation = settings.animation;
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.swing_speed', animation.swingSpeed);
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.walk_speed_multiplier', animation.walkSpeedMultiplier);
+    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
+        'animation.idle_strength', animation.idleStrength ?? 1);
 
     if (ctx.hasModel === false) {
       errors.push(
@@ -172,6 +209,17 @@ class Validator {
           {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
     }
     (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
+
+    const referencedTextures = ctx.referencedTextures || [];
+    if (referencedTextures.length > 0) {
+      warnings.push({
+        code: 'EXTERNAL_TEXTURE_REFERENCE',
+        message: `${referencedTextures.join(
+                ', ')} stays a reference and is not `
+            + 'part of the export; the mod or pack providing it has to be '
+            + 'installed, or enable "Include external textures"'
+      });
+    }
 
     if (Validator.#isFiniteNumber(ctx.textureWidth)
         && Validator.#isFiniteNumber(ctx.textureHeight)) {
@@ -238,9 +286,9 @@ class Validator {
       const name = String(animation.name || '').toLowerCase();
       if (!ANIMATION_CLIPS.includes(name)) {
         warnings.push({
-          code: 'NON_STANDARD_ANIMATION',
+          code: 'CUSTOM_ANIMATION_CLIP',
           message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
-              ', ')} and is ignored by the mod`
+              ', ')} and is never played automatically; it can only be played by name via command or API`
         });
       }
       if (animation.hasExpression) {
@@ -258,6 +306,19 @@ class Validator {
         }
       });
     });
+
+    const clipNames = standardClipNames(ctx.animations);
+    if (!blockEntity && clipNames.length > 0
+        && (settings.animation.mode === 'none'
+            || settings.host.bodyType === 'static')) {
+      warnings.push({
+        code: 'ANIMATIONS_NEVER_PLAYED',
+        message: `The preset ${settings.presetType} renders without animation, `
+            + `so the mod never plays ${clipNames.join(
+                ', ')}; pick an animated `
+            + 'preset instead'
+      });
+    }
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {

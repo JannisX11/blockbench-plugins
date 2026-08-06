@@ -58,7 +58,7 @@ block entities in **Easy Model Block Entities**. Place it like a spawn egg.
 Movement and behavior come from a fixed set of presets built into the mod — wandering, swimming,
 flying, standing still and so on. The preset was chosen at export time.
 
-Animations are played from the clips in the Blockbench project. The mod recognises these names:
+Animations are played from the clips in the Blockbench project. These names play automatically:
 
 | Clip     | When it plays        |
 |----------|----------------------|
@@ -67,12 +67,14 @@ Animations are played from the clips in the Blockbench project. The mod recognis
 | `swim`   | moving in water      |
 | `fly`    | flying               |
 | `attack` | attacking            |
+| `sit`    | sitting              |
 
-Clips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own —
-they need the `/easy_model_entities set_animation` command or another mod driving them.
+Clips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own.
+Clips with any other name are kept as custom clips and are played by name, for example with
+`/easy_model_entities animation play entity <targets> <clip>`.
 
-Everything else is ignored: clips with other names are not played, and there is no scripting or
-custom AI. A model without any matching clip simply renders without animation.
+There is no scripting or custom AI. A model without any matching clip simply renders without
+animation.
 
 ## Updating this pack
 

@@ -52,14 +52,6 @@ class ResourceLocation {
         && ResourceLocation.isValidPath(parts[1]);
   }
 
-  static parseResourceLocation(value) {
-    if (!ResourceLocation.isValidResourceLocation(value)) {
-      return null;
-    }
-    const parts = value.split(':');
-    return {namespace: parts[0], path: parts[1]};
-  }
-
   static buildResourceLocation(namespace, path) {
     return `${namespace}:${path}`;
   }

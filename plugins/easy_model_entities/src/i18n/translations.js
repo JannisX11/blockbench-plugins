@@ -28,6 +28,10 @@ const EN = {
   'eme.field.exportType': 'Export Type',
   'eme.field.modelType': 'Type',
   'eme.field.customize': 'Customize settings',
+  'eme.field.includeExternalTextures': 'Include external textures',
+  'eme.field.includeExternalTexturesDescription':
+      'Copy textures from other namespaces into the resource pack instead of '
+      + 'only referencing them. Vanilla minecraft: textures are never copied.',
   'eme.field.hostEntityType': 'Host Entity Type',
   'eme.field.movementType': 'Movement Type',
   'eme.field.bodyType': 'Body Type',
@@ -133,6 +137,10 @@ const DE = {
   'eme.field.exportType': 'Export-Typ',
   'eme.field.modelType': 'Typ',
   'eme.field.customize': 'Einstellungen anpassen',
+  'eme.field.includeExternalTextures': 'Externe Texturen mitliefern',
+  'eme.field.includeExternalTexturesDescription':
+      'Texturen aus anderen Namespaces ins Resource Pack kopieren statt sie nur '
+      + 'zu referenzieren. Vanilla-Texturen (minecraft:) werden nie kopiert.',
   'eme.field.hostEntityType': 'Host-Entität',
   'eme.field.movementType': 'Bewegungsart',
   'eme.field.bodyType': 'Körpertyp',
