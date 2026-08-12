@@ -1,4 +1,15 @@
 {
+	"recolor_by_hue": {
+		"title": "Recolor by Hue",
+		"author": "Cmetanochkaa (Cmetanochka Creations)",
+		"icon": "tune",
+		"description": "Shift hue / saturation / lightness / contrast of a texture or selection. Live preview on the model.",
+		"version": "1.2.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"website": "https://discord.gg/Xjp4ApB2qg",
+		"tags": ["Color","Texture"]
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
