@@ -159,7 +159,7 @@
         title: 'Onion Skin',
         author: 'Cmetanochkaa (Cmetanochka Creations)',
         website: 'https://discord.gg/Xjp4ApB2qg',
-        icon: 'auto_awesome_motion',
+        icon: 'icon.png',
         description: L('Полупрозрачные «призраки» модели на соседних ключевых кадрах — помогает выверять дуги движения. Красные = предыдущие кадры, зелёные = следующие.', 'Semi-transparent "ghosts" of the model on neighboring keyframes — helps you refine motion arcs. Red = previous keyframes, green = next.'),
         version: '1.0.0',
         variant: 'both',
