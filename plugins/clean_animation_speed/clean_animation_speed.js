@@ -110,7 +110,7 @@
     Plugin.register('clean_animation_speed', {
         title: 'Clean Animation Speed',
         author: 'Cmetanochkaa (Cmetanochka Creations)', website: 'https://discord.gg/Xjp4ApB2qg',
-        icon: 'speed',
+        icon: 'icon.png',
         description: L('Меняет скорость анимации, но привязка остаётся целой и кадры садятся строго на целые позиции — никаких дробных чисел на таймлайне. Умеет починить уже испорченную (дробную) привязку.', 'Changes animation speed while snapping stays integer and keyframes land exactly on whole positions — no fractional numbers on the timeline. Can also fix an already broken (fractional) snapping.'),
         version: '1.0.0',
         variant: 'both',

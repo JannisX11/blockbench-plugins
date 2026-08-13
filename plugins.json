@@ -2,7 +2,7 @@
 	"clean_animation_speed": {
 		"title": "Clean Animation Speed",
 		"author": "Cmetanochkaa (Cmetanochka Creations)",
-		"icon": "speed",
+		"icon": "icon.png",
 		"description": "Changes animation speed while snapping stays integer and keyframes land exactly on whole positions — no fractional numbers on the timeline. Can also fix an already broken (fractional) snapping.",
 		"version": "1.0.0",
 		"variant": "both",
