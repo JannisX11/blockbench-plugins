@@ -2,7 +2,7 @@
 	"palette_swap": {
 		"title": "Palette Swap",
 		"author": "Cmetanochkaa (Cmetanochka Creations)",
-		"icon": "palette",
+		"icon": "icon.png",
 		"description": "Fast palette swap: texture colors are grouped into families by hue, and a whole family of shades is recolored to a new color in one move while preserving light and shadow. Live preview on the model, selection-aware, Undo.",
 		"version": "2.2.0",
 		"variant": "both",

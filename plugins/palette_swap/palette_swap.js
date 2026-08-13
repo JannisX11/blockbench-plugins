@@ -661,7 +661,7 @@
     Plugin.register('palette_swap', {
         title: 'Palette Swap',
         author: 'Cmetanochkaa (Cmetanochka Creations)', website: 'https://discord.gg/Xjp4ApB2qg',
-        icon: 'palette',
+        icon: 'icon.png',
         description: L('Быстрая смена палитры: цвета текстуры группируются в семьи по тону, и вся семья оттенков одним движением перекрашивается в новый цвет с сохранением светотени. Живой предпросмотр на модели, учёт выделения, Undo.', 'Fast palette swap: texture colors are grouped into families by hue, and a whole family of shades is recolored to a new color in one move while preserving light and shadow. Live preview on the model, selection-aware, Undo.'),
         version: '2.2.0',
         variant: 'both',
