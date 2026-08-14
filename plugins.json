@@ -386,25 +386,1199 @@
 			"formats": ["minectaft_title"]
 		},
 		"has_changelog": true,
-		"…35822 tokens truncated…ody:not([mode="render"]) #mode_screen_render{display:none}.rs-workspace{width:100%;height:100%;position:relative}.rs-workspace canvas{width:100%;height:100%;display:block}.rs-hud{position:absolute;left:14px;bottom:14px;padding:6px 10px;background:#0009;border-radius:4px;pointer-events:none}.rs-section{border-bottom:1px solid var(--color-border);padding:8px}.rs-section summary{font-weight:600;cursor:pointer;margin-bottom:7px}.rs-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.rs-grid label{font-size:11px;opacity:.8}.rs-grid input,.rs-grid select{width:100%}.rs-light{display:flex;align-items:center;gap:6px;padding:5px;cursor:pointer}.rs-light.selected{background:var(--color-selected)}.rs-light span{flex:1}.rs-row{display:flex;gap:5px;margin:5px 0}.rs-row button{flex:1}.rs-render{width:100%;min-height:42px;font-weight:700}.rs-progress{height:5px;background:#333;margin-top:7px}.rs-progress i{display:block;height:100%;background:var(--color-accent);transition:width .1s}.rs-result{text-align:center}.rs-result img{display:block;max-width:100%;max-height:70vh;margin:8px auto;background:repeating-conic-gradient(#777 0 25%,#aaa 0 50%) 0/20px 20px}`;document.head.appendChild(style);RenderStudio.resources.push({delete:()=>style.remove()});};
-RenderStudio.installUI = () => {
-  window.RenderStudio = RenderStudio;
-  RenderStudio.installStyle();
-  RenderStudio.mode = new Mode('render',{name:'Render',icon:'photo_camera',selectElements:false,default_tool:'move_tool',condition:()=>!!Project,component:{template:`<div class="rs-workspace"><canvas ref="canvas"></canvas><div class="rs-hud">Render Studio · Drag to orbit · Right-drag to pan · Wheel to zoom</div></div>`,mounted(){RenderStudio.engine=new RenderStudio.Engine(this.$refs.canvas);},beforeDestroy(){if(RenderStudio.engine){RenderStudio.engine.dispose();RenderStudio.engine=null;}}},onSelect(){RenderStudio.restoreModeState();RenderStudio.refreshUI();setTimeout(()=>{if(RenderStudio.engine){RenderStudio.engine.rebuild();RenderStudio.engine.resize();RenderStudio.refreshUI();}},0);},onUnselect(){RenderStudio.captureModeState();}});RenderStudio.resources.push(RenderStudio.mode);
-  RenderStudio.scenePanel = new Panel('render_studio_scene',{name:'Render Scene',icon:'wb_sunny',condition:{modes:['render']},growable:true,resizable:true,default_position:{slot:'left_bar',height:450,sidebar_index:0},component:{data(){return{state:RenderStudio.getState()}},methods:{select(l){this.state.selectedLight=l.id;RenderStudio.refreshUI()},add(type){RenderStudio.addLight(type)},del(l){RenderStudio.deleteLight(l.id)},dup(l){RenderStudio.duplicateLight(l.id)},toggle(l){RenderStudio.engine.updateLight(l)}},template:`<div><div class="rs-section"><b>Render Scene</b><div class="rs-light"><i class="material-icons">videocam</i><span>Render Camera</span></div><div class="rs-light"><i class="material-icons">public</i><span>Environment</span></div><div v-for="l in state.lights" :key="l.id" class="rs-light" :class="{selected:l.id===state.selectedLight}" @click="select(l)"><i class="material-icons">{{l.type==='point'?'lightbulb':l.type==='area'?'crop_landscape':'flashlight_on'}}</i><span>{{l.name}}</span><input type="checkbox" v-model="l.enabled" @change.stop="toggle(l)"><button title="Duplicate Light" @click.stop="dup(l)">⧉</button><button title="Delete Light" @click.stop="del(l)"><i class="material-icons">delete</i></button></div></div><div class="rs-section"><div class="rs-row"><button @click="add('point')">Point</button><button @click="add('spot')">Spot</button></div><div class="rs-row"><button @click="add('directional')">Sun</button><button @click="add('area')">Area</button></div></div><details class="rs-section" open><summary>Presets</summary><div class="rs-grid"><button @click="RenderStudio.applyPreset('studio')">Studio</button><button @click="RenderStudio.applyPreset('minecraft')">Minecraft</button><button @click="RenderStudio.applyPreset('dramatic')">Dramatic</button><button @click="RenderStudio.applyPreset('horror')">Horror</button><button @click="RenderStudio.applyPreset('rim')">Rim</button></div></details></div>`}});RenderStudio.resources.push(RenderStudio.scenePanel);
-  RenderStudio.settingsPanel = new Panel('render_studio_settings',{name:'Render Properties',icon:'tune',condition:{modes:['render']},growable:true,resizable:true,default_position:{slot:'right_bar',height:600,sidebar_index:0},component:{data(){return{state:RenderStudio.getState(),presets:['512 × 512','1024 × 1024','1920 × 1080','2560 × 1440','3840 × 2160','4096 × 4096']}},watch:{state:{deep:true,handler(){RenderStudio.touch()}}},computed:{light(){return this.state.lights.find(l=>l.id===this.state.selectedLight)},memory(){return RenderStudio.estimateMemory(this.state.output.width,this.state.output.height)}},methods:{updateLight(){if(this.light)RenderStudio.engine.updateLight(this.light)},point(){if(this.light)RenderStudio.engine.pointAt(this.light,RenderStudio.engine.getBounds().center)},materials(){RenderStudio.engine.rebuildModel()},environment(){RenderStudio.engine.rebuildEnvironment();RenderStudio.engine.rebuildLights()},preset(e){const a=e.target.value.split(/\D+/).filter(Boolean).map(Number);if(a.length===2){this.state.output.width=a[0];this.state.output.height=a[1]}},render(){RenderStudio.engine.renderImage().catch(e=>{if(e.message!=='Render cancelled')Blockbench.showMessageBox({title:'Render Failed',message:String(e.message||e)});})}},template:`<div>
-  <details class="rs-section" open v-if="light"><summary>Light · {{light.type}}</summary><div class="rs-grid"><label>Name<input v-model="light.name" @input="updateLight"></label><label>Color<input type="color" v-model="light.color" @input="updateLight"></label><label>Intensity<input type="number" min="0" step="0.1" v-model.number="light.intensity" @input="updateLight"></label><label v-if="light.distance!==undefined">Distance<input type="number" min="0" v-model.number="light.distance" @input="updateLight"></label></div><p>Position</p><div class="rs-grid"><label v-for="(v,i) in light.position">{{'XYZ'[i]}}<input type="number" step="0.25" v-model.number="light.position[i]" @input="updateLight"></label></div><p v-if="light.type!=='point'">Rotation</p><div class="rs-grid" v-if="light.type!=='point'"><label v-for="(v,i) in light.rotation">{{'XYZ'[i]}}<input type="number" step="1" v-model.number="light.rotation[i]" @input="updateLight"></label></div><div class="rs-grid" v-if="light.type==='area'"><label>Width<input type="number" min="0.1" v-model.number="light.width" @change="RenderStudio.engine.rebuildLights()"></label><label>Height<input type="number" min="0.1" v-model.number="light.height" @change="RenderStudio.engine.rebuildLights()"></label></div><div class="rs-grid" v-if="light.type==='spot'"><label>Angle<input type="number" min="1" max="89" v-model.number="light.angle" @input="updateLight"></label><label>Penumbra<input type="number" min="0" max="1" step="0.05" v-model.number="light.penumbra" @input="updateLight"></label></div><label v-if="light.type!=='area'"><input type="checkbox" v-model="light.castShadow" @change="updateLight"> Cast Shadows</label><label v-if="light.type!=='area'">Shadow Resolution<select v-model.number="light.shadowSize" @change="updateLight"><option>512</option><option>1024</option><option>2048</option><option>4096</option></select></label><button @click="point">Point At Model</button><small v-if="light.type==='area'">RectAreaLight is real; Three.js r129 does not support native area-light shadow maps.</small></details>
-  <details class="rs-section"><summary>Camera</summary><div class="rs-grid"><label>Projection<select v-model="state.camera.projection" @change="RenderStudio.engine.updateCamera()"><option value="perspective">Perspective</option><option value="orthographic">Orthographic</option></select></label><label>FOV<input type="number" min="1" max="170" v-model.number="state.camera.fov" @input="RenderStudio.engine.updateCamera()"></label></div><div class="rs-row"><button @click="RenderStudio.engine.fromCurrentView()">Current View</button><button @click="RenderStudio.engine.frameModel()">Frame Model</button></div></details>
-  <details class="rs-section"><summary>Materials & Shading</summary><label>Mode<select v-model="state.material.mode" @change="materials"><option value="minecraft">Minecraft</option><option value="flat">Flat</option><option value="smooth">Smooth</option><option value="pbr">PBR</option></select></label><div class="rs-grid"><label>Roughness<input type="number" min="0" max="1" step="0.05" v-model.number="state.material.roughness" @change="materials"></label><label>Metalness<input type="number" min="0" max="1" step="0.05" v-model.number="state.material.metalness" @change="materials"></label><label>Emissive<input type="color" v-model="state.material.emissive" @input="materials"></label><label>Strength<input type="number" min="0" step="0.1" v-model.number="state.material.emissiveIntensity" @input="materials"></label></div></details>
-  <details class="rs-section"><summary>Environment & Ground</summary><div class="rs-grid"><label>Ambient<input type="number" min="0" step="0.05" v-model.number="state.ambient.intensity" @input="RenderStudio.engine.rebuildLights()"></label><label>Exposure<input type="number" min="0.01" step="0.1" v-model.number="state.environment.exposure"></label><label>Background<select v-model="state.environment.background"><option value="transparent">Transparent</option><option value="solid">Solid</option><option value="gradient">Gradient</option></select></label><label>Color<input type="color" v-model="state.environment.color"></label></div><label><input type="checkbox" v-model="state.ground.enabled" @change="environment"> Ground Plane</label><label><input type="checkbox" v-model="state.ground.shadowCatcher" @change="environment"> Shadow Catcher</label></details>
-  <details class="rs-section" open><summary>Output</summary><select @change="preset"><option value="">Preset…</option><option v-for="p in presets">{{p}}</option></select><div class="rs-grid"><label>Width<input type="number" min="16" max="32768" v-model.number="state.output.width"></label><label>Height<input type="number" min="16" max="32768" v-model.number="state.output.height"></label><label>Tile Size<select v-model.number="state.output.tileSize"><option>1024</option><option>2048</option><option>4096</option></select></label><label>Tone Mapping<select v-model="state.environment.toneMapping"><option value="none">None</option><option value="linear">Linear</option><option value="reinhard">Reinhard</option><option value="cineon">Cineon</option><option value="aces">ACES Filmic</option></select></label></div><small>CPU image: {{memory.cpuMB.toFixed(0)}} MB · GPU tile: ~{{memory.gpuMB.toFixed(0)}} MB<br v-if="state.capabilities">GPU max: {{state.capabilities&&state.capabilities.maxTexture}} · safe single: {{state.capabilities&&state.capabilities.safeSingle}}</small><button class="rs-render" @click="render" :disabled="state.render.busy">{{state.render.busy ? state.render.status : 'RENDER IMAGE'}}</button><button v-if="state.render.busy" @click="state.render.cancel=true">Cancel</button><div class="rs-progress" v-if="state.render.busy"><i :style="{width:state.render.progress+'%'}"></i></div></details>
-  </div>`}});RenderStudio.resources.push(RenderStudio.settingsPanel);
-  RenderStudio.renderAction=new Action('render_studio_render',{name:'Render Image',icon:'photo_camera',condition:{modes:['render']},click:()=>RenderStudio.engine&&RenderStudio.engine.renderImage()});MenuBar.menus.view.addAction(RenderStudio.renderAction);RenderStudio.resources.push(RenderStudio.renderAction);
-};
-RenderStudio.removeUI = () => {
-  if(RenderStudio.engine){RenderStudio.engine.dispose();RenderStudio.engine=null;}
-  for(const resource of RenderStudio.resources){try{if(resource&&resource.vue&&!resource.vue._isDestroyed)resource.vue.$destroy();}catch(e){console.warn('[Render Studio] Vue cleanup',e)}}
-  const screen=document.getElementById&&document.getElementById('mode_screen_render');if(screen)screen.remove();
-  RenderStudio.resources.slice().reverse().forEach(r=>{try{r&&r.delete&&r.delete();}catch(e){console.warn('[Render Studio] cleanup',e)}});
-  RenderStudio.resources.length=0;if(window.RenderStudio===RenderStudio)delete window.RenderStudio;
-};
+		"website": "https://ewanhowell.com/plugins/minecraft-title-generator/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/minecraft-title-generator",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Minecraft Title Generator]"
+	},
+	"workspaces": {
+		"title": "Workspaces",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Organise your recent projects into workspaces that you can switch between.",
+		"tags": ["Files", "Management", "Blockbench"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "desktop",
+		"creation_date": "2023-09-07"
+	},
+	"live_dev_reloader": {
+		"title": "Live Dev Reloader",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Edit plugins and themes live in any text editor and have them automatically update in Blockbench.",
+		"tags": ["Plugins", "Themes", "Blockbench"],
+		"version": "1.1.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/live-dev-reloader/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/live_dev_reloader",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Live Dev Reloader]",
+		"creation_date": "2024-01-20",
+		"has_changelog": true
+	},
+	"resource_pack_utilities": {
+		"title": "Resource Pack Utilities",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "A collection of utilities to assist with resource pack creation.",
+		"tags": ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
+		"version": "1.10.0",
+		"min_version": "5.0.2",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/resource-pack-utilities/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/resource_pack_utilities",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[Resource Pack Utilities]",
+		"creation_date": "2024-07-01",
+		"has_changelog": true
+	},
+	"asset_browser": {
+		"title": "Asset Browser",
+		"icon": "icon.png",
+		"author": "Ewan Howell",
+		"description": "Browse the Minecraft assets from within Blockbench.",
+		"tags": ["Minecraft", "Assets", "Browser"],
+		"version": "1.2.2",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/asset-browser/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/asset_browser",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Asset Browser]",
+		"creation_date": "2025-05-30",
+		"has_changelog": true
+	},
+	"free_rotation": {
+		"title": "Free Rotation",
+		"icon": "icon.png",
+		"author": "Godlander & Ewan Howell",
+		"description": "Create Java Item models without any rotation limitations.",
+		"tags": ["Minecraft: Java Edition", "Items", "Rotation"],
+		"version": "1.2.1",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"website": "https://ewanhowell.com/plugins/free-rotation/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/free_rotation",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Free Rotation]",
+		"creation_date": "2024-12-20",
+		"has_changelog": true
+	},
+	"threecore_exporter": {
+		"title": "ThreeCore Exporter",
+		"author": "Lucas, Spyeedy",
+		"icon": "looks_3",
+		"description": "Let's you export your models in the json entity model format for the ThreeCore mod!",
+		"version": "1.0.3",
+		"variant": "both",
+		"min_version": "3.7.5"
+	},
+	"startup_tips": {
+		"title": "Startup Tips",
+		"author": "TheOtterlord",
+		"icon": "info",
+		"description": "This plugin provides helpful tips for those unfamiliar with Blockbench",
+		"about": "The Startup Tips plugin provides helpful tips about Blockbench on startup. These tips include tips about model creation, external resources, the editor, and more",
+		"version": "1.1.0",
+		"variant": "both"
+	},
+	"animation_utils": {
+		"title": "GeckoLib Animation Utils",
+		"author": "Eliot Lash, Tslat, Gecko, McHorse",
+		"icon": "icon.png",
+		"description": "Replaced by new plugin for Blockbench 5.0+ - Install 'GeckoLib Models and Animations'",
+		"deprecation_note": "This plugin has been discontinued in favour of the \"GeckoLib Models and Animations\" plugin. This plugin will continue to work on Blockbench 4 and below. For Blockbench 5+, use 'GeckoLib' instead.",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Deprecated"
+		],
+		"version": "4.1.3",
+		"min_version": "4.12.0",
+		"await_loading": true,
+		"variant": "both",
+		"max_version": "5.0.0",
+		"has_changelog": true,
+		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/animation_utils",
+		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
+	},
+	"geckolib": {
+		"title": "GeckoLib Models & Animations",
+		"author": "Eliot Lash, Tslat, Gecko, McHorse",
+		"contributors": [
+			"Zigy"
+		],
+		"icon": "icon.png",
+		"description": "Create animated blocks, items, entities, and armor for the GeckoLib java mod library.",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"version": "4.2.5",
+		"min_version": "5.0.0",
+		"max_version": "6.0.0",
+		"await_loading": true,
+		"variant": "both",
+		"has_changelog": true,
+		"website": "https://github.com/bernie-g/geckolib/wiki",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/geckolib",
+		"bug_tracker": "https://github.com/bernie-g/geckolib/issues"
+	},
+	"hytale_plugin": {
+		"title": "Hytale Models",
+		"author": "JannisX11, Kanno",
+		"icon": "icon.png",
+		"version": "0.9.1",
+		"description": "Create models and animations for Hytale",
+		"tags": ["Hytale"],
+		"contributes": {
+			"formats": ["hytale_character", "hytale_prop"],
+			"open_extensions": ["blockymodel"]
+		},
+		"variant": "both",
+		"min_version": "5.0.5",
+		"creation_date": "2025-12-22",
+		"await_loading": true,
+		"has_changelog": true,
+		"contributors": ["Hedaox", "MelodicAlbuild"],
+		"repository": "https://github.com/JannisX11/hytale-blockbench-plugin",
+		"bug_tracker": "https://github.com/JannisX11/hytale-blockbench-plugin/issues"
+	},
+	"modded_entity_fabric": {
+		"title": "Fabric Modded Entity",
+		"author": "Eliot Lash",
+		"icon": "icon-format_java",
+		"description": "Plugin for exporting Modded Entities using Fabric/Yarn Sourcemap",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "0.2.2",
+		"min_version": "3.6.6",
+		"variant": "both"
+	},
+	"multi-layer": {
+		"title": "Multi-Layer",
+		"icon": "layers",
+		"author": "aidancbrady",
+		"description": "Allows exporting in Forge's multi-layer model format.",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0",
+		"variant": "both"
+	},
+	"light_tracer_uploader": {
+		"title": "Light Tracer Uploader",
+		"icon": "fas.fa-feather",
+		"author": "JannisX11",
+		"description": "Upload models to Light Tracer to share them or to create renders",
+		"version": "0.0.1",
+		"variant": "both"
+	},
+	"code_view": {
+		"title": "Code View",
+		"icon": "developer_mode",
+		"author": "wither",
+		"description": "View the model you are currently editing in the raw format",
+		"version": "1.0.1",
+		"variant": "both"
+	},
+	"datagen_export": {
+		"title": "Datagen Export",
+		"icon": "code",
+		"author": "itsmeow",
+		"description": "Allows exporting to BlockStateProvider datagen code",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"duplicate_renamer": {
+		"title": "Duplicate Bone Renamer",
+		"icon": "fa-font",
+		"author": "Gecko",
+		"description": "This plugin renames duplicate bones so they work in bedrock and GeckoLib models",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"texture_stitcher": {
+		"title": "Texture Stitcher",
+		"icon": "fa-compress-arrows-alt",
+		"author": "McHorse",
+		"description": "Stitch multiple textures into a single texture",
+		"version": "1.0.7",
+		"min_version": "4.8.0",
+		"tags": ["Texture"],
+		"variant": "both",
+		"has_changelog": true
+	},
+	"arcaniax_block_exporter": {
+		"title": "Bedrock Block Exporter",
+		"icon": "icon-format_block",
+		"author": "Arcaniax",
+		"description": "Helps making new Bedrock blocks (requires experimental mode)",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"variant": "desktop",
+		"version": "0.1.1"
+	},
+	"bakery": {
+		"title": "Bakery",
+		"icon": "storefront",
+		"author": "JannisX11",
+		"description": "Bakes complex animations into simple linear keyframes",
+		"version": "1.1.1",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"simplify": {
+		"title": "Simplify Models",
+		"icon": "build",
+		"author": "ThePinkHacker",
+		"description": "Simplifies the cubes in a model. For example if a block was 0.99 pixels wide, then it would change it to 1.",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"animation_sliders": {
+		"title": "Animation Sliders",
+		"icon": "icon.png",
+		"author": "JannisX11",
+		"description": "Adds multiple sliders to tweak keyframes",
+		"tags": ["Animation"],
+		"version": "0.5.0",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
+	"voxel_shape_generator": {
+		"title": "VoxelShape Generators",
+		"icon": "fa-cubes",
+		"author": "Spectre0987, Nyfaria",
+		"description": "Generates Voxel Shapes (Supports Mojang Mappings and MCP)",
+		"version": "0.2.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
+	},
+	"voxel_shape_fabric_generator": {
+		"title": "VoxelShape Fabric Generator",
+		"icon": "bar_chart",
+		"author": "CyberStefNef",
+		"description": "Generates Voxel Shapes for Fabric",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
+	},
+	"mimodel_format": {
+		"title": "Mine-imator Model Exporter",
+		"icon": "fas.fa-box-open",
+		"author": "JannisX11",
+		"description": "Export .mimodel files for Mine-imator and Modelbench",
+		"tags": ["Exporter"],
+		"version": "1.0.2",
+		"min_version": "3.7.0",
+		"variant": "both"
+	},
+	"minecraft_entity_wizard": {
+		"title": "Minecraft Entity Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "icon.png",
+		"description": "Create entities for Minecraft: Bedrock Edition! Start with the looks and behavior of a vanilla entity, and turn it into your own creation!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.8.3",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2021-08-04",
+		"bug_tracker": "https://github.com/JannisX11/minecraft-wizards/issues/new/choose",
+		"has_changelog": true
+	},
+	"minecraft_block_wizard": {
+		"title": "Minecraft Block Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "icon.png",
+		"description": "Create custom blocks for Minecraft: Bedrock Edition!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.7.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2022-10-25",
+		"bug_tracker": "https://github.com/JannisX11/minecraft-wizards/issues/new/choose",
+		"has_changelog": true
+	},
+	"minecraft_item_wizard": {
+		"title": "Minecraft Item Wizard",
+		"author": "JannisX11 & Mojang Studios",
+		"icon": "icon.png",
+		"description": "Create custom items for Minecraft: Bedrock Edition!",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "1.2.4",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2023-09-19",
+		"bug_tracker": "https://github.com/JannisX11/minecraft-wizards/issues/new/choose",
+		"has_changelog": true
+	},
+	"reference_models": {
+		"title": "Reference Models",
+		"author": "JannisX11",
+		"icon": "fas.fa-monument",
+		"description": "Load and view glTF/glb models or other project tabs as references in Blockbench",
+		"version": "1.1.0",
+		"min_version": "5.0.0",
+		"variant": "desktop"
+	},
+	"vintagestory_models": {
+		"title": "Vintage Story Models",
+		"author": "Malik12tree",
+		"icon": "park",
+		"description": "Allows to export VintageStory models.",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"endimations_exporter": {
+		"title": "Endimator Animations Exporter",
+		"author": "SmellyModder",
+		"icon": "icon-format_java",
+		"description": "Exports Blockbench animations as the JSON format for Endimator animations from the Blueprint Mod Library. https://github.com/team-abnormals/blueprint",
+		"about": "Go to Animation -> Export Endimations...",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"variant": "both"
+	},
+	"brush_randomizer": {
+		"title": "Brush Color Randomizer",
+		"author": "Anniken(YT)",
+		"icon": "brush",
+		"description": "Randomize the Brush Color with each stroke to give your artwork more variation",
+		"version": "1.0.0",
+		"variant": "both"
+	},
+	"cardinal": {
+		"title": "Cardinal",
+		"author": "Bug1312",
+		"icon": "border_outer",
+		"description": "Adds in all cardinal directions on the grid and renders them on-top of everything while facing the camera.",
+		"about": "If you wish to change the color, use custom CSS to set the variable 'cardinal' to any color! The scale can be changed from within the settings.",
+		"version": "1.1.0",
+		"variant": "both"
+	},
+	"mesh_tools": {
+		"new_repository_format": true,
+		"title": "MTools",
+		"author": "Malik12tree",
+		"icon": "icon.png",
+		"description": "Adds powerful mesh modeling tools, operators and generators!",
+		"version": "2.1.0",
+		"min_version": "4.9.4",
+		"variant": "both",
+		"creation_date": "2022-04-09",
+		"has_changelog": true,
+		"tags": ["Format: Generic Model", "Mesh", "Tool"]
+	},
+	"uv_locker": {
+		"title": "UV Locker",
+		"icon": "lock",
+		"author": "nklbdev",
+		"description": "Lock UV coordinates when moving vertices in 3D (like Blender's Fix Face Attributes)",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both"
+	},
+	"fly_mode": {
+		"title": "Fly Mode",
+		"icon": "sports_esports",
+		"author": "nklbdev",
+		"description": "Adds a FPS-fly viewport navigation mode",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both"
+	},
+	"wasd_controls": {
+		"title": "WASD Controls",
+		"icon": "sports_esports",
+		"author": "JannisX11, caioraphael1",
+		"description": "Adds a WASD controlled viewport navigation mode",
+		"about": "The WASD mode can be enabled from the View menu.\nThe keys can be remapped in the keybindings menu.\nThe sensitivity can be changed in the settings under Preview, along with the movement plane.\nHold Control to move faster.",
+		"version": "1.2.2",
+		"min_version": "4.3.0",
+		"variant": "both"
+	},
+	"skin_packager": {
+		"title": "Minecraft Skin Pack Packager",
+		"author": "JannisX11",
+		"icon": "icon-player",
+		"description": "Create Skin Packs for the Minecraft Marketplace",
+		"about": "Generates skin packs for the Minecraft Marketplace.\n\nAll textures in all open tabs count as skins. You can load individual skins into Blockbench via **File** > **Import Minecraft Skins**.\n\nYou can also create new skins via **New** > **Minecraft Skin**, in the File menu or on the start screen.\n\nExport a skin pack via **File** > **Export** > **Export Skin Pack**.",
+		"tags": ["Minecraft: Bedrock Edition", "Minecraft Marketplace"],
+		"version": "0.3.2",
+		"min_version": "4.2.3",
+		"variant": "desktop"
+	},
+	"tint_preview": {
+		"title": "Tint Preview",
+		"author": "MrCrayfish",
+		"description": "Quickly preview a color on tint enabled faces!",
+		"icon": "fa-fill",
+		"version": "1.1.2",
+		"variant": "both",
+		"min_version": "4.3.0",
+		"tags": ["Minecraft: Java Edition"],
+		"about": "Tint Preview is a tool to help designers who work with the tint face feature of Java Block/Item models. It features the ability to quickly preview a color on tint enabled faces. Tint Preview adds two new actions to the Tools menu that allows you to toggle tinting and change the tint color.\n**Important:** This plugin is designed for Java Block/Item models only and will not work for other formats."
+	},
+	"pie_menu": {
+		"title": "Pie Menus",
+		"icon": "fas.fa-chart-pie",
+		"author": "Malik12tree",
+		"description": "Add pie shaped menus for faster work.",
+		"about": "<style>.piePrivate p{width: fit-content;display: inline;margin-left: 10px !important;}.piePrivate tr td:nth-child(2){padding-left:10px}.piePrivate2 td, .piePrivate2 th{padding:0 10px}</style><h1>Built-in Pies</h1><table class=piePrivate><tr>    <td>Add Pie</td>    <td>Keybind: </td>    <td><p><code>ctrl + shift + a</code></p></td></tr><tr>    <td>Import Pie</td>    <td>Keybind: </td>    <td><p><code>shift + q</code></p></td></tr><tr>    <td>Export Pie</td>    <td>Keybind: </td>    <td><p><code>shift + w</code></p></td></tr><tr>    <td>Mode Pie</td>    <td>Keybind: </td>    <td><p><code>shift + tab (web: shift + x)</code></p></td></tr><tr>    <td>View Mode Pie</td>    <td>Keybind: </td>    <td><p><code>alt + z</code></p></td></tr><tr>    <td>Toolbox Pie</td>    <td>Keybind: </td>    <td><p><code>shift + t</code></p></td></tr><tr>    <td>New Pie</td>    <td>Keybind: </td>    <td><p><code>shift + n</code></p></td></tr><tr>    <td>Preferences Pie</td>    <td>Keybind: </td>    <td><p><code>shift + o</code></p></td></tr><tr>    <td>Rotate Pie</td>    <td>Keybind: </td>    <td><p><code>shift + r</code></p></td></tr><tr>    <td>Flip Pie</td>    <td>Keybind: </td>    <td><p><code>shift + f</code></p></td></tr><tr>    <td>Center Pie</td>    <td>Keybind: </td>    <td><p><code>shift + c</code></p></td></tr><tr>    <td>Properties Pie</td>    <td>Keybind: </td>    <td><p><code>shift + p</code></p></td></tr></table><h1>API</h1><h2>CSS Variables</h2><table class=piePrivate2><tr><th>Name</th><th>Default</th><th>Description</th></tr><tr><td>--pie-dir_idct_size</td><td>10%</td><td>sets the angle indicator size</td></tr><tr><td>--pie-major_radius</td><td>30px</td><td>sets the center pie's radius</td></tr><tr><td>--pie-major_thickness</td><td>22px</td><td>sets the center pie's thickness</td></tr></table>",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Interface"]
+	},
+	"quick_box_uv_layout": {
+		"title": "Quick Box-UV Layout",
+		"author": "Manuel-3",
+		"description": "Button that changes UV of a Per-face cube into Box-UV layout.",
+		"icon": "calendar_view_month",
+		"version": "0.0.1",
+		"variant": "both",
+		"about": "This plugin simply adds a button that rearranges your individual Per-face UV rectangles in the same way Box-UV mode would. This is handy if you want to use the standard Box-UV format, but also have the flexibility of Per-face UV mode."
+	},
+	"animation_to_java": {
+		"title": "Animation to Java Converter",
+		"author": "MG, Vincent_Huto(PR), DailyCraft(PR), MarcusSlover(PR)",
+		"description": "Converts Blockbench animations to Java code for the new 1.19+ keyframe system.",
+		"icon": "fa-cube",
+		"version": "1.2.0",
+		"max_version": "4.12.9",
+		"variant": "both",
+		"about": "This plugin exports your Blockbench animations as Java code to be used for the new 1.19+ keyframe system. Please note that this system does not support Molang or step interpolation.",
+		"deprecation_note": "This feature is now built into Blockbench, the plugin is no longer required.",
+		"tags": ["Deprecated", "Minecraft: Java Edition"]
+	},
+	"root_motion_extractor": {
+		"title": "Root Motion Extractor",
+		"icon": "fa-exchange",
+		"author": "Tschipp",
+		"description": "Attempts to extract root motion from an animation",
+		"about": "This plugin extracts the velocity in m/s for an animation, and provides a value to be used in a movement component to achieve that exact speed. This helps reduce/eliminate foot sliding.",
+		"tags": ["Minecraft: Bedrock Edition", "Animation", "Root Motion"],
+		"version": "1.1.0",
+		"variant": "both"
+	},
+	"ground_plane_editor": {
+		"title": "Ground Plane Editor",
+		"icon": "icon-format_free",
+		"author": "SirJain",
+		"description": "Edits the opacity and color of the ground plane feature in Blockbench.",
+		"about": "This simple plugin allows you to customize the ground plane feature in Blockbench; more specifically, the opacity and color.\n## How to use\nTo use this plugin, simply go to `Tools > Ground Plane Editor`, fill out the appropriate categories, and hit `Done`. You can choose to edit either the color, the opacity, or both!\n\nPlease report any bugs or suggestions you may have.",
+		"tags": ["Ground Plane", "Animation", "Customization"],
+		"version": "1.1.1",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"custom_marker_colors": {
+		"title": "Custom Marker Colors",
+		"icon": "colorize",
+		"author": "SirJain and Geode",
+		"description": "Allows users to add their own marker colors.",
+		"about": "To make a new custom marker, go to <b>Tools > Marker Colors > Add Custom Color</b> to get started with making your own custom marker color. Once you are done, click Confirm. You will now see your marker color in the default color list. And finally, if you ever choose to view or edit your marker colors, you can use <b>Tools > Marker Colors > Manage Marker Colors</b>",
+		"tags": ["Marker Color", "Customize", "UX"],
+		"version": "1.1.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"resourcepack_packager": {
+		"title": "Resourcepack Packager",
+		"author": "leopoldhub",
+		"description": "Export your java models and texture into a resourcepack",
+		"icon": "fa-file-zipper",
+		"tags": ["Minecraft: Java Edition", "Resourcepack", "Exporter"],
+		"version": "1.0.1",
+		"min_version": "4.4.0",
+		"variant": "both"
+	},
+	"grayscale_preview": {
+		"title": "Grayscale Preview",
+		"author": "JannisX11",
+		"description": "Adds a Grayscale preview mode. The mode can be toggled from the View menu.",
+		"icon": "filter_b_and_w",
+		"tags": ["Viewport"],
+		"version": "1.0.0",
+		"min_version": "4.3.0",
+		"variant": "both"
+	},
+	"brush": {
+		"title": "Brush Plus",
+		"icon": "fa-brush",
+		"author": "Malik12tree",
+		"description": "Create/Use custom brushes with dynamic behavior!",
+		"version": "1.0.1",
+		"min_version": "4.4.0",
+		"variant": "both",
+		"tags": ["Paint", "Customization", "Interface"]
+	},
+	"smudge_brush": {
+		"title": "Smudge Brush",
+		"icon": "touch_app",
+		"author": "JannisX11",
+		"description": "Adds a smudge brush to smear, soften, or blur details on textures and images",
+		"tags": ["Brush", "Paint"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"creation_date": "2025-12-27",
+		"variant": "both"
+	},
+	"pluginstats": {
+		"title": "Plugin Statistics",
+		"icon": "trending_up",
+		"author": "Malik12tree",
+		"description": "View download statistics of your blockbench plugin",
+		"version": "1.3.0",
+		"variant": "both",
+		"tags": ["Blockbench", "Plugins", "Development"]
+	},
+	"repeat_it": {
+		"title": "Repeat It",
+		"author": "Ocraftyone",
+		"icon": "content_copy",
+		"description": "Allows you to repeat cubes with a translation applied to each new object",
+		"about": "Allows you to repeat cubes with a translation applied to each new object.\n\nAt this time, the only shape that can be copied are cubes, but this may be updated in the future.",
+		"version": "0.0.1",
+		"variant": "both"
+	},
+	"cameras": {
+		"title": "Cameras",
+		"icon": "videocam",
+		"author": "JannisX11",
+		"description": "Adds cameras to Blockbench. Cameras allow you to view the model from different angles, and can be animated to create camera paths.",
+		"about": "Cameras can be added through the Edit menu. Enabling Split Screen from View > Split Screen is recommended to preview what the camera can see while editing it. Right-click the camera in the viewport to link or unlink it to the viewport.",
+		"version": "1.2.2",
+		"min_version": "4.5.0",
+		"variant": "both"
+	},
+	"image_centering": {
+		"title": "Image Centering",
+		"icon": "center_focus_strong",
+		"author": "SirJain",
+		"tags": ["Format: Image", "UX"],
+		"description": "Adds a button and a keybind that centers the image viewport in an Image format.",
+		"about": "This plugin adds a button that allows you to reset your viewport in the Image format.\n## How to use\nTo use this plugin, go to the brush toolbar (top of the image mode) and click the `Center Image Viewport` button. If it doesn't show up, make sure you are in the Image format. If you are, you can add the tool using the `Customize Toolbar` option. There will be a confirmation message displayed on-screen once you center the viewport.\n\nPlease report any bugs or suggestions you may have.",
+		"version": "1.1.1",
+		"min_version": "4.4.0",
+		"variant": "both"
+	},
+	"bbs_exporter": {
+		"title": "BBS Model Ex/importer",
+		"icon": "icon.png",
+		"author": "McHorse",
+		"description": "Adds actions to export/import models in BBS format, which is used by BBS mod.",
+		"version": "1.3.3",
+		"variant": "both",
+		"tags": ["Exporter", "Importer"],
+		"min_version": "4.8.0",
+		"has_changelog": true
+	},
+	"highlight_generator": {
+		"title": "Highlight Mod Shape Generator",
+		"icon": "fa-cube",
+		"author": "ThatGravyBoat",
+		"description": "Generates Shape JSONs for the Highlight mod. Mod can be found at: https://links.resourcefulbees.com/highlight",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition"]
+	},
+	"obj_animation_export": {
+		"title": "OBJ Animation Exporter",
+		"icon": "icon-objects",
+		"author": "JannisX11",
+		"description": "Exports an animation to OBJ as an OBJ file sequence",
+		"about": "To export, right click an animation and click Export OBJ Sequence.",
+		"version": "0.1.0",
+		"min_version": "4.0.0",
+		"variant": "both",
+		"tags": ["Exporter"]
+	},
+	"explorer": {
+		"title": "Explorer",
+		"icon": "fas.fa-folder-open",
+		"author": "JannisX11",
+		"description": "Navigate the files in your project from the sidebar in Blockbench!",
+		"tags": ["Files"],
+		"version": "1.1.0",
+		"min_version": "5.1.0",
+		"variant": "desktop",
+		"has_changelog": true
+	},
+	"performance_audit": {
+		"title": "Performance Audit",
+		"icon": "network_check",
+		"author": "JannisX11",
+		"description": "Find performance issues and bottlenecks in your Blockbench installation.",
+		"about": "You can run a performance audit via Help > Audit Performance.",
+		"version": "1.1.2",
+		"min_version": "3.0.0",
+		"variant": "both"
+	},
+	"mc_text_generator": {
+		"title": "Text Generator",
+		"icon": "text_format",
+		"author": "SirJain",
+		"description": "Generates blocky text in cubes.",
+		"about": "This plugin adds a button under the `Tools` menu that allows you to generate Minecraft-like text.\n## How to use\nTo use this plugin, go to `Tools > Generate Text`. Simply enter some text, configure your settings how you like, and press `Generate`!\n\nPlease report any bugs or suggestions you may have.",
+		"tags": ["Deprecated", "Minecraft", "Font"],
+		"version": "2.0.1",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"utility_flaggers": {
+		"title": "Utility Flaggers",
+		"icon": "lightbulb",
+		"author": "SirJain and DerfX",
+		"description": "Flashes elements based on template conditions.",
+		"about": "This plugin allows you to flash elements that meet certain preset conditions on-screen.\\n## How to use\\nTo use this plugin, simply go to `Tools -> Utility Flaggers`. Pick a preset option, fill out your preferred settings, and press `Flag`!",
+		"tags": ["Utility", "BoxUV", "Format: Generic Model"],
+		"version": "1.1.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"skin_mirror": {
+		"title": "Skin Mirror",
+		"icon": "icon-mirror_x",
+		"author": "oectway",
+		"description": "Tool that allows you to mirror the arms and legs of existing skins to the other side.",
+		"about": "This plugin adds a button under the `Tools` menu that allows you to mirror the arms and legs of existing skins to the other side. Select the type of the skin: Alek (3 Pixel Arm, customSlim) or Steve (4 Pixel Arm, custom). Next, choose whether you want to mirror from left to right, or the other way around. If everything is correct, click \"Confirm\".",
+		"tags": ["Minecraft", "Skins"],
+		"version": "1.1.0",
+		"min_version": "4.6.0",
+		"variant": "both"
+	},
+	"bamo":{
+		"title": "BAMO Exporter",
+		"author": "Ryytikki",
+		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod.",
+		"website": "https://www.curseforge.com/minecraft/mc-mods/bamo-block-and-move-on",
+		"icon": "icon.png",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "0.5.1",
+		"variant": "desktop",
+		"new_repository_format": true
+	},
+	"animation_to_json": {
+		"title": "Animation to JSON Converter",
+		"author": "Gaming32",
+		"description": "Converts Blockbench animations to the JSON format for the NeoForge mod loader",
+		"icon": "fa-cube",
+		"tags": ["Animation", "Minecraft: Java Edition"],
+		"variant": "both",
+		"version": "1.0.1"
+	},
+	"azurelib_utils": {
+		"title": "AzureLib Animator",
+		"author": "AzureDoom, Eliot Lash, Gecko, McHorse",
+		"icon": "azureicon.png",
+		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
+		"tags": ["Minecraft: Java Edition"],
+		"version": "2.1.3",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
+		"await_loading": true,
+		"variant": "both",
+		"creation_date": "2023-04-04",
+		"contributes": {
+			"formats": ["azure_model"]
+		},
+		"has_changelog": true,
+		"website": "https://wiki.azuredoom.com/"
+	},
+	"cube_inverter": {
+		"title": "Cube Inverter",
+		"author": "SirJain",
+		"icon": "swap_horiz",
+		"description": "Adds a button that inverts selected cube sizes.",
+		"tags": ["Deprecated"],
+		"about": "This plugin adds a button that inverts the size values of each selected cube.\n## How to use\nTo use this plugin, go to the toolbar at the top of the screen (the one with the move, resize, and rotation tools) and click the `Invert Cubes` button. If you don't see the button, make sure to select some cubes. The button is also keybinded with a default of `Shift + I`.\n\nPlease report any bugs or suggestions you may have.",
+		"version": "1.0.0",
+		"min_version": "4.2.0",
+		"variant": "both"
+	},
+	"figura_format": {
+		"title": "Figura Model Format",
+		"author": "Katt (KitCat962)",
+		"icon": "icon.svg",
+		"description": "Create models for the Figura mod in a custom format that optimizes Blockbench to work with Figura models.",
+		"tags": ["Minecraft: Java Edition", "Figura"],
+		"version": "0.1.5",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"await_loading": true,
+		"creation_date": "2023-07-22"
+	},
+	"rainbow_road_game": {
+		"title": "Rainbow Road Game",
+		"author": "JannisX11",
+		"icon": "icon.png",
+		"description": "The rainbow road racing minigame from April fools day 2024! Turn your model into a race car and take it for a spin!",
+		"tags": ["Minigame"],
+		"version": "0.1.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-1"
+	},
+	"cosmic_reach_model_editor": {
+		"title": "Cosmic Reach Model Editor",
+		"author": "Z. Hoeshin",
+		"icon": "icon.png",
+		"description": "Allows creating, editing, importing and exporting Cosmic Reach block models.",
+		"tags": ["Cosmic Reach"],
+		"version": "2.2.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"creation_date": "2024-04-19",
+		"new_repository_format": true,
+		"has_changelog": true
+	},
+	"emf_animation_addon": {
+		"title": "EMF Animation Addon",
+		"author": "Traben & Ewan Howell",
+		"icon": "icon.png",
+		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
+		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
+		"version": "1.0.4",
+		"min_version": "4.9.0",
+		"variant": "both",
+		"dependencies": ["cem_template_loader"],
+		"creation_date": "2024-06-05",
+		"has_changelog": true
+	},
+	"creative_mode": {
+		"title": "Creative Mode",
+		"author": "Caio Raphael",
+		"icon": "icon.png",
+		"description": "Place and remove cubes just like in Minecraft creative mode",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
+	"bedrock_block_transforms": {
+		"title": "Bedrock Block Transformation Preview",
+		"author": "JannisX11",
+		"icon": "token",
+		"description": "Edit and preview the Minecraft Bedrock Edition block transformation component",
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition"]
+	},
+	"pbr_preview": {
+		"title": "PBR Tools",
+		"author": "Jason J. Gardner",
+		"await_loading": true,
+		"creation_date": "2024-06-10",
+		"icon": "icon.png",
+		"description": "Create and view PBR materials in Blockbench. Export textures for Java and RenderDragon shaders.",
+		"has_changelog": true,
+		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
+		"variant": "both",
+		"version": "1.2.2",
+		"tags": [
+			"Minecraft: Java Edition",
+			"Minecraft: Bedrock Edition",
+			"PBR"
+		],
+		"min_version": "4.10.4",
+		"max_version": "4.11.9"
+	},
+	"tweaks_n_stuff": {
+		"title": "Tweaks & Stuff",
+		"author": "legopitstop",
+		"creation_date": "2024-10-07",
+		"icon": "icon.png",
+		"description": "Adds a few tweaks to Blockbench to make your modeling experience better.",
+		"has_changelog": true,
+		"website": "https://docs.lpsmods.dev/tweaks_n_stuff",
+		"repository": "https://github.com/legopitstop/blockbench-plugins/tree/master/plugins/tweaks_n_stuff",
+		"variant": "both",
+		"version": "1.1.0",
+		"min_version": "4.8.0",
+		"tags": ["Blockbench"]
+	},
+	"meshy": {
+		"title": "Meshy",
+		"author": "Shadowkitten47",
+		"creation_date": "2024-09-28",
+		"icon": "diamond",
+		"description": "Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock",
+		"variant": "both",
+		"version": "1.0.5",
+		"tags": [
+			"Minecraft: Bedrock Edition",
+			"Entity Models",
+			"Mesh"
+		],
+		"has_changelog": true,
+		"min_version": "4.10.4",
+		"repository": "https://github.com/Shadowkitten47/Meshy"
+	},
+	"outliner_group_exporter": {
+		"title": "Group Exporter",
+		"author": "MrCrayfish",
+		"creation_date": "2025-03-19",
+		"icon": "icon.png",
+		"description": "A simple plugin to allow you to export a group from the outliner as a model. Only cubes inside the group will be exported.",
+		"variant": "both",
+		"version": "1.0.0",
+		"tags": [
+			"Minecraft: Java Edition"
+		],
+		"has_changelog": true,
+		"min_version": "4.10.1",
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/outliner_group_exporter"
+	},
+	"export_to_blender": {
+		"title": "Export to Blender",
+		"author": "0x13F",
+		"description": "Export your project as a Blender scene (.blend)",
+		"icon": "icon.png",
+		"creation_date": "2025-04-16",
+		"version": "2.0.0",
+		"variant": "desktop",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Exporter"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender"
+	},
+	"farsight": {
+		"title": "Farsight",
+		"author": "Luther Gray",
+		"icon": "visibility",
+		"description": "Increases the Clipping Distance of Blockbench to see much larger maps & levels (configurable).",
+		"version": "1.0.1",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
+	"reexport_on_save": {
+		"title": "Re-export on Save",
+		"author": "0x13F",
+		"description": "Automatically re-export your project when saving",
+		"icon": "output",
+		"creation_date": "2025-04-18",
+		"version": "2.0.0",
+		"variant": "desktop",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Exporter",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save"
+	},
+	"repeating_textures": {
+		"title": "Repeating Textures",
+		"author": "0x13F",
+		"description": "Enables repeating textures",
+		"icon": "icon.png",
+		"creation_date": "2025-06-15",
+		"version": "3.0.0",
+		"variant": "both",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Viewport",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/repeating_textures"
+	},
+	"export_to_3mf": {
+		"title": "Export to 3MF",
+		"author": "Ayden Hodgins-de Jonge",
+		"description": "Export geometry as 3MF for 3D printing",
+		"tags": ["Exporter", "3D Printing", "3MF"],
+		"icon": "icon.png",
+		"variant": "both",
+		"version": "0.0.1",
+		"creation_date": "2025-07-02",
+		"min_version": "4.12.5",
+		"has_changelog": false,
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_to_3mf"
+	},
+	"shaper": {
+		"title": "Shaper",
+		"author": "Vowxky",
+		"description": "Support tool for the Shaper mod that helps create and export hitboxes. Exports Voxel Shapes as a flat JSON list with scope selection for easier editing and reuse.",
+		"icon": "bar_chart",
+		"creation_date": "2025-08-26",
+		"version": "1.0.0",
+		"variant": "both",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Exporter"
+		],
+		"bug_tracker": "https://github.com/vowxky/blockbench-plugins/issues?title=[Shaper]"
+	},
+	"bone_view": {
+		"title": "Bone View",
+		"author": "codename-B",
+		"description": "Toggleable view to visualize group pivots and their connections as bones (Blender-like).",
+		"icon": "icon.png",
+		"tags": [
+			"Animation",
+			"Rigging",
+			"Viewport"
+		],
+		"version": "1.0.0",
+		"min_version": "4.12.6",
+		"variant": "both",
+		"has_changelog": true,
+		"creation_date": "2025-09-17",
+		"repository": "https://github.com/codename-B/bone-view"
+	},
+	"texture_filtering": {
+		"title": "Texture Filtering",
+		"author": "HeyItsDuke, 0x13F",
+		"description": "Toggles between Nearest (Pixelated, Blockbench default) and Linear texture filtering (Soft/Blurry)",
+		"icon": "deblur",
+		"creation_date": "2025-09-01",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.12.4",
+		"has_changelog": false,
+		"tags": ["Texture'", "Viewport", "Utility"],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_filtering"
+	},
+	"transparency_fix": {
+		"title": "Transparency Fix",
+		"author": "Larsonix",
+        "description": "Shows objects inside transparent containers (glass, windows, etc.)",
+        "about": "This plugin fixes the visibility of objects inside transparent containers by adjusting render order.\n\n## Features\n- Auto-detects transparent textures by scanning alpha values\n- Name-based detection (glass, window, crystal, ice, liquid, glow, etc.)\n- Geometry detection - finds cubes inside transparent containers\n\n## Usage\nGo to **View > Toggle Transparency Fix** to enable/disable.",
+        "icon": "visibility",
+        "version": "2.1.0",
+        "min_version": "4.0.0",
+        "variant": "both",
+        "tags": ["Rendering", "Utility"]
+    },
+	"translation_plane_gizmo": {
+		"title": "Translation Plane Gizmo",
+		"author": "AnnJ",
+		"description": "Enhanced 2D plane gizmo for simultaneous multi-axis translation",
+		"icon": "control_camera",
+		"version": "1.0.1",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": ["Gizmo", "Translation", "Tools"],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/translation_plane_gizmo"
+	},
+	"gltf_importer": {
+		"title": "glTF Importer",
+		"author": "0x13F",
+		"description": "Import .GLTF and .GLB models",
+		"icon": "icon.png",
+		"creation_date": "2025-09-25",
+		"version": "1.2.0",
+		"variant": "desktop",
+		"min_version": "4.12.6",
+		"has_changelog": false,
+		"tags": [
+			"Format: Generic Model",
+			"Importer"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
+	},
+	"java_block_sequencer": {
+		"title": "Java Block Sequencer",
+		"icon": "icon.png",
+		"author": "Jatzylap",
+		"description": "Exports an animation into a sequence of Minecraft block/item models.",
+    	"tags": ["Minecraft: Java Edition", "Exporter", "Animation"],
+		"version": "1.0.0",
+		"min_version": "5.0.5",
+		"variant": "both",
+		"creation_date": "2025-12-27",
+		"has_changelog": true,
+		"repository": "https://github.com/Jatzylap/Java-Block-Sequencer"
+	},
+	"texture_downscaler": {
+		"title": "Texture Downscaler",
+		"author": "0x13F",
+		"description": "Downscale textures non-destructively",
+		"icon": "icon.png",
+		"creation_date": "2025-10-26",
+		"version": "1.0.0",
+		"variant": "desktop",
+		"min_version": "5.0.3",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Viewport",
+			"Utility"
+		],
+		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_downscaler"
+	},
+	"block_multi_collisions": {
+		"title": "Block Multi-Collision Editor",
+		"author": "minato4743",
+        "description": "This Plugin allow you to make and generate multiple collision boxes for Minecraft Bedrock blocks.",
+		"icon": "icon.svg",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.12.6",
+		"has_changelog": true,
+		"tags": [
+			"Minecraft: Bedrock Edition",
+			"Format: Bedrock Block"
+		],
+		"repository": "https://github.com/MinecraftBedrockArabic/blockbench-plugins/tree/master/plugins/block_multi_collisions"
+	},
+	"hytale_avatar_loader": {
+		"title": "Hytale Avatar Loader",
+		"author": "PasteDev",
+		"icon": "icon.png",
+		"description": "Loads Hytale avatar models with textures and colors from local JSON files or crafthead.net. Automatically applies gradient maps to greyscale textures based on color selections and imports default animations.",
+		"tags": ["Hytale"],
+		"version": "1.2.0",
+		"min_version": "5.0.7",
+		"variant": "desktop",
+		"creation_date": "2026-01-16",
+		"website": "https://pastelito.dev",
+		"has_changelog": true,
+		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
+	},
+  	"hytale_hitbox_helper": {
+		"title": "Hytale Hitbox Helper",
+		"author": "Marck.A.A",
+		"version": "1.0.1",
+		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
+		"icon": "icon.png",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"tags": ["Hytale"]	
+	},
+	"baked_ambient_occlusion": {
+		"title": "Mr Salmon's Baked Ambient Occlusion",
+    	"author": "Kai Salmon",
+		"description": "Baked Ambient Occlusion, creating instant shading",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"repository": "https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion",
+		"has_changelog": false,
+		"tags": [
+			"Texture",
+			"Shading"
+		]
+	},
+	"hytale_bridge": {
+		"title": "Hytale Bridge",
+		"author": "Tazer",
+		"icon": "icon.png",
+		"version": "0.1.1",
+		"description": "A Hytale/Blockbench plugin that bridges the two together seamlessly and effortlessly",
+		"tags": ["Hytale"],
+		"dependencies": ["hytale_plugin"],
+		"variant": "desktop",
+		"min_version": "5.0.7",
+		"creation_date": "2026-02-10",
+		"await_loading": true,
+		"has_changelog": true,
+		"repository": "https://github.com/tazercopter/Hytale-Blockbench-Bridge",
+		"bug_tracker": "https://github.com/tazercopter/Hytale-Blockbench-Bridge/issues"
+	},
+	"no_java_limits": {
+		"title": "No Java Limits",
+		"author": "Rajdacz",
+		"description": "Allows creating infinite-sized models for use in display entities.",
+		"icon": "zoom_out_map",
+		"tags": ["Minecraft: Java Edition", "Display Entities"],
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both"
+	},
+	"batch_group_rename": {
+		"title": "Batch Group Rename",
+		"author": "zzz1999",
+		"icon": "drive_file_rename_outline",
+		"version": "1.3.0",
+		"variant": "both",
+		"description": "Batch rename child groups with selectable previews, animation name syncing, presets, templates, filters, and conflict handling.",
+		"tags": ["Utility"],
+		"min_version": "4.8.0",
+		"creation_date": "2026-03-20",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/batch_group_rename",
+		"bug_tracker": "https://github.com/zzz1999/batch_group_rename/issues"
+	},
+	"menu_icon_exporter": {
+		"title": "Menu Icon Exporter",
+		"author": "NET",
+		"description": "Export perfect menu/item icons with advanced camera controls",
+		"icon": "icon.svg",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"new_repository_format": true,
+		"creation_date": "2026-03-15",
+		"has_changelog": false,
+		"tags": [
+			"Minecraft",
+			"Utility",
+			"Export"
+		],
+		"repository": "https://github.com/HMC-Studios/Menu-Icon-Exporter",
+		"bug_tracker": "https://github.com/HMC-Studios/Menu-Icon-Exporter/issues"
+	},
+	"expand_bone_timeline": {
+		"title": "Expand Bone Timeline",
+		"author": "zzz1999",
+		"icon": "account_tree",
+		"tags": ["Animation", "Timeline"],
+		"version": "2.2.0",
+		"min_version": "4.8.0",
+		"description": "Show or hide a bone and all its child bone animators in the timeline from the outliner context menu.",
+		"variant": "both",
+		"creation_date": "2026-03-21",
+		"has_changelog": false,
+		"repository": "https://github.com/zzz1999/expand_bone_timeline",
+		"bug_tracker": "https://github.com/zzz1999/expand_bone_timeline/issues"
+	},
+	"let_there_be_noise": {
+		"title": "Let there Be Noise",
+		"author": "Momoko",
+		"icon": "grain",
+		"description": "Adds a noise adding function to BlockBench, supports selections and colour channels",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"creation_date": "2026-03-25",
+		"variant": "both",
+		"tags": ["Texture", "Paint", "Tool"]
+	},
+	"easings": {
+		"title": "Easings",
+		"author": "Svdex",
+		"version": "1.0.0",
+		"description": "Apply easing functions to Minecraft: Bedrock Edition animations.",
+		"icon": "stacked_line_chart",
+		"variant": "both",
+		"tags": ["Minecraft: Bedrock Edition", "Animation"],
+		"website": "https://svdex.moe",
+		"min_version": "4.8.0",
+		"has_changelog": true
+	},
+	"sb_worn_display": {
+		"title": "SB Worn Display Editor",
+		"author": "hrmcngs",
+		"icon": "backpack",
+		"description": "Adds a Custom Slot row to the Display panel so you can edit custom item display keys (Sophisticated Backpacks worn, MAW saya back/belt, Backpack-Arsenal chestplate / placed) visually in the 3D viewport, using the same sliders as the vanilla slots.",
+		"tags": ["Minecraft: Java Edition", "Modeling"],
+		"version": "4.13.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"website": "https://github.com/hrmcngs/sb-worn-display-blockbench",
+		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
+		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
+		"creation_date": "2026-05-31"
+	},
+	"render_studio": {
+		"title": "Render Studio",
+		"author": "shady",
+		"description": "Real Three.js lighting, cameras, shadows, tiled high-resolution PNG rendering, and Minecraft-aware materials in a dedicated Blockbench Render workspace.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "5.1.0",
+		"variant": "both",
+		"tags": ["Minecraft", "Render", "Lighting"]
+	}
+}
