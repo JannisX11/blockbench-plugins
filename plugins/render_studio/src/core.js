@@ -6,9 +6,12 @@ RenderStudio.fingerprints = new Map();
 RenderStudio.uid = () => 'rs_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
 RenderStudio.clamp = (n, min, max) => Math.max(min, Math.min(max, Number(n) || 0));
 RenderStudio.cloneData = value => JSON.parse(JSON.stringify(value));
+RenderStudio.isMobile = () => {
+  try { return !!((window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent||'')); } catch (e) { return false; }
+};
 RenderStudio.defaults = () => ({
   version: 2,
-  performance: 'pc',
+  performance: RenderStudio.isMobile() ? 'phone' : 'pc',
   lights: [],
   selectedLight: null,
   helpers: true,
@@ -30,6 +33,7 @@ RenderStudio.hydrateState = saved => {
   if (Array.isArray(source.lights)) state.lights = source.lights.map(light => Object.assign(RenderStudio.lightDefaults(light.type || 'point'), light));
   if (typeof source.selectedLight === 'string' || source.selectedLight == null) state.selectedLight = source.selectedLight;
   if (source.performance === 'phone' || source.performance === 'pc') state.performance = source.performance;
+  if (RenderStudio.isMobile()) state.performance = 'phone';
   if (typeof source.helpers === 'boolean') state.helpers = source.helpers;
   if (Number.isFinite(Number(source.helperSize))) state.helperSize = RenderStudio.clamp(source.helperSize, 0.1, 10);
   if ((Number(source.version) || 1) < 2) {
@@ -111,7 +115,7 @@ RenderStudio.applyPerformanceProfile = profile => {
   s.performance = profile === 'phone' ? 'phone' : 'pc';
   if (s.performance === 'phone') {
     const size = RenderStudio.constrainOutput(s.output.width, s.output.height, 'phone');
-    s.output.width = size.width; s.output.height = size.height; s.output.tileSize = Math.min(1024, s.output.tileSize); s.helpers = false;
+    s.output.width = size.width; s.output.height = size.height; s.output.tileSize = Math.min(512, s.output.tileSize); s.helpers = false;
   } else s.helpers = true;
   if (e) { e.configurePerformance(); e.rebuildLights(); e.resize(); e.invalidate(); }
   RenderStudio.touch(); RenderStudio.refreshUI();

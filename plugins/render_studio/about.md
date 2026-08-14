@@ -14,6 +14,7 @@ Render Studio adds a dedicated **Render** workspace to Blockbench with real-time
 - Project-safe light settings that remain available when switching modes
 - Phone / Low PC and PC performance profiles
 - Reliable area-light fallback plus independent ambient and hemisphere controls
+- Touch-friendly compact menus and a lighter 20 FPS phone preview with shadows disabled
 
 ## Getting started
 
