@@ -1570,5 +1570,15 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
+	},
+	"render_studio": {
+		"title": "Render Studio",
+		"author": "shady",
+		"description": "Real Three.js lighting, cameras, shadows, tiled high-resolution PNG rendering, and Minecraft-aware materials in a dedicated Blockbench Render workspace.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "5.1.0",
+		"variant": "both",
+		"tags": ["Minecraft", "Render", "Lighting"]
 	}
 }
