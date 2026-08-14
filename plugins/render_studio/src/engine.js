@@ -7,6 +7,10 @@ RenderStudio.Engine = class {
     this.clock = new THREE.Clock();
     this.model = null; this.sourceMap = []; this.lightObjects = new Map(); this.helpers = new Map(); this.lastPreview = 0;
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.01, 10000);
+    this.areaLightReady = false;
+    if (typeof THREE.RectAreaLight === 'function' && THREE.RectAreaLightUniformsLib && typeof THREE.RectAreaLightUniformsLib.init === 'function') {
+      try { THREE.RectAreaLightUniformsLib.init(); this.areaLightReady = true; } catch (error) { console.warn('[Render Studio] Native area-light setup failed; using spotlight fallback', error); }
+    }
     this.renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, preserveDrawingBuffer: true});
     this.renderer.autoClear = false;
     this.renderer.shadowMap.enabled = true;
@@ -25,7 +29,7 @@ RenderStudio.Engine = class {
     const maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const maxBuffer = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
     const limit = Math.min(maxTexture, maxBuffer);
-    return {webgl2: !!this.renderer.capabilities.isWebGL2, maxTexture, maxRenderbuffer: maxBuffer, safeSingle: Math.min(8192, Math.max(2048, Math.floor(limit / 2))), areaLight: typeof THREE.RectAreaLight === 'function'};
+    return {webgl2: !!this.renderer.capabilities.isWebGL2, maxTexture, maxRenderbuffer: maxBuffer, safeSingle: Math.min(8192, Math.max(2048, Math.floor(limit / 2))), areaLight: this.areaLightReady};
   }
   configureRenderer() {
     const s = RenderStudio.getState();
@@ -101,7 +105,8 @@ RenderStudio.Engine = class {
     if (data.type === 'point') light = new THREE.PointLight(data.color, data.intensity, data.distance, data.decay);
     else if (data.type === 'spot') { light = new THREE.SpotLight(data.color, data.intensity, data.distance, THREE.MathUtils.degToRad(data.angle), data.penumbra, data.decay); light.target = new THREE.Object3D(); this.scene.add(light.target); }
     else if (data.type === 'directional') { light = new THREE.DirectionalLight(data.color, data.intensity); light.target = new THREE.Object3D(); this.scene.add(light.target); }
-    else if (data.type === 'area' && typeof THREE.RectAreaLight === 'function') light = new THREE.RectAreaLight(data.color, data.intensity, data.width, data.height);
+    else if (data.type === 'area' && this.areaLightReady) light = new THREE.RectAreaLight(data.color, data.intensity, data.width, data.height);
+    else if (data.type === 'area') { light = new THREE.SpotLight(data.color, data.intensity, 0, Math.PI/3, 0.65, 2); light.userData.renderStudioAreaFallback = true; light.target = new THREE.Object3D(); this.scene.add(light.target); }
     else light = new THREE.PointLight(data.color, data.intensity, data.distance, data.decay);
     light.name = data.name; light.visible = data.enabled; light.position.fromArray(data.position);
     light.rotation.set(...data.rotation.map(THREE.MathUtils.degToRad));
@@ -123,22 +128,24 @@ RenderStudio.Engine = class {
     wire.userData.lightId = data.id; wire.renderOrder = 999; group.add(wire); return group;
   }
   updateLight(data) {
-    const light = this.lightObjects.get(data.id), helper = this.helpers.get(data.id); if (!light) return;
+    let light = this.lightObjects.get(data.id), helper = this.helpers.get(data.id); if (!light) { this.createLight(data); light=this.lightObjects.get(data.id); helper=this.helpers.get(data.id); if(!light)return; }
     light.name=data.name; light.visible=data.enabled; light.color.set(data.color); light.intensity=data.intensity; light.position.fromArray(data.position); light.rotation.set(...data.rotation.map(THREE.MathUtils.degToRad)); light.castShadow=!!data.castShadow&&data.type!=='area';
     if ('distance' in light) light.distance=data.distance; if ('decay' in light) light.decay=data.decay;
     if (data.type==='spot') {light.angle=THREE.MathUtils.degToRad(data.angle);light.penumbra=data.penumbra;}
-    if (data.type==='area') {light.width=data.width;light.height=data.height;}
-    if (light.target && (data.type==='spot'||data.type==='directional')) {
+    if (data.type==='area' && !light.userData.renderStudioAreaFallback) {light.width=data.width;light.height=data.height;}
+    if (light.target && (data.type==='spot'||data.type==='directional'||light.userData.renderStudioAreaFallback)) {
       const direction=new THREE.Vector3(0,0,-1).applyEuler(light.rotation).normalize();
       light.target.position.copy(light.position).add(direction.multiplyScalar(100));
       light.target.updateMatrixWorld(true);
     }
     if (light.shadow) {const size=this.shadowSize(data),changed=light.shadow.mapSize.x!==size||light.shadow.mapSize.y!==size;light.shadow.mapSize.set(size,size);light.shadow.bias=data.bias;light.shadow.normalBias=data.normalBias;if(changed&&light.shadow.map){light.shadow.map.dispose();light.shadow.map=null;}}
-    if (helper) {helper.visible=RenderStudio.getState().helpers&&data.enabled;helper.position.fromArray(data.position);helper.rotation.copy(light.rotation);helper.scale.setScalar(RenderStudio.getState().helperSize);}
+    if (helper) {helper.visible=RenderStudio.getState().helpers&&data.enabled;helper.position.fromArray(data.position);helper.rotation.copy(light.rotation);helper.scale.setScalar(RenderStudio.getState().helperSize);} this.invalidate();
   }
   pointAt(data, target) {
     const light=this.lightObjects.get(data.id); if(!light)return;
-    if (data.type==='area') light.lookAt(target); else if(light.target){light.target.position.copy(target);light.target.updateMatrixWorld();const aim=new THREE.Object3D();aim.position.copy(light.position);aim.lookAt(target);light.rotation.copy(aim.rotation);}
+    const direction=target.clone().sub(light.position).normalize();
+    if(direction.lengthSq()>0){const quaternion=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1),direction);light.quaternion.copy(quaternion);}
+    if(light.target){light.target.position.copy(target);light.target.updateMatrixWorld();}
     if(data.type!=='point') data.rotation=[light.rotation.x,light.rotation.y,light.rotation.z].map(THREE.MathUtils.radToDeg);
     const h=this.helpers.get(data.id); if(h)h.rotation.copy(light.rotation);
   }

@@ -6,8 +6,7 @@ RenderStudio.installPersistence = () => {
     }
   }));
   RenderStudio.listeners.push(Blockbench.on('load_project', ({model}) => {
-    if (!Project) return; const state = RenderStudio.defaults();
-    if (model.render_studio && typeof model.render_studio === 'object') Object.assign(state, RenderStudio.cloneData(model.render_studio), {render: state.render});
+    if (!Project) return; const state = RenderStudio.hydrateState(model.render_studio);
     RenderStudio.projects.set(Project.uuid, state);
     Project.render_studio_state = state;
     Project.render_studio_snapshot = RenderStudio.serializeState(state);

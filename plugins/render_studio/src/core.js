@@ -7,14 +7,14 @@ RenderStudio.uid = () => 'rs_' + Date.now().toString(36) + Math.random().toStrin
 RenderStudio.clamp = (n, min, max) => Math.max(min, Math.min(max, Number(n) || 0));
 RenderStudio.cloneData = value => JSON.parse(JSON.stringify(value));
 RenderStudio.defaults = () => ({
-  version: 1,
+  version: 2,
   performance: 'pc',
   lights: [],
   selectedLight: null,
   helpers: true,
   helperSize: 1,
-  ambient: {enabled: true, color: '#ffffff', intensity: 0.65},
-  hemisphere: {enabled: true, sky: '#d9e8ff', ground: '#554b43', intensity: 0.35},
+  ambient: {enabled: true, color: '#ffffff', intensity: 0.2},
+  hemisphere: {enabled: true, sky: '#d9e8ff', ground: '#554b43', intensity: 0.12},
   ground: {enabled: true, auto: true, height: 0, size: 4, color: '#777777', roughness: 0.9, receiveShadow: true, visible: true, shadowCatcher: false},
   material: {mode: 'minecraft', roughness: 0.8, metalness: 0, emissive: '#000000', emissiveIntensity: 0, opacity: 1, alphaTest: 0.01, doubleSided: false, castShadow: true, receiveShadow: true},
   camera: {projection: 'perspective', position: [32, 24, 32], target: [0, 8, 0], fov: 45, near: 0.01, far: 10000, orthoScale: 32},
@@ -24,6 +24,21 @@ RenderStudio.defaults = () => ({
   render: {busy: false, progress: 0, status: '', cancel: false},
   capabilities: null
 });
+RenderStudio.hydrateState = saved => {
+  const state = RenderStudio.defaults(), source = saved && typeof saved === 'object' ? RenderStudio.cloneData(saved) : {};
+  for (const key of ['ambient','hemisphere','ground','material','camera','environment','output','post']) if (source[key] && typeof source[key] === 'object') Object.assign(state[key], source[key]);
+  if (Array.isArray(source.lights)) state.lights = source.lights.map(light => Object.assign(RenderStudio.lightDefaults(light.type || 'point'), light));
+  if (typeof source.selectedLight === 'string' || source.selectedLight == null) state.selectedLight = source.selectedLight;
+  if (source.performance === 'phone' || source.performance === 'pc') state.performance = source.performance;
+  if (typeof source.helpers === 'boolean') state.helpers = source.helpers;
+  if (Number.isFinite(Number(source.helperSize))) state.helperSize = RenderStudio.clamp(source.helperSize, 0.1, 10);
+  if ((Number(source.version) || 1) < 2) {
+    if (state.ambient.intensity >= 0.45) state.ambient.intensity = 0.2;
+    if (state.hemisphere.intensity >= 0.3) state.hemisphere.intensity = 0.12;
+  }
+  state.version = 2;
+  return state;
+};
 RenderStudio.lightDefaults = type => {
   const base = {id: RenderStudio.uid(), type, name: type[0].toUpperCase() + type.slice(1) + ' Light', enabled: true, color: '#ffffff', intensity: type === 'area' ? 4 : 1.8, position: [20, 24, 20], rotation: [-35, 45, 0], distance: 0, decay: 2, castShadow: type !== 'area', shadowSize: 1024, bias: -0.0002, normalBias: 0.02};
   if (type === 'spot') Object.assign(base, {angle: 35, penumbra: 0.35});
@@ -35,7 +50,7 @@ RenderStudio.getState = () => {
   if (!Project) return RenderStudio.session || (RenderStudio.session = RenderStudio.defaults());
   let state = RenderStudio.projects.get(Project.uuid);
   if (!state) {
-    state = Project.render_studio_state || RenderStudio.defaults();
+    state = RenderStudio.hydrateState(Project.render_studio_state || Project.render_studio_snapshot);
     RenderStudio.projects.set(Project.uuid, state);
     Project.render_studio_state = state;
     RenderStudio.fingerprints.set(Project.uuid, JSON.stringify(RenderStudio.serializeState(state)));
@@ -67,11 +82,15 @@ RenderStudio.captureModeState = () => {
 };
 RenderStudio.restoreModeState = () => {
   if (!Project) return RenderStudio.getState();
+  const current = RenderStudio.projects.get(Project.uuid);
+  if (current) {
+    current.capabilities = RenderStudio.engine ? RenderStudio.engine.capabilities : current.capabilities;
+    Project.render_studio_state = current;
+    return current;
+  }
   const snapshot = Project.render_studio_snapshot;
   if (!snapshot) return RenderStudio.getState();
-  const restored = RenderStudio.defaults();
-  Object.assign(restored, RenderStudio.cloneData(snapshot));
-  restored.render = RenderStudio.defaults().render;
+  const restored = RenderStudio.hydrateState(snapshot);
   restored.capabilities = RenderStudio.engine ? RenderStudio.engine.capabilities : null;
   RenderStudio.projects.set(Project.uuid, restored);
   Project.render_studio_state = restored;
@@ -108,14 +127,14 @@ RenderStudio.applyPreset = name => {
   const c = b.center, d = Math.max(4, b.largest);
   if (name === 'horror') {
     add('spot', 'Cold Side', [c.x-d, c.y+d*.7, c.z+d*.3], 5, '#9bbcff');
-    add('point', 'Low Red Fill', [c.x+d*.5, c.y-d*.2, c.z+d*.4], 0.8, '#ff3b30'); s.ambient.intensity = 0.12;
+    add('point', 'Low Red Fill', [c.x+d*.5, c.y-d*.2, c.z+d*.4], 0.8, '#ff3b30'); s.ambient.intensity = 0.04; s.hemisphere.intensity = 0.04;
   } else if (name === 'rim') {
     add('area', 'Key', [c.x-d, c.y+d, c.z+d], 4.5);
-    add('spot', 'Rim', [c.x+d*.5, c.y+d, c.z-d], 6, '#b9d7ff'); s.ambient.intensity = 0.3;
+    add('spot', 'Rim', [c.x+d*.5, c.y+d, c.z-d], 6, '#b9d7ff'); s.ambient.intensity = 0.1; s.hemisphere.intensity = 0.08;
   } else {
     add('area', 'Key Light', [c.x-d, c.y+d, c.z+d], name === 'minecraft' ? 5 : 4.2, '#fff4e5');
     add('area', 'Fill Light', [c.x+d, c.y+d*.35, c.z+d], 2.2, '#dbeaff');
-    add('spot', 'Rim Light', [c.x+d*.4, c.y+d, c.z-d], name === 'minecraft' ? 5 : 3.5, '#b8d4ff'); s.ambient.intensity = name === 'dramatic' ? 0.2 : 0.45;
+    add('spot', 'Rim Light', [c.x+d*.4, c.y+d, c.z-d], name === 'minecraft' ? 5 : 3.5, '#b8d4ff'); s.ambient.intensity = name === 'dramatic' ? 0.08 : 0.18; s.hemisphere.intensity = name === 'dramatic' ? 0.05 : 0.1;
   }
   s.selectedLight = s.lights[0] && s.lights[0].id;
   if (e) { e.rebuildLights(); e.pointAllAt(c); e.invalidate(); }
