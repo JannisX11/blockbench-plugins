@@ -8,6 +8,7 @@ RenderStudio.clamp = (n, min, max) => Math.max(min, Math.min(max, Number(n) || 0
 RenderStudio.cloneData = value => JSON.parse(JSON.stringify(value));
 RenderStudio.defaults = () => ({
   version: 1,
+  performance: 'pc',
   lights: [],
   selectedLight: null,
   helpers: true,
@@ -80,6 +81,21 @@ RenderStudio.safeName = value => String(value || 'model').replace(/[^a-z0-9_-]+/
 RenderStudio.estimateMemory = (width, height, scale = 1) => {
   const pixels = width * height * scale * scale;
   return {cpuMB: width * height * 4 / 1048576, gpuMB: pixels * 12 / 1048576};
+};
+RenderStudio.constrainOutput = (width, height, profile = 'pc') => {
+  width = RenderStudio.clamp(width, 16, 32768); height = RenderStudio.clamp(height, 16, 32768);
+  const max = profile === 'phone' ? 2048 : 32768, scale = Math.min(1, max / Math.max(width, height));
+  return {width: Math.max(16, Math.round(width * scale)), height: Math.max(16, Math.round(height * scale))};
+};
+RenderStudio.applyPerformanceProfile = profile => {
+  const s = RenderStudio.getState(), e = RenderStudio.engine;
+  s.performance = profile === 'phone' ? 'phone' : 'pc';
+  if (s.performance === 'phone') {
+    const size = RenderStudio.constrainOutput(s.output.width, s.output.height, 'phone');
+    s.output.width = size.width; s.output.height = size.height; s.output.tileSize = Math.min(1024, s.output.tileSize); s.helpers = false;
+  } else s.helpers = true;
+  if (e) { e.configurePerformance(); e.rebuildLights(); e.resize(); e.invalidate(); }
+  RenderStudio.touch(); RenderStudio.refreshUI();
 };
 RenderStudio.applyPreset = name => {
   const s = RenderStudio.getState();
