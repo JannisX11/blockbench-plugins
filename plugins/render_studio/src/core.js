@@ -1,4 +1,4 @@
-RenderStudio.VERSION = '1.0.0';
+RenderStudio.VERSION = '2.1.0';
 RenderStudio.resources = [];
 RenderStudio.listeners = [];
 RenderStudio.projects = new Map();
@@ -6,9 +6,15 @@ RenderStudio.fingerprints = new Map();
 RenderStudio.uid = () => 'rs_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
 RenderStudio.clamp = (n, min, max) => Math.max(min, Math.min(max, Number(n) || 0));
 RenderStudio.cloneData = value => JSON.parse(JSON.stringify(value));
+RenderStudio.isMobile = () => {
+  try {
+    if (typeof Blockbench !== 'undefined' && typeof Blockbench.isMobile === 'boolean') return Blockbench.isMobile;
+    return !!((window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent||''));
+  } catch (e) { return false; }
+};
 RenderStudio.defaults = () => ({
-  version: 2,
-  performance: 'pc',
+  version: 4,
+  performance: RenderStudio.isMobile() ? 'phone' : 'pc',
   lights: [],
   selectedLight: null,
   helpers: true,
@@ -18,25 +24,27 @@ RenderStudio.defaults = () => ({
   ground: {enabled: true, auto: true, height: 0, size: 4, color: '#777777', roughness: 0.9, receiveShadow: true, visible: true, shadowCatcher: false},
   material: {mode: 'minecraft', roughness: 0.8, metalness: 0, emissive: '#000000', emissiveIntensity: 0, opacity: 1, alphaTest: 0.01, doubleSided: false, castShadow: true, receiveShadow: true},
   camera: {projection: 'perspective', position: [32, 24, 32], target: [0, 8, 0], fov: 45, near: 0.01, far: 10000, orthoScale: 32},
-  environment: {background: 'transparent', color: '#20242b', top: '#3d4655', bottom: '#111318', exposure: 1, toneMapping: 'aces'},
-  output: {width: 2048, height: 2048, antialias: 'normal', tileSize: 2048},
-  post: {contrast: 0, saturation: 0, vignette: 0, bloom: false, bloomStrength: 0.6},
+  environment: {background: 'transparent', color: '#20242b', top: '#3d4655', bottom: '#111318', exposure: 1, toneMapping: 'aces', imageSource: '', imageData: '', imageName: '', imageBlur: 0, imageBrightness: 1},
+  output: {width: RenderStudio.isMobile() ? 1024 : 2048, height: RenderStudio.isMobile() ? 1024 : 2048, antialias: 'normal', tileSize: RenderStudio.isMobile() ? 256 : 2048, pass: 'beauty'},
+  post: {contrast: 0, saturation: 0, vignette: 0, bloom: false, bloomStrength: 0.6, dof: 0, outline: false, outlineColor: '#111111', outlineSize: 0.035},
+  tools: {turntableFrames: RenderStudio.isMobile() ? 12 : 24, cameraPreset: 'square', dragLights: false, autoProfile: true, language: 'en', advancedUI: false, compareMode: 'slider', compareA: '', compareB: '', search: '', renderQueue: [], queuePreset: '', queueCamera: 'square', watermarkEnabled: false, watermarkText: '', watermarkImage: '', watermarkName: '', watermarkPosition: 'bottom-right', watermarkOpacity: 0.75, watermarkScale: 18},
   render: {busy: false, progress: 0, status: '', cancel: false},
   capabilities: null
 });
 RenderStudio.hydrateState = saved => {
   const state = RenderStudio.defaults(), source = saved && typeof saved === 'object' ? RenderStudio.cloneData(saved) : {};
-  for (const key of ['ambient','hemisphere','ground','material','camera','environment','output','post']) if (source[key] && typeof source[key] === 'object') Object.assign(state[key], source[key]);
+  for (const key of ['ambient','hemisphere','ground','material','camera','environment','output','post','tools']) if (source[key] && typeof source[key] === 'object') Object.assign(state[key], source[key]);
   if (Array.isArray(source.lights)) state.lights = source.lights.map(light => Object.assign(RenderStudio.lightDefaults(light.type || 'point'), light));
   if (typeof source.selectedLight === 'string' || source.selectedLight == null) state.selectedLight = source.selectedLight;
   if (source.performance === 'phone' || source.performance === 'pc') state.performance = source.performance;
+  if (RenderStudio.isMobile() && state.tools.autoProfile !== false) state.performance = 'phone';
   if (typeof source.helpers === 'boolean') state.helpers = source.helpers;
   if (Number.isFinite(Number(source.helperSize))) state.helperSize = RenderStudio.clamp(source.helperSize, 0.1, 10);
   if ((Number(source.version) || 1) < 2) {
     if (state.ambient.intensity >= 0.45) state.ambient.intensity = 0.2;
     if (state.hemisphere.intensity >= 0.3) state.hemisphere.intensity = 0.12;
   }
-  state.version = 2;
+  state.version = 4;
   return state;
 };
 RenderStudio.lightDefaults = type => {
@@ -61,6 +69,7 @@ RenderStudio.serializeState = state => {
   const copy = RenderStudio.cloneData(state || RenderStudio.defaults());
   delete copy.render;
   delete copy.capabilities;
+  if (copy.tools) { delete copy.tools.search; delete copy.tools.compareA; delete copy.tools.compareB; }
   return copy;
 };
 RenderStudio.touch = () => {
@@ -103,7 +112,7 @@ RenderStudio.estimateMemory = (width, height, scale = 1) => {
 };
 RenderStudio.constrainOutput = (width, height, profile = 'pc') => {
   width = RenderStudio.clamp(width, 16, 32768); height = RenderStudio.clamp(height, 16, 32768);
-  const max = profile === 'phone' ? 2048 : 32768, scale = Math.min(1, max / Math.max(width, height));
+  const max = profile === 'phone' ? 1024 : 32768, scale = Math.min(1, max / Math.max(width, height));
   return {width: Math.max(16, Math.round(width * scale)), height: Math.max(16, Math.round(height * scale))};
 };
 RenderStudio.applyPerformanceProfile = profile => {
@@ -111,7 +120,8 @@ RenderStudio.applyPerformanceProfile = profile => {
   s.performance = profile === 'phone' ? 'phone' : 'pc';
   if (s.performance === 'phone') {
     const size = RenderStudio.constrainOutput(s.output.width, s.output.height, 'phone');
-    s.output.width = size.width; s.output.height = size.height; s.output.tileSize = Math.min(1024, s.output.tileSize); s.helpers = false;
+    const scale = Math.min(1, 1024 / Math.max(size.width, size.height));
+    s.output.width = Math.max(16, Math.round(size.width * scale)); s.output.height = Math.max(16, Math.round(size.height * scale)); s.output.tileSize = Math.min(256, s.output.tileSize); s.helpers = false;
   } else s.helpers = true;
   if (e) { e.configurePerformance(); e.rebuildLights(); e.resize(); e.invalidate(); }
   RenderStudio.touch(); RenderStudio.refreshUI();
