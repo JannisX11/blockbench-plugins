@@ -18,7 +18,7 @@
  *   • Bake — scrubs every frame, solves IK, writes rotation keyframes
  *     into the active animation via Blockbench's undo system
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 // ---------------------------------------------------------------------------

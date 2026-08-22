@@ -12,7 +12,7 @@
  *   - Bedrock catmullrom toggle (sets interpolation, not easing)
  *   - All controls update all selected keyframes atomically via the undo system
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { uniq } from 'lodash';
