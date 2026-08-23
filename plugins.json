@@ -278,7 +278,7 @@
 		"author": "Ewan Howell",
 		"description": "Generate hue shifted gradient palettes from a single colour.",
 		"tags": ["Paint", "Palette", "Color"],
-		"version": "2.1.0",
+		"version": "3.0.0",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"website": "https://ewanhowell.com/plugins/colour-gradient-generator/",
