@@ -259,18 +259,22 @@
 	},
 	"optifine_player_models": {
 		"title": "OptiFine Player Models",
-		"icon": "icon-player",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Adds a new format that allows you to create OptiFine player models.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-		"version": "1.5.0",
+		"version": "1.5.2",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"await_loading": true,
 		"creation_date": "2022-05-29",
 		"contributes": {
 			"formats": ["optifine_player_model"]
-		}
+		},
+		"website": "https://ewanhowell.com/plugins/optifine-player-models/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/optifine_player_models",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[OptiFine Player Models]",
+		"has_changelog": true
 	},
 	"colour_gradient_generator": {
 		"title": "Colour Gradient Generator",
