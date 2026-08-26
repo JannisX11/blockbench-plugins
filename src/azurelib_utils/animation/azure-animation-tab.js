@@ -1253,6 +1253,8 @@ export function importAzureAnimation() {
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
+  //IKManager.register();
+
   const codec = createAzureAnimationCodec();
   if (!codec) {
     console.warn(
@@ -1289,6 +1291,8 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
+  //IKManager.unregister();
+
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
 
