@@ -20,7 +20,7 @@
     "updated": 0
   },
   "double_sided_cubes": {
-    "version": "1.0.1",
+    "version": "1.0.2",
     "created": 0,
     "updated": 0
   },
@@ -35,9 +35,9 @@
     "updated": 0
   },
   "outline_creator": {
-    "version": "1.1.1",
+    "version": "1.2.0",
     "created": 0,
-    "updated": 0
+    "updated": 1787821634211
   },
   "vox_importer": {
     "version": "1.2.2",
@@ -95,9 +95,9 @@
     "updated": 1653782400000
   },
   "colour_gradient_generator": {
-    "version": "2.1.0",
+    "version": "3.0.0",
     "created": 1654128000000,
-    "updated": 1760227200000
+    "updated": 1787821849055
   },
   "collapsible_start_screen_categories": {
     "version": "1.0.0",

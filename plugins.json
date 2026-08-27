@@ -92,12 +92,12 @@
 		"variant": "both"
 	},
 	"double_sided_cubes": {
-		"title": "Double Sided Cube Generator",
+		"title": "Double Sided Cubes",
 		"author": "SnaveSutit",
 		"icon": "flip_to_back",
 		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"variant": "both"
 	},
 	"optimize": {
@@ -278,7 +278,7 @@
 		"author": "Ewan Howell",
 		"description": "Generate hue shifted gradient palettes from a single colour.",
 		"tags": ["Paint", "Palette", "Color"],
-		"version": "2.1.0",
+		"version": "3.0.0",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"website": "https://ewanhowell.com/plugins/colour-gradient-generator/",

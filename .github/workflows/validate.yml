@@ -14,6 +14,9 @@ jobs:
 
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to add labels to PRs
+      contents: read
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,8 +29,22 @@ jobs:
           fetch-depth: 0 # Ensures we have the full history for diff
 
       - name: Validate
+        id: validate_step
         run: |
           npm ci
           git fetch origin ${{ github.base_ref }}
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          CHANGED_FILES=$(git diff --name-status origin/${{ github.base_ref }}...HEAD)
           CHANGED_FILES="$CHANGED_FILES" npm run validate
+
+      - name: Add PR Label
+        if: success() && steps.validate_step.outputs.label != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = '${{ steps.validate_step.outputs.label }}';
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: [label]
+            });
