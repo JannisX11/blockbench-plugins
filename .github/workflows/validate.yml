@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Required to add labels to PRs
+      issues: write
       contents: read
     steps:
       - name: Setup Node.js
