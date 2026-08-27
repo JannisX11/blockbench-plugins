@@ -1574,5 +1574,20 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
+	},
+	"true_mirror": {
+		"title": "True Mirror",
+		"author": "Kegoscho",
+		"icon": "icon.svg",
+		"description": "Mirrors only the change you actually made, instead of symmetrizing the whole element. Asymmetric detail survives unrelated mirrored edits. Move, rotate, scale and extrude, across any axis and around either world zero or the element's own pivot.",
+		"tags": ["Edit", "Meshes", "Mirror"],
+		"version": "1.0.0",
+		"min_version": "5.1.0",
+		"variant": "both",
+		"new_repository_format": true,
+		"has_changelog": true,
+		"repository": "https://github.com/Kegoscho/true-mirror",
+		"bug_tracker": "https://github.com/Kegoscho/true-mirror/issues",
+		"creation_date": "2026-08-04"
 	}
 }
