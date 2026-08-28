@@ -1,0 +1,14651 @@
+(function (root) {
+    'use strict';
+
+    const PLUGIN_ID = 'cosmiq_cosmetic_creator';
+    const FORMAT_ID = 'cosmiq_cosmetic';
+    const PLUGIN_VERSION = '0.17.0';
+    const PLUGIN_AUTHOR = 'Cosmiq Team';
+    const PLUGIN_CREATION_DATE = '2026-08-01';
+    const PROJECT_WEBSITE_URL = 'https://cosmiq.gg/';
+    const CREATOR_GUIDES_URL = 'https://guides.cosmiq.gg/';
+    const COMMUNITY_DISCORD_URL = 'https://discord.cosmiq.gg/';
+    const YOUTUBE_GUIDES_URL = 'https://www.youtube.com/@CosmiqGG';
+    const PROJECT_REPOSITORY_URL = 'https://github.com/CosmiqGG/cosmiq-cosmetic-creator';
+    const FORMAT_BANNER_FILE = 'temp_title.png';
+    const BASE_TEMPLATE_FILE = 'CosmiqPlayerTemplate.bbmodel';
+    const BASE_TEMPLATE_SHA256 = '769bad284e181e699278b91aada6a74bd63a2a61e0c201c5772a5206644e1505';
+    const BASE_TEMPLATE_GZIP_BASE64 = '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';
+    const IMPORTED_GROUP_NAME = 'IMPORTED';
+    const LEGACY_IMPORT_EXTENSIONS = Object.freeze(['cosmiq', 'bbmodel']);
+    const PLUGIN_ABOUT = [
+        '<div id="cosmiq-about-links">',
+        '  <a class="cosmiq-about-button" href="' + PROJECT_WEBSITE_URL + '" aria-label="Open the Cosmiq website">',
+        '    <span>Website</span>',
+        '  </a>',
+        '  <a class="cosmiq-about-button" href="' + COMMUNITY_DISCORD_URL + '" aria-label="Join the Cosmiq Discord">',
+        '    <span>Discord</span>',
+        '  </a>',
+        '  <a class="cosmiq-about-button" href="' + CREATOR_GUIDES_URL + '" aria-label="Open Cosmiq Creator Guides">',
+        '    <span>Creator Guides</span>',
+        '  </a>',
+        '  <a class="cosmiq-about-button" href="' + YOUTUBE_GUIDES_URL + '" aria-label="Open Cosmiq YouTube channel">',
+        '    <span>YouTube Guides</span>',
+        '  </a>',
+        '</div>',
+        '<style>',
+        '#cosmiq-about-links{display:flex;flex-wrap:wrap;justify-content:space-around;gap:6px;padding:18px 8px}',
+        '.cosmiq-about-button{display:flex;width:120px;min-height:42px;align-items:center;justify-content:center;padding:6px;border-radius:5px;color:var(--color-subtle_text)!important;text-align:center;text-decoration:none!important}',
+        '.cosmiq-about-button:hover{background:var(--color-button);color:var(--color-text)!important}',
+        '.cosmiq-about-button>span{line-height:1.25}',
+        '</style>'
+    ].join('');
+
+    function formatPageComponent() {
+        return {
+            data: function () {
+                return {
+                    bannerSource: FORMAT_BANNER_DATA_URL,
+                    fallbackBannerSource: FORMAT_BANNER_DATA_URL
+                };
+            },
+            methods: {
+                create: function () {
+                    return creatorFormat.new();
+                },
+                useFallbackBanner: function (event) {
+                    if (this.bannerSource !== this.fallbackBannerSource) {
+                        this.bannerSource = this.fallbackBannerSource;
+                        return;
+                    }
+                    if (event && event.target) {
+                        event.target.style.display = 'none';
+                    }
+                }
+            },
+            template: [
+                '<div class="cosmiq-format-page">',
+                '  <p class="format_description">Create Cosmiq accessories and emotes directly in Blockbench.</p>',
+                '  <p class="format_target"><b>Target</b> : <span>Minecraft: Java Edition</span></p>',
+                '  <content class="cosmiq-format-content">',
+                '    <a class="cosmiq-format-banner-link" href="' + PROJECT_WEBSITE_URL + '" aria-label="Open the Cosmiq website">',
+                '      <img class="cosmiq-format-banner" :src="bannerSource" alt="Cosmiq" @error="useFallbackBanner">',
+                '    </a>',
+                '    <p class="cosmiq-format-tagline">Bring your Minecraft character ideas to life with Cosmiq Creator.</p>',
+                '    <section class="cosmiq-format-notes">',
+                '      <h2>Info:</h2>',
+                '      <ul>',
+                '        <li>Need help? Check out the Guide and Youtube for tutorials</li>',
+                '        <li>Join the discord for giveaways and competitions!</li>',
+                '      </ul>',
+                '    </section>',
+                '  </content>',
+                '    <div class="cosmiq-format-links">',
+                '      <a href="' + PROJECT_WEBSITE_URL + '" aria-label="Open the Cosmiq website"><span class="cosmiq-material-icon-frame"><i class="material-icons icon cosmiq-about-website" style="color:#20e08f!important">language</i></span><span>Website</span></a>',
+                '      <a href="' + COMMUNITY_DISCORD_URL + '" aria-label="Join the Cosmiq Discord"><i class="fa_big icon fab fa-discord cosmiq-about-discord" style="color:#5865f2!important"></i><span>Discord</span></a>',
+                '      <a href="' + CREATOR_GUIDES_URL + '" aria-label="Open Cosmiq Creator Guides"><span class="cosmiq-material-icon-frame"><i class="material-icons icon cosmiq-about-guides" style="color:#8b5cf6!important">menu_book</i></span><span>Creator Guides</span></a>',
+                '      <a href="' + YOUTUBE_GUIDES_URL + '" aria-label="Open Cosmiq YouTube channel"><i class="fa_big icon fab fa-youtube cosmiq-about-youtube" style="color:#ff3b3b!important"></i><span>YouTube Guides</span></a>',
+                '    </div>',
+                '  <div class="button_bar cosmiq-format-actions">',
+                '    <button id="create_new_model_button" @click="create"><i class="material-icons">accessibility_new</i>Create New Cosmiq Creation</button>',
+                '  </div>',
+                '</div>'
+            ].join('')
+        };
+    }
+    const PACKAGE_SCHEMA = 'cosmiq.package.v3';
+    const SOURCE_SCHEMA = PACKAGE_SCHEMA;
+    const CAPE_SOURCE_SCHEMA = PACKAGE_SCHEMA;
+    const EMOTE_SOURCE_SCHEMA = PACKAGE_SCHEMA;
+    const EMOTE_LOGIC_SCHEMA = 'cosmiq.emote.logic.v0';
+    const COORDINATE_PROFILE = 'cosmiq.blockbench.v3';
+    const COSMIQ_STANDARD_MAGIC = 'COSMIQCP';
+    const COSMETIC_FORMAT_VERSION = 3;
+    const CAPE_FORMAT_VERSION = 3;
+    const PACKAGE_EXTENSION = 'bbmodel';
+    const CATEGORIES = Object.freeze({
+        ACCESSORY: 'accessory',
+        EMOTE: 'emote',
+        CAPE: 'cape'
+    });
+    const ANIMATION_MODES = Object.freeze({
+        ANIMATED: 'animated',
+        STATIC: 'static'
+    });
+    const EMOTE_LOGIC_LIMITS = Object.freeze({
+        sourceBytes: 16 * 1024,
+        sourceLines: 256,
+        graphBytes: 64 * 1024
+    });
+    const IDENTIFIER_PATTERN = /^[a-z0-9._-]+:[a-z0-9._/-]+$/;
+    const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}:[a-z0-9][a-z0-9._/-]{0,126}$/;
+    const PATH_FIELD_NAMES = Object.freeze([
+        'path',
+        'relative_path',
+        'source_path',
+        'export_path',
+        'save_path',
+        'file'
+    ]);
+
+    const PACKAGE_LIMITS = Object.freeze({
+        packageBytes: 500_000,
+        manifestBytes: 64 * 1024,
+        bbmodelBytes: 500_000,
+        projectIdCharacters: 128,
+        bodySlots: 8,
+        jsonDepth: 64,
+        jsonValues: 100000,
+        editorNodes: 512,
+        animations: 32,
+        keyframes: 4096,
+        textures: 16,
+        meshFaceVertices: 32,
+        pngBytes: 4 * 1024 * 1024
+    });
+    const AUTHORING_LIMITS = Object.freeze({
+        resources: 64,
+        cues: 256,
+        effectLocators: 64,
+        markersPerAnimation: 256,
+        displayNameCharacters: 64,
+        markerNameCharacters: 96,
+        commentCharacters: 512
+    });
+
+    const RESOURCE_TYPES = Object.freeze({
+        PARTICLE_EFFECT: 'particle_effect',
+        SOUND: 'sound'
+    });
+    const SOUND_REFERENCE_TYPES = Object.freeze(['sound_effect', 'music']);
+    const CUE_TYPES = Object.freeze({
+        PARTICLE: 'particle',
+        SOUND: 'sound',
+        NODE_VISIBILITY: 'node_visibility',
+        COMMENT: 'comment'
+    });
+    const BODY_SLOTS = Object.freeze([
+        'cosmiq:slot/head',
+        'cosmiq:slot/body',
+        'cosmiq:slot/arms',
+        'cosmiq:slot/legs'
+    ]);
+
+    function inlineSvgData(svg) {
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+    // BEGIN GENERATED CREATOR CARD IMAGES
+    const FORMAT_BANNER_DATA_URL = 'data:image/png;base64,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';
+    const CREATOR_CARD_IMAGES = Object.freeze({
+        CREATE_ACCESSORY: 'data:image/webp;base64,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',
+        CREATE_EMOTE: 'data:image/webp;base64,UklGRqRQAABXRUJQVlA4WAoAAAAAAAAAvwMABwIAVlA4IDBQAADQWwGdASrAAwgCAAAAJaW7hd1wqPzt/l93xjL0P+H/dHlrORvpv9H/3P7pb19a3nteW/rv/W/xf7Vf6b5jf8f/gfhX8t/MF/Xn9hf2A+dP+k9YXmS/Y7/Uf3r3VP+N+zHve/sPqM/0L/Q9b76Iv8X/xnpz/ud8P37jf9f/sezNqpPz/+4/6XwdfsH+A/v/7T/t95ovmP7H+wX96/u3+s/yHyl/5/cs6o+4D3V/kv2M+/f2j9fv77/s/9T94v6X/Tf5P91v8p6k/Kz/V9Qv8p/l/9y/uv7C/3z/Xf5jkzeA/c/1CPY/6R/kv8b/m/8X/gP/D/ovol+U/6P+T/Z73r+0X/B/Jb6Af5Z/UP8N/hv2D/vP/a+xP+34iH5L/s/tN8A/84/r3+l/yH+i/1f96////f/G/+3/53+q/2v/I/wf/s+K/6R/oP+V/o/2z/w3/o/5P6Gfyr+f/4P+7/6T/P/4H/1/7b73faP+9Psrfr//33qPjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTZzWf3GnLs3GiStJ01S+WvT5k8abRMabRMabRMabRMabRMPNT/wncTvmt9BuLYPAQyOXRotCyfdjt2jr+EDYMkU1VhfZlJPwO/v2I//DCIjyaAS0GTxptExptExptExptExptExprb0ZJJ+7qfMTZlQOMyeIetFLmFfmJVKGiN1wOiM9MfKNclvLdpgyOC2ZPGm0TGm0TGm0TGm0TGm0TGmzl10CppLiNU4IF3PER+9pNDYPD27OtfuLf7PhMeHGGfa0oCzZesWdks6RE+XXP5xOIQroP63L1myHHaDJ402iY02iY02iY02iY02iYla/yznYv1PsspUDhJ2o2jJXRm/ymiu05TQY9FBAA55BBWXI+uh1FK/gXEIk+tok3NCxtePmTxptExptExptExptExptExps29M8lJC5JK2qS+kJv+Shiw5koTH6yLU9oixoZDBATvMCKwdi3knRU98gKR6BrMzHZLN3Bk8abRMabRMabRMabRMabRMaXTSZYboqdz4rrax/lUpkSWXEx7T4W/L/VwW2MzuXlxtOVzc8KjJSOdQDjuqWAHHiO/MQt15Z3Bk8abRMabRMabRMabRMabRMaXEGPl8OKk6R1Vc63XdT+Av+4m74k/VpRwbRNFoMZdet9oQ6qEwx808X/6iy+K4JvDH/a5+sH/Y0QQIQ1NomNNomNNomNNomNNomNNomNLg+cYiy8IJcStDKNSX3oB1vw3TgJh3JP/TL9VDEd4qYzA5UFGGakWStBnaT/yexaTVdi9JUXhKA85L7aMfMnjTaJjTaJjTaJjTaJjSwj78xt9gf0jgNUWS5ya8D3Y5hwK63yUCtAR+OWZahI97H4WHQP4qJ3ja9uYu222bSo8IvSNb9ILMgV6fMnjTaJjTaJjTaJjTaJjTaHy9lzVC7yyIatlpRsHYoOsvukOAL76x0mQOwJGhY9RVB/olOIEA8j2tQRiddCV2fuUhwKfr22pzjso46nbKBjZHjw1X5LmFpA1omNNomNNomNNomNNomNNomIdgRA8K0d6+7404sIt1UIp53jUYXhAZnQ70XYkMiyN7exWAJM18/aTiC052czieBmeqBU5Jnp90mofwcj2Osp4RPe/kvI80ou7BNomNNomNNomNNomNNomNNoeDQozH+R3UnZM7zqrf9EqzAMwStYsiyD4pMelokwNnKm6/cOZMG5YSPflB3phaXJxKj1NCzXKJ8STisRrnOpqrLLGUb/L6ikVWFUQJy2l/OHlr0+ZPGm0TGm0TGm0TERjp7JzYRxh5jWkPT2z7GZ+1TYmyGapQLqEcLgR7rIg1K2e0Jrpy8G+m8+SCazCoJqJjzJ8Ldjkw1PQY02iY02iY02iY02iY02iYlFDtFEsS7VWbIxVhoVXKLl9/5RNE1v1aID4JE1hGUTMgDu4PFBbhqLRPLHc/4+AQ03v5at4FUn1vFNRbmmN6S0beKlwlLB5a9PmTxptExptExptEDfGe4drUH0UNPAnkivjawK/cZqaozC57HPqQ0gQ8k5E5hyBZ07Mm+lti0dPHlddbmnNJAuj4Yya1o7Dx6c6n1VeWWvT5k8abRMabRMabRLvYS0XZTYE58pS+YvUwHXg+C66xy8/bgp83j3+I82Mf3806c346dsEJh4TZXFV+KPSqVo/dcJeH+zRwUgjHOhFviJgoZ7sTGm0TGm0TGm0TGm0TGDjKl8/F9sHVAqqsSTA8WSMmRZuPOEAaAiuZwl3MxfmMXrMrwDpAuSM6bwVnGI8a3x9RwhCs7G+TjhndzWCAMgCf4vmu5QTklkCxVPgVja9PmTxptExptExptExWuBFf54+YD/qpQv5Um1G636xz4HdHCyI2g6BPochQCHN0sRrrDPya/5+BW9YXxf+g/D+Ue247UNmhZTaEM3h02TMhb8y70YYw6s1NKxzCL6Chp57OxtGPmTxptExptExptExO9vHIb+b01OwJFDi1n84Xoux/QB9TL4HCr3ZKmCEf26XWE+Zxuz4yw9ZacD2wTyChTELpSqI06Ry57MyYjOKdLryJBZnl33/L+9IKuRFCFnQ9H9UcZa9PmTxptExptExptEsPiEfUi3yDhPK09N4HsuAQEVFPJR6u4Ppzi75rZKf8XPOPaYmVpXiB8ds4madra7xO8INyCIXe4YOLWkfVqmmDayFNnCXT0s4tj5fnHyhWf5zh5a9PmTxptExptExpY7aWwHNCcKN08gCr89EQ8F21HqPC/EkVG/bvnpERKYgJiQdIOECIGNehlhTeRlNrq0C/yl43i+1KVTvr1bxNYYwhfokY8VF6zWH+/ic4eWvT5k8abRMabRMabRMYBjMly8nPVoW5nyp8kQN2zIDyzJyfQ0r5V1p+nHSh7zbxTN/55f5v61C/RhVwyZvQIDhAbLBpyy402iY02iY02iY02iY02iY0EjMBXlghthRSpD2C4asQiNl+Tr1J+y9kQcq6ByecMV9PlXmo11Ht6laBVyX6u3i1mQeJMabRMabRMabRMabRMabRMZx26HQ/SGMbE87vgs4D6TsnWDRY8sMLIDgbf6zImBWvaM30swS4QBmDpzM1idtox8yeNNomNNomNNomNNomNNomJPe63CdAnt0We/Cy8NQBdo+6u1QiWwRpUd7+wsD+FrNk8TJYLZAQAy5uY+ZPGm0TGm0TGm0TGm0TGm0TGm0LQLYnUF32bZisxmTeZlw/E5L6i/XtRARz2gJvtVIdwfS8LPZ19dM8M/JmxzsyeNNomNNomNNomNNomNNomNNomMRZMnCh8snObIBHnaop0A0LHENkb1THWLg4eMt35uXyZfvWwfiIlYdvP/VA05DvtExptExptExptExptExptExptExXV4vFESUTNZuiLQhSOxrb6OvpIXf7KuQUr9usgoDiVqsHEHIoAQPBf4LZ20Y+ZPGm0TGm0TGm0TGm0TGm0S2rVA/fHgsfh7H7SLizRR2iwe1InO8Mlrn8nVQuuQ0KkWOdCLijYkMi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',
+        WIDE_CHARACTER: 'data:image/webp;base64,UklGRu4/AABXRUJQVlA4WAoAAAAAAAAAvwMABwIAVlA4IHo/AACQHAGdASrAAwgCAAAAJZ278Ljnl6zDb85/wf5gd5HI/fX8D/mf77/gv7v/xf9b861a/vH32/Z3/W/dx/b5ZOvPM68x/Pf8D/bf8F/mf73/0f939wP8//uv9H+zPza/NP/K9wb+k/0b/B/579d/7T/zvu7/wP2Z95X7of7X2C/03+if4L/J/fb9wX+Y/2H+J90H9e/sX+F/tv+V+QL+j/zz5//uu/1vsl/1f/l+wP/E/6P95v7//Vp/1f8n+5/0w/17/V/8v/Qfuz9Ef89/q3+t/L79//sA9AD0AP3/9z/1v+/d8n9a/xf5d/3/sjvUftV8YNsfs2vt/w391/dT8zPu//T/7Xxv+a2od65/zn5ffmHy1O0+YX7YfWv9h/fv3S/xf7afSv8z/yf8V6p/Zb/afcV9gH8w/rH+f/t/7s/H3/X8SX7l/z/YJ/j39f/1/+N/IP5S/+P/R/5z9uPe19ef+r3Gf59/Yv9j/hv3X/zn//8WXoZ/sQmnzJ402iY02iY02iY02iY02iY02iY02iY02iY02iY02iY02iYpfT79T5eBk01qapngg2Pgzs6pN7TtD6EP7IyeNNomNNomNNomNNomNNomNNomNMeBKtYyByLeJ+hVxXEwFslEG9ExjNYf8Y8tenzJ402iY02iY02iY02iY02iYz8+z01wt8PrZXZm5rQkSAUe9w228I6NhaC/tFsG7mTxptExptExptExptExptExptExpiUh3HpAOYA6q1+wo/HtYX4+6JCH+C983rkXic1FtTtBk8abRMabRMabRMabRMabRMabRLnYrkId76ldClD2lsqgav2HbxiY13VPB/PEsGTxptExptExptExptExptExptExnkDuDIXb9JRhhK7m29OpRSLY51Ry/Fl9YQqvQeVyYJoZTg8tenzJ402iY02iY02iY02iY02iYujf5VkEj7CKO/FpbZIhSDoi7xHh4zl9o2VKxaLPVUc4eWvT5k8abRMabRMabRMabRMabRL5ye9sfmO+r4utGKnjcpQxOqxxzOIT87ud9NiY5W/4UhfE7ypEmNNomNNomNNomNNomNNomNNofbU1FRNCpy6y8zqXw4qE3unB6edGpYtGDwRlFkueOqvTfczis3DiKbhBEyowWI5a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',
+        SLIM_CHARACTER: 'data:image/webp;base64,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5M7ZOxptExptExptExptExptExptExptExpHwHhmwvq5h89diznbU48EaNPaHPsLn5G3t1YPG/Pd+R0Xa9PmTxptExptExptExptExptExps+G8gd7d+1cjvRzEpLquIyN36aY2iNGqHLMMK74yTIY9gmJAKWiY02iY02iY02iY02iY02iY02iYj8uI4Lh6nuvBxCUoAO8GFPert6aK7juS5QOu/+GGeDFRjnDy16fMnjTaJjTaJjTaJjTaJjTZ+EIP2D5l1oEDGEYxJ/XaRwqKJSC4BDO/igmGhNCe69cAUhBtGPmTxptExptExptExptExptExmpTJGcDNWnpZjLd2GHNgvpyBuF+xdfyztA7462I7FEKOGntFa47QZPGm0TGm0TGm0TGm0TGm0TGm0ADMuRO7o7k9cDgfRvjtH1mdmJ1DpCM507/uwSJ+fRjgAh+nzJ402iY02iY02iY02iY02iY02jUvroAcJSa0GieKTZh4qHbUBDefj9402iY02iY02iY02iY02iY02iY02iY0uX9cdlIdtVPcKwfUdomNNomNNomNNomNNomNNomNNomNNomNNomNNomNNomNNomMsAD+//3Io/T7F5bCnAejBOTH+EAAAAADa//ItNFkZ/NtEy+Ak7XLWOibdSQPR6PeDB13H26yKEWjVulNMXxVJ3dCQx/vmXitIo2az7ucRG3smzP175yvjZT+lMQES9ALI6aLBF/kAgjw9hKcWvfhUNwe/1kWQScnizPJ9mRgwh4mMcD/V0eF5TRfE7XcxNaCiUWFWBz0eKX0mBWYM+CsomXb7gdQsRioPQlSaB1LZKqQSLEjvg/y48LbgN+uTiQWOK70bj11lvJTTSZZuQxS4w39YkwEj5cjNb7X3yaUH+CruPxOija3AmT4r5ptNnCmALMh22n9sx8wlLUvADbNUYBA+EE4io2lQfJHPXu9uHrMwmA29j4xfA3EkgG+yqdJEiLFIy7twJtxbAORtSAVD+ta4dxCzpofESO7VYlwMbgxVFoM6lup/R5ypCUJP5GSD+jSvvhX455L7XcpJ6KH4iP1gJMkYfjWRGRk/Yn1FRsJQ4fSiPcZKKDtrrZ9jcl/tFUXhKAW+z2MqnhCvGBKNFkKZHrHYirgxA+nEAbwDDqpLc+xBdKzPFjsyWhSrpFs7BH+l7C7EL1o1svk+lrlVZjK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',
+        SIMPLE_EMOTE: 'data:image/webp;base64,UklGRopTAABXRUJQVlA4WAoAAAAAAAAAvwMABwIAVlA4IBZTAADQFQGdASrAAwgCAAAAJZ27hd1wovtP+x/jz+83j/yH3C+u/ip/bf9h/nPmkpn9N/Vb+f/2v/Pf4bdva8807yH8u/rf9v/x393/vP/j+rv+j/yv4pfLT9Uf6r3Av0i/pf9u/yf9u/un/z+ab/h/7D3Y/ux6gf5j/Nf77/dPvo/5343f4H/Cf3f3a/27/T/5n3Af5h/QPu2/e77x/+l7GP+Q/2n/n9wP+Vf2L5//t2/03+9/yn7kfv//7f05/Yr/ff4//Yf8T9///h+iP8n/oP3kfv9/1vwA9AD/g+xn/AP3K/P/6H/Rv6//fvyE+AXzr9J/uH5C/uT5m/kf6l+NP96/23+j+9O132i6mvxz7B/ZP73+x397/6n+Y/AP87/p/zA/pPp78rP7/8uf6r8gv43/GP7F+OH+L/6H+Z9bLuEtw8wX1u+bf3r/D/sb/iP/D/o/pr+n/2/5R+6PzeflV9AH8h/oX97/I3/Mf+L7D/5nhsfjf+P9M32B/yn+m/4j/Cfth/f//Z9uP9j/w/9L/q//D/kvcT+i/5D/i/579rv9d/9PwG/j384/u/9t/zX+Y/uf/1/133r+wT9w/+z7kX6f/eH+/6eoMnjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaIws5cE9qeVfjbhfmCIc1dwUFVCyxgMH17xgHjTaJjTaJjTaJjTaJjTaJjTaJjTaIaAazw6yIyMUfE8zC6Y/IMygjwPZJZ0OWbtExptExptExptExptExptExptExlqVbfIjZhoWJjNWRaVpvSWnqeOXr8dkv5HtenzJ402iY02iY02iY02iY02iY02FMGF9SXzglp03afItSPh8yGDC9Y+4v5bazExptExptExptExptExptExptExpfngc69qLwTBzQvHMYey7QqCa1dYqGm0TGm0TGm0TGm0TGm0TGm0TGm0QWaTJsBQbMvlFAtgjVuP4RH2rOVo5QOEw/ZSkt5qLSs2iY02iY02iY02iY02iY02iY02iYoj94ZxJA22F6dt+JQ5IYG0Y+ZPGm0TGm0TGm0TGm0TGm0TGeaGlErIcj1gtKSWIy1snDqd7u5VI3EcUlLlLEqHtox8yeNNomNNomNNomNNomNNomM5yGOu6mKsYvsv/ljeLDIkreuZpIFQLhgcwWXg6qMLFjlzisN5saSKnRDFOUUd069pvPp8yeNNomNNomNNomNNomNNomNNiCxSs9KAPaAZvgRu+whw7kTCD/5s6OFtXLAU5UwHAj+iByhPG/PZY7luljx7eZBuqv4ExptExptExptExptExptExps3hZ3uEKTsagyPdI0PskPb2TE+eV23GWaKOw07MiusoIIaNx9rSQYlI+HZMD1OtQfZwRBeAy16fMnjTaJjTaJjTaJjTaJjSqHMH+ljFqyidrpb5yT4038azSE+iJKqheN2w/k7SCGB4OSQPDHRABD5/FFXdF1Tc4+pp3mTxptExptExptExptExptEq2baGL/5M8+vbwIBjtwnkDHlbNbnERaHSehKlQuOevV+Tv7/FSv2KYb7u/W3xrC6gTFr5sVd9e171lAiY02iY02iY02iY02iY02iYn3v0D2uHZHfk3OBhqEGSPGaefzI3JlUqE7xOpfn8mMBfEZvTPNL0xy09lkEQueiS4Tkt/SESY02iY02iY02iY02iY02dkZjXm0qfstRMusXXPw3q5wQvLmVY6v8Ux2iplyV/DwL3jpCnzTNsfB6qwhDpgxCHp07vQuQ3ER2se5tfQo2LTtox8yeNNomNNomNNomNNc4tmg9gkXH/K6vLm0XasGeoOZkTnEMW8VZAha7wyc63+ib+9K5WY/mjUZR+l2d8G7URkrSrzeEqjl4Ab7xafUekR5REkeRoS6x2JjTaJjTaJjTaJjTaJjTaJeZlT0KDOo3lX6K0Vydzos3zCYvAz6bKDcM0sWYUYzBH3LDFY9oUWZ9Z3HGdxFbXokkRCPbrCphdnv0+ZPGm0TGm0TGm0TGm0TGm0TEH79exPDKvBw/Qo48JzkMubiq2WR+GANN9y7dpyvSIbXVAs+3PRd6FYNs44BUtExptExptExptExptExptExpZJNXWPZ74vT2Dm+PX8jJo/oXPgYSh4Rf9SR4tT0qbv7u6DMbzmlYm8eH+OPIdqgj/kHMnjTaJjTaJjTaJjTaJjTaJjSp7KO332s2zZVB8f690whdiiqTY783DFd3ESDT5eVflTjObVjqHWfkOgXpCCzCGgUqK8Dpzh5a9PmTxptExptExptExptEbXCDNOdfaaUL21ekiUpGs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',
+        PRECISE_EMOTE: 'data:image/webp;base64,UklGRpxMAABXRUJQVlA4WAoAAAAAAAAAvwMABwIAVlA4IChMAACQFAGdASrAAwgCAAAAJZ27hd2EbEx/cPx472SV/WP7/+sn+B/1/+g+ZWmP0r9d/6z/bP8z/lPlx/r/yA6I+rvM/8e/M/7X/af1x/uv/e/1f3H/y3+j/Ir5X/oT/E+4D/H/5l/YP7r/fP71/Z//R8x//G/y3ul/c3/QewH+b/0D/D/3j76P+Z+OP+G/5H+J9z/9f/vf+b/tf+o/P/8Af5Z/Ofu9/ej/0flp/tfY7/y3+Y9gL+R/1f/T/mB++v25/7D/rf6n96vo9/ZP/jf53/Yf9H99PwL/kv9O/0n7Qf8/9+P+x+AH7/+wB/yf/n7k/8A/en3F+u3+f7U/8R/hf2e/uX+97U/y362/tl/heV31P5sfyb7Q/fv7f+yP7gf5L71fz/+q/KP0L+XH+B+W/wF/lH8q/sf5Df4H/j/4fklt1/dL8gPgL9ffoX+D/v/7Cf4T9tvo5+t/4P5h+7v2h/035SfQF/KP6b/f/yd/eP6+/6viS+lftB8Af8m/rX+Z/yf7b/6X/8fR5/pf7b9qP7Z///ht9O/87/Q/uR/kP/t+BH8l/nn+E/vP+K/0f95/9n+7++H2ZfuL7HP61f8ZNPmTxptExptExptExptExptExptExptExptExptExptExptExljYKdfdtGPmTxptExptExptExptExptExptExlq4XwhpJ/mdaR229SFXHPbBlEOch7hFQ42jBKh/tm7nx/HaDJ402iY02iY02iY02iY02iY02iJszsVqNuOFxDya6D+sNSYzLsutS1w4GdBn0uK6AmZ6JOjRYc4eWvT5k8abRMabRMabRMabRMabRpww++KQJriBu+ZFy47srP5ag1L62+hRKQ/Qg0KfuUSCR4hNQb+zzb/taMMODJ402iY02iY02iY02iY02iY02cuqMvnGeCKXOFpzHVfYKh5NP+/r1tMjmyzYKsrYANqamuDy16fMnjTaJjTaJjTaJjTaJjTaJjQ2l9Ie1kAOL8Yt8eS+7yWmuZUapohqTk5RxwAqJOvm/UKMj20swBtGPmTxptExptExptExptExptExpsR0CQ9jPEp4oy2bCFdSpG856qJBrkqAkSQJAZSAy3N39057RMabRMabRMabRMabRMabRMabRMZkp5hSZdaqsLuDsPXpDd+ShmysMBUjV2CRMV402iY02iY02iY02iY02iY02iY016vt4GLvSAtRVYW+XuZRZ88EeL3X/lPxTm1G5MDbyYQyV/XiDovpj8SI68ZcGEU/hCwqgRzh5a9PmTxptExptExptExptEU8VIVYsLhKjJHtxB3InIsCmTtt5kwUbsUhW1ptGqZMRFzn25vnDYfz//oi5UHmR+F8dJKvg/YIMvBm6iXopA3fJJdFbq+8nNrHsiJPGm0TGm0TGm0TGm0TGm0TGlvQg52q6zMzeC2gf5cYB4rqP8J9UtJmfysD7p7E3GYy43Zz7B6VWmAKskeRNc3X97DU+zxadpYkl0WFH8vgJPdmem81Z+cPLXp8yeNNomNNomNNomNNhFfg9Lz2DHglSj/13UAw9Itb+nV6RbnwIgDyve4wouVukOsu9sWWPHg4W+qBpmh6J70X30TT5k8abRMabRMabRMabRMabRBwrwLFa/bRJOGIFtqYj9XWyMjQZUJNxPb2fMMaEPERXp2oIeWsOcInNSeWvT5k8abRMabRMabRMabRMZb6vxjM7Wq2SfklGxxvA4mPr08YPDm47S8Tv4lNxeresMD1f+HpH4kGp92zusVQbNm/73w4QZv57YG7JomNNomNNomNNomNNomNNomNMw3G/PNHyYy5szrbtWbSd+Xn7F5p9WuN4vK9EEu6T48BgusKsDNyx7FhEmNNomNNomNNomNNomNNomNNoCeiBURuloD2dzx0xLPjXsWlVJKI0ODT+a2UX3QYnLYPVPBOlEZBW9brknxqmibpGc2iY02iY02iY02iY02iY02iY02dv2yHwwMT8/bZ0aEFgGH8OOuTuK2MO3KQL3leo6ob2W0ChlAGVtyy6+gjtmiX4uSxfnDy16fMnjTaJjTaJjTaJjTaJjQSkk62Rbr6M9LLIZseeH0qNvx43VHRjCIew6I+QyXioEGTxptExptExptExptExptExptExmy4Ap60iszHYM8BF3CYi+Gd8ZOHJG6bZ5yLrgyeNNomNNomNNomNNomNNomNNomLBU2jtBupr0MjsHLVrd195DxirXUie6bhbM24EK3jaIZkBvFKCJExptExptExptExptExptExptExptADh/dpkT8hws59//YUczkBWMh7VT2ij793ULsyV1QY9a/tSESY02iY02iY02iY02iY02iY02iY0RitRmj713ZoN34ioQ/tkScUZ/Ln3yY02iY02iY02iY02iY02iY02iY02B0ZkXz/1GFUjVvMCskLnrZ0hNiSdw3LtenzJ402iY02iY02iY02iY02iY02fxlZA7qkOUYxrvqPuvzobQ4plE8KkaS6UnkGnRazRPGm0TGm0TGm0TGm0TGm0TGm0TGm0TiFjuPJhCMCzSWHrT1U+6NB/Xir20TGm0TGm0TGm0TGm0TGm0TGm0TGmzjE/CBA1dhesl3QUNfsIPGm0TGm0TGm0TGm0TGm0TGm0TGm0TGdXz60ikfq4TABeYWGxBVxj//hpBSuOZ4xI7qtExptExptExptExptExptExptExptEOAG0fNVjbSHrfXTjZ9TpU3V3O/w3vz705+zW1DF9/c1Ozn/OHlr0+ZPGm0TGm0TGm0TGm0TGm0TEOqw4JguLgeK0TkxAbimT3cw2nwtH0zjuycCHugz0+ZPGm0TGm0TGm0TGm0TGm0TGm0TGpHHCoOTFsjMUyyRkwuJWDy16fMnjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaJjTaHAAAP7//aEM905gQyPLYfOilKUBmAAAAAqr7n9/Rko0k7ODAB3bsODjX9UXF8CioUJ7jAhAVM9jQTxC9r/DctfFv05nzJliRcOOqZz+Wvi36cz54QLMl8pSdltgC9Kqn/arL1YABJ1bY2Ls1OOJG+iTUJY3nY5GO1LoSxvOxyMdqGdiSpZqTxfzprtcNyezR/wEorjqqwZk2C7DLGN8/al0HomjWGlJHsZWfWbVeF8dKw6ASu9htOiQsE/jO2yKbL+kio39ngZvKqGn9XbuHh6d5bfr+AkmGlJSvrGH0gi33TIdsMa0xOLBD9wcXyFwfCHNCNaMholvNz7p5LWvWlodjGoCmtMNPnKd8LBJq/MVE+y+jhf3bWDi50TzMTlNjUotTe56K6ZslQQwbOW3FCN07mYb3SllvrGudVq/b9P2JGtu7BobR1g7s7MnVh1/rpwG81QZhKvo6b9PYcO5m3vtqymEiR1ekU+0uvrUkbNNfrEWk1KYX165AI6cABIyPZU1DLDWnU6UI+LtYH+1l/GB8lIoGXBaQ5EHga8nJJOFsV/FbwsYfDk+ooRBEGmqvk9+02Qi6+++4rL9lrs8bvOw9Ehu6FNVFx9MEQLZ+T0E8BdxO150AEt7As06SDbVvRgTH114wK9p1KBuzhTOr2boWJoimhgPd8lQaYOdxLifSf2c0kbK4D7VORnC+aktl5ifGBBtl8RIBeYQxU8ySYHFZVNC5N4vxADJIApPHe1Bn6uMy5n6R9t6JWOqxGbIRRnHJ4GBrYdB3JNaA2caRXN7TTL+IFH2dkHYdNVXQw9aLJY+wRT0nehvOagqHOK50AhACoAXbSHcvKa9wSntCi9k7pQNo4aT0H3C5OgqCEzRw25qWGomDWIhMHDjL25XShfiBH/t69+eQM3R/ThdLL4o8HaIog3l4SC//RpDx67uJ3vOt68RaUVIYAua/OCN2tAZy4HEhM2pePZcWMYr9qR//Jtkt2baRhmJT/rpO8R70zpcnr1wYo0W+1Raf/Zu/jIR8cbQUlKGVMTuoGpzvcEyUPxt8fhENMmr4447LPijKzu895LmOPXlJwxlEyAD2Vk+4ymITIM+/yPTVAIBfF3T6f0oQPg0YslskPR7lnwgoWwSdXjnDk0NBDBCUICc2Mv6cpZDeZ4jJqUMS0i0YP0Z20ZX+aYlQcAa7ar1vjWs+/wYi6Mgink8+04s5ixUWD9ZlenkYz7eu2GwACyJKnZva4YrLFRspME6AcAFSBpNHM4Pl/LLkJMgkfJV7G7/gqKuOjMA3hJ7qJN79uX1WOj9gxylzF+Rh1eIvbTqTMWLJ++i07Ueod8eIFOyaIKnCjRZxIB/ctqAyM3TbG5HaobAXw+e/+6zNILjh9iSHL/O9JS4YbUmKSXgkmEJnoJ7FZyKp/RPJVM7wAyR6WmKzGHM9FjHsKtAyTw96e6Z1jfWxA7Msfc+9BKB83fOdE+RsMvO2EoWffufRwxndnTzYU8MwaQKTvKrXQ9MIdf03/TWeM+KcTGk4urSy+5dOhi8hYdX185qnm80wBGNDGzyGSYnfmBb30neeDUAaIaqR3DJYqH1tje8mNaMDeB+HQuKNlUkzidcz2s/d/UcDAmyim/VyeMbXBxn9B/h+PE+UO/TexO9RcMq+U8xr/GHMlch6AyWQ7FCfZZGYCKlOQKlGN0PDki9QSMIX+Qds191UmW0pQHTevDPZ9TLELp2dkFRuLcLKCT5qoKPDKwaj1oKxnFsjhEJFgzb4goH1b5U1fgZsb+7B8UADJXpftNPbZUXRxxA8ItE7XWImR0BHFCE619RWEHMPXJSjgIfqCxsrkihD56gyqd5LStkY9+lqbwMXwnFjk5uZppuVwq8PLM0tH/e6YBwEP8kimS6AWLKbGADg8+6O0gGb4YiV9UuOHrlIGHO4AdYKvg4iIOICSE33GEp6FG73/pEejogsPco0VH1nwlKDozU8/T8/GNmHnYd/yZEWgIvbw5i5Wg7CnkCMLdpBVFQAI2fCrb0ZVuRy7ziQvIvvNLEoNTheoM3/1oV+RJk17wuCJk8AVo9ML1kuLA1NAok+6LXHNVdF7irjIZ4lWr2kmDfzetICKAiRZ/wAhNGhubkKTGF35nX3mpHHItPNDzEMSqheE21hByKJmg5pT3Jv/912CUpcyFf6vT/XJS5Egrclycnvf+wVKfdPxeu406+ggUYm9CJIX8oCX/xIb5BE5ri7tH2kmIJo7/zLJqOGUV1JAvplgdx/iYMAbQw2TJnbPEX0SFKiTcib7vtF+YKzMHb8cGkYnNAs2MRx824UWnHnQRe7xS6YNbQLTLRW/CGvZ9d6uPhIIKc2KZLqRzf63TYGu8vXcclIoHgfInfWTpherVuY1Jhq/crIVMNHo/U1wCicGLldLLJ3qzm7H8gE+Yx7Wmdg2oVydqDvP2jvUbAPXwzKMhtskrE1JvQdpm7NTTCMb9IVjSfYp5CvbYtkqAmYSaRNDKP4zF3prNTH8zMlABCHQ5jGCaWEbuLoDiPl61zg4E6fUpUNs0DLOeAKS+Tqahpwv78cF3i+wZUL2EN1ZuxwbDjjz8+uUC7VWPYQC8xkH50cBy2DSB5caXH3MFlov8oIXmg8sxV98c2+UpoGH1e84XMsC2v6lVGO1a4oUr2qcaVKFncWvQxCthOBbKiFAOa2pmLZxNYz4BQjV8tb+dHVbETyvpAwU7Nec0s+bPzAdERDsQC/JrQBWm41bhG+nfxheQhJvUxgHainOQilOfQPIUQqv6ZDSFGm4s4Af2VnW49VQUfLjormVUTBSLaVdCnaxME3CxJ8qG16G2hCsHaSFf44aPSk8bl7ymuIu8qdosmM458XQrICqFW0vo4pQrTG294qGzDUzJ2qeNAoE+C0C/zsU+jZ/YxFM7WeLIbQt9dw0Q2QTQgh4jRdJTRzWWGaoI8XxMsTfxuuFlVRGHm7Tp7/r0UrAlZS/zoL54PQA/ZvvFnoVPmH7Pg5aVokPh4mGvZtujmefSoFAlfzCZ/ZEefgsqA8429bWbCAXrjG6bBKrMsjVu1LiA/yar9Fc3sgA0gjyAURTPgbDDro/EE2BjXd/3l7Jsq+S120R4I8YPwwCq5KLdys+xDDzUOGOY2td36Z2ciyS8OFjcK3xIGrXKoqcue9B/Uk7fR8C215QpGe9IHphop5eSxTIj1MrvLsFOM19Bi8aKpc3OL4EDkU02JvP5/URtlgWQjDOpDVj+ojEjqmmxS1gBeNRuiMo++P2/pFlfT0kQ8D4QK497EK1mlHzEsf49nSUD1nFMw/rTcbfuzp81K5syx1L6ayzgpUU8LkLeg4boGnX+rueh/RoSnvM9azu8f9OMLTR6cjDmcT7KiA0iQtkw3/vaeqbIskmEO/G9jWnLLIFdOVA6yM4SD317Qs3u9ASv7jc/gaeH0tyNLO15zWzfmmb5U+EZDzDX2H5LVkd6gnp2+L0usiIuV3kzmVFiUByddj8RIfOHTiNhbrRZ2DHURU+BOaBaReRj9Zo4lIqd+J7+B7AWMDrlaBRDQT1yZX8iUDJStLHvsF9tDIyZ0RFV5TkdIQZbIx0owfJJlhuKvnzX1C85OR4uYu/DRUVfhDNNEjOUFROLdtq/ZTu/S1UGNiYwBNp8NK2kTqjtSpbU2q9kBWP2gWfHtoUL79PfZ4NQD7//BAYCv0Kf6BQ4ojpx1rAeJ7NMN8TlIKr7cd5m8F0BQe6AAA3kkSL2Sq438d3n+8rTnPWkazLDU03+qMnMqIwmeD6mFI5JAqxTNe48oBRufVMSbtD3Wr1+cH+8FIAMw7rNEulhRZ0VlgBNwTFpCP4mfXbmdtru+aZ8eCjp4W0aXoD1hzrSFMeYU93XCUlioWS6u8X8LlOwg8ym+lGt1SDqUXnkI7FWpgPIpw7tyQaH5Dpuhxm+7TqkIcT7sCqSWlQYrqxH6kWjHROv69JWBIE366gJmFprOPaHgjOvqSotgIQlPS3S8teIr6qGK5iP9jvxJCY5YDj3+8RSFJKIq6T8fiPKNHvlSStse9Fd9v8nPcZClzyrnTTVTTp3h5F0LlmDsdP8s1CbxogPFgPEaTckw2tR6xkr1B27nMS7nzbiL+yBeg9mZNgQmO/zgTjyIsPsOFpXWb+RA0+0+cLt43tuCpnZ5mvNyfs1WXd3yLWqLJDGLEHXATW3alIeYYU+DSfTp5IDIMdix3ImNdL3GAEDjxQBWeY87xkAxRZsbuCMuCJdcKYfmF07OEHrGPGLv9RVrfrIxrda/75IwWp6OE8u0VE2a1L+y+7qxSUYsQcUoFfBtQ/uMq1aOfGi6B1W9iQayLV+QRPUkqskVf3kEPhZzRxC0vvr/k5I4PwGoJggSOV6y6oXVwrO6rbOXRXVu/ioJfMTiLUV4Mgwutx+wjwA/yGPMwdfwEkIv5mOFMoHaOfsXP8ebBy69yx9WN1sXI4CGFWUZv/Q/xulGehA9PXg3S+RH/Rt2jFwhbopx40hi3E2jLUj6NGhPIv5ZUfUg1RXbumy01UeO2a6DwAD/28yki5I+S7GdjqZWjDw9HOLGbhLv1jjW9ooRmEzODcq5npKkNkRKhs6uqXX8PTQuVFEdFYojfIjYKuqXX/hTbaVQz9zsUJGXqT8LuOE6RqYiz4HuCfcnk0zuDU97B1bb0fwAvtt1QzVvE60vsPOpK6wZm1K8l0fTK2WeczSm5gumd5H803qWquTa8KHNiHBVZQptZxpRYL2Zp2yRdTL3FbF8upqTwn9O/vs7nONa0SX+lDste/dZHnXZRd7HMKhyfpevLx9cs2L3Fag/7pqzC/Ve4wWBlulLW84neuPybbh888C9mbonCMxPLnPtAEFE1sJev8QtyBaVB4nEyodEeakrUw+hNgso7LL5YoVLIyC4CVeew8ORG/Id5nlOn8Dtw2tYPtcJYWUxgqD50Z5J9QBsvH+p5q+ALo2Su+JJ+AzrVFIbGxjxwyCZ38QuHWBdC8+R7LjWMel0jW1cBM6vVp2jDjSRoAFS4UVZ/ibrNz+T+f3QuRXIjed+gkjorxPSrttQTbCq7zvQ4iEKWU6DCoYuR0B8EiGvG+3ElvmvrO3TVZC8qFmRptPMyvz1Pz+RLWDgYuJP5i7Cw31tMUDPb9I8wD7Q68Evbqqb2sLwqBaR4bnXnBsWu2sJBNgucg3WNgVT+//vLuJQxcy0Ae4DG17bKbwM1aFEAAGvdiwW8ofqqDEzKKmuTQkVJlkvYTnEy4hdG83OZKJy4Sq6rZwQ8FKrviCxP9LmmPeau06iagpRk+eJeZAiP8rdxsgHu9EVr5pNPasXpruVhwY+5cj4rHzVC+TGUtbtf1LGobpQJHx0LsKb16AXQ8ZtK56ZSvAdymzfo0jKGtU6tkO4RTVH84yEBUWhcIsqYdHib1Tm29sPVPVr1NZx/m0iJYZr5JHlbXWgYuY1+ShIAQNWzsuNGo0S2SBRtTn0eglsyvjQ9bxkf7mbHlU33FB6+GuZqXBuPn7C96VKkIRDxDV5tDNXgWPuzEm/qsPtAJJnHmuG+5UO8woTdXzVMc9Lgw2kJUJQ5WEFiLtsuSMyluUVbMcrFjExycq7l2eUO6536oCIpJrRPtT7vDgiiESDmt5Av2Rwgo75Thmuf4Tk78/Yp/qD0xpWiTuRMi2p9OXxb4xakS4fntXH8VoWdqKpY4fxMeyr9F1u4xZHkNgaxyTlwwzC6k2O7he1L8o8yXD57lZMUek2Do0yfs5d5MRScbVkyI8GXoapPbRj8se8TdbkNtIuD/A/7Ql+mFltSfh+vUHV/uffGCYxneIRu+am+enslR+eRxDnEf8nWz0fr2jGNp0WnJP8AAF1FCmLuHNzIeFwFxkkjhfjPMnlWEX13iwJLwz04DMhgt5/GTKlhZElCymDLuzlZk1IMJlH2nRfdVdwQ79pgdTLL+9YeJneoKq1+30rupJU3J6DgtSv982HQCGCPHplLgz+mc2lVbBj/cZCPXkZcF7+QwUoE0pa/1mGSdPST+y6tDwkxrbs/IK0URzxz56a3Ac2aB3HQNMbnyQoRMBJPkhPQ9zaVf7vQ6pGvSbHo03NnntyvquDwHeeB7IjiCQDRMyzjSEV/pyXLIYkO6M1HKK3K7DtkvMVol2BbuMiNHfv6QVFuVitz+IrRWu+ccO1SKbF8AcFyCkcFXgAkAWpFTuk4IfV8yRwZm+sPhdOc/Un8SNkXql1f3WhjTv9CrKOB4viI0Z7UIMJ7e3snayvYy0kXJMAJgTi/q8kl/jwO84OFZsvjaUNLz0NagrxZlgEq+4WmTFjxuNkiVYvATyGk/2PsDIlWVI8RCIm9Hy1inWOn9xC+zSxuxXiXqVjszQ70bTbI6rT0s15uMz7wiEFNNXSfMdt33oHk6VT+zeWGIpEYEiqMbvfYoIoFc/BAsJ4CW+zqLXVV9dH4frqjuEzlM8UGMs29q0vyKMZyrZ8es5YFPBDTahqQPqHYoCmEouCvQcatxSG3081BJ0aVbpmyhy63IwJX9l8oJKKH+Q1RgbUoCcibAYCxCNBfh3cs8oevn2ruuUv50a+bpltbnqOQfpfct2JZwjLtkFlRsJ1oqWm+baeICzC8/v0NX0ofg3dwh5Tl0CNYYCV2HCEhyu9QoUNiRubrPNIU13AIzR9ADReLLiQsJN2nsAfpOqvWcxacOJLMwxYKPPe5SsK/Mq53gmOyMPQ54ufhBjW3INYj9Z5iWzGx7IF/dGN/kgVQSqZH3GPB1KZu0Fhghuci71d+pomzgiplmrhiR/VQN6Oq3UmuQvRJAZ8tt+o76BodjmwfaW+RJNVw5MiZZUDn5Tp65cvO3r+A5vsnCCHpqQcD9yzvnv6eguVqlnpqvLo3QEFKSWVxMbhiW6N49lCn47SdCTl49l1A6GItglLW3/Tg4QAa8vL/x5+SnksQUOM7L7OxY7kSKU5JCU/wOytHQzEKzehuXPz2GoA9oSSo3lh6CHbiRs1pYr16LzwEhlPLfx8xDa2mUlLPFVteMDBX1pMh8AP11ocWa5+VkBIMCPtVbzu2IBfuTLsRnP77EAchF2WJ9LqTrn4z6BvblnWAesJ8f/oWfF5wUvL0DSbVpMmU5zhjpMm3E52PdMY7UGqLGtJxurH3JGDfs3LBJuCFkqjIm2MATjLqFiqvOQlMU54z1kwTwh8oqB7Oz0LG0Si2JobLKCbgCmGMyQtSm1NPEim/esegMvYwt2JZXCIdhekL5x3UPum+GHsF9wp7VyGrG2MAtJ+gKKlmTKi62dpVu+B78SAwXa5IazIxkckZKlv7avnBaGhkJT4a0Xmdwe/p9u2hUvhotg0tUPWWGFQ47kkHlgUzTNoDfmPTEPYD/Ls2089XwzoSoVMM7a7JuSzHOwIyyTtOuo2BmoPaHpUW5u1DzQUKD56ua0YkB/cdpgPFYNwtW+jZQ1tkfgNuE2kOMG6bNN1yT6aHlbOSO8og5NjClxiEa4yT4MsUBz3M1FUW6FpykEAFrY0w6NIgoiNnnu/d58GAkHaB5N8CfM1Wlq2M5Hcu70vL+LcwbRZVktqkIanlpqX807b3gh8t49mXp8s7L0akklSlAg8hGOtV7cnguZviVG1SH3WtLcqLimM6484eYQW93oyd1gL3Ku3sCEgEpXfdE0+1xAHv+1Uw7uPHTS7EGHSTS6kSIVh2MjpyNmkmvfeRcr3mHhPyT3khIm1xosdnbwkW3O1xBC+5di/0JoHjAo7/m5GE6H4PdE93GLtWNU6rAACIMjIUAtJYHqluTDb5GVHrraCp8d0QaTXvLLzjvlaQRtCTbkesiZjM2pZtYvvxngHqNkssckZg2nBE6IIizKV088l5iV/28h1ObXFvTll83PZ3MfB/mmvELpsyNMOtdH3tp48nFCKBhZoDYdhH2LZJdugkqV9JUJaQ4DtKPzQ1Y1cXrcARURTtlqw5l3kHwefoIjzQV0ZA5W1giYqVJ0SoNacV3MhDRWdzFMtRFeh4efsCzD7q6BzxsnNWkcwv0tpTp+9Ad0DrIZ081G/U9cSU/BpM3XRVrv+HLnALNSvsnKOI29jKRasqPhKsNLXPLVnhaE8AjlpeVwKc90EDKLOcE5kgpi35wJcALGFO2ul2mlwvfyrCAD8m+aMw6NL0ocl+YZ0XnmJqbSmqDEXuZlCdVCSbv0rGpVSarWfbjb2FFMSY5BrkqKOZXbzdDym4ReTR+6hsYlVyNfCIthcP325mKgBqp3k5WakU7A3XpyGywSbewLeHYgYj3Rha/M4ZAucQsDOEK2FXhBYrrxJWLlNtKtjQvuPmqzPAb3D6yjRc48BefR/1oNwPbZ8E/Vwg384rJOjRYx+d4C2NFVvlaINbptCX8BdZsAOQVjVCAsu0dXNXxxFr/oXKj6+zNkjBzFytGiyQqg9Ks+S8O1fw+Gnbb81e9fFU39uQtf+XIO5SxLMx1oHP1pcJ4eJLvpmVrfOPT9QVaf7jwke/ZsveiulvHt8S9FWHv8MirxMQ4e8jakgOMu5GNYbZvmWEl01RAQFgMFLhlkwCzzj/xMe2dnE7MvPOLn9Fc/fv56WHx6jtWhs+e66DSKe/A9/hRVqC5KzO58b/8kFyNCRQj4hheHRLBsoxVEd/8/s1IpPsNjzCUu/hc4gxGL14O10CQwZh4GvTCLqF3GqXzLVwbdF3qYXLCG4NI4Si16DC0/YsTiILBVocvFpAowGPA7EtDpDjViVknEMYYA8P7FjrswSZ/a3VP8e97eocK42bjNUbKzdU4fvhpFPIPtTcF+eWVh34NEZ0rChB9iA97UhvQI8FtNSH46wJvzEjVZopQOWSapmjFt0XxNOLKVQANceagZiynlwF8f7xxeAH+sUzzGXjMb9RcBupAnfRS1NiK9MzRTf9bUvgGykZ+VBDcmH+0yGqBW26+GT9HA7DzDl06yVtmn7SL1CuGMMiQ/+THnwB783wUyRAZQypjdLunWdk1Dch1yIZ4bNinTH/570n85dERrxwdEOIiwHJZzWoH2MP8t+5/lyemmDk5KsWK9Y3+crz/+9/Dzrp7QTNwz5epBSp2IOLVEMWGfIPbcYKAnSMYas2xkXJ/RqxGclYNnTDUW8FFUsfk0Bg1aqEr30ALPMvguAFQ9Xoe1q2pV7uTMegXNyylRq577EKKDqKYbvmCEUJS5KGjNGrEksWGYyWyTJqg8U+R8h7zc2eGJOiO1rZMEd1YXXtbvlgdoa+RNGqaA31bBbmXYWevrNgmulF5FNI4Ofwesp8JLYVAM4cx85wF31vfuJLs+H/5nsNu9oKqNjdVr10Yp1oeba4ft2G9jTaj4M9ilshTAcG0wHdB6KzhMvl/6vc6q0L8wP09iJekYHD1prYVukqOBuwFO8HuFS9mFm/6XjNRVzj05EA9iX7TuqcN4eVqw92vfrBUFzrRcpn/SouBTkGSrS10JmT1jzYkhjGnEh2/u0UeVXT/AcsGqHLDvMOhaOWbxq46ZOfFLIznIr+l6z+eSbf7ZwefqYv66ytR9bZ31+8fYuNEUea/rrdGehd3Mo9R8RdWmAj4339DNQEKDjOe9FJhFYO1+4PD+/yQpRqfET89lzYsTilZUUZpv6uEYtntebVpDl91n83/TxS/2keeCkAiMAW0CbIOdjk6xjUBWocYgBMmjUNMysPU2Ry23Nu6w55zjLBmDDp8cODGiTTOun5POMFt0jlKG7hOhhzsX1ndUYdOYZ41WER6vj+3yjEr2HHK09PZ0EhdnUrl6Y3O2P77p2TPaR/WG28t+g0EiRErrRrjR/Czmv0dDhkIV5EQfkvrWGvl2nvSnv0Akh8n8woELaY6hWk49orRlZ0QTnaAJVViBUxkFdaZOX7YSmmsV4XwScJ9FTaxrWlkS9UDgYc30quFwKDafMalqW4Jdm47BTFA1QsoIPFNZls89FMg09hPx1KHX7VTWbKIxs9rxRtzg0l5nSeMJwgyQfdMTHDfXRLFMAiZPhDxw+n9Dk7uAa4jDzyLR3jnwiv4/Zkze1u5NWttU0Fg6s6Fe3htHEu3ASatIc8MnR1MRhz8JHXP+ViYpzz/KV8HR8jfK9yYUZnq93GZ5DQECftExtaLufNtl0FRTrc4boLBkkaB047t6O2UH6XS8CotAUKcAKuDpwCvfY8zXP/fT3FdTkU+LnVZfxpteeKOJCpT5IFRLy+2BcFXUxOONscWdH++YjyuY1m221ro9jComqrtYt1C+3UG1AcvB5jf1zAHc8D9U5ypeVgeEkv/r+RLNkY4yinlVZ4yMkWrU0EEzk4KWnXuXyipwhf8VHyRVs8eSyLMj8hS7k64X+2hHJx1q2KEcbNjWG1iqQ5THO2Vz9V6iuVJ5Z1mNCbbJ4Wks6F1zH6pniBowS/vDwJq3IBY4kSAMP5GuTXH4wace32mPLsbpe1D6EJKVIDr5aYklL5O/kSyJ1LGjib6e8tUvBxc7JU4bLyCh7B9yVuJnCiaaDHYIpjl8ACOJ2SVl773WZkFd8sEY9b0BS8NFYO8rVX8FuAu302XEOGtBuK5ZG1hpWjZlNOLM9jaEt9aWAZVHFYci7I30K98gz4/BfgZFmppHh9CNbIsjguzNg6GAV1YOG4BxLGQFjlkXymb2nN290UOaFtWDs2wU8GdZ0Uim+SK8wnIPcmZiA0AFw1PhNIO3++elFFv7YWSUAOZHKrKKz0FpbWuvgApCVwS15McoAOQFnKmkNH90/WUDGm0KT4RLMuhyduLnAIX2A0KuaiGNpCrmDAxRqBGM0zXkrro8bjZypxuHQqr4Qa5tY1q/4AMiDhdFbbx8R+GCzFBIn4aly3ppSIt5Cj+RddGhuX9LUSNvRFLCNTOklvlw7OwIV6qYbnDhKjT5SY1A5uHVP0tPFnw9740d3CGXPRnntHjiYGZDGIDkowHpgBMa4OQn8MPhtU2hqw37ZwHLZljFlMAYgJ+BTO3KjNctH6dO9ABCo5fxMiOKEl9+ZXdLKfGsrV4UJBx1oYVh3IajHkfnMduOZs84qQs4P9wR5Kp3UiAE2uoE/KK/A1sln+SgZaJvX0RecSCRSno1jf+tDbA0ogJfTtuEXak2ueacUZRomWCXObTd0/C4BWxX9qny/MLrqHnUlfgx6+XrQXHN/ttCRlBdLKQeSrq3tITQ7mfuEwoBsn+gfj6PdHHgyEbiz8JG9d23UwrFI2ZJro2EasYePqBU8ti2WgH1adyiz8+gEgCv3XCL0s77YNKsHLV15OQTtcl4fjMXwMSqZPPA/xejTLFK3FmsoFaZl4mDqodNQdXgYjxZ9KYZUKJ0pg0w6+ckP8rJTGHG3xP+BKQi29DopyEXeFq5++8Ju9fVuP0zAxhKLtE+KqjBnFyN3Y1aBhEreTpR3u48b8IZcVsTn6wSfQhKgfaNyG8EFgPenEWIMqAYknIB9fT9rcKIjA/5CVDHkGONyDo7YjI7bt/m5KBcX8cMQmNlBszsNTgk0JSPwpEtezGd4firjndBs+ojTP6wFdsFEPXY66J6wJyouxkf+gTLnJW95CK7PUSFZqO+S3Dnsvz1uxDX7Akaa/Cpo3wG749l5l24Gt8kfNDQK1pBBOtROjN4ZScVqjAiurNHaUdnLLlP/8dPtDc9sbANzmQRZuDk20QDLqVDKe2vS0y12c0m9P0a2m7R72XoIZw0MVPiY8DsQut61ZFU1wzZ9gxmT0lTsABIV66fgKGqAAhIUTa0gUpzeNnkFsWJdT0TkW/ZKz5DQk5ojr0Cog+ULkcbudrHKDQqcfgbrxTAeTFWEyIyV8VMsQ+1bsLnNcT/gzD2e+SZJ097LAW5/bexjO31IXFdAcmrY+pRoViYjRQzLxgGep5AgvhOGCYpKcq61I+RHlFTuCcXpJ4DNPRcy+6/pBYiQAD+CTccjK6kJG6sNKS7odJYewA9tX7eFJ3r4cRScn7GSMc4dXyVZwdeUwCIAIEUNiRZV63dOu+Cs/CwALYMXFFSXBHI0n02eVyuPWqC0wqkNS53qZoKaTB3K85SPJPvi0btf+PPE+/N7FASk5w9kQRUAZfwZ5B0niJtvfOsM752670DqWD2mwQ1k67/3oFaYe7V3tJh6MW05P2meRSMXM7BjnbxGcI62GOYKuMZMaEzlVsNxH0O3K2APIFcH0sApuIBy2oKZEzg6r4laaTXEJPqDtFE8jIz5PrwANKk5GSfPHo0Mf5OVXDDS15E81wsiqRcUgFQtPgjjpOYJ5AlSrGIv0oHZqU7XlwVnKgPuHp+e2jUO2SeGTlPBYkxAGVE7U1tkAH6aCHNrD5lwv2CMUxmI15TL4VRtaEx3uBfAUadV2ggfcy6G3aF4KrV/nm+hYgGbRTUqEM5u4jVpqUZWYdOgWpvcM985Xq8FtPXRptrvkzecFZZDNiebWUoYwLV90/ZD7Wn8Qr/JFfZALiAFKBWgQBU9zeYNB5aOuh9l4L+LVTI724pq7VddoR/CbNaaO8fAWmkWvDQG0/AzvTBWlgFcNd3/yYuwx6b+67N3vlHA+fOw8fkZWOeu1bmkAFSjFZRcbg0ekQ0qYbrzb1NKOt358ioGcH4V4c1GnYAKUF8mbfceMMINm+1a9UAKBiJLOu6UTYefcLRvKiVD2psfgxQPkDHKY9KqIGwje6u/8m1IYlNzac8jxgtE3djli214Hd3/8brZh9TAscaSRH0kfMUykCLNIr65Xm8AU9ociUK/H7VM8iuLfaAL5ZQNDCY+2KPOuRA0fRqCUWwTnS1tHdIOigTjwO47FSyAo+8gd/cPWKtvLU5OgAABOj2+2RRKEs8QslgqMv8Q3SXVbcgGtWervB/G57Tmkwn/MxUkJEJoWRW5ESf3/uAHG5R53bIGCVxSMPEWAzerZ+rRoPO+VSOP8Z8BPhEalOh6qkcFQm291cNnBxYuICFtNw3yPUnQ65WE1wHImumjIyeWgJNrojgguKm6tLMRnLjjvPlmxnswC4BZG4kNSvIhGEog/NdMgz6Ye1GQlmnDGXf3nkfSrF4mD8dfo6gnvXd1Tn2GwaCnRYrPXr0mHhDVRKvUd8cDEnR1T6ecaHUNYGwMCCk8854I4t5VqSbKjf479BUoKJUSgFPkWtN8nFphoWxdENf8MUV2xOPmVzhhsWi5yynqVSGZVwoZ+EIF74JZjGUUX95KwoZVR8+jMqsFWdZ0qQDMHFdnsr4O9Qt8s0J+nVVO+3NrH95+l0uGVt7X98rG/bjD5+Qz4UG3fUqpvZwQGwP6P/q4GXva5tfnT3ImQBkF1GU/LBvo6nwoHGbBLBV8s/v9aBBXFXExRsbw9PSQm3D0C7EmUsfKgDul9TPtn6+mX4+G9e1uZs4Q8gxFZaxAw60DUK3cVbclPZ6YSfZxfcMVKD5fJGp7WNxOKjOkd+TI3wKQ/4mBBpEWFzzKNkbk5UqrBatn4MkrEe/C4MQNSExhanhb+8uowGSFe4SaB7i9wZ89qn/FcsqI2U7jbY/6iFPRC+zwUzgv0tqnakq8NghJSif1uzBh47XO43H2SNHpXqncUgmpT5+NP4ZiwheKFcqQrx2BGmd7hRw3+mf29XptzXYcP+DfJhrroqeXRYPDDj/Vc73NSkBsWNWUBSu+qoLvdZa03vopv5326FhkZTElP5pnoSSeBzmD9Kdtcl3C6htP7CoK+SRAvwzaT0PXZa1GjvmSWzJauj6ZyFnT7tHav/Ne39KstgIEdKTsCm0piVr43mg/562ICZWz69sx/uN4JZDWsCtbuViX4fLQMCR8UZJ/o320gJipEUHjd0PY5928gK7E7KxPz5wKMkRyNAHaJQPcVskQHYdLzBaDIW0mz6B2udcrvc4XNKDxux/OTqGvNSuogWBEFgRF2kjyX7nphdUhDt7CJS9QwEjpqfB+iOvXNAI8L4MgbTupdPN9/kQYAWjLRwwhyvBNmlreX1Fh3wTCAGmaBHfZnlMYFH70Tr1eF9r6AUb0E5baj8Lru5Gaj95CFLwjYEVRmrzjLd9bskT+OYhOiJP2HCfDVq8Hjmtvf3aU5Zp6YSGpXsdbKgULWly+1EsZRlJpgZZdEvOxN15ujIkF0B4h/BlQNUeC8Xuc+RDuwrLH6hRtAIkuaCkWTOYKH15FIwaES9ygh4amKDiwL1h+ewN9bF7j1ge8DuAMqPhbJrbq7kcbu42EbPbbIqhr/nVKtmDFUqc1n0DA1HaNdU1d+/HmJaUs4CB3b1fLKhihsXEDkMQG6FFAz6dCbJ9P7Qq2ZVixFQUuZ6HqiDIxwQGCoxCLCRxdUeg/UgJJo5G244MUV6L62t3jklhEsrDzrpDAaBuW/rmU8clEsqgdiyUEVC2ahB57Bq1wU+JJn3XOMNpID+nM1+cRE0HWwRkGdckOr1oD17ZxGD0pwdzOM0DGZntxcipVl51qCSMv5Kjq6HBGJ7R3u/ZPCYEyJKS0FT0Br+07yGTCaqRz3tnjcFrcEgABWunfLAZ1ZdK7ARuO1yM9OKg+BJ1CUhqiDFI/3F7VJfxLglj64D3NWMs2OncVhIb9K/OZrmss8q8xfEDIumYx0Fgyv++kniVXzEOtdCbPro1jJABaq+ZtJWSvfD8XcsmMpNd6/PFlCMpkXy+YVHhunE90sANmQuOCAUjZC93inMlW84t+bG5usFVX+t3EovqvlwBV2yxGwGFQ8GgrGIP7Ck/HpIX2vwtJGRVSxtJzY0IQzkt4UAbZ+SbUNbkViqL5rKBa2pahb42bDgXY7DTjCd54Q2GXj9g3VW22TaBeGkL1IYHBtrAmyc0x/Ss/zt/7MBHib0MErfTsCr2Q31CYWFRGQH7fV1+e9K34KrLSIeDgoAAqoO4P+wf9VSgfwRGWj1spTo/M3NZ4NLbbhuC9JHz9phsxcG/vu+iWominK1+Zuh+AtlliVNOWF8hULyIEo9TF7vUk35VZ+WdjQNwvIBywH2qRPGdK1wACgxJVgkZAqiq6wmbzfrQfnO1VUy4KS8dukeh7ZCs7iVzP/eM84X9eiY9q6R+gVp7TrNhNQHuZ0o39CQrCRua7jI4NEG4nWdq+DP/ap/orafjXJore5dY6d1nj7LkK6vJWirIIicsLDar89SgKVjThpCONbhlwVR/fPAItl2iUUzuzBgSfCywbpVmw8cyLQNoiYCBLmH2TyHWfHvRdHA+7XV6WSFLTRx1SagltKQIfhIiDqzi0mC+/zJzZrri9SREmTRXfg8oupUKxa+XRV1Q8G0rHw2rYpVPSfPLc5iAvHVWUQAdLpxcTicf8XlXXhIBnphmD/8iVHmeYzcHiq2fs8AbpjHtrRkV1h50C4cxmS+mv5lAhzEgmmMeZdk4g17dsviGp5ea8kmyy3KuQVqtKVu9bb6nr6b0+OgrSJ+k6Mynf54anmZRu724rnH9ASBAESzyztJj0ovnx+rG/jUVSb9LDlLiV9WZ3Pz0Av3EBj4gjWyTA7PgvO2i+DWBQiPflejFzlqQcBuMVfrcSIKhTTUcwsZc6GC4xRAAAAF5lSNBvKir8yEwUZbrkPjVFfZMxNMaGHrds6OKBnhk38O5SkI3e+PA0how7e31AoRmjx74mdJzaxCDEGv1C3iy5HBI4bUO6V+mKAVLRrK677xNJmgDEUH0hadkToYLoSI/RRaZDvH+R/ME6WlqFer0chtivqh/OFjwk1WOgityY45rRAye6vZ2WO8L/PRR9mc+auV+1SLK5/xCcKR/XeeI9u/48m4UC0+CvubWbR2+6Z3zf0YIlndBVzLZ2CB7GsI4k/Gls9OecxT2L0WajZxDYnu7LvnAxlGlaS/VgQskD3+FuulRcWdXChiAEW8d9dvF1HJu5CRjLL5hjkvq2CcnAHAowpZ1o69Aae9QJA3D6OvqX25k6b7N+jkkCDMBsNXH96XUieP1KiIYcA1LPsZm1Vx7eWJF6t7m8I/0nyt3zo811XYrv+0r17O3TmBRg+FO4t0TC4t5Ly0xY7gUN+kKFRGfemHdsm//lIfbHC6u+kHkaC5afkGBdbtiYpatSu1bT21E2qXInJge32idVFhlWurV/rDiqvtJsShqCILCuzTCmN5BDJ3p+p3BeBszAkf6++aVtTkE9MOUibjVFGec31FWsSUw/OYNUMCAWLzDLhGQRHs3tH+7P07fRvBdZiPhlmZ23tAldCFPqckr0zf8hhjhVHOfrkyaQkIwUXw7KZTZvITdwbcmbb3RgXyU6htkUgxojMAJ04oKGUAQ2OTdrkKsIPJGUZdSRbr5aI1wmVpTeawWqQHLUvo7kWS42jfGtsKhllkX5+VBciKJmJO2CVSXxUktc2TNedfTY4ozLvHHjHaZ5NNLmVeekaJRSvEzC1BMs4qbl2k39Q/YAWRLh9lHmxBaQFgP5XfS4U/+CCu8MH4Y7DRG2Bpqan5o/5fWIBk47ZtlbhA/EMeLTQ64BW8+y9x+i4e8zdvOos6YA0W2z4V2WMOOsMS8W6rDxzRIfK/ZEikgNUkp4aMUyzyleAM3/NNQdLg7wb7QoDqpbGx7e0m2VB/RzJEGodRGHmFoki3WtwsSP7GOw+0fHr899eXNj78c9kGlRl6Px/R3pPixjydUdDfuO9YpEQGWD1+gf7RDJ/W7bA4LkHMoMQzsHpytW+Ck2LIpMn1LTnX46v8HS9IEegYJzUrKnROj9keUF+CuE5+l65PVx5z7hNYwRr8rQuwYGQ5cwXcj/EXbyo6oAhsbw7tEZPGwtgC+ZrXydwMUHvl+eYcmd8GqAhdGkeNeTGVQr7wnloq4EE1hWiJ0ONpKuBNv5GM5/bQIg9Bo141fCJPQ12VJlwkENX/6aW29BHzGntqclseyt9Z1AVh8G5a1nZDh/Jl4xcVeZReBAYxaNcze6vc8ynbczs6dRe0lL6ER2O/xk5BsLT0ORUdM8iRiEfLQihrh+vMyJdT/KpAc9uVEM4BbGLM1/UN92cXkvG1a6LbBZA08LQMg0yYtFBJx1DkaeX1aAJJhfpAnqZXIPvyTs0owITi6ywEzZQRQd5sGR3y91vSb/9gcpvbNRTobtpFs0iPKA/FhZAy82X8MvOlF0rysQ0Bu0pb5G4zDQ4qWOWWBPBtqodocG0kM3I1KNrSUHsjbCzglj9INIqgFhtl+VYmkQ4VoLBuwZDTA9lRPsA00ayDnrxLq8WNGNt6eqPKmqQpLTp7SVgELCQzuZwVySwo2sRJfKwwEmRun7iHbVKBghT5u/2FAQsoN029Nd3j1MhOEYQMRGLNYdiN3SRxkEb+/ufYwagve7657rVweQ9IHQxoM6UJO0gLBv6IEblSD+udqeCKm3vkfMnREMX0pVRxdbP+EyFW0osZp5235ictwUT2YEw66rALv6a3tfvofBLB7/WZmq32ZEG8MvT2BcGpuvWB4vkWlcJkK8Y3VjGHQ24YBlKm5XOq4h4sVi43rz4Or3766pseQ5PQSoG1/mqGO/uUN+iNkk/DZCN2nX0v3Xvfu17CB3DfOWPDl/t3m3bG8rstJLG+Sb3fBl477NqKr36YUxYgZde0a7FnE93pANAzNzJXYvMHVobtqJoCtTpDgTAME6zx80qTX/DMLXXG3XyeNJSTxQg5OfziOYUoPj2Y1pagcQqccOT9iNpymUaRrIAvZFGsYx0vLog2DC1J3nmJOBiyjexZO/VRWrgBC42A29yDAL6EtBkERL5Q/9xS5zCuBHjqZEyHzZhrieafYvF47Bu8Zte6uB42bO5J6bF2VsupKmZfY4XtjxIfDcNvmDPO0XYkAANwQAAAAhpJ1PTTnfwU1INCPRODGbb+1oiZPQf1sYPD0Js4jBo6s9TFXo5jBroYBzeviPiogh35nRMxts7RWk6FBofvAoOT29aDqBl799e+IkmuMUwjWJiMLjmVnUZI2UI5j3TU9hzv2Drb1TpKT7Q55fuYswLg8GWFX9tGeytruZHzHCs0wB6ALuyPCZhwS+WEPOesTQbRPS5AYpv/PgwoxsylRJoZ6/23cqT8I0M7eOQ4cV+ZxnKjg8fbf8BC80dz/7VFmMo1PBJWXlFZ810fE5bOlE7FfeOXV9UA9XR1EQEfR9EOOGctewxGxH1o8FzZyKur4WaB0s1G3FUhsuWcGXDWJfmBGWFv8yQnetpsS5OI9G6zfvtp5KE0DZXRxPklbeGhQBfSbp8Cfe0/l0pFmCW+36jmC5os7KqmgxIEaXqkCMCui+aQdp0WSm0BeOL8IPb3fq8coypAxKML/T5AAudoXQkbSIXnrzxQauMOWjzA8wkedWfpTD86beqMkyataHn/bKfLXuyZ+K3P2eGtzSkYtDMhp1RolBl5Bd5btZ4frfpZuSCQrD6oexv52DQB9RxcDzD42O2qx7Dk2r1kR64jDlTs941csFtkly0zIUf/satwkGpP4vfDYOAfX8CcKHnGF06Sok04BSpkwQtZ/AS869IWl15gzBAA8+D1GgSFms/5cqNBmnQlxDQhfx/fxDXxLThTFq/uufGvI150NdRdLo6BB5141I+tyJgnOQIN+MaN/7rHIp+q3Lgtfp79NSQupqA8uj/ACu/2XmOZeVqObgoM4Rt/1D6/MmSt5Mqnvrs803feAA1EpH0Ixd5qAAUATxTywQuIg+6jFrLmaMKyUw/Ql6uUembqw609boL/Fa8uotehMesP30U2/SVshAfgIggGQpYMOsdwmdGSbpN2CAXzDmpqiRmctGRYT6ao9OZbE2OqcxYJDwD55K73dzL/iUSlcbinpBkePWjPOqcBlFfQff6WQjeonqQpmKe4ljdyiFkPB7Tg+rlZNoWXHuBJp16q8D7xUlZRVh2YUZRVhyh+haxQ0gcKiVn3oEq3z1Q99nZ0EwEs541ya54jTQF+9wLCnl1605lwWSabWsgIboCUDCZ+xzjXZG6pD2fZrvGwM12tA7DBF6hYz8ESUlDa07+t2q0rrSbkECGQLCRcyBBxTYle+CXPNBbx/mUJBMQqm74fe14uLlD9ZA4UfahK1snWyiV70FNcQmslRj29gObpGI/kHcq7ZgAN4MiqjJ83O8lkej+OJFB4YVZxKCFG9TbuG4G3XCfWz3JkjBl6whVfpBAuvFCSkHJYScL40Ucv/DbUImw60FtH8pXqE+0X5N/m2BtgLCYZSPvouMSujdFbSi6BmHrbV+ny8u1sG6IZLcmg7l36CuiTK7GNwkOSPVbAMcyNIDH4vJlJL/YRcT01E7FQq1UTQa34IXu3d9xGa8SdLP83jL4gzvZMYXrcfGs5Coj7xpQOAmokxip0fTEruupehLDtOgPJLhAaTe1/AXnUA8IdlHad+H0qQB/I6XG+X82LBQPqWVmRbed4ivnuuJuuYUyxlfpD8+gukXAC0cABYtvPV6mr76fOquiSLPSZhJPyd0ak/FpdlfhxDhgPZniPoQXaDqvxG2mJrNZxmjLGkx64DhP0nSl7iEzHgAHDt4pjaait9sCoYUBAxvRXpEi8di/Yzm6jGFn3yb6UsJqEtasLOZ+R2k0AWkfONVhZ92f90qk+MmAtGz2yDtfbJcqQVXymVyAO1QIhlcHHW+xODggPWX+1ggJCz62pNLa9klWLOAOIC4+3Txjl2xt8QevYOlGuPSpWqNcBESMzUAHuvchz84YnDylmdVU3BRQMdNTj0oCKDO9M23mtxSwVnSiuxhJOoOb3W3pAttkreTLxitcG3eNA/U8eM4w21J26F102cEd3/tu0gatNlWEPXy4RKiUOQSjV9W2yFUpPkL/Y8JzbDyCIfMi+dmFGELLwLqEh21NRQoajlZghzC1JnyNmIFxBgtmKm69v5uowSjSWYAXrAFvlwZKmALkMilW2O1F1hoXsetKslU6N/nDj+cSmofTOcIX1QFg7uY9YcdKqWYBSXVNZv7t2q9flIOkvl8W4U8x+Q5AALxgAdjDmYNnVr18YtObGDqASKi1kH3DzItFXEhnmH005uxedPd0sOatw0/0kq4n7df4cD5LXx+R/4F5ctNCX86xcCusQb05Sx09PV/IzdjLK6AUfqbOcs30he6C++65U3JijjMJ3Ic6GT+7GTFqEoAC4xNDYTV5ZPoCbjGfdVffyPvS20Cb0j5OWnfCg2fwRQ3W1LCPASGkAw7g0YRtwpM0pS1X7gQgMJJM41JNtPs1ctAg6aT9eQ2Jt6dcOZzpVuNUJTO4yfwAhaWPEja29BAjk9eeJ22IkllKVtbRNgSzPYbTDyhnbFoa1DkLlTiqhPdMBVqgGEFVoeBjegLFD8kTQFPLkTXFcjqdX9QsmF2lbf/IRQq2/GlJuer/ceou2UAAAwewlwdRQfLPISxUMh1yHMuplJvWsZyqviE8FMUPRjI4c486pul56HAUhT4SNBgbbkp65Tb/FVaLFCSymQEcZL7+eFag77AvVutuc6PCDwmlicQFc/VTcFuWjlFH59zOhcIpRoUn3xhHo+lfHnEvY7Rk6B3QhxDPl1Vod8Ku6i1jVgHTC/HHXODgYZ1At4G3tAC1/Il4rqr3MgI+rjC6AkKT4HU7Uc8MkLwZ1V/foR0m0rvzr5K1y6U1MYrQS0kUe+C1suK69ZHYGRN1L+eIYYK3RS931McAN63xCMe/XF63n6O8bOw4dReogqddTlxqSiZC5UK3b59P2OlcvogHWR0ney9TnnWbAO8+3rW2wAT1RC+0pAFlAvZ6w52C6dSAIAAApnM1S7or0rLJpOtmkoOTChzo6t6vb/aKDGnwfTLqPt9ADIf8QjwdoJe2/wxFSdCPUFq0U9kOPgI/qwmdxO8WvkPJ9+F8jBwAkwTCLCycEEmzMZvCz2pT7dwt5ttD9BCdi2ya4dPRzOxp09MfxLU3Z24ZILdIEkfEviqDWabdGSJZyr4eAJIAR7YAeKcBlcBK+R5Ad+2zRks/XZ3kMfUEFXzhhdGac9AHjJoAAAA8RewN3M2VZH7u6foaFGlFPCE7tA82LUw59Fe1vZ2FcMf8/0fsrB8GogE++VQx/EoNvHJpadouWPFs0GR8KkT0PIWdRpz9OFgqhp+YKoNHQX6s8q/wovL4ANLPDOPWrhfEtYnUlnU6XbHNRvxFJq0mMl/7PMPTiH3aTQqBQU2rwSrN96uqi/k/T/nJWl4pOeQdT6oWnldH7VIEHOQS+TV4tvgoHhaS0WvHiLZ90AuF1VPH9oef9y9lM2kUNoTc3+Ky8lsdoXmxh2+QxJVdiSWDrOr6Ht8Y0ShTHO8/ZL1zr0YWVwRwwVNr5J8yPoR/g59O4Iwqs+Kre//Nux4/GVFBDzMGVLVq0n/TP8MawcOknF06F0ccK0vF+j/EuquRQYoNWveOa1wwAQqFl1/KK+aufthq8K7gNOW9k/n1Lff5uPDt4Oyop+ucy5iI06ygbzovb53nCVB9ccDHVIwqnKSClmZBRAd69yZH0iWUDsqtFf25iskBthUTh59fZIgC+ILL//gqUTdJzAbkqSE5xrU5F14Mu1f4ghWc9yxhC9Ol9iLNV9kyeoEFwhob7twXRLO+NbJuRU70sOfsjNwxKVVdVnCoKa4LmIX5ua3GQ/b1DR5WNj7kqHKjnDN4CQMb++ErKDvCbCR0vCxqkGYf62c6ipstqCZJvZQEdG9Skqw8QbnWkFYrljJaoCISCiCaP4SLVpY2drya42qbiLHzCc22XRORZpQnejDWjIItsKZrVc+cXR6hwWjRT1O66cuNlOU8C73z9ACuEiulk2nrTuZcgWPxSzsg6wLJ8IaQrehkGLOw63MFWe07BzBg5Il4MsxJYqAAAa5sXtT8I9h7Ps2St4w0i2F+2nmuAtTit7QBJqfv8U5Bo3SKMORm4VeKy2rD6YZcnCOQS7sWucsycdH/h4ombOQ3frk2uaeShSi33AAKudSgrR1uxe1X3SyYgANaHo/oyCQDBWWX6qLIvXFAhaCFt/woo99M8Y++O+4szKZ6PiplJirsXKwoaqXwO6VYi9lrRIhoLkEW+sNuH43K7+QZfRqzg45umL3GJPS2Ra6KapFf3Zma0klHmI2s5eGkOUjsJwwSwOlMt4SidX5MeI4Vv0gJbDUsGtEr+zqESzn+Rb7IzE3CeY3WJVN+QQkxspBa8+Dsw12tFHRFgObGCnzZtJkyvKRA4Hjk/vVkAbjRrpAWx0JveuKB/YvNdxXCD+P4N4ihrk1VYXFj3W8rHtyTMBDbC8U01VVyDJKXML5h8OGF+K63LxWotVtSr/nuf/ATQJv/xnvgaumsTBu+yr9TA6VUjEWdNwrLREWJHFyZ0ww1y1uzHJH6/GNQarHn+FG9/EWoNmQNdXbQBEAeJGvvEkZMoiqq33hmRSNid/JG3IDi6YhOzc+bpshhSbvoJPurDG59r29TdKMZk2l1cYxLrehzxvx2QVsKgoAGqxR0ANsTuoj20CaF9xcWbmF1NeZBi/LXcxuYpeb35Us3OvMP/f8GACzWif8jns6LJAWvi0GEsaLU21jncIWaZ0mTLZ5sGvlHMQa5XWXHaJTCxWlnpFe7dfwaYT50UBwKD10a6gdDVyOVKeIMTN8PQAEtmeYMhollPOeQGq8GswilyW45SkKKnDv+QsIw0Xauf7NTqy8HifVetNLWdIn05Au0dgdvJtKbFTOk/KMwfC5BaHO4TGFfihG0Dc8D7ag79MtO+dydklR2UOEzNyQ0fbYJR/fItzFcEIa1+XBDE9XXqeUXA7m4Gb91hDGcx9rTEJyeUGAD9EkBQ3WKEGoMb9jG0Pvmpny24x3q44lDgPjlJ2aPbxWDQy8g9aGUt5M9ZfFru8VBXnX+l/ZzcHYyHLp/K+6GE/caWC6Sefril9rJxqm9gIRaGGpZS3ctnlz+w54/9irnJ6wbHoFquhYDcS8u8IeMrl2a1GIklTYADqa4NUwdQbkXeyo5NTgCfkulXR67lZycu9K0qIABpF3q43nF929PWi4ln0NI4/NeH2Jz8i8PF5Nm7QZJ5hKhz3bVBi07RhhCbL2vYzVwtvFftrJrpyMGhZ/gNoa+QU0EKnheZGfnpu/Inv0J1ZcSqb2OwtQkynHykht67DeeNGToaYwdNXD0Pmw5CBjg63Z6bW+cwpXhtxDhXmC6tNXDTip/c+kBQQLleKPi4c/l8xZQ3+nGbCqw0qqRGnM2I5/ySxEpfOeAAAAAAAAAAAAAFBTQUlOAAAAOEJJTQPtAAAAAAAQAEgAAAABAAEASAAAAAEAAThCSU0EKAAAAAAADAAAAAI/8AAAAAAAADhCSU0EQwAAAAAADlBiZVcBEAAGAGQAAAAA'
+    });
+    // END GENERATED CREATOR CARD IMAGES
+
+
+    const CREATOR_CHOICES = Object.freeze([
+        {
+            id: 'cosmetic',
+            name: 'Accessories',
+            description: 'Create a wearable model. Its attachment point and animation mode are detected automatically.',
+            image: CREATOR_CARD_IMAGES.CREATE_ACCESSORY
+        },
+        {
+            id: 'emote',
+            name: 'Emotes',
+            description: 'Create a player animation workspace with a Wide or Slim visible body.',
+            image: CREATOR_CARD_IMAGES.CREATE_EMOTE
+        }
+    ]);
+
+    const BODY_TYPE_CHOICES = Object.freeze([
+        {
+            id: 'wide',
+            name: 'Wide',
+            description: 'Start with the Wide player body visible. Slim arm attachment folders are still included.',
+            image: CREATOR_CARD_IMAGES.WIDE_CHARACTER
+        },
+        {
+            id: 'slim',
+            name: 'Slim',
+            description: 'Start with the Slim player body visible. Wide arm attachment folders are still included.',
+            image: CREATOR_CARD_IMAGES.SLIM_CHARACTER
+        }
+    ]);
+
+    const EMOTE_RIG_CHOICES = Object.freeze([
+        {
+            id: 'simple',
+            name: 'Simple',
+            description: 'A seven-bone rigid player rig for straightforward Minecraft-style emotes.',
+            image: CREATOR_CARD_IMAGES.SIMPLE_EMOTE
+        },
+        {
+            id: 'precise',
+            name: 'Precise',
+            description: 'A weighted skinned mesh with bendable waist, elbows, and knees.',
+            image: CREATOR_CARD_IMAGES.PRECISE_EMOTE
+        }
+    ]);
+
+    const CAPE_RESOLUTIONS = Object.freeze([
+        Object.freeze({id: '64x32', label: '64 x 32', width: 64, height: 32}),
+        Object.freeze({id: '128x64', label: '128 x 64', width: 128, height: 64}),
+        Object.freeze({id: '256x128', label: '256 x 128', width: 256, height: 128}),
+        Object.freeze({id: '512x256', label: '512 x 256', width: 512, height: 256}),
+        Object.freeze({id: '1024x512', label: '1024 x 512', width: 1024, height: 512})
+    ]);
+
+    const COSMETIC_MODE_CHOICES = Object.freeze([
+        {
+            id: 'cosmetic_animated',
+            name: 'Animated',
+            description: 'Recommended. Adds empty player-state clips ready for keyframes.',
+            image: inlineSvgData([
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 260">',
+                '<rect width="480" height="260" rx="18" fill="#242832"/>',
+                '<path d="M72 196h336M99 166l63-68 62 42 75-92 82 118" fill="none" stroke="#596276" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>',
+                '<circle cx="99" cy="166" r="18" fill="#ff759b"/><circle cx="162" cy="98" r="18" fill="#91d4e8"/><circle cx="224" cy="140" r="18" fill="#ffd873"/><circle cx="299" cy="48" r="18" fill="#a675ff"/><circle cx="381" cy="166" r="18" fill="#33e38e"/>',
+                '<path d="M216 76l83 54-83 54z" fill="#fff" opacity=".92"/>',
+                '</svg>'
+            ].join(''))
+        },
+        {
+            id: 'cosmetic_static',
+            name: 'Static',
+            description: 'Creates the same Wide and Slim model folders without animation clips.',
+            image: inlineSvgData([
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 260">',
+                '<rect width="480" height="260" rx="18" fill="#222733"/>',
+                '<rect x="104" y="57" width="272" height="146" rx="16" fill="#303746" stroke="#79859d" stroke-width="5"/>',
+                '<rect x="151" y="90" width="178" height="80" rx="8" fill="#5b6680"/>',
+                '<path d="M208 106v48M272 106v48" stroke="#fff" stroke-width="15" stroke-linecap="round"/>',
+                '</svg>'
+            ].join(''))
+        }
+    ]);
+
+    const YES_NO_CHOICES = Object.freeze([
+        {
+            id: 'no',
+            name: 'No',
+            description: 'Keep this option disabled.',
+            image: inlineSvgData('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 260"><rect width="480" height="260" rx="18" fill="#252832"/><circle cx="240" cy="130" r="72" fill="#3b404d"/><path d="M202 92l76 76M278 92l-76 76" stroke="#ff759b" stroke-width="23" stroke-linecap="round"/></svg>')
+        },
+        {
+            id: 'yes',
+            name: 'Yes',
+            description: 'Enable this option for the emote draft.',
+            image: inlineSvgData('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 260"><rect width="480" height="260" rx="18" fill="#222d2a"/><circle cx="240" cy="130" r="72" fill="#354840"/><path d="M194 131l31 31 65-72" fill="none" stroke="#33e38e" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+        }
+    ]);
+
+    const CREATION_FLOW_STEPS = Object.freeze([
+        {id: 'type', title: 'Type'},
+        {id: 'name', title: 'Name'},
+        {id: 'setup', title: 'Setup'},
+        {id: 'creator', title: 'Creator'}
+    ]);
+    const COSMETIC_FLOW_STEPS = Object.freeze([
+        {id: 'type', title: 'Accessory'},
+        {id: 'name', title: 'Name'},
+        {id: 'visible_body', title: 'Visible Body'},
+        {id: 'creator', title: 'Creator'}
+    ]);
+    const EMOTE_FLOW_STEPS = Object.freeze([
+        {id: 'type', title: 'Emote'},
+        {id: 'name', title: 'Name'},
+        {id: 'body_type', title: 'Body Type'},
+        {id: 'review', title: 'Review'},
+        {id: 'creator', title: 'Start Creating'}
+    ]);
+    const CAPE_FLOW_STEPS = Object.freeze([
+        {id: 'type', title: 'Cape'},
+        {id: 'name', title: 'Name'},
+        {id: 'resolution', title: 'Resolution'},
+        {id: 'creator', title: 'Creator'}
+    ]);
+
+    const MODEL_VARIANTS = Object.freeze(['universal', 'wide', 'slim']);
+    const ARM_WIDTH_MODES = Object.freeze({
+        UNCONFIGURED: 'unconfigured',
+        SHARED: 'shared',
+        DEPENDENT: 'dependent'
+    });
+    const ARM_WIDTH_MODE_VALUES = Object.freeze([
+        ARM_WIDTH_MODES.UNCONFIGURED,
+        ARM_WIDTH_MODES.SHARED,
+        ARM_WIDTH_MODES.DEPENDENT
+    ]);
+    const TEMPLATE_VALUES = Object.freeze(['cosmetic_static', 'cosmetic_animated']);
+    const EMOTE_TEMPLATE_VALUES = Object.freeze(['emote_player', 'emote_with_props']);
+    const PROJECT_KINDS = Object.freeze({
+        COSMETIC: 'cosmetic',
+        EMOTE: 'emote',
+        CAPE: 'cape'
+    });
+    const EMOTE_ACTOR_MIN = 1;
+    const EMOTE_ACTOR_MAX = 4;
+    const EMOTE_ACTOR_OFFSETS = Object.freeze([0, 24, -24, 48]);
+    const EMOTE_ANIMATION_SCOPES = Object.freeze({
+        NONE: 'none',
+        SCENE: 'scene',
+        ACTOR: 'actor'
+    });
+    const EMOTE_PLAYER_BONES = Object.freeze([
+        {id: 'root', label: 'Root', parent: null},
+        {id: 'body', label: 'Body', parent: 'root'},
+        {id: 'head', label: 'Head', parent: 'body'},
+        {id: 'left_arm', label: 'Left Arm', parent: 'body'},
+        {id: 'right_arm', label: 'Right Arm', parent: 'body'},
+        {id: 'left_leg', label: 'Left Leg', parent: 'root'},
+        {id: 'right_leg', label: 'Right Leg', parent: 'root'}
+    ]);
+    const EMOTE_PRECISE_PLAYER_BONES = Object.freeze([
+        {id: 'root', label: 'Root', parent: null},
+        {id: 'torso_lower', label: 'Lower Torso', parent: 'root'},
+        {id: 'torso_upper', label: 'Upper Torso', parent: 'torso_lower'},
+        {id: 'head', label: 'Head', parent: 'torso_upper'},
+        {id: 'left_arm_upper', label: 'Left Upper Arm', parent: 'torso_upper'},
+        {id: 'left_arm_lower', label: 'Left Lower Arm', parent: 'left_arm_upper'},
+        {id: 'right_arm_upper', label: 'Right Upper Arm', parent: 'torso_upper'},
+        {id: 'right_arm_lower', label: 'Right Lower Arm', parent: 'right_arm_upper'},
+        {id: 'left_leg_upper', label: 'Left Upper Leg', parent: 'torso_lower'},
+        {id: 'left_leg_lower', label: 'Left Lower Leg', parent: 'left_leg_upper'},
+        {id: 'right_leg_upper', label: 'Right Upper Leg', parent: 'torso_lower'},
+        {id: 'right_leg_lower', label: 'Right Lower Leg', parent: 'right_leg_upper'}
+    ]);
+    const EMOTE_RIG_PROFILES = Object.freeze({
+        SIMPLE: 'simple',
+        PRECISE: 'precise'
+    });
+
+    const LIMITS = Object.freeze({
+        nodes: 512,
+        animations: 32,
+        keyframes: 4096,
+        vertices: 8192,
+        triangles: 16384,
+        textures: 8,
+        textureDimension: 4096,
+        animationSeconds: 120,
+        emotePivotOffsetUnits: 128,
+        futureParticleMarkers: 16
+    });
+    const DEFERRED_SIZE_LIMIT_CODES = Object.freeze({
+        COSMIQ_RESOURCE_LIMIT: true,
+        COSMIQ_EFFECT_LOCATOR_LIMIT: true,
+        COSMIQ_TIMELINE_MARKER_LIMIT: true,
+        COSMIQ_TIMELINE_CUE_LIMIT: true,
+        COSMIQ_NODE_LIMIT: true,
+        COSMIQ_VERTEX_LIMIT: true,
+        COSMIQ_TRIANGLE_LIMIT: true,
+        COSMIQ_ANIMATION_LIMIT: true,
+        COSMIQ_KEYFRAME_LIMIT: true,
+        COSMIQ_PARTICLE_MARKER_LIMIT: true,
+        COSMIQ_TEXTURE_LIMIT: true,
+        COSMIQ_TEXTURE_DIMENSION: true,
+        COSMIQ_EMOTE_NODE_LIMIT: true,
+        COSMIQ_EMOTE_ANIMATION_LIMIT: true,
+        COSMIQ_EMOTE_KEYFRAME_LIMIT: true,
+        COSMIQ_PACKAGE_PNG_BYTES: true,
+        COSMIQ_PACKAGE_PNG_DIMENSIONS: true,
+        COSMIQ_PACKAGE_TEXTURE_COUNT: true,
+        COSMIQ_PACKAGE_NODE_COUNT: true,
+        COSMIQ_PACKAGE_VERTEX_LIMIT: true,
+        COSMIQ_PACKAGE_TRIANGLE_LIMIT: true,
+        COSMIQ_PACKAGE_ANIMATION_COUNT: true,
+        COSMIQ_PACKAGE_KEYFRAME_COUNT: true,
+        COSMIQ_PACKAGE_BBMODEL_LIMIT: true,
+        COSMIQ_PACKAGE_SIZE_LIMIT: true
+    });
+
+    const ROLES = Object.freeze({
+        NONE: 'none',
+        EXPORT_ROOT: 'export_root',
+        MODEL_VARIANT: 'model_variant_root',
+        STRUCTURE: 'authoring_structure',
+        ANCHOR: 'player_anchor',
+        AUTHORING: 'cosmetic_node',
+        REFERENCE_ROOT: 'reference_root',
+        REFERENCE: 'reference',
+        PARTICLE_MARKER: 'particle_emitter_marker',
+        PARTICLE_EFFECT_LOCATOR: 'particle_effect_locator',
+        SOUND_EFFECT_LOCATOR: 'sound_effect_locator',
+        EMOTE_SCENE: 'emote_scene',
+        EMOTE_ACTOR: 'emote_actor',
+        PLAYER_BONE: 'player_bone',
+        EMOTE_TRANSFORM: 'emote_transform',
+        PROPS_ROOT: 'props_root',
+        OBJECT_ACTOR: 'object_actor',
+        OBJECT_ACTOR_NODE: 'object_actor_node'
+    });
+    const BLOCKBENCH_NODE_ROLE_VALUES = Object.freeze([
+        ROLES.NONE,
+        ROLES.EXPORT_ROOT,
+        ROLES.MODEL_VARIANT,
+        ROLES.STRUCTURE,
+        ROLES.ANCHOR,
+        ROLES.AUTHORING,
+        ROLES.REFERENCE_ROOT,
+        ROLES.REFERENCE,
+        ROLES.PARTICLE_MARKER,
+        ROLES.PARTICLE_EFFECT_LOCATOR,
+        ROLES.SOUND_EFFECT_LOCATOR,
+        ROLES.EMOTE_SCENE,
+        ROLES.EMOTE_ACTOR,
+        ROLES.PLAYER_BONE,
+        ROLES.EMOTE_TRANSFORM,
+        ROLES.PROPS_ROOT,
+        ROLES.OBJECT_ACTOR,
+        ROLES.OBJECT_ACTOR_NODE
+    ]);
+    const BLOCKBENCH_PLAYER_BONE_VALUES = Object.freeze(Array.from(new Set(
+        ['none']
+            .concat(EMOTE_PLAYER_BONES.map(function (bone) { return bone.id; }))
+            .concat(EMOTE_PRECISE_PLAYER_BONES.map(function (bone) { return bone.id; }))
+            .concat(['upper_body'])
+    )));
+
+    const ANCHORS = Object.freeze([
+        {id: 'cosmiq:player/head', label: 'Head', origin: [0, 24, 0], slot: 'cosmiq:slot/head'},
+        {id: 'cosmiq:player/torso', label: 'Torso', origin: [0, 24, 0], slot: 'cosmiq:slot/body'},
+        {id: 'cosmiq:player/left_arm', label: 'Left Arm', origin: [5, 22, 0], slot: 'cosmiq:slot/arms'},
+        {id: 'cosmiq:player/right_arm', label: 'Right Arm', origin: [-5, 22, 0], slot: 'cosmiq:slot/arms'},
+        {id: 'cosmiq:player/left_leg', label: 'Left Leg', origin: [2, 12, 0], slot: 'cosmiq:slot/legs'},
+        {id: 'cosmiq:player/right_leg', label: 'Right Leg', origin: [-2, 12, 0], slot: 'cosmiq:slot/legs'}
+    ]);
+    const TEMPLATE_ATTACHMENT_POINTS = Object.freeze([
+        Object.freeze({
+            key: 'Bd', modelGroup: '[Model Bd]', bodyPartGroup: 'Body',
+            label: 'Body', anchorId: 'cosmiq:player/torso', modelVariant: 'universal'
+        }),
+        Object.freeze({
+            key: 'Hd', modelGroup: '[Model Hd]', bodyPartGroup: 'Head',
+            label: 'Head', anchorId: 'cosmiq:player/head', modelVariant: 'universal'
+        }),
+        Object.freeze({
+            key: 'WR', modelGroup: '[Model WR]', bodyPartGroup: 'Right Arm Wide',
+            label: 'Right Arm', anchorId: 'cosmiq:player/right_arm', modelVariant: 'wide'
+        }),
+        Object.freeze({
+            key: 'WL', modelGroup: '[Model WL]', bodyPartGroup: 'Left Arm Wide',
+            label: 'Left Arm', anchorId: 'cosmiq:player/left_arm', modelVariant: 'wide'
+        }),
+        Object.freeze({
+            key: 'SR', modelGroup: '[Model SR]', bodyPartGroup: 'Right Arm Slim',
+            label: 'Right Arm', anchorId: 'cosmiq:player/right_arm', modelVariant: 'slim'
+        }),
+        Object.freeze({
+            key: 'SL', modelGroup: '[Model SL]', bodyPartGroup: 'Left Arm Slim',
+            label: 'Left Arm', anchorId: 'cosmiq:player/left_arm', modelVariant: 'slim'
+        }),
+        Object.freeze({
+            key: 'RL', modelGroup: '[Model RL]', bodyPartGroup: 'Right Leg',
+            label: 'Right Leg', anchorId: 'cosmiq:player/right_leg', modelVariant: 'universal'
+        }),
+        Object.freeze({
+            key: 'LL', modelGroup: '[Model LL]', bodyPartGroup: 'Left Leg',
+            label: 'Left Leg', anchorId: 'cosmiq:player/left_leg', modelVariant: 'universal'
+        })
+    ]);
+    const BODY_PART_FIELDS = Object.freeze([
+        {formKey: 'part_head', anchorId: 'cosmiq:player/head'},
+        {formKey: 'part_body', anchorId: 'cosmiq:player/torso'},
+        {formKey: 'part_left_arm', anchorId: 'cosmiq:player/left_arm'},
+        {formKey: 'part_right_arm', anchorId: 'cosmiq:player/right_arm'},
+        {formKey: 'part_left_leg', anchorId: 'cosmiq:player/left_leg'},
+        {formKey: 'part_right_leg', anchorId: 'cosmiq:player/right_leg'}
+    ]);
+
+    const ALL_BODY_PART_ANCHOR_IDS = Object.freeze(BODY_PART_FIELDS.map(function (part) {
+        return part.anchorId;
+    }));
+
+    const TRIGGERS = Object.freeze([
+        {
+            id: 'idle',
+            kind: 'player_state',
+            family: 'movement',
+            label: 'Idle / Standing',
+            aliases: ['idle', 'stand', 'standing'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'walking',
+            kind: 'player_state',
+            family: 'movement',
+            label: 'Walking',
+            aliases: ['walk', 'walking'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'sprinting',
+            kind: 'player_state',
+            family: 'movement',
+            label: 'Running / Sprinting',
+            aliases: ['run', 'running', 'sprint', 'sprinting'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'crouching',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Crouching / Sneaking',
+            aliases: ['crouch', 'crouching', 'sneak', 'sneaking'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'crouch_walking',
+            kind: 'player_state',
+            family: 'combined',
+            label: 'Crouch Walking',
+            aliases: ['crouch_walk', 'crouch_walking', 'sneak_walk', 'sneak_walking'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'jumping',
+            kind: 'player_state',
+            family: 'contact',
+            label: 'Jumping / Rising',
+            aliases: ['jump', 'jumping', 'rising'],
+            crossVersion: true,
+            defaultLoop: false
+        },
+        {
+            id: 'falling',
+            kind: 'player_state',
+            family: 'contact',
+            label: 'Falling',
+            aliases: ['fall', 'falling', 'airborne'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'riding',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Sitting / Riding',
+            aliases: ['sit', 'sitting', 'ride', 'riding', 'mounted'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'sleeping',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Laying / Sleeping',
+            aliases: ['lay', 'laying', 'sleep', 'sleeping'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'in_water',
+            kind: 'player_state',
+            family: 'environment',
+            label: 'In Water / Treading Water',
+            aliases: ['water', 'in_water', 'treading_water'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'swimming',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Swimming',
+            aliases: ['swim', 'swimming'],
+            crossVersion: false,
+            defaultLoop: true
+        },
+        {
+            id: 'crawling',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Crawling',
+            aliases: ['crawl', 'crawling'],
+            crossVersion: false,
+            defaultLoop: true
+        },
+        {
+            id: 'fall_flying',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Elytra Flying',
+            aliases: ['fall_flying', 'elytra', 'elytra_gliding', 'glide', 'gliding'],
+            crossVersion: false,
+            defaultLoop: true
+        },
+        {
+            id: 'climbing',
+            kind: 'player_state',
+            family: 'movement',
+            label: 'Climbing',
+            aliases: ['climb', 'climbing', 'ladder'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'creative_flying',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Creative / Spectator Flying',
+            aliases: ['fly', 'flying', 'creative_flying', 'spectator_flying'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'using_item',
+            kind: 'player_state',
+            family: 'activity',
+            label: 'Using Item / Eating / Drinking',
+            aliases: ['use_item', 'using_item', 'eating', 'drinking', 'charging_bow'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'blocking',
+            kind: 'player_state',
+            family: 'activity',
+            label: 'Blocking',
+            aliases: ['block', 'blocking', 'shield'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'fishing',
+            kind: 'player_state',
+            family: 'activity',
+            label: 'Fishing',
+            aliases: ['fish', 'fishing'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'rowing',
+            kind: 'player_state',
+            family: 'activity',
+            label: 'Rowing A Boat',
+            aliases: ['row', 'rowing', 'boat_rowing'],
+            crossVersion: true,
+            defaultLoop: true
+        },
+        {
+            id: 'spin_attack',
+            kind: 'player_state',
+            family: 'activity',
+            label: 'Riptide Spin Attack',
+            aliases: ['spin', 'spin_attack', 'riptide'],
+            crossVersion: false,
+            defaultLoop: true
+        },
+        {
+            id: 'dead',
+            kind: 'player_state',
+            family: 'pose',
+            label: 'Dead',
+            aliases: ['dead', 'death_pose'],
+            crossVersion: true,
+            defaultLoop: false
+        },
+        {
+            id: 'land',
+            kind: 'player_event',
+            family: 'event',
+            label: 'Landing (one-shot event)',
+            aliases: ['land', 'landing'],
+            crossVersion: true,
+            defaultLoop: false
+        },
+        {
+            id: 'attack',
+            kind: 'player_event',
+            family: 'event',
+            label: 'Hit / Attack (one-shot event)',
+            aliases: ['attack', 'attacking', 'swing'],
+            crossVersion: true,
+            defaultLoop: false
+        },
+        {
+            id: 'hurt',
+            kind: 'player_event',
+            family: 'event',
+            label: 'Getting Hurt (one-shot event)',
+            aliases: ['hurt', 'damage', 'damaged'],
+            crossVersion: true,
+            defaultLoop: false
+        }
+    ]);
+
+    const anchorById = Object.create(null);
+    const triggerById = Object.create(null);
+    const triggerByAlias = Object.create(null);
+    ANCHORS.forEach(function (anchor) {
+        anchorById[anchor.id] = anchor;
+    });
+    TRIGGERS.forEach(function (trigger) {
+        triggerById[trigger.id] = trigger;
+        trigger.aliases.forEach(function (alias) {
+            triggerByAlias[alias] = trigger;
+        });
+    });
+
+    function normalizeToken(value) {
+        return String(value == null ? '' : value)
+            .trim()
+            .toLowerCase()
+            .replace(/[\s./-]+/g, '_')
+            .replace(/[^a-z0-9_]/g, '')
+            .replace(/^_+|_+$/g, '');
+    }
+
+    function normalizeProjectId(value) {
+        const raw = String(value == null ? '' : value).trim().toLowerCase();
+        const separator = raw.indexOf(':');
+        if (separator < 1) {
+            return '';
+        }
+        const namespace = raw.slice(0, separator)
+            .replace(/[^a-z0-9._-]+/g, '_')
+            .replace(/^[._-]+|[._-]+$/g, '');
+        const path = raw.slice(separator + 1)
+            .replace(/\\/g, '/')
+            .replace(/[^a-z0-9._/-]+/g, '_')
+            .replace(/\/+/g, '/')
+            .replace(/^[/_.-]+|[/_.-]+$/g, '');
+        if (!namespace || !path) {
+            return '';
+        }
+        const normalized = namespace + ':' + path;
+        return PROJECT_ID_PATTERN.test(normalized) ? normalized : '';
+    }
+
+    function boundedCreatorString(value, maximum) {
+        const text = String(value == null ? '' : value).trim();
+        return text.slice(0, Math.max(0, Number(maximum) || 0));
+    }
+
+    function isRawMediaReference(value) {
+        const raw = String(value == null ? '' : value).trim();
+        return /^(?:https?:|file:|data:|blob:)/i.test(raw) ||
+            /^[a-z]:[\\/]/i.test(raw) ||
+            /^[/\\]{1,2}/.test(raw) ||
+            /[\u0000-\u001f\u007f-\u009f]/.test(raw);
+    }
+
+    function normalizeAssetRef(value) {
+        const raw = String(value == null ? '' : value).trim();
+        if (!raw || isRawMediaReference(raw)) {
+            return '';
+        }
+        return normalizeProjectId(raw);
+    }
+
+    function isParticleResource(resource) {
+        return !!resource && resource.type === RESOURCE_TYPES.PARTICLE_EFFECT;
+    }
+
+    function normalizeResourceReference(value) {
+        const source = value && typeof value === 'object' ? value : {};
+        const type = String(source.type || '').trim().toLowerCase();
+        const authored = type === RESOURCE_TYPES.PARTICLE_EFFECT;
+        const assetRef = normalizeAssetRef(source.assetRef);
+        const displayName = boundedCreatorString(
+            source.displayName || (type === RESOURCE_TYPES.SOUND ? 'Sound Reference' : ''),
+            AUTHORING_LIMITS.displayNameCharacters
+        );
+        const normalized = {
+            id: normalizeAssetRef(source.id),
+            type: type,
+            displayName: displayName,
+            assetRef: assetRef,
+            soundKind: type === RESOURCE_TYPES.SOUND && SOUND_REFERENCE_TYPES.indexOf(source.soundKind) !== -1
+                ? source.soundKind
+                : (type === RESOURCE_TYPES.SOUND ? 'sound_effect' : ''),
+            embeddedOgg: type === RESOURCE_TYPES.SOUND && typeof source.embeddedOgg === 'string'
+                ? source.embeddedOgg
+                : null,
+            referenceOnly: false,
+            rawMediaIncluded: type === RESOURCE_TYPES.SOUND && typeof source.embeddedOgg === 'string'
+        };
+        if (authored) {
+            normalized.profileId = normalizeToken(source.profileId);
+            normalized.editorStatus = source.editorStatus === 'placeholder'
+                ? 'placeholder'
+                : 'configured';
+            normalized.appearance = source.appearance && typeof source.appearance === 'object'
+                ? cosmiqClone(source.appearance)
+                : null;
+            normalized.emitter = source.emitter && typeof source.emitter === 'object'
+                ? cosmiqClone(source.emitter)
+                : null;
+            normalized.runtimeExport = source.runtimeExport !== false;
+        }
+        return normalized;
+    }
+
+    function normalizeTimelineCue(value) {
+        const source = value && typeof value === 'object' ? value : {};
+        const type = String(source.type || '').trim().toLowerCase();
+        const isComment = type === CUE_TYPES.COMMENT;
+        const isVisibility = type === CUE_TYPES.NODE_VISIBILITY;
+        return {
+            id: normalizeAssetRef(source.id),
+            type: type,
+            animationUuid: boundedCreatorString(source.animationUuid, 128),
+            markerName: boundedCreatorString(source.markerName, AUTHORING_LIMITS.markerNameCharacters),
+            endMarkerName: boundedCreatorString(source.endMarkerName, AUTHORING_LIMITS.markerNameCharacters) || null,
+            resourceId: isComment || isVisibility ? null : (normalizeAssetRef(source.resourceId) || null),
+            locatorUuid: isComment || isVisibility ? null : (boundedCreatorString(source.locatorUuid, 128) || null),
+            nodeUuid: isVisibility ? (boundedCreatorString(source.nodeUuid, 128) || null) : null,
+            visible: isVisibility ? source.visible === true : null,
+            comment: isComment
+                ? boundedCreatorString(source.comment, AUTHORING_LIMITS.commentCharacters)
+                : null,
+            sourceOnly: isComment,
+            runtimeExport: !isComment && source.runtimeExport !== false
+        };
+    }
+
+    function normalizeCosmeticSettings(value) {
+        if (!Array.isArray(value) || value.length === 0) {
+            return [];
+        }
+        if (value.length !== 1) {
+            return [];
+        }
+        const setting = value[0] && typeof value[0] === 'object' ? value[0] : {};
+        const side = String(setting.data && setting.data.side || '').trim().toUpperCase();
+        if (setting.type !== 'SIDE' || setting.id != null || setting.enabled !== true ||
+            (side !== 'LEFT' && side !== 'RIGHT')) {
+            return [];
+        }
+        return [{
+            type: 'SIDE',
+            id: null,
+            enabled: true,
+            data: {side: side}
+        }];
+    }
+
+    function authoringStateFromMetadata(metadata) {
+        const source = metadata && typeof metadata === 'object' ? metadata : {};
+        return {
+            resources: Array.isArray(source.resourceReferences)
+                ? source.resourceReferences.map(normalizeResourceReference)
+                : [],
+            cues: Array.isArray(source.timelineCues)
+                ? source.timelineCues.map(normalizeTimelineCue)
+                : []
+        };
+    }
+
+    function listValues(value) {
+        if (Array.isArray(value)) {
+            return value.slice();
+        }
+        return String(value == null ? '' : value).split(',');
+    }
+
+    function uniqueValues(values) {
+        const seen = Object.create(null);
+        return values.filter(function (value) {
+            if (!value || seen[value]) {
+                return false;
+            }
+            seen[value] = true;
+            return true;
+        });
+    }
+
+    function wizardProgressMarkup(steps, stepIndex) {
+        const items = (steps || []).map(function (step, index) {
+            let state = ' locked';
+            let icon = '<i class="material-icons">lock</i>';
+            if (index < stepIndex) {
+                state = ' complete';
+                icon = '<i class="material-icons">check</i>';
+            } else if (index === stepIndex) {
+                state = ' current';
+                icon = '<b>' + (index + 1) + '</b>';
+            }
+            return '<div class="cosmiq-wizard-step' + state + '"><span>' + icon +
+                '</span><small>' + step.title + '</small></div>';
+        }).join('');
+        return '<div class="cosmiq-wizard-progress" style="--cosmiq-step-count:' +
+            Math.max(1, (steps || []).length) + '">' + items + '</div>';
+    }
+
+    function wizardPageHeading(steps, stepIndex, title, description) {
+        return '<div class="cosmiq-simple-wizard">' + wizardProgressMarkup(steps, stepIndex) +
+            '<div class="cosmiq-wizard-heading"><h2>' + title + '</h2><p>' + description +
+            '</p></div></div>';
+    }
+
+    function cardChoiceComponent(choices, title, description, options) {
+        const settings = options || {};
+        return {
+            data: function () {
+                return {
+                    selected: settings.defaultSelected || null,
+                    choices: choices.map(function (choice) { return Object.assign({}, choice); }),
+                    heading: title,
+                    description: description,
+                    progressMarkup: settings.progressMarkup || ''
+                };
+            },
+            methods: {
+                select: function (id) {
+                    this.selected = id;
+                }
+            },
+            template: [
+                '<div class="cosmiq-creation-picker">',
+                '  <div v-if="progressMarkup" class="cosmiq-card-progress" v-html="progressMarkup"></div>',
+                '  <div class="cosmiq-creation-header"><h1>{{ heading }}</h1><p>{{ description }}</p></div>',
+                '  <div class="cosmiq-creation-grid" role="radiogroup" aria-label="Creation type">',
+                '    <div v-for="choice in choices" :key="choice.id" class="cosmiq-creation-card" :class="{selected: selected === choice.id}" role="radio" tabindex="0" :aria-checked="selected === choice.id ? \'true\' : \'false\'" @click="select(choice.id)" @keydown.enter="select(choice.id)" @keydown.space.prevent="select(choice.id)">',
+                '      <span class="cosmiq-creation-image"><img :src="choice.image" :alt="choice.name + \' preview\'"><i v-if="selected === choice.id" class="material-icons">check_circle</i></span>',
+                '      <span class="cosmiq-creation-copy"><b v-if="choice.badge" class="cosmiq-coming-soon">{{ choice.badge }}</b><strong>{{ choice.name }}</strong><small>{{ choice.description }}</small></span>',
+                '    </div>',
+                '  </div>',
+                '  <p class="cosmiq-creation-hint"><i class="material-icons">touch_app</i>Select a card, then choose Continue.</p>',
+                '</div>'
+            ].join('')
+        };
+    }
+
+    function creationTypeComponent() {
+        return cardChoiceComponent(
+            CREATOR_CHOICES,
+            'What Do You Want To Create?',
+            'Choose a creator workspace to continue.',
+            {progressMarkup: wizardProgressMarkup(CREATION_FLOW_STEPS, 0)}
+        );
+    }
+
+    function bodyTypeComponent(selected) {
+        return cardChoiceComponent(
+            BODY_TYPE_CHOICES,
+            'Choose The Visible Body',
+            'Choose the player body you want visible while creating. Both Wide and Slim arm attachment folders are included.',
+            {
+                defaultSelected: selected || 'wide',
+                progressMarkup: wizardProgressMarkup(COSMETIC_FLOW_STEPS, 2)
+            }
+        );
+    }
+
+    function emoteRigTypeComponent(selected) {
+        return cardChoiceComponent(
+            EMOTE_RIG_CHOICES,
+            'Choose The Body Type',
+            'Simple uses seven rigid bones. Precise uses a weighted twelve-bone rig that bends at the waist, elbows, and knees.',
+            {
+                defaultSelected: selected || EMOTE_RIG_PROFILES.SIMPLE,
+                progressMarkup: wizardProgressMarkup(EMOTE_FLOW_STEPS, 2)
+            }
+        );
+    }
+
+    function emoteCreationReviewMarkup(value) {
+        const draft = mergeEmoteDraft(value);
+        const precise = draft.rig_profile === EMOTE_RIG_PROFILES.PRECISE;
+        const bodyType = precise ? 'Precise' : 'Simple';
+        const bodyDescription = precise
+            ? 'Weighted twelve-bone rig with bendable waist, elbows, and knees.'
+            : 'Six rigid body parts controlled by seven animator-friendly bones.';
+        return wizardPageHeading(
+            EMOTE_FLOW_STEPS,
+            3,
+            'Review Your Emote',
+            'Confirm these choices, then choose Start Creating.'
+        ) +
+            '<div class="cosmiq-emote-review">' +
+                '<div><span>Name</span><strong>' +
+                    escapeHtml(creationProjectName(draft.creation_name, PROJECT_KINDS.EMOTE)) +
+                '</strong></div>' +
+                '<div><span>Body Type</span><strong>' + bodyType + '</strong>' +
+                    '<small>' + bodyDescription + '</small></div>' +
+            '</div>';
+    }
+
+    function capeResolutionFromId(value) {
+        return CAPE_RESOLUTIONS.find(function (resolution) {
+            return resolution.id === String(value || '');
+        }) || CAPE_RESOLUTIONS[0];
+    }
+
+    function emoteBooleanComponent(title, description, selected, stepIndex) {
+        return cardChoiceComponent(
+            YES_NO_CHOICES,
+            title,
+            description,
+            {
+                defaultSelected: selected === true ? 'yes' : 'no',
+                progressMarkup: wizardProgressMarkup(EMOTE_FLOW_STEPS, stepIndex)
+            }
+        );
+    }
+
+    function normalizeEmoteDraftName(value) {
+        return String(value == null ? '' : value).trim().replace(/\s+/g, ' ');
+    }
+
+    function normalizeCreationName(value) {
+        return String(value == null ? '' : value).trim().replace(/\s+/g, ' ');
+    }
+
+    function creationCategoryLabel(kind) {
+        if (kind === PROJECT_KINDS.EMOTE) return 'Emote';
+        if (kind === PROJECT_KINDS.CAPE) return 'Cape';
+        return 'Accessory';
+    }
+
+    function creationProjectName(name, kind) {
+        return (normalizeCreationName(name) || 'New') + ' ' + creationCategoryLabel(kind);
+    }
+
+    function creationProjectId(name, kind) {
+        const token = normalizeToken(name) || normalizeToken(creationCategoryLabel(kind));
+        return 'creator:' + token;
+    }
+
+    function defaultSimpleCosmeticDraft() {
+        return {
+            creation_name: '',
+            project_id: 'creator:accessory',
+            template: 'cosmetic_animated',
+            initial_visible_variant: 'wide',
+            texture_width: 64,
+            texture_height: 64,
+            include_reference: true,
+            wide_skin: null,
+            slim_skin: null
+        };
+    }
+
+    function mergeSimpleCosmeticDraft(draft, values) {
+        return Object.assign(defaultSimpleCosmeticDraft(), draft || {}, values || {});
+    }
+
+    function defaultCapeTemplateDraft() {
+        return mergeSimpleCosmeticDraft(null, {
+            project_id: 'creator:cape',
+            template: 'cosmetic_animated',
+            resolution: '64x32',
+            texture_width: 64,
+            texture_height: 32,
+            anchor_ids: ['cosmiq:player/torso'],
+            cape_template: true
+        });
+    }
+
+    function defaultEmoteDraft() {
+        return {
+            creation_name: '',
+            actors: 1,
+            containsProps: false,
+            traversable: false,
+            rig_profile: EMOTE_RIG_PROFILES.SIMPLE
+        };
+    }
+
+    function mergeEmoteDraft(draft, values) {
+        return Object.assign(defaultEmoteDraft(), draft || {}, values || {});
+    }
+
+    function baseTemplateGroup(rawTemplate, name) {
+        const matches = (rawTemplate.groups || []).filter(function (group) {
+            return group && group.name === name;
+        });
+        if (matches.length !== 1) {
+            throw new Error('Base template must contain exactly one "' + name + '" group.');
+        }
+        return matches[0];
+    }
+
+    function verifyBaseTemplateStructure(rawTemplate) {
+        if (!rawTemplate || typeof rawTemplate !== 'object' || Array.isArray(rawTemplate)) {
+            throw new Error('The Cosmiq base template is not a Blockbench project object.');
+        }
+        [
+            'Cosmiq Reference Model', 'Upper Body', 'Body', 'Head', 'Arms', 'Wide', 'Slim',
+            'Right Arm Wide', 'Left Arm Wide', 'Right Arm Slim', 'Left Arm Slim',
+            'Lower Body', 'Right Leg', 'Left Leg', 'Cape/Elytra', 'Cape', 'Elytra'
+        ].concat(TEMPLATE_ATTACHMENT_POINTS.map(function (point) {
+            return point.modelGroup;
+        })).forEach(function (name) {
+            baseTemplateGroup(rawTemplate, name);
+        });
+        ['wide.png', 'slim.png', 'cape.png'].forEach(function (name) {
+            if (!(rawTemplate.textures || []).some(function (texture) {
+                return texture && texture.name === name && /^data:image\/png;base64,/.test(texture.source || '');
+            })) {
+                throw new Error('Base template is missing its embedded ' + name + ' texture.');
+            }
+        });
+        if (!(rawTemplate.animations || []).some(function (animation) {
+            return animation && animation.name === 'state.idle';
+        })) {
+            throw new Error('Base template is missing its state.idle animation lane.');
+        }
+        return rawTemplate;
+    }
+
+    async function baseTemplateDigest(text) {
+        if (typeof require === 'function') {
+            try {
+                return require('node:crypto').createHash('sha256').update(text, 'utf8').digest('hex');
+            } catch (error) {
+                // Browser builds do not expose Node's crypto module.
+            }
+        }
+        if (typeof crypto !== 'undefined' && crypto.subtle && typeof TextEncoder !== 'undefined') {
+            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+            return Array.from(new Uint8Array(digest)).map(function (value) {
+                return value.toString(16).padStart(2, '0');
+            }).join('');
+        }
+        throw new Error('This Blockbench build cannot verify the bundled base template.');
+    }
+
+    async function decodeEmbeddedBaseTemplate(value) {
+        if (typeof require === 'function') {
+            try {
+                const compressed = require('node:buffer').Buffer.from(value, 'base64');
+                return require('node:zlib').gunzipSync(compressed).toString('utf8');
+            } catch (error) {
+                // Browser builds use the standards-based decompression path below.
+            }
+        }
+        if (typeof atob !== 'function' || typeof DecompressionStream === 'undefined' ||
+            typeof Response === 'undefined') {
+            throw new Error('This Blockbench build cannot unpack the bundled base template.');
+        }
+        const binary = atob(value);
+        const compressed = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index++) compressed[index] = binary.charCodeAt(index);
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+        return new Response(stream).text();
+    }
+
+    async function loadBaseTemplateJson() {
+        const embeddedJson = await decodeEmbeddedBaseTemplate(BASE_TEMPLATE_GZIP_BASE64);
+        if (await baseTemplateDigest(embeddedJson) !== BASE_TEMPLATE_SHA256) {
+            throw new Error('The bundled Cosmiq base template failed its integrity check.');
+        }
+        return verifyBaseTemplateStructure(JSON.parse(embeddedJson));
+    }
+
+    function importedUuid(seed, used) {
+        let first = 2166136261;
+        let second = 2166136261;
+        const text = String(seed || 'imported');
+        for (let index = 0; index < text.length; index++) {
+            first = Math.imul(first ^ text.charCodeAt(index), 16777619) >>> 0;
+            second = Math.imul(second ^ text.charCodeAt(text.length - index - 1), 16777619) >>> 0;
+        }
+        let attempt = 0;
+        let value;
+        do {
+            const a = (first + attempt * 2654435761) >>> 0;
+            const b = (second + attempt * 2246822519) >>> 0;
+            value = a.toString(16).padStart(8, '0') + '-' +
+                ((b >>> 16) & 0xffff).toString(16).padStart(4, '0') + '-4' +
+                (b & 0x0fff).toString(16).padStart(3, '0') + '-8' +
+                ((a >>> 20) & 0x0fff).toString(16).padStart(3, '0') + '-' +
+                (b.toString(16).padStart(8, '0') + a.toString(16).padStart(8, '0')).slice(0, 12);
+            attempt++;
+        } while (used && used[value]);
+        if (used) used[value] = true;
+        return value;
+    }
+
+    function importedBytesBase64(bytes) {
+        if (typeof Buffer !== 'undefined') return Buffer.from(bytes).toString('base64');
+        let binary = '';
+        for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(offset, offset + 0x8000));
+        }
+        return btoa(binary);
+    }
+
+    function parseLegacyV1Container(bytes) {
+        if (bytes.length < 17 || bytes[8] !== 1) {
+            throw new Error('This is not a supported V1 Cosmiq package.');
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const manifestLength = view.getUint32(9, false);
+        const modelLength = view.getUint32(13, false);
+        if (!manifestLength || !modelLength || manifestLength > 64 * 1024 ||
+            modelLength > PACKAGE_LIMITS.bbmodelBytes ||
+            17 + manifestLength + modelLength !== bytes.length) {
+            throw new Error('The V1 Cosmiq package header or payload length is invalid.');
+        }
+        let manifest;
+        let project;
+        try {
+            manifest = JSON.parse(decodeUtf8(bytes.subarray(17, 17 + manifestLength)));
+            project = JSON.parse(decodeUtf8(bytes.subarray(17 + manifestLength)));
+        } catch (error) {
+            throw new Error('The V1 Cosmiq package does not contain valid UTF-8 JSON.');
+        }
+        if (!cosmiqPlainObject(manifest) || !cosmiqPlainObject(project)) {
+            throw new Error('The V1 Cosmiq package must contain manifest and Blockbench objects.');
+        }
+        cosmiqValidateJsonBounds(manifest);
+        cosmiqValidateJsonBounds(project);
+        return {manifest: manifest, project: project};
+    }
+
+    function importedProjectKind(project, manifest) {
+        const metadata = project && cosmiqPlainObject(project.cosmiq) ? project.cosmiq : {};
+        const values = [
+            project && project.cosmiq_project_kind,
+            metadata.kind,
+            metadata.category,
+            metadata.assetKind,
+            manifest && manifest.kind,
+            manifest && manifest.category,
+            manifest && manifest.assetKind
+        ].map(function (value) { return String(value || '').toLowerCase(); });
+        if (values.some(function (value) { return value === 'emote'; })) return 'emote';
+        if (values.some(function (value) { return value === 'cape'; })) return 'cape';
+        return 'accessory';
+    }
+
+    function importedAnchor(project, manifest) {
+        const metadata = project && cosmiqPlainObject(project.cosmiq) ? project.cosmiq : {};
+        const cosmetic = cosmiqPlainObject(metadata.cosmetic) ? metadata.cosmetic : {};
+        const direct = [
+            cosmetic.attachmentAnchorId,
+            manifest && manifest.attachmentAnchorId,
+            manifest && Array.isArray(manifest.nodes) && manifest.nodes
+                .filter(function (node) { return node && node.parentId === null; })
+                .map(function (node) {
+                    return node.attachment && node.attachment.kind === 'player_anchor'
+                        ? node.attachment.anchor : null;
+                }).find(function (value) { return !!value; })
+        ].map(canonicalAnchorId).find(function (value) { return !!value; });
+        if (direct) return direct;
+        const bindings = cosmiqPlainObject(metadata.nodeBindings) ? metadata.nodeBindings : {};
+        const bound = Object.keys(bindings).map(function (uuid) {
+            return bindings[uuid] && canonicalAnchorId(bindings[uuid].anchorId);
+        }).find(function (value) { return !!value; });
+        if (bound) return bound;
+        const slots = []
+            .concat(cosmetic.bodySlots || [])
+            .concat(manifest && manifest.bodySlots || [])
+            .concat(project && project.cosmiq_body_slots || []);
+        const slotMap = {
+            'cosmiq:slot/head': 'cosmiq:player/head',
+            'cosmiq:slot/body': 'cosmiq:player/torso',
+            'cosmiq:slot/arms': 'cosmiq:player/right_arm',
+            'cosmiq:slot/legs': 'cosmiq:player/right_leg'
+        };
+        return slots.map(function (slot) { return slotMap[String(slot)]; })
+            .find(function (value) { return !!value; }) || 'cosmiq:player/torso';
+    }
+
+    function importedVariant(project, manifest) {
+        const metadata = project && cosmiqPlainObject(project.cosmiq) ? project.cosmiq : {};
+        const cosmetic = cosmiqPlainObject(metadata.cosmetic) ? metadata.cosmetic : {};
+        const candidate = cosmetic.modelVariant ||
+            project && project.cosmiq_model_variant ||
+            manifest && manifest.previewCamera && manifest.previewCamera.pose &&
+                manifest.previewCamera.pose.modelVariant ||
+            manifest && manifest.modelVariant;
+        return candidate === 'slim' ? 'slim' : candidate === 'wide' ? 'wide' : 'universal';
+    }
+
+    function quaternionToImportedEuler(value) {
+        const q = Array.isArray(value) && value.length === 4 ? value.map(Number) : [0, 0, 0, 1];
+        if (q.some(function (number) { return !Number.isFinite(number); })) return [0, 0, 0];
+        const x = q[0];
+        const y = q[1];
+        const z = q[2];
+        const w = q[3];
+        const pitch = Math.asin(Math.max(-1, Math.min(1, 2 * (w * y - z * x))));
+        const roll = Math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y));
+        const yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
+        return [roll, -pitch, -yaw].map(function (radians) {
+            const degrees = radians * 180 / Math.PI;
+            return Math.abs(degrees) < 1e-8 ? 0 : degrees;
+        });
+    }
+
+    function importedRuntimeVector(value) {
+        return [-Number(value[0]) * 16, Number(value[1]) * 16, Number(value[2]) * 16];
+    }
+
+    function importedAnchorOrigin(anchorId) {
+        const origins = {
+            'cosmiq:player/head': [0, 24, 0],
+            'cosmiq:player/torso': [0, 12, 0],
+            'cosmiq:player/right_arm': [5, 22, 0],
+            'cosmiq:player/left_arm': [-5, 22, 0],
+            'cosmiq:player/right_leg': [1.9, 12, 0],
+            'cosmiq:player/left_leg': [-1.9, 12, 0]
+        };
+        return (origins[anchorId] || origins['cosmiq:player/torso']).slice();
+    }
+
+    function importedV2Textures(decoded, used) {
+        const manifest = decoded.manifest;
+        const textureIndexById = Object.create(null);
+        const textures = (manifest.textures || []).map(function (texture, index) {
+            const section = decoded.sections[texture.section];
+            if (!section || section.type !== 'texture_png') {
+                throw new Error('A V2 package texture section is missing.');
+            }
+            const uuid = importedUuid('v2-texture:' + texture.id, used);
+            textureIndexById[texture.id] = index;
+            return {
+                name: texture.id + '.png',
+                uuid: uuid,
+                id: texture.id,
+                internal: true,
+                saved: false,
+                visible: true,
+                width: texture.width,
+                height: texture.height,
+                uv_width: texture.width,
+                uv_height: texture.height,
+                source: 'data:image/png;base64,' + importedBytesBase64(section.bytes)
+            };
+        });
+        const textureByMaterial = Object.create(null);
+        (manifest.materials || []).forEach(function (material) {
+            textureByMaterial[material.id] = material.baseColorTextureId == null
+                ? null
+                : textureIndexById[material.baseColorTextureId];
+        });
+        return {textures: textures, textureByMaterial: textureByMaterial};
+    }
+
+    function importedV2Nodes(manifest) {
+        const geometryById = Object.create(null);
+        (manifest.geometry || []).forEach(function (geometry) { geometryById[geometry.id] = geometry; });
+        const nodeById = Object.create(null);
+        (manifest.nodes || []).forEach(function (node) { nodeById[node.id] = node; });
+        const preferredVariant = importedVariant({}, manifest);
+        const retainedNodes = (manifest.nodes || []).filter(function (node) {
+            if (preferredVariant === 'universal') return node.modelVariant === 'universal';
+            return node.modelVariant === 'universal' || node.modelVariant === preferredVariant;
+        });
+        const retainedIds = Object.create(null);
+        retainedNodes.forEach(function (node) { retainedIds[node.id] = true; });
+        let changed = true;
+        while (changed) {
+            changed = false;
+            retainedNodes.slice().forEach(function (node) {
+                if (node.parentId && !retainedIds[node.parentId] && nodeById[node.parentId]) {
+                    retainedNodes.push(nodeById[node.parentId]);
+                    retainedIds[node.parentId] = true;
+                    changed = true;
+                }
+            });
+        }
+        const point = TEMPLATE_ATTACHMENT_POINTS.find(function (entry) {
+            return entry.anchorId === importedAnchor({}, manifest) &&
+                (entry.modelVariant === 'universal' || entry.modelVariant === preferredVariant);
+        }) || TEMPLATE_ATTACHMENT_POINTS[0];
+        return {
+            geometryById: geometryById,
+            preferredVariant: preferredVariant,
+            retainedNodes: retainedNodes,
+            point: point
+        };
+    }
+
+    function importedV2Groups(nodes, used) {
+        const nodeUuidById = Object.create(null);
+        const originById = Object.create(null);
+        const groups = [];
+        nodes.retainedNodes.forEach(function (node) {
+            const uuid = importedUuid('v2-node:' + node.id, used);
+            nodeUuidById[node.id] = uuid;
+            const parentOrigin = node.parentId && originById[node.parentId]
+                ? originById[node.parentId]
+                : importedAnchorOrigin(nodes.point.anchorId);
+            const delta = importedRuntimeVector(node.bind.translation);
+            const origin = parentOrigin.map(function (coordinate, axis) { return coordinate + delta[axis]; });
+            originById[node.id] = origin;
+            groups.push({
+                name: node.id.replace(/_/g, ' '),
+                uuid: uuid,
+                origin: origin,
+                rotation: quaternionToImportedEuler(node.bind.rotation),
+                export: true,
+                visibility: node.defaultVisible !== false,
+                cosmiq_role: ROLES.NONE,
+                cosmiq_actor_index: 0,
+                cosmiq_player_bone: 'none',
+                cosmiq_anchor: 'none',
+                cosmiq_model_branch: 'none',
+                children: []
+            });
+        });
+        return {groups: groups, nodeUuidById: nodeUuidById, originById: originById};
+    }
+
+    function importedV2Cuboid(geometryId, geometry, elementUuid, origin, textures, textureByMaterial) {
+        const directions = {north: 'north', south: 'south', east: 'west', west: 'east', up: 'up', down: 'down'};
+        const localA = importedRuntimeVector(geometry.min);
+        const localB = importedRuntimeVector(geometry.max);
+        const faces = {};
+        Object.keys(directions).forEach(function (runtimeFace) {
+            const face = geometry.faces[runtimeFace];
+            const targetFace = directions[runtimeFace];
+            faces[targetFace] = face ? {
+                uv: [
+                    face.uv[0] * (textures[textureByMaterial[face.materialId]] || {width: 16}).width,
+                    face.uv[1] * (textures[textureByMaterial[face.materialId]] || {height: 16}).height,
+                    face.uv[2] * (textures[textureByMaterial[face.materialId]] || {width: 16}).width,
+                    face.uv[3] * (textures[textureByMaterial[face.materialId]] || {height: 16}).height
+                ],
+                texture: textureByMaterial[face.materialId],
+                rotation: face.rotation || 0
+            } : {uv: [0, 0, 0, 0], texture: null};
+        });
+        return {
+            name: geometryId.replace(/_/g, ' '),
+            type: 'cube',
+            uuid: elementUuid,
+            from: origin.map(function (coordinate, axis) {
+                return coordinate + Math.min(localA[axis], localB[axis]);
+            }),
+            to: origin.map(function (coordinate, axis) {
+                return coordinate + Math.max(localA[axis], localB[axis]);
+            }),
+            origin: origin.slice(),
+            rotation: [0, 0, 0],
+            inflate: Number(geometry.inflate || 0) * 16,
+            visibility: true,
+            export: true,
+            faces: faces
+        };
+    }
+
+    function importedV2View(record, components, unsigned, view) {
+        const output = [];
+        for (let item = 0; item < record.count; item++) {
+            const values = [];
+            for (let component = 0; component < components; component++) {
+                const offset = record.byteOffset + (item * components + component) * 4;
+                values.push(unsigned ? view.getUint32(offset, true) : view.getFloat32(offset, true));
+            }
+            output.push(components === 1 ? values[0] : values);
+        }
+        return output;
+    }
+
+    function importedV2Mesh(decoded, geometryId, geometry, elementUuid, origin, textures, textureByMaterial) {
+        const section = decoded.sections[geometry.positions.section];
+        const view = new DataView(section.bytes.buffer, section.bytes.byteOffset, section.bytes.byteLength);
+        const positions = importedV2View(geometry.positions, 3, false, view);
+        const uvs = importedV2View(geometry.uvs, 2, false, view);
+        const indices = importedV2View(geometry.indices, 1, true, view);
+        const vertices = {};
+        const vertexIds = positions.map(function (position, index) {
+            const vertexId = 'v' + index;
+            vertices[vertexId] = importedRuntimeVector(position);
+            return vertexId;
+        });
+        const faces = {};
+        const textureIndex = textureByMaterial[geometry.materialId];
+        const texture = textures[textureIndex] || {width: 16, height: 16};
+        for (let triangle = 0; triangle < indices.length; triangle += 3) {
+            const ids = indices.slice(triangle, triangle + 3).map(function (index) {
+                return vertexIds[index];
+            });
+            const faceUvs = {};
+            indices.slice(triangle, triangle + 3).forEach(function (index) {
+                faceUvs[vertexIds[index]] = [uvs[index][0] * texture.width, uvs[index][1] * texture.height];
+            });
+            faces['f' + triangle / 3] = {vertices: ids, uv: faceUvs, texture: textureIndex};
+        }
+        return {
+            name: geometryId.replace(/_/g, ' '),
+            type: 'mesh',
+            uuid: elementUuid,
+            origin: origin.slice(),
+            rotation: [0, 0, 0],
+            visibility: true,
+            export: true,
+            vertices: vertices,
+            faces: faces
+        };
+    }
+
+    function importedV2Geometry(decoded, nodes, grouping, used, textures) {
+        const elements = [];
+        const roots = [];
+        nodes.retainedNodes.forEach(function (node) {
+            const groupUuid = grouping.nodeUuidById[node.id];
+            const origin = grouping.originById[node.id];
+            const childIds = [];
+            (node.geometryIds || []).forEach(function (geometryId) {
+                const geometry = nodes.geometryById[geometryId];
+                if (!geometry) return;
+                const elementUuid = importedUuid('v2-geometry:' + geometryId + ':' + node.id, used);
+                childIds.push(elementUuid);
+                const element = geometry.kind === 'cuboid'
+                    ? importedV2Cuboid(
+                        geometryId,
+                        geometry,
+                        elementUuid,
+                        origin,
+                        textures.textures,
+                        textures.textureByMaterial
+                    )
+                    : geometry.kind === 'indexed_triangles'
+                        ? importedV2Mesh(
+                            decoded,
+                            geometryId,
+                            geometry,
+                            elementUuid,
+                            origin,
+                            textures.textures,
+                            textures.textureByMaterial
+                        )
+                        : null;
+                if (element) elements.push(element);
+            });
+            const group = grouping.groups.find(function (candidate) { return candidate.uuid === groupUuid; });
+            group.children = childIds;
+            if (node.parentId && grouping.nodeUuidById[node.parentId]) {
+                const parent = grouping.groups.find(function (candidate) {
+                    return candidate.uuid === grouping.nodeUuidById[node.parentId];
+                });
+                parent.children.push({uuid: groupUuid, isOpen: true, children: group.children});
+            } else {
+                roots.push({uuid: groupUuid, isOpen: true, children: group.children});
+            }
+        });
+        return {elements: elements, roots: roots};
+    }
+
+    function v2RuntimeToBbmodel(decoded) {
+        const manifest = decoded.manifest;
+        if (manifest.assetKind !== 'accessory') {
+            throw new Error('Only V1/V2 accessory packages can be imported into the cosmetic editor.');
+        }
+        const used = Object.create(null);
+        const textures = importedV2Textures(decoded, used);
+        const nodes = importedV2Nodes(manifest);
+        const grouping = importedV2Groups(nodes, used);
+        const geometry = importedV2Geometry(decoded, nodes, grouping, used, textures);
+        return {
+            meta: {format_version: '5.0', model_format: FORMAT_ID, box_uv: false},
+            name: manifest.id || 'Imported V2 Accessory',
+            resolution: {
+                width: textures.textures[0] && textures.textures[0].width || 64,
+                height: textures.textures[0] && textures.textures[0].height || 64
+            },
+            elements: geometry.elements,
+            groups: grouping.groups,
+            outliner: geometry.roots,
+            textures: textures.textures,
+            animations: [],
+            cosmiq_project_kind: PROJECT_KINDS.COSMETIC,
+            cosmiq_model_variant: nodes.preferredVariant,
+            cosmiq_arm_width_mode: ARM_WIDTH_MODES.UNCONFIGURED,
+            cosmiq: {
+                schemaVersion: 'cosmiq.imported.runtime.v2',
+                formatVersion: 2,
+                kind: 'cosmetic',
+                cosmetic: {
+                    attachmentAnchorId: importedAnchor({}, manifest),
+                    modelVariant: nodes.preferredVariant,
+                    bodySlots: []
+                }
+            }
+        };
+    }
+
+    function parseLegacyCosmeticImport(content, fileName) {
+        const bytes = cosmiqBytes(content);
+        if (!bytes.length || bytes.length > 32 * 1024 * 1024) {
+            throw new Error('Imported file is empty or exceeds the 32 MiB migration limit.');
+        }
+        let project;
+        let manifest = null;
+        let sourceVersion = 'bbmodel';
+        const hasMagic = bytes.length >= 9 && decodeUtf8(bytes.subarray(0, 8)) === COSMIQ_STANDARD_MAGIC;
+        if (hasMagic && bytes[8] === 1) {
+            const decodedV1 = parseLegacyV1Container(bytes);
+            project = decodedV1.project;
+            manifest = decodedV1.manifest;
+            sourceVersion = 'v1';
+        } else if (hasMagic) {
+            const decodedV2 = parseAndValidateCosmiqRuntime(bytes);
+            project = v2RuntimeToBbmodel(decodedV2);
+            manifest = decodedV2.manifest;
+            sourceVersion = 'v2';
+        } else {
+            try {
+                project = JSON.parse(decodeUtf8(bytes));
+            } catch (error) {
+                throw new Error('The selected .bbmodel is not valid UTF-8 JSON.');
+            }
+            if (!cosmiqPlainObject(project)) throw new Error('The selected .bbmodel root must be an object.');
+            cosmiqValidateJsonBounds(project);
+        }
+        const kind = importedProjectKind(project, manifest);
+        if (kind !== 'accessory') {
+            throw new Error('This importer accepts accessory cosmetics. Emote and cape projects use their dedicated creators.');
+        }
+        return {
+            project: project,
+            manifest: manifest,
+            sourceVersion: sourceVersion,
+            fileName: String(fileName || 'Imported Accessory'),
+            attachmentAnchorId: importedAnchor(project, manifest),
+            modelVariant: importedVariant(project, manifest)
+        };
+    }
+
+    function importedTreeParents(outliner) {
+        const parentByUuid = Object.create(null);
+        const entryByUuid = Object.create(null);
+        function visit(entries, parentUuid) {
+            (Array.isArray(entries) ? entries : []).forEach(function (entry) {
+                if (typeof entry === 'string') {
+                    parentByUuid[entry] = parentUuid || null;
+                    return;
+                }
+                if (!entry || typeof entry !== 'object' || !entry.uuid) return;
+                parentByUuid[entry.uuid] = parentUuid || null;
+                entryByUuid[entry.uuid] = entry;
+                visit(entry.children, entry.uuid);
+            });
+        }
+        visit(outliner, null);
+        return {parentByUuid: parentByUuid, entryByUuid: entryByUuid};
+    }
+
+    function importedReferenceTexture(texture) {
+        const name = String(texture && (texture.name || texture.id || texture.path) || '').toLowerCase();
+        return texture && (texture.cosmiq_role === ROLES.REFERENCE || texture.role === ROLES.REFERENCE) ||
+            /(^|[\\/_ -])(alex|steve|skin|pmcskin|reference|wide|slim)([\\/_ .-]|$)/.test(name);
+    }
+
+    function importedBodyElement(element, textures) {
+        if (!element) return true;
+        if (element.cosmiq_role === ROLES.REFERENCE || element.role === ROLES.REFERENCE) return true;
+        const name = String(element.name || '').toLowerCase().replace(/[_-]+/g, ' ').trim();
+        if (!/^(head|body|torso|left arm|right arm|left leg|right leg)( layer)?$/.test(name)) return false;
+        const faces = element.faces || {};
+        const referenced = Object.keys(faces).some(function (key) {
+            const value = faces[key] && faces[key].texture;
+            if (Number.isInteger(value)) return importedReferenceTexture(textures[value]);
+            const normalized = String(value || '').replace(/^#/, '');
+            return textures.some(function (texture) {
+                return texture && (texture.uuid === normalized || texture.id === normalized) &&
+                    importedReferenceTexture(texture);
+            });
+        });
+        return referenced || !Object.keys(faces).length;
+    }
+
+    function importedAnchorFromNames(anchorId, keptUuids, groupByUuid, parentByUuid) {
+        if (anchorId && anchorId !== 'cosmiq:player/torso') return anchorId;
+        const names = [];
+        Object.keys(keptUuids).forEach(function (uuid) {
+            let cursor = uuid;
+            let guard = 0;
+            while (cursor && guard++ < 64) {
+                const group = groupByUuid[cursor];
+                if (group && group.name) names.push(String(group.name).toLowerCase());
+                cursor = parentByUuid[cursor];
+            }
+        });
+        const joined = names.join(' ');
+        if (/\bhead\b|\bhat\b|\bhorn\b|\bhair\b/.test(joined)) return 'cosmiq:player/head';
+        if (/\bleft arm\b|\bleft hand\b|\bbracelet\b|\bbracer\b/.test(joined)) return 'cosmiq:player/left_arm';
+        if (/\bright arm\b|\bright hand\b/.test(joined)) return 'cosmiq:player/right_arm';
+        if (/\bleft leg\b|\bleft foot\b/.test(joined)) return 'cosmiq:player/left_leg';
+        if (/\bright leg\b|\bright foot\b/.test(joined)) return 'cosmiq:player/right_leg';
+        return anchorId || 'cosmiq:player/torso';
+    }
+
+    function remapImportedValue(value, uuidMap) {
+        if (typeof value === 'string') return uuidMap[value] || value;
+        if (Array.isArray(value)) {
+            return value.map(function (item) { return remapImportedValue(item, uuidMap); });
+        }
+        if (!cosmiqPlainObject(value)) return value;
+        const output = {};
+        Object.keys(value).forEach(function (key) {
+            output[uuidMap[key] || key] = remapImportedValue(value[key], uuidMap);
+        });
+        return output;
+    }
+
+    function selectImportedNodes(decoded, groups, elements, textures, metadata) {
+        const groupByUuid = Object.create(null);
+        const elementByUuid = Object.create(null);
+        groups.forEach(function (group) { if (group && group.uuid) groupByUuid[group.uuid] = group; });
+        elements.forEach(function (element) { if (element && element.uuid) elementByUuid[element.uuid] = element; });
+        const tree = importedTreeParents(decoded.project.outliner);
+        const explicit = Object.create(null);
+        const nodeBindings = cosmiqPlainObject(metadata.nodeBindings) ? metadata.nodeBindings : {};
+        Object.keys(nodeBindings).forEach(function (uuid) {
+            if (nodeBindings[uuid] && nodeBindings[uuid].role === 'cosmetic_node') explicit[uuid] = true;
+        });
+        const locatorBindings = cosmiqPlainObject(metadata.effectLocatorBindings)
+            ? metadata.effectLocatorBindings : {};
+        Object.keys(locatorBindings).forEach(function (uuid) { explicit[uuid] = true; });
+        groups.forEach(function (group) {
+            if (group && [
+                ROLES.PARTICLE_MARKER,
+                ROLES.PARTICLE_EFFECT_LOCATOR,
+                ROLES.SOUND_EFFECT_LOCATOR
+            ].indexOf(group.cosmiq_role) !== -1) explicit[group.uuid] = true;
+        });
+        const hasExplicitBindings = Object.keys(explicit).length > 0;
+        const kept = Object.create(null);
+        elements.forEach(function (element) {
+            if (hasExplicitBindings ? explicit[element.uuid] : !importedBodyElement(element, textures)) {
+                kept[element.uuid] = true;
+            }
+        });
+        groups.forEach(function (group) {
+            if (explicit[group.uuid]) kept[group.uuid] = true;
+        });
+        Object.keys(kept).forEach(function (uuid) {
+            let parent = tree.parentByUuid[uuid];
+            let guard = 0;
+            while (parent && guard++ < 64) {
+                kept[parent] = true;
+                parent = tree.parentByUuid[parent];
+            }
+        });
+        if (!Object.keys(kept).some(function (uuid) { return !!elementByUuid[uuid]; })) {
+            throw new Error('No cosmetic geometry remained after the humanoid reference body was removed.');
+        }
+        const anchorId = importedAnchorFromNames(
+            decoded.attachmentAnchorId,
+            kept,
+            groupByUuid,
+            tree.parentByUuid
+        );
+        return {anchorId: anchorId, kept: kept, tree: tree};
+    }
+
+    function copyImportedTextures(elements, textures, kept, uuidMap, used) {
+        const textureUsage = Object.create(null);
+        elements.filter(function (element) { return kept[element.uuid]; }).forEach(function (element) {
+            Object.keys(element.faces || {}).forEach(function (faceName) {
+                const texture = element.faces[faceName] && element.faces[faceName].texture;
+                if (Number.isInteger(texture) && textures[texture]) textureUsage[texture] = true;
+                else {
+                    const normalized = String(texture || '').replace(/^#/, '');
+                    textures.forEach(function (candidate, index) {
+                        if (candidate && (candidate.uuid === normalized || candidate.id === normalized)) {
+                            textureUsage[index] = true;
+                        }
+                    });
+                }
+            });
+        });
+        const textureIndexMap = Object.create(null);
+        const importedTextures = [];
+        Object.keys(textureUsage).map(Number).sort(function (a, b) { return a - b; }).forEach(function (oldIndex) {
+            const texture = JSON.parse(JSON.stringify(textures[oldIndex]));
+            const oldUuid = texture.uuid;
+            texture.uuid = importedUuid('import-texture:' + (oldUuid || oldIndex), used);
+            if (oldUuid) uuidMap[oldUuid] = texture.uuid;
+            texture.cosmiq_role = ROLES.NONE;
+            texture.role = ROLES.NONE;
+            textureIndexMap[oldIndex] = importedTextures.length;
+            importedTextures.push(texture);
+        });
+        return {textures: importedTextures, indexMap: textureIndexMap};
+    }
+
+    function copyImportedNodes(groups, elements, kept, uuidMap, textureIndexMap) {
+        const importedGroups = groups.filter(function (group) { return kept[group.uuid]; }).map(function (group) {
+            const copy = JSON.parse(JSON.stringify(group));
+            copy.uuid = uuidMap[group.uuid];
+            copy.export = [
+                ROLES.PARTICLE_EFFECT_LOCATOR,
+                ROLES.SOUND_EFFECT_LOCATOR
+            ].indexOf(group.cosmiq_role) === -1;
+            copy.locked = false;
+            if ([
+                ROLES.PARTICLE_MARKER,
+                ROLES.PARTICLE_EFFECT_LOCATOR,
+                ROLES.SOUND_EFFECT_LOCATOR
+            ].indexOf(group.cosmiq_role) === -1) copy.cosmiq_role = ROLES.NONE;
+            copy.cosmiq_anchor = 'none';
+            copy.cosmiq_model_branch = 'none';
+            copy.children = remapImportedValue(copy.children || [], uuidMap);
+            return copy;
+        });
+        const importedElements = elements.filter(function (element) { return kept[element.uuid]; }).map(function (element) {
+            const copy = JSON.parse(JSON.stringify(element));
+            copy.uuid = uuidMap[element.uuid];
+            copy.export = [
+                ROLES.PARTICLE_EFFECT_LOCATOR,
+                ROLES.SOUND_EFFECT_LOCATOR
+            ].indexOf(element.cosmiq_role) === -1;
+            copy.locked = false;
+            if ([
+                ROLES.PARTICLE_MARKER,
+                ROLES.PARTICLE_EFFECT_LOCATOR,
+                ROLES.SOUND_EFFECT_LOCATOR
+            ].indexOf(element.cosmiq_role) === -1) copy.cosmiq_role = ROLES.NONE;
+            Object.keys(copy.faces || {}).forEach(function (faceName) {
+                const face = copy.faces[faceName];
+                if (!face) return;
+                if (Number.isInteger(face.texture)) {
+                    face.texture = Object.hasOwn(textureIndexMap, face.texture)
+                        ? textureIndexMap[face.texture] : null;
+                } else {
+                    const normalized = String(face.texture || '').replace(/^#/, '');
+                    face.texture = uuidMap[normalized] || face.texture;
+                }
+            });
+            return copy;
+        });
+        return {elements: importedElements, groups: importedGroups};
+    }
+
+    function copyImportedTree(entries, kept, uuidMap) {
+        const output = [];
+        (Array.isArray(entries) ? entries : []).forEach(function (entry) {
+            if (typeof entry === 'string') {
+                if (kept[entry]) output.push(uuidMap[entry]);
+                return;
+            }
+            if (!entry || typeof entry !== 'object' || !kept[entry.uuid]) return;
+            const children = copyImportedTree(entry.children, kept, uuidMap);
+            output.push(Object.assign({}, entry, {uuid: uuidMap[entry.uuid], children: children}));
+        });
+        return output;
+    }
+
+    function copyImportedAnimations(project, metadata, uuidMap, used) {
+        const animationUuidMap = Object.create(null);
+        const cueAnimationUuids = Object.create(null);
+        (Array.isArray(metadata.timelineCues) ? metadata.timelineCues : []).forEach(function (cue) {
+            if (cue && cue.animationUuid) cueAnimationUuids[cue.animationUuid] = true;
+        });
+        const importedAnimations = (Array.isArray(project.animations) ? project.animations : [])
+            .map(function (animation) {
+                const copy = JSON.parse(JSON.stringify(animation));
+                const animators = {};
+                Object.keys(copy.animators || {}).forEach(function (targetUuid) {
+                    const animator = copy.animators[targetUuid];
+                    const hasKeyframes = animator && Array.isArray(animator.keyframes) &&
+                        animator.keyframes.length > 0;
+                    if (uuidMap[targetUuid] && (hasKeyframes || cueAnimationUuids[copy.uuid])) {
+                        animators[uuidMap[targetUuid]] = animator;
+                    }
+                });
+                if (!Object.keys(animators).length && !cueAnimationUuids[copy.uuid]) return null;
+                const oldUuid = copy.uuid;
+                copy.uuid = importedUuid('import-animation:' + (oldUuid || copy.name), used);
+                if (oldUuid) animationUuidMap[oldUuid] = copy.uuid;
+                copy.animators = animators;
+                return copy;
+            }).filter(Boolean);
+        Object.assign(uuidMap, animationUuidMap);
+        return importedAnimations;
+    }
+
+    function animationImportIdentity(animation) {
+        if (!animation || typeof animation !== 'object') return null;
+        const explicitTrigger = resolveTrigger(
+            animation.cosmiq_trigger_kind,
+            animation.cosmiq_trigger
+        );
+        const parsedTrigger = explicitTrigger ? null : parseAnimationName(animation.name);
+        const trigger = explicitTrigger || (parsedTrigger
+            ? {kind: parsedTrigger.kind, id: parsedTrigger.triggerId}
+            : null);
+        if (trigger) return 'trigger:' + trigger.kind + ':' + trigger.id;
+        const normalizedName = normalizeToken(animation.name);
+        if (normalizedName) return 'name:' + normalizedName;
+        const uuid = String(animation.uuid || '').trim();
+        return uuid ? 'uuid:' + uuid : null;
+    }
+
+    function importedAnimationDecisionId(animation, identity, index) {
+        const uuid = String(animation && animation.uuid || '').trim();
+        return 'animation:' + (uuid || identity || 'unnamed') + ':' + index;
+    }
+
+    function canonicalImportedAnimation(animation, existingAnimation) {
+        const copy = JSON.parse(JSON.stringify(animation));
+        if (!existingAnimation) return copy;
+        copy.name = existingAnimation.name;
+        const trigger = resolveTrigger(
+            existingAnimation.cosmiq_trigger_kind,
+            existingAnimation.cosmiq_trigger
+        ) || (function () {
+            const parsed = parseAnimationName(existingAnimation.name);
+            return parsed ? {kind: parsed.kind, id: parsed.triggerId} : null;
+        }());
+        if (trigger) {
+            copy.cosmiq_trigger_kind = trigger.kind;
+            copy.cosmiq_trigger = trigger.id;
+            if (trigger.id === 'idle' && copy.cosmiq_fallback == null) {
+                copy.cosmiq_fallback = true;
+            }
+        }
+        return copy;
+    }
+
+    function planImportedAnimationMerge(existingAnimations, importedAnimations, decisions) {
+        const merged = (Array.isArray(existingAnimations) ? existingAnimations : []).slice();
+        const requestedDecisions = decisions && typeof decisions === 'object' ? decisions : {};
+        const conflicts = [];
+        const autoReplaced = [];
+        const overwritten = [];
+        const kept = [];
+        const skippedEmptyImports = [];
+
+        (Array.isArray(importedAnimations) ? importedAnimations : []).forEach(function (animation, index) {
+            if (!animation || typeof animation !== 'object') return;
+            const identity = animationImportIdentity(animation);
+            const existingIndex = identity ? merged.findIndex(function (candidate) {
+                return animationImportIdentity(candidate) === identity;
+            }) : -1;
+            if (existingIndex === -1) {
+                merged.push(canonicalImportedAnimation(animation, null));
+                return;
+            }
+
+            const existingAnimation = merged[existingIndex];
+            const existingKeyframes = animationKeyframeCount(existingAnimation);
+            const importedKeyframes = animationKeyframeCount(animation);
+            const decisionId = importedAnimationDecisionId(animation, identity, index);
+            const collision = {
+                decisionId: decisionId,
+                identity: identity,
+                existingName: String(existingAnimation.name || 'Unnamed Animation'),
+                importedName: String(animation.name || 'Unnamed Animation'),
+                existingKeyframes: existingKeyframes,
+                importedKeyframes: importedKeyframes
+            };
+
+            if (existingKeyframes === 0) {
+                merged[existingIndex] = canonicalImportedAnimation(animation, existingAnimation);
+                autoReplaced.push(Object.assign({action: 'replace_empty'}, collision));
+                return;
+            }
+            if (importedKeyframes === 0) {
+                skippedEmptyImports.push(Object.assign({action: 'skip_empty_import'}, collision));
+                return;
+            }
+            if (!Object.hasOwn(requestedDecisions, decisionId)) {
+                conflicts.push(Object.assign({action: 'ask'}, collision));
+                return;
+            }
+            if (requestedDecisions[decisionId] === true) {
+                merged[existingIndex] = canonicalImportedAnimation(animation, existingAnimation);
+                overwritten.push(Object.assign({action: 'overwrite'}, collision));
+                return;
+            }
+            kept.push(Object.assign({action: 'keep_existing'}, collision));
+        });
+
+        return {
+            animations: merged,
+            conflicts: conflicts,
+            autoReplaced: autoReplaced,
+            overwritten: overwritten,
+            kept: kept,
+            skippedEmptyImports: skippedEmptyImports
+        };
+    }
+
+    function filterImportedAnimationMetadata(metadata, animations) {
+        const filtered = Object.assign({}, metadata || {});
+        const includedAnimationUuids = Object.create(null);
+        (Array.isArray(animations) ? animations : []).forEach(function (animation) {
+            if (animation && animation.uuid) includedAnimationUuids[animation.uuid] = true;
+        });
+        if (filtered.animationBindings && typeof filtered.animationBindings === 'object') {
+            filtered.animationBindings = Object.keys(filtered.animationBindings)
+                .reduce(function (bindings, uuid) {
+                    if (includedAnimationUuids[uuid]) bindings[uuid] = filtered.animationBindings[uuid];
+                    return bindings;
+                }, {});
+        }
+        if (filtered.timelineMarkers && typeof filtered.timelineMarkers === 'object') {
+            filtered.timelineMarkers = Object.keys(filtered.timelineMarkers)
+                .reduce(function (markers, uuid) {
+                    if (includedAnimationUuids[uuid]) markers[uuid] = filtered.timelineMarkers[uuid];
+                    return markers;
+                }, {});
+        }
+        if (Array.isArray(filtered.timelineCues)) {
+            filtered.timelineCues = filtered.timelineCues.filter(function (cue) {
+                return !cue || !cue.animationUuid || includedAnimationUuids[cue.animationUuid];
+            });
+        }
+        return filtered;
+    }
+
+    function applyPreparedAnimationImportDecisions(project, decisions) {
+        const state = project && project.__cosmiqAnimationImport;
+        if (!state) {
+            throw new Error('This project does not contain a prepared animation import.');
+        }
+        const plan = planImportedAnimationMerge(
+            state.existingAnimations,
+            state.importedAnimations,
+            decisions
+        );
+        project.animations = plan.animations;
+        project.cosmiq = filterImportedAnimationMetadata(state.metadata, plan.animations);
+        state.decisions = Object.assign({}, decisions || {});
+        state.plan = plan;
+        return plan;
+    }
+
+    function copyImportedMetadata(metadata, uuidMap) {
+        const preservedMetadata = {};
+        [
+            'resourceReferences',
+            'timelineCues',
+            'timelineMarkers',
+            'effectLocatorBindings',
+            'animationBindings',
+            'playerAppearance'
+        ].forEach(function (key) {
+            if (metadata[key] != null) preservedMetadata[key] = remapImportedValue(metadata[key], uuidMap);
+        });
+        return preservedMetadata;
+    }
+
+    function extractImportedCosmetic(decoded) {
+        const project = decoded.project;
+        const groups = Array.isArray(project.groups) ? project.groups : [];
+        const elements = Array.isArray(project.elements) ? project.elements : [];
+        const textures = Array.isArray(project.textures) ? project.textures : [];
+        const metadata = cosmiqPlainObject(project.cosmiq) ? project.cosmiq : {};
+        const selected = selectImportedNodes(decoded, groups, elements, textures, metadata);
+        const used = Object.create(null);
+        const uuidMap = Object.create(null);
+        Object.keys(selected.kept).forEach(function (uuid) {
+            uuidMap[uuid] = importedUuid('import-node:' + uuid, used);
+        });
+        const importedTextures = copyImportedTextures(
+            elements,
+            textures,
+            selected.kept,
+            uuidMap,
+            used
+        );
+        const importedNodes = copyImportedNodes(
+            groups,
+            elements,
+            selected.kept,
+            uuidMap,
+            importedTextures.indexMap
+        );
+        const importedAnimations = copyImportedAnimations(project, metadata, uuidMap, used);
+        return {
+            anchorId: selected.anchorId,
+            modelVariant: decoded.modelVariant,
+            groups: importedNodes.groups,
+            elements: importedNodes.elements,
+            textures: importedTextures.textures,
+            animations: importedAnimations,
+            outliner: copyImportedTree(project.outliner, selected.kept, uuidMap),
+            metadata: copyImportedMetadata(metadata, uuidMap)
+        };
+    }
+
+    function findImportedOutlinerEntry(entries, uuid) {
+        let found = null;
+        (Array.isArray(entries) ? entries : []).some(function (entry) {
+            if (!entry || typeof entry !== 'object') return false;
+            if (entry.uuid === uuid) {
+                found = entry;
+                return true;
+            }
+            found = findImportedOutlinerEntry(entry.children, uuid);
+            return !!found;
+        });
+        return found;
+    }
+
+    async function prepareLegacyCosmeticImport(decoded) {
+        const embedded = await loadBaseTemplateJson();
+        const name = String(decoded.fileName || 'Imported Accessory')
+            .replace(/\.(?:cosmiq|bbmodel)$/i, '')
+            .replace(/[_-]+/g, ' ')
+            .trim();
+        const extracted = extractImportedCosmetic(decoded);
+        const visibleBody = extracted.modelVariant === 'slim' ? 'slim' : 'wide';
+        const project = annotateBaseTemplate(embedded, PROJECT_KINDS.COSMETIC, {
+            name: name || 'Imported',
+            visibleBody: visibleBody
+        });
+        project.elements = [];
+        project.textures = [];
+        function stripTemplateElements(entries) {
+            return (Array.isArray(entries) ? entries : []).reduce(function (output, entry) {
+                if (typeof entry === 'string') return output;
+                if (!entry || typeof entry !== 'object') return output;
+                output.push(Object.assign({}, entry, {children: stripTemplateElements(entry.children)}));
+                return output;
+            }, []);
+        }
+        project.outliner = stripTemplateElements(project.outliner);
+        const targetPoint = TEMPLATE_ATTACHMENT_POINTS.find(function (point) {
+            return point.anchorId === extracted.anchorId &&
+                (point.modelVariant === 'universal' || point.modelVariant === visibleBody);
+        }) || TEMPLATE_ATTACHMENT_POINTS[0];
+        const targetGroup = baseTemplateGroup(project, targetPoint.modelGroup);
+        const used = Object.create(null);
+        project.groups.concat(extracted.groups).forEach(function (group) {
+            if (group && group.uuid) used[group.uuid] = true;
+        });
+        const wrapperUuid = importedUuid('import-wrapper:' + decoded.fileName, used);
+        const wrapper = {
+            name: IMPORTED_GROUP_NAME,
+            uuid: wrapperUuid,
+            origin: importedAnchorOrigin(extracted.anchorId),
+            rotation: [0, 0, 0],
+            export: true,
+            locked: false,
+            visibility: true,
+            cosmiq_role: ROLES.NONE,
+            cosmiq_actor_index: 0,
+            cosmiq_player_bone: 'none',
+            cosmiq_anchor: 'none',
+            cosmiq_model_branch: 'none',
+            children: extracted.outliner
+        };
+        project.groups = project.groups.concat([wrapper], extracted.groups);
+        project.elements = extracted.elements;
+        project.textures = extracted.textures;
+        const animationImportState = {
+            existingAnimations: (project.animations || []).slice(),
+            importedAnimations: extracted.animations.slice(),
+            metadata: Object.assign({}, extracted.metadata),
+            decisions: {},
+            plan: null
+        };
+        Object.defineProperty(project, '__cosmiqAnimationImport', {
+            value: animationImportState,
+            enumerable: false,
+            configurable: true
+        });
+        applyPreparedAnimationImportDecisions(project, {});
+        const targetEntry = findImportedOutlinerEntry(project.outliner, targetGroup.uuid);
+        if (!targetEntry) throw new Error('The bundled base template is missing the selected import anchor.');
+        const wrapperEntry = {uuid: wrapperUuid, isOpen: true, children: extracted.outliner};
+        targetEntry.children.push(wrapperEntry);
+        targetGroup.children.push(wrapperEntry);
+        return project;
+    }
+
+    function baseAnimationTrigger(animationName) {
+        const aliases = {
+            sitting: 'riding',
+            gliding: 'fall_flying',
+            trident_spin: 'spin_attack'
+        };
+        const parsed = /^(state|event)\.([a-z0-9_]+)$/.exec(String(animationName || ''));
+        if (!parsed) return null;
+        const triggerId = aliases[parsed[2]] || parsed[2];
+        return triggerById[triggerId] || null;
+    }
+
+    function addEmoteTemplateWrappers(rawTemplate, rootGroup) {
+        const sceneUuid = 'c05a1e00-0000-4000-8000-000000000001';
+        const actorUuid = 'c05a1e00-0000-4000-8000-000000000002';
+        rawTemplate.groups.push({
+            name: 'Emote Scene',
+            uuid: sceneUuid,
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0],
+            export: false,
+            visibility: true,
+            cosmiq_role: ROLES.EMOTE_SCENE,
+            cosmiq_actor_index: 0,
+            cosmiq_player_bone: 'none',
+            cosmiq_anchor: 'none',
+            cosmiq_model_branch: 'none',
+            children: []
+        });
+        rawTemplate.groups.push({
+            name: '1 Actor',
+            uuid: actorUuid,
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0],
+            export: false,
+            visibility: true,
+            cosmiq_role: ROLES.EMOTE_ACTOR,
+            cosmiq_actor_index: 1,
+            cosmiq_player_bone: 'none',
+            cosmiq_anchor: 'none',
+            cosmiq_model_branch: 'none',
+            children: []
+        });
+        const originalRoot = (rawTemplate.outliner || []).find(function (entry) {
+            return entry && typeof entry === 'object' && entry.uuid === rootGroup.uuid;
+        });
+        if (!originalRoot) {
+            throw new Error('Base template Outliner is missing Cosmiq Reference Model.');
+        }
+        rawTemplate.outliner = [{
+            uuid: sceneUuid,
+            isOpen: true,
+            children: [{
+                uuid: actorUuid,
+                isOpen: true,
+                children: [originalRoot]
+            }]
+        }];
+    }
+
+    function initialEmoteTemplateAnimations() {
+        return [
+            {
+                uuid: 'c05a1e00-0000-4000-8000-000000000101',
+                name: 'scene.main',
+                loop: 'once',
+                override: false,
+                length: 2,
+                snapping: 20,
+                selected: false,
+                group_name: '',
+                scope: 0,
+                anim_time_update: '',
+                blend_weight: '',
+                start_delay: '',
+                loop_delay: '',
+                animators: {}
+            },
+            {
+                uuid: 'c05a1e00-0000-4000-8000-000000000102',
+                name: 'actor.1.main',
+                loop: 'once',
+                override: false,
+                length: 2,
+                snapping: 20,
+                selected: false,
+                group_name: '',
+                scope: 0,
+                anim_time_update: '',
+                blend_weight: '',
+                start_delay: '',
+                loop_delay: '',
+                animators: {}
+            }
+        ];
+    }
+
+    const SIMPLE_ARMATURE_UUID = 'c05a1e11-0000-4000-8000-000000000000';
+    const SIMPLE_BONE_UUIDS = Object.freeze({
+        root: 'c05a1e11-0000-4000-8000-000000000001',
+        body: 'c05a1e11-0000-4000-8000-000000000002',
+        head: 'c05a1e11-0000-4000-8000-000000000003',
+        left_arm: 'c05a1e11-0000-4000-8000-000000000004',
+        right_arm: 'c05a1e11-0000-4000-8000-000000000005',
+        left_leg: 'c05a1e11-0000-4000-8000-000000000006',
+        right_leg: 'c05a1e11-0000-4000-8000-000000000007'
+    });
+    const PRECISE_ARMATURE_UUID = 'c05a1e10-0000-4000-8000-000000000000';
+    const PRECISE_BONE_UUIDS = Object.freeze({
+        root: 'c05a1e10-0000-4000-8000-000000000001',
+        torso_lower: 'c05a1e10-0000-4000-8000-000000000002',
+        torso_upper: 'c05a1e10-0000-4000-8000-000000000003',
+        head: 'c05a1e10-0000-4000-8000-000000000004',
+        left_arm_upper: 'c05a1e10-0000-4000-8000-000000000005',
+        left_arm_lower: 'c05a1e10-0000-4000-8000-000000000006',
+        right_arm_upper: 'c05a1e10-0000-4000-8000-000000000007',
+        right_arm_lower: 'c05a1e10-0000-4000-8000-000000000008',
+        left_leg_upper: 'c05a1e10-0000-4000-8000-000000000009',
+        left_leg_lower: 'c05a1e10-0000-4000-8000-000000000010',
+        right_leg_upper: 'c05a1e10-0000-4000-8000-000000000011',
+        right_leg_lower: 'c05a1e10-0000-4000-8000-000000000012'
+    });
+
+    function templateOutlinerEntry(entries, uuid) {
+        let found = null;
+        (Array.isArray(entries) ? entries : []).some(function (entry) {
+            if (!entry || typeof entry !== 'object') return false;
+            if (entry.uuid === uuid) {
+                found = entry;
+                return true;
+            }
+            found = templateOutlinerEntry(entry.children, uuid);
+            return !!found;
+        });
+        return found;
+    }
+
+    function detachTemplateOutlinerEntry(entries, uuid) {
+        const source = Array.isArray(entries) ? entries : [];
+        for (let index = 0; index < source.length; index++) {
+            const entry = source[index];
+            if (!entry || typeof entry !== 'object') continue;
+            if (entry.uuid === uuid) return source.splice(index, 1)[0];
+            const nested = detachTemplateOutlinerEntry(entry.children, uuid);
+            if (nested) return nested;
+        }
+        return null;
+    }
+
+    function attachTemplateCapeToUpperTorso(rawTemplate, rigProfile) {
+        const capeRoot = baseTemplateGroup(rawTemplate, 'Cape/Elytra');
+        if (rigProfile === EMOTE_RIG_PROFILES.PRECISE ||
+            rigProfile === EMOTE_RIG_PROFILES.SIMPLE) {
+            const targetWorldY = rigProfile === EMOTE_RIG_PROFILES.PRECISE ? 18 : 12;
+            const groupByUuid = Object.create(null);
+            const elementByUuid = Object.create(null);
+            (rawTemplate.groups || []).forEach(function (group) {
+                groupByUuid[group.uuid] = group;
+            });
+            (rawTemplate.elements || []).forEach(function (element) {
+                elementByUuid[element.uuid] = element;
+            });
+            const capeEntry = templateOutlinerEntry(rawTemplate.outliner, capeRoot.uuid);
+            function localize(entries) {
+                (entries || []).forEach(function (entry) {
+                    const uuid = typeof entry === 'string' ? entry : entry.uuid;
+                    const record = groupByUuid[uuid] || elementByUuid[uuid];
+                    if (record) {
+                        ['origin', 'from', 'to', 'position'].forEach(function (field) {
+                            if (Array.isArray(record[field])) {
+                                record[field] = record[field].map(function (value, axis) {
+                                    return Number(value) - (axis === 1 ? targetWorldY : 0);
+                                });
+                            }
+                        });
+                    }
+                    if (entry && typeof entry === 'object') localize(entry.children);
+                });
+            }
+            capeRoot.origin = [0, 24 - targetWorldY, 0];
+            localize(capeEntry && capeEntry.children);
+        }
+        const targetUuid = rigProfile === EMOTE_RIG_PROFILES.PRECISE
+            ? PRECISE_BONE_UUIDS.torso_upper
+            : SIMPLE_BONE_UUIDS.body;
+        const capeEntry = detachTemplateOutlinerEntry(rawTemplate.outliner, capeRoot.uuid);
+        const targetEntry = templateOutlinerEntry(rawTemplate.outliner, targetUuid);
+        if (!capeEntry || !targetEntry) {
+            throw new Error('Emote template could not attach Cape/Elytra to the upper torso.');
+        }
+        targetEntry.children = Array.isArray(targetEntry.children) ? targetEntry.children : [];
+        targetEntry.children.push(capeEntry);
+        return rawTemplate;
+    }
+
+    function directTemplateElementUuids(rawTemplate, groupName) {
+        const group = baseTemplateGroup(rawTemplate, groupName);
+        const entry = templateOutlinerEntry(rawTemplate.outliner, group.uuid);
+        if (!entry) throw new Error('Base template Outliner is missing "' + groupName + '".');
+        return (entry.children || []).filter(function (child) {
+            return typeof child === 'string';
+        });
+    }
+
+    function preciseFaceUvCorners(face) {
+        const uv = face && Array.isArray(face.uv) ? face.uv : [0, 0, 0, 0];
+        const points = [
+            [uv[0], uv[1]],
+            [uv[2], uv[1]],
+            [uv[2], uv[3]],
+            [uv[0], uv[3]]
+        ];
+        let rotation = Number(face && face.rotation) || 0;
+        while (rotation > 0) {
+            rotation -= 90;
+            points.unshift(points.pop());
+        }
+        return [points[1], points[0], points[2], points[3]];
+    }
+
+    function preciseLerpUv(from, to, amount) {
+        return [
+            from[0] + (to[0] - from[0]) * amount,
+            from[1] + (to[1] - from[1]) * amount
+        ];
+    }
+
+    function preciseMeshFromCube(cube, settings) {
+        const options = settings || {};
+        const inflate = Number(cube.inflate) || 0;
+        const origin = Array.isArray(cube.origin) ? cube.origin.slice(0, 3) : [0, 0, 0];
+        const from = cube.from.map(function (value) { return Number(value) - inflate; });
+        const to = cube.to.map(function (value) { return Number(value) + inflate; });
+        const joint = Number.isFinite(Number(options.jointY)) ? Number(options.jointY) : null;
+        const ringYs = joint === null
+            ? [to[1], from[1]]
+            : [to[1], joint + 1, joint, joint - 1, from[1]];
+        const vertices = {};
+        const vertexY = {};
+        const rings = ringYs.map(function (y, ringIndex) {
+            return [
+                [to[0], y, to[2]],
+                [to[0], y, from[2]],
+                [from[0], y, to[2]],
+                [from[0], y, from[2]]
+            ].map(function (position, cornerIndex) {
+                const key = 'r' + ringIndex + 'c' + cornerIndex;
+                vertices[key] = position.map(function (value, axis) {
+                    return value - origin[axis];
+                });
+                vertexY[key] = y;
+                return key;
+            });
+        });
+        const faces = {};
+
+        function addFace(key, direction, faceVertices, uvValues) {
+            const cubeFace = cube.faces && cube.faces[direction];
+            if (!cubeFace || cubeFace.texture === null) return;
+            const uv = {};
+            faceVertices.forEach(function (vertexKey, index) {
+                uv[vertexKey] = uvValues[index];
+            });
+            faces[key] = {
+                uv: uv,
+                texture: cubeFace.texture,
+                vertices: faceVertices
+            };
+        }
+
+        const sideDefinitions = {
+            east: [1, 0],
+            west: [2, 3],
+            south: [0, 2],
+            north: [3, 1]
+        };
+        Object.keys(sideDefinitions).forEach(function (direction) {
+            const cubeFace = cube.faces && cube.faces[direction];
+            if (!cubeFace || cubeFace.texture === null) return;
+            const fullUvs = preciseFaceUvCorners(cubeFace);
+            const corners = sideDefinitions[direction];
+            for (let segment = 0; segment < rings.length - 1; segment++) {
+                const topAmount = (to[1] - ringYs[segment]) / (to[1] - from[1]);
+                const bottomAmount = (to[1] - ringYs[segment + 1]) / (to[1] - from[1]);
+                const faceVertices = [
+                    rings[segment][corners[0]],
+                    rings[segment][corners[1]],
+                    rings[segment + 1][corners[0]],
+                    rings[segment + 1][corners[1]]
+                ];
+                addFace(direction + '_' + segment, direction, faceVertices, [
+                    preciseLerpUv(fullUvs[0], fullUvs[2], topAmount),
+                    preciseLerpUv(fullUvs[1], fullUvs[3], topAmount),
+                    preciseLerpUv(fullUvs[0], fullUvs[2], bottomAmount),
+                    preciseLerpUv(fullUvs[1], fullUvs[3], bottomAmount)
+                ]);
+            }
+        });
+
+        [
+            ['up', rings[0], [1, 3, 0, 2]],
+            ['down', rings[rings.length - 1], [0, 2, 1, 3]]
+        ].forEach(function (definition) {
+            const direction = definition[0];
+            const cubeFace = cube.faces && cube.faces[direction];
+            if (!cubeFace || cubeFace.texture === null) return;
+            const faceVertices = definition[2].map(function (corner) {
+                return definition[1][corner];
+            });
+            addFace(direction, direction, faceVertices, preciseFaceUvCorners(cubeFace));
+        });
+
+        return {
+            mesh: {
+                name: cube.name,
+                type: 'mesh',
+                uuid: cube.uuid,
+                color: Number(cube.color) || 0,
+                origin: origin,
+                rotation: Array.isArray(cube.rotation) ? cube.rotation.slice(0, 3) : [0, 0, 0],
+                shading: 'flat',
+                export: false,
+                visibility: options.visibility !== false,
+                locked: false,
+                vertices: vertices,
+                faces: faces,
+                cosmiq_role: ROLES.REFERENCE,
+                cosmiq_actor_index: 1,
+                cosmiq_player_bone: 'none'
+            },
+            vertexY: vertexY
+        };
+    }
+
+    function simpleBoneLayout(boneId) {
+        const layouts = {
+            root: {
+                origin: [0, 0, 0],
+                length: 12,
+                width: 1,
+                connected: false
+            },
+            body: {
+                origin: [0, 12, 0],
+                length: 12,
+                width: 1.75,
+                connected: true
+            },
+            head: {
+                origin: [0, 12, 0],
+                length: 8,
+                width: 2,
+                connected: true
+            },
+            left_arm: {
+                origin: [-5, 10, 0],
+                length: -10,
+                width: 1.25,
+                connected: false
+            },
+            right_arm: {
+                origin: [5, 10, 0],
+                length: -10,
+                width: 1.25,
+                connected: false
+            },
+            left_leg: {
+                origin: [-1.9, 12, 0],
+                length: -12,
+                width: 1.25,
+                connected: false
+            },
+            right_leg: {
+                origin: [1.9, 12, 0],
+                length: -12,
+                width: 1.25,
+                connected: false
+            }
+        };
+        const layout = layouts[boneId];
+        return {
+            origin: layout.origin.slice(),
+            rotation: [0, 0, 0],
+            length: layout.length,
+            width: layout.width,
+            connected: layout.connected
+        };
+    }
+
+    function verifySimpleRigStructure(rawTemplate) {
+        const elements = Array.isArray(rawTemplate && rawTemplate.elements)
+            ? rawTemplate.elements
+            : [];
+        const hierarchy = importedTreeParents(rawTemplate && rawTemplate.outliner);
+        const armatures = elements.filter(function (element) { return element.type === 'armature'; });
+        if (armatures.length !== 1 || armatures[0].uuid !== SIMPLE_ARMATURE_UUID) {
+            throw new Error('Simple template requires exactly one Cosmiq player armature.');
+        }
+        const meshes = elements.filter(function (element) { return element.type === 'mesh'; });
+        const bones = elements.filter(function (element) { return element.type === 'armature_bone'; });
+        if (meshes.length !== 16 || bones.length !== EMOTE_PLAYER_BONES.length) {
+            throw new Error('Simple template requires 16 rigid player meshes and 7 armature bones.');
+        }
+        const boneBySemantic = Object.create(null);
+        bones.forEach(function (bone) {
+            boneBySemantic[bone.cosmiq_player_bone] = bone;
+        });
+        EMOTE_PLAYER_BONES.forEach(function (definition) {
+            const bone = boneBySemantic[definition.id];
+            if (!bone) {
+                throw new Error('Simple template is missing armature bone ' + definition.id + '.');
+            }
+            const expectedParentUuid = definition.parent
+                ? boneBySemantic[definition.parent].uuid
+                : SIMPLE_ARMATURE_UUID;
+            if (hierarchy.parentByUuid[bone.uuid] !== expectedParentUuid) {
+                throw new Error(
+                    'Simple template armature bone ' + definition.id +
+                    ' must be parented to ' + (definition.parent || 'the player armature') + '.'
+                );
+            }
+        });
+        meshes.forEach(function (mesh) {
+            const prefix = mesh.uuid.slice(0, 6) + ':';
+            Object.keys(mesh.vertices || {}).forEach(function (vertexKey) {
+                const weightKey = prefix + vertexKey;
+                const influences = bones.map(function (bone) {
+                    return Number(bone.vertex_weights && bone.vertex_weights[weightKey]) || 0;
+                }).filter(function (weight) { return weight > 0; });
+                if (influences.length !== 1 || Math.abs(influences[0] - 1) > 1e-9) {
+                    throw new Error('Simple template has a non-rigid weight for ' + mesh.name + ':' + vertexKey + '.');
+                }
+            });
+        });
+        return rawTemplate;
+    }
+
+    function convertToSimpleRig(rawTemplate, visibleBody) {
+        const selectedVariant = visibleBody === 'slim' ? 'slim' : 'wide';
+        const elementByUuid = Object.create(null);
+        (rawTemplate.elements || []).forEach(function (element) {
+            elementByUuid[element.uuid] = element;
+        });
+        const partPlans = [
+            {group: 'Head', bone: 'head'},
+            {group: 'Body', bone: 'body'},
+            {group: 'Left Arm Wide', variant: 'wide', bone: 'left_arm'},
+            {group: 'Right Arm Wide', variant: 'wide', bone: 'right_arm'},
+            {group: 'Left Arm Slim', variant: 'slim', bone: 'left_arm'},
+            {group: 'Right Arm Slim', variant: 'slim', bone: 'right_arm'},
+            {group: 'Left Leg', bone: 'left_leg'},
+            {group: 'Right Leg', bone: 'right_leg'}
+        ];
+        const convertedUuids = Object.create(null);
+        const converted = [];
+        partPlans.forEach(function (plan) {
+            directTemplateElementUuids(rawTemplate, plan.group).forEach(function (uuid) {
+                const cube = elementByUuid[uuid];
+                if (!cube || (cube.type && cube.type !== 'cube')) {
+                    throw new Error('Simple template expected a cube in "' + plan.group + '".');
+                }
+                const result = preciseMeshFromCube(cube, {
+                    visibility: !plan.variant || plan.variant === selectedVariant
+                });
+                result.bone = plan.bone;
+                convertedUuids[uuid] = true;
+                converted.push(result);
+            });
+        });
+
+        const bones = EMOTE_PLAYER_BONES.map(function (definition, index) {
+            const layout = simpleBoneLayout(definition.id);
+            return {
+                isOpen: true,
+                uuid: SIMPLE_BONE_UUIDS[definition.id],
+                type: 'armature_bone',
+                name: definition.label,
+                origin: layout.origin,
+                rotation: layout.rotation,
+                length: layout.length,
+                width: layout.width,
+                connected: layout.connected,
+                color: index % 8,
+                vertex_weights: {},
+                export: false,
+                visibility: true,
+                locked: false,
+                cosmiq_role: ROLES.PLAYER_BONE,
+                cosmiq_actor_index: 1,
+                cosmiq_player_bone: definition.id,
+                children: []
+            };
+        });
+        const boneBySemantic = Object.create(null);
+        bones.forEach(function (bone) { boneBySemantic[bone.cosmiq_player_bone] = bone; });
+        EMOTE_PLAYER_BONES.forEach(function (definition) {
+            if (definition.parent) {
+                boneBySemantic[definition.parent].children.push(SIMPLE_BONE_UUIDS[definition.id]);
+            }
+        });
+        converted.forEach(function (entry) {
+            const prefix = entry.mesh.uuid.slice(0, 6) + ':';
+            Object.keys(entry.mesh.vertices).forEach(function (vertexKey) {
+                boneBySemantic[entry.bone].vertex_weights[prefix + vertexKey] = 1;
+            });
+        });
+
+        const armature = {
+            isOpen: true,
+            uuid: SIMPLE_ARMATURE_UUID,
+            type: 'armature',
+            name: 'Simple Player Rig',
+            export: false,
+            visibility: true,
+            locked: false,
+            cosmiq_role: ROLES.STRUCTURE,
+            cosmiq_actor_index: 1,
+            cosmiq_player_bone: 'none',
+            children: converted.map(function (entry) { return entry.mesh.uuid; })
+                .concat([SIMPLE_BONE_UUIDS.root])
+        };
+        rawTemplate.elements = (rawTemplate.elements || []).filter(function (element) {
+            return !convertedUuids[element.uuid];
+        }).concat(converted.map(function (entry) { return entry.mesh; }), [armature], bones);
+
+        function removeConvertedEntries(entries) {
+            return (entries || []).reduce(function (output, entry) {
+                if (typeof entry === 'string') {
+                    if (!convertedUuids[entry]) output.push(entry);
+                    return output;
+                }
+                if (!entry || typeof entry !== 'object') return output;
+                entry.children = removeConvertedEntries(entry.children);
+                output.push(entry);
+                return output;
+            }, []);
+        }
+        rawTemplate.outliner = removeConvertedEntries(rawTemplate.outliner);
+        const referenceRoot = baseTemplateGroup(rawTemplate, 'Cosmiq Reference Model');
+        const referenceEntry = templateOutlinerEntry(rawTemplate.outliner, referenceRoot.uuid);
+        function boneOutlinerEntry(boneId) {
+            const definition = EMOTE_PLAYER_BONES.find(function (candidate) {
+                return candidate.id === boneId;
+            });
+            return {
+                uuid: SIMPLE_BONE_UUIDS[boneId],
+                isOpen: true,
+                children: EMOTE_PLAYER_BONES.filter(function (candidate) {
+                    return candidate.parent === definition.id;
+                }).map(function (candidate) {
+                    return boneOutlinerEntry(candidate.id);
+                })
+            };
+        }
+        referenceEntry.children.unshift({
+            uuid: SIMPLE_ARMATURE_UUID,
+            isOpen: true,
+            children: converted.map(function (entry) { return entry.mesh.uuid; })
+                .concat([boneOutlinerEntry('root')])
+        });
+        rawTemplate.cosmiq_rig_profile = EMOTE_RIG_PROFILES.SIMPLE;
+        return verifySimpleRigStructure(rawTemplate);
+    }
+
+    function preciseBoneLayout(boneId) {
+        const layouts = {
+            root: {
+                origin: [0, 0, 0],
+                rotation: [0, 0, 0],
+                length: 12,
+                width: 1,
+                connected: false
+            },
+            torso_lower: {
+                origin: [0, 12, 0],
+                rotation: [0, 0, 0],
+                length: 6,
+                width: 1.75,
+                connected: true
+            },
+            torso_upper: {
+                origin: [0, 6, 0],
+                rotation: [0, 0, 0],
+                length: 6,
+                width: 1.75,
+                connected: true
+            },
+            head: {
+                origin: [0, 6, 0],
+                rotation: [0, 0, 0],
+                length: 8,
+                width: 2,
+                connected: true
+            },
+            left_arm_upper: {
+                origin: [-5, 4, 0],
+                rotation: [0, 0, 0],
+                length: 4,
+                width: 1.25,
+                connected: false
+            },
+            left_arm_lower: {
+                origin: [0, -4, 0],
+                rotation: [0, 0, 0],
+                length: -6,
+                width: 1.25,
+                connected: true
+            },
+            right_arm_upper: {
+                origin: [5, 4, 0],
+                rotation: [0, 0, 0],
+                length: 4,
+                width: 1.25,
+                connected: false
+            },
+            right_arm_lower: {
+                origin: [0, -4, 0],
+                rotation: [0, 0, 0],
+                length: -6,
+                width: 1.25,
+                connected: true
+            },
+            left_leg_upper: {
+                origin: [-1.9, 0, 0],
+                rotation: [0, 0, 0],
+                length: 6,
+                width: 1.25,
+                connected: false
+            },
+            left_leg_lower: {
+                origin: [0, -6, 0],
+                rotation: [0, 0, 0],
+                length: -6,
+                width: 1.25,
+                connected: true
+            },
+            right_leg_upper: {
+                origin: [1.9, 0, 0],
+                rotation: [0, 0, 0],
+                length: 6,
+                width: 1.25,
+                connected: false
+            },
+            right_leg_lower: {
+                origin: [0, -6, 0],
+                rotation: [0, 0, 0],
+                length: -6,
+                width: 1.25,
+                connected: true
+            }
+        };
+        const layout = layouts[boneId];
+        return {
+            origin: layout.origin.slice(),
+            rotation: layout.rotation.slice(),
+            length: layout.length,
+            width: layout.width,
+            connected: layout.connected
+        };
+    }
+
+    function verifyPreciseRigStructure(rawTemplate) {
+        const elements = Array.isArray(rawTemplate && rawTemplate.elements)
+            ? rawTemplate.elements
+            : [];
+        const hierarchy = importedTreeParents(rawTemplate && rawTemplate.outliner);
+        const armatures = elements.filter(function (element) { return element.type === 'armature'; });
+        if (armatures.length !== 1 || armatures[0].uuid !== PRECISE_ARMATURE_UUID) {
+            throw new Error('Precise template requires exactly one Cosmiq player armature.');
+        }
+        const meshes = elements.filter(function (element) { return element.type === 'mesh'; });
+        const bones = elements.filter(function (element) { return element.type === 'armature_bone'; });
+        if (meshes.length !== 16 || bones.length !== EMOTE_PRECISE_PLAYER_BONES.length) {
+            throw new Error('Precise template requires 16 player meshes and 12 armature bones.');
+        }
+        const boneBySemantic = Object.create(null);
+        bones.forEach(function (bone) {
+            boneBySemantic[bone.cosmiq_player_bone] = bone;
+        });
+        EMOTE_PRECISE_PLAYER_BONES.forEach(function (definition) {
+            const bone = boneBySemantic[definition.id];
+            if (!bone) {
+                throw new Error('Precise template is missing armature bone ' + definition.id + '.');
+            }
+            const expectedParentUuid = definition.parent
+                ? boneBySemantic[definition.parent].uuid
+                : PRECISE_ARMATURE_UUID;
+            if (hierarchy.parentByUuid[bone.uuid] !== expectedParentUuid) {
+                throw new Error(
+                    'Precise template armature bone ' + definition.id +
+                    ' must be parented to ' + (definition.parent || 'the player armature') + '.'
+                );
+            }
+        });
+        meshes.forEach(function (mesh) {
+            const prefix = mesh.uuid.slice(0, 6) + ':';
+            Object.keys(mesh.vertices || {}).forEach(function (vertexKey) {
+                const weightKey = prefix + vertexKey;
+                const influences = bones.map(function (bone) {
+                    return Number(bone.vertex_weights && bone.vertex_weights[weightKey]) || 0;
+                }).filter(function (weight) { return weight > 0; });
+                const sum = influences.reduce(function (total, weight) { return total + weight; }, 0);
+                if (influences.length < 1 || influences.length > 2 || Math.abs(sum - 1) > 1e-9) {
+                    throw new Error('Precise template has invalid weights for ' + mesh.name + ':' + vertexKey + '.');
+                }
+            });
+        });
+        return rawTemplate;
+    }
+
+    function convertToPreciseRig(rawTemplate, visibleBody) {
+        const selectedVariant = visibleBody === 'slim' ? 'slim' : 'wide';
+        const elementByUuid = Object.create(null);
+        (rawTemplate.elements || []).forEach(function (element) {
+            elementByUuid[element.uuid] = element;
+        });
+        const partPlans = [
+            {group: 'Head', fixedBone: 'head'},
+            {group: 'Body', jointY: 18, upperBone: 'torso_upper', lowerBone: 'torso_lower'},
+            {group: 'Left Arm Wide', variant: 'wide', jointY: 18, upperBone: 'left_arm_upper', lowerBone: 'left_arm_lower'},
+            {group: 'Right Arm Wide', variant: 'wide', jointY: 18, upperBone: 'right_arm_upper', lowerBone: 'right_arm_lower'},
+            {group: 'Left Arm Slim', variant: 'slim', jointY: 18, upperBone: 'left_arm_upper', lowerBone: 'left_arm_lower'},
+            {group: 'Right Arm Slim', variant: 'slim', jointY: 18, upperBone: 'right_arm_upper', lowerBone: 'right_arm_lower'},
+            {group: 'Left Leg', jointY: 6, upperBone: 'left_leg_upper', lowerBone: 'left_leg_lower'},
+            {group: 'Right Leg', jointY: 6, upperBone: 'right_leg_upper', lowerBone: 'right_leg_lower'}
+        ];
+        const convertedUuids = Object.create(null);
+        const converted = [];
+        partPlans.forEach(function (plan) {
+            directTemplateElementUuids(rawTemplate, plan.group).forEach(function (uuid) {
+                const cube = elementByUuid[uuid];
+                if (!cube || (cube.type && cube.type !== 'cube')) {
+                    throw new Error('Precise template expected a cube in "' + plan.group + '".');
+                }
+                const result = preciseMeshFromCube(cube, {
+                    jointY: plan.jointY,
+                    visibility: !plan.variant || plan.variant === selectedVariant
+                });
+                result.plan = plan;
+                convertedUuids[uuid] = true;
+                converted.push(result);
+            });
+        });
+
+        const bones = EMOTE_PRECISE_PLAYER_BONES.map(function (definition, index) {
+            const layout = preciseBoneLayout(definition.id);
+            return {
+                isOpen: true,
+                uuid: PRECISE_BONE_UUIDS[definition.id],
+                type: 'armature_bone',
+                name: definition.id,
+                origin: layout.origin,
+                rotation: layout.rotation,
+                length: layout.length,
+                width: layout.width,
+                connected: layout.connected,
+                color: index % 8,
+                vertex_weights: {},
+                export: false,
+                visibility: true,
+                locked: false,
+                cosmiq_role: ROLES.PLAYER_BONE,
+                cosmiq_actor_index: 1,
+                cosmiq_player_bone: definition.id,
+                children: []
+            };
+        });
+        const boneBySemantic = Object.create(null);
+        bones.forEach(function (bone) { boneBySemantic[bone.cosmiq_player_bone] = bone; });
+        EMOTE_PRECISE_PLAYER_BONES.forEach(function (definition) {
+            if (definition.parent) {
+                boneBySemantic[definition.parent].children.push(PRECISE_BONE_UUIDS[definition.id]);
+            }
+        });
+
+        converted.forEach(function (entry) {
+            const mesh = entry.mesh;
+            const plan = entry.plan;
+            const prefix = mesh.uuid.slice(0, 6) + ':';
+            Object.keys(mesh.vertices).forEach(function (vertexKey) {
+                const weightKey = prefix + vertexKey;
+                if (plan.fixedBone) {
+                    boneBySemantic[plan.fixedBone].vertex_weights[weightKey] = 1;
+                    return;
+                }
+                const y = entry.vertexY[vertexKey];
+                const upperWeight = Math.max(0, Math.min(1, (y - (plan.jointY - 1)) / 2));
+                const lowerWeight = 1 - upperWeight;
+                if (upperWeight > 0) {
+                    boneBySemantic[plan.upperBone].vertex_weights[weightKey] = upperWeight;
+                }
+                if (lowerWeight > 0) {
+                    boneBySemantic[plan.lowerBone].vertex_weights[weightKey] = lowerWeight;
+                }
+            });
+        });
+
+        const armature = {
+            isOpen: true,
+            uuid: PRECISE_ARMATURE_UUID,
+            type: 'armature',
+            name: 'cosmiq_precise_player',
+            export: false,
+            visibility: true,
+            locked: false,
+            cosmiq_role: ROLES.STRUCTURE,
+            cosmiq_actor_index: 1,
+            cosmiq_player_bone: 'none',
+            children: converted.map(function (entry) { return entry.mesh.uuid; })
+                .concat([PRECISE_BONE_UUIDS.root])
+        };
+        rawTemplate.elements = (rawTemplate.elements || []).filter(function (element) {
+            return !convertedUuids[element.uuid];
+        }).concat(converted.map(function (entry) { return entry.mesh; }), [armature], bones);
+        (rawTemplate.groups || []).forEach(function (group) {
+            if (group.cosmiq_role === ROLES.PLAYER_BONE) {
+                group.cosmiq_role = ROLES.STRUCTURE;
+                group.cosmiq_actor_index = 0;
+                group.cosmiq_player_bone = 'none';
+            }
+        });
+
+        function removeConvertedEntries(entries) {
+            return (entries || []).reduce(function (output, entry) {
+                if (typeof entry === 'string') {
+                    if (!convertedUuids[entry]) output.push(entry);
+                    return output;
+                }
+                if (!entry || typeof entry !== 'object') return output;
+                entry.children = removeConvertedEntries(entry.children);
+                output.push(entry);
+                return output;
+            }, []);
+        }
+        rawTemplate.outliner = removeConvertedEntries(rawTemplate.outliner);
+        const referenceRoot = baseTemplateGroup(rawTemplate, 'Cosmiq Reference Model');
+        const referenceEntry = templateOutlinerEntry(rawTemplate.outliner, referenceRoot.uuid);
+        function boneOutlinerEntry(boneId) {
+            const definition = EMOTE_PRECISE_PLAYER_BONES.find(function (candidate) {
+                return candidate.id === boneId;
+            });
+            return {
+                uuid: PRECISE_BONE_UUIDS[boneId],
+                isOpen: true,
+                children: EMOTE_PRECISE_PLAYER_BONES.filter(function (candidate) {
+                    return candidate.parent === definition.id;
+                }).map(function (candidate) {
+                    return boneOutlinerEntry(candidate.id);
+                })
+            };
+        }
+        referenceEntry.children.unshift({
+            uuid: PRECISE_ARMATURE_UUID,
+            isOpen: true,
+            children: converted.map(function (entry) { return entry.mesh.uuid; })
+                .concat([boneOutlinerEntry('root')])
+        });
+        rawTemplate.cosmiq_rig_profile = EMOTE_RIG_PROFILES.PRECISE;
+        return verifyPreciseRigStructure(rawTemplate);
+    }
+
+    function annotateBaseTemplate(rawInput, kind, settings) {
+        const rawTemplate = verifyBaseTemplateStructure(JSON.parse(JSON.stringify(rawInput)));
+        const options = settings || {};
+        const visibleBody = options.visibleBody === 'slim' ? 'slim' : 'wide';
+        const rigProfile = options.rigProfile === EMOTE_RIG_PROFILES.PRECISE
+            ? EMOTE_RIG_PROFILES.PRECISE
+            : EMOTE_RIG_PROFILES.SIMPLE;
+        const resolution = capeResolutionFromId(options.resolution);
+        const creationName = normalizeCreationName(options.name);
+        rawTemplate.meta = Object.assign({}, rawTemplate.meta, {model_format: FORMAT_ID});
+        rawTemplate.name = creationProjectName(creationName, kind);
+        rawTemplate.cosmiq_project_kind = kind;
+        rawTemplate.cosmiq_project_id = creationProjectId(creationName, kind);
+        rawTemplate.cosmiq_template = kind === PROJECT_KINDS.EMOTE
+            ? 'emote_player'
+            : kind === PROJECT_KINDS.CAPE ? 'cape' : 'cosmetic_animated';
+        rawTemplate.cosmiq_compatibility_profile = 'cross_version';
+        rawTemplate.cosmiq_slot = kind === PROJECT_KINDS.COSMETIC ? 'cosmiq:slot/body' : '';
+        rawTemplate.cosmiq_body_slots = '';
+        rawTemplate.cosmiq_model_variant = 'universal';
+        rawTemplate.cosmiq_arm_width_mode = ARM_WIDTH_MODES.UNCONFIGURED;
+        rawTemplate.cosmiq_source_revision = 1;
+        rawTemplate.cosmiq_emote_actor_count = 1;
+        rawTemplate.cosmiq_emote_contains_props = false;
+        rawTemplate.cosmiq_emote_traversable = false;
+        rawTemplate.cosmiq_rig_profile = kind === PROJECT_KINDS.EMOTE
+            ? rigProfile
+            : EMOTE_RIG_PROFILES.SIMPLE;
+        rawTemplate.cosmiq_camera_x = 0;
+        rawTemplate.cosmiq_camera_y = 1;
+        rawTemplate.cosmiq_camera_z = kind === PROJECT_KINDS.EMOTE ? -5 : -3;
+        rawTemplate.cosmiq_camera_pitch = 0;
+        rawTemplate.cosmiq_camera_yaw = 0;
+        rawTemplate.cosmiq_camera_roll = 0;
+        rawTemplate.cosmiq_camera_fov = 35;
+        rawTemplate.cosmiq_camera_clip_id = '';
+        rawTemplate.cosmiq_camera_time_ms = 0;
+        rawTemplate.cosmiq_camera_model_variant = kind === PROJECT_KINDS.COSMETIC
+            ? visibleBody
+            : 'universal';
+        rawTemplate.cosmiq_camera_visible_props = '';
+        rawTemplate.resolution = kind === PROJECT_KINDS.CAPE
+            ? {width: resolution.width, height: resolution.height}
+            : {width: 64, height: 64};
+
+        (rawTemplate.groups || []).forEach(function (group) {
+            group.cosmiq_role = ROLES.STRUCTURE;
+            group.cosmiq_anchor = 'none';
+            group.cosmiq_model_branch = 'none';
+            group.cosmiq_actor_index = 0;
+            group.cosmiq_player_bone = 'none';
+            group.export = false;
+        });
+        (rawTemplate.elements || []).forEach(function (element) {
+            element.cosmiq_role = ROLES.REFERENCE;
+            element.cosmiq_actor_index = 0;
+            element.cosmiq_player_bone = 'none';
+            element.export = false;
+            element.locked = true;
+        });
+        (rawTemplate.textures || []).forEach(function (texture) {
+            texture.cosmiq_role = ROLES.REFERENCE;
+        });
+
+        const rootGroup = baseTemplateGroup(rawTemplate, 'Cosmiq Reference Model');
+        const wideGroup = baseTemplateGroup(rawTemplate, 'Wide');
+        const slimGroup = baseTemplateGroup(rawTemplate, 'Slim');
+        const capeRoot = baseTemplateGroup(rawTemplate, 'Cape/Elytra');
+        wideGroup.visibility = visibleBody === 'wide';
+        slimGroup.visibility = visibleBody === 'slim';
+        wideGroup.cosmiq_model_branch = 'wide';
+        slimGroup.cosmiq_model_branch = 'slim';
+        capeRoot.visibility = kind === PROJECT_KINDS.CAPE;
+        capeRoot.cosmiq_role = ROLES.REFERENCE_ROOT;
+
+        if (kind === PROJECT_KINDS.COSMETIC) {
+            rootGroup.cosmiq_role = ROLES.EXPORT_ROOT;
+            rootGroup.export = true;
+            wideGroup.cosmiq_role = ROLES.MODEL_VARIANT;
+            slimGroup.cosmiq_role = ROLES.MODEL_VARIANT;
+            TEMPLATE_ATTACHMENT_POINTS.forEach(function (point) {
+                const bodyPart = baseTemplateGroup(rawTemplate, point.bodyPartGroup);
+                bodyPart.cosmiq_role = ROLES.ANCHOR;
+                bodyPart.cosmiq_anchor = point.anchorId;
+                const modelGroup = baseTemplateGroup(rawTemplate, point.modelGroup);
+                modelGroup.cosmiq_role = ROLES.AUTHORING;
+                modelGroup.export = true;
+            });
+        } else if (kind === PROJECT_KINDS.EMOTE) {
+            addEmoteTemplateWrappers(rawTemplate, rootGroup);
+            rawTemplate.animations = initialEmoteTemplateAnimations();
+            if (rigProfile === EMOTE_RIG_PROFILES.PRECISE) {
+                convertToPreciseRig(rawTemplate, visibleBody);
+            } else {
+                convertToSimpleRig(rawTemplate, visibleBody);
+            }
+            attachTemplateCapeToUpperTorso(rawTemplate, rigProfile);
+        } else {
+            rawTemplate.animations = [];
+            rootGroup.cosmiq_role = ROLES.EXPORT_ROOT;
+            rootGroup.export = true;
+            capeRoot.cosmiq_role = ROLES.AUTHORING;
+            baseTemplateGroup(rawTemplate, 'Cape').cosmiq_role = ROLES.AUTHORING;
+            const capeTexture = (rawTemplate.textures || []).find(function (texture) {
+                return texture.name === 'cape.png';
+            });
+            const capeTextureIndex = rawTemplate.textures.indexOf(capeTexture);
+            capeTexture.cosmiq_role = ROLES.NONE;
+            capeTexture.uv_width = resolution.width;
+            capeTexture.uv_height = resolution.height;
+            scaleTemplateTextureUvs(rawTemplate, capeTextureIndex, resolution.width / 64);
+        }
+
+        (rawTemplate.animations || []).forEach(function (animation) {
+            const trigger = baseAnimationTrigger(animation.name);
+            const emoteActorMatch = /^actor\.(\d+)\./.exec(String(animation.name || ''));
+            animation.cosmiq_clip_id = runtimeId(
+                rawTemplate.cosmiq_project_id,
+                'animation',
+                animation.uuid
+            );
+            animation.cosmiq_trigger_kind = kind === PROJECT_KINDS.COSMETIC && trigger
+                ? trigger.kind
+                : 'none';
+            animation.cosmiq_trigger = kind === PROJECT_KINDS.COSMETIC && trigger ? trigger.id : '';
+            animation.cosmiq_transition_ms = 150;
+            animation.cosmiq_priority = 100;
+            animation.cosmiq_fallback = kind === PROJECT_KINDS.COSMETIC && trigger && trigger.id === 'idle';
+            animation.cosmiq_emote_scope = kind === PROJECT_KINDS.EMOTE
+                ? (emoteActorMatch ? EMOTE_ANIMATION_SCOPES.ACTOR : EMOTE_ANIMATION_SCOPES.SCENE)
+                : EMOTE_ANIMATION_SCOPES.NONE;
+            animation.cosmiq_emote_actor_index = kind === PROJECT_KINDS.EMOTE && emoteActorMatch
+                ? Math.floor(Number(emoteActorMatch[1]))
+                : 0;
+        });
+        return rawTemplate;
+    }
+
+    function scaleTemplateTextureUvs(rawTemplate, textureIndex, scale) {
+        if (!Number.isInteger(textureIndex) || textureIndex < 0 || !Number.isFinite(scale) || scale === 1) {
+            return rawTemplate;
+        }
+        (rawTemplate.elements || []).forEach(function (element) {
+            const faces = element && element.faces || {};
+            let usesTexture = false;
+            Object.keys(faces).forEach(function (faceKey) {
+                const face = faces[faceKey];
+                if (!face || String(face.texture) !== String(textureIndex)) return;
+                usesTexture = true;
+                if (Array.isArray(face.uv)) {
+                    face.uv = face.uv.map(function (coordinate) {
+                        return Number(coordinate) * scale;
+                    });
+                }
+            });
+            if (usesTexture && Array.isArray(element.uv_offset)) {
+                element.uv_offset = element.uv_offset.map(function (coordinate) {
+                    return Number(coordinate) * scale;
+                });
+            }
+        });
+        return rawTemplate;
+    }
+
+    function resizeTemplateTexture(source, width, height) {
+        if (width === 64 && height === 32) return Promise.resolve(source);
+        if (typeof Image === 'undefined' || typeof document === 'undefined') {
+            return Promise.reject(new Error('This Blockbench build cannot resize the cape template texture.'));
+        }
+        return new Promise(function (resolve, reject) {
+            const image = new Image();
+            image.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d');
+                context.imageSmoothingEnabled = false;
+                context.drawImage(image, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            image.onerror = function () {
+                reject(new Error('The embedded cape texture in the base template could not be resized.'));
+            };
+            image.src = source;
+        });
+    }
+
+    async function startBaseTemplateProject(kind, settings) {
+        const options = settings || {};
+        const pristineTemplate = await loadBaseTemplateJson();
+        const rawTemplate = annotateBaseTemplate(pristineTemplate, kind, options);
+        if (kind === PROJECT_KINDS.CAPE) {
+            const resolution = capeResolutionFromId(options.resolution);
+            const capeTexture = rawTemplate.textures.find(function (texture) {
+                return texture.name === 'cape.png';
+            });
+            capeTexture.source = await resizeTemplateTexture(
+                capeTexture.source,
+                resolution.width,
+                resolution.height
+            );
+            capeTexture.width = resolution.width;
+            capeTexture.height = resolution.height;
+        }
+        if (typeof Codecs === 'undefined' || !Codecs.project || typeof Codecs.project.load !== 'function') {
+            throw new Error('This Blockbench build cannot open the bundled base template.');
+        }
+        Codecs.project.load(rawTemplate, {path: ''});
+        refreshMetadata(true);
+        if (typeof Validator !== 'undefined') Validator.validate();
+        const selectionName = kind === PROJECT_KINDS.COSMETIC
+            ? (options.visibleBody === 'slim' ? '[Model SR]' : '[Model WR]')
+            : kind === PROJECT_KINDS.CAPE ? 'Cape' : 'Body';
+        if (typeof Group !== 'undefined' && Array.isArray(Group.all)) {
+            const selection = Group.all.find(function (group) { return group.name === selectionName; });
+            if (selection && typeof selection.select === 'function') selection.select();
+        }
+        if (typeof Blockbench !== 'undefined') {
+            Blockbench.showQuickMessage(kind === PROJECT_KINDS.CAPE
+                ? '[COMING SOON] Cape workspace created. Save the .bbmodel locally; upload is not available yet.'
+                : kind === PROJECT_KINDS.EMOTE
+                    ? 'Created an Emote workspace from CosmiqPlayerTemplate.bbmodel.'
+                    : 'Created an Accessory workspace from CosmiqPlayerTemplate.bbmodel.');
+        }
+        return true;
+    }
+
+    function installCreatorStyles() {
+        if (typeof document === 'undefined' || !document.head) {
+            return;
+        }
+        const existing = document.getElementById('cosmiq-creator-styles');
+        if (existing) {
+            pluginStyle = existing;
+            return;
+        }
+        pluginStyle = document.createElement('style');
+        pluginStyle.id = 'cosmiq-creator-styles';
+        pluginStyle.textContent = [
+            '.cosmiq-creation-picker{padding:26px;background:var(--color-back,#15161b);color:var(--color-text,#eee)}',
+            '.cosmiq-creation-header{display:block!important;text-align:center;margin-bottom:22px}',
+            '.cosmiq-creation-header h1,.cosmiq-creation-header p{display:block;width:auto}',
+            '.cosmiq-creation-header h1{margin:0 0 6px;font-size:27px;font-weight:400;line-height:1.2}',
+            '.cosmiq-creation-header p{margin:0;color:var(--color-subtle_text,#aaa);line-height:1.4}',
+            '.cosmiq-creation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}',
+            '.cosmiq-creation-card{box-sizing:border-box;display:flex;min-width:0;min-height:245px;height:auto!important;max-height:none!important;flex-direction:column;align-items:stretch;margin:0;padding:0 0 16px;overflow:hidden;border:2px solid var(--color-border,#373a45);border-radius:8px;outline:none;background:var(--color-ui,#23252d);color:var(--color-text,#eee);text-align:left;cursor:pointer;transition:transform .12s,border-color .12s,background-color .12s}',
+            '.cosmiq-creation-card:hover{transform:translateY(-2px);border-color:var(--color-subtle_text,#777);background:var(--color-button,#2d3039)}',
+            '.cosmiq-creation-card:focus-visible{border-color:var(--color-accent,#f36b91);box-shadow:0 0 0 2px color-mix(in srgb,var(--color-accent,#f36b91) 40%,transparent)}',
+            '.cosmiq-creation-card.selected{border-color:var(--color-accent,#f36b91);box-shadow:0 0 0 1px var(--color-accent,#f36b91)}',
+            '.cosmiq-creation-image{position:relative;display:block;flex:none;width:100%;height:165px;overflow:hidden;background:#20242d}',
+            '.cosmiq-creation-image img{display:block;width:100%;height:100%;object-fit:cover}',
+            '.cosmiq-creation-image>.material-icons{position:absolute;right:10px;top:10px;display:grid!important;box-sizing:border-box;width:33px!important;height:33px!important;min-width:33px;min-height:33px;padding:3px!important;place-items:center;border-radius:50%;background:#fff;color:var(--color-accent,#f36b91);font-size:27px;line-height:1!important}',
+            '.cosmiq-creation-copy{display:flex;flex:1;flex-direction:column;gap:5px;padding:14px 16px 0}',
+            '.cosmiq-coming-soon{align-self:flex-start;padding:4px 8px;border:2px solid #ffd873;border-radius:4px;color:#ffd873;font-size:17px;letter-spacing:.06em;line-height:1}',
+            '.cosmiq-creation-copy strong{font-size:20px;font-weight:500}',
+            '.cosmiq-creation-copy small{color:var(--color-subtle_text,#aaa);font-size:12px;line-height:1.4}',
+            '.cosmiq-creation-hint{display:flex;align-items:center;justify-content:center;gap:6px;margin:18px 0 0;color:var(--color-subtle_text,#999);font-size:12px}',
+            '.cosmiq-creation-hint i{font-size:17px}',
+            '#cosmiq_creation_type .button_bar,#cosmiq_creation_name .button_bar,#cosmiq_cosmetic_body_type .button_bar,#cosmiq_emote_rig_type .button_bar,#cosmiq_emote_review .button_bar,#cosmiq_cape_resolution .button_bar,#cosmiq_emote_actors .button_bar,#cosmiq_emote_props .button_bar,#cosmiq_emote_traversable .button_bar{display:flex!important}',
+            '#cosmiq_creation_type .button_bar .confirm_btn,#cosmiq_creation_name .button_bar .confirm_btn,#cosmiq_cosmetic_body_type .button_bar .confirm_btn,#cosmiq_emote_rig_type .button_bar .confirm_btn,#cosmiq_emote_review .button_bar .confirm_btn,#cosmiq_cape_resolution .button_bar .confirm_btn,#cosmiq_emote_actors .button_bar .confirm_btn,#cosmiq_emote_props .button_bar .confirm_btn,#cosmiq_emote_traversable .button_bar .confirm_btn{margin-left:auto!important}',
+            '.cosmiq-simple-wizard{margin:0 0 18px;padding:18px 20px;border-bottom:1px solid var(--color-border,#343640);background:var(--color-back,#15161b);color:var(--color-text,#eee)}',
+            '.cosmiq-wizard-progress{display:grid;grid-template-columns:repeat(var(--cosmiq-step-count,3),minmax(0,1fr));gap:8px;margin-bottom:18px}',
+            '.cosmiq-wizard-step{position:relative;display:flex;min-width:0;align-items:center;gap:7px;color:var(--color-subtle_text,#999)}',
+            '.cosmiq-wizard-step:not(:last-child):after{position:absolute;z-index:0;right:-6px;left:32px;top:13px;height:2px;background:var(--color-border,#424552);content:""}',
+            '.cosmiq-wizard-step span{z-index:1;display:flex;width:27px;height:27px;flex:none;align-items:center;justify-content:center;border:2px solid var(--color-border,#545866);border-radius:50%;background:var(--color-ui,#252830);font-size:12px;font-weight:700}',
+            '.cosmiq-wizard-step span i{font-size:14px}.cosmiq-wizard-step span b{font-size:12px}',
+            '.cosmiq-wizard-step small{z-index:1;overflow:hidden;padding-right:4px;background:var(--color-back,#15161b);text-overflow:ellipsis;white-space:nowrap;font-size:11px}',
+            '.cosmiq-wizard-step.current{color:var(--color-text,#fff)}',
+            '.cosmiq-wizard-step.current span{border-color:var(--color-accent,#f36b91);background:var(--color-accent,#f36b91);color:var(--color-accent_text,#fff)}',
+            '.cosmiq-wizard-step.complete span{border-color:var(--color-accent,#f36b91);color:var(--color-accent,#f36b91)}',
+            '.cosmiq-wizard-step.locked{opacity:.68}',
+            '.cosmiq-wizard-heading{display:block!important;text-align:left}',
+            '.cosmiq-wizard-heading h2{display:block;margin:0 0 4px;font-size:23px;font-weight:400;line-height:1.2}',
+            '.cosmiq-wizard-heading p{display:block;margin:0;color:var(--color-subtle_text,#aaa);line-height:1.4}',
+            '.cosmiq-cape-coming-soon{margin:16px 20px;padding:20px;border:3px solid #ffd873;border-radius:8px;background:#423714;text-align:center}.cosmiq-cape-coming-soon>strong{display:block;color:#ffd873;font-size:30px;letter-spacing:.08em}.cosmiq-cape-coming-soon h2{margin:8px 0 5px}.cosmiq-cape-coming-soon p{margin:0;color:#f6e8b0}',
+            '.cosmiq-emote-intro{display:flex;align-items:center;gap:16px;margin:4px 0 16px}',
+            '.cosmiq-emote-intro img{width:150px;max-width:36%;border:1px solid var(--color-border,#373a45);border-radius:6px}',
+            '.cosmiq-emote-intro h2{margin:0 0 5px;font-weight:400}.cosmiq-emote-intro p{margin:0;color:var(--color-subtle_text,#aaa)}',
+            '.cosmiq-emote-summary{margin:0 20px 16px;padding:12px;border:1px solid var(--color-border,#343640);border-radius:5px;background:var(--color-ui,#23252d);text-align:center}',
+            '.cosmiq-emote-review{display:grid;gap:10px;margin:0 20px 20px}.cosmiq-emote-review>div{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1px solid var(--color-border,#3c3f49);border-radius:6px;background:var(--color-ui,#25272f)}.cosmiq-emote-review span{color:var(--color-subtle_text,#aaa);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.cosmiq-emote-review strong{font-size:18px;font-weight:500}.cosmiq-emote-review small{color:var(--color-subtle_text,#aaa);line-height:1.4}',
+            '.cosmiq-card-progress{margin:-8px 0 24px;padding-bottom:4px;border-bottom:1px solid var(--color-border,#343640)}',
+            '.cosmiq-export-review{padding:8px 18px 12px}.cosmiq-export-review h2{margin:16px 0 9px;font-size:19px;font-weight:500}',
+            '.cosmiq-export-models{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cosmiq-export-models>div{display:flex;flex-direction:column;gap:3px;padding:13px;border:1px solid var(--color-border,#3c3f49);border-radius:5px;background:var(--color-ui,#25272f)}',
+            '.cosmiq-export-models span,.cosmiq-export-review>p,.cosmiq-export-review li{color:var(--color-subtle_text,#aaa)}.cosmiq-export-review ul{margin:5px 0 8px;padding-left:23px}',
+            '.cosmiq-export-ready,.cosmiq-export-warning{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:4px}.cosmiq-export-ready{background:#213d32;color:#70e3aa!important}.cosmiq-export-warning{background:#512a33;color:#ff9bb1!important}.cosmiq-export-ready i,.cosmiq-export-warning i{font-size:19px}',
+            '.cosmiq-export-confirm{padding:20px 22px;color:var(--color-text,#eee);text-align:center}.cosmiq-export-confirm h1{margin:0 0 5px;font-size:27px;font-weight:400}.cosmiq-export-confirm>p{margin:0 auto 14px;color:var(--color-subtle_text,#aaa)}',
+            '.cosmiq-attachment-diagram{display:block;width:210px;max-width:65%;margin:14px auto 12px}.cosmiq-attachment-diagram .part{fill:#434957;stroke:#858da1;stroke-width:4}.cosmiq-attachment-diagram .selected{fill:var(--color-accent,#f36b91);stroke:#fff;stroke-width:6;filter:drop-shadow(0 0 7px rgba(243,107,145,.72))}',
+            '.cosmiq-animation-detection{display:inline-block;margin:0 0 15px;padding:5px 10px;border-radius:999px;background:var(--color-ui,#292c35);color:var(--color-subtle_text,#bbb);font-size:12px}',
+            '.cosmiq-copy-diagnostic{display:inline-flex;align-items:center;gap:6px;margin:0 auto 17px;padding:8px 13px;border:1px solid var(--color-border,#4a4e5a);border-radius:5px;background:var(--color-button,#30333c);color:var(--color-text,#eee);cursor:pointer}.cosmiq-copy-diagnostic i{font-size:18px}.cosmiq-copy-status{min-height:18px;margin:-10px 0 12px!important;color:#70e3aa!important;font-size:12px}',
+            '.cosmiq-export-advanced{border:1px solid var(--color-border,#3b3e48);border-radius:6px;background:var(--color-back,#17181d);text-align:left}.cosmiq-export-advanced>summary{padding:12px 14px;cursor:pointer;font-weight:500}.cosmiq-export-advanced[open]>summary{border-bottom:1px solid var(--color-border,#3b3e48)}',
+            '.cosmiq-format-page{display:flex;height:100%;min-height:0;flex-direction:column;color:var(--color-text,#eee)}',
+            '.cosmiq-format-page .format_target{margin-bottom:6px}',
+            '.cosmiq-format-content{display:flex;min-height:0;flex:1;flex-direction:column;overflow-y:auto}',
+            '.cosmiq-format-banner-link{display:block;margin:14px 0 4px;border-radius:5px;outline:none}',
+            '.cosmiq-format-banner-link:focus-visible{box-shadow:0 0 0 2px var(--color-accent,#f36b91)}',
+            '.cosmiq-format-banner{display:block;width:100%;max-height:180px;object-fit:contain}',
+            '.cosmiq-format-tagline{margin:0 20px 15px;color:var(--color-subtle_text,#aaa);text-align:center;line-height:1.4}',
+            '.cosmiq-format-notes{margin:0 0 8px;padding:0 8px}',
+            '.cosmiq-format-notes h2{margin:5px 0 8px;font-size:21px;font-weight:400}',
+            '.cosmiq-format-notes ul{margin:0;padding-left:25px}',
+            '.cosmiq-format-notes li{margin:0 0 7px;line-height:1.45}',
+            '.cosmiq-format-links{display:flex;flex-wrap:wrap;justify-content:space-around;gap:6px;margin-top:auto;padding:10px 8px 8px}',
+            '.cosmiq-format-links>a{display:flex;width:120px;min-height:82px;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:6px;border-radius:5px;color:var(--color-subtle_text,#aaa);text-align:center;text-decoration:none}',
+            '.cosmiq-format-links>a:hover{background:var(--color-button,#2d3039);color:var(--color-text,#fff)}',
+            '.cosmiq-format-links>a>i,.cosmiq-material-icon-frame{display:inline-flex!important;box-sizing:content-box;width:44px!important;min-width:44px;max-width:none!important;height:40px!important;min-height:40px;flex:none;align-items:center;justify-content:center;overflow:visible!important;font-size:32px!important;line-height:1!important;text-align:center}',
+            '.cosmiq-material-icon-frame>i.material-icons.icon{display:block!important;box-sizing:content-box!important;width:44px!important;min-width:44px!important;max-width:none!important;height:40px!important;margin:0!important;padding:0!important;overflow:visible!important;font-size:32px!important;line-height:40px!important;text-align:center!important;white-space:nowrap}',
+            '.cosmiq-format-links>a>i.cosmiq-about-website{color:#20e08f!important}',
+            '.cosmiq-format-links>a>i.cosmiq-about-discord{color:#5865f2!important}',
+            '.cosmiq-format-links>a>i.cosmiq-about-guides{color:#8b5cf6!important}',
+            '.cosmiq-format-links>a>i.cosmiq-about-youtube{color:#ff3b3b!important}',
+            '.cosmiq-format-links>a>span:not(.cosmiq-material-icon-frame){line-height:1.25}',
+            '.cosmiq-format-page .button_bar{margin-top:12px;margin-bottom:24px}',
+            '.cosmiq-format-actions{display:grid;gap:6px}',
+            '.cosmiq-format-actions>button{display:flex;width:100%;min-height:40px;align-items:center;justify-content:center;gap:7px;margin:0;font-size:15px}',
+            '.cosmiq-format-actions>button>i{font-size:20px}',
+            '@media(max-width:620px){.cosmiq-creation-grid{grid-template-columns:1fr}.cosmiq-creation-picker{padding:18px}.cosmiq-creation-card{min-height:220px}.cosmiq-creation-image{height:140px}.cosmiq-wizard-step{justify-content:center}.cosmiq-wizard-step small{display:none}.cosmiq-wizard-step:not(:last-child):after{right:-12px;left:50%}}'
+        ].join('');
+        document.head.appendChild(pluginStyle);
+    }
+
+    function normalizeBodySlots(value) {
+        const normalizedSlots = [];
+        listValues(value).forEach(function (slot) {
+            const normalizedSlot = String(slot == null ? '' : slot).trim().toLowerCase();
+            if (normalizedSlot) normalizedSlots.push(normalizedSlot);
+        });
+        return uniqueValues(normalizedSlots);
+    }
+
+    function canonicalAnchorId(value) {
+        return String(value == null ? '' : value).trim();
+    }
+
+    function selectedAnchorIdsFromForm(form) {
+        const values = form || {};
+        return BODY_PART_FIELDS.filter(function (part) {
+            return values[part.formKey] === true;
+        }).map(function (part) {
+            return part.anchorId;
+        });
+    }
+
+    function newCosmeticAnchorIds() {
+        return ALL_BODY_PART_ANCHOR_IDS.slice();
+    }
+
+    function bodySlotsForAnchors(anchorIds) {
+        return uniqueValues(listValues(anchorIds).map(function (anchorId) {
+            return anchorById[canonicalAnchorId(anchorId)] || null;
+        }).filter(Boolean).map(function (anchor) {
+            return anchor.slot;
+        }));
+    }
+
+    function bodySlotsFromNodeBindings(nodeBindings) {
+        const usedAnchors = Object.create(null);
+        Object.keys(nodeBindings || {}).forEach(function (nodeUuid) {
+            const binding = nodeBindings[nodeUuid];
+            if (binding && isKnownAnchor(binding.anchorId)) {
+                usedAnchors[binding.anchorId] = true;
+            }
+        });
+        return bodySlotsForAnchors(BODY_PART_FIELDS.map(function (part) {
+            return part.anchorId;
+        }).filter(function (anchorId) {
+            return usedAnchors[anchorId] === true;
+        }));
+    }
+
+    function modelVariantFromNodeBindings(nodeBindings, fallback) {
+        let hasWide = false;
+        let hasSlim = false;
+        Object.keys(nodeBindings || {}).forEach(function (nodeUuid) {
+            const binding = nodeBindings[nodeUuid];
+            if (!binding || binding.hasGeometry !== true) {
+                return;
+            }
+            hasWide = hasWide || binding.modelVariant === 'wide';
+            hasSlim = hasSlim || binding.modelVariant === 'slim';
+        });
+        if (hasWide && hasSlim) {
+            return 'universal';
+        }
+        if (hasSlim) {
+            return 'slim';
+        }
+        if (hasWide) {
+            return 'wide';
+        }
+        return MODEL_VARIANTS.indexOf(fallback) === -1 ? 'universal' : fallback;
+    }
+
+    function numberOrDefault(value, fallback) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+    }
+
+    function bodySlotsForProject(project) {
+        const bodySlots = normalizeBodySlots(project.bodySlots);
+        if (bodySlots.length > 0) {
+            return bodySlots;
+        }
+        const primarySlot = String(project.slotId || '').trim().toLowerCase();
+        return [primarySlot || 'cosmiq:slot/body'];
+    }
+
+    function defaultTextureVariants() {
+        return [{id: 'default', replacements: {}}];
+    }
+
+    function inferredTextureVariantId(name, fallbackIndex) {
+        const stem = String(name || '')
+            .replace(/^.*[\\/]/, '')
+            .replace(/\.png$/i, '')
+            .replace(/^varient/i, 'variant')
+            .toLowerCase()
+            .replace(/[^a-z0-9._-]+/g, '_')
+            .replace(/^[._-]+|[._-]+$/g, '');
+        if (/^[a-z][a-z0-9._-]{0,63}$/.test(stem) && stem !== 'default') {
+            return stem;
+        }
+        return 'variant_' + fallbackIndex;
+    }
+
+    function textureVariantsFromTextures(textures, nodes) {
+        const sourceTextures = Array.isArray(textures) ? textures : [];
+        const variants = defaultTextureVariants();
+        const byId = Object.create(null);
+        const explicitlyConfiguredTextureUuids = Object.create(null);
+        sourceTextures.forEach(function (texture) {
+            const id = String(texture.variantId || '').trim().toLowerCase();
+            if (!id) return;
+            let variant = byId[id];
+            if (!variant) {
+                variant = {
+                    id: id,
+                    replacements: {}
+                };
+                byId[id] = variant;
+                variants.push(variant);
+            }
+            variant.replacements[String(texture.variantBaseUuid || '')] = String(texture.uuid || '');
+            explicitlyConfiguredTextureUuids[String(texture.uuid || '')] = true;
+        });
+
+        // Accessory artists usually import color PNGs beside the texture already
+        // used by their model. Treat unused, same-size PNGs as variants without
+        // requiring every texture to be configured in Blockbench. Template skins
+        // and particle atlases are intentionally excluded.
+        if (!Array.isArray(nodes) || variants.length >= 10) {
+            return variants;
+        }
+        const usageByTextureUuid = Object.create(null);
+        nodes.forEach(function (node) {
+            if (!node || node.export === false || Number(node.triangleCount) <= 0 ||
+                node.role === ROLES.REFERENCE || node.role === ROLES.PARTICLE_MARKER) {
+                return;
+            }
+            (Array.isArray(node.textureUuids) ? node.textureUuids : []).forEach(function (uuid) {
+                const key = String(uuid || '');
+                if (key) usageByTextureUuid[key] = (usageByTextureUuid[key] || 0) + 1;
+            });
+        });
+        const candidatesByUuid = Object.create(null);
+        sourceTextures.forEach(function (texture, index) {
+            const uuid = String(texture && texture.uuid || '');
+            candidatesByUuid[uuid] = {
+                texture: texture,
+                index: index,
+                usage: usageByTextureUuid[uuid] || 0
+            };
+        });
+        const baseCandidates = Object.keys(usageByTextureUuid).map(function (uuid) {
+            return candidatesByUuid[uuid];
+        }).filter(function (entry) {
+            return entry && entry.texture && entry.texture.role !== ROLES.REFERENCE &&
+                entry.texture.role !== 'particle_sprite' &&
+                !explicitlyConfiguredTextureUuids[String(entry.texture.uuid || '')];
+        }).sort(function (left, right) {
+            const leftArea = Number(left.texture.width) * Number(left.texture.height);
+            const rightArea = Number(right.texture.width) * Number(right.texture.height);
+            return right.usage - left.usage || rightArea - leftArea || left.index - right.index;
+        });
+        const base = baseCandidates[0] && baseCandidates[0].texture;
+        if (!base || Number(base.width) <= 0 || Number(base.height) <= 0) {
+            return variants;
+        }
+        const reservedNames = {wide: true, slim: true, cape: true};
+        const usedIds = Object.create(null);
+        variants.forEach(function (variant) { usedIds[variant.id] = true; });
+        sourceTextures.map(function (texture, index) {
+            return {texture: texture, index: index};
+        }).filter(function (entry) {
+            const texture = entry.texture || {};
+            const fileName = String(texture.name || '').replace(/^.*[\\/]/, '').replace(/\.png$/i, '').toLowerCase();
+            const uuid = String(texture.uuid || '');
+            return uuid && uuid !== String(base.uuid || '') &&
+                !reservedNames[fileName] &&
+                texture.role !== ROLES.REFERENCE &&
+                texture.role !== 'particle_sprite' &&
+                !texture.variantId &&
+                !usageByTextureUuid[uuid] &&
+                !explicitlyConfiguredTextureUuids[uuid] &&
+                Number(texture.width) === Number(base.width) &&
+                Number(texture.height) === Number(base.height);
+        }).sort(function (left, right) {
+            const leftNamed = /^(?:variant|varient)/i.test(String(left.texture.name || '')) ? 0 : 1;
+            const rightNamed = /^(?:variant|varient)/i.test(String(right.texture.name || '')) ? 0 : 1;
+            return leftNamed - rightNamed || left.index - right.index;
+        }).slice(0, 10 - variants.length).forEach(function (entry, index) {
+            let id = inferredTextureVariantId(entry.texture.name, variants.length + index);
+            let suffix = 2;
+            const baseId = id;
+            while (usedIds[id]) {
+                id = (baseId.slice(0, 61) + '_' + suffix).slice(0, 64);
+                suffix += 1;
+            }
+            usedIds[id] = true;
+            variants.push({
+                id: id,
+                replacements: {}
+            });
+            variants[variants.length - 1].replacements[String(base.uuid || '')] =
+                String(entry.texture.uuid || '');
+        });
+        return variants;
+    }
+
+    function containsForbiddenControl(value, allowLayoutWhitespace) {
+        for (let index = 0; index < value.length; index++) {
+            const code = value.charCodeAt(index);
+            const isControl = code <= 0x1f || (code >= 0x7f && code <= 0x9f);
+            const isAllowedLayout = allowLayoutWhitespace && (code === 0x09 || code === 0x0a || code === 0x0d);
+            if (isControl && !isAllowedLayout) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function encodeUtf8(value) {
+        if (typeof TextEncoder === 'undefined') {
+            throw new Error('This Blockbench build does not provide UTF-8 TextEncoder support.');
+        }
+        return new TextEncoder().encode(String(value));
+    }
+
+    function isEmbeddedPngDataUri(value) {
+        return typeof value === 'string' &&
+            /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/.test(value);
+    }
+
+    function validateJsonBounds(root) {
+        const issues = [];
+        const pending = [{value: root, depth: 0}];
+        const seen = new Set();
+        let valueCount = 0;
+        let depthExceeded = false;
+        let valueLimitExceeded = false;
+        while (pending.length > 0 && !valueLimitExceeded) {
+            const current = pending.pop();
+            valueCount++;
+            if (valueCount > PACKAGE_LIMITS.jsonValues) {
+                valueLimitExceeded = true;
+                break;
+            }
+            if (current.depth > PACKAGE_LIMITS.jsonDepth) {
+                depthExceeded = true;
+                continue;
+            }
+            const value = current.value;
+            if (!value || typeof value !== 'object' || seen.has(value)) {
+                continue;
+            }
+            seen.add(value);
+            const keys = Object.keys(value);
+            if (valueCount + pending.length + keys.length > PACKAGE_LIMITS.jsonValues) {
+                valueLimitExceeded = true;
+                break;
+            }
+            keys.forEach(function (key) {
+                if (key === '__proto__' || key === 'prototype' || key === 'constructor') {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_PACKAGE_JSON_KEY',
+                        'Embedded source contains an unsafe object key.'
+                    ));
+                    return;
+                }
+                pending.push({value: value[key], depth: current.depth + 1});
+            });
+        }
+        if (depthExceeded) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PACKAGE_JSON_DEPTH',
+                'Embedded source exceeds the maximum JSON depth of ' + PACKAGE_LIMITS.jsonDepth + '.'
+            ));
+        }
+        if (valueLimitExceeded) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PACKAGE_JSON_VALUES',
+                'Embedded source exceeds the maximum JSON value count of ' + PACKAGE_LIMITS.jsonValues + '.'
+            ));
+        }
+        return issues;
+    }
+
+    function animationKeyframeCount(animation) {
+        if (!animation || typeof animation !== 'object') {
+            return 0;
+        }
+        if (animation.animators && typeof animation.animators === 'object') {
+            return Object.keys(animation.animators).reduce(function (total, animatorKey) {
+                const animator = animation.animators[animatorKey];
+                return total + (animator && Array.isArray(animator.keyframes) ? animator.keyframes.length : 0);
+            }, 0);
+        }
+        if (typeof animation.keyframeCount === 'number' && Number.isFinite(animation.keyframeCount)) {
+            return Math.max(0, Math.floor(animation.keyframeCount));
+        }
+        return 0;
+    }
+
+    function animationsWithKeyframes(animations) {
+        return (Array.isArray(animations) ? animations : []).filter(function (animation) {
+            return animationKeyframeCount(animation) > 0;
+        });
+    }
+
+    function animationHasPackageContent(animation) {
+        return animationKeyframeCount(animation) > 0;
+    }
+
+    function animationsWithPackageContent(animations, timelineCues) {
+        return (Array.isArray(animations) ? animations : []).filter(function (animation) {
+            return animationHasPackageContent(animation, timelineCues);
+        });
+    }
+
+    function packageBytes(content) {
+        if (content instanceof ArrayBuffer) {
+            return new Uint8Array(content);
+        }
+        if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(content)) {
+            return new Uint8Array(content.buffer, content.byteOffset, content.byteLength);
+        }
+        throw new Error('Cosmiq package content must be binary data.');
+    }
+
+    function decodeUtf8(bytes) {
+        if (typeof TextDecoder === 'undefined') {
+            throw new Error('This Blockbench build cannot decode UTF-8 package data.');
+        }
+        return new TextDecoder('utf-8', {fatal: true}).decode(bytes);
+    }
+
+    /*
+     * Private normalized validation projection used by Creator review. V3 package bytes are the
+     * Blockbench project itself and never expose this historical binary frame.
+     */
+    const COSMIQ_RUNTIME_SCHEMA = 'cosmiq.package.v2';
+    const COSMIQ_STANDARD_COORDINATES = 'cosmiq.coordinates.v1';
+    const COSMIQ_STANDARD_CONTAINER_VERSION = 2;
+    const COSMIQ_STANDARD_HEADER_BYTES = 64;
+    const COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES = 80;
+    const COSMIQ_STANDARD_MAX_SECTIONS = 128;
+    const COSMIQ_STANDARD_SECTION_TYPES = Object.freeze({
+        manifest_json: 1,
+        geometry_buffer: 2,
+        animation_buffer: 3,
+        texture_png: 4,
+        audio_ogg_vorbis: 5
+    });
+    const COSMIQ_STANDARD_SECTION_NAMES = Object.freeze({
+        1: 'manifest_json',
+        2: 'geometry_buffer',
+        3: 'animation_buffer',
+        4: 'texture_png',
+        5: 'audio_ogg_vorbis'
+    });
+    const COSMIQ_STANDARD_TOP_LEVEL_FIELDS = Object.freeze([
+        'schemaVersion', 'assetKind', 'coordinateProfile', 'bodyGroup', 'capeMesh',
+        'movementPolicy', 'previewCamera', 'sections', 'actors', 'nodes', 'materials',
+        'geometry', 'textures', 'textureVariants', 'clips', 'stateBindings', 'audio',
+        'particles', 'locators', 'cues', 'outcomeSets', 'logic'
+    ]);
+    const COSMIQ_STANDARD_OPTIONAL_TOP_LEVEL_FIELDS = Object.freeze([
+        'playerAppearance'
+    ]);
+    const COSMIQ_LOCAL_ID_PATTERN = /^[a-z][a-z0-9._-]{0,63}$/;
+
+    function CosmiqValidationError(code, message, location) {
+        const instance = new Error(code + ': ' + message);
+        instance.name = 'CosmiqValidationError';
+        instance.code = code;
+        instance.location = location || null;
+        if (typeof Object.setPrototypeOf === 'function') {
+            if (!(CosmiqValidationError.prototype instanceof Error)) {
+                Object.setPrototypeOf(CosmiqValidationError.prototype, Error.prototype);
+            }
+            Object.setPrototypeOf(instance, CosmiqValidationError.prototype);
+        }
+        return instance;
+    }
+
+    function cosmiqFail(code, message, location) {
+        throw new CosmiqValidationError(code, message, location);
+    }
+
+    function cosmiqAlign8(value) {
+        return (value + 7) & ~7;
+    }
+
+    function cosmiqCompareText(left, right) {
+        return left < right ? -1 : left > right ? 1 : 0;
+    }
+
+    function cosmiqBytes(value) {
+        if (value instanceof ArrayBuffer) {
+            return new Uint8Array(value);
+        }
+        if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(value)) {
+            return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+        }
+        cosmiqFail('header.invalid_length', 'The package must be supplied as exact binary bytes.');
+    }
+
+    function cosmiqReadU64(view, offset, code) {
+        const low = view.getUint32(offset, true);
+        const high = view.getUint32(offset + 4, true);
+        if (high > 0x1fffff) {
+            cosmiqFail(code || 'directory.invalid', 'A 64-bit value exceeds the exact integer range.');
+        }
+        return high * 0x100000000 + low;
+    }
+
+    function cosmiqWriteU64(view, offset, value) {
+        if (!Number.isSafeInteger(value) || value < 0) {
+            cosmiqFail('directory.invalid', 'A 64-bit field is outside the supported exact range.');
+        }
+        view.setUint32(offset, value >>> 0, true);
+        view.setUint32(offset + 4, Math.floor(value / 0x100000000), true);
+    }
+
+    function cosmiqValidUnicode(value) {
+        for (let index = 0; index < value.length; index++) {
+            const code = value.charCodeAt(index);
+            if (code >= 0xd800 && code <= 0xdbff) {
+                const next = value.charCodeAt(index + 1);
+                if (next < 0xdc00 || next > 0xdfff) return false;
+                index++;
+            } else if (code >= 0xdc00 && code <= 0xdfff) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function canonicalCosmiqJson(value) {
+        const active = new Set();
+        function serialize(item, location) {
+            if (item === null) return 'null';
+            if (typeof item === 'string') {
+                if (!cosmiqValidUnicode(item)) {
+                    cosmiqFail('manifest.invalid_json', 'JSON strings must contain valid Unicode.', location);
+                }
+                return JSON.stringify(item);
+            }
+            if (typeof item === 'number') {
+                if (!Number.isFinite(item)) {
+                    cosmiqFail('manifest.invalid_json', 'JSON numbers must be finite.', location);
+                }
+                return JSON.stringify(item);
+            }
+            if (typeof item === 'boolean') return item ? 'true' : 'false';
+            if (!item || typeof item !== 'object') {
+                cosmiqFail('manifest.invalid_json', 'Unsupported JSON value.', location);
+            }
+            if (active.has(item)) {
+                cosmiqFail('manifest.invalid_json', 'Cyclic JSON values are invalid.', location);
+            }
+            active.add(item);
+            let result;
+            if (Array.isArray(item)) {
+                result = '[' + item.map(function (child, index) {
+                    return serialize(child, location + '[' + index + ']');
+                }).join(',') + ']';
+            } else {
+                const prototype = Object.getPrototypeOf(item);
+                if (prototype !== Object.prototype && prototype !== null) {
+                    cosmiqFail('manifest.invalid_json', 'Manifest objects must be ordinary JSON objects.', location);
+                }
+                const keys = Object.keys(item).sort();
+                result = '{' + keys.map(function (key) {
+                    if (!cosmiqValidUnicode(key)) {
+                        cosmiqFail('manifest.invalid_json', 'JSON object keys must contain valid Unicode.', location);
+                    }
+                    return JSON.stringify(key) + ':' + serialize(item[key], location + '.' + key);
+                }).join(',') + '}';
+            }
+            active.delete(item);
+            return result;
+        }
+        return serialize(value, '$');
+    }
+
+    function cosmiqValidateJsonBounds(value) {
+        let count = 0;
+        const pending = [{value: value, depth: 1}];
+        while (pending.length) {
+            const current = pending.pop();
+            count++;
+            if (count > 250000) cosmiqFail('budget.exceeded', 'Manifest JSON value budget exceeded.', '$');
+            if (current.depth > 64) cosmiqFail('budget.exceeded', 'Manifest JSON depth exceeds 64.', '$');
+            if (current.value && typeof current.value === 'object') {
+                Object.keys(current.value).forEach(function (key) {
+                    pending.push({value: current.value[key], depth: current.depth + 1});
+                });
+            }
+        }
+    }
+
+    function cosmiqSha256(input) {
+        const bytes = cosmiqBytes(input);
+        const bitLength = bytes.length * 8;
+        const paddedLength = Math.ceil((bytes.length + 9) / 64) * 64;
+        const padded = new Uint8Array(paddedLength);
+        padded.set(bytes);
+        padded[bytes.length] = 0x80;
+        const padView = new DataView(padded.buffer);
+        const bitHigh = Math.floor(bitLength / 0x100000000);
+        const bitLow = bitLength >>> 0;
+        padView.setUint32(paddedLength - 8, bitHigh, false);
+        padView.setUint32(paddedLength - 4, bitLow, false);
+        const constants = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
+            0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+            0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
+            0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
+            0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+            0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+            0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
+            0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+            0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+        ];
+        const state = [
+            0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+            0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+        ];
+        const words = new Uint32Array(64);
+        function rotate(value, bits) {
+            return (value >>> bits) | (value << (32 - bits));
+        }
+        for (let block = 0; block < padded.length; block += 64) {
+            for (let index = 0; index < 16; index++) {
+                words[index] = padView.getUint32(block + index * 4, false);
+            }
+            for (let index = 16; index < 64; index++) {
+                const left = words[index - 15];
+                const right = words[index - 2];
+                const s0 = rotate(left, 7) ^ rotate(left, 18) ^ (left >>> 3);
+                const s1 = rotate(right, 17) ^ rotate(right, 19) ^ (right >>> 10);
+                words[index] = (words[index - 16] + s0 + words[index - 7] + s1) >>> 0;
+            }
+            let a = state[0];
+            let b = state[1];
+            let c = state[2];
+            let d = state[3];
+            let e = state[4];
+            let f = state[5];
+            let g = state[6];
+            let h = state[7];
+            for (let index = 0; index < 64; index++) {
+                const sum1 = rotate(e, 6) ^ rotate(e, 11) ^ rotate(e, 25);
+                const choice = (e & f) ^ (~e & g);
+                const temp1 = (h + sum1 + choice + constants[index] + words[index]) >>> 0;
+                const sum0 = rotate(a, 2) ^ rotate(a, 13) ^ rotate(a, 22);
+                const majority = (a & b) ^ (a & c) ^ (b & c);
+                const temp2 = (sum0 + majority) >>> 0;
+                h = g;
+                g = f;
+                f = e;
+                e = (d + temp1) >>> 0;
+                d = c;
+                c = b;
+                b = a;
+                a = (temp1 + temp2) >>> 0;
+            }
+            state[0] = (state[0] + a) >>> 0;
+            state[1] = (state[1] + b) >>> 0;
+            state[2] = (state[2] + c) >>> 0;
+            state[3] = (state[3] + d) >>> 0;
+            state[4] = (state[4] + e) >>> 0;
+            state[5] = (state[5] + f) >>> 0;
+            state[6] = (state[6] + g) >>> 0;
+            state[7] = (state[7] + h) >>> 0;
+        }
+        const digest = new Uint8Array(32);
+        const digestView = new DataView(digest.buffer);
+        state.forEach(function (value, index) {
+            digestView.setUint32(index * 4, value, false);
+        });
+        return digest;
+    }
+
+    function cosmiqEqualBytes(left, right) {
+        if (left.length !== right.length) return false;
+        let difference = 0;
+        for (let index = 0; index < left.length; index++) {
+            difference |= left[index] ^ right[index];
+        }
+        return difference === 0;
+    }
+
+    function cosmiqPlainObject(value) {
+        return !!value && typeof value === 'object' && !Array.isArray(value);
+    }
+
+    function cosmiqClosedObject(value, fields, location, code) {
+        if (!cosmiqPlainObject(value)) {
+            cosmiqFail(code || 'kind.invariant_violation', 'Expected a closed object.', location);
+        }
+        const keys = Object.keys(value).sort();
+        const expected = fields.slice().sort();
+        if (keys.length !== expected.length || keys.some(function (key, index) {
+            return key !== expected[index];
+        })) {
+            const unknown = keys.find(function (key) { return expected.indexOf(key) === -1; });
+            cosmiqFail(
+                unknown ? 'manifest.unknown_field' : (code || 'kind.invariant_violation'),
+                unknown ? 'Unknown field ' + unknown + '.' : 'Required fields are missing.',
+                location
+            );
+        }
+    }
+
+    function cosmiqClosedManifest(value) {
+        if (!cosmiqPlainObject(value)) {
+            cosmiqFail('kind.invariant_violation', 'Expected a closed object.', '$');
+        }
+        const allowed = COSMIQ_STANDARD_TOP_LEVEL_FIELDS.concat(
+            COSMIQ_STANDARD_OPTIONAL_TOP_LEVEL_FIELDS
+        );
+        const unknown = Object.keys(value).find(function (key) {
+            return allowed.indexOf(key) === -1;
+        });
+        const missing = COSMIQ_STANDARD_TOP_LEVEL_FIELDS.find(function (key) {
+            return !Object.hasOwn(value, key);
+        });
+        if (unknown || missing) {
+            cosmiqFail(
+                unknown ? 'manifest.unknown_field' : 'kind.invariant_violation',
+                unknown ? 'Unknown field ' + unknown + '.' : 'Required fields are missing.',
+                '$'
+            );
+        }
+    }
+
+    function cosmiqArray(value, location) {
+        if (!Array.isArray(value)) {
+            cosmiqFail('kind.invariant_violation', 'Expected an array.', location);
+        }
+        return value;
+    }
+
+    function cosmiqNumber(value, minimum, maximum, location, integer) {
+        if (typeof value !== 'number' || !Number.isFinite(value) || Object.is(value, -0) ||
+            (integer && !Number.isInteger(value)) || value < minimum || value > maximum) {
+            cosmiqFail('kind.invariant_violation', 'Numeric value is outside its allowed range.', location);
+        }
+        return value;
+    }
+
+    function cosmiqLocalId(value, location) {
+        if (typeof value !== 'string' || !COSMIQ_LOCAL_ID_PATTERN.test(value)) {
+            cosmiqFail('kind.invariant_violation', 'Expected a Local ID.', location);
+        }
+        return value;
+    }
+
+    function cosmiqRequireSorted(collection, keyFor, location, startIndex) {
+        const start = startIndex || 0;
+        let previous = '';
+        for (let index = start; index < collection.length; index++) {
+            const key = keyFor(collection[index]);
+            if (index > start && key <= previous) {
+                cosmiqFail('kind.invariant_violation', 'Collection is not in canonical order.', location);
+            }
+            previous = key;
+        }
+    }
+
+    function cosmiqVector(value, length, minimum, maximum, location) {
+        cosmiqArray(value, location);
+        if (value.length !== length) {
+            cosmiqFail('kind.invariant_violation', 'Vector has the wrong component count.', location);
+        }
+        value.forEach(function (component, index) {
+            cosmiqNumber(component, minimum, maximum, location + '[' + index + ']', false);
+        });
+        return value;
+    }
+
+    function cosmiqTransform(value, location, limits) {
+        cosmiqClosedObject(value, ['translation', 'rotation', 'scale', 'pivot'], location);
+        const bound = limits == null ? 8 : limits;
+        cosmiqVector(value.translation, 3, -bound, bound, location + '.translation');
+        cosmiqVector(value.pivot, 3, -bound, bound, location + '.pivot');
+        cosmiqVector(value.scale, 3, 0.0000001, 16, location + '.scale');
+        cosmiqVector(value.rotation, 4, -1, 1, location + '.rotation');
+        const length = Math.sqrt(value.rotation.reduce(function (sum, component) {
+            return sum + component * component;
+        }, 0));
+        if (Math.abs(length - 1) > 0.0001) {
+            cosmiqFail('kind.invariant_violation', 'Quaternion is not normalized.', location + '.rotation');
+        }
+    }
+
+    function cosmiqValidatePreviewCamera(manifest, clipIds, rootNodeIds) {
+        const camera = manifest.previewCamera;
+        cosmiqClosedObject(camera, ['id', 'transform', 'projection', 'pose'], '$.previewCamera', 'camera.invalid');
+        if (camera.id !== 'thumbnail_camera') {
+            cosmiqFail('camera.invalid', 'The preview Camera Node ID must be thumbnail_camera.', '$.previewCamera.id');
+        }
+        cosmiqTransform(camera.transform, '$.previewCamera.transform', 64);
+        if (JSON.stringify(camera.transform.scale) !== '[1,1,1]' ||
+            JSON.stringify(camera.transform.pivot) !== '[0,0,0]') {
+            cosmiqFail('camera.invalid', 'Camera scale and pivot must be identity.', '$.previewCamera.transform');
+        }
+        cosmiqClosedObject(
+            camera.projection,
+            ['kind', 'verticalFovDegrees', 'nearPlane', 'farPlane'],
+            '$.previewCamera.projection',
+            'camera.invalid'
+        );
+        if (camera.projection.kind !== 'perspective') {
+            cosmiqFail('camera.invalid', 'Only perspective preview cameras are supported.', '$.previewCamera.projection.kind');
+        }
+        cosmiqNumber(camera.projection.verticalFovDegrees, 10, 90, '$.previewCamera.projection.verticalFovDegrees');
+        cosmiqNumber(camera.projection.nearPlane, 0.001, 1, '$.previewCamera.projection.nearPlane');
+        cosmiqNumber(camera.projection.farPlane, 0.001, 256, '$.previewCamera.projection.farPlane');
+        if (camera.projection.farPlane <= camera.projection.nearPlane) {
+            cosmiqFail('camera.invalid', 'The far plane must be greater than the near plane.', '$.previewCamera.projection');
+        }
+        cosmiqClosedObject(
+            camera.pose,
+            ['clipId', 'timeMs', 'modelVariant', 'visiblePropRootIds'],
+            '$.previewCamera.pose',
+            'camera.invalid'
+        );
+        if (camera.pose.clipId === null) {
+            if (camera.pose.timeMs !== 0) {
+                cosmiqFail('camera.invalid', 'A bind-pose camera must use timeMs 0.', '$.previewCamera.pose.timeMs');
+            }
+        } else {
+            cosmiqLocalId(camera.pose.clipId, '$.previewCamera.pose.clipId');
+            if (!clipIds[camera.pose.clipId]) {
+                cosmiqFail('camera.invalid', 'The preview clip does not resolve.', '$.previewCamera.pose.clipId');
+            }
+            cosmiqNumber(camera.pose.timeMs, 0, clipIds[camera.pose.clipId], '$.previewCamera.pose.timeMs', true);
+        }
+        const visible = cosmiqArray(camera.pose.visiblePropRootIds, '$.previewCamera.pose.visiblePropRootIds');
+        let previous = '';
+        visible.forEach(function (id, index) {
+            cosmiqLocalId(id, '$.previewCamera.pose.visiblePropRootIds[' + index + ']');
+            if (!rootNodeIds[id] || id <= previous) {
+                cosmiqFail('camera.invalid', 'Visible Prop roots must be sorted, unique, and resolve.', '$.previewCamera.pose.visiblePropRootIds');
+            }
+            previous = id;
+        });
+        if (manifest.assetKind === 'accessory') {
+            if (['universal', 'wide', 'slim'].indexOf(camera.pose.modelVariant) === -1 || visible.length) {
+                cosmiqFail('camera.invalid', 'Accessory camera pose has invalid variant or visible Props.', '$.previewCamera.pose');
+            }
+        } else if (camera.pose.modelVariant !== null) {
+            cosmiqFail('camera.invalid', 'Cape and Emote cameras use a null model variant.', '$.previewCamera.pose.modelVariant');
+        }
+        if (manifest.assetKind === 'cape' && (camera.pose.clipId !== null || visible.length)) {
+            cosmiqFail('camera.invalid', 'Cape cameras use the bind pose with no Props.', '$.previewCamera.pose');
+        }
+    }
+
+    function cosmiqCrc32(bytes, start, end) {
+        let crc = 0xffffffff;
+        for (let index = start; index < end; index++) {
+            crc ^= bytes[index];
+            for (let bit = 0; bit < 8; bit++) {
+                crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+            }
+        }
+        return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function cosmiqInspectPng(input, location) {
+        const bytes = cosmiqBytes(input);
+        const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        if (bytes.length < 33 || signature.some(function (value, index) { return bytes[index] !== value; })) {
+            cosmiqFail('media.invalid_png', 'PNG signature is invalid.', location);
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const allowed = {IHDR: true, PLTE: true, tRNS: true, sRGB: true, gAMA: true, IDAT: true, IEND: true};
+        let offset = 8;
+        let stage = 'start';
+        let width = 0;
+        let height = 0;
+        let bitDepth = 0;
+        let colorType = 0;
+        let paletteEntries = 0;
+        let idatCount = 0;
+        let gammaValue = null;
+        const seen = Object.create(null);
+        while (offset < bytes.length) {
+            if (offset + 12 > bytes.length) cosmiqFail('media.invalid_png', 'PNG chunk is truncated.', location);
+            const length = view.getUint32(offset, false);
+            const chunkEnd = offset + 12 + length;
+            if (chunkEnd > bytes.length) cosmiqFail('media.invalid_png', 'PNG chunk exceeds its section.', location);
+            const type = String.fromCharCode(
+                bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]
+            );
+            if (!allowed[type]) cosmiqFail('media.invalid_png', 'PNG contains forbidden chunk ' + type + '.', location);
+            const expectedCrc = view.getUint32(offset + 8 + length, false);
+            const actualCrc = cosmiqCrc32(bytes, offset + 4, offset + 8 + length);
+            if (expectedCrc !== actualCrc) cosmiqFail('media.invalid_png', 'PNG chunk CRC is invalid.', location);
+            if (type === 'IHDR') {
+                if (stage !== 'start' || length !== 13) cosmiqFail('media.invalid_png', 'PNG IHDR is invalid.', location);
+                width = view.getUint32(offset + 8, false);
+                height = view.getUint32(offset + 12, false);
+                bitDepth = bytes[offset + 16];
+                colorType = bytes[offset + 17];
+                const legalDepths = {
+                    0: [1, 2, 4, 8, 16],
+                    2: [8, 16],
+                    3: [1, 2, 4, 8],
+                    4: [8, 16],
+                    6: [8, 16]
+                };
+                if (!width || !height || !legalDepths[colorType] ||
+                    legalDepths[colorType].indexOf(bitDepth) === -1 ||
+                    bytes[offset + 18] !== 0 || bytes[offset + 19] !== 0 || bytes[offset + 20] !== 0) {
+                    cosmiqFail('media.invalid_png', 'PNG IHDR properties are unsupported.', location);
+                }
+                stage = 'before_idat';
+            } else if (type === 'IDAT') {
+                if (colorType === 3 && !seen.PLTE) {
+                    cosmiqFail('media.invalid_png', 'Indexed PNG requires a palette before image data.', location);
+                }
+                if (stage !== 'before_idat' && stage !== 'idat') {
+                    cosmiqFail('media.invalid_png', 'PNG IDAT chunks must be consecutive.', location);
+                }
+                stage = 'idat';
+                idatCount++;
+            } else if (type === 'IEND') {
+                if (stage !== 'idat' || length !== 0 || idatCount === 0 || chunkEnd !== bytes.length) {
+                    cosmiqFail('media.invalid_png', 'PNG IEND or trailing bytes are invalid.', location);
+                }
+                stage = 'end';
+            } else {
+                if (stage !== 'before_idat' || seen[type]) {
+                    cosmiqFail('media.invalid_png', 'PNG ancillary chunk ordering is invalid.', location);
+                }
+                if (type === 'PLTE') {
+                    paletteEntries = length / 3;
+                    if (length < 3 || length > 768 || length % 3 !== 0 ||
+                        colorType === 0 || colorType === 4 || seen.tRNS ||
+                        (colorType === 3 && paletteEntries > Math.pow(2, bitDepth))) {
+                        cosmiqFail('media.invalid_png', 'PNG palette is invalid for its color type.', location);
+                    }
+                } else if (type === 'tRNS') {
+                    const maxSample = bitDepth === 16 ? 65535 : Math.pow(2, bitDepth) - 1;
+                    if ((colorType === 0 && length !== 2) ||
+                        (colorType === 2 && length !== 6) ||
+                        (colorType === 3 && (!seen.PLTE || length < 1 || length > paletteEntries)) ||
+                        colorType === 4 || colorType === 6) {
+                        cosmiqFail('media.invalid_png', 'PNG transparency chunk is invalid.', location);
+                    }
+                    if ((colorType === 0 && view.getUint16(offset + 8, false) > maxSample) ||
+                        (colorType === 2 && [0, 2, 4].some(function (channelOffset) {
+                            return view.getUint16(offset + 8 + channelOffset, false) > maxSample;
+                        }))) {
+                        cosmiqFail('media.invalid_png', 'PNG transparency sample exceeds its bit depth.', location);
+                    }
+                } else if (type === 'sRGB') {
+                    if (length !== 1 || bytes[offset + 8] > 3 || seen.PLTE || seen.tRNS) {
+                        cosmiqFail('media.invalid_png', 'PNG sRGB chunk is invalid.', location);
+                    }
+                } else if (type === 'gAMA') {
+                    gammaValue = length === 4 ? view.getUint32(offset + 8, false) : null;
+                    if (length !== 4 || gammaValue === 0 || seen.PLTE || seen.tRNS) {
+                        cosmiqFail('media.invalid_png', 'PNG gamma chunk is invalid.', location);
+                    }
+                }
+                seen[type] = true;
+            }
+            offset = chunkEnd;
+        }
+        if (stage !== 'end') cosmiqFail('media.invalid_png', 'PNG is incomplete.', location);
+        if (seen.sRGB && gammaValue !== null && gammaValue !== 45455) {
+            cosmiqFail('media.invalid_png', 'PNG sRGB and gamma declarations disagree.', location);
+        }
+        return {width: width, height: height};
+    }
+
+    function cosmiqOggCrc(bytes) {
+        let crc = 0;
+        for (let index = 0; index < bytes.length; index++) {
+            crc ^= bytes[index] << 24;
+            for (let bit = 0; bit < 8; bit++) {
+                crc = (crc & 0x80000000) !== 0 ? ((crc << 1) ^ 0x04c11db7) : (crc << 1);
+            }
+        }
+        return crc >>> 0;
+    }
+
+    function cosmiqInspectOggVorbis(input, location) {
+        const bytes = cosmiqBytes(input);
+        const packets = [];
+        let packetParts = [];
+        let packetLength = 0;
+        let offset = 0;
+        let serial = null;
+        let sequence = 0;
+        let finalGranule = null;
+        let sawEos = false;
+        while (offset < bytes.length) {
+            if (offset + 27 > bytes.length ||
+                String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]) !== 'OggS' ||
+                bytes[offset + 4] !== 0) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Ogg page header is invalid.', location);
+            }
+            const view = new DataView(bytes.buffer, bytes.byteOffset + offset, bytes.length - offset);
+            const headerType = bytes[offset + 5];
+            const granuleLow = view.getUint32(6, true);
+            const granuleHigh = view.getUint32(10, true);
+            const pageSerial = view.getUint32(14, true);
+            const pageSequence = view.getUint32(18, true);
+            const expectedCrc = view.getUint32(22, true);
+            const segmentCount = bytes[offset + 26];
+            if (offset + 27 + segmentCount > bytes.length || (headerType & ~7) !== 0 ||
+                (serial === null ? !(headerType & 2) || pageSequence !== 0 :
+                    pageSerial !== serial || pageSequence !== sequence || Boolean(headerType & 2)) ||
+                (offset === 0 && (headerType & 1)) ||
+                (offset > 0 && Boolean(headerType & 1) !== (packetParts.length > 0))) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Ogg stream sequence or continuation is invalid.', location);
+            }
+            serial = pageSerial;
+            sequence++;
+            let bodyLength = 0;
+            for (let index = 0; index < segmentCount; index++) bodyLength += bytes[offset + 27 + index];
+            const pageLength = 27 + segmentCount + bodyLength;
+            if (offset + pageLength > bytes.length) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Ogg page is truncated.', location);
+            }
+            const pageForCrc = bytes.slice(offset, offset + pageLength);
+            pageForCrc.fill(0, 22, 26);
+            if (cosmiqOggCrc(pageForCrc) !== expectedCrc) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Ogg page checksum is invalid.', location);
+            }
+            let bodyOffset = offset + 27 + segmentCount;
+            for (let index = 0; index < segmentCount; index++) {
+                const length = bytes[offset + 27 + index];
+                const part = bytes.subarray(bodyOffset, bodyOffset + length);
+                packetParts.push(part);
+                packetLength += length;
+                bodyOffset += length;
+                if (length < 255) {
+                    const packet = new Uint8Array(packetLength);
+                    let packetOffset = 0;
+                    packetParts.forEach(function (piece) {
+                        packet.set(piece, packetOffset);
+                        packetOffset += piece.length;
+                    });
+                    packets.push(packet);
+                    packetParts = [];
+                    packetLength = 0;
+                }
+            }
+            if (headerType & 4) {
+                if (sawEos || offset + pageLength !== bytes.length || packetParts.length) {
+                    cosmiqFail('media.invalid_ogg_vorbis', 'Ogg EOS page is invalid.', location);
+                }
+                sawEos = true;
+                if (granuleHigh > 0x1fffff) {
+                    cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis final granule is too large.', location);
+                }
+                finalGranule = granuleHigh * 0x100000000 + granuleLow;
+            }
+            offset += pageLength;
+        }
+        if (!sawEos || packets.length < 4 || packetParts.length) {
+            cosmiqFail('media.invalid_ogg_vorbis', 'Ogg Vorbis stream is incomplete.', location);
+        }
+        function isVorbisPacket(packet, type) {
+            return packet.length >= 7 && packet[0] === type &&
+                String.fromCharCode(packet[1], packet[2], packet[3], packet[4], packet[5], packet[6]) === 'vorbis';
+        }
+        if (!isVorbisPacket(packets[0], 1) || !isVorbisPacket(packets[1], 3) ||
+            !isVorbisPacket(packets[2], 5) || packets[0].length !== 30 ||
+            packets[2].length < 8 || packets.slice(3).some(function (packet) {
+                return !packet.length || (packet[0] & 1) !== 0;
+            })) {
+            cosmiqFail('media.invalid_ogg_vorbis', 'Required Vorbis headers are missing.', location);
+        }
+        const identification = new DataView(
+            packets[0].buffer, packets[0].byteOffset, packets[0].byteLength
+        );
+        const channels = packets[0][11];
+        const sampleRateHz = identification.getUint32(12, true);
+        const smallBlockExponent = packets[0][28] & 0x0f;
+        const largeBlockExponent = packets[0][28] >>> 4;
+        if (identification.getUint32(7, true) !== 0 || (channels !== 1 && channels !== 2) ||
+            sampleRateHz < 8000 || sampleRateHz > 48000 ||
+            smallBlockExponent < 6 || smallBlockExponent > 13 ||
+            largeBlockExponent < smallBlockExponent || largeBlockExponent > 13 ||
+            packets[0][29] !== 1) {
+            cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis identification header is invalid.', location);
+        }
+        const comment = packets[1];
+        if (comment.length < 16) cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis comment header is truncated.', location);
+        const commentView = new DataView(comment.buffer, comment.byteOffset, comment.byteLength);
+        const vendorLength = commentView.getUint32(7, true);
+        const commentCountOffset = 11 + vendorLength;
+        if (vendorLength > 128 || commentCountOffset + 5 !== comment.length ||
+            commentView.getUint32(commentCountOffset, true) !== 0 ||
+            comment[comment.length - 1] !== 1) {
+            cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis comments are not canonical.', location);
+        }
+        for (let index = 11; index < commentCountOffset; index++) {
+            if (comment[index] < 0x20 || comment[index] > 0x7e) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis vendor must be printable ASCII.', location);
+            }
+        }
+        if (!Number.isSafeInteger(finalGranule) || finalGranule <= 0) {
+            cosmiqFail('media.invalid_ogg_vorbis', 'Vorbis final granule is invalid.', location);
+        }
+        return {
+            sampleRateHz: sampleRateHz,
+            channels: channels,
+            durationMs: Math.ceil(finalGranule * 1000 / sampleRateHz)
+        };
+    }
+
+    const COSMIQ_BUFFER_FORMATS = Object.freeze({
+        position: {bytes: 12, alignment: 4, components: 3, kind: 'float32'},
+        normal: {bytes: 12, alignment: 4, components: 3, kind: 'float32'},
+        uv: {bytes: 8, alignment: 4, components: 2, kind: 'float32'},
+        index: {bytes: 4, alignment: 4, components: 1, kind: 'uint32'},
+        time: {bytes: 4, alignment: 4, components: 1, kind: 'uint32'},
+        translation: {bytes: 12, alignment: 4, components: 3, kind: 'float32'},
+        rotation: {bytes: 16, alignment: 4, components: 4, kind: 'float32'},
+        scale: {bytes: 12, alignment: 4, components: 3, kind: 'float32'},
+        bezier: {bytes: 72, alignment: 4, components: 18, kind: 'float32'},
+        interpolation: {bytes: 1, alignment: 1, components: 1, kind: 'uint8'}
+    });
+    const COSMIQ_BINARY32_MIN_NORMAL = 1.1754943508222875e-38;
+
+    function cosmiqCanonicalBinary32(value, location) {
+        const rounded = Math.fround(Number(value));
+        if (!Number.isFinite(rounded)) {
+            cosmiqFail(
+                'buffer.invalid_view',
+                'Buffer value cannot be represented as a finite binary32 value.',
+                location
+            );
+        }
+        const absolute = Math.abs(rounded);
+        return Object.is(rounded, -0) ||
+            (absolute > 0 && absolute < COSMIQ_BINARY32_MIN_NORMAL)
+            ? 0
+            : rounded;
+    }
+
+    function cosmiqWriteBinary32(view, offset, value, location) {
+        view.setFloat32(offset, cosmiqCanonicalBinary32(value, location), true);
+    }
+
+    function cosmiqValidateBufferView(value, formatName, expectedSectionType, sectionRecords, coverage, location) {
+        cosmiqClosedObject(value, ['section', 'byteOffset', 'count'], location, 'buffer.invalid_view');
+        cosmiqNumber(value.section, 1, sectionRecords.length - 1, location + '.section', true);
+        cosmiqNumber(value.byteOffset, 0, Number.MAX_SAFE_INTEGER, location + '.byteOffset', true);
+        cosmiqNumber(value.count, 0, Number.MAX_SAFE_INTEGER, location + '.count', true);
+        const format = COSMIQ_BUFFER_FORMATS[formatName];
+        const section = sectionRecords[value.section];
+        const byteLength = value.count * format.bytes;
+        if (!section || section.type !== expectedSectionType ||
+            value.byteOffset % format.alignment !== 0 ||
+            !Number.isSafeInteger(byteLength) ||
+            value.byteOffset + byteLength > (section ? section.bytes.length : 0)) {
+            cosmiqFail('buffer.invalid_view', 'Buffer View is out of bounds or has the wrong section type.', location);
+        }
+        if (value.count === 0 && formatName !== 'interpolation') {
+            cosmiqFail('buffer.invalid_view', 'Only a one-key interpolation view may be empty.', location);
+        }
+        const semanticKey = value.section + ':' + value.byteOffset + ':' + value.count + ':' + formatName;
+        const rangeKey = value.section + ':' + value.byteOffset + ':' + value.count + ':' + formatName;
+        if (!coverage.semantic[semanticKey]) {
+            const ranges = coverage.ranges[value.section] || (coverage.ranges[value.section] = []);
+            const conflicting = ranges.find(function (range) {
+                return value.byteOffset < range.end && value.byteOffset + byteLength > range.start &&
+                    range.key !== rangeKey;
+            });
+            if (conflicting) cosmiqFail('buffer.invalid_view', 'Distinct Buffer Views overlap.', location);
+            if (!ranges.some(function (range) { return range.key === rangeKey; })) {
+                ranges.push({start: value.byteOffset, end: value.byteOffset + byteLength, key: rangeKey});
+            }
+            coverage.semantic[semanticKey] = true;
+        }
+        const data = [];
+        const view = new DataView(section.bytes.buffer, section.bytes.byteOffset, section.bytes.byteLength);
+        for (let element = 0; element < value.count; element++) {
+            const item = [];
+            for (let component = 0; component < format.components; component++) {
+                const offset = value.byteOffset + element * format.bytes +
+                    component * (format.kind === 'uint8' ? 1 : 4);
+                let number;
+                if (format.kind === 'float32') number = view.getFloat32(offset, true);
+                else if (format.kind === 'uint32') number = view.getUint32(offset, true);
+                else number = view.getUint8(offset);
+                if (format.kind === 'float32') {
+                    const absolute = Math.abs(number);
+                    if (!Number.isFinite(number) || Object.is(number, -0) ||
+                        (absolute > 0 && absolute < COSMIQ_BINARY32_MIN_NORMAL)) {
+                        cosmiqFail('buffer.invalid_view', 'Buffer contains an invalid binary32 value.', location);
+                    }
+                }
+                item.push(number);
+            }
+            data.push(format.components === 1 ? item[0] : item);
+        }
+        return data;
+    }
+
+    function cosmiqValidateGeometry(manifest, ids, sectionRecords, coverage, usage, counts) {
+        manifest.geometry.forEach(function (geometry, index) {
+            const location = '$.geometry[' + index + ']';
+            if (!cosmiqPlainObject(geometry)) cosmiqFail('geometry.invalid', 'Geometry must be an object.', location);
+            if (geometry.kind === 'cuboid') {
+                cosmiqClosedObject(geometry, ['id', 'kind', 'min', 'max', 'inflate', 'faces'], location, 'geometry.invalid');
+                cosmiqVector(geometry.min, 3, -64, 64, location + '.min');
+                cosmiqVector(geometry.max, 3, -64, 64, location + '.max');
+                cosmiqNumber(geometry.inflate, -0.25, 0.25, location + '.inflate');
+                for (let axis = 0; axis < 3; axis++) {
+                    if (geometry.min[axis] >= geometry.max[axis] ||
+                        geometry.min[axis] - geometry.inflate >= geometry.max[axis] + geometry.inflate ||
+                        geometry.min[axis] - geometry.inflate < -64 ||
+                        geometry.max[axis] + geometry.inflate > 64) {
+                        cosmiqFail('geometry.invalid', 'Cuboid is degenerate or exceeds node-local bounds.', location);
+                    }
+                }
+                const faceNames = ['north', 'south', 'east', 'west', 'up', 'down'];
+                cosmiqClosedObject(geometry.faces, faceNames, location + '.faces', 'geometry.invalid');
+                let faceCount = 0;
+                faceNames.forEach(function (faceName) {
+                    const face = geometry.faces[faceName];
+                    if (face === null) return;
+                    faceCount++;
+                    cosmiqClosedObject(face, ['materialId', 'uv', 'rotation'], location + '.faces.' + faceName, 'geometry.invalid');
+                    if (!ids.material[face.materialId]) {
+                        cosmiqFail('reference.missing', 'Cuboid face material does not resolve.', location + '.faces.' + faceName);
+                    }
+                    usage.material[face.materialId] = true;
+                    cosmiqVector(face.uv, 4, 0, 1, location + '.faces.' + faceName + '.uv');
+                    if ([0, 90, 180, 270].indexOf(face.rotation) === -1) {
+                        cosmiqFail('geometry.invalid', 'Cuboid face rotation is invalid.', location + '.faces.' + faceName);
+                    }
+                });
+                if (!faceCount) cosmiqFail('geometry.invalid', 'Cuboid must contain at least one face.', location);
+                counts.cuboids++;
+            } else if (geometry.kind === 'indexed_triangles') {
+                cosmiqClosedObject(
+                    geometry,
+                    ['id', 'kind', 'materialId', 'positions', 'normals', 'uvs', 'indices'],
+                    location,
+                    'geometry.invalid'
+                );
+                if (!ids.material[geometry.materialId]) {
+                    cosmiqFail('reference.missing', 'Mesh material does not resolve.', location + '.materialId');
+                }
+                usage.material[geometry.materialId] = true;
+                const positions = cosmiqValidateBufferView(
+                    geometry.positions, 'position', 'geometry_buffer', sectionRecords, coverage, location + '.positions'
+                );
+                const normals = cosmiqValidateBufferView(
+                    geometry.normals, 'normal', 'geometry_buffer', sectionRecords, coverage, location + '.normals'
+                );
+                const uvs = cosmiqValidateBufferView(
+                    geometry.uvs, 'uv', 'geometry_buffer', sectionRecords, coverage, location + '.uvs'
+                );
+                const indices = cosmiqValidateBufferView(
+                    geometry.indices, 'index', 'geometry_buffer', sectionRecords, coverage, location + '.indices'
+                );
+                if (!positions.length || positions.length !== normals.length || positions.length !== uvs.length ||
+                    !indices.length || indices.length % 3 !== 0) {
+                    cosmiqFail('geometry.invalid', 'Mesh view counts are inconsistent.', location);
+                }
+                positions.forEach(function (position) {
+                    if (position.some(function (value) { return value < -64 || value > 64; })) {
+                        cosmiqFail('geometry.invalid', 'Mesh position exceeds node-local bounds.', location + '.positions');
+                    }
+                });
+                uvs.forEach(function (uv) {
+                    if (uv.some(function (value) { return value < 0 || value > 1; })) {
+                        cosmiqFail('geometry.invalid', 'Mesh UV is outside [0,1].', location + '.uvs');
+                    }
+                });
+                normals.forEach(function (normal) {
+                    const length = Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+                    if (Math.abs(length - 1) > 0.0001) {
+                        cosmiqFail('geometry.invalid', 'Mesh normal is not unit length.', location + '.normals');
+                    }
+                });
+                indices.forEach(function (vertexIndex) {
+                    if (vertexIndex >= positions.length) {
+                        cosmiqFail('geometry.invalid', 'Mesh index exceeds the vertex count.', location + '.indices');
+                    }
+                });
+                for (let triangle = 0; triangle < indices.length; triangle += 3) {
+                    const a = positions[indices[triangle]];
+                    const b = positions[indices[triangle + 1]];
+                    const c = positions[indices[triangle + 2]];
+                    const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+                    const ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+                    const cross = [
+                        ab[1] * ac[2] - ab[2] * ac[1],
+                        ab[2] * ac[0] - ab[0] * ac[2],
+                        ab[0] * ac[1] - ab[1] * ac[0]
+                    ];
+                    if (cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2] <= 1e-16) {
+                        cosmiqFail('geometry.invalid', 'Mesh contains a degenerate triangle.', location + '.indices');
+                    }
+                }
+                counts.indexedPrimitives++;
+                counts.vertices += positions.length;
+                counts.triangles += indices.length / 3;
+            } else {
+                cosmiqFail('geometry.invalid', 'Unknown geometry kind.', location + '.kind');
+            }
+        });
+    }
+
+    function cosmiqValidateActors(manifest, ids) {
+        const boneIds = [
+            'root', 'body', 'head', 'left_arm', 'right_arm', 'left_leg', 'right_leg',
+            'torso_lower', 'torso_upper',
+            'left_arm_upper', 'left_arm_lower', 'right_arm_upper', 'right_arm_lower',
+            'left_leg_upper', 'left_leg_lower', 'right_leg_upper', 'right_leg_lower'
+        ];
+        const supportedSkeletons = [
+            'cosmiq:player/humanoid-v1',
+            'cosmiq:player/humanoid-precise-v1'
+        ];
+        manifest.actors.forEach(function (actor, index) {
+            const location = '$.actors[' + index + ']';
+            cosmiqClosedObject(actor, ['id', 'skeleton', 'required', 'formation'], location);
+            if (supportedSkeletons.indexOf(actor.skeleton) === -1 ||
+                typeof actor.required !== 'boolean') {
+                cosmiqFail('kind.invariant_violation', 'Actor Role declaration is invalid.', location);
+            }
+            cosmiqTransform(actor.formation, location + '.formation', 8);
+            if (JSON.stringify(actor.formation.scale) !== '[1,1,1]') {
+                cosmiqFail('kind.invariant_violation', 'Actor formation scale must be identity.', location + '.formation.scale');
+            }
+            if (index === 0 ? actor.id !== 'host' : actor.id <= manifest.actors[index - 1].id) {
+                cosmiqFail('kind.invariant_violation', 'Actor Roles must be host-first and sorted.', location);
+            }
+        });
+        if (manifest.assetKind === 'emote') {
+            if (manifest.actors.length < 1 || manifest.actors.length > 4 ||
+                !ids.actor.host || ids.actor.host.required !== true) {
+                cosmiqFail('kind.invariant_violation', 'Emote requires one through four roles and a required host.', '$.actors');
+            }
+        } else if (manifest.actors.length) {
+            cosmiqFail('kind.invariant_violation', 'Only Emotes may declare Actor Roles.', '$.actors');
+        }
+        return boneIds;
+    }
+
+    function cosmiqValidateNodes(manifest, ids, usage, counts) {
+        if (manifest.nodes.length > 128) {
+            cosmiqFail('budget.exceeded', 'Node budget exceeded.', '$.nodes');
+        }
+        const anchorGroups = {
+            'cosmiq:player/head': 'head',
+            'cosmiq:player/torso': 'torso',
+            'cosmiq:player/left_arm': 'arms',
+            'cosmiq:player/right_arm': 'arms',
+            'cosmiq:player/left_leg': 'legs',
+            'cosmiq:player/right_leg': 'legs'
+        };
+        const actorAttachments = [
+            'root', 'body', 'head', 'left_arm', 'right_arm', 'left_leg', 'right_leg',
+            'left_hand', 'right_hand', 'left_foot', 'right_foot'
+        ];
+        const depthById = Object.create(null);
+        const bodyGroups = Object.create(null);
+        const variantPairs = Object.create(null);
+        const childVariants = Object.create(null);
+        const previousSibling = Object.create(null);
+        const graphState = Object.create(null);
+        function inspectGraph(nodeId) {
+            if (graphState[nodeId] === 1) {
+                cosmiqFail('graph.cycle', 'Node hierarchy contains a cycle.', '$.nodes');
+            }
+            if (graphState[nodeId] === 2) return;
+            graphState[nodeId] = 1;
+            const node = ids.node[nodeId];
+            if (node && typeof node.parentId === 'string' && ids.node[node.parentId]) {
+                inspectGraph(node.parentId);
+            }
+            graphState[nodeId] = 2;
+        }
+        manifest.nodes.forEach(function (node) {
+            if (node && typeof node.id === 'string') inspectGraph(node.id);
+        });
+        manifest.nodes.forEach(function (node, index) {
+            const location = '$.nodes[' + index + ']';
+            cosmiqClosedObject(node, [
+                'id', 'parentId', 'attachment', 'bind', 'geometryIds', 'modelVariant',
+                'variantKey', 'defaultVisible'
+            ], location);
+            if (typeof node.defaultVisible !== 'boolean') {
+                cosmiqFail('graph.invalid_owner', 'Node visibility must be boolean.', location + '.defaultVisible');
+            }
+            cosmiqTransform(node.bind, location + '.bind', 8);
+            if (node.parentId === null) {
+                if (!cosmiqPlainObject(node.attachment)) {
+                    cosmiqFail('graph.invalid_owner', 'Root node requires one attachment.', location);
+                }
+                depthById[node.id] = 1;
+                if (node.attachment.kind === 'player_anchor') {
+                    cosmiqClosedObject(node.attachment, ['kind', 'anchor'], location + '.attachment');
+                    if (manifest.assetKind !== 'accessory' || !anchorGroups[node.attachment.anchor]) {
+                        cosmiqFail('graph.invalid_owner', 'Player anchor is invalid for this node.', location + '.attachment');
+                    }
+                    bodyGroups[anchorGroups[node.attachment.anchor]] = true;
+                } else if (node.attachment.kind === 'actor_attachment') {
+                    cosmiqClosedObject(node.attachment, ['kind', 'actorRole', 'attachment'], location + '.attachment');
+                    if (manifest.assetKind !== 'emote' || !ids.actor[node.attachment.actorRole] ||
+                        actorAttachments.indexOf(node.attachment.attachment) === -1) {
+                        cosmiqFail('graph.invalid_owner', 'Actor attachment is invalid.', location + '.attachment');
+                    }
+                } else if (node.attachment.kind === 'scene') {
+                    cosmiqClosedObject(node.attachment, ['kind'], location + '.attachment');
+                    if (manifest.assetKind !== 'emote') {
+                        cosmiqFail('graph.invalid_owner', 'Scene attachment is Emote-only.', location + '.attachment');
+                    }
+                } else {
+                    cosmiqFail('graph.invalid_owner', 'Unknown node attachment form.', location + '.attachment');
+                }
+            } else {
+                cosmiqLocalId(node.parentId, location + '.parentId');
+                if (node.attachment !== null || !ids.node[node.parentId] || depthById[node.parentId] == null) {
+                    cosmiqFail('graph.invalid_owner', 'Child parent must resolve earlier and attachment must be null.', location);
+                }
+                depthById[node.id] = depthById[node.parentId] + 1;
+                if (depthById[node.id] > 32) cosmiqFail('budget.exceeded', 'Node depth exceeds 32.', location);
+            }
+            const geometryIds = cosmiqArray(node.geometryIds, location + '.geometryIds');
+            let previousGeometry = '';
+            geometryIds.forEach(function (geometryId) {
+                if (!ids.geometry[geometryId] || geometryId <= previousGeometry) {
+                    cosmiqFail(
+                        ids.geometry[geometryId] ? 'kind.invariant_violation' : 'reference.missing',
+                        'Node geometry IDs must resolve, be sorted, and be unique.',
+                        location + '.geometryIds'
+                    );
+                }
+                usage.geometry[geometryId] = true;
+                previousGeometry = geometryId;
+            });
+            const siblingKey = node.parentId || 'root';
+            if (previousSibling[siblingKey] && node.id <= previousSibling[siblingKey]) {
+                cosmiqFail('kind.invariant_violation', 'Node siblings are not sorted by ID.', location);
+            }
+            previousSibling[siblingKey] = node.id;
+            if (manifest.assetKind === 'accessory') {
+                if (['universal', 'wide', 'slim'].indexOf(node.modelVariant) === -1 ||
+                    (node.modelVariant === 'universal' ? node.variantKey !== null :
+                        typeof node.variantKey !== 'string')) {
+                    cosmiqFail('kind.invariant_violation', 'Accessory model variant declaration is invalid.', location);
+                }
+                if (node.variantKey !== null) {
+                    cosmiqLocalId(node.variantKey, location + '.variantKey');
+                    const pair = variantPairs[node.variantKey] || (variantPairs[node.variantKey] = {});
+                    if (pair[node.modelVariant]) {
+                        cosmiqFail('reference.duplicate_id', 'Duplicate model-variant branch.', location + '.variantKey');
+                    }
+                    pair[node.modelVariant] = node;
+                    if (node.parentId) {
+                        childVariants[node.parentId] = childVariants[node.parentId] || [];
+                        childVariants[node.parentId].push(node.variantKey);
+                    }
+                }
+            } else if (node.modelVariant !== 'universal' || node.variantKey !== null) {
+                cosmiqFail('kind.invariant_violation', 'Non-Accessory nodes use universal/null model variants.', location);
+            }
+        });
+        if (manifest.assetKind === 'accessory') {
+            const groups = Object.keys(bodyGroups);
+            if (!groups.length) cosmiqFail('accessory.no_body_group', 'Accessory has no player anchor.', '$.nodes');
+            if (groups.length > 1) {
+                cosmiqFail('accessory.multiple_body_groups', 'Accessory roots span more than one Body Group.', '$.nodes');
+            }
+            if (manifest.bodyGroup !== groups[0]) {
+                cosmiqFail('accessory.body_group_mismatch', 'Declared Body Group does not match anchors.', '$.bodyGroup');
+            }
+            Object.keys(variantPairs).forEach(function (key) {
+                const pair = variantPairs[key];
+                if (!pair.wide || !pair.slim) {
+                    cosmiqFail('kind.invariant_violation', 'Every model variant key requires wide and slim nodes.', '$.nodes');
+                }
+                const attachmentLeft = canonicalCosmiqJson(pair.wide.attachment);
+                const attachmentRight = canonicalCosmiqJson(pair.slim.attachment);
+                const parentLeft = pair.wide.parentId ? ids.node[pair.wide.parentId].variantKey : null;
+                const parentRight = pair.slim.parentId ? ids.node[pair.slim.parentId].variantKey : null;
+                const childrenLeft = (childVariants[pair.wide.id] || []).slice().sort();
+                const childrenRight = (childVariants[pair.slim.id] || []).slice().sort();
+                if (attachmentLeft !== attachmentRight || parentLeft !== parentRight ||
+                    canonicalCosmiqJson(childrenLeft) !== canonicalCosmiqJson(childrenRight)) {
+                    cosmiqFail('kind.invariant_violation', 'Wide/slim variant topology differs.', '$.nodes');
+                }
+                manifest.clips.forEach(function (clip) {
+                    const targetsWide = clip.tracks.some(function (track) {
+                        return track.target.kind === 'node' && track.target.nodeId === pair.wide.id;
+                    });
+                    const targetsSlim = clip.tracks.some(function (track) {
+                        return track.target.kind === 'node' && track.target.nodeId === pair.slim.id;
+                    });
+                    if (targetsWide !== targetsSlim) {
+                        cosmiqFail(
+                            'kind.invariant_violation',
+                            'Wide/slim variant animation targets differ.',
+                            '$.clips'
+                        );
+                    }
+                });
+            });
+            const variants = Object.keys(variantPairs).length
+                ? ['wide', 'slim']
+                : ['universal'];
+            if (variants.indexOf(manifest.previewCamera.pose.modelVariant) === -1) {
+                cosmiqFail('camera.invalid', 'Preview model variant is not populated.', '$.previewCamera.pose.modelVariant');
+            }
+        } else if (manifest.assetKind === 'emote') {
+            const propRoots = manifest.nodes.filter(function (node) { return node.parentId === null; });
+            if (propRoots.length > 16) {
+                cosmiqFail('budget.exceeded', 'Emote Prop root budget exceeded.', '$.nodes');
+            }
+        }
+        counts.nodes = manifest.nodes.length;
+    }
+
+    function cosmiqValidateChannel(channel, formatName, clip, sectionRecords, coverage, location, counts) {
+        if (channel === null) return null;
+        cosmiqClosedObject(
+            channel, ['times', 'values', 'interpolations', 'bezierControls'],
+            location, 'animation.invalid'
+        );
+        const times = cosmiqValidateBufferView(
+            channel.times, 'time', 'animation_buffer', sectionRecords, coverage, location + '.times'
+        );
+        const values = cosmiqValidateBufferView(
+            channel.values, formatName, 'animation_buffer', sectionRecords, coverage, location + '.values'
+        );
+        const interpolations = cosmiqValidateBufferView(
+            channel.interpolations, 'interpolation', 'animation_buffer', sectionRecords, coverage,
+            location + '.interpolations'
+        );
+        const bezierControls = channel.bezierControls === null ? null : cosmiqValidateBufferView(
+            channel.bezierControls, 'bezier', 'animation_buffer', sectionRecords, coverage,
+            location + '.bezierControls'
+        );
+        if (!times.length || times.length !== values.length ||
+            interpolations.length !== Math.max(0, times.length - 1) ||
+            (bezierControls !== null && bezierControls.length !== interpolations.length)) {
+            cosmiqFail('animation.invalid', 'Animation channel view counts are inconsistent.', location);
+        }
+        let previous = -1;
+        times.forEach(function (time) {
+            if (time <= previous || time > clip.durationMs) {
+                cosmiqFail('animation.invalid', 'Keyframe times must strictly increase within the clip.', location + '.times');
+            }
+            previous = time;
+        });
+        interpolations.forEach(function (value) {
+            if (value !== 0 && value !== 1 && value !== 2 && value !== 3) {
+                cosmiqFail('animation.invalid', 'Unknown interpolation value.', location + '.interpolations');
+            }
+        });
+        const hasBezier = interpolations.indexOf(3) !== -1;
+        if (hasBezier !== (bezierControls !== null)) {
+            cosmiqFail('animation.invalid', 'Bezier segments require one control record per segment.', location);
+        }
+        if (bezierControls) bezierControls.forEach(function (control, index) {
+            if (interpolations[index] !== 3 && control.some(function (value) { return value !== 0; })) {
+                cosmiqFail('animation.invalid', 'Unused Bezier control records must be zero.', location);
+            }
+            if (interpolations[index] === 3 && control.slice(0, 6).some(function (value) {
+                return value < 0 || value > 1;
+            })) {
+                cosmiqFail('animation.invalid', 'Bezier time controls must be normalized.', location);
+            }
+        });
+        if (formatName === 'rotation') {
+            values.forEach(function (rotation) {
+                const length = Math.sqrt(rotation.reduce(function (sum, value) { return sum + value * value; }, 0));
+                if (Math.abs(length - 1) > 0.0001) {
+                    cosmiqFail('animation.invalid', 'Animation quaternion is not normalized.', location + '.values');
+                }
+            });
+        } else if (formatName === 'translation') {
+            values.forEach(function (translation) {
+                if (translation.some(function (value) { return value < -8 || value > 8; })) {
+                    cosmiqFail('animation.invalid', 'Animation translation exceeds its bounds.', location + '.values');
+                }
+            });
+        }
+        counts.keyframes += times.length;
+        return values;
+    }
+
+    function cosmiqValidateClips(manifest, ids, sectionRecords, coverage, usage, counts) {
+        const bones = [
+            'root', 'body', 'head', 'left_arm', 'right_arm', 'left_leg', 'right_leg',
+            'torso_lower', 'torso_upper',
+            'left_arm_upper', 'left_arm_lower', 'right_arm_upper', 'right_arm_lower',
+            'left_leg_upper', 'left_leg_lower', 'right_leg_upper', 'right_leg_lower'
+        ];
+        manifest.clips.forEach(function (clip, index) {
+            const location = '$.clips[' + index + ']';
+            cosmiqClosedObject(clip, ['id', 'durationMs', 'loop', 'tracks'], location, 'animation.invalid');
+            cosmiqNumber(clip.durationMs, 1, 120000, location + '.durationMs', true);
+            cosmiqClosedObject(clip.loop, ['mode', 'startMs', 'endMs'], location + '.loop', 'animation.invalid');
+            cosmiqNumber(clip.loop.startMs, 0, clip.durationMs, location + '.loop.startMs', true);
+            cosmiqNumber(clip.loop.endMs, 0, clip.durationMs, location + '.loop.endMs', true);
+            if ((clip.loop.mode === 'none' && (clip.loop.startMs !== 0 || clip.loop.endMs !== clip.durationMs)) ||
+                (clip.loop.mode === 'range' && clip.loop.startMs >= clip.loop.endMs) ||
+                ['none', 'range'].indexOf(clip.loop.mode) === -1) {
+                cosmiqFail('animation.invalid', 'Clip loop range is invalid.', location + '.loop');
+            }
+            const targets = Object.create(null);
+            let previousTargetKey = '';
+            cosmiqArray(clip.tracks, location + '.tracks').forEach(function (track, trackIndex) {
+                const trackLocation = location + '.tracks[' + trackIndex + ']';
+                cosmiqClosedObject(
+                    track, ['target', 'translation', 'rotation', 'scale'], trackLocation, 'animation.invalid'
+                );
+                let targetKey;
+                let actorBone = false;
+                if (track.target && track.target.kind === 'node') {
+                    cosmiqClosedObject(track.target, ['kind', 'nodeId'], trackLocation + '.target');
+                    if (!ids.node[track.target.nodeId]) {
+                        cosmiqFail('reference.missing', 'Animation target node does not resolve.', trackLocation + '.target');
+                    }
+                    targetKey = 'node:' + track.target.nodeId;
+                } else if (track.target && track.target.kind === 'actor_bone') {
+                    cosmiqClosedObject(
+                        track.target, ['kind', 'actorRole', 'bone'], trackLocation + '.target'
+                    );
+                    if (!ids.actor[track.target.actorRole] || bones.indexOf(track.target.bone) === -1) {
+                        cosmiqFail('reference.missing', 'Actor-bone target does not resolve.', trackLocation + '.target');
+                    }
+                    if (manifest.assetKind !== 'emote') {
+                        cosmiqFail(
+                            'animation.forbidden_player_target',
+                            'Only Emotes may animate player bones.',
+                            trackLocation + '.target'
+                        );
+                    }
+                    actorBone = true;
+                    targetKey = 'actor:' + track.target.actorRole + ':' + track.target.bone;
+                } else {
+                    cosmiqFail('animation.invalid', 'Unknown animation target form.', trackLocation + '.target');
+                }
+                if (targets[targetKey]) cosmiqFail('animation.invalid', 'Clip target is duplicated.', trackLocation + '.target');
+                if (targetKey <= previousTargetKey) {
+                    cosmiqFail('animation.invalid', 'Clip tracks are not in canonical target order.', trackLocation);
+                }
+                previousTargetKey = targetKey;
+                targets[targetKey] = true;
+                const translation = cosmiqValidateChannel(
+                    track.translation, 'translation', clip, sectionRecords, coverage,
+                    trackLocation + '.translation', counts
+                );
+                cosmiqValidateChannel(
+                    track.rotation, 'rotation', clip, sectionRecords, coverage,
+                    trackLocation + '.rotation', counts
+                );
+                const scales = cosmiqValidateChannel(
+                    track.scale, 'scale', clip, sectionRecords, coverage,
+                    trackLocation + '.scale', counts
+                );
+                if (track.translation === null && track.rotation === null && track.scale === null) {
+                    cosmiqFail('animation.invalid', 'Animation track has no channels.', trackLocation);
+                }
+                if (translation && translation.some(function (value) {
+                    return value.some(function (component) { return component < -8 || component > 8; });
+                })) {
+                    cosmiqFail('animation.invalid', 'Translation keyframe is out of range.', trackLocation);
+                }
+                if (scales && scales.some(function (value) {
+                    return value.some(function (component) {
+                        return component < (actorBone ? 0.05 : 0.01) || component > (actorBone ? 4 : 16);
+                    });
+                })) {
+                    cosmiqFail('animation.invalid', 'Scale keyframe is out of range.', trackLocation);
+                }
+            });
+            if (!clip.tracks.length) cosmiqFail('animation.invalid', 'Clip must have at least one track.', location);
+        });
+    }
+
+    function cosmiqValidateMovement(manifest) {
+        if (manifest.assetKind !== 'emote') {
+            if (manifest.movementPolicy !== null) {
+                cosmiqFail('kind.invariant_violation', 'Only Emotes declare movement policy.', '$.movementPolicy');
+            }
+            return;
+        }
+        const movement = manifest.movementPolicy;
+        cosmiqClosedObject(
+            movement, ['mode', 'cancelOnAttack', 'cancelOnDamage', 'allowCameraControl'], '$.movementPolicy'
+        );
+        if (['stationary', 'upper_body', 'full_body_traversable', 'visual_root_motion'].indexOf(movement.mode) === -1 ||
+            typeof movement.cancelOnAttack !== 'boolean' || typeof movement.cancelOnDamage !== 'boolean' ||
+            typeof movement.allowCameraControl !== 'boolean') {
+            cosmiqFail('kind.invariant_violation', 'Emote movement policy is invalid.', '$.movementPolicy');
+        }
+        if (movement.mode === 'upper_body') {
+            manifest.clips.forEach(function (clip) {
+                clip.tracks.forEach(function (track) {
+                    if (track.target.kind === 'actor_bone' &&
+                        ['root', 'left_leg', 'right_leg'].indexOf(track.target.bone) !== -1) {
+                        cosmiqFail('animation.invalid', 'Upper-body Emote targets a forbidden bone.', '$.clips');
+                    }
+                });
+            });
+        }
+    }
+
+    function cosmiqValidateStateBindings(manifest, ids, usage) {
+        const states = [
+            'idle', 'walking', 'sprinting', 'crouching', 'crouch_walking', 'jumping', 'falling',
+            'riding', 'sleeping', 'in_water', 'swimming', 'crawling', 'fall_flying', 'climbing',
+            'creative_flying', 'using_item', 'blocking', 'fishing', 'rowing', 'spin_attack', 'dead'
+        ];
+        const events = ['attack', 'hurt', 'land'];
+        const triggers = Object.create(null);
+        let fallbackCount = 0;
+        manifest.stateBindings.forEach(function (binding, index) {
+            const location = '$.stateBindings[' + index + ']';
+            cosmiqClosedObject(
+                binding, ['trigger', 'clipId', 'fallback', 'playback', 'blendMillis', 'priority'], location
+            );
+            cosmiqClosedObject(binding.trigger, ['kind', 'id'], location + '.trigger');
+            const allowed = binding.trigger.kind === 'player_state' ? states :
+                binding.trigger.kind === 'player_event' ? events : [];
+            if (allowed.indexOf(binding.trigger.id) === -1) {
+                cosmiqFail('kind.invariant_violation', 'Accessory trigger is invalid.', location + '.trigger');
+            }
+            const triggerKey = binding.trigger.kind + ':' + binding.trigger.id;
+            if (triggers[triggerKey]) cosmiqFail('reference.duplicate_id', 'Accessory trigger is duplicated.', location);
+            triggers[triggerKey] = true;
+            if (!ids.clip[binding.clipId]) cosmiqFail('reference.missing', 'State Binding clip does not resolve.', location);
+            usage.clip[binding.clipId] = true;
+            if (typeof binding.fallback !== 'boolean' ||
+                ['loop', 'once'].indexOf(binding.playback) === -1 ||
+                (binding.trigger.kind === 'player_event' && (binding.playback !== 'once' || binding.fallback))) {
+                cosmiqFail('kind.invariant_violation', 'State Binding playback is invalid.', location);
+            }
+            cosmiqNumber(binding.blendMillis, 0, 2000, location + '.blendMillis', true);
+            cosmiqNumber(binding.priority, 0, 1000, location + '.priority', true);
+            if (binding.fallback) {
+                fallbackCount++;
+                if (triggerKey !== 'player_state:idle') {
+                    cosmiqFail('kind.invariant_violation', 'Fallback must bind player_state:idle.', location);
+                }
+            }
+        });
+        if (manifest.assetKind === 'accessory') {
+            if ((!manifest.clips.length && manifest.stateBindings.length) ||
+                (manifest.clips.length && (!manifest.stateBindings.length || fallbackCount !== 1))) {
+                cosmiqFail('kind.invariant_violation', 'Accessory clips and State Bindings are inconsistent.', '$.stateBindings');
+            }
+            if (manifest.previewCamera.pose.clipId !== null &&
+                !manifest.stateBindings.some(function (binding) {
+                    return binding.clipId === manifest.previewCamera.pose.clipId;
+                })) {
+                cosmiqFail(
+                    'camera.invalid',
+                    'Accessory preview clip must be referenced by a State Binding.',
+                    '$.previewCamera.pose.clipId'
+                );
+            }
+        } else if (manifest.stateBindings.length) {
+            cosmiqFail('kind.invariant_violation', 'State Bindings are Accessory-only.', '$.stateBindings');
+        }
+    }
+
+    function cosmiqValidateLogic(manifest, ids, usage) {
+        if (manifest.assetKind !== 'emote') {
+            if (manifest.logic !== null || manifest.outcomeSets.length) {
+                cosmiqFail('logic.invalid', 'Logic and Outcome Sets are Emote-only.', '$.logic');
+            }
+            return;
+        }
+        const logic = manifest.logic;
+        cosmiqClosedObject(logic, ['initialState', 'states'], '$.logic', 'logic.invalid');
+        cosmiqLocalId(logic.initialState, '$.logic.initialState');
+        const stateIds = Object.create(null);
+        if (!logic.states.length || logic.states.length > 16) {
+            cosmiqFail('logic.invalid', 'Logic state count is invalid.', '$.logic.states');
+        }
+        let totalRules = 0;
+        logic.states.forEach(function (state, index) {
+            const location = '$.logic.states[' + index + ']';
+            cosmiqClosedObject(state, ['id', 'rules'], location, 'logic.invalid');
+            cosmiqLocalId(state.id, location + '.id');
+            if (stateIds[state.id]) cosmiqFail('reference.duplicate_id', 'Duplicate logic state.', location);
+            stateIds[state.id] = state;
+            cosmiqArray(state.rules, location + '.rules');
+            if (state.rules.length > 16) cosmiqFail('logic.invalid', 'Too many rules in one state.', location);
+            totalRules += state.rules.length;
+            if (index > 1 && state.id <= logic.states[index - 1].id) {
+                cosmiqFail('logic.invalid', 'Logic states are not in canonical order.', location);
+            }
+        });
+        if (!stateIds[logic.initialState] || logic.states[0].id !== logic.initialState || totalRules > 64) {
+            cosmiqFail('logic.invalid', 'Initial logic state or rule budget is invalid.', '$.logic');
+        }
+        function nodeOwner(nodeId) {
+            let node = ids.node[nodeId];
+            while (node && node.parentId !== null) node = ids.node[node.parentId];
+            if (!node || !node.attachment) return null;
+            return node.attachment.kind === 'actor_attachment'
+                ? node.attachment.actorRole
+                : 'scene';
+        }
+        function actionSelectsClip(action, location) {
+            if (action.target === 'all') return;
+            const clip = ids.clip[action.clipId];
+            let requiresAll = false;
+            const requiredRoles = Object.create(null);
+            clip.tracks.forEach(function (track) {
+                if (track.target.kind === 'actor_bone') {
+                    requiredRoles[track.target.actorRole] = true;
+                } else {
+                    const owner = nodeOwner(track.target.nodeId);
+                    if (owner === 'scene') requiresAll = true;
+                    else if (owner) requiredRoles[owner] = true;
+                }
+            });
+            manifest.cues.forEach(function (cue) {
+                if (cue.clipId !== clip.id) return;
+                if (cue.kind === 'sound' || cue.kind === 'particle') {
+                    requiresAll = true;
+                } else if (cue.kind === 'node_visibility') {
+                    const owner = nodeOwner(cue.nodeId);
+                    if (owner === 'scene') requiresAll = true;
+                    else if (owner) requiredRoles[owner] = true;
+                }
+            });
+            if (requiresAll || Object.keys(requiredRoles).some(function (role) {
+                return role !== action.target;
+            })) {
+                cosmiqFail(
+                    'logic.invalid',
+                    'Play-animation target cannot select every track and Cue owned by the clip.',
+                    location
+                );
+            }
+        }
+        logic.states.forEach(function (state, stateIndex) {
+            const actionsByEvent = Object.create(null);
+            state.rules.forEach(function (rule, ruleIndex) {
+                const location = '$.logic.states[' + stateIndex + '].rules[' + ruleIndex + ']';
+                cosmiqClosedObject(rule, ['event', 'action'], location, 'logic.invalid');
+                const event = rule.event;
+                const action = rule.action;
+                if (!cosmiqPlainObject(event) || !cosmiqPlainObject(action)) {
+                    cosmiqFail('logic.invalid', 'Logic event and action must be objects.', location);
+                }
+                switch (event.type) {
+                case 'enter':
+                case 'cancel':
+                    cosmiqClosedObject(event, ['type'], location + '.event', 'logic.invalid');
+                    break;
+                case 'participant_joined':
+                    cosmiqClosedObject(event, ['type', 'actorRole'], location + '.event', 'logic.invalid');
+                    if (!ids.actor[event.actorRole]) cosmiqFail('reference.missing', 'Logic Actor Role missing.', location);
+                    break;
+                case 'animation_finished':
+                    cosmiqClosedObject(event, ['type', 'clipId'], location + '.event', 'logic.invalid');
+                    if (!ids.clip[event.clipId]) cosmiqFail('reference.missing', 'Logic clip missing.', location);
+                    usage.clip[event.clipId] = true;
+                    break;
+                case 'input_pressed':
+                    cosmiqClosedObject(event, ['type', 'input'], location + '.event', 'logic.invalid');
+                    if (!/^action_[1-4]$/.test(event.input)) cosmiqFail('logic.invalid', 'Unknown logical input.', location);
+                    break;
+                case 'timer_elapsed':
+                    cosmiqClosedObject(event, ['type', 'afterMillis'], location + '.event', 'logic.invalid');
+                    cosmiqNumber(event.afterMillis, 1, 120000, location + '.event.afterMillis', true);
+                    break;
+                case 'outcome_resolved':
+                    cosmiqClosedObject(event, ['type', 'outcomeSetId', 'value'], location + '.event', 'logic.invalid');
+                    if (!ids.outcome[event.outcomeSetId] ||
+                        ids.outcome[event.outcomeSetId].values.indexOf(event.value) === -1) {
+                        cosmiqFail('reference.missing', 'Logic outcome does not resolve.', location);
+                    }
+                    usage.outcomeEvent[event.outcomeSetId] = true;
+                    break;
+                default:
+                    cosmiqFail('logic.invalid', 'Unknown logic event.', location + '.event');
+                }
+                switch (action.type) {
+                case 'play_animation':
+                    cosmiqClosedObject(
+                        action,
+                        ['type', 'clipId', 'target', 'mode', 'loopDurationMillis', 'blendMillis'],
+                        location + '.action',
+                        'logic.invalid'
+                    );
+                    if (!ids.clip[action.clipId] || (action.target !== 'all' && !ids.actor[action.target]) ||
+                        ['once', 'loop_until_interrupted', 'loop_for'].indexOf(action.mode) === -1) {
+                        cosmiqFail('logic.invalid', 'Play-animation action is invalid.', location + '.action');
+                    }
+                    if (event.type !== 'enter' && action.mode !== 'once') {
+                        cosmiqFail('logic.invalid', 'Only enter rules may start loops.', location + '.action');
+                    }
+                    if (action.mode === 'loop_for') {
+                        cosmiqNumber(action.loopDurationMillis, 50, 120000, location + '.action.loopDurationMillis', true);
+                    } else if (action.loopDurationMillis !== null) {
+                        cosmiqFail('logic.invalid', 'Only loop_for declares a loop duration.', location + '.action');
+                    }
+                    cosmiqNumber(action.blendMillis, 0, 2000, location + '.action.blendMillis', true);
+                    usage.clip[action.clipId] = true;
+                    break;
+                case 'transition':
+                    cosmiqClosedObject(action, ['type', 'state'], location + '.action', 'logic.invalid');
+                    if (!stateIds[action.state]) cosmiqFail('reference.missing', 'Transition state missing.', location);
+                    break;
+                case 'complete':
+                    cosmiqClosedObject(action, ['type'], location + '.action', 'logic.invalid');
+                    break;
+                case 'request_outcome':
+                    cosmiqClosedObject(action, ['type', 'outcomeSetId'], location + '.action', 'logic.invalid');
+                    if (!ids.outcome[action.outcomeSetId]) cosmiqFail('reference.missing', 'Outcome Set missing.', location);
+                    usage.outcomeRequest[action.outcomeSetId] = true;
+                    break;
+                default:
+                    cosmiqFail('logic.invalid', 'Unknown logic action.', location + '.action');
+                }
+                const eventKey = canonicalCosmiqJson(event);
+                const group = actionsByEvent[eventKey] || (actionsByEvent[eventKey] = []);
+                group.push({action: action, location: location + '.action'});
+                if (action.type === 'play_animation') actionSelectsClip(action, location + '.action');
+            });
+            Object.keys(actionsByEvent).forEach(function (eventKey) {
+                const group = actionsByEvent[eventKey];
+                if (group.length < 2) return;
+                if (group.some(function (entry) { return entry.action.type !== 'play_animation'; })) {
+                    cosmiqFail(
+                        'logic.invalid',
+                        'An exact event cannot mix or repeat terminal, transition, or outcome actions.',
+                        group[1].location
+                    );
+                }
+                const targets = Object.create(null);
+                group.forEach(function (entry) {
+                    const target = entry.action.target;
+                    if (target === 'all' || targets.all || targets[target]) {
+                        cosmiqFail(
+                            'logic.invalid',
+                            'An exact event may start only non-overlapping Actor Role targets.',
+                            entry.location
+                        );
+                    }
+                    targets[target] = true;
+                });
+            });
+        });
+        if (encodeUtf8(canonicalCosmiqJson(logic)).length > 64 * 1024) {
+            cosmiqFail('budget.exceeded', 'Canonical logic JSON exceeds 64 KiB.', '$.logic');
+        }
+    }
+
+    function cosmiqValidateEffects(manifest, ids, sectionRecords, usage) {
+        const audioSections = Object.create(null);
+        let totalAudioDuration = 0;
+        manifest.audio.forEach(function (audio, index) {
+            const location = '$.audio[' + index + ']';
+            cosmiqClosedObject(
+                audio, ['id', 'section', 'kind', 'sampleRateHz', 'channels', 'durationMs'], location
+            );
+            const section = sectionRecords[audio.section];
+            if (!section || section.type !== 'audio_ogg_vorbis' || audioSections[audio.section]) {
+                cosmiqFail('reference.missing', 'Audio section is missing or reused.', location + '.section');
+            }
+            audioSections[audio.section] = true;
+            if (['sound_effect', 'music'].indexOf(audio.kind) === -1) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Audio kind is invalid.', location + '.kind');
+            }
+            const inspected = cosmiqInspectOggVorbis(section.bytes, location);
+            if (audio.sampleRateHz !== inspected.sampleRateHz || audio.channels !== inspected.channels ||
+                audio.durationMs !== inspected.durationMs || audio.durationMs < 1 || audio.durationMs > 120000) {
+                cosmiqFail('media.invalid_ogg_vorbis', 'Declared audio metadata does not match the stream.', location);
+            }
+            totalAudioDuration += audio.durationMs;
+        });
+        sectionRecords.slice(1).forEach(function (section) {
+            if (section.type === 'audio_ogg_vorbis' && !audioSections[section.index]) {
+                cosmiqFail('reference.unreferenced', 'Ogg section has no Audio record.', '$.sections');
+            }
+        });
+
+        const particleLimits = {
+            sparkle: [16, 900, 24],
+            burst: [24, 600, 40],
+            trail: [32, 2000, 20],
+            ring: [32, 1200, 32],
+            smoke_puff: [12, 1800, 12]
+        };
+        manifest.particles.forEach(function (particle, index) {
+            const location = '$.particles[' + index + ']';
+            cosmiqClosedObject(particle, [
+                'id', 'template', 'textureId', 'maxParticles', 'durationMs', 'ratePerSecond',
+                'size', 'color', 'localVelocity'
+            ], location);
+            const limits = particleLimits[particle.template];
+            if (!limits) cosmiqFail('kind.invariant_violation', 'Particle template is invalid.', location + '.template');
+            cosmiqNumber(particle.maxParticles, 1, limits[0], location + '.maxParticles', true);
+            cosmiqNumber(particle.durationMs, 1, limits[1], location + '.durationMs', true);
+            cosmiqNumber(particle.ratePerSecond, Number.MIN_VALUE, limits[2], location + '.ratePerSecond');
+            cosmiqNumber(particle.size, Number.MIN_VALUE, 2, location + '.size');
+            cosmiqVector(particle.color, 4, 0, 1, location + '.color');
+            cosmiqVector(particle.localVelocity, 3, -8, 8, location + '.localVelocity');
+            if (particle.textureId !== null) {
+                if (!ids.texture[particle.textureId]) {
+                    cosmiqFail('reference.missing', 'Particle texture does not resolve.', location + '.textureId');
+                }
+                usage.texture[particle.textureId] = true;
+            }
+        });
+
+        const actorAttachments = [
+            'root', 'body', 'head', 'left_arm', 'right_arm', 'left_leg', 'right_leg',
+            'left_hand', 'right_hand', 'left_foot', 'right_foot'
+        ];
+        manifest.locators.forEach(function (locator, index) {
+            const location = '$.locators[' + index + ']';
+            cosmiqClosedObject(locator, ['id', 'target', 'transform'], location);
+            if (locator.target && locator.target.kind === 'node') {
+                cosmiqClosedObject(locator.target, ['kind', 'nodeId'], location + '.target');
+                if (!ids.node[locator.target.nodeId]) {
+                    cosmiqFail('reference.missing', 'Locator node does not resolve.', location + '.target');
+                }
+            } else if (locator.target && locator.target.kind === 'actor_attachment') {
+                cosmiqClosedObject(
+                    locator.target, ['kind', 'actorRole', 'attachment'], location + '.target'
+                );
+                if (manifest.assetKind !== 'emote' || !ids.actor[locator.target.actorRole] ||
+                    actorAttachments.indexOf(locator.target.attachment) === -1) {
+                    cosmiqFail('reference.missing', 'Locator Actor attachment does not resolve.', location + '.target');
+                }
+            } else {
+                cosmiqFail('kind.invariant_violation', 'Unknown Locator target.', location + '.target');
+            }
+            cosmiqTransform(locator.transform, location + '.transform', 8);
+            if (JSON.stringify(locator.transform.scale) !== '[1,1,1]') {
+                cosmiqFail('kind.invariant_violation', 'Locator scale must be identity.', location + '.transform.scale');
+            }
+        });
+
+        let previousCueKey = '';
+        const cueIds = Object.create(null);
+        manifest.cues.forEach(function (cue, index) {
+            const location = '$.cues[' + index + ']';
+            cosmiqClosedObject(cue, [
+                'id', 'clipId', 'atMs', 'endAtMs', 'kind', 'resourceId',
+                'locatorId', 'nodeId', 'visible', 'gain'
+            ], location);
+            cosmiqLocalId(cue.id, location + '.id');
+            if (cueIds[cue.id]) cosmiqFail('reference.duplicate_id', 'Timeline Cue ID is duplicated.', location);
+            cueIds[cue.id] = true;
+            const clip = ids.clip[cue.clipId];
+            if (!clip) cosmiqFail('reference.missing', 'Cue clip does not resolve.', location + '.clipId');
+            cosmiqNumber(cue.atMs, 0, clip.durationMs, location + '.atMs', true);
+            if (cue.endAtMs !== null) {
+                cosmiqNumber(cue.endAtMs, cue.atMs + 1, clip.durationMs, location + '.endAtMs', true);
+            }
+            const cueKey = cue.clipId + '\u0000' + String(cue.atMs).padStart(9, '0') + '\u0000' + cue.id;
+            if (cueKey <= previousCueKey) cosmiqFail('kind.invariant_violation', 'Cues are not canonically sorted.', location);
+            previousCueKey = cueKey;
+            if (cue.kind === 'sound') {
+                if (!ids.audio[cue.resourceId] || cue.nodeId !== null || cue.visible !== null ||
+                    (cue.locatorId !== null && !ids.locator[cue.locatorId])) {
+                    cosmiqFail('reference.missing', 'Sound Cue references are invalid.', location);
+                }
+                cosmiqNumber(cue.gain, 0, 4, location + '.gain');
+                usage.audio[cue.resourceId] = true;
+                if (cue.locatorId !== null) usage.locator[cue.locatorId] = true;
+            } else if (cue.kind === 'particle') {
+                if (!ids.particle[cue.resourceId] || !ids.locator[cue.locatorId] ||
+                    cue.nodeId !== null || cue.visible !== null || cue.gain !== null) {
+                    cosmiqFail('reference.missing', 'Particle Cue references are invalid.', location);
+                }
+                usage.particle[cue.resourceId] = true;
+                usage.locator[cue.locatorId] = true;
+            } else if (cue.kind === 'node_visibility') {
+                if (manifest.assetKind !== 'emote' || !ids.node[cue.nodeId] ||
+                    typeof cue.visible !== 'boolean' || cue.resourceId !== null ||
+                    cue.locatorId !== null || cue.gain !== null) {
+                    cosmiqFail('reference.missing', 'Node-visibility Cue references are invalid.', location);
+                }
+            } else {
+                cosmiqFail('kind.invariant_violation', 'Unknown Timeline Cue kind.', location + '.kind');
+            }
+        });
+        Object.keys(ids.audio).forEach(function (id) {
+            if (!usage.audio[id]) cosmiqFail('reference.unreferenced', 'Audio record is unreferenced.', '$.audio');
+        });
+        Object.keys(ids.particle).forEach(function (id) {
+            if (!usage.particle[id]) cosmiqFail('reference.unreferenced', 'Particle is unreferenced.', '$.particles');
+        });
+        Object.keys(ids.locator).forEach(function (id) {
+            if (!usage.locator[id]) cosmiqFail('reference.unreferenced', 'Locator is unreferenced.', '$.locators');
+        });
+        if (manifest.audio.length > 8 || totalAudioDuration > 480000 ||
+            manifest.particles.length > 16 || manifest.locators.length > 64 ||
+            manifest.cues.length > (manifest.assetKind === 'emote' ? 1024 : 512)) {
+            cosmiqFail('budget.exceeded', 'Effect budget exceeded.', '$');
+        }
+    }
+
+    function cosmiqValidatePlayerAppearance(manifest) {
+        const appearance = Object.hasOwn(manifest, 'playerAppearance')
+            ? manifest.playerAppearance
+            : null;
+        if (appearance === null) return;
+        if (manifest.assetKind !== 'accessory') {
+            cosmiqFail(
+                'kind.invariant_violation',
+                'Only Accessories can alter player-part appearance.',
+                '$.playerAppearance'
+            );
+        }
+        cosmiqClosedObject(
+            appearance,
+            ['occlusions'],
+            '$.playerAppearance',
+            'appearance.invalid'
+        );
+        const occlusions = cosmiqArray(
+            appearance.occlusions,
+            '$.playerAppearance.occlusions'
+        );
+        if (!occlusions.length || occlusions.length > 6) {
+            cosmiqFail(
+                'appearance.invalid',
+                'Player appearance must occlude one through six body parts.',
+                '$.playerAppearance.occlusions'
+            );
+        }
+        const partGroup = {
+            head: 'head',
+            body: 'torso',
+            left_arm: 'arms',
+            right_arm: 'arms',
+            left_leg: 'legs',
+            right_leg: 'legs'
+        };
+        let previousPart = '';
+        occlusions.forEach(function (occlusion, index) {
+            const location = '$.playerAppearance.occlusions[' + index + ']';
+            cosmiqClosedObject(
+                occlusion,
+                ['part', 'layers'],
+                location,
+                'appearance.invalid'
+            );
+            if (!partGroup[occlusion.part] || occlusion.part <= previousPart) {
+                cosmiqFail(
+                    'appearance.invalid',
+                    'Occluded parts must be supported, sorted, and unique.',
+                    location + '.part'
+                );
+            }
+            if (partGroup[occlusion.part] !== manifest.bodyGroup) {
+                cosmiqFail(
+                    'appearance.invalid',
+                    'An Accessory can only occlude parts in its declared Body Group.',
+                    location + '.part'
+                );
+            }
+            previousPart = occlusion.part;
+            const layers = cosmiqArray(occlusion.layers, location + '.layers');
+            if (!layers.length || layers.length > 2) {
+                cosmiqFail(
+                    'appearance.invalid',
+                    'Each occlusion must select at least one player layer.',
+                    location + '.layers'
+                );
+            }
+            let previousLayer = '';
+            layers.forEach(function (layer, layerIndex) {
+                if (['base', 'outer'].indexOf(layer) === -1 || layer <= previousLayer) {
+                    cosmiqFail(
+                        'appearance.invalid',
+                        'Player layers must be supported, sorted, and unique.',
+                        location + '.layers[' + layerIndex + ']'
+                    );
+                }
+                previousLayer = layer;
+            });
+        });
+    }
+
+    function cosmiqValidateManifest(manifest, sectionRecords) {
+        cosmiqClosedManifest(manifest);
+        if (manifest.schemaVersion !== COSMIQ_RUNTIME_SCHEMA) {
+            cosmiqFail('manifest.unsupported_schema', 'Unsupported Package Manifest schema.', '$.schemaVersion');
+        }
+        if (manifest.coordinateProfile !== COSMIQ_STANDARD_COORDINATES ||
+            ['accessory', 'cape', 'emote'].indexOf(manifest.assetKind) === -1) {
+            cosmiqFail('kind.invariant_violation', 'Asset Kind or coordinate profile is invalid.', '$');
+        }
+        [
+            'sections', 'actors', 'nodes', 'materials', 'geometry', 'textures', 'textureVariants',
+            'clips', 'stateBindings', 'audio', 'particles', 'locators', 'cues', 'outcomeSets'
+        ].forEach(function (field) { cosmiqArray(manifest[field], '$.' + field); });
+
+        const descriptors = Object.create(null);
+        manifest.sections.forEach(function (descriptor, index) {
+            const location = '$.sections[' + index + ']';
+            cosmiqClosedObject(descriptor, ['index', 'id', 'type'], location);
+            if (descriptor.index !== index + 1 || descriptors[descriptor.id]) {
+                cosmiqFail('directory.invalid', 'Section descriptors must be contiguous and unique.', location);
+            }
+            cosmiqLocalId(descriptor.id, location + '.id');
+            if (!COSMIQ_STANDARD_SECTION_TYPES[descriptor.type]) {
+                cosmiqFail('directory.unknown_section_type', 'Unknown section descriptor type.', location + '.type');
+            }
+            const record = sectionRecords[descriptor.index];
+            if (!record || record.type !== descriptor.type) {
+                cosmiqFail('directory.invalid', 'Section descriptor does not match the directory.', location);
+            }
+            descriptors[descriptor.id] = descriptor;
+        });
+        if (manifest.sections.length + 1 !== sectionRecords.length) {
+            cosmiqFail('directory.invalid', 'Every non-manifest directory entry needs one descriptor.', '$.sections');
+        }
+
+        const ids = {
+            actor: Object.create(null), node: Object.create(null), material: Object.create(null),
+            geometry: Object.create(null), texture: Object.create(null), clip: Object.create(null),
+            audio: Object.create(null), particle: Object.create(null), locator: Object.create(null),
+            outcome: Object.create(null)
+        };
+        function unique(collection, kind) {
+            collection.forEach(function (record, index) {
+                const location = '$.' + kind + 's[' + index + '].id';
+                cosmiqLocalId(record && record.id, location);
+                if (ids[kind][record.id]) cosmiqFail('reference.duplicate_id', 'Duplicate ID.', location);
+                ids[kind][record.id] = record;
+            });
+        }
+        unique(manifest.actors, 'actor');
+        unique(manifest.nodes, 'node');
+        unique(manifest.materials, 'material');
+        unique(manifest.geometry, 'geometry');
+        unique(manifest.textures, 'texture');
+        unique(manifest.clips, 'clip');
+        unique(manifest.audio, 'audio');
+        unique(manifest.particles, 'particle');
+        unique(manifest.locators, 'locator');
+        unique(manifest.outcomeSets, 'outcome');
+        [
+            ['materials', manifest.materials],
+            ['geometry', manifest.geometry],
+            ['textures', manifest.textures],
+            ['clips', manifest.clips],
+            ['audio', manifest.audio],
+            ['particles', manifest.particles],
+            ['locators', manifest.locators],
+            ['outcomeSets', manifest.outcomeSets]
+        ].forEach(function (entry) {
+            cosmiqRequireSorted(entry[1], function (record) { return record.id; }, '$.' + entry[0]);
+        });
+        if (manifest.textureVariants.length > 1) {
+            cosmiqRequireSorted(
+                manifest.textureVariants,
+                function (variant) { return variant.id; },
+                '$.textureVariants',
+                1
+            );
+        }
+        cosmiqRequireSorted(manifest.stateBindings, function (binding) {
+            return binding.trigger.kind + '\u0000' + binding.trigger.id;
+        }, '$.stateBindings');
+
+        const clipDurations = Object.create(null);
+        manifest.clips.forEach(function (clip) {
+            clipDurations[clip.id] = clip.durationMs;
+        });
+        const rootNodeIds = Object.create(null);
+        manifest.nodes.forEach(function (node) {
+            if (node && node.parentId === null) rootNodeIds[node.id] = true;
+        });
+        cosmiqValidatePreviewCamera(manifest, clipDurations, rootNodeIds);
+
+        manifest.materials.forEach(function (material, index) {
+            const location = '$.materials[' + index + ']';
+            cosmiqClosedObject(material, [
+                'id', 'baseColorTextureId', 'baseColorFactor', 'alphaMode', 'alphaCutoff',
+                'doubleSided', 'shading', 'emissiveTextureId', 'emissiveFactor'
+            ], location);
+            cosmiqVector(material.baseColorFactor, 4, 0, 1, location + '.baseColorFactor');
+            cosmiqVector(material.emissiveFactor, 3, 0, 8, location + '.emissiveFactor');
+            if (['opaque', 'mask', 'blend'].indexOf(material.alphaMode) === -1 ||
+                ['lit', 'unlit'].indexOf(material.shading) === -1 ||
+                typeof material.doubleSided !== 'boolean') {
+                cosmiqFail('kind.invariant_violation', 'Material enum is invalid.', location);
+            }
+            cosmiqNumber(material.alphaCutoff, 0, 1, location + '.alphaCutoff');
+            ['baseColorTextureId', 'emissiveTextureId'].forEach(function (field) {
+                const id = material[field];
+                if (id !== null && !ids.texture[id]) {
+                    cosmiqFail('reference.missing', 'Material texture does not resolve.', location + '.' + field);
+                }
+            });
+        });
+
+        const textureSections = Object.create(null);
+        manifest.textures.forEach(function (texture, index) {
+            const location = '$.textures[' + index + ']';
+            cosmiqClosedObject(
+                texture,
+                ['id', 'section', 'width', 'height', 'colorSpace', 'filter', 'wrap'],
+                location
+            );
+            const record = sectionRecords[texture.section];
+            if (!record || record.type !== 'texture_png' || textureSections[texture.section]) {
+                cosmiqFail('reference.missing', 'Texture section is missing or reused.', location + '.section');
+            }
+            textureSections[texture.section] = true;
+            cosmiqNumber(texture.width, 1, 2048, location + '.width', true);
+            cosmiqNumber(texture.height, 1, 2048, location + '.height', true);
+            if (texture.colorSpace !== 'srgb' || ['nearest', 'linear'].indexOf(texture.filter) === -1 ||
+                ['clamp', 'repeat'].indexOf(texture.wrap) === -1) {
+                cosmiqFail('media.invalid_png', 'Texture sampling declaration is invalid.', location);
+            }
+            const png = cosmiqInspectPng(record.bytes, location);
+            if (png.width !== texture.width || png.height !== texture.height) {
+                cosmiqFail('media.invalid_png', 'Declared PNG dimensions do not match IHDR.', location);
+            }
+        });
+        Object.keys(sectionRecords).forEach(function (key) {
+            const record = sectionRecords[key];
+            if (record.type === 'texture_png' && !textureSections[key]) {
+                cosmiqFail('reference.unreferenced', 'PNG section has no Texture record.', '$.sections');
+            }
+        });
+
+        const variantIds = Object.create(null);
+        manifest.textureVariants.forEach(function (variant, index) {
+            const location = '$.textureVariants[' + index + ']';
+            cosmiqClosedObject(variant, ['id', 'replacements'], location);
+            cosmiqLocalId(variant.id, location + '.id');
+            if (variantIds[variant.id]) cosmiqFail('reference.duplicate_id', 'Duplicate texture variant.', location);
+            variantIds[variant.id] = true;
+            if (!cosmiqPlainObject(variant.replacements)) {
+                cosmiqFail('kind.invariant_violation', 'Variant replacements must be a map.', location + '.replacements');
+            }
+            const replacementKeys = Object.keys(variant.replacements);
+            if (variant.id !== 'default' && replacementKeys.length === 0) {
+                cosmiqFail('kind.invariant_violation', 'A non-default texture variant must replace a texture.', location);
+            }
+            replacementKeys.forEach(function (base) {
+                const replacement = variant.replacements[base];
+                if (!ids.texture[base] || !ids.texture[replacement]) {
+                    cosmiqFail('reference.missing', 'Texture variant replacement does not resolve.', location);
+                }
+                if (base === replacement) {
+                    cosmiqFail('kind.invariant_violation', 'Texture variants must replace a base with a distinct texture.', location);
+                }
+                if (ids.texture[base].width !== ids.texture[replacement].width ||
+                    ids.texture[base].height !== ids.texture[replacement].height) {
+                    cosmiqFail('kind.invariant_violation', 'Texture variant dimensions differ.', location);
+                }
+            });
+        });
+        if (manifest.textures.length) {
+            if (!manifest.textureVariants.length || manifest.textureVariants[0].id !== 'default' ||
+                Object.keys(manifest.textureVariants[0].replacements).length !== 0) {
+                cosmiqFail('kind.invariant_violation', 'The unchanged default texture variant must be first.', '$.textureVariants');
+            }
+        } else if (manifest.textureVariants.length) {
+            cosmiqFail('kind.invariant_violation', 'Texture variants require textures.', '$.textureVariants');
+        }
+        if (manifest.textureVariants.length > 10) {
+            cosmiqFail('budget.exceeded', 'Texture variant budget exceeded.', '$.textureVariants');
+        }
+
+        const usage = {
+            geometry: Object.create(null),
+            material: Object.create(null),
+            texture: Object.create(null),
+            clip: Object.create(null),
+            audio: Object.create(null),
+            particle: Object.create(null),
+            locator: Object.create(null),
+            outcomeRequest: Object.create(null),
+            outcomeEvent: Object.create(null)
+        };
+        const counts = {
+            nodes: 0,
+            cuboids: 0,
+            indexedPrimitives: 0,
+            vertices: 0,
+            triangles: 0,
+            keyframes: 0
+        };
+        const coverage = {semantic: Object.create(null), ranges: Object.create(null)};
+
+        cosmiqValidateClips(manifest, ids, sectionRecords, coverage, usage, counts);
+        cosmiqValidateActors(manifest, ids);
+        cosmiqValidateGeometry(manifest, ids, sectionRecords, coverage, usage, counts);
+        cosmiqValidateNodes(manifest, ids, usage, counts);
+        cosmiqValidateStateBindings(manifest, ids, usage);
+        cosmiqValidateMovement(manifest);
+        cosmiqValidatePlayerAppearance(manifest);
+
+        manifest.outcomeSets.forEach(function (outcome, index) {
+            const location = '$.outcomeSets[' + index + ']';
+            cosmiqClosedObject(outcome, ['id', 'values'], location, 'logic.invalid');
+            const values = cosmiqArray(outcome.values, location + '.values');
+            if (values.length < 2 || values.length > 8) {
+                cosmiqFail('logic.invalid', 'Outcome Set must contain two through eight values.', location);
+            }
+            let previous = '';
+            values.forEach(function (value, valueIndex) {
+                cosmiqLocalId(value, location + '.values[' + valueIndex + ']');
+                if (value <= previous) cosmiqFail('logic.invalid', 'Outcome values must be sorted and unique.', location);
+                previous = value;
+            });
+        });
+        cosmiqValidateLogic(manifest, ids, usage);
+        cosmiqValidateEffects(manifest, ids, sectionRecords, usage);
+
+        Object.keys(coverage.ranges).forEach(function (sectionIndex) {
+            const section = sectionRecords[Number(sectionIndex)];
+            const ranges = coverage.ranges[sectionIndex].filter(function (range) {
+                return range.end > range.start;
+            }).sort(function (left, right) { return left.start - right.start; });
+            let coveredTo = 0;
+            ranges.forEach(function (range) {
+                if (range.start !== coveredTo) {
+                    cosmiqFail('buffer.invalid_view', 'Numeric buffer contains uncovered bytes.', '$.sections');
+                }
+                coveredTo = range.end;
+            });
+            if (!section || coveredTo !== section.bytes.length) {
+                cosmiqFail('buffer.invalid_view', 'Numeric buffer contains uncovered trailing bytes.', '$.sections');
+            }
+        });
+        sectionRecords.slice(1).forEach(function (section) {
+            if ((section.type === 'geometry_buffer' || section.type === 'animation_buffer') &&
+                !coverage.ranges[section.index]) {
+                cosmiqFail('reference.unreferenced', 'Numeric section is unreferenced.', '$.sections');
+            }
+        });
+
+        manifest.materials.forEach(function (material) {
+            if (material.baseColorTextureId !== null) usage.texture[material.baseColorTextureId] = true;
+            if (material.emissiveTextureId !== null) usage.texture[material.emissiveTextureId] = true;
+        });
+        manifest.textureVariants.forEach(function (variant) {
+            Object.keys(variant.replacements).forEach(function (base) {
+                usage.texture[base] = true;
+                usage.texture[variant.replacements[base]] = true;
+            });
+        });
+
+        if (manifest.assetKind === 'accessory') {
+            if (manifest.capeMesh !== null || manifest.movementPolicy !== null || manifest.logic !== null ||
+                manifest.actors.length || manifest.outcomeSets.length || !manifest.nodes.length ||
+                !manifest.geometry.length || !manifest.textures.length) {
+                cosmiqFail('kind.invariant_violation', 'Accessory Asset Kind fields are inconsistent.', '$');
+            }
+            if (!manifest.clips.length && (
+                manifest.audio.length || manifest.particles.length || manifest.locators.length || manifest.cues.length
+            )) {
+                cosmiqFail('kind.invariant_violation', 'Static Accessories cannot declare timed effects.', '$');
+            }
+        } else if (manifest.assetKind === 'emote') {
+            if (manifest.bodyGroup !== null || manifest.capeMesh !== null || !manifest.clips.length ||
+                manifest.stateBindings.length || manifest.logic === null) {
+                cosmiqFail('kind.invariant_violation', 'Emote Asset Kind fields are inconsistent.', '$');
+            }
+            if (!usage.clip[manifest.previewCamera.pose.clipId]) {
+                cosmiqFail('camera.invalid', 'Emote preview clip must be referenced by logic.', '$.previewCamera.pose.clipId');
+            }
+        }
+
+        Object.keys(ids.geometry).forEach(function (id) {
+            if (!usage.geometry[id]) cosmiqFail('reference.unreferenced', 'Geometry is unreferenced.', '$.geometry');
+        });
+        Object.keys(ids.material).forEach(function (id) {
+            if (manifest.assetKind !== 'cape' && !usage.material[id]) {
+                cosmiqFail('reference.unreferenced', 'Material is unreferenced.', '$.materials');
+            }
+        });
+        Object.keys(ids.texture).forEach(function (id) {
+            if (!usage.texture[id]) cosmiqFail('reference.unreferenced', 'Texture is unreferenced.', '$.textures');
+        });
+        Object.keys(ids.clip).forEach(function (id) {
+            if (!usage.clip[id]) cosmiqFail('reference.unreferenced', 'Clip is unreferenced.', '$.clips');
+        });
+        Object.keys(ids.outcome).forEach(function (id) {
+            if (!usage.outcomeRequest[id] || !usage.outcomeEvent[id]) {
+                cosmiqFail('reference.unreferenced', 'Outcome Set needs a request and resolved event.', '$.outcomeSets');
+            }
+        });
+
+        const budgets = manifest.assetKind === 'emote'
+            ? {
+                nodes: 128, cuboids: 256, indexedPrimitives: 128, vertices: 32768,
+                triangles: 65536, clips: 64, keyframes: 32768
+            }
+            : manifest.assetKind === 'accessory'
+                ? {
+                    nodes: 128, cuboids: 256, indexedPrimitives: 64, vertices: 16384,
+                    triangles: 32768, clips: 32, keyframes: 8192
+                }
+                : {
+                    nodes: 0, cuboids: 0, indexedPrimitives: 0, vertices: 0,
+                    triangles: 0, clips: 0, keyframes: 0
+                };
+        Object.keys(budgets).forEach(function (field) {
+            const actual = field === 'clips' ? manifest.clips.length : counts[field];
+            if (actual > budgets[field]) cosmiqFail('budget.exceeded', field + ' budget exceeded.', '$');
+        });
+        const texturePixels = manifest.textures.reduce(function (total, texture) {
+            return total + texture.width * texture.height;
+        }, 0);
+        const materialLimit = manifest.assetKind === 'cape' ? 1 : 32;
+        const textureLimit = manifest.assetKind === 'cape' ? 10 : 32;
+        const pixelLimit = manifest.assetKind === 'cape' ? 20480 : 16777216;
+        if (manifest.materials.length > materialLimit || manifest.textures.length > textureLimit ||
+            texturePixels > pixelLimit || manifest.audio.length > 8 ||
+            manifest.particles.length > 16 || manifest.locators.length > 64 ||
+            manifest.outcomeSets.length > (manifest.assetKind === 'emote' ? 8 : 0)) {
+            cosmiqFail('budget.exceeded', 'Content object budget exceeded.', '$');
+        }
+
+        if (manifest.assetKind === 'cape') {
+            if (manifest.bodyGroup !== null || manifest.capeMesh !== 'cosmiq:cape/default-v1' ||
+                manifest.movementPolicy !== null || manifest.logic !== null ||
+                manifest.nodes.length || manifest.geometry.length || manifest.actors.length ||
+                manifest.clips.length || manifest.stateBindings.length || manifest.audio.length ||
+                manifest.particles.length || manifest.locators.length || manifest.cues.length ||
+                manifest.outcomeSets.length) {
+                cosmiqFail('cape.invalid_fixed_asset', 'Cape contains fields forbidden by the fixed asset contract.', '$');
+            }
+            if (manifest.materials.length !== 1 || manifest.textures.length < 1 ||
+                manifest.textures.length > 10 || manifest.textureVariants.length !== manifest.textures.length) {
+                cosmiqFail('cape.invalid_fixed_asset', 'Cape material, texture, or variant count is invalid.', '$');
+            }
+            const material = manifest.materials[0];
+            if (canonicalCosmiqJson(material) !== canonicalCosmiqJson({
+                id: 'cape_material',
+                baseColorTextureId: 'cape_texture',
+                baseColorFactor: [1, 1, 1, 1],
+                alphaMode: 'mask',
+                alphaCutoff: 0.5,
+                doubleSided: true,
+                shading: 'lit',
+                emissiveTextureId: null,
+                emissiveFactor: [0, 0, 0]
+            }) || !ids.texture.cape_texture) {
+                cosmiqFail('cape.invalid_fixed_asset', 'Cape material is not canonical.', '$.materials');
+            }
+            manifest.textures.forEach(function (texture) {
+                if (texture.width !== 64 || texture.height !== 32) {
+                    cosmiqFail('cape.invalid_fixed_asset', 'Cape textures must be 64 by 32.', '$.textures');
+                }
+            });
+            manifest.textureVariants.slice(1).forEach(function (variant) {
+                const keys = Object.keys(variant.replacements);
+                if (keys.length !== 1 || keys[0] !== 'cape_texture') {
+                    cosmiqFail('cape.invalid_fixed_asset', 'Cape variants replace only cape_texture.', '$.textureVariants');
+                }
+            });
+        }
+        return manifest;
+    }
+
+    function parseAndValidateCosmiqRuntime(content) {
+        const bytes = cosmiqBytes(content);
+        if (bytes.length > 32 * 1024 * 1024) {
+            cosmiqFail('budget.exceeded', 'Package exceeds the absolute input ceiling.');
+        }
+        if (bytes.length < COSMIQ_STANDARD_HEADER_BYTES) {
+            cosmiqFail('header.invalid_length', 'Package is shorter than the 64-byte header.');
+        }
+        for (let index = 0; index < 8; index++) {
+            if (bytes[index] !== COSMIQ_STANDARD_MAGIC.charCodeAt(index)) {
+                cosmiqFail('header.invalid_magic', 'File magic is not COSMIQCP.');
+            }
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        if (view.getUint16(8, true) !== COSMIQ_STANDARD_CONTAINER_VERSION) {
+            cosmiqFail('header.unsupported_version', 'Only container version 2 is supported.');
+        }
+        const sectionCount = view.getUint32(16, true);
+        const expectedFirstPayload = cosmiqAlign8(
+            COSMIQ_STANDARD_HEADER_BYTES + sectionCount * COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES
+        );
+        if (view.getUint16(10, true) !== COSMIQ_STANDARD_HEADER_BYTES ||
+            view.getUint32(12, true) !== 0 ||
+            sectionCount < 1 || sectionCount > COSMIQ_STANDARD_MAX_SECTIONS ||
+            view.getUint32(20, true) !== COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES ||
+            cosmiqReadU64(view, 24, 'directory.invalid') !== COSMIQ_STANDARD_HEADER_BYTES ||
+            cosmiqReadU64(view, 32, 'directory.invalid') !== expectedFirstPayload ||
+            cosmiqReadU64(view, 40, 'header.invalid_length') !== bytes.length) {
+            cosmiqFail('header.invalid_length', 'Header fields or exact file length are invalid.');
+        }
+        for (let index = 48; index < 64; index++) {
+            if (bytes[index] !== 0) cosmiqFail('directory.invalid', 'Header reserved bytes must be zero.');
+        }
+        for (let index = COSMIQ_STANDARD_HEADER_BYTES + sectionCount * COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES;
+            index < expectedFirstPayload; index++) {
+            if (bytes[index] !== 0) cosmiqFail('directory.invalid', 'Directory padding must be zero.');
+        }
+        const sections = [];
+        let expectedOffset = expectedFirstPayload;
+        for (let index = 0; index < sectionCount; index++) {
+            const entryOffset = COSMIQ_STANDARD_HEADER_BYTES + index * COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES;
+            const entryIndex = view.getUint32(entryOffset, true);
+            const typeValue = view.getUint16(entryOffset + 4, true);
+            const flags = view.getUint16(entryOffset + 6, true);
+            const offset = cosmiqReadU64(view, entryOffset + 8, 'directory.invalid');
+            const length = cosmiqReadU64(view, entryOffset + 16, 'directory.invalid');
+            const type = COSMIQ_STANDARD_SECTION_NAMES[typeValue];
+            if (entryIndex !== index || !type || flags !== 0 || offset !== expectedOffset ||
+                offset % 8 !== 0 || length < 1 || offset + length > bytes.length ||
+                (index === 0 ? type !== 'manifest_json' : type === 'manifest_json')) {
+                cosmiqFail(!type ? 'directory.unknown_section_type' : 'directory.invalid', 'Section directory entry is invalid.');
+            }
+            for (let reserved = entryOffset + 56; reserved < entryOffset + 80; reserved++) {
+                if (bytes[reserved] !== 0) cosmiqFail('directory.invalid', 'Directory reserved bytes must be zero.');
+            }
+            const payload = bytes.subarray(offset, offset + length);
+            if ((type === 'texture_png' && length > 8 * 1024 * 1024) ||
+                (type === 'audio_ogg_vorbis' && length > 16 * 1024 * 1024)) {
+                cosmiqFail('budget.exceeded', 'Media section byte budget exceeded.', '$.sections[' + index + ']');
+            }
+            const expectedHash = new Uint8Array(bytes.subarray(entryOffset + 24, entryOffset + 56));
+            if (index === 0 && !cosmiqEqualBytes(cosmiqSha256(payload), expectedHash)) {
+                cosmiqFail('section.hash_mismatch', 'Section SHA-256 does not match.', '$.sections[' + index + ']');
+            }
+            sections.push({
+                index: index,
+                type: type,
+                bytes: new Uint8Array(payload),
+                expectedHash: expectedHash
+            });
+            const nextOffset = index === sectionCount - 1 ? offset + length : cosmiqAlign8(offset + length);
+            for (let padding = offset + length; padding < nextOffset; padding++) {
+                if (bytes[padding] !== 0) cosmiqFail('directory.invalid', 'Section padding must be zero.');
+            }
+            expectedOffset = nextOffset;
+        }
+        if (expectedOffset !== bytes.length) {
+            cosmiqFail('header.invalid_length', 'Trailing padding or data is forbidden.');
+        }
+        let manifestText;
+        try {
+            manifestText = decodeUtf8(sections[0].bytes);
+        } catch (error) {
+            cosmiqFail('manifest.invalid_utf8', 'Manifest is not canonical UTF-8.');
+        }
+        let manifest;
+        try {
+            manifest = JSON.parse(manifestText);
+        } catch (error) {
+            cosmiqFail('manifest.invalid_json', 'Manifest JSON cannot be parsed.');
+        }
+        if (encodeUtf8(manifestText).length > 256 * 1024) {
+            cosmiqFail('budget.exceeded', 'Manifest byte budget exceeded.', '$');
+        }
+        if (canonicalCosmiqJson(manifest) !== manifestText) {
+            cosmiqFail('manifest.noncanonical_json', 'Manifest is not RFC 8785 canonical JSON.', '$');
+        }
+        cosmiqValidateJsonBounds(manifest);
+        cosmiqClosedManifest(manifest);
+        if (manifest.schemaVersion !== COSMIQ_RUNTIME_SCHEMA) {
+            cosmiqFail('manifest.unsupported_schema', 'Unsupported Package Manifest schema.', '$.schemaVersion');
+        }
+        if (manifest.coordinateProfile !== COSMIQ_STANDARD_COORDINATES ||
+            ['accessory', 'cape', 'emote'].indexOf(manifest.assetKind) === -1) {
+            cosmiqFail('kind.invariant_violation', 'Asset Kind or coordinate profile is invalid.', '$');
+        }
+        const kindByteLimits = {accessory: 16 * 1024 * 1024, cape: 4 * 1024 * 1024, emote: 32 * 1024 * 1024};
+        if (bytes.length > kindByteLimits[manifest.assetKind]) {
+            cosmiqFail('budget.exceeded', 'Asset Kind file-byte budget exceeded.', '$.assetKind');
+        }
+        cosmiqArray(manifest.sections, '$.sections');
+        if (manifest.sections.length + 1 !== sections.length) {
+            cosmiqFail('directory.invalid', 'Every non-manifest directory entry needs one descriptor.', '$.sections');
+        }
+        const descriptorIds = Object.create(null);
+        manifest.sections.forEach(function (descriptor, index) {
+            const location = '$.sections[' + index + ']';
+            cosmiqClosedObject(descriptor, ['index', 'id', 'type'], location);
+            cosmiqLocalId(descriptor.id, location + '.id');
+            if (descriptor.index !== index + 1 || !sections[index + 1] ||
+                sections[index + 1].type !== descriptor.type || descriptorIds[descriptor.id]) {
+                cosmiqFail('directory.invalid', 'Section descriptor does not match the directory.', location);
+            }
+            descriptorIds[descriptor.id] = true;
+        });
+        sections.slice(1).forEach(function (section) {
+            if (!cosmiqEqualBytes(cosmiqSha256(section.bytes), section.expectedHash)) {
+                cosmiqFail(
+                    'section.hash_mismatch',
+                    'Section SHA-256 does not match.',
+                    '$.sections[' + section.index + ']'
+                );
+            }
+        });
+        cosmiqValidateManifest(manifest, sections);
+        return Object.freeze({
+            manifest: manifest,
+            sections: Object.freeze(sections.map(function (section) {
+                return Object.freeze({
+                    index: section.index,
+                    type: section.type,
+                    bytes: section.bytes
+                });
+            }))
+        });
+    }
+
+    function v3RequiredObject(value, code, location) {
+        if (!cosmiqPlainObject(value)) {
+            cosmiqFail(code, 'Required v3 project member must be an object.', location);
+        }
+        return value;
+    }
+
+    function v3RequiredArray(value, location) {
+        if (!Array.isArray(value)) {
+            cosmiqFail('package.invalid_project', 'Required v3 project member must be an array.', location);
+        }
+        return value;
+    }
+
+    function validateCosmiqBbmodelProject(project, exactBytes) {
+        const root = v3RequiredObject(project, 'package.invalid_project', '$');
+        const meta = v3RequiredObject(root.meta, 'package.invalid_project', '$.meta');
+        const metadata = v3RequiredObject(root.cosmiq, 'package.invalid_project', '$.cosmiq');
+        if (meta.model_format !== FORMAT_ID) {
+            cosmiqFail(
+                'package.unsupported_model_format',
+                'Blockbench model_format must be cosmiq_cosmetic.',
+                '$.meta.model_format'
+            );
+        }
+        if (typeof meta.format_version !== 'string' || !meta.format_version) {
+            cosmiqFail(
+                'package.unsupported_blockbench_version',
+                'Blockbench format_version must be an explicitly supported value.',
+                '$.meta.format_version'
+            );
+        }
+        if (metadata.schemaVersion !== PACKAGE_SCHEMA || metadata.formatVersion !== 3) {
+            cosmiqFail(
+                'package.unsupported_schema',
+                'Only the COSMIQ v3 Blockbench package schema is supported.',
+                '$.cosmiq.schemaVersion'
+            );
+        }
+        const kindMap = {cosmetic: CATEGORIES.ACCESSORY, cape: CATEGORIES.CAPE, emote: CATEGORIES.EMOTE};
+        const assetKind = kindMap[metadata.kind];
+        if (!assetKind || root.cosmiq_project_kind !== metadata.kind || metadata.category !== assetKind) {
+            cosmiqFail(
+                'package.invalid_kind',
+                'Project kind and COSMIQ category must describe one supported asset kind.',
+                '$.cosmiq.kind'
+            );
+        }
+        if (metadata.coordinateProfile !== COORDINATE_PROFILE || metadata.unitsPerBlock !== 16) {
+            cosmiqFail(
+                'package.invalid_coordinates',
+                'V3 packages use cosmiq.blockbench.v3 at 16 units per block.',
+                '$.cosmiq.coordinateProfile'
+            );
+        }
+        if (typeof root.name !== 'string' || !root.name.trim() || root.name.length > 128) {
+            cosmiqFail('package.invalid_project', 'Project name must be non-blank and bounded.', '$.name');
+        }
+        if (typeof metadata.projectId !== 'string' ||
+            !/^[a-z0-9][a-z0-9._-]{0,63}:[a-z0-9][a-z0-9._/-]{0,126}$/.test(metadata.projectId)) {
+            cosmiqFail('package.invalid_project_id', 'Project ID is not normalized.', '$.cosmiq.projectId');
+        }
+        if (!Number.isSafeInteger(metadata.sourceRevision) || metadata.sourceRevision < 1) {
+            cosmiqFail(
+                'package.invalid_project',
+                'Source revision must be a positive safe integer.',
+                '$.cosmiq.sourceRevision'
+            );
+        }
+        v3RequiredObject(root.resolution, 'package.invalid_project', '$.resolution');
+        v3RequiredArray(root.elements, '$.elements');
+        v3RequiredArray(root.outliner, '$.outliner');
+        v3RequiredArray(root.textures, '$.textures');
+        v3RequiredArray(root.animations, '$.animations');
+        v3RequiredObject(metadata.nodeBindings, 'package.invalid_project', '$.cosmiq.nodeBindings');
+        v3RequiredObject(metadata.animationBindings, 'package.invalid_project', '$.cosmiq.animationBindings');
+        if (metadata.settings != null) {
+            const settings = v3RequiredArray(metadata.settings, '$.cosmiq.settings');
+            if (settings.length > 1 ||
+                JSON.stringify(normalizeCosmeticSettings(settings)) !== JSON.stringify(settings)) {
+                cosmiqFail(
+                    'package.invalid_project',
+                    'Cosmetic Settings must be empty or one enabled, unkeyed SIDE setting.',
+                    '$.cosmiq.settings'
+                );
+            }
+        }
+        v3RequiredArray(metadata.resourceReferences, '$.cosmiq.resourceReferences');
+        v3RequiredObject(
+            metadata.effectLocatorBindings,
+            'package.invalid_project',
+            '$.cosmiq.effectLocatorBindings'
+        );
+        v3RequiredArray(metadata.timelineCues, '$.cosmiq.timelineCues');
+        v3RequiredObject(metadata.previewCamera, 'package.invalid_project', '$.cosmiq.previewCamera');
+        v3RequiredObject(metadata.budgets, 'package.invalid_project', '$.cosmiq.budgets');
+        const limits = {accessory: 16 * 1024 * 1024, cape: 4 * 1024 * 1024, emote: 32 * 1024 * 1024};
+        if (exactBytes.length > limits[assetKind]) {
+            cosmiqFail('budget.exceeded', 'Asset Kind file-byte budget exceeded.', '$.cosmiq.category');
+        }
+        return Object.freeze({
+            assetKind: assetKind,
+            exactBytes: new Uint8Array(exactBytes),
+            metadata: metadata,
+            project: root
+        });
+    }
+
+    function parseAndValidateCosmiq(content) {
+        const bytes = cosmiqBytes(content);
+        const legacyMagic = COSMIQ_STANDARD_MAGIC;
+        let legacy = bytes.length >= legacyMagic.length;
+        for (let index = 0; legacy && index < legacyMagic.length; index++) {
+            legacy = bytes[index] === legacyMagic.charCodeAt(index);
+        }
+        if (legacy) {
+            cosmiqFail(
+                'package.unsupported_legacy',
+                'The COSMIQCP container was replaced by the exact v3 .bbmodel project.'
+            );
+        }
+        if (bytes.length > 32 * 1024 * 1024) {
+            cosmiqFail('budget.exceeded', 'Package exceeds the absolute input ceiling.');
+        }
+        let text;
+        try {
+            text = decodeUtf8(bytes);
+        } catch (error) {
+            cosmiqFail('package.invalid_utf8', 'Package is not valid UTF-8.');
+        }
+        let project;
+        try {
+            project = JSON.parse(text);
+        } catch (error) {
+            cosmiqFail('package.invalid_json', 'Blockbench project JSON cannot be parsed.');
+        }
+        return validateCosmiqBbmodelProject(project, bytes);
+    }
+
+    function encodeCosmiqBbmodel(project) {
+        const exactBytes = encodeUtf8(JSON.stringify(project, null, 2) + '\n');
+        parseAndValidateCosmiq(exactBytes);
+        return exactBytes;
+    }
+
+    function encodeCosmiqPackage(manifest, payloadSections) {
+        const descriptors = Array.isArray(manifest && manifest.sections) ? manifest.sections : [];
+        const provided = Array.isArray(payloadSections) ? payloadSections.slice() : [];
+        if (provided.length !== descriptors.length) {
+            cosmiqFail('directory.invalid', 'Payload section count does not match manifest.sections.', '$.sections');
+        }
+        provided.sort(function (left, right) {
+            const leftDescriptor = descriptors.find(function (descriptor) { return descriptor.id === left.id; });
+            const rightDescriptor = descriptors.find(function (descriptor) { return descriptor.id === right.id; });
+            return (leftDescriptor ? leftDescriptor.index : Number.MAX_SAFE_INTEGER) -
+                (rightDescriptor ? rightDescriptor.index : Number.MAX_SAFE_INTEGER);
+        });
+        const payloads = [encodeUtf8(canonicalCosmiqJson(manifest))];
+        const types = ['manifest_json'];
+        descriptors.forEach(function (descriptor, index) {
+            const section = provided[index];
+            if (!section || section.id !== descriptor.id || section.type !== descriptor.type) {
+                cosmiqFail('directory.invalid', 'Payload section identity does not match its descriptor.', '$.sections[' + index + ']');
+            }
+            const bytes = cosmiqBytes(section.bytes);
+            if (!bytes.length) cosmiqFail('directory.invalid', 'Sections cannot be empty.', '$.sections[' + index + ']');
+            payloads.push(bytes);
+            types.push(section.type);
+        });
+        const sectionCount = payloads.length;
+        if (sectionCount > COSMIQ_STANDARD_MAX_SECTIONS) cosmiqFail('budget.exceeded', 'Section budget exceeded.');
+        const firstPayloadOffset = cosmiqAlign8(
+            COSMIQ_STANDARD_HEADER_BYTES + sectionCount * COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES
+        );
+        const offsets = [];
+        let cursor = firstPayloadOffset;
+        payloads.forEach(function (payload, index) {
+            offsets.push(cursor);
+            cursor = index === payloads.length - 1 ? cursor + payload.length : cosmiqAlign8(cursor + payload.length);
+        });
+        const output = new Uint8Array(cursor);
+        const view = new DataView(output.buffer);
+        for (let index = 0; index < 8; index++) output[index] = COSMIQ_STANDARD_MAGIC.charCodeAt(index);
+        view.setUint16(8, COSMIQ_STANDARD_CONTAINER_VERSION, true);
+        view.setUint16(10, COSMIQ_STANDARD_HEADER_BYTES, true);
+        view.setUint32(12, 0, true);
+        view.setUint32(16, sectionCount, true);
+        view.setUint32(20, COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES, true);
+        cosmiqWriteU64(view, 24, COSMIQ_STANDARD_HEADER_BYTES);
+        cosmiqWriteU64(view, 32, firstPayloadOffset);
+        cosmiqWriteU64(view, 40, output.length);
+        payloads.forEach(function (payload, index) {
+            const entryOffset = COSMIQ_STANDARD_HEADER_BYTES + index * COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES;
+            view.setUint32(entryOffset, index, true);
+            view.setUint16(entryOffset + 4, COSMIQ_STANDARD_SECTION_TYPES[types[index]], true);
+            view.setUint16(entryOffset + 6, 0, true);
+            cosmiqWriteU64(view, entryOffset + 8, offsets[index]);
+            cosmiqWriteU64(view, entryOffset + 16, payload.length);
+            output.set(cosmiqSha256(payload), entryOffset + 24);
+            output.set(payload, offsets[index]);
+        });
+        parseAndValidateCosmiqRuntime(output);
+        return output.buffer;
+    }
+
+    function cosmiqClone(value) {
+        return JSON.parse(JSON.stringify(value));
+    }
+
+    function cosmiqDecodeBase64(value, location) {
+        if (typeof value !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(value) || value.length % 4 !== 0) {
+            cosmiqFail('media.invalid_png', 'Embedded base64 payload is invalid.', location);
+        }
+        if (typeof atob === 'function') {
+            let decoded;
+            try {
+                decoded = atob(value);
+            } catch (error) {
+                cosmiqFail('media.invalid_png', 'Embedded base64 payload cannot be decoded.', location);
+            }
+            const bytes = new Uint8Array(decoded.length);
+            for (let index = 0; index < decoded.length; index++) bytes[index] = decoded.charCodeAt(index);
+            return bytes;
+        }
+        if (typeof Buffer !== 'undefined') {
+            return new Uint8Array(Buffer.from(value, 'base64'));
+        }
+        cosmiqFail('media.invalid_png', 'This Blockbench build cannot decode embedded base64 media.', location);
+    }
+
+    function cosmiqEmbeddedMedia(source, mime, location) {
+        const match = new RegExp('^data:' + mime.replace('/', '\\/') + ';base64,([A-Za-z0-9+/]*={0,2})$').exec(
+            String(source == null ? '' : source)
+        );
+        if (!match) {
+            cosmiqFail(
+                mime === 'image/png' ? 'media.invalid_png' : 'media.invalid_ogg_vorbis',
+                'Runtime media must be embedded in the editable project.',
+                location
+            );
+        }
+        return cosmiqDecodeBase64(match[1], location);
+    }
+
+    function cosmiqAllocatedId(value, fallback, allocated) {
+        let base = String(value == null ? '' : value)
+            .toLowerCase()
+            .replace(/\.[a-z0-9]{1,8}$/i, '')
+            .replace(/[^a-z0-9._-]+/g, '_')
+            .replace(/^[^a-z]+/, '')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 56);
+        if (!base) base = fallback || 'asset';
+        if (!/^[a-z]/.test(base)) base = (fallback || 'asset') + '_' + base;
+        base = base.slice(0, 56);
+        let id = base;
+        let suffix = 2;
+        while (allocated[id]) {
+            id = base.slice(0, 60 - String(suffix).length) + '_' + suffix++;
+        }
+        allocated[id] = true;
+        return id;
+    }
+
+    function cosmiqDefaultTransform(translation) {
+        return {
+            translation: translation ? translation.slice() : [0, 0, 0],
+            rotation: [0, 0, 0, 1],
+            scale: [1, 1, 1],
+            pivot: [0, 0, 0]
+        };
+    }
+
+    function cosmiqBaseManifest(assetKind, previewModelVariant) {
+        return {
+            schemaVersion: COSMIQ_RUNTIME_SCHEMA,
+            assetKind: assetKind,
+            coordinateProfile: COSMIQ_STANDARD_COORDINATES,
+            bodyGroup: null,
+            capeMesh: null,
+            movementPolicy: null,
+            playerAppearance: null,
+            previewCamera: {
+                id: 'thumbnail_camera',
+                transform: cosmiqDefaultTransform(assetKind === 'emote' ? [0, 1, -5] : [0, 1, -3]),
+                projection: {
+                    kind: 'perspective',
+                    verticalFovDegrees: 35,
+                    nearPlane: 0.01,
+                    farPlane: 64
+                },
+                pose: {
+                    clipId: null,
+                    timeMs: 0,
+                    modelVariant: assetKind === 'accessory' ? (previewModelVariant || 'universal') : null,
+                    visiblePropRootIds: []
+                }
+            },
+            sections: [],
+            actors: [],
+            nodes: [],
+            materials: [],
+            geometry: [],
+            textures: [],
+            textureVariants: [],
+            clips: [],
+            stateBindings: [],
+            audio: [],
+            particles: [],
+            locators: [],
+            cues: [],
+            outcomeSets: [],
+            logic: null
+        };
+    }
+
+    function cosmiqApplyAuthoredCamera(manifest, project) {
+        const camera = project && project.previewCamera;
+        if (!camera || !cosmiqPlainObject(camera)) return;
+        const candidate = cosmiqClone(camera);
+        candidate.id = 'thumbnail_camera';
+        candidate.pose = candidate.pose || {};
+        if (manifest.assetKind === 'accessory' && candidate.pose.modelVariant == null) {
+            candidate.pose.modelVariant = manifest.previewCamera.pose.modelVariant;
+        }
+        if (manifest.assetKind !== 'accessory') candidate.pose.modelVariant = null;
+        manifest.previewCamera = candidate;
+    }
+
+    function cosmiqFinalizeCompiledPackage(manifest, blobs) {
+        const order = {
+            geometry_buffer: 0,
+            animation_buffer: 1,
+            texture_png: 2,
+            audio_ogg_vorbis: 3
+        };
+        blobs.sort(function (left, right) {
+            return order[left.type] - order[right.type] || cosmiqCompareText(left.id, right.id);
+        });
+        const indexById = Object.create(null);
+        manifest.sections = blobs.map(function (blob, index) {
+            const sectionIndex = index + 1;
+            indexById[blob.id] = sectionIndex;
+            return {index: sectionIndex, id: blob.id, type: blob.type};
+        });
+        const pending = [manifest];
+        const seen = new Set();
+        while (pending.length) {
+            const value = pending.pop();
+            if (!value || typeof value !== 'object' || seen.has(value)) continue;
+            seen.add(value);
+            Object.keys(value).forEach(function (key) {
+                const child = value[key];
+                if (key === 'section' && typeof child === 'string') {
+                    if (!indexById[child]) cosmiqFail('reference.missing', 'Compiled section reference is missing.');
+                    value[key] = indexById[child];
+                } else if (child && typeof child === 'object') {
+                    pending.push(child);
+                }
+            });
+        }
+        const sections = blobs.map(function (blob) {
+            return {id: blob.id, type: blob.type, bytes: blob.bytes};
+        });
+        const content = encodeCosmiqPackage(manifest, sections);
+        return {
+            manifest: manifest,
+            sections: sections,
+            content: content,
+            validated: parseAndValidateCosmiqRuntime(content)
+        };
+    }
+
+    function cosmiqRuntimeTextures(rawProject, sourceVariants, cape, allowEmpty) {
+        const rawTextures = (Array.isArray(rawProject && rawProject.textures) ? rawProject.textures : [])
+            .filter(function (texture) {
+                return texture && texture.cosmiq_role !== ROLES.REFERENCE && texture.role !== ROLES.REFERENCE;
+            });
+        if (!rawTextures.length) {
+            if (allowEmpty) {
+                return {
+                    records: [],
+                    blobs: [],
+                    variants: [],
+                    idByUuid: Object.create(null),
+                    raw: []
+                };
+            }
+            cosmiqFail('kind.invariant_violation', 'Asset has no runtime PNG texture.', '$.textures');
+        }
+        const allocated = Object.create(null);
+        const idByUuid = Object.create(null);
+        const records = [];
+        const blobs = [];
+        rawTextures.forEach(function (texture, index) {
+            const id = cape && index === 0
+                ? 'cape_texture'
+                : cosmiqAllocatedId(texture.name || texture.uuid, 'texture', allocated);
+            if (cape && index === 0) allocated[id] = true;
+            idByUuid[texture.uuid] = id;
+            const bytes = cosmiqEmbeddedMedia(texture.source, 'image/png', '$.textures[' + index + ']');
+            const png = cosmiqInspectPng(bytes, '$.textures[' + index + ']');
+            const sectionId = cosmiqAllocatedId(id + '_png', 'texture_png', allocated);
+            records.push({
+                id: id,
+                section: sectionId,
+                width: png.width,
+                height: png.height,
+                colorSpace: 'srgb',
+                filter: 'nearest',
+                wrap: 'clamp'
+            });
+            blobs.push({id: sectionId, type: 'texture_png', bytes: bytes});
+        });
+        const variants = [{id: 'default', replacements: {}}];
+        (Array.isArray(sourceVariants) ? sourceVariants : []).filter(function (variant) {
+            return variant && variant.id !== 'default';
+        }).forEach(function (variant) {
+            const replacements = {};
+            Object.keys(variant.replacements || {}).sort().forEach(function (baseUuid) {
+                const base = idByUuid[baseUuid];
+                const replacement = idByUuid[variant.replacements[baseUuid]];
+                if (!base || !replacement) {
+                    cosmiqFail('reference.missing', 'Texture variant references an unknown editable texture.');
+                }
+                replacements[base] = replacement;
+            });
+            if (!Object.keys(replacements).length) {
+                cosmiqFail('kind.invariant_violation', 'Non-default texture variant is empty.');
+            }
+            variants.push({
+                id: cosmiqAllocatedId(variant.id, 'variant', allocated),
+                replacements: replacements
+            });
+        });
+        variants.splice(1, variants.length - 1, ...variants.slice(1).sort(function (left, right) {
+            return cosmiqCompareText(left.id, right.id);
+        }));
+        return {records: records, blobs: blobs, variants: variants, idByUuid: idByUuid};
+    }
+
+    function compileCapeCosmiqPackage(snapshot, rawProject) {
+        const source = rawProject && rawProject.cosmiq && rawProject.cosmiq.cape;
+        const textures = cosmiqRuntimeTextures(rawProject, source && source.textureVariants, true);
+        const manifest = cosmiqBaseManifest('cape');
+        manifest.capeMesh = 'cosmiq:cape/default-v1';
+        manifest.materials = [{
+            id: 'cape_material',
+            baseColorTextureId: 'cape_texture',
+            baseColorFactor: [1, 1, 1, 1],
+            alphaMode: 'mask',
+            alphaCutoff: 0.5,
+            doubleSided: true,
+            shading: 'lit',
+            emissiveTextureId: null,
+            emissiveFactor: [0, 0, 0]
+        }];
+        manifest.textures = textures.records;
+        manifest.textureVariants = textures.variants;
+        cosmiqApplyAuthoredCamera(manifest, snapshot && snapshot.project);
+        return cosmiqFinalizeCompiledPackage(manifest, textures.blobs);
+    }
+
+    function cosmiqSourceVector(value, fallback, location) {
+        const vector = Array.isArray(value) ? value : fallback;
+        if (!Array.isArray(vector) || vector.length < 3) {
+            cosmiqFail('geometry.invalid', 'Blockbench transform vector is missing.', location);
+        }
+        return vector.slice(0, 3).map(function (component) {
+            const number = Number(component);
+            if (!Number.isFinite(number)) cosmiqFail('geometry.invalid', 'Blockbench vector is not finite.', location);
+            return number;
+        });
+    }
+
+    function cosmiqPositionFromBlockbench(value) {
+        return [-value[0] / 16, value[1] / 16, value[2] / 16].map(function (component) {
+            return Object.is(component, -0) ? 0 : component;
+        });
+    }
+
+    function cosmiqDeltaFromBlockbench(value) {
+        return cosmiqPositionFromBlockbench(value);
+    }
+
+    function cosmiqEulerQuaternionFromBlockbench(value) {
+        const x = value[0] * Math.PI / 180;
+        const y = value[1] * Math.PI / 180;
+        const z = value[2] * Math.PI / 180;
+        const c1 = Math.cos(x / 2);
+        const c2 = Math.cos(y / 2);
+        const c3 = Math.cos(z / 2);
+        const s1 = Math.sin(x / 2);
+        const s2 = Math.sin(y / 2);
+        const s3 = Math.sin(z / 2);
+        const quaternion = [
+            s1 * c2 * c3 + c1 * s2 * s3,
+            -(c1 * s2 * c3 - s1 * c2 * s3),
+            -(c1 * c2 * s3 + s1 * s2 * c3),
+            c1 * c2 * c3 - s1 * s2 * s3
+        ];
+        const length = Math.sqrt(quaternion.reduce(function (sum, component) {
+            return sum + component * component;
+        }, 0));
+        return quaternion.map(function (component) {
+            const normalized = component / length;
+            return Math.abs(normalized) < 1e-12 ? 0 : normalized;
+        });
+    }
+
+    function cosmiqEulerQuaternion(value) {
+        const converted = cosmiqEulerQuaternionFromBlockbench(value);
+        return [converted[0], -converted[1], -converted[2], converted[3]].map(function (component) {
+            return Object.is(component, -0) ? 0 : component;
+        });
+    }
+
+    function cosmiqEditableObjects(rawProject) {
+        const byUuid = Object.create(null);
+        (Array.isArray(rawProject.groups) ? rawProject.groups : []).forEach(function (group) {
+            if (group && group.uuid) byUuid[group.uuid] = group;
+        });
+        (Array.isArray(rawProject.elements) ? rawProject.elements : []).forEach(function (element) {
+            if (element && element.uuid) byUuid[element.uuid] = element;
+        });
+        return byUuid;
+    }
+
+    function cosmiqMaterialForTexture(textureId, materials, materialByTexture, allocated) {
+        const key = textureId || '__untextured__';
+        if (materialByTexture[key]) return materialByTexture[key];
+        const id = cosmiqAllocatedId(textureId ? textureId + '_material' : 'untextured_material', 'material', allocated);
+        materials.push({
+            id: id,
+            baseColorTextureId: textureId || null,
+            baseColorFactor: [1, 1, 1, 1],
+            alphaMode: textureId ? 'mask' : 'opaque',
+            alphaCutoff: 0.5,
+            doubleSided: true,
+            shading: 'lit',
+            emissiveTextureId: null,
+            emissiveFactor: [0, 0, 0]
+        });
+        materialByTexture[key] = id;
+        return id;
+    }
+
+    function cosmiqFaceTextureUuid(face, rawTextures) {
+        if (!face || face.texture === null) return null;
+        if (typeof face.texture === 'string' && face.texture) return face.texture;
+        if (Number.isInteger(face.texture) && rawTextures[face.texture]) return rawTextures[face.texture].uuid;
+        if (rawTextures.length === 1) return rawTextures[0].uuid;
+        return null;
+    }
+
+    function cosmiqCuboidGeometry(element, geometryId, textures, materials, materialByTexture, allocated) {
+        const origin = cosmiqSourceVector(element.origin, [0, 0, 0], '$.elements.' + element.uuid + '.origin');
+        const from = cosmiqSourceVector(element.from, null, '$.elements.' + element.uuid + '.from');
+        const to = cosmiqSourceVector(element.to, null, '$.elements.' + element.uuid + '.to');
+        const first = cosmiqPositionFromBlockbench([
+            from[0] - origin[0], from[1] - origin[1], from[2] - origin[2]
+        ]);
+        const second = cosmiqPositionFromBlockbench([
+            to[0] - origin[0], to[1] - origin[1], to[2] - origin[2]
+        ]);
+        const min = first.map(function (value, axis) { return Math.min(value, second[axis]); });
+        const max = first.map(function (value, axis) { return Math.max(value, second[axis]); });
+        const rawTextures = (Array.isArray(textures.raw) ? textures.raw : []);
+        const directions = {
+            north: 'north',
+            south: 'south',
+            east: 'west',
+            west: 'east',
+            up: 'up',
+            down: 'down'
+        };
+        const faces = {};
+        Object.keys(directions).forEach(function (standardDirection) {
+            const rawFace = element.faces && element.faces[directions[standardDirection]];
+            if (!rawFace || rawFace.enabled === false || rawFace.texture === null) {
+                faces[standardDirection] = null;
+                return;
+            }
+            const textureUuid = cosmiqFaceTextureUuid(rawFace, rawTextures);
+            const textureId = textureUuid && textures.idByUuid[textureUuid];
+            if (!textureId && rawTextures.length) {
+                cosmiqFail('reference.missing', 'Cuboid face texture does not resolve.', '$.elements.' + element.uuid);
+            }
+            const texture = textureId && textures.records.find(function (record) { return record.id === textureId; });
+            const uv = Array.isArray(rawFace.uv) && rawFace.uv.length >= 4
+                ? [
+                    Number(rawFace.uv[0]) / texture.width,
+                    Number(rawFace.uv[1]) / texture.height,
+                    Number(rawFace.uv[2]) / texture.width,
+                    Number(rawFace.uv[3]) / texture.height
+                ]
+                : [0, 0, 1, 1];
+            if (uv.some(function (value) { return !Number.isFinite(value); })) {
+                cosmiqFail('geometry.invalid', 'Cuboid face UV is invalid.', '$.elements.' + element.uuid);
+            }
+            faces[standardDirection] = {
+                materialId: cosmiqMaterialForTexture(textureId, materials, materialByTexture, allocated),
+                uv: uv,
+                rotation: [0, 90, 180, 270].indexOf(Number(rawFace.rotation)) === -1
+                    ? 0
+                    : Number(rawFace.rotation)
+            };
+        });
+        return {
+            id: geometryId,
+            kind: 'cuboid',
+            min: min,
+            max: max,
+            inflate: Number.isFinite(Number(element.inflate)) ? Number(element.inflate) / 16 : 0,
+            faces: faces
+        };
+    }
+
+    function cosmiqMeshGeometry(
+        element,
+        geometryBaseId,
+        textures,
+        materials,
+        materialByTexture,
+        allocated,
+        meshDrafts
+    ) {
+        const rawTextures = textures.raw;
+        const byMaterial = Object.create(null);
+        Object.keys(element.faces || {}).sort().forEach(function (faceKey) {
+            const face = element.faces[faceKey];
+            const vertexIds = face && Array.isArray(face.vertices) ? face.vertices : [];
+            if (vertexIds.length < 3) return;
+            const textureUuid = cosmiqFaceTextureUuid(face, rawTextures);
+            const textureId = textureUuid && textures.idByUuid[textureUuid];
+            if (!textureId && rawTextures.length) {
+                cosmiqFail('reference.missing', 'Mesh face texture does not resolve.', '$.elements.' + element.uuid);
+            }
+            const texture = textureId && textures.records.find(function (record) { return record.id === textureId; });
+            const materialId = cosmiqMaterialForTexture(textureId, materials, materialByTexture, allocated);
+            const draft = byMaterial[materialId] || (byMaterial[materialId] = {
+                materialId: materialId,
+                positions: [],
+                normals: [],
+                uvs: [],
+                indices: []
+            });
+            for (let triangleIndex = 1; triangleIndex < vertexIds.length - 1; triangleIndex++) {
+                const triangleIds = [vertexIds[0], vertexIds[triangleIndex + 1], vertexIds[triangleIndex]];
+                const positions = triangleIds.map(function (vertexId) {
+                    const raw = element.vertices && element.vertices[vertexId];
+                    const vertex = cosmiqSourceVector(raw, null, '$.elements.' + element.uuid + '.vertices.' + vertexId);
+                    // Blockbench mesh vertices are already local to the mesh origin.
+                    // The node bind carries that origin, so subtracting it here applies
+                    // the pivot twice and moves head accessories down to the player's feet.
+                    return cosmiqPositionFromBlockbench(vertex);
+                });
+                const ab = [
+                    positions[1][0] - positions[0][0],
+                    positions[1][1] - positions[0][1],
+                    positions[1][2] - positions[0][2]
+                ];
+                const ac = [
+                    positions[2][0] - positions[0][0],
+                    positions[2][1] - positions[0][1],
+                    positions[2][2] - positions[0][2]
+                ];
+                const cross = [
+                    ab[1] * ac[2] - ab[2] * ac[1],
+                    ab[2] * ac[0] - ab[0] * ac[2],
+                    ab[0] * ac[1] - ab[1] * ac[0]
+                ];
+                const length = Math.sqrt(cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]);
+                if (length <= 1e-8) {
+                    cosmiqFail('geometry.invalid', 'Blockbench mesh contains a degenerate face.', '$.elements.' + element.uuid);
+                }
+                const normal = cross.map(function (value) { return value / length; });
+                positions.forEach(function (position, vertexOffset) {
+                    const sourceVertexId = triangleIds[vertexOffset];
+                    const rawUv = face.uv && face.uv[sourceVertexId];
+                    const uv = Array.isArray(rawUv) && rawUv.length >= 2 && texture
+                        ? [Number(rawUv[0]) / texture.width, Number(rawUv[1]) / texture.height]
+                        : [0, 0];
+                    if (uv.some(function (value) { return !Number.isFinite(value); })) {
+                        cosmiqFail('geometry.invalid', 'Blockbench mesh UV is invalid.', '$.elements.' + element.uuid);
+                    }
+                    draft.indices.push(draft.positions.length);
+                    draft.positions.push(position);
+                    draft.normals.push(normal.slice());
+                    draft.uvs.push(uv);
+                });
+            }
+        });
+        const records = [];
+        Object.keys(byMaterial).sort().forEach(function (materialId, index) {
+            const draft = byMaterial[materialId];
+            if (!draft.indices.length) return;
+            const id = cosmiqAllocatedId(
+                geometryBaseId + (Object.keys(byMaterial).length > 1 ? '_' + (index + 1) : ''),
+                'mesh',
+                allocated
+            );
+            draft.record = {
+                id: id,
+                kind: 'indexed_triangles',
+                materialId: materialId,
+                positions: null,
+                normals: null,
+                uvs: null,
+                indices: null
+            };
+            meshDrafts.push(draft);
+            records.push(draft.record);
+        });
+        if (!records.length) cosmiqFail('geometry.invalid', 'Blockbench mesh has no renderable triangles.');
+        return records;
+    }
+
+    function cosmiqPackGeometryBuffer(meshDrafts) {
+        if (!meshDrafts.length) return null;
+        let byteLength = 0;
+        function allocateView(count, bytesPerElement) {
+            const view = {section: 'main_geometry', byteOffset: byteLength, count: count};
+            byteLength += count * bytesPerElement;
+            return view;
+        }
+        meshDrafts.forEach(function (draft) {
+            draft.record.positions = allocateView(draft.positions.length, 12);
+            draft.record.normals = allocateView(draft.normals.length, 12);
+            draft.record.uvs = allocateView(draft.uvs.length, 8);
+            draft.record.indices = allocateView(draft.indices.length, 4);
+        });
+        const bytes = new Uint8Array(byteLength);
+        const view = new DataView(bytes.buffer);
+        function writeFloatVectors(targetView, vectors, components, location) {
+            let offset = targetView.byteOffset;
+            vectors.forEach(function (vector) {
+                for (let component = 0; component < components; component++) {
+                    cosmiqWriteBinary32(view, offset, vector[component], location);
+                    offset += 4;
+                }
+            });
+        }
+        meshDrafts.forEach(function (draft) {
+            const location = '$.geometry.' + draft.record.id;
+            writeFloatVectors(draft.record.positions, draft.positions, 3, location + '.positions');
+            writeFloatVectors(draft.record.normals, draft.normals, 3, location + '.normals');
+            writeFloatVectors(draft.record.uvs, draft.uvs, 2, location + '.uvs');
+            let offset = draft.record.indices.byteOffset;
+            draft.indices.forEach(function (index) {
+                view.setUint32(offset, index, true);
+                offset += 4;
+            });
+        });
+        return {id: 'main_geometry', type: 'geometry_buffer', bytes: bytes};
+    }
+
+    function cosmiqKeyframeSourceVector(keyframe, location) {
+        if (!keyframe || !Array.isArray(keyframe.data_points) || keyframe.data_points.length !== 1) {
+            cosmiqFail('animation.invalid', 'Keyframe must contain exactly one data point.', location);
+        }
+        const point = keyframe.data_points[0];
+        const values = [Number(point.x), Number(point.y), Number(point.z)];
+        if (values.some(function (value) { return !Number.isFinite(value); })) {
+            cosmiqFail('animation.invalid', 'Keyframe data point is not finite.', location);
+        }
+        return values;
+    }
+
+    function cosmiqKeyframeVector(keyframe, channel, location) {
+        const values = cosmiqKeyframeSourceVector(keyframe, location);
+        if (channel === 'translation') return cosmiqDeltaFromBlockbench(values);
+        if (channel === 'rotation') return cosmiqEulerQuaternionFromBlockbench(values);
+        return values.map(function (value) { return Object.is(value, -0) ? 0 : value; });
+    }
+
+    function cosmiqBezierVector(values, channel) {
+        if (channel === 'translation') return cosmiqDeltaFromBlockbench(values);
+        if (channel === 'rotation') {
+            return [values[0], -values[1], -values[2]].map(function (value) {
+                const radians = value * Math.PI / 180;
+                return Object.is(radians, -0) ? 0 : radians;
+            });
+        }
+        return values.map(function (value) { return Object.is(value, -0) ? 0 : value; });
+    }
+
+    function cosmiqBezierHandle(keyframe, field, fallback, location) {
+        const source = Array.isArray(keyframe[field]) ? keyframe[field] : fallback;
+        if (source.length !== 3) cosmiqFail('animation.invalid', 'Bezier handles need three components.', location);
+        const values = source.map(Number);
+        if (values.some(function (value) { return !Number.isFinite(value); })) {
+            cosmiqFail('animation.invalid', 'Bezier handle is not finite.', location);
+        }
+        return values;
+    }
+
+    function cosmiqBezierControls(left, right, channel, location) {
+        const gap = (right.timeMs - left.timeMs) / 1000;
+        const outgoingTime = cosmiqBezierHandle(left.source, 'bezier_right_time', [0.1, 0.1, 0.1], location)
+            .map(function (value) { return Math.max(0, Math.min(gap, value)) / gap; });
+        const incomingTime = cosmiqBezierHandle(right.source, 'bezier_left_time', [-0.1, -0.1, -0.1], location)
+            .map(function (value) { return 1 + Math.max(-gap, Math.min(0, value)) / gap; });
+        const p0 = cosmiqBezierVector(left.sourceValue, channel);
+        const p3 = cosmiqBezierVector(right.sourceValue, channel);
+        const outgoingValue = cosmiqBezierVector(
+            cosmiqBezierHandle(left.source, 'bezier_right_value', [0, 0, 0], location), channel
+        );
+        const incomingValue = cosmiqBezierVector(
+            cosmiqBezierHandle(right.source, 'bezier_left_value', [0, 0, 0], location), channel
+        );
+        const p1 = p0.map(function (value, index) { return value + outgoingValue[index]; });
+        const p2 = p3.map(function (value, index) { return value + incomingValue[index]; });
+        return outgoingTime.concat(incomingTime, p0, p1, p2, p3);
+    }
+
+    function cosmiqCompileAnimationChannel(keyframes, channel, durationMs, location, channelDrafts) {
+        const selected = keyframes.filter(function (keyframe) {
+            const sourceChannel = keyframe && keyframe.channel;
+            return (channel === 'translation' && sourceChannel === 'position') || sourceChannel === channel;
+        }).map(function (keyframe) {
+            const timeMs = Math.round(Number(keyframe.time) * 1000);
+            if (!Number.isFinite(timeMs) || timeMs < 0 || timeMs > durationMs) {
+                cosmiqFail('animation.invalid', 'Keyframe time is outside the clip.', location);
+            }
+            const interpolation = String(keyframe.interpolation || 'linear').toLowerCase();
+            if (['linear', 'step', 'catmullrom', 'bezier'].indexOf(interpolation) === -1) {
+                cosmiqFail(
+                    'animation.invalid',
+                    'Only linear, step, smooth (Catmull-Rom), and Bezier interpolation can be exported.',
+                    location
+                );
+            }
+            return {
+                timeMs: timeMs,
+                value: cosmiqKeyframeVector(keyframe, channel, location),
+                sourceValue: cosmiqKeyframeSourceVector(keyframe, location),
+                interpolation: interpolation,
+                source: keyframe
+            };
+        }).sort(function (left, right) { return left.timeMs - right.timeMs; });
+        if (!selected.length) return null;
+        selected.forEach(function (keyframe, index) {
+            if (index && selected[index - 1].timeMs === keyframe.timeMs) {
+                cosmiqFail('animation.invalid', 'Channel contains duplicate keyframe times.', location);
+            }
+        });
+        const interpolations = selected.slice(0, -1).map(function (keyframe, index) {
+            if (keyframe.interpolation === 'step') return 0;
+            if (keyframe.interpolation === 'catmullrom' ||
+                selected[index + 1].interpolation === 'catmullrom') return 2;
+            return keyframe.interpolation === 'bezier' ||
+                selected[index + 1].interpolation === 'bezier' ? 3 : 1;
+        });
+        const hasBezier = interpolations.indexOf(3) !== -1;
+        const draft = {
+            channel: channel,
+            location: location,
+            times: selected.map(function (keyframe) { return keyframe.timeMs; }),
+            values: selected.map(function (keyframe) { return keyframe.value; }),
+            interpolations: interpolations,
+            bezierControls: hasBezier ? selected.slice(0, -1).map(function (keyframe, index) {
+                return interpolations[index] === 3
+                    ? cosmiqBezierControls(keyframe, selected[index + 1], channel, location)
+                    : new Array(18).fill(0);
+            }) : null,
+            record: {times: null, values: null, interpolations: null, bezierControls: null}
+        };
+        channelDrafts.push(draft);
+        return draft.record;
+    }
+
+    function cosmiqPackAnimationBuffer(channelDrafts) {
+        if (!channelDrafts.length) return null;
+        let byteLength = 0;
+        channelDrafts.forEach(function (draft) {
+            const valueComponents = draft.channel === 'rotation' ? 4 : 3;
+            draft.record.times = {section: 'main_animation', byteOffset: byteLength, count: draft.times.length};
+            byteLength += draft.times.length * 4;
+            draft.record.values = {section: 'main_animation', byteOffset: byteLength, count: draft.values.length};
+            byteLength += draft.values.length * valueComponents * 4;
+        });
+        channelDrafts.forEach(function (draft) {
+            if (!draft.bezierControls) return;
+            draft.record.bezierControls = {
+                section: 'main_animation',
+                byteOffset: byteLength,
+                count: draft.bezierControls.length
+            };
+            byteLength += draft.bezierControls.length * 72;
+        });
+        channelDrafts.forEach(function (draft) {
+            draft.record.interpolations = {
+                section: 'main_animation',
+                byteOffset: byteLength,
+                count: draft.interpolations.length
+            };
+            byteLength += draft.interpolations.length;
+        });
+        const bytes = new Uint8Array(byteLength);
+        const view = new DataView(bytes.buffer);
+        channelDrafts.forEach(function (draft) {
+            let offset = draft.record.times.byteOffset;
+            draft.times.forEach(function (time) {
+                view.setUint32(offset, time, true);
+                offset += 4;
+            });
+            offset = draft.record.values.byteOffset;
+            draft.values.forEach(function (value) {
+                value.forEach(function (component) {
+                    cosmiqWriteBinary32(view, offset, component, draft.location + '.values');
+                    offset += 4;
+                });
+            });
+            if (draft.bezierControls) {
+                offset = draft.record.bezierControls.byteOffset;
+                draft.bezierControls.forEach(function (control) {
+                    control.forEach(function (component) {
+                        cosmiqWriteBinary32(view, offset, component, draft.location + '.bezierControls');
+                        offset += 4;
+                    });
+                });
+            }
+            offset = draft.record.interpolations.byteOffset;
+            draft.interpolations.forEach(function (interpolation) {
+                view.setUint8(offset++, interpolation);
+            });
+        });
+        return {id: 'main_animation', type: 'animation_buffer', bytes: bytes};
+    }
+
+    function cosmiqCompileAnimations(rawProject, source, targetForUuid, kind, allocated) {
+        const channelDrafts = [];
+        const clips = [];
+        const stateBindings = [];
+        const clipIdByAnimationUuid = Object.create(null);
+        const rawAnimations = Array.isArray(rawProject.animations) ? rawProject.animations : [];
+        rawAnimations.forEach(function (animation) {
+            const binding = source.animationBindings && source.animationBindings[animation.uuid];
+            const keyframeCount = animationKeyframeCount(animation);
+            if (!binding || !keyframeCount) return;
+            clipIdByAnimationUuid[animation.uuid] = cosmiqAllocatedId(
+                binding.sourceName || animation.name || 'clip',
+                'clip',
+                allocated
+            );
+        });
+        rawAnimations.forEach(function (animation) {
+            const binding = source.animationBindings && source.animationBindings[animation.uuid];
+            const clipId = clipIdByAnimationUuid[animation.uuid];
+            if (!binding || !clipId) return;
+            const durationMs = Math.round(Number(animation.length) * 1000);
+            if (!Number.isFinite(durationMs) || durationMs < 1 || durationMs > 120000) {
+                cosmiqFail('animation.invalid', 'Animation duration cannot be normalized.', '$.animations.' + animation.uuid);
+            }
+            const loopMode = String(animation.loop || binding.loop && binding.loop.mode || 'once');
+            if (loopMode === 'hold') {
+                cosmiqFail('animation.invalid', 'Blockbench hold loops are not part of cosmiq.package.v2.');
+            }
+            const tracks = [];
+            Object.keys(animation.animators || {}).filter(function (uuid) {
+                return uuid !== 'effects';
+            }).sort().forEach(function (targetUuid) {
+                const animator = animation.animators[targetUuid];
+                const keyframes = animator && Array.isArray(animator.keyframes) ? animator.keyframes : [];
+                if (!keyframes.length) return;
+                const target = targetForUuid(targetUuid);
+                if (!target) {
+                    cosmiqFail('reference.missing', 'Animation target cannot be normalized.', '$.animations.' + animation.uuid);
+                }
+                const track = {
+                    target: target,
+                    translation: cosmiqCompileAnimationChannel(
+                        keyframes, 'translation', durationMs, '$.animations.' + animation.uuid, channelDrafts
+                    ),
+                    rotation: cosmiqCompileAnimationChannel(
+                        keyframes, 'rotation', durationMs, '$.animations.' + animation.uuid, channelDrafts
+                    ),
+                    scale: cosmiqCompileAnimationChannel(
+                        keyframes, 'scale', durationMs, '$.animations.' + animation.uuid, channelDrafts
+                    )
+                };
+                if (track.translation || track.rotation || track.scale) tracks.push(track);
+            });
+            if (!tracks.length) {
+                cosmiqFail('animation.invalid', 'Authored animation has no supported transform tracks.', '$.animations.' + animation.uuid);
+            }
+            tracks.sort(function (left, right) {
+                function key(track) {
+                    return track.target.kind === 'node'
+                        ? 'node:' + track.target.nodeId
+                        : 'actor:' + track.target.actorRole + ':' + track.target.bone;
+                }
+                return cosmiqCompareText(key(left), key(right));
+            });
+            clips.push({
+                id: clipId,
+                durationMs: durationMs,
+                loop: loopMode === 'loop'
+                    ? {mode: 'range', startMs: 0, endMs: durationMs}
+                    : {mode: 'none', startMs: 0, endMs: durationMs},
+                tracks: tracks
+            });
+            if (kind === 'accessory') {
+                const trigger = binding.trigger;
+                if (!trigger || ['player_state', 'player_event'].indexOf(trigger.kind) === -1) {
+                    cosmiqFail('kind.invariant_violation', 'Every Accessory clip needs an explicit state or event binding.');
+                }
+                stateBindings.push({
+                    trigger: {kind: trigger.kind, id: trigger.id},
+                    clipId: clipId,
+                    fallback: binding.fallback === true,
+                    playback: trigger.kind === 'player_event'
+                        ? 'once'
+                        : (loopMode === 'loop' ? 'loop' : 'once'),
+                    blendMillis: Math.max(0, Math.min(2000, Math.round(Number(binding.transitionMs) || 0))),
+                    priority: Math.max(0, Math.min(1000, Math.round(Number(binding.priority) || 0)))
+                });
+            }
+        });
+        clips.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        stateBindings.sort(function (left, right) {
+            return cosmiqCompareText(left.trigger.kind, right.trigger.kind) ||
+                cosmiqCompareText(left.trigger.id, right.trigger.id);
+        });
+        return {
+            clips: clips,
+            stateBindings: stateBindings,
+            clipIdByAnimationUuid: clipIdByAnimationUuid,
+            blob: cosmiqPackAnimationBuffer(channelDrafts)
+        };
+    }
+
+    function cosmiqCompileEffects(
+        snapshot,
+        source,
+        animationResult,
+        nodeIdByUuid,
+        actorTargetForUuid,
+        allocated
+    ) {
+        const resources = Array.isArray(source.resourceReferences) ? source.resourceReferences : [];
+        const resourceIdBySource = Object.create(null);
+        const particles = [];
+        const audio = [];
+        const blobs = [];
+        resources.forEach(function (resource) {
+            const id = cosmiqAllocatedId(resource.displayName || resource.id, 'resource', allocated);
+            resourceIdBySource[resource.id] = id;
+            if (resource.type === RESOURCE_TYPES.SOUND) {
+                if (!resource.embeddedOgg) {
+                    cosmiqFail(
+                        'media.invalid_ogg_vorbis',
+                        'Sound and music resources must embed an Ogg Vorbis stream before export.'
+                    );
+                }
+                const bytes = cosmiqEmbeddedMedia(resource.embeddedOgg, 'audio/ogg', '$.audio.' + id);
+                const inspected = cosmiqInspectOggVorbis(bytes, '$.audio.' + id);
+                const sectionId = cosmiqAllocatedId(id + '_ogg', 'audio_ogg', allocated);
+                audio.push({
+                    id: id,
+                    section: sectionId,
+                    kind: resource.soundKind === 'music' ? 'music' : 'sound_effect',
+                    sampleRateHz: inspected.sampleRateHz,
+                    channels: inspected.channels,
+                    durationMs: inspected.durationMs
+                });
+                blobs.push({id: sectionId, type: 'audio_ogg_vorbis', bytes: bytes});
+            } else {
+                cosmiqFail('kind.invariant_violation', 'Unknown authoring resource type.');
+            }
+        });
+        particles.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        audio.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+
+        const snapshotNodes = Array.isArray(snapshot && snapshot.nodes) ? snapshot.nodes : [];
+        const snapshotByUuid = Object.create(null);
+        snapshotNodes.forEach(function (node) { if (node && node.uuid) snapshotByUuid[node.uuid] = node; });
+        const locatorIdByUuid = Object.create(null);
+        const locators = [];
+        Object.keys(source.effectLocatorBindings || {}).sort().forEach(function (uuid) {
+            const binding = source.effectLocatorBindings[uuid];
+            const node = snapshotByUuid[uuid];
+            if (!binding || !node) cosmiqFail('reference.missing', 'Effect Locator source is missing.');
+            let current = node;
+            let target = null;
+            let targetSource = null;
+            const seen = Object.create(null);
+            while (current && current.parentUuid && !seen[current.parentUuid]) {
+                seen[current.parentUuid] = true;
+                const parent = current.parentUuid;
+                if (nodeIdByUuid[parent]) {
+                    target = {kind: 'node', nodeId: nodeIdByUuid[parent]};
+                    targetSource = snapshotByUuid[parent] || null;
+                    break;
+                }
+                if (actorTargetForUuid) {
+                    const actorTarget = actorTargetForUuid(parent);
+                    if (actorTarget && actorTarget.kind === 'actor_bone') {
+                        target = {
+                            kind: 'actor_attachment',
+                            actorRole: actorTarget.actorRole,
+                            attachment: actorTarget.bone
+                        };
+                        targetSource = snapshotByUuid[parent] || null;
+                        break;
+                    }
+                }
+                current = snapshotByUuid[parent];
+            }
+            if (!target) cosmiqFail('reference.missing', 'Effect Locator has no exported target.');
+            const id = cosmiqAllocatedId(binding.id || node.name, 'locator', allocated);
+            locatorIdByUuid[uuid] = id;
+            const position = cosmiqSourceVector(node.position || node.origin, [0, 0, 0], '$.locator');
+            const targetOrigin = cosmiqSourceVector(
+                targetSource && (targetSource.origin || targetSource.position),
+                [0, 0, 0],
+                '$.locator.target'
+            );
+            locators.push({
+                id: id,
+                target: target,
+                transform: {
+                    translation: cosmiqPositionFromBlockbench([
+                        position[0] - targetOrigin[0],
+                        position[1] - targetOrigin[1],
+                        position[2] - targetOrigin[2]
+                    ]),
+                    rotation: cosmiqEulerQuaternionFromBlockbench(
+                        cosmiqSourceVector(node.rotation, [0, 0, 0], '$.locator.rotation')
+                    ),
+                    scale: [1, 1, 1],
+                    pivot: [0, 0, 0]
+                }
+            });
+        });
+        locators.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        const cues = [];
+        (Array.isArray(source.timelineCues) ? source.timelineCues : []).forEach(function (cue) {
+            if (!cue || cue.type === CUE_TYPES.COMMENT) return;
+            const clipId = animationResult.clipIdByAnimationUuid[cue.animationUuid];
+            if (!clipId) cosmiqFail('reference.missing', 'Timeline Cue clip cannot be normalized.');
+            if (cue.type === CUE_TYPES.NODE_VISIBILITY) {
+                const nodeId = nodeIdByUuid[cue.nodeUuid] || cue.nodeUuid;
+                if (!nodeId) cosmiqFail('reference.missing', 'Node-visibility Cue target cannot be normalized.');
+                cues.push({
+                    id: cosmiqAllocatedId(cue.id || cue.markerName, 'cue', allocated),
+                    clipId: clipId,
+                    atMs: Math.round(Number(cue.atMs)),
+                    endAtMs: cue.endAtMs == null ? null : Math.round(Number(cue.endAtMs)),
+                    kind: CUE_TYPES.NODE_VISIBILITY,
+                    resourceId: null,
+                    locatorId: null,
+                    nodeId: nodeId,
+                    visible: cue.visible === true,
+                    gain: null
+                });
+                return;
+            }
+            const resourceId = resourceIdBySource[cue.resourceId];
+            if (!resourceId) cosmiqFail('reference.missing', 'Timeline Cue resource cannot be normalized.');
+            const locatorId = cue.locatorUuid ? locatorIdByUuid[cue.locatorUuid] : null;
+            if (cue.type === CUE_TYPES.PARTICLE && !locatorId) {
+                cosmiqFail('reference.missing', 'Particle Cue requires an Effect Locator.');
+            }
+            cues.push({
+                id: cosmiqAllocatedId(cue.id || cue.markerName, 'cue', allocated),
+                clipId: clipId,
+                atMs: Math.round(Number(cue.atMs)),
+                endAtMs: cue.endAtMs == null ? null : Math.round(Number(cue.endAtMs)),
+                kind: cue.type,
+                resourceId: resourceId,
+                locatorId: locatorId,
+                nodeId: null,
+                visible: null,
+                gain: cue.type === CUE_TYPES.SOUND ? 1 : null
+            });
+        });
+        cues.sort(function (left, right) {
+            return cosmiqCompareText(left.clipId, right.clipId) || left.atMs - right.atMs ||
+                cosmiqCompareText(left.id, right.id);
+        });
+        return {audio: audio, particles: particles, locators: locators, cues: cues, blobs: blobs};
+    }
+
+    function cosmiqNodeBind(object, parentObject) {
+        const origin = cosmiqSourceVector(object && object.origin, [0, 0, 0], '$.origin');
+        const parentOrigin = cosmiqSourceVector(parentObject && parentObject.origin, [0, 0, 0], '$.parent.origin');
+        const rotation = cosmiqSourceVector(object && object.rotation, [0, 0, 0], '$.rotation');
+        return {
+            translation: cosmiqDeltaFromBlockbench([
+                origin[0] - parentOrigin[0],
+                origin[1] - parentOrigin[1],
+                origin[2] - parentOrigin[2]
+            ]),
+            rotation: cosmiqEulerQuaternionFromBlockbench(rotation),
+            scale: [1, 1, 1],
+            pivot: [0, 0, 0]
+        };
+    }
+
+    function compileAccessoryCosmiqPackage(snapshot, rawProject) {
+        const source = rawProject.cosmiq;
+        if (!source || !cosmiqPlainObject(source.nodeBindings) ||
+            !source.cosmetic || !Array.isArray(source.cosmetic.textureVariants)) {
+            cosmiqFail('kind.invariant_violation', 'Accessory source metadata was not refreshed before export.');
+        }
+        const textures = cosmiqRuntimeTextures(rawProject, source.cosmetic.textureVariants, false);
+        textures.raw = (Array.isArray(rawProject.textures) ? rawProject.textures : []).filter(function (texture) {
+            return texture && texture.cosmiq_role !== ROLES.REFERENCE && texture.role !== ROLES.REFERENCE;
+        });
+        const objectByUuid = cosmiqEditableObjects(rawProject);
+        const bindings = source.nodeBindings;
+        const bindingUuidByRuntimeId = Object.create(null);
+        Object.keys(bindings).forEach(function (uuid) {
+            if (bindings[uuid] && bindings[uuid].id) bindingUuidByRuntimeId[bindings[uuid].id] = uuid;
+        });
+        const runtimeUuids = Object.keys(bindings).filter(function (uuid) {
+            return bindings[uuid] && bindings[uuid].role === 'cosmetic_node' && objectByUuid[uuid];
+        });
+        if (!runtimeUuids.length) cosmiqFail('accessory.no_body_group', 'Accessory has no runtime nodes.');
+        const parentUuid = Object.create(null);
+        runtimeUuids.forEach(function (uuid) {
+            parentUuid[uuid] = bindings[uuid].parentNodeId
+                ? bindingUuidByRuntimeId[bindings[uuid].parentNodeId]
+                : null;
+        });
+        const bodyGroupByAnchor = {
+            'cosmiq:player/head': 'head', 'cosmiq:player/torso': 'torso',
+            'cosmiq:player/left_arm': 'arms', 'cosmiq:player/right_arm': 'arms',
+            'cosmiq:player/left_leg': 'legs', 'cosmiq:player/right_leg': 'legs'
+        };
+        const bodyGroupByUuid = Object.create(null);
+        function bodyGroupForUuid(uuid) {
+            if (Object.hasOwn(bodyGroupByUuid, uuid)) return bodyGroupByUuid[uuid];
+            const parent = parentUuid[uuid];
+            const group = parent
+                ? bodyGroupForUuid(parent)
+                : (bodyGroupByAnchor[bindings[uuid].anchorId] || null);
+            bodyGroupByUuid[uuid] = group;
+            return group;
+        }
+        const signatureByUuid = Object.create(null);
+        function variantTopologyName(value) {
+            return stableKey(String(value == null ? '' : value)
+                .replace(/\b(?:wide|slim)\b/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim());
+        }
+        function signature(uuid) {
+            if (signatureByUuid[uuid]) return signatureByUuid[uuid];
+            const binding = bindings[uuid];
+            const parent = parentUuid[uuid];
+            const own = variantTopologyName(binding.sourceName || uuid) + ':' + (binding.sourceType || 'node');
+            signatureByUuid[uuid] = parent
+                ? signature(parent) + '/' + own
+                : String(binding.anchorId || '') + '/' + own;
+            return signatureByUuid[uuid];
+        }
+        const pairMembers = Object.create(null);
+        runtimeUuids.forEach(function (uuid) {
+            const binding = bindings[uuid];
+            if (binding.modelVariant === 'wide' || binding.modelVariant === 'slim') {
+                const key = signature(uuid);
+                const pair = pairMembers[key] || (pairMembers[key] = {});
+                if (pair[binding.modelVariant]) {
+                    cosmiqFail('reference.duplicate_id', 'Wide/slim branches contain ambiguous matching nodes.');
+                }
+                pair[binding.modelVariant] = uuid;
+            }
+        });
+        const variantGeometryByGroup = Object.create(null);
+        runtimeUuids.forEach(function (uuid) {
+            const binding = bindings[uuid];
+            const object = objectByUuid[uuid];
+            const hasGeometry = binding.hasGeometry === true ||
+                object.type === 'cube' || object.type === 'mesh' || object.vertices;
+            if (!hasGeometry || (binding.modelVariant !== 'wide' && binding.modelVariant !== 'slim')) return;
+            const group = bodyGroupForUuid(uuid);
+            if (!group) return;
+            const variants = variantGeometryByGroup[group] ||
+                (variantGeometryByGroup[group] = {wide: false, slim: false});
+            variants[binding.modelVariant] = true;
+        });
+        const universalBodyGroups = Object.create(null);
+        Object.keys(variantGeometryByGroup).forEach(function (group) {
+            const variants = variantGeometryByGroup[group];
+            if (variants.wide === variants.slim) return;
+            if (group === 'arms') {
+                cosmiqFail('kind.invariant_violation', 'Arm geometry must populate matching Wide and Slim branches.');
+            }
+            universalBodyGroups[group] = true;
+        });
+        Object.keys(pairMembers).forEach(function (key) {
+            const pair = pairMembers[key];
+            const uuid = pair.wide || pair.slim;
+            if (!universalBodyGroups[bodyGroupForUuid(uuid)] && (!pair.wide || !pair.slim)) {
+                cosmiqFail('kind.invariant_violation', 'Accessory must populate matching Wide and Slim branches.');
+            }
+        });
+        const allocated = Object.create(null);
+        textures.records.forEach(function (texture) { allocated[texture.id] = true; });
+        textures.variants.forEach(function (variant) { allocated[variant.id] = true; });
+        const variantKeyBySignature = Object.create(null);
+        Object.keys(pairMembers).sort().forEach(function (key) {
+            const pair = pairMembers[key];
+            if (universalBodyGroups[bodyGroupForUuid(pair.wide || pair.slim)]) return;
+            const sourceName = bindings[pair.wide].sourceName;
+            variantKeyBySignature[key] = cosmiqAllocatedId(sourceName, 'variant_node', allocated);
+        });
+        const nodeIdByUuid = Object.create(null);
+        runtimeUuids.forEach(function (uuid) {
+            const binding = bindings[uuid];
+            const prefix = binding.modelVariant === 'wide' || binding.modelVariant === 'slim'
+                ? binding.modelVariant + '_' : '';
+            nodeIdByUuid[uuid] = cosmiqAllocatedId(prefix + (binding.sourceName || uuid), 'node', allocated);
+        });
+        const depth = Object.create(null);
+        function nodeDepth(uuid, visiting) {
+            if (depth[uuid]) return depth[uuid];
+            if (visiting && visiting[uuid]) cosmiqFail('graph.cycle', 'Accessory hierarchy contains a cycle.');
+            const next = Object.assign({}, visiting || {});
+            next[uuid] = true;
+            depth[uuid] = parentUuid[uuid] ? nodeDepth(parentUuid[uuid], next) + 1 : 1;
+            return depth[uuid];
+        }
+        runtimeUuids.forEach(function (uuid) { nodeDepth(uuid); });
+        runtimeUuids.sort(function (left, right) {
+            return depth[left] - depth[right] || cosmiqCompareText(nodeIdByUuid[left], nodeIdByUuid[right]);
+        });
+        const materials = [];
+        const materialByTexture = Object.create(null);
+        const geometry = [];
+        const meshDrafts = [];
+        const nodes = runtimeUuids.map(function (uuid) {
+            const binding = bindings[uuid];
+            const object = objectByUuid[uuid];
+            const parent = parentUuid[uuid];
+            let parentObject = parent ? objectByUuid[parent] : objectByUuid[binding.anchorGroupUuid];
+            const geometryIds = [];
+            if (object.type === 'cube' || (Array.isArray(object.from) && Array.isArray(object.to))) {
+                const geometryId = cosmiqAllocatedId((binding.sourceName || uuid) + '_cube', 'geometry', allocated);
+                geometry.push(cosmiqCuboidGeometry(
+                    object, geometryId, textures, materials, materialByTexture, allocated
+                ));
+                geometryIds.push(geometryId);
+            } else if (object.type === 'mesh' || object.vertices) {
+                cosmiqMeshGeometry(
+                    object,
+                    stableKey(binding.sourceName || uuid) + '_mesh',
+                    textures,
+                    materials,
+                    materialByTexture,
+                    allocated,
+                    meshDrafts
+                ).forEach(function (record) {
+                    geometry.push(record);
+                    geometryIds.push(record.id);
+                });
+            }
+            const modelVariant = !universalBodyGroups[bodyGroupForUuid(uuid)] &&
+                ['wide', 'slim'].indexOf(binding.modelVariant) !== -1
+                ? binding.modelVariant
+                : 'universal';
+            const anchor = parent ? null : binding.anchorId;
+            if (!parent && [
+                'cosmiq:player/head', 'cosmiq:player/torso', 'cosmiq:player/left_arm',
+                'cosmiq:player/right_arm', 'cosmiq:player/left_leg', 'cosmiq:player/right_leg'
+            ].indexOf(anchor) === -1) {
+                cosmiqFail('graph.invalid_owner', 'Accessory uses a non-standard player anchor.');
+            }
+            return {
+                id: nodeIdByUuid[uuid],
+                parentId: parent ? nodeIdByUuid[parent] : null,
+                attachment: parent ? null : {kind: 'player_anchor', anchor: anchor},
+                bind: cosmiqNodeBind(object, parentObject),
+                geometryIds: geometryIds.sort(),
+                modelVariant: modelVariant,
+                variantKey: modelVariant === 'universal' ? null : variantKeyBySignature[signature(uuid)],
+                defaultVisible: object.visibility !== false
+            };
+        });
+        materials.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        geometry.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        const bodyGroups = Object.create(null);
+        nodes.filter(function (node) { return node.parentId === null; }).forEach(function (node) {
+            bodyGroups[bodyGroupByAnchor[node.attachment.anchor]] = true;
+        });
+        const groups = Object.keys(bodyGroups);
+        if (groups.length > 1) cosmiqFail('accessory.multiple_body_groups', 'Accessory spans multiple Body Groups.');
+        const hasPairs = Object.keys(variantKeyBySignature).length > 0;
+        const manifest = cosmiqBaseManifest('accessory', hasPairs ? 'wide' : 'universal');
+        manifest.bodyGroup = groups[0] || null;
+        manifest.playerAppearance = source.playerAppearance == null
+            ? null
+            : JSON.parse(JSON.stringify(source.playerAppearance));
+        manifest.nodes = nodes;
+        manifest.materials = materials;
+        manifest.geometry = geometry;
+        manifest.textures = textures.records.sort(function (left, right) {
+            return cosmiqCompareText(left.id, right.id);
+        });
+        manifest.textureVariants = textures.variants;
+        const animationResult = cosmiqCompileAnimations(
+            rawProject,
+            source,
+            function (uuid) {
+                return nodeIdByUuid[uuid] ? {kind: 'node', nodeId: nodeIdByUuid[uuid]} : null;
+            },
+            'accessory',
+            allocated
+        );
+        manifest.clips = animationResult.clips;
+        manifest.stateBindings = animationResult.stateBindings;
+        const effectResult = cosmiqCompileEffects(
+            snapshot,
+            source,
+            animationResult,
+            nodeIdByUuid,
+            null,
+            allocated
+        );
+        manifest.audio = effectResult.audio;
+        manifest.particles = effectResult.particles;
+        manifest.locators = effectResult.locators;
+        manifest.cues = effectResult.cues;
+        cosmiqApplyAuthoredCamera(manifest, snapshot && snapshot.project);
+        const populatedCameraVariants = hasPairs ? ['wide', 'slim'] : ['universal'];
+        if (populatedCameraVariants.indexOf(manifest.previewCamera.pose.modelVariant) === -1) {
+            manifest.previewCamera.pose.modelVariant = populatedCameraVariants[0];
+        }
+        if (manifest.previewCamera.pose.clipId) {
+            const previewAnimationUuid = Object.keys(source.animationBindings || {}).find(function (uuid) {
+                return source.animationBindings[uuid] &&
+                    source.animationBindings[uuid].id === manifest.previewCamera.pose.clipId;
+            });
+            if (previewAnimationUuid && animationResult.clipIdByAnimationUuid[previewAnimationUuid]) {
+                manifest.previewCamera.pose.clipId = animationResult.clipIdByAnimationUuid[previewAnimationUuid];
+            }
+        }
+        const geometryBlob = cosmiqPackGeometryBuffer(meshDrafts);
+        return cosmiqFinalizeCompiledPackage(
+            manifest,
+            (geometryBlob ? [geometryBlob] : [])
+                .concat(animationResult.blob ? [animationResult.blob] : [])
+                .concat(textures.blobs)
+                .concat(effectResult.blobs)
+        );
+    }
+
+    function cosmiqNormalizeOutcomeSets(sourceOutcomeSets, allocated) {
+        const idBySource = Object.create(null);
+        const valueBySet = Object.create(null);
+        const records = (Array.isArray(sourceOutcomeSets) ? sourceOutcomeSets : []).map(function (sourceSet) {
+            if (!sourceSet || typeof sourceSet.id !== 'string' || !Array.isArray(sourceSet.values)) {
+                cosmiqFail('logic.invalid', 'Outcome Sets must contain an ID and values.');
+            }
+            const id = cosmiqAllocatedId(sourceSet.id, 'outcome', allocated);
+            idBySource[sourceSet.id] = id;
+            const valueAllocated = Object.create(null);
+            valueBySet[sourceSet.id] = Object.create(null);
+            const values = sourceSet.values.map(function (sourceValue) {
+                const value = cosmiqAllocatedId(sourceValue, 'value', valueAllocated);
+                valueBySet[sourceSet.id][sourceValue] = value;
+                return value;
+            }).sort();
+            return {id: id, values: values};
+        });
+        records.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        return {records: records, idBySource: idBySource, valueBySet: valueBySet};
+    }
+
+    function cosmiqNormalizeLogic(
+        sourceLogic,
+        source,
+        animationResult,
+        actorRoleBySourceId,
+        outcomeResult,
+        allocated
+    ) {
+        if (!sourceLogic || !Array.isArray(sourceLogic.states)) {
+            cosmiqFail('logic.invalid', 'Emote requires a compiled declarative logic graph.');
+        }
+        const clipIdBySourceId = Object.create(null);
+        Object.keys(source.animationBindings || {}).forEach(function (uuid) {
+            const binding = source.animationBindings[uuid];
+            if (binding && binding.id && animationResult.clipIdByAnimationUuid[uuid]) {
+                clipIdBySourceId[binding.id] = animationResult.clipIdByAnimationUuid[uuid];
+            }
+        });
+        const stateIdBySource = Object.create(null);
+        const stateAllocated = Object.create(null);
+        sourceLogic.states.forEach(function (state) {
+            stateIdBySource[state.id] = cosmiqAllocatedId(state.id, 'state', stateAllocated);
+        });
+        const initialState = stateIdBySource[sourceLogic.initialState];
+        if (!initialState) cosmiqFail('logic.invalid', 'Emote initial logic state does not resolve.');
+        const states = sourceLogic.states.map(function (state) {
+            const rules = (Array.isArray(state.rules) ? state.rules : []).map(function (rule) {
+                const event = cosmiqClone(rule.event);
+                const action = cosmiqClone(rule.action);
+                if (event.clipId != null) {
+                    event.clipId = clipIdBySourceId[event.clipId] || event.clipId;
+                }
+                if (event.actorRole != null) {
+                    event.actorRole = actorRoleBySourceId[event.actorRole] || event.actorRole;
+                }
+                if (event.type === 'outcome_resolved') {
+                    const sourceOutcomeId = event.outcomeSetId;
+                    event.outcomeSetId = outcomeResult.idBySource[sourceOutcomeId] || sourceOutcomeId;
+                    const values = outcomeResult.valueBySet[sourceOutcomeId] || {};
+                    event.value = values[event.value] || event.value;
+                }
+                if (action.type === 'play_animation') {
+                    action.clipId = clipIdBySourceId[action.clipId] || action.clipId;
+                    action.target = action.target === 'all'
+                        ? 'all'
+                        : (actorRoleBySourceId[action.target] || action.target);
+                    if (!Object.prototype.hasOwnProperty.call(action, 'loopDurationMillis')) {
+                        action.loopDurationMillis = null;
+                    }
+                } else if (action.type === 'transition') {
+                    action.state = stateIdBySource[action.state] || action.state;
+                } else if (action.type === 'request_outcome') {
+                    action.outcomeSetId = outcomeResult.idBySource[action.outcomeSetId] || action.outcomeSetId;
+                }
+                return {event: event, action: action};
+            });
+            return {id: stateIdBySource[state.id], rules: rules};
+        });
+        states.sort(function (left, right) {
+            if (left.id === initialState) return -1;
+            if (right.id === initialState) return 1;
+            return cosmiqCompareText(left.id, right.id);
+        });
+        return {initialState: initialState, states: states};
+    }
+
+    function compileEmoteCosmiqPackage(snapshot, rawProject) {
+        const source = rawProject.cosmiq;
+        if (!source || !Array.isArray(source.actors) || !cosmiqPlainObject(source.animationBindings)) {
+            cosmiqFail('kind.invariant_violation', 'Emote source metadata was not refreshed before export.');
+        }
+        const allocated = Object.create(null);
+        const preciseRig = source.emote &&
+            source.emote.rigProfile === EMOTE_RIG_PROFILES.PRECISE;
+        const playerSkeleton = preciseRig
+            ? 'cosmiq:player/humanoid-precise-v1'
+            : 'cosmiq:player/humanoid-v1';
+        const actorRoleByIndex = Object.create(null);
+        const actorRoleBySourceId = Object.create(null);
+        const actors = source.actors.slice().sort(function (left, right) {
+            return Number(left.index) - Number(right.index);
+        }).map(function (actor, index) {
+            const roleId = index === 0 ? 'host' : cosmiqAllocatedId('actor_' + (index + 1), 'actor', allocated);
+            actorRoleByIndex[Number(actor.index)] = roleId;
+            actorRoleBySourceId[actor.id] = roleId;
+            const offset = Number(actor.formationOffsetUnits) || 0;
+            return {
+                id: roleId,
+                skeleton: playerSkeleton,
+                required: index === 0,
+                formation: cosmiqDefaultTransform(cosmiqPositionFromBlockbench([offset, 0, 0]))
+            };
+        });
+        if (!actors.length || actors.length > 4) {
+            cosmiqFail('kind.invariant_violation', 'Emote needs one through four Actor Roles.');
+        }
+
+        const textures = cosmiqRuntimeTextures(
+            rawProject,
+            textureVariantsFromTextures(
+                (Array.isArray(snapshot && snapshot.textures) ? snapshot.textures : []).filter(function (texture) {
+                    return texture && texture.role !== ROLES.REFERENCE;
+                })
+            ),
+            false,
+            true
+        );
+        textures.raw = (Array.isArray(rawProject.textures) ? rawProject.textures : []).filter(function (texture) {
+            return texture && texture.cosmiq_role !== ROLES.REFERENCE && texture.role !== ROLES.REFERENCE;
+        });
+        textures.records.forEach(function (texture) { allocated[texture.id] = true; });
+        const objectByUuid = cosmiqEditableObjects(rawProject);
+        const bindings = source.nodeBindings || {};
+        const propUuids = Object.keys(bindings).filter(function (uuid) {
+            const role = bindings[uuid] && bindings[uuid].role;
+            return (role === ROLES.OBJECT_ACTOR || role === ROLES.OBJECT_ACTOR_NODE) && objectByUuid[uuid];
+        });
+        const propSet = Object.create(null);
+        propUuids.forEach(function (uuid) { propSet[uuid] = true; });
+        const nodeIdByUuid = Object.create(null);
+        propUuids.forEach(function (uuid) {
+            nodeIdByUuid[uuid] = cosmiqAllocatedId(bindings[uuid].sourceName || objectByUuid[uuid].name, 'prop', allocated);
+        });
+        const parentUuid = Object.create(null);
+        propUuids.forEach(function (uuid) {
+            const candidate = bindings[uuid].parentUuid;
+            parentUuid[uuid] = propSet[candidate] ? candidate : null;
+        });
+        const depth = Object.create(null);
+        function propDepth(uuid, visiting) {
+            if (depth[uuid]) return depth[uuid];
+            const active = Object.assign({}, visiting || {});
+            if (active[uuid]) cosmiqFail('graph.cycle', 'Emote Prop hierarchy contains a cycle.');
+            active[uuid] = true;
+            depth[uuid] = parentUuid[uuid] ? propDepth(parentUuid[uuid], active) + 1 : 1;
+            return depth[uuid];
+        }
+        propUuids.forEach(function (uuid) { propDepth(uuid); });
+        propUuids.sort(function (left, right) {
+            return depth[left] - depth[right] || cosmiqCompareText(nodeIdByUuid[left], nodeIdByUuid[right]);
+        });
+        const materials = [];
+        const materialByTexture = Object.create(null);
+        const geometry = [];
+        const meshDrafts = [];
+        const nodes = propUuids.map(function (uuid) {
+            const binding = bindings[uuid];
+            const object = objectByUuid[uuid];
+            const parent = parentUuid[uuid];
+            const geometryIds = [];
+            if (object.type === 'cube' || (Array.isArray(object.from) && Array.isArray(object.to))) {
+                const geometryId = cosmiqAllocatedId((binding.sourceName || uuid) + '_cube', 'geometry', allocated);
+                geometry.push(cosmiqCuboidGeometry(
+                    object, geometryId, textures, materials, materialByTexture, allocated
+                ));
+                geometryIds.push(geometryId);
+            } else if (object.type === 'mesh' || object.vertices) {
+                cosmiqMeshGeometry(
+                    object,
+                    stableKey(binding.sourceName || uuid) + '_mesh',
+                    textures,
+                    materials,
+                    materialByTexture,
+                    allocated,
+                    meshDrafts
+                ).forEach(function (record) {
+                    geometry.push(record);
+                    geometryIds.push(record.id);
+                });
+            }
+            return {
+                id: nodeIdByUuid[uuid],
+                parentId: parent ? nodeIdByUuid[parent] : null,
+                attachment: parent ? null : {kind: 'scene'},
+                bind: cosmiqNodeBind(object, parent ? objectByUuid[parent] : null),
+                geometryIds: geometryIds.sort(),
+                modelVariant: 'universal',
+                variantKey: null,
+                defaultVisible: object.visibility !== false
+            };
+        });
+        materials.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+        geometry.sort(function (left, right) { return cosmiqCompareText(left.id, right.id); });
+
+        function emoteTargetForUuid(uuid) {
+                const binding = bindings[uuid];
+                if (!binding) return null;
+                if (binding.role === ROLES.PLAYER_BONE) {
+                    return {
+                        kind: 'actor_bone',
+                        actorRole: actorRoleByIndex[Number(binding.actorIndex)],
+                        bone: binding.semanticBone
+                    };
+                }
+                if (binding.role === ROLES.EMOTE_ACTOR) {
+                    return {
+                        kind: 'actor_bone',
+                        actorRole: actorRoleByIndex[Number(binding.actorIndex)],
+                        bone: 'root'
+                    };
+                }
+                return nodeIdByUuid[uuid] ? {kind: 'node', nodeId: nodeIdByUuid[uuid]} : null;
+        }
+        const animationResult = cosmiqCompileAnimations(
+            rawProject,
+            source,
+            emoteTargetForUuid,
+            'emote',
+            allocated
+        );
+        if (!animationResult.clips.length) {
+            cosmiqFail('animation.invalid', 'Emote must contain at least one authored transform clip.');
+        }
+        const outcomeResult = cosmiqNormalizeOutcomeSets(source.outcomeSets, allocated);
+        const logic = cosmiqNormalizeLogic(
+            source.logic,
+            source,
+            animationResult,
+            actorRoleBySourceId,
+            outcomeResult,
+            allocated
+        );
+        const project = snapshot && snapshot.project || {};
+        const movement = project.emoteMovementPolicy && cosmiqPlainObject(project.emoteMovementPolicy)
+            ? cosmiqClone(project.emoteMovementPolicy)
+            : {
+                mode: project.emoteTraversable === true ? 'full_body_traversable' : 'stationary',
+                cancelOnAttack: true,
+                cancelOnDamage: true,
+                allowCameraControl: true
+            };
+        const manifest = cosmiqBaseManifest('emote');
+        manifest.movementPolicy = movement;
+        manifest.actors = actors;
+        manifest.nodes = nodes;
+        manifest.materials = materials;
+        manifest.geometry = geometry;
+        manifest.textures = textures.records.sort(function (left, right) {
+            return cosmiqCompareText(left.id, right.id);
+        });
+        manifest.textureVariants = textures.variants;
+        manifest.clips = animationResult.clips;
+        manifest.outcomeSets = outcomeResult.records;
+        manifest.logic = logic;
+        const effectResult = cosmiqCompileEffects(
+            snapshot,
+            source,
+            animationResult,
+            nodeIdByUuid,
+            emoteTargetForUuid,
+            allocated
+        );
+        manifest.audio = effectResult.audio;
+        manifest.particles = effectResult.particles;
+        manifest.locators = effectResult.locators;
+        manifest.cues = effectResult.cues;
+        manifest.previewCamera.pose.clipId = animationResult.clips[0].id;
+        manifest.previewCamera.pose.visiblePropRootIds = nodes.filter(function (node) {
+            return node.parentId === null && node.defaultVisible;
+        }).map(function (node) { return node.id; }).sort();
+        cosmiqApplyAuthoredCamera(manifest, project);
+        manifest.previewCamera.pose.visiblePropRootIds = manifest.previewCamera.pose.visiblePropRootIds.map(
+            function (sourceId) {
+                if (nodeIdByUuid[sourceId]) return nodeIdByUuid[sourceId];
+                const sourceUuid = Object.keys(bindings).find(function (uuid) {
+                    const binding = bindings[uuid];
+                    return parentUuid[uuid] === null && binding &&
+                        (binding.id === sourceId || binding.sourceName === sourceId);
+                });
+                return sourceUuid ? nodeIdByUuid[sourceUuid] : sourceId;
+            }
+        ).sort();
+        const oldPreviewClip = manifest.previewCamera.pose.clipId;
+        const sourceBindingUuid = Object.keys(source.animationBindings).find(function (uuid) {
+            return source.animationBindings[uuid] && source.animationBindings[uuid].id === oldPreviewClip;
+        });
+        if (sourceBindingUuid && animationResult.clipIdByAnimationUuid[sourceBindingUuid]) {
+            manifest.previewCamera.pose.clipId = animationResult.clipIdByAnimationUuid[sourceBindingUuid];
+        }
+        const geometryBlob = cosmiqPackGeometryBuffer(meshDrafts);
+        return cosmiqFinalizeCompiledPackage(
+            manifest,
+            (geometryBlob ? [geometryBlob] : [])
+                .concat(animationResult.blob ? [animationResult.blob] : [])
+                .concat(textures.blobs)
+                .concat(effectResult.blobs)
+        );
+    }
+
+    function compileBlockbenchCosmiqPackage(snapshot, rawProject) {
+        if (!rawProject || !cosmiqPlainObject(rawProject) ||
+            !rawProject.meta || rawProject.meta.model_format !== FORMAT_ID) {
+            cosmiqFail('kind.invariant_violation', 'Blockbench did not provide a Cosmiq authoring project.');
+        }
+        const kind = snapshot && snapshot.project && snapshot.project.kind;
+        if (kind === PROJECT_KINDS.CAPE) return compileCapeCosmiqPackage(snapshot, rawProject);
+        if (kind === PROJECT_KINDS.EMOTE) return compileEmoteCosmiqPackage(snapshot, rawProject);
+        if (kind === PROJECT_KINDS.COSMETIC) return compileAccessoryCosmiqPackage(snapshot, rawProject);
+        cosmiqFail('kind.invariant_violation', 'Authoring project kind must be cosmetic, cape, or emote.');
+    }
+
+    function stableKey(value) {
+        const normalized = String(value == null ? '' : value)
+            .toLowerCase()
+            .replace(/[^a-z0-9._-]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+        return normalized || 'missing';
+    }
+
+    function runtimeId(projectId, category, sourceKey) {
+        const normalizedProject = normalizeProjectId(projectId) || 'creator:untitled';
+        const separator = normalizedProject.indexOf(':');
+        const namespace = normalizedProject.slice(0, separator);
+        const projectPath = normalizedProject.slice(separator + 1);
+        return namespace + ':' + projectPath + '/' + normalizeToken(category) + '/' + stableKey(sourceKey);
+    }
+
+    function parseParticleMarkerName(name) {
+        const raw = String(name == null ? '' : name).trim();
+        const match = /^(?:particle|emitter)[.:/_ -]+(.+)$/i.exec(raw);
+        if (!match) {
+            return null;
+        }
+        const id = normalizeToken(match[1]);
+        return id || null;
+    }
+
+    function resolveTrigger(kind, value) {
+        const normalizedKind = String(kind == null ? '' : kind).trim().toLowerCase();
+        const normalizedValue = normalizeToken(value);
+        const trigger = triggerById[normalizedValue] || triggerByAlias[normalizedValue] || null;
+        if (!trigger) {
+            return null;
+        }
+        if (normalizedKind && normalizedKind !== 'none' && trigger.kind !== normalizedKind) {
+            return null;
+        }
+        return trigger;
+    }
+
+    function parseAnimationName(name) {
+        const raw = String(name == null ? '' : name).trim().toLowerCase();
+        let kind = '';
+        let value = raw;
+        if (/^state[.:/_ -]/.test(raw)) {
+            kind = 'player_state';
+            value = raw.replace(/^state[.:/_ -]+/, '');
+        } else if (/^event[.:/_ -]/.test(raw)) {
+            kind = 'player_event';
+            value = raw.replace(/^event[.:/_ -]+/, '');
+        }
+        const trigger = resolveTrigger(kind, value);
+        if (!trigger) {
+            return null;
+        }
+        return {
+            kind: trigger.kind,
+            triggerId: trigger.id,
+            inferredFromName: true
+        };
+    }
+
+    function makeIssue(severity, code, message, sourceUuid) {
+        const deferred = severity === 'error' && DEFERRED_SIZE_LIMIT_CODES[code] === true;
+        return {
+            severity: deferred ? 'info' : severity,
+            code: code,
+            message: deferred ? message + ' This size budget is informational for now.' : message,
+            sourceUuid: sourceUuid || null
+        };
+    }
+
+    function resourceContainsRawMedia(resource) {
+        if (!resource || typeof resource !== 'object') {
+            return false;
+        }
+        const allowed = {
+            id: true,
+            type: true,
+            displayName: true,
+            assetRef: true,
+            profileId: true,
+            appearance: true,
+            emitter: true,
+            editorStatus: true,
+            runtimeExport: true,
+            soundKind: true,
+            embeddedOgg: true,
+            referenceOnly: true,
+            rawMediaIncluded: true
+        };
+        if ((resource.rawMediaIncluded === true && !/^data:audio\/ogg;base64,[A-Za-z0-9+/]*={0,2}$/.test(
+            String(resource.embeddedOgg || '')
+        )) || isRawMediaReference(resource.assetRef)) {
+            return true;
+        }
+        return Object.keys(resource).some(function (key) {
+            if (allowed[key]) {
+                return false;
+            }
+            const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (/(?:path|url|uri|file|bytes|buffer|blob|content|payload|media|audio|gif)$/.test(normalizedKey)) {
+                return true;
+            }
+            const value = resource[key];
+            if (typeof value === 'string' && isRawMediaReference(value)) {
+                return true;
+            }
+            if (typeof ArrayBuffer !== 'undefined' && (
+                value instanceof ArrayBuffer ||
+                (typeof ArrayBuffer.isView === 'function' && ArrayBuffer.isView(value))
+            )) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    function collectTimelineMarkers(markers) {
+        return (Array.isArray(markers) ? markers : []).map(function (marker) {
+            const source = marker && typeof marker === 'object' ? marker : {};
+            const rawName = source.name === 0 ? '' : source.name;
+            const time = Number(source.timeSeconds == null ? source.time : source.timeSeconds);
+            const color = Number(source.color);
+            return {
+                name: boundedCreatorString(rawName, AUTHORING_LIMITS.markerNameCharacters),
+                timeSeconds: Number.isFinite(time) ? time : null,
+                atMs: Number.isFinite(time) ? Math.round(time * 1000) : null,
+                color: Number.isFinite(color) ? Math.max(0, Math.min(7, Math.floor(color))) : 0
+            };
+        }).sort(function (left, right) {
+            const leftTime = left.timeSeconds == null ? Number.POSITIVE_INFINITY : left.timeSeconds;
+            const rightTime = right.timeSeconds == null ? Number.POSITIVE_INFINITY : right.timeSeconds;
+            return leftTime - rightTime || cosmiqCompareText(left.name, right.name);
+        });
+    }
+
+    function buildAuthoringMetadata(snapshot) {
+        const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
+        const project = source.project && typeof source.project === 'object' ? source.project : {};
+        const nodes = Array.isArray(source.nodes) ? source.nodes : [];
+        const animations = Array.isArray(source.animations) ? source.animations : [];
+        const rawResources = Array.isArray(project.resourceReferences) ? project.resourceReferences : [];
+        const rawCues = Array.isArray(project.timelineCues) ? project.timelineCues : [];
+        const issues = [];
+        const nodeByUuid = Object.create(null);
+        nodes.forEach(function (node) {
+            if (node && node.uuid) nodeByUuid[node.uuid] = node;
+        });
+        const resourceReferences = [];
+        const resourcesById = Object.create(null);
+        const resourceIds = Object.create(null);
+
+        if (rawResources.length > AUTHORING_LIMITS.resources) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_RESOURCE_LIMIT',
+                'Project has ' + rawResources.length + ' resource references; limit is ' +
+                    AUTHORING_LIMITS.resources + '.'
+            ));
+        }
+        rawResources.forEach(function (rawResource) {
+            const sourceResource = rawResource && typeof rawResource === 'object' ? rawResource : {};
+            const resource = normalizeResourceReference(sourceResource);
+            if (!resource.id) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_ID_INVALID',
+                    'Every resource reference needs a lowercase namespaced ID.'
+                ));
+            } else if (resourceIds[resource.id]) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_ID_DUPLICATE',
+                    'Resource reference ID ' + resource.id + ' is duplicated.'
+                ));
+            }
+            if (resource.id) {
+                resourceIds[resource.id] = true;
+                resourcesById[resource.id] = resource;
+            }
+            if (resource.type !== RESOURCE_TYPES.PARTICLE_EFFECT &&
+                resource.type !== RESOURCE_TYPES.SOUND) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_TYPE_INVALID',
+                    'Resource ' + (resource.id || '(unnamed)') +
+                        ' must be particle_effect or sound.'
+                ));
+            }
+            const rawDisplayName = String(sourceResource.displayName == null ? '' : sourceResource.displayName);
+            if (!resource.displayName || rawDisplayName.length > AUTHORING_LIMITS.displayNameCharacters ||
+                containsForbiddenControl(rawDisplayName, false)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_NAME_INVALID',
+                    'Resource display names must contain readable text no longer than ' +
+                        AUTHORING_LIMITS.displayNameCharacters + ' characters.'
+                ));
+            }
+            if (resource.type === RESOURCE_TYPES.SOUND && !resource.embeddedOgg) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_REF_MISSING',
+                    'Resource ' + (resource.displayName || resource.id || '(unnamed)') +
+                        ' has no embedded runtime media.'
+                ));
+            }
+            if (resource.type === RESOURCE_TYPES.PARTICLE_EFFECT &&
+                (!resource.profileId || !resource.appearance || !resource.emitter ||
+                    resource.referenceOnly || resource.rawMediaIncluded)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_PARTICLE_EFFECT_INCOMPLETE',
+                    'Authored particles need a profile, embedded-texture appearance, bounded emitter, and runtime export.'
+                ));
+            } else if (resource.type === RESOURCE_TYPES.PARTICLE_EFFECT &&
+                (resource.editorStatus === 'placeholder' || !resource.runtimeExport)) {
+                issues.push(makeIssue(
+                    'warning',
+                    'COSMIQ_PARTICLE_SETUP_PENDING',
+                    'Particle ' + resource.displayName +
+                        ' is a timing placeholder. Finish its image, UV face, color, and behavior in the website Particle Editor.'
+                ));
+            }
+            if (resource.type === RESOURCE_TYPES.SOUND &&
+                SOUND_REFERENCE_TYPES.indexOf(sourceResource.soundKind || 'sound_effect') === -1) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_SOUND_REFERENCE_TYPE',
+                    'Sound resources must be sound_effect or music references.'
+                ));
+            }
+            if (resourceContainsRawMedia(sourceResource)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_RESOURCE_RAW_MEDIA',
+                    'Raw paths, URLs, audio, GIFs, media bytes, and payloads are not allowed in resource references.'
+                ));
+            }
+            resourceReferences.push(resource);
+        });
+
+        const locatorBindings = {};
+        const locatorIds = Object.create(null);
+        const locatorNodes = nodes.filter(function (node) {
+            return node && (
+                node.role === ROLES.PARTICLE_EFFECT_LOCATOR ||
+                node.role === ROLES.SOUND_EFFECT_LOCATOR
+            );
+        });
+        if (locatorNodes.length > AUTHORING_LIMITS.effectLocators) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EFFECT_LOCATOR_LIMIT',
+                'Project has ' + locatorNodes.length + ' effect locators; limit is ' +
+                    AUTHORING_LIMITS.effectLocators + '.'
+            ));
+        }
+        locatorNodes.forEach(function (node) {
+            const locatorId = normalizeAssetRef(node.effectLocatorId);
+            const resourceId = normalizeAssetRef(node.resourceId);
+            if (node.type !== 'locator') {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EFFECT_LOCATOR_TYPE',
+                    'Particle and sound attachment helpers must be Blockbench Locator objects.',
+                    node.uuid
+                ));
+            }
+            if (!locatorId) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EFFECT_LOCATOR_ID',
+                    'Effect locator ' + (node.name || '(unnamed)') + ' needs a namespaced locator ID.',
+                    node.uuid
+                ));
+            } else if (locatorIds[locatorId]) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EFFECT_LOCATOR_ID_DUPLICATE',
+                    'Effect locator ID ' + locatorId + ' is duplicated.',
+                    node.uuid
+                ));
+            }
+            if (locatorId) locatorIds[locatorId] = true;
+            if (!resourceId || !resourcesById[resourceId]) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EFFECT_LOCATOR_RESOURCE',
+                    'Effect locator ' + (node.name || '(unnamed)') + ' references a missing resource.',
+                    node.uuid
+                ));
+            } else {
+                const matchesType = node.role === ROLES.PARTICLE_EFFECT_LOCATOR
+                    ? isParticleResource(resourcesById[resourceId])
+                    : resourcesById[resourceId].type === RESOURCE_TYPES.SOUND;
+                if (!matchesType) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EFFECT_LOCATOR_RESOURCE_TYPE',
+                        'Effect locator resource type does not match its particle or sound role.',
+                        node.uuid
+                    ));
+                }
+            }
+            if (node.export !== false) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EFFECT_LOCATOR_EXPORT',
+                    'Effect locators must remain non-exporting authoring helpers.',
+                    node.uuid
+                ));
+            }
+            if (node.uuid) {
+                locatorBindings[node.uuid] = {
+                    id: locatorId,
+                    sourceNodeUuid: node.uuid,
+                    sourceName: boundedCreatorString(node.name, AUTHORING_LIMITS.displayNameCharacters),
+                    role: node.role,
+                    resourceId: resourceId || null,
+                    exportGeometry: false
+                };
+            }
+        });
+
+        const animationByUuid = Object.create(null);
+        const markerIndexes = Object.create(null);
+        const timelineMarkers = {};
+        animations.forEach(function (animation) {
+            if (!animation || !animation.uuid) {
+                return;
+            }
+            animationByUuid[animation.uuid] = animation;
+            const duration = Number(animation.lengthSeconds);
+            const markers = collectTimelineMarkers(animation.markers);
+            timelineMarkers[animation.uuid] = markers;
+            (Array.isArray(animation.markers) ? animation.markers : []).forEach(function (rawMarker) {
+                const rawName = rawMarker && rawMarker.name !== 0
+                    ? String(rawMarker.name == null ? '' : rawMarker.name)
+                    : '';
+                if (rawName.length > AUTHORING_LIMITS.markerNameCharacters) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_MARKER_NAME_LENGTH',
+                        'Timeline marker names may not exceed ' +
+                            AUTHORING_LIMITS.markerNameCharacters + ' characters.',
+                        animation.uuid
+                    ));
+                }
+            });
+            if (!Number.isFinite(duration) || duration < 0 || duration > LIMITS.animationSeconds) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_CUE_ANIMATION_DURATION',
+                    'Animation ' + (animation.name || animation.uuid) + ' has an invalid cue duration.',
+                    animation.uuid
+                ));
+            }
+            if (markers.length > AUTHORING_LIMITS.markersPerAnimation) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_MARKER_LIMIT',
+                    'Animation ' + (animation.name || animation.uuid) + ' has ' + markers.length +
+                        ' markers; limit is ' + AUTHORING_LIMITS.markersPerAnimation + '.',
+                    animation.uuid
+                ));
+            }
+            const markerIndex = Object.create(null);
+            const markerTimes = [];
+            markers.forEach(function (marker) {
+                if (!marker.name || containsForbiddenControl(marker.name, false)) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_MARKER_NAME',
+                        'Timeline markers used by Cosmiq must have readable names.',
+                        animation.uuid
+                    ));
+                }
+                if (marker.name && markerIndex[marker.name]) {
+                    markerIndex[marker.name].duplicate = true;
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_MARKER_DUPLICATE',
+                        'Animation ' + (animation.name || animation.uuid) +
+                            ' has more than one marker named ' + marker.name + '.',
+                        animation.uuid
+                    ));
+                } else if (marker.name) {
+                    markerIndex[marker.name] = marker;
+                }
+                if (marker.timeSeconds == null || marker.timeSeconds < 0 ||
+                    (Number.isFinite(duration) && marker.timeSeconds > duration)) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_MARKER_TIME',
+                        'Timeline marker ' + (marker.name || '(unnamed)') +
+                            ' must be within its animation duration.',
+                        animation.uuid
+                    ));
+                } else if (markerTimes.some(function (time) {
+                    return Math.abs(time - marker.timeSeconds) < 0.001;
+                })) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_MARKER_TIME_DUPLICATE',
+                        'Animation ' + (animation.name || animation.uuid) +
+                            ' has multiple markers at the same time; Blockbench persists one marker per timestamp.',
+                        animation.uuid
+                    ));
+                } else {
+                    markerTimes.push(marker.timeSeconds);
+                }
+            });
+            markerIndexes[animation.uuid] = markerIndex;
+        });
+
+        const timelineCues = [];
+        const cueIds = Object.create(null);
+        if (rawCues.length > AUTHORING_LIMITS.cues) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_TIMELINE_CUE_LIMIT',
+                'Project has ' + rawCues.length + ' timeline cues; limit is ' + AUTHORING_LIMITS.cues + '.'
+            ));
+        }
+        rawCues.forEach(function (rawCue) {
+            const sourceCue = rawCue && typeof rawCue === 'object' ? rawCue : {};
+            const cue = normalizeTimelineCue(sourceCue);
+            if (!cue.id) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_CUE_ID',
+                    'Every timeline cue needs a lowercase namespaced ID.'
+                ));
+            } else if (cueIds[cue.id]) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_CUE_ID_DUPLICATE',
+                    'Timeline cue ID ' + cue.id + ' is duplicated.'
+                ));
+            }
+            if (cue.id) cueIds[cue.id] = true;
+            if ([
+                CUE_TYPES.PARTICLE,
+                CUE_TYPES.SOUND,
+                CUE_TYPES.NODE_VISIBILITY,
+                CUE_TYPES.COMMENT
+            ].indexOf(cue.type) === -1) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_CUE_TYPE',
+                    'Timeline cues must be particle, sound, node_visibility, or comment.'
+                ));
+            }
+            const animation = animationByUuid[cue.animationUuid];
+            const markerIndex = markerIndexes[cue.animationUuid];
+            const marker = markerIndex && markerIndex[cue.markerName];
+            if (!animation) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_CUE_ANIMATION',
+                    'Cue ' + (cue.id || '(unnamed)') + ' references a missing animation.'
+                ));
+            }
+            if (!cue.markerName || !marker || marker.duplicate) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TIMELINE_CUE_MARKER',
+                    'Cue ' + (cue.id || '(unnamed)') + ' references a missing or ambiguous marker.',
+                    cue.animationUuid
+                ));
+            }
+            let endMarker = null;
+            if (cue.endMarkerName) {
+                endMarker = markerIndex && markerIndex[cue.endMarkerName];
+                if (!endMarker || endMarker.duplicate) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_CUE_END_MARKER',
+                        'Cue ' + (cue.id || '(unnamed)') + ' references a missing or ambiguous end marker.',
+                        cue.animationUuid
+                    ));
+                } else if (marker && endMarker.timeSeconds <= marker.timeSeconds) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_CUE_DURATION',
+                        'Cue end markers must occur after their start markers.',
+                        cue.animationUuid
+                    ));
+                }
+            }
+            if (cue.type === CUE_TYPES.COMMENT) {
+                const rawComment = String(sourceCue.comment == null ? '' : sourceCue.comment);
+                if (!cue.comment || rawComment.length > AUTHORING_LIMITS.commentCharacters ||
+                    containsForbiddenControl(rawComment, true)) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_COMMENT',
+                        'Creator comments must contain readable text no longer than ' +
+                            AUTHORING_LIMITS.commentCharacters + ' characters.',
+                        cue.animationUuid
+                    ));
+                }
+            } else if (cue.type === CUE_TYPES.NODE_VISIBILITY) {
+                const targetNode = cue.nodeUuid && nodeByUuid[cue.nodeUuid];
+                if (project.kind !== PROJECT_KINDS.EMOTE || !targetNode ||
+                    [ROLES.OBJECT_ACTOR, ROLES.OBJECT_ACTOR_NODE].indexOf(targetNode.role) === -1 ||
+                    typeof sourceCue.visible !== 'boolean') {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_CUE_NODE',
+                        'Node-visibility cues require an Emote Prop node and an explicit visible boolean.',
+                        cue.animationUuid
+                    ));
+                }
+            } else {
+                const resource = cue.resourceId && resourcesById[cue.resourceId];
+                if (!resource) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_CUE_RESOURCE',
+                        'Cue ' + (cue.id || '(unnamed)') + ' references a missing resource.',
+                        cue.animationUuid
+                    ));
+                } else {
+                    const matchingType = cue.type === CUE_TYPES.PARTICLE
+                        ? isParticleResource(resource)
+                        : resource.type === RESOURCE_TYPES.SOUND;
+                    if (!matchingType) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_TIMELINE_CUE_RESOURCE_TYPE',
+                            'Cue resource type does not match its particle or sound cue type.',
+                            cue.animationUuid
+                        ));
+                    }
+                }
+                const locator = cue.locatorUuid && locatorBindings[cue.locatorUuid];
+                if (!locator && cue.type === CUE_TYPES.PARTICLE) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TIMELINE_CUE_LOCATOR',
+                        'Particle cues require an existing effect locator.',
+                        cue.animationUuid
+                    ));
+                } else if (locator) {
+                    const expectedLocatorRole = cue.type === CUE_TYPES.PARTICLE
+                        ? ROLES.PARTICLE_EFFECT_LOCATOR
+                        : ROLES.SOUND_EFFECT_LOCATOR;
+                    if (locator.role !== expectedLocatorRole || locator.resourceId !== cue.resourceId) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_TIMELINE_CUE_LOCATOR_TYPE',
+                            'Cue locator role or resource binding does not match the cue.',
+                            cue.animationUuid
+                        ));
+                    }
+                }
+            }
+            timelineCues.push(Object.assign({}, cue, {
+                timeSeconds: marker && !marker.duplicate ? marker.timeSeconds : null,
+                atMs: marker && !marker.duplicate ? marker.atMs : null,
+                endTimeSeconds: endMarker && !endMarker.duplicate ? endMarker.timeSeconds : null,
+                endAtMs: endMarker && !endMarker.duplicate ? endMarker.atMs : null
+            }));
+        });
+
+        return {
+            metadata: {
+                authoringSchema: 'cosmiq.blockbench.cues.v0',
+                referenceOnly: false,
+                rawMediaIncluded: resourceReferences.some(function (resource) {
+                    return resource.type === RESOURCE_TYPES.SOUND && !!resource.embeddedOgg;
+                }),
+                resourceReferences: resourceReferences,
+                effectLocatorBindings: locatorBindings,
+                timelineMarkers: timelineMarkers,
+                timelineCues: timelineCues,
+                unsupportedMedia: ['non_ogg_audio', 'gif', 'remote_url', 'filesystem_path']
+            },
+            issues: issues
+        };
+    }
+
+    function isKnownAnchor(anchorId) {
+        return Object.prototype.hasOwnProperty.call(anchorById, canonicalAnchorId(anchorId));
+    }
+
+    function sameAnchorOrigin(left, right) {
+        return Array.isArray(left) && Array.isArray(right) && [0, 1, 2].every(function (axis) {
+            return Math.abs(Number(left[axis]) - Number(right[axis])) <= 0.0001;
+        });
+    }
+
+    function anchorIdForAuthoredOrigin(anchorId, origin) {
+        const canonicalId = canonicalAnchorId(anchorId);
+        if (!Array.isArray(origin) || !isKnownAnchor(canonicalId)) return canonicalId;
+        const x = Number(origin[0]);
+        if (!Number.isFinite(x) || Math.abs(x) <= 0.0001) return canonicalId;
+        if (canonicalId === 'cosmiq:player/left_arm' || canonicalId === 'cosmiq:player/right_arm') {
+            return x > 0 ? 'cosmiq:player/left_arm' : 'cosmiq:player/right_arm';
+        }
+        if (canonicalId === 'cosmiq:player/left_leg' || canonicalId === 'cosmiq:player/right_leg') {
+            return x > 0 ? 'cosmiq:player/left_leg' : 'cosmiq:player/right_leg';
+        }
+        return canonicalId;
+    }
+
+    function legacyAnchorNormalizationPlan(nodes) {
+        const changes = [];
+        (nodes || []).forEach(function (node) {
+            if (effectiveRole(node) !== ROLES.ANCHOR && !node.anchorId) return;
+            const previousAnchorId = canonicalAnchorId(node.anchorId);
+            if (!isKnownAnchor(previousAnchorId)) return;
+            const anchorId = anchorIdForAuthoredOrigin(previousAnchorId, node.origin);
+            const origin = anchorById[anchorId].origin.slice();
+            if (anchorId === previousAnchorId && sameAnchorOrigin(node.origin, origin)) return;
+            changes.push({
+                uuid: node.uuid,
+                name: node.name,
+                previousAnchorId: previousAnchorId,
+                anchorId: anchorId,
+                previousOrigin: Array.isArray(node.origin) ? node.origin.slice(0, 3) : null,
+                origin: origin
+            });
+        });
+        return changes;
+    }
+
+    function normalizePackagedNodeVisibility(project, nodeBindings) {
+        if (!project || typeof project !== 'object') return [];
+        const bindings = cosmiqPlainObject(nodeBindings) ? nodeBindings : {};
+        const packaged = Object.create(null);
+        Object.keys(bindings).forEach(function (uuid) {
+            const binding = bindings[uuid];
+            if (binding && (binding.export === true || binding.role === 'cosmetic_node')) {
+                packaged[uuid] = true;
+            }
+        });
+        const visible = Object.create(null);
+        function walk(entries) {
+            let containsPackagedNode = false;
+            (Array.isArray(entries) ? entries : []).forEach(function (entry) {
+                if (typeof entry === 'string') {
+                    if (packaged[entry]) {
+                        visible[entry] = true;
+                        containsPackagedNode = true;
+                    }
+                    return;
+                }
+                if (!entry || typeof entry !== 'object') return;
+                const childContainsPackagedNode = walk(entry.children);
+                if (packaged[entry.uuid] || childContainsPackagedNode) {
+                    if (entry.uuid) visible[entry.uuid] = true;
+                    containsPackagedNode = true;
+                }
+            });
+            return containsPackagedNode;
+        }
+        walk(project.outliner);
+        Object.keys(packaged).forEach(function (uuid) {
+            visible[uuid] = true;
+        });
+        const byUuid = Object.create(null);
+        (Array.isArray(project.groups) ? project.groups : [])
+            .concat(Array.isArray(project.elements) ? project.elements : [])
+            .forEach(function (node) {
+                if (node && node.uuid) byUuid[node.uuid] = node;
+            });
+        const normalized = [];
+        function normalize(entries, parentWasVisible) {
+            (Array.isArray(entries) ? entries : []).forEach(function (entry) {
+                if (typeof entry === 'string') {
+                    const element = byUuid[entry];
+                    if (!element) return;
+                    if (visible[entry]) {
+                        element.visibility = true;
+                    } else if (!parentWasVisible) {
+                        element.visibility = false;
+                    }
+                    return;
+                }
+                if (!entry || typeof entry !== 'object') return;
+                const group = byUuid[entry.uuid];
+                if (!group) return;
+                const groupWasVisible = parentWasVisible && group.visibility !== false;
+                if (visible[entry.uuid]) {
+                    group.visibility = true;
+                } else if (!parentWasVisible) {
+                    group.visibility = false;
+                }
+                normalize(entry.children, groupWasVisible);
+            });
+        }
+        normalize(project.outliner, true);
+        Object.keys(visible).sort().forEach(function (uuid) {
+            if (!byUuid[uuid]) return;
+            byUuid[uuid].visibility = true;
+            normalized.push(uuid);
+        });
+        return normalized;
+    }
+
+    function effectiveRole(node) {
+        if (node.role && node.role !== ROLES.NONE) {
+            return node.role;
+        }
+        if ((node.type === 'cube' || node.type === 'locator') && parseParticleMarkerName(node.name)) {
+            return ROLES.PARTICLE_MARKER;
+        }
+        return ROLES.NONE;
+    }
+
+    function indexNodes(nodes, issues) {
+        const byUuid = Object.create(null);
+        nodes.forEach(function (node) {
+            if (!node.uuid) {
+                issues.push(makeIssue('error', 'COSMIQ_NODE_UUID_MISSING', 'An outliner node has no UUID.'));
+                return;
+            }
+            if (byUuid[node.uuid]) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_NODE_UUID_DUPLICATE',
+                    'Duplicate outliner UUID: ' + node.uuid,
+                    node.uuid
+                ));
+                return;
+            }
+            byUuid[node.uuid] = node;
+        });
+        return byUuid;
+    }
+
+    function ancestorWalk(node, byUuid, visit) {
+        const seen = Object.create(null);
+        let current = node;
+        while (current && current.parentUuid) {
+            if (seen[current.parentUuid]) {
+                return {cycle: true};
+            }
+            seen[current.parentUuid] = true;
+            current = byUuid[current.parentUuid] || null;
+            if (!current) {
+                return {missingParent: true};
+            }
+            const result = visit(current);
+            if (result) {
+                return result;
+            }
+        }
+        return {};
+    }
+
+    function nearestAnchor(node, byUuid) {
+        return ancestorWalk(node, byUuid, function (ancestor) {
+            if (effectiveRole(ancestor) === ROLES.ANCHOR || ancestor.anchorId) {
+                return {
+                    anchorId: ancestor.anchorId || '',
+                    anchorUuid: ancestor.uuid
+                };
+            }
+            return null;
+        });
+    }
+
+    function nearestModelVariant(node, byUuid) {
+        const result = ancestorWalk(node, byUuid, function (ancestor) {
+            if (ancestor.modelVariant === 'wide' || ancestor.modelVariant === 'slim') {
+                return {modelVariant: ancestor.modelVariant};
+            }
+            return null;
+        });
+        return result.modelVariant || 'universal';
+    }
+
+    function normalizeArmWidthMode(value) {
+        return value === ARM_WIDTH_MODES.SHARED || value === ARM_WIDTH_MODES.DEPENDENT
+            ? value
+            : ARM_WIDTH_MODES.UNCONFIGURED;
+    }
+
+    function inspectArmWidthGeometry(snapshot, indexedNodes) {
+        const project = snapshot && snapshot.project || {};
+        const nodes = snapshot && Array.isArray(snapshot.nodes) ? snapshot.nodes : [];
+        const byUuid = indexedNodes || indexNodes(nodes, []);
+        const authoredVariants = {universal: false, wide: false, slim: false};
+        const anchorIds = [];
+        nodes.forEach(function (node) {
+            if (!isRuntimeNodeCandidate(node, byUuid) ||
+                (node.type !== 'cube' && node.type !== 'mesh') ||
+                Number(node.triangleCount) <= 0) {
+                return;
+            }
+            const anchor = nearestAnchor(node, byUuid);
+            const anchorId = canonicalAnchorId(anchor.anchorId);
+            const anchorRecord = anchorById[anchorId];
+            if (!anchorRecord || anchorRecord.slot !== 'cosmiq:slot/arms') {
+                return;
+            }
+            authoredVariants[nearestModelVariant(node, byUuid)] = true;
+            if (anchorIds.indexOf(anchorId) === -1) anchorIds.push(anchorId);
+        });
+        const configuredMode = normalizeArmWidthMode(project.armWidthMode);
+        const hasArmGeometry = authoredVariants.universal ||
+            authoredVariants.wide || authoredVariants.slim;
+        const usesModelBranch = authoredVariants.wide || authoredVariants.slim;
+        return {
+            configuredMode: configuredMode,
+            effectiveMode: configuredMode === ARM_WIDTH_MODES.UNCONFIGURED &&
+                hasArmGeometry && !usesModelBranch
+                ? ARM_WIDTH_MODES.SHARED
+                : configuredMode,
+            hasArmGeometry: hasArmGeometry,
+            usesModelBranch: usesModelBranch,
+            requiresChoice: hasArmGeometry && usesModelBranch &&
+                configuredMode === ARM_WIDTH_MODES.UNCONFIGURED,
+            authoredVariants: authoredVariants,
+            anchorIds: anchorIds.sort()
+        };
+    }
+
+    function modelVariantForArmWidthMode(node, byUuid, armWidthInspection) {
+        const authoredVariant = nearestModelVariant(node, byUuid);
+        if (!armWidthInspection ||
+            armWidthInspection.effectiveMode !== ARM_WIDTH_MODES.SHARED) {
+            return authoredVariant;
+        }
+        const anchor = nearestAnchor(node, byUuid);
+        const anchorRecord = anchorById[canonicalAnchorId(anchor.anchorId)];
+        return anchorRecord && anchorRecord.slot === 'cosmiq:slot/arms'
+            ? 'universal'
+            : authoredVariant;
+    }
+
+    function isInsideExportRoot(node, byUuid) {
+        const result = ancestorWalk(node, byUuid, function (ancestor) {
+            if (effectiveRole(ancestor) === ROLES.EXPORT_ROOT) {
+                return {inside: true};
+            }
+            if (effectiveRole(ancestor) === ROLES.REFERENCE_ROOT) {
+                return {inside: false, excluded: true};
+            }
+            return null;
+        });
+        return result.inside === true;
+    }
+
+    function hasExcludedAncestor(node, byUuid) {
+        const result = ancestorWalk(node, byUuid, function (ancestor) {
+            const role = effectiveRole(ancestor);
+            if (
+                role === ROLES.REFERENCE_ROOT ||
+                role === ROLES.REFERENCE ||
+                role === ROLES.PARTICLE_MARKER
+            ) {
+                return {excluded: true};
+            }
+            return null;
+        });
+        return result.excluded === true;
+    }
+
+    function isRuntimeNodeCandidate(node, byUuid) {
+        const role = effectiveRole(node);
+        if (node.export === false) {
+            return false;
+        }
+        if (node.type !== 'group' && node.type !== 'cube' && node.type !== 'mesh') {
+            return false;
+        }
+        if (
+            role === ROLES.EXPORT_ROOT ||
+            role === ROLES.MODEL_VARIANT ||
+            role === ROLES.STRUCTURE ||
+            role === ROLES.ANCHOR ||
+            role === ROLES.REFERENCE_ROOT ||
+            role === ROLES.REFERENCE ||
+            role === ROLES.PARTICLE_MARKER
+        ) {
+            return false;
+        }
+        return isInsideExportRoot(node, byUuid) && !hasExcludedAncestor(node, byUuid);
+    }
+
+    function runtimeParent(node, byUuid, runtimeNodes) {
+        let current = node;
+        const seen = Object.create(null);
+        while (current && current.parentUuid) {
+            if (seen[current.parentUuid]) {
+                return {cycle: true};
+            }
+            seen[current.parentUuid] = true;
+            current = byUuid[current.parentUuid] || null;
+            if (!current) {
+                return {missingParent: true};
+            }
+            if (runtimeNodes[current.uuid]) {
+                return {parentUuid: current.uuid};
+            }
+            if (effectiveRole(current) === ROLES.ANCHOR || current.anchorId) {
+                return {atAnchor: true};
+            }
+        }
+        return {};
+    }
+
+    function buildSourceMetadata(snapshot) {
+        const issues = [];
+        const authoredAnimations = animationsWithKeyframes(snapshot.animations);
+        const projectId = normalizeProjectId(snapshot.project.id);
+        const safeProjectId = projectId || 'creator:untitled';
+        if (!projectId) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PROJECT_ID_INVALID',
+                'Project ID must be a lowercase namespaced identifier such as creator:wing_demo.'
+            ));
+        }
+
+        const byUuid = indexNodes(snapshot.nodes, issues);
+        const armWidthInspection = inspectArmWidthGeometry(snapshot, byUuid);
+        const exportRoots = snapshot.nodes.filter(function (node) {
+            return effectiveRole(node) === ROLES.EXPORT_ROOT;
+        });
+        if (exportRoots.length !== 1) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EXPORT_ROOT_COUNT',
+                'Expected exactly one Cosmiq Export root, found ' + exportRoots.length + '.'
+            ));
+        }
+
+        const anchorBindings = {};
+        const seenAnchorIds = Object.create(null);
+        snapshot.nodes.forEach(function (node) {
+            if (effectiveRole(node) !== ROLES.ANCHOR && !node.anchorId) {
+                return;
+            }
+            const authoredAnchorId = node.anchorId || '';
+            const anchorId = canonicalAnchorId(authoredAnchorId);
+            if (!isKnownAnchor(anchorId)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_ANCHOR_UNKNOWN',
+                    'Unknown player anchor on ' + node.name + ': ' + authoredAnchorId,
+                    node.uuid
+                ));
+            } else if (Array.isArray(node.origin) && !sameAnchorOrigin(
+                node.origin,
+                anchorById[anchorId].origin
+            )) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_ANCHOR_ORIGIN_MISMATCH',
+                    'Player anchor ' + node.name + ' uses pivot ' + node.origin.slice(0, 3).join(', ') +
+                        '; V3 ' + anchorId + ' expected ' + anchorById[anchorId].origin.join(', ') +
+                        '. The plugin will normalize this legacy pivot automatically before export.',
+                    node.uuid
+                ));
+            }
+            const modelVariant = nearestModelVariant(node, byUuid);
+            const anchorKey = modelVariant + ':' + anchorId;
+            if (seenAnchorIds[anchorKey]) {
+                issues.push(makeIssue(
+                    'warning',
+                    'COSMIQ_ANCHOR_DUPLICATE',
+                    'Multiple ' + modelVariant + ' authoring parents use ' + anchorId +
+                        '. This is valid but usually unnecessary.',
+                    node.uuid
+                ));
+            }
+            seenAnchorIds[anchorKey] = true;
+            anchorBindings[node.uuid] = {
+                anchorId: anchorId,
+                modelVariant: modelVariant,
+                label: isKnownAnchor(anchorId) ? anchorById[anchorId].label : node.name,
+                export: false
+            };
+        });
+        if (Object.keys(anchorBindings).length === 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_ANCHOR_MISSING',
+                'No Cosmiq player anchor parent exists in the project.'
+            ));
+        }
+
+        const runtimeCandidates = Object.create(null);
+        snapshot.nodes.forEach(function (node) {
+            if (isRuntimeNodeCandidate(node, byUuid)) {
+                runtimeCandidates[node.uuid] = node;
+            }
+        });
+        const runtimeNodes = Object.create(null);
+        function retainRuntimeChain(startNode) {
+            const seen = Object.create(null);
+            let current = startNode;
+            while (current && current.uuid && !seen[current.uuid]) {
+                seen[current.uuid] = true;
+                if (runtimeCandidates[current.uuid]) {
+                    runtimeNodes[current.uuid] = current;
+                }
+                if (!current.parentUuid) break;
+                current = byUuid[current.parentUuid] || null;
+            }
+        }
+        Object.keys(runtimeCandidates).forEach(function (uuid) {
+            const node = runtimeCandidates[uuid];
+            if ((node.type === 'cube' || node.type === 'mesh') && Number(node.triangleCount) > 0) {
+                retainRuntimeChain(node);
+            }
+        });
+        authoredAnimations.forEach(function (animation) {
+            listValues(animation.targetUuids).forEach(function (uuid) {
+                if (runtimeCandidates[uuid]) retainRuntimeChain(runtimeCandidates[uuid]);
+            });
+        });
+        snapshot.nodes.forEach(function (node) {
+            if (effectiveRole(node) !== ROLES.PARTICLE_EFFECT_LOCATOR &&
+                effectiveRole(node) !== ROLES.SOUND_EFFECT_LOCATOR) {
+                return;
+            }
+            if (node.parentUuid && byUuid[node.parentUuid]) {
+                retainRuntimeChain(byUuid[node.parentUuid]);
+            }
+        });
+
+        const nodeBindings = {};
+        Object.keys(runtimeNodes).forEach(function (uuid) {
+            const node = runtimeNodes[uuid];
+            const parent = runtimeParent(node, byUuid, runtimeNodes);
+            const anchor = nearestAnchor(node, byUuid);
+            if (parent.cycle || anchor.cycle) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_HIERARCHY_CYCLE',
+                    'Hierarchy cycle detected for ' + node.name + '.',
+                    node.uuid
+                ));
+                return;
+            }
+            if (parent.missingParent || anchor.missingParent) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_PARENT_MISSING',
+                    'A parent referenced by ' + node.name + ' is missing.',
+                    node.uuid
+                ));
+                return;
+            }
+            const parentNodeId = parent.parentUuid
+                ? runtimeId(safeProjectId, 'node', parent.parentUuid)
+                : null;
+            const anchorId = parentNodeId ? null : (canonicalAnchorId(anchor.anchorId) || null);
+            if (!parentNodeId && !isKnownAnchor(anchorId)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_NODE_WITHOUT_ANCHOR',
+                    node.name + ' is inside Cosmiq Export but not beneath a known player anchor parent.',
+                    node.uuid
+                ));
+            }
+            nodeBindings[node.uuid] = {
+                id: runtimeId(safeProjectId, 'node', node.uuid),
+                sourceType: node.type,
+                sourceName: node.name,
+                role: 'cosmetic_node',
+                export: true,
+                parentNodeId: parentNodeId,
+                anchorId: anchorId,
+                anchorGroupUuid: anchor.anchorUuid || null,
+                modelVariant: modelVariantForArmWidthMode(node, byUuid, armWidthInspection),
+                hasGeometry: (node.type === 'cube' || node.type === 'mesh') && node.triangleCount > 0
+            };
+        });
+
+        if (armWidthInspection.requiresChoice) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_ARM_WIDTH_MODE_REQUIRED',
+                'Arm-attached geometry was detected. Choose whether this accessory uses the same model ' +
+                    'for Wide and Slim arms or requires separate models.'
+            ));
+        }
+        if (armWidthInspection.effectiveMode === ARM_WIDTH_MODES.DEPENDENT &&
+            (!armWidthInspection.authoredVariants.wide ||
+                !armWidthInspection.authoredVariants.slim)) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_MODEL_VARIANT_PAIR_REQUIRED',
+                'This accessory is marked arm-width dependent, so matching Wide and Slim arm model ' +
+                    'branches are both required before export.'
+            ));
+        }
+        if (armWidthInspection.effectiveMode === ARM_WIDTH_MODES.SHARED &&
+            armWidthInspection.authoredVariants.wide &&
+            armWidthInspection.authoredVariants.slim) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_SHARED_ARM_MODEL_DUPLICATED',
+                'This accessory is marked to share one arm model, but geometry exists in both Wide and ' +
+                    'Slim branches. Keep one authored model or mark the accessory arm-width dependent.'
+            ));
+        }
+
+        if (Object.keys(nodeBindings).length > LIMITS.nodes) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_NODE_LIMIT',
+                'Cosmetic has ' + Object.keys(nodeBindings).length + ' runtime nodes; limit is ' + LIMITS.nodes + '.'
+            ));
+        }
+        const derivedBodySlots = bodySlotsFromNodeBindings(nodeBindings);
+        const derivedModelVariant = armWidthInspection.hasArmGeometry &&
+            armWidthInspection.effectiveMode === ARM_WIDTH_MODES.SHARED
+            ? 'universal'
+            : modelVariantFromNodeBindings(nodeBindings, snapshot.project.modelVariant);
+        const detectedAttachmentAnchorIds = uniqueValues(Object.keys(nodeBindings).map(function (uuid) {
+            return canonicalAnchorId(nodeBindings[uuid].anchorId);
+        }).filter(isKnownAnchor)).sort();
+        const detectedAttachmentBodySlots = bodySlotsForAnchors(
+            detectedAttachmentAnchorIds
+        );
+        if (detectedAttachmentBodySlots.length > 1) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_ACCESSORY_ATTACHMENT_AMBIGUOUS',
+                'Accessory geometry was detected across more than one body group: ' +
+                    detectedAttachmentAnchorIds.map(function (anchorId) {
+                        return anchorById[anchorId].label;
+                    }).join(', ') + '. Keep the accessory within one wardrobe body group.'
+            ));
+        }
+        const textureVariants = textureVariantsFromTextures(snapshot.textures.filter(function (texture) {
+            return texture.role !== ROLES.REFERENCE;
+        }), snapshot.nodes);
+        const authoringAnimationMode = authoredAnimations.length > 0
+            ? ANIMATION_MODES.ANIMATED
+            : ANIMATION_MODES.STATIC;
+        const authoringBodySlots = derivedBodySlots;
+        if (authoringBodySlots.length === 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_ACCESSORY_BODY_GROUP_MISSING',
+                'Accessory geometry must resolve to exactly one player body group.'
+            ));
+        }
+        authoringBodySlots.forEach(function (slot) {
+            if (BODY_SLOTS.indexOf(slot) === -1) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_ACCESSORY_BODY_GROUP_UNKNOWN',
+                    'Unsupported player body group: ' + slot + '.'
+                ));
+            }
+        });
+
+        let vertexCount = 0;
+        let triangleCount = 0;
+        Object.keys(nodeBindings).forEach(function (uuid) {
+            const node = byUuid[uuid];
+            vertexCount += Number(node.vertexCount) || 0;
+            triangleCount += Number(node.triangleCount) || 0;
+        });
+        if (triangleCount === 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_COSMETIC_EMPTY',
+                'The cosmetic has no renderable cube or mesh faces. Add model geometry beneath a selected anchor.'
+            ));
+        }
+        if (vertexCount > LIMITS.vertices) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_VERTEX_LIMIT',
+                'Cosmetic has approximately ' + vertexCount + ' vertices; limit is ' + LIMITS.vertices + '.'
+            ));
+        }
+        if (triangleCount > LIMITS.triangles) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_TRIANGLE_LIMIT',
+                'Cosmetic has approximately ' + triangleCount + ' triangles; limit is ' + LIMITS.triangles + '.'
+            ));
+        }
+
+        const animationBindings = {};
+        const activationRules = [];
+        const boundTriggers = Object.create(null);
+        const fallbackBindings = [];
+        let totalKeyframes = 0;
+        authoredAnimations.forEach(function (animation) {
+            totalKeyframes += animation.keyframeCount;
+            let trigger = null;
+            if (animation.triggerKind && animation.triggerKind !== 'none' && animation.triggerId) {
+                trigger = resolveTrigger(animation.triggerKind, animation.triggerId);
+                if (!trigger) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TRIGGER_UNKNOWN',
+                        'Animation ' + animation.name + ' uses an unknown or mismatched trigger: ' +
+                            animation.triggerKind + '/' + animation.triggerId,
+                        animation.uuid
+                    ));
+                }
+            } else {
+                const inferred = parseAnimationName(animation.name);
+                if (inferred) {
+                    trigger = triggerById[inferred.triggerId];
+                }
+            }
+
+            const generatedClipId = runtimeId(safeProjectId, 'animation', animation.uuid);
+            let clipId = animation.clipId || generatedClipId;
+            if (!IDENTIFIER_PATTERN.test(clipId)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_CLIP_ID_INVALID',
+                    'Animation ' + animation.name + ' has an invalid clip ID.',
+                    animation.uuid
+                ));
+                clipId = generatedClipId;
+            }
+            const durationMs = Math.round(Number(animation.lengthSeconds) * 1000);
+            if (!Number.isFinite(durationMs) || durationMs < 1 || durationMs > LIMITS.animationSeconds * 1000) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_ANIMATION_DURATION',
+                    'Animation ' + animation.name + ' must be between 1 ms and ' +
+                        LIMITS.animationSeconds + ' seconds.',
+                    animation.uuid
+                ));
+            }
+            const transitionMs = Number.isFinite(Number(animation.transitionMs))
+                ? Math.round(Number(animation.transitionMs))
+                : 150;
+            if (transitionMs < 0 || transitionMs > 5000) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TRANSITION_LIMIT',
+                    'Animation ' + animation.name + ' transition must be between 0 and 5000 ms.',
+                    animation.uuid
+                ));
+            }
+            const priority = Number.isFinite(Number(animation.priority))
+                ? Math.round(Number(animation.priority))
+                : 100;
+            if (priority < 0 || priority > 1000) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_PRIORITY_LIMIT',
+                    'Animation ' + animation.name + ' priority must be between 0 and 1000.',
+                    animation.uuid
+                ));
+            }
+
+            const targetNodeIds = [];
+            animation.targetUuids.forEach(function (targetUuid) {
+                if (nodeBindings[targetUuid]) {
+                    targetNodeIds.push(nodeBindings[targetUuid].id);
+                } else if (animation.keyframeCount > 0) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_ANIMATION_TARGET_INVALID',
+                        'Animation ' + animation.name + ' targets an anchor, reference, marker, or missing node.',
+                        targetUuid
+                    ));
+                }
+            });
+
+            const isFallback = animation.fallback === true || (trigger && trigger.id === 'idle');
+            const binding = {
+                id: clipId,
+                sourceAnimationUuid: animation.uuid,
+                sourceName: animation.name,
+                durationMs: Math.max(1, durationMs || 1),
+                loop: {
+                    mode: animation.loopMode === 'loop' || animation.loopMode === 'hold'
+                        ? animation.loopMode
+                        : 'once',
+                    startMs: 0,
+                    endMs: Math.max(1, durationMs || 1)
+                },
+                targetNodeIds: targetNodeIds,
+                markers: collectTimelineMarkers(animation.markers),
+                trigger: trigger ? {
+                    kind: trigger.kind,
+                    id: trigger.id,
+                    family: trigger.family,
+                    crossVersion: trigger.crossVersion
+                } : null,
+                transitionMs: Math.max(0, Math.min(5000, transitionMs)),
+                priority: Math.max(0, Math.min(1000, priority)),
+                fallback: isFallback
+            };
+            animationBindings[animation.uuid] = binding;
+
+            if (trigger) {
+                const triggerKey = trigger.kind + ':' + trigger.id;
+                if (boundTriggers[triggerKey]) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TRIGGER_DUPLICATE',
+                        'More than one animation is bound to ' + trigger.label + '.',
+                        animation.uuid
+                    ));
+                }
+                boundTriggers[triggerKey] = animation.uuid;
+                const ruleId = runtimeId(safeProjectId, 'rule', animation.uuid);
+                activationRules.push({
+                    ruleId: ruleId,
+                    trigger: {
+                        kind: trigger.kind,
+                        stateId: trigger.id,
+                        family: trigger.family
+                    },
+                    command: {
+                        type: trigger.kind === 'player_event' ? 'play_clip' : 'blend_to_clip',
+                        clipId: clipId,
+                        mode: binding.loop.mode
+                    },
+                    layer: 'cosmetic_state',
+                    priority: binding.priority,
+                    transitionMs: binding.transitionMs,
+                    fallback: isFallback
+                });
+            }
+            if (isFallback) {
+                fallbackBindings.push(binding);
+            }
+        });
+
+        if (authoredAnimations.length > LIMITS.animations) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_ANIMATION_LIMIT',
+                'Project has ' + authoredAnimations.length + ' authored animations; limit is ' + LIMITS.animations + '.'
+            ));
+        }
+        if (totalKeyframes > LIMITS.keyframes) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_KEYFRAME_LIMIT',
+                'Project has ' + totalKeyframes + ' keyframes; global limit is ' + LIMITS.keyframes + '.'
+            ));
+        }
+        if (fallbackBindings.length > 1) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_FALLBACK_DUPLICATE',
+                'Only one cosmetic animation may be the fallback.'
+            ));
+        }
+        if (activationRules.length > 0 && fallbackBindings.length === 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_FALLBACK_MISSING',
+                'State-bound cosmetics need one fallback animation, normally state.idle.'
+            ));
+        }
+        const hasOptionalState = activationRules.some(function (rule) {
+            const trigger = triggerById[rule.trigger.stateId];
+            return trigger && !trigger.crossVersion;
+        });
+        if (snapshot.project.compatibilityProfile === 'cross_version' && hasOptionalState && fallbackBindings.length === 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_CROSS_VERSION_FALLBACK',
+                'Optional states require a fallback for every compatible target.'
+            ));
+        }
+        const activeAuthoredParticleIds = Object.create(null);
+        (Array.isArray(snapshot.project.resourceReferences)
+            ? snapshot.project.resourceReferences
+            : []
+        ).forEach(function (resource) {
+            if (resource && resource.type === RESOURCE_TYPES.PARTICLE_EFFECT &&
+                resource.runtimeExport !== false && resource.id) {
+                activeAuthoredParticleIds[resource.id] = true;
+            }
+        });
+        const activeAuthoredLocatorUuids = Object.create(null);
+        (Array.isArray(snapshot.project.timelineCues)
+            ? snapshot.project.timelineCues
+            : []
+        ).forEach(function (cue) {
+            if (cue && cue.type === CUE_TYPES.PARTICLE && cue.runtimeExport !== false &&
+                cue.locatorUuid && activeAuthoredParticleIds[cue.resourceId]) {
+                activeAuthoredLocatorUuids[cue.locatorUuid] = true;
+            }
+        });
+        const authoredMarkerAncestors = Object.create(null);
+        snapshot.nodes.forEach(function (node) {
+            if (!node || !activeAuthoredLocatorUuids[node.uuid] ||
+                effectiveRole(node) !== ROLES.PARTICLE_EFFECT_LOCATOR) {
+                return;
+            }
+            const seen = Object.create(null);
+            let parentUuid = node.parentUuid;
+            while (parentUuid && byUuid[parentUuid] && !seen[parentUuid]) {
+                seen[parentUuid] = true;
+                const parent = byUuid[parentUuid];
+                if (effectiveRole(parent) === ROLES.PARTICLE_MARKER) {
+                    authoredMarkerAncestors[parentUuid] = true;
+                }
+                parentUuid = parent.parentUuid;
+            }
+        });
+        let expandedAuthoredMarkers = true;
+        while (expandedAuthoredMarkers) {
+            expandedAuthoredMarkers = false;
+            snapshot.nodes.forEach(function (node) {
+                if (!node || authoredMarkerAncestors[node.uuid] ||
+                    effectiveRole(node) !== ROLES.PARTICLE_MARKER ||
+                    !authoredMarkerAncestors[node.parentUuid]) {
+                    return;
+                }
+                authoredMarkerAncestors[node.uuid] = true;
+                expandedAuthoredMarkers = true;
+            });
+        }
+        const particleEmitterBindings = {};
+        snapshot.nodes.forEach(function (node) {
+            if (effectiveRole(node) !== ROLES.PARTICLE_MARKER) {
+                return;
+            }
+            if (authoredMarkerAncestors[node.uuid]) {
+                return;
+            }
+            const markerName = node.particleId || parseParticleMarkerName(node.name) || stableKey(node.uuid);
+            const anchor = nearestAnchor(node, byUuid);
+            const parent = runtimeParent(node, byUuid, runtimeNodes);
+            const textureUuids = [];
+            (node.textureUuids || []).forEach(function (textureUuid) {
+                if (textureUuid && textureUuids.indexOf(textureUuid) === -1) {
+                    textureUuids.push(textureUuid);
+                }
+            });
+            if (node.particleTextureUuid && textureUuids.indexOf(node.particleTextureUuid) === -1) {
+                textureUuids.unshift(node.particleTextureUuid);
+            }
+            if (textureUuids.length === 0) {
+                issues.push(makeIssue(
+                    'warning',
+                    'COSMIQ_PARTICLE_TEXTURE_MISSING',
+                    'Future particle marker ' + node.name + ' has no texture reference yet.',
+                    node.uuid
+                ));
+            }
+            if (textureUuids.length > 1) {
+                issues.push(makeIssue(
+                    'warning',
+                    'COSMIQ_PARTICLE_TEXTURE_AMBIGUOUS',
+                    'Future particle marker ' + node.name + ' uses multiple textures; choose one marker texture.',
+                    node.uuid
+                ));
+            }
+            particleEmitterBindings[node.uuid] = {
+                id: runtimeId(safeProjectId, 'particle', markerName),
+                sourceNodeUuid: node.uuid,
+                sourceName: node.name,
+                role: ROLES.PARTICLE_MARKER,
+                exportGeometry: false,
+                parentNodeId: parent.parentUuid && nodeBindings[parent.parentUuid]
+                    ? nodeBindings[parent.parentUuid].id
+                    : null,
+                anchorId: parent.parentUuid ? null : (canonicalAnchorId(anchor.anchorId) || null),
+                textureUuid: textureUuids[0] || null,
+                status: 'reserved_not_active'
+            };
+        });
+        const markerCount = Object.keys(particleEmitterBindings).length;
+        if (markerCount > LIMITS.futureParticleMarkers) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PARTICLE_MARKER_LIMIT',
+                'Project has ' + markerCount + ' future particle markers; reserved limit is ' +
+                    LIMITS.futureParticleMarkers + '.'
+            ));
+        }
+        if (markerCount > 0) {
+            issues.push(makeIssue(
+                'info',
+                'COSMIQ_PARTICLES_RESERVED',
+                'Particle markers are metadata-only. No particle emitter or runtime export is enabled yet.'
+            ));
+        }
+
+        const runtimeTextures = snapshot.textures.filter(function (texture) {
+            return texture.role !== ROLES.REFERENCE;
+        });
+        const runtimeTexturesById = Object.create(null);
+        runtimeTextures.forEach(function (texture) { runtimeTexturesById[texture.uuid] = texture; });
+        textureVariants.slice(1).forEach(function (variant) {
+            Object.keys(variant.replacements).forEach(function (baseUuid) {
+                const replacementUuid = variant.replacements[baseUuid];
+                const base = runtimeTexturesById[baseUuid];
+                const replacement = runtimeTexturesById[replacementUuid];
+                if (!base || !replacement) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TEXTURE_VARIANT_REFERENCE',
+                        'Texture variant ' + variant.id + ' references a missing or reference-only texture.'
+                    ));
+                } else if (base.width !== replacement.width || base.height !== replacement.height) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_TEXTURE_VARIANT_DIMENSIONS',
+                        'Texture variant ' + variant.id + ' must preserve its base texture dimensions.'
+                    ));
+                }
+            });
+        });
+        if (runtimeTextures.length > LIMITS.textures) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_TEXTURE_LIMIT',
+                'Project has ' + runtimeTextures.length + ' runtime textures; limit is ' + LIMITS.textures + '.'
+            ));
+        }
+        runtimeTextures.forEach(function (texture) {
+            if (texture.width > LIMITS.textureDimension || texture.height > LIMITS.textureDimension) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_TEXTURE_DIMENSION',
+                    'Texture ' + texture.name + ' exceeds ' + LIMITS.textureDimension + ' x ' +
+                        LIMITS.textureDimension + '.',
+                    texture.uuid
+                ));
+            }
+        });
+
+        const fallback = fallbackBindings.length > 0 ? fallbackBindings[0] : null;
+        const authoringResult = buildAuthoringMetadata(snapshot);
+        authoringResult.issues.forEach(function (issue) { issues.push(issue); });
+        const metadata = {
+            schemaVersion: SOURCE_SCHEMA,
+            formatVersion: COSMETIC_FORMAT_VERSION,
+            kind: PROJECT_KINDS.COSMETIC,
+            category: CATEGORIES.ACCESSORY,
+            animationMode: authoringAnimationMode,
+            projectId: safeProjectId,
+            template: snapshot.project.template || 'cosmetic_animated',
+            sourceRevision: Math.max(1, Number(snapshot.project.sourceRevision) || 1),
+            coordinateProfile: COORDINATE_PROFILE,
+            unitsPerBlock: 16,
+            compatibility: {
+                profile: snapshot.project.compatibilityProfile || 'cross_version',
+                baselineFallbackRequired: true,
+                minecraftSpecificFieldsAllowed: false
+            },
+            previewCamera: cosmiqClone(snapshot.project.previewCamera || {
+                id: 'thumbnail_camera',
+                transform: cosmiqDefaultTransform([0, 1, -3]),
+                projection: {
+                    kind: 'perspective',
+                    verticalFovDegrees: 35,
+                    nearPlane: 0.01,
+                    farPlane: 64
+                },
+                pose: {
+                    clipId: null,
+                    timeMs: 0,
+                    modelVariant: 'universal',
+                    visiblePropRootIds: []
+                }
+            }),
+            cosmetic: {
+                slotId: authoringBodySlots[0] || null,
+                bodySlots: authoringBodySlots.slice(),
+                modelVariant: derivedModelVariant,
+                attachmentAnchorId: detectedAttachmentAnchorIds.length === 1
+                    ? detectedAttachmentAnchorIds[0]
+                    : null,
+                textureVariants: textureVariants,
+                defaultClipId: fallback ? fallback.id : null
+            },
+            settings: normalizeCosmeticSettings(snapshot.project.settings),
+            anchorBindings: anchorBindings,
+            nodeBindings: nodeBindings,
+            animationBindings: animationBindings,
+            activationRules: activationRules,
+            stateMachine: {
+                draft: true,
+                fallbackClipId: fallback ? fallback.id : null,
+                transitionCommand: 'blend_to_clip',
+                unknownOrUnavailableState: 'use_fallback',
+                restartWhenStateUnchanged: false
+            },
+            authoringSchema: authoringResult.metadata.authoringSchema,
+            resourceReferences: authoringResult.metadata.resourceReferences,
+            effectLocatorBindings: authoringResult.metadata.effectLocatorBindings,
+            timelineMarkers: authoringResult.metadata.timelineMarkers,
+            timelineCues: authoringResult.metadata.timelineCues,
+            unsupportedMedia: authoringResult.metadata.unsupportedMedia,
+            playerAppearance: normalizePlayerAppearance(
+                snapshot.project.playerAppearance
+            ),
+            particleEmitterBindings: particleEmitterBindings,
+            budgets: {
+                nodes: Object.keys(nodeBindings).length,
+                animations: authoredAnimations.length,
+                keyframes: totalKeyframes,
+                vertices: vertexCount,
+                triangles: triangleCount,
+                textures: runtimeTextures.length,
+                futureParticleMarkers: markerCount
+            }
+        };
+
+        return {
+            metadata: metadata,
+            issues: issues
+        };
+    }
+
+    function buildCapeSourceMetadata(snapshot) {
+        const source = snapshot && typeof snapshot === 'object' ? snapshot : {};
+        const project = source.project && typeof source.project === 'object' ? source.project : {};
+        const issues = [];
+        const projectId = normalizeProjectId(project.id);
+        const runtimeTextures = (source.textures || []).filter(function (texture) {
+            return texture.role !== ROLES.REFERENCE;
+        });
+        const texture = runtimeTextures.length === 1 ? runtimeTextures[0] : null;
+        const resolution = texture && CAPE_RESOLUTIONS.find(function (candidate) {
+            return texture.width === candidate.width &&
+                texture.height >= candidate.height &&
+                texture.height % candidate.height === 0;
+        });
+        const frameCount = resolution ? texture.height / resolution.height : 0;
+        if (!projectId) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PROJECT_ID_INVALID',
+                'Project ID must be a lowercase namespaced identifier such as creator:my_cape.'
+            ));
+        }
+        if (!texture || !resolution) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_CAPE_TEXTURE',
+                'Cape authoring needs exactly one runtime PNG using a supported 2:1 frame size. ' +
+                    'Vertical frame strips must be W x (frame count x H).'
+            ));
+        }
+        const authoringResult = buildAuthoringMetadata(source);
+        authoringResult.issues.forEach(function (issue) { issues.push(issue); });
+        return {
+            metadata: {
+                schemaVersion: CAPE_SOURCE_SCHEMA,
+                formatVersion: CAPE_FORMAT_VERSION,
+                kind: PROJECT_KINDS.CAPE,
+                category: CATEGORIES.CAPE,
+                animationMode: frameCount > 1 ? ANIMATION_MODES.ANIMATED : ANIMATION_MODES.STATIC,
+                projectId: projectId || 'creator:untitled_cape',
+                template: 'cape',
+                sourceRevision: Math.max(1, Number(project.sourceRevision) || 1),
+                coordinateProfile: COORDINATE_PROFILE,
+                unitsPerBlock: 16,
+                compatibility: {
+                    profile: project.compatibilityProfile || 'cross_version',
+                    baselineFallbackRequired: true,
+                    minecraftSpecificFieldsAllowed: false
+                },
+                previewCamera: cosmiqClone(project.previewCamera || {
+                    id: 'thumbnail_camera',
+                    transform: cosmiqDefaultTransform([0, 1, -3]),
+                    projection: {
+                        kind: 'perspective',
+                        verticalFovDegrees: 35,
+                        nearPlane: 0.01,
+                        farPlane: 64
+                    },
+                    pose: {
+                        clipId: null,
+                        timeMs: 0,
+                        modelVariant: null,
+                        visiblePropRootIds: []
+                    }
+                }),
+                cape: {
+                    backendStatus: 'coming_soon',
+                    resolutionId: resolution ? resolution.id : null,
+                    frameWidth: resolution ? resolution.width : null,
+                    frameHeight: resolution ? resolution.height : null,
+                    textureWidth: texture ? texture.width : null,
+                    textureHeight: texture ? texture.height : null,
+                    frameCount: frameCount,
+                    animated: frameCount > 1,
+                    sourceEncoding: frameCount > 1 ? 'vertical_png_strip' : 'png',
+                    futureAcceptedEncodings: ['png', 'vertical_png_strip', 'gif'],
+                    textureVariants: defaultTextureVariants()
+                },
+                authoringSchema: authoringResult.metadata.authoringSchema,
+                resourceReferences: authoringResult.metadata.resourceReferences,
+                effectLocatorBindings: authoringResult.metadata.effectLocatorBindings,
+                timelineMarkers: authoringResult.metadata.timelineMarkers,
+                timelineCues: authoringResult.metadata.timelineCues,
+                unsupportedMedia: authoringResult.metadata.unsupportedMedia.filter(function (type) {
+                    return type !== 'gif';
+                }),
+                budgets: {
+                    textures: runtimeTextures.length,
+                    frames: frameCount
+                }
+            },
+            issues: issues
+        };
+    }
+
+    function emoteObjectActors(nodes) {
+        const records = Array.isArray(nodes) ? nodes : [];
+        const propsRoots = Object.create(null);
+        records.forEach(function (node) {
+            if (node && node.role === ROLES.PROPS_ROOT && node.uuid) {
+                propsRoots[node.uuid] = true;
+            }
+        });
+        return records.filter(function (node) {
+            return node && node.type === 'group' && propsRoots[node.parentUuid] === true;
+        });
+    }
+
+    function emoteNumericComponent(value) {
+        if (typeof value === 'number') {
+            return Number.isFinite(value) ? value : Number.NaN;
+        }
+        if (typeof value !== 'string') {
+            return Number.NaN;
+        }
+        const literal = value.trim();
+        if (!literal || !/^[+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?$/.test(literal)) {
+            return Number.NaN;
+        }
+        const parsed = Number(literal);
+        return Number.isFinite(parsed) ? parsed : Number.NaN;
+    }
+
+    function validateEmotePivot(node, expectedOrigin, issues) {
+        const fallback = expectedOrigin.slice(0, 3);
+        let pivot = fallback;
+        if (!node || !Array.isArray(node.origin) || node.origin.length !== 3) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_PIVOT_FORMAT',
+                (node && node.name ? node.name : 'Emote node') + ' must have a finite three-axis pivot.',
+                node && node.uuid
+            ));
+        } else {
+            const values = node.origin.slice(0, 3).map(emoteNumericComponent);
+            if (values.some(function (value) { return !Number.isFinite(value); })) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_PIVOT_FORMAT',
+                    node.name + ' must have a finite three-axis pivot.',
+                    node.uuid
+                ));
+            } else {
+                pivot = values;
+                const excessiveOffset = pivot.some(function (value, index) {
+                    return Math.abs(value - expectedOrigin[index]) > LIMITS.emotePivotOffsetUnits;
+                });
+                if (excessiveOffset) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_PIVOT_BOUNDS',
+                        node.name + ' pivot is too far from its generated player rig.',
+                        node.uuid
+                    ));
+                }
+            }
+        }
+        if (!node || !Array.isArray(node.rotation) || node.rotation.length !== 3) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_REST_ROTATION',
+                (node && node.name ? node.name : 'Emote node')
+                    + ' must keep a finite three-axis zero rest rotation; animate rotation with keyframes.',
+                node && node.uuid
+            ));
+        } else {
+            const rotation = node.rotation.slice(0, 3).map(emoteNumericComponent);
+            const invalidRotation = rotation.some(function (value) {
+                return !Number.isFinite(value) || value !== 0;
+            });
+            if (invalidRotation) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_REST_ROTATION',
+                    node.name + ' must keep zero rest rotation; animate rotation with keyframes.',
+                    node.uuid
+                ));
+            }
+        }
+        return pivot;
+    }
+
+    function emoteBoneOrigin(actorIndex, boneId) {
+        const x = EMOTE_ACTOR_OFFSETS[actorIndex - 1];
+        switch (boneId) {
+        case 'root': return [x, 0, 0];
+        case 'torso_lower': return [x, 12, 0];
+        case 'torso_upper': return [x, 18, 0];
+        case 'body':
+        case 'head':
+        case 'upper_body': return [x, 24, 0];
+        case 'left_arm_upper': return [x + 5, 22, 0];
+        case 'left_arm_lower': return [x + 5, 18, 0];
+        case 'right_arm_upper': return [x - 5, 22, 0];
+        case 'right_arm_lower': return [x - 5, 18, 0];
+        case 'left_arm': return [x + 5, 22, 0];
+        case 'right_arm': return [x - 5, 22, 0];
+        case 'left_leg_upper': return [x + 2, 12, 0];
+        case 'left_leg_lower': return [x + 2, 6, 0];
+        case 'right_leg_upper': return [x - 2, 12, 0];
+        case 'right_leg_lower': return [x - 2, 6, 0];
+        case 'left_leg': return [x + 2, 12, 0];
+        case 'right_leg': return [x - 2, 12, 0];
+        default: return [x, 0, 0];
+        }
+    }
+
+    function emotePlayerBonesForRigProfile(value) {
+        return value === EMOTE_RIG_PROFILES.PRECISE
+            ? EMOTE_PRECISE_PLAYER_BONES
+            : EMOTE_PLAYER_BONES;
+    }
+
+    function sourceVector(value, fallback) {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return [value, value, value];
+        }
+        if (Array.isArray(value) && value.length >= 3) {
+            const vector = value.slice(0, 3).map(Number);
+            if (vector.every(Number.isFinite)) return vector;
+        }
+        return fallback.slice();
+    }
+
+    function sourceKeyValue(value, edge, fallback) {
+        if (value && typeof value === 'object' && !Array.isArray(value) &&
+            Object.prototype.hasOwnProperty.call(value, edge)) {
+            return sourceVector(value[edge], fallback);
+        }
+        return sourceVector(value, fallback);
+    }
+
+    function sourceChannelEntries(channel) {
+        if (!channel || typeof channel !== 'object' || Array.isArray(channel)) return [];
+        return Object.keys(channel).map(function (time) {
+            return {time: Number(time), source: channel[time]};
+        }).filter(function (entry) {
+            return Number.isFinite(entry.time) && entry.time >= 0;
+        }).sort(function (left, right) {
+            return left.time - right.time;
+        });
+    }
+
+    function sourceSampleChannel(channel, time, fallback) {
+        const entries = sourceChannelEntries(channel);
+        if (entries.length === 0) return fallback.slice();
+        let previous = null;
+        let next = null;
+        for (let index = 0; index < entries.length; index++) {
+            if (entries[index].time <= time + 1e-7) previous = entries[index];
+            if (entries[index].time >= time - 1e-7) {
+                next = entries[index];
+                break;
+            }
+        }
+        if (!previous) return sourceKeyValue(next.source, 'pre', fallback);
+        if (!next || Math.abs(previous.time - next.time) <= 1e-7) {
+            return sourceKeyValue(previous.source, 'post', fallback);
+        }
+        const start = sourceKeyValue(previous.source, 'post', fallback);
+        const end = sourceKeyValue(next.source, 'pre', fallback);
+        const weight = (time - previous.time) / (next.time - previous.time);
+        return start.map(function (value, axis) {
+            return value + (end[axis] - value) * weight;
+        });
+    }
+
+    function sourceTrackTimes(bones, names) {
+        const times = Object.create(null);
+        times['0'] = 0;
+        names.forEach(function (name) {
+            const bone = bones[name] || {};
+            ['position', 'rotation', 'scale'].forEach(function (channel) {
+                sourceChannelEntries(bone[channel]).forEach(function (entry) {
+                    times[String(entry.time)] = entry.time;
+                });
+            });
+        });
+        return Object.keys(times).map(function (key) { return times[key]; }).sort(function (a, b) {
+            return a - b;
+        });
+    }
+
+    function sourceSemanticTransform(bone, time) {
+        const source = bone || {};
+        const rotation = sourceSampleChannel(source.rotation, time, [0, 0, 0]);
+        return {
+            position: sourceSampleChannel(source.position, time, [0, 0, 0]),
+            rotation: [-rotation[0], rotation[1], -rotation[2]],
+            scale: sourceSampleChannel(source.scale, time, [1, 1, 1])
+        };
+    }
+
+    function matrixIdentity() {
+        return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+    }
+
+    function matrixMultiply(left, right) {
+        const result = new Array(16).fill(0);
+        for (let row = 0; row < 4; row++) {
+            for (let column = 0; column < 4; column++) {
+                for (let axis = 0; axis < 4; axis++) {
+                    result[row * 4 + column] += left[row * 4 + axis] * right[axis * 4 + column];
+                }
+            }
+        }
+        return result;
+    }
+
+    function matrixTranslation(vector) {
+        const result = matrixIdentity();
+        result[3] = vector[0];
+        result[7] = vector[1];
+        result[11] = vector[2];
+        return result;
+    }
+
+    function matrixScale(vector) {
+        const result = matrixIdentity();
+        result[0] = vector[0];
+        result[5] = vector[1];
+        result[10] = vector[2];
+        return result;
+    }
+
+    function matrixRotation(rotation) {
+        const x = rotation[0] * Math.PI / 180;
+        const y = rotation[1] * Math.PI / 180;
+        const z = rotation[2] * Math.PI / 180;
+        const rx = [
+            1, 0, 0, 0,
+            0, Math.cos(x), -Math.sin(x), 0,
+            0, Math.sin(x), Math.cos(x), 0,
+            0, 0, 0, 1
+        ];
+        const ry = [
+            Math.cos(y), 0, Math.sin(y), 0,
+            0, 1, 0, 0,
+            -Math.sin(y), 0, Math.cos(y), 0,
+            0, 0, 0, 1
+        ];
+        const rz = [
+            Math.cos(z), -Math.sin(z), 0, 0,
+            Math.sin(z), Math.cos(z), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ];
+        return matrixMultiply(matrixMultiply(rz, ry), rx);
+    }
+
+    function sourcePivotedMatrix(transform, pivot) {
+        return [
+            matrixTranslation(transform.position),
+            matrixTranslation(pivot),
+            matrixRotation(transform.rotation),
+            matrixScale(transform.scale),
+            matrixTranslation(pivot.map(function (value) { return -value; }))
+        ].reduce(matrixMultiply);
+    }
+
+    function cleanSourceNumber(value) {
+        if (Math.abs(value) < 1e-10) return 0;
+        const rounded = Math.round(value * 1e8) / 1e8;
+        return Object.is(rounded, -0) ? 0 : rounded;
+    }
+
+    function matrixTrs(matrix) {
+        const position = [matrix[3], matrix[7], matrix[11]];
+        const columns = [
+            [matrix[0], matrix[4], matrix[8]],
+            [matrix[1], matrix[5], matrix[9]],
+            [matrix[2], matrix[6], matrix[10]]
+        ];
+        const scale = columns.map(function (column) {
+            return Math.hypot(column[0], column[1], column[2]);
+        });
+        const rotation = matrix.slice();
+        for (let column = 0; column < 3; column++) {
+            const divisor = scale[column] > 1e-10 ? scale[column] : 1;
+            rotation[column] /= divisor;
+            rotation[4 + column] /= divisor;
+            rotation[8 + column] /= divisor;
+        }
+        const y = Math.asin(Math.max(-1, Math.min(1, -rotation[8])));
+        const cosineY = Math.cos(y);
+        let x;
+        let z;
+        if (Math.abs(cosineY) > 1e-7) {
+            x = Math.atan2(rotation[9], rotation[10]);
+            z = Math.atan2(rotation[4], rotation[0]);
+        } else {
+            x = Math.atan2(-rotation[6], rotation[5]);
+            z = 0;
+        }
+        return {
+            position: position.map(cleanSourceNumber),
+            rotation: [x, y, z].map(function (value) {
+                return cleanSourceNumber(value * 180 / Math.PI);
+            }),
+            scale: scale.map(cleanSourceNumber)
+        };
+    }
+
+    function sourceCombinedTransform(bones, firstName, secondName, firstPivot, secondPivot, time) {
+        const first = sourcePivotedMatrix(
+            sourceSemanticTransform(bones[firstName], time),
+            firstPivot
+        );
+        const second = sourcePivotedMatrix(
+            sourceSemanticTransform(bones[secondName], time),
+            secondPivot
+        );
+        const combined = matrixMultiply(first, second);
+        const local = matrixMultiply(
+            matrixMultiply(
+                matrixTranslation(secondPivot.map(function (value) { return -value; })),
+                combined
+            ),
+            matrixTranslation(secondPivot)
+        );
+        return matrixTrs(local);
+    }
+
+    function sourceTrackFromBones(bones, names, sample) {
+        const result = {position: [], rotation: [], scale: []};
+        const times = sourceTrackTimes(bones, names);
+        times.forEach(function (time, timeIndex) {
+            const transform = sample(time);
+            ['position', 'rotation', 'scale'].forEach(function (channel) {
+                const nextTime = times[timeIndex + 1];
+                result[channel].push({
+                    time: time,
+                    value: transform[channel].map(cleanSourceNumber),
+                    step: nextTime != null && names.some(function (name) {
+                        const source = bones[name] && bones[name][channel];
+                        const entry = source && source[String(nextTime)];
+                        return entry && typeof entry === 'object' && !Array.isArray(entry) &&
+                            Object.prototype.hasOwnProperty.call(entry, 'pre') &&
+                            Object.prototype.hasOwnProperty.call(entry, 'post');
+                    })
+                });
+            });
+        });
+        return result;
+    }
+
+    function bakeSourcePlayerAnimation(animation) {
+        const source = animation && typeof animation === 'object' ? animation : {};
+        const bones = source.bones && typeof source.bones === 'object' ? source.bones : {};
+        const direct = function (name) {
+            return sourceTrackFromBones(bones, [name], function (time) {
+                return sourceSemanticTransform(bones[name], time);
+            });
+        };
+        const combined = function (first, second, firstPivot, secondPivot) {
+            return sourceTrackFromBones(bones, [first, second], function (time) {
+                return sourceCombinedTransform(
+                    bones, first, second, firstPivot, secondPivot, time
+                );
+            });
+        };
+        const effects = Object.keys(source.particle_effects || {}).map(function (time) {
+            const effect = source.particle_effects[time] || {};
+            return {
+                atSeconds: Number(time),
+                effect: String(effect.effect || ''),
+                locator: String(effect.locator || '')
+            };
+        }).filter(function (effect) {
+            return Number.isFinite(effect.atSeconds) && effect.atSeconds >= 0 &&
+                effect.effect && effect.locator;
+        }).sort(function (left, right) {
+            return left.atSeconds - right.atSeconds;
+        });
+        return {
+            lengthSeconds: Number(source.animation_length) || 0,
+            loop: source.loop === true || source.loop === 'loop',
+            tracks: {
+                actor: direct('body_ext'),
+                upper_body: direct('body_wrap'),
+                body: direct('body'),
+                head: combined('head_ext', 'head', [0, 24, 0], [0, 24, 0]),
+                left_arm: combined('arm_left_ext', 'arm_left', [4, 22, 0], [5, 22, 0]),
+                right_arm: combined('arm_right_ext', 'arm_right', [-4, 22, 0], [-5, 22, 0]),
+                left_leg: direct('leg_left'),
+                right_leg: direct('leg_right')
+            },
+            effects: effects
+        };
+    }
+
+    function defaultEmoteRuleSource(animationBindings) {
+        const bindings = animationBindings && typeof animationBindings === 'object'
+            ? animationBindings
+            : {};
+        const firstFinite = Object.keys(bindings).map(function (uuid) {
+            return bindings[uuid];
+        }).find(function (binding) {
+            return binding && Number(binding.keyframeCount) > 0 &&
+                typeof binding.id === 'string' && IDENTIFIER_PATTERN.test(binding.id);
+        });
+        if (!firstFinite) {
+            return [
+                'state main initial',
+                '  when cancel -> complete()',
+                ''
+            ].join('\n');
+        }
+        const target = firstFinite.scope === EMOTE_ANIMATION_SCOPES.SCENE ? 'all' : 'host';
+        return [
+            'state main initial',
+            '  enter -> play.once("' + firstFinite.id + '", "' + target + '")',
+            '  when animation.finished("' + firstFinite.id + '") -> complete()',
+            '  when cancel -> complete()',
+            ''
+        ].join('\n');
+    }
+
+    function defaultEmoteLogicGraph(animationBindings) {
+        const bindings = animationBindings && typeof animationBindings === 'object'
+            ? animationBindings
+            : {};
+        const firstFinite = Object.keys(bindings).map(function (uuid) {
+            return bindings[uuid];
+        }).find(function (binding) {
+            return binding && Number(binding.keyframeCount) > 0 &&
+                typeof binding.id === 'string' && IDENTIFIER_PATTERN.test(binding.id);
+        });
+        const rules = [];
+        if (firstFinite) {
+            const target = firstFinite.scope === EMOTE_ANIMATION_SCOPES.SCENE ? 'all' : 'host';
+            rules.push({
+                event: {type: 'enter'},
+                action: {
+                    type: 'play_animation',
+                    clipId: firstFinite.id,
+                    target: target,
+                    mode: 'once',
+                    blendMillis: 150
+                }
+            });
+            rules.push({
+                event: {type: 'animation_finished', clipId: firstFinite.id},
+                action: {type: 'complete'}
+            });
+        }
+        rules.push({event: {type: 'cancel'}, action: {type: 'complete'}});
+        return {
+            schemaVersion: EMOTE_LOGIC_SCHEMA,
+            initialState: 'main',
+            states: [{id: 'main', rules: rules}]
+        };
+    }
+
+    function inspectEmoteLogicAttachment(logicSource, logic, animationBindings) {
+        const issues = [];
+        const useStarterAttachment = (logicSource == null || logicSource === '') && logic == null;
+        let source = logicSource;
+        if (source == null || source === '') {
+            source = defaultEmoteRuleSource(animationBindings);
+        } else if (typeof source !== 'string') {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_LOGIC_SOURCE_TYPE',
+                'Editable emote logic source must be a string.'
+            ));
+            source = defaultEmoteRuleSource(animationBindings);
+        }
+        if (encodeUtf8(source).byteLength > EMOTE_LOGIC_LIMITS.sourceBytes) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_LOGIC_SOURCE_SIZE',
+                'Editable emote logic source exceeds ' + EMOTE_LOGIC_LIMITS.sourceBytes + ' UTF-8 bytes.'
+            ));
+        }
+        if (source.split(/\r?\n/).length > EMOTE_LOGIC_LIMITS.sourceLines) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_LOGIC_SOURCE_LINES',
+                'Editable emote logic source exceeds ' + EMOTE_LOGIC_LIMITS.sourceLines + ' lines.'
+            ));
+        }
+        if (/[^\t\n\r\u0020-\u007e]/.test(source)) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_LOGIC_SOURCE_CHARACTERS',
+                'Editable emote logic source must use bounded printable ASCII text.'
+            ));
+        }
+
+        let graph = useStarterAttachment ? defaultEmoteLogicGraph(animationBindings) : null;
+        if (logic != null) {
+            if (!logic || typeof logic !== 'object' || Array.isArray(logic)) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_LOGIC_TYPE',
+                    'Embedded emote logic must be a canonical JSON object or null.'
+                ));
+            } else {
+                try {
+                    graph = JSON.parse(JSON.stringify(logic));
+                    if (graph.schemaVersion !== EMOTE_LOGIC_SCHEMA) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_EMOTE_LOGIC_SCHEMA',
+                            'Embedded emote logic uses an unsupported schema.'
+                        ));
+                    }
+                    if (Object.keys(graph).some(function (key) {
+                        return ['schemaVersion', 'initialState', 'states'].indexOf(key) === -1;
+                    })) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_EMOTE_LOGIC_FIELD',
+                            'Embedded emote logic contains a non-canonical top-level field.'
+                        ));
+                    }
+                    if (encodeUtf8(JSON.stringify(graph)).byteLength > EMOTE_LOGIC_LIMITS.graphBytes) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_EMOTE_LOGIC_SIZE',
+                            'Embedded emote logic exceeds ' + EMOTE_LOGIC_LIMITS.graphBytes + ' UTF-8 bytes.'
+                        ));
+                    }
+                    validateJsonBounds(graph).forEach(function (issue) { issues.push(issue); });
+                } catch (error) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_LOGIC_JSON',
+                        'Embedded emote logic could not be copied as bounded JSON.'
+                    ));
+                    graph = null;
+                }
+            }
+        }
+        return {logicSource: source, logic: graph, issues: issues};
+    }
+
+    function buildEmoteSourceMetadata(snapshot) {
+        const source = snapshot || {};
+        const project = source.project || {};
+        const nodes = Array.isArray(source.nodes) ? source.nodes : [];
+        const animations = Array.isArray(source.animations) ? source.animations : [];
+        const issues = [];
+        const byUuid = Object.create(null);
+        const nodeBindings = Object.create(null);
+        const animationBindings = Object.create(null);
+        const normalizedProjectId = normalizeProjectId(project.id);
+        const projectId = normalizedProjectId || 'creator:untitled_emote';
+        const rigProfile = project.rigProfile === EMOTE_RIG_PROFILES.PRECISE
+            ? EMOTE_RIG_PROFILES.PRECISE
+            : EMOTE_RIG_PROFILES.SIMPLE;
+        const playerBoneDefinitions = emotePlayerBonesForRigProfile(rigProfile);
+        const declaredActorCount = Number(project.emoteActorCount);
+        const actorCount = Number.isInteger(declaredActorCount)
+            ? Math.max(EMOTE_ACTOR_MIN, Math.min(EMOTE_ACTOR_MAX, declaredActorCount))
+            : EMOTE_ACTOR_MIN;
+
+        if (!normalizedProjectId) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_PROJECT_ID',
+                'Emote project ID must be a lowercase namespaced ID such as creator:victory_dance.'
+            ));
+        }
+        if (!Number.isInteger(declaredActorCount) ||
+            declaredActorCount < EMOTE_ACTOR_MIN || declaredActorCount > EMOTE_ACTOR_MAX) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_ACTOR_COUNT',
+                'Emote actor count must be an integer from ' + EMOTE_ACTOR_MIN + ' through ' + EMOTE_ACTOR_MAX + '.'
+            ));
+        }
+
+        nodes.forEach(function (node) {
+            if (node && node.uuid) {
+                if (byUuid[node.uuid]) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_DUPLICATE_UUID',
+                        'Emote source contains a duplicate node UUID.',
+                        node.uuid
+                    ));
+                }
+                byUuid[node.uuid] = node;
+            }
+        });
+        if (nodes.length > LIMITS.nodes) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_NODE_LIMIT',
+                'Emote source exceeds the draft limit of ' + LIMITS.nodes + ' nodes.'
+            ));
+        }
+        if (animations.length > LIMITS.animations) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_ANIMATION_LIMIT',
+                'Emote source exceeds the draft limit of ' + LIMITS.animations + ' animations.'
+            ));
+        }
+
+        const sceneRoots = nodes.filter(function (node) { return node.role === ROLES.EMOTE_SCENE; });
+        if (sceneRoots.length !== 1) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_SCENE_ROOT',
+                'An Emote project requires exactly one Emote Scene root.'
+            ));
+        }
+        const sceneRoot = sceneRoots[0] || null;
+        if (sceneRoot && sceneRoot.parentUuid) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_SCENE_PARENT',
+                'Emote Scene must remain a top-level Outliner folder.',
+                sceneRoot.uuid
+            ));
+        }
+        validateEmotePivot(sceneRoot, [0, 0, 0], issues);
+        const actorRoots = nodes.filter(function (node) { return node.role === ROLES.EMOTE_ACTOR; });
+        if (actorRoots.length !== actorCount) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_ACTOR_ROOTS',
+                'Expected ' + actorCount + ' numbered actor root(s), but found ' + actorRoots.length + '.'
+            ));
+        }
+
+        const actorMetadata = [];
+        for (let actorIndex = 1; actorIndex <= actorCount; actorIndex++) {
+            const matchingRoots = actorRoots.filter(function (node) {
+                return Number(node.actorIndex) === actorIndex;
+            });
+            if (matchingRoots.length !== 1) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_ACTOR_INDEX',
+                    'Actor ' + actorIndex + ' must have exactly one actor root.'
+                ));
+                continue;
+            }
+            const actorRoot = matchingRoots[0];
+            if (sceneRoot && actorRoot.parentUuid !== sceneRoot.uuid) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_ACTOR_PARENT',
+                    'Actor ' + actorIndex + ' must be directly inside Emote Scene.',
+                    actorRoot.uuid
+                ));
+            }
+            const actorPivotUnits = validateEmotePivot(
+                actorRoot,
+                [EMOTE_ACTOR_OFFSETS[actorIndex - 1], 0, 0],
+                issues
+            );
+
+            const boneRecords = nodes.filter(function (node) {
+                return node.role === ROLES.PLAYER_BONE && Number(node.actorIndex) === actorIndex;
+            });
+            const boneById = Object.create(null);
+            const serializedBones = Object.create(null);
+            playerBoneDefinitions.forEach(function (boneDefinition) {
+                const matches = boneRecords.filter(function (node) {
+                    return node.playerBone === boneDefinition.id;
+                });
+                if (matches.length !== 1) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_PLAYER_BONE',
+                        'Actor ' + actorIndex + ' requires exactly one ' + boneDefinition.label + ' bone.'
+                    ));
+                    return;
+                }
+                const bone = matches[0];
+                const bonePivotUnits = validateEmotePivot(
+                    bone,
+                    emoteBoneOrigin(actorIndex, boneDefinition.id),
+                    issues
+                );
+                boneById[boneDefinition.id] = bone;
+                serializedBones[boneDefinition.id] = bone.uuid;
+                nodeBindings[bone.uuid] = {
+                    id: runtimeId(projectId, 'actor_' + actorIndex + '_bone', boneDefinition.id),
+                    role: ROLES.PLAYER_BONE,
+                    actorIndex: actorIndex,
+                    semanticBone: boneDefinition.id,
+                    sourceName: bone.name,
+                    parentUuid: bone.parentUuid || null,
+                    pivotUnits: bonePivotUnits,
+                    pivotTarget: 'shared'
+                };
+            });
+
+            playerBoneDefinitions.forEach(function (boneDefinition) {
+                const bone = boneById[boneDefinition.id];
+                if (!bone) {
+                    return;
+                }
+                if (rigProfile === EMOTE_RIG_PROFILES.PRECISE && boneDefinition.parent) {
+                    const expectedParent = boneById[boneDefinition.parent];
+                    if (expectedParent && bone.parentUuid !== expectedParent.uuid) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_PRECISE_BONE_PARENT',
+                            bone.name + ' must be a direct child of ' +
+                                expectedParent.name + ' in the Precise armature.',
+                            bone.uuid
+                        ));
+                    }
+                }
+                let semanticParent = bone.parentUuid ? byUuid[bone.parentUuid] : null;
+                const seenParents = Object.create(null);
+                while (semanticParent && semanticParent.role !== ROLES.EMOTE_ACTOR) {
+                    if (!semanticParent.parentUuid || seenParents[semanticParent.parentUuid]) {
+                        semanticParent = null;
+                        break;
+                    }
+                    seenParents[semanticParent.parentUuid] = true;
+                    semanticParent = byUuid[semanticParent.parentUuid] || null;
+                }
+                if (!semanticParent || semanticParent.uuid !== actorRoot.uuid) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_BONE_PARENT',
+                        bone.name + ' does not resolve beneath its numbered Actor.',
+                        bone.uuid
+                    ));
+                }
+            });
+
+            const serializedStructures = {};
+            const upperBodyTransforms = nodes.filter(function (node) {
+                return node.role === ROLES.EMOTE_TRANSFORM &&
+                    Number(node.actorIndex) === actorIndex &&
+                    node.playerBone === 'upper_body';
+            });
+            if (upperBodyTransforms.length > 1) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_TRANSFORM_COUNT',
+                    'Actor ' + actorIndex + ' may contain at most one Upper Body transform.'
+                ));
+            } else if (upperBodyTransforms.length === 1) {
+                const upperBody = upperBodyTransforms[0];
+                const pivotUnits = validateEmotePivot(
+                    upperBody,
+                    emoteBoneOrigin(actorIndex, 'upper_body'),
+                    issues
+                );
+                let semanticParent = upperBody.parentUuid ? byUuid[upperBody.parentUuid] : null;
+                const seenParents = Object.create(null);
+                while (semanticParent && semanticParent.role !== ROLES.EMOTE_ACTOR) {
+                    if (!semanticParent.parentUuid || seenParents[semanticParent.parentUuid]) {
+                        semanticParent = null;
+                        break;
+                    }
+                    seenParents[semanticParent.parentUuid] = true;
+                    semanticParent = byUuid[semanticParent.parentUuid] || null;
+                }
+                if (!semanticParent || semanticParent.uuid !== actorRoot.uuid) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_TRANSFORM_PARENT',
+                        upperBody.name + ' does not resolve beneath its numbered Actor.',
+                        upperBody.uuid
+                    ));
+                }
+                serializedStructures.upper_body = upperBody.uuid;
+                nodeBindings[upperBody.uuid] = {
+                    id: runtimeId(projectId, 'actor_' + actorIndex + '_transform', 'upper_body'),
+                    role: ROLES.EMOTE_TRANSFORM,
+                    actorIndex: actorIndex,
+                    semanticBone: 'upper_body',
+                    sourceName: upperBody.name,
+                    parentUuid: upperBody.parentUuid || null,
+                    pivotUnits: pivotUnits,
+                    pivotTarget: 'shared'
+                };
+            }
+
+            nodeBindings[actorRoot.uuid] = {
+                id: runtimeId(projectId, 'actor', actorIndex),
+                role: ROLES.EMOTE_ACTOR,
+                actorIndex: actorIndex,
+                sourceName: actorRoot.name,
+                parentUuid: actorRoot.parentUuid || null,
+                pivotUnits: actorPivotUnits,
+                pivotTarget: 'shared'
+            };
+            actorMetadata.push({
+                index: actorIndex,
+                id: runtimeId(projectId, 'actor', actorIndex),
+                rootUuid: actorRoot.uuid,
+                formationOffsetUnits: EMOTE_ACTOR_OFFSETS[actorIndex - 1],
+                bones: serializedBones,
+                structures: serializedStructures
+            });
+        }
+
+        actorRoots.forEach(function (actorRoot) {
+            const index = Number(actorRoot.actorIndex);
+            if (!Number.isInteger(index) || index < 1 || index > actorCount) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_ACTOR_INDEX_RANGE',
+                    'Actor roots must use contiguous one-based indices.',
+                    actorRoot.uuid
+                ));
+            }
+        });
+
+        const containsProps = project.emoteContainsProps === true;
+        const propsRoots = nodes.filter(function (node) { return node.role === ROLES.PROPS_ROOT; });
+        if (containsProps && propsRoots.length !== 1) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_PROPS_ROOT',
+                'An Emote marked as containing props requires exactly one Props root.'
+            ));
+        } else if (!containsProps && propsRoots.length > 0) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_UNDECLARED_PROPS',
+                'The project has a Props root but Contains Props is disabled.',
+                propsRoots[0].uuid
+            ));
+        }
+        if (propsRoots.length === 1 && sceneRoot && propsRoots[0].parentUuid !== sceneRoot.uuid) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_PROPS_PARENT',
+                'Props must be directly inside Emote Scene.',
+                propsRoots[0].uuid
+            ));
+        }
+
+        const objectActors = emoteObjectActors(nodes).map(function (node) {
+            const binding = {
+                id: runtimeId(projectId, 'object_actor', node.uuid),
+                role: ROLES.OBJECT_ACTOR,
+                sourceName: node.name,
+                sourceUuid: node.uuid,
+                parentUuid: node.parentUuid
+            };
+            nodeBindings[node.uuid] = binding;
+            const nodeUuids = [];
+            nodes.forEach(function (candidate) {
+                if (!candidate || candidate.uuid === node.uuid) {
+                    return;
+                }
+                let current = candidate;
+                const seen = Object.create(null);
+                let belongsToObjectActor = false;
+                while (current && current.parentUuid && !seen[current.parentUuid]) {
+                    if (current.parentUuid === node.uuid) {
+                        belongsToObjectActor = true;
+                        break;
+                    }
+                    seen[current.parentUuid] = true;
+                    current = byUuid[current.parentUuid] || null;
+                }
+                if (!belongsToObjectActor) {
+                    return;
+                }
+                nodeUuids.push(candidate.uuid);
+                nodeBindings[candidate.uuid] = {
+                    id: runtimeId(projectId, 'object_actor_node', candidate.uuid),
+                    role: ROLES.OBJECT_ACTOR_NODE,
+                    objectActorUuid: node.uuid,
+                    sourceName: candidate.name,
+                    parentUuid: candidate.parentUuid || null
+                };
+            });
+            return {
+                id: binding.id,
+                sourceUuid: node.uuid,
+                name: node.name,
+                nodeUuids: nodeUuids
+            };
+        });
+        propsRoots.forEach(function (propsRoot) {
+            nodes.filter(function (node) { return node.parentUuid === propsRoot.uuid && node.type !== 'group'; })
+                .forEach(function (node) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_PROP_FOLDER_REQUIRED',
+                        'Every direct child of Props must be a folder representing one Object-Actor.',
+                        node.uuid
+                    ));
+                });
+        });
+        if (containsProps && propsRoots.length === 1 && objectActors.length === 0) {
+            issues.push(makeIssue(
+                'info',
+                'COSMIQ_EMOTE_PROPS_EMPTY',
+                'Props is ready. Add one folder per Object-Actor when the prop models are ready.',
+                propsRoots[0].uuid
+            ));
+        }
+
+        let authoredSceneClips = 0;
+        let authoredActorClips = 0;
+        let totalKeyframes = 0;
+        animations.forEach(function (animation) {
+            const scope = animation.emoteScope || EMOTE_ANIMATION_SCOPES.NONE;
+            const keyframeCount = Math.max(0, Math.floor(Number(animation.keyframeCount)) || 0);
+            const rawActorIndex = Number(animation.emoteActorIndex);
+            const actorIndex = Number.isInteger(rawActorIndex) ? rawActorIndex : 0;
+            totalKeyframes += keyframeCount;
+            if (!Number.isFinite(Number(animation.lengthSeconds)) || Number(animation.lengthSeconds) < 0 ||
+                Number(animation.lengthSeconds) > LIMITS.animationSeconds) {
+                issues.push(makeIssue(
+                    'error',
+                    'COSMIQ_EMOTE_ANIMATION_DURATION',
+                    'Emote animation duration must be from 0 through ' + LIMITS.animationSeconds + ' seconds.',
+                    animation.uuid
+                ));
+            }
+            (animation.targetUuids || []).forEach(function (targetUuid) {
+                if (!byUuid[targetUuid]) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_ANIMATION_TARGET',
+                        'Emote animation references an unknown target UUID.',
+                        animation.uuid
+                    ));
+                    return;
+                }
+                const targetBinding = nodeBindings[targetUuid];
+                const targetNode = byUuid[targetUuid];
+                const effectLocator = targetNode && (
+                    targetNode.role === ROLES.PARTICLE_EFFECT_LOCATOR ||
+                    targetNode.role === ROLES.SOUND_EFFECT_LOCATOR
+                );
+                if (!effectLocator && (!targetBinding || (
+                    targetBinding.role !== ROLES.EMOTE_ACTOR &&
+                    targetBinding.role !== ROLES.PLAYER_BONE &&
+                    targetBinding.role !== ROLES.EMOTE_TRANSFORM &&
+                    targetBinding.role !== ROLES.OBJECT_ACTOR &&
+                    targetBinding.role !== ROLES.OBJECT_ACTOR_NODE
+                ))) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_ANIMATION_STRUCTURAL_TARGET',
+                        'Emote animations may target only numbered Actor wrappers, semantic player bones, Object-Actor nodes, or effect locators.',
+                        animation.uuid
+                    ));
+                }
+            });
+            if (scope !== EMOTE_ANIMATION_SCOPES.SCENE && scope !== EMOTE_ANIMATION_SCOPES.ACTOR) {
+                if (keyframeCount > 0) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_ANIMATION_SCOPE',
+                        'Authored emote animations require an explicit Scene or Actor scope.',
+                        animation.uuid
+                    ));
+                }
+                return;
+            }
+            if (scope === EMOTE_ANIMATION_SCOPES.SCENE) {
+                if (keyframeCount > 0) authoredSceneClips++;
+            } else {
+                if (!Number.isInteger(rawActorIndex) || actorIndex < 1 || actorIndex > actorCount) {
+                    issues.push(makeIssue(
+                        'error',
+                        'COSMIQ_EMOTE_ANIMATION_ACTOR',
+                        'Actor-scoped animation ' + animation.name + ' has an invalid actor index.',
+                        animation.uuid
+                    ));
+                }
+                (animation.targetUuids || []).forEach(function (targetUuid) {
+                    const target = byUuid[targetUuid];
+                    if (target && Number(target.actorIndex) > 0 && Number(target.actorIndex) !== actorIndex) {
+                        issues.push(makeIssue(
+                            'error',
+                            'COSMIQ_EMOTE_ANIMATION_FOREIGN_ACTOR',
+                            animation.name + ' targets a different numbered actor.',
+                            animation.uuid
+                        ));
+                    }
+                });
+                if (keyframeCount > 0) authoredActorClips++;
+            }
+            animationBindings[animation.uuid] = {
+                id: animation.clipId || runtimeId(projectId, 'animation', animation.uuid),
+                sourceName: animation.name,
+                scope: scope,
+                actorIndex: scope === EMOTE_ANIMATION_SCOPES.ACTOR ? actorIndex : null,
+                keyframeCount: keyframeCount,
+                targetUuids: (animation.targetUuids || []).slice(),
+                markers: collectTimelineMarkers(animation.markers)
+            };
+        });
+        if (authoredSceneClips > 0 && authoredActorClips > 0) {
+            issues.push(makeIssue(
+                'warning',
+                'COSMIQ_EMOTE_MIXED_ANIMATION_SCOPES',
+                'Both combined Scene and individual Actor clips contain keyframes. Leave only the intended playback path authored until precedence is defined.'
+            ));
+        }
+        if (totalKeyframes > LIMITS.keyframes) {
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_EMOTE_KEYFRAME_LIMIT',
+                'Emote source exceeds the draft limit of ' + LIMITS.keyframes + ' keyframes.'
+            ));
+        }
+
+        const authoringResult = buildAuthoringMetadata(source);
+        authoringResult.issues.forEach(function (issue) { issues.push(issue); });
+        const logicAttachment = inspectEmoteLogicAttachment(
+            project.emoteLogicSource,
+            project.emoteLogic,
+            animationBindings
+        );
+        logicAttachment.issues.forEach(function (issue) { issues.push(issue); });
+        const outputMetadata = {
+                schemaVersion: EMOTE_SOURCE_SCHEMA,
+                formatVersion: COSMETIC_FORMAT_VERSION,
+                kind: PROJECT_KINDS.EMOTE,
+                category: CATEGORIES.EMOTE,
+                animationMode: ANIMATION_MODES.ANIMATED,
+                draft: true,
+                runtimeExportReady: false,
+                projectId: projectId,
+                template: containsProps ? 'emote_with_props' : 'emote_player',
+                sourceRevision: Math.max(1, Math.floor(Number(project.sourceRevision)) || 1),
+                coordinateProfile: COORDINATE_PROFILE,
+                unitsPerBlock: 16,
+                compatibility: {
+                    profile: project.compatibilityProfile || 'cross_version',
+                    baselineFallbackRequired: true,
+                    minecraftSpecificFieldsAllowed: false
+                },
+                previewCamera: cosmiqClone(project.previewCamera || {
+                    id: 'thumbnail_camera',
+                    transform: cosmiqDefaultTransform([0, 1, -5]),
+                    projection: {
+                        kind: 'perspective',
+                        verticalFovDegrees: 35,
+                        nearPlane: 0.01,
+                        farPlane: 64
+                    },
+                    pose: {
+                        clipId: null,
+                        timeMs: 0,
+                        modelVariant: null,
+                        visiblePropRootIds: []
+                    }
+                }),
+                emote: {
+                    rigProfile: rigProfile,
+                    actorCount: actorCount,
+                    containsProps: containsProps,
+                    traversable: project.emoteTraversable === true,
+                    movementIntent: project.emoteTraversable === true ? 'movement_blend' : 'stationary',
+                    actorNumbering: 'one_based_prefix',
+                    objectActorRule: 'direct_group_child_of_props',
+                    animationAuthoring: ['scene', 'actor'],
+                    detectedAnimationMode: authoredSceneClips > 0 && authoredActorClips > 0
+                        ? 'mixed'
+                        : (authoredSceneClips > 0 ? 'scene' : (authoredActorClips > 0 ? 'actor' : 'empty'))
+                },
+                actors: actorMetadata,
+                props: {
+                    rootUuid: propsRoots.length === 1 ? propsRoots[0].uuid : null,
+                    objectActors: objectActors
+                },
+                nodeBindings: nodeBindings,
+                animationBindings: animationBindings,
+                authoringSchema: authoringResult.metadata.authoringSchema,
+                resourceReferences: authoringResult.metadata.resourceReferences,
+                effectLocatorBindings: authoringResult.metadata.effectLocatorBindings,
+                timelineMarkers: authoringResult.metadata.timelineMarkers,
+                timelineCues: authoringResult.metadata.timelineCues,
+                outcomeSets: Array.isArray(project.emoteOutcomeSets)
+                    ? cosmiqClone(project.emoteOutcomeSets)
+                    : [],
+                unsupportedMedia: authoringResult.metadata.unsupportedMedia,
+                budgets: {
+                    nodes: nodes.length,
+                    animations: animations.length,
+                    keyframes: totalKeyframes,
+                    objectActors: objectActors.length
+                },
+                logicSource: logicAttachment.logicSource,
+                logic: logicAttachment.logic
+        };
+        if (!containsProps) {
+            delete outputMetadata.props;
+        }
+        return {
+            metadata: outputMetadata,
+            issues: issues
+        };
+    }
+
+    let creatorFormat = null;
+    let validatorCheck = null;
+    let activeDialog = null;
+    let pluginStyle = null;
+    let cosmiqMenu = null;
+    const actions = [];
+    const properties = [];
+    const listeners = [];
+
+    function isCosmiqProject() {
+        return typeof Format !== 'undefined' && Format && Format.id === FORMAT_ID;
+    }
+
+    function activeCosmiqProjectKind() {
+        if (typeof Project === 'undefined' || !Project) return null;
+        return [
+            PROJECT_KINDS.COSMETIC,
+            PROJECT_KINDS.EMOTE,
+            PROJECT_KINDS.CAPE
+        ].indexOf(Project.cosmiq_project_kind) === -1
+            ? null
+            : Project.cosmiq_project_kind;
+    }
+
+    function projectKindFromMetadata(metadata, fallback) {
+        const source = metadata && typeof metadata === 'object' ? metadata : {};
+        if ([
+            PROJECT_KINDS.COSMETIC,
+            PROJECT_KINDS.EMOTE,
+            PROJECT_KINDS.CAPE
+        ].indexOf(source.kind) !== -1) {
+            return source.kind;
+        }
+        const categoryKind = {
+            accessory: PROJECT_KINDS.COSMETIC,
+            emote: PROJECT_KINDS.EMOTE,
+            cape: PROJECT_KINDS.CAPE
+        }[source.category];
+        if (categoryKind) return categoryKind;
+        return [
+            PROJECT_KINDS.COSMETIC,
+            PROJECT_KINDS.EMOTE,
+            PROJECT_KINDS.CAPE
+        ].indexOf(fallback) === -1 ? PROJECT_KINDS.COSMETIC : fallback;
+    }
+
+    function isCosmiqCosmeticProject() {
+        return isCosmiqProject() && activeCosmiqProjectKind() === PROJECT_KINDS.COSMETIC;
+    }
+
+    function isCosmiqEmoteProject() {
+        return isCosmiqProject() && activeCosmiqProjectKind() === PROJECT_KINDS.EMOTE;
+    }
+
+    function isCosmiqCapeProject() {
+        return isCosmiqProject() && activeCosmiqProjectKind() === PROJECT_KINDS.CAPE;
+    }
+
+    function addProperty(target, type, name, options) {
+        const property = new Property(target, type, name, options);
+        properties.push(property);
+        return property;
+    }
+
+    function registerProperties() {
+        const condition = {formats: [FORMAT_ID]};
+        addProperty(ModelProject, 'string', 'cosmiq_project_id', {
+            label: 'Cosmiq Project ID',
+            description: 'Stable namespaced source ID, for example creator:wing_demo.',
+            default: 'creator:untitled',
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_project_kind', {
+            label: 'Cosmiq Project Type',
+            values: [PROJECT_KINDS.COSMETIC, PROJECT_KINDS.EMOTE, PROJECT_KINDS.CAPE],
+            default: PROJECT_KINDS.COSMETIC,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_template', {
+            label: 'Cosmiq Template',
+            values: TEMPLATE_VALUES.concat(EMOTE_TEMPLATE_VALUES, ['cape']),
+            default: 'cosmetic_static',
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_compatibility_profile', {
+            label: 'Compatibility Profile',
+            values: ['cross_version', 'advanced'],
+            default: 'cross_version',
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_slot', {
+            label: 'Derived Cosmetic Slot',
+            values: [
+                'cosmiq:slot/head',
+                'cosmiq:slot/body',
+                'cosmiq:slot/arms',
+                'cosmiq:slot/legs'
+            ],
+            default: 'cosmiq:slot/body',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'string', 'cosmiq_body_slots', {
+            label: 'Derived Wardrobe Body Slots',
+            description: 'Automatically derived from the precise anchor parents used by the model.',
+            default: '',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_model_variant', {
+            label: 'Player Model Variant',
+            values: MODEL_VARIANTS,
+            default: 'universal',
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_arm_width_mode', {
+            label: 'Arm Width Fit',
+            description: 'Use one shared arm model, or author separate Wide and Slim arm models.',
+            values: ARM_WIDTH_MODE_VALUES,
+            default: ARM_WIDTH_MODES.UNCONFIGURED,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'number', 'cosmiq_source_revision', {
+            default: 1,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'number', 'cosmiq_emote_actor_count', {
+            label: 'Emote Actor Count',
+            description: 'Numbered player-role slots in this draft scene.',
+            default: 1,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'boolean', 'cosmiq_emote_contains_props', {
+            label: 'Emote Contains Props',
+            default: false,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'boolean', 'cosmiq_emote_traversable', {
+            label: 'Emote Traversable',
+            description: 'Authoring intent only. Minecraft remains authoritative for movement.',
+            default: false,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_rig_profile', {
+            label: 'Emote Rig',
+            values: [EMOTE_RIG_PROFILES.SIMPLE, EMOTE_RIG_PROFILES.PRECISE],
+            default: EMOTE_RIG_PROFILES.SIMPLE,
+            exposed: false,
+            condition: condition
+        });
+        [
+            ['cosmiq_camera_x', 0],
+            ['cosmiq_camera_y', 1],
+            ['cosmiq_camera_z', -3],
+            ['cosmiq_camera_pitch', 0],
+            ['cosmiq_camera_yaw', 0],
+            ['cosmiq_camera_roll', 0],
+            ['cosmiq_camera_fov', 35],
+            ['cosmiq_camera_time_ms', 0]
+        ].forEach(function (entry) {
+            addProperty(ModelProject, 'number', entry[0], {
+                default: entry[1],
+                exposed: false,
+                condition: condition
+            });
+        });
+        addProperty(ModelProject, 'string', 'cosmiq_camera_clip_id', {
+            default: '',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'enum', 'cosmiq_camera_model_variant', {
+            values: ['universal', 'wide', 'slim'],
+            default: 'wide',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'string', 'cosmiq_camera_visible_props', {
+            default: '',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(ModelProject, 'object', 'cosmiq', {
+            default: {},
+            exposed: false,
+            condition: condition
+        });
+
+        const anchorOptions = {none: 'Not an anchor'};
+        ANCHORS.forEach(function (anchor) {
+            anchorOptions[anchor.id] = anchor.label;
+        });
+        addProperty(Group, 'enum', 'cosmiq_anchor', {
+            values: ['none'].concat(ANCHORS.map(function (anchor) { return anchor.id; })),
+            default: 'none',
+            copy_value: false,
+            condition: condition,
+            inputs: {
+                element_panel: {
+                    input: {
+                        label: 'Cosmiq Player Anchor',
+                        description: 'Children inherit this player anchor when Cosmiq converts the project.',
+                        type: 'select',
+                        options: anchorOptions
+                    }
+                }
+            }
+        });
+        addProperty(Group, 'enum', 'cosmiq_model_branch', {
+            values: ['none', 'wide', 'slim'],
+            default: 'none',
+            copy_value: false,
+            exposed: false,
+            condition: condition
+        });
+
+        [Group, Cube].forEach(function (type) {
+            addProperty(type, 'enum', 'cosmiq_role', {
+                values: BLOCKBENCH_NODE_ROLE_VALUES,
+                default: ROLES.NONE,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+        });
+        if (typeof Mesh !== 'undefined') {
+            addProperty(Mesh, 'enum', 'cosmiq_role', {
+                values: BLOCKBENCH_NODE_ROLE_VALUES,
+                default: ROLES.NONE,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+        }
+        [typeof Armature !== 'undefined' ? Armature : null,
+            typeof ArmatureBone !== 'undefined' ? ArmatureBone : null
+        ].filter(Boolean).forEach(function (type) {
+            addProperty(type, 'enum', 'cosmiq_role', {
+                values: BLOCKBENCH_NODE_ROLE_VALUES,
+                default: ROLES.NONE,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+        });
+        if (typeof Locator !== 'undefined') {
+            addProperty(Locator, 'enum', 'cosmiq_role', {
+                values: BLOCKBENCH_NODE_ROLE_VALUES,
+                default: ROLES.NONE,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+            addProperty(Locator, 'string', 'cosmiq_effect_locator_id', {
+                default: '',
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+            addProperty(Locator, 'string', 'cosmiq_resource_id', {
+                default: '',
+                copy_value: true,
+                exposed: false,
+                condition: condition
+            });
+        }
+
+        [Group, Cube]
+            .concat(typeof Mesh !== 'undefined' ? [Mesh] : [])
+            .concat(typeof Armature !== 'undefined' ? [Armature] : [])
+            .concat(typeof ArmatureBone !== 'undefined' ? [ArmatureBone] : [])
+            .forEach(function (type) {
+            addProperty(type, 'number', 'cosmiq_actor_index', {
+                default: 0,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+            addProperty(type, 'enum', 'cosmiq_player_bone', {
+                values: BLOCKBENCH_PLAYER_BONE_VALUES,
+                default: 'none',
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+        });
+        if (typeof Texture !== 'undefined') {
+            addProperty(Texture, 'enum', 'cosmiq_role', {
+                values: [ROLES.NONE, ROLES.REFERENCE, 'particle_sprite'],
+                default: ROLES.NONE,
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+            addProperty(Texture, 'string', 'cosmiq_variant_id', {
+                default: '', copy_value: false, exposed: false, condition: condition
+            });
+            addProperty(Texture, 'string', 'cosmiq_variant_base', {
+                default: '', copy_value: false, exposed: false, condition: condition
+            });
+        }
+
+        [Cube].concat(typeof Locator !== 'undefined' ? [Locator] : []).forEach(function (type) {
+            addProperty(type, 'string', 'cosmiq_particle_id', {
+                default: '',
+                copy_value: false,
+                exposed: false,
+                condition: condition
+            });
+            addProperty(type, 'string', 'cosmiq_particle_texture', {
+                default: '',
+                exposed: false,
+                condition: condition
+            });
+        });
+
+        const AnimationClass = Blockbench.Animation;
+        addProperty(AnimationClass, 'string', 'cosmiq_clip_id', {
+            default: '',
+            copy_value: false,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'enum', 'cosmiq_trigger_kind', {
+            values: ['none', 'player_state', 'player_event'],
+            default: 'none',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'string', 'cosmiq_trigger', {
+            default: '',
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'number', 'cosmiq_transition_ms', {
+            default: 150,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'number', 'cosmiq_priority', {
+            default: 100,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'boolean', 'cosmiq_fallback', {
+            default: false,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'enum', 'cosmiq_emote_scope', {
+            values: [
+                EMOTE_ANIMATION_SCOPES.NONE,
+                EMOTE_ANIMATION_SCOPES.SCENE,
+                EMOTE_ANIMATION_SCOPES.ACTOR
+            ],
+            default: EMOTE_ANIMATION_SCOPES.NONE,
+            copy_value: true,
+            exposed: false,
+            condition: condition
+        });
+        addProperty(AnimationClass, 'number', 'cosmiq_emote_actor_index', {
+            default: 0,
+            copy_value: true,
+            exposed: false,
+            condition: condition
+        });
+    }
+
+    function nodeType(node) {
+        if (typeof Group !== 'undefined' && node instanceof Group) {
+            return 'group';
+        }
+        if (typeof Cube !== 'undefined' && node instanceof Cube) {
+            return 'cube';
+        }
+        if (typeof Mesh !== 'undefined' && node instanceof Mesh) {
+            return 'mesh';
+        }
+        if (typeof Locator !== 'undefined' && node instanceof Locator) {
+            return 'locator';
+        }
+        return node && node.type ? String(node.type) : 'unknown';
+    }
+
+    function faceTextures(node) {
+        const values = [];
+        if (!node || !node.faces) {
+            return values;
+        }
+        Object.keys(node.faces).forEach(function (faceKey) {
+            const texture = node.faces[faceKey] && node.faces[faceKey].texture;
+            if (typeof texture === 'string' && texture && values.indexOf(texture) === -1) {
+                values.push(texture);
+            }
+        });
+        return values;
+    }
+
+    function meshTriangleCount(mesh) {
+        let count = 0;
+        if (!mesh || !mesh.faces) {
+            return count;
+        }
+        Object.keys(mesh.faces).forEach(function (key) {
+            const face = mesh.faces[key];
+            const vertices = face && face.vertices ? face.vertices.length : 0;
+            if (vertices >= 3) {
+                count += vertices - 2;
+            }
+        });
+        return count;
+    }
+
+    function collectLiveNodes() {
+        const records = [];
+        let order = 0;
+        function walk(children) {
+            (children || []).forEach(function (node) {
+                const type = nodeType(node);
+                const textureUuids = type === 'cube' || type === 'mesh' ? faceTextures(node) : [];
+                const vertexCount = type === 'cube'
+                    ? 24
+                    : (type === 'mesh' && node.vertices ? Object.keys(node.vertices).length : 0);
+                const triangleCount = type === 'cube' ? 12 : (type === 'mesh' ? meshTriangleCount(node) : 0);
+                records.push({
+                    uuid: node.uuid,
+                    parentUuid: node.parent && node.parent.uuid ? node.parent.uuid : null,
+                    name: node.name || type,
+                    type: type,
+                    role: node.cosmiq_role || ROLES.NONE,
+                    modelVariant: node.cosmiq_model_branch === 'wide' || node.cosmiq_model_branch === 'slim'
+                        ? node.cosmiq_model_branch
+                        : '',
+                    anchorId: node.cosmiq_anchor && node.cosmiq_anchor !== 'none' ? node.cosmiq_anchor : '',
+                    particleId: node.cosmiq_particle_id || '',
+                    particleTextureUuid: node.cosmiq_particle_texture || '',
+                    effectLocatorId: node.cosmiq_effect_locator_id || '',
+                    resourceId: node.cosmiq_resource_id || '',
+                    actorIndex: Number(node.cosmiq_actor_index) || 0,
+                    playerBone: node.cosmiq_player_bone && node.cosmiq_player_bone !== 'none'
+                        ? node.cosmiq_player_bone
+                        : '',
+                    origin: Array.isArray(node.origin) ? node.origin.slice(0, 3) : null,
+                    position: Array.isArray(node.position) ? node.position.slice(0, 3) : null,
+                    rotation: Array.isArray(node.rotation) ? node.rotation.slice(0, 3) : null,
+                    textureUuids: textureUuids,
+                    export: node.export !== false,
+                    vertexCount: vertexCount,
+                    triangleCount: triangleCount,
+                    sourceOrder: order++
+                });
+                if (node.children) {
+                    walk(node.children);
+                }
+            });
+        }
+        walk(typeof Outliner !== 'undefined' ? Outliner.root : []);
+        return records;
+    }
+
+    function collectLiveAnimations() {
+        const animations = Blockbench.Animation.all || [];
+        return animations.map(function (animation) {
+            const targetUuids = [];
+            let keyframeCount = 0;
+            Object.keys(animation.animators || {}).forEach(function (animatorKey) {
+                const animator = animation.animators[animatorKey];
+                const keyframes = animator && animator.keyframes ? animator.keyframes : [];
+                if (animatorKey !== 'effects' && keyframes.length > 0 &&
+                    targetUuids.indexOf(animator.uuid) === -1) {
+                    targetUuids.push(animator.uuid);
+                }
+                keyframeCount += keyframes.length;
+            });
+            return {
+                uuid: animation.uuid,
+                name: animation.name,
+                loopMode: animation.loop,
+                lengthSeconds: animation.length,
+                targetUuids: targetUuids,
+                keyframeCount: keyframeCount,
+                clipId: animation.cosmiq_clip_id || '',
+                triggerKind: animation.cosmiq_trigger_kind || 'none',
+                triggerId: animation.cosmiq_trigger || '',
+                transitionMs: animation.cosmiq_transition_ms,
+                priority: animation.cosmiq_priority,
+                fallback: animation.cosmiq_fallback === true,
+                emoteScope: animation.cosmiq_emote_scope || EMOTE_ANIMATION_SCOPES.NONE,
+                emoteActorIndex: Number(animation.cosmiq_emote_actor_index) || 0,
+                markers: collectTimelineMarkers(animation.markers)
+            };
+        });
+    }
+
+    function collectLiveTextures() {
+        const textures = typeof Texture !== 'undefined' && Texture.all ? Texture.all : [];
+        return textures.map(function (texture) {
+            return {
+                uuid: texture.uuid,
+                name: texture.name || 'texture',
+                width: Number(texture.width) || 0,
+                height: Number(texture.height) || 0,
+                role: texture.cosmiq_role || ROLES.NONE,
+                variantId: texture.cosmiq_variant_id || '',
+                variantBaseUuid: texture.cosmiq_variant_base || ''
+            };
+        });
+    }
+
+    function liveSnapshot() {
+        return {
+            project: {
+                kind: activeCosmiqProjectKind(),
+                id: Project.cosmiq_project_id || 'creator:untitled',
+                savePath: Project.save_path || '',
+                template: Project.cosmiq_template || 'cosmetic_static',
+                compatibilityProfile: Project.cosmiq_compatibility_profile || 'cross_version',
+                slotId: Project.cosmiq_slot || 'cosmiq:slot/body',
+                bodySlots: Project.cosmiq_body_slots,
+                modelVariant: Project.cosmiq_model_variant || 'universal',
+                armWidthMode: normalizeArmWidthMode(Project.cosmiq_arm_width_mode),
+                sourceRevision: Project.cosmiq_source_revision || 1,
+                emoteActorCount: Math.floor(Number(Project.cosmiq_emote_actor_count)) || 1,
+                emoteContainsProps: Project.cosmiq_emote_contains_props === true,
+                emoteTraversable: Project.cosmiq_emote_traversable === true,
+                rigProfile: Project.cosmiq_rig_profile === EMOTE_RIG_PROFILES.PRECISE
+                    ? EMOTE_RIG_PROFILES.PRECISE
+                    : EMOTE_RIG_PROFILES.SIMPLE,
+                previewCamera: {
+                    id: 'thumbnail_camera',
+                    transform: {
+                        translation: [
+                            Number(Project.cosmiq_camera_x),
+                            Number(Project.cosmiq_camera_y),
+                            Number(Project.cosmiq_camera_z)
+                        ],
+                        rotation: cosmiqEulerQuaternion([
+                            Number(Project.cosmiq_camera_pitch),
+                            Number(Project.cosmiq_camera_yaw),
+                            Number(Project.cosmiq_camera_roll)
+                        ]),
+                        scale: [1, 1, 1],
+                        pivot: [0, 0, 0]
+                    },
+                    projection: {
+                        kind: 'perspective',
+                        verticalFovDegrees: Number(Project.cosmiq_camera_fov),
+                        nearPlane: 0.01,
+                        farPlane: 64
+                    },
+                    pose: {
+                        clipId: String(Project.cosmiq_camera_clip_id || '').trim() || null,
+                        timeMs: Math.max(0, Math.round(Number(Project.cosmiq_camera_time_ms) || 0)),
+                        modelVariant: activeCosmiqProjectKind() === PROJECT_KINDS.COSMETIC
+                            ? Project.cosmiq_camera_model_variant
+                            : null,
+                        visiblePropRootIds: String(Project.cosmiq_camera_visible_props || '')
+                            .split(',')
+                            .map(function (value) { return value.trim(); })
+                            .filter(Boolean)
+                            .sort()
+                    }
+                },
+                emoteLogicSource: Project.cosmiq && typeof Project.cosmiq.logicSource === 'string'
+                    ? Project.cosmiq.logicSource
+                    : '',
+                emoteLogic: Project.cosmiq && Project.cosmiq.logic && typeof Project.cosmiq.logic === 'object'
+                    ? Project.cosmiq.logic
+                    : null,
+                resourceReferences: Project.cosmiq && Array.isArray(Project.cosmiq.resourceReferences)
+                    ? Project.cosmiq.resourceReferences.slice()
+                    : [],
+                timelineCues: Project.cosmiq && Array.isArray(Project.cosmiq.timelineCues)
+                    ? Project.cosmiq.timelineCues.slice()
+                    : [],
+                settings: Project.cosmiq && Array.isArray(Project.cosmiq.settings)
+                    ? cosmiqClone(Project.cosmiq.settings)
+                    : [],
+                playerAppearance: Project.cosmiq
+                    ? normalizePlayerAppearance(Project.cosmiq.playerAppearance)
+                    : null,
+                emoteOutcomeSets: Project.cosmiq && Array.isArray(Project.cosmiq.outcomeSets)
+                    ? cosmiqClone(Project.cosmiq.outcomeSets)
+                    : []
+            },
+            nodes: collectLiveNodes(),
+            animations: collectLiveAnimations(),
+            textures: collectLiveTextures()
+        };
+    }
+
+    function liveNodeByUuid(uuid) {
+        let found = null;
+        function walk(children) {
+            (children || []).some(function (node) {
+                if (node.uuid === uuid) {
+                    found = node;
+                    return true;
+                }
+                if (node.children) {
+                    walk(node.children);
+                }
+                return found !== null;
+            });
+        }
+        walk(typeof Outliner !== 'undefined' ? Outliner.root : []);
+        return found;
+    }
+
+    function repairPreciseLegHierarchy() {
+        if (typeof Project === 'undefined' || !Project ||
+            Project.cosmiq_rig_profile !== EMOTE_RIG_PROFILES.PRECISE) {
+            return false;
+        }
+        const records = collectLiveNodes();
+        let changed = false;
+        const actorIndices = Array.from(new Set(records.filter(function (record) {
+            return record.role === ROLES.PLAYER_BONE && record.actorIndex > 0;
+        }).map(function (record) {
+            return record.actorIndex;
+        })));
+        actorIndices.forEach(function (actorIndex) {
+            const bones = Object.create(null);
+            records.forEach(function (record) {
+                if (record.role === ROLES.PLAYER_BONE && record.actorIndex === actorIndex) {
+                    bones[record.playerBone] = record;
+                }
+            });
+            const torso = bones.torso_lower && liveNodeByUuid(bones.torso_lower.uuid);
+            if (!torso) return;
+            ['left_leg_upper', 'right_leg_upper'].forEach(function (boneId) {
+                const record = bones[boneId];
+                const bone = record && liveNodeByUuid(record.uuid);
+                if (!bone) return;
+                const expectedOrigin = preciseBoneLayout(boneId).origin;
+                if (record.parentUuid !== torso.uuid && typeof bone.addTo === 'function') {
+                    bone.addTo(torso);
+                    changed = true;
+                }
+                if (!Array.isArray(bone.origin) ||
+                    bone.origin.some(function (value, axis) {
+                        return Math.abs(Number(value) - expectedOrigin[axis]) > 1e-9;
+                    })) {
+                    bone.origin = expectedOrigin;
+                    changed = true;
+                }
+            });
+        });
+        if (changed) Project.saved = false;
+        return changed;
+    }
+
+    function repairCapeUpperTorsoHierarchy() {
+        if (typeof Project === 'undefined' || !Project) return false;
+        const records = collectLiveNodes();
+        const capeRecord = records.find(function (record) {
+            return record.name === 'Cape/Elytra' && record.role === ROLES.REFERENCE_ROOT;
+        });
+        const precise = Project.cosmiq_rig_profile === EMOTE_RIG_PROFILES.PRECISE;
+        const targetRecord = records.find(function (record) {
+            return record.actorIndex === 1 && (
+                precise
+                    ? record.role === ROLES.PLAYER_BONE && record.playerBone === 'torso_upper'
+                    : record.role === ROLES.EMOTE_TRANSFORM && record.playerBone === 'upper_body'
+            );
+        });
+        if (!capeRecord || !targetRecord) return false;
+        const cape = liveNodeByUuid(capeRecord.uuid);
+        const target = liveNodeByUuid(targetRecord.uuid);
+        if (!cape || !target || typeof cape.addTo !== 'function') return false;
+        let changed = false;
+        if (capeRecord.parentUuid !== targetRecord.uuid) {
+            cape.addTo(target);
+            changed = true;
+        }
+        if (precise) {
+            const childUsesWorldCoordinates = (cape.children || []).some(function (child) {
+                return Array.isArray(child.origin) && Number(child.origin[1]) > 12;
+            });
+            if (childUsesWorldCoordinates) {
+                function localize(node, root) {
+                    ['origin', 'from', 'to', 'position'].forEach(function (field) {
+                        if (!Array.isArray(node[field])) return;
+                        if (root && field === 'origin') {
+                            node[field] = [
+                                Number(node[field][0]),
+                                6,
+                                Number(node[field][2])
+                            ];
+                            return;
+                        }
+                        node[field] = node[field].map(function (value, axis) {
+                            return Number(value) - (axis === 1 ? 18 : 0);
+                        });
+                    });
+                    (node.children || []).forEach(function (child) {
+                        localize(child, false);
+                    });
+                }
+                localize(cape, true);
+                changed = true;
+            }
+        }
+        if (changed) Project.saved = false;
+        return changed;
+    }
+
+    function adoptNameConventions(markDirty) {
+        const projectId = normalizeProjectId(Project.cosmiq_project_id) || 'creator:untitled';
+        let changed = false;
+        (Blockbench.Animation.all || []).forEach(function (animation) {
+            if (!animation.cosmiq_clip_id) {
+                animation.cosmiq_clip_id = runtimeId(projectId, 'animation', animation.uuid);
+                changed = true;
+            }
+            if (!animation.cosmiq_trigger_kind || animation.cosmiq_trigger_kind === 'none') {
+                const parsed = parseAnimationName(animation.name);
+                if (parsed) {
+                    animation.cosmiq_trigger_kind = parsed.kind;
+                    animation.cosmiq_trigger = parsed.triggerId;
+                    if (parsed.triggerId === 'idle') {
+                        animation.cosmiq_fallback = true;
+                    }
+                    changed = true;
+                }
+            }
+        });
+        collectLiveNodes().forEach(function (record) {
+            if (record.role !== ROLES.NONE || !parseParticleMarkerName(record.name)) {
+                return;
+            }
+            const node = liveNodeByUuid(record.uuid);
+            if (!node) {
+                return;
+            }
+            node.cosmiq_role = ROLES.PARTICLE_MARKER;
+            node.cosmiq_particle_id = parseParticleMarkerName(record.name);
+            node.export = false;
+            changed = true;
+        });
+        if (changed && markDirty) {
+            Project.saved = false;
+        }
+        return changed;
+    }
+
+    function refreshMetadata(markDirty) {
+        if (!isCosmiqProject()) {
+            return null;
+        }
+        const wasSaved = Project.saved;
+        if (isCosmiqEmoteProject()) {
+            const emoteResult = buildEmoteSourceMetadata(liveSnapshot());
+            Project.cosmiq = emoteResult.metadata;
+            if (markDirty) {
+                Project.saved = false;
+            } else {
+                Project.saved = wasSaved;
+            }
+            return emoteResult;
+        }
+        if (isCosmiqCapeProject()) {
+            const capeResult = buildCapeSourceMetadata(liveSnapshot());
+            Project.cosmiq = capeResult.metadata;
+            if (markDirty) {
+                Project.saved = false;
+            } else {
+                Project.saved = wasSaved;
+            }
+            return capeResult;
+        }
+        const normalizedAnchors = applyLegacyPlayerAnchorNormalization();
+        adoptNameConventions(markDirty);
+        let snapshot = liveSnapshot();
+        let result = buildSourceMetadata(snapshot);
+        const derivedSlots = bodySlotsFromNodeBindings(result.metadata.nodeBindings);
+        const currentSlots = bodySlotsForProject(snapshot.project);
+        const derivedVariant = result.metadata.cosmetic.modelVariant;
+        if ((derivedSlots.length > 0 && JSON.stringify(derivedSlots) !== JSON.stringify(currentSlots))
+            || Project.cosmiq_model_variant !== derivedVariant) {
+            if (derivedSlots.length > 0) {
+                Project.cosmiq_slot = derivedSlots[0];
+                Project.cosmiq_body_slots = derivedSlots.join(', ');
+            }
+            Project.cosmiq_model_variant = derivedVariant;
+            snapshot = liveSnapshot();
+            result = buildSourceMetadata(snapshot);
+        }
+        Project.cosmiq = result.metadata;
+        if (markDirty || normalizedAnchors.length > 0) {
+            Project.saved = false;
+        } else {
+            Project.saved = wasSaved;
+        }
+        return result;
+    }
+
+    function restoreAnimationPropertiesFromMetadata() {
+        if (!isCosmiqProject() || !Project.cosmiq || !Project.cosmiq.animationBindings) {
+            return;
+        }
+        const bindings = Project.cosmiq.animationBindings;
+        (Blockbench.Animation.all || []).forEach(function (animation) {
+            const binding = bindings[animation.uuid];
+            if (!binding) {
+                return;
+            }
+            animation.cosmiq_clip_id = binding.id || animation.cosmiq_clip_id;
+            if (binding.scope === EMOTE_ANIMATION_SCOPES.SCENE || binding.scope === EMOTE_ANIMATION_SCOPES.ACTOR) {
+                animation.cosmiq_emote_scope = binding.scope;
+                animation.cosmiq_emote_actor_index = binding.scope === EMOTE_ANIMATION_SCOPES.ACTOR
+                    ? (Math.floor(Number(binding.actorIndex)) || 0)
+                    : 0;
+                return;
+            }
+            if (binding.trigger) {
+                animation.cosmiq_trigger_kind = binding.trigger.kind || 'none';
+                animation.cosmiq_trigger = binding.trigger.id || '';
+            }
+            animation.cosmiq_transition_ms = binding.transitionMs == null
+                ? animation.cosmiq_transition_ms
+                : binding.transitionMs;
+            animation.cosmiq_priority = binding.priority == null
+                ? animation.cosmiq_priority
+                : binding.priority;
+            animation.cosmiq_fallback = binding.fallback === true;
+        });
+    }
+
+    function registerListener(eventName, callback) {
+        const existing = listeners.find(function (listener) {
+            return listener.eventName === eventName && listener.callback === callback;
+        });
+        if (existing) {
+            return existing.handle;
+        }
+        const handle = Blockbench.on(eventName, callback);
+        listeners.push({
+            eventName: eventName,
+            callback: callback,
+            handle: handle
+        });
+        return handle;
+    }
+
+    function onSaveProject(event) {
+        if (!isCosmiqProject() || !event || !event.model) {
+            return;
+        }
+        const result = refreshMetadata(false);
+        if (result) {
+            event.model.cosmiq_project_kind = activeCosmiqProjectKind();
+            if (result.metadata.kind === PROJECT_KINDS.EMOTE) {
+                event.model.cosmiq_emote_actor_count = result.metadata.emote.actorCount;
+                event.model.cosmiq_emote_contains_props = result.metadata.emote.containsProps;
+                event.model.cosmiq_emote_traversable = result.metadata.emote.traversable;
+            } else if (result.metadata.kind === PROJECT_KINDS.COSMETIC) {
+                event.model.cosmiq_slot = result.metadata.cosmetic.slotId;
+                event.model.cosmiq_body_slots = result.metadata.cosmetic.bodySlots.join(', ');
+            }
+            event.model.cosmiq = JSON.parse(JSON.stringify(result.metadata));
+        }
+    }
+
+    function onLoadProject() {
+        if (!isCosmiqProject()) {
+            return;
+        }
+        Project.cosmiq_project_kind = projectKindFromMetadata(
+            Project.cosmiq,
+            Project.cosmiq_project_kind
+        );
+        const repairedPreciseLegs = repairPreciseLegHierarchy();
+        const repairedCapeParent = repairCapeUpperTorsoHierarchy();
+        restoreAnimationPropertiesFromMetadata();
+        if (repairedPreciseLegs || repairedCapeParent) {
+            refreshMetadata(true);
+        }
+    }
+
+    function anchorOptions() {
+        const options = {};
+        ANCHORS.forEach(function (anchor) {
+            options[anchor.id] = anchor.label;
+        });
+        return options;
+    }
+
+    function selectedAnimation() {
+        return Blockbench.Animation.selected || null;
+    }
+
+    const PLAYER_APPEARANCE_PARTS = Object.freeze([
+        {id: 'body', label: 'Body', group: 'torso', referenceLabel: 'Torso'},
+        {id: 'head', label: 'Head', group: 'head', referenceLabel: 'Head'},
+        {id: 'left_arm', label: 'Left Arm', group: 'arms', referenceLabel: 'L Arm'},
+        {id: 'left_leg', label: 'Left Leg', group: 'legs', referenceLabel: 'L Leg'},
+        {id: 'right_arm', label: 'Right Arm', group: 'arms', referenceLabel: 'R Arm'},
+        {id: 'right_leg', label: 'Right Leg', group: 'legs', referenceLabel: 'R Leg'}
+    ]);
+
+    function normalizePlayerAppearance(value) {
+        if (!value || typeof value !== 'object' || !Array.isArray(value.occlusions)) {
+            return null;
+        }
+        const byPart = Object.create(null);
+        value.occlusions.forEach(function (raw) {
+            const definition = PLAYER_APPEARANCE_PARTS.find(function (part) {
+                return raw && raw.part === part.id;
+            });
+            if (!definition || !Array.isArray(raw.layers)) return;
+            const layers = ['base', 'outer'].filter(function (layer) {
+                return raw.layers.indexOf(layer) !== -1;
+            });
+            if (layers.length) byPart[definition.id] = layers;
+        });
+        const occlusions = PLAYER_APPEARANCE_PARTS.filter(function (part) {
+            return !!byPart[part.id];
+        }).map(function (part) {
+            return {part: part.id, layers: byPart[part.id].slice()};
+        });
+        return occlusions.length ? {occlusions: occlusions} : null;
+    }
+
+    function selectedOutlinerNodes() {
+        const selected = typeof Outliner !== 'undefined' && Array.isArray(Outliner.selected)
+            ? Outliner.selected.slice()
+            : [];
+        return selected.filter(function (node) {
+            return !selected.some(function (possibleParent) {
+                return node !== possibleParent && node.parent === possibleParent;
+            });
+        });
+    }
+
+    const PLAYER_REFERENCE_PARTS = Object.freeze({
+        head: {label: 'Head', anchorId: 'cosmiq:player/head', from: [-4, 24, -4], to: [4, 32, 4], origin: [0, 24, 0], baseUv: [0, 0], outerUv: [32, 0], width: 8, height: 8, depth: 8, outerInflate: 0.5},
+        torso: {label: 'Torso', anchorId: 'cosmiq:player/torso', from: [-4, 12, -2], to: [4, 24, 2], origin: [0, 24, 0], baseUv: [16, 16], outerUv: [16, 32], width: 8, height: 12, depth: 4, outerInflate: 0.25},
+        leftArm: {label: 'L Arm', anchorId: 'cosmiq:player/left_arm', from: [4, 12, -2], to: [8, 24, 2], origin: [5, 22, 0], baseUv: [32, 48], outerUv: [48, 48], width: 4, height: 12, depth: 4, outerInflate: 0.25},
+        rightArm: {label: 'R Arm', anchorId: 'cosmiq:player/right_arm', from: [-8, 12, -2], to: [-4, 24, 2], origin: [-5, 22, 0], baseUv: [40, 16], outerUv: [40, 32], width: 4, height: 12, depth: 4, outerInflate: 0.25},
+        leftLeg: {label: 'L Leg', anchorId: 'cosmiq:player/left_leg', from: [0, 0, -2], to: [4, 12, 2], origin: [2, 12, 0], baseUv: [16, 48], outerUv: [0, 48], width: 4, height: 12, depth: 4, outerInflate: 0.25},
+        rightLeg: {label: 'R Leg', anchorId: 'cosmiq:player/right_leg', from: [-4, 0, -2], to: [0, 12, 2], origin: [-2, 12, 0], baseUv: [0, 16], outerUv: [0, 32], width: 4, height: 12, depth: 4, outerInflate: 0.25}
+    });
+
+    function validateReferenceSkinFile(file, label) {
+        if (!file) {
+            return null;
+        }
+        const source = typeof file === 'object' ? file.content : file;
+        if (typeof source !== 'string' || source.length > 1_400_000) {
+            throw new Error(label + ' must be a PNG no larger than 1 MiB.');
+        }
+        const match = /^data:image\/png;base64,([A-Za-z0-9+/]+={0,2})$/.exec(source);
+        if (!match || typeof atob !== 'function') {
+            throw new Error(label + ' must be an embedded PNG image.');
+        }
+        let bytes;
+        try {
+            bytes = atob(match[1]);
+        } catch (error) {
+            throw new Error(label + ' contains invalid PNG base64 data.');
+        }
+        const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+        if (bytes.length < 24 || !signature.every(function (value, index) {
+            return bytes.charCodeAt(index) === value;
+        })) {
+            throw new Error(label + ' does not contain a valid PNG header.');
+        }
+        function uint32(offset) {
+            return ((bytes.charCodeAt(offset) << 24) >>> 0)
+                + (bytes.charCodeAt(offset + 1) << 16)
+                + (bytes.charCodeAt(offset + 2) << 8)
+                + bytes.charCodeAt(offset + 3);
+        }
+        if (uint32(16) !== 64 || uint32(20) !== 64) {
+            throw new Error(label + ' must be exactly 64 x 64 pixels.');
+        }
+        return source;
+    }
+
+    function fillReferenceSkinBox(context, u, v, width, height, depth, color) {
+        context.fillStyle = color;
+        context.fillRect(u, v, (depth * 2) + (width * 2), depth + height);
+    }
+
+    function defaultReferenceSkinDataUrl(modelVariant) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, 64, 64);
+        const base = modelVariant === 'slim' ? '#9aa4b5' : '#768091';
+        const overlay = modelVariant === 'slim' ? 'rgba(70, 78, 92, 0.72)' : 'rgba(50, 58, 70, 0.72)';
+        Object.keys(PLAYER_REFERENCE_PARTS).forEach(function (key) {
+            const part = PLAYER_REFERENCE_PARTS[key];
+            const width = modelVariant === 'slim' && (key === 'leftArm' || key === 'rightArm')
+                ? 3
+                : part.width;
+            fillReferenceSkinBox(context, part.baseUv[0], part.baseUv[1], width, part.height, part.depth, base);
+            fillReferenceSkinBox(context, part.outerUv[0], part.outerUv[1], width, part.height, part.depth, overlay);
+        });
+        return canvas.toDataURL('image/png');
+    }
+
+    function referenceTexture(modelVariant, uploadedSource, nameOverride) {
+        try {
+            const texture = new Texture({
+                name: nameOverride || ('cosmiq_reference_' + modelVariant + '.png'),
+                uv_width: 64,
+                uv_height: 64
+            });
+            texture.cosmiq_role = ROLES.REFERENCE;
+            texture.fromDataURL(uploadedSource || defaultReferenceSkinDataUrl(modelVariant)).add();
+            return texture;
+        } catch (error) {
+            console.warn('[Cosmiq Cosmetic Creator] Could not create neutral reference texture.', error);
+            return null;
+        }
+    }
+
+    function defaultCapeTextureDataUrl() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 32;
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#c026d3';
+        context.fillRect(0, 0, 64, 32);
+        context.fillStyle = '#701a75';
+        context.fillRect(1, 1, 62, 30);
+        context.fillStyle = '#ffffff';
+        context.font = 'bold 7px sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        if (typeof context.fillText === 'function') {
+            context.fillText('Change File to', 32, 12);
+            context.fillText('your cape', 32, 21);
+        }
+        return canvas.toDataURL('image/png');
+    }
+
+    function capeTemplateTexture() {
+        const texture = new Texture({
+            name: 'Change File to your cape.png',
+            uv_width: 64,
+            uv_height: 32
+        });
+        texture.fromDataURL(defaultCapeTextureDataUrl()).add();
+        return texture;
+    }
+
+    function playerSkinFaceUvs(u, v, width, height, depth) {
+        return {
+            east: [u, v + depth, u + depth, v + depth + height],
+            north: [u + depth, v + depth, u + depth + width, v + depth + height],
+            west: [u + depth + width, v + depth, u + (depth * 2) + width, v + depth + height],
+            south: [u + (depth * 2) + width, v + depth, u + (depth * 2) + (width * 2), v + depth + height],
+            up: [u + depth, v, u + depth + width, v + depth],
+            down: [u + depth + width, v, u + depth + (width * 2), v + depth]
+        };
+    }
+
+    function createReferenceCube(parent, texture, options) {
+        const cube = new Cube({
+            name: options.name,
+            from: options.from,
+            to: options.to,
+            origin: options.origin,
+            inflate: options.inflate || 0,
+            box_uv: false,
+            export: false
+        }).addTo(parent).init();
+        cube.cosmiq_role = ROLES.REFERENCE;
+        cube.export = false;
+        cube.locked = true;
+        applyBoxTextureUvs(cube, texture, options);
+        return cube;
+    }
+
+    function applyBoxTextureUvs(cube, texture, options) {
+        if (!texture) return cube;
+        cube.applyTexture(texture, true);
+        const faceUvs = playerSkinFaceUvs(
+            options.uv[0], options.uv[1], options.width, options.height, options.depth
+        );
+        Object.keys(faceUvs).forEach(function (faceName) {
+            if (cube.faces && cube.faces[faceName]) {
+                cube.faces[faceName].uv = faceUvs[faceName].slice();
+            }
+        });
+        return cube;
+    }
+
+    function createStructureGroup(parent, name) {
+        const group = new Group({
+            name: name,
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0],
+            export: false
+        }).addTo(parent).init();
+        group.cosmiq_role = ROLES.STRUCTURE;
+        group.export = false;
+        return group;
+    }
+
+    function createAnchorGroup(parent, anchorId, name) {
+        const anchor = anchorById[anchorId];
+        const group = new Group({
+            name: name,
+            origin: anchor.origin.slice(),
+            rotation: [0, 0, 0],
+            export: false
+        }).addTo(parent).init();
+        group.cosmiq_role = ROLES.ANCHOR;
+        group.cosmiq_anchor = anchorId;
+        group.export = false;
+        return group;
+    }
+
+    function createPlayerReferencePart(parent, texture, modelVariant, partKey, createdElements, options) {
+        const part = PLAYER_REFERENCE_PARTS[partKey];
+        const settings = options || {};
+        const variantLabel = modelVariant === 'slim' ? 'Slim' : 'Wide';
+        const namePrefix = settings.namePrefix == null ? variantLabel + ' ' : String(settings.namePrefix);
+        const partLabel = settings.partLabel || part.label;
+        const offsetX = Number(settings.offsetX) || 0;
+        const isSlimArm = modelVariant === 'slim' && (partKey === 'leftArm' || partKey === 'rightArm');
+        const width = isSlimArm ? 3 : part.width;
+        const from = part.from.slice();
+        const to = part.to.slice();
+        if (isSlimArm) {
+            if (partKey === 'leftArm') to[0] = from[0] + 3;
+            else from[0] = to[0] - 3;
+        }
+        from[0] += offsetX;
+        to[0] += offsetX;
+        const origin = part.origin.slice();
+        origin[0] += offsetX;
+        const base = createReferenceCube(parent, texture, {
+            name: namePrefix + partLabel + ' Base Skin',
+            from: from,
+            to: to,
+            origin: origin,
+            uv: part.baseUv,
+            width: width,
+            height: part.height,
+            depth: part.depth
+        });
+        const outer = createReferenceCube(parent, texture, {
+            name: namePrefix + partLabel + ' Outer Layer',
+            from: from,
+            to: to,
+            origin: origin,
+            uv: part.outerUv,
+            width: width,
+            height: part.height,
+            depth: part.depth,
+            inflate: part.outerInflate
+        });
+        if (settings.actorIndex) {
+            const semanticBone = settings.semanticBone || 'none';
+            [base, outer].forEach(function (cube) {
+                cube.cosmiq_actor_index = settings.actorIndex;
+                cube.cosmiq_player_bone = semanticBone;
+            });
+        }
+        createdElements.push(base, outer);
+        return {base: base, outer: outer};
+    }
+
+    function createVariantHierarchy(
+        exportRoot,
+        modelVariant,
+        visible,
+        selectedAnchorIds,
+        texture,
+        createdElements,
+        includeReference
+    ) {
+        const label = modelVariant === 'slim' ? 'Slim' : 'Wide';
+        const variantRoot = new Group({
+            name: label,
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0],
+            export: false,
+            visibility: visible === true
+        }).addTo(exportRoot).init();
+        variantRoot.cosmiq_role = ROLES.MODEL_VARIANT;
+        variantRoot.cosmiq_model_branch = modelVariant;
+        variantRoot.export = false;
+
+        const upper = createStructureGroup(variantRoot, 'Upper');
+        const lower = createStructureGroup(variantRoot, 'Lower');
+        const head = createAnchorGroup(upper, 'cosmiq:player/head', 'Head');
+        const torso = createAnchorGroup(upper, 'cosmiq:player/torso', 'Torso');
+        const leftArm = createAnchorGroup(torso, 'cosmiq:player/left_arm', 'L Arm');
+        const rightArm = createAnchorGroup(torso, 'cosmiq:player/right_arm', 'R Arm');
+        const leftLeg = createAnchorGroup(lower, 'cosmiq:player/left_leg', 'L Leg');
+        const rightLeg = createAnchorGroup(lower, 'cosmiq:player/right_leg', 'R Leg');
+        const anchorGroups = {
+            'cosmiq:player/head': head,
+            'cosmiq:player/torso': torso,
+            'cosmiq:player/left_arm': leftArm,
+            'cosmiq:player/right_arm': rightArm,
+            'cosmiq:player/left_leg': leftLeg,
+            'cosmiq:player/right_leg': rightLeg
+        };
+
+        if (includeReference) {
+            createPlayerReferencePart(head, texture, modelVariant, 'head', createdElements);
+            createPlayerReferencePart(torso, texture, modelVariant, 'torso', createdElements);
+            createPlayerReferencePart(leftArm, texture, modelVariant, 'leftArm', createdElements);
+            createPlayerReferencePart(rightArm, texture, modelVariant, 'rightArm', createdElements);
+            createPlayerReferencePart(leftLeg, texture, modelVariant, 'leftLeg', createdElements);
+            createPlayerReferencePart(rightLeg, texture, modelVariant, 'rightLeg', createdElements);
+        }
+
+        const modelHereGroups = selectedAnchorIds.map(function (anchorId) {
+            const anchor = anchorById[anchorId];
+            const parent = anchorGroups[anchorId];
+            const modelHere = new Group({
+                name: 'Model Here - ' + label + ' ' + anchor.label,
+                origin: parent.origin ? parent.origin.slice() : anchor.origin.slice(),
+                rotation: [0, 0, 0],
+                export: true
+            }).addTo(parent).init();
+            modelHere.cosmiq_role = ROLES.AUTHORING;
+            return modelHere;
+        });
+        return {
+            root: variantRoot,
+            upper: upper,
+            lower: lower,
+            anchorGroups: anchorGroups,
+            modelHereGroups: modelHereGroups
+        };
+    }
+
+    function createAnchorHierarchy(selectedAnchorIds, options) {
+        const settings = options || {};
+        const createdElements = settings.createdElements || [];
+        const createdTextures = settings.createdTextures || [];
+        const includeReference = settings.includeReference === true;
+        const exportRoot = new Group({
+            name: 'Cosmiq Export',
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0]
+        }).addTo('root').init();
+        exportRoot.cosmiq_role = ROLES.EXPORT_ROOT;
+
+        const selected = uniqueValues((selectedAnchorIds || []).filter(isKnownAnchor).map(canonicalAnchorId));
+        if (selected.length === 0) {
+            selected.push('cosmiq:player/torso');
+        }
+        const wideTexture = includeReference ? referenceTexture('wide', settings.wideSkin || null) : null;
+        const slimTexture = includeReference ? referenceTexture('slim', settings.slimSkin || null) : null;
+        if (wideTexture) createdTextures.push(wideTexture);
+        if (slimTexture) createdTextures.push(slimTexture);
+        const showSlim = settings.initialVisibleVariant === 'slim';
+        const wide = createVariantHierarchy(
+            exportRoot, 'wide', !showSlim, selected, wideTexture,
+            createdElements, includeReference
+        );
+        const slim = createVariantHierarchy(
+            exportRoot, 'slim', showSlim, selected, slimTexture,
+            createdElements, includeReference
+        );
+        const modelHereGroups = wide.modelHereGroups.concat(slim.modelHereGroups);
+        return {
+            exportRoot: exportRoot,
+            wide: wide,
+            slim: slim,
+            anchorGroups: {wide: wide.anchorGroups, slim: slim.anchorGroups},
+            modelHere: modelHereGroups[0],
+            modelHereGroups: modelHereGroups
+        };
+    }
+
+    function createCapeTemplateGeometry(hierarchy, createdElements, createdTextures) {
+        const texture = capeTemplateTexture();
+        const capes = [];
+        const elytraWings = [];
+        createdTextures.push(texture);
+        [
+            {label: 'Wide', branch: hierarchy.wide},
+            {label: 'Slim', branch: hierarchy.slim}
+        ].forEach(function (entry) {
+            const modelHere = entry.branch.modelHereGroups[0];
+            modelHere.name = 'Change File to your cape - ' + entry.label;
+            const cape = new Cube({
+                name: 'Cape - Change File to your cape',
+                from: [-5, 8, 2],
+                to: [5, 24, 3],
+                origin: [0, 24, 2],
+                box_uv: false,
+                export: true
+            }).addTo(modelHere).init();
+            applyBoxTextureUvs(cape, texture, {uv: [0, 0], width: 10, height: 16, depth: 1});
+            capes.push(cape);
+            createdElements.push(cape);
+
+            const elytraRoot = new Group({
+                name: 'Elytra Preview - toggle visibility',
+                origin: [0, 24, 2],
+                rotation: [0, 0, 0],
+                visibility: false,
+                export: false
+            }).addTo(entry.branch.anchorGroups['cosmiq:player/torso']).init();
+            elytraRoot.cosmiq_role = ROLES.REFERENCE;
+            elytraRoot.export = false;
+            elytraRoot.locked = true;
+            [
+                {name: 'Left Elytra - uses cape file', from: [0, 4, 2], to: [10, 24, 3], rotation: -15},
+                {name: 'Right Elytra - uses cape file', from: [-10, 4, 2], to: [0, 24, 3], rotation: 15}
+            ].forEach(function (wingOptions) {
+                const wing = createReferenceCube(elytraRoot, texture, {
+                    name: wingOptions.name,
+                    from: wingOptions.from,
+                    to: wingOptions.to,
+                    origin: [0, 24, 2],
+                    uv: [0, 0],
+                    width: 10,
+                    height: 20,
+                    depth: 1
+                });
+                wing.rotation = [0, 0, wingOptions.rotation];
+                elytraWings.push(wing);
+                createdElements.push(wing);
+            });
+        });
+        return {texture: texture, capes: capes, elytraWings: elytraWings};
+    }
+
+    function emoteActorOffset(actorIndex) {
+        const index = Math.floor(Number(actorIndex));
+        return index >= 1 && index <= EMOTE_ACTOR_OFFSETS.length
+            ? EMOTE_ACTOR_OFFSETS[index - 1]
+            : 0;
+    }
+
+    function createEmoteBoneGroup(parent, actorIndex, boneId, label, origin) {
+        const group = new Group({
+            name: actorIndex + ' ' + label,
+            origin: origin.slice(),
+            rotation: [0, 0, 0],
+            export: false
+        }).addTo(parent).init();
+        group.cosmiq_role = ROLES.PLAYER_BONE;
+        group.cosmiq_actor_index = actorIndex;
+        group.cosmiq_player_bone = boneId;
+        group.export = false;
+        return group;
+    }
+
+    function createEmoteActorRig(sceneRoot, actorIndex, texture, createdElements) {
+        const offsetX = emoteActorOffset(actorIndex);
+        const actorRoot = new Group({
+            name: actorIndex + ' Actor',
+            origin: [offsetX, 0, 0],
+            rotation: [0, 0, 0],
+            export: false
+        }).addTo(sceneRoot).init();
+        actorRoot.cosmiq_role = ROLES.EMOTE_ACTOR;
+        actorRoot.cosmiq_actor_index = actorIndex;
+        actorRoot.export = false;
+
+        const rootBone = createEmoteBoneGroup(
+            actorRoot, actorIndex, 'root', 'Root', [offsetX, 0, 0]
+        );
+        const body = createEmoteBoneGroup(
+            rootBone, actorIndex, 'body', 'Body', [offsetX, 24, 0]
+        );
+        const head = createEmoteBoneGroup(
+            body, actorIndex, 'head', 'Head', [offsetX, 24, 0]
+        );
+        const leftArm = createEmoteBoneGroup(
+            body, actorIndex, 'left_arm', 'Left Arm', [offsetX + 5, 22, 0]
+        );
+        const rightArm = createEmoteBoneGroup(
+            body, actorIndex, 'right_arm', 'Right Arm', [offsetX - 5, 22, 0]
+        );
+        const leftLeg = createEmoteBoneGroup(
+            rootBone, actorIndex, 'left_leg', 'Left Leg', [offsetX + 2, 12, 0]
+        );
+        const rightLeg = createEmoteBoneGroup(
+            rootBone, actorIndex, 'right_leg', 'Right Leg', [offsetX - 2, 12, 0]
+        );
+        const bones = {
+            root: rootBone,
+            body: body,
+            head: head,
+            left_arm: leftArm,
+            right_arm: rightArm,
+            left_leg: leftLeg,
+            right_leg: rightLeg
+        };
+        const partTargets = [
+            {partKey: 'head', boneId: 'head', label: 'Head'},
+            {partKey: 'torso', boneId: 'body', label: 'Body'},
+            {partKey: 'leftArm', boneId: 'left_arm', label: 'Left Arm'},
+            {partKey: 'rightArm', boneId: 'right_arm', label: 'Right Arm'},
+            {partKey: 'leftLeg', boneId: 'left_leg', label: 'Left Leg'},
+            {partKey: 'rightLeg', boneId: 'right_leg', label: 'Right Leg'}
+        ];
+        partTargets.forEach(function (target) {
+            createPlayerReferencePart(
+                bones[target.boneId],
+                texture,
+                'wide',
+                target.partKey,
+                createdElements,
+                {
+                    namePrefix: actorIndex + ' ',
+                    partLabel: target.label,
+                    offsetX: offsetX,
+                    actorIndex: actorIndex,
+                    semanticBone: target.boneId
+                }
+            );
+        });
+        return {
+            index: actorIndex,
+            offsetX: offsetX,
+            root: actorRoot,
+            rootBone: rootBone,
+            bones: bones
+        };
+    }
+
+    function createEmoteSceneHierarchy(actorCount, containsProps, options) {
+        const settings = options || {};
+        const createdElements = settings.createdElements || [];
+        const createdTextures = settings.createdTextures || [];
+        const count = Math.max(
+            EMOTE_ACTOR_MIN,
+            Math.min(EMOTE_ACTOR_MAX, Math.floor(Number(actorCount)) || EMOTE_ACTOR_MIN)
+        );
+        const sceneRoot = new Group({
+            name: 'Emote Scene',
+            origin: [0, 0, 0],
+            rotation: [0, 0, 0],
+            export: false
+        }).addTo('root').init();
+        sceneRoot.cosmiq_role = ROLES.EMOTE_SCENE;
+        sceneRoot.export = false;
+
+        const texture = referenceTexture(
+            'wide', settings.wideSkin || null, 'cosmiq_emote_wide_reference.png'
+        );
+        if (texture) {
+            createdTextures.push(texture);
+        }
+        const actors = [];
+        for (let actorIndex = 1; actorIndex <= count; actorIndex++) {
+            actors.push(createEmoteActorRig(sceneRoot, actorIndex, texture, createdElements));
+        }
+
+        let propsRoot = null;
+        if (containsProps === true) {
+            propsRoot = new Group({
+                name: 'Props',
+                origin: [0, 0, 0],
+                rotation: [0, 0, 0],
+                export: false
+            }).addTo(sceneRoot).init();
+            propsRoot.cosmiq_role = ROLES.PROPS_ROOT;
+            propsRoot.export = false;
+        }
+        return {
+            root: sceneRoot,
+            actors: actors,
+            propsRoot: propsRoot,
+            texture: texture
+        };
+    }
+
+    function addNeutralAnimationTrack(animation, target, lengthSeconds) {
+        const animator = animation.getBoneAnimator(target);
+        if (!animator) {
+            return;
+        }
+        animator.addKeyframe({
+            channel: 'rotation',
+            time: 0,
+            interpolation: 'linear',
+            data_points: [{x: 0, y: 0, z: 0}]
+        });
+        animator.addKeyframe({
+            channel: 'rotation',
+            time: lengthSeconds,
+            interpolation: 'linear',
+            data_points: [{x: 0, y: 0, z: 0}]
+        });
+    }
+
+    function createBoundAnimation(target, trigger, options) {
+        const prefix = trigger.kind === 'player_event' ? 'event.' : 'state.';
+        const animation = new Blockbench.Animation({
+            name: prefix + trigger.id,
+            loop: options.loop ? 'loop' : 'once',
+            length: options.lengthSeconds,
+            snapping: 20
+        }).add(false);
+        animation.cosmiq_clip_id = runtimeId(
+            normalizeProjectId(Project.cosmiq_project_id) || 'creator:untitled',
+            'animation',
+            animation.uuid
+        );
+        animation.cosmiq_trigger_kind = trigger.kind;
+        animation.cosmiq_trigger = trigger.id;
+        animation.cosmiq_transition_ms = options.transitionMs;
+        animation.cosmiq_priority = options.priority;
+        animation.cosmiq_fallback = options.fallback === true || trigger.id === 'idle';
+
+        if (target) {
+            addNeutralAnimationTrack(animation, target, options.lengthSeconds);
+        }
+        return animation;
+    }
+
+    function createEmptyStateAnimations() {
+        return TRIGGERS.filter(function (trigger) {
+            return trigger.kind === 'player_state' || trigger.id === 'attack' || trigger.id === 'hurt';
+        }).map(function (trigger) {
+            return createBoundAnimation(null, trigger, {
+                lengthSeconds: 2,
+                transitionMs: 150,
+                priority: 100,
+                fallback: trigger.id === 'idle',
+                loop: trigger.defaultLoop
+            });
+        });
+    }
+
+    function createEmptyEmoteAnimation(name, scope, actorIndex) {
+        const animation = new Blockbench.Animation({
+            name: name,
+            loop: 'once',
+            length: 2,
+            snapping: 20
+        }).add(false);
+        animation.cosmiq_clip_id = runtimeId(
+            normalizeProjectId(Project.cosmiq_project_id) || 'creator:untitled_emote',
+            'animation',
+            animation.uuid
+        );
+        animation.cosmiq_trigger_kind = 'none';
+        animation.cosmiq_trigger = '';
+        animation.cosmiq_transition_ms = 150;
+        animation.cosmiq_priority = 100;
+        animation.cosmiq_fallback = false;
+        animation.cosmiq_emote_scope = scope;
+        animation.cosmiq_emote_actor_index = scope === EMOTE_ANIMATION_SCOPES.ACTOR
+            ? Math.floor(Number(actorIndex))
+            : 0;
+        return animation;
+    }
+
+    function createEmptyEmoteAnimations(actorCount) {
+        const count = Math.max(
+            EMOTE_ACTOR_MIN,
+            Math.min(EMOTE_ACTOR_MAX, Math.floor(Number(actorCount)) || EMOTE_ACTOR_MIN)
+        );
+        const animations = [createEmptyEmoteAnimation(
+            'scene.main', EMOTE_ANIMATION_SCOPES.SCENE, 0
+        )];
+        for (let actorIndex = 1; actorIndex <= count; actorIndex++) {
+            animations.push(createEmptyEmoteAnimation(
+                'actor.' + actorIndex + '.main',
+                EMOTE_ANIMATION_SCOPES.ACTOR,
+                actorIndex
+            ));
+        }
+        return animations;
+    }
+
+    function createEmoteProject(value) {
+        const draft = mergeEmoteDraft(value);
+        return launchBaseTemplateCreation(PROJECT_KINDS.EMOTE, {
+            name: draft.creation_name,
+            visibleBody: 'wide',
+            rigProfile: draft.rig_profile
+        });
+    }
+
+    function createCapeTemplateProject() {
+        return startBaseTemplateProject(PROJECT_KINDS.CAPE, defaultCapeTemplateDraft());
+    }
+
+    function launchBaseTemplateCreation(kind, settings) {
+        if (activeDialog && typeof activeDialog.hide === 'function') activeDialog.hide();
+        startBaseTemplateProject(kind, settings).catch(function (error) {
+            Blockbench.showMessageBox({
+                title: 'Could Not Open Cosmiq Base Model',
+                message: error && error.message
+                    ? error.message
+                    : 'CosmiqPlayerTemplate.bbmodel could not be opened.',
+                buttons: ['OK']
+            });
+        });
+        return true;
+    }
+
+    function showCreatorTypeDialog() {
+        if (activeDialog) {
+            activeDialog.delete();
+        }
+        installCreatorStyles();
+        let selectorDialog = null;
+        selectorDialog = new Dialog('cosmiq_creation_type', {
+            title: 'New Cosmiq Creation',
+            width: 720,
+            buttons: ['Continue'],
+            confirmIndex: 0,
+            cancelIndex: -1,
+            component: creationTypeComponent(),
+            onConfirm: function () {
+                const choice = selectorDialog.content_vue && selectorDialog.content_vue.selected;
+                if (choice !== 'cosmetic' && choice !== 'emote') {
+                    Blockbench.showQuickMessage('Choose Accessories or Emotes to continue.');
+                    return false;
+                }
+                setTimeout(function () {
+                    if (choice === 'cosmetic') {
+                        showCreationNameDialog(PROJECT_KINDS.COSMETIC, defaultSimpleCosmeticDraft());
+                    } else {
+                        showCreationNameDialog(PROJECT_KINDS.EMOTE, defaultEmoteDraft());
+                    }
+                }, 0);
+                return true;
+            }
+        });
+        activeDialog = selectorDialog;
+        activeDialog.show();
+    }
+
+    function showCreationNameDialog(kind, value) {
+        if (activeDialog) activeDialog.delete();
+        installCreatorStyles();
+        const flowSteps = kind === PROJECT_KINDS.EMOTE
+            ? EMOTE_FLOW_STEPS
+            : kind === PROJECT_KINDS.CAPE ? CAPE_FLOW_STEPS : COSMETIC_FLOW_STEPS;
+        const draft = kind === PROJECT_KINDS.EMOTE
+            ? mergeEmoteDraft(value)
+            : kind === PROJECT_KINDS.CAPE
+                ? Object.assign(defaultCapeTemplateDraft(), value || {})
+                : mergeSimpleCosmeticDraft(value);
+        const category = creationCategoryLabel(kind);
+        const lines = [];
+        if (kind === PROJECT_KINDS.CAPE) {
+            lines.push(
+                '<div class="cosmiq-cape-coming-soon"><strong>[COMING SOON]</strong>' +
+                '<h2>Local Cape Authoring Only</h2>' +
+                '<p>You can name and create the .bbmodel, but export and upload remain disabled.</p></div>'
+            );
+        }
+        lines.push(wizardPageHeading(
+            flowSteps,
+            1,
+            'Name Your ' + category,
+            'The Blockbench project will open as “' + escapeHtml(draft.creation_name || 'Your Name') +
+                ' ' + category + '”.'
+        ));
+        activeDialog = new Dialog('cosmiq_creation_name', {
+            title: (kind === PROJECT_KINDS.CAPE ? '[COMING SOON] ' : '') + category + ' Name',
+            width: 620,
+            lines: lines,
+            form: {
+                creation_name: {
+                    label: category + ' Name',
+                    description: 'This becomes “{name} ' + category + '” in Blockbench.',
+                    type: 'text',
+                    value: draft.creation_name || '',
+                    placeholder: kind === PROJECT_KINDS.EMOTE
+                        ? 'Victory Dance'
+                        : kind === PROJECT_KINDS.CAPE ? 'Starlight' : 'Dragon Wings'
+                }
+            },
+            buttons: ['Back', 'Continue'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function (form) {
+                const rawName = String(form.creation_name == null ? '' : form.creation_name);
+                const name = normalizeCreationName(rawName);
+                if (!name || name.length > 64 || containsForbiddenControl(rawName, false)) {
+                    Blockbench.showQuickMessage('Enter a readable name from 1 through 64 characters.');
+                    return false;
+                }
+                const namedDraft = Object.assign({}, draft, {creation_name: name});
+                setTimeout(function () {
+                    if (kind === PROJECT_KINDS.EMOTE) {
+                        showEmoteRigDialog(namedDraft);
+                    } else if (kind === PROJECT_KINDS.CAPE) {
+                        showCapeResolutionDialog(namedDraft);
+                    } else {
+                        showCosmeticBodyDialog(namedDraft);
+                    }
+                }, 0);
+                return true;
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) setTimeout(showCreatorTypeDialog, 0);
+            }
+        });
+        activeDialog.show();
+    }
+
+    function showCosmeticBodyDialog(value) {
+        if (activeDialog) {
+            activeDialog.delete();
+        }
+        installCreatorStyles();
+        const draft = mergeSimpleCosmeticDraft(value);
+        let bodyDialog = null;
+        bodyDialog = new Dialog('cosmiq_cosmetic_body_type', {
+            title: 'Accessory Setup - Body Type',
+            width: 720,
+            buttons: ['Back', 'Start Creating'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            component: bodyTypeComponent(draft.initial_visible_variant),
+            onConfirm: function () {
+                const choice = bodyDialog.content_vue && bodyDialog.content_vue.selected;
+                if (choice !== 'wide' && choice !== 'slim') {
+                    Blockbench.showQuickMessage('Choose Wide or Slim to continue.');
+                    return false;
+                }
+                return launchBaseTemplateCreation(PROJECT_KINDS.COSMETIC, {
+                    name: draft.creation_name,
+                    visibleBody: choice
+                });
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () {
+                        showCreationNameDialog(PROJECT_KINDS.COSMETIC, draft);
+                    }, 0);
+                }
+            }
+        });
+        activeDialog = bodyDialog;
+        activeDialog.show();
+    }
+
+    function showEmoteRigDialog(value) {
+        if (activeDialog) activeDialog.delete();
+        installCreatorStyles();
+        const draft = mergeEmoteDraft(value);
+        let rigDialog = null;
+        rigDialog = new Dialog('cosmiq_emote_rig_type', {
+            title: 'Emote Setup - Body Type',
+            width: 720,
+            buttons: ['Back', 'Continue'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            component: emoteRigTypeComponent(draft.rig_profile),
+            onConfirm: function () {
+                const choice = rigDialog.content_vue && rigDialog.content_vue.selected;
+                if (choice !== EMOTE_RIG_PROFILES.SIMPLE && choice !== EMOTE_RIG_PROFILES.PRECISE) {
+                    Blockbench.showQuickMessage('Choose Simple or Precise to continue.');
+                    return false;
+                }
+                setTimeout(function () {
+                    showEmoteReviewDialog(Object.assign({}, draft, {rig_profile: choice}));
+                }, 0);
+                return true;
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () {
+                        showCreationNameDialog(PROJECT_KINDS.EMOTE, draft);
+                    }, 0);
+                }
+            }
+        });
+        activeDialog = rigDialog;
+        activeDialog.show();
+    }
+
+    function showEmoteReviewDialog(value) {
+        if (activeDialog) activeDialog.delete();
+        installCreatorStyles();
+        const draft = mergeEmoteDraft(value);
+        activeDialog = new Dialog('cosmiq_emote_review', {
+            title: 'Emote Setup - Review',
+            width: 620,
+            lines: [emoteCreationReviewMarkup(draft)],
+            buttons: ['Back', 'Start Creating'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function () {
+                return launchBaseTemplateCreation(PROJECT_KINDS.EMOTE, {
+                    name: draft.creation_name,
+                    visibleBody: 'wide',
+                    rigProfile: draft.rig_profile
+                });
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () {
+                        showEmoteRigDialog(draft);
+                    }, 0);
+                }
+            }
+        });
+        activeDialog.show();
+    }
+
+    function showCapeResolutionDialog(value) {
+        if (activeDialog) activeDialog.delete();
+        installCreatorStyles();
+        const draft = Object.assign(defaultCapeTemplateDraft(), value || {});
+        const resolutionOptions = {};
+        CAPE_RESOLUTIONS.forEach(function (resolution) {
+            resolutionOptions[resolution.id] = resolution.label;
+        });
+        activeDialog = new Dialog('cosmiq_cape_resolution', {
+            title: '[COMING SOON] Cape Setup',
+            width: 620,
+            lines: [
+                '<div class="cosmiq-cape-coming-soon"><strong>[COMING SOON]</strong>' +
+                    '<h2>Cape upload is not available yet.</h2>' +
+                    '<p>You can create and save this cape as a .bbmodel now. Runtime export and upload remain disabled.</p></div>',
+                wizardProgressMarkup(CAPE_FLOW_STEPS, 2)
+            ],
+            form: {
+                resolution: {
+                    label: 'Cape Resolution',
+                    description: 'All supported cape canvases use a 2:1 width-to-frame-height ratio.',
+                    type: 'select',
+                    value: capeResolutionFromId(draft.resolution).id,
+                    options: resolutionOptions
+                }
+            },
+            buttons: ['Back', 'Start Creating'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function (form) {
+                const resolution = capeResolutionFromId(form.resolution);
+                if (resolution.id !== form.resolution) {
+                    Blockbench.showQuickMessage('Choose a supported 2:1 cape resolution.');
+                    return false;
+                }
+                return launchBaseTemplateCreation(PROJECT_KINDS.CAPE, {
+                    name: draft.creation_name,
+                    resolution: resolution.id,
+                    visibleBody: 'wide'
+                });
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () {
+                        showCreationNameDialog(PROJECT_KINDS.CAPE, draft);
+                    }, 0);
+                }
+            }
+        });
+        activeDialog.show();
+    }
+
+    function showEmoteActorDialog(value) {
+        if (activeDialog) {
+            activeDialog.delete();
+        }
+        const draft = mergeEmoteDraft(value);
+        let actorDialog = null;
+        actorDialog = new Dialog('cosmiq_emote_actors', {
+            title: 'Emote Setup - Actors',
+            width: 620,
+            lines: [wizardPageHeading(
+                EMOTE_FLOW_STEPS,
+                1,
+                'How Many Actors?',
+                'Choose how many numbered Wide player rigs participate. One actor is selected by default.'
+            )],
+            form: {
+                actors: {
+                    label: 'Amount Of Actors',
+                    type: 'number',
+                    value: draft.actors,
+                    min: EMOTE_ACTOR_MIN,
+                    max: EMOTE_ACTOR_MAX,
+                    step: 1
+                }
+            },
+            buttons: ['Back', 'Continue'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function (form) {
+                const actors = Number(form.actors);
+                if (!Number.isInteger(actors) || actors < EMOTE_ACTOR_MIN || actors > EMOTE_ACTOR_MAX) {
+                    Blockbench.showQuickMessage(
+                        'Choose between ' + EMOTE_ACTOR_MIN + ' and ' + EMOTE_ACTOR_MAX + ' actors.'
+                    );
+                    return false;
+                }
+                setTimeout(function () {
+                    showEmotePropsDialog(mergeEmoteDraft(draft, {actors: actors}));
+                }, 0);
+                return true;
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(showCreatorTypeDialog, 0);
+                }
+            }
+        });
+        activeDialog = actorDialog;
+        activeDialog.show();
+    }
+
+    function showEmotePropsDialog(value) {
+        if (activeDialog) {
+            activeDialog.delete();
+        }
+        const draft = mergeEmoteDraft(value);
+        let propsDialog = null;
+        propsDialog = new Dialog('cosmiq_emote_props', {
+            title: 'Emote Setup - Props',
+            width: 720,
+            component: emoteBooleanComponent(
+                'Does The Emote Contain Props?',
+                'No is selected by default. Yes creates an empty Props folder; each direct child folder becomes one Object-Actor.',
+                draft.containsProps,
+                2
+            ),
+            buttons: ['Back', 'Continue'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function () {
+                const choice = propsDialog.content_vue && propsDialog.content_vue.selected;
+                if (choice !== 'yes' && choice !== 'no') {
+                    Blockbench.showQuickMessage('Choose Yes or No to continue.');
+                    return false;
+                }
+                setTimeout(function () {
+                    showEmoteTraversableDialog(mergeEmoteDraft(draft, {containsProps: choice === 'yes'}));
+                }, 0);
+                return true;
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () { showEmoteActorDialog(draft); }, 0);
+                }
+            }
+        });
+        activeDialog = propsDialog;
+        activeDialog.show();
+    }
+
+    function showEmoteTraversableDialog(value) {
+        if (activeDialog) {
+            activeDialog.delete();
+        }
+        const draft = mergeEmoteDraft(value);
+        let traversableDialog = null;
+        traversableDialog = new Dialog('cosmiq_emote_traversable', {
+            title: 'Emote Setup - Traversable',
+            width: 720,
+            component: emoteBooleanComponent(
+                'Is The Emote Traversable?',
+                'No is selected by default. Yes records visual movement-blend intent only; Minecraft remains authoritative for player movement.',
+                draft.traversable,
+                3
+            ),
+            buttons: ['Back', 'Continue'],
+            confirmIndex: 1,
+            cancelIndex: -1,
+            onConfirm: function () {
+                const choice = traversableDialog.content_vue && traversableDialog.content_vue.selected;
+                if (choice !== 'yes' && choice !== 'no') {
+                    Blockbench.showQuickMessage('Choose Yes or No to continue.');
+                    return false;
+                }
+                return createEmoteProject(mergeEmoteDraft(draft, {traversable: choice === 'yes'}));
+            },
+            onButton: function (buttonIndex) {
+                if (buttonIndex === 0) {
+                    setTimeout(function () { showEmotePropsDialog(draft); }, 0);
+                }
+            }
+        });
+        activeDialog = traversableDialog;
+        activeDialog.show();
+    }
+
+    function armWidthBranchSummary(inspection) {
+        const variants = Object.keys(inspection.authoredVariants).filter(function (variant) {
+            return inspection.authoredVariants[variant];
+        });
+        const anchors = inspection.anchorIds.map(function (anchorId) {
+            return anchorById[anchorId] ? anchorById[anchorId].label : anchorId;
+        });
+        return 'Detected ' + (anchors.join(' and ') || 'arm') + ' geometry in ' +
+            (variants.join(' and ') || 'universal') + ' authoring geometry.';
+    }
+
+    function showArmWidthModeDialog(onConfigured) {
+        if (!isCosmiqCosmeticProject()) return false;
+        const inspection = inspectArmWidthGeometry(liveSnapshot());
+        if (!inspection.hasArmGeometry) return false;
+        activeDialog = new Dialog('cosmiq_arm_width_mode', {
+            title: 'Does This Accessory Depend on Arm Width?',
+            width: 650,
+            lines: [
+                '<p>' + escapeHtml(armWidthBranchSummary(inspection)) + '</p>',
+                '<p><strong>No</strong> exports one authored model as universal so it appears on both ' +
+                    'Wide and Slim players. <strong>Yes</strong> preserves separate Wide and Slim models.</p>'
+            ],
+            form: {
+                arm_width_mode: {
+                    label: 'Arm Width Fit',
+                    type: 'select',
+                    options: {
+                        unconfigured: 'Choose an answer',
+                        shared: 'No - use the same model for Wide and Slim',
+                        dependent: 'Yes - use separate Wide and Slim models'
+                    },
+                    value: inspection.configuredMode
+                }
+            },
+            buttons: ['Save & Continue', 'Cancel'],
+            confirmIndex: 0,
+            cancelIndex: 1,
+            onConfirm: function (form) {
+                const selectedMode = normalizeArmWidthMode(form.arm_width_mode);
+                if (selectedMode === ARM_WIDTH_MODES.UNCONFIGURED) {
+                    Blockbench.showQuickMessage('Choose Yes or No to continue.');
+                    return false;
+                }
+                Project.cosmiq_arm_width_mode = selectedMode;
+                refreshMetadata(true);
+                if (typeof onConfigured === 'function') {
+                    setTimeout(onConfigured, 0);
+                }
+                return true;
+            }
+        });
+        activeDialog.show();
+        return true;
+    }
+
+    function emoteActorOptions() {
+        const count = Math.max(
+            EMOTE_ACTOR_MIN,
+            Math.min(
+                EMOTE_ACTOR_MAX,
+                Math.floor(Number(Project.cosmiq_emote_actor_count)) || EMOTE_ACTOR_MIN
+            )
+        );
+        const options = {};
+        for (let actorIndex = 1; actorIndex <= count; actorIndex++) {
+            options[String(actorIndex)] = 'Actor ' + actorIndex;
+        }
+        return options;
+    }
+
+    function emoteAnimationScopeOptions() {
+        return {
+            scene: 'Combined Scene - all actors and Object-Actors',
+            actor: 'Individual Actor - one numbered player role'
+        };
+    }
+
+    function showAddEmoteAnimationDialog() {
+        activeDialog = new Dialog('cosmiq_add_emote_animation', {
+            title: 'Add Emote Animation',
+            width: 560,
+            form: {
+                animation_name: {
+                    label: 'Animation Name',
+                    description: 'A readable editor label. Scope and actor identity are stored separately.',
+                    type: 'text',
+                    value: 'scene.extra'
+                },
+                scope: {
+                    label: 'Animation Scope',
+                    type: 'select',
+                    value: EMOTE_ANIMATION_SCOPES.SCENE,
+                    options: emoteAnimationScopeOptions()
+                },
+                actor_index: {
+                    label: 'Actor Number',
+                    description: 'Used only when Animation Scope is Individual Actor.',
+                    type: 'select',
+                    value: '1',
+                    options: emoteActorOptions()
+                },
+                length_seconds: {
+                    label: 'Duration (seconds)',
+                    type: 'number',
+                    value: 2,
+                    min: 0.05,
+                    max: LIMITS.animationSeconds,
+                    step: 0.05
+                },
+                loop: {
+                    label: 'Loop Clip',
+                    type: 'checkbox',
+                    value: false
+                }
+            },
+            onConfirm: function (form) {
+                const rawName = String(form.animation_name == null ? '' : form.animation_name);
+                const name = normalizeEmoteDraftName(rawName);
+                const scope = form.scope;
+                const actorIndex = Number(form.actor_index);
+                const lengthSeconds = Number(form.length_seconds);
+                if (!name || name.length > 64 || containsForbiddenControl(rawName, false)) {
+                    Blockbench.showQuickMessage('Enter a readable animation name up to 64 characters.');
+                    return false;
+                }
+                if (scope !== EMOTE_ANIMATION_SCOPES.SCENE && scope !== EMOTE_ANIMATION_SCOPES.ACTOR) {
+                    Blockbench.showQuickMessage('Choose Combined Scene or Individual Actor.');
+                    return false;
+                }
+                if (scope === EMOTE_ANIMATION_SCOPES.ACTOR &&
+                    (!Number.isInteger(actorIndex) || !emoteActorOptions()[String(actorIndex)])) {
+                    Blockbench.showQuickMessage('Choose a valid actor number for this project.');
+                    return false;
+                }
+                if (!Number.isFinite(lengthSeconds) || lengthSeconds < 0.05 ||
+                    lengthSeconds > LIMITS.animationSeconds) {
+                    Blockbench.showQuickMessage(
+                        'Animation duration must be from 0.05 through ' + LIMITS.animationSeconds + ' seconds.'
+                    );
+                    return false;
+                }
+                Undo.initEdit({animations: []});
+                const animation = createEmptyEmoteAnimation(name, scope, actorIndex);
+                animation.length = lengthSeconds;
+                animation.loop = form.loop === true ? 'loop' : 'once';
+                Undo.finishEdit('Add Cosmiq emote animation', {animations: [animation]});
+                animation.select();
+                refreshMetadata(true);
+                activeDialog.hide();
+                Blockbench.showQuickMessage('Added empty ' + name + ' animation lane.');
+                return true;
+            }
+        });
+        activeDialog.show();
+    }
+
+    function showConfigureEmoteAnimationDialog() {
+        const animation = selectedAnimation();
+        if (!animation) {
+            Blockbench.showQuickMessage('Select an animation first.');
+            return;
+        }
+        const savedScope = animation.cosmiq_emote_scope === EMOTE_ANIMATION_SCOPES.ACTOR
+            ? EMOTE_ANIMATION_SCOPES.ACTOR
+            : EMOTE_ANIMATION_SCOPES.SCENE;
+        const savedActorIndex = emoteActorOptions()[String(animation.cosmiq_emote_actor_index)]
+            ? String(animation.cosmiq_emote_actor_index)
+            : '1';
+        activeDialog = new Dialog('cosmiq_configure_emote_animation', {
+            title: 'Configure Emote Animation',
+            width: 560,
+            form: {
+                animation_name: {
+                    label: 'Animation Name',
+                    description: 'Renaming does not change the stable clip identity.',
+                    type: 'text',
+                    value: animation.name || 'emote.animation'
+                },
+                scope: {
+                    label: 'Animation Scope',
+                    type: 'select',
+                    value: savedScope,
+                    options: emoteAnimationScopeOptions()
+                },
+                actor_index: {
+                    label: 'Actor Number',
+                    description: 'Used only when Animation Scope is Individual Actor.',
+                    type: 'select',
+                    value: savedActorIndex,
+                    options: emoteActorOptions()
+                }
+            },
+            onConfirm: function (form) {
+                const rawName = String(form.animation_name == null ? '' : form.animation_name);
+                const name = normalizeEmoteDraftName(rawName);
+                const scope = form.scope;
+                const actorIndex = Number(form.actor_index);
+                if (!name || name.length > 64 || containsForbiddenControl(rawName, false)) {
+                    Blockbench.showQuickMessage('Enter a readable animation name up to 64 characters.');
+                    return false;
+                }
+                if (scope !== EMOTE_ANIMATION_SCOPES.SCENE && scope !== EMOTE_ANIMATION_SCOPES.ACTOR) {
+                    Blockbench.showQuickMessage('Choose Combined Scene or Individual Actor.');
+                    return false;
+                }
+                if (scope === EMOTE_ANIMATION_SCOPES.ACTOR &&
+                    (!Number.isInteger(actorIndex) || !emoteActorOptions()[String(actorIndex)])) {
+                    Blockbench.showQuickMessage('Choose a valid actor number for this project.');
+                    return false;
+                }
+                Undo.initEdit({animations: [animation]});
+                animation.name = name;
+                animation.cosmiq_clip_id = animation.cosmiq_clip_id || runtimeId(
+                    normalizeProjectId(Project.cosmiq_project_id) || 'creator:untitled_emote',
+                    'animation',
+                    animation.uuid
+                );
+                animation.cosmiq_trigger_kind = 'none';
+                animation.cosmiq_trigger = '';
+                animation.cosmiq_emote_scope = scope;
+                animation.cosmiq_emote_actor_index = scope === EMOTE_ANIMATION_SCOPES.ACTOR
+                    ? actorIndex
+                    : 0;
+                Undo.finishEdit('Configure Cosmiq emote animation', {animations: [animation]});
+                refreshMetadata(true);
+                activeDialog.hide();
+                Blockbench.showQuickMessage('Saved ' + name + ' as a ' +
+                    (scope === EMOTE_ANIMATION_SCOPES.SCENE ? 'combined Scene' : 'numbered Actor') + ' clip.');
+                return true;
+            }
+        });
+        activeDialog.show();
+    }
+
+    function moveSelectionToAnchorDialog() {
+        const nodes = selectedOutlinerNodes();
+        if (nodes.length === 0) {
+            Blockbench.showQuickMessage('Select one or more cosmetic groups, cubes, or meshes first.');
+            return;
+        }
+        if (nodes.some(function (node) {
+            const role = node.cosmiq_role || ROLES.NONE;
+            return role === ROLES.EXPORT_ROOT || role === ROLES.MODEL_VARIANT || role === ROLES.STRUCTURE ||
+                role === ROLES.ANCHOR || role === ROLES.REFERENCE_ROOT ||
+                role === ROLES.REFERENCE || role === ROLES.PARTICLE_MARKER ||
+                TEMPLATE_ATTACHMENT_POINTS.some(function (point) { return point.modelGroup === node.name; });
+        })) {
+            Blockbench.showQuickMessage(
+                'Reserved Cosmiq attachment, reference, and marker nodes cannot be moved this way.'
+            );
+            return;
+        }
+        activeDialog = new Dialog('cosmiq_move_to_anchor', {
+            title: 'Move Cosmetic To Player Anchor',
+            width: 480,
+            form: {
+                model_variant: {
+                    label: 'Cosmetic Model Type',
+                    type: 'select',
+                    value: 'wide',
+                    options: {wide: 'Wide', slim: 'Slim'}
+                },
+                anchor: {
+                    label: 'Player Anchor Parent',
+                    type: 'select',
+                    value: 'cosmiq:player/torso',
+                    options: anchorOptions()
+                }
+            },
+            onConfirm: function (form) {
+                const attachmentPoint = TEMPLATE_ATTACHMENT_POINTS.find(function (point) {
+                    return point.anchorId === form.anchor && (
+                        point.modelVariant === 'universal' || point.modelVariant === form.model_variant
+                    );
+                });
+                const attachmentGroup = attachmentPoint && Group.all.find(function (group) {
+                    return group.name === attachmentPoint.modelGroup &&
+                        group.cosmiq_role === ROLES.AUTHORING;
+                });
+                if (!attachmentGroup) {
+                    Blockbench.showQuickMessage('That [Model bodypart] attachment group is missing.');
+                    return false;
+                }
+                Undo.initEdit({outliner: true});
+                nodes.forEach(function (node) {
+                    node.addTo(attachmentGroup);
+                });
+                Undo.finishEdit('Move accessory to Cosmiq attachment group', {outliner: true});
+                refreshMetadata(true);
+                activeDialog.hide();
+                Blockbench.showQuickMessage(
+                    'Moved selection beneath ' + attachmentPoint.modelGroup + ' (' + attachmentPoint.label + ').'
+                );
+                return true;
+            }
+        });
+        activeDialog.show();
+    }
+
+    function applyLegacyPlayerAnchorNormalization() {
+        const changes = legacyAnchorNormalizationPlan(collectLiveNodes());
+        const byUuid = Object.create(null);
+        (typeof Group !== 'undefined' && Array.isArray(Group.all) ? Group.all : []).forEach(function (group) {
+            byUuid[group.uuid] = group;
+        });
+        const applied = [];
+        changes.forEach(function (change) {
+            const group = byUuid[change.uuid];
+            if (!group) return;
+            group.cosmiq_role = ROLES.ANCHOR;
+            group.cosmiq_anchor = change.anchorId;
+            group.origin = change.origin.slice();
+            applied.push(change);
+        });
+        if (applied.length > 0 && typeof Canvas !== 'undefined' && typeof Canvas.updateAll === 'function') {
+            Canvas.updateAll();
+        }
+        return applied;
+    }
+
+    function normalizeLegacyPlayerAnchorsAction() {
+        const changes = legacyAnchorNormalizationPlan(collectLiveNodes());
+        if (changes.length === 0) {
+            Blockbench.showQuickMessage('All player anchors already match the Cosmiq V3 rest pose.');
+            return [];
+        }
+        Undo.initEdit({outliner: true});
+        const applied = applyLegacyPlayerAnchorNormalization();
+        Undo.finishEdit('Normalize legacy Cosmiq player anchors', {outliner: true});
+        refreshMetadata(true);
+        Blockbench.showQuickMessage(
+            'Normalized ' + applied.length + ' player anchor' + (applied.length === 1 ? '' : 's') +
+                ' to the Cosmiq V3 rest pose.'
+        );
+        return applied;
+    }
+
+
+    function issueSummary(result) {
+        const errors = result.issues.filter(function (issue) { return issue.severity === 'error'; });
+        const warnings = result.issues.filter(function (issue) { return issue.severity === 'warning'; });
+        const info = result.issues.filter(function (issue) { return issue.severity === 'info'; });
+        const lines = [
+            errors.length + ' error(s), ' + warnings.length + ' warning(s), ' + info.length + ' information message(s).'
+        ];
+        result.issues.slice(0, 24).forEach(function (issue) {
+            lines.push('[' + issue.severity.toUpperCase() + '] ' + issue.code + ': ' + issue.message);
+        });
+        if (result.issues.length > 24) {
+            lines.push('...and ' + (result.issues.length - 24) + ' more issue(s).');
+        }
+        if (result.issues.length === 0) {
+            lines.push('Cosmiq source metadata is internally consistent. Runtime conversion still validates independently.');
+        }
+        return lines.join('\n');
+    }
+
+    function showExportBlocked(title, issues) {
+        Blockbench.showMessageBox({
+            title: title,
+            message: issueSummary({issues: issues}),
+            buttons: ['OK']
+        });
+    }
+
+    function packageFileName(category) {
+        const safeName = String(category || 'cosmiq')
+            .trim()
+            .replace(/[<>:"/\\|?*\u0000-\u001f]+/g, '_')
+            .replace(/[. ]+$/g, '') || 'cosmiq';
+        return safeName;
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function packageSnapshot(snapshot) {
+        const source = snapshot || {};
+        const project = source.project || {};
+        return Object.assign({}, snapshot, {
+            project: Object.assign({}, project),
+            animations: animationsWithPackageContent(source.animations, project.timelineCues)
+        });
+    }
+
+    function uniqueIssues(issues) {
+        const seen = Object.create(null);
+        return (Array.isArray(issues) ? issues : []).filter(function (issue) {
+            if (!issue) return false;
+            const key = [issue.severity, issue.code, issue.message, issue.sourceUuid || ''].join('|');
+            if (seen[key]) return false;
+            seen[key] = true;
+            return true;
+        });
+    }
+
+    function unsupportedCreatorInputs(root) {
+        const entries = [];
+        const issues = [];
+        const seenEntries = Object.create(null);
+        const seenObjects = new Set();
+        const pending = [{value: root, location: 'project'}];
+        function report(type, location, blocking) {
+            const safeLocation = boundedCreatorString(location, 160);
+            const key = type + '|' + safeLocation;
+            if (seenEntries[key] || entries.length >= 64) return;
+            seenEntries[key] = true;
+            entries.push({type: type, location: safeLocation, bundled: false, blocking: blocking !== false});
+            if (blocking === false) return;
+            issues.push(makeIssue(
+                'error',
+                'COSMIQ_PACKAGE_UNSUPPORTED_' + type.toUpperCase(),
+                type.replace(/_/g, ' ') + ' input at ' + safeLocation + ' cannot be bundled in a creator package.'
+            ));
+        }
+        while (pending.length > 0 && entries.length < 64) {
+            const current = pending.pop();
+            const value = current.value;
+            if (!value || typeof value !== 'object' || seenObjects.has(value)) continue;
+            seenObjects.add(value);
+            Object.keys(value).forEach(function (key) {
+                const child = value[key];
+                const location = current.location + '.' + key;
+                const normalizedKey = key.toLowerCase();
+                if (PATH_FIELD_NAMES.indexOf(normalizedKey) !== -1 && child != null && child !== '') {
+                    const isEmbeddedPngTexturePath = /(?:^|\.)textures\.\d+\.(?:path|relative_path|source_path)$/i.test(location) &&
+                        isEmbeddedPngDataUri(value.source);
+                    const isRootProjectEditorPath = /^project\.(?:bbmodel\.)?(?:path|relative_path|source_path|save_path)$/i.test(location);
+                    if (isEmbeddedPngTexturePath || isRootProjectEditorPath) {
+                        report('editor_path_excluded', location, false);
+                    } else {
+                        report('filesystem_path', location, true);
+                    }
+                    if (/\.(?:ogg|wav|mp3|m4a|flac)$/i.test(String(child))) report('raw_audio', location, true);
+                    if (/\.gif$/i.test(String(child))) report('gif', location, true);
+                }
+                if (typeof child === 'string') {
+                    if (/^data:image\/gif/i.test(child) || /\.gif(?:$|[?#])/i.test(child)) report('gif', location, true);
+                    const canonicalEmbeddedOgg = /\.embeddedOgg$/i.test(location) &&
+                        /^data:audio\/ogg;base64,[A-Za-z0-9+/]*={0,2}$/.test(child);
+                    if (!canonicalEmbeddedOgg && (
+                        /^data:audio\//i.test(child) || /\.(?:ogg|wav|mp3|m4a|flac)(?:$|[?#])/i.test(child)
+                    )) {
+                        report('raw_audio', location, true);
+                    }
+                    if (/^(?:https?:|file:|blob:)/i.test(child)) report('remote_url', location, true);
+                } else if (child && typeof child === 'object') {
+                    pending.push({value: child, location: location});
+                }
+            });
+        }
+        return {entries: entries, issues: issues};
+    }
+
+    function buildExportInventory(snapshot, manifest, bbmodel, sourceResult, issues, rawProject) {
+        const source = snapshot || {};
+        const project = source.project || {};
+        const metadata = bbmodel && bbmodel.cosmiq && typeof bbmodel.cosmiq === 'object'
+            ? bbmodel.cosmiq
+            : ((sourceResult && sourceResult.metadata) || {});
+        const packagedAnimations = Array.isArray(bbmodel && bbmodel.animations) ? bbmodel.animations : [];
+        const snapshotAnimations = Array.isArray(source.animations) ? source.animations : [];
+        const packagedIds = Object.create(null);
+        const snapshotById = Object.create(null);
+        snapshotAnimations.forEach(function (animation) {
+            if (animation && animation.uuid) snapshotById[animation.uuid] = animation;
+        });
+        packagedAnimations.forEach(function (animation) {
+            if (animation && animation.uuid) packagedIds[animation.uuid] = true;
+        });
+        const bindingMap = metadata.animationBindings && typeof metadata.animationBindings === 'object'
+            ? metadata.animationBindings
+            : {};
+        const animations = packagedAnimations.map(function (animation) {
+            const snapshotAnimation = snapshotById[animation.uuid] || {};
+            const binding = bindingMap[animation.uuid] || {};
+            const markers = collectTimelineMarkers(animation.markers || binding.markers);
+            const lengthSeconds = numberOrDefault(
+                snapshotAnimation.lengthSeconds,
+                numberOrDefault(animation.length, numberOrDefault(binding.durationMs, 0) / 1000)
+            );
+            return {
+                uuid: animation.uuid || '',
+                name: animation.name || binding.sourceName || snapshotAnimation.name || 'Unnamed animation',
+                scope: binding.scope || snapshotAnimation.emoteScope || null,
+                actorIndex: binding.actorIndex == null ? null : binding.actorIndex,
+                durationMs: Math.max(0, Math.round(lengthSeconds * 1000)),
+                keyframeCount: animationKeyframeCount(animation),
+                markers: markers
+            };
+        });
+        const markers = [];
+        animations.forEach(function (animation) {
+            animation.markers.forEach(function (marker) {
+                markers.push(Object.assign({
+                    animationUuid: animation.uuid,
+                    animationName: animation.name
+                }, marker));
+            });
+        });
+
+        const nodeBindings = metadata.nodeBindings && typeof metadata.nodeBindings === 'object'
+            ? metadata.nodeBindings
+            : {};
+        const cosmeticNodes = [];
+        const playerBones = [];
+        const objectActorNodes = [];
+        Object.keys(nodeBindings).forEach(function (uuid) {
+            const binding = nodeBindings[uuid] || {};
+            const item = {
+                uuid: uuid,
+                name: binding.sourceName || uuid,
+                role: binding.role || '',
+                modelVariant: binding.modelVariant || '',
+                hasGeometry: binding.hasGeometry === true,
+                actorIndex: binding.actorIndex == null ? null : binding.actorIndex
+            };
+            if (manifest && (manifest.assetKind === 'accessory' || manifest.assetKind === 'cape')) {
+                cosmeticNodes.push(item);
+            }
+            if (binding.role === ROLES.PLAYER_BONE) playerBones.push(item);
+            if (binding.role === ROLES.OBJECT_ACTOR_NODE) objectActorNodes.push(item);
+        });
+        const geometryObjects = (Array.isArray(source.nodes) ? source.nodes : []).filter(function (node) {
+            return node && node.export !== false && (node.type === 'cube' || node.type === 'mesh') &&
+                node.role !== ROLES.REFERENCE && node.role !== ROLES.PARTICLE_EFFECT_LOCATOR &&
+                node.role !== ROLES.SOUND_EFFECT_LOCATOR;
+        }).map(function (node) {
+            return {
+                uuid: node.uuid || '',
+                name: node.name || node.uuid || 'Geometry',
+                type: node.type,
+                role: node.role || '',
+                actorIndex: Number(node.actorIndex) || null,
+                modelVariant: node.modelVariant || ''
+            };
+        });
+
+        const textureRoleById = Object.create(null);
+        (Array.isArray(source.textures) ? source.textures : []).forEach(function (texture) {
+            if (texture && texture.uuid) textureRoleById[texture.uuid] = texture.role;
+        });
+        const runtimePngs = [];
+        const referencePngs = [];
+        (Array.isArray(bbmodel && bbmodel.textures) ? bbmodel.textures : []).forEach(function (texture) {
+            const record = {
+                uuid: texture && texture.uuid || '',
+                name: texture && texture.name || 'texture.png',
+                embeddedPng: !!(texture && isEmbeddedPngDataUri(texture.source)),
+                bundled: true
+            };
+            const role = texture && (texture.cosmiq_role || texture.role) || textureRoleById[record.uuid];
+            (role === ROLES.REFERENCE ? referencePngs : runtimePngs).push(record);
+        });
+
+        const resources = Array.isArray(metadata.resourceReferences) ? metadata.resourceReferences.slice() : [];
+        const cues = Array.isArray(metadata.timelineCues) ? metadata.timelineCues.slice() : [];
+        const particleResources = resources.filter(function (resource) {
+            return isParticleResource(resource);
+        });
+        const soundResources = resources.filter(function (resource) {
+            return resource && resource.type === RESOURCE_TYPES.SOUND;
+        });
+        const particleCues = cues.filter(function (cue) { return cue && cue.type === CUE_TYPES.PARTICLE; });
+        const soundCues = cues.filter(function (cue) { return cue && cue.type === CUE_TYPES.SOUND; });
+        const comments = cues.filter(function (cue) { return cue && cue.type === CUE_TYPES.COMMENT; });
+        const effectLocators = Object.keys(metadata.effectLocatorBindings || {}).map(function (uuid) {
+            return Object.assign({uuid: uuid}, metadata.effectLocatorBindings[uuid]);
+        });
+        const unresolved = resources.filter(function (resource) {
+            return !resource ||
+                (resource.type === RESOURCE_TYPES.SOUND
+                    ? !resource.embeddedOgg
+                    : !isParticleResource(resource));
+        }).map(function (resource) {
+            return {
+                type: 'resource',
+                id: resource && resource.id || '',
+                name: resource && resource.displayName || 'Unnamed resource',
+                reason: resource && resource.type === RESOURCE_TYPES.SOUND
+                    ? 'embedded Ogg Vorbis data is missing'
+                    : 'resource declaration is incomplete'
+            };
+        });
+        cues.forEach(function (cue) {
+            if (cue && cue.atMs == null) {
+                unresolved.push({
+                    type: 'cue',
+                    id: cue.id || '',
+                    name: cue.markerName || cue.id || 'Unnamed cue',
+                    reason: 'marker timestamp unresolved'
+                });
+            }
+        });
+        const inputResult = unsupportedCreatorInputs(rawProject || {});
+        const inputEntries = inputResult.entries;
+        const unsupported = inputEntries.filter(function (entry) { return entry.blocking !== false; });
+        const excludedInputs = inputEntries.filter(function (entry) { return entry.blocking === false; });
+        const actors = Array.isArray(metadata.actors) ? metadata.actors.slice() : [];
+        const objectActors = metadata.props && Array.isArray(metadata.props.objectActors)
+            ? metadata.props.objectActors.slice()
+            : [];
+        const omittedAnimations = snapshotAnimations.filter(function (animation) {
+            return animation && !packagedIds[animation.uuid];
+        }).map(function (animation) {
+            return {
+                uuid: animation.uuid || '',
+                name: animation.name || 'Unnamed animation',
+                reason: 'empty: no keyframes'
+            };
+        });
+        const wideNodes = cosmeticNodes.filter(function (node) { return node.modelVariant === 'wide'; });
+        const slimNodes = cosmeticNodes.filter(function (node) { return node.modelVariant === 'slim'; });
+        const universalNodes = cosmeticNodes.filter(function (node) {
+            return node.modelVariant !== 'wide' && node.modelVariant !== 'slim';
+        });
+        return {
+            kind: manifest && manifest.assetKind || project.kind || PROJECT_KINDS.COSMETIC,
+            draft: false,
+            runtimeExportReady: true,
+            cosmeticNodes: cosmeticNodes,
+            wideNodes: wideNodes,
+            slimNodes: slimNodes,
+            universalNodes: universalNodes,
+            actors: actors,
+            playerBones: playerBones,
+            objectActors: objectActors,
+            objectActorNodes: objectActorNodes,
+            geometryObjects: geometryObjects,
+            runtimePngs: runtimePngs,
+            referencePngs: referencePngs,
+            animations: animations,
+            markers: markers,
+            particleResources: particleResources,
+            soundResources: soundResources,
+            particleCues: particleCues,
+            soundCues: soundCues,
+            comments: comments,
+            effectLocators: effectLocators,
+            unresolved: unresolved,
+            unsupported: unsupported,
+            excludedInputs: excludedInputs,
+            unsupportedMedia: Array.isArray(metadata.unsupportedMedia) ? metadata.unsupportedMedia.slice() : [],
+            omittedAnimations: omittedAnimations,
+            issues: uniqueIssues((Array.isArray(issues) ? issues : []).concat(inputResult.issues)),
+            counts: {
+                geometryObjects: geometryObjects.length,
+                runtimePngs: runtimePngs.length,
+                referencePngs: referencePngs.length,
+                animations: animations.length,
+                markers: markers.length,
+                particleCues: particleCues.length,
+                soundCues: soundCues.length,
+                comments: comments.length
+            }
+        };
+    }
+
+    function buildCreatorExportCandidate(snapshot, rawProject) {
+        const packagedSnapshot = packageSnapshot(snapshot || {});
+        const requestedKind = packagedSnapshot.project && packagedSnapshot.project.kind;
+        const kind = requestedKind;
+        const validKind = [
+            PROJECT_KINDS.COSMETIC,
+            PROJECT_KINDS.EMOTE,
+            PROJECT_KINDS.CAPE
+        ].indexOf(kind) !== -1;
+        const sourceResult = !validKind
+            ? {
+                metadata: {},
+                issues: [makeIssue(
+                    'error',
+                    'COSMIQ_PACKAGE_KIND',
+                    'Project kind must be explicitly cosmetic, cape, or emote.'
+                )]
+            }
+            : kind === PROJECT_KINDS.EMOTE
+                ? buildEmoteSourceMetadata(packagedSnapshot)
+                : kind === PROJECT_KINDS.CAPE
+                    ? buildCapeSourceMetadata(packagedSnapshot)
+                    : buildSourceMetadata(packagedSnapshot);
+        const rawInput = rawProject && typeof rawProject === 'object' ? rawProject : null;
+        const preparationIssues = [];
+        let editableProject = null;
+        if (!rawInput) {
+            preparationIssues.push(makeIssue(
+                'error',
+                'COSMIQ_PACKAGE_BBMODEL_TYPE',
+                'Blockbench did not provide an editable project to normalize.'
+            ));
+        } else {
+            try {
+                editableProject = JSON.parse(JSON.stringify(rawInput));
+                editableProject.cosmiq = JSON.parse(JSON.stringify(sourceResult.metadata));
+                normalizePackagedNodeVisibility(
+                    editableProject,
+                    sourceResult.metadata.nodeBindings
+                );
+            } catch (error) {
+                preparationIssues.push(makeIssue(
+                    'error',
+                    'COSMIQ_PACKAGE_BBMODEL_JSON',
+                    'Blockbench could not serialize the editable project.'
+                ));
+            }
+        }
+        let packageIssues = uniqueIssues([].concat(sourceResult.issues || []).concat(preparationIssues));
+        if (kind === PROJECT_KINDS.CAPE) {
+            packageIssues = uniqueIssues(packageIssues.concat([makeIssue(
+                'error',
+                'COSMIQ_CAPE_COMING_SOON',
+                '[COMING SOON] Cape .bbmodel package export and upload are not available yet. ' +
+                    'You can keep authoring and save the .bbmodel locally.'
+            )]));
+        }
+        let compiled = null;
+        let packageContent = null;
+        if (editableProject && !packageIssues.some(function (issue) { return issue.severity === 'error'; })) {
+            try {
+                packageContent = encodeCosmiqBbmodel(editableProject);
+            } catch (error) {
+                packageIssues.push(makeIssue(
+                    'error',
+                    error && error.code ? error.code : 'COSMIQ_PACKAGE_ENCODE',
+                    error && error.message ? error.message : 'Exact V3 .bbmodel validation failed.'
+                ));
+            }
+            try {
+                compiled = compileBlockbenchCosmiqPackage(packagedSnapshot, editableProject);
+            } catch (error) {
+                packageIssues.push(makeIssue(
+                    'info',
+                    'COSMIQ_LEGACY_REVIEW_PROJECTION',
+                    'The retired V2 review projection could not be generated and was ignored: ' +
+                        (error && error.message ? error.message : 'unknown projection error')
+                ));
+            }
+            packageIssues = uniqueIssues(packageIssues);
+        }
+        const manifest = compiled ? compiled.manifest : cosmiqBaseManifest(
+            kind === PROJECT_KINDS.CAPE || kind === PROJECT_KINDS.EMOTE ? kind : 'accessory'
+        );
+        const inventory = buildExportInventory(
+            packagedSnapshot,
+            manifest,
+            editableProject,
+            sourceResult,
+            packageIssues,
+            {snapshot: snapshot, bbmodel: rawInput}
+        );
+        return {
+            kind: kind,
+            assetKind: manifest.assetKind,
+            draft: false,
+            runtimeExportReady: kind !== PROJECT_KINDS.CAPE,
+            filename: packageFileName(manifest.assetKind),
+            manifest: manifest,
+            bbmodel: editableProject,
+            snapshot: packagedSnapshot,
+            sourceResult: sourceResult,
+            inventory: inventory,
+            issues: packageIssues,
+            content: packageContent
+        };
+    }
+
+    function cosmeticExportSummary(snapshot) {
+        const packaged = packageSnapshot(snapshot);
+        const sourceResult = buildSourceMetadata(packaged);
+        const bindings = sourceResult.metadata.nodeBindings || {};
+        const geometry = {wide: 0, slim: 0};
+        Object.keys(bindings).forEach(function (uuid) {
+            const binding = bindings[uuid];
+            if (binding && binding.hasGeometry && (binding.modelVariant === 'wide' || binding.modelVariant === 'slim')) {
+                geometry[binding.modelVariant]++;
+            }
+        });
+        return {
+            snapshot: packaged,
+            sourceResult: sourceResult,
+            wideGeometry: geometry.wide,
+            slimGeometry: geometry.slim,
+            animations: packaged.animations.map(function (animation) {
+                return {
+                    uuid: animation.uuid,
+                    name: animation.name,
+                    keyframeCount: animationKeyframeCount(animation)
+                };
+            }),
+            omittedEmptyAnimations: Math.max(0, snapshot.animations.length - packaged.animations.length)
+        };
+    }
+
+    function boundedReviewList(items, renderItem, emptyMessage) {
+        const records = Array.isArray(items) ? items : [];
+        if (records.length === 0) {
+            return '<p class="cosmiq-export-empty">' + escapeHtml(emptyMessage || 'None') + '</p>';
+        }
+        const visible = records.slice(0, 80);
+        const remainder = records.length - visible.length;
+        return '<ul>' + visible.map(function (item, index) {
+            return '<li>' + renderItem(item, index) + '</li>';
+        }).join('') + (remainder > 0
+            ? '<li>' + remainder + ' additional item(s) are included but not expanded here.</li>'
+            : '') + '</ul>';
+    }
+
+    function reviewText(value, maximum) {
+        return escapeHtml(boundedCreatorString(value, maximum || 160));
+    }
+
+    function detectedAccessoryAnchorIds(candidate) {
+        if (!candidate || candidate.kind !== PROJECT_KINDS.COSMETIC) return [];
+        const metadata = candidate.sourceResult && candidate.sourceResult.metadata || {};
+        const direct = metadata.cosmetic && canonicalAnchorId(metadata.cosmetic.attachmentAnchorId);
+        if (isKnownAnchor(direct)) return [direct];
+        return uniqueValues(Object.keys(metadata.nodeBindings || {}).map(function (uuid) {
+            return canonicalAnchorId(metadata.nodeBindings[uuid] && metadata.nodeBindings[uuid].anchorId);
+        }).filter(isKnownAnchor)).sort();
+    }
+
+    function minecraftAttachmentDiagram(anchorIds) {
+        const selected = Object.create(null);
+        (Array.isArray(anchorIds) ? anchorIds : []).forEach(function (anchorId) {
+            selected[canonicalAnchorId(anchorId)] = true;
+        });
+        function bodyPart(anchorId, tag, attributes) {
+            const className = selected[anchorId] ? 'part selected' : 'part';
+            return '<' + tag + ' class="' + className + '" data-anchor="' + anchorId + '" ' +
+                attributes + '></' + tag + '>';
+        }
+        return [
+            '<svg class="cosmiq-attachment-diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 330" role="img" aria-label="Minecraft player attachment diagram">',
+            '<rect x="3" y="3" width="234" height="324" rx="18" fill="#20232b" stroke="#343946" stroke-width="4"/>',
+            bodyPart('cosmiq:player/head', 'rect', 'x="80" y="22" width="80" height="80" rx="5"'),
+            bodyPart('cosmiq:player/torso', 'rect', 'x="75" y="108" width="90" height="108" rx="4"'),
+            bodyPart('cosmiq:player/right_arm', 'rect', 'x="29" y="108" width="40" height="120" rx="4"'),
+            bodyPart('cosmiq:player/left_arm', 'rect', 'x="171" y="108" width="40" height="120" rx="4"'),
+            bodyPart('cosmiq:player/right_leg', 'rect', 'x="75" y="222" width="42" height="88" rx="4"'),
+            bodyPart('cosmiq:player/left_leg', 'rect', 'x="123" y="222" width="42" height="88" rx="4"'),
+            '</svg>'
+        ].join('');
+    }
+
+    function exportDiagnosticData(candidate) {
+        const anchorIds = detectedAccessoryAnchorIds(candidate);
+        return {
+            schemaVersion: 'cosmiq.creator.export-diagnostic.v1',
+            pluginVersion: PLUGIN_VERSION,
+            kind: candidate.kind,
+            assetKind: candidate.assetKind,
+            filename: candidate.filename,
+            runtimeExportReady: candidate.runtimeExportReady === true,
+            detectedAttachment: anchorIds.map(function (anchorId) {
+                return {
+                    anchorId: anchorId,
+                    bodyPart: anchorById[anchorId] ? anchorById[anchorId].label : anchorId
+                };
+            }),
+            sourceMetadata: candidate.sourceResult && candidate.sourceResult.metadata || {},
+            manifest: candidate.manifest,
+            inventory: candidate.inventory,
+            issues: candidate.issues
+        };
+    }
+
+    function exportDiagnosticJson(candidate) {
+        return JSON.stringify(exportDiagnosticData(candidate), null, 2);
+    }
+
+    function copyTextToClipboard(value) {
+        const text = String(value == null ? '' : value);
+        if (typeof Blockbench !== 'undefined' && typeof Blockbench.setClipboardText === 'function') {
+            Blockbench.setClipboardText(text);
+            return Promise.resolve();
+        }
+        if (typeof navigator !== 'undefined' && navigator.clipboard &&
+            typeof navigator.clipboard.writeText === 'function') {
+            return navigator.clipboard.writeText(text);
+        }
+        if (typeof document !== 'undefined' && document.body) {
+            const field = document.createElement('textarea');
+            field.value = text;
+            field.setAttribute('readonly', 'readonly');
+            field.style.position = 'fixed';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            const copied = typeof document.execCommand === 'function' && document.execCommand('copy');
+            document.body.removeChild(field);
+            if (copied) return Promise.resolve();
+        }
+        return Promise.reject(new Error('Clipboard access is unavailable.'));
+    }
+
+    function exportReviewComponent(candidate) {
+        const anchorIds = detectedAccessoryAnchorIds(candidate);
+        const attachmentLabels = anchorIds.map(function (anchorId) {
+            return anchorById[anchorId] ? anchorById[anchorId].label : anchorId;
+        });
+        const metadata = candidate.sourceResult && candidate.sourceResult.metadata || {};
+        const animationMode = metadata.animationMode === ANIMATION_MODES.ANIMATED ? 'Animated' : 'Static';
+        let heading = 'Review ' + (candidate.kind === PROJECT_KINDS.EMOTE ? 'Emote' : 'Export');
+        let description = 'Confirm the detected project before exporting.';
+        let primaryVisual = '';
+        if (candidate.kind === PROJECT_KINDS.COSMETIC) {
+            heading = attachmentLabels.length === 1
+                ? attachmentLabels[0] + ' Detected'
+                : attachmentLabels.length > 1 ? 'Multiple Body Parts Detected' : 'Body Part Not Detected';
+            description = attachmentLabels.length === 1
+                ? 'This accessory will attach to the highlighted body part.'
+                : 'Move all accessory geometry beneath one [Model bodypart] group before exporting.';
+            primaryVisual = minecraftAttachmentDiagram(anchorIds);
+        } else if (candidate.kind === PROJECT_KINDS.CAPE) {
+            const cape = metadata.cape || {};
+            heading = '[COMING SOON]';
+            description = 'Cape authoring is available locally, but .bbmodel package export and upload are disabled.';
+            primaryVisual = '<div class="cosmiq-cape-coming-soon"><strong>[COMING SOON]</strong>' +
+                '<h2>Cape Upload Is Not Available Yet</h2><p>' +
+                reviewText(cape.frameWidth || '?') + ' x ' + reviewText(cape.frameHeight || '?') +
+                ' per frame &middot; ' + Number(cape.frameCount || 0) + ' frame(s)</p></div>';
+        }
+        return {
+            data: function () {
+                return {
+                    heading: heading,
+                    description: description,
+                    copyStatus: ''
+                };
+            },
+            methods: {
+                copyDiagnostic: function () {
+                    const component = this;
+                    copyTextToClipboard(exportDiagnosticJson(candidate)).then(function () {
+                        component.copyStatus = 'Raw export data copied to the clipboard.';
+                    }).catch(function (error) {
+                        component.copyStatus = error && error.message
+                            ? error.message
+                            : 'Could not copy export data.';
+                    });
+                }
+            },
+            template: [
+                '<div class="cosmiq-export-confirm">',
+                '  <h1>{{ heading }}</h1>',
+                '  <p>{{ description }}</p>',
+                primaryVisual,
+                candidate.kind === PROJECT_KINDS.CAPE ? '' :
+                    '  <span class="cosmiq-animation-detection">Animation detected automatically: ' +
+                        animationMode + '</span>',
+                '  <br><button class="cosmiq-copy-diagnostic" type="button" @click="copyDiagnostic">',
+                '    <i class="material-icons">content_copy</i>Copy Raw Export Data',
+                '  </button>',
+                '  <p class="cosmiq-copy-status">{{ copyStatus }}</p>',
+                '  <details class="cosmiq-export-advanced">',
+                '    <summary>Advanced export details</summary>',
+                exportReviewMarkup(candidate),
+                '  </details>',
+                '</div>'
+            ].join('')
+        };
+    }
+
+    function exportReviewMarkup(candidate) {
+        const inventory = candidate.inventory;
+        const errors = candidate.issues.filter(function (issue) { return issue.severity === 'error'; });
+        const warnings = candidate.issues.filter(function (issue) { return issue.severity === 'warning'; });
+        const packageStatus = '<p><b>Normalized package:</b> canonical cosmiq.package.v2 content; ' +
+            'editable Blockbench source is not embedded.</p>';
+        const categoryLabel = candidate.manifest.assetKind === CATEGORIES.ACCESSORY
+            ? 'Accessories'
+            : candidate.manifest.assetKind === CATEGORIES.EMOTE
+                ? 'Emotes'
+                : 'Capes';
+        const classification = '<h2>Content Confirmation</h2><ul>' +
+            '<li><b>Category:</b> ' + categoryLabel + '</li>' +
+            '<li><b>Animation:</b> ' +
+                (candidate.manifest.clips.length ? 'Animated' : 'Static') +
+            '</li>' +
+            (candidate.kind === PROJECT_KINDS.COSMETIC
+                ? '<li><b>Body group:</b> ' + reviewText(candidate.manifest.bodyGroup) + '</li>' +
+                    '<li><b>Preview model:</b> ' +
+                        reviewText(candidate.manifest.previewCamera.pose.modelVariant) + '</li>'
+                : candidate.kind === PROJECT_KINDS.EMOTE
+                    ? '<li><b>Actors:</b> ' + Number(candidate.manifest.actors.length) + '</li>' +
+                        '<li><b>Props:</b> ' + (candidate.manifest.nodes.length ? 'Yes' : 'No') + '</li>' +
+                        '<li><b>Movement:</b> ' +
+                            reviewText(candidate.manifest.movementPolicy && candidate.manifest.movementPolicy.mode) +
+                        '</li>'
+                    : '<li><b>Cape frame:</b> ' +
+                        reviewText(candidate.sourceResult.metadata.cape &&
+                            candidate.sourceResult.metadata.cape.frameWidth) + ' x ' +
+                        reviewText(candidate.sourceResult.metadata.cape &&
+                            candidate.sourceResult.metadata.cape.frameHeight) + '</li>') +
+            '</ul><p>Title, description, price, discovery tags, and the generated thumbnail remain outside the package.</p>';
+        const projectContent = candidate.kind === PROJECT_KINDS.EMOTE
+            ? '<h2>Emote Actors and Objects</h2>' +
+                boundedReviewList(inventory.actors, function (actor) {
+                    return 'Actor ' + Number(actor.index) + ' &mdash; ' + reviewText(actor.id || actor.rootUuid);
+                }, 'No actors detected.') +
+                '<h3>Player Bones</h3>' + boundedReviewList(inventory.playerBones, function (bone) {
+                    return reviewText(bone.name) + (bone.actorIndex ? ' (Actor ' + Number(bone.actorIndex) + ')' : '');
+                }, 'No player bones detected.') +
+                '<h3>Object-Actors</h3>' + boundedReviewList(inventory.objectActors, function (actor) {
+                    return reviewText(actor.name || actor.id) + ' &mdash; ' +
+                        (Array.isArray(actor.nodeUuids) ? actor.nodeUuids.length : 0) + ' child node(s)';
+                }, 'No Object-Actors included.') +
+                '<h3>Object-Actor Descendants</h3>' + boundedReviewList(inventory.objectActorNodes, function (node) {
+                    return reviewText(node.name) + ' &mdash; ' + reviewText(node.uuid);
+                }, 'No Object-Actor descendants included.')
+            : '<h2>Accessory Nodes and Branches</h2>' +
+                '<p>Wide: ' + inventory.wideNodes.length + ' &middot; Slim: ' + inventory.slimNodes.length +
+                ' &middot; Universal/shared: ' + inventory.universalNodes.length + '</p>' +
+                boundedReviewList(inventory.cosmeticNodes, function (node) {
+                    return reviewText(node.name) + ' &mdash; ' + reviewText(node.modelVariant || 'shared') +
+                        (node.hasGeometry ? ' (geometry)' : '');
+                }, 'No cosmetic nodes included.');
+        const animationRows = boundedReviewList(inventory.animations, function (animation) {
+            const scope = animation.scope ? ' &mdash; ' + reviewText(animation.scope) : '';
+            const actor = animation.actorIndex ? ' Actor ' + Number(animation.actorIndex) : '';
+            return '<b>' + reviewText(animation.name) + '</b>' + scope + actor + ' &mdash; ' +
+                Number(animation.durationMs) + ' ms, ' + Number(animation.keyframeCount) + ' keyframe(s), ' +
+                animation.markers.length + ' marker(s)';
+        }, 'No authored animation content is included.');
+        const markerRows = boundedReviewList(inventory.markers, function (marker) {
+            return '<b>' + reviewText(marker.name || '(unnamed)') + '</b> in ' +
+                reviewText(marker.animationName) + ' at ' +
+                (marker.atMs == null ? 'unresolved' : Number(marker.atMs) + ' ms');
+        }, 'No timeline markers included.');
+        const resourceRow = function (resource) {
+            return reviewText(resource.displayName || resource.id) + ' &mdash; ' +
+                reviewText(resource.type === RESOURCE_TYPES.SOUND
+                    ? 'embedded Ogg Vorbis'
+                    : resource.assetRef || 'authored particle effect');
+        };
+        const cueRow = function (cue) {
+            return reviewText(cue.id || cue.markerName) + ' &mdash; ' + reviewText(cue.markerName) + ' at ' +
+                (cue.atMs == null ? 'unresolved' : Number(cue.atMs) + ' ms') +
+                (cue.endAtMs == null ? '' : ' through ' + Number(cue.endAtMs) + ' ms');
+        };
+        const issueRows = boundedReviewList(candidate.issues, function (issue) {
+            return '<b>' + reviewText(String(issue.severity || '').toUpperCase(), 16) + ' ' +
+                reviewText(issue.code, 96) + ':</b> ' + reviewText(issue.message, 512);
+        }, 'No validation issues.');
+        return '<div class="cosmiq-export-review">' + packageStatus + classification + projectContent +
+            '<h2>Geometry Objects</h2>' + boundedReviewList(inventory.geometryObjects, function (item) {
+                return reviewText(item.name) + ' &mdash; ' + reviewText(item.type) +
+                    (item.modelVariant ? ' / ' + reviewText(item.modelVariant) : '');
+            }, 'No geometry objects included.') +
+            '<h2>Embedded Runtime PNGs</h2>' + boundedReviewList(inventory.runtimePngs, function (texture) {
+                return reviewText(texture.name) + (texture.embeddedPng ? ' (embedded PNG)' : ' (invalid source)');
+            }, 'No runtime PNGs included.') +
+            '<h2>Embedded Reference PNGs</h2>' + boundedReviewList(inventory.referencePngs, function (texture) {
+                return reviewText(texture.name) + (texture.embeddedPng ? ' (embedded PNG)' : ' (invalid source)');
+            }, 'No reference PNGs included.') +
+            '<h2>Animations</h2>' + animationRows + '<h2>Markers and Timestamps</h2>' + markerRows +
+            '<h2>Effect Locators</h2>' + boundedReviewList(inventory.effectLocators, function (locator) {
+                return reviewText(locator.sourceName || locator.id) + ' &mdash; ' + reviewText(locator.role) +
+                    ' / ' + reviewText(locator.resourceId || 'resource pending');
+            }, 'No effect locators included.') +
+            '<h2>Particle Templates</h2>' + boundedReviewList(inventory.particleResources, resourceRow, 'No particle templates referenced.') +
+            '<h3>Particle Cues</h3>' + boundedReviewList(inventory.particleCues, cueRow, 'No particle cues included.') +
+            '<h2>Sound / Music References</h2>' + boundedReviewList(inventory.soundResources, resourceRow, 'No sounds referenced.') +
+            '<h3>Sound Cues</h3>' + boundedReviewList(inventory.soundCues, cueRow, 'No sound cues included.') +
+            '<h2>Creator Comments</h2>' + boundedReviewList(inventory.comments, function (cue) {
+                return reviewText(cue.markerName) + ' at ' + (cue.atMs == null ? 'unresolved' : Number(cue.atMs) + ' ms') +
+                    ' &mdash; ' + reviewText(cue.comment, AUTHORING_LIMITS.commentCharacters);
+            }, 'No creator comments included.') +
+            '<h2>Unresolved References</h2>' + boundedReviewList(inventory.unresolved, function (item) {
+                return reviewText(item.name || item.id) + ' &mdash; ' + reviewText(item.reason);
+            }, 'No unresolved references.') +
+            '<h2>Unsupported Inputs (Never Bundled)</h2>' + boundedReviewList(inventory.unsupported, function (item) {
+                return reviewText(item.type) + ' at ' + reviewText(item.location);
+            }, 'No unsupported non-Ogg audio, GIF, URL, or filesystem-path inputs detected.') +
+            '<h3>Excluded Editor Paths</h3>' + boundedReviewList(inventory.excludedInputs, function (item) {
+                return reviewText(item.location) + ' (excluded; embedded PNG/project data remains self-contained)';
+            }, 'No ordinary editor paths needed removal.') +
+            '<h2>Omitted Empty Animations</h2>' + boundedReviewList(inventory.omittedAnimations, function (animation) {
+                return reviewText(animation.name) + ' &mdash; ' + reviewText(animation.reason);
+            }, 'No truly empty animations were omitted.') +
+            '<h2>Validation</h2><p>' + errors.length + ' error(s), ' + warnings.length + ' warning(s).</p>' + issueRows +
+            '</div>';
+    }
+
+    function compileLiveCreatorExportCandidate() {
+        if (!isCosmiqProject()) {
+            Blockbench.showMessageBox({
+                title: 'No Cosmiq Project Open',
+                message: 'Create or import a Cosmiq cosmetic, emote, or cape before exporting a .bbmodel package.',
+                buttons: ['OK']
+            });
+            return null;
+        }
+        if (!refreshMetadata(true)) return null;
+        if (typeof Codecs === 'undefined' || !Codecs.project || typeof Codecs.project.compile !== 'function') {
+            Blockbench.showMessageBox({
+                title: 'Cosmiq Package Export Unavailable',
+                message: 'This Blockbench build does not expose the editable project codec.',
+                buttons: ['OK']
+            });
+            return null;
+        }
+        let rawProject;
+        try {
+            rawProject = Codecs.project.compile({
+                raw: true,
+                bitmaps: true,
+                absolute_paths: false,
+                reference_images: false
+            });
+        } catch (error) {
+            Blockbench.showMessageBox({
+                title: 'Cosmiq Package Export Failed',
+                message: 'Blockbench could not compile the editable project: ' + error.message,
+                buttons: ['OK']
+            });
+            return null;
+        }
+        return buildCreatorExportCandidate(liveSnapshot(), rawProject);
+    }
+
+    function showCreatorExportReview() {
+        if (isCosmiqCosmeticProject()) {
+            const armWidthInspection = inspectArmWidthGeometry(liveSnapshot());
+            if (armWidthInspection.requiresChoice) {
+                showArmWidthModeDialog(showCreatorExportReview);
+                return;
+            }
+        }
+        const candidate = compileLiveCreatorExportCandidate();
+        if (!candidate) return;
+        const reviewTitle = candidate.kind === PROJECT_KINDS.EMOTE
+            ? 'Review Cosmiq Emote Export'
+            : candidate.kind === PROJECT_KINDS.CAPE
+                ? 'Review Cosmiq Cape Export'
+                : 'Confirm Cosmiq Accessory Export';
+        openCreatorExportReview(candidate, reviewTitle);
+    }
+
+    function openCreatorExportReview(candidate, reviewTitle) {
+        const capeComingSoon = candidate.kind === PROJECT_KINDS.CAPE;
+        activeDialog = new Dialog('cosmiq_export_review', {
+            title: reviewTitle,
+            width: 760,
+            component: exportReviewComponent(candidate),
+            buttons: capeComingSoon ? ['Close'] : ['Confirm & Export .bbmodel', 'Cancel'],
+            confirmIndex: 0,
+            cancelIndex: capeComingSoon ? 0 : 1,
+            onConfirm: function () {
+                if (capeComingSoon) return true;
+                setTimeout(function () { performCreatorPackageExport(candidate); }, 0);
+                return true;
+            }
+        });
+        activeDialog.show();
+    }
+
+    function packageContentBytes(content) {
+        if (typeof Buffer === 'undefined') {
+            throw new Error('Path-aware export requires the Blockbench desktop application.');
+        }
+        if (content instanceof ArrayBuffer) return Buffer.from(new Uint8Array(content));
+        if (ArrayBuffer.isView(content)) {
+            return Buffer.from(content.buffer, content.byteOffset, content.byteLength);
+        }
+        if (Buffer.isBuffer(content)) return Buffer.from(content);
+        throw new Error('The compiled Cosmiq package is not a byte buffer.');
+    }
+
+    function mcpActionRequest(event) {
+        const detail = event && event.detail && typeof event.detail === 'object'
+            ? event.detail
+            : null;
+        const args = event && event.mcpArgs && typeof event.mcpArgs === 'object'
+            ? event.mcpArgs
+            : detail || {};
+        const respond = detail && typeof detail.respond === 'function'
+            ? detail.respond
+            : null;
+        const reject = detail && typeof detail.reject === 'function'
+            ? detail.reject
+            : null;
+        return {
+            active: Boolean(event && (event.mcpArgs || respond || reject)),
+            args: args,
+            respond: respond,
+            reject: reject
+        };
+    }
+
+    function writeAtomicDevelopmentFile(fs, path, destination, bytes) {
+        const directory = path.dirname(destination);
+        const temporary = path.join(
+            directory,
+            '.' + path.basename(destination) + '.' +
+                String(typeof process !== 'undefined' ? process.pid : 0) + '.' +
+                String(Date.now()) + '.tmp'
+        );
+        let descriptor = null;
+        try {
+            if (typeof fs.openSync === 'function' && typeof fs.fsyncSync === 'function' &&
+                typeof fs.closeSync === 'function') {
+                descriptor = fs.openSync(temporary, 'wx', 0o600);
+                fs.writeFileSync(descriptor, bytes);
+                fs.fsyncSync(descriptor);
+                fs.closeSync(descriptor);
+                descriptor = null;
+            } else {
+                fs.writeFileSync(temporary, bytes, {flag: 'wx', mode: 0o600});
+            }
+            fs.renameSync(temporary, destination);
+        } finally {
+            if (descriptor != null && typeof fs.closeSync === 'function') fs.closeSync(descriptor);
+            try {
+                fs.unlinkSync(temporary);
+            } catch (error) {
+                if (!error || error.code !== 'ENOENT') throw error;
+            }
+        }
+    }
+
+    function writeCreatorPackageToPath(candidate, outputPath, dependencies) {
+        if (!candidate || !candidate.content ||
+            candidate.issues.some(function (issue) { return issue.severity === 'error'; })) {
+            throw new Error('Only a valid reviewed Cosmiq package can be exported.');
+        }
+        const modules = dependencies || {};
+        const fs = modules.fs || (typeof require === 'function' ? require('node:fs') : null);
+        const path = modules.path || (typeof require === 'function' ? require('node:path') : null);
+        const cryptoModule = modules.crypto ||
+            (typeof require === 'function' ? require('node:crypto') : null);
+        if (!fs || !path || !cryptoModule) {
+            throw new Error('Path-aware export requires the Blockbench desktop application.');
+        }
+        const requestedPath = String(outputPath || '').trim();
+        if (!requestedPath || !path.isAbsolute(requestedPath)) {
+            throw new Error('Agent export requires an absolute outputPath.');
+        }
+        const destination = path.resolve(requestedPath);
+        if (path.extname(destination).toLowerCase() !== '.' + PACKAGE_EXTENSION) {
+            throw new Error('Agent export outputPath must end in .' + PACKAGE_EXTENSION + '.');
+        }
+        const directory = path.dirname(destination);
+        if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory()) {
+            throw new Error('Agent export output directory does not exist.');
+        }
+        if (fs.existsSync(destination)) {
+            const destinationInfo = typeof fs.lstatSync === 'function'
+                ? fs.lstatSync(destination)
+                : fs.statSync(destination);
+            if (destinationInfo.isDirectory() ||
+                (typeof destinationInfo.isSymbolicLink === 'function' &&
+                    destinationInfo.isSymbolicLink())) {
+                throw new Error('Agent export refuses to overwrite a directory or symbolic link.');
+            }
+        }
+        const packageBytes = packageContentBytes(candidate.content);
+        writeAtomicDevelopmentFile(fs, path, destination, packageBytes);
+        const writtenBytes = fs.readFileSync(destination);
+        const sha256 = cryptoModule.createHash('sha256').update(writtenBytes).digest('hex');
+        return {
+            assetKind: candidate.assetKind,
+            byteLength: writtenBytes.byteLength,
+            fileName: path.basename(destination),
+            outputPath: destination,
+            sha256: sha256
+        };
+    }
+
+    function performCreatorPackageExport(candidate) {
+        if (!candidate || candidate.issues.some(function (issue) { return issue.severity === 'error'; }) ||
+            !candidate.content) {
+            showExportBlocked('Cosmiq Package Export Blocked', candidate ? candidate.issues : [makeIssue(
+                'error', 'COSMIQ_PACKAGE_CANDIDATE', 'No reviewed export candidate is available.'
+            )]);
+            return;
+        }
+        const exportType = candidate.kind === PROJECT_KINDS.EMOTE
+            ? 'Cosmiq Emote Package'
+            : candidate.kind === PROJECT_KINDS.CAPE
+                ? 'Cosmiq Cape Package'
+                : 'Cosmiq Accessory Package';
+        Blockbench.export({
+            type: exportType,
+            extensions: [PACKAGE_EXTENSION],
+            name: candidate.filename,
+            content: candidate.content,
+            savetype: 'buffer'
+        }, function () {
+            const message = candidate.kind === PROJECT_KINDS.EMOTE
+                ? 'Exported the exact Cosmiq Emote Blockbench package.'
+                : candidate.kind === PROJECT_KINDS.CAPE
+                    ? 'Exported the exact Cosmiq Cape Blockbench package.'
+                    : 'Exported the exact Cosmiq Accessory Blockbench package.';
+            Blockbench.showQuickMessage(message);
+        });
+    }
+
+    function animationOverwriteAccepted(result) {
+        if (result === 0 || result === true) return true;
+        if (typeof result === 'string') {
+            return /^(?:yes|overwrite)/i.test(result.trim());
+        }
+        if (result && typeof result === 'object') {
+            if (result.button === 0 || result.index === 0 || result.confirmed === true) return true;
+            if (typeof result.button === 'string') {
+                return /^(?:yes|overwrite)/i.test(result.button.trim());
+            }
+        }
+        return false;
+    }
+
+    function confirmAnimationOverwrite(conflict) {
+        return new Promise(function (resolve) {
+            let settled = false;
+            function finish(result) {
+                if (settled) return;
+                settled = true;
+                resolve(animationOverwriteAccepted(result));
+            }
+            const returned = Blockbench.showMessageBox({
+                title: 'Animation Already Has Keyframes',
+                message:
+                    'WARNING: The existing "' + conflict.existingName + '" animation contains ' +
+                    conflict.existingKeyframes + ' keyframe' +
+                    (conflict.existingKeyframes === 1 ? '' : 's') + '.\n\n' +
+                    'Importing "' + conflict.importedName + '" will replace that animation and its ' +
+                    'keyframes. Do you want to overwrite the existing animation?',
+                buttons: ['Yes, Overwrite', 'No, Keep Existing'],
+                confirm: 0,
+                cancel: 1
+            }, finish);
+            if (returned && typeof returned.then === 'function') {
+                returned.then(finish, function () { finish(1); });
+            }
+        });
+    }
+
+    async function resolvePreparedAnimationImport(project) {
+        const state = project && project.__cosmiqAnimationImport;
+        if (!state) return null;
+        const decisions = Object.assign({}, state.decisions || {});
+        const initialPlan = state.plan || applyPreparedAnimationImportDecisions(project, decisions);
+        for (const conflict of initialPlan.conflicts) {
+            decisions[conflict.decisionId] = await confirmAnimationOverwrite(conflict);
+        }
+        return applyPreparedAnimationImportDecisions(project, decisions);
+    }
+
+    function importedAnimationSummary(plan) {
+        if (!plan) return '';
+        const notes = [];
+        if (plan.autoReplaced.length === 1) {
+            notes.push(
+                '"' + plan.autoReplaced[0].existingName +
+                '" had no keyframes, so it was safe to replace automatically.'
+            );
+        } else if (plan.autoReplaced.length > 1) {
+            notes.push(
+                plan.autoReplaced.length +
+                ' empty animation placeholders had no keyframes and were replaced automatically.'
+            );
+        }
+        if (plan.overwritten.length) {
+            notes.push('Overwrote ' + plan.overwritten.length + ' filled animation' +
+                (plan.overwritten.length === 1 ? '.' : 's.'));
+        }
+        if (plan.kept.length) {
+            notes.push('Kept ' + plan.kept.length + ' existing filled animation' +
+                (plan.kept.length === 1 ? '.' : 's.'));
+        }
+        return notes.length ? ' ' + notes.join(' ') : '';
+    }
+
+    function importCosmiqPackageAction() {
+        if (typeof Blockbench.import !== 'function') {
+            Blockbench.showMessageBox({
+                title: 'Cosmiq Import Unavailable',
+                message: 'This Blockbench build does not expose the file importer.',
+                buttons: ['OK']
+            });
+            return;
+        }
+        Blockbench.import({
+            resource_id: 'model',
+            extensions: LEGACY_IMPORT_EXTENSIONS.slice(),
+            type: 'Cosmiq Accessory or Blockbench Model',
+            readtype: 'buffer',
+            multiple: false
+        }, function (files) {
+            if (!files || !files[0]) {
+                return;
+            }
+            const file = files[0];
+            let decoded;
+            try {
+                decoded = parseLegacyCosmeticImport(
+                    file.content,
+                    file.name || file.path || 'Imported Accessory'
+                );
+            } catch (error) {
+                Blockbench.showMessageBox({
+                    title: 'Cosmiq Import Blocked',
+                    message: error.message,
+                    buttons: ['OK']
+                });
+                return;
+            }
+            prepareLegacyCosmeticImport(decoded).then(function (project) {
+                return resolvePreparedAnimationImport(project).then(function (animationPlan) {
+                    if (activeDialog && typeof activeDialog.hide === 'function') activeDialog.hide();
+                    if (typeof Codecs === 'undefined' || !Codecs.project ||
+                        typeof Codecs.project.load !== 'function') {
+                        throw new Error('This Blockbench build cannot open the imported project.');
+                    }
+                    Codecs.project.load(project, {path: ''});
+                    refreshMetadata(true);
+                    if (typeof Validator !== 'undefined') Validator.validate();
+                    if (typeof Group !== 'undefined' && Array.isArray(Group.all)) {
+                        const imported = Group.all.find(function (group) {
+                            return group.name === IMPORTED_GROUP_NAME;
+                        });
+                        if (imported && typeof imported.select === 'function') imported.select();
+                    }
+                    Blockbench.showQuickMessage(
+                        'Imported ' + decoded.sourceVersion.toUpperCase() +
+                        ' accessory into the ' + IMPORTED_GROUP_NAME + ' group.' +
+                        importedAnimationSummary(animationPlan),
+                        5200
+                    );
+                });
+            }).catch(function (error) {
+                Blockbench.showMessageBox({
+                    title: 'Cosmiq Import Blocked',
+                    message: error && error.message ? error.message : String(error),
+                    buttons: ['OK']
+                });
+            });
+        });
+        return true;
+    }
+
+    function exportCosmiqProjectAction(event) {
+        const request = mcpActionRequest(event);
+        if (!request.active) {
+            showCreatorExportReview();
+            return null;
+        }
+        try {
+            if (isCosmiqCosmeticProject() &&
+                Object.hasOwn(request.args, 'armWidthMode')) {
+                const requestedArmWidthMode = normalizeArmWidthMode(request.args.armWidthMode);
+                if (requestedArmWidthMode === ARM_WIDTH_MODES.UNCONFIGURED) {
+                    throw new Error('args.armWidthMode must be "shared" or "dependent".');
+                }
+                Project.cosmiq_arm_width_mode = requestedArmWidthMode;
+                refreshMetadata(true);
+            }
+            if (isCosmiqCosmeticProject() &&
+                inspectArmWidthGeometry(liveSnapshot()).requiresChoice) {
+                throw new Error(
+                    'Arm-attached geometry needs an explicit fit choice. Set args.armWidthMode to ' +
+                    '"shared" or "dependent".'
+                );
+            }
+            const outputPath = typeof request.args.outputPath === 'string'
+                ? request.args.outputPath.trim()
+                : '';
+            if (!outputPath) {
+                throw new Error(
+                    'Agent export requires args.outputPath and will not open a native file chooser.'
+                );
+            }
+            const candidate = compileLiveCreatorExportCandidate();
+            if (!candidate) {
+                throw new Error('Cosmiq could not compile an export candidate.');
+            }
+            const result = writeCreatorPackageToPath(candidate, outputPath);
+            if (request.respond) request.respond(result);
+            Blockbench.showQuickMessage('Exported the exact Cosmiq package to ' + result.fileName + '.');
+            return result;
+        } catch (error) {
+            if (request.reject) request.reject(error);
+            return null;
+        }
+    }
+
+    function validateProjectAction() {
+        const result = refreshMetadata(true);
+        if (!result) {
+            return;
+        }
+        Blockbench.showMessageBox({
+            title: isCosmiqEmoteProject()
+                ? 'Cosmiq Emote Scene Validation'
+                : isCosmiqCapeProject()
+                    ? 'Cosmiq Cape Validation'
+                    : 'Cosmiq Accessory Validation',
+            message: issueSummary(result),
+            buttons: ['OK']
+        });
+        if (typeof Validator !== 'undefined') {
+            Validator.validate();
+        }
+    }
+
+    function registerValidator() {
+        if (typeof ValidatorCheck === 'undefined') {
+            return;
+        }
+        validatorCheck = new ValidatorCheck('cosmiq_project_structure', {
+            condition: function () {
+                return isCosmiqProject();
+            },
+            update_triggers: ['finished_edit', 'update_selection', 'select_project'],
+            run: function () {
+                const result = isCosmiqEmoteProject()
+                    ? buildEmoteSourceMetadata(liveSnapshot())
+                    : isCosmiqCapeProject()
+                        ? buildCapeSourceMetadata(liveSnapshot())
+                        : buildSourceMetadata(liveSnapshot());
+                const check = this;
+                result.issues.slice(0, 32).forEach(function (issue) {
+                    if (issue.severity === 'info') {
+                        return;
+                    }
+                    const item = {
+                        message: issue.code + ': ' + issue.message
+                    };
+                    if (issue.sourceUuid) {
+                        const sourceUuid = issue.sourceUuid;
+                        item.buttons = [{
+                            name: 'Select Source',
+                            icon: 'my_location',
+                            click: function () {
+                                const node = liveNodeByUuid(sourceUuid);
+                                if (node && typeof node.select === 'function') {
+                                    node.select();
+                                }
+                            }
+                        }];
+                    }
+                    if (issue.severity === 'error') {
+                        check.fail(item);
+                    } else {
+                        check.warn(item);
+                    }
+                });
+            }
+        });
+    }
+
+    function addToolAction(id, options) {
+        const action = new Action(id, options);
+        MenuBar.menus.tools.addAction(action);
+        actions.push(action);
+        return action;
+    }
+
+    function showPreviewCameraDialog() {
+        if (!isCosmiqProject()) return;
+        const emote = isCosmiqEmoteProject();
+        activeDialog = new Dialog('cosmiq_preview_camera', {
+            title: 'Cosmiq Thumbnail Camera',
+            form: {
+                position_x: {label: 'Position X', type: 'number', value: Number(Project.cosmiq_camera_x)},
+                position_y: {label: 'Position Y', type: 'number', value: Number(Project.cosmiq_camera_y)},
+                position_z: {label: 'Position Z', type: 'number', value: Number(Project.cosmiq_camera_z)},
+                pitch: {label: 'Pitch Degrees', type: 'number', value: Number(Project.cosmiq_camera_pitch)},
+                yaw: {label: 'Yaw Degrees', type: 'number', value: Number(Project.cosmiq_camera_yaw)},
+                roll: {label: 'Roll Degrees', type: 'number', value: Number(Project.cosmiq_camera_roll)},
+                fov: {label: 'Vertical FOV', type: 'number', min: 10, max: 90, value: Number(Project.cosmiq_camera_fov)},
+                clip_id: {
+                    label: emote ? 'Required Preview Clip ID' : 'Preview Clip ID (Optional)',
+                    type: 'text',
+                    value: Project.cosmiq_camera_clip_id || '',
+                    description: 'Use the selected animation’s Cosmiq Clip ID. Empty means bind pose where allowed.'
+                },
+                time_ms: {
+                    label: 'Preview Time (ms)',
+                    type: 'number',
+                    min: 0,
+                    value: Number(Project.cosmiq_camera_time_ms) || 0
+                },
+                model_variant: {
+                    label: 'Accessory Model Variant',
+                    type: 'select',
+                    options: {universal: 'Universal', wide: 'Wide', slim: 'Slim'},
+                    value: Project.cosmiq_camera_model_variant || 'wide',
+                    condition: function () { return isCosmiqCosmeticProject(); }
+                },
+                visible_props: {
+                    label: 'Visible Prop Root IDs',
+                    type: 'text',
+                    value: Project.cosmiq_camera_visible_props || '',
+                    description: 'Emote-only comma-separated normalized Prop root IDs.',
+                    condition: function () { return isCosmiqEmoteProject(); }
+                }
+            },
+            onConfirm: function (form) {
+                const numeric = [
+                    form.position_x, form.position_y, form.position_z,
+                    form.pitch, form.yaw, form.roll, form.fov, form.time_ms
+                ].map(Number);
+                if (numeric.some(function (value) { return !Number.isFinite(value); }) ||
+                    numeric[6] < 10 || numeric[6] > 90 || numeric[7] < 0) {
+                    Blockbench.showQuickMessage('Camera values are outside the Cosmiq standard.');
+                    return false;
+                }
+                Project.cosmiq_camera_x = numeric[0];
+                Project.cosmiq_camera_y = numeric[1];
+                Project.cosmiq_camera_z = numeric[2];
+                Project.cosmiq_camera_pitch = numeric[3];
+                Project.cosmiq_camera_yaw = numeric[4];
+                Project.cosmiq_camera_roll = numeric[5];
+                Project.cosmiq_camera_fov = numeric[6];
+                Project.cosmiq_camera_clip_id = String(form.clip_id || '').trim();
+                Project.cosmiq_camera_time_ms = Math.round(numeric[7]);
+                Project.cosmiq_camera_model_variant = form.model_variant || 'wide';
+                Project.cosmiq_camera_visible_props = String(form.visible_props || '').trim();
+                Project.saved = false;
+                return true;
+            }
+        });
+        activeDialog.show();
+    }
+
+    function registerCosmiqMenu() {
+        if (typeof BarMenu === 'undefined' || typeof MenuBar === 'undefined') {
+            return;
+        }
+        cosmiqMenu = new BarMenu('cosmiq', [
+            {
+                id: 'cosmiq_menu_camera',
+                name: 'Thumbnail Camera',
+                description: 'Configure the canonical Camera Node and thumbnail pose.',
+                icon: 'photo_camera',
+                condition: isCosmiqProject,
+                click: showPreviewCameraDialog
+            },
+            {
+                id: 'cosmiq_menu_guides',
+                name: 'Guides',
+                description: 'Open the Cosmiq Creator guides.',
+                icon: 'menu_book',
+                click: function () { Blockbench.openLink(CREATOR_GUIDES_URL); }
+            },
+            {
+                id: 'cosmiq_menu_import',
+                name: 'Import Existing Accessory',
+                description: 'Migrate a V1/V2 .cosmiq or Blockbench .bbmodel into an IMPORTED group.',
+                icon: 'file_open',
+                click: importCosmiqPackageAction
+            },
+            {
+                id: 'cosmiq_menu_export',
+                name: 'Export',
+                description: 'Review and export the active Cosmiq project.',
+                icon: 'inventory_2',
+                click: exportCosmiqProjectAction
+            }
+        ], {
+            name: 'Cosmiq',
+            icon: 'accessibility_new'
+        });
+        if (typeof MenuBar.addMenu === 'function') {
+            MenuBar.addMenu(cosmiqMenu, 'tools');
+        } else if (typeof MenuBar.update === 'function') {
+            MenuBar.update();
+        }
+    }
+
+    function registerActions() {
+        addToolAction('cosmiq_move_to_anchor', {
+            name: 'Cosmiq: Move Selection To Player Anchor',
+            description: 'Parent selected cosmetic objects beneath a stable Cosmiq player anchor.',
+            icon: 'link',
+            condition: isCosmiqCosmeticProject,
+            click: moveSelectionToAnchorDialog
+        });
+        addToolAction('cosmiq_normalize_legacy_anchors', {
+            name: 'Cosmiq: Normalize Legacy Player Anchors',
+            description: 'Convert legacy torso height and left/right limb pivots to the canonical V3 rest pose.',
+            icon: 'published_with_changes',
+            condition: isCosmiqCosmeticProject,
+            click: normalizeLegacyPlayerAnchorsAction
+        });
+        addToolAction('cosmiq_validate_cosmetic', {
+            name: 'Cosmiq: Validate And Refresh Metadata',
+            description: 'Recompute parent anchors, stable IDs, state bindings, budgets, and reserved markers.',
+            icon: 'fact_check',
+            condition: isCosmiqCosmeticProject,
+            click: validateProjectAction
+        });
+        addToolAction('cosmiq_export_accessory', {
+            name: 'Cosmiq: Export Accessory',
+            description: 'Review and export the active Cosmiq accessory.',
+            icon: 'inventory_2',
+            condition: isCosmiqCosmeticProject,
+            click: exportCosmiqProjectAction
+        });
+        addToolAction('cosmiq_add_emote_animation', {
+            name: 'Cosmiq: Add Emote Animation',
+            description: 'Add an editable animation lane to the active Cosmiq emote.',
+            icon: 'add',
+            condition: isCosmiqEmoteProject,
+            click: showAddEmoteAnimationDialog
+        });
+        addToolAction('cosmiq_configure_emote_animation', {
+            name: 'Cosmiq: Configure Selected Emote Animation',
+            description: 'Configure the selected animation lane and its actor scope.',
+            icon: 'tune',
+            condition: isCosmiqEmoteProject,
+            click: showConfigureEmoteAnimationDialog
+        });
+        addToolAction('cosmiq_validate_emote_scene', {
+            name: 'Cosmiq: Validate Emote Scene',
+            description: 'Check numbered actors, semantic player bones, Object-Actor folders, and animation scopes.',
+            icon: 'fact_check',
+            condition: isCosmiqEmoteProject,
+            click: validateProjectAction
+        });
+        addToolAction('cosmiq_export_emote', {
+            name: 'Cosmiq: Export Emote',
+            description: 'Review and export the active Cosmiq emote.',
+            icon: 'inventory_2',
+            condition: isCosmiqEmoteProject,
+            click: exportCosmiqProjectAction
+        });
+    }
+
+    function registerFormat() {
+        creatorFormat = new ModelFormat(FORMAT_ID, {
+            name: 'Cosmiq Creator',
+            description: 'Cosmiq accessories and numbered multi-actor emote scenes.',
+            icon: 'accessibility_new',
+            category: 'minecraft',
+            target: ['Minecraft: Java Edition'],
+            show_on_start_screen: true,
+            format_page: {
+                component: formatPageComponent()
+            },
+            box_uv: false,
+            optional_box_uv: true,
+            single_texture: false,
+            per_texture_uv_size: true,
+            bone_rig: true,
+            armature_rig: true,
+            centered_grid: true,
+            block_size: 16,
+            rotate_cubes: true,
+            integer_size: false,
+            meshes: true,
+            locators: true,
+            uv_rotation: true,
+            animation_mode: true,
+            animation_files: false,
+            animation_grouping: 'custom',
+            edit_mode: true,
+            paint_mode: true,
+            display_mode: false,
+            pose_mode: false,
+            animated_textures: false,
+            select_texture_for_particles: false
+        });
+        creatorFormat.new = function () {
+            showCreatorTypeDialog();
+            return true;
+        };
+    }
+
+    function cleanup() {
+        if (activeDialog) {
+            activeDialog.delete();
+            activeDialog = null;
+        }
+        if (pluginStyle && pluginStyle.parentNode) {
+            pluginStyle.parentNode.removeChild(pluginStyle);
+        }
+        pluginStyle = null;
+        actions.splice(0).forEach(function (action) {
+            action.delete();
+        });
+        if (cosmiqMenu) {
+            if (typeof MenuBar !== 'undefined' && MenuBar.menus && MenuBar.menus.cosmiq === cosmiqMenu) {
+                delete MenuBar.menus.cosmiq;
+                if (typeof MenuBar.update === 'function') {
+                    MenuBar.update();
+                }
+            }
+            cosmiqMenu.delete();
+            cosmiqMenu = null;
+        }
+        if (validatorCheck) {
+            validatorCheck.delete();
+            validatorCheck = null;
+        }
+        listeners.splice(0).forEach(function (listener) {
+            if (listener.handle && typeof listener.handle.delete === 'function') {
+                listener.handle.delete();
+            } else if (typeof Blockbench.removeListener === 'function') {
+                Blockbench.removeListener(listener.eventName, listener.callback);
+            }
+        });
+        properties.splice(0).reverse().forEach(function (property) {
+            property.delete();
+        });
+        if (creatorFormat) {
+            creatorFormat.delete();
+            creatorFormat = null;
+        }
+    }
+
+    function registerBlockbenchPlugin() {
+        Plugin.register(PLUGIN_ID, {
+            title: 'Cosmiq Creator',
+            author: PLUGIN_AUTHOR,
+            creation_date: PLUGIN_CREATION_DATE,
+            description: 'Create anchored accessories and editable numbered multi-actor emote scenes.',
+            website: PROJECT_WEBSITE_URL,
+            repository: PROJECT_REPOSITORY_URL,
+            bug_tracker: PROJECT_REPOSITORY_URL + '/issues',
+            icon: 'accessibility_new',
+            version: PLUGIN_VERSION,
+            min_version: '5.0.0',
+            variant: 'both',
+            tags: ['Minecraft: Java Edition'],
+            await_loading: true,
+            contributes: {
+                formats: [FORMAT_ID]
+            },
+            onload: function () {
+                const wasActive = typeof Project !== 'undefined' && Project &&
+                    Project.format && Project.format.id === FORMAT_ID;
+                registerFormat();
+                installCreatorStyles();
+                registerProperties();
+                registerActions();
+                registerCosmiqMenu();
+                registerValidator();
+                registerListener('save_project', onSaveProject);
+                registerListener('load_project', onLoadProject);
+                registerListener('select_project', onLoadProject);
+                if (wasActive && creatorFormat && typeof creatorFormat.select === 'function') {
+                    creatorFormat.select();
+                    onLoadProject();
+                }
+            },
+            onunload: cleanup
+        });
+    }
+
+    const api = {
+        PLUGIN_ID: PLUGIN_ID,
+        FORMAT_ID: FORMAT_ID,
+        PLUGIN_VERSION: PLUGIN_VERSION,
+        PLUGIN_AUTHOR: PLUGIN_AUTHOR,
+        PLUGIN_CREATION_DATE: PLUGIN_CREATION_DATE,
+        PROJECT_WEBSITE_URL: PROJECT_WEBSITE_URL,
+        CREATOR_GUIDES_URL: CREATOR_GUIDES_URL,
+        COMMUNITY_DISCORD_URL: COMMUNITY_DISCORD_URL,
+        YOUTUBE_GUIDES_URL: YOUTUBE_GUIDES_URL,
+        PROJECT_REPOSITORY_URL: PROJECT_REPOSITORY_URL,
+        FORMAT_BANNER_FILE: FORMAT_BANNER_FILE,
+        FORMAT_BANNER_DATA_URL: FORMAT_BANNER_DATA_URL,
+        BASE_TEMPLATE_FILE: BASE_TEMPLATE_FILE,
+        BASE_TEMPLATE_GZIP_BASE64: BASE_TEMPLATE_GZIP_BASE64,
+        BASE_TEMPLATE_SHA256: BASE_TEMPLATE_SHA256,
+        IMPORTED_GROUP_NAME: IMPORTED_GROUP_NAME,
+        LEGACY_IMPORT_EXTENSIONS: LEGACY_IMPORT_EXTENSIONS,
+        PLUGIN_ABOUT: PLUGIN_ABOUT,
+        SOURCE_SCHEMA: SOURCE_SCHEMA,
+        CAPE_SOURCE_SCHEMA: CAPE_SOURCE_SCHEMA,
+        EMOTE_SOURCE_SCHEMA: EMOTE_SOURCE_SCHEMA,
+        EMOTE_LOGIC_SCHEMA: EMOTE_LOGIC_SCHEMA,
+        EMOTE_LOGIC_LIMITS: EMOTE_LOGIC_LIMITS,
+        COSMETIC_FORMAT_VERSION: COSMETIC_FORMAT_VERSION,
+        CATEGORIES: CATEGORIES,
+        ANIMATION_MODES: ANIMATION_MODES,
+        PACKAGE_LIMITS: PACKAGE_LIMITS,
+        AUTHORING_LIMITS: AUTHORING_LIMITS,
+        LIMITS: LIMITS,
+        RESOURCE_TYPES: RESOURCE_TYPES,
+        SOUND_REFERENCE_TYPES: SOUND_REFERENCE_TYPES,
+        CUE_TYPES: CUE_TYPES,
+        ROLES: ROLES,
+        BLOCKBENCH_NODE_ROLE_VALUES: BLOCKBENCH_NODE_ROLE_VALUES,
+        BLOCKBENCH_PLAYER_BONE_VALUES: BLOCKBENCH_PLAYER_BONE_VALUES,
+        ANCHORS: ANCHORS,
+        TEMPLATE_ATTACHMENT_POINTS: TEMPLATE_ATTACHMENT_POINTS,
+        BODY_PART_FIELDS: BODY_PART_FIELDS,
+        ALL_BODY_PART_ANCHOR_IDS: ALL_BODY_PART_ANCHOR_IDS,
+        BODY_SLOTS: BODY_SLOTS,
+        CREATOR_CHOICES: CREATOR_CHOICES,
+        BODY_TYPE_CHOICES: BODY_TYPE_CHOICES,
+        EMOTE_RIG_CHOICES: EMOTE_RIG_CHOICES,
+        CAPE_RESOLUTIONS: CAPE_RESOLUTIONS,
+        COSMETIC_MODE_CHOICES: COSMETIC_MODE_CHOICES,
+        YES_NO_CHOICES: YES_NO_CHOICES,
+        CREATION_FLOW_STEPS: CREATION_FLOW_STEPS,
+        COSMETIC_FLOW_STEPS: COSMETIC_FLOW_STEPS,
+        EMOTE_FLOW_STEPS: EMOTE_FLOW_STEPS,
+        CAPE_FLOW_STEPS: CAPE_FLOW_STEPS,
+        MODEL_VARIANTS: MODEL_VARIANTS,
+        ARM_WIDTH_MODES: ARM_WIDTH_MODES,
+        PROJECT_KINDS: PROJECT_KINDS,
+        EMOTE_ACTOR_MIN: EMOTE_ACTOR_MIN,
+        EMOTE_ACTOR_MAX: EMOTE_ACTOR_MAX,
+        EMOTE_ACTOR_OFFSETS: EMOTE_ACTOR_OFFSETS,
+        EMOTE_ANIMATION_SCOPES: EMOTE_ANIMATION_SCOPES,
+        EMOTE_RIG_PROFILES: EMOTE_RIG_PROFILES,
+        EMOTE_PLAYER_BONES: EMOTE_PLAYER_BONES,
+        EMOTE_PRECISE_PLAYER_BONES: EMOTE_PRECISE_PLAYER_BONES,
+        SIMPLE_ARMATURE_UUID: SIMPLE_ARMATURE_UUID,
+        SIMPLE_BONE_UUIDS: SIMPLE_BONE_UUIDS,
+        PRECISE_ARMATURE_UUID: PRECISE_ARMATURE_UUID,
+        PRECISE_BONE_UUIDS: PRECISE_BONE_UUIDS,
+        TRIGGERS: TRIGGERS,
+        PLAYER_APPEARANCE_PARTS: PLAYER_APPEARANCE_PARTS,
+        normalizePlayerAppearance: normalizePlayerAppearance,
+        normalizeToken: normalizeToken,
+        normalizeProjectId: normalizeProjectId,
+        normalizeAssetRef: normalizeAssetRef,
+        isRawMediaReference: isRawMediaReference,
+        normalizeResourceReference: normalizeResourceReference,
+        normalizeTimelineCue: normalizeTimelineCue,
+        normalizeCosmeticSettings: normalizeCosmeticSettings,
+        authoringStateFromMetadata: authoringStateFromMetadata,
+        resourceContainsRawMedia: resourceContainsRawMedia,
+        collectTimelineMarkers: collectTimelineMarkers,
+        buildAuthoringMetadata: buildAuthoringMetadata,
+        creationTypeComponent: creationTypeComponent,
+        bodyTypeComponent: bodyTypeComponent,
+        emoteRigTypeComponent: emoteRigTypeComponent,
+        emoteCreationReviewMarkup: emoteCreationReviewMarkup,
+        emoteBooleanComponent: emoteBooleanComponent,
+        wizardProgressMarkup: wizardProgressMarkup,
+        wizardPageHeading: wizardPageHeading,
+        formatPageComponent: formatPageComponent,
+        normalizeEmoteDraftName: normalizeEmoteDraftName,
+        normalizeCreationName: normalizeCreationName,
+        creationCategoryLabel: creationCategoryLabel,
+        creationProjectName: creationProjectName,
+        creationProjectId: creationProjectId,
+        defaultSimpleCosmeticDraft: defaultSimpleCosmeticDraft,
+        defaultCapeTemplateDraft: defaultCapeTemplateDraft,
+        capeResolutionFromId: capeResolutionFromId,
+        mergeSimpleCosmeticDraft: mergeSimpleCosmeticDraft,
+        defaultEmoteDraft: defaultEmoteDraft,
+        mergeEmoteDraft: mergeEmoteDraft,
+        verifyBaseTemplateStructure: verifyBaseTemplateStructure,
+        verifySimpleRigStructure: verifySimpleRigStructure,
+        convertToSimpleRig: convertToSimpleRig,
+        verifyPreciseRigStructure: verifyPreciseRigStructure,
+        convertToPreciseRig: convertToPreciseRig,
+        annotateBaseTemplate: annotateBaseTemplate,
+        scaleTemplateTextureUvs: scaleTemplateTextureUvs,
+        decodeEmbeddedBaseTemplate: decodeEmbeddedBaseTemplate,
+        loadBaseTemplateJson: loadBaseTemplateJson,
+        parseLegacyV1Container: parseLegacyV1Container,
+        v2RuntimeToBbmodel: v2RuntimeToBbmodel,
+        parseLegacyCosmeticImport: parseLegacyCosmeticImport,
+        extractImportedCosmetic: extractImportedCosmetic,
+        animationImportIdentity: animationImportIdentity,
+        planImportedAnimationMerge: planImportedAnimationMerge,
+        applyPreparedAnimationImportDecisions: applyPreparedAnimationImportDecisions,
+        importedAnimationSummary: importedAnimationSummary,
+        prepareLegacyCosmeticImport: prepareLegacyCosmeticImport,
+        startBaseTemplateProject: startBaseTemplateProject,
+        normalizeBodySlots: normalizeBodySlots,
+        selectedAnchorIdsFromForm: selectedAnchorIdsFromForm,
+        newCosmeticAnchorIds: newCosmeticAnchorIds,
+        bodySlotsForAnchors: bodySlotsForAnchors,
+        bodySlotsFromNodeBindings: bodySlotsFromNodeBindings,
+        modelVariantFromNodeBindings: modelVariantFromNodeBindings,
+        normalizeArmWidthMode: normalizeArmWidthMode,
+        inspectArmWidthGeometry: inspectArmWidthGeometry,
+        modelVariantForArmWidthMode: modelVariantForArmWidthMode,
+        textureVariantsFromTextures: textureVariantsFromTextures,
+        validateReferenceSkinFile: validateReferenceSkinFile,
+        defaultCapeTextureDataUrl: defaultCapeTextureDataUrl,
+        capeTemplateTexture: capeTemplateTexture,
+        createAnchorHierarchy: createAnchorHierarchy,
+        createCapeTemplateGeometry: createCapeTemplateGeometry,
+        createCapeTemplateProject: createCapeTemplateProject,
+        createEmptyStateAnimations: createEmptyStateAnimations,
+        emoteActorOffset: emoteActorOffset,
+        createEmoteSceneHierarchy: createEmoteSceneHierarchy,
+        createEmptyEmoteAnimations: createEmptyEmoteAnimations,
+        emoteActorOptions: emoteActorOptions,
+        emoteAnimationScopeOptions: emoteAnimationScopeOptions,
+        createEmoteProject: createEmoteProject,
+        emoteObjectActors: emoteObjectActors,
+        defaultEmoteRuleSource: defaultEmoteRuleSource,
+        defaultEmoteLogicGraph: defaultEmoteLogicGraph,
+        inspectEmoteLogicAttachment: inspectEmoteLogicAttachment,
+        buildEmoteSourceMetadata: buildEmoteSourceMetadata,
+        repairPreciseLegHierarchy: repairPreciseLegHierarchy,
+        repairCapeUpperTorsoHierarchy: repairCapeUpperTorsoHierarchy,
+        activeCosmiqProjectKind: activeCosmiqProjectKind,
+        projectKindFromMetadata: projectKindFromMetadata,
+        isCosmiqCosmeticProject: isCosmiqCosmeticProject,
+        isCosmiqEmoteProject: isCosmiqEmoteProject,
+        isCosmiqCapeProject: isCosmiqCapeProject,
+        runtimeId: runtimeId,
+        parseParticleMarkerName: parseParticleMarkerName,
+        parseAnimationName: parseAnimationName,
+        resolveTrigger: resolveTrigger,
+        buildSourceMetadata: buildSourceMetadata,
+        legacyAnchorNormalizationPlan: legacyAnchorNormalizationPlan,
+        normalizePackagedNodeVisibility: normalizePackagedNodeVisibility,
+        bakeSourcePlayerAnimation: bakeSourcePlayerAnimation,
+        buildCapeSourceMetadata: buildCapeSourceMetadata,
+        animationKeyframeCount: animationKeyframeCount,
+        animationsWithKeyframes: animationsWithKeyframes,
+        animationHasPackageContent: animationHasPackageContent,
+        animationsWithPackageContent: animationsWithPackageContent,
+        COSMIQ_STANDARD_MAGIC: COSMIQ_STANDARD_MAGIC,
+        COSMIQ_STANDARD_SCHEMA: PACKAGE_SCHEMA,
+        COSMIQ_STANDARD_COORDINATES: COSMIQ_STANDARD_COORDINATES,
+        COSMIQ_STANDARD_CONTAINER_VERSION: COSMIQ_STANDARD_CONTAINER_VERSION,
+        COSMIQ_STANDARD_HEADER_BYTES: COSMIQ_STANDARD_HEADER_BYTES,
+        COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES: COSMIQ_STANDARD_DIRECTORY_ENTRY_BYTES,
+        COSMIQ_STANDARD_SECTION_TYPES: COSMIQ_STANDARD_SECTION_TYPES,
+        CosmiqValidationError: CosmiqValidationError,
+        canonicalCosmiqJson: canonicalCosmiqJson,
+        encodeCosmiqPackage: encodeCosmiqPackage,
+        encodeCosmiqBbmodel: encodeCosmiqBbmodel,
+        parseAndValidateCosmiq: parseAndValidateCosmiq,
+        parseAndValidateCosmiqRuntime: parseAndValidateCosmiqRuntime,
+        compileBlockbenchCosmiqPackage: compileBlockbenchCosmiqPackage,
+        packageSnapshot: packageSnapshot,
+        cosmeticExportSummary: cosmeticExportSummary,
+        buildExportInventory: buildExportInventory,
+        buildCreatorExportCandidate: buildCreatorExportCandidate,
+        exportReviewMarkup: exportReviewMarkup,
+        detectedAccessoryAnchorIds: detectedAccessoryAnchorIds,
+        minecraftAttachmentDiagram: minecraftAttachmentDiagram,
+        exportDiagnosticData: exportDiagnosticData,
+        exportDiagnosticJson: exportDiagnosticJson,
+        exportReviewComponent: exportReviewComponent,
+        mcpActionRequest: mcpActionRequest,
+        writeCreatorPackageToPath: writeCreatorPackageToPath,
+        exportCosmiqProjectAction: exportCosmiqProjectAction,
+        showPreviewCameraDialog: showPreviewCameraDialog,
+        registerBlockbenchPlugin: registerBlockbenchPlugin
+    };
+
+    if (typeof module === 'object' && module && module.exports) {
+        module.exports = api;
+    }
+    if (typeof Plugin !== 'undefined' && typeof Blockbench !== 'undefined') {
+        registerBlockbenchPlugin();
+    }
+})(typeof globalThis !== 'undefined' ? globalThis : this);

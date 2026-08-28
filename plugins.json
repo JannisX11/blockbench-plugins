@@ -1574,5 +1574,23 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
+	},
+	"cosmiq_cosmetic_creator": {
+		"title": "Cosmiq Creator",
+		"author": "Cosmiq Team",
+		"description": "Create anchored accessories and editable numbered multi-actor emote scenes.",
+		"icon": "accessibility_new",
+		"version": "0.17.0",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"creation_date": "2026-08-01",
+		"await_loading": true,
+		"tags": ["Minecraft: Java Edition"],
+		"website": "https://cosmiq.gg/",
+		"repository": "https://github.com/CosmiqGG/cosmiq-cosmetic-creator",
+		"bug_tracker": "https://github.com/CosmiqGG/cosmiq-cosmetic-creator/issues",
+		"contributes": {
+			"formats": ["cosmiq_cosmetic"]
+		}
 	}
 }
