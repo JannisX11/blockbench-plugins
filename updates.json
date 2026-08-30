@@ -663,5 +663,10 @@
     "version": "4.13.0",
     "created": 1785061632147,
     "updated": 1785061632147
+  },
+  "structure_to_model": {
+    "version": "1.0.0",
+    "created": 1788085288166,
+    "updated": 1788085288166
   }
 }
