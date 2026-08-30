@@ -20,6 +20,7 @@
     min_version: "4.8.0",
     variant: "desktop",
     creation_date: "2023-09-07",
+    has_changelog: true,
     onload() {
       Blockbench.on("update_recent_project_thumbnail", recentThumbnails)
       styles = Blockbench.addCSS(`

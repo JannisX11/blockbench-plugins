@@ -403,7 +403,8 @@
 		"version": "1.0.0",
 		"min_version": "4.8.0",
 		"variant": "desktop",
-		"creation_date": "2023-09-07"
+		"creation_date": "2023-09-07",
+		"has_changelog": true
 	},
 	"live_dev_reloader": {
 		"title": "Live Dev Reloader",
