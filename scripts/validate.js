@@ -39,19 +39,20 @@ if (CHANGED_FILES) {
 		}
 	}
 
-	if (process.env.GITHUB_OUTPUT) {
-		let label;
-		let plugin_source_change = changes.find(change => {
-			return change.endsWith(PLUGIN_ID + '.js') && !change.startsWith('D') && change.split('/').length <= 3;
-		});
-		if (plugin_source_change?.[0] == 'A') {
-			label = 'new plugin';
-		} else if (plugin_source_change) {
-			label = 'plugin update';
-		}
-		console.log('Plugin source: ' + plugin_source_change, label);
-		if (label) fs.appendFileSync(process.env.GITHUB_OUTPUT, `label=${label}\n`);
+	let label;
+	let plugin_source_change = changes.find(change => {
+		return change.endsWith(PLUGIN_ID + '.js') && !change.startsWith('D') && change.split('/').length <= 3;
+	});
+	if (plugin_source_change?.[0] == 'A') {
+		label = 'new plugin';
+	} else if (plugin_source_change) {
+		label = 'plugin update';
 	}
+	console.log('Change type detected: ' + label);
+
+	/*if (process.env.GITHUB_OUTPUT && label) {
+		fs.appendFileSync(process.env.GITHUB_OUTPUT, `label=${label}\n`);
+	}*/
 }
 
 // ID
