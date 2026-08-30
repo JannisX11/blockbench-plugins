@@ -325,10 +325,11 @@
 		"author": "Ewan Howell",
 		"description": "Customise the start screen's splash art, by adding your own!",
 		"tags": ["Splash art", "Start screen", "Blockbench"],
-		"version": "1.1.4",
+		"version": "1.1.5",
 		"min_version": "5.0.0",
 		"variant": "both",
-		"creation_date": "2022-11-08"
+		"creation_date": "2022-11-08",
+		"has_changelog": true
 	},
 	"scene_recorder": {
 		"title": "Scene Recorder",
