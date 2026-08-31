@@ -92,12 +92,12 @@
 		"variant": "both"
 	},
 	"double_sided_cubes": {
-		"title": "Double Sided Cube Generator",
+		"title": "Double Sided Cubes",
 		"author": "SnaveSutit",
 		"icon": "flip_to_back",
 		"description": "Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"variant": "both"
 	},
 	"optimize": {
@@ -141,7 +141,8 @@
 		"description": "Creates stylistic outlines for cubes and meshes using negative scale values.",
 		"about": "Select an element you want to create an outline for, go to the `Tools` menu and click on the `Create Outline` option.",
 		"icon": "crop_square",
-		"version": "1.1.1",
+		"contributors": ["SirJain", "CppJavaCoder", "JannisX11"],
+		"version": "1.2.0",
 		"min_version": "4.2.0",
 		"variant": "both"
 	},
@@ -258,18 +259,22 @@
 	},
 	"optifine_player_models": {
 		"title": "OptiFine Player Models",
-		"icon": "icon-player",
+		"icon": "icon.png",
 		"author": "Ewan Howell",
 		"description": "Adds a new format that allows you to create OptiFine player models.",
 		"tags": ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-		"version": "1.5.0",
+		"version": "1.5.2",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"await_loading": true,
 		"creation_date": "2022-05-29",
 		"contributes": {
 			"formats": ["optifine_player_model"]
-		}
+		},
+		"website": "https://ewanhowell.com/plugins/optifine-player-models/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/optifine_player_models",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues?title=[OptiFine Player Models]",
+		"has_changelog": true
 	},
 	"colour_gradient_generator": {
 		"title": "Colour Gradient Generator",
@@ -277,7 +282,7 @@
 		"author": "Ewan Howell",
 		"description": "Generate hue shifted gradient palettes from a single colour.",
 		"tags": ["Paint", "Palette", "Color"],
-		"version": "2.1.0",
+		"version": "3.0.0",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"website": "https://ewanhowell.com/plugins/colour-gradient-generator/",
@@ -291,11 +296,12 @@
 		"icon": "chevron_right",
 		"author": "Ewan Howell",
 		"description": "Add the ability to collapse the start screen categories.",
-		"about": "This plugin adds a small dropdown arrow next to each category on the start screen, allowing you to collapse each category and hide their respective formats.",
-		"tags": ["Menu", "Start screen"],
-		"version": "1.0.0",
-		"min_version": "4.4.1",
-		"variant": "both"
+		"tags": ["Start screen", "Menu", "Formats"],
+		"version": "1.1.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"website": "https://ewanhowell.com/",
+		"has_changelog": true
 	},
 	"preview_scene_customiser": {
 		"title": "Preview Scene Customiser",
@@ -398,7 +404,8 @@
 		"version": "1.0.0",
 		"min_version": "4.8.0",
 		"variant": "desktop",
-		"creation_date": "2023-09-07"
+		"creation_date": "2023-09-07",
+		"has_changelog": true
 	},
 	"live_dev_reloader": {
 		"title": "Live Dev Reloader",
@@ -1066,7 +1073,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "2.1.3",
+		"version": "2.1.4",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -1570,7 +1577,7 @@
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
 	},
-    "uvtex_tools": {
+  "uvtex_tools": {
 		"title": "UV-Tex Tools",
 		"description": "Tools for UV cleanup, texture analysis, and flat textured geometry",
 		"author": "QMakar",
@@ -1578,7 +1585,20 @@
 		"variant": "both",
 		"min_version": "5.0.0",
 		"icon": "icon.png",
-        "repository": "https://github.com/CoMakar/blockbench-uv-tex-tools",
-        "tags": ["UV", "Texture", "Cube"]
+    "repository": "https://github.com/CoMakar/blockbench-uv-tex-tools",
+    "tags": ["UV", "Texture", "Cube"]
+ },
+ "structure_to_model": {
+		"title": "Structure to Model",
+		"author": "Mester",
+		"icon": "account_balance",
+		"description": "Converts Minecraft Java structures (.nbt) into a model.",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Modeling", "Utility"],
+		"repository": "https://github.com/MesterMan03/structure-to-model",
+		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
+		"creation_date": "2026/05/06"
 	}
 }
