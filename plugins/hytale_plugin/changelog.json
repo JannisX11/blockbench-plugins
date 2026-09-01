@@ -460,5 +460,34 @@
 				]
 			}
 		]
+	},
+	"0.10.0": {
+		"title": "0.10.0",
+		"date": "2026-09-01",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added option to toggle transparency per cube face",
+					"Added option to toggle UV lock per cube face",
+					"Added Face and Edge modes for Vertex Snap tool",
+					"Vertex Snap tool now displays a line between first vertex and mouse cursor even when not targeting a vertex",
+					"Vertex Snap is now cancelled when pressing Escape",
+					"Added Pivot Follow toggle to select whether pivot points are moved with an element",
+					"Added settings to select which tools to swap between on double click",
+					"Tweaked custom UV outline style"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed issue with root cubes not counting towards node count",
+					"Fixed connected shape message showing in non-Hytale formats",
+					"Fixed Switch Brush Preset not working with identically named presets",
+					"Fixed nodes in collection do not get excluded in export"
+				]
+			}
+		]
 	}
 }
