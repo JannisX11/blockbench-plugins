@@ -589,6 +589,24 @@
 		"version": "1.0.0",
 		"variant": "both"
 	},
+	"display_anim_preview": {
+		"title": "Java Display Animator",
+		"author": "rieyi",
+		"description": "Preview frame-baked Minecraft Java item animations per display context and export complete resource packs and animation-driving datapacks.",
+		"icon": "icon.png",
+		"tags": ["Minecraft: Java Edition", "Animation", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "5.1.5",
+		"variant": "desktop",
+		"creation_date": "2026-08-07",
+		"has_changelog": true,
+		"repository": "https://github.com/rieyi/display-anim-preview",
+		"bug_tracker": "https://github.com/rieyi/display-anim-preview/issues",
+		"await_loading": true,
+		"contributes": {
+			"formats": ["display_animation_sequence"]
+		}
+	},
 	"duplicate_renamer": {
 		"title": "Duplicate Bone Renamer",
 		"icon": "fa-font",
