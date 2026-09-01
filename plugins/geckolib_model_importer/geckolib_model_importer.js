@@ -345,6 +345,71 @@ function triangleNormal(p) {
 	return len > 1e-12 ? [n[0] / len, n[1] / len, n[2] / len] : null;
 }
 
+/**
+ * Turning whatever a file draws with into plain triangles.
+ *
+ * Only mode 4 was read, and everything else was skipped with a warning. That
+ * sounds cautious and was not: every model in the reference set — six of them,
+ * from three different authors, all exported through Sketchfab — is written as
+ * triangle strips, so the importer skipped every primitive in every one of them
+ * and reported finding no cubes at all. The geometry was perfect: twenty-four
+ * vertices to a primitive, which is six faces of four corners.
+ *
+ * A strip and a fan are not other kinds of geometry. They are the same triangles
+ * written down more briefly, and unrolling them is four lines.
+ *
+ * Two things can go wrong and both have bitten.
+ *
+ * <b>Winding.</b> In a strip every other triangle is wound the other way and the
+ * file relies on the reader to flip it back. A reader that does not gets every
+ * second face inside out, which shows as a cube with holes rather than as an
+ * error.
+ *
+ * <b>Stitches.</b> A strip is one unbroken ribbon, so a box drawn as a strip has
+ * to jump from face to face, and it jumps by repeating an index. Thirty-four
+ * indices come out as thirty-two triangles of which <em>twenty</em> are those
+ * jumps and only twelve are the box. A jump draws nothing — it has no area — but
+ * its three corners are read from two different faces of the texture at once, and
+ * the UV rectangle worked out for each side then stretches over its neighbours.
+ * That is what "the textures land completely wrong" looked like, and it does not
+ * happen in files written as plain triangles, which is why it survived the first
+ * fix.
+ *
+ * So a triangle with a repeated corner is dropped. It is not a triangle.
+ */
+const TRIANGULATE = {
+	// TRIANGLES: already triangles.
+	4: idx => real(triples(idx)),
+	// TRIANGLE_STRIP: each new index closes a triangle with the two before it,
+	// and the odd ones are reversed so that every face keeps facing outwards.
+	5: idx => {
+		const out = [];
+		for (let i = 0; i + 2 < idx.length; i++) {
+			out.push(i % 2 === 0
+				? [idx[i], idx[i + 1], idx[i + 2]]
+				: [idx[i + 1], idx[i], idx[i + 2]]);
+		}
+		return real(out);
+	},
+	// TRIANGLE_FAN: every triangle shares the first index.
+	6: idx => {
+		const out = [];
+		for (let i = 1; i + 1 < idx.length; i++) out.push([idx[0], idx[i], idx[i + 1]]);
+		return real(out);
+	},
+};
+
+function triples(idx) {
+	const out = [];
+	for (let i = 0; i + 2 < idx.length; i += 3) out.push([idx[i], idx[i + 1], idx[i + 2]]);
+	return out;
+}
+
+/** Only the triangles that are triangles: two corners the same is no area at all. */
+function real(tris) {
+	return tris.filter(t => t[0] !== t[1] && t[1] !== t[2] && t[0] !== t[2]);
+}
+
 function boxFromBounds(faces) {
 	const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
 	const uvLo = [Infinity, Infinity], uvHi = [-Infinity, -Infinity];
@@ -1217,8 +1282,8 @@ function parseGLTFFiles(files, opts) {
 			// which image this object uses: material -> texture -> image
 			let imageIndex = -1;
 			for (const prim of mesh.primitives || []) {
-				if (prim.mode !== undefined && prim.mode !== 4) {
-					warnings.push(`${node.name || mesh.name}: primitive mode ${prim.mode} skipped (triangles required)`);
+				if (prim.mode !== undefined && !TRIANGULATE[prim.mode]) {
+					warnings.push(`${node.name || mesh.name}: primitive mode ${prim.mode} skipped (points and lines are not geometry)`);
 					continue;
 				}
 				const posIdx = prim.attributes && prim.attributes.POSITION;
@@ -1248,8 +1313,7 @@ function parseGLTFFiles(files, opts) {
 					? pos.map((_, i) => i)
 					: readAccessor(gltf, buffers, prim.indices).map(a => a[0]);
 
-				for (let i = 0; i + 2 < idx.length; i += 3) {
-					const tri = [idx[i], idx[i + 1], idx[i + 2]];
+				for (const tri of TRIANGULATE[prim.mode === undefined ? 4 : prim.mode](idx)) {
 					faces.push({
 						positions: tri.map(k => pos[k]),
 						uvs: tri.map(k => uv ? uv[k] : null),
@@ -1550,6 +1614,886 @@ function hasGltfArchive(m) {
 	return ok(m.archives.gltf) || ok(m.archives.glb);
 }
 
+// ------------------------------------------- CPM (.cpmproject) construction
+
+/**
+ * Customizable Player Models lives in the coordinate system of vanilla
+ * Minecraft models, not of Blockbench: X points the other way, Y points down
+ * and starts 24 px above the feet. Rotations follow the axes.
+ *
+ * Derived from the mod's own Blockbench exporter (BlockbenchExport.java:255-272
+ * and its convert()), not guessed.
+ */
+function cpmPoint(p) { return [-p[0], 24 - p[1], p[2]]; }
+
+/** The same for a difference of two points: the 24 px shift cancels out. */
+function cpmDelta(p) { return [-p[0], -p[1], p[2]]; }
+
+/**
+ * Pivots of the vanilla player parts, already in CPM coordinates.
+ * Straight out of PlayerPartValues.java (px, py, pz). Independent of skin type:
+ * the slim arms differ in width, not in where they hinge.
+ */
+const CPM_PARTS = {
+	head:      [0, 0, 0],
+	body:      [0, 0, 0],
+	left_arm:  [5, 2, 0],
+	right_arm: [-5, 2, 0],
+	left_leg:  [1.9, 12, 0],
+	right_leg: [-1.9, 12, 0],
+};
+const CPM_PART_NAMES = Object.keys(CPM_PARTS);
+
+/**
+ * Blockbench face -> CPM face, with the UV rotation each one needs.
+ *
+ * East and west swap because X is flipped. Up and down keep their names — CPM's
+ * "up" is the face with the SMALLEST y, since y grows downwards — but their UV
+ * comes out rotated by 180°: BoxRender.createTextured lays u along +X and v
+ * along -Z there, while Blockbench uses -X and +Z. The mod's own exporter adds
+ * the same 180° in convertUV().
+ */
+const CPM_FACE = {
+	north: { dir: 'north', rot: '0' },
+	south: { dir: 'south', rot: '0' },
+	east:  { dir: 'west',  rot: '0' },
+	west:  { dir: 'east',  rot: '0' },
+	up:    { dir: 'up',    rot: '180' },
+	down:  { dir: 'down',  rot: '180' },
+};
+
+/**
+ * Euler angles of a cube for CPM, in degrees, normalised to 0..360.
+ *
+ * The basis is carried over into CPM coordinates by conjugation with
+ * S = diag(-1, -1, 1) rather than by flipping the angles that Blockbench
+ * reports. Conjugation is exact and needs no case analysis: S is its own
+ * inverse and its determinant is +1, so the result is still a rotation.
+ *
+ * The angles are then extracted in ZYX order, i.e. R = Rz·Ry·Rx. That is the
+ * order an element is actually rotated in: Rotation.asQ() builds the quaternion
+ * with RotationOrder.ZYX. Quaternion also has a plain three-float constructor
+ * that composes XYZ, but nothing on the element path calls it.
+ */
+function cpmEuler(sol) {
+	return cpmEulerFromMatrix([
+		[sol.vx[0], sol.vy[0], sol.vz[0]],
+		[sol.vx[1], sol.vy[1], sol.vz[1]],
+		[sol.vx[2], sol.vy[2], sol.vz[2]],
+	]);
+}
+
+/** The same for a rotation given as a quaternion in Blockbench axes. */
+function cpmEulerFromQuat(q) {
+	const [x, y, z, w] = q;
+	return cpmEulerFromMatrix([
+		[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+		[2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+		[2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+	]);
+}
+
+/** @param R rotation matrix in Blockbench axes, R[row][col] */
+function cpmEulerFromMatrix(R) {
+	return cpmEulerZYX(cpmConjugate(R));
+}
+
+/** Carries a rotation from Blockbench axes into CPM ones: S·R·S, S = diag(-1,-1,1). */
+function cpmConjugate(R) {
+	const s = [-1, -1, 1];
+	return [0, 1, 2].map(i => [0, 1, 2].map(j => s[i] * s[j] * R[i][j]));
+}
+
+/** Euler angles in ZYX order, degrees, 0..360. The matrix is already in CPM axes. */
+function cpmEulerZYX(m) {
+	const clamp = v => Math.min(1, Math.max(-1, v));
+	const y = Math.asin(-clamp(m[2][0]));
+	let x, z;
+	if (Math.abs(m[2][0]) < 0.9999999) {
+		x = Math.atan2(m[2][1], m[2][2]);
+		z = Math.atan2(m[1][0], m[0][0]);
+	} else {
+		// Gimbal lock: y is ±90°, and only the sum of x and z is defined.
+		x = 0;
+		z = Math.atan2(-m[0][1], m[1][1]);
+	}
+	return [x, y, z].map(r => cpmAngle(r * 180 / Math.PI));
+}
+
+const mat3Mul = (a, b) => [0, 1, 2].map(i => [0, 1, 2].map(j =>
+	a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j]));
+const mat3T = a => [0, 1, 2].map(i => [0, 1, 2].map(j => a[j][i]));
+const mat3Apply = (a, v) => [0, 1, 2].map(i => a[i][0] * v[0] + a[i][1] * v[1] + a[i][2] * v[2]);
+const MAT3_ID = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+
+/** The rotation of a column-major 4x4, with any scale divided out. */
+function mat3FromMat4(m) {
+	const col = c => {
+		const v = [m[c * 4], m[c * 4 + 1], m[c * 4 + 2]];
+		const l = Math.hypot(v[0], v[1], v[2]) || 1;
+		return [v[0] / l, v[1] / l, v[2] / l];
+	};
+	const [a, b, c] = [col(0), col(1), col(2)];
+	return [0, 1, 2].map(i => [a[i], b[i], c[i]]);
+}
+
+/**
+ * CPM stores an angle as an unsigned 16-bit fraction of a full turn
+ * (IOHelper.writeAngle), so a negative value would be clamped to zero rather
+ * than wrapped. Everything is brought into 0..360 before it is written.
+ */
+function cpmAngle(deg) {
+	let r = deg % 360;
+	if (r < 0) r += 360;
+	r = Math.round(r * 100) / 100;
+	return r >= 360 ? 0 : r;
+}
+
+/**
+ * How much finer the UV grid has to be for every UV to land on a whole number.
+ *
+ * CPM keeps face UV in integers, but they are integers of the UV GRID, whose
+ * size is stored apart from the actual picture (config.json skinSize versus
+ * skin.png — the mismatch is exactly what turns on customGridSize). So a
+ * fractional UV costs nothing but a larger number: the image is never touched,
+ * and the viewer-side limit on texture size is measured on the image.
+ *
+ * The mod's own exporter multiplies by 16 whenever a single UV is fractional.
+ * We take the smallest multiplier that works, so the numbers stay readable.
+ */
+function cpmUVScale(cubes, limit, texSize) {
+	// The grid is written as a signed short (IOHelper.write2s), so it has to stay
+	// under 32767 — ×16 on a 2048 texture would land exactly on the edge.
+	let max = limit || 16;
+	while (texSize && texSize * max > 32767 && max > 1) max /= 2;
+	const values = [];
+	for (const c of cubes) {
+		for (const name of FACE_NAMES) {
+			const uv = c.sol.faceUV[name];
+			if (uv) values.push(uv[0], uv[1], uv[2], uv[3]);
+		}
+	}
+	const off = (v, mul) => Math.abs(v * mul - Math.round(v * mul));
+	for (let mul = 1; mul <= max; mul *= 2) {
+		if (values.every(v => off(v, mul) < 0.01)) return { mul, exact: true, worst: 0 };
+	}
+	// Nothing within the ceiling makes them whole: take the ceiling and report
+	// the worst rounding, in picture pixels, so the cost is visible.
+	let worst = 0;
+	for (const v of values) worst = Math.max(worst, off(v, max) / max);
+	return { mul: max, exact: false, worst };
+}
+
+/**
+ * A first guess at which bone is which part of the player, by name.
+ *
+ * Only a guess — the last word belongs to the person at the dialog. Models off
+ * Sketchfab name their bones anything at all, and a wrong guess made silently
+ * is worse than no guess. What it does buy is that a model already rigged like
+ * a player, which is most of them, needs no corrections at all.
+ *
+ * A bone with no verdict is deliberately left out: it inherits its parent's
+ * part, so an item pivot inside an arm goes along with the arm on its own.
+ */
+function cpmAutoAssign(hierarchy) {
+	const assign = {};
+	for (const h of hierarchy) {
+		const n = String(h.name || '').toLowerCase().replace(/[^a-z]/g, '');
+		const side = n.indexOf('left') >= 0 ? 'left' : n.indexOf('right') >= 0 ? 'right' : null;
+		const limb = /arm|hand|shoulder/.test(n) ? 'arm' : /leg|foot|thigh|knee/.test(n) ? 'leg' : null;
+		if (side && limb) assign[h.index] = `${side}_${limb}`;
+		else if (/head|skull/.test(n)) assign[h.index] = 'head';
+		else if (/body|torso|chest|spine/.test(n)) assign[h.index] = 'body';
+	}
+	return assign;
+}
+
+/**
+ * How far the model has to be moved for its skeleton to sit on the player's.
+ *
+ * Centring on the bounding box is not enough, and on some models it is actively
+ * wrong: this one has a long tail, so centring the box put the character itself
+ * 18 px in front of the player. At rest that is invisible — the model is
+ * self-consistent — but every vanilla part turns about ITS OWN pivot, and a limb
+ * hanging 18 px away from that pivot swings out of the body the moment the arm
+ * moves. That is what tore the first version apart in game.
+ *
+ * So the offset is taken from the rig instead: the average gap between the bones
+ * the person mapped and the vanilla pivots they were mapped to. A whole-model
+ * translation cannot deform anything — the alternative, aligning each part
+ * separately, would put every limb exactly on its pivot and pull the model
+ * apart at rest.
+ *
+ * A residual of a few pixels stays and is unavoidable: an imported character has
+ * its shoulders and hips where its author put them, not where Minecraft does.
+ */
+function cpmAlignOffset(hierarchy, assign, k) {
+	const diffs = [];
+	for (const h of hierarchy) {
+		const part = assign && assign[h.index];
+		if (!part || !CPM_PARTS[part]) continue;
+		diffs.push(sub(CPM_PARTS[part], cpmPoint(mul(h.pivot, k || 1))));
+	}
+	if (!diffs.length) return [0, 0, 0];
+	const mean = i => diffs.reduce((s, d) => s + d[i], 0) / diffs.length;
+	// Height is left alone on purpose. The import already stands the model on the
+	// ground, and that is a hard constraint — averaging the rig mismatch
+	// vertically pulled this model a pixel INTO the floor, which showed up the
+	// moment it crouched. Sideways and depthwise there is no such anchor, and
+	// that is exactly where centring on the bounding box goes wrong.
+	return [mean(0), 0, mean(2)];
+}
+
+/**
+ * The model tree for config.json.
+ *
+ * Roots are not our bones but the fixed parts of the player: everything of ours
+ * hangs off them as children. A bone becomes a CPM element with no geometry
+ * (size 0), a cube becomes an element with a box.
+ *
+ * `assign` maps a glTF node index to a player part. It may be partial: a bone
+ * without an entry of its own inherits the part of its parent.
+ */
+function buildCPMConfig(input) {
+	const hierarchy = input.hierarchy;
+	const cubes = input.cubes;
+	const assign = input.assign || {};
+	const fallback = input.fallback || 'body';
+	const uvMul = input.uvMul || 1;
+	// CPM measures in player pixels, and a Sketchfab model arrives in whatever
+	// units its author used, so the size here is its own setting rather than the
+	// one the GeckoLib branch was imported at. Geometry scales uniformly —
+	// positions, sizes and inflation — while angles and UV do not.
+	const k = input.scale || 1;
+	// A whole-model shift onto the player's skeleton. Only bones attached
+	// straight to a player part need it: everything below them is measured
+	// against its parent and comes along by itself.
+	const align = input.align || [0, 0, 0];
+	const warnings = [];
+
+	// Step 1. Which player part each bone belongs to. The hierarchy is ordered
+	// parent-before-child, so one pass is enough.
+	const partOf = {};
+	const indexOf = {};
+	hierarchy.forEach((h, i) => { indexOf[h.index] = i; });
+	for (const h of hierarchy) {
+		const own = assign[h.index];
+		const inherited = h.parent >= 0 ? partOf[h.parent] : null;
+		partOf[h.index] = own || inherited || fallback;
+	}
+
+	// Step 2. Which bones are worth keeping. A bone with no cubes anywhere below
+	// it carries nothing; the model gains a hundred empty elements and the tree
+	// becomes unreadable. Walking backwards marks the ancestors of a keeper.
+	const cubesByNode = {};
+	for (const c of cubes) (cubesByNode[c.node] = cubesByNode[c.node] || []).push(c);
+	const keep = {};
+	for (let i = hierarchy.length - 1; i >= 0; i--) {
+		const h = hierarchy[i];
+		if (cubesByNode[h.index] || keep[h.index]) {
+			keep[h.index] = true;
+			if (h.parent >= 0) keep[h.parent] = true;
+		}
+	}
+
+	// Step 2a. Collapse the nodes glTF creates just to hold a mesh.
+	//
+	// This is not tidiness. CPM counts EVERY element against MAX_CUBE_COUNT,
+	// empty ones included (ModelDefinition:162 counts cubes.size()), and the
+	// default limit is 256. One node per mesh doubles the count for nothing: the
+	// node's pivot has no life of its own, and its box already carries its own
+	// position. Dropping them took this model from 248 elements to 140.
+	//
+	// A node an animation moves is never collapsed — there it IS the pivot, and
+	// merging it away would leave the animation nothing to turn.
+	const animated = input.keepNodes || new Set();
+	const collapse = {};
+	const hostOf = {};
+	for (const h of hierarchy) {
+		const parentHost = h.parent >= 0 ? hostOf[h.parent] : undefined;
+		collapse[h.index] = keep[h.index] && h.hasMesh && !animated.has(h.index) && parentHost !== undefined;
+		hostOf[h.index] = collapse[h.index] ? parentHost : h.index;
+	}
+
+	// Step 3. The elements themselves.
+	let storeID = 1000;
+	const roots = {};
+	const elemOf = {};
+	const attachOf = {};
+	const usedParts = {};
+
+	const rootFor = part => {
+		if (!roots[part]) {
+			roots[part] = {
+				id: part,
+				// The vanilla part is hidden: our model stands in its place. Its pivot
+				// is left where it is, so vanilla animation still swings the limb.
+				show: false,
+				showInEditor: true,
+				locked: false,
+				pos: vec3(0, 0, 0),
+				rotation: vec3(0, 0, 0),
+				dup: false,
+				// When the model brings its own walk, the vanilla arm swing lands on
+				// top of it and the motion is played twice. The head is normally left
+				// alone even so: vanilla animation is what makes it follow the camera,
+				// and a character that no longer looks where you look reads as broken.
+				disableVanillaAnim: !!(input.stopVanillaAnim && input.stopVanillaAnim[part]),
+				name: '',
+				nameColor: 0,
+				children: [],
+			};
+			usedParts[part] = 0;
+		}
+		return roots[part];
+	};
+
+	for (const h of hierarchy) {
+		if (!keep[h.index] || collapse[h.index]) continue;
+		const part = partOf[h.index];
+		const host = h.parent >= 0 ? hostOf[h.parent] : undefined;
+		const parentKept = host !== undefined && keep[host];
+		// A bone whose parent went to a different part cannot hang off it: it
+		// starts a new subtree under its own part, measured from that part's pivot.
+		const attachToRoot = !parentKept || partOf[host] !== part;
+
+		const pos = attachToRoot
+			? sub(add(cpmPoint(mul(h.pivot, k)), align), CPM_PARTS[part])
+			: cpmDelta(mul(sub(h.pivot, hierarchy[indexOf[host]].pivot), k));
+
+		const el = cpmElement({
+			name: h.name,
+			pos,
+			size: [0, 0, 0],
+			storeID: storeID++,
+		});
+		el.children = [];
+		elemOf[h.index] = el;
+		if (attachToRoot) {
+			rootFor(part).children.push(el);
+			usedParts[part]++;
+			attachOf[h.index] = { parent: null, part };
+		} else {
+			elemOf[host].children.push(el);
+			attachOf[h.index] = { parent: host, part };
+		}
+	}
+
+	// Step 4. Cubes, each under the bone of its own node.
+	let placed = 0;
+	for (const c of cubes) {
+		const host = hostOf[c.node];
+		const bone = elemOf[host];
+		if (!bone) { warnings.push(`${c.name}: no bone for node ${c.node}, cube dropped`); continue; }
+		const h = hierarchy[indexOf[host]];
+		const place = placeCoords(c.sol);
+		const half = c.sol.size.map(v => Math.abs(v) / 2);
+		const from = place(sub(c.sol.center, half));
+		const to = place(add(c.sol.center, half));
+		const center = from.map((v, i) => (v + to[i]) / 2);
+		const size = from.map((v, i) => Math.abs(to[i] - v) * k);
+
+		const el = cpmElement({
+			name: c.name,
+			// CPM places a box as: shift by pos, rotate, shift by offset, then draw
+			// size. Putting the pivot at the centre and the offset at minus half the
+			// size reproduces Blockbench exactly, where a cube turns about origin and
+			// our origin is the centre.
+			pos: cpmDelta(mul(sub(center, h.pivot), k)),
+			rotation: cpmEuler(c.sol),
+			offset: size.map(v => -v / 2),
+			size,
+			mcScale: (c.inflate || 0) * k,
+			storeID: storeID++,
+			faceUV: cpmFaceUV(c.sol, uvMul),
+		});
+		bone.children.push(el);
+		placed++;
+	}
+
+	// Empty bones can survive step 2 as ancestors of a keeper; that is fine. What
+	// is not fine is a part that ended up with nothing at all.
+	const parts = Object.keys(roots);
+	if (!parts.length) warnings.push('nothing was assigned to any player part');
+
+	// Every vanilla part is hidden, including the ones we did not fill: a half
+	// vanilla, half custom player is never what anyone meant by replacing a model.
+	for (const p of CPM_PART_NAMES) rootFor(p);
+
+	return {
+		elements: CPM_PART_NAMES.map(p => roots[p]),
+		// Animations address elements by storeID and need each bone's rest position
+		// to write an absolute value, so the built elements are handed back rather
+		// than being rebuilt from the JSON afterwards.
+		elemByNode: elemOf,
+		// Where each bone actually ended up: under another bone, or straight under a
+		// player part. Animations need this, because a bone's parent in the CPM tree
+		// is often NOT its parent in glTF.
+		attachOf,
+		warnings,
+		stats: { cubes: placed, bones: Object.keys(elemOf).length, parts: usedParts },
+	};
+}
+
+/**
+ * Which vanilla pose an animation is called by, guessed from its name.
+ *
+ * Sketchfab models come from Blockbench and Blockbench-likes, where these names
+ * are a de facto standard: the fourteen animations of the test model all land
+ * without a correction. Anything unrecognised becomes a gesture, which is the
+ * safe outcome — a gesture plays on demand and never replaces vanilla motion.
+ */
+const CPM_POSE_GUESS = [
+	[/^(idle|stand)/, 'STANDING'],
+	[/^(sneak.?walk|crouch.?walk)/, 'SNEAK_WALK'],
+	[/^(walk)/, 'WALKING'],
+	[/^(run|sprint)/, 'RUNNING'],
+	[/^(sneak|crouch|squat)$/, 'SNEAKING'],
+	[/^(swim)/, 'SWIMMING'],
+	[/^(sleep)/, 'SLEEPING'],
+	[/^(sit|ride|riding)/, 'RIDING'],
+	// Elytra flight is FLYING, not WEARING_ELYTRA: AnimationState.getMainPose
+	// returns FLYING for elytraFlying, while WEARING_ELYTRA is a layer that
+	// applies whenever an elytra is worn, flying or not. Plain "flying" is left
+	// to creative flight, which is what the word usually means in a model.
+	[/elytra/, 'FLYING'],
+	[/^(fly|flying|hover)/, 'CREATIVE_FLYING'],
+	[/^(fall)/, 'FALLING'],
+	[/^(jump)/, 'JUMPING'],
+	[/^(die|dying|death)/, 'DYING'],
+	[/^(hurt|damage)/, 'HURT'],
+];
+
+/**
+ * The poses offered in the dialog. CPM has about sixty, most of them about
+ * holding a particular item; a list that long is unreadable, and everything
+ * missing from it is still reachable inside the CPM editor afterwards.
+ */
+const CPM_POSE_OPTIONS = [
+	'STANDING', 'WALKING', 'RUNNING', 'SNEAKING', 'SNEAK_WALK', 'JUMPING', 'FALLING',
+	'SWIMMING', 'SLEEPING', 'RIDING', 'FLYING', 'CREATIVE_FLYING', 'WEARING_ELYTRA',
+	'ON_LADDER', 'CLIMBING_ON_LADDER', 'DYING', 'HURT', 'ON_FIRE',
+];
+
+/**
+ * The poses AnimationState.getMainPose can settle on, in its own priority order.
+ *
+ * Worth listing because of what happens in the gaps. The pose is chosen by
+ * player state, first match wins, and if the model has nothing for the chosen
+ * one it simply keeps its rest pose. That is harmless on its own — vanilla
+ * animation still moves the limbs — but becomes a frozen model the moment
+ * disableVanillaAnim is switched on for a part.
+ */
+const CPM_MAIN_POSES = [
+	'SLEEPING', 'DYING', 'FLYING', 'TRIDENT_SPIN', 'FALLING', 'RIDING', 'CREATIVE_FLYING',
+	'CRAWLING', 'SWIMMING', 'RETRO_SWIMMING', 'CLIMBING_ON_LADDER', 'ON_LADDER',
+	'JUMPING', 'SNEAK_WALK', 'SNEAKING', 'RUNNING', 'WALKING', 'STANDING',
+];
+
+function cpmAutoPose(name) {
+	const n = String(name || '').toLowerCase().trim();
+	for (const [re, pose] of CPM_POSE_GUESS) if (re.test(n)) return pose;
+	return 'gesture';
+}
+
+/**
+ * Animations for the .cpmproject.
+ *
+ * CPM does not store curves. A frame is a SNAPSHOT: a list of elements with
+ * their absolute position and rotation, and the frames are spread evenly over
+ * `duration` (EditorAnim.animate computes the step as
+ * `millis % duration / duration * frames.size()`). So the glTF curves are
+ * sampled at a fixed rate, and the last frame interpolates back into the first.
+ *
+ * The offsets are NOT carried over one bone at a time, the way the GeckoLib
+ * branch does it. There a bone keeps its glTF parent, so a local offset is all
+ * that is needed. Here it is not: the head hangs off the player's head part
+ * while in glTF it sits under the body, so a rotation of the body would simply
+ * fail to reach it and the model would come apart mid-animation.
+ *
+ * So each frame is computed from the WORLD pose. For every bone we work out
+ * where glTF puts it at that moment, then express that against whatever its
+ * parent in the CPM tree happens to be. Bones whose two parents coincide come
+ * out with exactly the local offset anyway; the ones that cross a part boundary
+ * come out right instead of coming apart.
+ */
+function buildCPMAnimations(input) {
+	const hierarchy = input.hierarchy;
+	const elemByNode = input.elemByNode;
+	const attachOf = input.attachOf || {};
+	const poses = input.poses || {};
+	const fps = input.fps || 12;
+	const maxFrames = input.maxFrames || 60;
+	const scale = input.scale || 16;
+	const k = input.k || 1;
+	// The same shift onto the player's skeleton the rest pose got. For a nested
+	// bone it cancels out in the difference against its parent; for one hanging
+	// off a player part it does not, because the part pivot does not move.
+	const align = input.align || [0, 0, 0];
+	const files = {};
+	const warnings = [];
+	const stats = { animations: 0, frames: 0, components: 0, skipped: [], moved: 0 };
+
+	const byIdx = {};
+	for (const h of hierarchy) byIdx[h.index] = h;
+
+	// The base frame the parser started from: the extra rotation from the dialog
+	// is baked into it, and a root node carries it as its parentQuat.
+	const firstRoot = hierarchy.find(h => h.parent < 0);
+	const base = matFromTRS([0, 0, 0], (firstRoot && firstRoot.parentQuat) || [0, 0, 0, 1], [1, 1, 1]);
+
+	/** World matrices for the whole tree, with `at` overriding the rest pose. */
+	const worldAll = at => {
+		const w = {};
+		for (const h of hierarchy) {
+			const o = (at && at[h.index]) || {};
+			const local = matFromTRS(
+				o.translation || h.rest.translation,
+				o.rotation || h.rest.rotation,
+				h.rest.scale);
+			w[h.index] = matMul(h.parent >= 0 ? w[h.parent] : base, local);
+		}
+		return w;
+	};
+
+	const restWorld = worldAll(null);
+	// Rest positions come from the parser rather than from this matrix: it already
+	// carries the centring offset, and reproducing that here would be a second
+	// place for the two to drift apart.
+	const restOrigin = {};
+	for (const h of hierarchy) restOrigin[h.index] = matApply(restWorld[h.index], [0, 0, 0]);
+
+	// Which bones have an element of their own. Cubes need no frames: they sit
+	// under their bone and follow it.
+	const boneNodes = hierarchy.filter(h => elemByNode[h.index]).map(h => h.index);
+
+	for (const a of input.animations) {
+		const choice = poses[a.name] || 'gesture';
+		if (choice === 'skip') { stats.skipped.push(a.name); continue; }
+
+		const channels = a.channels.filter(ch => ch.path !== 'scale');
+		if (!channels.length) { warnings.push(`${a.name}: no rotation or position channels`); continue; }
+
+		// A static pose is an animation of zero length: one frame, held.
+		const isPose = a.length < 1e-6;
+		const count = isPose ? 1 : Math.max(2, Math.min(maxFrames, Math.round(a.length * fps)));
+
+		// Pass one: work out every bone's local transform in every frame, and note
+		// which of them ever leave their rest pose. A bone that moves in one frame
+		// is written in ALL of them — a bone that appears and vanishes between
+		// frames would have the player guessing what it interpolates towards.
+		const perFrame = [];
+		const moves = new Set();
+		for (let i = 0; i < count; i++) {
+			const t = isPose ? 0 : (i / count) * a.length;
+			const at = {};
+			for (const ch of channels) (at[ch.node] = at[ch.node] || {})[ch.path] = sampleChannel(ch, t);
+			const world = worldAll(at);
+
+			// Where every bone stands now, in CPM coordinates, and how it is turned.
+			const P = {}, R = {};
+			for (const n of boneNodes) {
+				const h = byIdx[n];
+				const moved = matApply(world[n], [0, 0, 0]);
+				const o = restOrigin[n];
+				// The pivot from the parser already holds scale and centring, so only
+				// the displacement since rest is scaled and added to it.
+				const bb = [
+					h.pivot[0] + (moved[0] - o[0]) * scale,
+					h.pivot[1] + (moved[1] - o[1]) * scale,
+					h.pivot[2] + (moved[2] - o[2]) * scale,
+				];
+				P[n] = add(cpmPoint(mul(bb, k)), align);
+				// The rest pose is baked into the geometry while the bone stands
+				// unrotated, so what the frame carries is the change since rest.
+				R[n] = cpmConjugate(mat3Mul(mat3FromMat4(world[n]), mat3T(mat3FromMat4(restWorld[n]))));
+			}
+
+			const locals = {};
+			for (const n of boneNodes) {
+				const att = attachOf[n] || { parent: null, part: 'body' };
+				const parentP = att.parent !== null && P[att.parent] ? P[att.parent] : CPM_PARTS[att.part] || [0, 0, 0];
+				const parentR = att.parent !== null && R[att.parent] ? R[att.parent] : MAT3_ID;
+				const inv = mat3T(parentR);
+				const pos = mat3Apply(inv, sub(P[n], parentP));
+				const rot = cpmEulerZYX(mat3Mul(inv, R[n]));
+				locals[n] = { pos, rot };
+
+				const el = elemByNode[n];
+				const dp = Math.hypot(pos[0] - el.pos.x, pos[1] - el.pos.y, pos[2] - el.pos.z);
+				const dr = Math.max(...rot.map(v => Math.min(v, 360 - v)));
+				if (dp > 0.01 || dr > 0.05) moves.add(n);
+			}
+			perFrame.push(locals);
+		}
+
+		if (!moves.size) { warnings.push(`${a.name}: nothing moves, skipped`); continue; }
+		stats.moved += moves.size;
+
+		const frames = perFrame.map(locals => {
+			const components = [];
+			for (const n of moves) {
+				const el = elemByNode[n];
+				components.push({
+					storeID: el.storeID,
+					pos: vec3(...locals[n].pos),
+					rotation: vec3(...locals[n].rot),
+					scale: vec3(1, 1, 1),
+					color: 'ffffff',
+					show: true,
+				});
+			}
+			stats.components += components.length;
+			return { components };
+		});
+
+		const vanilla = choice !== 'gesture';
+		const clean = String(a.name).replace(/[^a-zA-Z0-9.\-]/g, '');
+		const id = cpmRandomId();
+		const file = vanilla
+			? `v_${choice.toLowerCase()}_${clean}_${id}.json`
+			: `g_${clean}_${id}.json`;
+
+		files['animations/' + file] = JSON.stringify({
+			name: a.name,
+			additive: false,
+			// Zero-length poses would otherwise play out in a millisecond.
+			duration: isPose ? 1000 : Math.max(1, Math.round(a.length * 1000)),
+			priority: 0,
+			loop: !isPose,
+			// glTF interpolates linearly. A spline over sparse oscillating values —
+			// legs in a walk cycle go +1, 0, −1, 0 — overshoots well past them.
+			interpolator: isPose ? 'linear_single' : 'linear_loop',
+			layerDefault: 0,
+			order: 0,
+			isProperty: false,
+			command: false,
+			layerControlled: true,
+			maxValue: 100,
+			interpolateVal: true,
+			mustFinish: false,
+			hidden: false,
+			frames,
+		}, null, 1);
+
+		stats.animations++;
+		stats.frames += frames.length;
+	}
+
+	return { files, warnings, stats };
+}
+
+/**
+ * How large the model will be once CPM encodes it, in bytes.
+ *
+ * This matters more than it sounds. A local `.cpmmodel` gets a buffer of
+ * exactly 30 kB (Exporter.ModelWriter: `new byte[skinCompat ? 2*1024 : 30*1024]`),
+ * and anything past that has to be uploaded to a paste site instead of just
+ * working. Without a number here the overflow is a surprise at the end of a long
+ * export; with one it is a decision taken up front, where the levers are.
+ *
+ * The estimate follows the mod's own writers: saveDefinitionCubeV2 for boxes,
+ * writeFaces for per-face UV, and ModelPartAnimation.write for frames — where a
+ * track whose values never leave the element's rest pose is dropped entirely
+ * (`hasPosChanges`), so a bone that only turns costs nothing for position.
+ */
+function cpmEstimateSize(config, animations, skinBytes) {
+	// A CPM float is stored as a signed varint of value×682 (IOHelper DIV).
+	const varLen = v => {
+		let n = Math.abs(Math.round(v)) * 2;
+		let len = 1;
+		while (n >= 128) { n = Math.floor(n / 128); len++; }
+		return len;
+	};
+	const vecLen = v => varLen(v.x * 682) + varLen(v.y * 682) + varLen(v.z * 682);
+
+	let cubes = 0, count = 0;
+	const byStore = {};
+	const walk = list => {
+		for (const el of list || []) {
+			count++;
+			byStore[el.storeID] = el;
+			const box = el.size.x || el.size.y || el.size.z;
+			// flags, parent, pos, rotation
+			let n = 1 + 2 + vecLen(el.pos) + 6;
+			if (box) {
+				n += vecLen(el.size) + vecLen(el.offset);
+				n += 1 + varLen(el.u) + varLen(el.v);
+				if (el.faceUV) {
+					n += 1;
+					for (const f of Object.values(el.faceUV)) {
+						n += varLen(f.sx) + varLen(f.sy) + varLen(f.ex) + varLen(f.ey) + 1;
+					}
+				}
+			}
+			cubes += n;
+			walk(el.children);
+		}
+	};
+	for (const root of config.elements) walk(root.children);
+
+	let anim = 0;
+	for (const raw of Object.values(animations || {})) {
+		const a = typeof raw === 'string' ? JSON.parse(raw) : raw;
+		const frames = a.frames.length;
+		anim += 30 + (a.name || '').length;
+		// A track is kept only if it leaves the element's REST pose, not merely if
+		// it varies: a bone held at a constant offset still needs storing.
+		const seen = {};
+		for (const f of a.frames) {
+			for (const c of f.components) {
+				const el = byStore[c.storeID];
+				if (!el) continue;
+				const s = seen[c.storeID] = seen[c.storeID] || { pos: false, rot: false };
+				const off = (v, r) => Math.abs(v - r) > 0.01;
+				if (off(c.pos.x, el.pos.x) || off(c.pos.y, el.pos.y) || off(c.pos.z, el.pos.z)) s.pos = true;
+				if (off(c.rotation.x, el.rotation.x) || off(c.rotation.y, el.rotation.y)
+					|| off(c.rotation.z, el.rotation.z)) s.rot = true;
+			}
+		}
+		for (const s of Object.values(seen)) {
+			anim += 2;
+			// six bytes a frame for a track: three shorts, whether angle or position
+			if (s.pos) anim += 5 + 6 * frames;
+			if (s.rot) anim += 5 + 6 * frames;
+		}
+	}
+
+	const texture = skinBytes ? skinBytes.length : 0;
+	return { cubes, anim, texture, elements: count, total: cubes + anim + texture };
+}
+
+/**
+ * An id for an animation filename. CPM puts a UUID there; nothing parses it,
+ * it only has to keep two animations of the same name apart.
+ */
+function cpmRandomId() {
+	const hex = n => Array.from({ length: n }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+	return `${hex(8)}-${hex(4)}-${hex(4)}-${hex(4)}-${hex(12)}`;
+}
+
+function vec3(x, y, z) { return { x: round4(x), y: round4(y), z: round4(z) }; }
+function round4(v) {
+	const r = Math.round(v * 10000) / 10000;
+	return Object.is(r, -0) ? 0 : r;
+}
+
+/** One element of the CPM tree, with every field its loader reads. */
+function cpmElement(o) {
+	const el = {
+		name: o.name || '',
+		show: true,
+		texture: true,
+		textureSize: 1,
+		offset: vec3(...(o.offset || [0, 0, 0])),
+		pos: vec3(...(o.pos || [0, 0, 0])),
+		rotation: vec3(...(o.rotation || [0, 0, 0])),
+		size: vec3(...(o.size || [0, 0, 0])),
+		rscale: vec3(1, 1, 1),
+		scale: vec3(1, 1, 1),
+		u: 0,
+		v: 0,
+		color: 'ffffff',
+		mirror: false,
+		mcScale: o.mcScale || 0,
+		glow: false,
+		recolor: false,
+		hidden: false,
+		singleTex: false,
+		extrude: false,
+		locked: false,
+		nameColor: 0,
+		storeID: o.storeID || 0,
+	};
+	if (o.faceUV) el.faceUV = o.faceUV;
+	return el;
+}
+
+/**
+ * Per-face UV for one cube.
+ *
+ * A face missing from the map is not drawn at all — which is exactly what we
+ * want for faces the source model never had. Mirroring needs no special case:
+ * Blockbench writes it as a rectangle with x1 > x2, and CPM reads sx and ex in
+ * the same order, so the flip carries over by itself.
+ */
+function cpmFaceUV(sol, mul) {
+	const out = {};
+	for (const name of FACE_NAMES) {
+		const uv = sol.faceUV[name];
+		if (!uv) continue;
+		const f = CPM_FACE[name];
+		out[f.dir] = {
+			sx: Math.round(uv[0] * mul),
+			sy: Math.round(uv[1] * mul),
+			ex: Math.round(uv[2] * mul),
+			ey: Math.round(uv[3] * mul),
+			rot: f.rot,
+			autoUV: false,
+		};
+	}
+	return out;
+}
+
+/**
+ * The files of a .cpmproject, ready to be zipped.
+ *
+ * Zipping is left to the caller on purpose: inside Blockbench that is JSZip,
+ * and in the test harness a dozen lines of stored-entry writer. The part worth
+ * checking is the content, and it is the same on both paths.
+ */
+function buildCPMFiles(input) {
+	const built = buildCPMConfig(input);
+	const config = {
+		version: 1,
+		skinType: input.skinType || 'default',
+		elements: built.elements,
+		skinSize: { x: input.uvWidth, y: input.uvHeight },
+		textures: { skin: { customGridSize: input.uvWidth !== input.texWidth || input.uvHeight !== input.texHeight, anim: [] } },
+		scaling: 0,
+		hideHeadIfSkull: true,
+		removeArmorOffset: true,
+		removeBedOffset: false,
+		enableInvisGlow: false,
+	};
+	const files = {
+		'config.json': JSON.stringify(config, null, 1),
+		'description.json': JSON.stringify({
+			name: input.name || '',
+			desc: input.description || '',
+			cam: { pos: { x: 0.5, y: 1, z: 0.5 }, look: { x: 0.25, y: 0.5, z: 0.25 }, zoom: 64, copyProt: 'normal' },
+		}, null, 1),
+	};
+	if (input.skin) files['skin.png'] = input.skin;
+
+	let anims = { files: {}, warnings: [], stats: { animations: 0, frames: 0, components: 0, skipped: [], moved: 0 } };
+	if (input.animations && input.animations.length) {
+		anims = buildCPMAnimations({
+			animations: input.animations,
+			hierarchy: input.hierarchy,
+			elemByNode: built.elemByNode,
+			attachOf: built.attachOf,
+			align: input.align,
+			poses: input.poses,
+			fps: input.fps,
+			maxFrames: input.maxFrames,
+			scale: input.gltfScale,
+			k: input.scale,
+		});
+		Object.assign(files, anims.files);
+	}
+
+	return {
+		files,
+		config,
+		warnings: built.warnings.concat(anims.warnings),
+		stats: Object.assign({}, built.stats, {
+			anim: anims.stats,
+			size: cpmEstimateSize(config, anims.files, input.skin),
+		}),
+	};
+}
+
 // ------------------------------------------------------------ Node export
 
 if (typeof Plugin === 'undefined') {
@@ -1558,7 +2502,8 @@ if (typeof Plugin === 'undefined') {
 			solveBox, detectBox, orientations, assignFaces, countUVViolations, buildFaceUV,
 			FACE_DIRS, FACE_NAMES,
 			parseGLTFFiles, parseGLB, parseAnimations, readAccessor, matMul, matFromTRS, matApply, matIdentity,
-			qMul, qConj, qRotate, boneDeltaRotation, boneDeltaPosition, sampleChannel, pickScale, snapScale, texelScale, correctionQuat, packAtlas, splitComponents, boxFromBounds, isDegenerate, imageSize, sniffMime, axisRotationOf, quatFromMat, triangleNormal, snapGrid, snapVec, snapAngle, isIdentityBasis, placeCoords, snapSafely, tidyVec, hasGltfArchive, resolveCoplanar, cubeFaces, faceRectsOverlap,
+			qMul, qConj, qRotate, boneDeltaRotation, boneDeltaPosition, sampleChannel, pickScale, snapScale, texelScale, correctionQuat, packAtlas, splitComponents, boxFromBounds, TRIANGULATE, isDegenerate, imageSize, sniffMime, axisRotationOf, quatFromMat, triangleNormal, snapGrid, snapVec, snapAngle, isIdentityBasis, placeCoords, snapSafely, tidyVec, hasGltfArchive, resolveCoplanar, cubeFaces, faceRectsOverlap,
+			buildCPMFiles, buildCPMConfig, buildCPMAnimations, cpmAlignOffset, cpmEstimateSize, cpmAutoAssign, cpmAutoPose, cpmPoint, cpmDelta, cpmEuler, cpmEulerFromQuat, cpmAngle, cpmUVScale, cpmFaceUV, CPM_PARTS, CPM_PART_NAMES, CPM_FACE,
 		};
 	}
 	return;
@@ -2649,6 +3594,15 @@ function buildAtlasDataURL(images, layout) {
 }
 
 /** Builds a project from an unpacked archive. */
+/**
+ * What the last import produced. The CPM export needs the same hierarchy, boxes
+ * and texture, and it has to survive between two dialogs — so it is kept here
+ * rather than threaded through. Declared BEFORE the function that fills it:
+ * a `let` used above its declaration is a temporal-dead-zone error, and this
+ * plugin has already been bitten by that once.
+ */
+let lastImport = null;
+
 function buildFromFiles(files, sourceName, opts) {
 	const report = [];
 
@@ -2980,6 +3934,14 @@ function buildFromFiles(files, sourceName, opts) {
 
 	Canvas.updateAll();
 	console.log('[geckolib-import] import\n' + lines.join('\n'));
+	// Everything worked out along the way is handed back: the CPM branch needs the
+	// very same hierarchy, boxes and texture, and re-deriving them would mean a
+	// second copy of the scale and atlas logic that could drift from this one.
+	lastImport = {
+		parsed, solved, images, layout, size, chosenScale, sourceName,
+		texture: atlasTexture,
+		needAtlas,
+	};
 	showImportReport({
 		title: 'Import finished',
 		summary: [
@@ -2997,6 +3959,7 @@ function buildFromFiles(files, sourceName, opts) {
 		log: lines.join('\n'),
 		name: (sourceName || 'model').replace(/\.[^.]*$/, ''),
 	});
+	return lastImport;
 }
 
 /**
@@ -3483,7 +4446,365 @@ function importFromZip() {
 	askImportOptions(opts => pickAndImport(opts));
 }
 
-function pickAndImport(opts) {
+// ------------------------------------------------- CPM export from Blockbench
+
+/**
+ * Import a glTF archive and save it as a .cpmproject.
+ *
+ * The ordinary import runs first, in full. That is not a detour: the UV
+ * convention is MEASURED from a live Blockbench (calibrateFaceDirs builds a
+ * probe cube and reads its buffers), and without a project there is nothing to
+ * measure it on — the fallback table would be used instead, which is exactly
+ * the guessing that produced 180°-rotated textures once already.
+ *
+ * The side effect is welcome anyway: the project stays open, so the model can
+ * be looked at and corrected before it goes into the game.
+ */
+function importCPMFromZip() {
+	if (typeof JSZip === 'undefined') {
+		Blockbench.showMessageBox({ title: 'JSZip missing', message: 'This Blockbench build has no JSZip, so archives cannot be unpacked.' });
+		return;
+	}
+	// The GeckoLib format is needed even here, because the import builds its
+	// project in it. Nothing in the CPM output depends on GeckoLib — that is a
+	// rough edge of reusing the import whole, not a property of the format.
+	if (!requireGeckolib()) return;
+	askImportOptions(opts => pickAndImport(opts, built => {
+		if (!built) return;
+		askCPMOptions(built, form => saveCPMProject(built, form));
+	}));
+}
+
+/**
+ * The CPM dialog: how big the model should be, and which bone is which part of
+ * the player.
+ *
+ * The size is its own setting and not the one the import ran at. CPM measures in
+ * player pixels — 32 px tall — while a Sketchfab model arrives in whatever units
+ * its author used, so one number cannot serve both formats.
+ *
+ * The mapping is offered rather than decided. A guess by name is filled in, and
+ * on a model already rigged like a player it needs no corrections; on anything
+ * else a silent guess would be worse than none.
+ */
+function askCPMOptions(built, onReady) {
+	const hierarchy = built.parsed.hierarchy;
+	const guess = cpmAutoAssign(hierarchy);
+
+	// Only the bones worth asking about: the ones the guess spoke for, plus the
+	// top of the tree. Thirty-two selects would be a cockpit, and the rest of the
+	// bones inherit their parent's part anyway.
+	const roots = hierarchy.filter(h => h.parent < 0).map(h => h.index);
+	const candidates = hierarchy.filter(h => guess[h.index] || roots.includes(h.index)
+		|| (h.parent >= 0 && roots.includes(h.parent)));
+
+	const options = { '': 'inherit from parent' };
+	for (const p of CPM_PART_NAMES) options[p] = p.replace('_', ' ');
+
+	let height = 0;
+	{
+		let lo = Infinity, hi = -Infinity;
+		for (const s of built.solved) {
+			const half = Math.abs(s.sol.size[1]) / 2;
+			lo = Math.min(lo, s.sol.center[1] - half);
+			hi = Math.max(hi, s.sol.center[1] + half);
+		}
+		height = hi - lo;
+	}
+
+	const form = {
+		cpm_height: {
+			label: 'Model height in player pixels', type: 'number',
+			value: 32, min: 1, max: 512, step: 1,
+		},
+		height_hint: {
+			type: 'info',
+			text: `A player is 32 px tall. The imported model measures ${height.toFixed(1)} px, `
+				+ 'so the height set here decides how much it is scaled by.',
+		},
+		map_hint: {
+			type: 'info',
+			text: 'Every bone below becomes a part of the player. A bone left on '
+				+ '"inherit" goes wherever its parent went, so only the joints need answering.',
+		},
+	};
+	for (const h of candidates) {
+		form['b_' + h.index] = {
+			label: h.name, type: 'select',
+			default: guess[h.index] || '',
+			options,
+		};
+	}
+	form.fallback = {
+		label: 'Everything not covered above', type: 'select', default: 'body', options: (() => {
+			const o = {};
+			for (const p of CPM_PART_NAMES) o[p] = p.replace('_', ' ');
+			return o;
+		})(),
+	};
+	form.align = {
+		label: 'Line the rig up with the player skeleton', type: 'checkbox', value: true,
+	};
+	form.align_hint = {
+		type: 'info',
+		text: 'Moves the whole model so the bones mapped above sit on the vanilla pivots. '
+			+ 'Without it a model built off-centre — one with a tail, say — looks right standing '
+			+ 'still and tears apart as soon as an arm moves, because vanilla turns each limb '
+			+ 'about its own pivot.',
+	};
+
+	// Animations. A vanilla pose replaces what the player does in that state; a
+	// gesture waits to be played on demand. Gesture is the safe default, so
+	// anything the guess does not recognise ends up harmless rather than
+	// overriding walking.
+	const anims = built.parsed.animations || [];
+	if (anims.length) {
+		const poseOptions = { gesture: 'gesture (played on demand)', skip: 'do not transfer' };
+		for (const p of CPM_POSE_OPTIONS) poseOptions[p] = 'pose: ' + p.toLowerCase().replace(/_/g, ' ');
+		form.anim_hint = {
+			type: 'info',
+			text: `The archive has ${anims.length} animations. A pose replaces vanilla motion in that `
+				+ 'state; a gesture is played on demand and changes nothing by itself.',
+		};
+		form.anim_fps = {
+			label: 'Animation sampling, frames per second', type: 'number',
+			value: 12, min: 2, max: 30, step: 1,
+		};
+		form.stop_vanilla = {
+			label: 'Switch vanilla motion off on the parts we animate', type: 'checkbox', value: false,
+		};
+		form.stop_vanilla_hint = {
+			type: 'info',
+			text: 'Off by default, and deliberately. It stops the vanilla arm swing from landing on '
+				+ 'top of the model\'s own walk — but the flag is per BODY PART, not per pose, so in '
+				+ 'any state you have no animation for (falling, on a ladder, swinging a sword) that '
+				+ 'part simply freezes. Turn it on only once the poses you actually use are covered.',
+		};
+		form.head_camera = {
+			label: 'Head keeps following the camera', type: 'checkbox', value: false,
+		};
+		form.head_camera_hint = {
+			type: 'info',
+			text: 'Leave this off when the model brings its own animations. In Minecraft the head is '
+				+ 'not attached to the body, so an animation that lays the character flat has to carry '
+				+ 'the head across by itself — and the camera look rotation, applied on top about the '
+				+ 'neck, then swings that offset and the head sails off the body. Turn it on for a '
+				+ 'model with no animations of its own, where nothing competes.',
+		};
+		for (let i = 0; i < anims.length; i++) {
+			form['a_' + i] = {
+				label: anims[i].name, type: 'select',
+				default: cpmAutoPose(anims[i].name),
+				options: poseOptions,
+			};
+		}
+	}
+
+	new Dialog({
+		id: PLUGIN_ID + '_cpm_dialog',
+		title: 'Export to Customizable Player Models',
+		form,
+		onConfirm(f) {
+			this.hide();
+			const assign = {};
+			for (const h of candidates) {
+				const v = f['b_' + h.index];
+				if (v) assign[h.index] = v;
+			}
+			const poses = {};
+			for (let i = 0; i < anims.length; i++) poses[anims[i].name] = f['a_' + i] || 'gesture';
+			onReady({
+				assign,
+				fallback: f.fallback,
+				scale: height > 0 ? Number(f.cpm_height) / height : 1,
+				align: f.align !== false,
+				stopVanilla: anims.length ? f.stop_vanilla === true : false,
+				// With no animations of its own there is nothing to compete with the
+				// camera, so the head may as well keep following it.
+				headCamera: anims.length ? f.head_camera === true : true,
+				poses,
+				fps: Number(f.anim_fps) || 12,
+			});
+		},
+	}).show();
+}
+
+/** Builds the archive and hands it to Blockbench to save. */
+function saveCPMProject(built, form) {
+	const cubes = built.solved.map((s, i) => ({
+		name: s.obj.name,
+		node: s.obj.node,
+		sol: s.sol,
+		inflate: 0,
+	}));
+	// Nodes an animation moves keep their own element: collapsing one would leave
+	// the animation nothing to turn.
+	const animated = new Set();
+	for (const a of built.parsed.animations) for (const ch of a.channels) animated.add(ch.node);
+
+	const uv = cpmUVScale(cubes, 16, Math.max(built.size.width, built.size.height));
+	const align = form.align === false
+		? [0, 0, 0]
+		: cpmAlignOffset(built.parsed.hierarchy, form.assign, form.scale);
+	const stopVanillaAnim = {};
+	if (form.stopVanilla) {
+		for (const p of CPM_PART_NAMES) if (p !== 'head') stopVanillaAnim[p] = true;
+	}
+	// The head is its own decision, and a consequential one.
+	//
+	// In Minecraft the head is NOT a child of the body: both hang off the player
+	// origin, so tilting the body never moves the head. When an animation lays the
+	// character flat — flying — the head has to be carried across by the animation
+	// itself, and ours does compute that. But the vanilla look rotation is then
+	// applied on top, about the head pivot at the neck, and it swings that whole
+	// carried-across offset around: the head sails off the body.
+	//
+	// So with animations of its own, the model drives the head and it stays put.
+	// The cost is that it no longer follows the camera.
+	if (!form.headCamera) stopVanillaAnim.head = true;
+
+	cpmSkinBytes(built).then(skin => {
+		const out = buildCPMFiles({
+			hierarchy: built.parsed.hierarchy,
+			cubes,
+			assign: form.assign,
+			fallback: form.fallback,
+			keepNodes: animated,
+			scale: form.scale,
+			align,
+			stopVanillaAnim,
+			uvMul: uv.mul,
+			texWidth: built.size.width,
+			texHeight: built.size.height,
+			uvWidth: built.size.width * uv.mul,
+			uvHeight: built.size.height * uv.mul,
+			skin,
+			name: (built.sourceName || 'model').replace(/\.[^.]*$/, ''),
+			animations: built.parsed.animations,
+			poses: form.poses,
+			fps: form.fps,
+			gltfScale: built.chosenScale,
+		});
+
+		const zip = new JSZip();
+		for (const [name, data] of Object.entries(out.files)) zip.file(name, data);
+		// Compressed, like CPM's own projects: animation frames are snapshots of
+		// every moving bone, so the JSON is bulky and repetitive — exactly what
+		// deflate is good at. Uncompressed this model came to 1.7 MB.
+		return zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' }).then(buf => {
+			const parts = Object.entries(out.stats.parts).filter(([, n]) => n > 0).map(([p]) => p);
+			const lines = [
+				`Cubes: ${out.stats.cubes}`,
+				`Bones: ${out.stats.bones}`,
+				`Player parts used: ${parts.join(', ') || 'none'}`,
+				`Scale: ×${form.scale.toFixed(3)}`,
+				`UV grid: ${built.size.width * uv.mul}×${built.size.height * uv.mul} (×${uv.mul}) `
+					+ `over a ${built.size.width}×${built.size.height} texture`
+					+ (uv.exact ? ', exact' : `, rounded by up to ${uv.worst.toFixed(3)} px`),
+				`Animations: ${out.stats.anim.animations} of ${built.parsed.animations.length}, `
+					+ `${out.stats.anim.frames} frames at ${form.fps} fps`,
+				`Rig aligned to the player by [${align.map(v => v.toFixed(1)).join(', ')}] px (height untouched)`,
+				`Vanilla motion: ${form.stopVanilla ? 'off on body, arms and legs' : 'on'}`
+					+ `, head ${form.headCamera ? 'follows the camera' : 'driven by the model'}`,
+			];
+			// Worth spelling out: an unaligned model looks fine standing still and
+			// tears itself apart the moment a limb moves.
+			if (Math.max(...align.map(Math.abs)) > 4) {
+				lines.push('  a shift this large means the model was not built around the player skeleton; '
+					+ 'without it the limbs would swing about pivots far outside themselves');
+			}
+			// Which player states the model actually answers for. The gaps only bite
+			// when vanilla motion is switched off, but then they bite hard.
+			const covered = new Set(Object.values(form.poses || {}).filter(p => p !== 'gesture' && p !== 'skip'));
+			const missing = CPM_MAIN_POSES.filter(p => !covered.has(p));
+			lines.push(`Poses covered: ${[...covered].join(', ') || 'none'}`);
+			if (missing.length) {
+				lines.push(`  no animation for: ${missing.join(', ')}`);
+				if (form.stopVanilla) {
+					lines.push('  and vanilla motion is off, so in those states the model will stand frozen. '
+						+ 'That is what the setting costs.');
+				}
+			}
+			if (out.stats.anim.skipped.length) {
+				lines.push(`  not transferred: ${out.stats.anim.skipped.join(', ')}`);
+			}
+			const kb = n => (n / 1024).toFixed(1) + ' kB';
+			const size = out.stats.size;
+			lines.push(`Encoded size, estimated: ${kb(size.total)} `
+				+ `(model ${kb(size.cubes)}, animations ${kb(size.anim)}, texture ${kb(size.texture)})`);
+			// The budget for a local .cpmmodel is exactly 30 kB, and past it the mod
+			// demands an upload to a paste site. Better known here than at the end of
+			// an export, where the levers are already out of reach.
+			if (size.total > 30 * 1024) {
+				lines.push('  over the 30 kB budget for a local .cpmmodel: File/Test ingame will still work, '
+					+ 'but a normal export will ask you to upload the model. '
+					+ 'Lower the sampling rate or transfer fewer animations to fit.');
+			}
+			// The viewer decides whether a model loads, and both defaults are easy to
+			// exceed without noticing. Better said here than debugged in game.
+			const boxes = out.stats.cubes + out.stats.bones;
+			if (boxes > 256) lines.push(`WARNING: ${boxes} elements — over the default MAX_CUBE_COUNT of 256, `
+				+ 'so other players will not see the model unless they raise it.');
+			if (Math.max(built.size.width, built.size.height) > 256) {
+				lines.push(`WARNING: the texture is ${built.size.width}×${built.size.height} — over the default `
+					+ 'MAX_TEX_SHEET_SIZE of 256. The UV grid is free, the picture is not.');
+			}
+			for (const w of out.warnings) lines.push(`Warning: ${w}`);
+			console.log('[geckolib-import] cpm export\n' + lines.join('\n'));
+
+			Blockbench.export({
+				type: 'Customizable Player Models Project',
+				extensions: ['cpmproject'],
+				name: (built.sourceName || 'model').replace(/\.[^.]*$/, ''),
+				content: buf,
+				savetype: 'buffer',
+			});
+			showImportReport({
+				title: 'Exported to CPM',
+				summary: [
+					['Cubes', String(out.stats.cubes)],
+					['Bones', String(out.stats.bones)],
+					['Parts', parts.join(', ') || 'none'],
+					['Scale', `×${form.scale.toFixed(2)}`],
+					['UV grid', `×${uv.mul}`],
+					['Animations', `${out.stats.anim.animations} (${out.stats.anim.frames} frames)`],
+					['Encoded size', `~${(out.stats.size.total / 1024).toFixed(1)} kB`],
+				],
+				warning: boxes > 256
+					? `${boxes} elements is over the default limit of 256: other players will not see this model `
+						+ 'until they raise MAX_CUBE_COUNT.'
+					: out.stats.size.total > 30 * 1024
+						? `About ${(out.stats.size.total / 1024).toFixed(0)} kB, over the 30 kB budget for a local `
+							+ '.cpmmodel. File/Test ingame still works; a normal export will ask you to upload.'
+						: null,
+				log: lines.join('\n'),
+				name: (built.sourceName || 'model').replace(/\.[^.]*$/, ''),
+			});
+		});
+	}).catch(e => {
+		console.error('[geckolib-import] cpm export failed', e);
+		Blockbench.showMessageBox({ title: 'CPM export failed', message: String((e && e.message) || e) });
+	});
+}
+
+/**
+ * The skin for the archive, as PNG bytes.
+ *
+ * A single PNG goes in as it came. Anything else — an atlas, or a JPEG from
+ * Sketchfab — has to be redrawn through a canvas first: CPM reads skin.png with
+ * an image decoder that expects a PNG, whatever the file is called.
+ */
+function cpmSkinBytes(built) {
+	if (!built.needAtlas && built.images.length === 1 && built.images[0].mime === 'image/png') {
+		return Promise.resolve(built.images[0].bytes);
+	}
+	return buildAtlasDataURL(built.images, built.layout).then(url => {
+		if (!url) throw new Error('the texture could not be assembled');
+		return base64ToBytes(url.slice(url.indexOf(',') + 1));
+	});
+}
+
+function pickAndImport(opts, then) {
 	Blockbench.import({
 		extensions: ['zip'],
 		type: 'Archive with a glTF model',
@@ -3498,7 +4819,10 @@ function pickAndImport(opts) {
 				if (entry.dir) return;
 				tasks.push(entry.async('uint8array').then(data => { entries[relPath] = data; }));
 			});
-			return Promise.all(tasks).then(() => buildFromFiles(entries, file.name, opts));
+			return Promise.all(tasks).then(() => {
+				const built = buildFromFiles(entries, file.name, opts);
+				if (then) then(built);
+			});
 		}).catch(e => {
 			console.error('[geckolib-import] import failed', e);
 			Blockbench.showMessageBox({ title: 'Import failed', message: String((e && e.message) || e) });
@@ -3636,13 +4960,14 @@ let action;
 let envAction;
 let importAction;
 let sketchfabAction;
+let cpmAction;
 
 Plugin.register(PLUGIN_ID, {
 	title: 'GeckoLib Model Importer',
 	author: 'MopicMP',
 	icon: 'view_in_ar',
-	description: 'Import glTF models — including straight from Sketchfab — into GeckoLib: bones, cubes, textures and animations.',
-	version: '0.1.0',
+	description: 'Import glTF models — including straight from Sketchfab — into GeckoLib, or turn them into a Customizable Player Models skin: bones, cubes, textures and animations.',
+	version: '0.1.1',
 	variant: 'both',
 	min_version: '4.9.0',
 	tags: ['Minecraft: Java Edition', 'Import', 'Animation'],
@@ -3700,6 +5025,15 @@ Plugin.register(PLUGIN_ID, {
 		});
 		MenuBar.addAction(importAction, 'file');
 
+		cpmAction = new Action(PLUGIN_ID + '_cpm', {
+			name: 'Customizable Player Models from ZIP (glTF + texture)',
+			description: 'Same import, saved as a .cpmproject for the CPM mod',
+			icon: 'accessibility_new',
+			condition: () => true,
+			click: importCPMFromZip,
+		});
+		MenuBar.addAction(cpmAction, 'file');
+
 		sketchfabAction = new Action(PLUGIN_ID + '_sketchfab', {
 			name: 'Sketchfab — model search',
 			description: 'Search and download downloadable models straight from Blockbench',
@@ -3716,6 +5050,7 @@ Plugin.register(PLUGIN_ID, {
 		if (action) action.delete();
 		if (envAction) envAction.delete();
 		if (importAction) importAction.delete();
+		if (cpmAction) cpmAction.delete();
 		if (sketchfabAction) sketchfabAction.delete();
 		if (importFormat && importFormat.delete) importFormat.delete();
 		if (sketchfabCSS && sketchfabCSS.delete) sketchfabCSS.delete();

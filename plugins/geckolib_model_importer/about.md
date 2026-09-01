@@ -11,6 +11,26 @@ plugin does that conversion — and everything around it.
 - **Several textures** are packed into a single atlas, because GeckoLib wants one.
 - **Merged meshes** are split back into separate cubes automatically.
 - **Animations** are carried over, including rotation and position channels.
+- **Customizable Player Models** can be written out instead: the same import,
+  saved as a `.cpmproject`.
+
+## Customizable Player Models
+
+*File → Customizable Player Models from ZIP (glTF + texture)* runs the same
+import and then asks the three things a player skin needs and a GeckoLib model
+does not: how tall the model should be in player pixels, which bone belongs to
+which part of the player, and what each animation becomes — a vanilla pose
+(`walking`, `sneaking`, `sleeping`…) or a gesture.
+
+The size is asked separately because CPM measures in player pixels, 32 of them
+head to toe, while a downloaded model arrives in whatever units its author used.
+The bone mapping is offered as a guess by name rather than applied silently: on a
+model already rigged like a player it needs no corrections, and on anything else
+a silent guess is worse than none.
+
+A Blockbench project is created alongside the export, so the result can be looked
+at, and the report states the encoded size against CPM's 30 kB budget for a local
+model.
 
 ## What it cannot do
 
@@ -26,6 +46,7 @@ small details by a quarter and flatten thin overlays.
 ## Requirements
 
 The **GeckoLib Animation Utils** plugin — its format is what projects are built
-into. Converting an already-open model (Filter menu) works without it.
+into, including on the way to a CPM export. Converting an already-open model
+(Filter menu) works without it.
 
 Downloading from Sketchfab needs a personal API token; searching does not.
