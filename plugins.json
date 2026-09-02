@@ -1589,5 +1589,23 @@
 		"repository": "https://github.com/MesterMan03/structure-to-model",
 		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
 		"creation_date": "2026/05/06"
-	}
+	},
+  "easy_model_entities": {
+		"title": "Easy Model Entities",
+		"author": "Markus Bordihn",
+		"icon": "icon.png",
+		"description": "Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.",
+		"tags": ["Minecraft: Java Edition", "Format", "Entity"],
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "desktop",
+		"await_loading": true,
+		"has_changelog": true,
+		"contributes": {
+			"formats": ["eme_entity"]
+		},
+		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
+		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
+		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
+  }
 }
