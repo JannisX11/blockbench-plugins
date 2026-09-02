@@ -467,6 +467,21 @@
 		"creation_date": "2024-12-20",
 		"has_changelog": true
 	},
+	"mesh_to_cube_converter": {
+		"title": "Mesh to Cube Converter",
+		"icon": "icon.svg",
+		"author": "Ewan Howell",
+		"description": "Detect cuboids within meshes and convert them into real cubes.",
+		"tags": ["Meshes", "Cubes", "Utility"],
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"website": "https://ewanhowell.com/plugins/mesh-to-cube-converter/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/mesh_to_cube_converter",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Mesh to Cube Converter]",
+		"creation_date": "2026-08-15",
+		"has_changelog": true
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
