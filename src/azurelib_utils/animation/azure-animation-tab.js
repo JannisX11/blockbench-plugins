@@ -1247,6 +1247,115 @@ export function importAzureAnimation() {
 }
 
 // ---------------------------------------------------------------------------
+// "Export" menu override
+// ---------------------------------------------------------------------------
+
+/**
+ * Blockbench's built-in "Export" action (id: export_animation_file, defined
+ * in animations/animation.js) is core code we can't edit. It calls
+ * codec.compileFile(animations) — our own, correctly time-sorted and
+ * KEY_ORDER-tagged builder — but then stringifies the result with its own
+ * autoStringify(), which knows nothing about our KEY_ORDER tagging. Plain
+ * JS object enumeration (which autoStringify ultimately relies on) always
+ * places integer-index-looking string keys ("0", "1", "2") ahead of
+ * non-integer ones ("0.125", "0.375") in ascending numeric order,
+ * regardless of insertion order — so fractional keyframe times get
+ * silently reordered on export, even though compileFile() built them in
+ * the right order to begin with.
+ *
+ * "Save All Animations" never hits this because it calls codec.exportFile()
+ * directly, which already runs content through our own
+ * serializeAnimationJson() (which does respect KEY_ORDER via
+ * orderedStringify()).
+ *
+ * We can't change what autoStringify does, and we can't edit the core
+ * action. So when our format is active, we swap the action's click handler
+ * for a re-implementation of the exact same picker dialog that serializes
+ * with serializeAnimationJson() instead. Any other format's Export click
+ * falls straight through to the original, untouched.
+ */
+let originalExportAnimationClick = null;
+
+function isAzureCodecActive() {
+  const codec = (typeof AnimationCodec !== 'undefined' && AnimationCodec.getCodec)
+    ? AnimationCodec.getCodec()
+    : null;
+  return !!codec && codec === azureAnimationCodec;
+}
+
+function showAzureAnimationExportDialog() {
+  const form = {};
+  let keys = [];
+  let animations = Animation.all.slice();
+
+  if (Condition(Animation.properties.path.condition)) {
+    animations.sort((a1, a2) => (a1.path ?? a1.name).hashCode() - (a2.path ?? a2.name).hashCode());
+  }
+
+  animations.forEach(animation => {
+    const key = animation.name;
+    keys.push(key);
+    form[key.hashCode()] = { label: key, type: 'checkbox', value: true };
+  });
+
+  const dialog = new Dialog({
+    id: 'azl_animation_export',
+    title: 'dialog.animation_export.title',
+    form,
+    onConfirm(form_result) {
+      dialog.hide();
+      const selectedKeys = keys.filter(key => form_result[key.hashCode()]);
+      const selectedAnimations = Animation.all.filter(a => selectedKeys.includes(a.name));
+      const codec = azureAnimationCodec || AnimationCodec.getCodec() || AnimationCodec.codecs.bedrock;
+      const content = codec.compileFile(selectedAnimations);
+
+      Blockbench.export({
+        resource_id: 'animation',
+        type: 'JSON Animation',
+        extensions: ['json'],
+        name: (Project.geometry_name || 'model') + '.animation',
+        content: serializeAnimationJson(content),
+      });
+    },
+  });
+
+  form.select_all_none = {
+    type: 'buttons',
+    buttons: ['generic.select_all', 'generic.select_none'],
+    click(index) {
+      const values = {};
+      keys.forEach(key => { values[key.hashCode()] = (index === 0); });
+      dialog.setFormValues(values);
+    },
+  };
+
+  dialog.show();
+}
+
+function patchExportAnimationAction() {
+  if (originalExportAnimationClick) return;
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (!action) return;
+
+  originalExportAnimationClick = action.click;
+
+  action.click = function azureExportAnimationOverride(...args) {
+    if (!isAzureCodecActive()) {
+      return originalExportAnimationClick.apply(this, args);
+    }
+    showAzureAnimationExportDialog();
+  };
+}
+
+function unpatchExportAnimationAction() {
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (action && originalExportAnimationClick) {
+    action.click = originalExportAnimationClick;
+  }
+  originalExportAnimationClick = null;
+}
+
+// ---------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------
 
@@ -1263,6 +1372,8 @@ export function registerAzureAnimationFormat() {
     );
     return;
   }
+
+  patchExportAnimationAction();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -1292,6 +1403,8 @@ export function registerAzureAnimationFormat() {
 
 export function unregisterAzureAnimationFormat() {
   //IKManager.unregister();
+
+  unpatchExportAnimationAction();
 
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
