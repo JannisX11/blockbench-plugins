@@ -8,6 +8,8 @@
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
         version: "1.0.5",
         min_version: "4.9.0",
+        creation_date: "2024-06-05",
+        has_changelog: true,
         variant: "both",
         dependencies: ["cem_template_loader"],
         onload() {
