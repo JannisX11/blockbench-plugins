@@ -1,0 +1,6 @@
+# GitHub users allowed to update this plugin without the repo owner checking back.
+maintainers:
+  - CODEFELICE
+# developers:        # optional: may contribute new versions
+#   - some_user
+# abandoned: remove  # optional: what should happen if you stop maintaining it
