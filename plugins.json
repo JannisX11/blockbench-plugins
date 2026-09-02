@@ -1577,7 +1577,18 @@
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
 	},
-	"structure_to_model": {
+  "uvtex_tools": {
+		"title": "UV-Tex Tools",
+		"description": "Tools for UV cleanup, texture analysis, and flat textured geometry",
+		"author": "QMakar",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "5.0.0",
+		"icon": "icon.png",
+    "repository": "https://github.com/CoMakar/blockbench-uv-tex-tools",
+    "tags": ["UV", "Texture", "Cube"]
+ },
+ "structure_to_model": {
 		"title": "Structure to Model",
 		"author": "Mester",
 		"icon": "account_balance",
