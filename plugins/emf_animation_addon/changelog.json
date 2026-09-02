@@ -63,5 +63,19 @@
         ]
       }
     ]
+  },
+  "1.0.5": {
+    "title": "1.0.5",
+    "date": "2026-08-02",
+    "author": "Traben",
+    "categories": [
+      {
+        "title": "updated for EMF 3.3",
+        "list": [
+          "- added missing boolean 'is_jumping'",
+          "- added new booleans 'is_player_first_person', 'is_player_third_person', 'is_player_third_person_reversed'"
+        ]
+      }
+    ]
   }
 }
