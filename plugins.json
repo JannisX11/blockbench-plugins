@@ -1589,5 +1589,16 @@
 		"repository": "https://github.com/MesterMan03/structure-to-model",
 		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
 		"creation_date": "2026/05/06"
+	},
+        "nowmobmanager_particle_exporter": {
+		"title": "nowMobmanager Particle Exporter",
+		"author": "_NotWhale (now)",
+		"description": "Export Blockbench models and animations as baked particle animations for nowMobmanager.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"new_repository_format": true,
+		"tags": ["Minecraft: Java Edition", "Animation", "Exporter"]
 	}
 }
