@@ -14,9 +14,20 @@
  *     draggable directly in the Blockbench viewport
  *   • Pin Meta — freezes a gizmo in world-space so the body can move
  *     freely while the foot stays planted (walkcycle floor anchoring)
+ *   • Placed Metas — dragging a gizmo holds it where you put it (it keeps
+ *     driving the chain until pinned, keyed, or released with ⟳)
+ *   • Keyed Metas — Tip/Knee targets can be keyframed on the timeline
+ *     (⏺ in the panel); the gizmo follows its keyed path during playback
+ *     and the chain tracks it live (CoreIK-style target animation)
+ *   • Follow mode — unpinned, unkeyed gizmos ride along with the animated
+ *     bone positions every frame, so the rig overlay always matches the pose
+ *   • Live solve — IK is applied on every animation frame (scrub & playback),
+ *     not just while dragging; WYSIWYG with the baked result
  *   • Hinge Lock — restricts joint rotation to one axis (X/Y/Z)
- *   • Bake — scrubs every frame, solves IK, writes rotation keyframes
- *     into the active animation via Blockbench's undo system
+ *   • Bake — two-pass: samples every frame first, then writes rotation
+ *     keyframes (Blockbench sign convention) via the undo system
+ *   • Undo/redo — target moves, pins, keys, hinge, chain create/remove,
+ *     and bakes all integrate with Blockbench's undo stack
  *
  * © 2026 AzureDoom — MIT License
  */
@@ -209,6 +220,8 @@ class MetaController {
     this.position  = initPos.clone();
     this.pinned    = false;
     this.pinnedPos = null;
+    this.userPlaced = false;      // dragged by the user — holds position & drives IK
+    this.keys      = [];          // [{ time:number, pos:[x,y,z] }] sorted by time
     this._mesh     = null;
     this._build();
   }
@@ -255,7 +268,62 @@ class MetaController {
   togglePin() {
     this.pinned    = !this.pinned;
     this.pinnedPos = this.pinned ? this.position.clone() : null;
+    if (!this.pinned) this.userPlaced = false;  // unpin = release back to follow
     this.refreshColor();
+  }
+
+  /** Stop holding a dragged position and resume following the animation. */
+  resumeFollow() { this.userPlaced = false; }
+
+  // ── Target keyframes ──────────────────────────────────────────────────────
+  // A meta can be animated over the timeline. During playback/scrub the
+  // gizmo follows its keyed path and the IK chain tracks it (CoreIK-style).
+
+  hasKeys() { return this.keys.length > 0; }
+
+  /** Add (or replace) a key at `time` using the gizmo's current position. */
+  addKey(time) {
+    const t = Math.round(time * 1e4) / 1e4;
+    const existing = this.keys.find(k => Math.abs(k.time - t) < 1e-4);
+    if (existing) {
+      existing.pos = this.position.toArray();
+    } else {
+      this.keys.push({ time: t, pos: this.position.toArray() });
+      this.keys.sort((a, b) => a.time - b.time);
+    }
+  }
+
+  /** Remove the key closest to `time` (within tolerance). */
+  removeKeyNear(time, tolerance = 0.05) {
+    let best = -1, bestDist = tolerance;
+    this.keys.forEach((k, i) => {
+      const d = Math.abs(k.time - time);
+      if (d <= bestDist) { best = i; bestDist = d; }
+    });
+    if (best !== -1) this.keys.splice(best, 1);
+    return best !== -1;
+  }
+
+  clearKeys() { this.keys = []; }
+
+  /**
+   * Evaluate the keyed position at `time` (linear interpolation, clamped
+   * at the ends). Returns null when the meta has no keys.
+   */
+  evaluate(time) {
+    if (!this.keys.length) return null;
+    const keys = this.keys;
+    if (time <= keys[0].time)            return new THREE.Vector3(...keys[0].pos);
+    if (time >= keys.at(-1).time)        return new THREE.Vector3(...keys.at(-1).pos);
+    for (let i = 0; i < keys.length - 1; i++) {
+      const a = keys[i], b = keys[i + 1];
+      if (time >= a.time && time <= b.time) {
+        const span = b.time - a.time;
+        const f = span < 1e-9 ? 0 : (time - a.time) / span;
+        return new THREE.Vector3(...a.pos).lerp(new THREE.Vector3(...b.pos), f);
+      }
+    }
+    return new THREE.Vector3(...keys.at(-1).pos);
   }
 
   dispose() {
@@ -332,6 +400,42 @@ class IKChain {
     this._lineGeo.attributes.position.needsUpdate = true;
   }
 
+  /**
+   * Refresh every meta for the given timeline time. Priority per meta:
+   *   1. pinned     — stays at its frozen world position (floor anchor)
+   *   2. keyed      — follows its own keyframed path (CoreIK-style targets)
+   *   3. userPlaced — holds the position the user dragged it to
+   *   4. neither    — rides along with the animated bone position
+   *
+   * Returns true when the chain actually needs an IK solve this frame
+   * (i.e. at least one driving meta is pinned, keyed, or user-placed).
+   * Chains whose metas merely follow the animation are a no-op and skip.
+   */
+  updateTargetsForTime(time) {
+    const animatedPos = this.bones.map(b => boneWorldPos(b));
+    const midIdx = Math.floor(animatedPos.length / 2);
+
+    const place = (meta, followPos) => {
+      if (meta.pinned) { meta.moveTo(meta.pinnedPos); return true; }
+      const keyed = meta.evaluate(time);
+      if (keyed)           { meta.moveTo(keyed);      return true; }
+      if (meta.userPlaced) {  /* keep where dragged */ return true; }
+      meta.moveTo(followPos);
+      return false;
+    };
+
+    // Root is informational — it always sits on the (possibly animated) root
+    // joint; pinning it only affects the solver via pinRoot which is already
+    // enforced, so it never *drives* a solve by itself.
+    place(this.metaRoot, animatedPos[0]);
+
+    const tipDrives  = place(this.metaTip,  animatedPos.at(-1));
+    const kneeDrives = place(this.metaKnee, animatedPos[midIdx]);
+
+    this._updateLines();
+    return tipDrives || kneeDrives;
+  }
+
   solve() {
     if (!this.enabled) return;
 
@@ -355,7 +459,11 @@ class IKChain {
 
     this._writeRotations(solved);
 
-    if (!this.metaTip.pinned) this.metaTip.moveTo(solved.at(-1));
+    // Show the achieved tip position — but never fight a pinned, keyed, or
+    // user-placed target, which must keep authority over the gizmo.
+    if (!this.metaTip.pinned && !this.metaTip.hasKeys() && !this.metaTip.userPlaced) {
+      this.metaTip.moveTo(solved.at(-1));
+    }
     this._updateLines();
   }
 
@@ -365,49 +473,34 @@ class IKChain {
     for (let i = 0; i < this.bones.length - 1; i++) {
       const bone     = this.bones[i];
       const boneMesh = bone.mesh;
-      if (!boneMesh) continue;
+      const nextMesh = this.bones[i + 1].mesh;
+      if (!boneMesh || !nextMesh) continue;
 
-      const worldStart = solved[i].clone();
-      const worldEnd   = solved[i + 1].clone();
-
-      // Convert start and end into this bone's LOCAL space
-      // (exactly as Blockbench's own IK does in timeline_animators.js)
+      // Parents above may have just been rotated — refresh this bone's matrix
       boneMesh.updateWorldMatrix(true, false);
-      const localStart = boneMesh.worldToLocal(worldStart.clone());
-      const localEnd   = boneMesh.worldToLocal(worldEnd.clone());
-      const localDir   = localEnd.clone().sub(localStart).normalize();
 
-      if (localDir.lengthSq() < 1e-8) continue;
+      // Desired segment direction, expressed in this bone's LOCAL space
+      const localStart = boneMesh.worldToLocal(solved[i].clone());
+      const localEnd   = boneMesh.worldToLocal(solved[i + 1].clone());
+      const desired    = localEnd.sub(localStart);
+      if (desired.lengthSq() < 1e-10) continue;
+      desired.normalize();
 
-      // Rest-pose direction in local space:
-      // In rest pose the bone points from its own origin toward the next bone's origin.
-      // After worldToLocal this becomes the local +Y direction (0,1,0) assuming
-      // the bone is at its rest rotation. We use the actual rest direction from origins.
-      const nextBone = this.bones[i + 1];
-      const restDir  = new THREE.Vector3(
-        nextBone.origin[0] - bone.origin[0],
-        nextBone.origin[1] - bone.origin[1],
-        nextBone.origin[2] - bone.origin[2],
-      );
-      // Convert rest direction to bone local space at rest pose
-      const restLocal = boneMesh.worldToLocal(
-        new THREE.Vector3(
-          bone.mesh.getWorldPosition(new THREE.Vector3()).x + restDir.x,
-          bone.mesh.getWorldPosition(new THREE.Vector3()).y + restDir.y,
-          bone.mesh.getWorldPosition(new THREE.Vector3()).z + restDir.z,
-        )
-      ).normalize();
+      // CURRENT direction toward the child joint in the same local space.
+      // Under pure-rotation animation the child's local offset is constant,
+      // so rotating `current` onto `desired` is an EXACT correction — unlike
+      // the old rest-direction approximation, which treated model-space
+      // origin deltas as world offsets and only converged asymptotically
+      // (the chain visibly lagged behind the dragged anchor).
+      const childWorld = nextMesh.getWorldPosition(new THREE.Vector3());
+      const current    = boneMesh.worldToLocal(childWorld);
+      if (current.lengthSq() < 1e-10) continue;
+      current.normalize();
 
-      if (restLocal.lengthSq() < 1e-8) continue;
-
-      // Quaternion that rotates restLocal → localDir (both in bone local space)
-      const q = new THREE.Quaternion().setFromUnitVectors(restLocal, localDir);
-      const euler = new THREE.Euler().setFromQuaternion(q, boneMesh.rotation.order || 'ZYX');
-
-      // Apply: ADD to current mesh rotation (same as Blockbench's IK)
-      boneMesh.rotation.x += euler.x;
-      boneMesh.rotation.y += euler.y;
-      boneMesh.rotation.z += euler.z;
+      // Post-multiply so R_new = R_current ∘ q (q lives in local space).
+      // THREE keeps .rotation in sync with .quaternion automatically.
+      const q = new THREE.Quaternion().setFromUnitVectors(current, desired);
+      boneMesh.quaternion.multiply(q);
 
       // Apply hinge constraint
       if (this.hingeAxis) {
@@ -464,12 +557,16 @@ export const IKManager = {
   _raycaster: new THREE.Raycaster(),
   _dragState: null,
   _canvas:    null,
+  _baking:    false,
+  _registered: false,
   _onFrameBound:   null,
   _compileBound:   null,
   _parseBound:     null,
   _onDownBound:    null,
   _onMoveBound:    null,
   _onUpBound:      null,
+  _onUndoBound:    null,
+  _onRedoBound:    null,
   _panel:          null,
   _createAction:   null,
   _bakeAllAction:  null,
@@ -477,11 +574,20 @@ export const IKManager = {
   // ── Public lifecycle ─────────────────────────────────────────────────────
 
   register() {
+    if (this._registered) return;
+    this._registered = true;
+
     IKOverlay.init();
     IKOverlay.hook();
 
     this._onFrameBound = () => this._onFrame();
     Blockbench.on('display_animation_frame', this._onFrameBound);
+
+    // Restore IK snapshots when Blockbench undoes/redoes one of our entries
+    this._onUndoBound = (e) => this._onUndo(e);
+    this._onRedoBound = (e) => this._onRedo(e);
+    Blockbench.on('undo', this._onUndoBound);
+    Blockbench.on('redo', this._onRedoBound);
 
     // Persist chains in the .bbmodel project file
     this._compileBound = (e) => this._onCompile(e);
@@ -496,7 +602,12 @@ export const IKManager = {
   },
 
   unregister() {
+    if (!this._registered) return;
+    this._registered = false;
+
     Blockbench.removeListener('display_animation_frame', this._onFrameBound);
+    Blockbench.removeListener('undo', this._onUndoBound);
+    Blockbench.removeListener('redo', this._onRedoBound);
     Codecs.project.events.compile.remove(this._compileBound);
     if (Codecs.project.events.parsed) Codecs.project.events.parsed.remove(this._parseBound);
 
@@ -514,20 +625,128 @@ export const IKManager = {
     console.log('[AzureIK] IK unregistered');
   },
 
+  // ── State serialization (shared by project persistence and undo) ──────────
+
+  serializeState() {
+    const metaData = meta => ({
+      pos:        meta.position.toArray(),
+      pinned:     meta.pinned,
+      userPlaced: meta.userPlaced,
+      keys:       meta.keys.map(k => ({ time: k.time, pos: k.pos.slice() })),
+    });
+    return this.chains.map(chain => ({
+      name:      chain.name,
+      enabled:   chain.enabled,
+      hingeAxis: chain.hingeAxis,
+      bones:     chain.bones.map(b => b.name),
+      metaTip:   metaData(chain.metaTip),
+      metaKnee:  metaData(chain.metaKnee),
+      metaRoot:  metaData(chain.metaRoot),
+    }));
+  },
+
+  /**
+   * Apply a serialized IK state. Existing chains matching by name + bone list
+   * are updated in place (no gizmo flicker); mismatched or missing chains are
+   * rebuilt; chains absent from the state are disposed.
+   */
+  applyState(state) {
+    if (!Array.isArray(state)) return;
+
+    const wanted = new Map(state.map(s => [s.name, s]));
+
+    // Dispose chains that no longer exist, or whose bone list changed
+    this.chains = this.chains.filter(chain => {
+      const data = wanted.get(chain.name);
+      const sameBones = data && data.bones.join('\u0000') ===
+        chain.bones.map(b => b.name).join('\u0000');
+      if (!sameBones) { chain.dispose(); return false; }
+      return true;
+    });
+
+    const applyMeta = (meta, d) => {
+      if (!d) return;
+      if (Array.isArray(d.pos)) meta.moveTo(new THREE.Vector3(...d.pos));
+      meta.pinned     = !!d.pinned;
+      meta.pinnedPos  = meta.pinned ? meta.position.clone() : null;
+      meta.userPlaced = !!d.userPlaced;
+      meta.keys = Array.isArray(d.keys)
+        ? d.keys
+            .filter(k => typeof k?.time === 'number' && Array.isArray(k?.pos))
+            .map(k => ({ time: k.time, pos: k.pos.slice() }))
+            .sort((a, b) => a.time - b.time)
+        : [];
+      meta.refreshColor();
+    };
+
+    for (const data of state) {
+      let chain = this.chains.find(c => c.name === data.name);
+      if (!chain) {
+        const bones = data.bones
+          .map(name => Group.all.find(g => g.name === name))
+          .filter(Boolean);
+        if (bones.length < 2) continue;
+        chain = new IKChain(data.name, bones);
+        this.chains.push(chain);
+      }
+      chain.enabled   = data.enabled ?? true;
+      chain.hingeAxis = data.hingeAxis ?? null;
+      applyMeta(chain.metaTip,  data.metaTip);
+      applyMeta(chain.metaKnee, data.metaKnee);
+      applyMeta(chain.metaRoot, data.metaRoot);
+      chain._updateLines();
+    }
+
+    this._panel?.vue?.$forceUpdate();
+    // Re-pose the model for the restored state. preview() fires
+    // display_animation_frame → _onFrame refreshes targets and re-solves.
+    if (Animator.open) { try { Animator.preview(); } catch (_) {} }
+  },
+
+  // ── Undo/redo integration ─────────────────────────────────────────────────
+  // Blockbench's UndoSystem has a fixed set of aspects and can't carry IK
+  // state natively. We push a (possibly empty) entry onto its stack via
+  // initEdit/finishEdit, remember our own before/after snapshots keyed on
+  // that entry object, and restore them when Blockbench fires 'undo'/'redo'.
+
+  _undoMap: new WeakMap(),
+
+  /** Push an undo entry pairing Blockbench's stack with our IK snapshots. */
+  _commitIKUndo(name, beforeState, afterState = this.serializeState()) {
+    try {
+      Undo.initEdit({});
+      Undo.finishEdit(name);
+      const entry = Undo.history?.[Undo.index - 1];
+      if (entry) this._undoMap.set(entry, { before: beforeState, after: afterState });
+    } catch (err) {
+      console.warn('[AzureIK] Could not register undo entry:', err);
+    }
+  },
+
+  /** Run `fn` and record it as a single undoable IK edit. */
+  _withUndo(name, fn) {
+    const before = this.serializeState();
+    const result = fn();
+    this._commitIKUndo(name, before);
+    return result;
+  },
+
+  _onUndo({ entry } = {}) {
+    const snap = entry && this._undoMap.get(entry);
+    if (snap) this.applyState(snap.before);
+  },
+
+  _onRedo({ entry } = {}) {
+    const snap = entry && this._undoMap.get(entry);
+    if (snap) this.applyState(snap.after);
+  },
+
   // ── Project persistence ───────────────────────────────────────────────────
 
   _onCompile(event) {
     if (Format?.id !== 'azure_model') return;
     if (!this.chains.length) return;
-    event.model.azureIKChains = this.chains.map(chain => ({
-      name:      chain.name,
-      enabled:   chain.enabled,
-      hingeAxis: chain.hingeAxis,
-      bones:     chain.bones.map(b => b.name),
-      metaTip:  { pos: chain.metaTip.position.toArray(),  pinned: chain.metaTip.pinned },
-      metaKnee: { pos: chain.metaKnee.position.toArray(), pinned: chain.metaKnee.pinned },
-      metaRoot: { pos: chain.metaRoot.position.toArray(), pinned: chain.metaRoot.pinned },
-    }));
+    event.model.azureIKChains = this.serializeState();
   },
 
   _onParse(event) {
@@ -535,31 +754,10 @@ export const IKManager = {
     const saved = model.azureIKChains;
     if (!Array.isArray(saved) || !saved.length) return;
 
+    // Full rebuild on project load
     this.chains.forEach(c => c.dispose());
     this.chains = [];
-
-    for (const data of saved) {
-      const bones = data.bones
-        .map(name => Group.all.find(g => g.name === name))
-        .filter(Boolean);
-      if (bones.length < 2) continue;
-
-      const chain     = new IKChain(data.name, bones);
-      chain.enabled   = data.enabled ?? true;
-      chain.hingeAxis = data.hingeAxis ?? null;
-
-      const restore = (meta, saved) => {
-        if (saved?.pos) meta.moveTo(new THREE.Vector3(...saved.pos));
-        if (saved?.pinned) meta.togglePin();
-      };
-      restore(chain.metaTip,  data.metaTip);
-      restore(chain.metaKnee, data.metaKnee);
-      restore(chain.metaRoot, data.metaRoot);
-
-      this.chains.push(chain);
-    }
-
-    this._panel?.vue?.$forceUpdate();
+    this.applyState(saved);
     console.log(`[AzureIK] Restored ${this.chains.length} IK chain(s) from project.`);
   },
 
@@ -568,10 +766,20 @@ export const IKManager = {
   _onFrame() {
     if (Format?.id !== 'azure_model') return;
     if (!Animator.open) return;
-    // Only solve when a Meta is actively being dragged — do NOT solve every frame
-    // as that corrupts bone rotations while the user is scrubbing keyframes.
-    if (!this._dragState) return;
-    this.chains.forEach(c => c.solve());
+    if (this._baking) return;          // bake loop drives its own solves
+    if (this._dragState) return;       // drag handler already solves
+
+    // This event fires at the END of Animator.preview(), i.e. after Blockbench
+    // has reset every bone mesh to its keyframed pose for the current time.
+    // Solving here is therefore idempotent: each frame starts from the clean
+    // FK pose, so repeated solves can no longer corrupt bone rotations the way
+    // stale-target solving used to.
+    const time = Timeline.time || 0;
+    for (const chain of this.chains) {
+      if (!chain.enabled) continue;
+      const needsSolve = chain.updateTargetsForTime(time);
+      if (needsSolve) chain.solve();
+    }
   },
 
   // ── Chain management ──────────────────────────────────────────────────────
@@ -694,16 +902,20 @@ export const IKManager = {
     }
 
     const name  = `Chain_${this.chains.length + 1}`;
+    const before = this.serializeState();
     const chain = new IKChain(name, bones);
     this.chains.push(chain);
+    this._commitIKUndo(`Create IK chain (${name})`, before);
     Blockbench.showMessage(`IK chain "${name}" created (${bones.length} bones).`, 'center');
     this._panel?.vue?.$forceUpdate();
     return chain;
   },
 
   removeChain(chain) {
+    const before = this.serializeState();
     chain.dispose();
     this.chains = this.chains.filter(c => c !== chain);
+    this._commitIKUndo(`Remove IK chain (${chain.name})`, before);
     this._panel?.vue?.$forceUpdate();
   },
 
@@ -719,10 +931,11 @@ export const IKManager = {
       id:    'azl_ik_bake',
       title: `Bake IK — ${chain.name}`,
       form: {
-        fps:       { label: 'Frames per second', type: 'number', value: 20, min: 1, max: 60 },
+        fps:       { label: 'Samples per second', type: 'number', value: anim.snapping || 20, min: 1, max: 120 },
         overwrite: { label: 'Overwrite existing rotation keyframes', type: 'checkbox', value: true },
+        disable:   { label: 'Disable chain after baking', type: 'checkbox', value: true },
       },
-      onConfirm: ({ fps, overwrite }) => this._doBake([chain], fps, overwrite),
+      onConfirm: ({ fps, overwrite, disable }) => this._doBake([chain], fps, overwrite, disable),
     }).show();
   },
 
@@ -737,60 +950,124 @@ export const IKManager = {
       id:    'azl_ik_bake_all',
       title: 'Bake All IK Chains',
       form: {
-        fps:       { label: 'Frames per second', type: 'number', value: 20, min: 1, max: 60 },
+        fps:       { label: 'Samples per second', type: 'number', value: anim.snapping || 20, min: 1, max: 120 },
         overwrite: { label: 'Overwrite existing rotation keyframes', type: 'checkbox', value: true },
+        disable:   { label: 'Disable chains after baking', type: 'checkbox', value: true },
       },
-      onConfirm: ({ fps, overwrite }) => this._doBake(this.chains, fps, overwrite),
+      onConfirm: ({ fps, overwrite, disable }) => this._doBake(this.chains, fps, overwrite, disable),
     }).show();
   },
 
-  _doBake(chains, fps, overwrite) {
+  _doBake(chains, fps, overwrite, disableAfter = true) {
     const anim = Animation.selected;
     if (!anim) return;
 
-    Undo.initEdit({ animations: [anim] });
-    const totalFrames = Math.ceil(anim.length * fps);
+    this._baking = true;
+    const timeBefore  = Timeline.time || 0;
+    const totalFrames = Math.max(1, Math.ceil(anim.length * fps));
+
+    // ── PASS 1 — sample ──────────────────────────────────────────────────
+    // Scrub every frame, refresh targets, solve, and RECORD the deltas.
+    // Nothing is written to the animation yet: mutating keyframes while
+    // sampling would change the interpolated pose of every later frame
+    // (the old one-pass bake drifted for exactly this reason).
+    const samples = [];   // [{ time, deltas: { boneUuid: {x,y,z} } }]
 
     for (let f = 0; f <= totalFrames; f++) {
-      const time = Math.round(f / fps * 1e6) / 1e6;
+      const time = Math.round((f / fps) * 1e6) / 1e6;
       Timeline.setTime(time);
       Animator.preview();
 
+      const frame = { time, deltas: {} };
       for (const chain of chains) {
-        chain.solve();
-        for (const bone of chain.bones.slice(0, -1)) {
-          const animator = anim.getBoneAnimator(bone);
-          if (!animator) continue;
+        if (!chain.enabled) continue;
+        chain.updateTargetsForTime(time);
+        // A single solve() is exact per bone but processed root→tip, so a
+        // couple of passes settle interactions along long chains.
+        for (let it = 0; it < 3; it++) chain.solve();
+        Object.assign(frame.deltas, chain._lastRotDelta);
+      }
 
-          const delta = chain._lastRotDelta?.[bone.uuid] ?? { x: 0, y: 0, z: 0 };
-
-          if (overwrite) {
-            const toRemove = animator.keyframes.filter(
-              k => k.channel === 'rotation' && Math.abs(k.time - time) < 0.5 / fps
-            );
-            toRemove.forEach(k => {
-              const idx = animator.keyframes.indexOf(k);
-              if (idx !== -1) animator.keyframes.splice(idx, 1);
-            });
+      // Euler continuity: unwrap ±360° flips between consecutive samples so
+      // linear interpolation between baked keys never spins the long way.
+      const prev = samples.at(-1)?.deltas;
+      if (prev) {
+        for (const [uuid, d] of Object.entries(frame.deltas)) {
+          const p = prev[uuid];
+          if (!p) continue;
+          for (const ax of ['x', 'y', 'z']) {
+            while (d[ax] - p[ax] >  180) d[ax] -= 360;
+            while (d[ax] - p[ax] < -180) d[ax] += 360;
           }
-
-          animator.addKeyframe({
-            channel:       'rotation',
-            time,
-            interpolation: 'linear',
-            data_points:   [{
-              x: delta.x.toFixed(4),
-              y: delta.y.toFixed(4),
-              z: delta.z.toFixed(4),
-            }],
-          });
         }
+      }
+      samples.push(frame);
+    }
+
+    // ── PASS 2 — write ───────────────────────────────────────────────────
+    const ikBefore = this.serializeState();
+    Undo.initEdit({ animations: [anim] });
+
+    const bakeBones = new Map();
+    chains.forEach(c => c.bones.slice(0, -1).forEach(b => bakeBones.set(b.uuid, b)));
+
+    for (const bone of bakeBones.values()) {
+      const animator = anim.getBoneAnimator(bone);
+      if (!animator) continue;
+
+      if (overwrite) {
+        // Replace the WHOLE rotation channel. The sampled deltas already
+        // include the original FK keyframed pose (delta = mesh − rest), so
+        // any old rotation keys left behind would double-apply.
+        const old = animator.keyframes.filter(k => k.channel === 'rotation');
+        for (const k of old) {
+          if (typeof k.remove === 'function') {
+            k.remove();
+          } else {
+            const idx = animator.keyframes.indexOf(k);
+            if (idx !== -1) animator.keyframes.splice(idx, 1);
+          }
+        }
+      }
+
+      for (const s of samples) {
+        const d = s.deltas[bone.uuid];
+        if (!d) continue;
+
+        // Sign convention: BoneAnimator.displayRotation applies keyframe
+        // values as  mesh.rotation[axis] += degToRad(v) * (axis==z ? 1 : -1)
+        // so the stored keyframe must negate X and Y to reproduce the pose.
+        animator.addKeyframe({
+          channel:       'rotation',
+          time:          s.time,
+          interpolation: 'linear',
+          data_points:   [{
+            x: (-d.x).toFixed(4),
+            y: (-d.y).toFixed(4),
+            z: ( d.z).toFixed(4),
+          }],
+        });
       }
     }
 
     Undo.finishEdit(`Bake IK: ${chains.map(c => c.name).join(', ')}`);
-    Timeline.setTime(0);
+
+    // The baked keyframes now contain the solved pose. Leaving the chains
+    // enabled would re-solve on top of it every frame, so switch them off
+    // (the user can re-enable from the panel to iterate).
+    if (disableAfter) chains.forEach(c => { c.enabled = false; });
+
+    // Pair IK snapshots with the bake's own undo entry: undoing the bake
+    // restores the keyframes (Blockbench) AND re-enables the chains (ours).
+    const bakeEntry = Undo.history?.[Undo.index - 1];
+    if (bakeEntry) {
+      this._undoMap.set(bakeEntry, { before: ikBefore, after: this.serializeState() });
+    }
+
+    this._baking = false;
+    Timeline.setTime(timeBefore);
     Animator.preview();
+    this._panel?.vue?.$forceUpdate();
 
     const label = chains.length === 1 ? `"${chains[0].name}"` : `${chains.length} chains`;
     Blockbench.showMessage(`✓ Baked ${label} — ${totalFrames + 1} frames @ ${fps} fps`, 'center');
@@ -852,17 +1129,58 @@ export const IKManager = {
         methods: {
           createChain() { manager.createChainFromSelection(); },
           removeChain(chain) { manager.removeChain(chain); },
-          toggleEnabled(chain) { chain.enabled = !chain.enabled; },
+          toggleEnabled(chain) {
+            manager._withUndo(
+              `${chain.enabled ? 'Disable' : 'Enable'} IK chain (${chain.name})`,
+              () => { chain.enabled = !chain.enabled; },
+            );
+          },
           togglePin(meta) {
-            meta.togglePin();
+            manager._withUndo(
+              `${meta.pinned ? 'Unpin' : 'Pin'} IK ${meta.role}`,
+              () => meta.togglePin(),
+            );
             this.$forceUpdate();
           },
           toggleHinge(chain, ax) {
-            chain.toggleHinge(ax);
+            manager._withUndo(
+              `Toggle IK hinge (${chain.name})`,
+              () => chain.toggleHinge(ax),
+            );
             this.$forceUpdate();
           },
           bakeChain(chain) { manager.bakeChain(chain); },
           bakeAll() { manager.bakeAllChains(); },
+          addKey(meta) {
+            manager._withUndo(
+              `Key IK ${meta.role} target`,
+              () => meta.addKey(Timeline.time || 0),
+            );
+            this.$forceUpdate();
+          },
+          deleteKey(meta) {
+            manager._withUndo(
+              `Remove IK ${meta.role} target key`,
+              () => meta.removeKeyNear(Timeline.time || 0),
+            );
+            this.$forceUpdate();
+          },
+          clearKeys(meta) {
+            manager._withUndo(
+              `Clear IK ${meta.role} target keys`,
+              () => meta.clearKeys(),
+            );
+            this.$forceUpdate();
+          },
+          resumeFollow(meta) {
+            manager._withUndo(
+              `Release IK ${meta.role} target`,
+              () => meta.resumeFollow(),
+            );
+            // Re-place targets and re-solve for the current frame
+            if (Animator.open) { try { Animator.preview(); } catch (_) {} }
+            this.$forceUpdate();
+          },
           metaDotColor(meta) {
             if (meta.pinned)          return '#ff2255';
             if (meta.role === 'tip')  return '#00ff88';
@@ -896,6 +1214,18 @@ export const IKManager = {
       <span style="width:9px;height:9px;border-radius:2px;flex-shrink:0;display:inline-block;"
             :style="{ background: metaDotColor(chain.metaTip) }"></span>
       <span style="flex:1;">🟢 Tip <small style="color:var(--color-subtle);">(drag in viewport)</small></span>
+      <span v-if="chain.metaTip.keys.length" style="font-size:10px;color:var(--color-accent);"
+            :title="chain.metaTip.keys.length + ' target key(s)'">◆{{ chain.metaTip.keys.length }}</span>
+      <button v-if="chain.metaTip.userPlaced && !chain.metaTip.pinned && !chain.metaTip.keys.length"
+              class="dark_bordered" @click="resumeFollow(chain.metaTip)"
+              style="padding:1px 6px;cursor:pointer;"
+              title="Release — resume following the animation">⟳</button>
+      <button class="dark_bordered" @click="addKey(chain.metaTip)"
+              style="padding:1px 6px;cursor:pointer;"
+              title="Key the Tip target at the current timeline position">⏺</button>
+      <button v-if="chain.metaTip.keys.length" class="dark_bordered" @click="clearKeys(chain.metaTip)"
+              style="padding:1px 6px;cursor:pointer;color:var(--color-subtle);"
+              title="Clear all Tip target keys">✕◆</button>
       <button class="dark_bordered" @click="togglePin(chain.metaTip)"
               :style="{ padding:'1px 8px', cursor:'pointer', color: chain.metaTip.pinned ? '#ff2255' : '' }"
               :title="chain.metaTip.pinned ? 'Unpin Tip' : 'Pin Tip to current world position (floor anchor)'">
@@ -904,15 +1234,34 @@ export const IKManager = {
     </div>
 
     <!-- Knee meta row -->
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
       <span style="width:9px;height:9px;border-radius:2px;flex-shrink:0;display:inline-block;"
             :style="{ background: metaDotColor(chain.metaKnee) }"></span>
       <span style="flex:1;">🔵 Knee <small style="color:var(--color-subtle);">(pole vector)</small></span>
+      <span v-if="chain.metaKnee.keys.length" style="font-size:10px;color:var(--color-accent);"
+            :title="chain.metaKnee.keys.length + ' target key(s)'">◆{{ chain.metaKnee.keys.length }}</span>
+      <button v-if="chain.metaKnee.userPlaced && !chain.metaKnee.pinned && !chain.metaKnee.keys.length"
+              class="dark_bordered" @click="resumeFollow(chain.metaKnee)"
+              style="padding:1px 6px;cursor:pointer;"
+              title="Release — resume following the animation">⟳</button>
+      <button class="dark_bordered" @click="addKey(chain.metaKnee)"
+              style="padding:1px 6px;cursor:pointer;"
+              title="Key the Knee target at the current timeline position">⏺</button>
+      <button v-if="chain.metaKnee.keys.length" class="dark_bordered" @click="clearKeys(chain.metaKnee)"
+              style="padding:1px 6px;cursor:pointer;color:var(--color-subtle);"
+              title="Clear all Knee target keys">✕◆</button>
       <button class="dark_bordered" @click="togglePin(chain.metaKnee)"
               :style="{ padding:'1px 8px', cursor:'pointer', color: chain.metaKnee.pinned ? '#ff2255' : '' }"
               :title="chain.metaKnee.pinned ? 'Unpin Knee' : 'Pin Knee to current world position'">
         {{ chain.metaKnee.pinned ? '📌 Pinned' : 'Pin' }}
       </button>
+    </div>
+
+    <!-- Root meta row (informational anchor) -->
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+      <span style="width:9px;height:9px;border-radius:2px;flex-shrink:0;display:inline-block;"
+            :style="{ background: metaDotColor(chain.metaRoot) }"></span>
+      <span style="flex:1;">🟠 Root <small style="color:var(--color-subtle);">(follows body)</small></span>
     </div>
 
     <!-- Hinge lock -->
@@ -1037,13 +1386,17 @@ export const IKManager = {
     const hit = this._pickMeta(e);
     if (!hit) return;
 
+    // The root gizmo is informational (it always follows the chain root) —
+    // let the click fall through to Blockbench instead of a pointless drag.
+    if (hit.meta.role === 'root') return;
+
     // Confirmed meta hit — fully consume this event so Blockbench's bone
     // selection / orbit handlers never see it
     e.preventDefault();
     e.stopImmediatePropagation();
     try { this._canvas.setPointerCapture(e.pointerId); } catch (_) {}
 
-    const { meta } = hit;
+    const { meta, chain } = hit;
     const cam = Preview.selected?.camera;
     // Camera-facing plane through the meta so dragging works at any angle
     const normal = cam
@@ -1051,8 +1404,11 @@ export const IKManager = {
       : v3(0, 1, 0);
     this._dragState = {
       meta,
+      chain,
       pointerId: e.pointerId,
       plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal, meta.position),
+      beforeState: this.serializeState(),  // snapshot for undo
+      moved: false,
     };
   },
 
@@ -1072,15 +1428,32 @@ export const IKManager = {
     if (!this._raycaster.ray.intersectPlane(plane, hit)) return;
 
     meta.moveTo(hit);
-    // Solve directly — do NOT dispatch display_animation_frame as that
-    // triggers Blockbench's selection/preview pipeline and causes wild jumps
-    for (const chain of this.chains) chain.solve();
+    // The user has explicitly placed this target — hold it here and keep
+    // driving the chain even after release (instead of snapping back to
+    // follow mode on the next preview frame, which is what made anchors
+    // appear to "not follow").
+    meta.userPlaced = true;
+    this._dragState.moved = true;
+    // Solve ONLY the dragged chain, directly — do NOT dispatch
+    // display_animation_frame (triggers Blockbench's selection/preview
+    // pipeline and causes wild jumps), and do NOT solve other chains:
+    // without a preview() reset between moves, repeated solves against
+    // their stale targets accumulate rotation drift.
+    this._dragState.chain.solve();
   },
 
   _onUp(e) {
     if (this._dragState && e.pointerId === this._dragState.pointerId) {
       try { this._canvas?.releasePointerCapture(e.pointerId); } catch (_) {}
+      const { moved, beforeState, meta, chain } = this._dragState;
       this._dragState = null;
+      if (moved) {
+        this._commitIKUndo(
+          `Move IK ${meta.role} (${chain.name})`,
+          beforeState,
+        );
+        this._panel?.vue?.$forceUpdate();
+      }
     }
   },
 };
@@ -1104,3 +1477,10 @@ const _btn = (text, onClick, extraStyle = '', title = '') => {
   b.onclick = onClick;
   return b;
 };
+
+// ---------------------------------------------------------------------------
+// Public lifecycle exports — consumed by azure-animation-tab.js
+// ---------------------------------------------------------------------------
+
+export function registerIK()   { IKManager.register(); }
+export function unregisterIK() { IKManager.unregister(); }
