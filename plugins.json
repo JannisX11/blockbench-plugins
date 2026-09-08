@@ -1576,7 +1576,14 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
-	},
+	},        "model_region_tools": {
+                "title": "Model Region Tools",
+                "author": "HorrorGirl",
+                "description": "Tools for selecting regions directly on the 3D model.",
+                "icon": "select_all",
+                "version": "1.0.0",
+                "variant": "both"
+        },
 	"structure_to_model": {
 		"title": "Structure to Model",
 		"author": "Mester",
