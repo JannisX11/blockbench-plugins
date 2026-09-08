@@ -753,7 +753,7 @@ async function configurePreviewSceneSettings(model, args) {
   }).show()
   $("dialog#preview_scene_settings_dialog #preview_scene_texture").on("click", async e => {
     Filesystem.importFile({
-      title: "Select Minecraft title texture",
+      title: "Select Preview Scene texture",
       type: "PNG Texture",
       readtype: "buffer",
       extensions: ["png"]
