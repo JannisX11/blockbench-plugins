@@ -1590,7 +1590,7 @@
 		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
 		"creation_date": "2026/05/06"
 	},
-  "easy_model_entities": {
+	"easy_model_entities": {
 		"title": "Easy Model Entities",
 		"author": "Markus Bordihn",
 		"icon": "icon.png",
@@ -1607,5 +1607,5 @@
 		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
-  }
+	}
 }
