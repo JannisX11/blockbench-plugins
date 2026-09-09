@@ -3,8 +3,9 @@ Plugin.register('model_region_tools', {
     author: 'HorrorGirl',
     description: 'Tools for selecting regions directly on the 3D model.',
     icon: 'select_all',
-    version: '1.0.0',
-    variant: 'both',
+version: '1.0.0',
+min_version: '4.8.0',
+variant: 'both',
 
     onload() {
         this.region_select = new Action('model_region_tools_region_select', {
