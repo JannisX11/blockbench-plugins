@@ -2763,10 +2763,11 @@
     let primitiveToUniqueVertexIndices = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
       primitiveToUniqueVertexIndices[primitiveIndex] = [];
-      for (let vertexIndex = 0; vertexIndex < primitive.geometry.attributes.position.count; vertexIndex++) {
-        let x = primitive.geometry.attributes.position.array[vertexIndex * 3];
-        let y = primitive.geometry.attributes.position.array[vertexIndex * 3 + 1];
-        let z = primitive.geometry.attributes.position.array[vertexIndex * 3 + 2];
+      const position = primitive.geometry.attributes.position;
+      for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex++) {
+        let x = position.getX(vertexIndex);
+        let y = position.getY(vertexIndex);
+        let z = position.getZ(vertexIndex);
         const vertexVec = new THREE.Vector3(x, y, z);
         vertexVec.multiply(node.scale);
         vertexVec.multiplyScalar(options.scale);
@@ -2786,25 +2787,26 @@
     mesh.vertices = Object.fromEntries(uniqueVertices.map((v, i) => [vertexKeys[i], v]));
     let faces = [];
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
-      if (primitive.geometry.index == void 0)
+      const index = primitive.geometry.index;
+      if (index == void 0)
         continue;
-      for (let faceIndex = 0; faceIndex < primitive.geometry.index.count / 3; faceIndex++) {
+      for (let faceIndex = 0; faceIndex < index.count / 3; faceIndex++) {
         let texture = primitiveTextures[primitiveIndex];
         let uvWidth = texture?.uv_width ?? Project?.texture_width ?? 16;
         let uvHeight = texture?.uv_height ?? Project?.texture_height ?? 16;
         let v1Uv, v2Uv, v3Uv;
-        let v1Idx = primitive.geometry.index.array[faceIndex * 3];
-        let v2Idx = primitive.geometry.index.array[faceIndex * 3 + 1];
-        let v3Idx = primitive.geometry.index.array[faceIndex * 3 + 2];
+        let v1Idx = index.getX(faceIndex * 3);
+        let v2Idx = index.getX(faceIndex * 3 + 1);
+        let v3Idx = index.getX(faceIndex * 3 + 2);
         let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
         let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
         let v3Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v3Idx]];
         let faceVertexKeys = [v1Key, v2Key, v3Key];
         if (primitive.geometry.attributes.uv != void 0) {
-          let uvComponents = primitive.geometry.attributes.uv.array;
-          v1Uv = [uvComponents[v1Idx * 2], uvComponents[v1Idx * 2 + 1]];
-          v2Uv = [uvComponents[v2Idx * 2], uvComponents[v2Idx * 2 + 1]];
-          v3Uv = [uvComponents[v3Idx * 2], uvComponents[v3Idx * 2 + 1]];
+          let uv2 = primitive.geometry.attributes.uv;
+          v1Uv = [uv2.getX(v1Idx), uv2.getY(v1Idx)];
+          v2Uv = [uv2.getX(v2Idx), uv2.getY(v2Idx)];
+          v3Uv = [uv2.getX(v3Idx), uv2.getY(v3Idx)];
         } else {
           v1Uv = [0, 0];
           v2Uv = [1, 0];
@@ -2907,7 +2909,7 @@
     description: "Import .GLTF and .GLB models",
     icon: "icon.png",
     creation_date: "2025-09-25",
-    version: "1.2.0",
+    version: "1.2.1",
     variant: "desktop",
     min_version: "4.12.6",
     has_changelog: false,

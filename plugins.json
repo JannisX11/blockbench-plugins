@@ -36,6 +36,18 @@
 		"website": "https://www.cazfps.com/links",
 		"tags": ["Minecraft", "Animation", "Tools"]
 	},
+	"pal_bend_player_tools": {
+		"title": "PAL Bend Player Tools",
+		"author": "kltyton",
+		"icon": "icon.png",
+		"description": "Create, import, and export PAL, Emotecraft, DragonCore player-model, and PlayerAnimationLibraryMoreRotation animations.",
+		"tags": ["Minecraft: Java Edition", "Animation", "Tools"],
+		"version": "0.4.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"repository": "https://github.com/kltyton/Pal-bend-player-tools",
+		"bug_tracker": "https://github.com/kltyton/Pal-bend-player-tools/issues"
+	},
 	"armor_stand_animator": {
 		"title": "Armor Stand Animator",
 		"author": "DoubleFelix",
@@ -309,7 +321,7 @@
 		"author": "Ewan Howell",
 		"description": "Create your very own preview scenes. Download preview scenes from the Preview Scene Store. Edit and manage existing preview scenes.",
 		"tags": ["Preview Scenes", "Blockbench"],
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"creation_date": "2022-10-14",
@@ -325,10 +337,11 @@
 		"author": "Ewan Howell",
 		"description": "Customise the start screen's splash art, by adding your own!",
 		"tags": ["Splash art", "Start screen", "Blockbench"],
-		"version": "1.1.4",
+		"version": "1.1.5",
 		"min_version": "5.0.0",
 		"variant": "both",
-		"creation_date": "2022-11-08"
+		"creation_date": "2022-11-08",
+		"has_changelog": true
 	},
 	"scene_recorder": {
 		"title": "Scene Recorder",
@@ -1073,7 +1086,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "2.1.4",
+		"version": "2.1.5",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -1138,7 +1151,7 @@
 		"icon": "icon.png",
 		"description": "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
 		"tags": ["Minecraft: Java Edition", "Entity Models", "Animation"],
-		"version": "1.0.4",
+		"version": "1.0.5",
 		"min_version": "4.9.0",
 		"variant": "both",
 		"dependencies": ["cem_template_loader"],
@@ -1373,7 +1386,7 @@
 		"description": "Import .GLTF and .GLB models",
 		"icon": "icon.png",
 		"creation_date": "2025-09-25",
-		"version": "1.2.0",
+		"version": "1.2.1",
 		"variant": "desktop",
 		"min_version": "4.12.6",
 		"has_changelog": false,
@@ -1590,7 +1603,7 @@
 		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
 		"creation_date": "2026/05/06"
 	},
-        "nowmobmanager_particle_exporter": {
+  "nowmobmanager_particle_exporter": {
 		"title": "nowMobmanager Particle Exporter",
 		"author": "_NotWhale (now)",
 		"description": "Export Blockbench models and animations as baked particle animations for nowMobmanager.",
@@ -1600,5 +1613,23 @@
 		"variant": "desktop",
 		"new_repository_format": true,
 		"tags": ["Minecraft: Java Edition", "Animation", "Exporter"]
+  },
+	"easy_model_entities": {
+		"title": "Easy Model Entities",
+		"author": "Markus Bordihn",
+		"icon": "icon.png",
+		"description": "Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.",
+		"tags": ["Minecraft: Java Edition", "Format", "Entity"],
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "desktop",
+		"await_loading": true,
+		"has_changelog": true,
+		"contributes": {
+			"formats": ["eme_entity"]
+		},
+		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
+		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
+		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
 	}
 }

@@ -1,0 +1,38 @@
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {ResourceLocation} = require('../utils/ResourceLocation');
+const TEMPLATE = require('../resources/readme.md');
+
+function buildReadme(settings, fileNames) {
+  const id = ResourceLocation.buildResourceLocation(settings.namespace,
+      settings.profileId);
+  const modelType = settings.modelType || 'entity';
+  const serverProfileId = ResourceLocation.buildResourceLocation(
+      settings.namespace, `${modelType}/${settings.profileId}`);
+  return TEMPLATE
+  .replaceAll('{{id}}', id)
+  .replaceAll('{{serverProfileId}}', serverProfileId)
+  .replaceAll('{{mcVersion}}',
+      `Minecraft: Java Edition ${settings.targetVersion}`)
+  .replaceAll('{{datapackFile}}', fileNames.datapack)
+  .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
+}
+
+module.exports = {buildReadme};
