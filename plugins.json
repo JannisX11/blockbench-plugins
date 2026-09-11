@@ -76,11 +76,7 @@
 		"version": "1.0.6",
 		"variant": "both",
 		"author": "SnaveSutit & Embody Games",
-		"tags": [
-			"Texture",
-			"Paint",
-			"Tool"
-		],
+		"tags": ["Texture", "Paint", "Tool"],
 		"min_version": "5.1.4",
 		"bug_tracker": "https://github.com/SnaveSutit/brush-tuna/issues",
 		"has_changelog": true
@@ -327,9 +323,9 @@
 		"creation_date": "2022-10-14",
 		"await_loading": true,
 		"has_changelog": true,
-    "website": "https://ewanhowell.com/plugins/preview-scene-customiser/",
-    "repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/preview-scene-customiser",
-    "bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Preview Scene Customiser]"
+		"website": "https://ewanhowell.com/plugins/preview-scene-customiser/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/preview-scene-customiser",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Preview Scene Customiser]"
 	},
 	"splash_art_customiser": {
 		"title": "Splash Art Customiser",
@@ -504,10 +500,7 @@
 		"icon": "icon.png",
 		"description": "Replaced by new plugin for Blockbench 5.0+ - Install 'GeckoLib Models and Animations'",
 		"deprecation_note": "This plugin has been discontinued in favour of the \"GeckoLib Models and Animations\" plugin. This plugin will continue to work on Blockbench 4 and below. For Blockbench 5+, use 'GeckoLib' instead.",
-		"tags": [
-			"Minecraft: Java Edition",
-			"Deprecated"
-		],
+		"tags": ["Minecraft: Java Edition", "Deprecated"],
 		"version": "4.1.3",
 		"min_version": "4.12.0",
 		"await_loading": true,
@@ -521,14 +514,10 @@
 	"geckolib": {
 		"title": "GeckoLib Models & Animations",
 		"author": "Eliot Lash, Tslat, Gecko, McHorse",
-		"contributors": [
-			"Zigy"
-		],
+		"contributors": ["Zigy"],
 		"icon": "icon.png",
 		"description": "Create animated blocks, items, entities, and armor for the GeckoLib java mod library.",
-		"tags": [
-			"Minecraft: Java Edition"
-		],
+		"tags": ["Minecraft: Java Edition"],
 		"version": "4.2.5",
 		"min_version": "5.0.0",
 		"max_version": "6.0.0",
@@ -1060,7 +1049,7 @@
 		"min_version": "4.6.0",
 		"variant": "both"
 	},
-	"bamo":{
+	"bamo": {
 		"title": "BAMO Exporter",
 		"author": "Ryytikki",
 		"description": "Create custom Minecraft blocks without having to write a single line of code when paired with the BAMO mod.",
@@ -1188,11 +1177,7 @@
 		"website": "https://github.com/jasonjgardner/blockbench-plugins/",
 		"variant": "both",
 		"version": "1.2.2",
-		"tags": [
-			"Minecraft: Java Edition",
-			"Minecraft: Bedrock Edition",
-			"PBR"
-		],
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "PBR"],
 		"min_version": "4.10.4",
 		"max_version": "4.11.9"
 	},
@@ -1218,11 +1203,7 @@
 		"description": "Enables the use of a meshes in bedrock formats and to export them to Minecraft Bedrock",
 		"variant": "both",
 		"version": "1.0.5",
-		"tags": [
-			"Minecraft: Bedrock Edition",
-			"Entity Models",
-			"Mesh"
-		],
+		"tags": ["Minecraft: Bedrock Edition", "Entity Models", "Mesh"],
 		"has_changelog": true,
 		"min_version": "4.10.4",
 		"repository": "https://github.com/Shadowkitten47/Meshy"
@@ -1235,9 +1216,7 @@
 		"description": "A simple plugin to allow you to export a group from the outliner as a model. Only cubes inside the group will be exported.",
 		"variant": "both",
 		"version": "1.0.0",
-		"tags": [
-			"Minecraft: Java Edition"
-		],
+		"tags": ["Minecraft: Java Edition"],
 		"has_changelog": true,
 		"min_version": "4.10.1",
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/outliner_group_exporter"
@@ -1252,9 +1231,7 @@
 		"variant": "desktop",
 		"min_version": "4.12.4",
 		"has_changelog": false,
-		"tags": [
-			"Exporter"
-		],
+		"tags": ["Exporter"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/export_as_blender"
 	},
 	"farsight": {
@@ -1276,10 +1253,7 @@
 		"variant": "desktop",
 		"min_version": "4.12.4",
 		"has_changelog": false,
-		"tags": [
-			"Exporter",
-			"Utility"
-		],
+		"tags": ["Exporter", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/reexport_on_save"
 	},
 	"repeating_textures": {
@@ -1292,11 +1266,7 @@
 		"variant": "both",
 		"min_version": "4.12.4",
 		"has_changelog": false,
-		"tags": [
-			"Texture",
-			"Viewport",
-			"Utility"
-		],
+		"tags": ["Texture", "Viewport", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/repeating_textures"
 	},
 	"export_to_3mf": {
@@ -1321,11 +1291,7 @@
 		"version": "1.0.0",
 		"variant": "both",
 		"has_changelog": false,
-		"tags": [
-			"Minecraft",
-			"Utility",
-			"Exporter"
-		],
+		"tags": ["Minecraft", "Utility", "Exporter"],
 		"bug_tracker": "https://github.com/vowxky/blockbench-plugins/issues?title=[Shaper]"
 	},
 	"bone_view": {
@@ -1333,11 +1299,7 @@
 		"author": "codename-B",
 		"description": "Toggleable view to visualize group pivots and their connections as bones (Blender-like).",
 		"icon": "icon.png",
-		"tags": [
-			"Animation",
-			"Rigging",
-			"Viewport"
-		],
+		"tags": ["Animation", "Rigging", "Viewport"],
 		"version": "1.0.0",
 		"min_version": "4.12.6",
 		"variant": "both",
@@ -1361,14 +1323,14 @@
 	"transparency_fix": {
 		"title": "Transparency Fix",
 		"author": "Larsonix",
-        "description": "Shows objects inside transparent containers (glass, windows, etc.)",
-        "about": "This plugin fixes the visibility of objects inside transparent containers by adjusting render order.\n\n## Features\n- Auto-detects transparent textures by scanning alpha values\n- Name-based detection (glass, window, crystal, ice, liquid, glow, etc.)\n- Geometry detection - finds cubes inside transparent containers\n\n## Usage\nGo to **View > Toggle Transparency Fix** to enable/disable.",
-        "icon": "visibility",
-        "version": "2.1.0",
-        "min_version": "4.0.0",
-        "variant": "both",
-        "tags": ["Rendering", "Utility"]
-    },
+		"description": "Shows objects inside transparent containers (glass, windows, etc.)",
+		"about": "This plugin fixes the visibility of objects inside transparent containers by adjusting render order.\n\n## Features\n- Auto-detects transparent textures by scanning alpha values\n- Name-based detection (glass, window, crystal, ice, liquid, glow, etc.)\n- Geometry detection - finds cubes inside transparent containers\n\n## Usage\nGo to **View > Toggle Transparency Fix** to enable/disable.",
+		"icon": "visibility",
+		"version": "2.1.0",
+		"min_version": "4.0.0",
+		"variant": "both",
+		"tags": ["Rendering", "Utility"]
+	},
 	"translation_plane_gizmo": {
 		"title": "Translation Plane Gizmo",
 		"author": "AnnJ",
@@ -1390,10 +1352,7 @@
 		"variant": "desktop",
 		"min_version": "4.12.6",
 		"has_changelog": false,
-		"tags": [
-			"Format: Generic Model",
-			"Importer"
-		],
+		"tags": ["Format: Generic Model", "Importer"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/gltf_importer"
 	},
 	"java_block_sequencer": {
@@ -1401,7 +1360,7 @@
 		"icon": "icon.png",
 		"author": "Jatzylap",
 		"description": "Exports an animation into a sequence of Minecraft block/item models.",
-    	"tags": ["Minecraft: Java Edition", "Exporter", "Animation"],
+		"tags": ["Minecraft: Java Edition", "Exporter", "Animation"],
 		"version": "1.0.0",
 		"min_version": "5.0.5",
 		"variant": "both",
@@ -1419,26 +1378,19 @@
 		"variant": "desktop",
 		"min_version": "5.0.3",
 		"has_changelog": false,
-		"tags": [
-			"Texture",
-			"Viewport",
-			"Utility"
-		],
+		"tags": ["Texture", "Viewport", "Utility"],
 		"repository": "https://github.com/JannisX11/blockbench-plugins/tree/master/plugins/texture_downscaler"
 	},
 	"block_multi_collisions": {
 		"title": "Block Multi-Collision Editor",
 		"author": "minato4743",
-        "description": "This Plugin allow you to make and generate multiple collision boxes for Minecraft Bedrock blocks.",
+		"description": "This Plugin allow you to make and generate multiple collision boxes for Minecraft Bedrock blocks.",
 		"icon": "icon.svg",
 		"version": "1.0.0",
 		"variant": "both",
 		"min_version": "4.12.6",
 		"has_changelog": true,
-		"tags": [
-			"Minecraft: Bedrock Edition",
-			"Format: Bedrock Block"
-		],
+		"tags": ["Minecraft: Bedrock Edition", "Format: Bedrock Block"],
 		"repository": "https://github.com/MinecraftBedrockArabic/blockbench-plugins/tree/master/plugins/block_multi_collisions"
 	},
 	"hytale_avatar_loader": {
@@ -1455,7 +1407,7 @@
 		"has_changelog": true,
 		"repository": "https://github.com/PasteDev/blockbench-plugins/tree/master/plugins/hytale_avatar_loader"
 	},
-  	"hytale_hitbox_helper": {
+	"hytale_hitbox_helper": {
 		"title": "Hytale Hitbox Helper",
 		"author": "Marck.A.A",
 		"version": "1.0.1",
@@ -1463,11 +1415,11 @@
 		"icon": "icon.png",
 		"variant": "both",
 		"min_version": "4.8.0",
-		"tags": ["Hytale"]	
+		"tags": ["Hytale"]
 	},
 	"baked_ambient_occlusion": {
 		"title": "Mr Salmon's Baked Ambient Occlusion",
-    	"author": "Kai Salmon",
+		"author": "Kai Salmon",
 		"description": "Baked Ambient Occlusion, creating instant shading",
 		"icon": "icon.png",
 		"version": "1.0.0",
@@ -1475,10 +1427,7 @@
 		"variant": "both",
 		"repository": "https://github.com/kaisalmon/MrSalmonsBlockbenchBakedAmbientOcclusion",
 		"has_changelog": false,
-		"tags": [
-			"Texture",
-			"Shading"
-		]
+		"tags": ["Texture", "Shading"]
 	},
 	"hytale_bridge": {
 		"title": "Hytale Bridge",
@@ -1531,11 +1480,7 @@
 		"new_repository_format": true,
 		"creation_date": "2026-03-15",
 		"has_changelog": false,
-		"tags": [
-			"Minecraft",
-			"Utility",
-			"Export"
-		],
+		"tags": ["Minecraft", "Utility", "Export"],
 		"repository": "https://github.com/HMC-Studios/Menu-Icon-Exporter",
 		"bug_tracker": "https://github.com/HMC-Studios/Menu-Icon-Exporter/issues"
 	},
