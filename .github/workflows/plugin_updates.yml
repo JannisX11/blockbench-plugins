@@ -10,24 +10,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
+      - name: Update plugin dates
+        working-directory: scripts
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: node update_plugin_dates.mjs
+
       - name: Generate updates.json
-        working-directory: build
+        working-directory: scripts
         run: node update_plugin_updates.mjs
 
-      - name: Commit and push updates.json
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins.json plugins src
+          if ! git diff --cached --quiet; then
+            git commit -m "Update plugin dates"
+          fi
           git add updates.json
           if ! git diff --cached --quiet; then
             git commit -m "Update updates.json"
+          fi
+          if [ -n "$(git log origin/master..HEAD --oneline)" ]; then
             git push
           else
             echo "No changes to commit"
