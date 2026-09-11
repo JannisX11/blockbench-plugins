@@ -2,9 +2,9 @@
 	"two_bone_ik": {
 		"title": "IK Tools",
 		"author": "dh",
-		"description": "Two-bone IK, pure FABRIK chain IK, Spline IK, and aim IK with project-saved constraints, live preview, guides, and individual or batch pose baking.",
+		"description": "Two-bone IK, pure FABRIK chain IK, Spline IK, and aim IK with IK/FK blending, project-saved constraints, live preview, and individual or batch pose and frame-range baking.",
 		"icon": "precision_manufacturing",
-		"version": "2.4.2",
+		"version": "2.6.1",
 		"min_version": "5.1.0",
 		"variant": "both",
 		"tags": ["Animation"]
