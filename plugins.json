@@ -1620,5 +1620,16 @@
 		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
+	},
+	"noise_composite": {
+		"title": "Noise & Composite",
+		"author": "the0dll",
+		"icon": "icon.png",
+		"description": "Advanced procedural noise generator and texture compositor with custom blend modes, alpha masking, and presets.",
+		"about": "Procedural noise generator and texture compositor for Blockbench.\n\nCreate simplex/FBM noise, blend it onto existing textures with a wide range of composite modes, respect transparency, save presets, or export a new texture variant — with live preview and full Undo/Redo support.\n\n## Features\n\n- **Procedural noise** — seed, period, harmonics, spread, gain, exponent, amplitude, offset\n- **Coordinate controls** — scale and translate on X / Y / Z\n- **Monochrome or RGB** noise\n- **Noise Only** mode — pure noise (optional custom size up to 4096²)\n- **Respect Alpha** — keep transparent areas empty\n- **Composite blend** — Over, Multiply, Screen, Overlay, Dodge/Burn, Light modes, Difference, and many custom ops\n- **Blend opacity** and **swap layer order**\n- **Presets** — save / load / delete setups\n- **Live preview** — zoom buttons, Ctrl + mouse wheel, pan when zoomed\n- **Undo / Redo** for both “apply to texture” and “save as new”\n\n## How to use\n\n1. Select a texture (or enable **Noise Only**).\n2. Open **Tools → Noise & Composite**.\n3. On **Noise Setup**, tweak seed and noise parameters. Use **Random Values** for a quick start.\n4. On **Composite Blend**, choose a blend operation and opacity (or leave **None** for noise only).\n5. Press **Confirm** to apply to the selected texture, or **Save as New Texture** to create a separate variant.\n6. In the preview: **+ / −** to zoom, **Ctrl + scroll** to zoom, drag to pan when zoomed in.\n\n## Tips\n\n- **Noise Only + custom size** is useful for generating standalone noise maps.\n- **Respect Alpha** is handy when you only want noise on painted areas of a skin or texture.\n- Order-dependent modes change when you enable **Swap Operation Order**.\n- Large textures show a confirmation before full-resolution apply; the live preview stays light for smooth sliders.",
+		"version": "1.0.0",
+		"variant": "both",
+		"tags": ["Texture", "Paint", "Tool"],
+		"min_version": "4.8.0"
 	}
 }
