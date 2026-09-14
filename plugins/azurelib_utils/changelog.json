@@ -235,5 +235,18 @@
 				]
 			}
 		]
+	},
+	"2.1.5": {
+		"title": "2.1.5",
+		"date": "2026-09-02",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed exporting animations via Blockbench's built-in Export menu action could reorder fractional keyframe times (e.g. 0, 1, 2, 0.125, 0.25, etc) because that dialog serializes with Blockbench's own autoStringify() instead of AzureLib's ordered serializer. Save All Animations was unaffected. AzureLib now overrides the Export action while its format is active so both paths serialize identically."
+				]
+			}
+		]
 	}
 }

@@ -105,12 +105,12 @@
     "updated": 1788088933313
   },
   "preview_scene_customiser": {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "created": 1665705600000,
     "updated": 1760227200000
   },
   "splash_art_customiser": {
-    "version": "1.1.4",
+    "version": "1.1.5",
     "created": 1667865600000,
     "updated": 1667865600000
   },
@@ -420,7 +420,7 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "2.1.4",
+    "version": "2.1.5",
     "created": 1680566400000,
     "updated": 1776713189096
   },
@@ -445,7 +445,7 @@
     "updated": 1709424000000
   },
   "emf_animation_addon": {
-    "version": "1.0.4",
+    "version": "1.0.5",
     "created": 1717545600000,
     "updated": 1724544000000
   },
@@ -515,7 +515,7 @@
     "updated": 1756684800000
   },
   "gltf_importer": {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "created": 1758758400000,
     "updated": 1780260186003
   },
@@ -668,5 +668,15 @@
     "version": "1.0.0",
     "created": 1788085288166,
     "updated": 1788085288166
+  },
+  "easy_model_entities": {
+    "version": "1.0.0",
+    "created": 1788897588727,
+    "updated": 1788897588727
+  },
+  "pal_bend_player_tools": {
+    "version": "0.4.0",
+    "created": 1788902273137,
+    "updated": 1788902273137
   }
 }
