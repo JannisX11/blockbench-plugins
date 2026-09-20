@@ -1,4 +1,16 @@
 {
+	"hytale_uv_preserving_scale": {
+		"title": "Hytale UV-Preserving Scale",
+		"author": "CODEFELICE",
+		"description": "Uniformly scales Hytale models without changing their UV size or texture layout.",
+		"icon": "photo_size_select_large",
+		"variant": "both",
+		"tags": ["Hytale", "Scale", "UV"],
+		"version": "1.0.0",
+		"min_version": "5.0.5",
+		"repository": "https://github.com/CODEFELICE/hytale-uv-preserving-scale",
+		"bug_tracker": "https://github.com/CODEFELICE/hytale-uv-preserving-scale/issues"
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
