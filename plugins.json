@@ -1627,7 +1627,7 @@
 	},
 	"vintagestory": {
 		"title": "Vintage Story Format Support",
-		"icon": "fa-cookie-bite",
+		"icon": "icon.png",
 		"author": "Anego Studios",
 		"contributors": [
 			"codename-B",

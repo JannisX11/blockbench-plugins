@@ -7787,7 +7787,7 @@
   });
 
   // package.json
-  var name = "vintagstory";
+  var name = "vintagestory";
   var package_default = {
     type: "module",
     name,
@@ -10245,7 +10245,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   var path6 = requireNativeModule("path");
   var export_action = createAction(`${name}:export_vs`, {
     name: "Export into VS Format",
-    icon: "fa-cookie-bite",
+    icon: "icon.png",
     condition() {
       return is_vs_project(Project);
     },
@@ -10279,7 +10279,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   MenuBar.addAction(export_action, "file.export");
   var import_action = createAction(`${name}:import_vs`, {
     name: "Import from VS Format",
-    icon: "fa-cookie-bite",
+    icon: "icon.png",
     condition() {
       return is_vs_project(Project);
     },
@@ -10295,7 +10295,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   MenuBar.addAction(import_action, "file.import");
   var import_backdrop_action = createAction(`${name}:import_backdrop_action`, {
     name: "Import Backdrop from VS Format",
-    icon: "fa-cookie-bite",
+    icon: "icon.png",
     condition() {
       return is_vs_project(Project);
     },
@@ -10893,7 +10893,7 @@ This can be undone with Ctrl+Z.`)) {
     const format = new ModelFormat("formatVS", {
       name: "Vintage Story Base Format",
       codec: codecVS,
-      icon: "fa-cookie-bite",
+      icon: "icon.png",
       box_uv: false,
       optional_box_uv: false,
       single_texture: false,
@@ -14448,7 +14448,7 @@ This action cannot be undone.`)) {
   var path7 = requireNativeModule("path");
   BBPlugin.register(package_default.name, {
     title: package_default.title,
-    icon: "fa-cookie-bite",
+    icon: "icon.png",
     author: package_default.author.name,
     contributors: package_default.contributors.map((x) => x.name),
     description: package_default.description,
