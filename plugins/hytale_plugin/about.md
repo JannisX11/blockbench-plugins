@@ -38,4 +38,5 @@ Select a Hytale format from the start screen and click Create New Model to get s
 
 ### Notes about nodes and shapes
 Hytale's Blockymodel format works slightly different from how Blockbench usually works. In Edit mode this difference is not noticable and hidden by the importer and exporter. However, in animations, some features may behave differently due to this.
+
 Hytale uses "Nodes", which are a combination of a group (for the transformation and hierarchy) and a cube (for the visual part). Position and Rotation animations target the group, so all child groups and cubes inherit it. However, Scale, Visibility and UV Offset only target the Shape itself, so it only applies to the cube. In practice, in your Blockbench project, this cube is the first cube that is a direct child of the group and does not have its own rotation. This cube gets exported as the shape of a node and is targeted by its animations and not counted as an extra node towards the node count limit. If there are more cubes or they have their own rotation, they will get exported as separate nodes.
