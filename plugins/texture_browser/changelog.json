@@ -1,0 +1,15 @@
+{
+    "1.0.0": {
+        "release_date": "2025-01-19",
+        "changes": [
+            "Initial release of the Texture Browser plugin.",
+            "Browse textures from any local folder in a responsive thumbnail grid.",
+            "Smart filter: glob patterns (*.png, brick_*) and plain substring matching.",
+            "One-click texture assignment to all selected faces across all selected meshes.",
+            "Native toolbar with path input, filter input, Browse/Refresh actions, and Only Used toggle.",
+            "Configurable scan depth (1–10), thumbnail size (10%–200%), and orphan texture cleanup.",
+            "Full undo/redo support including restoration of cleaned-up orphan textures.",
+            "Uses Blockbench 5.0 native APIs (requireNativeModule, Toolbar, Panel)."
+        ]
+    }
+}
