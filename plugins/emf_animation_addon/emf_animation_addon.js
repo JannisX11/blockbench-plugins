@@ -6,8 +6,10 @@
         author: "Traben & Ewan Howell",
         description: "Adds extra animation support to CEM Template Loader so that it is compatible with the Entity Model Features mod.",
         tags: ["Minecraft: Java Edition", "Entity Models", "Animation"],
-        version: "1.0.4",
+        version: "1.0.5",
         min_version: "4.9.0",
+        creation_date: "2024-06-05",
+        has_changelog: true,
         variant: "both",
         dependencies: ["cem_template_loader"],
         onload() {
@@ -112,6 +114,28 @@
                     return false
                 }
             }
+
+            //TODO not yet supported in cem template loader
+            //
+            // // EMF 3.3+ additional render variables
+            // renderVars = [
+            //     "fire_x", "fire_y", "fire_z", "fire_scale", "fire_height",
+            //
+            //     "leash_holder_offset_x", "leash_holder_offset_y", "leash_holder_offset_z",
+            //
+            //     "leash_offset_x_1", "leash_offset_y_1", "leash_offset_z_1",
+            //     "leash_holder_offset_x_1", "leash_holder_offset_y_1", "leash_holder_offset_z_1",
+            //
+            //     "leash_offset_x_2", "leash_offset_y_2", "leash_offset_z_2",
+            //     "leash_holder_offset_x_2", "leash_holder_offset_y_2", "leash_holder_offset_z_2",
+            //
+            //     "leash_offset_x_3", "leash_offset_y_3", "leash_offset_z_3",
+            //     "leash_holder_offset_x_3", "leash_holder_offset_y_3", "leash_holder_offset_z_3",
+            //
+            //     "leash_offset_x_4", "leash_offset_y_4", "leash_offset_z_4",
+            //     "leash_holder_offset_x_4", "leash_holder_offset_y_4", "leash_holder_offset_z_4",
+            // ]
+
             ranges = {
                 // zeroToHundred: [0, 50, 100],
                 // start30Jump15: [0, 30, 90, 15]
@@ -123,8 +147,15 @@
                 fluid_depth_down: [0, 0, 64],
                 distance: [0, 0, 128, 0.25],
             }
-            booleans = ["is_climbing", "is_crawling", "is_swimming", "is_gliding", "is_blocking","is_first_person_hand","is_swinging_right_arm", "is_swinging_left_arm", "is_using_item", "is_holding_item_right", "is_holding_item_left", "is_paused", "is_hovered"]
-            enabledBooleans = ["is_right_handed"]
+            booleans = [
+                "is_climbing", "is_crawling", "is_swimming", "is_gliding", "is_blocking", "is_first_person_hand",
+                "is_swinging_right_arm", "is_swinging_left_arm", "is_using_item", "is_holding_item_right",
+                "is_holding_item_left", "is_paused", "is_hovered", "is_jumping",
+
+                // EMF 3.3+
+                "is_player_first_person", "is_player_third_person", "is_player_third_person_reversed"
+            ]
+            enabledBooleans = ["is_right_handed", "is_player_first_person"]
 
 
             functionHints = {
