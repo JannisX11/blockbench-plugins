@@ -698,5 +698,10 @@
     "version": "0.1.2",
     "created": 1790430503050,
     "updated": 1790430503050
+  },
+  "hitbox_guard": {
+    "version": "1.0.0",
+    "created": 1790430783678,
+    "updated": 1790430783678
   }
 }
