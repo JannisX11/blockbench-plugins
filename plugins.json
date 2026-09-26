@@ -745,14 +745,6 @@
 		"min_version": "5.0.0",
 		"variant": "desktop"
 	},
-	"vintagestory_models": {
-		"title": "Vintage Story Models",
-		"author": "Malik12tree",
-		"icon": "park",
-		"description": "Allows to export VintageStory models.",
-		"version": "1.0.0",
-		"variant": "both"
-	},
 	"endimations_exporter": {
 		"title": "Endimator Animations Exporter",
 		"author": "SmellyModder",
@@ -1657,5 +1649,22 @@
 		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
+	},
+	"vintagestory": {
+		"title": "Vintage Story Format Support",
+		"icon": "icon.png",
+		"author": "Anego Studios",
+		"contributors": [
+			"codename-B",
+			"Darkluke1111"
+		],
+		"description": "A Blockbench plugin that adds support for Vintage Story models",
+		"version": "0.12.1",
+		"variant": "desktop",
+		"min_version": "5.0.0",
+		"repository": "https://github.com/anegostudios/blockbenchplugin",
+		"tags": [
+			"Vintage Story"
+		]
 	}
 }
