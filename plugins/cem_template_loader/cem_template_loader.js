@@ -41,7 +41,7 @@
       author: "Ewan Howell",
       description: description + " Also includes an animation editor, so that you can create custom entity animations.",
       tags: ["Minecraft: Java Edition", "OptiFine", "Templates"],
-      version: "9.1.1",
+      version: "9.2.0",
       min_version: "5.0.0",
       variant: "both",
       creation_date: "2020-02-02",
@@ -63,10 +63,10 @@
   }
 
   async function fetchData(path, fallback) {
-    // if (path === "json/cem_template_models.json") {
-    //   const fs = require("fs")
-    //   return JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynem/src/assets/json/cem_template_models.json"))
-    // }
+    if (isApp && path === "json/cem_template_models.json" && Plugins.installed.some(e => e.id === id && e.path === "E:\\Programming\\Javascript\\Blockbench\\cem_template_loader\\cem_template_loader.js")) {
+      const fs = require("fs")
+      return JSON.parse(fs.readFileSync("E:/Programming/GitHub/wynem/src/assets/json/cem_template_models.json", "utf8"))
+    }
     const currentRoot = connection.rootIndex
     try {
       const r = await fetch(`${root}/${path}`)
@@ -107,7 +107,6 @@
     loading: true,
     categories: {},
     category: null,
-    loadTexture: true,
     entity: null,
     subentity: null,
     search: "",
@@ -195,6 +194,211 @@
           margin-bottom: auto !important;
         }
       }
+      #cem_template_loader > .dialog_wrapper {
+        grid-template-rows: auto 0px;
+        grid-template-columns: 160px auto;
+        overflow: hidden;
+        height: 512px;
+        display: grid;
+
+        &:not(.has_sidebar) {
+          grid-template-columns: auto;
+        }
+      }
+      #cem_template_loader .dialog_sidebar_pages {
+        margin-bottom: 66px;
+        overflow-y: auto;
+      }
+      #cem_template_loader .dialog_sidebar_pages::-webkit-scrollbar-track, .cem-models::-webkit-scrollbar-track {
+        background-color: var(--color-back);
+      }
+      #cem_template_loader .dialog_content {
+        margin: 0;
+        max-height: initial;
+      }
+      #cem_template_loader h1 {
+        margin: 0;
+      }
+      #cem_template_loader .hidden {
+        display: none !important;
+      }
+      #cem-report-issues {
+        position: absolute;
+        width: 160px;
+        left: 0;
+        bottom: 0;
+        padding: 12px 0;
+        border-top: 2px solid var(--color-border);
+        z-index: 1;
+        display: none;
+      }
+      #cem-report-issues * {
+        cursor: pointer
+      }
+      .has_sidebar #cem-report-issues {
+        display: initial;
+      }
+      #cem-report-issues > a {
+        display: flex;
+        text-decoration: none;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      #cem-report-issues > a > div {
+        text-decoration: underline;
+      }
+      #cem-footer {
+        display: flex;
+        padding: 8px 8px 8px 16px;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      #cem-buttons {
+        display: flex;
+        margin-left: auto;
+        gap: 4px;
+      }
+      #cem-buttons > :disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: var(--color-button);
+        color: var(--color-text) !important;
+      }
+      #cem-buttons > :first-child:not(:disabled) {
+        background-color: var(--color-accent);
+      }
+      #cem-header {
+        padding: 0 8px 8px 16px;
+      }
+      #cem-details {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      #cem-search {
+        position: relative;
+        min-width: min(100%, 256px);
+        display: flex;
+        justify-content: end;
+        margin-left: auto;
+        height: 30px;
+
+        > input {
+          width: min(100%, 256px);
+          padding-right: 32px;
+        }
+
+        > i {
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+
+          &.active {
+            cursor: pointer;
+            pointer-events: initial;
+          }
+        }
+      }
+      #cem-description {
+        min-width: min(100%, 256px);
+        flex: 1 1 0px;
+      }
+      .cem-models {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        overflow-y: auto;
+        padding: 0 8px 0 16px;
+        margin-right: 8px;
+        scrollbar-width: initial;
+        scrollbar-color: initial;
+      }
+      .cem-model {
+        min-width: 128px;
+        border: 2px solid transparent;
+        flex: 1;
+        background-color: var(--color-back);
+        cursor: pointer;
+        padding: 2px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+
+        &.cem-variant {
+          background-color: color-mix(in srgb, var(--color-back), black 15%);
+        }
+
+        &:hover {
+          background-color: var(--color-button);
+        }
+
+        &.selected {
+          border: 2px solid var(--color-accent);
+          background-color: var(--color-selected);
+        }
+
+        &.child-selected {
+          border: 2px solid transparent;
+        }
+
+        > img {
+          height: 66px;
+          width: 100%;
+          object-fit: contain;
+          pointer-events: none;
+        }
+
+        > div {
+          text-align: center;
+          flex: 1;
+          display: flex;
+          align-items: center;
+          max-height: 24px;
+          min-height: 24px;
+          line-height: 16px;
+          margin: -2px 0 2px;
+          pointer-events: none;
+        }
+
+        > i {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+        }
+      }
+
+      .cem-spacer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+      }
+
+      .cem-model-heading {
+        min-width: 100%;
+        font-size: 24px;
+      }
+
+      .cem-other-matches {
+        flex: 1;
+        align-self: center;
+        text-align: left;
+        font-size: 12px;
+        color: var(--color-subtle_text);
+      }
+
+      .cem-other-matches a {
+        color: var(--color-accent);
+        cursor: pointer;
+      }
+
+      .cem-other-matches a:hover {
+        text-decoration: underline;
+      }
     `)
     loader = new ModelLoader(id, {
       name,
@@ -262,212 +466,12 @@
           loaderDialog.content_vue.$refs.entry.focus()
         }
       },
-      lines: [`<style>
-        #cem_template_loader > .dialog_wrapper {
-          grid-template-rows: auto 0px;
-          grid-template-columns: 160px auto;
-          overflow: hidden;
-          height: 512px;
-          display: grid;
-
-          &:not(.has_sidebar) {
-            grid-template-columns: auto;
-          }
-        }
-        #cem_template_loader .dialog_sidebar_pages {
-          margin-bottom: 66px;
-          overflow-y: auto;
-        }
-        #cem_template_loader .dialog_sidebar_pages::-webkit-scrollbar-track, .cem-models::-webkit-scrollbar-track {
-          background-color: var(--color-back);
-        }
-        #cem_template_loader .dialog_content {
-          margin: 0;
-          max-height: initial;
-        }
-        #cem_template_loader h1 {
-          margin: 0;
-        }
-        #cem_template_loader .hidden {
-          display: none !important;
-        }
-        #cem-report-issues {
-          position: absolute;
-          width: 160px;
-          left: 0;
-          bottom: 0;
-          padding: 12px 0;
-          border-top: 2px solid var(--color-border);
-          z-index: 1;
-          display: none;
-        }
-        #cem-report-issues * {
-          cursor: pointer
-        }
-        .has_sidebar #cem-report-issues {
-          display: initial;
-        }
-        #cem-report-issues > a {
-          display: flex;
-          text-decoration: none;
-          justify-content: center;
-          align-items: center;
-          gap: 10px;
-        }
-        #cem-report-issues > a > div {
-          text-decoration: underline;
-        }
-        #cem-footer {
-          display: flex;
-          padding: 8px;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-        #load-texture {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          cursor: pointer;
-        }
-        #load-texture * {
-          cursor: pointer;
-        }
-        #cem-buttons {
-          display: flex;
-          flex: 1;
-          justify-content: end;
-          gap: 4px;
-        }
-        #cem-buttons > :disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background: var(--color-button);
-          color: var(--color-text) !important;
-        }
-        #cem-buttons > :first-child:not(:disabled) {
-          background-color: var(--color-accent);
-        }
-        #cem-header {
-          padding: 0 8px 8px 16px;
-        }
-        #cem-details {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        #cem-search {
-          position: relative;
-          min-width: min(100%, 256px);
-          display: flex;
-          justify-content: end;
-          margin-left: auto;
-          height: 30px;
-
-          > input {
-            width: min(100%, 256px);
-            padding-right: 32px;
-          }
-
-          > i {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-
-            &.active {
-              cursor: pointer;
-              pointer-events: initial;
-            }
-          }
-        }
-        #cem-description {
-          min-width: min(100%, 256px);
-          flex: 1 1 0px;
-        }
-        .cem-models {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          overflow-y: auto;
-          padding: 0 8px 0 16px;
-          margin-right: 8px;
-          scrollbar-width: initial;
-          scrollbar-color: initial;
-        }
-        .cem-model {
-          min-width: 128px;
-          border: 2px solid transparent;
-          flex: 1;
-          background-color: var(--color-back);
-          cursor: pointer;
-          padding: 2px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          position: relative;
-
-          &.cem-variant {
-            background-color: color-mix(in srgb, var(--color-back), black 15%);
-          }
-
-          &:hover {
-            background-color: var(--color-button);
-          }
-
-          &.selected {
-            border: 2px solid var(--color-accent);
-            background-color: var(--color-selected);
-          }
-
-          &.child-selected {
-            border: 2px solid transparent;
-          }
-
-          > img {
-            height: 66px;
-            width: 100%;
-            object-fit: contain;
-            pointer-events: none;
-          }
-
-          > div {
-            text-align: center;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            max-height: 24px;
-            min-height: 24px;
-            line-height: 16px;
-            margin: -2px 0 2px;
-            pointer-events: none;
-          }
-
-          > i {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-          }
-        }
-
-        .cem-spacer {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex: 1;
-        }
-
-        .cem-model-heading {
-          min-width: 100%;
-          font-size: 24px;
-        }
-      </style>`],
       component: {
         data: loaderData,
         methods: {
           async load() {
             this.loading = true
-            await loadModel(this.subentity ?? this.entity, this.loadTexture)
+            await loadModel(this.subentity ?? this.entity)
             loaderDialog.close()
           },
           reload() {
@@ -494,13 +498,87 @@
               this.subentity = null
             }
           },
-          areAllNextItemsHidden(entities, heading) {
-            const index = entities.indexOf(heading)
-            for (let i = index + 1; i < entities.length; i++) {
-              if (entities[i].type === "heading") break
-              if (entities[i].id.includes(this.search)) return false
+          searchMatches(text) {
+            if (!text) return false
+            return this.search.split(/[\s_]+/).filter(Boolean).every(t => text.includes(t))
+          },
+          switchCategory(name) {
+            this.category = name
+            loaderDialog.sidebar.page = name
+            loaderDialog.sidebar.build()
+            this.$refs.entry.focus()
+          },
+          matches(item) {
+            return this.searchMatches(entitySearchText(item))
+          },
+          displayName(item) {
+            return item.name ?? (item.file ?? item.id).replace(/_/g, " ")
+          },
+          itemRank(item) {
+            const tokens = this.search.split(/[\s_]+/).filter(Boolean)
+            if (!tokens.length) return [0, 0]
+            const nameWords = this.displayName(item).toLowerCase().split(/\s+/)
+            const idWords = item.id.toLowerCase().split(/[\s_]+/)
+            let worstTier = 0
+            let positionSum = 0
+            for (const token of tokens) {
+              let best = null
+              const consider = (tier, position) => {
+                if (!best || tier < best[0] || (tier === best[0] && position < best[1])) best = [tier, position]
+              }
+              nameWords.forEach((word, i) => {
+                if (word.startsWith(token)) consider(0, i)
+                else if (word.includes(token)) consider(1, i)
+              })
+              idWords.forEach((word, i) => {
+                if (word.startsWith(token)) consider(2, i)
+                else if (word.includes(token)) consider(3, i)
+              })
+              if (!best) return null
+              worstTier = Math.max(worstTier, best[0])
+              positionSum += best[1]
             }
-            return true
+            return [worstTier, positionSum]
+          },
+          entityRank(model) {
+            const ranks = [this.itemRank(model), ...(model.variants ?? []).map(v => this.itemRank(v))].filter(Boolean)
+            if (!ranks.length) return null
+            ranks.sort((a, b) => a[0] - b[0] || a[1] - b[1])
+            return ranks[0]
+          },
+          categoryBlocks(c) {
+            const blocks = []
+            let current = { heading: null, items: [] }
+            blocks.push(current)
+            for (const item of c.entities) {
+              if (item.type === "heading") {
+                current = { heading: item, items: [] }
+                blocks.push(current)
+              } else {
+                current.items.push(item)
+              }
+            }
+            if (this.search) {
+              for (const block of blocks) {
+                block.items = block.items.map(m => [m, this.entityRank(m)]).sort((a, b) => {
+                  if (!a[1] || !b[1]) return (a[1] ? 0 : 1) - (b[1] ? 0 : 1)
+                  return a[1][0] - b[1][0] || a[1][1] - b[1][1] || this.displayName(a[0]).localeCompare(this.displayName(b[0]))
+                }).map(e => e[0])
+              }
+            }
+            return blocks.filter(b => b.heading || b.items.length)
+          },
+          blockHidden(block) {
+            return !block.items.some(m => this.matches(m) || (m.variants ?? []).some(v => this.matches(v)))
+          }
+        },
+        computed: {
+          otherCategoryMatches() {
+            if (!this.search) return []
+            return Object.keys(this.categories).map(name => {
+              const count = name === this.category ? 0 : this.entities.filter(e => e[0] === name && this.searchMatches(e[1])).length
+              return { name, count }
+            }).filter(c => c.count).sort((a, b) => b.count - a.count)
           }
         },
         template: `
@@ -526,16 +604,16 @@
               </div>
             </div>
             <div v-if="connection" v-for="[name, c] of Object.entries(categories)" class="cem-models" :class="{ hidden: category !== name }">
-              <template v-for="model of c.entities">
-                <div v-if="model.type === 'heading'" class="cem-model-heading" :class="{ hidden: areAllNextItemsHidden(c.entities, model) }">{{ model.text }}</div>
-                <template v-else>
-                  <div class="cem-model" :class="{ selected: entity === model.id && (!subentity || !search), 'child-selected': entity === model.id && subentity, hidden: !model.id.includes(search) }" @click="selectEntity(model)">
+              <template v-for="block of categoryBlocks(c)">
+                <div v-if="block.heading" class="cem-model-heading" :class="{ hidden: blockHidden(block) }">{{ block.heading.text }}</div>
+                <template v-for="model of block.items">
+                  <div class="cem-model" :class="{ selected: entity === model.id && (!subentity || !search), 'child-selected': entity === model.id && subentity, hidden: !matches(model) }" @click="selectEntity(model)">
                     <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + model.id + '.webp'" loading="lazy">
                     <i v-if="model.variants && entity !== model.id && !search" class="material-icons">add</i>
                     <i v-if="model.variants && entity === model.id && !search" class="material-icons">remove</i>
                     <div :style="{ textTransform: model.name ? null : 'capitalize' }">{{ model.name ?? (model.file ?? model.id).replace(/_/g, " ") }}</div>
                   </div>
-                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.id, hidden: search ? !submodel.id.includes(search) : entity !== model.id }" @click="selectSubentity(model, submodel)">
+                  <div v-if="model.variants" v-for="submodel of model.variants" class="cem-model" :class="{ 'cem-variant': !search, selected: subentity === submodel.id, hidden: search ? !matches(submodel) : entity !== model.id }" @click="selectSubentity(model, submodel)">
                     <img :src="connection.roots[connection.rootIndex] + '/images/minecraft/renders/' + submodel.id + '.webp'" loading="lazy">
                     <div :style="{ textTransform: submodel.name ? null : 'capitalize' }">{{ submodel.name ?? (submodel.file ?? submodel.id).replace(/_/g, " ") }}</div>
                   </div>
@@ -543,13 +621,12 @@
               </template>
             </div>
             <div class="cem-spacer">
-              <h3 v-if="!entities.filter(e => e[0] === category && e[1]?.includes(search)).length">No results</h3>
+              <h3 v-if="!entities.filter(e => e[0] === category && searchMatches(e[1])).length">No results</h3>
             </div>
             <div id="cem-footer">
-              <label id="load-texture">
-                <input type="checkbox" :checked="loadTexture" v-model="loadTexture">
-                <div>Load vanilla texture</div>
-              </label>
+              <div v-if="otherCategoryMatches.length" class="cem-other-matches">
+                {{ otherCategoryMatches[0].count }} {{ otherCategoryMatches[0].count === 1 ? "result" : "results" }} also found in<template v-for="(c, i) of otherCategoryMatches">{{ i === 0 ? " " : (i === otherCategoryMatches.length - 1 ? " and " : ", ") }}<template v-if="i">{{ c.count }} in </template><a @click="switchCategory(c.name)">{{ c.name }}</a></template>
+              </div>
               <div id="cem-buttons">
                 <button :disabled="!entity" @click="load">Load</button>
                 <button @click="close">Cancel</button>
@@ -573,7 +650,7 @@
         }
         const categories = modelData.categories.filter(e => !e.type).map(e => [e.name, e])
         loaderData.categories = Object.fromEntries(categories)
-        loaderData.entities = categories.flatMap(c => c[1].entities.map(e => [c[0], e.id]))
+        loaderData.entities = categories.flatMap(c => c[1].entities.flatMap(e => [[c[0], entitySearchText(e)], ...(e.variants ?? []).map(v => [c[0], entitySearchText(v)])]))
         loaderData.loading = false
         loaderData.built = true
       },
@@ -590,8 +667,8 @@
       description,
       children: [
         new Action("cem_template_loader_placeholder", {
-          name: `All Entities`,
-          description: "All entities",
+          name: `All`,
+          description: "All",
           icon: "icon-player",
           click: () => openLoader()
         })
@@ -613,7 +690,7 @@
       if (params.get("plugins")?.split(",").includes(id) && params.get("model") !== "") {
         if (!await MinecraftEULA.promptUser(id)) return
         await loadCEMTemplateModels()
-        loadModel(params.get("model"), params.has("texture"))
+        loadModel(params.get("model"))
       }
     }
   }
@@ -696,7 +773,7 @@
       }
       BarItems.cem_template_loader.children.push(new Action(`cem_template_loader_${e.name.replace(/ /g, "_")}`, {
         plugin: id,
-        name: `${e.name} Entities`,
+        name: e.name,
         description: e.description,
         icon: e.icon,
         click: () => openLoader(e.name)
@@ -729,7 +806,12 @@
     reader.readAsDataURL(blob)
   })
 
-  async function loadModel(entity, loadTexture) {
+  function entitySearchText(item) {
+    if (!item.id) return null
+    return (item.id + " " + (item.name ?? item.file ?? item.id)).replace(/_/g, " ").toLowerCase()
+  }
+
+  async function loadModel(entity) {
     const data = modelData.entities.find(e => e.id === entity)
     if (!data) return Blockbench.showQuickMessage("Unknown CEM template model", 2000)
     const model = modelData.models[data.model ?? data.id]
@@ -738,7 +820,7 @@
     Blockbench.setStatusBarText(data.id)
     Formats.optifine_entity.codec.parse(JSON.parse(model.model), "")
     let textureLoaded
-    if (loadTexture && !data.textureless) {
+    if (!data.textureless) {
       try {
         const textures = Array.isArray(data.vanilla_textures) ? data.vanilla_textures : [data.vanilla_textures ?? data.id]
         for (const [i, name] of textures.entries()) {
@@ -756,30 +838,18 @@
       }
     }
     if (!textureLoaded && !data.textureless) {
-      const textureData = Array.isArray(model.texture_data) ? model.texture_data : [model.texture_data]
-      const textureNames = Array.isArray(data.texture) ? data.texture : [data.texture ?? data.id]
-      const length = Math.max(textureData.length, textureNames.length)
       for (const cube of Cube.all) {
         cube.markAsSelected()
       }
-      for (let i = 0; i < length; i++) {
-        if (textureData[i]) {
-          new Texture({ name: textureNames[i] ?? data.id }).fromDataURL("data:image/png;base64," + textureData[i]).add()
-        } else {
-          TextureGenerator.addBitmap({
-            name: textureNames[i] ?? data.id,
-            color: new tinycolor("#00000000"),
-            type: "template",
-            rearrange_uv: false,
-            resolution: "16"
-          })
-        }
-      }
+      TextureGenerator.addBitmap({
+        name: Array.isArray(data.texture) ? data.id : data.texture ?? data.id,
+        color: new tinycolor("#00000000"),
+        type: "template",
+        rearrange_uv: false,
+        resolution: "16"
+      })
       for (const cube of Cube.all) {
         cube.unselect()
-      }
-      if (length.length > 1) {
-        Texture.all.forEach(t => t.use_as_default = false)
       }
     }
     if (data.popup) {
@@ -800,6 +870,22 @@
       #format_page_optifine_entity h3.markdown {
         margin-bottom: -10px;
       }
+      #jem_restrictions_dialog label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        gap: 5px;
+      }
+      #jem_restrictions_dialog label * {
+        cursor: pointer;
+      }
+      #cem-restrictions-buttons {
+        display: flex;
+        justify-content: space-between;
+      }
+      #jem_restrictions_dialog button:not(:hover) {
+        background-color: var(--color-selected);
+      }
     `)
     new Setting("jem_restrictions", {
       value: false,
@@ -817,24 +903,6 @@
       id: "jem_restrictions_dialog",
       title: "Unsupported Edit",
       buttons: [],
-      lines: [`<style>
-        #jem_restrictions_dialog label {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          gap: 5px;
-        }
-        #jem_restrictions_dialog label * {
-          cursor: pointer;
-        }
-        #cem-buttons {
-          display: flex;
-          justify-content: space-between;
-        }
-        #jem_restrictions_dialog button:not(:hover) {
-          background-color: var(--color-selected);
-        }
-      </style>`],
       component: {
         data: {
           message: "",
@@ -877,7 +945,7 @@
             <p><strong>WARNING:</strong> It is highly recommended to leave restrictions enabled. This setting can be changed later in settings.</p>
             <br>
             <div id="jem-restrictions-footer">
-              <div id="cem-buttons">
+              <div id="cem-restrictions-buttons">
                 <label>
                   <input type="checkbox" :checked="dontShowAgain" v-model="dontShowAgain">
                   <div>Don't Show Again</div>
@@ -979,7 +1047,6 @@
   // OPTIFINE ANIMATION EDITOR
 
   let animationStyles, groupObserver, animationEditorPanel, animationControlPanel, context, boolMap, rangeMap, specialMap, stopAnimations, updateSelection, docShown, documentation, editorKeybinds, tabChange, renameGroup
-  const E = s => $(document.createElement(s))
   let frameCount
   const constants = {
     pi: Math.PI,
@@ -1580,6 +1647,86 @@
         top: 12px;
         right: 12px;
       }
+      #cem_animation_documentation {
+        .dialog_wrapper {
+          grid-template-rows: auto 0px;
+          min-height: min(100vh - 120px, 512px);
+          max-height: calc(100vh - 120px);
+        }
+
+        .dialog_content {
+          margin: 0;
+          max-height: initial;
+          overflow-x: hidden;
+          max-height: calc(100vh - 120px);
+        }
+
+        .page {
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+          user-select: text;
+        }
+
+        h1 {
+          margin: 0;
+          line-height: 100%;
+          font-size: 30px;
+          padding-bottom: 8px;
+
+          &:not(:first-child) {
+            padding-top: 24px;
+          }
+        }
+
+        :is(code, pre) {
+          background-color: var(--color-back);
+          padding: 0 4px;
+          border: 1px solid var(--color-border);
+          cursor: text;
+          font-family: var(--font-code);
+        }
+
+        pre {
+          width: 100%;
+          text-wrap: initial;
+          word-break: break-word;
+        }
+
+        .cem-doc-table-list td:first-child {
+          font-weight: 600;
+          white-space: nowrap !important;
+          display: list-item;
+          list-style: inside;
+          font-family: var(--font-code);
+        }
+
+        .cem-doc-tab-link {
+          text-decoration: underline;
+          cursor: pointer;
+          color: var(--color-accent);
+        }
+
+        td:not(:last-child) {
+          padding-right: 16px;
+        }
+
+         img {
+          margin: 8px;
+          box-shadow: 0 3px 10px #0006;
+        }
+
+        p {
+          white-space: pre-wrap;
+        }
+
+        hr {
+          width: 100%;
+          margin-bottom: 0;
+        }
+      }
     `)
     animationControlPanel = new Panel("cem_animation_controller", {
       name: "Animation Controller",
@@ -1607,17 +1754,17 @@
       }
     })
     let timescaleTimeout
-    const timescaleSlider = $("#cem_animation_timescale_slider")
-    const timescaleText = $("#cem_animation_timescale_text")
-    timescaleSlider.on("input", () => {
-      timescaleText.val(timescaleSlider.val())
-      timescale = parseFloat(timescaleSlider.val())
+    const timescaleSlider = document.getElementById("cem_animation_timescale_slider")
+    const timescaleText = document.getElementById("cem_animation_timescale_text")
+    timescaleSlider.addEventListener("input", () => {
+      timescaleText.value = timescaleSlider.value
+      timescale = parseFloat(timescaleSlider.value)
     })
-    timescaleText.on("input", () => {
-      timescaleSlider.val(timescaleText.val())
-      const clamped = Math.min(4, Math.max(0, parseFloat(timescaleText.val())))
+    timescaleText.addEventListener("input", () => {
+      timescaleSlider.value = timescaleText.value
+      const clamped = Math.min(4, Math.max(0, parseFloat(timescaleText.value)))
       clearTimeout(timescaleTimeout)
-      timescaleTimeout = setTimeout(() => timescaleText.val(isNaN(clamped) ? 1 : clamped), 1000)
+      timescaleTimeout = setTimeout(() => timescaleText.value = isNaN(clamped) ? 1 : clamped, 1000)
       timescale = clamped
     })
     animationEditorPanel = new Panel("cem_animation", {
@@ -1650,11 +1797,11 @@
             if (parsed) group.cem_animations = parsed
           },
           format() {
-            if (formatButton.hasClass("cem_animation_button_disabled")) return
+            if (formatButton.classList.contains("cem_animation_button_disabled")) return
             this.text = JSON.stringify(JSON.parse(this.text), null, 2)
           },
           play() {
-            if (playButton.hasClass("cem_animation_button_disabled")) return
+            if (playButton.classList.contains("cem_animation_button_disabled")) return
             currentGroups = Group.all.filter(e => e.parent === "root")
             setupAnimations(currentGroups)
           },
@@ -1664,11 +1811,13 @@
               paused = false
               prevTime = Date.now()
               Blockbench.on("render_frame", playAnimations)
-              pauseButton.text("pause").attr("title", "Pause the animations")
+              pauseButton.textContent = "pause"
+              pauseButton.setAttribute("title", "Pause the animations")
             } else {
               paused = true
               Blockbench.removeListener("render_frame", playAnimations)
-              pauseButton.text("play_arrow").attr("title", "Resume the animations")
+              pauseButton.textContent = "play_arrow"
+              pauseButton.setAttribute("title", "Resume the animations")
             }
           },
           showDoc: () => showDocumentation(),
@@ -1748,25 +1897,24 @@
       if (blacklist) blacklist.forEach(black => result.remove(black))
       return result.map(text => ({text, label: labels && labels[text], overlap: match.length}))
     }
-    const partName = $("#cem_animation_part_name")
-    const statusSuccess = $("#cem_animation_status_success")
-    const statusError = $("#cem_animation_status_error")
-    const statusWarning = $("#cem_animation_status_warning")
-    const errorMessage = $("#cem_animation_error_message")
-    const playButton = $("#cem_animation_play_button")
-    const stopButton = $("#cem_animation_stop_button")
-    const pauseButton = $("#cem_animation_pause_button")
-    const formatButton = $("#cem_animation_format_button")
-    const editor = $("#cem_animation_editor code")
-    const controller = $("#cem_animation_controller_variables")
-    const editorWrapper = $("#cem_animation_editor")
+    const partName = document.getElementById("cem_animation_part_name")
+    const statusSuccess = document.getElementById("cem_animation_status_success")
+    const statusError = document.getElementById("cem_animation_status_error")
+    const statusWarning = document.getElementById("cem_animation_status_warning")
+    const errorMessage = document.getElementById("cem_animation_error_message")
+    const playButton = document.getElementById("cem_animation_play_button")
+    const stopButton = document.getElementById("cem_animation_stop_button")
+    const pauseButton = document.getElementById("cem_animation_pause_button")
+    const formatButton = document.getElementById("cem_animation_format_button")
+    const controller = document.getElementById("cem_animation_controller_variables")
+    const editorWrapper = document.getElementById("cem_animation_editor")
     let time = 0
     let prevTime
     const invertions = new Set(["tx", "rx", "ry"])
     function setupAnimations(groups, keepTime) {
       playing = true
-      playButton.css("display", "none")
-      stopButton.css("display", "flex")
+      playButton.style.display = "none"
+      stopButton.style.display = "flex"
       if (!keepTime) time = 0
       constants.id = Math.random()
       constants[Symbol.for("var")] = new Proxy({}, {
@@ -1857,37 +2005,51 @@
           })
         }
       }
-      controller.empty()
+      controller.replaceChildren()
       bools = new Map(boolMap)
       if (bools.size) {
         const boolsSorted = [...bools.entries()]
         boolsSorted.sort(((a, b) => b[0] - a[0]))
-        const boolContainer = E("div").attr("id", "cem_animation_bools").appendTo(controller)
+        const boolContainer = document.createElement("div")
+        boolContainer.id = "cem_animation_bools"
+        controller.append(boolContainer)
         for (const bool of boolsSorted) {
-          boolContainer.append(E("div").addClass("cem_animation_bool").append(
-            E("input").attr({
-              id: `cem_animation_${bool[0]}_bool`,
-              type: "checkbox",
-              name: bool[0],
-              checked: bool[1]
-            }).on("change", evt => bools.set(bool[0], evt.target.checked)),
-            E("label").attr("for", bool[0]).text(bool[0]),
-          ))
+          const checkbox = document.createElement("input")
+          checkbox.id = `cem_animation_${bool[0]}_bool`
+          checkbox.type = "checkbox"
+          checkbox.name = bool[0]
+          checkbox.checked = bool[1]
+          checkbox.addEventListener("change", evt => bools.set(bool[0], evt.target.checked))
+          const label = document.createElement("label")
+          label.setAttribute("for", bool[0])
+          label.textContent = bool[0]
+          const wrapper = document.createElement("div")
+          wrapper.classList.add("cem_animation_bool")
+          wrapper.append(checkbox, label)
+          boolContainer.append(wrapper)
         }
       }
       specials = new Map(specialMap)
       if (specials.has("limb_swing")) {
-        let container = $("#cem_animation_bools")
-        if (!container.length) container = E("div").attr("id", "cem_animation_bools").appendTo(controller)
+        let container = document.getElementById("cem_animation_bools")
+        if (!container) {
+          container = document.createElement("div")
+          container.id = "cem_animation_bools"
+          controller.append(container)
+        }
         specials.get("limb_swing")[0] = 0
-        container.prepend(E("div").addClass("cem_animation_bool").append(
-          E("input").attr({
-            type: "checkbox",
-            name: "limb_swing",
-            checked: specials.get("limb_swing")[1]
-          }).on("change", evt => specials.get("limb_swing")[1] = evt.target.checked),
-          E("label").attr("for", "limb_swing").text("limb_swing")
-        ))
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.name = "limb_swing"
+        checkbox.checked = specials.get("limb_swing")[1]
+        checkbox.addEventListener("change", evt => specials.get("limb_swing")[1] = evt.target.checked)
+        const label = document.createElement("label")
+        label.setAttribute("for", "limb_swing")
+        label.textContent = "limb_swing"
+        const wrapper = document.createElement("div")
+        wrapper.classList.add("cem_animation_bool")
+        wrapper.append(checkbox, label)
+        container.prepend(wrapper)
       }
       ranges = new Map(rangeMap)
       let rangesSorted
@@ -1895,134 +2057,146 @@
         if (ranges.has("health")) {
           const health = ranges.get("health")
           health[0][2] = num
-          const slider = $("#cem_animation_range_health_slider")
-          const number = $("#cem_animation_range_health_text")
-          const current = parseInt(slider.val())
+          const slider = document.getElementById("cem_animation_range_health_slider")
+          const number = document.getElementById("cem_animation_range_health_text")
+          const current = parseInt(slider.value)
           const val = current > num ? num : current
-          const attr = {
-            max: num,
-            value: val
-          }
-          slider.attr(attr)
-          number.attr(attr)
-          slider.val(val)
-          number.val(val)
+          slider.max = num
+          number.max = num
+          slider.value = val
+          number.value = val
         }
       }
       if (ranges.size) {
         rangesSorted = [...ranges.entries()]
         rangesSorted.sort(((a, b) => b[0] - a[0]))
-        const rangeContainer = E("div").attr("id", "cem_animation_ranges").append(E("div").attr("id", "cem_animation_range_labels"), E("div").attr("id", "cem_animation_range_sliders")).css({
-          display: "flex",
-          gap: "8px"
-        }).appendTo(controller)
+        const rangeLabels = document.createElement("div")
+        rangeLabels.id = "cem_animation_range_labels"
+        const rangeSliders = document.createElement("div")
+        rangeSliders.id = "cem_animation_range_sliders"
+        const rangeContainer = document.createElement("div")
+        rangeContainer.id = "cem_animation_ranges"
+        rangeContainer.style.display = "flex"
+        rangeContainer.style.gap = "8px"
+        rangeContainer.append(rangeLabels, rangeSliders)
+        controller.append(rangeContainer)
         for (const range of rangesSorted) {
-          rangeContainer.children().first().append(E("div").text(range[0]))
+          const label = document.createElement("div")
+          label.textContent = range[0]
+          rangeLabels.append(label)
           let timeout
-          rangeContainer.children().eq(1).append(E("div").addClass("cem_animation_range bar slider_input_combo").append(
-            E("input").attr({
-              id: `cem_animation_range_${range[0]}_slider`,
-              type: "range",
-              min: range[1][0][0],
-              max: range[1][0][2],
-              step: range[1][0][3] ?? 1,
-              value: range[1][1],
-            }).on("input", evt => {
-              const num = parseFloat(evt.target.value)
-              text.val(evt.target.value)
-              ranges.set(range[0], [range[1][0], num])
-              if (range[0] === "max_health") updateHealth(num)
-            }),
-            E("input").addClass("tool cem_animation_range_number").attr({
-              id: `cem_animation_range_${range[0]}_text`,
-              type: "number",
-              min: range[1][0][0],
-              max: range[1][0][2],
-              step: range[1][0][3] ?? 1,
-              value: range[1][1],
-            }).on("input", evt => {
-              slider.val(evt.target.value)
-              const clamped = Math.min(range[1][0][2], Math.max(range[1][0][0], parseFloat(evt.target.value)))
-              clearTimeout(timeout)
-              timeout = setTimeout(() => text.val(isNaN(clamped) ? range[1][1] : clamped), 1000)
-              const num = Math.max(range[1][0][0], clamped)
-              ranges.set(range[0], [range[1][0], num])
-              if (range[0] === "max_health") updateHealth(num)
-            })
-          ))
-          const slider = $(`#cem_animation_range_${range[0]}_slider`)
-          const text = $(`#cem_animation_range_${range[0]}_text`)
+          const slider = document.createElement("input")
+          slider.id = `cem_animation_range_${range[0]}_slider`
+          slider.type = "range"
+          slider.min = range[1][0][0]
+          slider.max = range[1][0][2]
+          slider.step = range[1][0][3] ?? 1
+          slider.value = range[1][1]
+          slider.addEventListener("input", evt => {
+            const num = parseFloat(evt.target.value)
+            text.value = evt.target.value
+            ranges.set(range[0], [range[1][0], num])
+            if (range[0] === "max_health") updateHealth(num)
+          })
+          const text = document.createElement("input")
+          text.classList.add("tool", "cem_animation_range_number")
+          text.id = `cem_animation_range_${range[0]}_text`
+          text.type = "number"
+          text.min = range[1][0][0]
+          text.max = range[1][0][2]
+          text.step = range[1][0][3] ?? 1
+          text.value = range[1][1]
+          text.addEventListener("input", evt => {
+            slider.value = evt.target.value
+            const clamped = Math.min(range[1][0][2], Math.max(range[1][0][0], parseFloat(evt.target.value)))
+            clearTimeout(timeout)
+            timeout = setTimeout(() => text.value = isNaN(clamped) ? range[1][1] : clamped, 1000)
+            const num = Math.max(range[1][0][0], clamped)
+            ranges.set(range[0], [range[1][0], num])
+            if (range[0] === "max_health") updateHealth(num)
+          })
+          const wrapper = document.createElement("div")
+          wrapper.classList.add("cem_animation_range", "bar", "slider_input_combo")
+          wrapper.append(slider, text)
+          rangeSliders.append(wrapper)
         }
       }
+      function specialButtonContainer() {
+        let container = document.getElementById("cem_animation_buttons")
+        if (!container) {
+          container = document.createElement("div")
+          container.id = "cem_animation_buttons"
+          controller.append(container)
+        }
+        return container
+      }
+      function addSpecialButton(container, button) {
+        const wrapper = document.createElement("div")
+        wrapper.classList.add("cem_animation_button")
+        wrapper.append(button)
+        container.append(wrapper)
+      }
       if (specials.has("hurt_time")) {
-        let container = $("#cem_animation_buttons")
-        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
-        const button = E("div").addClass("cem_animation_button").append(
-          E("button").attr({
-            id: "cem_animation_hurt_time_button",
-            title: 'Simulate the entity taking damage. Runs "hurt_time"'
-          }).text("Hurt entity").on("click", evt => {
-            if ($(evt.target).hasClass("cem_animation_button_disabled")) return
-            specials.set("hurt_time", [10, true])
-            button.children().first().addClass("cem_animation_button_disabled")
-            const hurtTimeBool = $("#cem_animation_is_hurt_bool")
-            if (hurtTimeBool) {
-              hurtTimeBool.prop("checked", true)
-              bools.set("is_hurt", true)
-            }
-          })
-        ).appendTo(container)
-        if (specials.get("hurt_time")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
+        const button = document.createElement("button")
+        button.id = "cem_animation_hurt_time_button"
+        button.title = 'Simulate the entity taking damage. Runs "hurt_time"'
+        button.textContent = "Hurt entity"
+        button.addEventListener("click", evt => {
+          if (evt.target.classList.contains("cem_animation_button_disabled")) return
+          specials.set("hurt_time", [10, true])
+          button.classList.add("cem_animation_button_disabled")
+          const hurtTimeBool = document.getElementById("cem_animation_is_hurt_bool")
+          if (hurtTimeBool) {
+            hurtTimeBool.checked = true
+            bools.set("is_hurt", true)
+          }
+        })
+        addSpecialButton(specialButtonContainer(), button)
+        if (specials.get("hurt_time")[1] === true) button.classList.add("cem_animation_button_disabled")
       }
       if (specials.has("death_time")) {
-        let container = $("#cem_animation_buttons")
-        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
-        const button = E("div").addClass("cem_animation_button").append(
-          E("button").attr({
-            id: "cem_animation_death_time_button",
-            title: 'Simulate the entity getting killed. Runs "death_time"'
-          }).text("Kill entity").on("click", evt => {
-            if ($(evt.target).hasClass("cem_animation_button_disabled")) return
-            specials.set("death_time", [0, true])
-            button.children().first().addClass("cem_animation_button_disabled")
-          })
-        ).appendTo(container)
-        if (specials.get("death_time")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
+        const button = document.createElement("button")
+        button.id = "cem_animation_death_time_button"
+        button.title = 'Simulate the entity getting killed. Runs "death_time"'
+        button.textContent = "Kill entity"
+        button.addEventListener("click", evt => {
+          if (evt.target.classList.contains("cem_animation_button_disabled")) return
+          specials.set("death_time", [0, true])
+          button.classList.add("cem_animation_button_disabled")
+        })
+        addSpecialButton(specialButtonContainer(), button)
+        if (specials.get("death_time")[1] === true) button.classList.add("cem_animation_button_disabled")
       }
       if (specials.has("swing_progress")) {
-        let container = $("#cem_animation_buttons")
-        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
-        const button = E("div").addClass("cem_animation_button").append(
-          E("button").attr({
-            id: "cem_animation_swing_progress_button",
-            title: 'Simulate the entity attacking. Runs "swing_progress"'
-          }).text("Perform attack").on("click", evt => {
-            if ($(evt.target).hasClass("cem_animation_button_disabled")) return
-            specials.set("swing_progress", [0, true])
-            button.children().first().addClass("cem_animation_button_disabled")
-          })
-        ).appendTo(container)
-        if (specials.get("swing_progress")[1] === true) button.children().first().addClass("cem_animation_button_disabled")
+        const button = document.createElement("button")
+        button.id = "cem_animation_swing_progress_button"
+        button.title = 'Simulate the entity attacking. Runs "swing_progress"'
+        button.textContent = "Perform attack"
+        button.addEventListener("click", evt => {
+          if (evt.target.classList.contains("cem_animation_button_disabled")) return
+          specials.set("swing_progress", [0, true])
+          button.classList.add("cem_animation_button_disabled")
+        })
+        addSpecialButton(specialButtonContainer(), button)
+        if (specials.get("swing_progress")[1] === true) button.classList.add("cem_animation_button_disabled")
       }
       if (specials.has("anger_time")) {
-        let container = $("#cem_animation_buttons")
-        if (!container.length) container = E("div").attr("id", "cem_animation_buttons").appendTo(controller)
-        const button = E("div").addClass("cem_animation_button").append(
-          E("button").attr({
-            id: "cem_animation_anger_time_button",
-            title: 'Simulate the entity becoming angry. Runs "anger_time"'
-          }).text("Anger entity").on("click", evt => {
-            const start = Math.floor(Math.random() * 381) + 400
-            const delay = (Math.random() * 2 + 1) * 20
-            specials.set("anger_time", [start, true, start, delay])
-            button.children().first().removeClass("cem_animation_button_disabled")
-            const aggressiveBool = $("#cem_animation_is_aggressive_bool")
-            if (aggressiveBool) {
-              aggressiveBool.prop("checked", true)
-              bools.set("is_aggressive", true)
-            }
-          })
-        ).appendTo(container)
+        const button = document.createElement("button")
+        button.id = "cem_animation_anger_time_button"
+        button.title = 'Simulate the entity becoming angry. Runs "anger_time"'
+        button.textContent = "Anger entity"
+        button.addEventListener("click", evt => {
+          const start = Math.floor(Math.random() * 381) + 400
+          const delay = (Math.random() * 2 + 1) * 20
+          specials.set("anger_time", [start, true, start, delay])
+          button.classList.remove("cem_animation_button_disabled")
+          const aggressiveBool = document.getElementById("cem_animation_is_aggressive_bool")
+          if (aggressiveBool) {
+            aggressiveBool.checked = true
+            bools.set("is_aggressive", true)
+          }
+        })
+        addSpecialButton(specialButtonContainer(), button)
       }
       prevTime = Date.now()
       Blockbench.on("render_frame", playAnimations)
@@ -2086,30 +2260,29 @@
       return animations
     }
     function animationErrorToggle(err, lineNum, warning) {
-      $(".cem_animation_error_line").removeClass("cem_animation_error_line")
+      document.querySelectorAll(".cem_animation_error_line").forEach(e => e.classList.remove("cem_animation_error_line"))
       if (err) {
-        errorMessage.html(err)
-        statusSuccess.css("display", "none")
+        errorMessage.innerHTML = err
+        statusSuccess.style.display = "none"
         if (!warning) {
-          statusWarning.css("display", "none")
-          statusError.css("display", "flex")
-          formatButton.addClass("cem_animation_button_disabled")
-          playButton.addClass("cem_animation_button_disabled")
+          statusWarning.style.display = "none"
+          statusError.style.display = "flex"
+          formatButton.classList.add("cem_animation_button_disabled")
+          playButton.classList.add("cem_animation_button_disabled")
         } else {
-          statusError.css("display", "none")
-          statusWarning.css("display", "flex")
+          statusError.style.display = "none"
+          statusWarning.style.display = "flex"
         }
         if (typeof lineNum === "number") {
-          const line = $(`.prism-editor__line-numbers>:nth-child(${lineNum + 1})`)
-          line.addClass("cem_animation_error_line")
+          document.querySelector(`.prism-editor__line-numbers>:nth-child(${lineNum + 1})`)?.classList.add("cem_animation_error_line")
         }
       } else {
-        statusSuccess.css("display", "flex")
-        statusError.css("display", "none")
-        statusWarning.css("display", "none")
-        errorMessage.text("")
-        formatButton.removeClass("cem_animation_button_disabled")
-        playButton.removeClass("cem_animation_button_disabled")
+        statusSuccess.style.display = "flex"
+        statusError.style.display = "none"
+        statusWarning.style.display = "none"
+        errorMessage.textContent = ""
+        formatButton.classList.remove("cem_animation_button_disabled")
+        playButton.classList.remove("cem_animation_button_disabled")
       }
     }
     let parents
@@ -2124,26 +2297,26 @@
         time += difference
         if (specials.get("hurt_time")?.[0] <= 0) {
           specials.set("hurt_time", [10, false])
-          $("#cem_animation_hurt_time_button").removeClass("cem_animation_button_disabled")
-          const hurtTimeBool = $("#cem_animation_is_hurt_bool")
+          document.getElementById("cem_animation_hurt_time_button")?.classList.remove("cem_animation_button_disabled")
+          const hurtTimeBool = document.getElementById("cem_animation_is_hurt_bool")
           if (hurtTimeBool) {
-            hurtTimeBool.prop("checked", false)
+            hurtTimeBool.checked = false
             bools.set("is_hurt", false)
           }
         }
         if (specials.get("death_time")?.[0] >= 20) {
           specials.set("death_time", [0, false])
-          $("#cem_animation_death_time_button").removeClass("cem_animation_button_disabled")
+          document.getElementById("cem_animation_death_time_button")?.classList.remove("cem_animation_button_disabled")
         }
         if (specials.get("swing_progress")?.[0] >= 1) {
           specials.set("swing_progress", [0, false])
-          $("#cem_animation_swing_progress_button").removeClass("cem_animation_button_disabled")
+          document.getElementById("cem_animation_swing_progress_button")?.classList.remove("cem_animation_button_disabled")
         }
         if (specials.get("anger_time")?.[1] && specials.get("anger_time")[0] <= 0) {
           specials.set("anger_time", [0, false, 0])
-          const aggressiveBool = $("#cem_animation_is_aggressive_bool")
+          const aggressiveBool = document.getElementById("cem_animation_is_aggressive_bool")
           if (aggressiveBool) {
-            aggressiveBool.prop("checked", false)
+            aggressiveBool.checked = false
             bools.set("is_aggressive", false)
           }
         }
@@ -2277,25 +2450,38 @@
         }
       }
       Canvas.updateView({groups: Group.all})
-      playButton.css("display", "flex")
-      stopButton.css("display", "none")
-      pauseButton.text("pause").attr("title", "Pause the animations")
+      playButton.style.display = "flex"
+      stopButton.style.display = "none"
+      pauseButton.textContent = "pause"
+      pauseButton.setAttribute("title", "Pause the animations")
       if (specials.has("hurt_time")) specials.set("hurt_time", [10, false])
       if (specials.has("death_time")) specials.set("death_time", [0, false])
       if (specials.has("swing_progress")) specials.set("swing_progress", [0, false])
       if (specials.has("anger_time")) specials.set("anger_time", [0, false, 0])
-      $("#cem_animation_hurt_time_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
-      $("#cem_animation_death_time_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
-      $("#cem_animation_swing_progress_button").removeClass("cem_animation_button_disabled").css("--progress", "100%")
-      $("#cem_animation_anger_time_button").css("--progress", "100%")
-      const aggressiveBool = $("#cem_animation_is_aggressive_bool")
-      if (aggressiveBool.length) {
-        aggressiveBool.prop("checked", false)
+      const hurtButton = document.getElementById("cem_animation_hurt_time_button")
+      if (hurtButton) {
+        hurtButton.classList.remove("cem_animation_button_disabled")
+        hurtButton.style.setProperty("--progress", "100%")
+      }
+      const deathButton = document.getElementById("cem_animation_death_time_button")
+      if (deathButton) {
+        deathButton.classList.remove("cem_animation_button_disabled")
+        deathButton.style.setProperty("--progress", "100%")
+      }
+      const swingButton = document.getElementById("cem_animation_swing_progress_button")
+      if (swingButton) {
+        swingButton.classList.remove("cem_animation_button_disabled")
+        swingButton.style.setProperty("--progress", "100%")
+      }
+      document.getElementById("cem_animation_anger_time_button")?.style.setProperty("--progress", "100%")
+      const aggressiveBool = document.getElementById("cem_animation_is_aggressive_bool")
+      if (aggressiveBool) {
+        aggressiveBool.checked = false
         bools.set("is_aggressive", false)
       }
-      const hurtBool = $("#cem_animation_is_hurt_bool")
-      if (hurtBool.length) {
-        hurtBool.prop("checked", false)
+      const hurtBool = document.getElementById("cem_animation_is_hurt_bool")
+      if (hurtBool) {
+        hurtBool.checked = false
         bools.set("is_hurt", false)
       }
       playing = false
@@ -2303,13 +2489,13 @@
     }
     let group
     function selectGroup(parse = true) {
-      partName.text(group.name)
+      partName.textContent = group.name
       const animation = JSON.stringify(group.cem_animations?.length === 0 ? [{}] : group.cem_animations, null, 2)
       if (animation) {
         if (parse) parseAnimations(animation)
         animationEditorPanel.vue.text = animation
-        editorWrapper[0].__vue__._data.undoStack = [{ plain: animation }]
-        editorWrapper[0].__vue__._data.undoOffset = 0
+        editorWrapper.__vue__._data.undoStack = [{ plain: animation }]
+        editorWrapper.__vue__._data.undoOffset = 0
       }
     }
     renameGroup = evt => {
@@ -2364,38 +2550,39 @@
     resizeWindow()
     function addAnimationToggles() {
       if (Project.format?.id === "optifine_entity") {
-        const toggle = $("[toolbar_id='outliner'] > div > [toolbar_item='outliner_toggle']")
-        if (toggle.hasClass("enabled")) {
-          const toggles = $("#cubes_list .group [toggle='autouv']")
+        const outlinerToggle = document.querySelector("[toolbar_id='outliner'] > div > [toolbar_item='outliner_toggle']")
+        if (outlinerToggle?.classList.contains("enabled")) {
+          const toggles = document.querySelectorAll("#cubes_list .group [toggle='autouv']")
           if (toggles.length) {
             groupObserver.disconnect()
-            toggles.each((i, e) => {
-              const toggle = $(e)
-              const partName = toggle.parent().find("input").val()
+            toggles.forEach(toggle => {
+              const partName = toggle.parentElement.querySelector("input").value
               const part = Project.groups.find(e => e.name === partName)
               if (!part) return
-              if (!toggle.parent().find("[toggle='cem_animation_disable_rotations']").length) {
-                const rotateToggle = E("i").attr({
-                  title: "Disable this group rotating while playing animations",
-                  toggle: "cem_animation_disable_rotations"
-                }).addClass("outliner_toggle material-icons icon_off").text("sync_disabled").on("click", evt => {
+              if (!toggle.parentElement.querySelector("[toggle='cem_animation_disable_rotations']")) {
+                const rotateToggle = document.createElement("i")
+                rotateToggle.title = "Disable this group rotating while playing animations"
+                rotateToggle.setAttribute("toggle", "cem_animation_disable_rotations")
+                rotateToggle.classList.add("outliner_toggle", "material-icons", "icon_off")
+                rotateToggle.textContent = "sync_disabled"
+                rotateToggle.addEventListener("click", evt => {
                   evt.stopPropagation()
-                  const partName = toggle.parent().find("input").val()
+                  const partName = toggle.parentElement.querySelector("input").value
                   const part = Project.groups.find(e => e.name === partName)
-                  const rotateToggle = $(evt.target)
-                  if (rotateToggle.hasClass("icon_off")) {
-                    rotateToggle.removeClass("icon_off")
+                  if (evt.target.classList.contains("icon_off")) {
+                    evt.target.classList.remove("icon_off")
                     part.cemAnimationDisableRotation = true
                   } else {
-                    rotateToggle.addClass("icon_off")
+                    evt.target.classList.add("icon_off")
                     part.cemAnimationDisableRotation = false
                   }
                   if (playing) {
                     stopAnimations()
                     setupAnimations(currentGroups, true)
                   }
-                }).insertBefore(toggle)
-                if (part.cemAnimationDisableRotation) rotateToggle.removeClass("icon_off")
+                })
+                toggle.before(rotateToggle)
+                if (part.cemAnimationDisableRotation) rotateToggle.classList.remove("icon_off")
               }
             })
             groupObserver.observe(document.body, {
@@ -2403,7 +2590,7 @@
               subtree: true
             })
           }
-        } else $("[toggle='cem_animation_disable_rotations']").remove()
+        } else document.querySelectorAll("[toggle='cem_animation_disable_rotations']").forEach(e => e.remove())
       }
     }
     groupObserver = new MutationObserver(() => {
@@ -2442,88 +2629,6 @@
               optifineAnimationDocumentation.dialog.content_vue.scrollToTop()
             }
           },
-          lines: [`<style>
-            #cem_animation_documentation {
-              .dialog_wrapper {
-                grid-template-rows: auto 0px;
-                min-height: min(100vh - 120px, 512px);
-                max-height: calc(100vh - 120px);
-              }
-
-              .dialog_content {
-                margin: 0;
-                max-height: initial;
-                overflow-x: hidden;
-                max-height: calc(100vh - 120px);
-              }
-
-              .page {
-                padding: 16px;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-                user-select: text;
-              }
-
-              h1 {
-                margin: 0;
-                line-height: 100%;
-                font-size: 30px;
-                padding-bottom: 8px;
-
-                &:not(:first-child) {
-                  padding-top: 24px;
-                }
-              }
-
-              :is(code, pre) {
-                background-color: var(--color-back);
-                padding: 0 4px;
-                border: 1px solid var(--color-border);
-                cursor: text;
-                font-family: var(--font-code);
-              }
-
-              pre {
-                width: 100%;
-                text-wrap: initial;
-                word-break: break-word;
-              }
-
-              .cem-doc-table-list td:first-child {
-                font-weight: 600;
-                white-space: nowrap !important;
-                display: list-item;
-                list-style: inside;
-                font-family: var(--font-code);
-              }
-
-              .cem-doc-tab-link {
-                text-decoration: underline;
-                cursor: pointer;
-                color: var(--color-accent);
-              }
-
-              td:not(:last-child) {
-                padding-right: 16px;
-              }
-
-               img {
-                margin: 8px;
-                box-shadow: 0 3px 10px #0006;
-              }
-
-              p {
-                white-space: pre-wrap;
-              }
-
-              hr {
-                width: 100%;
-                margin-bottom: 0;
-              }
-            }
-          </style>`],
           component: {
             data: {
               version: optifineAnimationDocumentation.data.version,
@@ -2600,7 +2705,7 @@
     Blockbench.removeListener("finished_edit", renameGroup)
     animationEditorPanel.node.querySelector("#cem_animation_editor_container > div").removeEventListener("keydown", editorKeybinds)
     groupObserver.disconnect()
-    $("[toggle='cem_animation_disable_rotations']").remove()
+    document.querySelectorAll("[toggle='cem_animation_disable_rotations']").forEach(e => e.remove())
     animationEditorPanel.delete()
     animationControlPanel.delete()
     animationStyles.delete()
