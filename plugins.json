@@ -1657,5 +1657,19 @@
 		"website": "https://www.curseforge.com/minecraft/mc-mods/easy-model-entities",
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
+	},
+	"gltf_to_minecraft": {
+		"title": "glTF to Minecraft",
+		"author": "MopicMP",
+		"icon": "view_in_ar",
+		"description": "Convert glTF models — from an archive, a folder or straight from Sketchfab — into cubes Minecraft can use: a GeckoLib model or a Customizable Player Models skin, with bones, textures and animations.",
+		"tags": ["Minecraft: Java Edition", "Import", "Animation"],
+		"version": "0.1.2",
+		"variant": "both",
+		"min_version": "4.9.0",
+		"website": "https://github.com/MopicMP/gltf-to-minecraft",
+		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
+		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
+		"creation_date": "2026-08-01"
 	}
 }
