@@ -688,5 +688,10 @@
     "version": "1.0.0",
     "created": 1790419204232,
     "updated": 1790419204232
+  },
+  "easing_peasy": {
+    "version": "1.0.1",
+    "created": 1790419489026,
+    "updated": 1790419489026
   }
 }
