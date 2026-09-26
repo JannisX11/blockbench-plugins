@@ -1179,6 +1179,20 @@
 		"min_version": "4.8.0",
 		"variant": "both"
 	},
+	"easing_peasy": {
+		"title": "Easing Peasy",
+		"author": "Titus Evans (SnaveSutit)",
+		"description": "Adds easing curves to animation keyframes, simplifying the process of creating smooth animations.",
+		"version": "1.0.1",
+		"await_loading": true,
+		"icon": "icon.svg",
+		"variant": "both",
+		"tags": ["Animation", "Easing", "Tools"],
+		"min_version": "5.1.4",
+		"repository": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin",
+		"bug_tracker": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin/issues",
+		"has_changelog": true
+	},
 	"bedrock_block_transforms": {
 		"title": "Bedrock Block Transformation Preview",
 		"author": "JannisX11",
@@ -1588,6 +1602,17 @@
 		"min_version": "4.8.0",
 		"has_changelog": true
 	},
+	"name_guard": {
+		"title": "Name Guard",
+		"author": "Dedou3D",
+		"description": "Clean folder and cube names for safe ModelEngine exports.",
+		"icon": "drive_file_rename_outline",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
+	},
 	"sb_worn_display": {
 		"title": "SB Worn Display Editor",
 		"author": "hrmcngs",
@@ -1633,18 +1658,18 @@
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
 	},
-	"geckolib_model_importer": {
-		"title": "GeckoLib Model Importer",
+	"gltf_to_minecraft": {
+		"title": "glTF to Minecraft",
 		"author": "MopicMP",
 		"icon": "view_in_ar",
-		"description": "Import glTF models — including straight from Sketchfab — into GeckoLib, or turn them into a Customizable Player Models skin: bones, cubes, textures and animations.",
+		"description": "Convert glTF models — from an archive, a folder or straight from Sketchfab — into cubes Minecraft can use: a GeckoLib model or a Customizable Player Models skin, with bones, textures and animations.",
 		"tags": ["Minecraft: Java Edition", "Import", "Animation"],
-		"version": "0.1.1",
+		"version": "0.1.2",
 		"variant": "both",
 		"min_version": "4.9.0",
-		"website": "https://github.com/MopicMP/geckolib-model-importer",
-		"repository": "https://github.com/MopicMP/geckolib-model-importer",
-		"bug_tracker": "https://github.com/MopicMP/geckolib-model-importer/issues",
+		"website": "https://github.com/MopicMP/gltf-to-minecraft",
+		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
+		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
 	}
 }

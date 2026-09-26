@@ -1,6 +1,8 @@
 /**
- * Mesh → Cubes
- * Turns box-shaped meshes into real Cubes that can be exported into the game.
+ * glTF to Minecraft
+ * Turns glTF models — from an archive, a folder or straight from Sketchfab —
+ * into cubes that Minecraft can use: a GeckoLib project or a Customizable
+ * Player Models skin.
  *
  * The core (solveBox) does not depend on Blockbench and is covered by
  * tools/verify-conversion.mjs, which runs it against a real OBJ file.
@@ -8,11 +10,11 @@
  * Install: Blockbench -> File -> Plugins -> Load Plugin from File -> this file.
  *
  * IMPORTANT: the file name must match PLUGIN_ID, otherwise Blockbench refuses
- * to load it. geckolib_model_importer.js <-> 'geckolib_model_importer'. Rename both together.
+ * to load it. gltf_to_minecraft.js <-> 'gltf_to_minecraft'. Rename both together.
  */
 (function () {
 
-const PLUGIN_ID = 'geckolib_model_importer';
+const PLUGIN_ID = 'gltf_to_minecraft';
 
 // All tolerances are relative. Absolute ones do not work here: models contain
 // panels 0.001 px thick next to 8 px cubes (see the pitfalls in docs/format-notes.md).
@@ -1078,8 +1080,33 @@ function parseGLTFFiles(files, opts) {
 
 	const names = Object.keys(files);
 	const lower = n => n.toLowerCase();
+	const baseName = n => lower(n).replace(/^.*[/\\]/, '');
 	const glbName = names.find(n => lower(n).endsWith('.glb'));
-	const gltfName = names.find(n => lower(n).endsWith('.gltf'));
+
+	// More than one .gltf in the same place is normal, not an oddity: a Sketchfab
+	// folder holds the plain model and a “_Textured” twin, and the plain one has
+	// zero images and a material with no texture. Taking whichever came first
+	// meant importing a model that cannot be textured at all — and the choice
+	// depended on the order of names, which nobody controls.
+	//
+	// So the candidates are read and the richest wins: the one that declares the
+	// most images. Parsing a few megabytes of JSON twice costs less than a silent
+	// import of the wrong file.
+	const gltfNames = names.filter(n => lower(n).endsWith('.gltf'));
+	const countImages = n => {
+		try { return (JSON.parse(new TextDecoder().decode(files[n])).images || []).length; }
+		catch { return -1; }
+	};
+	let gltfName = gltfNames[0];
+	if (gltfNames.length > 1) {
+		let best = -Infinity;
+		for (const n of gltfNames) {
+			const c = countImages(n);
+			if (c > best) { best = c; gltfName = n; }
+		}
+		warnings.push(`glTF files here: ${gltfNames.length} — chose `
+			+ `“${gltfName.replace(/^.*[/\\]/, '')}”, the one declaring the most images (${best})`);
+	}
 	if (!glbName && !gltfName) {
 		// Sketchfab offers two kinds of archive: the autoconversion (glTF) and the
 		// author's source. The latter holds .blend or .fbx, which nothing here can
@@ -1111,7 +1138,11 @@ function parseGLTFFiles(files, opts) {
 		}
 		if (b.uri.startsWith('data:')) return base64ToBytes(b.uri.slice(b.uri.indexOf(',') + 1));
 		const want = decodeURIComponent(b.uri);
-		const key = names.find(n => n === baseDir + want || n === want || lower(n).endsWith('/' + lower(want)));
+		// The last resort is the bare file name. It matters when the files come
+		// loose from a folder rather than out of an archive: the model says
+		// “textures/scene.bin” while the picker hands over “scene.bin”.
+		const key = names.find(n => n === baseDir + want || n === want || lower(n).endsWith('/' + lower(want)))
+			|| names.find(n => baseName(n) === baseName(want));
 		if (!key) throw new Error(`buffer file “${want}” is missing from the archive`);
 		return files[key];
 	});
@@ -1137,7 +1168,8 @@ function parseGLTFFiles(files, opts) {
 			if (img.uri) {
 				const want = decodeURIComponent(img.uri);
 				const key = names.find(n => n === baseDir + want || n === want
-					|| lower(n).endsWith('/' + lower(want)) || lower(n).endsWith(lower(want)));
+					|| lower(n).endsWith('/' + lower(want)) || lower(n).endsWith(lower(want)))
+					|| names.find(n => baseName(n) === baseName(want));
 				if (key) return { name: want.replace(/^.*[/\\]/, ''), mime: sniffMime(files[key]), bytes: files[key] };
 				warnings.push(`image “${want}” not found in the archive`);
 				return { name: want.replace(/^.*[/\\]/, ''), missing: true };
@@ -1303,7 +1335,18 @@ function parseGLTFFiles(files, opts) {
 				// which matches Blockbench, so no flipping is required
 				// With an atlas layout given, UV are mapped into its coordinates:
 				// each image occupies its own rectangle.
-				const rect = o.uvRects && imageIndex >= 0 ? o.uvRects[imageIndex] : null;
+				// An object with no material at all has no image to point at, and
+				// without a rectangle its UV are simply multiplied by the project's
+				// texture size — which, with an atlas, is the whole atlas. The model
+				// then arrives wearing a stretched mix of every picture in it.
+				//
+				// Measured on a test model: all 533 primitives carry material 0, and
+				// that material has no baseColorTexture, so not one object reaches an
+				// image. It is the second way textures go wrong, next to a file that
+				// pins everything to one material.
+				const rect = o.uvRects
+					? (imageIndex >= 0 ? o.uvRects[imageIndex] : (o.uvFallback || null))
+					: null;
 				const uv = uvIdx === undefined ? null
 					: readAccessor(gltf, buffers, uvIdx).map(t => rect
 						? [t[0] * rect.w + rect.x, t[1] * rect.h + rect.y]
@@ -1333,7 +1376,17 @@ function parseGLTFFiles(files, opts) {
 	const base = matFromTRS([0, 0, 0], corr, [1, 1, 1]);
 	for (const r of roots) visit(r, base, -1, corr.slice());
 
-	return { objects, images, warnings, hierarchy, animations: parseAnimations(gltf, buffers, warnings) };
+	// Whether the model asks for transparency at all. A Minecraft-style figure is
+	// built of two shells, and the outer one is see-through wherever it is unused;
+	// with the alpha channel gone that shell turns into a solid slab and hides the
+	// body. Knowing the material's intent is what makes the missing channel worth
+	// reporting rather than guessing from the picture.
+	const wantsAlpha = (gltf.materials || []).some(m => m.alphaMode === 'BLEND' || m.alphaMode === 'MASK');
+
+	return {
+		objects, images, warnings, hierarchy, wantsAlpha,
+		animations: parseAnimations(gltf, buffers, warnings),
+	};
 }
 
 /**
@@ -1612,6 +1665,40 @@ function hasGltfArchive(m) {
 	if (!m || !m.archives) return true;
 	const ok = a => a && typeof a.size === 'number' && a.size > 0;
 	return ok(m.archives.gltf) || ok(m.archives.glb);
+}
+
+// Declared up here, above the Node export, on purpose: the export block ends in
+// a `return`, and a `const` placed below it is never initialised in Node — any
+// exported function that reads it then throws. This plugin has been bitten by
+// exactly that once already.
+const SKETCHFAB_API = 'https://api.sketchfab.com/v3';
+
+/**
+ * The search request, as a URL.
+ *
+ * Kept apart from the fetch so that the very request the plugin sends can be
+ * checked against the live API, rather than a copy of it written in a test.
+ *
+ * Only downloadable models are searched: the rest cannot be fetched anyway, and
+ * showing them would only raise false expectations.
+ *
+ * `blockbenchOnly` narrows the results to models tagged "blockbench". Those
+ * were built from cubes to begin with and convert without loss, while a
+ * sculpt or a scanned statue can only arrive as a pile of bounding boxes.
+ * Checked on the live API: for "girl", none of 24 plain results carry the tag
+ * and all 24 filtered ones do — on the second page as well, because the `next`
+ * link Sketchfab returns keeps the parameter.
+ */
+function sketchfabSearchURL(query, blockbenchOnly) {
+	const params = [
+		'type=models',
+		'downloadable=true',
+		'archives_flavours=false',
+		'count=24',
+		'q=' + encodeURIComponent(query || ''),
+	];
+	if (blockbenchOnly) params.push('tags=blockbench');
+	return SKETCHFAB_API + '/search?' + params.join('&');
 }
 
 // ------------------------------------------- CPM (.cpmproject) construction
@@ -2502,7 +2589,7 @@ if (typeof Plugin === 'undefined') {
 			solveBox, detectBox, orientations, assignFaces, countUVViolations, buildFaceUV,
 			FACE_DIRS, FACE_NAMES,
 			parseGLTFFiles, parseGLB, parseAnimations, readAccessor, matMul, matFromTRS, matApply, matIdentity,
-			qMul, qConj, qRotate, boneDeltaRotation, boneDeltaPosition, sampleChannel, pickScale, snapScale, texelScale, correctionQuat, packAtlas, splitComponents, boxFromBounds, TRIANGULATE, isDegenerate, imageSize, sniffMime, axisRotationOf, quatFromMat, triangleNormal, snapGrid, snapVec, snapAngle, isIdentityBasis, placeCoords, snapSafely, tidyVec, hasGltfArchive, resolveCoplanar, cubeFaces, faceRectsOverlap,
+			qMul, qConj, qRotate, boneDeltaRotation, boneDeltaPosition, sampleChannel, pickScale, snapScale, texelScale, correctionQuat, packAtlas, splitComponents, boxFromBounds, TRIANGULATE, isDegenerate, imageSize, sniffMime, axisRotationOf, quatFromMat, triangleNormal, snapGrid, snapVec, snapAngle, isIdentityBasis, placeCoords, snapSafely, tidyVec, hasGltfArchive, sketchfabSearchURL, hasAlphaChannel, resolveCoplanar, cubeFaces, faceRectsOverlap,
 			buildCPMFiles, buildCPMConfig, buildCPMAnimations, cpmAlignOffset, cpmEstimateSize, cpmAutoAssign, cpmAutoPose, cpmPoint, cpmDelta, cpmEuler, cpmEulerFromQuat, cpmAngle, cpmUVScale, cpmFaceUV, CPM_PARTS, CPM_PART_NAMES, CPM_FACE,
 		};
 	}
@@ -2526,7 +2613,7 @@ function detectEulerOrder() {
 		probe.remove();
 		if (order) EULER_ORDER = order;
 	} catch (e) {
-		console.warn(`[geckolib-import] could not detect Euler order, falling back to ${EULER_ORDER}`, e);
+		console.warn(`[gltf-to-minecraft] could not detect Euler order, falling back to ${EULER_ORDER}`, e);
 	}
 	return EULER_ORDER;
 }
@@ -2824,7 +2911,7 @@ function runConversion(options) {
 
 	detectEulerOrder();
 	const calibration = calibrateFaceDirs();
-	console.log('[geckolib-import] ' + calibration);
+	console.log('[gltf-to-minecraft] ' + calibration);
 
 	Undo.initEdit({ elements: meshes, outliner: true, selection: true });
 
@@ -2886,7 +2973,7 @@ function runConversion(options) {
 	if (rotated.length) {
 		lines.push('', 'The texture may be rotated:', ...rotated.slice(0, 10));
 	}
-	console.log('[geckolib-import]\n' + lines.join('\n'));
+	console.log('[gltf-to-minecraft]\n' + lines.join('\n'));
 	Blockbench.showMessageBox({ title: 'Mesh → Cubes', message: lines.join('\n') });
 }
 
@@ -2900,6 +2987,39 @@ function runConversion(options) {
  * textures are usually JPEG, and while only PNG was parsed such archives failed
  * with texture not found — even though the image was right there.
  */
+/**
+ * Whether the picture can carry transparency at all.
+ *
+ * Read from the header, not from the pixels: a texture may be fully opaque and
+ * still have the channel, and it is the missing channel that cannot be undone.
+ *
+ * Returns null when the format gives no cheap answer — the caller then says
+ * nothing rather than guessing.
+ */
+function hasAlphaChannel(bytes) {
+	if (!bytes || bytes.length < 26) return null;
+	const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+	// PNG: colour type sits in IHDR. 6 is RGBA and 4 is grey+alpha; a palette
+	// (3) carries transparency only through a tRNS chunk.
+	if (dv.getUint32(0) === 0x89504E47) {
+		const type = bytes[25];
+		if (type === 6 || type === 4) return true;
+		if (type !== 3) return false;
+		// tRNS, searched in the bytes: parsing the whole chunk list for one flag
+		// would cost more than it is worth.
+		for (let i = 8; i < bytes.length - 4; i++) {
+			if (bytes[i] === 0x74 && bytes[i + 1] === 0x52 && bytes[i + 2] === 0x4E && bytes[i + 3] === 0x53) return true;
+		}
+		return false;
+	}
+
+	// JPEG has no alpha at all, ever.
+	if ((bytes[0] === 0xFF && bytes[1] === 0xD8)) return false;
+
+	return null;
+}
+
 function imageSize(bytes) {
 	if (!bytes || bytes.length < 24) return null;
 	const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -3622,13 +3742,30 @@ function buildFromFiles(files, sourceName, opts) {
 	// atlas index is kept, otherwise an object silently receives someone else's
 	// piece of texture.
 	const sized = probe.images.map(img => ({ ...img, size: imageSize(img.bytes) }));
+
+	// Which images the geometry actually reaches. A colour texture that no
+	// primitive references cannot show up on the model, so packing it only
+	// inflates the atlas and moves everyone else's rectangle.
+	//
+	// This is not a rare case. On all three reference models with several
+	// textures every single primitive carries material 0, so the rest are
+	// declared and never used: one packed twelve images into a 512x256 atlas
+	// while the only one its geometry reads is 32x32.
+	const reached = new Set();
+	for (const o of probe.objects) if (o.image >= 0) reached.add(o.image);
+
 	// Only colour goes into the atlas: normal and roughness maps are useless in
 	// Minecraft yet take up just as much room.
-	const usable = img => !!img.size && img.role !== 'aux';
+	//
+	// The reach test is skipped when nothing reports an image at all — a file
+	// without materials gives no assignment to go on, and there the pictures in
+	// the archive are the whole of what we know.
+	const usable = (img, i) => !!img.size && img.role !== 'aux'
+		&& (!reached.size || reached.has(i));
 	const images = sized.filter(usable);
 	const remap = [];
 	let next = 0;
-	sized.forEach((img, i) => { remap[i] = usable(img) ? next++ : -1; });
+	sized.forEach((img, i) => { remap[i] = usable(img, i) ? next++ : -1; });
 
 	if (!images.length) {
 		const what = sized.length
@@ -3640,8 +3777,34 @@ function buildFromFiles(files, sourceName, opts) {
 	}
 	const aux = sized.filter(img => img.size && img.role === 'aux').length;
 	const unread = sized.filter(img => !img.size).length;
+	const unreached = sized.filter((img, i) =>
+		img.size && img.role !== 'aux' && reached.size && !reached.has(i)).length;
 	if (aux) report.push(`Auxiliary maps skipped: ${aux} (normals, specular) — unused in Minecraft`);
 	if (unread) report.push(`Images skipped: ${unread} — format not recognised`);
+	// Said plainly, because it is the honest explanation for a model that arrives
+	// wearing one texture everywhere: the file itself points all of its geometry
+	// at a single material, and the other pictures have nothing to land on.
+	if (unreached) report.push(`Colour textures no mesh references: ${unreached} of `
+		+ `${unreached + images.length} — left out of the atlas, and nothing in the `
+		+ 'file says which parts they belong to');
+
+	// Transparency the material asks for and the picture cannot give.
+	//
+	// A Minecraft-style figure is two shells, and the outer one is see-through
+	// wherever it is unused. Strip the alpha channel and that shell becomes a
+	// solid slab: the body disappears behind it, which reads as "the textures do
+	// not work" while every coordinate is in fact correct. Measured on the
+	// reference set — the one model whose texture kept its alpha is the one whose
+	// textures were reported as fine.
+	//
+	// This says nothing about the model and everything about the download, so it
+	// is worth stating plainly rather than being worked around.
+	const flat = images.filter(img => hasAlphaChannel(img.bytes) === false).length;
+	if (probe.wantsAlpha && flat === images.length) {
+		report.push('Texture without an alpha channel, though the material asks for '
+			+ 'transparency — anything meant to be see-through will arrive opaque. '
+			+ 'A download that keeps alpha is needed; this cannot be recovered here.');
+	}
 
 	// The main texture is the one most objects use: its size defines the
 	// project's UV space.
@@ -3748,6 +3911,10 @@ function buildFromFiles(files, sourceName, opts) {
 		// that. Objects with an unreadable texture get a piece of the main one:
 		// a wrong patch beats UV flying outside the atlas.
 		uvRects: sized.map((img, i) => layout.rects[remap[i] >= 0 ? remap[i] : mainIndex]),
+		// And the same piece for an object that names no image at all: its UV were
+		// authored inside some single picture, so the main one is the best guess
+		// available, and any guess beats spreading them over the whole atlas.
+		uvFallback: layout.rects[mainIndex],
 	});
 	if (rotate.some(v => v)) report.push(`Extra rotation: X ${rotate[0]}°, Y ${rotate[1]}°`);
 
@@ -3925,7 +4092,7 @@ function buildFromFiles(files, sourceName, opts) {
 	try {
 		applyAnimations(parsed, groupByNode, lines, opts);
 	} catch (e) {
-		console.error('[geckolib-import] animation transfer failed', e);
+		console.error('[gltf-to-minecraft] animation transfer failed', e);
 		lines.push('', `ANIMATIONS WERE NOT TRANSFERRED: ${(e && e.message) || e}`,
 			'The model and texture were still built correctly.');
 	}
@@ -3933,7 +4100,7 @@ function buildFromFiles(files, sourceName, opts) {
 	lines.push('', calibration);
 
 	Canvas.updateAll();
-	console.log('[geckolib-import] import\n' + lines.join('\n'));
+	console.log('[gltf-to-minecraft] import\n' + lines.join('\n'));
 	// Everything worked out along the way is handed back: the CPM branch needs the
 	// very same hierarchy, boxes and texture, and re-deriving them would mean a
 	// second copy of the scale and atlas logic that could drift from this one.
@@ -4043,7 +4210,6 @@ function showImportReport(info) {
 
 // ------------------------------------------------------- Sketchfab browser
 
-const SKETCHFAB_API = 'https://api.sketchfab.com/v3';
 const SKETCHFAB_TOKEN_KEY = PLUGIN_ID + '_sketchfab_token';
 
 function sketchfabToken(value) {
@@ -4055,21 +4221,9 @@ function sketchfabToken(value) {
 	}
 }
 
-/**
- * Model search. No token needed — the endpoint is public.
- *
- * Only downloadable models are searched: the rest cannot be fetched anyway, and
- * showing them would only raise false expectations.
- */
-function sketchfabSearch(query) {
-	const params = [
-		'type=models',
-		'downloadable=true',
-		'archives_flavours=false',
-		'count=24',
-		'q=' + encodeURIComponent(query || ''),
-	];
-	return sketchfabFetchPage(SKETCHFAB_API + '/search?' + params.join('&'));
+/** Model search. No token needed — the endpoint is public. */
+function sketchfabSearch(query, blockbenchOnly) {
+	return sketchfabFetchPage(sketchfabSearchURL(query, blockbenchOnly));
 }
 
 /** Loads a page of results. The `next` field already holds a ready URL. */
@@ -4126,7 +4280,8 @@ function addSketchfabStyles() {
 	if (sketchfabCSS || typeof Blockbench.addCSS !== 'function') return;
 	sketchfabCSS = Blockbench.addCSS(`
 		.mtc_sf_bar { display: flex; gap: 6px; margin-bottom: 8px; }
-		.mtc_sf_bar input { flex: 1; }
+		.mtc_sf_bar input[type="text"] { flex: 1; }
+		.mtc_sf_only { display: flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer; }
 		.mtc_sf_status { margin: 4px 0; opacity: 0.8; min-height: 18px; }
 		.mtc_sf_results { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 			gap: 8px; max-height: 380px; overflow-y: auto; }
@@ -4166,6 +4321,11 @@ function openSketchfabBrowser() {
 		lines: [
 			'<div class="mtc_sf_bar">'
 			+ '<input type="text" class="dark_bordered mtc_sf_query" placeholder="search for, e.g.: dwarf house">'
+			// On by default: a model made in Blockbench is cubes already and comes
+			// through whole, while most of Sketchfab is sculpts that cannot.
+			+ '<label class="mtc_sf_only" title="Only models tagged “blockbench”: they are built '
+			+ 'from cubes and convert without loss">'
+			+ '<input type="checkbox" class="mtc_sf_bb" checked> Made in Blockbench</label>'
 			+ '<button class="mtc_sf_find">Search</button>'
 			+ '<button class="mtc_sf_token">Token…</button>'
 			+ '</div>'
@@ -4211,7 +4371,7 @@ function openSketchfabBrowser() {
 				askImportOptions(opts => {
 					const built = buildFromFiles(entries, model.name || 'sketchfab', opts);
 					// attribution is always printed, even without a license.txt in the archive
-					console.log('[geckolib-import] Sketchfab: «' + model.name + '» — '
+					console.log('[gltf-to-minecraft] Sketchfab: «' + model.name + '» — '
 						+ ((model.user && model.user.displayName) || '?') + ', '
 						+ ((model.license && model.license.label) || 'licence not stated'));
 					return built;
@@ -4288,12 +4448,19 @@ function openSketchfabBrowser() {
 		}
 	};
 
+	const onlyBB = root.querySelector('.mtc_sf_bb');
+	let searched = false;
 	const doSearch = () => {
+		searched = true;
 		say('searching…');
-		sketchfabSearch(q ? q.value : '').then(render).catch(e => say('search error: ' + ((e && e.message) || e)));
+		sketchfabSearch(q ? q.value : '', !onlyBB || onlyBB.checked)
+			.then(render).catch(e => say('search error: ' + ((e && e.message) || e)));
 	};
 
 	if (root.querySelector('.mtc_sf_find')) root.querySelector('.mtc_sf_find').addEventListener('click', doSearch);
+	// Flipping the filter over results already on screen redoes the search:
+	// otherwise the grid would keep showing what the box no longer says.
+	if (onlyBB) onlyBB.addEventListener('change', () => { if (searched) doSearch(); });
 	if (root.querySelector('.mtc_sf_token')) root.querySelector('.mtc_sf_token').addEventListener('click', askToken);
 	if (q) {
 		// Blockbench treats Enter in a dialog as confirmation and closes the window,
@@ -4320,7 +4487,7 @@ function askImportOptions(onReady) {
 
 	new Dialog({
 		id: PLUGIN_ID + '_import_dialog',
-		title: 'Import GeckoLib from ZIP',
+		title: 'Import glTF model',
 		// Expanded by a checkbox: an ordinary user needs four settings, the other
 		// eight are levers for diagnosing breakage. Eleven fields in a row read like
 		// a cockpit and get in the way of anyone who just wants to open a model.
@@ -4438,10 +4605,9 @@ function requireGeckolib() {
 }
 
 function importFromZip() {
-	if (typeof JSZip === 'undefined') {
-		Blockbench.showMessageBox({ title: 'JSZip missing', message: 'This Blockbench build has no JSZip, so archives cannot be unpacked.' });
-		return;
-	}
+	// No JSZip check here any more: it is only needed for an archive, and an
+	// unpacked folder goes in without it. The check moved to where the archive
+	// is actually opened.
 	if (!requireGeckolib()) return;
 	askImportOptions(opts => pickAndImport(opts));
 }
@@ -4750,7 +4916,7 @@ function saveCPMProject(built, form) {
 					+ 'MAX_TEX_SHEET_SIZE of 256. The UV grid is free, the picture is not.');
 			}
 			for (const w of out.warnings) lines.push(`Warning: ${w}`);
-			console.log('[geckolib-import] cpm export\n' + lines.join('\n'));
+			console.log('[gltf-to-minecraft] cpm export\n' + lines.join('\n'));
 
 			Blockbench.export({
 				type: 'Customizable Player Models Project',
@@ -4782,7 +4948,7 @@ function saveCPMProject(built, form) {
 			});
 		});
 	}).catch(e => {
-		console.error('[geckolib-import] cpm export failed', e);
+		console.error('[gltf-to-minecraft] cpm export failed', e);
 		Blockbench.showMessageBox({ title: 'CPM export failed', message: String((e && e.message) || e) });
 	});
 }
@@ -4804,29 +4970,80 @@ function cpmSkinBytes(built) {
 	});
 }
 
+/** What a model folder is made of, besides the model itself. */
+const MODEL_PARTS = ['gltf', 'glb', 'bin', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'txt'];
+
+/**
+ * One way in for both an archive and an unpacked folder.
+ *
+ * Nothing below this point cares where the bytes came from: buildFromFiles takes
+ * a map of name to bytes, and unpacking a ZIP does nothing but fill that map.
+ * Loose files fill the same map, so this is a second source, not a second path —
+ * and it stays one menu entry rather than two.
+ *
+ * A folder also needs no JSZip, so it works in builds that have none.
+ */
 function pickAndImport(opts, then) {
 	Blockbench.import({
-		extensions: ['zip'],
-		type: 'Archive with a glTF model',
+		extensions: ['zip', ...MODEL_PARTS],
+		type: 'Model archive, or the files of an unpacked folder',
 		readtype: 'buffer',
+		multiple: true,
 	}, files => {
-		const file = files[0];
-		if (!file) return;
-		JSZip.loadAsync(file.content).then(zip => {
-			const entries = {};
-			const tasks = [];
-			zip.forEach((relPath, entry) => {
-				if (entry.dir) return;
-				tasks.push(entry.async('uint8array').then(data => { entries[relPath] = data; }));
-			});
-			return Promise.all(tasks).then(() => {
-				const built = buildFromFiles(entries, file.name, opts);
-				if (then) then(built);
-			});
-		}).catch(e => {
-			console.error('[geckolib-import] import failed', e);
+		if (!files || !files.length) return;
+		const fail = e => {
+			console.error('[gltf-to-minecraft] import failed', e);
 			Blockbench.showMessageBox({ title: 'Import failed', message: String((e && e.message) || e) });
-		});
+		};
+
+		const archive = files.find(f => /\.zip$/i.test(String(f.name || '')));
+		if (archive) {
+			if (typeof JSZip === 'undefined') {
+				Blockbench.showMessageBox({
+					title: 'JSZip missing',
+					message: 'This Blockbench build has no JSZip, so archives cannot be unpacked.\n'
+						+ 'Unpack the archive yourself and select the files inside it instead.',
+				});
+				return;
+			}
+			JSZip.loadAsync(archive.content).then(zip => {
+				const entries = {};
+				const tasks = [];
+				zip.forEach((relPath, entry) => {
+					if (entry.dir) return;
+					tasks.push(entry.async('uint8array').then(data => { entries[relPath] = data; }));
+				});
+				return Promise.all(tasks).then(() => {
+					const built = buildFromFiles(entries, archive.name, opts);
+					if (then) then(built);
+				});
+			}).catch(fail);
+			return;
+		}
+
+		// Loose files. The key is the bare file name — that is what a glTF lying
+		// next to its textures refers to, while the picker may hand over a full
+		// path.
+		const entries = {};
+		let modelName = '';
+		for (const f of files) {
+			const name = String(f.name || f.path || '').replace(/^.*[/\\]/, '');
+			if (!name) continue;
+			entries[name] = f.content instanceof Uint8Array ? f.content : new Uint8Array(f.content);
+			if (!modelName && /\.(gltf|glb)$/i.test(name)) modelName = name;
+		}
+		if (!modelName) {
+			Blockbench.showMessageBox({
+				title: 'Import failed',
+				message: 'No .gltf or .glb among the selected files.\n'
+					+ 'Select everything in the model folder: the model, its .bin and the textures.',
+			});
+			return;
+		}
+		try {
+			const built = buildFromFiles(entries, modelName, opts);
+			if (then) then(built);
+		} catch (e) { fail(e); }
 	});
 }
 
@@ -4855,19 +5072,20 @@ function registerStartScreenFormat() {
 		if (typeof ModelFormat === 'undefined') { startScreenStatus = 'ModelFormat unavailable'; return; }
 		importFormat = new ModelFormat({
 			id: PLUGIN_ID + '_zip',
-			name: 'GeckoLib from ZIP',
-			description: 'glTF + texture → a ready cube-based model',
+			name: 'glTF to GeckoLib',
+			description: 'glTF + textures → a ready cube-based model',
 			icon: 'folder_zip',
 			category: 'general',
 			show_on_start_screen: true,
 			// Without this the format page is empty: Blockbench does not know what to
 			// write, nor what to call the action.
 			format_page: {
-			button_text: 'Select archive…',
+			button_text: 'Select archive or files…',
 			content: [
-				{ type: 'h3', text: 'Model from a glTF archive' },
-				{ type: 'text', text: 'Takes a .zip with a glTF model and its textures and builds '
-					+ 'a finished GeckoLib project: bones, cubes, textures and animations.' },
+				{ type: 'h3', text: 'Model from a glTF archive or folder' },
+				{ type: 'text', text: 'Takes a .zip with a glTF model and its textures — or the files of an '
+					+ 'already unpacked folder — and builds a finished GeckoLib project: bones, '
+					+ 'cubes, textures and animations.' },
 				{ type: 'text', text: 'Requires the GeckoLib Animation Utils plugin — its format is '
 					+ 'what the project is built into.' },
 				{ type: 'text', text: 'Cube-based models work best. Cubes merged into a single mesh are '
@@ -4942,7 +5160,7 @@ function environmentReport() {
 
 function showEnvironment() {
 	const text = environmentReport();
-	console.log('[geckolib-import] environment\n' + text);
+	console.log('[gltf-to-minecraft] environment\n' + text);
 	new Dialog({
 		id: PLUGIN_ID + '_env',
 		title: 'Environment diagnostics',
@@ -4963,17 +5181,17 @@ let sketchfabAction;
 let cpmAction;
 
 Plugin.register(PLUGIN_ID, {
-	title: 'GeckoLib Model Importer',
+	title: 'glTF to Minecraft',
 	author: 'MopicMP',
 	icon: 'view_in_ar',
-	description: 'Import glTF models — including straight from Sketchfab — into GeckoLib, or turn them into a Customizable Player Models skin: bones, cubes, textures and animations.',
-	version: '0.1.1',
+	description: 'Convert glTF models — from an archive, a folder or straight from Sketchfab — into cubes Minecraft can use: a GeckoLib model or a Customizable Player Models skin, with bones, textures and animations.',
+	version: '0.1.2',
 	variant: 'both',
 	min_version: '4.9.0',
 	tags: ['Minecraft: Java Edition', 'Import', 'Animation'],
-	website: 'https://github.com/MopicMP/geckolib-model-importer',
-	repository: 'https://github.com/MopicMP/geckolib-model-importer',
-	bug_tracker: 'https://github.com/MopicMP/geckolib-model-importer/issues',
+	website: 'https://github.com/MopicMP/gltf-to-minecraft',
+	repository: 'https://github.com/MopicMP/gltf-to-minecraft',
+	bug_tracker: 'https://github.com/MopicMP/gltf-to-minecraft/issues',
 	creation_date: '2026-08-01',
 
 	onload() {
@@ -5008,40 +5226,43 @@ Plugin.register(PLUGIN_ID, {
 		MenuBar.addAction(action, 'filter');
 
 		envAction = new Action(PLUGIN_ID + '_env', {
-			name: 'Environment diagnostics (GeckoLib Importer)',
+			name: 'Environment diagnostics (glTF to Minecraft)',
 			description: 'Shows what is available inside Blockbench: ZIP, formats, codecs',
 			icon: 'bug_report',
 			click: showEnvironment,
 		});
 		MenuBar.addAction(envAction, 'help');
 
+		// All three go to File > Import, next to the other importers. Appended to
+		// the bare File menu they landed at its very bottom, away from every other
+		// import, and looked out of place there.
 		importAction = new Action(PLUGIN_ID + '_import', {
-			name: 'GeckoLib from ZIP (glTF + texture)',
-			description: 'Builds a ready GeckoLib model from an archive with glTF and textures',
+			name: 'Import glTF as GeckoLib Model',
+			description: 'Builds a ready GeckoLib model from a glTF archive, or from the files of an unpacked folder',
 			icon: 'folder_zip',
 			// the import creates a project itself, so it needs no open project
 			condition: () => true,
 			click: importFromZip,
 		});
-		MenuBar.addAction(importAction, 'file');
+		MenuBar.addAction(importAction, 'file.import');
 
 		cpmAction = new Action(PLUGIN_ID + '_cpm', {
-			name: 'Customizable Player Models from ZIP (glTF + texture)',
+			name: 'Import glTF as Customizable Player Model',
 			description: 'Same import, saved as a .cpmproject for the CPM mod',
 			icon: 'accessibility_new',
 			condition: () => true,
 			click: importCPMFromZip,
 		});
-		MenuBar.addAction(cpmAction, 'file');
+		MenuBar.addAction(cpmAction, 'file.import');
 
 		sketchfabAction = new Action(PLUGIN_ID + '_sketchfab', {
-			name: 'Sketchfab — model search',
-			description: 'Search and download downloadable models straight from Blockbench',
+			name: 'Import from Sketchfab',
+			description: 'Search downloadable models and import them straight from Blockbench',
 			icon: 'travel_explore',
 			condition: () => true,
 			click: openSketchfabBrowser,
 		});
-		MenuBar.addAction(sketchfabAction, 'file');
+		MenuBar.addAction(sketchfabAction, 'file.import');
 
 		registerStartScreenFormat();
 	},

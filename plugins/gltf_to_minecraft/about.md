@@ -4,20 +4,24 @@ Minecraft cannot render arbitrary polygonal geometry. A glTF model opens fine in
 Blockbench, but every element is a **Mesh**, and the game needs **Cubes**. This
 plugin does that conversion — and everything around it.
 
-- **Import a ZIP** with a glTF model and textures, and get a finished GeckoLib
-  project: bones, cubes, textures and animations.
-- **Browse Sketchfab** from inside Blockbench and download models through the
-  official Data API, with author and licence shown up front.
-- **Several textures** are packed into a single atlas, because GeckoLib wants one.
-- **Merged meshes** are split back into separate cubes automatically.
-- **Animations** are carried over, including rotation and position channels.
-- **Customizable Player Models** can be written out instead: the same import,
-  saved as a `.cpmproject`.
+All entries live in **File > Import**.
+
+- **Import glTF as GeckoLib Model** — pick a ZIP with a glTF model and its
+  textures, or select the files of an already unpacked folder, and get a finished
+  GeckoLib project: bones, cubes, textures and animations.
+- **Import from Sketchfab** — search and download models through the official
+  Data API, with author and licence shown up front. By default only models tagged
+  `blockbench` are listed: they are cubes already and convert whole.
+- **Import glTF as Customizable Player Model** — the same import, saved as a
+  `.cpmproject`.
+
+Along the way, several textures are packed into a single atlas (GeckoLib wants
+one), merged meshes are split back into separate cubes, and animations are carried
+over, including rotation and position channels.
 
 ## Customizable Player Models
 
-*File → Customizable Player Models from ZIP (glTF + texture)* runs the same
-import and then asks the three things a player skin needs and a GeckoLib model
+The CPM import asks the three things a player skin needs and a GeckoLib model
 does not: how tall the model should be in player pixels, which bone belongs to
 which part of the player, and what each animation becomes — a vanilla pose
 (`walking`, `sneaking`, `sleeping`…) or a gesture.
@@ -38,6 +42,9 @@ Wedges, bevels and rounded shapes do not exist in Minecraft. Such objects are
 replaced with their bounding box, with the texture laid out per face. The import
 report tells you exactly which share of the model was approximated — at 30% or
 more it says plainly that the model is a poor fit.
+
+A texture that lost its alpha channel on the way cannot be recovered. When the
+material asks for transparency and the texture has none, the report says so.
 
 Coordinates are cleaned of floating-point noise, but a model that was not built
 on a 0.25 px grid keeps its exact numbers: snapping it to the grid would grow
