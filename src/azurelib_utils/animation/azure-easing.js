@@ -4,7 +4,7 @@
  * Provides the easing function registry and argument parsing logic
  * used for interpolating animated keyframes in AzureLib.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { clamp } from 'lodash';

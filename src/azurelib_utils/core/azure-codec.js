@@ -8,7 +8,7 @@
  * The animation codec is now created lazily at runtime so validation
  * does not execute AnimationCodec construction during module evaluation.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import omit from 'lodash/omit';

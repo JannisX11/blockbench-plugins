@@ -57,7 +57,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft: Java Edition", "OptiFine", "Player Models"],
-    version: "1.5.1",
+    version: "1.5.2",
     min_version: "5.0.0",
     variant: "both",
     await_loading: true,

@@ -13,7 +13,7 @@
  * Built on Blockbench's AnimationCodec API — no monkey-patching of
  * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
@@ -82,6 +82,18 @@ function unwrapToArray(v) {
  */
 function normTime(t) {
   return String(t).replace(/^(-?\d+)\.0+$/, '$1');
+}
+
+const KEY_ORDER = Symbol('azureKeyOrder');
+
+function orderedMap(entries) {
+  const obj = Object.fromEntries(entries);
+  Object.defineProperty(obj, KEY_ORDER, {
+    value: entries.map(([k]) => k),
+    enumerable: false,
+    configurable: true,
+  });
+  return obj;
 }
 
 function normalizeAnimationIncludes(includes) {
@@ -375,12 +387,16 @@ function serializeAnimation(anim) {
         }
         boneOut[channel] = node;
       } else {
-        const channelOut = {};
-        for (const kf of keyframes) {
+        const channelIsEasing = keyframes.some(
+            kf => kf.easing && kf.easing !== EASING_DEFAULT
+        );
+
+        const entries = keyframes.map(kf => {
           const t = normTime(roundTime(kf.time));
-          channelOut[t] = serializeKeyframe(kf, channel, keyframes);
-        }
-        boneOut[channel] = channelOut;
+          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
+          return [t, serialized];
+        });
+        boneOut[channel] = orderedMap(entries);
       }
     }
 
@@ -393,16 +409,25 @@ function serializeAnimation(anim) {
 
   // Effects (sound/particle/timeline)
   if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
-    const sounds = {};
-    const particles = {};
-    const timeline = {};
+    const soundEntries = [];
+    const particleEntries = [];
+    const timelineEntries = [];
 
-    for (const kf of effects.keyframes) {
+    const sortedEffectKeyframes = [...effects.keyframes].sort((a, b) => a.time - b.time);
+
+    for (const kf of sortedEffectKeyframes) {
       const t = normTime(roundTime(kf.time));
       if (kf.channel === 'sound') {
-        const pts = (kf.data_points || []).map(p => (typeof p === 'string' ? { effect: p } : { ...p })).filter(p => p.effect);
-        if (pts.length === 1) sounds[t] = pts[0];
-        else if (pts.length > 1) sounds[t] = pts;
+        const pts = (kf.data_points || []).map(p => {
+          const effect = typeof p === 'string' ? p : p.effect;
+          if (!effect) return null;
+          const o = { effect };
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return o;
+        }).filter(Boolean);
+        if (pts.length === 1) soundEntries.push([t, pts[0]]);
+        else if (pts.length > 1) soundEntries.push([t, pts]);
       } else if (kf.channel === 'particle') {
         const pts = (kf.data_points || []).map(p => {
           const o = {};
@@ -411,17 +436,17 @@ function serializeAnimation(anim) {
           if (p.script !== undefined) o.script = p.script;
           return Object.keys(o).length ? o : null;
         }).filter(Boolean);
-        if (pts.length === 1) particles[t] = pts[0];
-        else if (pts.length > 1) particles[t] = pts;
+        if (pts.length === 1) particleEntries.push([t, pts[0]]);
+        else if (pts.length > 1) particleEntries.push([t, pts]);
       } else if (kf.channel === 'timeline') {
         const script = (kf.data_points?.[0]?.script) || '';
-        if (script) timeline[t] = script;
+        if (script) timelineEntries.push([t, script]);
       }
     }
 
-    if (Object.keys(sounds).length) obj.sound_effects = sounds;
-    if (Object.keys(particles).length) obj.particle_effects = particles;
-    if (Object.keys(timeline).length) obj.timeline = timeline;
+    if (soundEntries.length) obj.sound_effects = orderedMap(soundEntries);
+    if (particleEntries.length) obj.particle_effects = orderedMap(particleEntries);
+    if (timelineEntries.length) obj.timeline = orderedMap(timelineEntries);
   }
 
   return obj;
@@ -452,12 +477,12 @@ const BB_INTERP_TO_LERP_MODE = {
  *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
  *   No easing     → [x, y, z]   (plain array shorthand)
  */
-function serializeKeyframe(kf, channel, allKeyframes) {
+function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
   const vec    = extractKeyframeVector(kf, channel, true);
   const interp = kf.interpolation;
 
   // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
-  if (interp === 'catmullrom') {
+  if (interp === 'catmullrom' && !channelIsEasing) {
     const node = { post: vec, lerp_mode: 'catmullrom' };
     const preVec = extractKeyframePreVector(kf, channel);
     if (preVec) node.pre = preVec;
@@ -851,12 +876,54 @@ function ensureEffectsAnimator(anim) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Recursive stringifier used in place of JSON.stringify() for the top-level
+ * object.
+ *
+ * The ONLY reason this exists instead of a plain JSON.stringify(obj, null,
+ * '\t') call: JS object key enumeration always places integer-index-looking
+ * keys ("0", "3") ahead of non-integer keys ("1.5"), in ascending numeric
+ * order, regardless of insertion order. Keyframe time maps mix whole-number
+ * and fractional time keys, so a correctly time-sorted entry list like
+ * "0", "1.5", "3" gets silently re-emitted as "0", "3", "1.5" by
+ * JSON.stringify. AzureLib's runtime loader trusts file order rather than
+ * re-sorting on load, so that reorder becomes a real, silent timeline
+ * corruption (a segment that runs backwards and a bone that freezes).
+ *
+ * This function walks the object tree itself and, for any object tagged
+ * with KEY_ORDER (via orderedMap()), emits keys in that explicit order
+ * instead of using Object.keys()/JSON.stringify's native enumeration.
+ * Everything else behaves like a normal pretty-printed JSON.stringify.
+ */
+function orderedStringify(value, indent, currentIndent) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+
+  const childIndent = currentIndent + indent;
+
+  if (Array.isArray(value)) {
+    if (!value.length) return '[]';
+    const items = value.map(v => childIndent + orderedStringify(v, indent, childIndent));
+    return '[\n' + items.join(',\n') + '\n' + currentIndent + ']';
+  }
+
+  const keys = value[KEY_ORDER] || Object.keys(value);
+  if (!keys.length) return '{}';
+  const items = keys.map(k =>
+    childIndent + JSON.stringify(k) + ': ' + orderedStringify(value[k], indent, childIndent)
+  );
+  return '{\n' + items.join(',\n') + '\n' + currentIndent + '}';
+}
+
+/**
  * JSON serialiser that pretty-prints with tabs but keeps arrays compact on one line.
  * This matches the original Bedrock/AzureLib animation file format exactly.
  */
 function serializeAnimationJson(obj) {
-  // First pass: standard pretty-print
-  const raw = JSON.stringify(obj, null, '\t');
+  // First pass: order-preserving pretty-print (see orderedStringify above —
+  // this replaces a plain JSON.stringify(obj, null, '\t') specifically to
+  // avoid its integer-key reordering behaviour on keyframe time maps).
+  const raw = orderedStringify(obj, '\t', '');
   // Second pass: collapse arrays that contain only numbers/strings onto one line.
   // Matches [ followed by whitespace+values+whitespace ] across newlines.
   return raw.replace(
@@ -1186,6 +1253,8 @@ export function importAzureAnimation() {
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
+  //IKManager.register();
+
   const codec = createAzureAnimationCodec();
   if (!codec) {
     console.warn(
@@ -1222,6 +1291,8 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
+  //IKManager.unregister();
+
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
 

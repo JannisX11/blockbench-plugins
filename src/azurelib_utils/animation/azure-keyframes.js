@@ -7,7 +7,7 @@
  * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
  * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { hasArgs } from '../core/azure-utils.js';
@@ -229,15 +229,19 @@ function compileBedrockKeyframe() {
 
   // --- Bedrock lerp_mode keyframes (linear / catmullrom): keep pre/post/lerp_mode ---
   if (this.interpolation === 'catmullrom') {
-    const lerpMode = 'catmullrom';
-    if (base && typeof base === 'object') {
-      return {
-        ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
-        post:      cloneArray(base.post || base),
-        lerp_mode: lerpMode,
-      };
+    const siblings = this.animator?.keyframes?.filter(k => k.channel === this.channel) || [];
+    const channelIsEasing = siblings.some(k => k.easing && k.easing !== EASING_DEFAULT);
+    if (!channelIsEasing) {
+      const lerpMode = 'catmullrom';
+      if (base && typeof base === 'object') {
+        return {
+          ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
+          post:      cloneArray(base.post || base),
+          lerp_mode: lerpMode,
+        };
+      }
+      return { post: cloneArray(base), lerp_mode: lerpMode };
     }
-    return { post: cloneArray(base), lerp_mode: lerpMode };
   }
 
   // --- Bezier keyframes: Blockbench handles pre/post natively, pass through ---

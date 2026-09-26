@@ -14,11 +14,13 @@ function logError(error) {
 let PLUGIN_ID = process.argv[2];
 let CHANGED_FILES = process.env.CHANGED_FILES;
 
-// Changed files
+// Changed files (Github workflow only)
 if (CHANGED_FILES) {
 	let changes = CHANGED_FILES.replace(/\//g, '/').split('\n');
+	// Remove change type flag (M\tplugins.json)
+	let changed_files = changes.map(change => change.replace(/^\w\t/, ''));
 	if (!PLUGIN_ID) {
-		for (let path of changes) {
+		for (let path of changed_files) {
 			if (path.startsWith('plugins/')) {
 				PLUGIN_ID = path.split(/[/.]/)[1];
 				console.log("::debug::Found Plugin ID: "+PLUGIN_ID);
@@ -31,11 +33,26 @@ if (CHANGED_FILES) {
 		`plugins/${PLUGIN_ID}`,
 		`src/${PLUGIN_ID}`,
 	];
-	for (let path of changes) {
+	for (let path of changed_files) {
 		if (!allowed_paths.some(match => path.startsWith(match))) {
 			logError(`Modifying "${path}" is not permitted as an update for "${PLUGIN_ID}"`);
 		}
 	}
+
+	let label;
+	let plugin_source_change = changes.find(change => {
+		return change.endsWith(PLUGIN_ID + '.js') && !change.startsWith('D') && change.split('/').length <= 3;
+	});
+	if (plugin_source_change?.[0] == 'A') {
+		label = 'new plugin';
+	} else if (plugin_source_change) {
+		label = 'plugin update';
+	}
+	console.log('Change type detected: ' + label);
+
+	/*if (process.env.GITHUB_OUTPUT && label) {
+		fs.appendFileSync(process.env.GITHUB_OUTPUT, `label=${label}\n`);
+	}*/
 }
 
 // ID
@@ -62,7 +79,8 @@ const BASE_PATH = path.join(import.meta.dirname, '..', NEW_FORMAT ? 'plugins/'+P
 
 let content_js = '';
 try {
-	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
+	content_js = fs.readFileSync(path.resolve(BASE_PATH, PLUGIN_ID + '.js'), {encoding: 'utf8'});
+	content_js = content_js.replace(/throw /g, '')
 } catch (err) {
 	logError("Could not find plugin source file at " + path.resolve(BASE_PATH, PLUGIN_ID + '.js'));
 	process.exit();
@@ -98,6 +116,7 @@ const wildcard = new Proxy(function () {}, {
 // Sandbox that pretends every global exists
 const sandbox = new Proxy({
 	Plugin,
+	Object,
 	BBPlugin: Plugin,
 }, {
 	has() {
@@ -110,7 +129,11 @@ const sandbox = new Proxy({
 });
 
 vm.createContext(sandbox);
-vm.runInContext(content_js, sandbox);
+try {
+	vm.runInContext(content_js, sandbox);
+} catch (err) {
+	console.error("Failed to run plugin in sandbox", err)
+}
 
 
 if (!source_meta) {
@@ -166,8 +189,8 @@ if (NEW_FORMAT && json_meta.about) {
 if (json_meta.has_changelog && !NEW_FORMAT) {
 	logError("Changelog is not supported in legacy format");
 }
-if (json_meta.has_changelog) {let content_js = '';
-	let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+let changelog_path = path.resolve(BASE_PATH, 'changelog.json');
+if (json_meta.has_changelog) {
 	try {
 		let changelog_content = fs.readFileSync(changelog_path);
 		JSON.parse(changelog_content)
@@ -175,6 +198,8 @@ if (json_meta.has_changelog) {let content_js = '';
 		logError("Could not load changelog: " + err);
 		process.exit();
 	}
+} else if (fs.existsSync(changelog_path)) {
+	logError("Changelog file was found, but not used because the flag \"has_changelog\": true is missing.");
 }
 
 // Icon validation
@@ -203,7 +228,7 @@ if (json_meta.icon && (json_meta.icon.endsWith('.png') || json_meta.icon.endsWit
 //const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[a-z]+\.\d+)?$/;
 const SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 function validateVersion(v) {
-	if (!v.match(SEMVER_REGEX)) {
+	if (typeof v != 'string' || !v.match(SEMVER_REGEX)) {
 		logError(`"${v}" is not a valid version number. See semver.org`)
 	}
 }

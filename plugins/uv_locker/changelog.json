@@ -1,0 +1,12 @@
+{
+    "1.0.0": {
+        "release_date": "2025-01-19",
+        "changes": [
+            "Initial release of the UV Locker plugin.",
+            "Automatically reprojects UV coordinates when moving vertices in 3D edit mode.",
+            "Works like Blender's Fix Face Attributes feature.",
+            "Two toolbar toggles: Lock UV (enable/disable) and Exclude Selected Faces.",
+            "Handles translation, rotation, and scaling via the Transformer gizmo."
+        ]
+    }
+}

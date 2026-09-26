@@ -147,5 +147,19 @@
         ]
       }
     ]
+  },
+  "1.5.2": {
+    "title": "1.5.2",
+    "date": "2026-08-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Fixed outdated plugin metadata that stopped 1.5.1 from releasing",
+          "The changelog, links, and icon are now shown correctly in the plugin browser"
+        ]
+      }
+    ]
   }
 }
