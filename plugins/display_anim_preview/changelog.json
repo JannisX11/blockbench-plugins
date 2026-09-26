@@ -1,0 +1,21 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2026-08-07",
+    "author": "rieyi",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial public release",
+          "Per-display-context animation preview and playback controls",
+          "20 FPS frame baking and duplicate-frame removal",
+          "Complete Minecraft resource-pack and datapack export",
+          "Complete English and Simplified Chinese controls, prompts, warnings, export reports, and generated datapack messages",
+          "Combined export-warning confirmation with explicit cancellation feedback",
+          "Compatible export for already-open legacy sequence projects without taking ownership of their format"
+        ]
+      }
+    ]
+  }
+}
