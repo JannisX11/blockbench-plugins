@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2E2A55"/>
+      <stop offset="100%" stop-color="#1B1836"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="512" height="512" rx="104" fill="url(#bg)"/>
+
+  <!-- grid dots -->
+  <g fill="#463F7D" opacity="0.5">
+    <circle cx="128" cy="128" r="8"/>
+    <circle cx="256" cy="128" r="8"/>
+    <circle cx="384" cy="128" r="8"/>
+    <circle cx="128" cy="256" r="8"/>
+    <circle cx="256" cy="256" r="8"/>
+    <circle cx="384" cy="256" r="8"/>
+    <circle cx="128" cy="384" r="8"/>
+    <circle cx="256" cy="384" r="8"/>
+    <circle cx="384" cy="384" r="8"/>
+  </g>
+
+  <!-- linear reference path -->
+  <line x1="128" y1="384" x2="384" y2="128" stroke="#9c96d0" stroke-width="16" stroke-dasharray="16 32" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- the ease curve -->
+  <path d="M128,384 C 128,262 192,262 256,256 C 320,250 384,250 384,128"
+        fill="none" stroke="#F2A623" stroke-width="32" stroke-linecap="round"/>
+
+  <!-- keyframe endpoints -->
+  <circle cx="128" cy="384" r="28" fill="#1B1836" stroke="#F2A623" stroke-width="16"/>
+  <circle cx="384" cy="128" r="32" fill="#F2A623"/>
+
+</svg>
