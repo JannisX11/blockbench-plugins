@@ -14,11 +14,13 @@ function logError(error) {
 let PLUGIN_ID = process.argv[2];
 let CHANGED_FILES = process.env.CHANGED_FILES;
 
-// Changed files
+// Changed files (Github workflow only)
 if (CHANGED_FILES) {
 	let changes = CHANGED_FILES.replace(/\//g, '/').split('\n');
+	// Remove change type flag (M\tplugins.json)
+	let changed_files = changes.map(change => change.replace(/^\w\t/, ''));
 	if (!PLUGIN_ID) {
-		for (let path of changes) {
+		for (let path of changed_files) {
 			if (path.startsWith('plugins/')) {
 				PLUGIN_ID = path.split(/[/.]/)[1];
 				console.log("::debug::Found Plugin ID: "+PLUGIN_ID);
@@ -31,11 +33,26 @@ if (CHANGED_FILES) {
 		`plugins/${PLUGIN_ID}`,
 		`src/${PLUGIN_ID}`,
 	];
-	for (let path of changes) {
+	for (let path of changed_files) {
 		if (!allowed_paths.some(match => path.startsWith(match))) {
 			logError(`Modifying "${path}" is not permitted as an update for "${PLUGIN_ID}"`);
 		}
 	}
+
+	let label;
+	let plugin_source_change = changes.find(change => {
+		return change.endsWith(PLUGIN_ID + '.js') && !change.startsWith('D') && change.split('/').length <= 3;
+	});
+	if (plugin_source_change?.[0] == 'A') {
+		label = 'new plugin';
+	} else if (plugin_source_change) {
+		label = 'plugin update';
+	}
+	console.log('Change type detected: ' + label);
+
+	/*if (process.env.GITHUB_OUTPUT && label) {
+		fs.appendFileSync(process.env.GITHUB_OUTPUT, `label=${label}\n`);
+	}*/
 }
 
 // ID

@@ -84,6 +84,18 @@ function normTime(t) {
   return String(t).replace(/^(-?\d+)\.0+$/, '$1');
 }
 
+const KEY_ORDER = Symbol('azureKeyOrder');
+
+function orderedMap(entries) {
+  const obj = Object.fromEntries(entries);
+  Object.defineProperty(obj, KEY_ORDER, {
+    value: entries.map(([k]) => k),
+    enumerable: false,
+    configurable: true,
+  });
+  return obj;
+}
+
 function normalizeAnimationIncludes(includes) {
   if (!Array.isArray(includes) || !includes.length) return [];
 
@@ -384,7 +396,7 @@ function serializeAnimation(anim) {
           const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
           return [t, serialized];
         });
-        boneOut[channel] = Object.fromEntries(entries);
+        boneOut[channel] = orderedMap(entries);
       }
     }
 
@@ -397,11 +409,13 @@ function serializeAnimation(anim) {
 
   // Effects (sound/particle/timeline)
   if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
-    const sounds = {};
-    const particles = {};
-    const timeline = {};
+    const soundEntries = [];
+    const particleEntries = [];
+    const timelineEntries = [];
 
-    for (const kf of effects.keyframes) {
+    const sortedEffectKeyframes = [...effects.keyframes].sort((a, b) => a.time - b.time);
+
+    for (const kf of sortedEffectKeyframes) {
       const t = normTime(roundTime(kf.time));
       if (kf.channel === 'sound') {
         const pts = (kf.data_points || []).map(p => {
@@ -412,8 +426,8 @@ function serializeAnimation(anim) {
           if (p.script !== undefined) o.script = p.script;
           return o;
         }).filter(Boolean);
-        if (pts.length === 1) sounds[t] = pts[0];
-        else if (pts.length > 1) sounds[t] = pts;
+        if (pts.length === 1) soundEntries.push([t, pts[0]]);
+        else if (pts.length > 1) soundEntries.push([t, pts]);
       } else if (kf.channel === 'particle') {
         const pts = (kf.data_points || []).map(p => {
           const o = {};
@@ -422,17 +436,17 @@ function serializeAnimation(anim) {
           if (p.script !== undefined) o.script = p.script;
           return Object.keys(o).length ? o : null;
         }).filter(Boolean);
-        if (pts.length === 1) particles[t] = pts[0];
-        else if (pts.length > 1) particles[t] = pts;
+        if (pts.length === 1) particleEntries.push([t, pts[0]]);
+        else if (pts.length > 1) particleEntries.push([t, pts]);
       } else if (kf.channel === 'timeline') {
         const script = (kf.data_points?.[0]?.script) || '';
-        if (script) timeline[t] = script;
+        if (script) timelineEntries.push([t, script]);
       }
     }
 
-    if (Object.keys(sounds).length) obj.sound_effects = sounds;
-    if (Object.keys(particles).length) obj.particle_effects = particles;
-    if (Object.keys(timeline).length) obj.timeline = timeline;
+    if (soundEntries.length) obj.sound_effects = orderedMap(soundEntries);
+    if (particleEntries.length) obj.particle_effects = orderedMap(particleEntries);
+    if (timelineEntries.length) obj.timeline = orderedMap(timelineEntries);
   }
 
   return obj;
@@ -862,12 +876,54 @@ function ensureEffectsAnimator(anim) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Recursive stringifier used in place of JSON.stringify() for the top-level
+ * object.
+ *
+ * The ONLY reason this exists instead of a plain JSON.stringify(obj, null,
+ * '\t') call: JS object key enumeration always places integer-index-looking
+ * keys ("0", "3") ahead of non-integer keys ("1.5"), in ascending numeric
+ * order, regardless of insertion order. Keyframe time maps mix whole-number
+ * and fractional time keys, so a correctly time-sorted entry list like
+ * "0", "1.5", "3" gets silently re-emitted as "0", "3", "1.5" by
+ * JSON.stringify. AzureLib's runtime loader trusts file order rather than
+ * re-sorting on load, so that reorder becomes a real, silent timeline
+ * corruption (a segment that runs backwards and a bone that freezes).
+ *
+ * This function walks the object tree itself and, for any object tagged
+ * with KEY_ORDER (via orderedMap()), emits keys in that explicit order
+ * instead of using Object.keys()/JSON.stringify's native enumeration.
+ * Everything else behaves like a normal pretty-printed JSON.stringify.
+ */
+function orderedStringify(value, indent, currentIndent) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+
+  const childIndent = currentIndent + indent;
+
+  if (Array.isArray(value)) {
+    if (!value.length) return '[]';
+    const items = value.map(v => childIndent + orderedStringify(v, indent, childIndent));
+    return '[\n' + items.join(',\n') + '\n' + currentIndent + ']';
+  }
+
+  const keys = value[KEY_ORDER] || Object.keys(value);
+  if (!keys.length) return '{}';
+  const items = keys.map(k =>
+    childIndent + JSON.stringify(k) + ': ' + orderedStringify(value[k], indent, childIndent)
+  );
+  return '{\n' + items.join(',\n') + '\n' + currentIndent + '}';
+}
+
+/**
  * JSON serialiser that pretty-prints with tabs but keeps arrays compact on one line.
  * This matches the original Bedrock/AzureLib animation file format exactly.
  */
 function serializeAnimationJson(obj) {
-  // First pass: standard pretty-print
-  const raw = JSON.stringify(obj, null, '\t');
+  // First pass: order-preserving pretty-print (see orderedStringify above —
+  // this replaces a plain JSON.stringify(obj, null, '\t') specifically to
+  // avoid its integer-key reordering behaviour on keyframe time maps).
+  const raw = orderedStringify(obj, '\t', '');
   // Second pass: collapse arrays that contain only numbers/strings onto one line.
   // Matches [ followed by whitespace+values+whitespace ] across newlines.
   return raw.replace(
@@ -1191,12 +1247,123 @@ export function importAzureAnimation() {
 }
 
 // ---------------------------------------------------------------------------
+// "Export" menu override
+// ---------------------------------------------------------------------------
+
+/**
+ * Blockbench's built-in "Export" action (id: export_animation_file, defined
+ * in animations/animation.js) is core code we can't edit. It calls
+ * codec.compileFile(animations) — our own, correctly time-sorted and
+ * KEY_ORDER-tagged builder — but then stringifies the result with its own
+ * autoStringify(), which knows nothing about our KEY_ORDER tagging. Plain
+ * JS object enumeration (which autoStringify ultimately relies on) always
+ * places integer-index-looking string keys ("0", "1", "2") ahead of
+ * non-integer ones ("0.125", "0.375") in ascending numeric order,
+ * regardless of insertion order — so fractional keyframe times get
+ * silently reordered on export, even though compileFile() built them in
+ * the right order to begin with.
+ *
+ * "Save All Animations" never hits this because it calls codec.exportFile()
+ * directly, which already runs content through our own
+ * serializeAnimationJson() (which does respect KEY_ORDER via
+ * orderedStringify()).
+ *
+ * We can't change what autoStringify does, and we can't edit the core
+ * action. So when our format is active, we swap the action's click handler
+ * for a re-implementation of the exact same picker dialog that serializes
+ * with serializeAnimationJson() instead. Any other format's Export click
+ * falls straight through to the original, untouched.
+ */
+let originalExportAnimationClick = null;
+
+function isAzureCodecActive() {
+  const codec = (typeof AnimationCodec !== 'undefined' && AnimationCodec.getCodec)
+    ? AnimationCodec.getCodec()
+    : null;
+  return !!codec && codec === azureAnimationCodec;
+}
+
+function showAzureAnimationExportDialog() {
+  const form = {};
+  let keys = [];
+  let animations = Animation.all.slice();
+
+  if (Condition(Animation.properties.path.condition)) {
+    animations.sort((a1, a2) => (a1.path ?? a1.name).hashCode() - (a2.path ?? a2.name).hashCode());
+  }
+
+  animations.forEach(animation => {
+    const key = animation.name;
+    keys.push(key);
+    form[key.hashCode()] = { label: key, type: 'checkbox', value: true };
+  });
+
+  const dialog = new Dialog({
+    id: 'azl_animation_export',
+    title: 'dialog.animation_export.title',
+    form,
+    onConfirm(form_result) {
+      dialog.hide();
+      const selectedKeys = keys.filter(key => form_result[key.hashCode()]);
+      const selectedAnimations = Animation.all.filter(a => selectedKeys.includes(a.name));
+      const codec = azureAnimationCodec || AnimationCodec.getCodec() || AnimationCodec.codecs.bedrock;
+      const content = codec.compileFile(selectedAnimations);
+
+      Blockbench.export({
+        resource_id: 'animation',
+        type: 'JSON Animation',
+        extensions: ['json'],
+        name: (Project.geometry_name || 'model') + '.animation',
+        content: serializeAnimationJson(content),
+      });
+    },
+  });
+
+  form.select_all_none = {
+    type: 'buttons',
+    buttons: ['generic.select_all', 'generic.select_none'],
+    click(index) {
+      const values = {};
+      keys.forEach(key => { values[key.hashCode()] = (index === 0); });
+      dialog.setFormValues(values);
+    },
+  };
+
+  dialog.show();
+}
+
+function patchExportAnimationAction() {
+  if (originalExportAnimationClick) return;
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (!action) return;
+
+  originalExportAnimationClick = action.click;
+
+  action.click = function azureExportAnimationOverride(...args) {
+    if (!isAzureCodecActive()) {
+      return originalExportAnimationClick.apply(this, args);
+    }
+    showAzureAnimationExportDialog();
+  };
+}
+
+function unpatchExportAnimationAction() {
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (action && originalExportAnimationClick) {
+    action.click = originalExportAnimationClick;
+  }
+  originalExportAnimationClick = null;
+}
+
+// ---------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------
 
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
+  //IKManager.register();
+
   const codec = createAzureAnimationCodec();
   if (!codec) {
     console.warn(
@@ -1205,6 +1372,8 @@ export function registerAzureAnimationFormat() {
     );
     return;
   }
+
+  patchExportAnimationAction();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -1233,6 +1402,10 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
+  //IKManager.unregister();
+
+  unpatchExportAnimationAction();
+
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
 
