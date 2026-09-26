@@ -693,5 +693,10 @@
     "version": "1.0.1",
     "created": 1790419489026,
     "updated": 1790419489026
+  },
+  "gltf_to_minecraft": {
+    "version": "0.1.2",
+    "created": 1790430503050,
+    "updated": 1790430503050
   }
 }
