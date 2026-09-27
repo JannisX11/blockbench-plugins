@@ -1248,11 +1248,37 @@
 	if (typeof Plugin !== 'undefined') {
 
 		Plugin.register('aseprite_support', {
-			title: 'Aseprite Import/Export',
-			author: 'ase converter project',
+			title: 'Aseprite Support',
+			author: 'Animun4ik',
 			description: 'Import .aseprite textures with layers and export Blockbench textures to .aseprite with layers.',
+			// Inline about text: shown on the plugin page without any CDN fetch.
+			// (fetchAbout only reads a sibling about.md for installed new-repository-format plugins.)
+			about: [
+				'# Aseprite Support',
+				'',
+				'Import and export `.aseprite` / `.ase` textures in Blockbench **with layers and animation**.',
+				'',
+				'## Import',
+				'- `.aseprite` / `.ase` → Blockbench texture with layers, opacity and blend modes.',
+				'- Multiple frames → flipbook animation (frame durations are matched by duplicating frames under a single FPS).',
+				'- Supports RGBA, grayscale and indexed color; raw, linked and zlib-compressed cels.',
+				'',
+				'## Export',
+				'- Blockbench texture → `.aseprite`.',
+				'- Preserves layers and animation; identical adjacent flipbook slots are merged into single frames.',
+				'- Textures without layers are exported as a single layer.',
+				'',
+				'## File link',
+				'- An imported texture remembers its source `.aseprite` file.',
+				'- The texture save button overwrites the source file; "Save As" can switch formats (which unlinks the texture).',
+				'',
+				'## Limitations',
+				'- Aseprite layer groups are flattened; tilemap layers are skipped.',
+				'- Blend modes missing in Aseprite (set_opacity, alpha_mask) are exported as Normal.',
+				'- Custom frame order and interpolation are not transferred.',
+			].join('\n'),
 			icon: aseIconDataUrl('logo'),
-			version: '3.4.0',
+			version: '3.4.1',
 			variant: 'both',
 			// Do NOT set 4.8+: min_version >= 4.8 force-enables new_repository_format,
 			// and Blockbench starts requesting about.md from the CDN (404 spam in the console).
