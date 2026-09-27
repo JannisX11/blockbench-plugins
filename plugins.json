@@ -1708,5 +1708,23 @@
 		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
 		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
+	},
+	"armor_trim_editor": {
+		"title": "Armor Trim Editor",
+		"author": "BbIJABNPOBATEJb",
+		"icon": "checkroom",
+		"description": "Paint Minecraft: Java Edition armor trims on an exact armor model with poses, skins and a live material preview, then export them straight into a resource pack and a datapack.",
+		"tags": ["Minecraft: Java Edition", "Paint", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"creation_date": "2026-09-27",
+		"has_changelog": true,
+		"contributes": {
+			"formats": ["armor_trim"]
+		},
+		"website": "https://github.com/BbIJABNPOBATEJb/Armor-Trim-Editor",
+		"repository": "https://github.com/BbIJABNPOBATEJb/Armor-Trim-Editor",
+		"bug_tracker": "https://github.com/BbIJABNPOBATEJb/Armor-Trim-Editor/issues"
 	}
 }
