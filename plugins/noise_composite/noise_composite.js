@@ -304,6 +304,44 @@
       padding: 6px 8px;
       font-size: 13px;
     }
+    
+  @media screen and (max-width: 768px) {
+    .tdnc-layout-wrapper {
+      flex-direction: column;
+      height: auto;
+      max-height: 75vh; 
+      overflow-y: auto;
+      overflow-x: hidden;
+      gap: 12px;
+    }
+
+    .tdnc-left-pane, .tdnc-right-pane {
+      flex: none;
+      width: 100%;
+    }
+
+    .tdnc-right-pane {
+      overflow-y: visible;
+      padding-right: 0;
+    }
+
+    .tdnc-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .tdnc-preview-box {
+      height: 250px;
+      flex: none;
+    }
+
+    .tdnc-bottom-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--color-ui, #21252b);
+      padding-bottom: 8px;
+      z-index: 10;
+    }
+  }
   `;
 
   // ===================== NOISE =====================
@@ -848,7 +886,7 @@
       // ===== Frame for texture size =====
       previewCanvasStyle() {
         const size = this.getOutputSize();
-        const maxSize = 400;
+        const maxSize = window.innerWidth <= 768 ? 220 : 400;
 
         let displayW, displayH;
         if (size.width >= size.height) {
@@ -1609,11 +1647,11 @@
     author: 'the0dll',
     icon: 'icon.png',
     description: 'Advanced procedural noise generator and texture compositor with custom blend modes, alpha masking, and presets.',
-    "about": "Procedural noise generator and texture compositor for Blockbench.\n\nCreate simplex/FBM noise, blend it onto existing textures with a wide range of composite modes, respect transparency, save presets, or export a new texture variant — with live preview and full Undo/Redo support.\n\n## Features\n\n- **Procedural noise** — seed, period, harmonics, spread, gain, exponent, amplitude, offset\n- **Coordinate controls** — scale and translate on X / Y / Z\n- **Monochrome or RGB** noise\n- **Noise Only** mode — pure noise (optional custom size up to 4096²)\n- **Respect Alpha** — keep transparent areas empty\n- **Composite blend** — Over, Multiply, Screen, Overlay, Dodge/Burn, Light modes, Difference, and many custom ops\n- **Blend opacity** and **swap layer order**\n- **Presets** — save / load / delete setups\n- **Live preview** — zoom buttons, Ctrl + mouse wheel, pan when zoomed\n- **Undo / Redo** for both “apply to texture” and “save as new”\n\n## How to use\n\n1. Select a texture (or enable **Noise Only**).\n2. Open **Tools → Noise & Composite**.\n3. On **Noise Setup**, tweak seed and noise parameters. Use **Random Values** for a quick start.\n4. On **Composite Blend**, choose a blend operation and opacity (or leave **None** for noise only).\n5. Press **Confirm** to apply to the selected texture, or **Save as New Texture** to create a separate variant.\n6. In the preview: **+ / −** to zoom, **Ctrl + scroll** to zoom, drag to pan when zoomed in.\n\n## Tips\n\n- **Noise Only + custom size** is useful for generating standalone noise maps.\n- **Respect Alpha** is handy when you only want noise on painted areas of a skin or texture.\n- Order-dependent modes change when you enable **Swap Operation Order**.\n- Large textures show a confirmation before full-resolution apply; the live preview stays light for smooth sliders.",
     version: '1.0.0',
+    min_version: '4.8.0',
+    creation_date: "2026-09-12",
     variant: 'both',
     tags: ['Texture', 'Paint', 'Tool'],
-    creation_date: '2026-09-12',
     
     onload() {
       if (typeof Blockbench !== 'undefined' && Blockbench.addCSS) {
