@@ -1,4 +1,16 @@
 {
+	"hytale_uv_preserving_scale": {
+		"title": "Hytale UV-Preserving Scale",
+		"author": "CODEFELICE",
+		"description": "Uniformly scales Hytale models without changing their UV size or texture layout.",
+		"icon": "photo_size_select_large",
+		"variant": "both",
+		"tags": ["Hytale", "Scale", "UV"],
+		"version": "1.0.0",
+		"min_version": "5.0.5",
+		"repository": "https://github.com/CODEFELICE/hytale-uv-preserving-scale",
+		"bug_tracker": "https://github.com/CODEFELICE/hytale-uv-preserving-scale/issues"
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
@@ -1167,6 +1179,20 @@
 		"min_version": "4.8.0",
 		"variant": "both"
 	},
+	"easing_peasy": {
+		"title": "Easing Peasy",
+		"author": "Titus Evans (SnaveSutit)",
+		"description": "Adds easing curves to animation keyframes, simplifying the process of creating smooth animations.",
+		"version": "1.0.1",
+		"await_loading": true,
+		"icon": "icon.svg",
+		"variant": "both",
+		"tags": ["Animation", "Easing", "Tools"],
+		"min_version": "5.1.4",
+		"repository": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin",
+		"bug_tracker": "https://github.com/SnaveSutit/easing-peasy-blockbench-plugin/issues",
+		"has_changelog": true
+	},
 	"bedrock_block_transforms": {
 		"title": "Bedrock Block Transformation Preview",
 		"author": "JannisX11",
@@ -1576,6 +1602,39 @@
 		"min_version": "4.8.0",
 		"has_changelog": true
 	},
+	"armor_exploded_view": {
+		"title": "Armor Exploded View",
+		"author": "Dedou3D",
+		"description": "Toggle a configurable exploded view for humanoid armor parts.",
+		"icon": "open_with",
+		"variant": "both",
+		"version": "1.0.0",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "Armor", "Utility"]
+	},
+	"hitbox_guard": {
+		"title": "Hitbox Guard",
+		"author": "Dedou3D",
+		"description": "Create a hitbox for your models.",
+		"icon": "select_all",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
+	},
+	"name_guard": {
+		"title": "Name Guard",
+		"author": "Dedou3D",
+		"description": "Clean folder and cube names for safe ModelEngine exports.",
+		"icon": "drive_file_rename_outline",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.0.0",
+		"new_repository_format": true,
+		"tags": ["Minecraft", "ModelEngine", "Utility"]
+	},
 	"sb_worn_display": {
 		"title": "SB Worn Display Editor",
 		"author": "hrmcngs",
@@ -1589,6 +1648,21 @@
 		"repository": "https://github.com/hrmcngs/sb-worn-display-blockbench",
 		"bug_tracker": "https://github.com/hrmcngs/sb-worn-display-blockbench/issues",
 		"creation_date": "2026-05-31"
+	},
+	"true_mirror": {
+		"title": "True Mirror",
+		"author": "Kegoscho",
+		"icon": "icon.svg",
+		"description": "Mirrors only the change you actually made, instead of symmetrizing the whole element. Asymmetric detail survives unrelated mirrored edits. Move, rotate, scale and extrude, across any axis and around either world zero or the element's own pivot.",
+		"tags": ["Edit", "Meshes", "Mirror"],
+		"version": "1.0.0",
+		"min_version": "5.1.0",
+		"variant": "both",
+		"new_repository_format": true,
+		"has_changelog": true,
+		"repository": "https://github.com/Kegoscho/true-mirror",
+		"bug_tracker": "https://github.com/Kegoscho/true-mirror/issues",
+		"creation_date": "2026-08-04"
 	},
 	"structure_to_model": {
 		"title": "Structure to Model",
@@ -1632,5 +1706,19 @@
 		"variant": "both",
 		"tags": ["Texture", "Paint", "Tool"],
 		"new_repository_format": true
+	},
+	"gltf_to_minecraft": {
+		"title": "glTF to Minecraft",
+		"author": "MopicMP",
+		"icon": "view_in_ar",
+		"description": "Convert glTF models — from an archive, a folder or straight from Sketchfab — into cubes Minecraft can use: a GeckoLib model or a Customizable Player Models skin, with bones, textures and animations.",
+		"tags": ["Minecraft: Java Edition", "Import", "Animation"],
+		"version": "0.1.2",
+		"variant": "both",
+		"min_version": "4.9.0",
+		"website": "https://github.com/MopicMP/gltf-to-minecraft",
+		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
+		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
+		"creation_date": "2026-08-01"
 	}
 }
