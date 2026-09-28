@@ -1785,11 +1785,10 @@
   Plugin.register('bedrock_sound_wizard', {
     title: 'Minecraft Sound Wizard',
     author: 'SpaceMonkeyBoi',
-    // The plugin script lives in src/, while the exact generated PNG icon is at the repository root.
+    // The plugin icon is stored alongside the plugin script.
     // Blockbench resolves plugin image icons relative to the plugin script path.
-    icon: '../icon.svg',
+    icon: 'icon.svg',
     description: 'Add custom sounds directly to your mods without having to manually edit files!',
-    about: 'This plugin is designed to help people add sounds to their mods without needing to mess with file paths and sound_definitions files. Just make sure that all sound files are in OGG format instead of MP4.',
     repository: 'https://github.com/SpaceMonkeyBoi/Minecraft-Bedrock-Sound-Wizard',
     version: VERSION,
     variant: 'desktop',
