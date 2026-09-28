@@ -10,7 +10,7 @@
 		"min_version": "5.0.5",
 		"repository": "https://github.com/CODEFELICE/hytale-uv-preserving-scale",
 		"bug_tracker": "https://github.com/CODEFELICE/hytale-uv-preserving-scale/issues"
-	}
+	},
 	"two_bone_ik": {
 		"title": "IK Tools",
 		"author": "dh",
