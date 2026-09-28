@@ -1704,8 +1704,7 @@
 		"min_version": "4.8.0",
 		"creation_date": "2026-09-12",
 		"variant": "both",
-		"tags": ["Texture", "Paint", "Tool"],
-		"new_repository_format": true
+		"tags": ["Texture", "Paint", "Tool"]
 	},
 	"gltf_to_minecraft": {
 		"title": "glTF to Minecraft",
