@@ -13,6 +13,8 @@
   "settings.bedrock_open_all.desc": "Adds a 'Open All' button when opening a bedrock geometry file that contains multiple models.",
   "settings.bedrock_block_geometry": "Open Bedrock Block Geometry",
   "settings.bedrock_block_geometry.desc": "Adds a File > Import action to open the geometry referenced by a Bedrock block JSON file.",
+  "settings.bedrock_entity_geometry": "Open Bedrock Entity Geometry",
+  "settings.bedrock_entity_geometry.desc": "Opens geometry and custom hit test boxes from a behavior pack entity JSON file.",
   "settings.clear_recent_projects": "Clear Recent Projects",
   "settings.clear_recent_projects.desc": "Adds a button beside Recent on the main screen to clear the recent projects list.",
   "settings.issue_form": "Issue Form",

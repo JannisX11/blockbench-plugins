@@ -5,7 +5,6 @@ type GeometryLocation = { kind: "main" } | { kind: "permutation"; index: number;
 
 class BedrockBlockGeometryTweak extends ToggleTweak {
   private sources = new WeakMap<ModelProject, { path: string; geometry: string; location: GeometryLocation }>();
-  private originalAfterSave?: (path: string) => void;
   private pendingSelection?: { names: Set<string>; opened: (name: string) => void };
 
   constructor() {
@@ -228,11 +227,6 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
         if (pending.names.has(geometry.name)) pending.opened(geometry.name);
       };
     });
-    this.originalAfterSave = Codecs.bedrock.afterSave;
-    Codecs.bedrock.afterSave = (path: string) => {
-      this.originalAfterSave?.call(Codecs.bedrock, path);
-      if (Project) this.saveBoxes(Project);
-    };
     const action = new Action("open_bedrock_block_geometry", {
       name: "Open Bedrock Block Geometry",
       description: "Open the geometry referenced by a Bedrock block JSON file",
@@ -241,6 +235,19 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
       click: () => this.openBlock(),
     });
     MenuBar.addAction(action, "file.import");
+    const saveToBlock = new Action("save_bedrock_block_boxes", {
+      name: "Save to Block",
+      description: "Save collision and selection boxes to the source behavior pack block file",
+      icon: "save",
+      condition: () => !!Project && this.sources.has(Project),
+      click: () => {
+        if (Project) this.saveBoxes(Project);
+      },
+    });
+    const fileItems = MenuBar.menus.file.structure;
+    const saveModelIndex = fileItems.findIndex((item) => item === "save_model" ||
+      (typeof item === "object" && item !== null && "id" in item && item.id === "save_model"));
+    MenuBar.addAction(saveToBlock, saveModelIndex < 0 ? "file" : `file.${saveModelIndex + 1}`);
     const codec = new Codec("bedrock_block_geometry_reference", {
       name: "Bedrock Block Geometry Reference",
       extension: "json",
@@ -251,14 +258,7 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
       },
       load: (data, file) => this.loadBlock(data, file),
     });
-    const save = Blockbench.on("save_project", () => {
-      if (Project) this.saveBoxes(Project);
-    });
-    this.deleteables.push(action, codec, save, select);
-  }
-
-  onDisable(): void {
-    Codecs.bedrock.afterSave = this.originalAfterSave!;
+    this.deleteables.push(action, saveToBlock, codec, select);
   }
 }
 
