@@ -7,7 +7,7 @@
 'use strict';
 
 const PLUGIN_ID = 'armor_trim_editor';
-const PLUGIN_VERSION = '1.0.0';
+const PLUGIN_VERSION = '1.1.0';
 const FORMAT_ID = 'armor_trim';
 
 const TL_PREFIX = 'armor_trim_editor.';
@@ -484,6 +484,10 @@ const Assets = {
 		}
 		return null;
 	},
+	async text(path) {
+		let file = (await this.open()).file(path);
+		return file ? file.async('string') : null;
+	},
 	skin(id, slim) {
 		let variant = slim ? 'slim' : 'wide';
 		return this.image([
@@ -512,7 +516,7 @@ const Assets = {
 // Project data
 // ============================================================================
 
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 function defaultData() {
 	let prefs = Prefs.get();
 	return {
@@ -523,7 +527,7 @@ function defaultData() {
 			pieces: {helmet: true, chestplate: true, leggings: true, boots: true},
 			helmet_inner: true,
 			helmet_outer: true,
-			layers: {trim: true, armor: true, skin: true, skin_outer: true, icon: true},
+			layers: {trim: true, armor: true, skin: true, skin_outer: true, icon: true, armor_icons: true},
 		},
 		armor: {material: 'diamond', leather_color: '#a06540'},
 		preview: {material: 'none', highlight: false},
@@ -542,6 +546,8 @@ function defaultData() {
 			icon_texture: prefs.icon_texture || DEFAULT_ICON_ID,
 			icon_model: prefs.icon_model || DEFAULT_ICON_ID,
 			icon_parent: prefs.icon_parent || 'minecraft:item/generated',
+			armor_icons: true,
+			icon_colors: 'palette',
 			backup: true,
 		},
 		icon_gen: {base: 'sentry', body: '#6a3fb0', accent: '#4bc9c9', glyph: 'recolor', contrast: 1},
@@ -691,10 +697,15 @@ async function buildTrimProject(opts) {
 	icon_cube.faces.south.texture = tex_icon.uuid;
 	icon_cube.faces.south.uv = [16, 0, 0, 16];
 
+	ensureArmorIcons(opts.armor_icons || {});
 	Canvas.updateAll();
 	tex_h.select();
 
 	await Promise.all([refreshSkin(false), refreshArmor(false)]);
+	if (opts.icons_source && !opts.armor_icons) {
+		await Promise.all(trimTextures().map(textureReady));
+		await applyIconGenerator({source: opts.icons_source, mode: 'replace'}, ICON_SLOTS.map(slot => slot.id), false);
+	}
 	applyVisibility();
 	updatePreviewUniforms();
 	Project.saved = true;
@@ -915,6 +926,7 @@ async function refreshArmor(update = true) {
 	let tex_h = findTexture('armor_humanoid'), tex_l = findTexture('armor_leggings');
 	if (tex_h) await setTextureImage(tex_h, await armorDataURL(mat, 'humanoid', data.armor.leather_color));
 	if (tex_l) await setTextureImage(tex_l, await armorDataURL(mat, 'humanoid_leggings', data.armor.leather_color));
+	await refreshArmorIcons();
 	applyVisibility();
 	updatePreviewUniforms();
 	if (update) refreshPanels();
@@ -929,6 +941,7 @@ function applyVisibility() {
 	if (!data) return;
 	let view = data.view;
 	let armor_def = ARMOR_MATERIALS.find(m => m.id == data.armor.material) || ARMOR_MATERIALS[0];
+	let focus = isIconFocus();
 	let changed = [];
 	for (let cube of Cube.all) {
 		let role = cube.trim_role;
@@ -949,7 +962,11 @@ function applyVisibility() {
 			visible = !!(view.layers.skin && (!part || !part.outer || view.layers.skin_outer));
 		} else if (kind == 'icon') {
 			visible = !!view.layers.icon;
+		} else if (kind == 'aicon' || kind == 'aiconbase') {
+			visible = focus || !!view.layers.armor_icons;
 		}
+		// While painting armor icons only the icons are shown
+		if (focus && kind != 'aicon' && kind != 'aiconbase') visible = false;
 		if (cube.visibility != visible) {
 			cube.visibility = visible;
 			changed.push(cube);
@@ -1046,6 +1063,7 @@ function updatePreviewUniforms() {
 			palette.forEach((hex, i) => uniforms.TRIM_VALS.value[i].set(...hexToRgb(hex).map(v => v / 255)));
 		}
 	}
+	updateIconUniforms(data);
 }
 
 // ============================================================================
@@ -1632,6 +1650,7 @@ function validateTrim() {
 	if (icon && icon.canvas && icon.canvas.width != icon.canvas.height) {
 		issues.push({level: 'warn', text: t('the_icon_is_not_square')});
 	}
+	if (iconTextures().length) issues.push({level: 'info', text: t('armor_icons_count', [filledIconSlots().length, ICON_SLOTS.length])});
 	let id_error = trimIdError(data.trim_id);
 	if (id_error) issues.unshift({level: 'error', text: id_error});
 	return issues;
@@ -1888,7 +1907,7 @@ function detectIndent(text) {
 	if (!m) return 4;
 	return m[1].includes('\t') ? '\t' : m[1].length;
 }
-function updateAtlasJSON(text, texture_ids, sync_permutations) {
+function updateAtlasJSON(text, texture_ids, sync_permutations, permutations = VANILLA_PERMUTATIONS) {
 	let json;
 	if (text) {
 		json = JSON.parse(text);
@@ -1904,7 +1923,7 @@ function updateAtlasJSON(text, texture_ids, sync_permutations) {
 	let prefixed = source && Array.isArray(source.textures) && source.textures.length ? source.textures.some(t => t.startsWith('minecraft:')) : false;
 	if (!source) {
 		source = {type: 'paletted_permutations', textures: [], palette_key: 'trims/color_palettes/trim_palette', permutations: {}};
-		for (let perm of VANILLA_PERMUTATIONS) source.permutations[perm] = 'trims/color_palettes/' + perm;
+		for (let perm of permutations) source.permutations[perm] = 'trims/color_palettes/' + perm;
 		json.sources.push(source);
 		changes.push(t('created_paletted_permutations_source'));
 	}
@@ -1920,7 +1939,7 @@ function updateAtlasJSON(text, texture_ids, sync_permutations) {
 	if (sync_permutations) {
 		if (!source.permutations || typeof source.permutations != 'object') source.permutations = {};
 		let perm_prefixed = Object.values(source.permutations).some(v => String(v).startsWith('minecraft:'));
-		for (let perm of VANILLA_PERMUTATIONS) {
+		for (let perm of permutations) {
 			if (!(perm in source.permutations)) {
 				source.permutations[perm] = (perm_prefixed ? 'minecraft:' : '') + 'trims/color_palettes/' + perm;
 				changes.push(t('added_palette') + perm);
@@ -1952,7 +1971,7 @@ function planHeader(pack) {
 	if (pack.kind == 'zip') return `📦 ${PathModule.basename(pack.path)} — ${pack.existed ? t('archive_update') : t('archive_new')}`;
 	return `📁 ${pack.path}`;
 }
-async function describePlan(plan) {
+async function describePlan(plan, data) {
 	let pack = await packStorage(plan.target).load();
 	let mark = (rel) => pack.exists(rel) ? '♻ ' : '＋ ';
 	let lines = [planHeader(pack)];
@@ -1960,6 +1979,7 @@ async function describePlan(plan) {
 	if (!pack.exists('pack.png') && (pack.kind == 'zip' || !pack.exists('pack.mcmeta')) && findTexture('icon')) lines.push('＋ pack.png');
 	for (let file of plan.files) lines.push(mark(file.rel) + file.rel);
 	if (plan.atlas) lines.push((pack.exists(plan.atlas) ? '✎ ' : '＋ ') + plan.atlas);
+	if (data) lines.push(...await describeArmorIcons(pack, data));
 	return lines;
 }
 async function runExport(quiet = false) {
@@ -2005,22 +2025,26 @@ async function runExport(quiet = false) {
 		if (plan.atlas) {
 			let text = await readPackText(pack, plan.atlas) || '';
 			let ids = [`${plan.ns}:trims/entity/humanoid/${plan.id}`, `${plan.ns}:trims/entity/humanoid_leggings/${plan.id}`];
-			let result = updateAtlasJSON(text, ids, data.export.sync_permutations);
+			// Resin came with 1.21.4, copper_darker with 1.21.9
+			let permutations = VANILLA_PERMUTATIONS.filter(perm => (perm != 'copper_darker' || plan.version.rp >= 69) && (perm != 'resin' || plan.version.rp >= 46));
+			let result = updateAtlasJSON(text, ids, data.export.sync_permutations, permutations);
 			if (result.changes.length) {
 				writeJSON(pack, plan.atlas, result.json, text, file_stamp);
 				written.push(plan.atlas);
 			}
 			atlas_changes = result.changes;
 		}
+		let notes = [];
+		let icons_summary = data.export.armor_icons ? await exportArmorIcons(pack, data, file_stamp, written, notes) : '';
 		await pack.save(stamp);
 		let e = data.export;
 		Prefs.set({pack_type: e.pack_type, pack_path: e.pack_path, zip_dir: e.zip_dir, zip_name: e.zip_name, namespace: e.namespace,
 			icon_texture: e.icon_texture, icon_model: e.icon_model, icon_parent: e.icon_parent, mc_version: data.mc_version});
 		data.last_export = {time: Date.now(), files: written.length};
 		if (quiet) {
-			notify(t('trim_exported_files', [plan.id, written.length]), 2500);
+			notify(t('trim_exported_files', [plan.id, written.length]) + (notes.length ? ' · ' + notes[0] : ''), notes.length ? 5000 : 2500);
 		} else {
-			showExportResult(plan, pack, written, atlas_changes);
+			showExportResult(plan, pack, written, atlas_changes, notes, icons_summary);
 		}
 	} catch (err) {
 		showError(t('export_failed'), err);
@@ -2029,11 +2053,13 @@ async function runExport(quiet = false) {
 function itemSnippet(plan) {
 	return JSON.stringify({threshold: 0, model: {type: 'minecraft:model', model: plan.icon_model_id}}, null, 4);
 }
-function showExportResult(plan, pack, written, atlas_changes) {
+function showExportResult(plan, pack, written, atlas_changes, notes = [], icons_summary = '') {
 	let html = `<p>${t('written_to')}: <b class="te_break">${escapeHTML(pack.path)}</b></p>`;
 	html += `<p>${t('files_written')}: <b>${written.length}</b></p><ul class="te_list">${written.map(p => `<li>${escapeHTML(p)}</li>`).join('')}</ul>`;
 	if (atlas_changes.length) html += `<p>${t('atlas')}: ${atlas_changes.map(escapeHTML).join(', ')}</p>`;
+	if (icons_summary) html += `<p>${escapeHTML(icons_summary)}</p>`;
 	if (plan.vanilla) html += `<p>${t('vanilla_atlas_note')}</p>`;
+	if (notes.length) html += `<p class="te_warn_text">${notes.map(escapeHTML).join('<br>')}</p>`;
 	html += `<p class="te_hint">${t('in_game_press_f3_t_to_reload_resources')}</p>`;
 	new Dialog({
 		id: 'armor_trim_editor_export_result',
@@ -2100,6 +2126,10 @@ function openExportDialog() {
 			icon_texture: {label: t('icon_texture'), type: 'text', value: e.icon_texture, condition: (f) => f.icon},
 			icon_model: {label: t('icon_model'), type: 'text', value: e.icon_model, condition: (f) => f.icon},
 			icon_parent: {label: t('model_parent'), type: 'text', value: e.icon_parent, condition: (f) => f.icon},
+			_armor_icons: {type: 'info', text: t('armor_icons_export_info')},
+			armor_icons: {label: t('export_armor_icons'), type: 'checkbox', value: e.armor_icons, description: t('export_armor_icons_desc')},
+			icon_colors: {label: t('icon_colors'), type: 'select', value: e.icon_colors || 'palette', condition: (f) => f.armor_icons,
+				options: {palette: t('icon_colors_palette'), fixed: t('icon_colors_fixed')}},
 			_other: {type: 'info', text: t('other')},
 			backup: {label: t('back_up_overwritten_files'), type: 'checkbox', value: e.backup,
 				description: t('copies_go_to_blockbench_data_armor_trim')},
@@ -2115,7 +2145,7 @@ function openExportDialog() {
 				html = `<div class="te_error">${errors.map(escapeHTML).join('<br>')}</div>`;
 			} else {
 				try {
-					html = `<div class="te_plan_list">${(await describePlan(plan)).map(escapeHTML).join('<br>')}</div>`;
+					html = `<div class="te_plan_list">${(await describePlan(plan, tmp)).map(escapeHTML).join('<br>')}</div>`;
 				} catch (err) {
 					html = `<div class="te_error">${escapeHTML(err.message || String(err))}</div>`;
 				}
@@ -2126,6 +2156,7 @@ function openExportDialog() {
 		},
 		onConfirm(result) {
 			applyExportForm(data, result);
+			updatePreviewUniforms();
 			refreshPanels();
 			runExport(false);
 		},
@@ -2153,6 +2184,8 @@ function applyExportForm(data, result) {
 	if (result.icon_texture !== undefined) e.icon_texture = result.icon_texture.trim();
 	if (result.icon_model !== undefined) e.icon_model = result.icon_model.trim();
 	if (result.icon_parent !== undefined) e.icon_parent = result.icon_parent.trim();
+	e.armor_icons = result.armor_icons;
+	if (result.icon_colors !== undefined) e.icon_colors = result.icon_colors;
 	e.backup = result.backup;
 }
 function quickExport() {
@@ -2529,7 +2562,11 @@ function openImportDialog() {
 						if (!/\.zip$/i.test(this.pack) && !isDirectory(this.pack)) return;
 						let storage = await packStorage(this.pack).load();
 						let list = await scanPackTrims(storage);
-						for (let trim of list) trim.icon = await readPackPNG(storage, iconRel(this.icon_pattern, trim.id));
+						let icons_root = await findIconsRoot(storage, mcVersion(Prefs.get().mc_version));
+						for (let trim of list) {
+							trim.icon = await readPackPNG(storage, iconRel(this.icon_pattern, trim.id));
+							trim.armor_icons = ICON_SLOTS.some(slot => storage.exists(`${icons_root.prefix}assets/minecraft/textures/${slot.texture}/${trim.ns}/${trim.id}.png`));
+						}
 						this.storage = storage;
 						this.list = list;
 						if (!list.length) this.error = t('no_trims_found_in_this_pack');
@@ -2554,6 +2591,7 @@ function openImportDialog() {
 								<span :class="{off: !t.humanoid}">humanoid</span>
 								<span :class="{off: !t.leggings}">leggings</span>
 								<span :class="{off: !t.registered}">${t('atlas_2')}</span>
+								<span :class="{off: !t.armor_icons}">${t('armor_icons_tag')}</span>
 							</span>
 						</li>
 					</ul>
@@ -2579,6 +2617,7 @@ async function importFromPack(storage, trim, icon_pattern) {
 		humanoid: await readPackPNG(storage, trim.humanoid),
 		leggings: await readPackPNG(storage, trim.leggings),
 		icon: await readPackPNG(storage, iconRel(icon_pattern, trim.id)),
+		armor_icons: await readArmorIcons(storage, trim.ns, trim.id),
 		export: Object.assign({namespace: trim.ns, icon_texture: icon_pattern, icon_model: icon_pattern}, target),
 	});
 }
@@ -2614,6 +2653,8 @@ function openNewTrimDialog() {
 			resolution: {label: t('resolution'), type: 'select', value: '1', options: {'1': '64×32 (16x)', '2': '128×64 (32x)', '4': '256×128 (64x)'}},
 			skin: {label: t('skin'), type: 'select', options: skins, value: 'steve'},
 			armor: {label: t('armor_under_trim'), type: 'select', options: armors, value: 'diamond'},
+			armor_icons: {label: t('armor_icons'), type: 'select', value: prefs.new_icons || 'project', description: t('new_icons_desc'),
+				options: {project: t('new_icons_project'), vanilla: t('new_icons_vanilla'), empty: t('new_icons_empty')}},
 		},
 		async onConfirm(result) {
 			let id = sanitizeId(result.trim_id) || 'new_trim';
@@ -2622,7 +2663,9 @@ function openNewTrimDialog() {
 				resolution: parseInt(result.resolution) || 1,
 				armor: result.armor,
 				skin: {source: 'default', id: result.skin, slim: !!DEFAULT_SLIM[result.skin], name: ''},
+				icons_source: result.armor_icons == 'empty' ? null : result.armor_icons,
 			};
+			Prefs.set({new_icons: result.armor_icons});
 			if (result.base.startsWith('vanilla:')) {
 				let pattern = result.base.substring(8);
 				try {
@@ -2680,11 +2723,884 @@ function openHelpDialog() {
 		<p>${t('left_arm_and_leg_reuse_the_right_side')}</p>
 		<p>${t('palette_only_the_8_grays_e0e0e0_000000')}</p>
 		<p>${t('transparency_trims_render_as_cutout')}</p>
-		<p>${t('server_the_pattern_is_registered_by_a')}</p>`;
+		<p>${t('server_the_pattern_is_registered_by_a')}</p>
+		<p>${t('armor_icons_help_short')}</p>`;
 	new Dialog({id: 'armor_trim_editor_help', title: t('how_armor_trims_work'), width: 700,
 		component: {template: `<div class="te_dialog_html">${html}</div>`},
-		buttons: [t('guide_menu'), t('done')], cancelIndex: 1, confirmIndex: 1,
-		onButton(index) { if (index == 0) setTimeout(openGameGuide, 50); }}).show();
+		buttons: [t('guide_menu'), t('armor_icons_full'), t('done')], cancelIndex: 2, confirmIndex: 2,
+		onButton(index) {
+			if (index == 0) setTimeout(openGameGuide, 50);
+			if (index == 1) setTimeout(openArmorIconsHelp, 50);
+		}}).show();
+}
+
+// ============================================================================
+// Armor icons: the trim pattern on armor items in the inventory
+// ============================================================================
+
+// Vanilla draws one shared overlay on every trimmed armor icon, only its color follows the material.
+// Visual Armor Trims (Thanos, CC BY-SA 4.0) gives each pattern overlays of its own, one per armor shape:
+// four shapes shared by most armor and three items that are shaped differently.
+const ICON_SLOTS = [
+	{id: 'helmet', piece: 'helmet', generic: true, texture: 'trims/items/helmet_trim'},
+	{id: 'chestplate', piece: 'chestplate', generic: true, texture: 'trims/items/chestplate_trim'},
+	{id: 'leggings', piece: 'leggings', generic: true, texture: 'trims/items/leggings_trim'},
+	{id: 'boots', piece: 'boots', generic: true, texture: 'trims/items/boots_trim'},
+	{id: 'netherite_helmet', piece: 'helmet', item: 'netherite_helmet', texture: 'item/netherite_helmet/trim', copy_from: 'helmet'},
+	{id: 'turtle_helmet', piece: 'helmet', item: 'turtle_helmet', texture: 'item/turtle_helmet/trim', copy_from: 'helmet'},
+	{id: 'netherite_boots', piece: 'boots', item: 'netherite_boots', texture: 'item/netherite_boots/trim', copy_from: 'boots'},
+];
+// Every armor item: the icon it uses and the trim material that gets the darker palette on it
+const ARMOR_ITEMS = [];
+for (let [armor, prefix, material] of [['leather', 'leather', null], ['chainmail', 'chainmail', null], ['iron', 'iron', 'iron'], ['gold', 'golden', 'gold'],
+	['diamond', 'diamond', 'diamond'], ['copper', 'copper', 'copper'], ['netherite', 'netherite', 'netherite']]) {
+	for (let piece of PIECE_ORDER) {
+		let item = prefix + '_' + piece;
+		let own_shape = armor == 'netherite' && (piece == 'helmet' || piece == 'boots');
+		ARMOR_ITEMS.push({item, armor, piece, slot: own_shape ? item : piece, material, leather: armor == 'leather'});
+	}
+}
+ARMOR_ITEMS.push({item: 'turtle_helmet', armor: 'turtle_scute', piece: 'helmet', slot: 'turtle_helmet', material: null, leather: false});
+const ITEM_PREFIX = {leather: 'leather', chainmail: 'chainmail', iron: 'iron', gold: 'golden', diamond: 'diamond', copper: 'copper', netherite: 'netherite'};
+const ICON_SHAPES = ['outline', 'inner_outline', 'stripes_h', 'stripes_v', 'diagonal', 'diagonal2', 'checker', 'dots',
+	'band_top', 'band_middle', 'band_bottom', 'fill'];
+const ICON_SHEET_WIDTH = ICON_SLOTS.length * 16;
+
+function iconSlot(id) {
+	return ICON_SLOTS.find(s => s.id == id);
+}
+function iconTexture(slot_id) {
+	return findTexture('aicon_' + slot_id);
+}
+function iconTextures() {
+	return ICON_SLOTS.map(s => iconTexture(s.id)).filter(Boolean);
+}
+function filledIconSlots() {
+	return ICON_SLOTS.filter(slot => !iconIsEmpty(iconTexture(slot.id)));
+}
+function iconSlotItem(slot, armor) {
+	// The item drawn under an icon: the selected armor where it uses this icon, iron otherwise
+	if (!slot.generic) return slot.item;
+	let item = (ITEM_PREFIX[armor] || 'iron') + '_' + slot.id;
+	return ARMOR_ITEMS.some(a => a.item == item && a.slot == slot.id) ? item : 'iron_' + slot.id;
+}
+function itemTrimMaterial(item) {
+	let entry = ARMOR_ITEMS.find(a => a.item == item);
+	return entry ? entry.material : null;
+}
+function iconPaletteId(data, item, material = data.preview.material) {
+	if (!material || material == 'none' || data.export.icon_colors == 'fixed') return null;
+	return effectivePaletteId(material, itemTrimMaterial(item));
+}
+function iconCardBox(index) {
+	// Left of the player as seen from the front: the four common icons on top, the three special ones below
+	let slot = ICON_SLOTS[index];
+	let column = slot.generic ? index : {netherite_helmet: 0, turtle_helmet: 1, netherite_boots: 3}[slot.id];
+	let x1 = 98 - column * 18;
+	let y0 = slot.generic ? 18 : 0;
+	return {x0: x1 - 16, x1, y0, y1: y0 + 16};
+}
+function iconCardsBounds() {
+	let boxes = ICON_SLOTS.map((s, i) => iconCardBox(i));
+	return {
+		x0: Math.min(...boxes.map(b => b.x0)), x1: Math.max(...boxes.map(b => b.x1)),
+		y0: Math.min(...boxes.map(b => b.y0)), y1: Math.max(...boxes.map(b => b.y1)),
+	};
+}
+
+const item_canvas_cache = new Map();
+async function armorItemCanvas(item, leather_color = '#a06540') {
+	let key = item + (item.startsWith('leather_') ? leather_color : '');
+	if (item_canvas_cache.has(key)) return item_canvas_cache.get(key);
+	let {canvas, ctx} = makeCanvas(16, 16);
+	let found = false;
+	try {
+		let piece = item.substring(item.lastIndexOf('_') + 1);
+		// Copper armor only exists in newer jars
+		let url = await Assets.image(`assets/minecraft/textures/item/${item}.png`);
+		if (!url) url = await Assets.image(`assets/minecraft/textures/item/iron_${piece}.png`);
+		if (url) {
+			let image = await dataURLToCanvas(url);
+			ctx.drawImage(item.startsWith('leather_') ? tintCanvas(image, leather_color) : image, 0, 0, 16, 16);
+			found = true;
+		}
+		if (item.startsWith('leather_')) {
+			let overlay = await Assets.image(`assets/minecraft/textures/item/${item}_overlay.png`);
+			if (overlay) ctx.drawImage(await dataURLToCanvas(overlay), 0, 0, 16, 16);
+		}
+	} catch (err) {
+		console.warn('[Trim Editor] armor item:', err);
+	}
+	if (found) item_canvas_cache.set(key, canvas);
+	return canvas;
+}
+const slot_masks = {};
+async function iconSlotMask(slot) {
+	// Union of the silhouettes of every item that uses this icon
+	if (slot_masks[slot.id]) return slot_masks[slot.id];
+	let mask = new Uint8Array(256);
+	for (let entry of ARMOR_ITEMS.filter(a => a.slot == slot.id)) {
+		let px = (await armorItemCanvas(entry.item)).getContext('2d').getImageData(0, 0, 16, 16).data;
+		for (let i = 0; i < 256; i++) if (px[i * 4 + 3] > 0) mask[i] = 1;
+	}
+	if (!mask.some(v => v)) {
+		// No jar: the whole square
+		mask.fill(1);
+		return mask;
+	}
+	slot_masks[slot.id] = mask;
+	return mask;
+}
+function maskAt(mask, x, y) {
+	return x >= 0 && y >= 0 && x < 16 && y < 16 && !!mask[y * 16 + x];
+}
+function maskEdge(mask, x, y) {
+	return maskAt(mask, x, y) && (!maskAt(mask, x - 1, y) || !maskAt(mask, x + 1, y) || !maskAt(mask, x, y - 1) || !maskAt(mask, x, y + 1));
+}
+function erodeMask(mask) {
+	// Keeps the item's own dark outline free
+	let inner = new Uint8Array(256);
+	for (let y = 0; y < 16; y++) {
+		for (let x = 0; x < 16; x++) inner[y * 16 + x] = maskAt(mask, x, y) && !maskEdge(mask, x, y) ? 1 : 0;
+	}
+	return inner.some(v => v) ? inner : mask;
+}
+function maskBBox(mask) {
+	let box = null;
+	for (let y = 0; y < 16; y++) {
+		for (let x = 0; x < 16; x++) {
+			if (!mask[y * 16 + x]) continue;
+			if (!box) box = {x0: x, y0: y, x1: x, y1: y};
+			box.x0 = Math.min(box.x0, x); box.x1 = Math.max(box.x1, x);
+			box.y0 = Math.min(box.y0, y); box.y1 = Math.max(box.y1, y);
+		}
+	}
+	return box || {x0: 0, y0: 0, x1: 15, y1: 15};
+}
+function canvasOf(texture) {
+	let {canvas, ctx} = makeCanvas(16, 16);
+	if (texture && texture.canvas && texture.canvas.width) ctx.drawImage(texture.canvas, 0, 0, 16, 16);
+	return canvas;
+}
+function recolorCanvas(source, palette_id) {
+	let palette = palette_id && PALETTES[palette_id];
+	if (!palette) return source;
+	let {canvas, ctx} = makeCanvas(source.width, source.height);
+	ctx.drawImage(source, 0, 0);
+	let image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	let px = image.data;
+	let map = new Map(KEY_RGB.map((key, i) => [key.join(','), hexToRgb(palette[i])]));
+	for (let i = 0; i < px.length; i += 4) {
+		if (px[i + 3] == 0) continue;
+		let to = map.get(px[i] + ',' + px[i + 1] + ',' + px[i + 2]);
+		if (to) { px[i] = to[0]; px[i + 1] = to[1]; px[i + 2] = to[2]; }
+	}
+	ctx.putImageData(image, 0, 0);
+	return canvas;
+}
+function composeIcon(base, overlay, palette_id) {
+	let {canvas, ctx} = makeCanvas(16, 16);
+	if (base) ctx.drawImage(base, 0, 0, 16, 16);
+	if (overlay) ctx.drawImage(recolorCanvas(overlay, palette_id), 0, 0, 16, 16);
+	return canvas;
+}
+function iconIsEmpty(texture) {
+	if (!texture || !texture.canvas || !texture.canvas.width) return true;
+	let px = texture.canvas.getContext('2d').getImageData(0, 0, texture.canvas.width, texture.canvas.height).data;
+	for (let i = 3; i < px.length; i += 4) if (px[i] > 0) return false;
+	return true;
+}
+function textureReady(texture) {
+	if (!texture || !texture.img || (texture.img.complete && texture.img.naturalWidth)) return Promise.resolve();
+	return new Promise(resolve => {
+		texture.img.addEventListener('load', () => setTimeout(resolve, 20), {once: true});
+		setTimeout(resolve, 1500);
+	});
+}
+
+// --- Project textures and cards ---------------------------------------------
+
+function ensureArmorIcons(overlays = {}) {
+	if (!D()) return false;
+	let created = false;
+	let group = Group.all.find(g => g.name == 'armor_icons' && !(g.parent instanceof Group));
+	if (!group) {
+		group = new Group({name: 'armor_icons', origin: [0, 0, 0]});
+		group.init();
+		group.addTo();
+		group.isOpen = false;
+	}
+	let sheet = findTexture('aicon_bases');
+	if (!sheet) {
+		sheet = createTexture('aicon_bases', t('armor_icon_bases'), blankDataURL(ICON_SHEET_WIDTH, 16), ICON_SHEET_WIDTH, 16);
+		created = true;
+	}
+	ICON_SLOTS.forEach((slot, index) => {
+		let overlay = iconTexture(slot.id);
+		if (!overlay) {
+			overlay = createTexture('aicon_' + slot.id, 'icon_' + slot.id, overlays[slot.id] || blankDataURL(16, 16), 16, 16);
+			created = true;
+		}
+		let box = iconCardBox(index);
+		let card = (role, texture, uv, z, locked, name) => {
+			if (Cube.all.find(c => c.trim_role == role)) return;
+			let cube = new Cube({name, trim_role: role, from: [box.x0, box.y0, z], to: [box.x1, box.y1, z], box_uv: false, locked, color: locked ? 5 : 2});
+			cube.addTo(group).init();
+			for (let face in cube.faces) cube.faces[face].texture = null;
+			cube.faces.north.texture = texture.uuid;
+			cube.faces.north.uv = uv.slice();
+			cube.faces.south.texture = texture.uuid;
+			cube.faces.south.uv = [uv[2], uv[1], uv[0], uv[3]];
+			created = true;
+		};
+		// The icon sits a hair in front of the item under it, so the brush always lands on the icon
+		card('aicon/' + slot.id, overlay, [0, 0, 16, 16], -0.05, false, t('armor_icon_card', [t('slot_' + slot.id)]));
+		card('aiconbase/' + slot.id, sheet, [index * 16, 0, index * 16 + 16, 16], 0, true, t('armor_icon_base_card', [t('slot_' + slot.id)]));
+	});
+	if (created) Canvas.updateAll();
+	return created;
+}
+async function refreshArmorIcons() {
+	let data = D();
+	let sheet = findTexture('aicon_bases');
+	if (!data || !sheet) return;
+	let {canvas, ctx} = makeCanvas(ICON_SHEET_WIDTH, 16);
+	for (let [index, slot] of ICON_SLOTS.entries()) {
+		ctx.drawImage(await armorItemCanvas(iconSlotItem(slot, data.armor.material), data.armor.leather_color), index * 16, 0);
+	}
+	await setTextureImage(sheet, canvas.toDataURL('image/png'));
+	updatePreviewUniforms();
+}
+function updateIconUniforms(data) {
+	for (let slot of ICON_SLOTS) {
+		let texture = iconTexture(slot.id);
+		if (!texture || !patchMaterial(texture)) continue;
+		let palette_id = iconPaletteId(data, iconSlotItem(slot, data.armor.material));
+		let palette = palette_id && PALETTES[palette_id];
+		let uniforms = texture.getOwnMaterial().uniforms;
+		uniforms.TRIM_MODE.value = (palette ? 1 : 0) + (data.preview.highlight ? 2 : 0);
+		uniforms.TRIM_DECAL.value = 0;
+		uniforms.TRIM_ARMOR_MAP.value = null;
+		if (palette) palette.forEach((hex, i) => uniforms.TRIM_VALS.value[i].set(...hexToRgb(hex).map(v => v / 255)));
+	}
+}
+
+// Flat painting: only the icons, straight in front of an orthographic camera that does not rotate
+let icon_focus = null;
+function isIconFocus() {
+	return !!(icon_focus && Project && icon_focus.project == Project.uuid);
+}
+function setIconFocus(on) {
+	let data = D();
+	let preview = Preview.selected;
+	if (!preview) return;
+	if (on && data && !isIconFocus()) {
+		ensureArmorIcons();
+		icon_focus = {
+			project: Project.uuid,
+			camera: {position: preview.camera.position.toArray(), target: preview.controls.target.toArray(),
+				projection: preview.isOrtho ? 'orthographic' : 'perspective', zoom: preview.camera.zoom},
+		};
+		applyVisibility();
+		let b = iconCardsBounds();
+		let cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+		let zoom = Math.min(preview.width / 40 / (b.x1 - b.x0 + 10), preview.height / 40 / (b.y1 - b.y0 + 10));
+		preview.loadAnglePreset({position: [cx, cy, -300], target: [cx, cy, 0], projection: 'orthographic', zoom});
+		preview.controls.enableRotate = false;
+		let selected = iconTextures().find(texture => texture.selected);
+		let first = iconTexture(ICON_SLOTS[0].id);
+		if (!selected && first) first.select();
+	} else if (!on && icon_focus) {
+		let camera = icon_focus.camera;
+		let own = isIconFocus();
+		icon_focus = null;
+		preview.controls.enableRotate = true;
+		if (own) {
+			applyVisibility();
+			preview.loadAnglePreset(camera);
+		}
+	}
+	refreshPanels();
+}
+
+// --- Generators -------------------------------------------------------------
+
+function trimFrontView(piece) {
+	// Front view of one painted armor piece, one pixel per texel; the player's right side is on the left
+	let humanoid = findTexture('trim_humanoid'), leggings = findTexture('trim_leggings');
+	let draw = (ctx, texture, sx, sy, sw, sh, dx, dy, mirror) => {
+		if (!texture || !texture.canvas || !texture.canvas.width) return;
+		let s = texture.canvas.width / 64;
+		ctx.save();
+		if (mirror) {
+			ctx.translate(dx + sw, dy);
+			ctx.scale(-1, 1);
+			dx = 0; dy = 0;
+		}
+		ctx.drawImage(texture.canvas, sx * s, sy * s, sw * s, sh * s, dx, dy, sw, sh);
+		ctx.restore();
+	};
+	let canvas, ctx;
+	if (piece == 'helmet') {
+		({canvas, ctx} = makeCanvas(8, 8));
+		draw(ctx, humanoid, 8, 8, 8, 8, 0, 0);
+		draw(ctx, humanoid, 40, 8, 8, 8, 0, 0);
+	} else if (piece == 'chestplate') {
+		({canvas, ctx} = makeCanvas(16, 12));
+		draw(ctx, humanoid, 44, 20, 4, 12, 0, 0);
+		draw(ctx, humanoid, 20, 20, 8, 12, 4, 0);
+		draw(ctx, humanoid, 44, 20, 4, 12, 12, 0, true);
+	} else if (piece == 'leggings') {
+		({canvas, ctx} = makeCanvas(8, 16));
+		draw(ctx, leggings, 20, 28, 8, 4, 0, 0);
+		draw(ctx, leggings, 4, 20, 4, 12, 0, 4);
+		draw(ctx, leggings, 4, 20, 4, 12, 4, 4, true);
+	} else {
+		({canvas, ctx} = makeCanvas(8, 6));
+		draw(ctx, humanoid, 4, 26, 4, 6, 0, 0);
+		draw(ctx, humanoid, 4, 26, 4, 6, 4, 0, true);
+	}
+	return canvas;
+}
+function fitIntoMask(source, mask, target) {
+	// Stretch a picture over the bounding box of a silhouette and keep what lands inside it
+	let box = maskBBox(mask);
+	let w = box.x1 - box.x0 + 1, h = box.y1 - box.y0 + 1;
+	let src = source.getContext('2d').getImageData(0, 0, source.width, source.height).data;
+	for (let y = box.y0; y <= box.y1; y++) {
+		for (let x = box.x0; x <= box.x1; x++) {
+			if (!mask[y * 16 + x]) continue;
+			let u = Math.min(source.width - 1, Math.floor((x - box.x0 + 0.5) * source.width / w));
+			let v = Math.min(source.height - 1, Math.floor((y - box.y0 + 0.5) * source.height / h));
+			let i = (v * source.width + u) * 4;
+			if (src[i + 3] == 0) continue;
+			let o = (y * 16 + x) * 4;
+			for (let c = 0; c < 4; c++) target[o + c] = src[i + c];
+		}
+	}
+}
+function shapeHit(opts, x, y, mask, inner) {
+	let {shape, step, size} = opts;
+	if (shape == 'outline') return maskEdge(mask, x, y);
+	if (shape == 'inner_outline') return inner !== mask && maskEdge(inner, x, y);
+	if (!maskAt(inner, x, y)) return false;
+	let box = maskBBox(inner);
+	let rx = x - box.x0, ry = y - box.y0;
+	let band = (center) => y >= center - Math.floor((size - 1) / 2) && y <= center + Math.floor(size / 2);
+	switch (shape) {
+		case 'fill': return true;
+		case 'stripes_h': return ry % step < size;
+		case 'stripes_v': return rx % step < size;
+		case 'diagonal': return (rx + ry) % step < size;
+		case 'diagonal2': return ((rx - ry) % step + step) % step < size;
+		case 'checker': return (Math.floor(rx / size) + Math.floor(ry / size)) % 2 == 0;
+		case 'dots': return rx % step == 0 && ry % step == 0;
+		case 'band_top': return y - box.y0 < size;
+		case 'band_middle': return band(Math.floor((box.y0 + box.y1) / 2));
+		case 'band_bottom': return box.y1 - y < size;
+	}
+	return false;
+}
+async function generateIcon(slot, opts, current) {
+	// current: the icons as they are now (for drawing on top and for copying)
+	let mask = await iconSlotMask(slot);
+	let inner = erodeMask(mask);
+	let {canvas, ctx} = makeCanvas(16, 16);
+	if (opts.mode == 'add' && opts.source != 'clear' && current[slot.id]) ctx.drawImage(current[slot.id], 0, 0);
+	let image = ctx.getImageData(0, 0, 16, 16);
+	let px = image.data;
+	if (opts.source == 'project') {
+		fitIntoMask(trimFrontView(slot.piece), inner, px);
+	} else if (opts.source == 'vanilla') {
+		let url = null;
+		try { url = await Assets.image(`assets/minecraft/textures/trims/items/${slot.piece}_trim.png`); } catch (err) {}
+		if (url) {
+			let src = (await dataURLToCanvas(url)).getContext('2d').getImageData(0, 0, 16, 16).data;
+			for (let i = 0; i < 256; i++) {
+				if (!mask[i] || src[i * 4 + 3] == 0) continue;
+				for (let c = 0; c < 4; c++) px[i * 4 + c] = src[i * 4 + c];
+			}
+		}
+	} else if (opts.source == 'copy') {
+		let from = slot.copy_from && current[slot.copy_from];
+		if (from) {
+			// Crop the common icon to its silhouette, then fit it into this item's silhouette
+			let from_box = maskBBox(erodeMask(await iconSlotMask(iconSlot(slot.copy_from))));
+			let {canvas: crop, ctx: crop_ctx} = makeCanvas(from_box.x1 - from_box.x0 + 1, from_box.y1 - from_box.y0 + 1);
+			crop_ctx.drawImage(from, -from_box.x0, -from_box.y0);
+			fitIntoMask(crop, inner, px);
+		}
+	} else if (opts.source == 'shape') {
+		let [r, g, b] = hexToRgb(opts.color);
+		for (let y = 0; y < 16; y++) {
+			for (let x = 0; x < 16; x++) {
+				if (!shapeHit(opts, x, y, mask, inner)) continue;
+				let o = (y * 16 + x) * 4;
+				px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255;
+			}
+		}
+	}
+	ctx.putImageData(image, 0, 0);
+	return canvas;
+}
+function currentIcons() {
+	let current = {};
+	for (let slot of ICON_SLOTS) current[slot.id] = canvasOf(iconTexture(slot.id));
+	return current;
+}
+function generatorApplies(opts, slot) {
+	return opts.source != 'copy' || !!slot.copy_from;
+}
+async function applyIconGenerator(opts, slot_ids, undo = true) {
+	let current = currentIcons();
+	let results = [];
+	for (let id of slot_ids) {
+		let slot = iconSlot(id);
+		let texture = iconTexture(id);
+		if (!slot || !texture || !generatorApplies(opts, slot)) continue;
+		await textureReady(texture);
+		results.push([texture, await generateIcon(slot, opts, current)]);
+	}
+	if (!results.length) return;
+	if (undo) Undo.initEdit({textures: results.map(r => r[0]), bitmap: true});
+	for (let [texture, canvas] of results) {
+		texture.edit((target) => {
+			let ctx = target.getContext('2d');
+			ctx.imageSmoothingEnabled = false;
+			ctx.clearRect(0, 0, target.width, target.height);
+			ctx.drawImage(canvas, 0, 0, target.width, target.height);
+		}, {no_undo: true});
+	}
+	if (undo) Undo.finishEdit(t('generate_armor_icons'));
+}
+
+function openArmorIconGenerators() {
+	let data = D();
+	if (!data) return;
+	ensureArmorIcons();
+	let keys = PALETTE_KEY.map(hex => ({hex, name: hex.toUpperCase()}));
+	let dialog = new Dialog({
+		id: 'armor_trim_editor_armor_icons',
+		title: t('armor_icons_title'),
+		width: 700,
+		component: {
+			data() {
+				return {
+					slots: ICON_SLOTS.map(s => ({id: s.id, name: t('slot_' + s.id), on: true})),
+					source: 'project',
+					sources: ['project', 'vanilla', 'shape', 'copy', 'clear'].map(id => ({id, name: t('icon_source_' + id)})),
+					shapes: ICON_SHAPES.map(id => ({id, name: t('shape_' + id)})),
+					shape: 'inner_outline', step: 3, size: 1, color: '#c0c0c0', custom: '#c0c0c0', keys,
+					mode: 'replace',
+					material: data.export.icon_colors == 'fixed' ? 'none' : data.preview.material,
+					materials: [{id: 'none', name: t('as_painted_2')}].concat(TRIM_MATERIALS.map(m => ({id: m.id, name: m.name}))),
+				};
+			},
+			computed: {
+				opts() {
+					return {source: this.source, shape: this.shape, step: this.step, size: this.size, color: this.color, mode: this.mode};
+				},
+				hint() {
+					if (this.source == 'project') return t('icon_source_project_hint');
+					if (this.source == 'copy') return t('icon_source_copy_hint');
+					if (this.source == 'vanilla') return t('icon_source_vanilla_hint');
+					return t('icon_palette_hint');
+				},
+			},
+			watch: {
+				opts: {deep: true, handler() { this.render(); }},
+				material() { this.render(); },
+				slots: {deep: true, handler() { this.render(); }},
+			},
+			methods: {
+				async render() {
+					let run = this.run = (this.run || 0) + 1;
+					let current = currentIcons();
+					for (let entry of this.slots) {
+						let slot = iconSlot(entry.id);
+						let item = iconSlotItem(slot, data.armor.material);
+						let overlay = entry.on && generatorApplies(this.opts, slot) ? await generateIcon(slot, this.opts, current) : current[slot.id];
+						let base = await armorItemCanvas(item, data.armor.leather_color);
+						if (run != this.run) return;
+						let icon = composeIcon(base, overlay, iconPaletteId(data, item, this.material));
+						let target = this.$refs['c_' + entry.id] && this.$refs['c_' + entry.id][0];
+						if (!target) continue;
+						let ctx = target.getContext('2d');
+						ctx.imageSmoothingEnabled = false;
+						ctx.clearRect(0, 0, target.width, target.height);
+						ctx.drawImage(icon, 0, 0, target.width, target.height);
+					}
+				},
+				all(on) { this.slots.forEach(s => s.on = on); },
+			},
+			mounted() { this.render(); },
+			template: `
+				<div class="te_icons_gen">
+					<div class="te_icon_cards">
+						<div v-for="s in slots" class="te_icon_card" :class="{off: !s.on}" @click="s.on = !s.on" :title="s.name">
+							<canvas :ref="'c_' + s.id" width="64" height="64" class="te_checker"></canvas>
+							<div class="te_small">{{ s.name }}</div>
+						</div>
+					</div>
+					<div class="te_row te_center">
+						<span class="te_link" @click="all(true)">${t('select_all')}</span>
+						<span class="te_link" @click="all(false)">${t('select_none')}</span>
+						<span class="te_small">· ${t('armor_icons_click_cards')}</span>
+					</div>
+					<div class="te_form_row"><label>${t('icon_source')}</label>
+						<select v-model="source"><option v-for="o in sources" :value="o.id">{{ o.name }}</option></select>
+					</div>
+					<template v-if="source == 'shape'">
+						<div class="te_form_row"><label>${t('shape')}</label>
+							<select v-model="shape"><option v-for="o in shapes" :value="o.id">{{ o.name }}</option></select>
+						</div>
+						<div class="te_form_row"><label>${t('shape_step')}</label><input type="range" min="2" max="6" step="1" v-model.number="step"><span class="te_w_num">{{ step }}</span></div>
+						<div class="te_form_row"><label>${t('shape_size')}</label><input type="range" min="1" max="4" step="1" v-model.number="size"><span class="te_w_num">{{ size }}</span></div>
+						<div class="te_form_row"><label>${t('shape_color')}</label>
+							<div class="te_palette te_palette_inline">
+								<div v-for="k in keys" class="te_key" :class="{on: color == k.hex}" @click="color = k.hex" :title="k.name"><div :style="{background: k.hex}"></div></div>
+							</div>
+							<input type="color" v-model="custom" @input="color = custom" title="${t('custom_color')}">
+						</div>
+					</template>
+					<div class="te_form_row" v-if="source != 'clear' && source != 'copy'"><label>${t('icon_mode')}</label>
+						<select v-model="mode">
+							<option value="replace">${t('icon_mode_replace')}</option>
+							<option value="add">${t('icon_mode_add')}</option>
+						</select>
+					</div>
+					<div class="te_form_row"><label>${t('preview_material')}</label>
+						<select v-model="material"><option v-for="m in materials" :value="m.id">{{ m.name }}</option></select>
+					</div>
+					<p class="te_hint">{{ hint }}</p>
+				</div>`,
+		},
+		onConfirm() {
+			let vm = this.content_vue;
+			if (!vm) return;
+			let ids = vm.slots.filter(s => s.on).map(s => s.id);
+			applyIconGenerator(vm.opts, ids).then(() => refreshPanels()).catch(err => showError(t('armor_icons_title'), err));
+		},
+	});
+	dialog.show();
+}
+
+function openIconGrid() {
+	let data = D();
+	if (!data) return;
+	ensureArmorIcons();
+	let armor_name = (id) => (ARMOR_MATERIALS.find(a => a.id == id) || {}).name || id;
+	new Dialog({
+		id: 'armor_trim_editor_icon_grid',
+		title: t('icon_grid_title'),
+		width: 640,
+		component: {
+			data() {
+				return {
+					piece: 'chestplate',
+					pieces: PIECE_ORDER.map(id => ({id, name: PIECE_NAMES[id]})),
+					cols: [{id: 'none', name: t('as_painted_2'), color: ''}].concat(TRIM_MATERIALS.map(m => ({id: m.id, name: m.name, color: m.color}))),
+					fixed: data.export.icon_colors == 'fixed',
+				};
+			},
+			computed: {
+				rows() {
+					return ARMOR_ITEMS.filter(a => a.piece == this.piece).map(a => ({item: a.item, name: armor_name(a.armor), slot: a.slot}));
+				},
+			},
+			watch: {piece() { this.$nextTick(() => this.draw()); }},
+			methods: {
+				async draw() {
+					let overlays = currentIcons();
+					for (let row of this.rows) {
+						let base = await armorItemCanvas(row.item, data.armor.leather_color);
+						for (let col of this.cols) {
+							let ref = this.$refs[row.item + '/' + col.id];
+							let target = ref && ref[0];
+							if (!target) continue;
+							let ctx = target.getContext('2d');
+							ctx.imageSmoothingEnabled = false;
+							ctx.clearRect(0, 0, 16, 16);
+							ctx.drawImage(composeIcon(base, overlays[row.slot], iconPaletteId(data, row.item, col.id)), 0, 0);
+						}
+					}
+				},
+			},
+			mounted() { this.draw(); },
+			template: `
+				<div class="te_icon_grid">
+					<div class="te_chips">
+						<div v-for="p in pieces" class="te_chip small" :class="{on: piece == p.id}" @click="piece = p.id">{{ p.name }}</div>
+					</div>
+					<table>
+						<tr><th></th><th v-for="c in cols" :title="c.name"><div class="te_grid_head" :style="{background: c.color || 'transparent'}">{{ c.color ? '' : '—' }}</div></th></tr>
+						<tr v-for="r in rows">
+							<td class="te_small">{{ r.name }}</td>
+							<td v-for="c in cols"><canvas :ref="r.item + '/' + c.id" width="16" height="16" :title="r.name + ' · ' + c.name"></canvas></td>
+						</tr>
+					</table>
+					<p class="te_hint">{{ fixed ? '${t('icon_grid_hint_fixed')}' : '${t('icon_grid_hint')}' }}</p>
+				</div>`,
+		},
+		singleButton: true,
+	}).show();
+}
+
+function openArmorIconsHelp() {
+	let html = ['armor_icons_help_why', 'armor_icons_help_what', 'armor_icons_help_slots', 'armor_icons_help_colors',
+		'armor_icons_help_paint', 'armor_icons_help_export'].map(key => `<p>${t(key)}</p>`).join('');
+	new Dialog({id: 'armor_trim_editor_armor_icons_help', title: t('armor_icons_full'), width: 680,
+		component: {template: `<div class="te_dialog_html">${html}</div>`},
+		buttons: [t('armor_icons_generators'), t('done')], cancelIndex: 1, confirmIndex: 1,
+		onButton(index) { if (index == 0) setTimeout(openArmorIconGenerators, 50); }}).show();
+}
+
+// --- Export into the resource pack -------------------------------------------
+
+function iconMaterials() {
+	return TRIM_MATERIALS.map(m => m.id);
+}
+function hasDarkerPalette(material, version) {
+	// Copper armor and its darker palette came with 1.21.9
+	let def = TRIM_MATERIALS.find(m => m.id == material);
+	return !!(def && def.armor) && (material != 'copper' || version.rp >= 69);
+}
+function overlayCovers(entry, rp) {
+	// Overlay ranges come as a number, [min, max], {min_inclusive, max_inclusive} or min_format/max_format
+	let range = entry.formats;
+	let min = entry.min_format, max = entry.max_format;
+	if (typeof range == 'number') min = max = range;
+	else if (Array.isArray(range)) [min, max] = range;
+	else if (range && typeof range == 'object') { min = range.min_inclusive; max = range.max_inclusive; }
+	if (Array.isArray(min)) min = min[0];
+	if (Array.isArray(max)) max = max[0];
+	return (min === undefined || rp >= min) && (max === undefined || rp <= max);
+}
+async function iconsAtlasName(pack, prefix, version) {
+	for (let name of ['items.json', 'blocks.json']) {
+		let text = await readPackText(pack, `${prefix}assets/minecraft/atlases/${name}`);
+		if (text && text.includes('"separator"') && text.includes('minecraft/gold')) return name;
+	}
+	// Item textures moved to their own atlas in 1.21.11
+	return version.rp >= 75 ? 'items.json' : 'blocks.json';
+}
+async function findIconsRoot(pack, version) {
+	// Visual Armor Trims usually lives in an overlay; later overlays win, so they are checked first
+	let prefixes = [];
+	try {
+		let meta = JSON.parse(await readPackText(pack, 'pack.mcmeta'));
+		for (let entry of (meta.overlays && meta.overlays.entries) || []) {
+			if (entry && entry.directory && overlayCovers(entry, version.rp)) prefixes.push(entry.directory + '/');
+		}
+	} catch (err) {}
+	prefixes.reverse();
+	prefixes.push('');
+	for (let prefix of prefixes) {
+		let text = await readPackText(pack, prefix + 'assets/minecraft/items/iron_chestplate.json');
+		if (text && text.includes('"minecraft:component"') && text.includes('minecraft:trim')) {
+			return {prefix, vat: text.includes('minecraft:has_component'), atlas: await iconsAtlasName(pack, prefix, version)};
+		}
+	}
+	return {prefix: '', vat: false, atlas: await iconsAtlasName(pack, '', version)};
+}
+function modelTints(node) {
+	if (!node || typeof node != 'object') return null;
+	if (node.tints) return node.tints;
+	for (let child of [node.fallback, node.on_false, node.cases && node.cases[0] && node.cases[0].model]) {
+		let tints = modelTints(child);
+		if (tints) return tints;
+	}
+	return null;
+}
+function injectItemCases(def, key, modelFor, with_fallback) {
+	// Adds or replaces the cases of one pattern; modelFor == null removes them. False for an unknown layout.
+	let root = def && def.model;
+	if (!root || root.type != 'minecraft:select' || root.property != 'minecraft:trim_material' || !Array.isArray(root.cases)) return false;
+	let tints = modelTints(root);
+	let make = (model) => Object.assign({type: 'minecraft:model', model}, tints ? {tints: JSON.parse(JSON.stringify(tints))} : {});
+	for (let material_case of root.cases) {
+		let values = Array.isArray(material_case.when) ? material_case.when : [material_case.when];
+		let inner = material_case.model;
+		let is_select = inner && inner.type == 'minecraft:select' && inner.property == 'minecraft:component' && inner.component == 'minecraft:trim';
+		if (!is_select) {
+			if (!modelFor) continue;
+			// A plain vanilla model stays as the fallback for every other pattern
+			inner = material_case.model = {type: 'minecraft:select', property: 'minecraft:component', component: 'minecraft:trim', cases: [], fallback: inner};
+		}
+		inner.cases = (inner.cases || []).filter(c => !(c.when && c.when.pattern == key));
+		if (!modelFor) continue;
+		for (let value of values) {
+			let material = parseResourceId(value).path;
+			if (!TRIM_MATERIALS.some(m => m.id == material)) continue;
+			inner.cases.push({when: {pattern: key, material: 'minecraft:' + material}, model: make(modelFor(material))});
+		}
+	}
+	// Visual Armor Trims sends materials it does not know through a chain of conditions, one per pattern
+	let fallback = root.fallback;
+	if (with_fallback && fallback && fallback.type == 'minecraft:condition' && fallback.property == 'minecraft:has_component') {
+		let parent = fallback, side = 'on_true', node = fallback.on_true;
+		while (node && node.type == 'minecraft:condition' && node.property == 'minecraft:component') {
+			if (node.value && node.value.pattern == key) {
+				if (modelFor) node.on_true = make(modelFor('_fallback'));
+				else parent[side] = node.on_false;
+				return true;
+			}
+			parent = node; side = 'on_false'; node = node.on_false;
+		}
+		if (modelFor) parent[side] = {type: 'minecraft:condition', property: 'minecraft:component', predicate: 'trim', value: {pattern: key}, on_true: make(modelFor('_fallback')), on_false: node};
+	}
+	return true;
+}
+function iconPermutations(version) {
+	let permutations = {};
+	for (let material of iconMaterials()) {
+		permutations['minecraft/' + material] = 'minecraft:trims/color_palettes/' + material;
+		if (hasDarkerPalette(material, version)) permutations[`minecraft/${material}/darker`] = `minecraft:trims/color_palettes/${material}_darker`;
+	}
+	return permutations;
+}
+function isIconSource(source) {
+	return source && /(^|:)paletted_permutations$/.test(source.type || '') && source.separator == '/' &&
+		source.permutations && source.permutations['minecraft/gold'];
+}
+function isSingleSource(source, ids) {
+	return source && /(^|:)single$/.test(source.type || '') && ids.has(normalizeId(source.resource || ''));
+}
+function updateIconsAtlas(atlas, texture_ids, fixed, version) {
+	// Icons that follow the material go into the paletted source, fixed ones are single sprites
+	if (!Array.isArray(atlas.sources)) atlas.sources = [];
+	let ids = new Set(texture_ids);
+	let changed = false;
+	let source = atlas.sources.find(isIconSource);
+	if (fixed) {
+		if (source && Array.isArray(source.textures)) {
+			let count = source.textures.length;
+			source.textures = source.textures.filter(id => !ids.has(normalizeId(id)));
+			changed = count != source.textures.length;
+		}
+		for (let id of texture_ids) {
+			if (atlas.sources.some(s => isSingleSource(s, new Set([id])))) continue;
+			atlas.sources.push({type: 'minecraft:single', resource: id});
+			changed = true;
+		}
+	} else {
+		let count = atlas.sources.length;
+		atlas.sources = atlas.sources.filter(s => !isSingleSource(s, ids));
+		changed = count != atlas.sources.length;
+		if (!source) {
+			source = {type: 'minecraft:paletted_permutations', textures: [], palette_key: 'minecraft:trims/color_palettes/trim_palette',
+				permutations: iconPermutations(version), separator: '/'};
+			atlas.sources.push(source);
+		}
+		if (!Array.isArray(source.textures)) source.textures = [];
+		for (let id of texture_ids) {
+			if (source.textures.some(texture => normalizeId(texture) == id)) continue;
+			source.textures.push(id);
+			changed = true;
+		}
+	}
+	return {changed, source};
+}
+async function exportArmorIcons(pack, data, file_stamp, written, notes) {
+	let filled = filledIconSlots();
+	if (!filled.length) return '';
+	let version = mcVersion(data.mc_version);
+	if (version.rp < 55) {
+		notes.push(t('armor_icons_old_version'));
+		return '';
+	}
+	let ns = data.export.namespace || 'minecraft';
+	let id = data.trim_id;
+	let key = patternKey(data);
+	let fixed = data.export.icon_colors == 'fixed';
+	let root = await findIconsRoot(pack, version);
+	let assets = root.prefix + 'assets/minecraft/';
+
+	for (let slot of filled) {
+		let rel = `${assets}textures/${slot.texture}/${ns}/${id}.png`;
+		pack.write(rel, textureBuffer(iconTexture(slot.id)), file_stamp);
+		written.push(rel);
+	}
+
+	let atlas_rel = `${assets}atlases/${root.atlas}`;
+	let atlas_text = await readPackText(pack, atlas_rel) || '';
+	let atlas = atlas_text ? JSON.parse(atlas_text) : {sources: []};
+	let texture_ids = filled.map(slot => `minecraft:${slot.texture}/${ns}/${id}`);
+	let {changed, source} = updateIconsAtlas(atlas, texture_ids, fixed, version);
+	if (changed) {
+		writeJSON(pack, atlas_rel, atlas, atlas_text, file_stamp);
+		written.push(atlas_rel);
+	}
+	// Visual Armor Trims has a palette for materials it does not know
+	let with_fallback = root.vat && !fixed && !!(source && source.permutations && source.permutations['minecraft/_fallback']);
+	let materials = iconMaterials().concat(with_fallback ? ['_fallback'] : []);
+
+	let models = 0, items = 0, missing = [];
+	for (let entry of ARMOR_ITEMS) {
+		if (entry.armor == 'copper' && version.rp < 69) continue;
+		let slot = iconSlot(entry.slot);
+		let used = filled.includes(slot);
+		let model_id = `minecraft:item/${entry.item}/${ns}/${id}`;
+		let layer = entry.leather ? 'layer2' : 'layer1';
+		let texture_id = `minecraft:${slot.texture}/${ns}/${id}`;
+		if (used) {
+			let base = {parent: 'minecraft:item/' + entry.item};
+			if (fixed) base.textures = {[layer]: texture_id};
+			pack.write(`${assets}models/item/${entry.item}/${ns}/${id}.json`, JSON.stringify(base, null, 2) + '\n');
+			models++;
+			if (!fixed) {
+				for (let material of materials) {
+					let darker = material == entry.material ? '/darker' : '';
+					pack.write(`${assets}models/item/${entry.item}/${ns}/${id}/minecraft/${material}.json`,
+						JSON.stringify({parent: model_id, textures: {[layer]: `${texture_id}/minecraft/${material}${darker}`}}, null, 2) + '\n');
+					models++;
+				}
+			}
+		}
+		let item_rel = `${assets}items/${entry.item}.json`;
+		let item_text = await readPackText(pack, item_rel) || '';
+		let def = null;
+		try { def = item_text ? JSON.parse(item_text) : null; } catch (err) {}
+		let source_text = item_text;
+		if (!def) {
+			if (!used) continue;
+			try { source_text = await Assets.text(`assets/minecraft/items/${entry.item}.json`); } catch (err) {}
+			if (!source_text) {
+				missing.push(entry.item);
+				continue;
+			}
+			def = JSON.parse(source_text);
+		}
+		let model_for = used ? (fixed ? () => model_id : (material => `${model_id}/minecraft/${material}`)) : null;
+		let before = JSON.stringify(def);
+		if (!injectItemCases(def, key, model_for, root.vat && (fixed || with_fallback))) {
+			notes.push(t('armor_icons_unknown_item', [item_rel]));
+			continue;
+		}
+		if (item_text && JSON.stringify(def) == before) continue;
+		writeJSON(pack, item_rel, def, source_text, file_stamp);
+		items++;
+	}
+	if (missing.length) notes.push(t('armor_icons_no_vanilla_item', [missing.join(', ')]));
+	return t('armor_icons_written', [models, items, root.prefix ? root.prefix.slice(0, -1) : t('pack_root')]);
+}
+async function describeArmorIcons(pack, data) {
+	let filled = filledIconSlots();
+	if (!data.export.armor_icons || !filled.length) return [];
+	let version = mcVersion(data.mc_version);
+	if (version.rp < 55) return ['· ' + t('armor_icons_old_version')];
+	let root = await findIconsRoot(pack, version);
+	let where = root.prefix ? root.prefix.slice(0, -1) : t('pack_root');
+	return ['＋ ' + t('armor_icons_plan', [filled.length, ICON_SLOTS.length, where, root.vat ? t('armor_icons_mode_vat') : t('armor_icons_mode_own')])];
+}
+async function readArmorIcons(pack, ns, id, root) {
+	let icons = {};
+	root = root || await findIconsRoot(pack, mcVersion(Prefs.get().mc_version));
+	for (let slot of ICON_SLOTS) {
+		let url = await readPackPNG(pack, `${root.prefix}assets/minecraft/textures/${slot.texture}/${ns}/${id}.png`);
+		if (url) icons[slot.id] = url;
+	}
+	return icons;
 }
 
 // ============================================================================
@@ -2692,6 +3608,7 @@ function openHelpDialog() {
 // ============================================================================
 
 const panels = {};
+let icon_timer = null;
 function refreshPanels() {
 	for (let id in panels) {
 		let vue = panels[id] && panels[id].inside_vue;
@@ -2738,7 +3655,11 @@ function createPanels() {
 						{id: 'skin', name: t('skin')},
 						{id: 'skin_outer', name: t('skin_overlay')},
 						{id: 'icon', name: t('icon')},
+						{id: 'armor_icons', name: t('armor_icons')},
 					],
+					icon_slots: ICON_SLOTS.map(s => ({id: s.id, name: t('slot_' + s.id)})),
+					icon_focus: false,
+					selected_icon: '',
 					materials: TRIM_MATERIALS,
 					armors: ARMOR_MATERIALS,
 					poses: POSES,
@@ -2767,12 +3688,45 @@ function createPanels() {
 				},
 			},
 			watch: {
-				tab() { this.$nextTick(() => drawSkinHead(this.$refs.head)); },
+				tab() { this.$nextTick(() => { drawSkinHead(this.$refs.head); this.drawIcons(); }); },
 			},
 			methods: {
 				refresh() {
 					this.d = D();
-					this.$nextTick(() => drawSkinHead(this.$refs.head));
+					this.icon_focus = isIconFocus();
+					this.$nextTick(() => { drawSkinHead(this.$refs.head); this.drawIcons(); });
+				},
+				toggleFocus() { setIconFocus(!isIconFocus()); },
+				selectIcon(id) {
+					let texture = iconTexture(id);
+					if (texture) texture.select();
+					this.drawIcons();
+				},
+				iconGenerators() { openArmorIconGenerators(); },
+				iconGrid() { openIconGrid(); },
+				iconsHelp() { openArmorIconsHelp(); },
+				setIconColors(mode) { this.d.export.icon_colors = mode; updatePreviewUniforms(); this.drawIcons(); },
+				drawIcons() {
+					if (this.tab != 'icons' || !this.d || !isTrimProject()) return;
+					let selected = iconTextures().find(texture => texture.selected);
+					this.selected_icon = selected ? selected.trim_role : '';
+					let sheet = findTexture('aicon_bases');
+					for (let [index, slot] of ICON_SLOTS.entries()) {
+						let ref = this.$refs['icon_' + slot.id];
+						let target = ref && ref[0];
+						if (!target) continue;
+						let ctx = target.getContext('2d');
+						ctx.imageSmoothingEnabled = false;
+						ctx.clearRect(0, 0, 16, 16);
+						if (sheet && sheet.canvas && sheet.canvas.width) {
+							let s = sheet.canvas.width / ICON_SHEET_WIDTH;
+							ctx.drawImage(sheet.canvas, index * 16 * s, 0, 16 * s, 16 * s, 0, 0, 16, 16);
+						}
+						let texture = iconTexture(slot.id);
+						if (texture && texture.canvas && texture.canvas.width) {
+							ctx.drawImage(recolorCanvas(canvasOf(texture), iconPaletteId(this.d, iconSlotItem(slot, this.d.armor.material))), 0, 0);
+						}
+					}
 				},
 				togglePiece(id) { this.d.view.pieces[id] = !this.d.view.pieces[id]; applyVisibility(); },
 				soloPiece(id) {
@@ -2784,7 +3738,7 @@ function createPanels() {
 				toggleLayer(id) { this.d.view.layers[id] = !this.d.view.layers[id]; applyVisibility(); },
 				toggleHelmet(key) { this.d.view[key] = !this.d.view[key]; applyVisibility(); },
 				setArmor() { refreshArmor(); },
-				setMaterial(id) { this.d.preview.material = id; updatePreviewUniforms(); },
+				setMaterial(id) { this.d.preview.material = id; updatePreviewUniforms(); this.drawIcons(); },
 				toggleHighlight() { this.d.preview.highlight = !this.d.preview.highlight; updatePreviewUniforms(); },
 				toggleDecal() { this.d.datapack.decal = !this.d.datapack.decal; updatePreviewUniforms(); },
 				setPose(id) {
@@ -2834,6 +3788,7 @@ function createPanels() {
 						<div :class="{on: tab == 'view'}" @click="tab = 'view'"><i class="material-icons">visibility</i>${t('view')}</div>
 						<div :class="{on: tab == 'pose'}" @click="tab = 'pose'"><i class="material-icons">accessibility_new</i>${t('pose')}</div>
 						<div :class="{on: tab == 'skin'}" @click="tab = 'skin'"><i class="material-icons">face</i>${t('skin')}</div>
+						<div :class="{on: tab == 'icons'}" @click="tab = 'icons'" title="${t('armor_icons_full')}"><i class="material-icons">grid_view</i>${t('icons_tab')}</div>
 					</div>
 					<div class="te_tab_body">
 
@@ -2911,10 +3866,51 @@ function createPanels() {
 						</div>
 						<div class="te_hint">${t('armor_uses_the_same_wide_arms_for_slim')}</div>
 					</template>
+
+					<template v-if="tab == 'icons'">
+						<div class="te_hint te_top_hint">${t('armor_icons_short')} <span class="te_link" @click="iconsHelp()">${t('what_is_this')}</span></div>
+						<div class="te_row te_buttons">
+							<button @click="toggleFocus()" :class="{te_pressed: icon_focus}">
+								<i class="material-icons">{{ icon_focus ? 'accessibility' : 'crop_free' }}</i>{{ icon_focus ? '${t('back_to_player')}' : '${t('paint_icons')}' }}
+							</button>
+						</div>
+						<div class="te_icon_slots">
+							<div v-for="s in icon_slots" class="te_icon_slot" :class="{on: selected_icon == 'aicon_' + s.id}" @click="selectIcon(s.id)" :title="s.name">
+								<canvas :ref="'icon_' + s.id" width="16" height="16" class="te_checker"></canvas>
+								<span>{{ s.name }}</span>
+							</div>
+						</div>
+						<div class="te_row">
+							<select v-model="d.armor.material" @change="setArmor()" class="te_select" title="${t('armor')}">
+								<option v-for="a in armors" :value="a.id">{{ a.name }}</option>
+							</select>
+							<input v-if="d.armor.material == 'leather'" type="color" v-model="d.armor.leather_color" @change="setArmor()" title="${t('leather_dye')}">
+						</div>
+						<div class="te_materials">
+							<div class="te_material none" :class="{on: d.preview.material == 'none'}" @click="setMaterial('none')" title="${t('as_painted_2')}"><i class="material-icons">block</i></div>
+							<div v-for="m in materials" class="te_material" :class="{on: d.preview.material == m.id}" :style="{background: m.color}" :title="m.name" @click="setMaterial(m.id)"></div>
+						</div>
+						<div class="te_row te_buttons">
+							<button @click="iconGenerators()"><i class="material-icons">auto_awesome</i>${t('armor_icons_generators')}</button>
+							<button @click="iconGrid()"><i class="material-icons">apps</i>${t('all_variants')}</button>
+						</div>
+						<div class="te_label">${t('icon_colors')}</div>
+						<div class="te_chips">
+							<div class="te_chip small" :class="{on: d.export.icon_colors != 'fixed'}" @click="setIconColors('palette')">${t('icon_colors_palette')}</div>
+							<div class="te_chip small" :class="{on: d.export.icon_colors == 'fixed'}" @click="setIconColors('fixed')">${t('icon_colors_fixed')}</div>
+						</div>
+						<div class="te_hint">{{ d.export.icon_colors == 'fixed' ? '${t('icon_colors_fixed_hint')}' : '${t('icon_colors_palette_hint')}' }}</div>
+					</template>
 					</div>
 				</div></div>`,
 		},
 	}));
+
+	// Icon thumbnails follow painting while the tab is open
+	icon_timer = setInterval(() => {
+		let vm = panels.view && panels.view.inside_vue;
+		if (vm && vm.drawIcons) vm.drawIcons();
+	}, 500);
 
 	panels.tools = track(new Panel('armor_trim_editor_tools', {
 		name: t('trim_palette_export'),
@@ -3073,6 +4069,29 @@ const CSS = `
 .te_code { font-family: var(--font-code, monospace); font-size: 12px; background: var(--color-back); border: 1px solid var(--color-border); padding: 6px 8px; white-space: pre-wrap; word-break: break-all; user-select: text; margin: 4px 0; }
 .te_warn_text { color: #e5b84b; }
 .te_break { word-break: break-all; }
+.te_link { color: var(--color-accent); cursor: pointer; text-decoration: underline; white-space: nowrap; }
+.te_center { justify-content: center; }
+.te_top_hint { margin: 0 0 6px; }
+.te_buttons button.te_pressed { background: var(--color-accent); color: var(--color-accent_text); }
+.te_icon_slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0; }
+.te_icon_slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; background: var(--color-back); min-width: 0; }
+.te_icon_slot canvas { width: 40px; height: 40px; image-rendering: pixelated; border-radius: 3px; }
+.te_icon_slot span { font-size: 10px; line-height: 1.15; text-align: center; color: var(--color-subtle_text); overflow-wrap: anywhere; }
+.te_icon_slot.on { border-color: var(--color-accent); }
+.te_icon_slot:hover { background: var(--color-button); }
+.te_icon_cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px; }
+.te_icon_card { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 2px; border-radius: 4px; border: 1px solid var(--color-accent); text-align: center; }
+.te_icon_card canvas { width: 64px; height: 64px; image-rendering: pixelated; }
+.te_icon_card .te_small { white-space: normal; font-size: 11px; line-height: 1.15; }
+.te_icon_card.off { border-color: transparent; opacity: 0.4; }
+.te_palette_inline { flex: 1; }
+.te_key.on { box-shadow: 0 0 0 2px var(--color-light); }
+.te_w_num { width: 20px; text-align: right; }
+.te_icon_grid table { border-collapse: collapse; margin: 8px 0; }
+.te_icon_grid td, .te_icon_grid th { padding: 1px 2px; text-align: center; }
+.te_icon_grid td:first-child { text-align: right; padding-right: 8px; }
+.te_icon_grid canvas { width: 32px; height: 32px; image-rendering: pixelated; display: block; }
+.te_grid_head { width: 28px; height: 12px; margin: 0 auto; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); font-size: 11px; line-height: 12px; }
 `;
 
 // ============================================================================
@@ -3167,6 +4186,22 @@ function registerActions() {
 			Blockbench.showMessageBox({title: t('trim_check'), message: html});
 		},
 	}));
+	actions.armor_icons = track(new Action('armor_trim_editor_armor_icons', {
+		name: t('armor_icons_generators_action'), icon: 'auto_awesome', category: 'edit', condition,
+		click: () => openArmorIconGenerators(),
+	}));
+	actions.icon_grid = track(new Action('armor_trim_editor_icon_grid', {
+		name: t('icon_grid_title'), icon: 'apps', category: 'view', condition,
+		click: () => openIconGrid(),
+	}));
+	actions.icon_focus = track(new Action('armor_trim_editor_icon_focus', {
+		name: t('paint_armor_icons'), icon: 'crop_free', category: 'view', condition,
+		click: () => setIconFocus(!isIconFocus()),
+	}));
+	actions.icons_help = track(new Action('armor_trim_editor_armor_icons_help', {
+		name: t('armor_icons_full'), icon: 'help_outline', category: 'help',
+		click: () => openArmorIconsHelp(),
+	}));
 	actions.datapack = track(new Action('armor_trim_editor_datapack', {
 		name: t('datapack'), icon: 'dns', category: 'file', condition,
 		click: () => openDatapackDialog(),
@@ -3191,7 +4226,9 @@ function registerActions() {
 		{name: t('clear_trim_piece'), id: 'armor_trim_editor_clear', icon: 'layers_clear', condition: () => isTrimProject(),
 			children: PIECE_ORDER.map(piece => ({name: PIECE_NAMES[piece], icon: 'clear', click: () => confirmClearPiece(piece)}))},
 		'_',
-		'armor_trim_editor_settings', 'armor_trim_editor_guide', 'armor_trim_editor_help',
+		'armor_trim_editor_icon_focus', 'armor_trim_editor_armor_icons', 'armor_trim_editor_icon_grid',
+		'_',
+		'armor_trim_editor_settings', 'armor_trim_editor_guide', 'armor_trim_editor_help', 'armor_trim_editor_armor_icons_help',
 	], {name: t('trim'), condition: () => isTrimProject()});
 	// Keep "Help" as the last menu
 	if (MenuBar.menus.help) {
@@ -3206,10 +4243,17 @@ function registerActions() {
 
 function onProjectChange() {
 	PoseRuntime.last_time = 0;
+	if (icon_focus && !isIconFocus()) {
+		// The flat icon view belongs to the project it was opened in
+		icon_focus = null;
+		if (Preview.selected) Preview.selected.controls.enableRotate = true;
+	}
 	if (isTrimProject()) {
 		D();
 		setTimeout(() => {
 			if (!isTrimProject()) return;
+			// Projects from 1.0 get the armor icons on first open
+			if (ensureArmorIcons()) refreshArmorIcons();
 			updatePreviewUniforms();
 			applyVisibility();
 			refreshPanels();
@@ -3224,7 +4268,7 @@ function onFrame() {
 	// Pixel grids on the locked reference cubes only add noise
 	for (let cube of Cube.all) {
 		let grid = cube.mesh && cube.mesh.grid_box;
-		if (grid && grid.visible && cube.trim_role && (cube.trim_role.startsWith('skin/') || cube.trim_role.startsWith('armor/'))) {
+		if (grid && grid.visible && cube.trim_role && (cube.trim_role.startsWith('skin/') || cube.trim_role.startsWith('armor/') || cube.trim_role.startsWith('aiconbase/'))) {
 			grid.visible = false;
 		}
 	}
@@ -3234,7 +4278,14 @@ function onFrame() {
 			let mat = texture.getOwnMaterial && texture.getOwnMaterial();
 			if (mat && mat.uniforms && (!mat.uniforms.TRIM_MODE || mat.uniforms.TRIM_ARMOR_MAP.value !== armorMapFor(texture))) {
 				updatePreviewUniforms();
-				break;
+				return;
+			}
+		}
+		for (let texture of iconTextures()) {
+			let mat = texture.getOwnMaterial && texture.getOwnMaterial();
+			if (mat && mat.uniforms && !mat.uniforms.TRIM_MODE) {
+				updatePreviewUniforms();
+				return;
 			}
 		}
 	}
@@ -3250,7 +4301,7 @@ function onPointer(event) {
 Plugin.register(PLUGIN_ID, {
 	title: 'Armor Trim Editor',
 	author: 'BbIJABNPOBATEJb',
-	description: 'Paint Minecraft: Java Edition armor trims on an exact armor model with poses, skins and a live material preview, then export them straight into a resource pack and a datapack.',
+	description: 'Paint Minecraft: Java Edition armor trims on an exact armor model with poses, skins and a live material preview, draw how they look on armor icons, then export them straight into a resource pack and a datapack.',
 	icon: 'checkroom',
 	version: PLUGIN_VERSION,
 	min_version: '5.0.0',
@@ -3279,6 +4330,9 @@ Plugin.register(PLUGIN_ID, {
 	onunload() {
 		document.removeEventListener('pointerdown', onPointer, true);
 		document.removeEventListener('pointerup', onPointer, true);
+		clearInterval(icon_timer);
+		if (icon_focus && Preview.selected) Preview.selected.controls.enableRotate = true;
+		icon_focus = null;
 		try { PoseRuntime.reset(); } catch (err) {}
 		for (let project of ModelProject.all || []) {
 			for (let texture of project.textures || []) {
@@ -3595,6 +4649,95 @@ function getTranslations() {
 			pose_spread: "Standing, parts apart",
 			pose_tpose_spread: "T-pose, parts apart",
 			decal_preview_desc: "Preview of \"decal\": true — trim pixels are only drawn over armor pixels, so the outer helmet layer and holes in the armor stay empty. The same setting goes into the datapack.",
+			armor_icons: "Armor icons",
+			armor_icons_full: "Trim on armor icons",
+			icons_tab: "Icons",
+			armor_icon_bases: "⚙ armor items (preview)",
+			armor_icon_card: "Armor icon: %0",
+			armor_icon_base_card: "⚙ item: %0",
+			slot_helmet: "Helmet",
+			slot_chestplate: "Chestplate",
+			slot_leggings: "Leggings",
+			slot_boots: "Boots",
+			slot_netherite_helmet: "Netherite helmet",
+			slot_turtle_helmet: "Turtle shell",
+			slot_netherite_boots: "Netherite boots",
+			armor_icons_short: "In vanilla every trim looks the same on armor items in the inventory. Here you draw how this trim looks on each armor shape.",
+			what_is_this: "How it works",
+			paint_icons: "Paint icons",
+			paint_armor_icons: "Paint armor icons",
+			back_to_player: "Back to player",
+			all_variants: "All variants",
+			armor_icons_generators: "Generators",
+			armor_icons_generators_action: "Armor icon generators…",
+			icon_colors: "Icon colors",
+			icon_colors_palette: "Follow the material",
+			icon_colors_fixed: "Fixed (no material)",
+			icon_colors_palette_hint: "Palette grays are recolored to the trim material, like the trim on the player.",
+			icon_colors_fixed_hint: "The icon is used as drawn with every material. For colorful, non-monochrome trims.",
+			armor_icons_title: "Armor icon generators",
+			armor_icons_click_cards: "click a card to include or skip it",
+			select_all: "All",
+			select_none: "None",
+			icon_source: "Source",
+			icon_source_project: "From the trim on the player",
+			icon_source_vanilla: "Vanilla overlay",
+			icon_source_shape: "Shape",
+			icon_source_copy: "Copy from the common helmet and boots",
+			icon_source_clear: "Clear",
+			icon_source_project_hint: "The front of the painted armor piece is fitted into the item silhouette. A quick start: touch it up by hand afterwards.",
+			icon_source_vanilla_hint: "The overlay the game shows for every pattern. A starting point to draw on.",
+			icon_source_copy_hint: "The netherite helmet, turtle shell and netherite boots get the drawing of the common helmet or boots, fitted to their own shape.",
+			icon_palette_hint: "Shapes are clipped to the item silhouette. Palette grays follow the trim material, other colors stay as they are.",
+			shape: "Shape",
+			shape_step: "Spacing",
+			shape_size: "Thickness",
+			shape_color: "Color",
+			custom_color: "Custom color",
+			shape_outline: "Outline",
+			shape_inner_outline: "Inner outline",
+			shape_stripes_h: "Horizontal stripes",
+			shape_stripes_v: "Vertical stripes",
+			shape_diagonal: "Diagonal stripes",
+			shape_diagonal2: "Diagonal stripes, other way",
+			shape_checker: "Checkerboard",
+			shape_dots: "Dots",
+			shape_band_top: "Band at the top",
+			shape_band_middle: "Band in the middle",
+			shape_band_bottom: "Band at the bottom",
+			shape_fill: "Fill",
+			icon_mode: "Current drawing",
+			icon_mode_replace: "Replace",
+			icon_mode_add: "Draw on top",
+			preview_material: "Preview material",
+			generate_armor_icons: "Generate armor icons",
+			icon_grid_title: "Armor icons: all variants",
+			icon_grid_hint: "Rows are armor types, columns are trim materials; the first column shows the icon as drawn. Where the trim material matches the armor, the darker palette is used, as in game.",
+			icon_grid_hint_fixed: "Fixed colors: the icon looks the same with every trim material.",
+			armor_icons_help_why: "<b>Why.</b> In vanilla Minecraft a trimmed helmet, chestplate, leggings or boots in the inventory always shows the same overlay, only its color follows the trim material. Chestplates with different trims look identical.",
+			armor_icons_help_what: "<b>What this does.</b> Here you draw how <i>this</i> trim looks on the item icon. The resource pack gets an overlay for each armor shape, recolored for every trim material. This is the approach of the <a href=\"https://modrinth.com/resourcepack/visual-armor-trims\">Visual Armor Trims</a> resource pack by Thanos (CC BY-SA 4.0).",
+			armor_icons_help_slots: "<b>Seven icons.</b> Helmet, chestplate, leggings and boots are shared by leather, chainmail, iron, gold, diamond and copper armor and the netherite chestplate and leggings. The netherite helmet, turtle shell and netherite boots have shapes of their own and get separate icons. Empty icons are not exported, those items keep their usual look.",
+			armor_icons_help_colors: "<b>Colors.</b> Paint with the 8 palette grays, like the trim itself: they become the material colors (the darker palette on armor of the same material). Other colors stay as drawn. For colorful trims choose <b>Fixed (no material)</b>: the icon is then the same with every material.",
+			armor_icons_help_paint: "<b>Painting.</b> <b>Paint icons</b> puts the icons flat in front of the camera; the armor item under each icon is only a preview. You can also select an icon texture and paint in the 2D editor. <b>Generators</b> fill icons from the trim on the player, the vanilla overlay or simple shapes; <b>All variants</b> shows every armor with every material.",
+			armor_icons_help_export: "<b>Export.</b> If the resource pack already has Visual Armor Trims (also inside an overlay), the trim is added to it: textures, atlas, models and item definitions. Otherwise the plugin writes its own item definitions based on the vanilla ones. Needs Minecraft 1.21.5 or newer.",
+			armor_icons_help_short: "<b>Armor icons:</b> in vanilla the trim looks the same on every armor item in the inventory. The Icons tab lets you draw a separate look for this trim, exported in the Visual Armor Trims format.",
+			armor_icons_count: "Armor icons: %0 of %1 drawn. Empty ones are not exported.",
+			armor_icons_export_info: "**Armor icons** — the trim on armor items in the inventory",
+			export_armor_icons: "Export armor icons",
+			export_armor_icons_desc: "Pattern-specific icons for trimmed armor items. Visual Armor Trims in the pack is found and extended.",
+			armor_icons_old_version: "Armor icons were not exported: they need Minecraft 1.21.5 or newer.",
+			armor_icons_no_vanilla_item: "%0: no item definition in the Minecraft jar, skipped.",
+			armor_icons_unknown_item: "%0 has an unexpected format and was not changed.",
+			armor_icons_written: "Armor icons: %0 models, %1 item definitions (%2)",
+			pack_root: "pack root",
+			armor_icons_plan: "armor icons: %0 of %1 → %2, %3",
+			armor_icons_mode_vat: "added to Visual Armor Trims",
+			armor_icons_mode_own: "own item definitions",
+			armor_icons_tag: "armor icons",
+			new_icons_desc: "Icons of this trim on armor items in the inventory. You can regenerate or paint them later.",
+			new_icons_project: "Generate from the trim",
+			new_icons_vanilla: "Vanilla overlay",
+			new_icons_empty: "Empty",
 		},
 		ru: {
 			quartz: "Кварц",
@@ -3889,6 +5032,95 @@ function getTranslations() {
 			pose_spread: "Стойка, части раздвинуты",
 			pose_tpose_spread: "T-поза, части раздвинуты",
 			decal_preview_desc: "Превью «decal»: true — пиксели отделки рисуются только поверх пикселей брони, поэтому внешний слой шлема и дыры в броне остаются пустыми. Эта же настройка пишется в датапак.",
+			armor_icons: "Иконки брони",
+			armor_icons_full: "Отделка на иконках брони",
+			icons_tab: "Иконки",
+			armor_icon_bases: "⚙ предметы брони (превью)",
+			armor_icon_card: "Иконка брони: %0",
+			armor_icon_base_card: "⚙ предмет: %0",
+			slot_helmet: "Шлем",
+			slot_chestplate: "Нагрудник",
+			slot_leggings: "Поножи",
+			slot_boots: "Ботинки",
+			slot_netherite_helmet: "Незеритовый шлем",
+			slot_turtle_helmet: "Черепаший панцирь",
+			slot_netherite_boots: "Незеритовые ботинки",
+			armor_icons_short: "В ванилле любая отделка на предметах брони в инвентаре выглядит одинаково. Здесь вы рисуете, как эта отделка выглядит на каждой форме брони.",
+			what_is_this: "Как это работает",
+			paint_icons: "Рисовать иконки",
+			paint_armor_icons: "Рисовать иконки брони",
+			back_to_player: "Назад к игроку",
+			all_variants: "Все варианты",
+			armor_icons_generators: "Генераторы",
+			armor_icons_generators_action: "Генераторы иконок брони…",
+			icon_colors: "Цвета иконок",
+			icon_colors_palette: "По материалу",
+			icon_colors_fixed: "Свои (без материала)",
+			icon_colors_palette_hint: "Серые цвета палитры перекрашиваются в материал отделки, как на игроке.",
+			icon_colors_fixed_hint: "Иконка используется как нарисована, с любым материалом. Для цветных, не монохромных отделок.",
+			armor_icons_title: "Генераторы иконок брони",
+			armor_icons_click_cards: "нажмите на карточку, чтобы включить или пропустить её",
+			select_all: "Все",
+			select_none: "Ни одной",
+			icon_source: "Источник",
+			icon_source_project: "Из отделки на игроке",
+			icon_source_vanilla: "Ванильный рисунок",
+			icon_source_shape: "Фигура",
+			icon_source_copy: "Копия с обычных шлема и ботинок",
+			icon_source_clear: "Очистить",
+			icon_source_project_hint: "Вид спереди нарисованной части брони вписывается в силуэт предмета. Быстрый старт: потом поправьте вручную.",
+			icon_source_vanilla_hint: "Рисунок, который игра показывает для любой отделки. Основа, поверх которой можно рисовать.",
+			icon_source_copy_hint: "Незеритовый шлем, черепаший панцирь и незеритовые ботинки получают рисунок обычного шлема или ботинок, вписанный в их форму.",
+			icon_palette_hint: "Фигуры обрезаются по силуэту предмета. Серые цвета палитры следуют за материалом, остальные цвета остаются как есть.",
+			shape: "Фигура",
+			shape_step: "Шаг",
+			shape_size: "Толщина",
+			shape_color: "Цвет",
+			custom_color: "Свой цвет",
+			shape_outline: "Контур",
+			shape_inner_outline: "Внутренний контур",
+			shape_stripes_h: "Горизонтальные полосы",
+			shape_stripes_v: "Вертикальные полосы",
+			shape_diagonal: "Диагональные полосы",
+			shape_diagonal2: "Диагональ в другую сторону",
+			shape_checker: "Шахматка",
+			shape_dots: "Точки",
+			shape_band_top: "Полоса сверху",
+			shape_band_middle: "Полоса посередине",
+			shape_band_bottom: "Полоса снизу",
+			shape_fill: "Заливка",
+			icon_mode: "Текущий рисунок",
+			icon_mode_replace: "Заменить",
+			icon_mode_add: "Рисовать поверх",
+			preview_material: "Материал превью",
+			generate_armor_icons: "Генерация иконок брони",
+			icon_grid_title: "Иконки брони: все варианты",
+			icon_grid_hint: "Строки — виды брони, столбцы — материалы отделки; первый столбец — иконка как нарисована. Где материал отделки совпадает с бронёй, используется тёмная палитра, как в игре.",
+			icon_grid_hint_fixed: "Свои цвета: иконка одинакова с любым материалом отделки.",
+			armor_icons_help_why: "<b>Зачем.</b> В ванильном Minecraft шлем, нагрудник, поножи или ботинки с отделкой в инвентаре всегда показывают один и тот же рисунок, меняется только цвет материала. Нагрудники с разными отделками выглядят одинаково.",
+			armor_icons_help_what: "<b>Что делает.</b> Здесь вы рисуете, как именно <i>эта</i> отделка выглядит на иконке предмета. В ресурспак пишется свой рисунок для каждой формы брони, перекрашенный под каждый материал. Так работает ресурспак <a href=\"https://modrinth.com/resourcepack/visual-armor-trims\">Visual Armor Trims</a> от Thanos (CC BY-SA 4.0).",
+			armor_icons_help_slots: "<b>Семь иконок.</b> Шлем, нагрудник, поножи и ботинки общие для кожаной, кольчужной, железной, золотой, алмазной и медной брони, а также незеритовых нагрудника и поножей. Незеритовый шлем, черепаший панцирь и незеритовые ботинки имеют свою форму и получают отдельные иконки. Пустые иконки не экспортируются, такие предметы выглядят как обычно.",
+			armor_icons_help_colors: "<b>Цвета.</b> Рисуйте 8 серыми цветами палитры, как саму отделку: они станут цветами материала (на броне из того же материала — тёмная палитра). Остальные цвета остаются как есть. Для цветных отделок выберите <b>Свои (без материала)</b>: тогда иконка одинакова с любым материалом.",
+			armor_icons_help_paint: "<b>Рисование.</b> <b>Рисовать иконки</b> показывает иконки плоско перед камерой; предмет брони под иконкой — только превью. Можно также выбрать текстуру иконки и рисовать в 2D-редакторе. <b>Генераторы</b> заполняют иконки из отделки на игроке, ванильного рисунка или простых фигур; <b>Все варианты</b> показывает каждую броню с каждым материалом.",
+			armor_icons_help_export: "<b>Экспорт.</b> Если в ресурспаке уже есть Visual Armor Trims (в том числе в оверлее), отделка добавляется в него: текстуры, атлас, модели и определения предметов. Иначе плагин пишет свои определения предметов на основе ванильных. Нужен Minecraft 1.21.5 или новее.",
+			armor_icons_help_short: "<b>Иконки брони:</b> в ванилле отделка на любом предмете брони в инвентаре выглядит одинаково. Во вкладке «Иконки» можно нарисовать для этой отделки свой вид, он экспортируется в формате Visual Armor Trims.",
+			armor_icons_count: "Иконки брони: нарисовано %0 из %1. Пустые не экспортируются.",
+			armor_icons_export_info: "**Иконки брони** — отделка на предметах брони в инвентаре",
+			export_armor_icons: "Экспортировать иконки брони",
+			export_armor_icons_desc: "Свои иконки предметов брони для этой отделки. Visual Armor Trims в паке находится и дополняется.",
+			armor_icons_old_version: "Иконки брони не экспортированы: нужен Minecraft 1.21.5 или новее.",
+			armor_icons_no_vanilla_item: "%0: нет определения предмета в jar Minecraft, пропущено.",
+			armor_icons_unknown_item: "%0 имеет неожиданный формат и не изменён.",
+			armor_icons_written: "Иконки брони: моделей %0, определений предметов %1 (%2)",
+			pack_root: "корень пака",
+			armor_icons_plan: "иконки брони: %0 из %1 → %2, %3",
+			armor_icons_mode_vat: "добавляются в Visual Armor Trims",
+			armor_icons_mode_own: "свои определения предметов",
+			armor_icons_tag: "иконки брони",
+			new_icons_desc: "Иконки этой отделки на предметах брони в инвентаре. Их можно перегенерировать или дорисовать позже.",
+			new_icons_project: "Сгенерировать из отделки",
+			new_icons_vanilla: "Ванильный рисунок",
+			new_icons_empty: "Пустые",
 		},
 	};
 }

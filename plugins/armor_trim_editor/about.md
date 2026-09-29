@@ -8,8 +8,9 @@ Paint Minecraft: Java Edition armor trims on the exact armor model the game uses
 2. Paint on the model or on the `humanoid` / `humanoid_leggings` textures. The eight gray shades in the **Trim: palette & export** panel are recolored by the trim material; any other color stays as painted.
 3. Use the **Trim: preview** panel to show or hide armor pieces and layers, switch the reference armor and trim material, pose the player (including poses with the body parts pulled apart) and change the skin. Right-click a piece to show only that piece.
 4. Click **Icon** to generate the smithing template icon from a vanilla template.
-5. Click **Export** and save the trim into a resource pack zip (with `pack.mcmeta` and `pack.png`, e.g. in `.minecraft/resourcepacks`) or into a pack folder, then press `F3 + T` in game. Exporting another trim into the same archive adds it next to the others. After the first export, **Quick export** (`Ctrl + Alt + E`) repeats it.
-6. Click **Datapack** to add the trim pattern to a datapack zip, e.g. right in `saves/<world>/datapacks` (Minecraft 1.21.2 – 26.2). **Trim → How to use a trim in game** shows the `/give` command and Bukkit/Paper code for it.
+5. In vanilla every trim looks the same on armor items in the inventory. In the **Icons** tab you draw how this trim looks on each armor shape (helmet, chestplate, leggings, boots, netherite helmet and boots, turtle shell), previewed on every armor type and material. **Generators** create the icons from the trim on the player, the vanilla overlay or simple shapes. They are exported in the format of the [Visual Armor Trims](https://modrinth.com/resourcepack/visual-armor-trims) resource pack, into VAT itself if your pack contains it (Minecraft 1.21.5+).
+6. Click **Export** and save the trim into a resource pack zip (with `pack.mcmeta` and `pack.png`, e.g. in `.minecraft/resourcepacks`) or into a pack folder, then press `F3 + T` in game. Exporting another trim into the same archive adds it next to the others. After the first export, **Quick export** (`Ctrl + Alt + E`) repeats it.
+7. Click **Datapack** to add the trim pattern to a datapack zip, e.g. right in `saves/<world>/datapacks` (Minecraft 1.21.2 – 26.2). **Trim → How to use a trim in game** shows the `/give` command and Bukkit/Paper code for it.
 
 ## Notes
 
