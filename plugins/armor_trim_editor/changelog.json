@@ -31,7 +31,10 @@
 					"Vanilla palettes are only added to the atlas for Minecraft versions that have them (copper_darker, resin)",
 					"Several trims can be opened from a resource pack at once, each in its own tab; a trim that is already open gets its tab back",
 					"Export only rewrites files whose content changed and keeps the line endings of edited JSON files",
-					"Re-exporting armor icons keeps the order of existing item model cases"
+					"Re-exporting armor icons keeps the order of existing item model cases",
+					"Empty armor icons leave the pack entries of those items untouched, and a generator never replaces a drawn icon with an empty one",
+					"An empty template icon is not exported; the import finds the template icon path by itself",
+					"No backups for packs under git, and only the latest 10 backups are kept"
 				]
 			}
 		]

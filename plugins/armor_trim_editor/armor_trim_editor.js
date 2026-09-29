@@ -1735,6 +1735,21 @@ class FolderPack {
 	listDir(rel) {
 		return readDir(this.abs(rel));
 	}
+	listFiles(prefix) {
+		// Every file under a folder, as pack-relative paths
+		let files = [];
+		let walk = (rel, depth) => {
+			let entries;
+			try { entries = getFS().readdirSync(this.abs(rel), {withFileTypes: true}); } catch (err) { return; }
+			for (let entry of entries) {
+				let child = rel + '/' + entry.name;
+				if (entry.isDirectory()) { if (depth < 12) walk(child, depth + 1); }
+				else files.push(child);
+			}
+		};
+		walk(prefix.replace(/\/$/, ''), 0);
+		return files;
+	}
 	write(rel, content, backup_stamp) {
 		let path = this.abs(rel);
 		if (backup_stamp) backupFile(path, this.root, backup_stamp);
@@ -1774,6 +1789,13 @@ class ZipPack {
 			if (name) names.add(name);
 		});
 		return [...names];
+	}
+	listFiles(prefix) {
+		let files = [];
+		this.zip.forEach((path, file) => {
+			if (!file.dir && path.startsWith(prefix)) files.push(path);
+		});
+		return files;
 	}
 	write(rel, content) {
 		this.zip.file(rel, content);
@@ -1909,8 +1931,8 @@ function exportPlan(data) {
 		let model_id = parseResourceId(e.icon_model.replace(/\{id\}/g, id));
 		plan.icon_texture_id = tex_id.ns + ':' + tex_id.path;
 		plan.icon_model_id = model_id.ns + ':' + model_id.path;
-		plan.files.push({kind: 'texture', role: 'icon', rel: `assets/${tex_id.ns}/textures/${tex_id.path}.png`});
-		plan.files.push({kind: 'model', rel: `assets/${model_id.ns}/models/${model_id.path}.json`,
+		plan.files.push({kind: 'texture', role: 'icon', icon: true, rel: `assets/${tex_id.ns}/textures/${tex_id.path}.png`});
+		plan.files.push({kind: 'model', icon: true, rel: `assets/${model_id.ns}/models/${model_id.path}.json`,
 			content: JSON.stringify({parent: e.icon_parent || 'minecraft:item/generated', textures: {layer0: plan.icon_texture_id}}, null, 4)});
 	}
 	// Vanilla patterns are already listed in the vanilla atlas
@@ -1997,6 +2019,30 @@ function packIconBuffer() {
 	ctx.drawImage(icon.canvas, 0, 0, 128, 128);
 	return dataURLToBuffer(canvas.toDataURL('image/png'));
 }
+const BACKUPS_KEPT = 10;
+function isUnderGit(path) {
+	// A folder pack (or the folder of a zip) inside a git work tree already has its history
+	if (!path) return false;
+	let dir = /\.zip$/i.test(path) ? PathModule.dirname(path) : path;
+	for (let i = 0; i < 32 && dir; i++) {
+		if (pathExists(PathModule.join(dir, '.git'))) return true;
+		let parent = PathModule.dirname(dir);
+		if (parent == dir) break;
+		dir = parent;
+	}
+	return false;
+}
+function backupStamp(data, target) {
+	if (!data.export.backup || isUnderGit(target)) return null;
+	return new Date().toISOString().replace(/[:.]/g, '-');
+}
+function pruneBackups() {
+	let root = PathModule.join(SystemInfo.user_data_directory, 'armor_trim_editor_backups');
+	let stamps = readDir(root).filter(name => /^\d{4}-\d\d-\d\dT/.test(name)).sort();
+	for (let name of stamps.slice(0, Math.max(0, stamps.length - BACKUPS_KEPT))) {
+		try { getFS().rmSync(PathModule.join(root, name), {recursive: true, force: true}); } catch (err) { console.warn('[Trim Editor] backup cleanup:', err); }
+	}
+}
 function backupFile(path, pack, stamp) {
 	let fs = getFS();
 	if (!fs.existsSync(path)) return;
@@ -2015,7 +2061,8 @@ async function describePlan(plan, data) {
 	let lines = [planHeader(pack)];
 	lines.push((pack.exists('pack.mcmeta') ? '· ' : '＋ ') + 'pack.mcmeta');
 	if (!pack.exists('pack.png') && (pack.kind == 'zip' || !pack.exists('pack.mcmeta')) && findTexture('icon')) lines.push('＋ pack.png');
-	for (let file of plan.files) lines.push(mark(file.rel) + file.rel);
+	let icon_empty = iconIsEmpty(findTexture('icon'));
+	for (let file of plan.files) lines.push(file.icon && icon_empty ? '· ' + t('template_icon_empty_skipped') + ': ' + file.rel : mark(file.rel) + file.rel);
 	if (plan.atlas) lines.push((pack.exists(plan.atlas) ? '✎ ' : '＋ ') + plan.atlas);
 	if (data) lines.push(...await describeArmorIcons(pack, data));
 	return lines;
@@ -2030,7 +2077,7 @@ async function runExport(quiet = false) {
 		return;
 	}
 	let written = [];
-	let stamp = data.export.backup ? new Date().toISOString().replace(/[:.]/g, '-') : null;
+	let stamp = backupStamp(data, plan.target);
 	try {
 		let pack = await packStorage(plan.target).load();
 		// Folder packs back up each overwritten file, zip archives are backed up as a whole on save
@@ -2048,7 +2095,12 @@ async function runExport(quiet = false) {
 			}
 		}
 		let unchanged = 0;
+		let notes = [];
+		// An empty template icon would only replace a real one or add junk files
+		let icon_empty = iconIsEmpty(findTexture('icon'));
+		if (icon_empty && plan.files.some(file => file.icon)) notes.push(t('template_icon_empty_skipped'));
 		for (let file of plan.files) {
+			if (file.icon && icon_empty) continue;
 			let changed;
 			if (file.kind == 'texture') {
 				let texture = findTexture(file.role);
@@ -2073,9 +2125,10 @@ async function runExport(quiet = false) {
 			}
 			atlas_changes = result.changes;
 		}
-		let notes = [];
+		if (data.export.backup && !stamp) notes.push(t('backup_skipped_git'));
 		let icons_summary = data.export.armor_icons ? await exportArmorIcons(pack, data, file_stamp, written, notes) : '';
 		await pack.save(stamp);
+		if (stamp) pruneBackups();
 		let e = data.export;
 		Prefs.set({pack_type: e.pack_type, pack_path: e.pack_path, zip_dir: e.zip_dir, zip_name: e.zip_name, namespace: e.namespace,
 			icon_texture: e.icon_texture, icon_model: e.icon_model, icon_parent: e.icon_parent, mc_version: data.mc_version});
@@ -2353,7 +2406,7 @@ async function runDatapackExport() {
 		Blockbench.showMessageBox({title: t('dp_title'), icon: 'error', message: errors.map(escapeHTML).join('<br>')});
 		return;
 	}
-	let stamp = data.export.backup ? new Date().toISOString().replace(/[:.]/g, '-') : null;
+	let stamp = backupStamp(data, plan.file);
 	let written = [], notes = [];
 	try {
 		let dp = await new ZipPack(plan.file).load();
@@ -2368,6 +2421,7 @@ async function runDatapackExport() {
 		dp.write(plan.pattern_rel, JSON.stringify(plan.pattern, null, 2) + '\n');
 		written.push(plan.pattern_rel);
 		await dp.save(stamp);
+		if (stamp) pruneBackups();
 
 		if (plan.lang.length) {
 			let rp = await packStorage(plan.rp_target).load();
@@ -2564,6 +2618,22 @@ function iconRel(pattern, id) {
 	let p = parseResourceId(pattern.replace(/\{id\}/g, id));
 	return `assets/${p.ns}/textures/${p.path}.png`;
 }
+async function guessIconPattern(pack, ids) {
+	// The folder that holds a picture for most of the trims is where the template icons live
+	let counts = new Map();
+	for (let ns of pack.listDir('assets')) {
+		for (let rel of pack.listFiles(`assets/${ns}/textures/`)) {
+			let m = rel.match(/^assets\/([^/]+)\/textures\/(.+)\/([^/]+)\.png$/);
+			if (!m || /(^|\/)trims\//.test(m[2])) continue;
+			let name = m[3], pattern = null;
+			if (ids.has(name)) pattern = `${m[1]}:${m[2]}/{id}`;
+			else if (name.endsWith('_armor_trim_smithing_template') && ids.has(name.slice(0, -29))) pattern = `${m[1]}:${m[2]}/{id}_armor_trim_smithing_template`;
+			if (pattern) counts.set(pattern, (counts.get(pattern) || 0) + 1);
+		}
+	}
+	let best = [...counts].sort((a, b) => b[1] - a[1])[0];
+	return best && best[1] >= Math.max(1, Math.ceil(ids.size / 2)) ? best[0] : null;
+}
 function openImportDialog() {
 	let prefs = Prefs.get();
 	let pack = prefs.import_path || rpTargetPath({pack_type: prefs.pack_type, pack_path: prefs.pack_path, zip_dir: prefs.zip_dir, zip_name: prefs.zip_name}) || '';
@@ -2573,7 +2643,7 @@ function openImportDialog() {
 		width: 600,
 		component: {
 			data() {
-				return {pack, list: [], selected: [], last: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, error: '', filter: '', storage: null};
+				return {pack, list: [], selected: [], last: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, error: '', filter: '', storage: null, guessed: false};
 			},
 			computed: {
 				filtered() {
@@ -2621,6 +2691,15 @@ function openImportDialog() {
 						let storage = await packStorage(this.pack).load();
 						let list = await scanPackTrims(storage);
 						let icons_root = await findIconsRoot(storage, mcVersion(Prefs.get().mc_version));
+						this.guessed = false;
+						let has_icon = (trim) => storage.exists(iconRel(this.icon_pattern, trim.id));
+						if (list.length && !list.some(has_icon)) {
+							let guess = await guessIconPattern(storage, new Set(list.map(trim => trim.id)));
+							if (guess) {
+								this.icon_pattern = guess;
+								this.guessed = true;
+							}
+						}
 						for (let trim of list) {
 							trim.icon = await readPackPNG(storage, iconRel(this.icon_pattern, trim.id));
 							trim.armor_icons = ICON_SLOTS.some(slot => storage.exists(`${icons_root.prefix}assets/minecraft/textures/${slot.texture}/${trim.ns}/${trim.id}.png`));
@@ -2640,6 +2719,7 @@ function openImportDialog() {
 						<button @click="pickFolder()" title="${t('rp_type_folder')}"><i class="material-icons">folder</i></button>
 						<button @click="pickZip()" title="${t('rp_type_zip')}"><i class="material-icons">folder_zip</i></button></div>
 					<div class="te_form_row"><label>${t('icon')}</label><input type="text" v-model="icon_pattern" @change="scan()" class="dark_bordered"></div>
+					<div class="te_hint te_import_guess" v-if="guessed">${t('icon_pattern_guessed')}</div>
 					<div class="te_form_row"><label>${t('search')}</label><input type="text" v-model="filter" class="dark_bordered"></div>
 					<ul class="te_trim_list">
 						<li v-for="t in filtered" :class="{selected: selected.includes(t.ns + ':' + t.id)}" @click="pick(t, $event)" @dblclick="selected = [t.ns + ':' + t.id]; confirmDialog()">
@@ -3228,17 +3308,31 @@ function currentIcons() {
 function generatorApplies(opts, slot) {
 	return opts.source != 'copy' || !!slot.copy_from;
 }
+function canvasIsEmpty(canvas) {
+	let px = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+	for (let i = 3; i < px.length; i += 4) if (px[i] > 0) return false;
+	return true;
+}
+async function generateOrKeep(slot, opts, current) {
+	// E.g. a trim with nothing on the front of the helmet gives an empty helmet icon: keep the one drawn instead
+	let canvas = await generateIcon(slot, opts, current);
+	if (opts.source != 'clear' && canvasIsEmpty(canvas) && current[slot.id] && !canvasIsEmpty(current[slot.id])) return null;
+	return canvas;
+}
 async function applyIconGenerator(opts, slot_ids, undo = true) {
 	let current = currentIcons();
 	let results = [];
+	let kept = 0;
 	for (let id of slot_ids) {
 		let slot = iconSlot(id);
 		let texture = iconTexture(id);
 		if (!slot || !texture || !generatorApplies(opts, slot)) continue;
 		await textureReady(texture);
-		results.push([texture, await generateIcon(slot, opts, current)]);
+		let canvas = await generateOrKeep(slot, opts, current);
+		if (canvas) results.push([texture, canvas]);
+		else kept++;
 	}
-	if (!results.length) return;
+	if (!results.length) return kept;
 	if (undo) Undo.initEdit({textures: results.map(r => r[0]), bitmap: true});
 	for (let [texture, canvas] of results) {
 		texture.edit((target) => {
@@ -3249,6 +3343,7 @@ async function applyIconGenerator(opts, slot_ids, undo = true) {
 		}, {no_undo: true});
 	}
 	if (undo) Undo.finishEdit(t('generate_armor_icons'));
+	return kept;
 }
 
 function openArmorIconGenerators() {
@@ -3296,7 +3391,7 @@ function openArmorIconGenerators() {
 					for (let entry of this.slots) {
 						let slot = iconSlot(entry.id);
 						let item = iconSlotItem(slot, data.armor.material);
-						let overlay = entry.on && generatorApplies(this.opts, slot) ? await generateIcon(slot, this.opts, current) : current[slot.id];
+						let overlay = entry.on && generatorApplies(this.opts, slot) ? (await generateOrKeep(slot, this.opts, current) || current[slot.id]) : current[slot.id];
 						let base = await armorItemCanvas(item, data.armor.leather_color);
 						if (run != this.run) return;
 						let icon = composeIcon(base, overlay, iconPaletteId(data, item, this.material));
@@ -3356,7 +3451,10 @@ function openArmorIconGenerators() {
 			let vm = this.content_vue;
 			if (!vm) return;
 			let ids = vm.slots.filter(s => s.on).map(s => s.id);
-			applyIconGenerator(vm.opts, ids).then(() => refreshPanels()).catch(err => showError(t('armor_icons_title'), err));
+			applyIconGenerator(vm.opts, ids).then((kept) => {
+				refreshPanels();
+				if (kept) notify(t('icons_kept_empty_result', [kept]), 4000);
+			}).catch(err => showError(t('armor_icons_title'), err));
 		},
 	});
 	dialog.show();
@@ -3622,7 +3720,9 @@ async function exportArmorIcons(pack, data, file_stamp, written, notes) {
 	for (let entry of ARMOR_ITEMS) {
 		if (entry.armor == 'copper' && version.rp < 69) continue;
 		let slot = iconSlot(entry.slot);
-		let used = filled.includes(slot);
+		// Items whose icon is empty keep whatever the pack already has for this pattern
+		if (!filled.includes(slot)) continue;
+		let used = true;
 		let model_id = `minecraft:item/${entry.item}/${ns}/${id}`;
 		let layer = entry.leather ? 'layer2' : 'layer1';
 		let texture_id = `minecraft:${slot.texture}/${ns}/${id}`;
@@ -4151,6 +4251,7 @@ const CSS = `
 .te_warn_text { color: #e5b84b; }
 .te_break { word-break: break-all; }
 .te_import_footer { gap: 10px; }
+.te_import_guess { margin: -2px 0 4px 148px; }
 .te_push { margin-left: auto; }
 .te_link { color: var(--color-accent); cursor: pointer; text-decoration: underline; white-space: nowrap; }
 .te_center { justify-content: center; }
@@ -4590,7 +4691,7 @@ function getTranslations() {
 			model_parent: "Model parent",
 			other: "**Other**",
 			back_up_overwritten_files: "Back up overwritten files",
-			copies_go_to_blockbench_data_armor_trim: "Copies go to Blockbench data/armor_trim_editor_backups.",
+			copies_go_to_blockbench_data_armor_trim: "Copies go to Blockbench data/armor_trim_editor_backups. Not for packs under git, which already keep the history; only the latest 10 backups are kept.",
 			open_trim_from_resource_pack: "Open trim from resource pack",
 			no_trims_found_in_this_pack: "No trims found in this pack.",
 			pack_2: "Pack",
@@ -4799,12 +4900,12 @@ function getTranslations() {
 			icon_grid_hint_fixed: "Fixed colors: the icon looks the same with every trim material.",
 			armor_icons_help_why: "<b>Why.</b> In vanilla Minecraft a trimmed helmet, chestplate, leggings or boots in the inventory always shows the same overlay, only its color follows the trim material. Chestplates with different trims look identical.",
 			armor_icons_help_what: "<b>What this does.</b> Here you draw how <i>this</i> trim looks on the item icon. The resource pack gets an overlay for each armor shape, recolored for every trim material. This is the approach of the <a href=\"https://modrinth.com/resourcepack/visual-armor-trims\">Visual Armor Trims</a> resource pack by Thanos (CC BY-SA 4.0).",
-			armor_icons_help_slots: "<b>Seven icons.</b> Helmet, chestplate, leggings and boots are shared by leather, chainmail, iron, gold, diamond and copper armor and the netherite chestplate and leggings. The netherite helmet, turtle shell and netherite boots have shapes of their own and get separate icons. Empty icons are not exported, those items keep their usual look.",
+			armor_icons_help_slots: "<b>Seven icons.</b> Helmet, chestplate, leggings and boots are shared by leather, chainmail, iron, gold, diamond and copper armor and the netherite chestplate and leggings. The netherite helmet, turtle shell and netherite boots have shapes of their own and get separate icons. Empty icons are not exported: the pack keeps whatever it already has for those items.",
 			armor_icons_help_colors: "<b>Colors.</b> Paint with the 8 palette grays, like the trim itself: they become the material colors (the darker palette on armor of the same material). Other colors stay as drawn. For colorful trims choose <b>Fixed (no material)</b>: the icon is then the same with every material.",
 			armor_icons_help_paint: "<b>Painting.</b> <b>Paint icons</b> puts the icons flat in front of the camera; the armor item under each icon is only a preview. You can also select an icon texture and paint in the 2D editor. <b>Generators</b> fill icons from the trim on the player, the vanilla overlay or simple shapes; <b>All variants</b> shows every armor with every material.",
 			armor_icons_help_export: "<b>Export.</b> If the resource pack already has Visual Armor Trims (also inside an overlay), the trim is added to it: textures, atlas, models and item definitions. Otherwise the plugin writes its own item definitions based on the vanilla ones. Needs Minecraft 1.21.5 or newer.",
 			armor_icons_help_short: "<b>Armor icons:</b> in vanilla the trim looks the same on every armor item in the inventory. The Icons tab lets you draw a separate look for this trim, exported in the Visual Armor Trims format.",
-			armor_icons_count: "Armor icons: %0 of %1 drawn. Empty ones are not exported.",
+			armor_icons_count: "Armor icons: %0 of %1 drawn. Empty ones are not exported, the pack keeps what it has for them.",
 			armor_icons_export_info: "**Armor icons** — the trim on armor items in the inventory",
 			export_armor_icons: "Export armor icons",
 			export_armor_icons_desc: "Pattern-specific icons for trimmed armor items. Visual Armor Trims in the pack is found and extended.",
@@ -4824,6 +4925,10 @@ function getTranslations() {
 			files_unchanged: "Unchanged, not rewritten: %0",
 			import_multi_hint: "Ctrl or Shift to open several, each in its own tab",
 			trims_opened: "Trims opened: %0",
+			template_icon_empty_skipped: "The template icon is empty and was not exported",
+			backup_skipped_git: "No backup: the pack is under git",
+			icons_kept_empty_result: "Kept as drawn: %0 (the generator gave an empty icon)",
+			icon_pattern_guessed: "Template icons were found in the pack, the path was filled in automatically.",
 		},
 		ru: {
 			quartz: "Кварц",
@@ -4976,7 +5081,7 @@ function getTranslations() {
 			model_parent: "Parent модели",
 			other: "**Прочее**",
 			back_up_overwritten_files: "Резервные копии перезаписываемых файлов",
-			copies_go_to_blockbench_data_armor_trim: "Копии складываются в папку данных Blockbench/armor_trim_editor_backups.",
+			copies_go_to_blockbench_data_armor_trim: "Копии складываются в папку данных Blockbench/armor_trim_editor_backups. Не делается для паков под git — там уже есть история; хранятся 10 последних копий.",
 			open_trim_from_resource_pack: "Открыть отделку из ресурспака",
 			no_trims_found_in_this_pack: "В этом ресурспаке отделок не найдено.",
 			pack_2: "Ресурспак",
@@ -5185,12 +5290,12 @@ function getTranslations() {
 			icon_grid_hint_fixed: "Свои цвета: иконка одинакова с любым материалом отделки.",
 			armor_icons_help_why: "<b>Зачем.</b> В ванильном Minecraft шлем, нагрудник, поножи или ботинки с отделкой в инвентаре всегда показывают один и тот же рисунок, меняется только цвет материала. Нагрудники с разными отделками выглядят одинаково.",
 			armor_icons_help_what: "<b>Что делает.</b> Здесь вы рисуете, как именно <i>эта</i> отделка выглядит на иконке предмета. В ресурспак пишется свой рисунок для каждой формы брони, перекрашенный под каждый материал. Так работает ресурспак <a href=\"https://modrinth.com/resourcepack/visual-armor-trims\">Visual Armor Trims</a> от Thanos (CC BY-SA 4.0).",
-			armor_icons_help_slots: "<b>Семь иконок.</b> Шлем, нагрудник, поножи и ботинки общие для кожаной, кольчужной, железной, золотой, алмазной и медной брони, а также незеритовых нагрудника и поножей. Незеритовый шлем, черепаший панцирь и незеритовые ботинки имеют свою форму и получают отдельные иконки. Пустые иконки не экспортируются, такие предметы выглядят как обычно.",
+			armor_icons_help_slots: "<b>Семь иконок.</b> Шлем, нагрудник, поножи и ботинки общие для кожаной, кольчужной, железной, золотой, алмазной и медной брони, а также незеритовых нагрудника и поножей. Незеритовый шлем, черепаший панцирь и незеритовые ботинки имеют свою форму и получают отдельные иконки. Пустые иконки не экспортируются: для таких предметов в паке остаётся то, что там уже есть.",
 			armor_icons_help_colors: "<b>Цвета.</b> Рисуйте 8 серыми цветами палитры, как саму отделку: они станут цветами материала (на броне из того же материала — тёмная палитра). Остальные цвета остаются как есть. Для цветных отделок выберите <b>Свои (без материала)</b>: тогда иконка одинакова с любым материалом.",
 			armor_icons_help_paint: "<b>Рисование.</b> <b>Рисовать иконки</b> показывает иконки плоско перед камерой; предмет брони под иконкой — только превью. Можно также выбрать текстуру иконки и рисовать в 2D-редакторе. <b>Генераторы</b> заполняют иконки из отделки на игроке, ванильного рисунка или простых фигур; <b>Все варианты</b> показывает каждую броню с каждым материалом.",
 			armor_icons_help_export: "<b>Экспорт.</b> Если в ресурспаке уже есть Visual Armor Trims (в том числе в оверлее), отделка добавляется в него: текстуры, атлас, модели и определения предметов. Иначе плагин пишет свои определения предметов на основе ванильных. Нужен Minecraft 1.21.5 или новее.",
 			armor_icons_help_short: "<b>Иконки брони:</b> в ванилле отделка на любом предмете брони в инвентаре выглядит одинаково. Во вкладке «Иконки» можно нарисовать для этой отделки свой вид, он экспортируется в формате Visual Armor Trims.",
-			armor_icons_count: "Иконки брони: нарисовано %0 из %1. Пустые не экспортируются.",
+			armor_icons_count: "Иконки брони: нарисовано %0 из %1. Пустые не экспортируются, для них в паке остаётся то, что есть.",
 			armor_icons_export_info: "**Иконки брони** — отделка на предметах брони в инвентаре",
 			export_armor_icons: "Экспортировать иконки брони",
 			export_armor_icons_desc: "Свои иконки предметов брони для этой отделки. Visual Armor Trims в паке находится и дополняется.",
@@ -5210,6 +5315,10 @@ function getTranslations() {
 			files_unchanged: "Без изменений, не перезаписано: %0",
 			import_multi_hint: "Ctrl или Shift — открыть несколько, каждую в своей вкладке",
 			trims_opened: "Открыто отделок: %0",
+			template_icon_empty_skipped: "Иконка шаблона пустая и не экспортирована",
+			backup_skipped_git: "Без резервной копии: пак под git",
+			icons_kept_empty_result: "Оставлено как нарисовано: %0 (генератор дал пустую иконку)",
+			icon_pattern_guessed: "Иконки шаблонов найдены в паке, путь подставлен автоматически.",
 		},
 	};
 }
