@@ -2632,7 +2632,7 @@ async function guessIconPattern(pack, ids) {
 		}
 	}
 	let best = [...counts].sort((a, b) => b[1] - a[1])[0];
-	return best && best[1] >= Math.max(1, Math.ceil(ids.size / 2)) ? best[0] : null;
+	return best && best[1] >= Math.max(1, Math.ceil(ids.size / 2)) ? {pattern: best[0], count: best[1]} : null;
 }
 function openImportDialog() {
 	let prefs = Prefs.get();
@@ -2643,7 +2643,7 @@ function openImportDialog() {
 		width: 600,
 		component: {
 			data() {
-				return {pack, list: [], selected: [], last: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, error: '', filter: '', storage: null, guessed: false};
+				return {pack, list: [], selected: [], last: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, icon_typed: false, error: '', filter: '', storage: null, guessed: false};
 			},
 			computed: {
 				filtered() {
@@ -2692,11 +2692,12 @@ function openImportDialog() {
 						let list = await scanPackTrims(storage);
 						let icons_root = await findIconsRoot(storage, mcVersion(Prefs.get().mc_version));
 						this.guessed = false;
-						let has_icon = (trim) => storage.exists(iconRel(this.icon_pattern, trim.id));
-						if (list.length && !list.some(has_icon)) {
+						// A remembered path that misses icons (another pack, a stray file) gives way to the folder that has most of them
+						let found = list.filter(trim => storage.exists(iconRel(this.icon_pattern, trim.id))).length;
+						if (list.length && found < list.length && !this.icon_typed) {
 							let guess = await guessIconPattern(storage, new Set(list.map(trim => trim.id)));
-							if (guess) {
-								this.icon_pattern = guess;
+							if (guess && guess.pattern != this.icon_pattern && guess.count > found) {
+								this.icon_pattern = guess.pattern;
 								this.guessed = true;
 							}
 						}
@@ -2718,7 +2719,7 @@ function openImportDialog() {
 					<div class="te_form_row"><label>${t('pack_2')}</label><input type="text" v-model="pack" @change="scan()" class="dark_bordered" placeholder="${t('folder_or_zip')}">
 						<button @click="pickFolder()" title="${t('rp_type_folder')}"><i class="material-icons">folder</i></button>
 						<button @click="pickZip()" title="${t('rp_type_zip')}"><i class="material-icons">folder_zip</i></button></div>
-					<div class="te_form_row"><label>${t('icon')}</label><input type="text" v-model="icon_pattern" @change="scan()" class="dark_bordered"></div>
+					<div class="te_form_row"><label>${t('icon')}</label><input type="text" v-model="icon_pattern" @input="icon_typed = true" @change="scan()" class="dark_bordered"></div>
 					<div class="te_hint te_import_guess" v-if="guessed">${t('icon_pattern_guessed')}</div>
 					<div class="te_form_row"><label>${t('search')}</label><input type="text" v-model="filter" class="dark_bordered"></div>
 					<ul class="te_trim_list">
