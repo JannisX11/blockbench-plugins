@@ -712,9 +712,9 @@ async function buildTrimProject(opts) {
 }
 
 function startNewTrim(opts) {
-	if (!newProject(Formats[FORMAT_ID])) return;
+	if (!newProject(Formats[FORMAT_ID])) return Promise.resolve();
 	Project.armor_trim_editor = deepDefaults({}, defaultData());
-	buildTrimProject(opts).then(() => {
+	return buildTrimProject(opts).then(() => {
 		Modes.options.paint.select();
 		refreshPanels();
 	}).catch(err => showError(t('could_not_create_trim'), err));
@@ -1798,9 +1798,47 @@ async function readPackText(pack, rel) {
 	return buffer ? buffer.toString('utf-8').replace(/^﻿/, '') : null;
 }
 function writeJSON(pack, rel, json, previous_text, backup_stamp) {
-	// Keep the indentation and trailing newline of the file being replaced
+	// Keep the indentation, line endings and trailing newline of the file being replaced
 	let text = previous_text || '';
-	pack.write(rel, JSON.stringify(json, null, detectIndent(text)) + (text.endsWith('\n') || !text ? '\n' : ''), backup_stamp);
+	let out = JSON.stringify(json, null, detectIndent(text)) + (text.endsWith('\n') || !text ? '\n' : '');
+	if (text.includes('\r\n')) out = out.replace(/\n/g, '\r\n');
+	pack.write(rel, out, backup_stamp);
+}
+async function writeJSONIfChanged(pack, rel, json, backup_stamp, indent = 2) {
+	// Files whose content is already the same stay untouched, so a pack under git shows only real changes
+	let text = await readPackText(pack, rel);
+	if (text) {
+		try {
+			if (JSON.stringify(JSON.parse(text)) == JSON.stringify(json)) return false;
+		} catch (err) {}
+		writeJSON(pack, rel, json, text, backup_stamp);
+	} else {
+		pack.write(rel, JSON.stringify(json, null, indent) + '\n');
+	}
+	return true;
+}
+async function samePNG(pack, rel, canvas) {
+	// Compares pixels, not bytes: an image saved by another editor is not rewritten if nothing was painted
+	let buffer = await pack.read(rel);
+	if (!buffer || !canvas || !canvas.width) return false;
+	try {
+		let old = await dataURLToCanvas(bufferToDataURL(buffer));
+		if (old.width != canvas.width || old.height != canvas.height) return false;
+		let a = old.getContext('2d').getImageData(0, 0, old.width, old.height).data;
+		let b = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+		for (let i = 0; i < a.length; i += 4) {
+			if (a[i + 3] == 0 && b[i + 3] == 0) continue;
+			if (a[i] != b[i] || a[i + 1] != b[i + 1] || a[i + 2] != b[i + 2] || a[i + 3] != b[i + 3]) return false;
+		}
+		return true;
+	} catch (err) {
+		return false;
+	}
+}
+async function writeTextureIfChanged(pack, rel, texture, backup_stamp) {
+	if (await samePNG(pack, rel, texture.canvas)) return false;
+	pack.write(rel, textureBuffer(texture), backup_stamp);
+	return true;
 }
 function zipFileName(name) {
 	name = String(name || '').trim().replace(/\.zip$/i, '');
@@ -2009,17 +2047,18 @@ async function runExport(quiet = false) {
 				written.push('pack.png');
 			}
 		}
+		let unchanged = 0;
 		for (let file of plan.files) {
-			let content;
+			let changed;
 			if (file.kind == 'texture') {
 				let texture = findTexture(file.role);
 				if (!texture) continue;
-				content = textureBuffer(texture);
+				changed = await writeTextureIfChanged(pack, file.rel, texture, file_stamp);
 			} else {
-				content = file.content + '\n';
+				changed = await writeJSONIfChanged(pack, file.rel, JSON.parse(file.content), file_stamp, 4);
 			}
-			pack.write(file.rel, content, file_stamp);
-			written.push(file.rel);
+			if (changed) written.push(file.rel);
+			else unchanged++;
 		}
 		let atlas_changes = [];
 		if (plan.atlas) {
@@ -2042,9 +2081,10 @@ async function runExport(quiet = false) {
 			icon_texture: e.icon_texture, icon_model: e.icon_model, icon_parent: e.icon_parent, mc_version: data.mc_version});
 		data.last_export = {time: Date.now(), files: written.length};
 		if (quiet) {
-			notify(t('trim_exported_files', [plan.id, written.length]) + (notes.length ? ' · ' + notes[0] : ''), notes.length ? 5000 : 2500);
+			let extra = notes.length ? notes[0] : unchanged ? t('files_unchanged', [unchanged]) : '';
+			notify(t('trim_exported_files', [plan.id, written.length]) + (extra ? ' · ' + extra : ''), notes.length ? 5000 : 2500);
 		} else {
-			showExportResult(plan, pack, written, atlas_changes, notes, icons_summary);
+			showExportResult(plan, pack, written, atlas_changes, notes, icons_summary, unchanged);
 		}
 	} catch (err) {
 		showError(t('export_failed'), err);
@@ -2053,9 +2093,10 @@ async function runExport(quiet = false) {
 function itemSnippet(plan) {
 	return JSON.stringify({threshold: 0, model: {type: 'minecraft:model', model: plan.icon_model_id}}, null, 4);
 }
-function showExportResult(plan, pack, written, atlas_changes, notes = [], icons_summary = '') {
+function showExportResult(plan, pack, written, atlas_changes, notes = [], icons_summary = '', unchanged = 0) {
 	let html = `<p>${t('written_to')}: <b class="te_break">${escapeHTML(pack.path)}</b></p>`;
 	html += `<p>${t('files_written')}: <b>${written.length}</b></p><ul class="te_list">${written.map(p => `<li>${escapeHTML(p)}</li>`).join('')}</ul>`;
+	if (unchanged) html += `<p class="te_hint">${t('files_unchanged', [unchanged])}</p>`;
 	if (atlas_changes.length) html += `<p>${t('atlas')}: ${atlas_changes.map(escapeHTML).join(', ')}</p>`;
 	if (icons_summary) html += `<p>${escapeHTML(icons_summary)}</p>`;
 	if (plan.vanilla) html += `<p>${t('vanilla_atlas_note')}</p>`;
@@ -2532,7 +2573,7 @@ function openImportDialog() {
 		width: 600,
 		component: {
 			data() {
-				return {pack, list: [], selected: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, error: '', filter: '', storage: null};
+				return {pack, list: [], selected: [], last: '', icon_pattern: prefs.icon_texture || DEFAULT_ICON_ID, error: '', filter: '', storage: null};
 			},
 			computed: {
 				filtered() {
@@ -2553,6 +2594,23 @@ function openImportDialog() {
 				confirmDialog() {
 					if (Dialog.open && Dialog.open.id == 'armor_trim_editor_import') Dialog.open.confirm();
 				},
+				pick(trim, event) {
+					// Click selects one trim, Ctrl adds or removes one, Shift selects a range
+					let key = trim.ns + ':' + trim.id;
+					let keys = this.filtered.map(t => t.ns + ':' + t.id);
+					if (event.shiftKey && this.last && keys.includes(this.last)) {
+						let [a, b] = [keys.indexOf(this.last), keys.indexOf(key)].sort((x, y) => x - y);
+						this.selected = keys.slice(a, b + 1);
+						return;
+					}
+					if (event.ctrlKey || event.metaKey) {
+						this.selected = this.selected.includes(key) ? this.selected.filter(k => k != key) : this.selected.concat([key]);
+					} else {
+						this.selected = [key];
+					}
+					this.last = key;
+				},
+				selectAll() { this.selected = this.filtered.map(t => t.ns + ':' + t.id); },
 				async scan() {
 					this.error = '';
 					this.list = [];
@@ -2584,7 +2642,7 @@ function openImportDialog() {
 					<div class="te_form_row"><label>${t('icon')}</label><input type="text" v-model="icon_pattern" @change="scan()" class="dark_bordered"></div>
 					<div class="te_form_row"><label>${t('search')}</label><input type="text" v-model="filter" class="dark_bordered"></div>
 					<ul class="te_trim_list">
-						<li v-for="t in filtered" :class="{selected: selected == t.ns + ':' + t.id}" @click="selected = t.ns + ':' + t.id" @dblclick="selected = t.ns + ':' + t.id; confirmDialog()">
+						<li v-for="t in filtered" :class="{selected: selected.includes(t.ns + ':' + t.id)}" @click="pick(t, $event)" @dblclick="selected = [t.ns + ':' + t.id]; confirmDialog()">
 							<img v-if="t.icon" :src="t.icon" class="te_list_icon"><span v-else class="te_list_icon"></span>
 							<b>{{ t.id }}</b> <span class="te_ns">{{ t.ns }}</span>
 							<span class="te_tags">
@@ -2595,20 +2653,39 @@ function openImportDialog() {
 							</span>
 						</li>
 					</ul>
+					<div class="te_row te_import_footer" v-if="list.length">
+						<span class="te_link" @click="selectAll()">${t('select_all')}</span>
+						<span class="te_small">${t('import_multi_hint')}</span>
+						<span class="te_small te_push">{{ selected.length }} / {{ list.length }}</span>
+					</div>
 					<div class="te_error" v-if="error">{{ error }}</div>
 				</div>`,
 		},
 		onConfirm() {
 			let vm = this.content_vue;
-			let trim = vm && vm.list.find(t => t.ns + ':' + t.id == vm.selected);
-			if (!trim || !vm.storage) return false;
+			let trims = vm ? vm.list.filter(t => vm.selected.includes(t.ns + ':' + t.id)) : [];
+			if (!trims.length || !vm.storage) return false;
 			Prefs.set({import_path: vm.pack, icon_texture: vm.icon_pattern});
-			importFromPack(vm.storage, trim, vm.icon_pattern).catch(err => showError(t('could_not_create_trim'), err));
+			let storage = vm.storage, pattern = vm.icon_pattern;
+			(async () => {
+				// One tab per trim, opened one after another
+				for (let trim of trims) await importFromPack(storage, trim, pattern);
+				if (trims.length > 1) notify(t('trims_opened', [trims.length]), 3000);
+			})().catch(err => showError(t('could_not_create_trim'), err));
 		},
 	});
 	dialog.show();
 }
 async function importFromPack(storage, trim, icon_pattern) {
+	// A trim that is already open from the same pack gets its tab back instead of a second copy
+	let open = (ModelProject.all || []).find(project => {
+		let data = project.armor_trim_editor;
+		return data && data.trim_id == trim.id && (data.export.namespace || 'minecraft') == trim.ns && rpTargetPath(data.export) == storage.path;
+	});
+	if (open) {
+		open.select();
+		return;
+	}
 	let target = storage.kind == 'zip'
 		? {pack_type: 'zip', zip_dir: PathModule.dirname(storage.path), zip_name: PathModule.basename(storage.path).replace(/\.zip$/i, '')}
 		: {pack_type: 'folder', pack_path: storage.path};
@@ -2628,7 +2705,7 @@ async function importTrim(opts) {
 		let img = await loadImage(url);
 		res = Math.max(res, Math.round(img.naturalWidth / 64));
 	}
-	startNewTrim(Object.assign({resolution: res}, opts));
+	await startNewTrim(Object.assign({resolution: res}, opts));
 }
 
 // ============================================================================
@@ -3427,13 +3504,20 @@ function injectItemCases(def, key, modelFor, with_fallback) {
 			// A plain vanilla model stays as the fallback for every other pattern
 			inner = material_case.model = {type: 'minecraft:select', property: 'minecraft:component', component: 'minecraft:trim', cases: [], fallback: inner};
 		}
-		inner.cases = (inner.cases || []).filter(c => !(c.when && c.when.pattern == key));
-		if (!modelFor) continue;
-		for (let value of values) {
-			let material = parseResourceId(value).path;
-			if (!TRIM_MATERIALS.some(m => m.id == material)) continue;
-			inner.cases.push({when: {pattern: key, material: 'minecraft:' + material}, model: make(modelFor(material))});
+		if (!Array.isArray(inner.cases)) inner.cases = [];
+		let keep = new Set();
+		if (modelFor) {
+			for (let value of values) {
+				let material = parseResourceId(value).path;
+				if (!TRIM_MATERIALS.some(m => m.id == material)) continue;
+				let when = {pattern: key, material: 'minecraft:' + material};
+				let existing = inner.cases.find(c => c.when && c.when.pattern == key && c.when.material == when.material);
+				if (existing) existing.model = make(modelFor(material));
+				else inner.cases.push(existing = {when, model: make(modelFor(material))});
+				keep.add(existing);
+			}
 		}
+		inner.cases = inner.cases.filter(c => !(c.when && c.when.pattern == key) || keep.has(c));
 	}
 	// Visual Armor Trims sends materials it does not know through a chain of conditions, one per pattern
 	let fallback = root.fallback;
@@ -3518,8 +3602,7 @@ async function exportArmorIcons(pack, data, file_stamp, written, notes) {
 
 	for (let slot of filled) {
 		let rel = `${assets}textures/${slot.texture}/${ns}/${id}.png`;
-		pack.write(rel, textureBuffer(iconTexture(slot.id)), file_stamp);
-		written.push(rel);
+		if (await writeTextureIfChanged(pack, rel, iconTexture(slot.id), file_stamp)) written.push(rel);
 	}
 
 	let atlas_rel = `${assets}atlases/${root.atlas}`;
@@ -3546,14 +3629,12 @@ async function exportArmorIcons(pack, data, file_stamp, written, notes) {
 		if (used) {
 			let base = {parent: 'minecraft:item/' + entry.item};
 			if (fixed) base.textures = {[layer]: texture_id};
-			pack.write(`${assets}models/item/${entry.item}/${ns}/${id}.json`, JSON.stringify(base, null, 2) + '\n');
-			models++;
+			if (await writeJSONIfChanged(pack, `${assets}models/item/${entry.item}/${ns}/${id}.json`, base)) models++;
 			if (!fixed) {
 				for (let material of materials) {
 					let darker = material == entry.material ? '/darker' : '';
-					pack.write(`${assets}models/item/${entry.item}/${ns}/${id}/minecraft/${material}.json`,
-						JSON.stringify({parent: model_id, textures: {[layer]: `${texture_id}/minecraft/${material}${darker}`}}, null, 2) + '\n');
-					models++;
+					let model = {parent: model_id, textures: {[layer]: `${texture_id}/minecraft/${material}${darker}`}};
+					if (await writeJSONIfChanged(pack, `${assets}models/item/${entry.item}/${ns}/${id}/minecraft/${material}.json`, model)) models++;
 				}
 			}
 		}
@@ -4069,6 +4150,8 @@ const CSS = `
 .te_code { font-family: var(--font-code, monospace); font-size: 12px; background: var(--color-back); border: 1px solid var(--color-border); padding: 6px 8px; white-space: pre-wrap; word-break: break-all; user-select: text; margin: 4px 0; }
 .te_warn_text { color: #e5b84b; }
 .te_break { word-break: break-all; }
+.te_import_footer { gap: 10px; }
+.te_push { margin-left: auto; }
 .te_link { color: var(--color-accent); cursor: pointer; text-decoration: underline; white-space: nowrap; }
 .te_center { justify-content: center; }
 .te_top_hint { margin: 0 0 6px; }
@@ -4738,6 +4821,9 @@ function getTranslations() {
 			new_icons_project: "Generate from the trim",
 			new_icons_vanilla: "Vanilla overlay",
 			new_icons_empty: "Empty",
+			files_unchanged: "Unchanged, not rewritten: %0",
+			import_multi_hint: "Ctrl or Shift to open several, each in its own tab",
+			trims_opened: "Trims opened: %0",
 		},
 		ru: {
 			quartz: "Кварц",
@@ -5121,6 +5207,9 @@ function getTranslations() {
 			new_icons_project: "Сгенерировать из отделки",
 			new_icons_vanilla: "Ванильный рисунок",
 			new_icons_empty: "Пустые",
+			files_unchanged: "Без изменений, не перезаписано: %0",
+			import_multi_hint: "Ctrl или Shift — открыть несколько, каждую в своей вкладке",
+			trims_opened: "Открыто отделок: %0",
 		},
 	};
 }

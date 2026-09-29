@@ -4,7 +4,7 @@ Paint Minecraft: Java Edition armor trims on the exact armor model the game uses
 
 ## How to use
 
-1. **File → New → Armor Trim**. Start empty or from a vanilla pattern, or open an existing trim with **Trim → Open trim from resource pack**.
+1. **File → New → Armor Trim**. Start empty or from a vanilla pattern, or open existing trims with **Trim → Open trim from resource pack** (Ctrl or Shift opens several at once).
 2. Paint on the model or on the `humanoid` / `humanoid_leggings` textures. The eight gray shades in the **Trim: palette & export** panel are recolored by the trim material; any other color stays as painted.
 3. Use the **Trim: preview** panel to show or hide armor pieces and layers, switch the reference armor and trim material, pose the player (including poses with the body parts pulled apart) and change the skin. Right-click a piece to show only that piece.
 4. Click **Icon** to generate the smithing template icon from a vanilla template.

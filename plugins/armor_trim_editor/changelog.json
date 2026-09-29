@@ -28,7 +28,10 @@
 			{
 				"title": "Improvements",
 				"list": [
-					"Vanilla palettes are only added to the atlas for Minecraft versions that have them (copper_darker, resin)"
+					"Vanilla palettes are only added to the atlas for Minecraft versions that have them (copper_darker, resin)",
+					"Several trims can be opened from a resource pack at once, each in its own tab; a trim that is already open gets its tab back",
+					"Export only rewrites files whose content changed and keeps the line endings of edited JSON files",
+					"Re-exporting armor icons keeps the order of existing item model cases"
 				]
 			}
 		]
