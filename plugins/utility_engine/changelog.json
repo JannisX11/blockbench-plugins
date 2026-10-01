@@ -1,0 +1,99 @@
+{
+	"0.4.0": {
+		"title": "v0.4.0",
+		"author": "SnaveSutit",
+		"date": "2026-09-10",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Locators, billboards, bounding boxes, and armatures/bones are now supported and round-trip through `.utility.json` export & import.",
+					"Cubes and meshes have `Skin Model` (All / Wide Only / Slim Only) and `Render Passes` properties in the element panel.",
+					"Display slots have a `Display Override` in the Display panel — point a slot at another model by resource location, with a file picker that turns a picked model file into its resource location (files outside a resource pack are rejected). Turning an override on hides that slot's transform and arm-rotation controls.",
+					"Older `.utility.json` files are upgraded automatically when imported."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Undo/redo of arm rotations and other custom display-slot settings now works, and those settings are saved to `.utilityproject` files.",
+					"Fixed a Display panel crash that could also leave the arm-rotation sliders missing.",
+					"Imported `.utility.json` models are now named after their file.",
+					"The custom animation type is only applied inside Utility Model projects.",
+					"Assorted `.utility.json` import fixes."
+				]
+			},
+			{
+				"title": "Other",
+				"list": ["Now requires Blockbench 5.1.6 or newer."]
+			}
+		]
+	},
+	"1.0.0": {
+		"title": "v1.0.0",
+		"author": "SnaveSutit",
+		"date": "2026-09-17",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Added a Skin Model preview toggle to the outliner toolbar, letting you filter the viewport to show All / Wide Only / Slim Only variants without changing anything saved in the project."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed animations losing their rotation and inverting keyframes when a utility animation type was reclassified.",
+					"Animation type reclassification (`utility.*` names, custom paths) is now scoped to Utility Model Project format only, so other formats' animations are no longer affected."
+				]
+			}
+		]
+	},
+	"1.0.1": {
+		"title": "v1.0.1",
+		"author": "SnaveSutit",
+		"date": "2026-09-30",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Added Function keyframes on the Effects row and locators.",
+					"Utility `.bbmodel` files, backups, and autosaves now open as Utility Model Projects.",
+					"Added Convert Project support for the Utility Model format.",
+					"Node names are now unique across types, except cubes and meshes."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed dragged-in `.utility.json` files opening as Java Block models.",
+					"Fixed dragged-in `.utilityproject` files not opening.",
+					"Fixed project properties not being saved.",
+					"Fixed backups not using the Utility Model Project format.",
+					"Fixed doubled or wrong `.utility.json` export extensions.",
+					"Fixed Save Project on imported `.utility.json` files."
+				]
+			}
+		]
+	},
+	"1.0.2": {
+		"title": "v1.0.2",
+		"author": "SnaveSutit",
+		"date": "2026-10-01",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Blockbench now suggests installing Utility Engine when you open a Utility Model Project without it."
+				]
+			},
+			{
+				"title": "Other",
+				"list": [
+					"Utility Engine is now available in the Blockbench plugin browser.",
+					"The plugin ID is now `utility_engine`. Files from older versions still open, but custom keybinds for Utility Engine actions need to be set again."
+				]
+			}
+		]
+	}
+}
