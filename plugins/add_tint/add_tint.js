@@ -13,7 +13,7 @@ const ADD_TINT_DEFAULT_COLORS = [
 
 const ADD_TINT_TRANSLATIONS = {
   en: {
-    plugin_description: 'Adds multiple Minecraft tint indices and tint color previews.',
+    plugin_description: 'Batch-edit Minecraft tint indices, preview tint colors, and prepare textures.',
     select_faces: 'Select one or more cube faces first.',
     select_textured_faces: 'Select one or more textured cube faces first.',
     grayscale_edit: 'Grayscale tint texture',
@@ -33,14 +33,6 @@ const ADD_TINT_TRANSLATIONS = {
     specify_index: 'Specify Index…',
     remove_tint: 'Remove Tint',
     edit_preview_colors: 'Edit Preview Colors…',
-    panel_select_faces: 'Select faces in the UV Editor',
-    no_tint: 'No Tint',
-    selected_faces: '{count} face(s) selected · {labels}',
-    panel_set_faces: 'Set the selected faces',
-    panel_preview_colors: 'Preview Colors',
-    panel_edit_colors: 'Edit all used indices live',
-    panel_grayscale: 'Grayscale Texture',
-    panel_prepare_textures: 'Prepare selected face textures',
     undo_set_tint: 'Set tint index {index}',
     tint_applied: 'Tint index {index} applied to {count} face(s).',
     undo_remove_tint: 'Remove tint index',
@@ -60,7 +52,7 @@ const ADD_TINT_TRANSLATIONS = {
     action_edit_colors_description: 'Edit every tint color used in the current model with live preview.',
   },
   ja: {
-    plugin_description: 'Minecraftの複数Tint Index設定とTint色プレビューを追加します。',
+    plugin_description: 'MinecraftのTint Index一括編集、Tint色プレビュー、テクスチャの準備を支援します。',
     select_faces: 'Cubeの面を1つ以上選択してください。',
     select_textured_faces: 'テクスチャが割り当てられたCubeの面を1つ以上選択してください。',
     grayscale_edit: 'Tintテクスチャをグレースケール化',
@@ -80,14 +72,6 @@ const ADD_TINT_TRANSLATIONS = {
     specify_index: 'Indexを指定…',
     remove_tint: 'Tintを削除',
     edit_preview_colors: 'プレビュー色を編集…',
-    panel_select_faces: 'UV Editorで面を選択してください',
-    no_tint: 'Tintなし',
-    selected_faces: '{count}面を選択中 · {labels}',
-    panel_set_faces: '選択面にIndexを設定',
-    panel_preview_colors: 'プレビュー色',
-    panel_edit_colors: '使用中の全Indexをリアルタイム編集',
-    panel_grayscale: 'グレースケール化',
-    panel_prepare_textures: '選択面のテクスチャをTint用に変換',
     undo_set_tint: 'Tint Index {index}を設定',
     tint_applied: 'Tint Index {index}を{count}面に設定しました。',
     undo_remove_tint: 'Tint Indexを削除',
@@ -133,12 +117,6 @@ let grayscaleTintAction;
 let editTintColorsAction;
 
 let addTintUvContextMenuRegistered = false;
-
-/** @type {Panel | undefined} */
-let addTintPanel;
-
-/** @type {Deletable | undefined} */
-let addTintPanelStyles;
 
 /** @type {Deletable[]} */
 let addTintListeners = [];
@@ -664,200 +642,6 @@ function registerUvContextMenu() {
   addTintUvContextMenuRegistered = true;
 }
 
-function refreshAddTintPanel() {
-  addTintPanel?.inside_vue?.$forceUpdate();
-}
-
-function registerAddTintPanel() {
-  addTintPanelStyles = Blockbench.addCSS(`
-    .add-tint-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 10px;
-    }
-    .add-tint-panel__status {
-      min-height: 28px;
-      padding: 6px 8px;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      color: var(--color-subtle_text);
-      font-size: 12px;
-      line-height: 16px;
-    }
-    .add-tint-panel__tool {
-      display: grid;
-      grid-template-columns: 28px minmax(0, 1fr);
-      gap: 8px;
-      align-items: center;
-      width: 100%;
-      min-height: 48px;
-      padding: 7px 8px;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      background: var(--color-ui);
-      color: var(--color-text);
-      text-align: left;
-      cursor: pointer;
-      transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
-        background-color 120ms ease;
-    }
-    .add-tint-panel__tool:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .add-tint-panel__tool:hover {
-        background: var(--color-button);
-      }
-    }
-    .add-tint-panel__icon {
-      width: 28px;
-      color: var(--color-accent);
-      font-size: 22px;
-      text-align: center;
-    }
-    .add-tint-panel__copy {
-      min-width: 0;
-    }
-    .add-tint-panel__title {
-      display: block;
-      overflow: hidden;
-      font-weight: 600;
-      line-height: 18px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .add-tint-panel__description {
-      display: block;
-      overflow: hidden;
-      color: var(--color-subtle_text);
-      font-size: 11px;
-      line-height: 15px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .add-tint-panel__index-actions {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 36px;
-      gap: 6px;
-    }
-    .add-tint-panel__index-actions--single {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .add-tint-panel__remove {
-      min-width: 36px;
-      padding: 0;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      background: var(--color-ui);
-      color: var(--color-subtle_text);
-      cursor: pointer;
-      transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
-        color 120ms ease;
-    }
-    .add-tint-panel__remove:active:not(:disabled) {
-      transform: scale(0.96);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .add-tint-panel__remove:hover {
-        color: var(--color-accent);
-      }
-    }
-  `);
-
-  addTintPanel = new Panel('add_tint_panel', {
-    name: 'addTint',
-    icon: 'format_color_fill',
-    plugin: 'add_tint',
-    optional: true,
-    growable: false,
-    resizable: true,
-    min_height: 210,
-    condition: () => isJavaModel(),
-    display_condition: () => isJavaModel(),
-    default_position: {
-      slot: 'left_bar',
-      float_position: [20, 80],
-      float_size: [300, 280],
-      height: 280,
-      sidebar_index: 2,
-    },
-    component: {
-      methods: {
-        hasSelectedFaces() {
-          return getSelectedCubeFaces().faces.length > 0;
-        },
-        hasSelectedTextures() {
-          return getSelectedFaceTextureRegions().length > 0;
-        },
-        hasSelectedTint() {
-          return getSelectedCubeFaces().faces.some(
-            ({cube, faceKey}) => cube.faces[faceKey].tint >= 0,
-          );
-        },
-        hasTintIndices() {
-          return getUsedTintIndices().length > 0;
-        },
-        selectionStatus() {
-          const faces = getSelectedCubeFaces().faces;
-          if (!faces.length) return addTintText('panel_select_faces');
-          const indices = new Set(
-            faces.map(({cube, faceKey}) => cube.faces[faceKey].tint),
-          );
-          const labels = [...indices]
-            .map((index) => index >= 0
-              ? addTintText('index', {index})
-              : addTintText('no_tint'))
-            .join(', ');
-          return addTintText('selected_faces', {count: faces.length, labels});
-        },
-        setTintIndex: openQuickTintIndexDialog,
-        removeTint: removeTintFromSelection,
-        editColors: openTintColorEditor,
-        grayscaleTextures: openGrayscaleTintDialog,
-      },
-      template: `
-        <div class="add-tint-panel">
-          <div class="add-tint-panel__status">{{ selectionStatus() }}</div>
-
-          <div
-            v-if="hasSelectedFaces()"
-            class="add-tint-panel__index-actions"
-            :class="{'add-tint-panel__index-actions--single': !hasSelectedTint()}"
-          >
-            <button class="add-tint-panel__tool" @click="setTintIndex">
-              <i class="material-icons add-tint-panel__icon">format_color_fill</i>
-              <span class="add-tint-panel__copy">
-                <span class="add-tint-panel__title">${addTintText('tint_index_label')}</span>
-                <span class="add-tint-panel__description">${addTintText('panel_set_faces')}</span>
-              </span>
-            </button>
-            <button v-if="hasSelectedTint()" class="add-tint-panel__remove" @click="removeTint" title="${addTintText('remove_tint')}">
-              <i class="material-icons">remove_circle_outline</i>
-            </button>
-          </div>
-
-          <button v-if="hasTintIndices()" class="add-tint-panel__tool" @click="editColors">
-            <i class="material-icons add-tint-panel__icon">palette</i>
-            <span class="add-tint-panel__copy">
-              <span class="add-tint-panel__title">${addTintText('panel_preview_colors')}</span>
-              <span class="add-tint-panel__description">${addTintText('panel_edit_colors')}</span>
-            </span>
-          </button>
-
-          <button v-if="hasSelectedTextures()" class="add-tint-panel__tool" @click="grayscaleTextures">
-            <i class="material-icons add-tint-panel__icon">filter_b_and_w</i>
-            <span class="add-tint-panel__copy">
-              <span class="add-tint-panel__title">${addTintText('panel_grayscale')}</span>
-              <span class="add-tint-panel__description">${addTintText('panel_prepare_textures')}</span>
-            </span>
-          </button>
-        </div>
-      `,
-    },
-  });
-}
-
 /**
  * @param {number} tintIndex
  * @param {string} color
@@ -973,9 +757,6 @@ function registerAddTintListeners() {
     Blockbench.addListener('redo', refreshTintPreview),
     Blockbench.addListener('select_project', refreshTintPreview),
     Blockbench.addListener('update_settings', refreshTintPreview),
-    Blockbench.addListener('update_selection', refreshAddTintPanel),
-    Blockbench.addListener('finished_selection_change', refreshAddTintPanel),
-    Blockbench.addListener('finished_edit', refreshAddTintPanel),
   );
 }
 
@@ -985,7 +766,7 @@ Plugin.register('add_tint', {
   author: 'YOHEMAL',
   description: addTintText('plugin_description'),
   icon: 'format_color_fill',
-  version: '0.4.2',
+  version: '0.4.3',
   min_version: '5.0.0',
   variant: 'both',
   tags: ['Minecraft: Java Edition', 'Utility'],
@@ -1022,7 +803,6 @@ Plugin.register('add_tint', {
     MenuBar.addAction(editTintColorsAction, 'filter');
 
     registerUvContextMenu();
-    registerAddTintPanel();
 
     registerAddTintListeners();
     refreshTintPreview();
@@ -1041,10 +821,6 @@ Plugin.register('add_tint', {
       UVEditor.menu.removeAction('add_tint_uv_context');
       addTintUvContextMenuRegistered = false;
     }
-    addTintPanel?.delete();
-    addTintPanel = undefined;
-    addTintPanelStyles?.delete();
-    addTintPanelStyles = undefined;
     disposeTintMaterials();
 
     if (Project && Cube.all) {

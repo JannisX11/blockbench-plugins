@@ -1547,9 +1547,9 @@
 	"add_tint": {
 		"title": "addTint",
 		"author": "YOHEMAL",
-		"description": "Adds multiple Minecraft tint indices and tint color previews.",
+		"description": "Batch-edit Minecraft tint indices, preview tint colors, and prepare textures.",
 		"icon": "format_color_fill",
-		"version": "0.4.2",
+		"version": "0.4.3",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"tags": ["Minecraft: Java Edition", "Utility"]
