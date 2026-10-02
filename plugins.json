@@ -1718,5 +1718,28 @@
 		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
 		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
+	},
+	"utility_engine": {
+		"title": "Utility Engine",
+		"author": "Clouser Studios",
+		"icon": "icon.png",
+		"description": "A Blockbench plugin for creating Utility Engine models.",
+		"tags": ["Minecraft: Java Edition", "Utility Engine", "Animation"],
+		"version": "1.0.3",
+		"min_version": "5.1.6",
+		"variant": "desktop",
+		"await_loading": true,
+		"has_changelog": true,
+		"creation_date": "2026-09-30",
+		"contributes": {
+			"formats": [
+				"utility_engine:format/utility-model-project",
+				"utility-engine:format/utility-model-project"
+			],
+			"open_extensions": ["utilityproject"]
+		},
+		"website": "https://www.utility-engine.com",
+		"repository": "https://github.com/clouser-studios/utility-engine-blockbench-plugin",
+		"bug_tracker": "https://github.com/clouser-studios/utility-engine-blockbench-plugin/issues"
 	}
 }
