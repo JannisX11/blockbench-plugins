@@ -95,5 +95,19 @@
 				]
 			}
 		]
+	},
+	"1.0.3": {
+		"title": "v1.0.3",
+		"author": "SnaveSutit",
+		"date": "2026-10-02",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed copy / paste & duplicate not working for animations when the plugin is installed.",
+					"Use targeted patches instead of class override for utility animations."
+				]
+			}
+		]
 	}
 }
