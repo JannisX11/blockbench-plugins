@@ -1715,7 +1715,7 @@
 		"icon": "icon.png",
 		"description": "A Blockbench plugin for creating Utility Engine models.",
 		"tags": ["Minecraft: Java Edition", "Utility Engine", "Animation"],
-		"version": "1.0.2",
+		"version": "1.0.3",
 		"min_version": "5.1.6",
 		"variant": "desktop",
 		"await_loading": true,
