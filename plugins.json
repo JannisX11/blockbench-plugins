@@ -1590,6 +1590,16 @@
 		"variant": "both",
 		"tags": ["Texture", "Paint", "Tool"]
 	},
+	"add_tint": {
+		"title": "addTint",
+		"author": "YOHEMAL",
+		"description": "Batch-edit Minecraft tint indices, preview tint colors, and prepare textures.",
+		"icon": "format_color_fill",
+		"version": "0.4.3",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Utility"]
+	},
 	"easings": {
 		"title": "Easings",
 		"author": "Svdex",
