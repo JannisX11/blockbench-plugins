@@ -1,0 +1,111 @@
+{
+	"0.1.0": {
+		"title": "0.1.0",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "First release",
+				"list": [
+					"Imports a glTF model from a ZIP into a GeckoLib project: bones, cubes, textures and animations.",
+					"Browses Sketchfab inside Blockbench through the official Data API."
+				]
+			}
+		]
+	},
+	"0.1.1": {
+		"title": "0.1.1",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "New",
+				"list": [
+					"Export to Customizable Player Models: the same import, saved as a .cpmproject, with the player height, the bone mapping and the pose of each animation asked at the end."
+				]
+			}
+		]
+	},
+	"0.1.2": {
+		"title": "0.1.2",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Renamed from GeckoLib Model Importer to glTF to Minecraft.",
+					"All entries moved to File > Import.",
+					"The Sketchfab search lists models made in Blockbench by default."
+				]
+			},
+			{
+				"title": "New",
+				"list": [
+					"Import from an unpacked folder as well as from a ZIP.",
+					"The report says when a texture has lost the alpha its material asks for."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"A folder with several .gltf files uses the one with the textures, not whichever comes first.",
+					"Textures no mesh refers to stay out of the atlas.",
+					"Objects that name no texture get the main texture instead of the whole atlas."
+				]
+			}
+		]
+	},
+	"0.1.3": {
+		"title": "0.1.3",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "New",
+				"list": [
+					"Parts that are not cubes — bevels, wedges, rounded shapes — are rebuilt from thin plates that follow their surface, each cut to its outline by a baked texture, instead of becoming one box around them. Rounded parts: Fast, or Best quality, which also lays a strip along each sharp slanted edge. The rebuild shows its progress and can be finished early or cancelled.",
+					"Pieces of a rebuilt part that no side can see are left out; the file's own cubes always stay.",
+					"Choose what to build into: GeckoLib, Bedrock Entity, Generic Model or a still Java block/item model. The choice is remembered.",
+					"Java models are fitted into the box the format allows, and the report says which Minecraft version their cube rotations need.",
+					"GeckoLib is no longer required: Bedrock, Generic and Java come with Blockbench, and the Customizable Player Models export needs no plugin at all.",
+					"Sketchfab search: an Animated filter, and each card shows the model's triangle and animation counts.",
+					"Sketchfab cards say whether a model looks built from cubes: the blockbench tag alone does not tell.",
+					"The outliner is tidied: folders that hold one thing and carry no animation are dropped, cubes take their author's names, and Sketchfab's numbering is taken off. Advanced settings can keep every node.",
+					"The Customizable Player Models dialog and file use the same names, and the dialog no longer asks about the export wrapper.",
+					"Add a model to the open project instead of a new one: a sword into the selected hand, a helmet onto a head. It arrives as one folder standing on that folder's pivot, and one undo takes it all back.",
+					"GeckoLib and Bedrock keep one texture per model, so the model's texture is drawn beside the project's, which grows to hold both; the UV already made stay as they are. Generic and Java models get the texture as a texture of their own.",
+					"Folder and animation names of an added model never take a name the project already has; its animations are added only when asked, with the model's name in front.",
+					"Sketchfab search: order the results by relevance, likes, views or newest; the choice is remembered. Sketchfab offers no order by downloads, so none is shown.",
+					"Look at a model in 3D before downloading: the 3D button on a card opens Sketchfab's own viewer inside the search window, with Import and Open on Sketchfab beside it.",
+					"Search cards show the like count; the tooltip adds views and the date the model was published.",
+					"Sketchfab downloads take the author's original when the model was uploaded from Blockbench: Sketchfab's own conversion can lose a texture's transparency. The licence then comes from the model's page.",
+					"When every part of a file points at one texture while others go unused, the report says the file has most likely lost which parts use which material."
+				]
+			},
+			{
+				"title": "Changes",
+				"list": [
+					"The plugin has an icon.",
+					"The report no longer calls a texture without alpha lost: some models ask for transparency on a texture that never had any."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"A cube whose faces use different textures took the first face's texture for all six, and when that first face had none, the whole cube came out invisible. Each face now gets its own texture, and faces exported without one stay hidden, as they were in Blockbench.",
+					"The transparent stand-in Blockbench exports for untextured faces no longer takes room in the texture, and no longer turns into invisible extra cubes.",
+					"On Blockbench 5 the GeckoLib message named GeckoLib Animation Utils, which does not install there. It now names the GeckoLib plugin that installs on your build and opens the plugin list on it.",
+					"Clicking a Sketchfab card again while it downloaded started another download, and each opened its own import dialog. Downloads now go one at a time.",
+					"The format list in the import dialog was cut off; the explanation now sits under it.",
+					"Panels a thousandth of a pixel thick — leaves, awnings, signs — came out with both sides empty, and vanished.",
+					"Textures of materials in the specular-glossiness workflow were not read, so parts wore another part's picture.",
+					"Toon outlines made as inside-out copies of a part covered that part with a dark casing; such outlines are now left out.",
+					"Thanks to Snownee for reporting the invisible-cube bug (#1)."
+				]
+			},
+			{
+				"title": "Security",
+				"list": [
+					"Hostile input limits: cyclic node graphs, oversized accessors, ZIP bombs and oversized images are rejected before allocation. Thanks to HadesScience (#2)."
+				]
+			}
+		]
+	}
+}
