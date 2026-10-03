@@ -1,4 +1,15 @@
 {
+		"bedrock_sound_wizard": {
+		"title": "Minecraft Sound Wizard",
+		"author": "SpaceMonkeyBoi",
+		"description": "Add custom sounds directly to your mods without having to manually edit files!",
+		"icon": "icon.svg",
+		"variant": "desktop",
+		"tags": ["Minecraft: Bedrock Edition"],
+		"version": "0.2.0-dev",
+		"min_version": "4.8.0",
+		"repository": "https://github.com/SpaceMonkeyBoi/Minecraft-Bedrock-Sound-Wizard"
+	},
 	"hytale_uv_preserving_scale": {
 		"title": "Hytale UV-Preserving Scale",
 		"author": "CODEFELICE",

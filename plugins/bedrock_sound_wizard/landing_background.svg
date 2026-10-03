@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+<rect width="1920" height="1080" fill="#000000"/>
+<path d="M710 701 L1920 571 L1920 771 L1366 799 L710 831 Z" fill="#3d403c"/>
+<path d="M0 596 L1366 799 L516 841 L0 740 Z" fill="#1e7500"/>
+<path d="M0 743 L952 928 L0 1028 Z" fill="#32c301"/>
+<path d="M516 841 L1920 771 L1920 826 L960 927 L516 841 Z" fill="#2aa600"/>
+<path d="M0 1031 L1920 826 L1920 1080 L0 1080 Z" fill="#3ae800"/>
+</svg>
