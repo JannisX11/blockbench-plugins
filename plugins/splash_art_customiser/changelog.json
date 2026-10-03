@@ -1,0 +1,101 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2022-11-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2023-04-20",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the plugin breaking on the latest Blockbench update",
+          "Fixed the applied splash art not being tracked correctly when applying a new one",
+          "The splash art dialogs are now closed when the plugin is disabled"
+        ]
+      }
+    ]
+  },
+  "1.1.1": {
+    "title": "1.1.1",
+    "date": "2025-01-22",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the settings dialog not reading its options in Blockbench 4.12"
+        ]
+      }
+    ]
+  },
+  "1.1.2": {
+    "title": "1.1.2",
+    "date": "2025-02-05",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Update to new plugin format"
+        ]
+      }
+    ]
+  },
+  "1.1.3": {
+    "title": "1.1.3",
+    "date": "2025-10-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Updated for Blockbench 5.0"
+        ]
+      }
+    ]
+  },
+  "1.1.4": {
+    "title": "1.1.4",
+    "date": "2025-10-16",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed the settings dialog dropdowns not applying their values"
+        ]
+      }
+    ]
+  },
+  "1.1.5": {
+    "title": "1.1.5",
+    "date": "2026-08-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an error when disabling or uninstalling the plugin without a custom splash art applied"
+        ]
+      },
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Fixed a mismatch in the minimum plugin version"
+        ]
+      }
+    ]
+  }
+}

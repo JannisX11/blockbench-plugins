@@ -271,10 +271,12 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
         primitiveToUniqueVertexIndices[primitiveIndex] = [];
 
-        for (let vertexIndex = 0; vertexIndex < primitive.geometry.attributes.position.count; vertexIndex++ ) {
-            let x = primitive.geometry.attributes.position.array[vertexIndex*3];
-            let y = primitive.geometry.attributes.position.array[vertexIndex*3 + 1];
-            let z = primitive.geometry.attributes.position.array[vertexIndex*3 + 2];
+        const position = primitive.geometry.attributes.position;
+
+        for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex++ ) {
+            let x = position.getX(vertexIndex);
+            let y = position.getY(vertexIndex);
+            let z = position.getZ(vertexIndex);
 
             // Apply node local scale to vertices
             const vertexVec = new THREE.Vector3(x, y, z);
@@ -306,19 +308,20 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
     // Construct faces by using the primitive's original vertex index to look up UV and unique vertex key
     for (let [primitive, primitiveIndex] of valuesAndIndices(primitives)) {
-        if (primitive.geometry.index == undefined)
+        const index = primitive.geometry.index;
+        if (index == undefined)
             continue; // I guess indices are optional? seems weird
 
-        for (let faceIndex = 0; faceIndex < primitive.geometry.index.count/3; faceIndex++ ) {
+        for (let faceIndex = 0; faceIndex < index.count/3; faceIndex++ ) {
             let texture = primitiveTextures[primitiveIndex];
             let uvWidth  = texture?.uv_width  ?? Project?.texture_width  ?? 16;
             let uvHeight = texture?.uv_height ?? Project?.texture_height ?? 16;
             let v1Uv: ArrayVector2, v2Uv: ArrayVector2, v3Uv: ArrayVector2;
 
             // Original vertex index
-            let v1Idx = primitive.geometry.index.array[faceIndex*3];
-            let v2Idx = primitive.geometry.index.array[faceIndex*3 + 1];
-            let v3Idx = primitive.geometry.index.array[faceIndex*3 + 2];
+            let v1Idx = index.getX(faceIndex*3);
+            let v2Idx = index.getX(faceIndex*3 + 1);
+            let v3Idx = index.getX(faceIndex*3 + 2);
             // Unique vertex keys
             let v1Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v1Idx]];
             let v2Key = vertexKeys[primitiveToUniqueVertexIndices[primitiveIndex][v2Idx]];
@@ -327,10 +330,10 @@ function importMeshPrimitives(node: THREE.Object3D, primitives: THREE.Mesh[], op
 
             // UV (optional apparently)
             if (primitive.geometry.attributes.uv != undefined) {
-                let uvComponents = primitive.geometry.attributes.uv.array;
-                v1Uv = [ uvComponents[v1Idx*2] , uvComponents[v1Idx*2 + 1] ];
-                v2Uv = [ uvComponents[v2Idx*2] , uvComponents[v2Idx*2 + 1] ];
-                v3Uv = [ uvComponents[v3Idx*2] , uvComponents[v3Idx*2 + 1] ];
+                let uv = primitive.geometry.attributes.uv;
+                v1Uv = [ uv.getX(v1Idx), uv.getY(v1Idx) ];
+                v2Uv = [ uv.getX(v2Idx), uv.getY(v2Idx) ];
+                v3Uv = [ uv.getX(v3Idx), uv.getY(v3Idx) ];
             } else {
                 // TODO: this currently doesn't allow for merging into quad
                 // maybe fill missing uvs after creating primitive

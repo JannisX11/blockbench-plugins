@@ -1,0 +1,29 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "date": "2022-09-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Initial release"
+        ]
+      }
+    ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2026-08-23",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "Update to new plugin format",
+          "The about screen has moved to the plugin's page in the plugin browser, and is no longer added to the Help menu"
+        ]
+      }
+    ]
+  }
+}
