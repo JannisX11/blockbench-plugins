@@ -718,5 +718,10 @@
     "version": "0.4.3",
     "created": 1790955314224,
     "updated": 1790955314224
+  },
+  "display_anim_preview": {
+    "version": "1.0.0",
+    "created": 1791042659876,
+    "updated": 1791042659876
   }
 }
