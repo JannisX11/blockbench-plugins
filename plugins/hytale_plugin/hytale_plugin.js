@@ -160,6 +160,7 @@
         }
         Settings.updateSettingsInProfiles();
       },
+      // MARK: Compile
       compile(options = {}) {
         let model = {
           nodes: [],
@@ -304,22 +305,32 @@
               mirror: new oneLiner({ x: mirror_x, y: mirror_y }),
               angle: uv_rot
             };
+            if ("uv_lock" in face && face.uv_lock) {
+              layout_face.lockUVs = true;
+            }
+            if ("transparent" in face && face.transparent) {
+              layout_face.transparent = true;
+            }
             node.shape.textureLayout[direction] = layout_face;
           }
         }
-        function getNodeOffset(group) {
+        function getNodeOffset(group, include_original_offset = true) {
           let cube = getMainShape(group);
           if (cube) {
             let center_pos = cube.from.slice().V3_add(cube.to).V3_divide(2, 2, 2);
             center_pos.V3_subtract(group.origin);
             return center_pos;
+          } else if (include_original_offset) {
+            return group.original_offset;
+          } else {
+            return [0, 0, 0];
           }
         }
         function compileNode(element, name = element.name) {
           if (!element.export) return void 0;
           if (!options.attachment) {
             let collection = Collection.all.find((c) => c.contains(element));
-            if (collection) return;
+            if (collection && collection.export_codec == "blockymodel") return;
           }
           let euler = Reusable.euler1.set(
             Math.degToRad(element.rotation[0]),
@@ -335,12 +346,16 @@
             w: quaternion.w
           });
           let origin = element.origin.slice();
+          let offset = element instanceof Group ? getNodeOffset(element) : [0, 0, 0];
           if (element.parent instanceof Group) {
             origin.V3_subtract(element.parent.origin);
-            let offset = getNodeOffset(element.parent);
-            if (offset) {
-              origin.V3_subtract(offset);
+            let parent_offset = getNodeOffset(element.parent, !options.attachment);
+            if (parent_offset) {
+              origin.V3_subtract(parent_offset);
             }
+          }
+          if (options.attachment && element instanceof Group && element.is_piece && element.original_position?.some((v) => v)) {
+            origin = element.original_position;
           }
           let node = {
             id: node_id.toString(),
@@ -349,8 +364,8 @@
             orientation,
             shape: {
               type: "none",
-              offset: formatVector([0, 0, 0]),
-              stretch: formatVector([0, 0, 0]),
+              offset: formatVector(offset),
+              stretch: formatVector([1, 1, 1]),
               settings: {
                 isPiece: element instanceof Group && element.is_piece || false
               },
@@ -389,7 +404,10 @@
         }
         let nodes = Outliner.root.filter((node) => node instanceof Group || node instanceof Cube);
         if (options.attachment instanceof Collection) {
-          nodes = options.attachment.getChildren().filter((g) => g instanceof Group);
+          let in_collection = options.attachment.getChildren();
+          nodes = in_collection.filter((g) => {
+            return g instanceof Group;
+          });
         }
         for (let node of nodes) {
           let compiled = compileNode(node);
@@ -401,6 +419,7 @@
           return compileJSON(model, Config.json_compile_options);
         }
       },
+      // MARK: Parse
       parse(model, path, args = {}) {
         function parseVector(vec, fallback = [0, 0, 0]) {
           if (!vec) return fallback;
@@ -426,6 +445,7 @@
           let name = node.name;
           let offset = node.shape?.offset ? parseVector(node.shape?.offset) : [0, 0, 0];
           let origin = parseVector(node.position);
+          let original_position;
           let rotation = [
             Math.roundTo(Math.radToDeg(rotation_euler.x), 3),
             Math.roundTo(Math.radToDeg(rotation_euler.y), 3),
@@ -433,8 +453,8 @@
           ];
           if (args.attachment && !parent_node && parent_group instanceof Group) {
             let reference_node = getMainShape(parent_group) ?? parent_group;
+            original_position = origin;
             origin = reference_node.origin.slice();
-            rotation = reference_node.rotation.slice();
           } else if (parent_offset && parent_group instanceof Group) {
             origin.V3_add(parent_offset);
             origin.V3_add(parent_group.origin);
@@ -453,12 +473,15 @@
             if (!parent_node && args.attachment) {
               group.name = args.attachment + ":" + group.name;
               group.color = 1;
+              group.rotation.V3_set(0, 0, 0);
             }
             group.init();
-            group.extend({
-              // @ts-ignore
-              is_piece: node.shape?.settings?.isPiece ?? false
-            });
+            let custom_data = {
+              is_piece: node.shape?.settings?.isPiece ?? false,
+              original_position,
+              original_offset: offset
+            };
+            group.extend(custom_data);
           } else {
             name = name.replace(/--C\d+$/, "");
           }
@@ -639,6 +662,8 @@
                 }
                 cube.faces[face_name].rotation = uv_rotation;
                 cube.faces[face_name].uv = result;
+                cube.faces[face_name].uv_lock = uv_source.lockUVs == true;
+                cube.faces[face_name].transparent = uv_source.transparent == true;
               }
             }
             cube.addTo(group || parent_group).init();
@@ -673,7 +698,7 @@
               promptForTextures(dirname);
             }, 100);
           }
-          if (!args?.attachment) {
+          if (!args?.attachment && settings.auto_load_hytale_animations.value) {
             let listener = Blockbench.on("select_mode", ({ mode }) => {
               if (mode.id != "animate" || project != Project) return;
               listener.delete();
@@ -701,6 +726,7 @@
         }
         return { new_groups, new_textures };
       },
+      // MARK: Other
       async export(options) {
         if (Object.keys(this.export_options).length) {
           let result = await this.promptExportOptions();
@@ -719,11 +745,13 @@
       async exportCollection(collection) {
         this.context = collection;
         await this.export({ attachment: collection });
+        if ("saved" in collection) collection.saved = true;
         this.context = null;
       },
       async writeCollection(collection) {
         this.context = collection;
         this.write(this.compile({ attachment: collection }), collection.export_path);
+        if ("saved" in collection) collection.saved = true;
         this.context = null;
       }
     });
@@ -870,7 +898,7 @@
   }
   function setupNameOverlap() {
     Blockbench.on("finish_edit", (arg) => {
-      if (arg.aspects.keyframes && Animation.selected) {
+      if (isHytaleFormat() && arg.aspects.keyframes && Animation.selected) {
         let changes = false;
         let groups = {};
         if (Timeline.selected_animator) {
@@ -891,41 +919,6 @@
         if (changes) {
           Animator.preview();
         }
-      }
-    });
-    let bone_animator_select_original = BoneAnimator.prototype.select;
-    BoneAnimator.prototype.select = function select(group_is_selected) {
-      if (!this.getGroup()) {
-        unselectAllElements();
-        return this;
-      }
-      if (this.group.locked) return;
-      for (var key in this.animation.animators) {
-        this.animation.animators[key].selected = false;
-      }
-      if (group_is_selected !== true && this.group) {
-        this.group.select();
-      }
-      GeneralAnimator.prototype.select.call(this);
-      if (this[Toolbox.selected.animation_channel] && (Timeline.selected.length == 0 || Timeline.selected[0].animator != this) && !Blockbench.hasFlag("loading_selection_save")) {
-        var nearest;
-        this[Toolbox.selected.animation_channel].forEach((kf) => {
-          if (Math.abs(kf.time - Timeline.time) < 2e-3) {
-            nearest = kf;
-          }
-        });
-        if (nearest) {
-          nearest.select();
-        }
-      }
-      if (this.group && this.group.parent && this.group.parent !== "root") {
-        this.group.parent.openUp();
-      }
-      return this;
-    };
-    track({
-      delete() {
-        BoneAnimator.prototype.select = bone_animator_select_original;
       }
     });
     let setting = new Setting("hytale_duplicate_bone_names", {
@@ -965,6 +958,7 @@
       let uuid = group ? group.uuid : guid();
       let ba = new BoneAnimator(uuid, animation, group_name);
       animation.animators[uuid] = ba;
+      ba.group = group;
       const anim_channels = [
         { channel: "rotation", keyframes: anim_data.orientation },
         { channel: "position", keyframes: anim_data.position },
@@ -1004,12 +998,15 @@
               };
             }
           }
-          ba.addKeyframe({
+          let kf = ba.addKeyframe({
             time: kf_data.time / FPS,
             channel,
             interpolation: kf_data.interpolationType == "smooth" ? "catmullrom" : "linear",
             data_points: [data_point]
           });
+          if (channel == "scale") {
+            kf.uniform = data_point.x == data_point.y && data_point.x == data_point.z;
+          }
         }
       }
       if (group) copyAnimationToGroupsWithSameName(animation, group);
@@ -1023,7 +1020,7 @@
     const nodeAnimations = {};
     const file = {
       formatVersion: 1,
-      duration: Math.round(animation.length * FPS),
+      duration: Math.round(animation.length * FPS) || FPS * 2,
       holdLastKeyframe: animation.loop == "hold",
       nodeAnimations
     };
@@ -1036,7 +1033,6 @@
     };
     for (let uuid in animation.animators) {
       let animator = animation.animators[uuid];
-      if (!animator.group) continue;
       let name = animator.name;
       let node_data = {};
       let has_data = false;
@@ -1044,7 +1040,7 @@
         let timeline;
         let hytale_channel_key = channels[channel];
         timeline = timeline = node_data[hytale_channel_key] = [];
-        let keyframe_list = animator[channel].slice();
+        let keyframe_list = animator[channel] && Array.isArray(animator[channel]) ? animator[channel].slice() : [];
         keyframe_list.sort((a, b) => a.time - b.time);
         for (let kf of keyframe_list) {
           let data_point = kf.data_points[0];
@@ -1053,16 +1049,11 @@
             delta = data_point.visibility;
           } else if (channel == "uv_offset") {
             delta = {
-              x: parseFloat(data_point.x),
-              y: -parseFloat(data_point.y)
+              x: Math.round(parseFloat(data_point.x)),
+              y: -Math.round(parseFloat(data_point.y))
             };
             delta = new oneLiner(delta);
           } else {
-            delta = {
-              x: parseFloat(data_point.x),
-              y: parseFloat(data_point.y),
-              z: parseFloat(data_point.z)
-            };
             if (channel == "rotation") {
               let euler = new THREE.Euler(
                 Math.degToRad(kf.calc("x")),
@@ -1076,6 +1067,12 @@
                 y: quaternion.y,
                 z: quaternion.z,
                 w: quaternion.w
+              };
+            } else {
+              delta = {
+                x: kf.calc("x"),
+                y: kf.calc("y"),
+                z: kf.calc("z")
               };
             }
             delta = new oneLiner(delta);
@@ -1139,7 +1136,7 @@
     });
     track(export_anim);
     MenuBar.menus.animation.addAction(export_anim);
-    Panels.animations.toolbars[0].add(export_anim, "4");
+    Panels.animations.toolbars[0].add(export_anim, 4);
     let handler = Filesystem.addDragHandler("blockyanim", {
       extensions: ["blockyanim"],
       readtype: "text",
@@ -1202,6 +1199,14 @@
         BarItems.export_animation_file.condition = original_condition;
       }
     });
+    let setting = new Setting("auto_load_hytale_animations", {
+      name: "Auto-load Hytale Animations",
+      description: "Automatically load blockyanim files when opening a Hytale model",
+      category: "edit",
+      type: "toggle",
+      value: true
+    });
+    track(setting);
   }
 
   // src/texture.ts
@@ -1310,7 +1315,6 @@
         Texture.all.forEach((t) => {
           arr.push({
             name: t.name,
-            // @ts-expect-error
             icon: t.img,
             marked: t.uuid == context.texture,
             click() {
@@ -1427,6 +1431,7 @@
     track(import_as_attachment);
     let toolbar = Panels.collections.toolbars[0];
     toolbar.add(import_as_attachment);
+    MenuBar.menus.file.addAction(import_as_attachment, "import");
     function reloadAttachment(collection) {
       for (let child of collection.getChildren()) {
         child.remove();
@@ -1445,7 +1450,7 @@
     let reload_attachment_action = new Action("reload_hytale_attachment", {
       name: "Reload Attachment",
       icon: "refresh",
-      condition: () => Collection.selected.length && Modes.edit,
+      condition: () => Collection.selected.length && Modes.edit && isHytaleFormat(),
       click() {
         for (let collection of Collection.selected) {
           reloadAttachment(collection);
@@ -1520,6 +1525,9 @@
       let cube = getMainShape(group);
       if (!cube) return;
       let updateUV = (offset) => {
+        if (offset) {
+          offset = offset.map((v) => Math.round(v));
+        }
         if (!offset || !offset[0] && !offset[1]) {
           if (!cube.mesh.userData.uv_anim_offset) {
             return;
@@ -1621,21 +1629,23 @@
       }
       return original_display_scale.call(this, array, multiplier);
     };
-    BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
-      if (isHytaleFormat() && array) {
-        let bone = this.group.scene_object;
-        let euler = Reusable.euler1.set(
-          Math.degToRad(array[0]) * multiplier,
-          Math.degToRad(array[1]) * multiplier,
-          Math.degToRad(array[2]) * multiplier,
-          bone.rotation.order
-        );
-        let q2 = Reusable.quat2.setFromEuler(euler);
-        bone.quaternion.multiply(q2);
-        return this;
-      }
-      return original_display_rotation.call(this, array, multiplier);
-    };
+    if (Blockbench.isOlderThan("5.1.0")) {
+      BoneAnimator.prototype.displayRotation = function displayRotation(array, multiplier = 1) {
+        if (isHytaleFormat() && array) {
+          let bone = this.group.scene_object;
+          let euler = Reusable.euler1.set(
+            Math.degToRad(array[0]) * multiplier,
+            Math.degToRad(array[1]) * multiplier,
+            Math.degToRad(array[2]) * multiplier,
+            bone.rotation.order
+          );
+          let q2 = Reusable.quat2.setFromEuler(euler);
+          bone.quaternion.multiply(q2);
+          return this;
+        }
+        return original_display_rotation.call(this, array, multiplier);
+      };
+    }
     Animator.showDefaultPose = function(reduced_updates, ...args) {
       original_show_default_pose(reduced_updates, ...args);
       if (isHytaleFormat()) {
@@ -1647,10 +1657,44 @@
     track({
       delete() {
         BoneAnimator.prototype.displayScale = original_display_scale;
-        BoneAnimator.prototype.displayRotation = original_display_rotation;
+        if (Blockbench.isOlderThan("5.1.0-beta.4")) {
+          BoneAnimator.prototype.displayRotation = original_display_rotation;
+        }
         Animator.showDefaultPose = original_show_default_pose;
       }
     });
+    const per_shape_channels = /* @__PURE__ */ new Set(["scale", "visibility", "uv_offset"]);
+    const on_init_edit = Blockbench.on("init_edit", (arg) => {
+      if (!isHytaleFormat()) return;
+      if (arg.aspects.keyframes?.length == 1 && per_shape_channels.has(arg.aspects.keyframes[0].channel)) {
+        let kf = arg.aspects.keyframes[0];
+        let group = kf.animator.group;
+        if (!group.name) return;
+        let shape = getMainShape(group);
+        if (shape) return;
+        if (document.getElementById("toast_notification_list").children.length) return;
+        Blockbench.showToastNotification({
+          id: "hytale_no_connected_shape_toast",
+          text: `The group "${group.name}" has no connected shape, so the ${kf.channel} animation will not apply. Click to learn more.`,
+          icon: "fa-cube",
+          expire: 20 * 1e3,
+          click: () => {
+            Blockbench.showMessageBox({
+              title: "No connected shape",
+              icon: "info",
+              width: 500,
+              message: `Scale, visibility, and UV animations only apply to one cube that's directly connected to the group. No shape is directly connected to this group.
+
+For Hytale, the first cube inside a group qualifies as directly connected if it matches the following criteria:
+* The cube must be directly parented to the group
+* The rotation value of the cube itself must be 0`
+            });
+            return true;
+          }
+        });
+      }
+    });
+    track(on_init_edit);
   }
 
   // src/element.ts
@@ -1698,6 +1742,82 @@
       }
     });
     track(is_piece_property);
+    let original_position_property = new Property(Group, "vector", "original_position", {
+      condition: { formats: FORMAT_IDS }
+    });
+    track(original_position_property);
+    let original_offset_property = new Property(Group, "vector", "original_offset", {
+      condition: { formats: FORMAT_IDS }
+    });
+    track(original_offset_property);
+    const transparent_property = new Property(CubeFace, "boolean", "transparent", {
+      condition: { formats: FORMAT_IDS },
+      default: false
+    });
+    const transparent_toggle = new Toggle("toggle_hytale_transparent", {
+      name: "Transparent Face",
+      icon: "wine_bar",
+      category: "uv",
+      condition: { formats: FORMAT_IDS },
+      onChange(value) {
+        Undo.initEdit({ elements: Cube.selected });
+        for (let cube of Cube.selected) {
+          for (let fkey of UVEditor.getFaces(cube)) {
+            cube.faces[fkey].transparent = value;
+          }
+        }
+        Undo.finishEdit("Toggle Transparent");
+      }
+    });
+    Toolbars.uv_editor.add(transparent_toggle);
+    const on_update_transparent = Blockbench.on("update_selection", (arg) => {
+      if (!Condition(transparent_toggle.condition)) return;
+      let value = false;
+      for (let cube of Cube.selected) {
+        for (let fkey of UVEditor.getFaces(cube)) {
+          if (cube.faces[fkey].transparent) value = true;
+        }
+      }
+      if (value != transparent_toggle.value) {
+        transparent_toggle.value = value;
+        transparent_toggle.updateEnabledState();
+      }
+    });
+    track(transparent_toggle, transparent_property, on_update_transparent);
+    const uv_lock_property = new Property(CubeFace, "boolean", "uv_lock", {
+      condition: { formats: FORMAT_IDS },
+      default: false
+    });
+    const uv_lock_toggle = new Toggle("toggle_hytale_uv_lock", {
+      name: "Toggle UV Lock",
+      icon: "sync_lock",
+      category: "uv",
+      condition: { formats: FORMAT_IDS },
+      onChange(value) {
+        Undo.initEdit({ elements: Cube.selected });
+        for (let cube of Cube.selected) {
+          for (let fkey of UVEditor.getFaces(cube)) {
+            cube.faces[fkey].uv_lock = value;
+          }
+        }
+        Undo.finishEdit("Toggle UV Lock");
+      }
+    });
+    Toolbars.uv_editor.add(uv_lock_toggle);
+    const on_update = Blockbench.on("update_selection", (arg) => {
+      if (!Condition(uv_lock_toggle.condition)) return;
+      let value = false;
+      for (let cube of Cube.selected) {
+        for (let fkey of UVEditor.getFaces(cube)) {
+          if (cube.faces[fkey].uv_lock) value = true;
+        }
+      }
+      if (value != uv_lock_toggle.value) {
+        uv_lock_toggle.value = value;
+        uv_lock_toggle.updateEnabledState();
+      }
+    });
+    track(uv_lock_toggle, uv_lock_property, on_update);
     let add_quad_action = new Action("hytale_add_quad", {
       name: "Add Quad",
       icon: "highlighter_size_5",
@@ -1963,6 +2083,11 @@
         node_count++;
       }
     }
+    Outliner.root.forEach((node) => {
+      if (node instanceof Cube && node.export) {
+        node_count++;
+      }
+    });
     return node_count;
   }
   function setupChecks() {
@@ -2016,7 +2141,7 @@
   // package.json
   var package_default = {
     name: "hytale-blockbench-plugin",
-    version: "0.8.0",
+    version: "0.10.0",
     description: "Create models and animations for Hytale",
     main: "src/plugin.ts",
     type: "module",
@@ -2027,7 +2152,7 @@
     author: "JannisX11, Kanno",
     license: "GPL-3.0",
     dependencies: {
-      "blockbench-types": "^5.1.0-beta.0-next.4"
+      "blockbench-types": "^5.2.0-beta.1-next.6"
     },
     devDependencies: {
       esbuild: "^0.25.9"
@@ -2046,10 +2171,10 @@
     track(setting);
     let shared_copy = SharedActions.add("copy", {
       subject: "image_content_photoshop",
-      condition: () => Prop.active_panel == "uv" && Modes.paint && Texture.getDefault() && FORMAT_IDS.includes(Format.id) && setting.value == true,
+      condition: () => Prop.active_panel == "uv" && Modes.paint && UVEditor.texture && FORMAT_IDS.includes(Format.id) && setting.value == true,
       priority: 2,
       run(event, cut) {
-        let texture = Texture.getDefault();
+        let texture = UVEditor.texture;
         let selection = texture.selection;
         let { canvas, ctx, offset } = texture.getActiveCanvas();
         if (selection.override != null) {
@@ -2105,10 +2230,10 @@
     track(shared_copy);
     let shared_paste = SharedActions.add("paste", {
       subject: "image_content_photoshop",
-      condition: () => Prop.active_panel == "uv" && Modes.paint && Texture.getDefault() && FORMAT_IDS.includes(Format.id) && setting.value == true,
+      condition: () => Prop.active_panel == "uv" && Modes.paint && UVEditor.texture && FORMAT_IDS.includes(Format.id) && setting.value == true,
       priority: 2,
       run(event) {
-        let texture = Texture.getDefault();
+        let texture = UVEditor.texture;
         async function loadFromDataUrl(data_url) {
           let frame = new CanvasFrame();
           await frame.loadFromURL(data_url);
@@ -2554,7 +2679,7 @@ body.hytale-uv-outline-only #uv_frame:not(.overlay_mode) .cube_uv_face.selected:
     left: -2px;
     right: -2px;
     bottom: -2px;
-    border-width: 2px;
+    border-width: 4px;
     border-color: var(--color-accent);
 }
 body.hytale-uv-outline-only #uv_frame .mesh_uv_face polygon {
@@ -2565,6 +2690,9 @@ body.hytale-uv-outline-only #uv_frame:not(.overlay_mode) .mesh_uv_face.selected 
 }
 body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     background-color: transparent;
+}
+body.hytale-uv-outline-only #uv_frame .cube_uv_face:not(.unselected)::before {
+    border-color: var(--color-accent);
 }
 `;
   function updateHytaleFormatClass() {
@@ -2587,183 +2715,6 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track(selectProjectListener);
     document.body.classList.toggle("hytale-uv-outline-only", settings.uv_outline_only?.value ?? true);
     updateHytaleFormatClass();
-  }
-
-  // src/temp_fixes.js
-  function setupTempFixes() {
-    if (!Blockbench.isOlderThan("5.0.7")) return;
-    Cube.prototype.mapAutoUV = function(options = {}) {
-      if (this.box_uv) return;
-      var scope = this;
-      if (scope.autouv === 2) {
-        var all_faces = ["north", "south", "west", "east", "up", "down"];
-        let offset = Format.centered_grid ? 8 : 0;
-        all_faces.forEach(function(side) {
-          var uv = scope.faces[side].uv.slice();
-          let texture = scope.faces[side].getTexture();
-          let uv_width = Project.getUVWidth(texture);
-          let uv_height = Project.getUVHeight(texture);
-          switch (side) {
-            case "north":
-              uv = [
-                uv_width - (scope.to[0] + offset),
-                uv_height - scope.to[1],
-                uv_width - (scope.from[0] + offset),
-                uv_height - scope.from[1]
-              ];
-              break;
-            case "south":
-              uv = [
-                scope.from[0] + offset,
-                uv_height - scope.to[1],
-                scope.to[0] + offset,
-                uv_height - scope.from[1]
-              ];
-              break;
-            case "west":
-              uv = [
-                scope.from[2] + offset,
-                uv_height - scope.to[1],
-                scope.to[2] + offset,
-                uv_height - scope.from[1]
-              ];
-              break;
-            case "east":
-              uv = [
-                uv_width - (scope.to[2] + offset),
-                uv_height - scope.to[1],
-                uv_width - (scope.from[2] + offset),
-                uv_height - scope.from[1]
-              ];
-              break;
-            case "up":
-              uv = [
-                scope.from[0] + offset,
-                scope.from[2] + offset,
-                scope.to[0] + offset,
-                scope.to[2] + offset
-              ];
-              break;
-            case "down":
-              uv = [
-                scope.from[0] + offset,
-                uv_height - (scope.to[2] + offset),
-                scope.to[0] + offset,
-                uv_height - (scope.from[2] + offset)
-              ];
-              break;
-          }
-          if (Math.max(uv[0], uv[2]) > uv_width) {
-            let offset2 = Math.max(uv[0], uv[2]) - uv_width;
-            uv[0] -= offset2;
-            uv[2] -= offset2;
-          }
-          if (Math.min(uv[0], uv[2]) < 0) {
-            let offset2 = Math.min(uv[0], uv[2]);
-            uv[0] = Math.clamp(uv[0] - offset2, 0, uv_width);
-            uv[2] = Math.clamp(uv[2] - offset2, 0, uv_width);
-          }
-          if (Math.max(uv[1], uv[3]) > uv_height) {
-            let offset2 = Math.max(uv[1], uv[3]) - uv_height;
-            uv[1] -= offset2;
-            uv[3] -= offset2;
-          }
-          if (Math.min(uv[1], uv[3]) < 0) {
-            let offset2 = Math.min(uv[1], uv[3]);
-            uv[1] = Math.clamp(uv[1] - offset2, 0, uv_height);
-            uv[3] = Math.clamp(uv[3] - offset2, 0, uv_height);
-          }
-          scope.faces[side].uv = uv;
-        });
-        scope.preview_controller.updateUV(scope);
-      } else if (scope.autouv === 1) {
-        let calcAutoUV = function(fkey, dimension_axes, world_directions) {
-          let size = dimension_axes.map((axis) => scope.size(axis));
-          let face = scope.faces[fkey];
-          size[0] = Math.abs(size[0]);
-          size[1] = Math.abs(size[1]);
-          let sx = face.uv[0];
-          let sy = face.uv[1];
-          let previous_size = face.uv_size;
-          let rot = face.rotation;
-          let texture = face.getTexture();
-          let uv_width = Project.getUVWidth(texture);
-          let uv_height = Project.getUVHeight(texture);
-          if (rot === 90 || rot === 270) {
-            size.reverse();
-            dimension_axes.reverse();
-            world_directions.reverse();
-          }
-          if (rot == 180) {
-            world_directions[0] *= -1;
-            world_directions[1] *= -1;
-          }
-          size[0] = Math.clamp(size[0], -uv_width, uv_width) * (Math.sign(previous_size[0]) || 1);
-          size[1] = Math.clamp(size[1], -uv_height, uv_height) * (Math.sign(previous_size[1]) || 1);
-          if (options && typeof options.axis == "number") {
-            if (options.axis == dimension_axes[0] && options.direction == world_directions[0]) {
-              sx += previous_size[0] - size[0];
-            }
-            if (options.axis == dimension_axes[1] && options.direction == world_directions[1]) {
-              sy += previous_size[1] - size[1];
-            }
-          }
-          if (sx < 0) sx = 0;
-          if (sy < 0) sy = 0;
-          let endx = sx + size[0];
-          let endy = sy + size[1];
-          if (endx > uv_width) {
-            sx = uv_width - (endx - sx);
-            endx = uv_width;
-          }
-          if (endy > uv_height) {
-            sy = uv_height - (endy - sy);
-            endy = uv_height;
-          }
-          return [sx, sy, endx, endy];
-        };
-        scope.faces.north.uv = calcAutoUV("north", [0, 1], [1, 1]);
-        scope.faces.east.uv = calcAutoUV("east", [2, 1], [1, 1]);
-        scope.faces.south.uv = calcAutoUV("south", [0, 1], [-1, 1]);
-        scope.faces.west.uv = calcAutoUV("west", [2, 1], [-1, 1]);
-        scope.faces.up.uv = calcAutoUV("up", [0, 2], [-1, -1]);
-        scope.faces.down.uv = calcAutoUV("down", [0, 2], [-1, 1]);
-        scope.preview_controller.updateUV(scope);
-      }
-    };
-    BarItems.group_elements.click = function() {
-      Undo.initEdit({ outliner: true, groups: [] });
-      let add_group = Group.first_selected;
-      if (!add_group && Outliner.selected.length) {
-        add_group = Outliner.selected.last();
-      }
-      let new_name = add_group?.name;
-      let base_group = new Group({
-        origin: add_group ? add_group.origin : void 0,
-        name: ["cube", "mesh"].includes(new_name) ? void 0 : new_name
-      });
-      base_group.sortInBefore(add_group);
-      base_group.isOpen = true;
-      base_group.init();
-      if (base_group.getTypeBehavior("unique_name")) {
-        base_group.createUniqueName();
-      }
-      Outliner.selected.concat(Group.multi_selected).forEach((s) => {
-        if (s.parent?.selected) return;
-        s.addTo(base_group);
-        s.preview_controller.updateTransform(s);
-      });
-      base_group.select();
-      Undo.finishEdit("Add group", { outliner: true, groups: [base_group] });
-      Vue.nextTick(function() {
-        updateSelection();
-        if (settings.create_rename.value) {
-          base_group.rename();
-        }
-        base_group.showInOutliner();
-        Blockbench.dispatchEvent("group_elements", { object: base_group });
-      });
-    };
   }
 
   // src/references/player.json
@@ -3270,6 +3221,501 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track(Blockbench.on("select_format", updateSizes));
   }
 
+  // src/uv_canvas_resize.ts
+  var CROP_CSS = `
+.uv_crop_overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+.uv_crop_box {
+    position: absolute;
+    border: 2px dashed var(--color-accent);
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: move;
+}
+.uv_crop_shade {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+.uv_crop_handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--color-accent);
+    border: 1px solid var(--color-light);
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+.uv_crop_handle.corner { width: 12px; height: 12px; }
+.uv_crop_handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.uv_crop_handle.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.uv_crop_handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.uv_crop_handle.e { top: 50%; right: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.uv_crop_handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+.uv_crop_handle.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.uv_crop_handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.uv_crop_handle.w { top: 50%; left: -5px; transform: translateY(-50%); cursor: ew-resize; }
+.uv_crop_grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.uv_crop_grid_line {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.2);
+}
+.uv_crop_grid_line.h { left: 0; right: 0; height: 1px; }
+.uv_crop_grid_line.v { top: 0; bottom: 0; width: 1px; }
+.uv_crop_width {
+    position: absolute;
+    top: -4%;
+    left: 50%;
+    color: var(--color-light);
+    font-size: 24px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    transform-origin: center bottom;
+}
+.uv_crop_height {
+    position: absolute;
+    left: -4%;
+    top: 50%;
+    color: var(--color-light);
+    font-size: 24px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    transform-origin: right center;
+}
+`;
+  var UVCropTool = class {
+    overlay = null;
+    cropBox = null;
+    uvFrame = null;
+    bounds = { left: 0, top: 0, right: 64, bottom: 64 };
+    dragging = null;
+    dragStart = { x: 0, y: 0 };
+    boundsStart = { left: 0, top: 0, right: 0, bottom: 0 };
+    texture = null;
+    active = false;
+    unwatchers = [];
+    onDeactivate = null;
+    constructor(onDeactivate) {
+      this.onDeactivate = onDeactivate || null;
+    }
+    activate() {
+      const uvVue = UVEditor.vue;
+      this.texture = uvVue?.texture || Texture.getDefault();
+      if (!this.texture) {
+        Blockbench.showQuickMessage("No texture selected", 2e3);
+        return;
+      }
+      this.uvFrame = Panels.uv?.node?.querySelector("#uv_frame");
+      if (!this.uvFrame) {
+        Blockbench.showQuickMessage("UV panel not found", 2e3);
+        return;
+      }
+      this.active = true;
+      this.bounds = { left: 0, top: 0, right: this.texture.uv_width, bottom: this.texture.uv_height };
+      this.createOverlay();
+      this.updateDisplay();
+      this.addEventListeners();
+    }
+    deactivate() {
+      if (!this.active) return;
+      this.active = false;
+      this.removeOverlay();
+      this.removeEventListeners();
+      this.hideQuickMessage();
+      this.onDeactivate?.();
+    }
+    createOverlay() {
+      if (!this.uvFrame) return;
+      this.overlay = document.createElement("div");
+      this.overlay.className = "uv_crop_overlay";
+      for (const pos of ["top", "right", "bottom", "left"]) {
+        const shade = document.createElement("div");
+        shade.className = `uv_crop_shade shade_${pos}`;
+        this.overlay.appendChild(shade);
+      }
+      this.cropBox = document.createElement("div");
+      this.cropBox.className = "uv_crop_box";
+      this.cropBox.innerHTML = `
+            <div class="uv_crop_grid"></div>
+            <div class="uv_crop_handle corner nw" data-handle="nw"></div>
+            <div class="uv_crop_handle n" data-handle="n"></div>
+            <div class="uv_crop_handle corner ne" data-handle="ne"></div>
+            <div class="uv_crop_handle e" data-handle="e"></div>
+            <div class="uv_crop_handle corner se" data-handle="se"></div>
+            <div class="uv_crop_handle s" data-handle="s"></div>
+            <div class="uv_crop_handle corner sw" data-handle="sw"></div>
+            <div class="uv_crop_handle w" data-handle="w"></div>
+            <div class="uv_crop_width"></div>
+            <div class="uv_crop_height"></div>
+        `;
+      this.overlay.appendChild(this.cropBox);
+      this.uvFrame.appendChild(this.overlay);
+      Blockbench.showQuickMessage("Enter to apply, Esc to cancel, Shift for fine control", 36e5);
+    }
+    hideQuickMessage() {
+      const el = document.getElementById("quick_message_box");
+      if (el) el.remove();
+    }
+    removeOverlay() {
+      this.overlay?.remove();
+      this.overlay = null;
+      this.cropBox = null;
+    }
+    getScale() {
+      const vue = UVEditor.vue;
+      return vue?.inner_width / (this.texture?.uv_width || 64) || 1;
+    }
+    getInnerOffset() {
+      const vue = UVEditor.vue;
+      return { x: vue?.inner_left || 0, y: vue?.inner_top || 0 };
+    }
+    uvToScreen(uvX, uvY) {
+      const scale = this.getScale();
+      const offset = this.getInnerOffset();
+      return { x: offset.x + uvX * scale, y: offset.y + uvY * scale };
+    }
+    updateDisplay() {
+      if (!this.overlay || !this.cropBox || !this.uvFrame) return;
+      const topLeft = this.uvToScreen(this.bounds.left, this.bounds.top);
+      const bottomRight = this.uvToScreen(this.bounds.right, this.bounds.bottom);
+      const left = topLeft.x, top = topLeft.y;
+      const width = bottomRight.x - topLeft.x, height = bottomRight.y - topLeft.y;
+      Object.assign(this.cropBox.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`
+      });
+      const frameWidth = this.uvFrame.clientWidth;
+      const frameHeight = this.uvFrame.clientHeight;
+      const shades = {
+        top: { left: "0", top: "0", right: "0", height: `${Math.max(0, top)}px` },
+        bottom: { left: "0", bottom: "0", right: "0", height: `${Math.max(0, frameHeight - top - height)}px` },
+        left: { left: "0", top: `${Math.max(0, top)}px`, width: `${Math.max(0, left)}px`, height: `${height}px` },
+        right: { right: "0", top: `${Math.max(0, top)}px`, width: `${Math.max(0, frameWidth - left - width)}px`, height: `${height}px` }
+      };
+      for (const [pos, styles] of Object.entries(shades)) {
+        const el = this.overlay.querySelector(`.shade_${pos}`);
+        if (el) Object.assign(el.style, styles);
+      }
+      const uvFactor = this.texture ? this.texture.width / this.texture.uv_width : 1;
+      const pixelWidth = Math.round((this.bounds.right - this.bounds.left) * uvFactor);
+      const pixelHeight = Math.round((this.bounds.bottom - this.bounds.top) * uvFactor);
+      const widthEl = this.cropBox.querySelector(".uv_crop_width");
+      if (widthEl) {
+        widthEl.textContent = `${pixelWidth}px`;
+        widthEl.style.fontSize = "14px";
+        widthEl.style.transform = `translateX(-50%) translateY(calc(-100% - 4px))`;
+      }
+      const heightEl = this.cropBox.querySelector(".uv_crop_height");
+      if (heightEl) {
+        heightEl.textContent = `${pixelHeight}px`;
+        heightEl.style.fontSize = "14px";
+        heightEl.style.transform = `translateX(calc(-100% - 4px)) translateY(-50%)`;
+      }
+      this.updateGrid(width, height);
+    }
+    updateGrid(boxWidth, boxHeight) {
+      if (!this.cropBox || !this.texture) return;
+      const grid = this.cropBox.querySelector(".uv_crop_grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      const uvFactor = this.texture.width / this.texture.uv_width;
+      const gridStep = 32 / uvFactor;
+      const scale = this.getScale();
+      const cropWidth = this.bounds.right - this.bounds.left;
+      const cropHeight = this.bounds.bottom - this.bounds.top;
+      const firstV = Math.ceil(this.bounds.left / gridStep) * gridStep;
+      for (let uv = firstV; uv < this.bounds.right; uv += gridStep) {
+        if (uv <= this.bounds.left) continue;
+        const pct = (uv - this.bounds.left) / cropWidth * 100;
+        const line = document.createElement("div");
+        line.className = "uv_crop_grid_line v";
+        line.style.left = `${pct}%`;
+        grid.appendChild(line);
+      }
+      const firstH = Math.ceil(this.bounds.top / gridStep) * gridStep;
+      for (let uv = firstH; uv < this.bounds.bottom; uv += gridStep) {
+        if (uv <= this.bounds.top) continue;
+        const pct = (uv - this.bounds.top) / cropHeight * 100;
+        const line = document.createElement("div");
+        line.className = "uv_crop_grid_line h";
+        line.style.top = `${pct}%`;
+        grid.appendChild(line);
+      }
+    }
+    handleMouseDown = (e) => {
+      if (!this.active) return;
+      if (e.button === 1) return;
+      const target = e.target;
+      if (target.classList.contains("uv_crop_handle")) {
+        this.dragging = target.dataset.handle;
+      } else if (target.classList.contains("uv_crop_box") || target.closest(".uv_crop_box")) {
+        if (target.tagName === "BUTTON") return;
+        this.dragging = "move";
+      } else {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      this.dragStart = { x: e.clientX, y: e.clientY };
+      this.boundsStart = { ...this.bounds };
+      document.addEventListener("mousemove", this.handleMouseMove);
+      document.addEventListener("mouseup", this.handleMouseUp);
+    };
+    handleMouseMove = (e) => {
+      if (!this.dragging || !this.texture) return;
+      const scale = this.getScale();
+      const dx = (e.clientX - this.dragStart.x) / scale;
+      const dy = (e.clientY - this.dragStart.y) / scale;
+      const minSize = 1;
+      const b = this.boundsStart;
+      const handlers = {
+        move: () => {
+          this.bounds = { left: b.left + dx, right: b.right + dx, top: b.top + dy, bottom: b.bottom + dy };
+        },
+        nw: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        n: () => {
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        ne: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+          this.bounds.top = Math.min(b.top + dy, b.bottom - minSize);
+        },
+        e: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+        },
+        se: () => {
+          this.bounds.right = Math.max(b.right + dx, b.left + minSize);
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        s: () => {
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        sw: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+          this.bounds.bottom = Math.max(b.bottom + dy, b.top + minSize);
+        },
+        w: () => {
+          this.bounds.left = Math.min(b.left + dx, b.right - minSize);
+        }
+      };
+      handlers[this.dragging]();
+      if (!e.shiftKey) {
+        this.snapToGrid();
+      }
+      this.snapToEdges();
+      this.updateDisplay();
+    };
+    // Snap bounds to 32px grid increments
+    snapToGrid() {
+      if (!this.texture) return;
+      const uvFactor = this.texture.width / this.texture.uv_width;
+      const gridStep = 32 / uvFactor;
+      const snap = (val) => Math.round(val / gridStep) * gridStep;
+      this.bounds.left = snap(this.bounds.left);
+      this.bounds.right = snap(this.bounds.right);
+      this.bounds.top = snap(this.bounds.top);
+      this.bounds.bottom = snap(this.bounds.bottom);
+    }
+    // Magnetic snap to original canvas edges
+    snapToEdges() {
+      if (!this.texture) return;
+      const snapThreshold = 3;
+      const edges = { left: 0, top: 0, right: this.texture.uv_width, bottom: this.texture.uv_height };
+      if (Math.abs(this.bounds.left - edges.left) < snapThreshold) this.bounds.left = edges.left;
+      if (Math.abs(this.bounds.left - edges.right) < snapThreshold) this.bounds.left = edges.right;
+      if (Math.abs(this.bounds.right - edges.left) < snapThreshold) this.bounds.right = edges.left;
+      if (Math.abs(this.bounds.right - edges.right) < snapThreshold) this.bounds.right = edges.right;
+      if (Math.abs(this.bounds.top - edges.top) < snapThreshold) this.bounds.top = edges.top;
+      if (Math.abs(this.bounds.top - edges.bottom) < snapThreshold) this.bounds.top = edges.bottom;
+      if (Math.abs(this.bounds.bottom - edges.top) < snapThreshold) this.bounds.bottom = edges.top;
+      if (Math.abs(this.bounds.bottom - edges.bottom) < snapThreshold) this.bounds.bottom = edges.bottom;
+    }
+    handleMouseUp = () => {
+      this.dragging = null;
+      document.removeEventListener("mousemove", this.handleMouseMove);
+      document.removeEventListener("mouseup", this.handleMouseUp);
+    };
+    handleKeyDown = (e) => {
+      if (!this.active) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.apply();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.deactivate();
+      }
+    };
+    addEventListeners() {
+      this.overlay?.addEventListener("mousedown", this.handleMouseDown);
+      this.uvFrame?.addEventListener("wheel", () => this.updateDisplay());
+      document.addEventListener("keydown", this.handleKeyDown);
+      Blockbench.on("resize_window", this.updateDisplay.bind(this));
+      const vue = UVEditor.vue;
+      if (vue?.$watch) {
+        for (const prop of ["zoom", "inner_left", "inner_top"]) {
+          this.unwatchers.push(vue.$watch(prop, () => this.updateDisplay()));
+        }
+        this.unwatchers.push(vue.$watch("texture", () => this.deactivate()));
+      }
+    }
+    removeEventListeners() {
+      this.overlay?.removeEventListener("mousedown", this.handleMouseDown);
+      document.removeEventListener("mousemove", this.handleMouseMove);
+      document.removeEventListener("mouseup", this.handleMouseUp);
+      document.removeEventListener("keydown", this.handleKeyDown);
+      Blockbench.removeListener("resize_window", this.updateDisplay);
+      this.unwatchers.forEach((fn) => fn());
+      this.unwatchers = [];
+    }
+    // Crops textures and adjusts UVs based on context (attachment vs main model)
+    apply() {
+      if (!this.texture) return;
+      const selectedTexture = this.texture;
+      const textureGroupUuid = selectedTexture.group;
+      const isAttachmentTexture = !!textureGroupUuid;
+      let texturesToCrop;
+      let elementsToAffect;
+      if (isAttachmentTexture) {
+        texturesToCrop = Texture.all.filter((t) => t.group === textureGroupUuid);
+        const relatedCollections = Collection.all.filter((c) => {
+          const collectionTexUuid = c.texture;
+          return texturesToCrop.some((t) => t.uuid === collectionTexUuid);
+        });
+        elementsToAffect = Outliner.elements.filter(
+          (el) => relatedCollections.some((c) => c.contains(el))
+        );
+      } else {
+        const collectionTextureUuids = new Set(
+          Collection.all.map((c) => c.texture).filter(Boolean)
+        );
+        texturesToCrop = Texture.all.filter(
+          (t) => !t.group && !collectionTextureUuids.has(t.uuid)
+        );
+        elementsToAffect = Outliner.elements.filter(
+          (el) => !Collection.all.some((c) => c.contains(el))
+        );
+      }
+      if (texturesToCrop.length === 0) {
+        Blockbench.showQuickMessage("No textures to crop", 2e3);
+        return;
+      }
+      const refUvFactor = selectedTexture.width / selectedTexture.uv_width;
+      const newWidth = Math.round((this.bounds.right - this.bounds.left) * refUvFactor);
+      const newHeight = Math.round((this.bounds.bottom - this.bounds.top) * refUvFactor);
+      if (newWidth < 1 || newHeight < 1) {
+        Blockbench.showQuickMessage("Invalid crop size", 2e3);
+        return;
+      }
+      Undo.initEdit({ textures: texturesToCrop, bitmap: true });
+      for (const texture of texturesToCrop) {
+        const uvFactor = texture.width / texture.uv_width;
+        const pixelLeft = Math.round(this.bounds.left * uvFactor);
+        const pixelTop = Math.round(this.bounds.top * uvFactor);
+        const pixelWidth = Math.round((this.bounds.right - this.bounds.left) * uvFactor);
+        const pixelHeight = Math.round((this.bounds.bottom - this.bounds.top) * uvFactor);
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = texture.width;
+        tempCanvas.height = texture.height;
+        tempCanvas.getContext("2d").drawImage(texture.img, 0, 0);
+        texture.width = texture.canvas.width = pixelWidth;
+        texture.height = texture.canvas.height = pixelHeight;
+        const ctx = texture.ctx;
+        ctx.clearRect(0, 0, pixelWidth, pixelHeight);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tempCanvas, -pixelLeft, -pixelTop);
+        texture.uv_width = pixelWidth / uvFactor;
+        texture.uv_height = pixelHeight / uvFactor;
+        texture.updateChangesAfterEdit();
+      }
+      Undo.finishEdit(isAttachmentTexture ? "Crop attachment texture" : "Crop model textures");
+      const cubes = elementsToAffect.filter((el) => el instanceof Cube && !!el.faces);
+      if (cubes.length && (this.bounds.left || this.bounds.top)) {
+        Undo.initEdit({ elements: cubes });
+        const offsetX = this.bounds.left;
+        const offsetY = this.bounds.top;
+        for (const cube of cubes) {
+          if (cube.box_uv) {
+            cube.uv_offset[0] -= offsetX;
+            cube.uv_offset[1] -= offsetY;
+          } else {
+            for (const key in cube.faces) {
+              const uv = cube.faces[key].uv;
+              uv[0] -= offsetX;
+              uv[1] -= offsetY;
+              uv[2] -= offsetX;
+              uv[3] -= offsetY;
+            }
+          }
+        }
+        Canvas.updateView({ elements: cubes, element_aspects: { uv: true } });
+        Undo.finishEdit("Adjust UV after cropping");
+      }
+      UVEditor.vue.$forceUpdate();
+      this.deactivate();
+    }
+  };
+  var cropTool = null;
+  var resizeToggle = null;
+  function setupUVCanvasResize() {
+    const style = Blockbench.addCSS(CROP_CSS);
+    track(style);
+    cropTool = new UVCropTool(() => {
+      resizeToggle?.set(false);
+    });
+    let originalReverseSelect = UVEditor.reverseSelect;
+    UVEditor.reverseSelect = function(...args) {
+      if (cropTool.active) return;
+      originalReverseSelect.call(UVEditor, ...args);
+    };
+    track({
+      delete() {
+        UVEditor.reverseSelect = originalReverseSelect;
+      }
+    });
+    resizeToggle = new Toggle("hytale_resize_uv_canvas", {
+      name: "Resize UV Canvas",
+      icon: "crop",
+      category: "uv",
+      condition: { formats: FORMAT_IDS, modes: ["edit"] },
+      onChange: (value) => {
+        if (value) {
+          cropTool?.activate();
+        } else {
+          cropTool?.deactivate();
+        }
+      }
+    });
+    track(resizeToggle);
+    Toolbars.uv_editor?.add(resizeToggle, 1);
+    track(Blockbench.on("select_mode", () => {
+      cropTool?.deactivate();
+      resizeToggle?.set(false);
+    }));
+    track({ delete: () => {
+      cropTool?.deactivate();
+      cropTool = null;
+      resizeToggle = null;
+    } });
+  }
+
   // src/alt_duplicate.ts
   function setupAltDuplicate() {
     const keybindItem = new KeybindItem("hytale_duplicate_drag_modifier", {
@@ -3288,10 +3734,10 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     let originalFinishEdit = null;
     function isModifierPressed(event) {
       const kb = keybindItem.keybind;
-      if (kb.key === 18 || kb.alt) return event.altKey;
-      if (kb.key === 17 || kb.ctrl) return event.ctrlKey;
-      if (kb.key === 16 || kb.shift) return event.shiftKey;
-      return Pressing.alt;
+      if (kb.key === 18 || kb.alt) return event.altKey || Pressing.overrides.alt;
+      if (kb.key === 17 || kb.ctrl) return event.ctrlKey || Pressing.overrides.ctrl;
+      if (kb.key === 16 || kb.shift) return event.shiftKey || Pressing.overrides.shift;
+      if (kb.key === 91 || kb.ctrl) return event.metaKey || Pressing.overrides.ctrl;
     }
     function isModifierKey(event) {
       const kb = keybindItem.keybind;
@@ -3359,7 +3805,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       const axis = Transformer?.axis;
       const hasSelection = Outliner.selected.length > 0 || Group.all.some((g) => g.selected);
       const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
-      if (!axis || !hasSelection || !isTransformTool) return;
+      if (!axis || !hasSelection || !isTransformTool || !Modes.edit) return;
       if (isModifierPressed(event)) {
         event.stopImmediatePropagation();
         if (!performDuplicationForCombinedUndo(true)) return;
@@ -3386,7 +3832,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     function onKeyDown(event) {
       if (!isDragging || !isModifierKey(event) || modifierWasPressed) return;
       const isTransformTool = Toolbox.selected?.id === "move_tool" || Toolbox.selected?.id === "rotate_tool";
-      if (!isTransformTool) return;
+      if (!isTransformTool || !Modes.edit) return;
       modifierWasPressed = true;
       const shouldInitEdit = isCombinedUndoActive;
       if (isCombinedUndoActive) finishCombinedUndo();
@@ -3411,6 +3857,813 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     track({ delete: () => events.forEach(([type, handler]) => document.removeEventListener(type, handler, true)) });
   }
 
+  // src/pivot_control.ts
+  var pivotFollowEnabled = true;
+  function setupPivotControl() {
+    StateMemory.init("hytale_pivot_follow", "boolean");
+    pivotFollowEnabled = StateMemory.get("hytale_pivot_follow") ?? true;
+    let toggle = new Toggle("hytale_pivot_follow", {
+      name: "Pivot Follow",
+      description: "When enabled, the pivot point moves along with the element when using the move tool",
+      icon: pivotFollowEnabled ? "location_searching" : "location_disabled",
+      category: "edit",
+      condition: { formats: FORMAT_IDS, modes: ["edit"], tools: ["move_tool"] },
+      default: pivotFollowEnabled,
+      onChange(value) {
+        pivotFollowEnabled = value;
+        StateMemory.set("hytale_pivot_follow", value);
+        toggle.setIcon(value ? "location_searching" : "location_disabled");
+      }
+    });
+    let tsItem = BarItems.transform_space;
+    if (tsItem) {
+      for (let toolbar of Object.values(Toolbars)) {
+        let children = toolbar.children;
+        if (Array.isArray(children) && children.includes(tsItem)) {
+          let index = children.indexOf(tsItem);
+          toolbar.add(toggle, index + 1);
+          break;
+        }
+      }
+    }
+    let snapshots = null;
+    let trackedCubeUuid = null;
+    let savedUpdatePivotMarker = null;
+    function onPointerDown() {
+      if (!isHytaleFormat() || !Modes.edit) return;
+      if (Toolbox.selected?.id !== "move_tool") return;
+      if (!Transformer?.axis) return;
+      if (Group.selected.length) return;
+      snapshots = /* @__PURE__ */ new Map();
+      for (let el2 of Outliner.selected) {
+        if (el2 instanceof Cube) {
+          snapshots.set(el2.uuid, {
+            initialOrigin: [...el2.origin],
+            initialFrom: [...el2.from]
+          });
+        }
+      }
+      if (snapshots.size === 0) {
+        snapshots = null;
+        return;
+      }
+      trackedCubeUuid = null;
+      for (let [uuid] of snapshots) {
+        let el2 = OutlinerNode.uuids[uuid];
+        if (el2 instanceof Cube && el2.mesh?.parent) {
+          trackedCubeUuid = uuid;
+          break;
+        }
+      }
+      if (!trackedCubeUuid) return;
+      let el = OutlinerNode.uuids[trackedCubeUuid];
+      savedUpdatePivotMarker = Canvas.updatePivotMarker;
+      Canvas.updatePivotMarker = () => {
+      };
+      if (!pivotFollowEnabled) {
+        let worldPos = new THREE.Vector3();
+        let worldQuat = new THREE.Quaternion();
+        el.mesh.getWorldPosition(worldPos);
+        Canvas.pivot_marker.getWorldQuaternion(worldQuat);
+        Canvas.scene.add(Canvas.pivot_marker);
+        Canvas.pivot_marker.position.copy(worldPos);
+        Canvas.pivot_marker.quaternion.copy(worldQuat);
+      }
+    }
+    function onPointerMove() {
+      if (!pivotFollowEnabled || !snapshots || !trackedCubeUuid) return;
+      let snap = snapshots.get(trackedCubeUuid);
+      let el = OutlinerNode.uuids[trackedCubeUuid];
+      if (!snap || !(el instanceof Cube) || !el.mesh) return;
+      let originMoved = el.origin[0] !== snap.initialOrigin[0] || el.origin[1] !== snap.initialOrigin[1] || el.origin[2] !== snap.initialOrigin[2];
+      if (!originMoved) {
+        Canvas.pivot_marker.position.set(
+          el.from[0] - snap.initialFrom[0],
+          el.from[1] - snap.initialFrom[1],
+          el.from[2] - snap.initialFrom[2]
+        );
+      } else {
+        Canvas.pivot_marker.position.set(0, 0, 0);
+      }
+    }
+    function onFinishEdit() {
+      if (!snapshots) return;
+      let snapshotsCopy = snapshots;
+      snapshots = null;
+      trackedCubeUuid = null;
+      if (savedUpdatePivotMarker) {
+        Canvas.updatePivotMarker = savedUpdatePivotMarker;
+        savedUpdatePivotMarker = null;
+      }
+      let modified = [];
+      for (let [uuid, snap] of snapshotsCopy) {
+        let el = OutlinerNode.uuids[uuid];
+        if (!(el instanceof Cube) || !el.mesh) continue;
+        let originMoved = el.origin[0] !== snap.initialOrigin[0] || el.origin[1] !== snap.initialOrigin[1] || el.origin[2] !== snap.initialOrigin[2];
+        if (pivotFollowEnabled && !originMoved) {
+          let delta = new THREE.Vector3(
+            el.from[0] - snap.initialFrom[0],
+            el.from[1] - snap.initialFrom[1],
+            el.from[2] - snap.initialFrom[2]
+          );
+          delta.applyQuaternion(el.mesh.quaternion);
+          let desired = [
+            snap.initialOrigin[0] + delta.x,
+            snap.initialOrigin[1] + delta.y,
+            snap.initialOrigin[2] + delta.z
+          ];
+          el.transferOrigin(desired, false);
+          modified.push(el);
+        } else if (!pivotFollowEnabled && originMoved) {
+          el.transferOrigin(snap.initialOrigin, false);
+          modified.push(el);
+        }
+      }
+      Canvas.pivot_marker.position.set(0, 0, 0);
+      Canvas.pivot_marker.quaternion.identity();
+      Canvas.updatePivotMarker();
+      if (modified.length > 0) {
+        Canvas.updateView({
+          elements: modified,
+          element_aspects: { transform: true, geometry: true }
+        });
+      }
+    }
+    function onPointerUp() {
+      if (!snapshots) return;
+      let pendingSnapshots = snapshots;
+      setTimeout(() => {
+        if (snapshots !== pendingSnapshots) return;
+        snapshots = null;
+        trackedCubeUuid = null;
+        if (savedUpdatePivotMarker) {
+          Canvas.updatePivotMarker = savedUpdatePivotMarker;
+          savedUpdatePivotMarker = null;
+        }
+        Canvas.pivot_marker.position.set(0, 0, 0);
+        Canvas.pivot_marker.quaternion.identity();
+        Canvas.updatePivotMarker();
+      }, 0);
+    }
+    Blockbench.on("finish_edit", onFinishEdit);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("pointermove", onPointerMove, false);
+    document.addEventListener("pointerup", onPointerUp, true);
+    let toolOptions = {
+      move_tool: "Move",
+      resize_tool: "Resize",
+      rotate_tool: "Rotate",
+      pivot_tool: "Pivot",
+      vertex_snap_tool: "Vertex Snap"
+    };
+    let dblClickToolA = new Setting("hytale_dblclick_tool_a", {
+      name: "Double Click Tool A",
+      description: 'First tool in the double-click toggle pair. Requires "Double Click Switch Tools" to be enabled in Blockbench controls settings.',
+      category: "controls",
+      type: "select",
+      value: "move_tool",
+      options: toolOptions
+    });
+    track(dblClickToolA);
+    let dblClickToolB = new Setting("hytale_dblclick_tool_b", {
+      name: "Double Click Tool B",
+      description: 'Second tool in the double-click toggle pair. Requires "Double Click Switch Tools" to be enabled in Blockbench controls settings.',
+      category: "controls",
+      type: "select",
+      value: "resize_tool",
+      options: toolOptions
+    });
+    track(dblClickToolB);
+    let originalToggleTransforms = Toolbox.toggleTransforms;
+    Toolbox.toggleTransforms = function() {
+      let a = dblClickToolA.value;
+      let b = dblClickToolB.value;
+      if (Toolbox.selected.id === a) {
+        BarItems[b]?.select();
+      } else if (Toolbox.selected.id === b) {
+        BarItems[a]?.select();
+      }
+    };
+    track(toggle, {
+      delete() {
+        Blockbench.removeListener("finish_edit", onFinishEdit);
+        document.removeEventListener("pointerdown", onPointerDown, true);
+        document.removeEventListener("pointermove", onPointerMove, false);
+        document.removeEventListener("pointerup", onPointerUp, true);
+        if (savedUpdatePivotMarker) {
+          Canvas.updatePivotMarker = savedUpdatePivotMarker;
+          savedUpdatePivotMarker = null;
+        }
+        Toolbox.toggleTransforms = originalToggleTransforms;
+      }
+    });
+  }
+
+  // src/change_orientation.ts
+  function canChangeParentGroup(cube) {
+    let parent = cube.parent;
+    if (parent instanceof Group == false || !parent.selected) return false;
+    if (parent.children.find((c) => c instanceof Cube == false || !c.selected)) return false;
+    return true;
+  }
+  function changeCubeOrientation(axis, direction) {
+    let affected_groups = [];
+    let changed_groups = [];
+    for (let cube of Cube.selected) {
+      if (canChangeParentGroup(cube)) affected_groups.safePush(cube.parent);
+    }
+    Undo.initEdit({ elements: Cube.selected, groups: affected_groups });
+    for (let cube of Cube.selected) {
+      let flip_direction = direction == -1;
+      if (axis == 1) flip_direction = !flip_direction;
+      let node_to_rotate = canChangeParentGroup(cube) ? cube.parent : cube;
+      let quat_initial = Reusable.quat2.copy(node_to_rotate.mesh.quaternion);
+      cube.roll(axis, flip_direction ? 3 : 1, node_to_rotate.origin);
+      if (changed_groups.includes(node_to_rotate)) {
+        continue;
+      } else if (node_to_rotate instanceof Group) {
+        changed_groups.push(node_to_rotate);
+      }
+      let change_euler = Reusable.euler1.set(0, 0, 0);
+      change_euler[getAxisLetter(axis)] = Math.degToRad(-direction * 90);
+      node_to_rotate.mesh.quaternion.multiplyQuaternions(quat_initial, Reusable.quat1.setFromEuler(change_euler));
+      let new_rotation = node_to_rotate.mesh.rotation.toArray().slice(0, 3).map((r) => Math.radToDeg(r));
+      node_to_rotate.rotation.V3_set(new_rotation.map((r) => Math.roundTo(r, 2)));
+      node_to_rotate.preview_controller.updateTransform(node_to_rotate);
+    }
+    ;
+    Undo.finishEdit("Change cube orientation");
+    updateSelection();
+  }
+  function setupChangeOrientation() {
+    let action = new Action("change_cube_orientation", {
+      name: "Change Orientation",
+      icon: "screen_rotation_up",
+      condition: { modes: ["edit"], selected: { cube: true } },
+      children: [
+        {
+          id: "x_plus",
+          name: "X+",
+          icon: "rotate_right",
+          color: "x",
+          click() {
+            changeCubeOrientation(0, 1);
+          }
+        },
+        {
+          id: "x_minus",
+          name: "X-",
+          icon: "rotate_left",
+          color: "x",
+          click() {
+            changeCubeOrientation(0, -1);
+          }
+        },
+        {
+          id: "y_plus",
+          name: "Y+",
+          icon: "rotate_right",
+          color: "y",
+          click() {
+            changeCubeOrientation(1, 1);
+          }
+        },
+        {
+          id: "y_minus",
+          name: "Y-",
+          icon: "rotate_left",
+          color: "y",
+          click() {
+            changeCubeOrientation(1, -1);
+          }
+        },
+        {
+          id: "z_plus",
+          name: "Z+",
+          icon: "rotate_right",
+          color: "z",
+          click() {
+            changeCubeOrientation(2, 1);
+          }
+        },
+        {
+          id: "z_minus",
+          name: "Z-",
+          icon: "rotate_left",
+          color: "z",
+          click() {
+            changeCubeOrientation(2, -1);
+          }
+        }
+      ],
+      click(e) {
+        new Menu("change_cube_orientation", this.children, {}).open(e.target);
+      }
+    });
+    for (let item of action.children) {
+      action.addSubKeybind(item.id, item.name, null, item.click);
+    }
+    MenuBar.menus.transform.addAction(action);
+    track(action);
+  }
+
+  // src/shortcuts.ts
+  function setupShortcuts() {
+    const brush_tool = BarItems.brush_tool;
+    let last_brush_preset = Painter.default_brush_presets[0];
+    let selecting = false;
+    brush_tool.addSubKeybind("switch_preset", "Switch Preset", null, (event) => {
+      if (Toolbox.selected == brush_tool && !selecting) {
+        let options = [...Painter.default_brush_presets, ...StateMemory.brush_presets];
+        let index = options.indexOf(last_brush_preset);
+        let next_index = (index + 1) % options.length;
+        let next_option = options[next_index];
+        Painter.loadBrushPreset(next_option);
+        Blockbench.showQuickMessage(`Brush ${next_index + 1}: ${tl(next_option.name)}`);
+      }
+    });
+    let select_listener = brush_tool.on("select", () => {
+      selecting = true;
+      setTimeout(() => selecting = false, 60);
+    });
+    let originalApplyBrushPreset = Painter.loadBrushPreset;
+    Painter.loadBrushPreset = function(preset) {
+      last_brush_preset = preset;
+      originalApplyBrushPreset.call(Painter, preset);
+    };
+    track({
+      delete() {
+        select_listener.delete();
+        delete brush_tool.sub_keybinds.switch_preset;
+        Painter.loadBrushPreset = originalApplyBrushPreset;
+      }
+    });
+  }
+
+  // src/pivot_snap.ts
+  var CORNER_COUNT = 8;
+  var CUBE_EDGES = [
+    [0, 1],
+    [0, 5],
+    [1, 4],
+    [4, 5],
+    // Top face
+    [2, 3],
+    [2, 7],
+    [3, 6],
+    [6, 7],
+    // Bottom face
+    [0, 2],
+    [1, 3],
+    [4, 6],
+    [5, 7]
+    // Vertical
+  ];
+  var CUBE_FACES = [
+    [0, 1, 2, 3],
+    // East  (x = to)
+    [4, 5, 6, 7],
+    // West  (x = from)
+    [0, 1, 4, 5],
+    // Up    (y = to)
+    [2, 3, 6, 7],
+    // Down  (y = from)
+    [0, 2, 5, 7],
+    // South (z = to)
+    [1, 3, 4, 6]
+    // North (z = from)
+  ];
+  var COLLAPSE_PAIRS = [
+    [[0, 5], [1, 4], [2, 7], [3, 6]],
+    // X
+    [[0, 2], [1, 3], [4, 6], [5, 7]],
+    // Y
+    [[0, 1], [2, 3], [4, 5], [6, 7]]
+    // Z
+  ];
+  function getSnapTo() {
+    return BarItems.snap_to?.value ?? "vertex";
+  }
+  function getCornerMergeMap(element) {
+    let hasCollapse = false;
+    let map = /* @__PURE__ */ new Map();
+    for (let i = 0; i < CORNER_COUNT; i++) map.set(i, i);
+    for (let dim = 0; dim < 3; dim++) {
+      if (element.from[dim] !== element.to[dim]) continue;
+      hasCollapse = true;
+      for (let [a, b] of COLLAPSE_PAIRS[dim]) {
+        let ca = map.get(a), cb = map.get(b);
+        let keep = Math.min(ca, cb), drop = Math.max(ca, cb);
+        if (keep === drop) continue;
+        for (let [k, v] of map) {
+          if (v === drop) map.set(k, keep);
+        }
+      }
+    }
+    return hasCollapse ? map : null;
+  }
+  function midpoint(a, b) {
+    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+  }
+  function buildSnapPoints(corners, mode, mergeMap) {
+    if (!mergeMap) {
+      if (mode === "vertex") return corners.slice();
+      if (mode === "edge") return CUBE_EDGES.map(([a, b]) => midpoint(corners[a], corners[b]));
+      return CUBE_FACES.map((face) => {
+        let x = 0, y = 0, z = 0;
+        for (let i of face) {
+          x += corners[i][0];
+          y += corners[i][1];
+          z += corners[i][2];
+        }
+        return [x / face.length, y / face.length, z / face.length];
+      });
+    }
+    let canonicals = [...new Set(mergeMap.values())].sort((a, b) => a - b);
+    if (mode === "vertex") return canonicals.map((i) => corners[i]);
+    if (mode === "edge") {
+      let seen2 = /* @__PURE__ */ new Set();
+      let points2 = [];
+      for (let [ai, bi] of CUBE_EDGES) {
+        let ca = mergeMap.get(ai), cb = mergeMap.get(bi);
+        if (ca === cb) continue;
+        let key = Math.min(ca, cb) + "," + Math.max(ca, cb);
+        if (seen2.has(key)) continue;
+        seen2.add(key);
+        points2.push(midpoint(corners[ca], corners[cb]));
+      }
+      return points2;
+    }
+    let seen = /* @__PURE__ */ new Set();
+    let points = [];
+    for (let face of CUBE_FACES) {
+      let unique = [...new Set(face.map((i) => mergeMap.get(i)))].sort((a, b) => a - b);
+      if (unique.length < 3) continue;
+      let key = unique.join(",");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      let x = 0, y = 0, z = 0;
+      for (let i of unique) {
+        x += corners[i][0];
+        y += corners[i][1];
+        z += corners[i][2];
+      }
+      points.push([x / unique.length, y / unique.length, z / unique.length]);
+    }
+    return points;
+  }
+  var _accentColor = null;
+  var _sourceElement = null;
+  function getAccentColor() {
+    if (!_accentColor) {
+      let css = getComputedStyle(document.body).getPropertyValue("--color-accent").trim();
+      _accentColor = new THREE.Color(css || "#3e90ff");
+    }
+    return _accentColor;
+  }
+  function invalidateAccentColor() {
+    _accentColor = null;
+  }
+  function rebuildPointsGeometry(pts, verts) {
+    let positions = [];
+    let colors = [];
+    let { r, g, b } = gizmo_colors.grid;
+    for (let v of verts) {
+      positions.push(v[0], v[1], v[2]);
+      colors.push(r, g, b);
+    }
+    pts.vertices = verts;
+    pts.geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+    pts.geometry.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(colors), 3));
+  }
+  function recolorElementPoints(el, hoveredIndex) {
+    let points = el.mesh?.vertex_points;
+    if (!points) return;
+    let colorAttr = points.geometry.attributes.color;
+    if (!colorAttr) return;
+    let arr = colorAttr.array;
+    let sourceIdx = !Vertexsnap.step1 && el === _sourceElement ? Vertexsnap.vertex_index : -1;
+    let count = points.geometry.attributes.position.count;
+    for (let i = 0; i < count; i++) {
+      let color;
+      if (i === hoveredIndex) {
+        color = gizmo_colors.outline;
+      } else if (i === sourceIdx) {
+        color = getAccentColor();
+      } else {
+        color = gizmo_colors.grid;
+      }
+      let offset = i * 3;
+      arr[offset] = color.r;
+      arr[offset + 1] = color.g;
+      arr[offset + 2] = color.b;
+    }
+    colorAttr.needsUpdate = true;
+  }
+  var _mouse = new THREE.Vector2();
+  var _raycaster = new THREE.Raycaster();
+  var _camDir = new THREE.Vector3();
+  var _plane = new THREE.Plane();
+  var _target = new THREE.Vector3();
+  function projectMouseToPlane(event, refPoint) {
+    let preview = Preview.selected;
+    if (!preview) return null;
+    let canvasOffset = $(preview.canvas).offset();
+    if (!canvasOffset) return null;
+    _mouse.set(
+      (event.clientX - canvasOffset.left) / preview.width * 2 - 1,
+      -((event.clientY - canvasOffset.top) / preview.height) * 2 + 1
+    );
+    _raycaster.setFromCamera(_mouse, preview.camera);
+    preview.camera.getWorldDirection(_camDir);
+    _plane.setFromNormalAndCoplanarPoint(_camDir, refPoint);
+    return _raycaster.ray.intersectPlane(_plane, _target) ? _target.clone() : null;
+  }
+  function setupPivotSnap() {
+    let previewEl;
+    let _prevHoveredEl = null;
+    let guideLine = new THREE.Line(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({ color: getAccentColor(), depthTest: false, transparent: true })
+    );
+    guideLine.renderOrder = 901;
+    guideLine.frustumCulled = false;
+    let sourceMarker = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.PointsMaterial({
+        size: 7,
+        sizeAttenuation: false,
+        color: getAccentColor(),
+        depthTest: false,
+        transparent: true
+      })
+    );
+    sourceMarker.renderOrder = 901;
+    sourceMarker.frustumCulled = false;
+    function updateAccentColors() {
+      invalidateAccentColor();
+      let color = getAccentColor();
+      guideLine.material.color.copy(color);
+      sourceMarker.material.color.copy(color);
+    }
+    function showSourceMarker(pos) {
+      sourceMarker.geometry.setAttribute("position", new THREE.BufferAttribute(
+        new Float32Array(pos.toArray()),
+        3
+      ));
+      Project.model_3d.add(sourceMarker);
+      sourceMarker.position.copy(scene.position).multiplyScalar(-1);
+    }
+    function removeSourceMarker() {
+      Project.model_3d.remove(sourceMarker);
+    }
+    function removeGuideLine() {
+      Project.model_3d.remove(guideLine);
+    }
+    function resetSnapVisuals() {
+      removeGuideLine();
+      removeSourceMarker();
+      _parentPivotGroup = null;
+      _sourceElement = null;
+    }
+    function drawGuideLine(start, end) {
+      guideLine.geometry.setAttribute("position", new THREE.BufferAttribute(
+        new Float32Array([...start.toArray(), ...end.toArray()]),
+        3
+      ));
+      Project.model_3d.add(guideLine);
+      guideLine.position.copy(scene.position).multiplyScalar(-1);
+    }
+    function getPreviewEl() {
+      if (!previewEl) previewEl = $("#preview").get(0);
+      return previewEl;
+    }
+    function addHoverListener() {
+      let el = getPreviewEl();
+      if (el) {
+        el.removeEventListener("mousemove", Vertexsnap.hoverCanvas);
+        el.addEventListener("mousemove", Vertexsnap.hoverCanvas);
+      }
+    }
+    function enterStep2(pos) {
+      showSourceMarker(pos);
+      addHoverListener();
+      $("#preview").css("cursor", "alias");
+      Blockbench.setStatusBarText();
+    }
+    function enterStep1() {
+      resetSnapVisuals();
+      Vertexsnap.step1 = true;
+      $("#preview").css("cursor", "copy");
+      Blockbench.setStatusBarText();
+    }
+    let originalAddVertices = Vertexsnap.addVertices;
+    Vertexsnap.addVertices = function(element) {
+      originalAddVertices.call(this, element);
+      let { mesh } = element;
+      if (!mesh?.vertex_points) return;
+      if (!(element instanceof Cube)) return;
+      let pts = mesh.vertex_points;
+      let verts = pts.vertices;
+      if (verts.length < CORNER_COUNT + 1) return;
+      let corners = verts.slice(0, CORNER_COUNT);
+      pts._snap_corners = corners;
+      let mergeMap = getCornerMergeMap(element);
+      let snapPoints = buildSnapPoints(corners, getSnapTo(), mergeMap);
+      let allPoints = [...snapPoints, [0, 0, 0]];
+      pts._parent_pivot_index = null;
+      let parentGroup = element.parent;
+      if (parentGroup instanceof Group && parentGroup.mesh) {
+        let groupWorldPos = new THREE.Vector3();
+        parentGroup.mesh.getWorldPosition(groupWorldPos);
+        let localPos = mesh.worldToLocal(groupWorldPos.clone());
+        pts._parent_pivot_index = allPoints.length;
+        allPoints.push(localPos.toArray());
+      }
+      rebuildPointsGeometry(pts, allPoints);
+      pts.renderOrder = 901;
+      pts.material.depthTest = false;
+      if (!Vertexsnap.step1 && element === _sourceElement) {
+        let idx = Vertexsnap.vertex_index;
+        let colorAttr = pts.geometry.attributes.color;
+        if (idx >= 0 && idx < allPoints.length && colorAttr) {
+          let accent = getAccentColor();
+          let offset = idx * 3;
+          colorAttr.array[offset] = accent.r;
+          colorAttr.array[offset + 1] = accent.g;
+          colorAttr.array[offset + 2] = accent.b;
+          colorAttr.needsUpdate = true;
+        }
+      }
+    };
+    let originalClearVertexGizmos = Vertexsnap.clearVertexGizmos;
+    Vertexsnap.clearVertexGizmos = function() {
+      removeGuideLine();
+      _prevHoveredEl = null;
+      originalClearVertexGizmos.call(this);
+      if (!Vertexsnap.step1) {
+        addHoverListener();
+      }
+    };
+    let originalCanvasClick = Vertexsnap.canvasClick;
+    let _parentPivotGroup = null;
+    Vertexsnap.canvasClick = function(data) {
+      if (data?.type === "vertex" && Vertexsnap.step1) {
+        let pts = data.element?.mesh?.vertex_points;
+        if (pts?._parent_pivot_index != null && data.vertex_index === pts._parent_pivot_index) {
+          let parentGroup = data.element.parent;
+          if (parentGroup instanceof Group) {
+            Vertexsnap.step1 = false;
+            Vertexsnap.vertex_pos = Vertexsnap.getGlobalVertexPos(data.element, data.vertex);
+            Vertexsnap.vertex_index = data.vertex_index;
+            _sourceElement = data.element;
+            _parentPivotGroup = parentGroup;
+            Vertexsnap.clearVertexGizmos();
+            enterStep2(Vertexsnap.vertex_pos);
+            return;
+          }
+        }
+      }
+      if (!Vertexsnap.step1 && _parentPivotGroup) {
+        if (!data) return;
+        if (data.type !== "vertex" && !["locator", "null_object"].includes(data.element?.type)) return;
+        let group = _parentPivotGroup;
+        let allGroups = [group];
+        group.forEachChild((child) => {
+          allGroups.push(child);
+        }, Group);
+        let elements = [];
+        group.forEachChild((child) => {
+          elements.push(child);
+        }, OutlinerElement);
+        Undo.initEdit({ elements, groups: allGroups, outliner: true });
+        let vec = Vertexsnap.getGlobalVertexPos(data.element, data.vertex);
+        if (Format.bone_rig && group.parent instanceof Group && group.mesh.parent) {
+          group.mesh.parent.worldToLocal(vec);
+        }
+        let vec_array = vec.toArray();
+        if (group.parent instanceof Group) {
+          vec_array.V3_add(group.parent.origin);
+        }
+        group.transferOrigin(vec_array);
+        Canvas.updateAllBones(allGroups);
+        Canvas.updateView({
+          elements,
+          element_aspects: { transform: true, geometry: true },
+          selection: true
+        });
+        Undo.finishEdit("Use vertex snap");
+        enterStep1();
+        return;
+      }
+      let wasStep1 = Vertexsnap.step1;
+      originalCanvasClick.call(this, data);
+      if (wasStep1 && !Vertexsnap.step1) {
+        _sourceElement = data?.element;
+        showSourceMarker(Vertexsnap.vertex_pos);
+        addHoverListener();
+      } else if (!wasStep1 && Vertexsnap.step1) {
+        resetSnapVisuals();
+      }
+    };
+    let originalHoverCanvas = Vertexsnap.hoverCanvas;
+    Vertexsnap.hoverCanvas = function(event) {
+      let data = Canvas.raycast(event);
+      if (Vertexsnap.hovering) {
+        Project.model_3d.remove(Vertexsnap.line);
+        removeGuideLine();
+        if (_prevHoveredEl) {
+          recolorElementPoints(_prevHoveredEl, -1);
+          _prevHoveredEl = null;
+        }
+      }
+      let hoveredEl = data?.element;
+      if (hoveredEl?.mesh?.vertex_points) {
+        if (data.type === "vertex") {
+          recolorElementPoints(hoveredEl, data.vertex_index);
+        }
+        _prevHoveredEl = hoveredEl;
+      }
+      if (!Vertexsnap.step1 && Vertexsnap.vertex_pos) {
+        let endPos = null;
+        if (data && data.type === "vertex") {
+          endPos = Vertexsnap.getGlobalVertexPos(data.element, data.vertex);
+          let diff = new THREE.Vector3().copy(Vertexsnap.vertex_pos).sub(endPos);
+          Blockbench.setStatusBarText(tl("status_bar.vertex_distance", [trimFloatNumber(diff.length())]));
+        } else {
+          endPos = projectMouseToPlane(event, Vertexsnap.vertex_pos);
+        }
+        if (endPos) {
+          drawGuideLine(Vertexsnap.vertex_pos, endPos);
+        }
+        Vertexsnap.hovering = true;
+        return;
+      }
+      if (!data || data.type !== "vertex") {
+        Blockbench.setStatusBarText();
+        return;
+      }
+      Vertexsnap.hovering = true;
+    };
+    function cancelSnap() {
+      if (Vertexsnap.step1) return;
+      Vertexsnap.hovering = false;
+      enterStep1();
+      Vertexsnap.select();
+    }
+    function onKeyDown(event) {
+      if (event.key === "Escape" && !Vertexsnap.step1 && Toolbox.selected?.id === "vertex_snap_tool") {
+        event.stopPropagation();
+        cancelSnap();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown, true);
+    let snapTo = new BarSelect("snap_to", {
+      name: "Vertex Snap To",
+      options: {
+        vertex: { name: "Vertex", icon: "fiber_manual_record" },
+        edge: { name: "Edge", icon: "pen_size_3" },
+        face: { name: "Face", icon: "far.fa-square" }
+      },
+      icon_mode: true,
+      condition: () => Toolbox.selected?.id === "vertex_snap_tool",
+      onChange() {
+        Vertexsnap.clearVertexGizmos();
+        Vertexsnap.select();
+      }
+    });
+    track(snapTo);
+    let toolbar = Toolbars.vertex_snap;
+    if (toolbar) {
+      let origChildren = toolbar.default_children.slice();
+      toolbar.default_children = [...origChildren.slice(0, 1), "snap_to", ...origChildren.slice(1)];
+      toolbar.build({ children: toolbar.default_children });
+      track({
+        delete() {
+          toolbar.default_children = origChildren;
+          toolbar.build({ children: origChildren });
+        }
+      });
+    }
+    Blockbench.on("update_selection", updateAccentColors);
+    track({
+      delete() {
+        Vertexsnap.addVertices = originalAddVertices;
+        Vertexsnap.canvasClick = originalCanvasClick;
+        Vertexsnap.hoverCanvas = originalHoverCanvas;
+        Vertexsnap.clearVertexGizmos = originalClearVertexGizmos;
+        document.removeEventListener("keydown", onKeyDown, true);
+        Blockbench.removeListener("update_selection", updateAccentColors);
+        resetSnapVisuals();
+        invalidateAccentColor();
+        guideLine.geometry.dispose();
+        guideLine.material.dispose();
+        sourceMarker.geometry.dispose();
+        sourceMarker.material.dispose();
+      }
+    });
+  }
+
   // src/plugin.ts
   BBPlugin.register("hytale_plugin", {
     title: "Hytale Models",
@@ -3430,10 +4683,11 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
     },
     repository: "https://github.com/JannisX11/hytale-blockbench-plugin",
     bug_tracker: "https://github.com/JannisX11/hytale-blockbench-plugin/issues",
-    contributors: ["Hedaox"],
+    contributors: ["Hedaox", "MelodicAlbuild"],
     onload() {
       setupFormats();
       setupElements();
+      setupPivotControl();
       setupAnimation();
       setupAnimationCodec();
       setupAttachments();
@@ -3445,8 +4699,11 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       setupAltDuplicate();
       setupNameOverlap();
       setupUVOutline();
-      setupTempFixes();
+      setupChangeOrientation();
       setupPreviewScenes();
+      setupUVCanvasResize();
+      setupShortcuts();
+      setupPivotSnap();
       let panel_setup_listener;
       function showCollectionPanel() {
         const local_storage_key = "hytale_plugin:collection_panel_setup";
@@ -3470,7 +4727,7 @@ body.hytale-uv-outline-only #uv_frame .selection_rectangle {
       }
       let on_finish_edit = Blockbench.on("generate_texture_template", (arg) => {
         for (let element of arg.elements) {
-          if (typeof element.autouv != "number") continue;
+          if (element instanceof Cube == false) continue;
           element.autouv = 1;
         }
       });

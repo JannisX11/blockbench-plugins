@@ -27,7 +27,7 @@ const setupPlugin = () => Plugin.register(id, {
   author: "Ewan Howell",
   description,
   tags: ["Minecraft: Java Edition", "Resource Packs", "Utilities"],
-  version: "1.9.2",
+  version: "1.10.0",
   min_version: "5.0.2",
   variant: "desktop",
   website: `https://ewanhowell.com/plugins/${id.replace(/_/g, "-")}/`,
@@ -266,13 +266,12 @@ const setupPlugin = () => Plugin.register(id, {
           }
 
           h3 {
-            font-weight: 700;
-            font-size: 28px;
+            font-weight: 600;
+            font-size: 22px;
             color: var(--color-light);
             line-height: 100%;
             margin: 0;
             display: flex;
-            align-items: center;
             gap: 6px;
             padding-right: 28px;
           }
@@ -289,6 +288,7 @@ const setupPlugin = () => Plugin.register(id, {
             display: flex;
             gap: 8px;
             align-items: center;
+            font-size: 28px;
 
             > i {
               font-size: 30px;
@@ -631,6 +631,8 @@ const setupPlugin = () => Plugin.register(id, {
     MenuBar.addAction(action, "tools")
     MenuBar.addAction(action2, "tools")
     document.addEventListener("keydown", copyText)
+    document.addEventListener("dragover", blockOutsideDnd, true)
+    document.addEventListener("drop", blockOutsideDnd, true)
     const utility = Blockbench.argv.find(e => e.startsWith("--resource-pack-utility="))?.split("=")[1]
     if (utility && utilities[utility]) {
       dialog.show()
@@ -639,6 +641,8 @@ const setupPlugin = () => Plugin.register(id, {
   },
   onunload() {
     document.removeEventListener("keydown", copyText)
+    document.removeEventListener("dragover", blockOutsideDnd, true)
+    document.removeEventListener("drop", blockOutsideDnd, true)
     dialog?.close()
     action?.delete()
     action2?.delete()
@@ -649,6 +653,15 @@ const setupPlugin = () => Plugin.register(id, {
 })
 
 // Functions
+
+function blockOutsideDnd(event) {
+  const dialogEl = document.getElementById(id)
+  if (!dialogEl) return
+  if (document.getElementById("dialog_wrapper")?.lastElementChild !== dialogEl) return
+  if (event.target.closest?.(".component-fileInput, .folder-selector")) return
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 function save() {
   localStorage.setItem(id, JSON.stringify(storage))
@@ -1112,7 +1125,8 @@ const components = {
     },
     data() {
       return {
-        folder: this.value ?? ""
+        folder: this.value ?? "",
+        dragging: false
       }
     },
     watch: {
@@ -1134,6 +1148,32 @@ const components = {
       input() {
         this.$emit("input", this.folder)
       },
+      onDragOver(event) {
+        if (!event.dataTransfer?.types?.includes("Files")) return
+        event.preventDefault()
+        event.stopPropagation()
+        this.dragging = true
+      },
+      onDragLeave(event) {
+        event.stopPropagation()
+        if (event.currentTarget.contains(event.relatedTarget)) return
+        this.dragging = false
+      },
+      async onDrop(event) {
+        event.preventDefault()
+        event.stopPropagation()
+        this.dragging = false
+        const file = event.dataTransfer.files[0]
+        if (!file?.path) return
+        try {
+          const stat = await fs.promises.stat(file.path)
+          if (!stat.isDirectory()) return
+        } catch {
+          return
+        }
+        this.folder = file.path
+        this.$emit("input", this.folder)
+      },
       formatPath
     },
     computed: {
@@ -1147,6 +1187,11 @@ const components = {
         cursor: pointer;
       }
 
+      .folder-selector.dragging {
+        outline: 2px dashed var(--color-accent);
+        outline-offset: 2px;
+      }
+
       input {
         flex: 1;
         pointer-events: none;
@@ -1156,7 +1201,7 @@ const components = {
       }
     `,
     template: `
-      <div class="folder-selector" @click="selectFolder(buttonText)">
+      <div class="folder-selector" :class="{ dragging }" @click="selectFolder(buttonText)" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
         <input disabled type="text" :value="formatPath(folder)" :placeholder="'Select ' + placeholder">
         <button class="material-icons">folder_open</button>
       </div>
@@ -1699,12 +1744,41 @@ const components = {
       this.title ??= `Select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`
       return {
         files: Array.isArray(this.value) ? this.value : this.value ? [this.value] : [],
-        message: `select ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
+        message: `select or drop ${ maxFiles ? "up to " + maxFiles : "" } ${ multipleFiles ? "files" : "a file" }`,
         maxFiles,
-        multipleFiles
+        multipleFiles,
+        dragging: false
       }
     },
     methods: {
+      async ingestFiles(files) {
+        if (!files.length) return
+        if (files.length === 1 && this.type === "PNG") this.message = "change file"
+        else if (files.length === 1) this.message = files[0].name
+        else this.message = `${files.length} files selected`
+        this.files = []
+        for (const [i, file] of files.entries()) {
+          if (this.maxFiles && i >= this.maxFiles) {
+            continue
+          }
+          const buf = file.content instanceof Buffer
+            ? file.content
+            : Buffer.from(file.content ?? await file.arrayBuffer())
+          const data = {}
+          if (this.type === "PNG") {
+            const b64Image = buf.toString("base64")
+            const img = await loadImage(buf)
+            data.image = img
+            data.src = `data:image/png;base64,${b64Image}`
+            data.info = `${file.name}\n${img.width.toLocaleString()}x${img.height.toLocaleString()} - ${formatBytes(buf.byteLength)}`
+          }
+          data.content = buf
+          data.path = file.path
+          data.name = file.name
+          this.files.push(data)
+        }
+        this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
+      },
       async changeFiles() {
         Blockbench.import({
           title: this.title,
@@ -1712,36 +1786,34 @@ const components = {
           type: this.type,
           multiple: this.multipleFiles,
           readtype: "buffer"
-        }, async files => {
-          if (files.length === 1 && this.type === "PNG") this.message = "change file"
-          else if (files.length === 1) this.message = files[0].name
-          else this.message = `${files.length} files selected`
-          this.files = []
-          for (const [i, file] of files.entries()) {
-            if (this.maxFiles && i >= this.maxFiles) {
-              continue
-            }
-            const buf = Buffer.from(file.content)
-            const data = {}
-            if (this.type === "PNG") {
-              const b64Image = buf.toString("base64")
-              const img = await loadImage(buf)
-              data.image = img
-              data.src = `data:image/png;base64,${b64Image}`
-              data.info = `${file.name}\n${img.width.toLocaleString()}x${img.height.toLocaleString()} - ${formatBytes(file.content.byteLength)}`
-            }
-            data.content = buf
-            data.path = file.path
-            this.files.push(data)
-          }
-          this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
-        })
+        }, files => this.ingestFiles(files))
+      },
+      onDragOver(event) {
+        if (!event.dataTransfer?.types?.includes("Files")) return
+        event.preventDefault()
+        event.stopPropagation()
+        this.dragging = true
+      },
+      onDragLeave(event) {
+        event.stopPropagation()
+        if (event.currentTarget.contains(event.relatedTarget)) return
+        this.dragging = false
+      },
+      async onDrop(event) {
+        event.preventDefault()
+        event.stopPropagation()
+        this.dragging = false
+        const dropped = Array.from(event.dataTransfer.files)
+        const exts = this.extensions.map(e => e.toLowerCase())
+        const filtered = dropped.filter(f => exts.some(e => f.name.toLowerCase().endsWith("." + e)))
+        if (!filtered.length) return
+        await this.ingestFiles(this.multipleFiles ? filtered : filtered.slice(0, 1))
       },
       remove(index) {
         event.stopPropagation()
         this.files.splice(index, 1)
         this.$emit("input", Array.isArray(this.value) ? this.files : this.files[0])
-        if (!this.files.length) this.message = `select ${ this.maxFiles ? "up to " + this.maxFiles : "" } ${ this.multipleFiles ? "files" : "a file" }`
+        if (!this.files.length) this.message = `select or drop ${ this.maxFiles ? "up to " + this.maxFiles : "" } ${ this.multipleFiles ? "files" : "a file" }`
         else if (this.files.length === 1) this.message = "change file"
         else this.message = `${this.files.length} files selected`
       },
@@ -1761,6 +1833,11 @@ const components = {
     styles: `
       background-color: var(--color-back);
       border: 1px solid var(--color-border);
+
+      > div.dragging {
+        outline: 2px dashed var(--color-accent);
+        outline-offset: -4px;
+      }
 
       > div {
         padding: 16px;
@@ -1887,7 +1964,7 @@ const components = {
       }
     `,
     template: `
-      <div @click="changeFiles" tabindex="0">
+      <div @click="changeFiles" tabindex="0" :class="{ dragging }" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
         <div class="file-input-row">
           <button>
             <i class="material-icons icon">upload</i>
@@ -2178,9 +2255,17 @@ const utilities = {
         <li>For block/item model <code>.json</code> files
           <ul>
             <li>Removes the <code>groups</code> object</li>
+            <li>For the <code>textures</code> object:
+              <ul>
+                <li>Removes the <code>force_translucent</code> property when it is set to <code>false</code></li>
+                <li>Collapses the object form to the string form when only <code>sprite</code> remains</li>
+              </ul>
+            </li>
             <li>For the <code>rotation</code> object:
               <ul>
-                <li>Removes the <code>rotation</code> object when <code>angle</code> is set to <code>0</code></li>
+                <li>Removes the <code>rotation</code> object when <code>angle</code> is set to <code>0</code> (single-axis format)</li>
+                <li>Removes <code>x</code>, <code>y</code>, and <code>z</code> properties when they are set to <code>0</code> (Euler format)</li>
+                <li>Removes the <code>rotation</code> object when <code>x</code>, <code>y</code>, and <code>z</code> are all <code>0</code> or absent (Euler format)</li>
                 <li>Removes the <code>rescale</code> property when it is set to <code>false</code></li>
               </ul>
             </li>
@@ -2188,6 +2273,7 @@ const utilities = {
               <ul>
                 <li>Removes the <code>rotation</code> property when it is set to <code>0</code></li>
                 <li>Removes the <code>tintindex</code> property when it is set to <code>-1</code></li>
+                <li>Removes the <code>uv</code> property when it matches the auto-generated value from the element's <code>from</code>/<code>to</code> (only when <code>rotation</code> is unset)</li>
                 <li>Removes empty <code>face</code> objects</li>
               </ul>
             </li>
@@ -2345,24 +2431,60 @@ const utilities = {
             if (data.credit === "Made with Blockbench") delete data.credit
             if (this.types.json && file.endsWith(".json")) {
               delete data.groups
+              if (data.textures) {
+                for (const [key, value] of Object.entries(data.textures)) {
+                  if (value && typeof value === "object" && typeof value.sprite === "string") {
+                    if (value.force_translucent === false) delete value.force_translucent
+                    if (Object.keys(value).length === 1) data.textures[key] = value.sprite
+                  }
+                }
+              }
               if (data.elements) {
                 for (const element of data.elements) {
                   for (const key in element) {
                     if (!elementKeys.includes(key)) delete element[key]
                   }
                   if (element.rotation) {
-                    if (element.rotation.angle === 0) delete element.rotation
-                    else {
-                      if (element.rotation.rescale === false) delete element.rotation.rescale
+                    const rot = element.rotation
+                    if ("angle" in rot) {
+                      if (rot.angle === 0) delete element.rotation
+                      else if (rot.rescale === false) delete rot.rescale
+                    } else {
+                      if (rot.x === 0) delete rot.x
+                      if (rot.y === 0) delete rot.y
+                      if (rot.z === 0) delete rot.z
+                      if (rot.x === undefined && rot.y === undefined && rot.z === undefined) {
+                        delete element.rotation
+                      } else if (rot.rescale === false) {
+                        delete rot.rescale
+                      }
                     }
                   }
                   if (element.faces) {
+                    let autoUv
+                    if (Array.isArray(element.from) && Array.isArray(element.to) && element.from.length === 3 && element.to.length === 3) {
+                      const [x1, y1, z1] = element.from
+                      const [x2, y2, z2] = element.to
+                      autoUv = {
+                        down:  [x1, 16 - z2, x2, 16 - z1],
+                        up:    [x1, z1, x2, z2],
+                        north: [16 - x2, 16 - y2, 16 - x1, 16 - y1],
+                        south: [x1, 16 - y2, x2, 16 - y1],
+                        west:  [z1, 16 - y2, z2, 16 - y1],
+                        east:  [16 - z2, 16 - y2, 16 - z1, 16 - y1]
+                      }
+                    }
                     for (const [key, face] of Object.entries(element.faces)) {
                       for (const key in face) {
                         if (!faceKeys.includes(key)) delete face[key]
                       }
                       if (face.rotation === 0) delete face.rotation
                       if (face.tintindex === -1) delete face.tintindex
+                      if (
+                        autoUv && autoUv[key] && !face.rotation &&
+                        Array.isArray(face.uv) && face.uv.length === 4 &&
+                        face.uv.every((v, i) => v === autoUv[key][i])
+                      ) delete face.uv
                       if (!Object.keys(face).length) delete element.faces[key]
                     }
                   }
@@ -2370,6 +2492,7 @@ const utilities = {
                   if (element.light_emission === 0) delete element.light_emission
                 }
                 data.elements = data.elements.filter(e => e.faces && Object.keys(e.faces).length)
+                if (!data.elements.length) delete data.elements
               }
             }
             if (this.types.mcmeta && file.endsWith(".mcmeta")) {
@@ -4303,6 +4426,138 @@ const utilities = {
         <canvas-output v-if="mode === 'full'" v-model="full" name="full_ctm" :error="error" height="192" />
         <canvas-output v-if="mode === 'overlay'" v-model="overlay" name="overlay_ctm" :error="error" height="192" />
         <button :disabled="!full" @click="save">Export CTM</button>
+      `
+    }
+  },
+  bedConverter: {
+    name: "Bed Converter",
+    icon: "bed",
+    tagline: "Convert a bed entity texture into the block texture format.",
+    description: "Bed Converter is a tool that splits a bed entity texture into the per-face textures used by the new bed block model format.",
+    component: {
+      data: {
+        file: null,
+        outputs: [],
+        error: null
+      },
+      computed: {
+        prefix() {
+          const name = this.file?.name ?? (this.file?.path && PathModule.basename(this.file.path))
+          if (!name) return ""
+          return name.replace(/\.[^.]+$/, "")
+        }
+      },
+      methods: {
+        async execute() {
+          if (!this.file) {
+            this.outputs = []
+            this.error = null
+            return
+          }
+          const img = this.file.image
+          if (img.width !== img.height) {
+            this.outputs = []
+            this.error = "Invalid bed texture: must be square"
+            return
+          }
+          if (Math.log2(img.width) % 1 !== 0 || img.width < 64) {
+            this.outputs = []
+            this.error = "Invalid bed texture: must be a power-of-2 square at least 64x64"
+            return
+          }
+          this.error = null
+          const MATRIX = {
+            raw:    (dx, dy, sw, sh, m) => [ 1, 0,  0,  1,  dx        * m,  dy        * m],
+            hflip:  (dx, dy, sw, sh, m) => [-1, 0,  0,  1, (dx + sw)  * m,  dy        * m],
+            vflip:  (dx, dy, sw, sh, m) => [ 1, 0,  0, -1,  dx        * m, (dy + sh)  * m],
+            rot180: (dx, dy, sw, sh, m) => [-1, 0,  0, -1, (dx + sw)  * m, (dy + sh)  * m],
+            rotCW:  (dx, dy, sw, sh, m) => [ 0, 1, -1,  0, (dx + sh)  * m,  dy        * m],
+            rotCCW: (dx, dy, sw, sh, m) => [ 0,-1,  1,  0,  dx        * m, (dy + sw)  * m],
+            transp: (dx, dy, sw, sh, m) => [ 0, 1,  1,  0,  dx        * m,  dy        * m],
+            antitr: (dx, dy, sw, sh, m) => [ 0,-1, -1,  0, (dx + sh)  * m, (dy + sw)  * m]
+          }
+          const FACES = {
+            bed_down:       [["rot180", 28,  6, 16, 16,  0,  0]],
+            bed_head_up:    [["raw",     6,  6, 16, 16,  0,  0]],
+            bed_foot_up:    [["raw",     6, 28, 16, 16,  0,  0]],
+            bed_head_north: [
+              ["rot180",  6,  0, 16,  6,  0,  7],
+              ["raw",    53, 21,  3,  3,  0, 13],
+              ["raw",    56, 21,  3,  3,  3, 13],
+              ["raw",    59,  9,  3,  3, 10, 13],
+              ["raw",    50,  9,  3,  3, 13, 13]
+            ],
+            bed_foot_south: [
+              ["vflip",  22, 22, 16,  6,  0,  7],
+              ["raw",    53,  3,  3,  3,  0, 13],
+              ["raw",    56,  3,  3,  3,  3, 13],
+              ["raw",    59, 15,  3,  3, 10, 13],
+              ["raw",    50, 15,  3,  3, 13, 13]
+            ],
+            bed_head_east: [
+              ["rotCW",  22,  6,  6, 16,  0,  7],
+              ["hflip",  56, 18,  3,  3,  7, 13],
+              ["raw",    59, 21,  3,  3, 10, 13],
+              ["raw",    50, 21,  3,  3, 13, 13]
+            ],
+            bed_head_west: [
+              ["rotCCW",  0,  6,  6, 16,  0,  7],
+              ["raw",    53,  9,  3,  3,  0, 13],
+              ["raw",    56,  9,  3,  3,  3, 13],
+              ["antitr", 56,  6,  3,  3,  6, 13]
+            ],
+            bed_foot_east: [
+              ["rotCW",  22, 28,  6, 16,  0,  7],
+              ["raw",    53, 15,  3,  3,  0, 13],
+              ["raw",    56, 15,  3,  3,  3, 13],
+              ["transp", 56, 12,  3,  3,  6, 13]
+            ],
+            bed_foot_west: [
+              ["rotCCW",  0, 28,  6, 16,  0,  7],
+              ["vflip",  56,  0,  3,  3,  7, 13],
+              ["raw",    59,  3,  3,  3, 10, 13],
+              ["raw",    50,  3,  3,  3, 13, 13]
+            ]
+          }
+          const m = img.width / 64
+          const outputs = []
+          for (const [faceName, ops] of Object.entries(FACES)) {
+            const canvas = new Canvas(16 * m, 16 * m)
+            const ctx = canvas.ctx
+            ctx.imageSmoothingEnabled = false
+            for (const [tname, sx, sy, sw, sh, dx, dy] of ops) {
+              const [a, b, c, d, e, f] = MATRIX[tname](dx, dy, sw, sh, m)
+              ctx.save()
+              ctx.setTransform(a, b, c, d, e, f)
+              ctx.drawImage(img, sx * m, sy * m, sw * m, sh * m, 0, 0, sw * m, sh * m)
+              ctx.restore()
+            }
+            outputs.push({ name: faceName, canvas })
+          }
+          this.outputs = outputs
+        },
+        async saveAll() {
+          const dir = Blockbench.pickDirectory()
+          if (!dir) return
+          const prefix = this.prefix ? `${this.prefix}_` : ""
+          await Promise.all(this.outputs.map(async out => fs.promises.writeFile(
+            PathModule.join(dir, `${prefix}${out.name}.png`),
+            Buffer.from(await (await new Promise(fulfil => out.canvas.toBlob(fulfil))).arrayBuffer())
+          )))
+          Blockbench.showQuickMessage("Exported bed textures")
+        }
+      },
+      template: `
+        <h3>Input bed texture:</h3>
+        <file-input v-model="file" title="Select your bed texture" @input="execute" />
+        <h3 v-if="file || error">Output bed textures:</h3>
+        <div v-if="!outputs.length && (file || error)" style="display: flex;">
+          <canvas-output :error="error || 'No output yet…'" />
+        </div>
+        <div v-if="outputs.length" class="row" style="gap: 16px; flex-wrap: wrap;">
+          <canvas-output v-for="out in outputs" :key="out.name" v-model="out.canvas" :name="(prefix ? prefix + '_' : '') + out.name" :height="128" />
+        </div>
+        <button :disabled="!outputs.length" @click="saveAll">Save All</button>
       `
     }
   },

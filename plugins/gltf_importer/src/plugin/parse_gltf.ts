@@ -1,5 +1,5 @@
 // Import ONLY the types
-import type { GLTFLoader as _GLTFLoader, GLTF as _GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type {GLTF as _GLTF, GLTFLoader as _GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // Import the actual loader, unless something else already did
 if (THREE['GLTFLoader'] == undefined)
@@ -14,15 +14,12 @@ export async function parseGltf(file: Filesystem.FileResult): Promise<GLTF> {
     
     let loadingManager = new THREE.LoadingManager();
     let gltfLoader = createGltfLoader(loadingManager);
-    let gltf = await parseGltfWithLoader(gltfLoader, file);
-
-    return gltf;
+    return await parseGltfWithLoader(gltfLoader, file);
 }
 
 export function createGltfLoader(loadingManager: THREE.LoadingManager|undefined = undefined): GLTFLoader {
     let _GLTFLoaderClass = THREE['GLTFLoader'] as GLTFLoaderConstructor;
-    let loader = new _GLTFLoaderClass(loadingManager);
-    return loader;
+    return new _GLTFLoaderClass(loadingManager);
 }
 
 export function parseGltfWithLoader(loader: _GLTFLoader, file: Filesystem.FileResult): Promise<GLTF> {

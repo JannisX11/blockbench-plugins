@@ -320,5 +320,174 @@
 				]
 			}
 		]
+	},
+	"0.8.1": {
+		"title": "0.8.1",
+		"date": "2026-02-16",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Float values are no longer allowed in UV offset keyframes and are now rounded to fix compatibility",
+					"Fixed offset issues in saving attachment models",
+					"Fixed duplicated rotation when importing attachments",
+					"Fixed Alt + drag to duplicate still being active with no keybinding set"
+				]
+			}
+		]
+	},
+	"0.8.2": {
+		"title": "0.8.2",
+		"date": "2026-02-26",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added setting 'Auto-load Hytale Animations'"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed stretch keyframes always importing with uniform toggle enabled",
+					"Fixed issue where saving an animation would omit nodes that are missing in the current model"
+				]
+			}
+		]
+	},
+	"0.8.3": {
+		"title": "0.8.3",
+		"date": "2026-03-08",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added toast notification to explain per-shape keyframes not applying."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Alt + drag to duplicate activating when not in edit mode",
+					"Fixed blockymodel export failing in certain configurations"
+				]
+			}
+		]
+	},
+	"0.8.4": {
+		"title": "0.8.4",
+		"date": "2026-03-24",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Utilize new Blockbench 5.1 feature to mark collections as saved or unsaved",
+					"Added Import Attachment option to File > Import menu"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Compatibility with Blockbench 5.1 changes to quaternions",
+					"Fixed issue with importing animations in models with duplicate bone names",
+					"Fixed Reload Attachment option showing up in unrelated formats"
+				]
+			}
+		]
+	},
+	"0.8.5": {
+		"title": "0.8.5",
+		"date": "2026-03-24",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed 5.1 compatibility issue",
+					"Fixed compile animation issue"
+				]
+			}
+		]
+	},
+	"0.8.6": {
+		"title": "0.8.6 (internal-only)",
+		"date": "2026-04-02",
+		"author": "Kanno",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas"
+				]
+			}
+		]
+	},
+	"0.9.0": {
+		"title": "0.9.0",
+		"date": "2026-04-12",
+		"author": "Kanno, JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added UV Canvas Resize tool to crop and resize texture canvas",
+					"Added tool to change cube orientation while remaining static",
+					"Pressing the Brush Tool keybinding repeatedly now cycles through brush presets"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed copy-pasting texture with magenta Photoshop fix using the selected texture instead of UV editor texture",
+					"Fixed NaN export in animation if position or scale keyframe has non-numeric value"
+				]
+			}
+		]
+	},
+	"0.9.1": {
+		"title": "0.9.1",
+		"date": "2026-04-15",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Switching brush presets is no longer assigned to the brush key by default, but can be reassigned in the keybinding settings"
+				]
+			}
+		]
+	},
+	"0.10.0": {
+		"title": "0.10.0",
+		"date": "2026-09-01",
+		"author": "JannisX11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Added option to toggle transparency per cube face",
+					"Added option to toggle UV lock per cube face",
+					"Added Face and Edge modes for Vertex Snap tool",
+					"Vertex Snap tool now displays a line between first vertex and mouse cursor even when not targeting a vertex",
+					"Vertex Snap is now cancelled when pressing Escape",
+					"Added Pivot Follow toggle to select whether pivot points are moved with an element",
+					"Added settings to select which tools to swap between on double click",
+					"Tweaked custom UV outline style"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed issue with root cubes not counting towards node count",
+					"Fixed connected shape message showing in non-Hytale formats",
+					"Fixed Switch Brush Preset not working with identically named presets",
+					"Fixed nodes in collection do not get excluded in export"
+				]
+			}
+		]
 	}
 }

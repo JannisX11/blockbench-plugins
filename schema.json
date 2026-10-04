@@ -7,7 +7,7 @@
 	},
 	"additionalProperties": {
 		"type": "object",
-		"required": ["title", "author", "icon", "description"],
+		"required": ["title", "author", "icon", "description", "version"],
 		"properties": {
 			"title": {
 				"type": "string"

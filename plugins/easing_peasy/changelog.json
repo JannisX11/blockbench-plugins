@@ -1,0 +1,13 @@
+{
+	"1.0.0": {
+		"title": "v1.0.0",
+		"author": "SnaveSutit",
+		"date": "2025-09-10",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": ["Released the first version of the plugin."]
+			}
+		]
+	}
+}

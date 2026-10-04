@@ -1,0 +1,13 @@
+{
+  "1.0.0": {
+    "title": "1.0.0",
+    "author": "Svdex",
+    "date": "2026-02-28",
+    "categories": [
+      {
+        "title": "Features",
+        "list": ["Initial Release"]
+      }
+    ]
+  }
+}

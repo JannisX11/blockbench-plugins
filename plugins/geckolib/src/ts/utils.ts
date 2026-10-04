@@ -55,7 +55,7 @@ export const onlyIfGeckoLib = (callback: (data: object) => void) => {
  * <p>
  * This should be done in <code>codec.ts#loadCodec</code> or in the plugin creation in <code>index.ts</code>
  */
-export const addEventListener = (eventName: EventName, callback: (data: object) => void) => {
+export const addEventListener = (eventName: BlockbenchEventName, callback: (data: object) => void) => {
   Blockbench.on(eventName, callback)
 }
 
@@ -64,7 +64,7 @@ export const addEventListener = (eventName: EventName, callback: (data: object) 
  * <p>
  * All registered event listeners should be removed when the plugin or codec is unloaded
  */
-export const removeEventListener = (eventName: EventName, callback: (data: object) => void) => {
+export const removeEventListener = (eventName: BlockbenchEventName, callback: (data: object) => void) => {
   Blockbench.removeListener(eventName, callback)
 }
 

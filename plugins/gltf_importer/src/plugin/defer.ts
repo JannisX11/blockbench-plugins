@@ -16,9 +16,3 @@ export function runDeferred() {
     for (let lambda of deferred.reverse())
         lambda();
 }
-
-// Removes a HTML element once the plugin is unloaded
-export function deferRemoveElement(element: HTMLElement): HTMLElement {
-    defer(() => element.parentElement?.removeChild(element));
-    return element;
-}

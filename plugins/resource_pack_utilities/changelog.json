@@ -267,5 +267,36 @@
         ]
       }
     ]
+  },
+  "1.10.0": {
+    "title": "1.10.0",
+    "date": "2026-05-17",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Added Bed Converter utility for splitting a bed entity texture into the per-face textures used by the new bed block model format",
+          "Added drag-and-drop support to all file and folder inputs"
+        ]
+      },
+      {
+        "title": "Updates",
+        "list": [
+          "Updated JSON Optimiser to support the multi-axis rotation format for block model elements",
+          "Updated JSON Optimiser to strip default `force_translucent` values from texture entries",
+          "Updated JSON Optimiser to simplify single-sprite texture entries to the string form",
+          "Updated JSON Optimiser to strip the `uv` property from faces when it matches the auto-generated value",
+          "Updated JSON Optimiser to remove empty `elements` arrays"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Blockbench's native file drop is now blocked while the Resource Pack Utilities dialog is open",
+          "Tweaked dialog header font sizes"
+        ]
+      }
+    ]
   }
 }
