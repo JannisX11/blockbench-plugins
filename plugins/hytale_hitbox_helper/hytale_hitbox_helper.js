@@ -21,8 +21,8 @@
         author: 'Marck.A.A',
         icon: 'icon-format_hytale',
         description: 'Tool to create easy Hytale hitboxes exportable to JSON.',
-        min_version: '4.11.0',
-        version: '1.3.0',
+        min_version: '5.0.7',
+        version: '1.0.2',
         variant: 'both',
         onload() {
             const format = new ModelFormat(HITBOX_FORMAT_ID, {
