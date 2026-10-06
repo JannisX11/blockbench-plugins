@@ -20,10 +20,12 @@
         title: 'Hytale Hitbox Helper',
         author: 'Marck.A.A',
         icon: 'icon.png',
-        description: 'Tool to create easy Hytale hitboxes exportable to JSON.',
+        description: 'Dedicated tool to create Hytale hitboxes and JSON export.',
         min_version: '5.0.7',
         version: '1.0.2',
         variant: 'both',
+        website: "https://youtube.com/@marck.a.a?si=ReXYtA53GBi9XhVv",
+		tags: ["Hytale"]
         onload() {
             const format = new ModelFormat(HITBOX_FORMAT_ID, {
                 name: 'Hytale Hitbox',
