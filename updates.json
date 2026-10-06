@@ -420,9 +420,9 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "2.1.5",
+    "version": "2.2.0",
     "created": 1680566400000,
-    "updated": 1776713189096
+    "updated": 1791319482880
   },
   "cube_inverter": {
     "version": "1.0.0",
