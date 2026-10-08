@@ -89,6 +89,8 @@ npm run validate <plugin-id>
 
 Once you are ready to submit your plugin, create a pull request.
 
+If your plugin specifies a `creation_date`, it is updated to the day the pull request is merged, in plugins.json and in your plugin files, so it doesn't matter what date you submit it with.
+
 ## Updates
 
 Updates to plugins can be submitted via pull request.
@@ -96,6 +98,8 @@ Updates to plugins can be submitted via pull request.
 In order for the plugin to auto update for users who already have it installed, the version number needs to be increased both in the plugin file and in plugins.json.
 
 Optionally, a changelog can indicate what changed in a given update. See [Current structure](#current-structure).
+
+The `date` of the changelog entry for the new version is updated to the day the pull request is merged, so it doesn't matter what date you submit it with.
 
 
 ## Third party contributions
