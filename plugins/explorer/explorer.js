@@ -12,7 +12,7 @@ BBPlugin.register('explorer', {
 	author: 'JannisX11',
 	description: 'Navigate the files in your project from the sidebar in Blockbench!',
 	tags: ["Files"],
-	version: '1.1.0',
+	version: '1.1.1',
 	min_version: '5.1.0',
 	variant: 'desktop',
 	has_changelog: true,
@@ -165,6 +165,12 @@ BBPlugin.register('explorer', {
 			}
 			.sidebar_explorer_location > span:first-child::after {
 				display: none;
+			}
+			.sidebar_explorer_text_hint {
+				color: var(--color-subtle_text);
+			}
+			.sidebar_explorer_text_error {
+				color: var(--color-error);
 			}
 		`);
 		deletables.push(css);
@@ -511,14 +517,18 @@ BBPlugin.register('explorer', {
 						if (!this.search_term) return list.slice(0, this.max_files);
 						let terms = this.search_term.toLowerCase().split(/\s/);
 						
-						let i = 0;
-						return list.filter(file => {
-							i++;
-							if (i > this.max_files) return false;
-							return !terms.find(term => (
+						let results = [];
+						let max_files = this.max_files;
+						for (let file of list) {
+							let match = !terms.some(term => (
 								!file.name.toLowerCase().includes(term)
-							))
-						})
+							));
+							if (match) {
+								results.push(file);
+								if (results.length >= max_files) break;
+							}
+						}
+						return results;
 					},
 					path_array() {
 						return this.path.split(/[/\\]+/).reverse();
@@ -560,9 +570,9 @@ BBPlugin.register('explorer', {
 								<span>{{ file.name }}</span>
 								<i class="material-icons sidebar_explorer_is_open_icon" v-if="file.is_open">fiber_manual_record</i>
 							</li>
-							<template v-if="files.length == max_files && directory.length > max_files">More files are hidden. Search to reveal them.</template>
-							<template v-if="scan_error">Failed to scan directory directory: {{ scan_error }}</template>
-							<template v-if="loading">Loading...</template>
+							<p class="sidebar_explorer_text_hint" v-if="files.length == max_files && directory.length > max_files">More files are hidden. Search to reveal them.</p>
+							<p class="sidebar_explorer_text_error" v-if="scan_error">Failed to scan directory directory: {{ scan_error }}</p>
+							<p class="sidebar_explorer_text_hint" v-if="loading">Loading...</p>
 						</ul>
 					</div>
 				`
