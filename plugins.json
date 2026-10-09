@@ -566,7 +566,7 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.10.0",
+		"version": "0.11.0",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
 		"contributes": {
@@ -574,7 +574,7 @@
 			"open_extensions": ["blockymodel"]
 		},
 		"variant": "both",
-		"min_version": "5.0.5",
+		"min_version": "5.2.0",
 		"creation_date": "2025-12-22",
 		"await_loading": true,
 		"has_changelog": true,
