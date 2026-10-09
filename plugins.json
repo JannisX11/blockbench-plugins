@@ -36,7 +36,7 @@
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
 		"description": "Effortlessly craft complex animations for Minecraft: Java Edition",
-		"version": "1.10.2",
+		"version": "1.11.0",
 		"await_loading": true,
 		"icon": "icon.svg",
 		"variant": "desktop",
