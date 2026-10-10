@@ -1735,17 +1735,18 @@
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
 	},
 	"gltf_to_minecraft": {
-		"title": "glTF to Minecraft",
+		"title": "Mosaicary",
 		"author": "MopicMP",
-		"icon": "view_in_ar",
-		"description": "Convert glTF models — from an archive, a folder or straight from Sketchfab — into cubes Minecraft can use: a GeckoLib model or a Customizable Player Models skin, with bones, textures and animations.",
-		"tags": ["Minecraft: Java Edition", "Import", "Animation"],
-		"version": "0.1.2",
+		"icon": "icon.png",
+		"description": "A catalogue of Blockbench models inside the editor, and a converter for the rest: glTF becomes Minecraft cubes with bones and animations — from an archive, a folder or Sketchfab, as GeckoLib, Bedrock, Java or a Customizable Player Models skin.",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Import"],
+		"version": "0.1.4",
 		"variant": "both",
 		"min_version": "4.9.0",
-		"website": "https://github.com/MopicMP/gltf-to-minecraft",
-		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
-		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
-		"creation_date": "2026-08-01"
+		"website": "https://mosaicary.com",
+		"repository": "https://github.com/MopicMP/mosaicary",
+		"bug_tracker": "https://github.com/MopicMP/mosaicary/issues",
+		"creation_date": "2026-08-01",
+		"has_changelog": true
 	}
 }
