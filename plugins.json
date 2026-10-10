@@ -1513,11 +1513,12 @@
   	"hytale_hitbox_helper": {
 		"title": "Hytale Hitbox Helper",
 		"author": "Marck.A.A",
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
 		"icon": "icon.png",
 		"variant": "both",
-		"min_version": "4.8.0",
+		"min_version": "5.0.7",
+		"website": "https://youtube.com/@marck.a.a?si=ReXYtA53GBi9XhVv",
 		"tags": ["Hytale"]	
 	},
 	"baked_ambient_occlusion": {

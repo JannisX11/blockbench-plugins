@@ -2,46 +2,31 @@
     let export_action;
     let add_hitbox_action;
     let import_reference_action;
+    let import_hitbox_action;
     let original_conditions = {};
 
     const HITBOX_FORMAT_ID = 'hytale_hitbox';
-
+    
     const actions_to_hide = [
         'import_project',
         'import_bbmodel',
         'import_obj',
         'import_gltf',
         'import_image',
-        'extrude_texture'
+        'extrude_texture',
+        'add_cube'
     ];
-
-    function generateHitboxTexture() {
-        const canvas = document.createElement('canvas');
-        const size = 128;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-
-        ctx.clearRect(0, 0, size, size);
-
-        ctx.strokeStyle = '#ff0000';
-        const lineWidth = 2;
-        ctx.lineWidth = lineWidth;
-
-        const offset = lineWidth / 2;
-        ctx.strokeRect(offset, offset, size - lineWidth, size - lineWidth);
-
-        return canvas.toDataURL('image/png');
-    }
 
     BBPlugin.register('hytale_hitbox_helper', {
         title: 'Hytale Hitbox Helper',
         author: 'Marck.A.A',
         icon: 'icon.png',
-        description: 'Tool to create easy Hytale hitboxes exportable to JSON.',
-        min_version: '4.8.0',
-        version: '1.0.1',
+        description: 'Dedicated tool to create Hytale hitboxes and JSON export.',
+        min_version: '5.0.7',
+        version: '1.0.2',
         variant: 'both',
+        website: "https://youtube.com/@marck.a.a?si=ReXYtA53GBi9XhVv",
+        tags: ["Hytale"],
         onload() {
             const format = new ModelFormat(HITBOX_FORMAT_ID, {
                 name: 'Hytale Hitbox',
@@ -51,22 +36,18 @@
                 target: 'Hytale',
                 block_size: 32,
                 centered_grid: true,
-
+                
                 optional_box_uv: true,
                 box_uv: false,
                 single_texture: false,
                 uv_rotation: true,
                 per_texture_uv_size: true,
-
-                bone_rig: true,
-                rotate_cubes: false,
-
+                
+                bone_rig: true,      
+                rotate_cubes: false, 
+                
                 onActivation() {
                     document.body.classList.add('hytale_hitbox_mode');
-                    let existing_tex = Texture.all.find(t => t.id === 'hitbox_wireframe_tex');
-                    if (existing_tex) {
-                        existing_tex.fromDataURL(generateHitboxTexture());
-                    }
                     Blockbench.showQuickMessage("Hytale Hitbox Mode Active");
                 },
                 onDeactivation() {
@@ -80,6 +61,14 @@
                     display: none !important;
                 }
             `);
+
+            for (const action_id in BarItems) {
+                if (action_id.startsWith('export_') && action_id !== 'export_hytale_hitbox') {
+                    if (!actions_to_hide.includes(action_id)) {
+                        actions_to_hide.push(action_id);
+                    }
+                }
+            }
 
             actions_to_hide.forEach(action_id => {
                 if (BarItems[action_id]) {
@@ -104,7 +93,7 @@
                         multiple: true
                     }, function(files) {
                         if (!files || files.length === 0) return;
-
+                        
                         if (!Codecs.blockymodel) {
                             Blockbench.showMessageBox({
                                 title: 'Missing Plugin',
@@ -124,7 +113,7 @@
                             try {
                                 let json = JSON.parse(file.content);
                                 let content = Codecs.blockymodel.parse(json, file.path, { import_to_current_project: true });
-
+                                
                                 if (content && content.new_groups) {
                                     let new_groups = content.new_groups;
                                     let imported_tex = content.new_textures && content.new_textures.length > 0 ? content.new_textures[0] : null;
@@ -158,7 +147,7 @@
                             setTimeout(() => {
                                 Undo.initEdit({outliner: true, elements: [], groups: []});
                                 unselectAll();
-
+                                
                                 let ref_group = Group.all.find(g => g.name.toLowerCase() === 'reference');
                                 if (!ref_group) {
                                     ref_group = new Group({
@@ -166,7 +155,7 @@
                                         isOpen: true
                                     }).init();
                                 }
-
+                                
                                 imported_root_groups.forEach(g => {
                                     g.addTo(ref_group);
                                 });
@@ -183,47 +172,88 @@
                 }
             });
 
+            import_hitbox_action = new Action('import_hytale_hitbox_json', {
+                name: 'Import Hitbox (.json)',
+                icon: 'fa-vector-square',
+                category: 'file',
+                condition: () => Format.id === HITBOX_FORMAT_ID,
+                click: function() {
+                    Blockbench.import({
+                        extensions: ['json'],
+                        type: 'Hytale Hitbox JSON',
+                        readtype: 'text',
+                        multiple: false
+                    }, function(files) {
+                        if (!files || files.length === 0) return;
+                        
+                        try {
+                            let json = JSON.parse(files[0].content);
+                            
+                            if (!json.Boxes || !Array.isArray(json.Boxes)) {
+                                Blockbench.showMessageBox({
+                                    title: 'Invalid Format',
+                                    message: 'The JSON file does not contain a valid "Boxes" array.'
+                                });
+                                return;
+                            }
+
+                            Undo.initEdit({outliner: true, elements: []});
+                            
+                            json.Boxes.forEach(box => {
+                                let fromX = (box.Min.X * 32) - 16;
+                                let fromY = box.Min.Y * 32;
+                                let fromZ = (box.Min.Z * 32) - 16;
+                                
+                                let toX = (box.Max.X * 32) - 16;
+                                let toY = box.Max.Y * 32;
+                                let toZ = (box.Max.Z * 32) - 16;
+
+                                new BoundingBox({
+                                    name: 'hitbox',
+                                    from: [fromX, fromY, fromZ],
+                                    to: [toX, toY, toZ]
+                                }).init();
+                            });
+
+                            Undo.finishEdit('Import Hytale Hitbox JSON');
+                            Canvas.updateView({elements: BoundingBox.all});
+                            Blockbench.showQuickMessage('Hitboxes imported successfully!');
+                            
+                        } catch (err) {
+                            console.error("Error importing hitbox JSON:", err);
+                            Blockbench.showMessageBox({
+                                title: 'Import Error',
+                                message: 'Failed to parse the JSON file.'
+                            });
+                        }
+                    });
+                }
+            });
+
             add_hitbox_action = new Action('add_hytale_hitbox', {
                 name: 'Add Hitbox',
-                icon: 'fa-cube',
+                icon: 'fa-vector-square',
                 category: 'edit',
                 condition: () => Format.id === HITBOX_FORMAT_ID,
                 click: function() {
-                    let hitbox_texture = Texture.all.find(t => t.id === 'hitbox_wireframe_tex');
-
-                    if (!hitbox_texture) {
-                        hitbox_texture = new Texture({
-                            id: 'hitbox_wireframe_tex',
-                            name: 'Hitbox Wireframe'
-                        }).add();
-
-                        hitbox_texture.fromDataURL(generateHitboxTexture());
-                    }
-
-                    const mesh = new Cube({
+                    const bbox = new BoundingBox({
                         name: 'hitbox',
-                        color: 2,
                         from: [-16, 0, -16],
-                        to: [16, 32, 16],
-                        autouv: 0
+                        to: [16, 32, 16]
                     });
 
-                    for (const key in mesh.faces) {
-                        mesh.faces[key].texture = hitbox_texture.uuid;
-                        mesh.faces[key].uv = [0, 0, 16, 16];
-                    }
-
-                    mesh.init();
-
-                    Undo.initEdit({elements: [mesh], textures: [hitbox_texture], outliner: true});
+                    bbox.init();
+                    
+                    Undo.initEdit({elements: [bbox], outliner: true});
                     Undo.finishEdit('Add Hytale Hitbox');
-
-                    Canvas.updateAllFaces();
+                    
+                    Canvas.updateView({elements: [bbox]});
                 }
             });
 
             BarItems.add_element.side_menu.addAction(add_hitbox_action);
             MenuBar.menus.file.addAction(import_reference_action, 'import');
+            MenuBar.menus.file.addAction(import_hitbox_action, 'import');
 
             export_action = new Action('export_hytale_hitbox', {
                 name: 'Export Hytale Hitbox (.json)',
@@ -247,12 +277,13 @@
             export_action.delete();
             add_hitbox_action.delete();
             import_reference_action.delete();
+            import_hitbox_action.delete();
         }
     });
 
     function exportHytaleHitbox() {
-        const hitboxes = Cube.all.filter(cube =>
-            cube.name.toLowerCase() === 'hitbox' && cube.export
+        const hitboxes = BoundingBox.all.filter(bbox => 
+            bbox.name.toLowerCase() === 'hitbox' && bbox.export
         );
 
         if (hitboxes.length === 0) {
@@ -267,23 +298,23 @@
             "Boxes": []
         };
 
-        hitboxes.forEach(cube => {
+        hitboxes.forEach(bbox => {
             json_output.Boxes.push({
                 "Min": {
-                    "X": (cube.from[0] + 16) / 32,
-                    "Y": cube.from[1] / 32,
-                    "Z": (cube.from[2] + 16) / 32
+                    "X": (bbox.from[0] + 16) / 32,
+                    "Y": bbox.from[1] / 32,
+                    "Z": (bbox.from[2] + 16) / 32
                 },
                 "Max": {
-                    "X": (cube.to[0] + 16) / 32,
-                    "Y": cube.to[1] / 32,
-                    "Z": (cube.to[2] + 16) / 32
+                    "X": (bbox.to[0] + 16) / 32,
+                    "Y": bbox.to[1] / 32,
+                    "Z": (bbox.to[2] + 16) / 32
                 }
             });
         });
 
         const content = JSON.stringify(json_output, null, 2);
-
+        
         Blockbench.export({
             type: 'JSON Model',
             extensions: ['json'],
@@ -292,5 +323,4 @@
             resource_id: 'hytale_hitbox'
         });
     }
-
 })();
