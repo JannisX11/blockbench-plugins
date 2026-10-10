@@ -13,7 +13,8 @@
         'import_obj',
         'import_gltf',
         'import_image',
-        'extrude_texture'
+        'extrude_texture',
+        'add_cube'
     ];
 
     BBPlugin.register('hytale_hitbox_helper', {
@@ -25,7 +26,7 @@
         version: '1.0.2',
         variant: 'both',
         website: "https://youtube.com/@marck.a.a?si=ReXYtA53GBi9XhVv",
-		tags: ["Hytale"],
+        tags: ["Hytale"],
         onload() {
             const format = new ModelFormat(HITBOX_FORMAT_ID, {
                 name: 'Hytale Hitbox',
