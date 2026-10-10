@@ -22,6 +22,16 @@
 		"repository": "https://github.com/CODEFELICE/hytale-uv-preserving-scale",
 		"bug_tracker": "https://github.com/CODEFELICE/hytale-uv-preserving-scale/issues"
 	},
+	"two_bone_ik": {
+		"title": "IK Tools",
+		"author": "dh",
+		"tags": ["Animation"],
+		"description": "Two-bone IK, pure FABRIK chain IK, Spline IK, and aim IK with IK/FK blending, project-saved constraints, live preview, and individual or batch pose and frame-range baking.",
+		"icon": "precision_manufacturing",
+		"version": "2.6.1",
+		"min_version": "5.1.0",
+		"variant": "both"
+	},
 	"sam3dj": {
 		"title": "sam3DJ",
 		"author": "1Turtle",
