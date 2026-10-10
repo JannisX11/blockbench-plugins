@@ -2,14 +2,14 @@
     'use strict';
 
     /**
-     * Translation Plane Gizmo Plugin v1.0.1
+     * Translation Plane Gizmo Plugin v1.0.2
      * 
      * Provides Blender-style 2D plane handles for simultaneous multi-axis translation
      * in Blockbench. Features smart camera scaling, proper margins, and seamless
      * integration with Blockbench's transform system.
      * 
      * @author AnnJ
-     * @version 1.0.1
+     * @version 1.0.2
      * @compatibility Blockbench v4.8.0+
      */
 
@@ -497,63 +497,7 @@
         }
     }
 
-    function onMouseDown(event) {
-        if (event.button !== 0) return;
 
-        const isCanvasTarget = event.target.tagName?.toLowerCase() === 'canvas';
-        if (!isCanvasTarget) return;
-
-        const mode = Toolbox?.selected?.transformerMode;
-        const isTranslate = mode === 'translate' || mode === 'move';
-        const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
-        let validSelection = false;
-        
-        if (isEntityFormat()) {
-            if (hasSelection) {
-                validSelection = Outliner.selected.some(el => el);
-            } else {
-                const allGroups = Project && Project.groups ? Project.groups : [];
-                const selectedGroups = allGroups.filter(g => g && g.selected);
-                validSelection = selectedGroups.length > 0;
-            }
-        } else {
-            if (hasSelection) {
-                validSelection = Outliner.selected.some(el => el && (el.from || el.position));
-            }
-        }
-        
-        const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
-
-        if (!shouldShow) return;
-
-        const ray = getRaycaster(event);
-        const intersects = ray.intersectObjects(planeHandles, true);
-
-        if (intersects.length === 0) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-
-        event.isPlaneGizmoInteraction = true;
-
-        isDragging = true;
-        currentDragPlane = intersects[0].object;
-        dragStartPoint = intersects[0].point.clone();
-        dragAppliedDelta = new THREE.Vector3(0, 0, 0);
-
-        if (PLANE_CONFIG.enableUndo && Undo && Undo.initEdit) {
-            const undoable = (Outliner.selected || []).filter(el => typeof el.getUndoCopy === 'function');
-            Undo.initEdit({
-                elements: undoable,
-                selection: true,
-                outliner: true
-            });
-        }
-
-        document.addEventListener('mousemove', onMouseMoveDrag, true);
-        document.addEventListener('mouseup', onMouseUp, true);
-    }
 
     function onMouseMoveDrag(event) {
         if (!isDragging || !currentDragPlane || !Outliner.selected) return;
@@ -647,6 +591,105 @@
         }
     }
 
+    function addMouseEvents() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.addEventListener('pointermove', onMouseMove, { passive: true });
+            canvas.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
+            cameraEventHandlers.wheel = () => {
+                if (isGizmoEnabled && Transformer && Transformer.visible) {
+                    updatePlaneHandles();
+                }
+            };
+            canvas.addEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
+
+            cameraEventHandlers.cameraMove = (event) => {
+                if (isGizmoEnabled && Transformer && Transformer.visible &&
+                    (event.buttons === 2 || event.buttons === 4)) {
+                    updatePlaneHandles();
+                }
+            };
+            canvas.addEventListener('pointermove', cameraEventHandlers.cameraMove, { passive: true });
+        }
+        document.addEventListener('pointerdown', onMouseDown, { capture: true });
+    }
+
+    function removeMouseEvents() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.removeEventListener('pointermove', onMouseMove, { passive: true });
+            canvas.removeEventListener('mouseleave', onMouseLeave, { passive: true });
+
+            if (cameraEventHandlers.wheel) {
+                canvas.removeEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
+            }
+            if (cameraEventHandlers.cameraMove) {
+                canvas.removeEventListener('pointermove', cameraEventHandlers.cameraMove, { passive: true });
+            }
+        }
+        document.removeEventListener('pointerdown', onMouseDown, { capture: true });
+        document.removeEventListener('pointermove', onMouseMoveDrag, { capture: true });
+        document.removeEventListener('pointerup', onMouseUp, { capture: true });
+    }
+
+    function onMouseDown(event) {
+        if (event.button !== 0) return;
+        if (isDragging) return;
+
+        const isCanvasTarget = event.target.tagName?.toLowerCase() === 'canvas';
+        if (!isCanvasTarget) return;
+
+        const mode = Toolbox?.selected?.transformerMode;
+        const isTranslate = mode === 'translate' || mode === 'move';
+        const hasSelection = Outliner && Outliner.selected && Outliner.selected.length > 0;
+
+        let validSelection = false;
+        if (isEntityFormat()) {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el);
+            } else {
+                const allGroups = Project && Project.groups ? Project.groups : [];
+                const selectedGroups = allGroups.filter(g => g && g.selected);
+                validSelection = selectedGroups.length > 0;
+            }
+        } else {
+            if (hasSelection) {
+                validSelection = Outliner.selected.some(el => el && (el.from || el.position));
+            }
+        }
+
+        const shouldShow = !!(Transformer && Transformer.visible && Toolbox && Toolbox.selected && isTranslate && validSelection);
+        if (!shouldShow) return;
+
+        const ray = getRaycaster(event);
+        const intersects = ray.intersectObjects(planeHandles, true)
+            .sort((a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0));
+
+        if (intersects.length === 0) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        isDragging = true;
+        currentDragPlane = intersects[0].object;
+        dragStartPoint = intersects[0].point.clone();
+        dragAppliedDelta = new THREE.Vector3(0, 0, 0);
+
+        if (PLANE_CONFIG.enableUndo && Undo && Undo.initEdit) {
+            const undoable = (Outliner.selected || []).filter(el => typeof el.getUndoCopy === 'function');
+            Undo.initEdit({
+                elements: undoable,
+                selection: true,
+                outliner: true
+            });
+        }
+
+        document.addEventListener('pointermove', onMouseMoveDrag, { capture: true });
+        document.addEventListener('pointerup', onMouseUp, { capture: true });
+    }
+
     function onMouseUp(event) {
         if (!isDragging) return;
 
@@ -659,28 +702,19 @@
         dragStartPoint = null;
         dragAppliedDelta = null;
 
-        document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
-        document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
+        document.removeEventListener('pointermove', onMouseMoveDrag, { capture: true });
+        document.removeEventListener('pointerup', onMouseUp, { capture: true });
 
         if (Canvas && Canvas.updateView) {
-                Canvas.updateView({
-                    elements: Outliner.selected,
+            Canvas.updateView({
+                elements: Outliner.selected,
                 element_aspects: { geometry: true, transform: true },
-                    selection: true
-                });
-            }
+                selection: true
+            });
+        }
 
         if (Transformer && Transformer.update) {
             Transformer.update();
-        }
-    }
-
-    function addMouseEvents() {
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-            canvas.addEventListener('mousemove', onMouseMove, { passive: true });
-            canvas.addEventListener('mousedown', onMouseDown, true);
-            canvas.addEventListener('mouseleave', onMouseLeave, { passive: true });
         }
     }
 
@@ -689,24 +723,6 @@
             resetPlaneHover(lastHoveredPlane);
             lastHoveredPlane = null;
         }
-    }
-
-    function removeMouseEvents() {
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-            canvas.removeEventListener('mousemove', onMouseMove, { passive: true });
-            canvas.removeEventListener('mousedown', onMouseDown, true);
-            canvas.removeEventListener('mouseleave', onMouseLeave, { passive: true });
-
-            if (cameraEventHandlers.wheel) {
-                canvas.removeEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
-            }
-            if (cameraEventHandlers.cameraMove) {
-                canvas.removeEventListener('mousemove', cameraEventHandlers.cameraMove, { passive: true });
-            }
-        }
-        document.removeEventListener('mousemove', onMouseMoveDrag, { passive: false, capture: true });
-        document.removeEventListener('mouseup', onMouseUp, { passive: false, capture: true });
     }
 
     function removePlaneHandles() {
@@ -787,19 +803,15 @@
         },
 
         onload() {
-            // Defer gizmo creation to ensure canvas is fully ready
             setTimeout(() => {
                 createPlaneHandles();
                 addMouseEvents();
-                
-                // Force another update after initialization to ensure raycasting is ready
                 if (Canvas && typeof Canvas.updateAll === 'function') {
                     Canvas.updateAll();
                 }
             }, 100);
-            
-            createToolbarButton();
 
+            createToolbarButton();
 
             updateInterval = setInterval(() => {
                 if (Transformer && Transformer.visible) {
@@ -808,7 +820,6 @@
             }, 16);
 
             let lastSelectionLength = Outliner.selected ? Outliner.selected.length : 0;
-
             selectionPollingInterval = setInterval(() => {
                 const currentLength = Outliner.selected ? Outliner.selected.length : 0;
                 if (currentLength !== lastSelectionLength) {
@@ -818,24 +829,6 @@
                     }
                 }
             }, 50);
-
-            const canvas = document.querySelector('canvas');
-            if (canvas) {
-                cameraEventHandlers.wheel = () => {
-                    if (isGizmoEnabled && Transformer && Transformer.visible) {
-                        updatePlaneHandles();
-                    }
-                };
-                canvas.addEventListener('wheel', cameraEventHandlers.wheel, { passive: true });
-
-                cameraEventHandlers.cameraMove = (event) => {
-                    if (isGizmoEnabled && Transformer && Transformer.visible && 
-                        (event.buttons === 2 || event.buttons === 4)) {
-                        updatePlaneHandles();
-                    }
-                };
-                canvas.addEventListener('mousemove', cameraEventHandlers.cameraMove, { passive: true });
-            }
         },
 
         onunload() {
