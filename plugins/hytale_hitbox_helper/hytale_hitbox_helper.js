@@ -31,7 +31,7 @@
             const format = new ModelFormat(HITBOX_FORMAT_ID, {
                 name: 'Hytale Hitbox',
                 description: 'A simple format for creating Hytale hitboxes, exportable to JSON.',
-                icon: 'icon.png',
+                icon: 'icon-format_hytale',
                 category: 'hytale',
                 target: 'Hytale',
                 block_size: 32,
