@@ -39,6 +39,37 @@
   ));
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+  // src/util/native.ts
+  function load_fs() {
+    if (!fs_module && !fs_denied) {
+      fs_module = requireNativeModule("fs");
+      fs_denied = !fs_module;
+    }
+    if (!fs_module) throw new Error("File system access was denied. Reload the plugin to grant it.");
+    return fs_module;
+  }
+  function get_env_game_path() {
+    if (env_game_path === null) {
+      env_game_path = requireNativeModule("process", {
+        message: "Reads the VINTAGE_STORY environment variable to find your game folder."
+      })?.env.VINTAGE_STORY;
+    }
+    return env_game_path;
+  }
+  function get_game_path() {
+    return Settings.get("game_path") || get_env_game_path() || "";
+  }
+  var fs_module, fs_denied, fs, env_game_path;
+  var init_native = __esm({
+    "src/util/native.ts"() {
+      fs_denied = false;
+      fs = new Proxy({}, {
+        get: (_target, key) => Reflect.get(load_fs(), key)
+      });
+      env_game_path = null;
+    }
+  });
+
   // src/util.ts
   function vector_equals(a, b) {
     for (let i = 0; i < 3; i++) {
@@ -80,16 +111,16 @@
       THREE.MathUtils.radToDeg(euler.z)
     ];
   }
-  var fs, path, fps, get_texture_location;
+  var path, fps, get_texture_location;
   var init_util = __esm({
     "src/util.ts"() {
-      fs = __toESM(__require("fs"), 1);
       path = __toESM(__require("path"), 1);
+      init_native();
       fps = 30;
       get_texture_location = function(domain, rel_path) {
         for (const base_mod_path of ["creative", "game", "survival"]) {
           const f = path.posix.format({
-            root: Settings.get("game_path") + path.sep + "assets" + path.sep + base_mod_path + path.sep + "textures" + path.sep,
+            root: get_game_path() + path.sep + "assets" + path.sep + base_mod_path + path.sep + "textures" + path.sep,
             name: rel_path,
             ext: ".png"
           });
@@ -1207,11 +1238,11 @@
     "node_modules/json5/lib/index.js"(exports, module) {
       var parse = require_parse();
       var stringify = require_stringify();
-      var JSON54 = {
+      var JSON55 = {
         parse,
         stringify
       };
-      module.exports = JSON54;
+      module.exports = JSON55;
     }
   });
 
@@ -1358,6 +1389,509 @@
     }
   });
 
+  // src/property.ts
+  function isFiniteVector(value, length) {
+    return Array.isArray(value) && value.length === length && value.every((component) => typeof component === "number" && Number.isFinite(component));
+  }
+  function isNonEmptyRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
+  }
+  function registerOptionalInternalProperty(targetClass, type, name2, validate) {
+    return new Property(targetClass, type, name2, {
+      exposed: false,
+      condition(instance) {
+        return validate(instance?.[name2], instance);
+      },
+      reset(instance) {
+        delete instance[name2];
+      },
+      merge(instance, data) {
+        const value = data?.[name2];
+        if (!validate(value, data)) return;
+        if (Array.isArray(value)) {
+          instance[name2] = value.slice();
+        } else if (value !== null && typeof value === "object") {
+          instance[name2] = structuredClone(value);
+        } else {
+          instance[name2] = value;
+        }
+      }
+    });
+  }
+  function registerStepParentTransformProperties(targetClass) {
+    registerOptionalInternalProperty(
+      targetClass,
+      "boolean",
+      "vs_step_parent_local",
+      (value) => value === true
+    );
+    registerOptionalInternalProperty(
+      targetClass,
+      "boolean",
+      "vs_has_step_parent_transform",
+      (value) => value === true
+    );
+    for (const name2 of ["vs_step_parent_origin", "vs_step_parent_rotation"]) {
+      registerOptionalInternalProperty(
+        targetClass,
+        "vector",
+        name2,
+        (value, container) => container?.vs_has_step_parent_transform === true && isFiniteVector(value, 3)
+      );
+    }
+  }
+  function registerPaletteSlotProperty(targetClass) {
+    const property = new Property(targetClass, "number", "paletteSlot", {
+      default: 0,
+      label: "Palette Slot",
+      exposed: true,
+      options: PALETTE_SLOT_OPTIONS,
+      inputs: {
+        element_panel: {
+          input: {
+            label: "Palette Slot",
+            type: "select",
+            options: PALETTE_SLOT_OPTIONS
+          }
+        }
+      }
+    });
+    return property;
+  }
+  var VS_PROJECT_PROPS, PALETTE_SLOT_OPTIONS, VS_GROUP_PROPS, VS_CUBE_PROPS, VS_TEXTURE_PROPS, VS_LOCATOR_PROPS, VS_FACE_PROPS, isNonEmptyString;
+  var init_property = __esm({
+    "src/property.ts"() {
+      for (const name2 of ["vs_code", "vs_onActivityStopped", "vs_onAnimationEnd", "vs_library_ref"]) {
+        new Property(Blockbench.Animation, "string", name2, { exposed: false });
+      }
+      VS_PROJECT_PROPS = [
+        new Property(ModelProject, "string", "backDropShape", { exposed: false }),
+        new Property(ModelProject, "string", "collapsedPaths", { exposed: false }),
+        new Property(ModelProject, "boolean", "allAngles", { exposed: false }),
+        new Property(ModelProject, "boolean", "entityTextureMode", { exposed: false }),
+        new Property(ModelProject, "boolean", "singleTexture", { exposed: false }),
+        new Property(ModelProject, "boolean", "vsFormatConverted", { exposed: false })
+      ];
+      PALETTE_SLOT_OPTIONS = {
+        "0": "0 - Inherit / Default",
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7"
+      };
+      VS_GROUP_PROPS = [
+        new Property(Group, "string", "stepParentName", {
+          default: "",
+          label: "Step Parent",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Step Parent",
+                type: "text"
+              }
+            }
+          },
+          onChange() {
+            Canvas.updateAllBones();
+            Canvas.updateAllPositions();
+          }
+        }),
+        registerPaletteSlotProperty(Group)
+      ];
+      new Property(Group, "string", "clothingSlot", {
+        default: "",
+        label: "Clothing Slot",
+        exposed: true,
+        options: () => {
+          const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
+          const slots = getActiveSlotNames2();
+          const options = { "": "None" };
+          slots.forEach((slot) => {
+            options[slot] = slot;
+          });
+          return options;
+        },
+        inputs: {
+          element_panel: {
+            input: {
+              label: "Clothing Slot",
+              type: "select",
+              options: () => {
+                const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
+                const slots = getActiveSlotNames2();
+                const options = { "": "None" };
+                slots.forEach((slot) => {
+                  options[slot] = slot;
+                });
+                return options;
+              }
+            }
+          }
+        },
+        onChange() {
+          try {
+            if (Interface.Panels?.attachments_panel?.vue) {
+              Interface.Panels.attachments_panel.vue.updateAttachments();
+            }
+          } catch (e) {
+            console.warn("Could not refresh attachments panel:", e);
+          }
+        }
+      });
+      new Property(Group, "boolean", "backdrop");
+      registerStepParentTransformProperties(Group);
+      registerOptionalInternalProperty(Group, "vector", "vs_group_from", (value) => isFiniteVector(value, 3));
+      registerOptionalInternalProperty(Group, "vector", "vs_group_to", (value) => isFiniteVector(value, 3));
+      registerOptionalInternalProperty(Group, "boolean", "vs_has_rotation_origin", (value) => value === true);
+      registerOptionalInternalProperty(Group, "object", "vs_zero_size_faces", isNonEmptyRecord);
+      registerOptionalInternalProperty(Group, "vector2", "vs_uv", (value) => isFiniteVector(value, 2));
+      registerOptionalInternalProperty(Group, "object", "vs_extra_props", isNonEmptyRecord);
+      VS_CUBE_PROPS = [
+        new Property(Cube, "string", "stepParentName", {
+          default: "",
+          label: "Step Parent",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Step Parent",
+                type: "text"
+              }
+            }
+          },
+          onChange() {
+            Canvas.updateAllBones();
+            Canvas.updateAllPositions();
+          }
+        }),
+        registerPaletteSlotProperty(Cube),
+        new Property(Cube, "boolean", "shade", {
+          default: true,
+          label: "Shade",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Shade",
+                type: "checkbox"
+              }
+            }
+          }
+        }),
+        new Property(Cube, "string", "climateColorMap", {
+          default: "",
+          label: "Climate Color Map",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Climate Color Map",
+                type: "text"
+              }
+            }
+          }
+        }),
+        new Property(Cube, "boolean", "gradientShade", {
+          default: false,
+          label: "Gradient Shade",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Gradient Shade",
+                type: "checkbox"
+              }
+            }
+          }
+        }),
+        new Property(Cube, "number", "renderPass", {
+          default: -1,
+          label: "Render Pass",
+          exposed: true,
+          options: {
+            "-1": "Default",
+            "0": "Opaque",
+            "1": "OpaqueNoCull",
+            "2": "BlendNoCull",
+            "3": "Transparent",
+            "4": "Liquid",
+            "5": "TopSoil",
+            "6": "Meta"
+          },
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Render Pass",
+                type: "select",
+                options: {
+                  "-1": "Default",
+                  "0": "Opaque",
+                  "1": "OpaqueNoCull",
+                  "2": "BlendNoCull",
+                  "3": "Transparent",
+                  "4": "Liquid",
+                  "5": "TopSoil",
+                  "6": "Meta"
+                }
+              }
+            }
+          }
+        }),
+        new Property(Cube, "string", "seasonColorMap", {
+          default: "",
+          label: "Season Color Map",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Season Color Map",
+                type: "text"
+              }
+            }
+          }
+        }),
+        new Property(Cube, "number", "unwrapMode", {
+          default: 0,
+          label: "Unwrap Mode",
+          exposed: false
+        }),
+        new Property(Cube, "boolean", "autoUnwrap", {
+          default: false,
+          label: "Auto Unwrap",
+          exposed: false
+        }),
+        new Property(Cube, "boolean", "disableRandomDrawOffset", {
+          default: false,
+          label: "Disable Random Draw Offset",
+          exposed: false
+        }),
+        new Property(Cube, "number", "unwrapRotation", {
+          default: 0,
+          label: "Unwrap Rotation",
+          exposed: false
+        })
+      ];
+      new Property(Cube, "string", "clothingSlot", {
+        default: "",
+        label: "Clothing Slot",
+        exposed: true,
+        options: () => {
+          const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
+          const slots = getActiveSlotNames2();
+          const options = { "": "None" };
+          slots.forEach((slot) => {
+            options[slot] = slot;
+          });
+          return options;
+        },
+        inputs: {
+          element_panel: {
+            input: {
+              label: "Clothing Slot",
+              type: "select",
+              options: () => {
+                const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
+                const slots = getActiveSlotNames2();
+                const options = { "": "None" };
+                slots.forEach((slot) => {
+                  options[slot] = slot;
+                });
+                return options;
+              }
+            }
+          }
+        },
+        onChange() {
+          try {
+            if (Interface.Panels?.attachments_panel?.vue) {
+              Interface.Panels.attachments_panel.vue.updateAttachments();
+            }
+          } catch (e) {
+            console.warn("Could not refresh attachments panel:", e);
+          }
+        }
+      });
+      new Property(Cube, "boolean", "backdrop");
+      registerStepParentTransformProperties(Cube);
+      registerOptionalInternalProperty(Cube, "boolean", "vs_has_rotation_origin", (value) => value === true);
+      registerOptionalInternalProperty(Cube, "vector2", "vs_uv", (value) => isFiniteVector(value, 2));
+      registerOptionalInternalProperty(Cube, "object", "vs_extra_props", isNonEmptyRecord);
+      VS_TEXTURE_PROPS = [
+        new Property(Texture, "string", "textureLocation", {
+          default: "",
+          label: "Texture Location",
+          exposed: true,
+          inputs: {
+            element_panel: {
+              input: {
+                label: "Texture Location",
+                type: "text"
+              }
+            }
+          }
+        })
+      ];
+      VS_LOCATOR_PROPS = [
+        new Property(Locator, "number", "rotationX", { default: 0 }),
+        new Property(Locator, "number", "rotationY", { default: 0 }),
+        new Property(Locator, "number", "rotationZ", { default: 0 })
+      ];
+      VS_FACE_PROPS = [
+        new Property(CubeFace, "number", "glow"),
+        new Property(CubeFace, "number", "reflectiveMode"),
+        new Property(CubeFace, "array", "windMode"),
+        new Property(CubeFace, "array", "windData"),
+        new Property(CubeFace, "boolean", "autoUv", { default: false }),
+        new Property(CubeFace, "boolean", "snapUv", { default: false })
+      ];
+      registerOptionalInternalProperty(CubeFace, "object", "vs_extra_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(Locator, "object", "vs_extra_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(ModelProject, "object", "vs_extra_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(ModelProject, "object", "vs_extra_editor_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(ModelProject, "object", "vs_textureSizes", isNonEmptyRecord);
+      isNonEmptyString = (value) => typeof value === "string" && value !== "";
+      registerOptionalInternalProperty(Animation, "string", "vs_code", isNonEmptyString);
+      registerOptionalInternalProperty(Animation, "string", "vs_onActivityStopped", isNonEmptyString);
+      registerOptionalInternalProperty(Animation, "string", "vs_onAnimationEnd", isNonEmptyString);
+      registerOptionalInternalProperty(Animation, "string", "vs_library_ref", isNonEmptyString);
+      registerOptionalInternalProperty(Animation, "object", "vs_extra_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(Animation, "object", "vs_extra_keyframe_props", isNonEmptyRecord);
+      registerOptionalInternalProperty(Animation, "object", "vs_extra_element_props", isNonEmptyRecord);
+    }
+  });
+
+  // src/preserved_props.ts
+  function clone_json(value) {
+    if (value === null || typeof value !== "object") return value;
+    try {
+      return structuredClone(value);
+    } catch {
+      return JSON.parse(JSON.stringify(value));
+    }
+  }
+  function prop_names(props) {
+    return props.map((prop) => prop.name);
+  }
+  function is_empty_record(value) {
+    return !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0;
+  }
+  function editor_known_keys() {
+    return new Set(prop_names(VS_PROJECT_PROPS));
+  }
+  function is_dropped_element_value(name2, value, on_group) {
+    if (name2 === "shade") return on_group || value !== false;
+    if (name2 === "faces") return on_group && is_empty_record(value);
+    if (ELEMENT_UNTRACKED_KEYS.has(name2)) return false;
+    if (name2 === "rotationX" || name2 === "rotationY" || name2 === "rotationZ") return Number(value) === 0;
+    if (value === void 0 || value === null || value === "" || value === false) return true;
+    if (name2 === "renderPass") return Number(value) === -1;
+    if (name2 === "unwrapMode" || name2 === "unwrapRotation" || name2 === "paletteSlot") {
+      return Number(value) === 0;
+    }
+    return false;
+  }
+  function is_dropped_face_value(name2, value) {
+    if (FACE_UNTRACKED_KEYS.has(name2)) return false;
+    if (name2 === "enabled") return value !== false;
+    if (value === void 0 || value === null || value === "" || value === false) return true;
+    if (name2 === "windMode") return Array.isArray(value) && value.every((v) => v === -1);
+    if (name2 === "windData" || name2 === "uv") return Array.isArray(value) && value.every((v) => v === 0);
+    if (typeof value === "number") return value === 0;
+    return false;
+  }
+  function collect_extras(source, known, is_dropped) {
+    if (!source || typeof source !== "object" || Array.isArray(source)) return void 0;
+    let extras;
+    for (const [key, value] of Object.entries(source)) {
+      if (value === void 0) continue;
+      if (known.has(key) && !(is_dropped && is_dropped(key, value))) continue;
+      if (!extras) extras = {};
+      extras[key] = clone_json(value);
+    }
+    return extras;
+  }
+  function collect_element_extras(element, on_group = false) {
+    return collect_extras(element, ELEMENT_KNOWN_KEYS, (name2, value) => is_dropped_element_value(name2, value, on_group));
+  }
+  function collect_face_extras(face) {
+    return collect_extras(face, FACE_KNOWN_KEYS, is_dropped_face_value);
+  }
+  function collect_shape_extras(shape) {
+    return collect_extras(shape, SHAPE_KNOWN_KEYS);
+  }
+  function collect_editor_extras(editor) {
+    return collect_extras(editor, editor_known_keys());
+  }
+  function collect_attachment_point_extras(point) {
+    return collect_extras(point, ATTACHMENT_POINT_KNOWN_KEYS);
+  }
+  function apply_extra_props(target, extras) {
+    if (!extras || typeof extras !== "object" || Array.isArray(extras)) return target;
+    const record = target;
+    for (const [key, value] of Object.entries(extras)) {
+      if (value === void 0) continue;
+      if (Object.prototype.hasOwnProperty.call(record, key) && record[key] !== void 0) continue;
+      record[key] = clone_json(value);
+    }
+    return target;
+  }
+  var ELEMENT_STRUCTURAL_KEYS, FACE_STRUCTURAL_KEYS, FACE_UNTRACKED_KEYS, ELEMENT_UNTRACKED_KEYS, ELEMENT_KNOWN_KEYS, FACE_KNOWN_KEYS, SHAPE_KNOWN_KEYS, ATTACHMENT_POINT_KNOWN_KEYS;
+  var init_preserved_props = __esm({
+    "src/preserved_props.ts"() {
+      init_property();
+      ELEMENT_STRUCTURAL_KEYS = [
+        "name",
+        "from",
+        "to",
+        "uv",
+        "rotationOrigin",
+        "rotationX",
+        "rotationY",
+        "rotationZ",
+        "faces",
+        "children",
+        "attachmentpoints"
+      ];
+      FACE_STRUCTURAL_KEYS = ["texture", "uv", "rotation", "enabled"];
+      FACE_UNTRACKED_KEYS = /* @__PURE__ */ new Set(["texture", "rotation"]);
+      ELEMENT_UNTRACKED_KEYS = new Set(
+        ELEMENT_STRUCTURAL_KEYS.filter((key) => !["rotationX", "rotationY", "rotationZ"].includes(key))
+      );
+      ELEMENT_KNOWN_KEYS = /* @__PURE__ */ new Set([
+        ...ELEMENT_STRUCTURAL_KEYS,
+        ...prop_names(VS_CUBE_PROPS),
+        ...prop_names(VS_GROUP_PROPS)
+      ]);
+      FACE_KNOWN_KEYS = /* @__PURE__ */ new Set([
+        ...FACE_STRUCTURAL_KEYS,
+        ...prop_names(VS_FACE_PROPS)
+      ]);
+      SHAPE_KNOWN_KEYS = /* @__PURE__ */ new Set([
+        "editor",
+        "textureWidth",
+        "textureHeight",
+        "textureSizes",
+        "textures",
+        "elements",
+        "animations",
+        "animationLibraries"
+      ]);
+      ATTACHMENT_POINT_KNOWN_KEYS = /* @__PURE__ */ new Set([
+        "code",
+        "posX",
+        "posY",
+        "posZ",
+        "rotationX",
+        "rotationY",
+        "rotationZ"
+      ]);
+    }
+  });
+
   // src/export_model/locator.ts
   var locator_exports = {};
   __export(locator_exports, {
@@ -1387,6 +1921,7 @@
         rotationY: rotation[1].toString(),
         rotationZ: rotation[2].toString()
       };
+      apply_extra_props(attachmentPoint, locator.vs_extra_props);
       attachmentPoints.push(attachmentPoint);
     }
     return attachmentPoints;
@@ -1394,6 +1929,7 @@
   var init_locator = __esm({
     "src/export_model/locator.ts"() {
       init_util();
+      init_preserved_props();
     }
   });
 
@@ -4237,20 +4773,20 @@
       var util_1 = require_util2();
       var validate_1 = require_validate();
       var SchemaEnv = class {
-        constructor(env2) {
+        constructor(env) {
           var _a;
           this.refs = {};
           this.dynamicAnchors = {};
           let schema2;
-          if (typeof env2.schema == "object")
-            schema2 = env2.schema;
-          this.schema = env2.schema;
-          this.schemaId = env2.schemaId;
-          this.root = env2.root || this;
-          this.baseId = (_a = env2.baseId) !== null && _a !== void 0 ? _a : (0, resolve_1.normalizeId)(schema2 === null || schema2 === void 0 ? void 0 : schema2[env2.schemaId || "$id"]);
-          this.schemaPath = env2.schemaPath;
-          this.localRefs = env2.localRefs;
-          this.meta = env2.meta;
+          if (typeof env.schema == "object")
+            schema2 = env.schema;
+          this.schema = env.schema;
+          this.schemaId = env.schemaId;
+          this.root = env.root || this;
+          this.baseId = (_a = env.baseId) !== null && _a !== void 0 ? _a : (0, resolve_1.normalizeId)(schema2 === null || schema2 === void 0 ? void 0 : schema2[env.schemaId || "$id"]);
+          this.schemaPath = env.schemaPath;
+          this.localRefs = env.localRefs;
+          this.meta = env.meta;
           this.$async = schema2 === null || schema2 === void 0 ? void 0 : schema2.$async;
           this.refs = {};
         }
@@ -4434,15 +4970,15 @@
             baseId = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schId);
           }
         }
-        let env2;
+        let env;
         if (typeof schema2 != "boolean" && schema2.$ref && !(0, util_1.schemaHasRulesButRef)(schema2, this.RULES)) {
           const $ref = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schema2.$ref);
-          env2 = resolveSchema.call(this, root, $ref);
+          env = resolveSchema.call(this, root, $ref);
         }
         const { schemaId } = this.opts;
-        env2 = env2 || new SchemaEnv({ schema: schema2, schemaId, root, baseId });
-        if (env2.schema !== env2.root.schema)
-          return env2;
+        env = env || new SchemaEnv({ schema: schema2, schemaId, root, baseId });
+        if (env.schema !== env.root.schema)
+          return env;
         return void 0;
       }
     }
@@ -4773,8 +5309,8 @@
           wsComponents.secure = void 0;
         }
         if (wsComponents.resourceName) {
-          const [path8, query] = wsComponents.resourceName.split("?");
-          wsComponents.path = path8 && path8 !== "/" ? path8 : void 0;
+          const [path7, query] = wsComponents.resourceName.split("?");
+          wsComponents.path = path7 && path7 !== "/" ? path7 : void 0;
           wsComponents.query = query;
           wsComponents.resourceName = void 0;
         }
@@ -5789,8 +6325,8 @@
         schemaType: "string",
         code(cxt) {
           const { gen, schema: $ref, it } = cxt;
-          const { baseId, schemaEnv: env2, validateName, opts, self } = it;
-          const { root } = env2;
+          const { baseId, schemaEnv: env, validateName, opts, self } = it;
+          const { root } = env;
           if (($ref === "#" || $ref === "#/") && baseId === root.baseId)
             return callRootRef();
           const schOrEnv = compile_1.resolveRef.call(self, root, baseId, $ref);
@@ -5800,8 +6336,8 @@
             return callValidate(schOrEnv);
           return inlineRefSchema(schOrEnv);
           function callRootRef() {
-            if (env2 === root)
-              return callRef(cxt, validateName, env2, env2.$async);
+            if (env === root)
+              return callRef(cxt, validateName, env, env.$async);
             const rootName = gen.scopeValue("root", { ref: root });
             return callRef(cxt, (0, codegen_1._)`${rootName}.validate`, root, root.$async);
           }
@@ -5831,14 +6367,14 @@
       exports.getValidate = getValidate;
       function callRef(cxt, v, sch, $async) {
         const { gen, it } = cxt;
-        const { allErrors, schemaEnv: env2, opts } = it;
+        const { allErrors, schemaEnv: env, opts } = it;
         const passCxt = opts.passContext ? names_1.default.this : codegen_1.nil;
         if ($async)
           callAsyncRef();
         else
           callSyncRef();
         function callAsyncRef() {
-          if (!env2.$async)
+          if (!env.$async)
             throw new Error("async schema referenced by sync schema");
           const valid = gen.let("valid");
           gen.try(() => {
@@ -7793,7 +8329,7 @@
     name,
     title: "Vintage Story Format Support",
     description: "A Blockbench plugin that adds support for Vintage Story models",
-    version: "0.12.1",
+    version: "0.12.2",
     author: {
       name: "Anego Studios",
       email: "office@anegostudios.com",
@@ -7995,8 +8531,8 @@
   // src/debug_actions.ts
   init_util();
   var import_json5 = __toESM(require_lib(), 1);
+  init_native();
   var path2 = requireNativeModule("path");
-  var fs2 = requireNativeModule("fs");
   var reExportAction = createAction(`${name}:reExport`, {
     name: "Reexport Test",
     icon: "fa-flask-vial",
@@ -8016,19 +8552,19 @@
         onConfirm(form_result) {
           const test_folder = form_result.select_folder;
           console.log(test_folder);
-          const test_files = fs2.readdirSync(test_folder, { encoding: "utf-8" });
+          const test_files = fs.readdirSync(test_folder, { encoding: "utf-8" });
           for (const test_file of test_files) {
             if (!test_file.endsWith(".json") || test_file.startsWith("reexport_")) continue;
             const input_path = path2.resolve(test_folder, test_file);
             const output_path = path2.resolve(test_folder, `reexport_${test_file}`);
-            if (!fs2?.statSync(input_path).isFile()) continue;
+            if (!fs?.statSync(input_path).isFile()) continue;
             console.log(`Processing: ${input_path} \u2192 ${output_path}`);
             try {
               Blockbench.readFile([input_path], {}, (files) => {
                 try {
                   loadModelFile(files[0], []);
                   const reexport_content = Format.codec.compile();
-                  fs2.writeFileSync(output_path, reexport_content, "utf-8");
+                  fs.writeFileSync(output_path, reexport_content, "utf-8");
                   console.log(`Reexported: ${test_file}`);
                 } catch (inner) {
                   console.error(`Error inside callback for ${test_file}:`, inner);
@@ -8071,32 +8607,32 @@
     "autoUnwrap",
     "disableRandomDrawOffset"
   ]);
-  function deepCompare(a, b, path8) {
+  function deepCompare(a, b, path7) {
     const diffs = [];
     if (a === b) return diffs;
     if (a === void 0 && b === void 0) return diffs;
     if (a === null && b === null) return diffs;
     if (a == null || b == null) {
-      diffs.push(`${path8}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+      diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
       return diffs;
     }
     if (typeof a === "number" && typeof b === "number") {
       if (Math.abs(a - b) > FLOAT_EPSILON) {
-        diffs.push(`${path8}: ${a} vs ${b}`);
+        diffs.push(`${path7}: ${a} vs ${b}`);
       }
       return diffs;
     }
     if (typeof a !== typeof b) {
-      diffs.push(`${path8}: type ${typeof a} vs ${typeof b} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`);
+      diffs.push(`${path7}: type ${typeof a} vs ${typeof b} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`);
       return diffs;
     }
     if (Array.isArray(a) && Array.isArray(b)) {
       const maxLen = Math.max(a.length, b.length);
       if (a.length !== b.length) {
-        diffs.push(`${path8}: array length ${a.length} vs ${b.length}`);
+        diffs.push(`${path7}: array length ${a.length} vs ${b.length}`);
       }
       for (let i = 0; i < maxLen; i++) {
-        diffs.push(...deepCompare(a[i], b[i], `${path8}[${i}]`));
+        diffs.push(...deepCompare(a[i], b[i], `${path7}[${i}]`));
       }
       return diffs;
     }
@@ -8108,7 +8644,7 @@
         if (VS_EMPTY_EQUIVALENT_KEYS.has(key) && isVsEmpty(aObj[key]) && isVsEmpty(bObj[key])) {
           continue;
         }
-        diffs.push(...deepCompare(aObj[key], bObj[key], `${path8}.${key}`));
+        diffs.push(...deepCompare(aObj[key], bObj[key], `${path7}.${key}`));
       }
       return diffs;
     }
@@ -8117,13 +8653,13 @@
       const bNum = Number(b);
       if (!isNaN(aNum) && !isNaN(bNum)) {
         if (Math.abs(aNum - bNum) > FLOAT_EPSILON) {
-          diffs.push(`${path8}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+          diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
         }
         return diffs;
       }
     }
     if (a !== b) {
-      diffs.push(`${path8}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+      diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
     }
     return diffs;
   }
@@ -8145,16 +8681,15 @@
         },
         onConfirm(form_result) {
           const test_folder = form_result.select_folder;
-          const test_files = fs2.readdirSync(test_folder, { encoding: "utf-8" });
+          const test_files = fs.readdirSync(test_folder, { encoding: "utf-8" });
           let totalFiles = 0;
-          let filesWithDiffs = 0;
           let totalDiffs = 0;
           for (const test_file of test_files) {
             if (!test_file.endsWith(".json") || test_file.includes("reexport_")) continue;
             const input_path = path2.resolve(test_folder, test_file);
-            if (!fs2.statSync(input_path).isFile()) continue;
+            if (!fs.statSync(input_path).isFile()) continue;
             try {
-              const originalContent = fs2.readFileSync(input_path, "utf-8");
+              const originalContent = fs.readFileSync(input_path, "utf-8");
               const originalJson = import_json5.default.parse(originalContent);
               if (!originalJson.elements || !originalJson.textures) continue;
               totalFiles++;
@@ -8178,7 +8713,6 @@
                 }
                 const diffs = deepCompare(originalForCompare, reexportForCompare, "$");
                 if (diffs.length > 0) {
-                  filesWithDiffs++;
                   totalDiffs += diffs.length;
                   console.group(`%c DIFFS in ${test_file} (${diffs.length} differences)`, "color: orange; font-weight: bold");
                   for (const diff of diffs.slice(0, 50)) {
@@ -8203,6 +8737,9 @@
   });
   MenuBar.addAction(roundTripDiffAction, "file");
 
+  // icon.png
+  var icon_default = "data:image/png;base64,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";
+
   // src/actions.ts
   init_util();
 
@@ -8211,367 +8748,12 @@
 
   // src/import_model/group.ts
   init_util();
-
-  // src/property.ts
-  var VS_PROJECT_PROPS = [
-    new Property(ModelProject, "string", "backDropShape", { exposed: false }),
-    new Property(ModelProject, "string", "collapsedPaths", { exposed: false }),
-    new Property(ModelProject, "boolean", "allAngles", { exposed: false }),
-    new Property(ModelProject, "boolean", "entityTextureMode", { exposed: false }),
-    new Property(ModelProject, "boolean", "singleTexture", { exposed: false }),
-    new Property(ModelProject, "boolean", "vsFormatConverted", { exposed: false })
-  ];
-  function isFiniteVector(value, length) {
-    return Array.isArray(value) && value.length === length && value.every((component) => typeof component === "number" && Number.isFinite(component));
-  }
-  function isNonEmptyRecord(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
-  }
-  function registerOptionalInternalProperty(targetClass, type, name2, validate) {
-    return new Property(targetClass, type, name2, {
-      exposed: false,
-      condition(instance) {
-        return validate(instance?.[name2], instance);
-      },
-      reset(instance) {
-        delete instance[name2];
-      },
-      merge(instance, data) {
-        const value = data?.[name2];
-        if (!validate(value, data)) return;
-        if (Array.isArray(value)) {
-          instance[name2] = value.slice();
-        } else if (value !== null && typeof value === "object") {
-          instance[name2] = structuredClone(value);
-        } else {
-          instance[name2] = value;
-        }
-      }
-    });
-  }
-  function registerStepParentTransformProperties(targetClass) {
-    registerOptionalInternalProperty(
-      targetClass,
-      "boolean",
-      "vs_step_parent_local",
-      (value) => value === true
-    );
-    registerOptionalInternalProperty(
-      targetClass,
-      "boolean",
-      "vs_has_step_parent_transform",
-      (value) => value === true
-    );
-    for (const name2 of ["vs_step_parent_origin", "vs_step_parent_rotation"]) {
-      registerOptionalInternalProperty(
-        targetClass,
-        "vector",
-        name2,
-        (value, container) => container?.vs_has_step_parent_transform === true && isFiniteVector(value, 3)
-      );
-    }
-  }
-  var PALETTE_SLOT_OPTIONS = {
-    "0": "0 - Inherit / Default",
-    "1": "1",
-    "2": "2",
-    "3": "3",
-    "4": "4",
-    "5": "5",
-    "6": "6",
-    "7": "7"
-  };
-  function registerPaletteSlotProperty(targetClass) {
-    const property = new Property(targetClass, "number", "paletteSlot", {
-      default: 0,
-      label: "Palette Slot",
-      exposed: true,
-      options: PALETTE_SLOT_OPTIONS,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Palette Slot",
-            type: "select",
-            options: PALETTE_SLOT_OPTIONS
-          }
-        }
-      }
-    });
-    return property;
-  }
-  var VS_GROUP_PROPS = [
-    new Property(Group, "string", "stepParentName", {
-      default: "",
-      label: "Step Parent",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Step Parent",
-            type: "text"
-          }
-        }
-      },
-      onChange() {
-        Canvas.updateAllBones();
-        Canvas.updateAllPositions();
-      }
-    }),
-    registerPaletteSlotProperty(Group)
-  ];
-  new Property(Group, "string", "clothingSlot", {
-    default: "",
-    label: "Clothing Slot",
-    exposed: true,
-    options: () => {
-      const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
-      const slots = getActiveSlotNames2();
-      const options = { "": "None" };
-      slots.forEach((slot) => {
-        options[slot] = slot;
-      });
-      return options;
-    },
-    inputs: {
-      element_panel: {
-        input: {
-          label: "Clothing Slot",
-          type: "select",
-          options: () => {
-            const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
-            const slots = getActiveSlotNames2();
-            const options = { "": "None" };
-            slots.forEach((slot) => {
-              options[slot] = slot;
-            });
-            return options;
-          }
-        }
-      }
-    },
-    onChange() {
-      try {
-        if (Interface.Panels?.attachments_panel?.vue) {
-          Interface.Panels.attachments_panel.vue.updateAttachments();
-        }
-      } catch (e) {
-        console.warn("Could not refresh attachments panel:", e);
-      }
-    }
-  });
-  new Property(Group, "boolean", "backdrop");
-  registerStepParentTransformProperties(Group);
-  registerOptionalInternalProperty(Group, "vector", "vs_group_from", (value) => isFiniteVector(value, 3));
-  registerOptionalInternalProperty(Group, "vector", "vs_group_to", (value) => isFiniteVector(value, 3));
-  registerOptionalInternalProperty(Group, "boolean", "vs_has_rotation_origin", (value) => value === true);
-  registerOptionalInternalProperty(Group, "object", "vs_zero_size_faces", isNonEmptyRecord);
-  registerOptionalInternalProperty(Group, "vector2", "vs_uv", (value) => isFiniteVector(value, 2));
-  var VS_CUBE_PROPS = [
-    new Property(Cube, "string", "stepParentName", {
-      default: "",
-      label: "Step Parent",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Step Parent",
-            type: "text"
-          }
-        }
-      },
-      onChange() {
-        Canvas.updateAllBones();
-        Canvas.updateAllPositions();
-      }
-    }),
-    registerPaletteSlotProperty(Cube),
-    new Property(Cube, "boolean", "shade", {
-      default: true,
-      label: "Shade",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Shade",
-            type: "checkbox"
-          }
-        }
-      }
-    }),
-    new Property(Cube, "string", "climateColorMap", {
-      default: "",
-      label: "Climate Color Map",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Climate Color Map",
-            type: "text"
-          }
-        }
-      }
-    }),
-    new Property(Cube, "boolean", "gradientShade", {
-      default: false,
-      label: "Gradient Shade",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Gradient Shade",
-            type: "checkbox"
-          }
-        }
-      }
-    }),
-    new Property(Cube, "number", "renderPass", {
-      default: -1,
-      label: "Render Pass",
-      exposed: true,
-      options: {
-        "-1": "Default",
-        "0": "Opaque",
-        "1": "OpaqueNoCull",
-        "2": "BlendNoCull",
-        "3": "Transparent",
-        "4": "Liquid",
-        "5": "TopSoil",
-        "6": "Meta"
-      },
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Render Pass",
-            type: "select",
-            options: {
-              "-1": "Default",
-              "0": "Opaque",
-              "1": "OpaqueNoCull",
-              "2": "BlendNoCull",
-              "3": "Transparent",
-              "4": "Liquid",
-              "5": "TopSoil",
-              "6": "Meta"
-            }
-          }
-        }
-      }
-    }),
-    new Property(Cube, "string", "seasonColorMap", {
-      default: "",
-      label: "Season Color Map",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Season Color Map",
-            type: "text"
-          }
-        }
-      }
-    }),
-    new Property(Cube, "number", "unwrapMode", {
-      default: 0,
-      label: "Unwrap Mode",
-      exposed: false
-    }),
-    new Property(Cube, "boolean", "autoUnwrap", {
-      default: false,
-      label: "Auto Unwrap",
-      exposed: false
-    }),
-    new Property(Cube, "boolean", "disableRandomDrawOffset", {
-      default: false,
-      label: "Disable Random Draw Offset",
-      exposed: false
-    }),
-    new Property(Cube, "number", "unwrapRotation", {
-      default: 0,
-      label: "Unwrap Rotation",
-      exposed: false
-    })
-  ];
-  new Property(Cube, "string", "clothingSlot", {
-    default: "",
-    label: "Clothing Slot",
-    exposed: true,
-    options: () => {
-      const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
-      const slots = getActiveSlotNames2();
-      const options = { "": "None" };
-      slots.forEach((slot) => {
-        options[slot] = slot;
-      });
-      return options;
-    },
-    inputs: {
-      element_panel: {
-        input: {
-          label: "Clothing Slot",
-          type: "select",
-          options: () => {
-            const { getActiveSlotNames: getActiveSlotNames2 } = (init_presets(), __toCommonJS(presets_exports));
-            const slots = getActiveSlotNames2();
-            const options = { "": "None" };
-            slots.forEach((slot) => {
-              options[slot] = slot;
-            });
-            return options;
-          }
-        }
-      }
-    },
-    onChange() {
-      try {
-        if (Interface.Panels?.attachments_panel?.vue) {
-          Interface.Panels.attachments_panel.vue.updateAttachments();
-        }
-      } catch (e) {
-        console.warn("Could not refresh attachments panel:", e);
-      }
-    }
-  });
-  new Property(Cube, "boolean", "backdrop");
-  registerStepParentTransformProperties(Cube);
-  registerOptionalInternalProperty(Cube, "boolean", "vs_has_rotation_origin", (value) => value === true);
-  registerOptionalInternalProperty(Cube, "vector2", "vs_uv", (value) => isFiniteVector(value, 2));
-  var VS_TEXTURE_PROPS = [
-    new Property(Texture, "string", "textureLocation", {
-      default: "",
-      label: "Texture Location",
-      exposed: true,
-      inputs: {
-        element_panel: {
-          input: {
-            label: "Texture Location",
-            type: "text"
-          }
-        }
-      }
-    })
-  ];
-  var VS_LOCATOR_PROPS = [
-    new Property(Locator, "number", "rotationX", { default: 0 }),
-    new Property(Locator, "number", "rotationY", { default: 0 }),
-    new Property(Locator, "number", "rotationZ", { default: 0 })
-  ];
-  var VS_FACE_PROPS = [
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "number", "glow"),
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "number", "reflectiveMode"),
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "array", "windMode"),
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "array", "windData"),
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "boolean", "autoUv", { default: false }),
-    // @ts-expect-error: CubeFace is not in blockbench types for Property
-    new Property(CubeFace, "boolean", "snapUv", { default: false })
-  ];
+  init_property();
+  init_preserved_props();
 
   // src/import_model/locator.ts
   init_util();
+  init_preserved_props();
   function process_attachment_points(parent, object_space_pos, attachmentPoints, asBackdrop) {
     for (const ap of attachmentPoints) {
       const posX = parseFloat(ap.posX);
@@ -8588,6 +8770,10 @@
       locator.rotationX = parseFloat(ap.rotationX) || 0;
       locator.rotationY = parseFloat(ap.rotationY) || 0;
       locator.rotationZ = parseFloat(ap.rotationZ) || 0;
+      const extras = collect_attachment_point_extras(ap);
+      if (extras) {
+        locator.vs_extra_props = extras;
+      }
       if (asBackdrop) {
         locator.locked = true;
       }
@@ -8632,6 +8818,10 @@
         group[prop_name] = vsElement[prop_name];
       }
     }
+    const extras = collect_element_extras(vsElement, true);
+    if (extras) {
+      group.vs_extra_props = extras;
+    }
     if (vsElement.stepParentName && !group.clothingSlot && filePath && !parent) {
       const inferredSlot = getActiveSlotNames().includes(vsElement.stepParentName) ? vsElement.stepParentName : (init_presets(), __toCommonJS(presets_exports)).inferClothingSlotFromPath(filePath);
       if (inferredSlot) {
@@ -8645,6 +8835,10 @@
     }
     return group;
   }
+
+  // src/import_model/cube.ts
+  init_property();
+  init_preserved_props();
 
   // src/vs_shape_def.ts
   var VS_Direction = /* @__PURE__ */ ((VS_Direction2) => {
@@ -8691,6 +8885,8 @@
 
   // src/import_model/cube/factory.ts
   init_util();
+  init_property();
+  init_preserved_props();
   function create_cube(object_space_pos, vsElement, faces) {
     const cube_options = {
       name: vsElement.name,
@@ -8714,6 +8910,10 @@
         cube[prop_name] = vsElement[prop_name];
       }
     }
+    const extras = collect_element_extras(vsElement);
+    if (extras) {
+      cube.vs_extra_props = extras;
+    }
     return cube;
   }
 
@@ -8736,6 +8936,10 @@
           if (element_face[prop_name] !== void 0) {
             cube_face[prop_name] = element_face[prop_name];
           }
+        }
+        const face_extras = collect_face_extras(vsElement.faces[direction]);
+        if (face_extras) {
+          cube.faces[direction].vs_extra_props = face_extras;
         }
       }
     }
@@ -8792,9 +8996,9 @@
       ...complex,
       from: vector_sub(complex.from, complex.from),
       rotationOrigin: vector_sub(complex.from, complex.from),
-      rotationX: 0,
-      rotationY: 0,
-      rotationZ: 0,
+      rotationX: void 0,
+      rotationY: void 0,
+      rotationZ: void 0,
       to: vector_sub(complex.to, complex.from),
       stepParentName: void 0,
       paletteSlot: void 0,
@@ -8855,18 +9059,366 @@
 
   // src/import_animation.ts
   init_util();
-  function create_animation(vsAnimation, path8, saved_name) {
+
+  // src/animation_library_paths.ts
+  function normalize(p) {
+    return p.replace(/\\/g, "/");
+  }
+  function split_reference(ref) {
+    const trimmed = ref.trim();
+    const idx = trimmed.indexOf(":");
+    if (idx >= 0) {
+      return { domain: trimmed.slice(0, idx), subpath: trimmed.slice(idx + 1) };
+    }
+    return { domain: void 0, subpath: trimmed };
+  }
+  function parse_model_location(modelPath) {
+    const p = normalize(modelPath);
+    const marker = "/assets/";
+    const i = p.indexOf(marker);
+    if (i < 0) return null;
+    const after = p.slice(i + marker.length);
+    const slash = after.indexOf("/");
+    if (slash <= 0) return null;
+    return { assetsRoot: p.slice(0, i) + "/assets", domain: after.slice(0, slash) };
+  }
+  function reference_to_candidate_paths(ref, modelPath) {
+    const ctx = parse_model_location(modelPath);
+    if (!ctx) return [];
+    const { domain, subpath } = split_reference(ref);
+    if (!subpath) return [];
+    const domains = [];
+    if (domain) {
+      domains.push(domain);
+    } else {
+      domains.push(ctx.domain);
+      if (ctx.domain !== "game") domains.push("game");
+    }
+    const seen = /* @__PURE__ */ new Set();
+    const paths = [];
+    for (const d of domains) {
+      const candidate = `${ctx.assetsRoot}/${d}/animations/${subpath}.json`;
+      if (!seen.has(candidate)) {
+        seen.add(candidate);
+        paths.push(candidate);
+      }
+    }
+    return paths;
+  }
+  function path_to_reference(filePath) {
+    const p = normalize(filePath);
+    const marker = "/animations/";
+    const i = p.indexOf(marker);
+    if (i < 0) return null;
+    const subpath = p.slice(i + marker.length).replace(/\.json$/i, "");
+    if (!subpath) return null;
+    const before = p.slice(0, i);
+    const am = "/assets/";
+    const ai = before.lastIndexOf(am);
+    if (ai >= 0) {
+      const domain = before.slice(ai + am.length).split("/")[0];
+      if (domain) return `${domain}:${subpath}`;
+    }
+    return subpath;
+  }
+  function basename_no_ext(filePath) {
+    const p = normalize(filePath);
+    const base = p.slice(p.lastIndexOf("/") + 1);
+    return base.replace(/\.json$/i, "");
+  }
+
+  // src/animation_particles.ts
+  init_util();
+  init_native();
+  var nodePath = requireNativeModule("path");
+  var resolvedEffects = /* @__PURE__ */ new Map();
+  var namespacedEmitters = /* @__PURE__ */ new Set();
+  function clear_particle_cache() {
+    resolvedEffects.clear();
+    namespacedEmitters.clear();
+  }
+  function clear_emitter_mirror(file) {
+    const effect = Animator.particle_effects[file];
+    if (!effect) return;
+    const magnitude = Math.abs(WinterskyScene?.global_options?.scale ?? 1) || 1;
+    for (const key of Object.keys(effect.emitters)) {
+      const emitter = effect.emitters[key];
+      for (const space of [emitter.local_space, emitter.global_space]) {
+        if (!space) continue;
+        const s = space.scale;
+        if (s.x < 0 || s.y < 0 || s.z < 0) s.set(magnitude, magnitude, magnitude);
+      }
+    }
+  }
+  function ensure_emitter_namespaced(file) {
+    if (namespacedEmitters.has(file)) {
+      clear_emitter_mirror(file);
+      return true;
+    }
+    try {
+      Animator.loadParticleEmitter(file, namespace_components(fs.readFileSync(file, "utf-8")));
+    } catch (e) {
+      console.warn(`[VS Particles] Could not load emitter "${file}":`, e);
+      return false;
+    }
+    namespacedEmitters.add(file);
+    clear_emitter_mirror(file);
+    return true;
+  }
+  function particle_file_for(effectCode) {
+    const modelPath = Project?.save_path || Project?.export_path;
+    if (!modelPath) return null;
+    const ctx = parse_model_location(modelPath);
+    if (!ctx) return null;
+    const colon = effectCode.indexOf(":");
+    const domain = colon >= 0 ? effectCode.slice(0, colon) : ctx.domain;
+    const path7 = colon >= 0 ? effectCode.slice(colon + 1) : effectCode;
+    if (!path7) return null;
+    return nodePath.join(ctx.assetsRoot, domain, "particles", `${path7}.json`);
+  }
+  function resolve_particle_effect(effectCode) {
+    const code = effectCode.trim();
+    if (!code) return null;
+    const cached = resolvedEffects.get(code);
+    if (cached !== void 0) return cached;
+    const file = particle_file_for(code);
+    const resolved = file && fs.existsSync(file) && ensure_emitter_namespaced(file) ? file : null;
+    resolvedEffects.set(code, resolved);
+    return resolved;
+  }
+  function namespace_components(content) {
+    const json = JSON.parse(content);
+    const components = json?.particle_effect?.components;
+    if (!components) return content;
+    const namespaced = {};
+    for (const [name2, value] of Object.entries(components)) {
+      namespaced[name2.includes(":") ? name2 : `minecraft:${name2}`] = value;
+    }
+    json.particle_effect.components = mirror_motion(namespaced);
+    return JSON.stringify(json);
+  }
+  function negate(value) {
+    if (typeof value === "number") return -value;
+    if (typeof value === "string" && value.trim()) return `-(${value})`;
+    return value;
+  }
+  var MIRRORED_FIELDS = {
+    "minecraft:particle_motion_dynamic": ["linear_acceleration"],
+    "minecraft:particle_motion_parametric": ["relative_position", "direction"],
+    "minecraft:particle_initial_speed": ["*"],
+    "minecraft:emitter_shape_point": ["offset", "direction"],
+    "minecraft:emitter_shape_sphere": ["offset", "direction"],
+    "minecraft:emitter_shape_box": ["offset", "direction"],
+    "minecraft:emitter_shape_disc": ["offset", "direction", "plane_normal"],
+    "minecraft:emitter_shape_entity_aabb": ["direction"]
+  };
+  function mirror_motion(components) {
+    for (const [name2, fields] of Object.entries(MIRRORED_FIELDS)) {
+      const component = components[name2];
+      if (!component) continue;
+      if (fields[0] === "*") {
+        if (Array.isArray(component)) components[name2] = component.map(negate);
+        continue;
+      }
+      for (const field of fields) {
+        if (Array.isArray(component[field])) component[field] = component[field].map(negate);
+      }
+    }
+    return components;
+  }
+  function particle_data_point(effect, locator) {
+    const file = resolve_particle_effect(effect);
+    const dp = { effect, locator: locator || "" };
+    if (file) dp.file = file;
+    return dp;
+  }
+  Blockbench.on("load_project", () => {
+    if (!is_vs_project(Project)) return;
+    relink_particle_previews();
+  });
+  function ensure_particle_links(animator, relink = false) {
+    let linked = 0;
+    for (const keyframe of animator?.particle || []) {
+      for (const dp of keyframe.data_points) {
+        if (dp.file && !relink) {
+          ensure_emitter_namespaced(dp.file);
+          continue;
+        }
+        const file = resolve_particle_effect(dp.effect || "");
+        if (file) {
+          dp.file = file;
+          linked++;
+        } else if (relink) {
+          if (dp.file && fs.existsSync(dp.file) && ensure_emitter_namespaced(dp.file)) linked++;
+          else delete dp.file;
+        }
+      }
+    }
+    return linked;
+  }
+  function relink_particle_previews() {
+    clear_particle_cache();
+    let linked = 0;
+    for (const animation of Blockbench.Animation.all) {
+      linked += ensure_particle_links(animation.animators?.effects, true);
+    }
+    return linked;
+  }
+
+  // src/animation_sounds.ts
+  init_util();
+  init_native();
+  var SOUND_EXTENSIONS = [".ogg", ".wav", ".mp3"];
+  var SOUND_DEFAULTS = { vs_range: 32, vs_volume: 1, vs_pitch: 1, vs_chance: 1 };
+  function onSoundKeyframe(dataPoint) {
+    return dataPoint?.keyframe?.channel === "sound";
+  }
+  if (typeof KeyframeDataPoint !== "undefined") {
+    for (const [key, value] of Object.entries(SOUND_DEFAULTS)) {
+      const name2 = key.slice(3);
+      new Property(KeyframeDataPoint, "number", key, {
+        label: name2[0].toUpperCase() + name2.slice(1),
+        exposed: true,
+        default: value,
+        condition: onSoundKeyframe
+      });
+    }
+    new Property(KeyframeDataPoint, "boolean", "vs_looping", {
+      label: "Looping",
+      exposed: true,
+      default: false,
+      condition: onSoundKeyframe
+    });
+  }
+  function readSoundOptions(dp) {
+    const out = {};
+    for (const key of ["range", "volume", "pitch", "chance"]) {
+      const raw = dp[`vs_${key}`];
+      if (raw === void 0 || raw === null || raw === "") continue;
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value === SOUND_DEFAULTS[`vs_${key}`]) continue;
+      out[key] = value;
+    }
+    if (dp.vs_looping === true) out.looping = true;
+    return out;
+  }
+  function without_extension(path7) {
+    for (const ext of SOUND_EXTENSIONS) {
+      if (path7.toLowerCase().endsWith(ext)) return path7.slice(0, -ext.length);
+    }
+    return path7;
+  }
+  function sound_location_for_file(filePath) {
+    const p = filePath.replace(/\\/g, "/");
+    const match = /\/assets\/([^/]+)\/(sounds\/.+)$/.exec(p);
+    if (!match) return null;
+    return `${match[1]}:${without_extension(match[2])}`;
+  }
+  function sound_location_for_data_point(dp) {
+    const effect = (dp.effect || "").trim();
+    if (!effect) return dp.file ? sound_location_for_file(dp.file) : null;
+    if (effect.includes(":") || effect.includes("/")) return effect;
+    const fromFile = sound_location_for_file(dp.file || sound_file_for_location(effect) || "");
+    if (!fromFile) return effect;
+    const colon = fromFile.indexOf(":");
+    const domain = fromFile.slice(0, colon);
+    const folder = fromFile.slice(colon + 1).split("/").slice(0, -1).join("/");
+    return folder ? `${domain}:${folder}/${effect}` : `${domain}:${effect}`;
+  }
+  function sound_from_data_point(dp) {
+    const location = sound_location_for_data_point(dp);
+    if (!location) return null;
+    return { location, ...readSoundOptions(dp) };
+  }
+  function sound_file_for_location(location) {
+    const modelPath = Project?.save_path || Project?.export_path;
+    if (!modelPath) return null;
+    const ctx = parse_model_location(modelPath);
+    if (!ctx) return null;
+    const colon = location.indexOf(":");
+    const domain = colon >= 0 ? location.slice(0, colon) : ctx.domain;
+    const path7 = (colon >= 0 ? location.slice(colon + 1) : location).replace(/^sounds\//, "");
+    if (!path7) return null;
+    const concrete = path7.split("*").join("1");
+    const soundsRoot = `${ctx.assetsRoot}/${domain}/sounds`;
+    for (const ext of SOUND_EXTENSIONS) {
+      const candidate = `${soundsRoot}/${concrete}${ext}`;
+      if (fs.existsSync(candidate)) return candidate;
+    }
+    return find_sound_by_name(soundsRoot, concrete.split("/").pop() ?? concrete);
+  }
+  function find_sound_by_name(dir, name2, depth = 0) {
+    if (depth > 6 || !fs.existsSync(dir)) return null;
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return null;
+    }
+    for (const entry of entries) {
+      if (entry.isFile() && SOUND_EXTENSIONS.some((ext) => entry.name.toLowerCase() === name2.toLowerCase() + ext)) {
+        return `${dir}/${entry.name}`;
+      }
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const found = find_sound_by_name(`${dir}/${entry.name}`, name2, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+  function ensure_sound_links(animator, relink = false) {
+    let linked = 0;
+    for (const keyframe of animator?.sound || []) {
+      for (const dp of keyframe.data_points) {
+        if (dp.file && !relink) continue;
+        const file = sound_file_for_location((dp.effect || "").trim());
+        if (file) {
+          dp.file = file;
+          linked++;
+        } else if (relink) {
+          delete dp.file;
+        }
+      }
+    }
+    return linked;
+  }
+  function relink_sound_files() {
+    let linked = 0;
+    for (const animation of Blockbench.Animation.all) {
+      linked += ensure_sound_links(animation.animators?.effects, true);
+    }
+    return linked;
+  }
+  Blockbench.on("load_project", () => {
+    if (!is_vs_project(Project)) return;
+    relink_sound_files();
+  });
+  function sound_data_point(sound) {
+    const dp = { effect: sound.location };
+    const file = sound_file_for_location(sound.location);
+    if (file) dp.file = file;
+    for (const key of ["range", "volume", "pitch", "chance"]) {
+      if (sound[key] !== void 0) dp[`vs_${key}`] = sound[key];
+    }
+    if (sound.looping) dp.vs_looping = true;
+    return dp;
+  }
+
+  // src/import_animation.ts
+  init_preserved_props();
+  function create_animation(vsAnimation, path7, saved_name) {
     const FPS = fps;
     const animationLength = vsAnimation.quantityframes / FPS;
     const isLooping = vsAnimation.onAnimationEnd === "Repeat";
-    const animation = new Animation({
-      //@ts-expect-error: Blockbench overwrites libdom's Animation type with its own Animation Class, but TypeScript doesn't include a way to overwrite UMD global types.
+    const animation = new Blockbench.Animation({
       name: vsAnimation.name,
+      path: path7 || "",
       loop: isLooping ? "loop" : vsAnimation.onAnimationEnd === "Hold" ? "hold" : "once",
       length: animationLength,
       snapping: FPS
     }).add();
-    if (path8) animation.path = path8;
+    if (path7) animation.path = path7;
     if (saved_name) {
       animation.saved_name = saved_name;
       animation.saved = true;
@@ -8874,6 +9426,7 @@
     animation.vs_code = vsAnimation.code;
     animation.vs_onActivityStopped = vsAnimation.onActivityStopped;
     animation.vs_onAnimationEnd = vsAnimation.onAnimationEnd;
+    store_animation_extras(animation, vsAnimation);
     const channelFrames = buildChannelFrames(vsAnimation);
     vsAnimation.keyframes.forEach((vsKeyframe) => {
       if (vsKeyframe.particles && vsKeyframe.particles.length > 0) {
@@ -8881,12 +9434,37 @@
         effects.addKeyframe({
           channel: "particle",
           time: vsKeyframe.frame / FPS,
-          data_points: vsKeyframe.particles.map((p) => ({ effect: p.effect, locator: p.atAttachmentPoint || "" }))
+          data_points: vsKeyframe.particles.map((p) => particle_data_point(p.effect, p.atAttachmentPoint))
+        });
+      }
+      if (vsKeyframe.sounds && vsKeyframe.sounds.length > 0) {
+        getEffectAnimator(animation).addKeyframe({
+          channel: "sound",
+          time: vsKeyframe.frame / FPS,
+          data_points: vsKeyframe.sounds.map((s) => sound_data_point(s))
+        });
+      }
+      if (vsKeyframe.textures) {
+        getEffectAnimator(animation).addKeyframe({
+          channel: "timeline",
+          time: vsKeyframe.frame / FPS,
+          data_points: [{ script: `"textures": ${JSON.stringify(vsKeyframe.textures)}` }]
         });
       }
       for (const boneName in vsKeyframe.elements) {
         const transform = vsKeyframe.elements[boneName];
-        const bone = Group.all.find((g) => g.name === boneName);
+        let bone = Group.all.find((g) => g.name === boneName);
+        if (!bone) {
+          const cube = Cube.all.find((c) => c.name === boneName);
+          if (cube) {
+            bone = new Group(cube.getSaveCopy()).sortInBefore(cube).init();
+            cube.name = `${boneName}_geo`;
+            cube.rotation = [0, 0, 0];
+            cube.stepParentName = "";
+            cube.addTo(bone);
+            Canvas.updateAllPositions();
+          }
+        }
         if (!bone) continue;
         const animator = animation.getBoneAnimator(bone);
         const frames = channelFrames[boneName];
@@ -8904,7 +9482,7 @@
   function getEffectAnimator(animation) {
     const animators = animation.animators;
     if (animators.effects) return animators.effects;
-    animators.effects = new EffectAnimator(null, animation, "Effects");
+    animators.effects = new EffectAnimator(animation);
     return animators.effects;
   }
   var IMPORT_CHANNELS = {
@@ -8936,6 +9514,39 @@
       default: 1
     }
   };
+  var ANIMATION_KNOWN_KEYS = /* @__PURE__ */ new Set([
+    "name",
+    "code",
+    "quantityframes",
+    "onActivityStopped",
+    "onAnimationEnd",
+    "keyframes"
+  ]);
+  var KEYFRAME_KNOWN_KEYS = /* @__PURE__ */ new Set(["frame", "elements", "textures", "particles", "sounds"]);
+  var ANIMATION_KEY_KNOWN_KEYS = new Set(
+    Object.keys(IMPORT_CHANNELS).flatMap((channel) => {
+      const cfg = IMPORT_CHANNELS[channel];
+      return [cfg.interp, ...cfg.value, ...cfg.tangentIn, ...cfg.tangentOut, ...cfg.widthIn, ...cfg.widthOut];
+    })
+  );
+  function store_animation_extras(animation, vsAnimation) {
+    const animationExtras = collect_extras(vsAnimation, ANIMATION_KNOWN_KEYS);
+    if (animationExtras) animation.vs_extra_props = animationExtras;
+    const keyframeExtras = {};
+    const elementExtras = {};
+    vsAnimation.keyframes.forEach((vsKeyframe) => {
+      const frame = String(vsKeyframe.frame);
+      const extras = collect_extras(vsKeyframe, KEYFRAME_KNOWN_KEYS);
+      if (extras) keyframeExtras[frame] = extras;
+      for (const boneName in vsKeyframe.elements) {
+        const elemExtras = collect_extras(vsKeyframe.elements[boneName], ANIMATION_KEY_KNOWN_KEYS);
+        if (!elemExtras) continue;
+        (elementExtras[boneName] = elementExtras[boneName] || {})[frame] = elemExtras;
+      }
+    });
+    if (Object.keys(keyframeExtras).length) animation.vs_extra_keyframe_props = keyframeExtras;
+    if (Object.keys(elementExtras).length) animation.vs_extra_element_props = elementExtras;
+  }
   function buildChannelFrames(vsAnimation) {
     const map = {};
     vsAnimation.keyframes.forEach((kf) => {
@@ -9015,15 +9626,19 @@
     return "linear";
   }
   function clear_animations() {
-    const all = Animation.all.slice();
+    const all = Blockbench.Animation.all.slice();
     all.forEach((a) => a.remove(true));
     return all.length;
   }
 
+  // src/import.ts
+  init_property();
+  init_preserved_props();
+
   // src/util/misc.ts
   var import_json52 = __toESM(require_lib(), 1);
+  init_native();
   var path3 = requireNativeModule("path");
-  var fs3 = requireNativeModule("fs");
   function load_back_drop_shape(backDropShape) {
     Blockbench.read([get_shape_location(null, backDropShape)], {
       readtype: "text",
@@ -9035,11 +9650,11 @@
   function get_shape_location(domain, rel_path) {
     for (const base_mod_path of ["creative", "game", "survival"]) {
       const f = path3.posix.format({
-        root: Settings.get("game_path") + path3.sep + "assets" + path3.sep + base_mod_path + path3.sep + "shapes" + path3.sep,
+        root: get_game_path() + path3.sep + "assets" + path3.sep + base_mod_path + path3.sep + "shapes" + path3.sep,
         name: rel_path,
         ext: ".json"
       });
-      const exists = fs3.existsSync(f);
+      const exists = fs.existsSync(f);
       if (exists) {
         return f;
       }
@@ -9050,75 +9665,9 @@
     return Group.all.some((g) => g.backdrop) || Cube.all.some((c) => c.backdrop);
   }
 
-  // src/animation_library_paths.ts
-  function normalize(p) {
-    return p.replace(/\\/g, "/");
-  }
-  function split_reference(ref) {
-    const trimmed = ref.trim();
-    const idx = trimmed.indexOf(":");
-    if (idx >= 0) {
-      return { domain: trimmed.slice(0, idx), subpath: trimmed.slice(idx + 1) };
-    }
-    return { domain: void 0, subpath: trimmed };
-  }
-  function parse_model_location(modelPath) {
-    const p = normalize(modelPath);
-    const marker = "/assets/";
-    const i = p.indexOf(marker);
-    if (i < 0) return null;
-    const after = p.slice(i + marker.length);
-    const slash = after.indexOf("/");
-    if (slash <= 0) return null;
-    return { assetsRoot: p.slice(0, i) + "/assets", domain: after.slice(0, slash) };
-  }
-  function reference_to_candidate_paths(ref, modelPath) {
-    const ctx = parse_model_location(modelPath);
-    if (!ctx) return [];
-    const { domain, subpath } = split_reference(ref);
-    if (!subpath) return [];
-    const domains = [];
-    if (domain) {
-      domains.push(domain);
-    } else {
-      domains.push(ctx.domain);
-      if (ctx.domain !== "game") domains.push("game");
-    }
-    const seen = /* @__PURE__ */ new Set();
-    const paths = [];
-    for (const d of domains) {
-      const candidate = `${ctx.assetsRoot}/${d}/animations/${subpath}.json`;
-      if (!seen.has(candidate)) {
-        seen.add(candidate);
-        paths.push(candidate);
-      }
-    }
-    return paths;
-  }
-  function path_to_reference(filePath) {
-    const p = normalize(filePath);
-    const marker = "/animations/";
-    const i = p.indexOf(marker);
-    if (i < 0) return null;
-    const subpath = p.slice(i + marker.length).replace(/\.json$/i, "");
-    if (!subpath) return null;
-    const before = p.slice(0, i);
-    const am = "/assets/";
-    const ai = before.lastIndexOf(am);
-    if (ai >= 0) {
-      const domain = before.slice(ai + am.length).split("/")[0];
-      if (domain) return `${domain}:${subpath}`;
-    }
-    return subpath;
-  }
-  function basename_no_ext(filePath) {
-    const p = normalize(filePath);
-    const base = p.slice(p.lastIndexOf("/") + 1);
-    return base.replace(/\.json$/i, "");
-  }
-
   // src/export_animation.ts
   init_util();
+  init_preserved_props();
   function mapInterpolation2(bbMode) {
     if (!bbMode || bbMode === "linear") return { mode: null, isCatmull: false };
     if (bbMode === "bezier") return { mode: "Bezier", isCatmull: false };
@@ -9257,6 +9806,20 @@
       );
     }
   }
+  var CHANNEL_AXIS_NEUTRALS = [
+    [["offsetX", "offsetY", "offsetZ"], 0],
+    [["rotationX", "rotationY", "rotationZ"], 0],
+    [["stretchX", "stretchY", "stretchZ"], 1]
+  ];
+  function pad_partial_channels(elem) {
+    for (const [axes, neutral] of CHANNEL_AXIS_NEUTRALS) {
+      if (axes.some((axis) => elem[axis] !== void 0)) {
+        for (const axis of axes) {
+          if (elem[axis] === void 0) elem[axis] = neutral;
+        }
+      }
+    }
+  }
   function compile_animation(animation, catmullConverted) {
     if (is_backdrop_project()) return null;
     const keyframes = {};
@@ -9277,7 +9840,7 @@
           }
         });
         Object.keys(byChannel).forEach((ch) => byChannel[ch].sort((a, b) => a.time - b.time));
-        const scaleNeedsAllKeys = byChannel.scale.some((kf) => mapInterpolation2(kf.interpolation).mode !== null);
+        const scaleNeedsAllKeys = byChannel.scale.some((kf) => mapInterpolation2(kf.interpolation).mode !== null || ["x", "y", "z"].some((axis) => Number(kf.data_points[0][axis]) !== 1));
         animator.keyframes.forEach((kf) => {
           const { mode: vsInterp, isCatmull } = mapInterpolation2(kf.interpolation);
           if (isCatmull) hadCatmullConversion = true;
@@ -9312,9 +9875,11 @@
               applyInterp();
               break;
             case "scale":
-              if (scaleNeedsAllKeys || value.x !== 1) elem.stretchX = value.x;
-              if (scaleNeedsAllKeys || value.y !== 1) elem.stretchY = value.y;
-              if (scaleNeedsAllKeys || value.z !== 1) elem.stretchZ = value.z;
+              if (scaleNeedsAllKeys || value.x !== 1 || value.y !== 1 || value.z !== 1) {
+                elem.stretchX = value.x;
+                elem.stretchY = value.y;
+                elem.stretchZ = value.z;
+              }
               applyInterp();
               break;
           }
@@ -9345,10 +9910,27 @@
               (keyframes[frame].particles = keyframes[frame].particles || []).push(particle);
             });
           }
+          if (kf.channel === "sound") {
+            kf.data_points.forEach((dp) => {
+              const sound = sound_from_data_point(dp);
+              if (!sound) return;
+              const frame = Math.round(kf.time * fps2);
+              keyframes[frame] = keyframes[frame] || { frame, elements: {} };
+              (keyframes[frame].sounds = keyframes[frame].sounds || []).push(sound);
+            });
+          }
         });
       }
     });
     normalize_terminal_keyframe(keyframes, baseFrameCount);
+    for (const keyframe of Object.values(keyframes)) {
+      const frame = String(keyframe.frame);
+      apply_extra_props(keyframe, animation.vs_extra_keyframe_props?.[frame]);
+      for (const [bone_name, elem] of Object.entries(keyframe.elements)) {
+        apply_extra_props(elem, animation.vs_extra_element_props?.[bone_name]?.[frame]);
+        pad_partial_channels(elem);
+      }
+    }
     for (const keyframe of Object.values(keyframes)) {
       const wrapped_elements = {};
       for (const [element, content] of Object.entries(keyframe.elements)) {
@@ -9357,6 +9939,9 @@
       keyframe.elements = wrapped_elements;
       if (keyframe.particles) {
         keyframe.particles = keyframe.particles.map((p) => new oneLiner(p));
+      }
+      if (keyframe.sounds) {
+        keyframe.sounds = keyframe.sounds.map((s) => new oneLiner(s));
       }
     }
     const storedCode = animation.vs_code;
@@ -9368,7 +9953,7 @@
       once: ["Stop", "EaseOut"]
     };
     const validEnds = loopToEnd[animation.loop] ?? loopToEnd.once;
-    const onAnimationEnd = validEnds.includes(storedOnAnimationEnd) ? storedOnAnimationEnd : validEnds[0];
+    const onAnimationEnd = storedOnAnimationEnd && validEnds.includes(storedOnAnimationEnd) ? storedOnAnimationEnd : validEnds[0];
     const vsAnimation = {
       name: animation.name,
       code: storedCode || animation.name.toLowerCase().replace(/ /g, ""),
@@ -9394,12 +9979,15 @@
         if (frame0) {
           const virtualFrame = JSON.parse(JSON.stringify(frame0));
           virtualFrame.frame = lastFrame;
+          delete virtualFrame.sounds;
+          delete virtualFrame.particles;
           vsAnimation.keyframes.push(virtualFrame);
           vsAnimation.keyframes.sort((a, b) => a.frame - b.frame);
         }
       }
     }
     if (vsAnimation.keyframes.length === 0) return null;
+    apply_extra_props(vsAnimation, animation.vs_extra_props);
     if (hadCatmullConversion && catmullConverted) catmullConverted.push(animation.name);
     return vsAnimation;
   }
@@ -9455,7 +10043,8 @@
     return JSON.stringify({
       elements: sort_nested_object(keyframe.elements),
       textures: keyframe.textures ? sort_nested_object(keyframe.textures) : void 0,
-      particles: keyframe.particles ? sort_nested_object(keyframe.particles) : void 0
+      particles: keyframe.particles ? sort_nested_object(keyframe.particles) : void 0,
+      sounds: keyframe.sounds ? sort_nested_object(keyframe.sounds) : void 0
     });
   }
   function sort_nested_object(value) {
@@ -9500,10 +10089,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   }
 
   // src/animation_codec.ts
-  var fs4 = requireNativeModule("fs");
+  var import_json53 = __toESM(require_lib(), 1);
+  init_native();
   var libraryMeta = /* @__PURE__ */ new Map();
   function all_animations() {
-    return Animation.all;
+    return Blockbench.Animation.all;
   }
   function default_animations_dir() {
     const modelPath = Project?.save_path || Project?.export_path;
@@ -9511,9 +10101,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     const ctx = parse_model_location(modelPath);
     return ctx ? `${ctx.assetsRoot}/${ctx.domain}/animations` : void 0;
   }
-  function build_library(path8, animations) {
-    const meta = path8 ? libraryMeta.get(path8) : void 0;
-    const stem = path8 ? basename_no_ext(path8) : void 0;
+  function build_library(path7, animations) {
+    const meta = path7 ? libraryMeta.get(path7) : void 0;
+    const stem = path7 ? basename_no_ext(path7) : void 0;
     const library = { animations };
     const code = meta?.code ?? stem;
     const name2 = meta?.name ?? stem;
@@ -9521,10 +10111,16 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (name2) library.name = name2;
     return library;
   }
+  function read_library(path7) {
+    if (!path7 || !fs.existsSync(path7)) return null;
+    const library = import_json53.default.parse(fs.readFileSync(path7, "utf-8"));
+    if (!Array.isArray(library.animations)) throw new Error(`Invalid animation library: ${path7}`);
+    return library;
+  }
   function load_file(file, animation_filter) {
-    const json = file.json ?? autoParseJSON(file.content);
+    const json = file.json ?? import_json53.default.parse(file.content);
     const created = [];
-    if (!json || !Array.isArray(json.animations)) return created;
+    if (!Array.isArray(json.animations)) throw new Error(`Invalid animation library: ${file.path}`);
     libraryMeta.set(file.path, { code: json.code, name: json.name });
     for (const vsAnim of json.animations) {
       if (animation_filter && !animation_filter.includes(vsAnim.name)) continue;
@@ -9532,10 +10128,27 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     }
     return created;
   }
-  function compile_file(animations) {
-    const path8 = animations[0]?.path;
-    const compiled = compile_animation_library(animations).animations;
-    return build_library(path8, compiled);
+  function compile_file(animations, compiled = compile_animation_library(animations).animations) {
+    const path7 = animations[0]?.path;
+    const sharedPath = path7 && animations.every((a) => a.path === path7) ? path7 : void 0;
+    const library = read_library(sharedPath);
+    if (!library) return build_library(sharedPath, compiled);
+    if (sharedPath) libraryMeta.set(sharedPath, { code: library.code, name: library.name });
+    const renamedFrom = /* @__PURE__ */ new Map();
+    for (const a of animations) {
+      if (a.saved_name && a.saved_name !== a.name) renamedFrom.set(a.name, a.saved_name);
+    }
+    for (const vsAnim of compiled) {
+      const oldName = renamedFrom.get(vsAnim.name) ?? vsAnim.name;
+      const idx = library.animations.findIndex((a) => a.name === oldName || a.name === vsAnim.name);
+      if (idx >= 0) {
+        library.animations[idx] = vsAnim;
+        library.animations = library.animations.filter((a, i) => i === idx || a.name !== vsAnim.name);
+      } else {
+        library.animations.push(vsAnim);
+      }
+    }
+    return library;
   }
   function pick_file() {
     Blockbench.import({
@@ -9551,7 +10164,26 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     });
   }
   function import_file(file) {
-    return load_file(file);
+    Undo.initEdit({ animations: [], outliner: true, elements: Cube.all });
+    const created = load_file(file);
+    Undo.finishEdit("Import animations", { animations: created });
+    return created;
+  }
+  function reload_animations(animations) {
+    if (!animations.length) return;
+    const path7 = animations[0].path;
+    const json = import_json53.default.parse(fs.readFileSync(path7, "utf-8"));
+    if (!Array.isArray(json.animations)) throw new Error(`Invalid animation library: ${path7}`);
+    const selected = animations.find((a) => a.selected);
+    Undo.initEdit({ animations, outliner: true, elements: Cube.all });
+    animations.forEach((a) => a.remove(false, false));
+    const created = load_file({ path: path7, json }, animations.map((a) => a.saved_name || a.name));
+    for (const animation of created) {
+      const previous = animations.find((a) => (a.saved_name || a.name) === animation.name);
+      animation.vs_library_ref = previous.vs_library_ref;
+      if (previous === selected) animation.select();
+    }
+    Undo.finishEdit("Reload animations", { animations: created });
   }
   function write_animation_to_library(animation) {
     const vsAnim = compile_animation(animation);
@@ -9562,32 +10194,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       });
       return;
     }
-    const path8 = animation.path;
-    let existing = null;
-    if (fs4.existsSync(path8)) {
-      try {
-        existing = autoParseJSON(fs4.readFileSync(path8, "utf-8"));
-      } catch (e) {
-        console.error("[VS Animation Codec] Failed to read existing library, overwriting:", e);
-        existing = null;
-      }
-    }
-    let library;
-    if (existing && Array.isArray(existing.animations)) {
-      library = existing;
-      libraryMeta.set(path8, { code: existing.code, name: existing.name });
-      const oldName = animation.saved_name ?? vsAnim.name;
-      const idx = library.animations.findIndex((a) => a.name === oldName || a.name === vsAnim.name);
-      if (idx >= 0) {
-        library.animations[idx] = vsAnim;
-        library.animations = library.animations.filter((a, i) => i === idx || a.name !== vsAnim.name);
-      } else {
-        library.animations.push(vsAnim);
-      }
-    } else {
-      library = build_library(path8, [vsAnim]);
-    }
-    Blockbench.writeFile(path8, { content: autoStringify(library) }, (real_path) => {
+    const path7 = animation.path;
+    const library = compile_file([animation], [vsAnim]);
+    Blockbench.writeFile(path7, { content: autoStringify(library) }, (real_path) => {
       animation.saved = true;
       animation.saved_name = animation.name;
       animation.path = real_path;
@@ -9605,6 +10214,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         custom_writer: (_content, exportPath) => {
           if (!exportPath) return;
           animation.path = exportPath;
+          delete animation.vs_library_ref;
           write_animation_to_library(animation);
         }
       });
@@ -9612,11 +10222,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     }
     write_animation_to_library(animation);
   }
-  function export_file(path8, save_as) {
-    const filterPath = path8 || "";
+  function export_file(path7, save_as) {
+    const filterPath = path7 || "";
     const animations = all_animations().filter((a) => (a.path || "") === filterPath);
     if (animations.length === 0) return;
-    if (!save_as && filterPath && fs4.existsSync(filterPath)) {
+    if (!save_as && filterPath && fs.existsSync(filterPath)) {
       animations.forEach((a) => a.save());
       return;
     }
@@ -9630,8 +10240,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         if (!exportPath) return;
         animations.forEach((a) => {
           a.path = exportPath;
+          delete a.vs_library_ref;
         });
-        fs4.writeFileSync(exportPath, autoStringify(compile_file(animations)));
+        fs.writeFileSync(exportPath, autoStringify(compile_file(animations)));
         animations.forEach((a) => {
           a.saved = true;
           a.saved_name = a.name;
@@ -9640,19 +10251,12 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     });
   }
   function delete_animation_from_file(animation) {
-    const path8 = animation.path;
-    if (!path8 || !fs4.existsSync(path8)) return;
-    let library = null;
-    try {
-      library = autoParseJSON(fs4.readFileSync(path8, "utf-8"));
-    } catch (e) {
-      console.error("[VS Animation Codec] Failed to read library for deletion:", e);
-      return;
-    }
-    if (!library || !Array.isArray(library.animations)) return;
+    const path7 = animation.path;
+    const library = read_library(path7);
+    if (!library) return;
     const target = animation.saved_name ?? animation.name;
     library.animations = library.animations.filter((a) => a.name !== target);
-    Blockbench.writeFile(path8, { content: autoStringify(library) });
+    Blockbench.writeFile(path7, { content: autoStringify(library) });
   }
   function create_vs_animation_codec() {
     if (typeof AnimationCodec === "undefined") {
@@ -9664,6 +10268,8 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       pickFile: pick_file,
       importFile: import_file,
       loadFile: load_file,
+      reloadFile: (path7) => reload_animations(all_animations().filter((a) => a.path === path7 && a.saved)),
+      reloadAnimation: (animation) => reload_animations([animation]),
       compileAnimation: (animation) => compile_animation(animation),
       compileFile: compile_file,
       saveAnimation: save_animation,
@@ -9674,7 +10280,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   var vsAnimationCodec = create_vs_animation_codec();
 
   // src/import.ts
-  var fs5 = requireNativeModule("fs");
+  init_native();
   function im(content, _path, asBackdrop) {
     if (!Project) {
       throw new Error("No project loaded during import");
@@ -9700,6 +10306,14 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
           Project[prop_name] = content.editor[prop_name];
         }
       }
+      const shape_extras = collect_shape_extras(content);
+      if (shape_extras) {
+        Project.vs_extra_props = shape_extras;
+      }
+      const editor_extras = collect_editor_extras(content.editor);
+      if (editor_extras) {
+        Project.vs_extra_editor_props = editor_extras;
+      }
       if (Project.backDropShape && Project.backDropShape !== "") {
         load_back_drop_shape(Project.backDropShape);
       }
@@ -9716,14 +10330,14 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (!vsAnimationCodec) return;
     for (const ref of refs) {
       const candidates = reference_to_candidate_paths(ref, modelPath);
-      const filePath = candidates.find((p) => fs5.existsSync(p));
+      const filePath = candidates.find((p) => fs.existsSync(p));
       if (!filePath) {
         console.warn(`[VS Import] Animation library "${ref}" not found. Looked in: ${candidates.join(", ") || "(model is not inside an assets/<domain> tree)"}`);
         continue;
       }
       let fileContent;
       try {
-        fileContent = fs5.readFileSync(filePath, "utf-8");
+        fileContent = fs.readFileSync(filePath, "utf-8");
       } catch (e) {
         console.error(`[VS Import] Failed to read animation library ${filePath}:`, e);
         continue;
@@ -9735,7 +10349,13 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     }
   }
 
+  // src/export_model/cube.ts
+  init_property();
+  init_preserved_props();
+
   // src/export_model/cube/faces.ts
+  init_property();
+  init_preserved_props();
   function transformUV(uv, rotation, direction) {
     if (direction === "down" /* DOWN */) {
       const correctedRotation = (rotation + 180) % 360;
@@ -9781,6 +10401,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         if (typeof value === "boolean" && value === false) continue;
         processed_face[prop_name] = value;
       }
+      apply_extra_props(processed_face, face.vs_extra_props);
       processed_faces[direction] = new oneLiner(processed_face);
     }
     return processed_faces;
@@ -9860,11 +10481,14 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         vsElement[prop_name] = numValue;
       }
     }
+    apply_extra_props(vsElement, node.vs_extra_props);
     accu.push(vsElement);
   }
 
   // src/export_model/group.ts
   init_util();
+  init_property();
+  init_preserved_props();
   init_locator();
   function get_parent_pos(parent, parent_from_override) {
     if (parent_from_override) {
@@ -9878,6 +10502,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   }
   function get_group_vs_to(node) {
     return node.vs_group_to ?? [...node.origin];
+  }
+  function keeps_rotation_origin(node, element_from) {
+    if (node.vs_has_rotation_origin !== false) return true;
+    if (node.rotation.some((angle) => angle !== 0)) return true;
+    return !vector_equals(node.origin, element_from);
   }
   function process_group2(parent, node, accu, offset, parent_from_override) {
     if (node.backdrop) {
@@ -9895,12 +10524,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       to = vector_add(to, offset);
       rotationOrigin = vector_add(rotationOrigin, offset);
     }
-    const hasRotation = converted_rotation[0] !== 0 || converted_rotation[1] !== 0 || converted_rotation[2] !== 0;
     const vsElement = {
       name: node.name,
       from,
       to,
-      rotationOrigin,
+      ...keeps_rotation_origin(node, node_vs_from) && { rotationOrigin },
       ...node.vs_uv ? { uv: node.vs_uv } : void 0,
       ...converted_rotation[0] !== 0 && { rotationX: converted_rotation[0] },
       ...converted_rotation[1] !== 0 && { rotationY: converted_rotation[1] },
@@ -9936,6 +10564,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         vsElement[prop_name] = numValue;
       }
     }
+    apply_extra_props(vsElement, node.vs_extra_props);
     const locators = node.children.filter((child) => child instanceof Locator && !(typeof NullObject !== "undefined" && child instanceof NullObject));
     if (locators.length > 0) {
       const attachmentPoints = process_locators(node, locators);
@@ -9965,12 +10594,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       rotationOrigin = vector_add(rotationOrigin, offset);
     }
     const reduced_faces = process_faces2(geoChild.faces);
-    const hasRotation = converted_rotation[0] !== 0 || converted_rotation[1] !== 0 || converted_rotation[2] !== 0;
     const vsElement = {
       name: node.name,
       from,
       to,
-      rotationOrigin,
+      ...keeps_rotation_origin(node, geoChild.from) && { rotationOrigin },
       ...geoChild.vs_uv ? { uv: geoChild.vs_uv } : (geoChild.uv_offset[0] !== 0 || geoChild.uv_offset[1] !== 0) && { uv: geoChild.uv_offset },
       ...converted_rotation[0] !== 0 && { rotationX: converted_rotation[0] },
       ...converted_rotation[1] !== 0 && { rotationY: converted_rotation[1] },
@@ -10019,6 +10647,8 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         vsElement[prop_name] = numValue;
       }
     }
+    apply_extra_props(vsElement, geoChild.vs_extra_props);
+    apply_extra_props(vsElement, node.vs_extra_props);
     const locators = node.children.filter((child) => child instanceof Locator && !(typeof NullObject !== "undefined" && child instanceof NullObject));
     if (locators.length > 0) {
       const attachmentPoints = process_locators(node, locators);
@@ -10077,10 +10707,19 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     return elements;
   }
 
+  // src/export.ts
+  init_property();
+  init_preserved_props();
+
   // src/export_textures.ts
-  var fs6 = requireNativeModule("fs");
+  init_native();
   var path4 = requireNativeModule("path");
-  function resolveTextureLocation(projectPath, textureName) {
+  function warnTextureReadErrors(readErrors) {
+    if (readErrors.size === 0) return;
+    console.error("[VS Export] Unresolved texture search; unreadable folders:", readErrors);
+    Blockbench.showQuickMessage("Some texture paths are unresolved and folders could not be searched. Check the exported texture references.", 5e3);
+  }
+  function resolveTextureLocation(projectPath, textureName, readErrors = /* @__PURE__ */ new Map()) {
     if (!projectPath || !textureName) {
       return "";
     }
@@ -10100,34 +10739,36 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (!texturesPath) {
       return "";
     }
-    if (!fs6.existsSync(texturesPath)) {
-      return "";
-    }
-    const textureFile = findTextureFile(texturesPath, textureName);
+    const textureFile = findTextureFile(texturesPath, textureName, readErrors);
     if (!textureFile) return "";
     const relativePath = path4.relative(texturesPath, textureFile);
     const withoutExt = relativePath.replace(/\.[^.]+$/, "");
     return withoutExt.split(path4.sep).join("/");
   }
-  function findTextureFile(dir, textureName) {
+  function findTextureFile(dir, textureName, readErrors) {
+    let entries;
     try {
-      const entries = fs6.readdirSync(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = path4.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          const found = findTextureFile(fullPath, textureName);
-          if (found) return found;
-        } else if (entry.isFile() && entry.name === textureName) {
-          return fullPath;
-        }
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+        readErrors.set(dir, error);
       }
-    } catch (e) {
+      return null;
+    }
+    for (const entry of entries) {
+      const fullPath = path4.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const found = findTextureFile(fullPath, textureName, readErrors);
+        if (found) return found;
+      } else if (entry.isFile() && entry.name === textureName) {
+        return fullPath;
+      }
     }
     return null;
   }
 
   // src/export.ts
-  var fs7 = requireNativeModule("fs");
+  init_native();
   var path5 = requireNativeModule("path");
   function saveTextureToFile(texture, textureDir, textureSubPath) {
     try {
@@ -10140,8 +10781,8 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         filename += ".png";
       }
       const fullTextureDir = path5.join(textureDir, textureSubPath);
-      if (!fs7.existsSync(fullTextureDir)) {
-        fs7.mkdirSync(fullTextureDir, { recursive: true });
+      if (!fs.existsSync(fullTextureDir)) {
+        fs.mkdirSync(fullTextureDir, { recursive: true });
       }
       const texturePath = path5.join(fullTextureDir, filename);
       const dataUrl = texture.getDataURL();
@@ -10151,7 +10792,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       }
       const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
-      fs7.writeFileSync(texturePath, buffer);
+      fs.writeFileSync(texturePath, buffer);
       const filenameWithoutExt = filename.replace(/\.[^.]+$/, "");
       const normalizedSubPath = textureSubPath.split(path5.sep).join("/");
       return normalizedSubPath ? `${normalizedSubPath}/${filenameWithoutExt}` : filenameWithoutExt;
@@ -10193,12 +10834,14 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       }
     }
     const textures = {};
+    const unresolvedReadErrors = /* @__PURE__ */ new Map();
     for (const texture of Texture.all) {
       let location = texture.textureLocation || "";
+      const readErrors = /* @__PURE__ */ new Map();
       if (!location || location === "") {
-        location = resolveTextureLocation(Project.save_path, texture.name);
+        location = resolveTextureLocation(Project.save_path, texture.name, readErrors);
         if ((!location || location === "") && texture.source) {
-          location = resolveTextureLocation(texture.source, texture.name);
+          location = resolveTextureLocation(texture.source, texture.name, readErrors);
         }
       }
       const exportTextures = Settings.get("vs_export_textures") || false;
@@ -10206,15 +10849,16 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         location = saveTextureToFile(texture, textureBaseDir, textureSubPath);
       }
       textures[texture.name] = location || "";
+      if (!location) readErrors.forEach((error, dir) => unresolvedReadErrors.set(dir, error));
     }
     const elements = export_model();
-    const allAnimations = Animation.all;
+    const allAnimations = Blockbench.Animation.all;
     const inlineAnimations = compile_animation_library(allAnimations.filter((a) => !a.path)).animations;
     const libraryRefs = [];
     const seenRefs = /* @__PURE__ */ new Set();
     for (const animation of allAnimations) {
       if (!animation.path) continue;
-      const ref = animation.vs_library_ref ?? path_to_reference(animation.path);
+      const ref = animation.vs_library_ref || path_to_reference(animation.path);
       if (ref && !seenRefs.has(ref)) {
         seenRefs.add(ref);
         libraryRefs.push(ref);
@@ -10225,6 +10869,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       const prop_name = prop.name;
       editor[prop_name] = Project[prop_name];
     }
+    apply_extra_props(editor, Project.vs_extra_editor_props);
     const data = {
       editor,
       textureWidth: Project.texture_width,
@@ -10237,15 +10882,17 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (libraryRefs.length > 0) {
       data.animationLibraries = libraryRefs;
     }
+    apply_extra_props(data, Project.vs_extra_props);
+    warnTextureReadErrors(unresolvedReadErrors);
     return data;
   }
 
   // src/actions.ts
-  var fs8 = requireNativeModule("fs");
+  init_native();
   var path6 = requireNativeModule("path");
   var export_action = createAction(`${name}:export_vs`, {
     name: "Export into VS Format",
-    icon: "icon.png",
+    icon: icon_default,
     condition() {
       return is_vs_project(Project);
     },
@@ -10263,7 +10910,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
             const exportDir = path6.dirname(exportPath);
             const data = ex({ path: exportPath, exportDir });
             const jsonContent = autoStringify(data);
-            fs8.writeFileSync(exportPath, jsonContent);
+            fs.writeFileSync(exportPath, jsonContent);
             Blockbench.showQuickMessage("Model and textures exported successfully");
           } catch (e) {
             console.error("[VS Export] Export failed:", e);
@@ -10279,7 +10926,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   MenuBar.addAction(export_action, "file.export");
   var import_action = createAction(`${name}:import_vs`, {
     name: "Import from VS Format",
-    icon: "icon.png",
+    icon: icon_default,
     condition() {
       return is_vs_project(Project);
     },
@@ -10295,7 +10942,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   MenuBar.addAction(import_action, "file.import");
   var import_backdrop_action = createAction(`${name}:import_backdrop_action`, {
     name: "Import Backdrop from VS Format",
-    icon: "icon.png",
+    icon: icon_default,
     condition() {
       return is_vs_project(Project);
     },
@@ -10323,7 +10970,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       return is_vs_project(Project);
     },
     click: function() {
-      const total = Animation.all.length;
+      const total = Blockbench.Animation.all.length;
       if (total === 0) {
         Blockbench.showQuickMessage("No animations to clear");
         return;
@@ -10338,6 +10985,23 @@ This can be undone with Ctrl+Z.`)) {
     }
   });
   MenuBar.addAction(clear_animations_action, "edit");
+  var reload_vfx_action = createAction(`${name}:reload_vfx_previews`, {
+    name: "Reload VFX Previews",
+    icon: "auto_awesome",
+    condition() {
+      return is_vs_project(Project);
+    },
+    click: function() {
+      const linked = relink_particle_previews();
+      Blockbench.showQuickMessage(
+        linked === 0 ? "No particle effects could be resolved" : `Linked ${linked} particle keyframe${linked === 1 ? "" : "s"}`
+      );
+    }
+  });
+  MenuBar.addAction(reload_vfx_action, "animation");
+
+  // src/vintagestory.ts
+  init_property();
 
   // src/mods/boneAnimatorMod.ts
   init_util();
@@ -10345,45 +11009,55 @@ This can be undone with Ctrl+Z.`)) {
     `${name}:bone_animator_mod`,
     {
       original: Blockbench.BoneAnimator.prototype.displayFrame,
-      additional_function: Blockbench.BoneAnimator.prototype.flippedDisplayPosition
+      original_interpolate: Blockbench.BoneAnimator.prototype.interpolate
     },
     (context) => {
-      Blockbench.BoneAnimator.prototype.displayFrame = function(multiplier = 1) {
-        if (is_vs_project(Project)) {
-          if (!this.doRender()) return;
-          this.getGroup();
-          Animator.MolangParser.context.animation = this.animation;
-          const rotation = this.interpolate("rotation");
-          const position = this.interpolate("position");
-          if (!this.muted.rotation) this.displayRotation(rotation, multiplier);
-          if (!this.muted.position) {
-            this.flippedDisplayPosition(position, rotation, multiplier);
-          }
-          if (!this.muted.scale) this.displayScale(this.interpolate("scale"), multiplier);
-          return;
+      Blockbench.BoneAnimator.prototype.interpolate = function(channel, allow_expression, axis) {
+        const animation = this.animation;
+        const keys = this[channel];
+        const length = animation.length;
+        if (!is_vs_project(Project) || !length || keys.length < 2) {
+          return context.original_interpolate.call(this, channel, allow_expression, axis);
         }
-        return context.original.call(this, multiplier);
+        const lastFrameTime = Math.max(0, Math.round(length * fps) - 1) / fps;
+        const time = animation.loop === "loop" ? animation.time : Math.min(animation.time, lastFrameTime);
+        const times = keys.map((key) => key.time);
+        const outsideKeys = time < Math.min(...times) || time > Math.max(...times);
+        if (!outsideKeys && time === animation.time) {
+          return context.original_interpolate.call(this, channel, allow_expression, axis);
+        }
+        const preview = Object.create(this, {
+          animation: { value: Object.create(animation, { time: { value: time } }) }
+        });
+        if (outsideKeys) {
+          const shifted = (offset) => keys.map(
+            (key) => Object.create(key, { time: { value: key.time + offset } })
+          );
+          Object.defineProperty(preview, channel, {
+            value: [...shifted(-length), ...keys, ...shifted(length)]
+          });
+        }
+        return context.original_interpolate.call(preview, channel, allow_expression, axis);
       };
-      Blockbench.BoneAnimator.prototype.flippedDisplayPosition = function(position, rotation, multiplier) {
-        if (!rotation) {
-          this.displayPosition(position, multiplier);
-        } else {
-          if (position) {
-            const vec = position.V3_toThree().applyEuler(new THREE.Euler(
-              THREE.MathUtils.degToRad(rotation[0]),
-              THREE.MathUtils.degToRad(rotation[1]),
-              THREE.MathUtils.degToRad(rotation[2])
-              //@ts-expect-error: Missing in type --- IGNORE ---
-            ), Format.euler_order);
-            this.displayPosition(vec.toArray(), multiplier);
-          }
+      Blockbench.BoneAnimator.prototype.displayFrame = function(multiplier = 1) {
+        if (!is_vs_project(Project)) return context.original.call(this, multiplier);
+        if (!this.doRender()) return;
+        this.getGroup();
+        Animator.MolangParser.context.animation = this.animation;
+        if (!this.muted.rotation) this.displayRotation(this.interpolate("rotation"), multiplier);
+        if (!this.muted.scale) this.displayScale(this.interpolate("scale"), multiplier);
+        const position = this.interpolate("position");
+        if (!this.muted.position && position) {
+          const mesh = this.group.mesh;
+          const offset = new THREE.Vector3().fromArray(position).multiply(mesh.scale).applyQuaternion(mesh.quaternion);
+          this.displayPosition(offset.toArray(), multiplier);
         }
       };
       return context;
     },
     (context) => {
-      Blockbench.BoneAnimator.prototype.flippedDisplayPosition = context.additional_function;
       Blockbench.BoneAnimator.prototype.displayFrame = context.original;
+      Blockbench.BoneAnimator.prototype.interpolate = context.original_interpolate;
     }
   );
 
@@ -10815,6 +11489,12 @@ This can be undone with Ctrl+Z.`)) {
             "items": {
               "$ref": "#/definitions/VS_AnimationParticle"
             }
+          },
+          "sounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/VS_AnimationSound"
+            }
           }
         },
         "required": [
@@ -10841,6 +11521,32 @@ This can be undone with Ctrl+Z.`)) {
         "required": [
           "effect"
         ]
+      },
+      "VS_AnimationSound": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "range": {
+            "type": "number"
+          },
+          "volume": {
+            "type": "number"
+          },
+          "pitch": {
+            "type": "number"
+          },
+          "chance": {
+            "type": "number"
+          },
+          "looping": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "location"
+        ]
       }
     },
     "$schema": "http://json-schema.org/draft-07/schema#"
@@ -10848,7 +11554,7 @@ This can be undone with Ctrl+Z.`)) {
 
   // src/codec.ts
   var import_ajv = __toESM(require_ajv(), 1);
-  var import_json53 = __toESM(require_lib(), 1);
+  var import_json54 = __toESM(require_lib(), 1);
   var codecVS = new Codec("codecVS", {
     name: "Vintage Story Codec",
     extension: "json",
@@ -10857,7 +11563,7 @@ This can be undone with Ctrl+Z.`)) {
       extensions: ["json"],
       type: "text",
       condition(model) {
-        const content = import_json53.default.parse(model);
+        const content = import_json54.default.parse(model);
         if (!content || typeof content !== "object") return false;
         if (!content.elements || !Array.isArray(content.elements)) return false;
         if (!content.textures || typeof content.textures !== "object") return false;
@@ -10877,7 +11583,7 @@ This can be undone with Ctrl+Z.`)) {
       }
     },
     parse(data, file_path, _add) {
-      im(import_json53.default.parse(data), file_path, false);
+      im(import_json54.default.parse(data), file_path, false);
     }
   });
   function validate_json(content) {
@@ -10892,8 +11598,26 @@ This can be undone with Ctrl+Z.`)) {
   function create_format() {
     const format = new ModelFormat("formatVS", {
       name: "Vintage Story Base Format",
+      description: "Vintage Story Format",
+      target: "Vintage Story",
+      format_page: {
+        content: [
+          { type: "text", text: "Import, edit, and export models in the Vintage Story shape format, including animations and attachment points." },
+          { type: "h3", text: "Getting started" },
+          {
+            type: "text",
+            text: [
+              "* Open a Vintage Story shape JSON file with **File > Open Model**.",
+              "* Create a model with **File > New > Vintage Story Base Format**.",
+              "* Use the Vintage Story actions in the **Import** and **Export** menus to exchange shape files.",
+              "* The plugin also provides attachment tools and a **VS Face Properties** panel for glow, reflective mode, and wind properties."
+            ].join("\n")
+          },
+          { type: "text", text: "[Source repository](https://github.com/anegostudios/blockbenchplugin) \xB7 [Report an issue](https://github.com/anegostudios/blockbenchplugin/issues)" }
+        ]
+      },
       codec: codecVS,
-      icon: "icon.png",
+      icon: icon_default,
       box_uv: false,
       optional_box_uv: false,
       single_texture: false,
@@ -10943,7 +11667,6 @@ This can be undone with Ctrl+Z.`)) {
       cullfaces: false,
       // Not sure if Vintage Story supports this
       render_sides: "double",
-      //@ts-expect-error: Missing in type --- IGNORE ---
       euler_order: "XYZ",
       animation_loop_wrapping: true,
       quaternion_interpolation: false,
@@ -10969,7 +11692,7 @@ This can be undone with Ctrl+Z.`)) {
   );
 
   // src/mods/settingsMod.ts
-  var process = __toESM(__require("process"), 1);
+  init_native();
   createBlockbenchMod(
     `${name}:vs_gamepath_settings_mod`,
     {},
@@ -10980,7 +11703,7 @@ This can be undone with Ctrl+Z.`)) {
         category: "general",
         type: "click",
         icon: "fa-folder-plus",
-        value: Settings.get("asset_path") || process.env.VINTAGE_STORY || "",
+        value: "",
         click() {
           new Dialog("gamePathSelect", {
             title: "Select Game Path",
@@ -10988,7 +11711,7 @@ This can be undone with Ctrl+Z.`)) {
               path: {
                 label: "Path to your game folder",
                 type: "folder",
-                value: Settings.get("game_path") || process.env.VINTAGE_STORY || ""
+                value: get_game_path()
               }
             },
             onConfirm(formResult) {
@@ -11001,7 +11724,7 @@ This can be undone with Ctrl+Z.`)) {
       });
       return setting;
     },
-    (context) => {
+    () => {
     }
   );
   createBlockbenchMod(
@@ -11031,7 +11754,7 @@ This can be undone with Ctrl+Z.`)) {
       });
       return presetSetting;
     },
-    (context) => {
+    () => {
     }
   );
   createBlockbenchMod(
@@ -11073,7 +11796,7 @@ This can be undone with Ctrl+Z.`)) {
       });
       return customSlotsSetting;
     },
-    (context) => {
+    () => {
     }
   );
   createBlockbenchMod(
@@ -11084,12 +11807,12 @@ This can be undone with Ctrl+Z.`)) {
         name: "Apply Model Offset",
         description: "Apply [8, 0, 8] offset to exported models for Vintage Story engine centering. Disable if your models are already positioned correctly.",
         category: "general",
-        type: "checkbox",
+        type: "toggle",
         value: true
       });
       return setting;
     },
-    (context) => {
+    () => {
     }
   );
   createBlockbenchMod(
@@ -11100,12 +11823,12 @@ This can be undone with Ctrl+Z.`)) {
         name: "Export Texture Files",
         description: "Automatically save texture files to disk when exporting models. Disable to only include texture references in the JSON without saving the actual texture files.",
         category: "general",
-        type: "checkbox",
+        type: "toggle",
         value: false
       });
       return setting;
     },
-    (context) => {
+    () => {
     }
   );
 
@@ -11407,6 +12130,51 @@ This can be undone with Ctrl+Z.`)) {
     return composeEulerXYZ(chain);
   }
 
+  // src/mods/effectAnimatorMod.ts
+  init_util();
+  var rewound = /* @__PURE__ */ new WeakSet();
+  function is_end_of_single_shot(animator) {
+    const animation = animator.animation;
+    if (!animation || animation.loop !== "once" || animation.time > 0) {
+      rewound.delete(animator);
+      return false;
+    }
+    if (animator.last_displayed_time > 0) rewound.add(animator);
+    return rewound.has(animator);
+  }
+  createBlockbenchMod(
+    `${name}:effect_animator_mod`,
+    {
+      original: Blockbench.EffectAnimator.prototype.displayFrame
+    },
+    (inject_context) => {
+      Blockbench.EffectAnimator.prototype.displayFrame = function(in_loop) {
+        if (!is_vs_project(Project)) {
+          return inject_context.original.call(this, in_loop);
+        }
+        ensure_particle_links(this);
+        ensure_sound_links(this);
+        if (!is_end_of_single_shot(this)) {
+          return inject_context.original.call(this, in_loop);
+        }
+        const muted = this.muted;
+        const previous = { sound: muted.sound, particle: muted.particle };
+        muted.sound = true;
+        muted.particle = true;
+        try {
+          return inject_context.original.call(this, in_loop);
+        } finally {
+          muted.sound = previous.sound;
+          muted.particle = previous.particle;
+        }
+      };
+      return inject_context;
+    },
+    (extract_context) => {
+      Blockbench.EffectAnimator.prototype.displayFrame = extract_context.original;
+    }
+  );
+
   // src/attachments/discovery.ts
   function isStructuralParentOnly(node) {
     if (!(node instanceof Group)) return false;
@@ -11464,11 +12232,12 @@ This can be undone with Ctrl+Z.`)) {
   }
   function isAttachment(node) {
     if (!node) return false;
-    return (node instanceof Group || node instanceof Cube) && node.clothingSlot && node.clothingSlot.trim() !== "";
+    return !!(node instanceof Group || node instanceof Cube) && !!node.clothingSlot && node.clothingSlot.trim() !== "";
   }
 
   // src/attachments/export_attachment_vs.ts
   init_presets();
+  init_property();
   init_util();
 
   // src/attachments/constants.ts
@@ -11477,7 +12246,8 @@ This can be undone with Ctrl+Z.`)) {
   var QUICK_MESSAGE_DURATION = 3e3;
 
   // src/attachments/export_attachment_vs.ts
-  var fs9 = requireNativeModule("fs");
+  init_preserved_props();
+  init_native();
   var DEBUG = false;
   function logDebug(message, ...args) {
     if (DEBUG) console.log(message, ...args);
@@ -11717,6 +12487,7 @@ This can be undone with Ctrl+Z.`)) {
         vsElement[prop_name] = exportedValue;
       }
     }
+    apply_extra_props(vsElement, node.vs_extra_props);
     const locators = node.children.filter((child) => child instanceof Locator);
     if (locators.length > 0) {
       const { process_locators: process_locators2 } = (init_locator(), __toCommonJS(locator_exports));
@@ -11737,6 +12508,7 @@ This can be undone with Ctrl+Z.`)) {
   function traverseAttachment(parent, nodes, accu, offset, targetSlot, stepParentName, rootTransform) {
     for (const node of nodes) {
       if (!node.export) continue;
+      if (!(node instanceof Group || node instanceof Cube)) continue;
       const nodeSlot = node.clothingSlot;
       const hasMatchingSlot = !nodeSlot || nodeSlot.trim() === "" || nodeSlot.trim() === targetSlot.trim();
       if (!hasMatchingSlot) {
@@ -11775,6 +12547,10 @@ This can be undone with Ctrl+Z.`)) {
     return topmostCandidate;
   }
   function exportAttachmentsVS(selection) {
+    if (!Project) {
+      Blockbench.showQuickMessage("Please open a project before exporting attachments.", QUICK_MESSAGE_DURATION);
+      return;
+    }
     if (!selection || selection.length === 0) {
       Blockbench.showQuickMessage("Please select one or more attachments to export.", QUICK_MESSAGE_DURATION);
       return;
@@ -11959,14 +12735,14 @@ This can be undone with Ctrl+Z.`)) {
       extensions: ["json"],
       name: `${selection[0].name}_attachment.json`,
       startpath: Project.save_path,
-      custom_writer: (content, path8) => {
-        logDebug(`[VS Attachment Export] Writing to path: ${path8}`);
+      custom_writer: (content, path7) => {
+        logDebug(`[VS Attachment Export] Writing to path: ${path7}`);
         const usedTextureNames = getUsedTextureNames(data.elements);
         logDebug(`[VS Attachment Export] Used textures: ${Array.from(usedTextureNames).join(", ")}`);
-        if (fs9.existsSync(path8)) {
+        if (fs.existsSync(path7)) {
           logDebug("[VS Attachment Export] File exists, will overwrite");
           try {
-            const existingContent = fs9.readFileSync(path8, "utf8");
+            const existingContent = fs.readFileSync(path7, "utf8");
             const existingData = JSON.parse(existingContent);
             if (existingData.textureSizes) {
               for (const [name2, size] of Object.entries(existingData.textureSizes)) {
@@ -11996,9 +12772,9 @@ This can be undone with Ctrl+Z.`)) {
         cleanupUnusedTextures(data, usedTextureNames);
         const finalContent = autoStringify(data);
         try {
-          fs9.writeFileSync(path8, finalContent, "utf8");
-          logDebug(`[VS Attachment Export] Successfully wrote file: ${path8}`);
-          Blockbench.showQuickMessage(`Exported attachment to ${path8.split(/[/\\]/).pop()}`, 2e3);
+          fs.writeFileSync(path7, finalContent, "utf8");
+          logDebug(`[VS Attachment Export] Successfully wrote file: ${path7}`);
+          Blockbench.showQuickMessage(`Exported attachment to ${path7.split(/[/\\]/).pop()}`, 2e3);
         } catch (e) {
           console.error("[VS Attachment Export] Error writing file:", e);
           Blockbench.showQuickMessage(`Failed to write file: ${e instanceof Error ? e.message : String(e)}`, 5e3);
@@ -12008,7 +12784,7 @@ This can be undone with Ctrl+Z.`)) {
   }
 
   // src/attachments/codec.ts
-  function createExportCodec() {
+  function createExportCodec(selection = []) {
     function getElementBindRotation4(element) {
       const chain = [];
       let current = element;
@@ -12093,7 +12869,8 @@ This can be undone with Ctrl+Z.`)) {
       name: "Blockbench Project Selection",
       extension: "bbmodel",
       remember: true,
-      export(selection) {
+      export() {
+        if (!Project || selection.length === 0) return;
         Blockbench.export({
           resource_id: "model",
           type: this.name,
@@ -12103,7 +12880,8 @@ This can be undone with Ctrl+Z.`)) {
           content: this.compile(selection)
         });
       },
-      compile(selection, options) {
+      compile(selection2, options) {
+        if (!Project) throw new Error("Cannot export attachments without an open project.");
         if (!options) options = {};
         const model = {
           meta: {
@@ -12123,7 +12901,7 @@ This can be undone with Ctrl+Z.`)) {
         const parentNameMap = /* @__PURE__ */ new Map();
         const stepParentTransformMap = /* @__PURE__ */ new Map();
         const rootBindRotationMap = /* @__PURE__ */ new Map();
-        selection.forEach((el) => {
+        selection2.forEach((el) => {
           if (el instanceof Group || el instanceof Cube) {
             rootElementUuids.add(el.uuid);
             if (el instanceof Group) rootGroupUuids.add(el.uuid);
@@ -12156,7 +12934,7 @@ This can be undone with Ctrl+Z.`)) {
             }
           }
         });
-        const allElements = collectAllElements(selection);
+        const allElements = collectAllElements(selection2);
         const cubes = [];
         allElements.forEach((el) => {
           if (el instanceof Cube) {
@@ -12182,7 +12960,7 @@ This can be undone with Ctrl+Z.`)) {
           }
         });
         model.outliner = compileGroupsFrom(
-          selection,
+          selection2,
           true,
           rootGroupUuids,
           parentNameMap,
@@ -12211,8 +12989,8 @@ This can be undone with Ctrl+Z.`)) {
       Blockbench.showQuickMessage("Please select one or more attachments to export.", QUICK_MESSAGE_DURATION);
       return;
     }
-    const bb_codec = createExportCodec();
-    bb_codec.export(selection);
+    const bb_codec = createExportCodec(selection);
+    bb_codec.export();
     if (DEBUG2) console.log("Exporting selected attachments to .bbmodel format...");
   }
 
@@ -12253,7 +13031,7 @@ This can be undone with Ctrl+Z.`)) {
       Blockbench.showQuickMessage("There are no attachments in this section to delete.", QUICK_MESSAGE_DURATION);
       return;
     }
-    Undo.initEdit({ outliner: true }, `Delete (-) Root`);
+    Undo.initEdit({ outliner: true });
     const rootGroups = identifyRootAttachmentGroups(elements);
     const allAttachments = /* @__PURE__ */ new Set();
     elements.forEach((element) => {
@@ -12277,7 +13055,7 @@ This can be undone with Ctrl+Z.`)) {
       Blockbench.showQuickMessage("There are no attachments in this section to delete.", QUICK_MESSAGE_DURATION);
       return;
     }
-    Undo.initEdit({ outliner: true }, `Delete ${elements.length} attachment(s)`);
+    Undo.initEdit({ outliner: true });
     elements.forEach((element) => element.remove());
     Undo.finishEdit(`Delete ${elements.length} attachment(s)`);
     Blockbench.dispatchEvent("attachments_changed", {});
@@ -12420,6 +13198,12 @@ This can be undone with Ctrl+Z.`)) {
     }
     traverse3(element);
     return elements;
+  }
+  function walkOutliner(node, callback) {
+    callback(node);
+    if (node instanceof Group && Array.isArray(node.children)) {
+      node.children.forEach((child) => walkOutliner(child, callback));
+    }
   }
   function getElementDepth(element) {
     let depth = 0;
@@ -12781,16 +13565,11 @@ This can be undone with Ctrl+Z.`)) {
        */
       exportBB(elements) {
         try {
-          this.isExporting = true;
           exportAttachmentsBB(elements);
-          setTimeout(() => {
-            this.isExporting = false;
-          }, 100);
         } catch (e) {
           const errorMsg = e instanceof Error ? e.message : String(e);
           Blockbench.showQuickMessage(`Export failed: ${errorMsg}`, QUICK_MESSAGE_DURATION);
           if (DEBUG3) console.error("Export BB error:", e);
-          this.isExporting = false;
         }
       },
       /**
@@ -12799,16 +13578,11 @@ This can be undone with Ctrl+Z.`)) {
        */
       exportVS(elements) {
         try {
-          this.isExporting = true;
           exportAttachmentsVS(elements);
-          setTimeout(() => {
-            this.isExporting = false;
-          }, 100);
         } catch (e) {
           const errorMsg = e instanceof Error ? e.message : String(e);
           Blockbench.showQuickMessage(`Export failed: ${errorMsg}`, QUICK_MESSAGE_DURATION);
           if (DEBUG3) console.error("Export VS error:", e);
-          this.isExporting = false;
         }
       },
       /**
@@ -12887,11 +13661,11 @@ This action cannot be undone.`)) {
       toggleVisibility(elements, isVisible) {
         if (!elements || !Array.isArray(elements)) return;
         try {
-          Undo.initEdit({ outliner: true }, `Toggle visibility: ${elements.length} element(s)`);
+          Undo.initEdit({ outliner: true });
           elements.forEach((element) => {
             if (!element) return;
             try {
-              this._walk(element, (node) => {
+              walkOutliner(element, (node) => {
                 if (!node) return;
                 if (typeof node.toggleVisibility === "function") {
                   if (node.visibility !== isVisible) node.toggleVisibility(isVisible);
@@ -12909,17 +13683,6 @@ This action cannot be undone.`)) {
         } catch (e) {
           if (DEBUG3) console.error("Error in toggleVisibility:", e);
           Blockbench.showQuickMessage("Failed to toggle visibility", QUICK_MESSAGE_DURATION);
-        }
-      },
-      /**
-       * Traverses a node and its children, applying a callback to each.
-       * @param {object} node The node to start traversal from.
-       * @param {function} callback The function to apply to each node.
-       */
-      _walk(node, callback) {
-        callback(node);
-        if (node instanceof Group && Array.isArray(node.children)) {
-          node.children.forEach((child) => this._walk(child, callback));
         }
       },
       /**
@@ -12976,6 +13739,7 @@ This action cannot be undone.`)) {
   };
   function createAttachmentsPanel(actions) {
     const toolbar = new Toolbar("attachments_toolbar", {
+      id: "attachments_toolbar",
       children: []
     });
     if (actions.importBB) {
@@ -12985,13 +13749,17 @@ This action cannot be undone.`)) {
       toolbar.add(actions.importVS);
     }
     const panel2 = new Panel("attachments_panel", {
+      id: "attachments_panel",
       name: "Attachments",
       icon: "attach_file",
+      expand_button: false,
+      default_side: "right",
       default_position: {
         slot: "right_bar",
         float_position: [0, 0],
         float_size: [300, 400],
-        height: 400
+        height: 400,
+        folded: false
       },
       toolbars: [toolbar],
       component: vuePanel
@@ -13438,9 +14206,11 @@ This action cannot be undone.`)) {
       const worldRotation = getElementBindRotation3(element);
       const liveSocketFrom = getSocketFrom2(target);
       const liveSocketRotation = getElementBindRotation3(target);
-      const hasStoredFrame = element.vs_has_step_parent_transform === true && isFiniteVector32(element.vs_step_parent_origin) && isFiniteVector32(element.vs_step_parent_rotation);
-      const authoredSocketFrom = hasStoredFrame ? [...element.vs_step_parent_origin] : liveSocketFrom;
-      const authoredSocketRotation = hasStoredFrame ? [...element.vs_step_parent_rotation] : liveSocketRotation;
+      const storedFrom = element.vs_step_parent_origin;
+      const storedRotation = element.vs_step_parent_rotation;
+      const hasStoredFrame = element.vs_has_step_parent_transform === true && isFiniteVector32(storedFrom) && isFiniteVector32(storedRotation);
+      const authoredSocketFrom = hasStoredFrame ? [...storedFrom] : liveSocketFrom;
+      const authoredSocketRotation = hasStoredFrame ? [...storedRotation] : liveSocketRotation;
       const localRotation = relativeEulerXYZ(worldRotation, authoredSocketRotation);
       const socketDelta = [
         liveSocketFrom[0] - authoredSocketFrom[0],
@@ -13460,7 +14230,7 @@ This action cannot be undone.`)) {
       if (DEBUG4) console.log(`[${logPrefix}] Placed "${element.name}" under "${target.name}" with local rotation [${localRotation.join(", ")}].`);
     });
   }
-  function mergeDuplicateGroups(newElementsSet, logPrefix) {
+  function mergeDuplicateGroups(newElementsSet) {
     const toDelete = [];
     collectGroupsDepthFirst(Outliner.root).forEach((group) => {
       if (isWithinStepParentAttachment(group, newElementsSet)) return;
@@ -13502,7 +14272,7 @@ This action cannot be undone.`)) {
     mergeHierarchicalGroups(newElements, newElementsSet, logPrefix);
     mergeGroupsByCommonSlot(newElements, newElementsSet, logPrefix);
     placeStepParentWrappers(newElements, newElementsSet, logPrefix);
-    mergeDuplicateGroups(newElementsSet, logPrefix);
+    mergeDuplicateGroups(newElementsSet);
     Undo.finishEdit(`Import attachment: ${filePath.split(/[/\\]/).pop()}`);
     Canvas.updateAll();
     if (typeof updateSelection === "function") updateSelection();
@@ -13560,7 +14330,7 @@ This action cannot be undone.`)) {
           match.byFilename = texture;
           continue;
         }
-        const pathFilename = extractFilename(texture.path)?.toLowerCase();
+        const pathFilename = texture.path ? extractFilename(texture.path)?.toLowerCase() : void 0;
         if (pathFilename === locationFilename) {
           match.byFilename = texture;
         }
@@ -13574,11 +14344,11 @@ This action cannot be undone.`)) {
     }
     return match;
   }
-  function createVSAttachmentTexture(name2, path8, textureLocation, content) {
-    const texture = new Texture({ name: name2, path: path8 || void 0 }).add();
+  function createVSAttachmentTexture(name2, path7, textureLocation, content) {
+    const texture = new Texture({ name: name2, path: path7 || void 0 }).add();
     texture.textureLocation = textureLocation;
     updateTextureUVSize(texture, name2, content);
-    if (path8 && path8.length > 0 && !path8.startsWith("data:")) {
+    if (path7 && path7.length > 0 && !path7.startsWith("data:")) {
       texture.load();
     }
     return texture;
@@ -13588,19 +14358,17 @@ This action cannot be undone.`)) {
       texture.textureLocation = textureLocation;
     }
     updateTextureUVSize(texture, name2, content);
-    if (!texture.loaded) {
-      if (match.byLocation?.path) {
-        texture.path = match.byLocation.path;
+    if (match.byLocation?.path) {
+      texture.path = match.byLocation.path;
+      texture.load();
+    } else if (match.byFilename?.path) {
+      texture.path = match.byFilename.path;
+      texture.load();
+    } else {
+      const texturePath = get_texture_location(null, textureLocation);
+      if (texturePath && texturePath.length > 0) {
+        texture.path = texturePath;
         texture.load();
-      } else if (match.byFilename?.path) {
-        texture.path = match.byFilename.path;
-        texture.load();
-      } else {
-        const texturePath = get_texture_location(null, textureLocation);
-        if (texturePath && texturePath.length > 0) {
-          texture.path = texturePath;
-          texture.load();
-        }
       }
     }
   }
@@ -13608,7 +14376,7 @@ This action cannot be undone.`)) {
     if (texture.name === name2) {
       updateTextureUVSize(texture, name2, content);
     } else {
-      createVSAttachmentTexture(name2, texture.path, textureLocation, content);
+      createVSAttachmentTexture(name2, texture.path ?? "", textureLocation, content);
     }
   }
   function handleExistingTextureByFilename(texture, name2, textureLocation, locationFilename, content) {
@@ -13872,8 +14640,7 @@ This action cannot be undone.`)) {
           multiple: true
         }, function(files) {
           if (!files || !files.length) return;
-          const fileName = files[0]?.name || "attachment";
-          Undo.initEdit({ outliner: true }, `Import attachment: ${fileName}`);
+          Undo.initEdit({ outliner: true });
           const elementsBefore = /* @__PURE__ */ new Set([...Group.all, ...Cube.all]);
           files.forEach((file) => {
             try {
@@ -13956,6 +14723,7 @@ This action cannot be undone.`)) {
     const attachment_mode = new Mode("attachments", {
       name: "Attachments",
       onSelect: () => {
+        panel2.moveTo("right_bar", Panels.vs_face_properties, true);
         findAttachments();
       }
     });
@@ -13993,23 +14761,36 @@ This action cannot be undone.`)) {
   }
   function cleanup() {
     console.log("Attachments module cleaning up...");
-    deletables.forEach((item) => {
+    const failures = [];
+    deletables = deletables.filter((item) => {
       try {
         item.delete();
-      } catch (e) {
-        console.log(e);
+        return false;
+      } catch (error) {
+        failures.push({ resource: item, error });
+        return true;
       }
     });
-    deletables = [];
-    eventListeners.forEach(({ event, listener }) => {
-      Blockbench.removeListener(event, listener);
-      console.log(`Removed ${event} listener`);
+    eventListeners = eventListeners.filter(({ event, listener }) => {
+      try {
+        Blockbench.removeListener(event, listener);
+        console.log(`Removed ${event} listener`);
+        return false;
+      } catch (error) {
+        failures.push({ resource: event, error });
+        return true;
+      }
     });
-    eventListeners = [];
     if (window.debugFindAttachments) {
       delete window.debugFindAttachments;
     }
+    if (failures.length) {
+      console.error("Attachments module cleanup incomplete:", failures);
+      Blockbench.showQuickMessage("Could not fully unload attachments. Restart Blockbench to finish cleanup.", 5e3);
+      return false;
+    }
     console.log("Attachments module cleanup complete");
+    return true;
   }
   var attachments = {
     init,
@@ -14110,15 +14891,16 @@ This action cannot be undone.`)) {
   }
   var vertexDot = null;
   function createVertexDot() {
-    if (vertexDot) return;
+    if (vertexDot) return vertexDot;
     const geo = new THREE.SphereGeometry(0.5, 8, 8);
     const mat = new THREE.MeshBasicMaterial({ color: 16729156, depthTest: false, transparent: true, opacity: 0.9 });
     vertexDot = new THREE.Mesh(geo, mat);
     vertexDot.renderOrder = 999;
     vertexDot.visible = false;
+    return vertexDot;
   }
   function showVertexDot(cube, direction, vertexIndex) {
-    createVertexDot();
+    const dot = createVertexDot();
     const vertices = getFaceVertices(cube, direction);
     const pos = vertices[vertexIndex];
     if (!pos) return;
@@ -14130,13 +14912,13 @@ This action cannot be undone.`)) {
     if (cube.mesh) {
       cube.mesh.updateMatrixWorld();
       const worldPos = cube.mesh.localToWorld(localPos);
-      vertexDot.position.copy(worldPos);
+      dot.position.copy(worldPos);
     } else {
-      vertexDot.position.set(pos[0], pos[1], pos[2]);
+      dot.position.set(pos[0], pos[1], pos[2]);
     }
-    vertexDot.visible = true;
-    if (!vertexDot.parent) {
-      Canvas.scene.add(vertexDot);
+    dot.visible = true;
+    if (!dot.parent) {
+      Canvas.scene.add(dot);
     }
   }
   function hideVertexDot() {
@@ -14151,6 +14933,23 @@ This action cannot be undone.`)) {
       vertexDot.material.dispose();
       vertexDot = null;
     }
+  }
+  function createFacePanelData() {
+    return {
+      selectedCube: null,
+      selectedFaceName: "north",
+      applyToAll: false,
+      glow: 0,
+      reflectiveMode: "0",
+      windMode: [-1, -1, -1, -1],
+      windData: [0, 0, 0, 0],
+      windModeOptions: WIND_MODE_OPTIONS,
+      reflectiveModeOptions: REFLECTIVE_MODE_OPTIONS,
+      faceDirections: FACE_DIRECTIONS,
+      faceLabels: FACE_LABELS,
+      faceColors: FACE_COLORS,
+      _listeners: []
+    };
   }
   var vueComponent = {
     template: `
@@ -14198,23 +14997,7 @@ This action cannot be undone.`)) {
             </div>
         </div>
     `,
-    data() {
-      return {
-        selectedCube: null,
-        selectedFaceName: "north",
-        applyToAll: false,
-        glow: 0,
-        reflectiveMode: "0",
-        windMode: [-1, -1, -1, -1],
-        windData: [0, 0, 0, 0],
-        windModeOptions: WIND_MODE_OPTIONS,
-        reflectiveModeOptions: REFLECTIVE_MODE_OPTIONS,
-        faceDirections: FACE_DIRECTIONS,
-        faceLabels: FACE_LABELS,
-        faceColors: FACE_COLORS,
-        _listeners: []
-      };
-    },
+    data: createFacePanelData,
     computed: {
       windDataDisplay() {
         return this.windData.join(", ");
@@ -14222,29 +15005,26 @@ This action cannot be undone.`)) {
     },
     methods: {
       getSelectedFace() {
-        const self = this;
-        if (!self.selectedCube || !self.selectedFaceName) return null;
-        return self.selectedCube.faces[self.selectedFaceName];
+        if (!this.selectedCube || !this.selectedFaceName) return null;
+        return this.selectedCube.faces[this.selectedFaceName];
       },
       getTargetFaces() {
-        const self = this;
-        if (!self.selectedCube) return [];
-        if (self.applyToAll) {
-          return FACE_DIRECTIONS.filter((d) => self.selectedCube.faces[d]).map((d) => ({ face: self.selectedCube.faces[d], direction: d }));
+        const cube = this.selectedCube;
+        if (!cube) return [];
+        if (this.applyToAll) {
+          return FACE_DIRECTIONS.filter((d) => cube.faces[d]).map((d) => ({ face: cube.faces[d], direction: d }));
         }
-        const face = self.getSelectedFace();
+        const face = this.getSelectedFace();
         if (!face) return [];
-        return [{ face, direction: self.selectedFaceName }];
+        return [{ face, direction: this.selectedFaceName }];
       },
       selectFace(direction) {
-        const self = this;
-        self.selectedFaceName = direction;
-        self.loadFromFace();
+        this.selectedFaceName = direction;
+        this.loadFromFace();
       },
       highlightVertex(index) {
-        const self = this;
-        if (self.selectedCube && self.selectedFaceName) {
-          showVertexDot(self.selectedCube, self.selectedFaceName, index);
+        if (this.selectedCube && this.selectedFaceName) {
+          showVertexDot(this.selectedCube, this.selectedFaceName, index);
         }
       },
       clearVertex() {
@@ -14268,17 +15048,16 @@ This action cannot be undone.`)) {
         return String(this.windMode[index] ?? -1);
       },
       setWindModeComponent(index, value) {
-        const self = this;
         const num = parseInt(value);
-        self.windMode[index] = num;
-        self.windMode = [...self.windMode];
-        for (const { face, direction } of self.getTargetFaces()) {
+        this.windMode[index] = num;
+        this.windMode = [...this.windMode];
+        for (const { face, direction } of this.getTargetFaces()) {
           if (!face.windMode) {
             face.windMode = [-1, -1, -1, -1];
           }
           face.windMode[index] = num;
-          if (self.selectedCube) {
-            const autoData = computeWindData(self.selectedCube, direction);
+          if (this.selectedCube) {
+            const autoData = computeWindData(this.selectedCube, direction);
             if (autoData[0] !== 0 || autoData[1] !== 0 || autoData[2] !== 0 || autoData[3] !== 0) {
               face.windData = autoData;
             } else {
@@ -14290,60 +15069,55 @@ This action cannot be undone.`)) {
             face.windData = void 0;
           }
         }
-        self.updateWindDataDisplay();
+        this.updateWindDataDisplay();
       },
       updateWindDataDisplay() {
-        const self = this;
-        const face = self.getSelectedFace();
+        const face = this.getSelectedFace();
         if (face && face.windData) {
-          self.windData = [...face.windData];
-        } else if (self.selectedCube && self.selectedFaceName) {
-          self.windData = computeWindData(self.selectedCube, self.selectedFaceName);
+          this.windData = [...face.windData];
+        } else if (this.selectedCube && this.selectedFaceName) {
+          this.windData = computeWindData(this.selectedCube, this.selectedFaceName);
         } else {
-          self.windData = [0, 0, 0, 0];
+          this.windData = [0, 0, 0, 0];
         }
       },
       loadFromFace() {
-        const self = this;
-        const face = self.getSelectedFace();
+        const face = this.getSelectedFace();
         if (!face) {
-          self.glow = 0;
-          self.reflectiveMode = "0";
-          self.windMode = [-1, -1, -1, -1];
-          self.windData = [0, 0, 0, 0];
+          this.glow = 0;
+          this.reflectiveMode = "0";
+          this.windMode = [-1, -1, -1, -1];
+          this.windData = [0, 0, 0, 0];
           return;
         }
-        self.glow = face.glow || 0;
-        self.reflectiveMode = String(face.reflectiveMode || 0);
-        self.windMode = face.windMode ? [...face.windMode] : [-1, -1, -1, -1];
-        self.updateWindDataDisplay();
+        this.glow = face.glow || 0;
+        this.reflectiveMode = String(face.reflectiveMode || 0);
+        this.windMode = face.windMode ? [...face.windMode] : [-1, -1, -1, -1];
+        this.updateWindDataDisplay();
       },
       updateSelection() {
-        const self = this;
         hideVertexDot();
         const selected = Cube.selected;
         if (!selected || selected.length === 0) {
-          self.selectedCube = null;
-          self.selectedFaceName = "north";
+          this.selectedCube = null;
+          this.selectedFaceName = "north";
           return;
         }
-        self.selectedCube = selected[0];
-        self.loadFromFace();
+        this.selectedCube = selected[0];
+        this.loadFromFace();
       }
     },
     mounted() {
-      const self = this;
-      self.updateSelection();
-      const onSelectionUpdate = () => self.updateSelection();
+      this.updateSelection();
+      const onSelectionUpdate = () => this.updateSelection();
       Blockbench.on("update_selection", onSelectionUpdate);
-      self._listeners = [
+      this._listeners = [
         () => Blockbench.removeListener("update_selection", onSelectionUpdate)
       ];
     },
     beforeDestroy() {
-      const self = this;
       hideVertexDot();
-      for (const unsub of self._listeners) {
+      for (const unsub of this._listeners) {
         unsub();
       }
     }
@@ -14354,14 +15128,18 @@ This action cannot be undone.`)) {
     {},
     () => {
       panel = new Panel("vs_face_properties", {
+        id: "vs_face_properties",
         name: "VS Face Properties",
         icon: "grain",
+        expand_button: false,
+        default_side: "right",
         condition: () => Format?.id === "formatVS",
         default_position: {
           slot: "right_bar",
           float_position: [0, 0],
           float_size: [300, 300],
-          height: 300
+          height: 300,
+          folded: false
         },
         component: vueComponent
       });
@@ -14444,8 +15222,6 @@ This action cannot be undone.`)) {
   );
 
   // src/vintagestory.ts
-  var fs10 = requireNativeModule("fs");
-  var path7 = requireNativeModule("path");
   BBPlugin.register(package_default.name, {
     title: package_default.title,
     icon: "icon.png",
@@ -14457,7 +15233,6 @@ This action cannot be undone.`)) {
     min_version: "5.0.0",
     repository: package_default.repository.url,
     tags: ["Vintage Story"],
-    about: package_default.description,
     onload() {
       events.LOAD.dispatch();
     },
