@@ -18,7 +18,9 @@
  */
 
 const {Validator} = require('./model/Validator');
+const {normalizeName} = require('./model/presetTypes');
 const {parseExternalLocation} = require('./utils/TextureResolver');
+const {t} = require('./i18n/translations');
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -44,17 +46,32 @@ class BlockbenchAdapter {
     return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
+  static #describeTexture(texture, position) {
+    return {
+      index: position,
+      name: texture.name || '',
+      namespace: texture.namespace || '',
+      folder: texture.folder || '',
+      path: texture.path || ''
+    };
+  }
+
+  static collectTextureLocations() {
+    if (typeof Texture === 'undefined' || !Texture.all) {
+      return [];
+    }
+
+    return Texture.all.map((texture, position) =>
+        BlockbenchAdapter.#describeTexture(texture, position));
+  }
+
   static collectTextures() {
     if (typeof Texture === 'undefined' || !Texture.all) {
       return [];
     }
 
     return Texture.all.map((texture, position) => ({
-      index: position,
-      name: texture.name || '',
-      namespace: texture.namespace || '',
-      folder: texture.folder || '',
-      path: texture.path || '',
+      ...BlockbenchAdapter.#describeTexture(texture, position),
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
   }
@@ -111,6 +128,96 @@ class BlockbenchAdapter {
     };
   }
 
+  static #outlinerList(key) {
+    return typeof Outliner !== 'undefined' && Outliner[key] ? Outliner[key]
+        : [];
+  }
+
+  static #hasUnsupportedFaceRotation(cube) {
+    return Object.values(cube.faces || {}).some(
+        (face) => !!face?.rotation && face.rotation % 90 !== 0);
+  }
+
+  static #hasMixedFaceTextures(cube) {
+    const faceTextures = Object.values(cube.faces || {})
+    .map((face) => face?.texture)
+    .filter((faceTexture) => faceTexture !== null && faceTexture !== undefined
+        && faceTexture !== false);
+
+    return new Set(faceTextures).size > 1;
+  }
+
+  static #hasCustomUvSize(texture) {
+    return typeof Format !== 'undefined' && !!Format?.per_texture_uv_size
+        && ((texture.uv_width ?? Project.texture_width)
+            !== Project.texture_width
+            || (texture.uv_height ?? Project.texture_height)
+            !== Project.texture_height);
+  }
+
+  static #collectGeometry() {
+    const elements = BlockbenchAdapter.#outlinerList('elements');
+    const rootNodes = BlockbenchAdapter.#outlinerList('root');
+    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
+    const textures =
+        typeof Texture !== 'undefined' && Texture.all ? Texture.all : [];
+    const cubes = elements.filter((element) => element.type === 'cube');
+    const names = (list) => list.map((node) => node.name || '');
+
+    return {
+      formatId: typeof Format !== 'undefined' && Format ? Format.id : '',
+      unsupportedElements: elements
+      .filter((element) => element.type !== 'cube')
+      .map((element) => `${element.name || ''} (${element.type})`),
+      rootCubes: names(rootNodes.filter((node) => node.type === 'cube')),
+      rotatedFaceCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasUnsupportedFaceRotation(cube))),
+      mixedTextureCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasMixedFaceTextures(cube))),
+      customUvSizeTextures: names(textures.filter(
+          (texture) => BlockbenchAdapter.#hasCustomUvSize(texture))),
+      hiddenNodes: names([...groups, ...elements].filter(
+          (node) => node.visibility === false)),
+      exportedGroupNames: names(groups.filter(
+          (group) => BlockbenchAdapter.#isExported(group)))
+    };
+  }
+
+  static #isExported(node) {
+    for (let current = node; current && typeof current === 'object';
+        current = current.parent) {
+      if (current.export === false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static getModelFileSize() {
+    if (typeof Codecs === 'undefined' || !Codecs.project) {
+      return undefined;
+    }
+
+    return String(BlockbenchAdapter.getModelBytes()).length;
+  }
+
+  static getModelLoadStats() {
+    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
+    const animations =
+        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
+    const geometry = BlockbenchAdapter.#collectGeometry();
+
+    return {
+      hasModel: cubes.length > 0 || groups.length > 0,
+      hasTexture: !!BlockbenchAdapter.#firstTexture(),
+      animationCount: animations.length,
+      boneNames: geometry.exportedGroupNames,
+      geometry: geometry
+    };
+  }
+
   static getModelStats() {
     const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
     const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
@@ -132,19 +239,29 @@ class BlockbenchAdapter {
     });
 
     return {
-      hasModel: cubes.length > 0 || groups.length > 0,
-      hasTexture: !!texture,
+      ...BlockbenchAdapter.getModelLoadStats(),
       cubeCount: cubes.length,
       boneCount: groups.length,
-      animationCount: animations.length,
       animations: animations.map(
           (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
-      boneNames: groups.map((group) => group.name),
       externalTextures: BlockbenchAdapter.#externalTextureLocations(),
       textureWidth: texture ? texture.width : undefined,
       textureHeight: texture ? texture.height : undefined
     };
+  }
+
+  static wrapInRootBone(undoLabel) {
+    const rootNodes = [...BlockbenchAdapter.#outlinerList('root')];
+    Undo.initEdit({outliner: true});
+    const root = rootNodes.find(
+            (node) => node.type === 'group' && normalizeName(node.name) === 'root')
+        || new Group({name: 'root', origin: [0, 0, 0]}).init();
+    rootNodes
+    .filter((node) => node !== root)
+    .forEach((node) => node.addTo(root));
+    Canvas.updateAll();
+    Undo.finishEdit(undoLabel);
   }
 
   static getModelBytes() {
@@ -225,8 +342,8 @@ class BlockbenchAdapter {
     if (typeof Project !== 'undefined' && Project) {
       Project[BlockbenchAdapter.PROJECT_PROPERTY] = structuredClone(
           settings);
-      if (typeof Blockbench !== 'undefined' && Blockbench.dispatchEvent) {
-        Blockbench.dispatchEvent('eme_settings_saved', {settings});
+      if (typeof Canvas !== 'undefined' && Canvas.updateRenderSides) {
+        Canvas.updateRenderSides();
       }
     }
   }
@@ -305,9 +422,39 @@ class BlockbenchAdapter {
     });
   }
 
+  static confirm(title, message, confirmLabel, onConfirm) {
+    Blockbench.showMessageBox(
+        {
+          title: title,
+          message: message,
+          buttons: [confirmLabel, t('eme.button.cancel')],
+          confirm: 0,
+          cancel: 1
+        },
+        (button) => {
+          if (button === 0) {
+            onConfirm();
+          }
+        }
+    );
+  }
+
   static pickDirectory(title) {
     return Blockbench.pickDirectory(
         {title: title, resource_id: 'eme_mod_project'});
+  }
+
+  static registerValidatorCheck(id, name, formatIds, collectErrors) {
+    const check = new ValidatorCheck(id, {
+      update_triggers: ['update_selection', 'add_texture'],
+      condition: {formats: formatIds},
+      run() {
+        collectErrors().forEach((issue) => this.fail({message: issue.message}));
+      }
+    });
+    check.name = name;
+
+    return check;
   }
 }
 

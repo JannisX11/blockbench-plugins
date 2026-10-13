@@ -17,6 +17,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {BlockbenchAdapter} = require('../BlockbenchAdapter');
+
 const FORMAT_ID = 'eme_entity';
 
 let emeFormat = null;
@@ -27,6 +29,12 @@ function toModelIdentifier(name) {
   .replace(/[^a-z0-9_]/g, '')
   .replace(/_+/g, '_')
   .replace(/^_|_$/g, '');
+}
+
+function renderSides() {
+  const bodyType = BlockbenchAdapter.loadSettings()?.host?.bodyType || 'static';
+
+  return bodyType === 'static' ? 'front' : 'double';
 }
 
 function registerEmeFormat(icon) {
@@ -42,6 +50,7 @@ function registerEmeFormat(icon) {
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
+    uv_rotation: true,
     single_texture: false,
     texture_folder: true,
     bone_rig: true,
@@ -51,7 +60,8 @@ function registerEmeFormat(icon) {
     animation_files: false,
     java_edition_mapping: false,
     model_identifier: true,
-    locators: true,
+    locators: false,
+    render_sides: renderSides,
     codec: Codecs.project,
     onActivation() {
       if (Project && !Project.model_identifier && Project.name) {
@@ -68,4 +78,9 @@ function unregisterEmeFormat() {
   }
 }
 
-module.exports = {FORMAT_ID, registerEmeFormat, unregisterEmeFormat};
+module.exports = {
+  FORMAT_ID,
+  renderSides,
+  registerEmeFormat,
+  unregisterEmeFormat
+};

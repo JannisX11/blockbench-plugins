@@ -30,8 +30,10 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
+  ANIMATION_VARIANT_MODES,
   ANIMATION_CLIPS,
-  GAIT_TYPES
+  GAIT_TYPES,
+  variantClipNames
 } = require('../model/presetTypes');
 const {applyTemplate} = require('../model/templates');
 
@@ -56,6 +58,8 @@ describe('mod API contract sync', () => {
         sorted(contract.enums.block_entity_preset_types));
     expect(sorted(ANIMATION_MODES)).toEqual(
         sorted(contract.enums.animation_modes));
+    expect(sorted(ANIMATION_VARIANT_MODES)).toEqual(
+        sorted(contract.enums.animation_variant_modes));
     expect(sorted(ANIMATION_CLIPS)).toEqual(
         sorted(contract.enums.animation_clips));
     expect(sorted(GAIT_TYPES)).toEqual(sorted(contract.enums.gaits));
@@ -79,6 +83,54 @@ describe('mod API contract sync', () => {
         contract.budgets.soft_hierarchy_depth);
     expect(budgets.maxAnimationCount).toBe(
         contract.budgets.max_animation_count);
+    expect(budgets.softAnimationCount).toBe(
+        contract.budgets.soft_animation_count);
+  });
+});
+
+describe('animation variants and shoulder', () => {
+  function variantSettings() {
+    const settings = applyTemplate('humanoid_wandering');
+    settings.namespace = 'example';
+    settings.profileId = 'parrot_like';
+
+    return settings;
+  }
+
+  test('variant clips are grouped like the mod groups them', () => {
+    expect(variantClipNames([
+      {name: 'Idle'}, {name: 'idle_2'}, {name: 'walk'}, {name: 'dance 1'},
+      {name: 'dance 2'}, {name: 'jump_0'}, {name: ' '}, {name: 'idle_2'}
+    ])).toEqual(['idle', 'idle_2', 'dance 1', 'dance 2']);
+  });
+
+  test('only non-default values are written', () => {
+    const settings = variantSettings();
+    settings.rendering.opacity = 0.5;
+    settings.animation.variantMode = 'sequential';
+    settings.animation.variantWeights = {' IDLE_2 ': 3, idle: 1};
+    settings.shoulder = {offset: [0, 0.2, 0], scale: 1};
+    const render = buildRenderProfile(settings);
+    expect(render.rendering).toEqual({opacity: 0.5});
+    expect(render.animation).toEqual(
+        {variant_mode: 'sequential', variant_weights: {idle_2: 3}});
+    expect(render.shoulder).toEqual({offset: [0, 0.2, 0]});
+  });
+
+  test('weights are dropped when variants are disabled', () => {
+    const settings = variantSettings();
+    settings.animation.variantMode = 'none';
+    settings.animation.variantWeights = {idle_2: 3};
+    expect(buildRenderProfile(settings).animation).toEqual(
+        {variant_mode: 'none'});
+  });
+
+  test('block entities never write a shoulder', () => {
+    const settings = applyTemplate('static', 'block_entity');
+    settings.namespace = 'example';
+    settings.profileId = 'shrine';
+    settings.shoulder = {offset: [1, 1, 1], scale: 2};
+    expect(buildRenderProfile(settings).shoulder).toBeUndefined();
   });
 });
 

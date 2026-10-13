@@ -25,6 +25,7 @@ const {hashString} = require('../utils/hash');
 const {MODEL_TYPE_ENTITY} = require('../model/presetTypes');
 const {
   EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_MODEL_ONLY,
   includesDataPack,
   includesResourcePack,
   isSinglePackExport
@@ -32,6 +33,10 @@ const {
 
 function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
+}
+
+function jsonFile(path, value) {
+  return {path: path, content: toJson(value), binary: false};
 }
 
 function pairingVersion(settings, serverProfile) {
@@ -85,25 +90,16 @@ function textureFiles(textureResolution) {
 
 function datapackFiles(settings, serverProfile) {
   return [
-    {
-      path: 'pack.mcmeta', content: toJson(buildDataPackMcmeta(settings)),
-      binary: false
-    },
-    {
-      path: dataPaths(settings).profile, content: toJson(serverProfile),
-      binary: false
-    }
+    jsonFile('pack.mcmeta', buildDataPackMcmeta(settings)),
+    jsonFile(dataPaths(settings).profile, serverProfile)
   ];
 }
 
 function resourcepackFiles(settings, renderProfile, options) {
   const paths = dataPaths(settings);
   return [
-    {
-      path: 'pack.mcmeta', content: toJson(buildResourcePackMcmeta(settings)),
-      binary: false
-    },
-    {path: paths.renderProfile, content: toJson(renderProfile), binary: false},
+    jsonFile('pack.mcmeta', buildResourcePackMcmeta(settings)),
+    jsonFile(paths.renderProfile, renderProfile),
     {path: paths.model, content: options.modelBytes, binary: true},
     ...textureFiles(options.textureResolution)
   ];
@@ -146,21 +142,15 @@ function buildModProjectFiles(settings, options) {
   const paths = dataPaths(settings);
 
   const files = [];
-  const serverProfile = settings.modelOnly ? null : buildServerProfile(
-      settings);
+  const serverProfile = settings.exportType === EXPORT_TYPE_MODEL_ONLY
+      ? null : buildServerProfile(settings);
   stampVersion(settings, serverProfile, renderProfile);
   if (serverProfile) {
-    files.push({
-      path: paths.profile, content: toJson(serverProfile),
-      binary: false
-    });
+    files.push(jsonFile(paths.profile, serverProfile));
   }
 
   files.push(
-      {
-        path: paths.renderProfile, content: toJson(renderProfile),
-        binary: false
-      },
+      jsonFile(paths.renderProfile, renderProfile),
       {path: paths.model, content: opts.modelBytes, binary: true},
       ...textureFiles(opts.textureResolution));
 

@@ -18,5 +18,46 @@
         ]
       }
     ]
+  },
+  "1.1.0": {
+    "title": "Mod compatibility checks",
+    "author": "Markus Bordihn",
+    "date": "2026-10-14",
+    "categories": [
+      {
+        "title": "Fixes",
+        "list": [
+          "Fixed group names like \" Head\" or \"Root\" not being found. Case and spaces at the start or end no longer matter, like in the mod.",
+          "Fixed body parts in groups that are not exported counting as present.",
+          "Fixed the pack formats of Minecraft 26.2.",
+          "Fixed the model size and animation checks. The mod allows up to 64 clips, and clips like idle_2 or shoulder no longer cause warnings.",
+          "Fixed textures from other mods being written into the folder of that mod.",
+          "Fixed exports with schema version 0.1.0, invalid values or leftover settings of the previous preset.",
+          "Fixed lost dialog inputs after a blocked or cancelled export, and the export pairing being saved too early.",
+          "Fixed empty setting descriptions and the untranslated overwrite dialog."
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Requires Blockbench 5.0.0 or newer. The mod does not load model files from older versions.",
+          "Missing or misspelled body parts now block the export. A missing root group is fine, the mod adds it since 2.5.0.",
+          "Minecraft 1.21.1 is now the default target version.",
+          "Locators are no longer available in the Easy Model Entity format.",
+          "Project files only store export settings that differ from the preset, and no longer the export type. Older plugin versions use the preset defaults."
+        ]
+      },
+      {
+        "title": "Features",
+        "list": [
+          "Minecraft target version 26.3.",
+          "New advanced settings for opacity, animation variants and their weights, and the shoulder position and scale of entities.",
+          "More checks in the export dialog and the status bar: parts the mod cannot load or ignores, groups or animations with the same name, and a changed target version.",
+          "\"Wrap in root bone\" button for cubes outside of a group.",
+          "Face UV rotation in 90° steps in the Easy Model Entity format, and back faces hidden in the preview of static models.",
+          "The exported readme names the minimum mod version and has sections for Easy NPC and troubleshooting."
+        ]
+      }
+    ]
   }
 }

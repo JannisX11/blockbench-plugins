@@ -26,8 +26,9 @@ const {
 const {
   EXPORT_TYPE_RESOURCE_PACK,
   EXPORT_TYPE_DATA_PACK,
-  EXPORT_TYPE_MOD_PROJECT
+  isZipExport
 } = require('./model/exportTypes');
+const {t} = require('./i18n/translations');
 
 function zipExportName(settings) {
   const base = `${settings.namespace}_${settings.profileId}`;
@@ -42,20 +43,22 @@ function zipExportName(settings) {
   return `${base}_eme`;
 }
 
-function exportToZip(settings, options) {
+function exportToZip(settings, options, onWritten) {
   return BlockbenchAdapter.exportPackBundle(
       buildPackBundle(settings, options), zipExportName(settings))
   .then(() => {
-    Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
+    onWritten();
+    Blockbench.showQuickMessage(t('eme.message.packsExported'), 1500);
   })
   .catch((error) => {
-    Blockbench.showMessageBox({title: 'Export failed', message: String(error)});
+    Blockbench.showMessageBox(
+        {title: t('eme.message.exportFailed'), message: String(error)});
   });
 }
 
-function exportToModProject(settings, options) {
+function exportToModProject(settings, options, onWritten) {
   const rootDir = BlockbenchAdapter.pickDirectory(
-      'Select src/main/resources directory');
+      t('eme.message.selectResourcesDirectory'));
   if (!rootDir) {
     return;
   }
@@ -66,51 +69,44 @@ function exportToModProject(settings, options) {
   const write = () => {
     try {
       BlockbenchAdapter.writeToDirectory(rootDir, files);
-      Blockbench.showQuickMessage(
-          'Easy Model Entities files written to mod project', 1500);
+      onWritten();
+      Blockbench.showQuickMessage(t('eme.message.modProjectWritten'), 1500);
     } catch (error) {
       Blockbench.showMessageBox(
-          {title: 'Export failed', message: String(error)});
+          {title: t('eme.message.exportFailed'), message: String(error)});
     }
   };
 
   if (existing.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: 'Overwrite existing files?',
-          message: `${existing.length} file(s) already exist and will be overwritten:\n\n`
-              + existing.join('\n'),
-          buttons: ['Overwrite', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            write();
-          }
-        }
-    );
+    BlockbenchAdapter.confirm(t('eme.message.overwriteTitle'),
+        t('eme.message.overwriteFiles', existing.length) + '\n\n'
+        + existing.join('\n'), t('eme.button.overwrite'), write);
   } else {
     write();
   }
 }
 
-function performExport(settings, target, textureResolution) {
-  BlockbenchAdapter.saveSettings({
+function performExport(settings, textureResolution) {
+  const exportedSettings = {
     ...settings,
-    lastExportedVersion: pairingVersion(settings)
-  });
-
+    lastExportedVersion: pairingVersion(settings),
+    lastExportedTargetVersion: settings.targetVersion
+  };
+  // The exported model has to embed the pairing of this export, while the
+  // project keeps it only once the files are written.
+  BlockbenchAdapter.saveSettings(exportedSettings);
   const options = {
     modelBytes: BlockbenchAdapter.getModelBytes(),
     textureResolution
   };
+  BlockbenchAdapter.saveSettings(settings);
+  const onWritten = () => BlockbenchAdapter.saveSettings(exportedSettings);
 
-  if (target === EXPORT_TYPE_MOD_PROJECT) {
-    return exportToModProject(settings, options);
+  if (isZipExport(settings.exportType)) {
+    return exportToZip(settings, options, onWritten);
   }
 
-  return exportToZip(settings, options);
+  return exportToModProject(settings, options, onWritten);
 }
 
 module.exports = {performExport, zipExportName};

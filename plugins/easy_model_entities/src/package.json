@@ -1,6 +1,6 @@
 {
   "name": "easy_model_entities",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Export Blockbench projects into Easy Model Entities Data Pack and Resource Pack files.",
   "author": "Markus Bordihn",
   "private": true,

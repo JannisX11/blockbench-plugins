@@ -18,6 +18,7 @@
  */
 
 const {ResourceLocation} = require('../utils/ResourceLocation');
+const {MIN_MOD_VERSION} = require('../model/versionMatrix');
 const TEMPLATE = require('../resources/readme.md');
 
 function buildReadme(settings, fileNames) {
@@ -31,6 +32,7 @@ function buildReadme(settings, fileNames) {
   .replaceAll('{{serverProfileId}}', serverProfileId)
   .replaceAll('{{mcVersion}}',
       `Minecraft: Java Edition ${settings.targetVersion}`)
+  .replaceAll('{{modVersion}}', MIN_MOD_VERSION)
   .replaceAll('{{datapackFile}}', fileNames.datapack)
   .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
 }

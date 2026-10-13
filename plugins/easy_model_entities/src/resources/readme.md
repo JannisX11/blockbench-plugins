@@ -1,30 +1,30 @@
 # {{id}} - Easy Model Entities pack
 
-A custom Blockbench model that appears in Minecraft as an entity you can spawn — no coding and no
-extra mod needed for this model. Made with the **Easy Model Entities Exporter** Blockbench plugin
-for **{{mcVersion}}**.
+A Blockbench model you can spawn as an entity in Minecraft. Made with the **Easy Model Entities**
+Blockbench plugin for **{{mcVersion}}**.
 
-> **Note:** This is an early release. The pack format may still change, so you might need to
-> re-export this pack after updating the plugin or the mod.
+> **Note:** This is an early release. If you update the plugin or the mod, you may need to export
+> this pack again.
 
 Profile ID: `{{serverProfileId}}`
 
 ## What you need
 
-The **Easy Model Entities** mod for **{{mcVersion}}** (Forge, NeoForge or Fabric, depending on the
-Minecraft version). Without the mod these files do nothing at all.
+The **Easy Model Entities** mod, version **{{modVersion}} or newer**, for **{{mcVersion}}**
+(Forge, NeoForge or Fabric). Without the mod these files do nothing. With an older mod version the
+model can look wrong or show up as a pink box.
 
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)
 - [Modrinth](https://modrinth.com/mod/easy-model-entities)
 
-Install it like any other mod first. In multiplayer it has to be installed on the server too.
+Install it like any other mod. In multiplayer, the server needs it too.
 
 ## Installation
 
-Two files belong together — do not unpack them, just move them into the right folder:
+There are two files. Do not unpack them, just move them into the right folder:
 
-- `{{datapackFile}}` — the entity itself (size, movement, behavior)
-- `{{resourcepackFile}}` — how it looks (model, texture, animations)
+- `{{datapackFile}}`: the entity itself (size, movement, behavior)
+- `{{resourcepackFile}}`: how it looks (model, texture, animations)
 
 ### 1. Resource Pack
 
@@ -34,31 +34,36 @@ Move `{{resourcepackFile}}` into your resourcepacks folder:
 - Linux: `~/.minecraft/resourcepacks/`
 - macOS: `~/Library/Application Support/minecraft/resourcepacks/`
 
-Start Minecraft and enable it under **Options > Resource Packs**.
+Start Minecraft and turn it on under **Options > Resource Packs**.
 
 ### 2. Data Pack
 
-Move `{{datapackFile}}` into your world's datapacks folder:
+Move `{{datapackFile}}` into the datapacks folder of your world:
 
 - Single player: `.minecraft/saves/<world>/datapacks/`
-- Dedicated server: `<server folder>/world/datapacks/`
+- Server: `<server folder>/world/datapacks/`
 
-Load the world, or run `/reload` if it is already open.
+Load the world. If it is already open, run `/reload`.
 
-> **Install both.** With only the resource pack the model shows up but cannot be spawned. With only
-> the data pack the entity exists but renders as a pink placeholder box.
+> **Install both.** With only the resource pack, you cannot spawn the model. With only the data
+> pack, the entity shows up as a pink box.
 
 ## Using it in game
 
-Look for the spawn item in the creative inventory: entities are in the **Easy Model Entities** tab,
-block entities in **Easy Model Block Entities**. Place it like a spawn egg.
+Open the creative inventory. Entities are in the **Easy Model Entities** tab, block entities in
+**Easy Model Block Entities**. Use the spawn item like a spawn egg.
+
+## Using it with Easy NPC
+
+Easy NPC only needs the resource pack. You need the data pack only for the spawn items, for
+`/summon` and for the entities and blocks of Easy Model Entities.
 
 ## What this model can do
 
-Movement and behavior come from a fixed set of presets built into the mod — wandering, swimming,
-flying, standing still and so on. The preset was chosen at export time.
+Movement and behavior come from a preset built into the mod, for example wandering, swimming,
+flying or standing still. The preset was chosen when the pack was exported.
 
-Animations are played from the clips in the Blockbench project. These names play automatically:
+Animations come from the clips in the Blockbench project. These names play on their own:
 
 | Clip     | When it plays        |
 |----------|----------------------|
@@ -67,18 +72,29 @@ Animations are played from the clips in the Blockbench project. These names play
 | `swim`   | moving in water      |
 | `fly`    | flying               |
 | `attack` | attacking            |
-| `sit`    | sitting              |
+| `sit`    | sitting or riding    |
+| `hurt`   | taking damage        |
+| `death`  | dying                |
 
-Clips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own.
-Clips with any other name are kept as custom clips and are played by name, for example with
-`/easy_model_entities animation play entity <targets> <clip>`.
-
-There is no scripting or custom AI. A model without any matching clip simply renders without
-animation.
+- `shoulder` plays while the model sits on a player's shoulder. Without it, `sit` or `idle` is used.
+- Numbered clips like `idle_2` or `walk 3` are variants. The mod picks one of them each time.
+- Clips with other names only play by command, for example
+  `/easy_model_entities animation play entity <targets> <clip>`.
+- A model without any of these clips is shown without animation.
 
 ## Updating this pack
 
-Changed only the model, texture or animations? Re-export just the resource pack and replace that
-file. Changed entity data such as size or movement? Re-export just the data pack. Either way the
-updated pack still matches the one you already installed. If both changed, export the complete
-bundle again and replace both files.
+Changed only the model, texture or animations? Export only the resource pack again and replace that
+file. Changed size or movement? Export only the data pack. The new pack still fits the one you
+installed. If you changed both, export both packs again and replace both files.
+
+## Troubleshooting
+
+The model is a pink box or does not show up? Run this command in game:
+
+```
+/easy_model_entities debug_profile {{serverProfileId}}
+```
+
+It shows what is wrong with the profile and the model. Errors are also written to
+`logs/latest.log` in your Minecraft folder. Search the file for `{{serverProfileId}}`.

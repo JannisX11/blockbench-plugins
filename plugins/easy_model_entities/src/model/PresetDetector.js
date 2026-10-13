@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {standardClipNames} = require('./presetTypes');
+const {standardClipNames, normalizeName} = require('./presetTypes');
 
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
@@ -25,7 +25,7 @@ class PresetDetector {
 
   static #names(stats) {
     const boneNames = (stats && stats.boneNames) || [];
-    return boneNames.map((name) => String(name).toLowerCase());
+    return boneNames.map(normalizeName);
   }
 
   static #any(names, ...needles) {

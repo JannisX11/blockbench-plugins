@@ -19,6 +19,7 @@
 
 const {buildReadme} = require('../builders/readme');
 const {fixtureSettings} = require('./fixtureData');
+const {MIN_MOD_VERSION} = require('../model/versionMatrix');
 
 describe('buildReadme', () => {
   const readme = buildReadme(fixtureSettings(), {
@@ -29,7 +30,7 @@ describe('buildReadme', () => {
   test('states the mod requirement and Java Edition target', () => {
     expect(readme).toContain('Easy Model Entities');
     expect(readme).toContain('Minecraft: Java Edition');
-    expect(readme).toMatch(/mod .*installed|installed .*mod/i);
+    expect(readme).toContain('Without the mod these files do nothing');
   });
 
   test('explains where to install both packs as ready-to-use ZIPs', () => {
@@ -58,6 +59,22 @@ describe('buildReadme', () => {
   });
 
   test('names the target Minecraft version', () => {
-    expect(readme).toContain('Minecraft: Java Edition 1.20.1');
+    expect(readme).toContain('Minecraft: Java Edition 1.21.1');
+  });
+
+  test('names the minimum mod version', () => {
+    expect(readme).toContain(`${MIN_MOD_VERSION} or newer`);
+    expect(readme).not.toContain('{{modVersion}}');
+  });
+
+  test('explains that Easy NPC only needs the resource pack', () => {
+    expect(readme).toContain('Easy NPC');
+    expect(readme).toMatch(/Easy NPC only needs the resource pack/);
+  });
+
+  test('points to the debug command and the log for troubleshooting', () => {
+    expect(readme).toContain(
+        '/easy_model_entities debug_profile example:entity/lizard');
+    expect(readme).toContain('logs/latest.log');
   });
 });

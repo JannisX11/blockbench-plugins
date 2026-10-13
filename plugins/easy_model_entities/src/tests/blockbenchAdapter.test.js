@@ -90,3 +90,186 @@ describe('collectTextures', () => {
     expect(BlockbenchAdapter.collectTextures()).toEqual([]);
   });
 });
+
+describe('getModelStats geometry', () => {
+  function cube(name, properties) {
+    return {type: 'cube', name, faces: {}, ...properties};
+  }
+
+  function group(name, properties) {
+    return {type: 'group', name, ...properties};
+  }
+
+  afterEach(() => {
+    delete global.Outliner;
+    delete global.Group;
+    delete global.Texture;
+    delete global.Format;
+    delete global.Project;
+  });
+
+  test('collects the elements the mod cannot load or ignores', () => {
+    const body = group('body', {visibility: false});
+    const loose = cube('loose', {inflate: 0.5});
+    const turned = cube('turned', {
+      faces: {north: {rotation: 45, texture: 0}, south: {texture: 1}}
+    });
+    const squared = cube('squared', {faces: {north: {rotation: 270}}});
+    const tail = {type: 'mesh', name: 'tail'};
+    global.Format = {id: 'eme_entity', per_texture_uv_size: true};
+    global.Project = {texture_width: 64, texture_height: 64};
+    global.Outliner = {
+      root: [body, loose],
+      elements: [loose, turned, squared, tail]
+    };
+    global.Group = {all: [body]};
+    global.Texture = {
+      all: [
+        {name: 'skin.png', uv_width: 32, uv_height: 64},
+        {name: 'glass.png'}
+      ]
+    };
+
+    expect(BlockbenchAdapter.getModelStats().geometry).toEqual({
+      formatId: 'eme_entity',
+      unsupportedElements: ['tail (mesh)'],
+      rootCubes: ['loose'],
+      rotatedFaceCubes: ['turned'],
+      mixedTextureCubes: ['turned'],
+      customUvSizeTextures: ['skin.png'],
+      hiddenNodes: ['body'],
+      exportedGroupNames: ['body']
+    });
+  });
+
+  test(
+      'leaves groups with export false and their children out of the group names',
+      () => {
+        const hidden = group('hidden', {export: false});
+        const child = group('child', {parent: hidden});
+        const head = group('head', {parent: 'root'});
+        global.Group = {all: [hidden, child, head]};
+
+        expect(BlockbenchAdapter.getModelStats().geometry.exportedGroupNames)
+        .toEqual(['head']);
+      });
+
+  test('counts only exported groups as body parts', () => {
+    const hidden = group('body', {export: false});
+    const head = group('head', {parent: 'root'});
+    global.Group = {all: [hidden, head]};
+
+    expect(BlockbenchAdapter.getModelLoadStats().boneNames).toEqual(['head']);
+  });
+
+  test('ignores per texture UV sizes in formats without them', () => {
+    global.Format = {id: 'modded_entity'};
+    global.Project = {texture_width: 64, texture_height: 64};
+    global.Texture = {all: [{name: 'skin.png', uv_width: 32, uv_height: 32}]};
+
+    expect(BlockbenchAdapter.getModelStats().geometry.customUvSizeTextures)
+    .toEqual([]);
+  });
+
+  test('reports no geometry issues without a loaded model', () => {
+    const geometry = BlockbenchAdapter.getModelStats().geometry;
+
+    expect(geometry.unsupportedElements).toEqual([]);
+    expect(geometry.rootCubes).toEqual([]);
+    expect(geometry.hiddenNodes).toEqual([]);
+  });
+
+  test('measures the model file size from the compiled project', () => {
+    global.Codecs = {project: {compile: () => '{"name":"lizard"}'}};
+
+    try {
+      expect(BlockbenchAdapter.getModelFileSize()).toBe(17);
+    } finally {
+      delete global.Codecs;
+    }
+  });
+
+  test('collects the model stats without compiling the project', () => {
+    const compile = jest.fn(() => '{}');
+    global.Codecs = {project: {compile}};
+
+    try {
+      BlockbenchAdapter.getModelStats();
+      expect(compile).not.toHaveBeenCalled();
+    } finally {
+      delete global.Codecs;
+    }
+  });
+});
+
+describe('wrapInRootBone', () => {
+  let createdGroups;
+  let finishedEdits;
+
+  function node(type, name) {
+    return {
+      type, name, parent: 'root',
+      addTo(parent) {
+        this.parent = parent;
+      }
+    };
+  }
+
+  beforeEach(() => {
+    createdGroups = [];
+    finishedEdits = [];
+    global.Undo = {
+      initEdit: () => {
+      },
+      finishEdit: (label) => finishedEdits.push(label)
+    };
+    global.Canvas = {
+      updateAll: () => {
+      }
+    };
+    global.Group = class {
+      constructor(data) {
+        Object.assign(this, data, {type: 'group'});
+      }
+
+      init() {
+        createdGroups.push(this);
+        return this;
+      }
+    };
+  });
+
+  afterEach(() => {
+    delete global.Outliner;
+    delete global.Undo;
+    delete global.Canvas;
+    delete global.Group;
+  });
+
+  test('moves all top-level nodes into a new root group', () => {
+    const body = node('group', 'body');
+    const loose = node('cube', 'loose');
+    global.Outliner = {root: [body, loose]};
+
+    BlockbenchAdapter.wrapInRootBone('Wrap in root bone');
+
+    expect(createdGroups).toHaveLength(1);
+    expect(createdGroups[0].name).toBe('root');
+    expect(createdGroups[0].origin).toEqual([0, 0, 0]);
+    expect(body.parent).toBe(createdGroups[0]);
+    expect(loose.parent).toBe(createdGroups[0]);
+    expect(finishedEdits).toEqual(['Wrap in root bone']);
+  });
+
+  test('reuses an existing top-level root group regardless of case', () => {
+    const root = node('group', ' Root');
+    const loose = node('cube', 'loose');
+    global.Outliner = {root: [root, loose]};
+
+    BlockbenchAdapter.wrapInRootBone('Wrap in root bone');
+
+    expect(createdGroups).toHaveLength(0);
+    expect(root.parent).toBe('root');
+    expect(loose.parent).toBe(root);
+  });
+});
