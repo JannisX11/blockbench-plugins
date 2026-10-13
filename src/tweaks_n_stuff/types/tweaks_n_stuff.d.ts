@@ -2,7 +2,7 @@
 
 declare module "blockbench-types" {
   interface ModelProject {
-    notes?: string;
+    notes?: { id: string; author: string; text: string; elements: string[] }[];
     pinned?: boolean;
 
     close(force: boolean, unpin?: boolean): Promise<void>;

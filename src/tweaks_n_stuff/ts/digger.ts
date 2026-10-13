@@ -32,7 +32,7 @@ class ChunkDigger {
     const selector = `li[plugin="${ID}"] div .plugin_icon_area`;
     this.deleteables.push(
       Blockbench.on("show_dialog", ({ dialog }) => {
-        if (dialog.id !== "plugins") return;
+        if (dialog?.id !== "plugins") return;
         $(selector).on("click", () => {
           this.clicks++;
           if (this.clicks >= 5) {
@@ -43,7 +43,7 @@ class ChunkDigger {
         });
       }),
       Blockbench.on("hide_dialog", ({ dialog }) => {
-        if (dialog.id !== "plugins") return;
+        if (dialog?.id !== "plugins") return;
         this.clicks = 0;
         $(selector).off();
       }),

@@ -18,15 +18,18 @@ class ClearRecentProjectsTweak extends ToggleTweak {
     button.innerHTML = '<i class="material-icons">delete_sweep</i>';
     button.onclick = () => {
       if (!recent_projects.length) return;
-      Blockbench.showMessageBox({
-        title: tl("action.clear_recent_projects"),
-        message: tl("dialog.clear_recent_projects.message"),
-        buttons: ["dialog.confirm", "dialog.cancel"],
-      }, (result) => {
-        if (result !== 0) return;
-        recent_projects.length = 0;
-        updateRecentProjects();
-      });
+      Blockbench.showMessageBox(
+        {
+          title: tl("action.clear_recent_projects"),
+          message: tl("dialog.clear_recent_projects.message"),
+          buttons: ["dialog.confirm", "dialog.cancel"],
+        },
+        (result) => {
+          if (result !== 0) return;
+          recent_projects.length = 0;
+          updateRecentProjects();
+        },
+      );
     };
     button.onkeydown = (event) => {
       if (event.key === "Enter" || event.key === " ") {

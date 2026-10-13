@@ -21,9 +21,10 @@ class BedrockOpenAllTweak extends ToggleTweak {
     // The dialog's own open method imports into the project created for this file.
     selection.open(entries[0]);
     for (const geometry of entries.slice(1)) {
-      const model = codec.id === "bedrock_old"
-        ? { format_version: formatVersion, [geometry.name]: geometry.object }
-        : { format_version: formatVersion, "minecraft:geometry": [geometry.object] };
+      const model =
+        codec.id === "bedrock_old"
+          ? { format_version: formatVersion, [geometry.name]: geometry.object }
+          : { format_version: formatVersion, "minecraft:geometry": [geometry.object] };
       codec.load(model, { path });
       (dialog as Dialog & { onOpenAllGeometry?: (name: string) => void }).onOpenAllGeometry?.(geometry.name);
     }
@@ -33,7 +34,7 @@ class BedrockOpenAllTweak extends ToggleTweak {
 
   onEnable(): void {
     const select = Blockbench.on("show_dialog", ({ dialog }) => {
-      if (dialog.id !== "bedrock_model_select") return;
+      if (dialog?.id !== "bedrock_model_select") return;
       const button_bar = dialog.object.getElementsByClassName("dialog_bar button_bar")[0];
       if (!button_bar) return;
       const btn = document.createElement("a");

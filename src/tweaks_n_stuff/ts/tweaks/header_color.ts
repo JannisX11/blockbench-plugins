@@ -36,7 +36,7 @@ class HeaderColorTweak extends ToggleTweak {
     const css = `div#corner_logo{filter:var(--filter-corner-logo);}header{background-color:var(--color-header-bg)}header>*{color:var(--color-header-text) !important;}`;
     const changed = Blockbench.on("profile_changed", this.update.bind(this));
     const hide = Blockbench.on("hide_dialog", ({ dialog }) => {
-      if (dialog.id !== "settings_profile") return;
+      if (dialog?.id !== "settings_profile") return;
       this.update();
     });
     this.deleteables.push(Blockbench.addCSS(css), changed, hide);
