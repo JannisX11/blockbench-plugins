@@ -29,9 +29,9 @@ let authorPaletteKey = "";
 let authorPalette = new Map<string, string>();
 const authorColor = (author: string): string => {
   const key = authorKey(author);
-  const authors = [...new Set([
-    ...((Project as NotesProject | undefined)?.notes ?? []).map((entry) => authorKey(entry.author)), key,
-  ])].sort();
+  const authors = [
+    ...new Set([...((Project as NotesProject | undefined)?.notes ?? []).map((entry) => authorKey(entry.author)), key]),
+  ].sort();
   const paletteKey = JSON.stringify(authors);
   if (paletteKey !== authorPaletteKey) {
     authorPaletteKey = paletteKey;
@@ -46,7 +46,10 @@ const authorColor = (author: string): string => {
       for (let offset = 0; offset < 360; offset++) {
         const candidate = (preferred + offset) % 360;
         const separation = hues.length ? Math.min(...hues.map((used) => distance(candidate, used))) : 360;
-        if (separation > best) { best = separation; hue = candidate; }
+        if (separation > best) {
+          best = separation;
+          hue = candidate;
+        }
       }
       hues.push(hue);
       authorPalette.set(name, `hsl(${hue}, 78%, 65%)`);
@@ -132,11 +135,17 @@ class NotesTweak extends ToggleTweak {
       const x = pointer.x - rect.left;
       const y = pointer.y - rect.top;
       if (node && (preview.node.contains(node) || node === this.editor?.textarea)) {
-        hovered = Array.from(this.billboards.values()).reverse().find((billboard) => {
-          const screen = billboard.screen;
-          return billboard.sprite.visible && screen &&
-            Math.abs(x - screen.x) <= screen.width / 2 && Math.abs(y - screen.y) <= screen.height / 2;
-        });
+        hovered = Array.from(this.billboards.values())
+          .reverse()
+          .find((billboard) => {
+            const screen = billboard.screen;
+            return (
+              billboard.sprite.visible &&
+              screen &&
+              Math.abs(x - screen.x) <= screen.width / 2 &&
+              Math.abs(y - screen.y) <= screen.height / 2
+            );
+          });
       }
     }
     const panelEntry = panelNoteId
@@ -144,9 +153,12 @@ class NotesTweak extends ToggleTweak {
       : undefined;
     const hoverElements = panelEntry
       ? (Project?.elements ?? []).filter((element) => panelEntry.elements.includes(element.uuid))
-      : hovered?.elements ?? [];
-    if (hovered !== this.hoveredBillboard || hoverElements.length !== this.hoverElements.length ||
-      hoverElements.some((element, index) => element !== this.hoverElements[index])) {
+      : (hovered?.elements ?? []);
+    if (
+      hovered !== this.hoveredBillboard ||
+      hoverElements.length !== this.hoverElements.length ||
+      hoverElements.some((element, index) => element !== this.hoverElements[index])
+    ) {
       this.clearNoteHover();
       this.hoveredBillboard = hovered;
       this.hoverElements = hoverElements.slice();
@@ -389,7 +401,12 @@ class NotesTweak extends ToggleTweak {
       ctx.fillText(entry.author, 20, 42, editable ? NOTE_READING_BUTTON_X - 32 : 470);
       if (editable) {
         ctx.fillStyle = "#555c67";
-        ctx.fillRect(source ? NOTE_SOURCE_BUTTON_X : NOTE_READING_BUTTON_X, 12, NOTE_MODE_BUTTON_SIZE, NOTE_MODE_BUTTON_SIZE);
+        ctx.fillRect(
+          source ? NOTE_SOURCE_BUTTON_X : NOTE_READING_BUTTON_X,
+          12,
+          NOTE_MODE_BUTTON_SIZE,
+          NOTE_MODE_BUTTON_SIZE,
+        );
         ctx.fillStyle = "#f5f5f5";
         ctx.save();
         ctx.strokeStyle = "#f5f5f5";
@@ -452,7 +469,20 @@ class NotesTweak extends ToggleTweak {
     line.renderOrder = 999;
     line.frustumCulled = false;
     Canvas.scene.add(line, sprite);
-    return { element: elements[0], elements, entry, note, editable, color, sprite, line, texture, drawToolbar, width, height };
+    return {
+      element: elements[0],
+      elements,
+      entry,
+      note,
+      editable,
+      color,
+      sprite,
+      line,
+      texture,
+      drawToolbar,
+      width,
+      height,
+    };
   }
 
   private removeBillboard(billboard: NoteBillboard): void {
@@ -574,9 +604,17 @@ class NotesTweak extends ToggleTweak {
       const inToolbar = y < screen.y - screen.height / 2 + toolbarHeight;
       const textureX = ((x - screen.x + screen.width / 2) / screen.width) * NOTE_TEXTURE_WIDTH;
       const textureY = ((y - screen.y + screen.height / 2) / screen.width) * NOTE_TEXTURE_WIDTH;
-      const inReadingButton = textureX >= NOTE_READING_BUTTON_X && textureX <= NOTE_READING_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
-      const inSourceButton = textureX >= NOTE_SOURCE_BUTTON_X && textureX <= NOTE_SOURCE_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
-      if (billboard.editable && inToolbar && textureY >= 12 && textureY <= 12 + NOTE_MODE_BUTTON_SIZE && (inReadingButton || inSourceButton)) {
+      const inReadingButton =
+        textureX >= NOTE_READING_BUTTON_X && textureX <= NOTE_READING_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
+      const inSourceButton =
+        textureX >= NOTE_SOURCE_BUTTON_X && textureX <= NOTE_SOURCE_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
+      if (
+        billboard.editable &&
+        inToolbar &&
+        textureY >= 12 &&
+        textureY <= 12 + NOTE_MODE_BUTTON_SIZE &&
+        (inReadingButton || inSourceButton)
+      ) {
         if (inSourceButton) {
           if (this.editor?.billboard === billboard) this.editor.textarea.focus();
           else if (this.canEditEntry(billboard.entry)) this.openInlineEditor(billboard);
@@ -775,12 +813,18 @@ class NotesTweak extends ToggleTweak {
             const position = geometry?.attributes.position;
             if (!position) return;
             for (let i = 0; i < position.count; i++) {
-              projected.push(toScreen(new Three.Vector3().fromBufferAttribute(position as THREE.BufferAttribute, i).applyMatrix4(object.matrixWorld)));
+              projected.push(
+                toScreen(
+                  new Three.Vector3()
+                    .fromBufferAttribute(position as THREE.BufferAttribute, i)
+                    .applyMatrix4(object.matrixWorld),
+                ),
+              );
             }
           });
           // The projected convex hull follows rotated element edges as the camera moves.
           projected.sort((a, b) => a.x - b.x || a.y - b.y);
-          const cross = (a: typeof projected[number], b: typeof a, c: typeof a) =>
+          const cross = (a: (typeof projected)[number], b: typeof a, c: typeof a) =>
             (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
           const half = (points: typeof projected) => {
             const hull: typeof projected = [];
@@ -792,7 +836,9 @@ class NotesTweak extends ToggleTweak {
             return hull;
           };
           const outline = [...half(projected), ...half([...projected].reverse())];
-          return [{ index, anchor: toScreen(new Three.Box3().setFromObject(mesh).getCenter(new Three.Vector3())), outline }];
+          return [
+            { index, anchor: toScreen(new Three.Box3().setFromObject(mesh).getCenter(new Three.Vector3())), outline },
+          ];
         });
         billboard.sprite.visible = targets.length > 0;
         billboard.line.visible = targets.length > 0;
@@ -928,11 +974,13 @@ class NotesTweak extends ToggleTweak {
 
         // Group by visible distance, keeping every member close to the others
         // so a chain of nearby elements cannot merge distant endpoints.
-        const groups: typeof targets[] = [];
+        const groups: (typeof targets)[] = [];
         for (const target of targets) {
           const group = groups.find((members) =>
-            members.every((member) =>
-              Math.hypot(member.anchor.x - target.anchor.x, member.anchor.y - target.anchor.y) <= NOTE_ARROW_GROUP_DISTANCE,
+            members.every(
+              (member) =>
+                Math.hypot(member.anchor.x - target.anchor.x, member.anchor.y - target.anchor.y) <=
+                NOTE_ARROW_GROUP_DISTANCE,
             ),
           );
           if (group) group.push(target);
@@ -1095,8 +1143,12 @@ class NotesTweak extends ToggleTweak {
           editingId: null as string | null,
         },
         methods: {
-          formatNote(text: string): string { return pureMarked(text); },
-          noteColor(author: string): string { return authorColor(author); },
+          formatNote(text: string): string {
+            return pureMarked(text);
+          },
+          noteColor(author: string): string {
+            return authorColor(author);
+          },
           editNote(entry: NoteEntry, text: string): void {
             const instance = NotesTweak.instance;
             const element = Project?.elements.find((item) => entry.elements.includes(item.uuid));
