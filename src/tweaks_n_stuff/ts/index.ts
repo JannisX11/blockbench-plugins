@@ -19,6 +19,7 @@ BBPlugin.register(ID, {
   version: VERSION,
   min_version: "4.8.0",
   tags: ["Blockbench"],
+  creation_date: "2024-10-07",
   new_repository_format: true,
   oninstall() {
     Tweak.all.forEach((tweak) => tweak.install());
