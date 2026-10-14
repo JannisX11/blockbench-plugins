@@ -58,6 +58,6 @@ Adds a button beside Recent on the main screen to clear the recent projects list
 
 Adds a 'Open All' button when opening a bedrock geometry file that contains multiple models.
 
-![bedrock open all](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_5.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_5.webp" alt="bedrock open all" width="50%">
 
 > The wrench used in the plugin icon is from the [Silk Icon Set](https://opengameart.org/content/application-silk-icon-set-13) by Mark James under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)

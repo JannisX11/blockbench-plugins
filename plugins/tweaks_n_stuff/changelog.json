@@ -65,7 +65,8 @@
           "Added `bedrock block` tweak",
           "Added `bedrock entity` tweak",
           "Added `bedrock open all` tweak",
-          "Added `clear recent projects` tweak"
+          "Added `clear recent projects` tweak",
+          "Added `notes` tweak"
         ]
       }
     ]
