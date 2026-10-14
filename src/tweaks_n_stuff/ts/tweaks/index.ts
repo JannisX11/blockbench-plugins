@@ -4,6 +4,6 @@ import "./pin_tab";
 import "./wrap_tabs";
 import "./notes";
 import "./bedrock_open_all";
-import "./bedrock_block_geometry";
-import "./bedrock_entity_geometry";
+import "./bedrock_block";
+import "./bedrock_entity";
 import "./clear_recent_projects";

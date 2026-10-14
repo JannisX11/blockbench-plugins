@@ -4,7 +4,7 @@ class BedrockEntityGeometryTweak extends ToggleTweak {
   private sources = new WeakMap<ModelProject, { path: string; identifier: string }>();
 
   constructor() {
-    super("bedrock_entity_geometry", { author: "legopitstop", category: "interface" });
+    super("bedrock_entity", { author: "legopitstop", category: "interface" });
   }
 
   private loadEntity(data: any, file: { path: string; name: string }): void {
@@ -106,7 +106,7 @@ class BedrockEntityGeometryTweak extends ToggleTweak {
           .init();
       }
     } catch (error) {
-      Blockbench.showMessageBox({ title: "Open Bedrock Entity Geometry", message: String(error) });
+      Blockbench.showMessageBox({ title: "Open Bedrock Entity", message: String(error) });
     }
   }
 
@@ -145,8 +145,8 @@ class BedrockEntityGeometryTweak extends ToggleTweak {
   }
 
   onEnable(): void {
-    const action = new Action("open_bedrock_entity_geometry", {
-      name: "Open Bedrock Entity Geometry",
+    const action = new Action("open_bedrock_entity", {
+      name: "Open Bedrock Entity",
       description: "Open the geometry and custom hit test from a behavior pack entity file",
       icon: "view_in_ar",
       condition: () => !Blockbench.isWeb,
@@ -176,8 +176,8 @@ class BedrockEntityGeometryTweak extends ToggleTweak {
         (typeof item === "object" && item !== null && "id" in item && item.id === "save_model"),
     );
     MenuBar.addAction(saveToEntity, saveModelIndex < 0 ? "file" : `file.${saveModelIndex + 1}`);
-    const codec = new Codec("bedrock_entity_geometry_reference", {
-      name: "Bedrock Entity Geometry Reference",
+    const codec = new Codec("bedrock_entity_reference", {
+      name: "Bedrock Entity Reference",
       extension: "json",
       load_filter: {
         type: "json",

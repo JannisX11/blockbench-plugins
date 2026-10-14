@@ -8,7 +8,7 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
   private pendingSelection?: { names: Set<string>; opened: (name: string) => void };
 
   constructor() {
-    super("bedrock_block_geometry", { author: "legopitstop", category: "interface" });
+    super("bedrock_block", { author: "legopitstop", category: "interface" });
   }
 
   private openBlock(): void {
@@ -18,7 +18,7 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
       try {
         this.loadBlock(JSON.parse(file.content), file);
       } catch (error) {
-        Blockbench.showMessageBox({ title: "Open Bedrock Block Geometry", message: String(error) });
+        Blockbench.showMessageBox({ title: "Open Bedrock Block", message: String(error) });
       }
     });
   }
@@ -179,7 +179,7 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
         { name: path.basename(first.path), path: first.path },
       );
     } catch (error) {
-      Blockbench.showMessageBox({ title: "Open Bedrock Block Geometry", message: String(error) });
+      Blockbench.showMessageBox({ title: "Open Bedrock Block", message: String(error) });
     }
   }
 
@@ -259,8 +259,8 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
         if (pending.names.has(geometry.name)) pending.opened(geometry.name);
       };
     });
-    const action = new Action("open_bedrock_block_geometry", {
-      name: "Open Bedrock Block Geometry",
+    const action = new Action("open_bedrock_block", {
+      name: "Open Bedrock Block",
       description: "Open the geometry referenced by a Bedrock block JSON file",
       icon: "view_in_ar",
       condition: () => !Blockbench.isWeb,
@@ -283,8 +283,8 @@ class BedrockBlockGeometryTweak extends ToggleTweak {
         (typeof item === "object" && item !== null && "id" in item && item.id === "save_model"),
     );
     MenuBar.addAction(saveToBlock, saveModelIndex < 0 ? "file" : `file.${saveModelIndex + 1}`);
-    const codec = new Codec("bedrock_block_geometry_reference", {
-      name: "Bedrock Block Geometry Reference",
+    const codec = new Codec("bedrock_block_reference", {
+      name: "Bedrock Block Reference",
       extension: "json",
       load_filter: {
         type: "json",

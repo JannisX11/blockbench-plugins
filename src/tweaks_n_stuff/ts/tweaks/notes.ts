@@ -4,6 +4,10 @@ import type * as THREE from "three";
 const Three = (globalThis as any).THREE as typeof import("three");
 const NOTE_TEXTURE_WIDTH = 512;
 const NOTE_TOOLBAR_HEIGHT = 64;
+const NOTE_MODE_BUTTON_SIZE = 40;
+const NOTE_READING_BUTTON_X = 408;
+const NOTE_SOURCE_BUTTON_X = 460;
+const NOTE_ARROW_GROUP_DISTANCE = 140;
 
 type NoteEntry = { id: string; author: string; text: string; elements: string[] };
 type NotedElement = OutlinerElement;
@@ -14,12 +18,41 @@ const isNoteOffset = (value: unknown): value is [number, number] =>
   Array.isArray(value) &&
   value.length === 2 &&
   value.every((part) => typeof part === "number" && Number.isFinite(part));
-const authorColor = (author: string): string => {
+const authorHue = (author: string): number => {
   let hash = 2166136261;
   for (const character of author.trim().toLowerCase()) {
     hash = Math.imul(hash ^ character.codePointAt(0)!, 16777619);
   }
-  return `hsl(${(hash >>> 0) % 360}, 78%, 65%)`;
+  return (hash >>> 0) % 360;
+};
+let authorPaletteKey = "";
+let authorPalette = new Map<string, string>();
+const authorColor = (author: string): string => {
+  const key = authorKey(author);
+  const authors = [...new Set([
+    ...((Project as NotesProject | undefined)?.notes ?? []).map((entry) => authorKey(entry.author)), key,
+  ])].sort();
+  const paletteKey = JSON.stringify(authors);
+  if (paletteKey !== authorPaletteKey) {
+    authorPaletteKey = paletteKey;
+    authorPalette = new Map();
+    const hues: number[] = [];
+    const distance = (a: number, b: number) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+    for (const name of authors) {
+      const preferred = authorHue(name);
+      let hue = preferred;
+      let best = -1;
+      // Maximize separation from colors already assigned to this project's authors.
+      for (let offset = 0; offset < 360; offset++) {
+        const candidate = (preferred + offset) % 360;
+        const separation = hues.length ? Math.min(...hues.map((used) => distance(candidate, used))) : 360;
+        if (separation > best) { best = separation; hue = candidate; }
+      }
+      hues.push(hue);
+      authorPalette.set(name, `hsl(${hue}, 78%, 65%)`);
+    }
+  }
+  return authorPalette.get(key)!;
 };
 const validEntries = (value: unknown): NoteEntry[] =>
   Array.isArray(value)
@@ -47,9 +80,11 @@ type NoteBillboard = {
   entry: NoteEntry;
   note: string;
   editable: boolean;
+  color: string;
   sprite: THREE.Sprite;
   line: THREE.LineSegments;
   texture: THREE.CanvasTexture;
+  drawToolbar: (source: boolean) => void;
   width: number;
   height: number;
   screen?: { x: number; y: number; width: number; height: number; anchorX: number; anchorY: number };
@@ -62,9 +97,69 @@ class NotesTweak extends ToggleTweak {
   private perElementSetting?: Setting;
   private notesVisible = true;
   private billboards = new Map<string, NoteBillboard>();
+  private hoverPointer?: { x: number; y: number };
+  private hoveredBillboard?: NoteBillboard;
+  private hoverElements: NotedElement[] = [];
+
+  private clearNoteHover = (): void => {
+    this.hoveredBillboard = undefined;
+    for (const element of this.hoverElements) {
+      (element.preview_controller as any)?.updateHighlight?.(element);
+    }
+    this.hoverElements = [];
+  };
+
+  private onNotePointerLeave = (): void => {
+    this.hoverPointer = undefined;
+    this.clearNoteHover();
+  };
+
+  private onNoteMouseMove = (event: MouseEvent): void => {
+    this.hoverPointer = { x: event.clientX, y: event.clientY };
+    this.updateNoteHover();
+    if (this.hoveredBillboard) event.stopImmediatePropagation();
+  };
+
+  private updateNoteHover(): void {
+    const pointer = this.hoverPointer;
+    const preview = Preview.selected;
+    let hovered: NoteBillboard | undefined;
+    const node = pointer ? document.elementFromPoint(pointer.x, pointer.y) : null;
+    const panelIcon = node?.closest("#note_editor .note_elements_icon");
+    const panelNoteId = panelIcon?.getAttribute("data-note-id");
+    if (pointer && preview && this.notesVisible && Settings.get("per_element_notes")) {
+      const rect = preview.canvas.getBoundingClientRect();
+      const x = pointer.x - rect.left;
+      const y = pointer.y - rect.top;
+      if (node && (preview.node.contains(node) || node === this.editor?.textarea)) {
+        hovered = Array.from(this.billboards.values()).reverse().find((billboard) => {
+          const screen = billboard.screen;
+          return billboard.sprite.visible && screen &&
+            Math.abs(x - screen.x) <= screen.width / 2 && Math.abs(y - screen.y) <= screen.height / 2;
+        });
+      }
+    }
+    const panelEntry = panelNoteId
+      ? validEntries((Project as NotesProject | undefined)?.notes).find((entry) => entry.id === panelNoteId)
+      : undefined;
+    const hoverElements = panelEntry
+      ? (Project?.elements ?? []).filter((element) => panelEntry.elements.includes(element.uuid))
+      : hovered?.elements ?? [];
+    if (hovered !== this.hoveredBillboard || hoverElements.length !== this.hoverElements.length ||
+      hoverElements.some((element, index) => element !== this.hoverElements[index])) {
+      this.clearNoteHover();
+      this.hoveredBillboard = hovered;
+      this.hoverElements = hoverElements.slice();
+    }
+    // Use the element controller's native hover tint and preserve selection shading.
+    for (const element of this.hoverElements) {
+      (element.preview_controller as any)?.updateHighlight?.(element, element);
+    }
+  }
+
   private offsets = new Map<string, Record<string, [number, number]>>();
   private animationFrame?: number;
-  private panelIdentity?: string;
+  private panelNotesSignature?: string;
   private dragging?: {
     billboard: NoteBillboard;
     project: ModelProject;
@@ -101,10 +196,6 @@ class NotesTweak extends ToggleTweak {
       entries.find((entry) => entry.id === identity.id) ??
       entries.find((entry) => authorKey(entry.author) === authorKey(identity.author))
     );
-  }
-
-  private ownNote(entries: NoteEntry[]): string {
-    return this.ownEntry(entries)?.text ?? "";
   }
 
   private canEditEntry(entry: NoteEntry): boolean {
@@ -183,17 +274,24 @@ class NotesTweak extends ToggleTweak {
         text,
       });
     }
-    if (!element && Project === project) this.refreshPanel();
+    if (Project === project) this.refreshPanel();
   }
 
   private refreshPanel(): void {
     const project = Project as NotesProject | undefined;
-    const entries = notesFor(project);
-    const ownId = this.ownEntry(entries)?.id;
-    this.panelIdentity = project ? this.getIdentity().id : undefined;
-    NotesTweak.panel.vue.notes = project ? this.ownNote(entries) : "";
-    NotesTweak.panel.vue.otherNotes = entries.filter((entry) => entry.id !== ownId && entry.text);
-    NotesTweak.panel.vue.canEditOthers = !project?.EditSession?.active || !!project.EditSession.hosting;
+    const entries = validEntries(project?.notes).filter((entry) => entry.text && entry.elements.length);
+    const elements = new Map((project?.elements ?? []).map((element) => [element.uuid, element.name]));
+    const notes = entries.map((entry) => ({
+      ...entry,
+      elementNames: entry.elements.map((uuid) => elements.get(uuid) ?? "Missing element").join(", "),
+      editable: this.canEditEntry(entry),
+      color: authorColor(entry.author),
+    }));
+    const signature = JSON.stringify(notes);
+    if (signature === this.panelNotesSignature) return;
+    this.panelNotesSignature = signature;
+    NotesTweak.panel.vue.elementNotes = notes;
+    if (!notes.some((entry) => entry.id === NotesTweak.panel.vue.editingId)) NotesTweak.panel.vue.editingId = null;
   }
 
   constructor() {
@@ -282,40 +380,83 @@ class NotesTweak extends ToggleTweak {
     ctx.roundRect(2, 2, canvas.width - 4, canvas.height - 4, 12);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = "#343944";
-    ctx.fillRect(4, 4, canvas.width - 8, NOTE_TOOLBAR_HEIGHT - 4);
-    ctx.fillStyle = "#f5f5f5";
-    ctx.font = "22px sans-serif";
-    ctx.fillText(entry.author, 20, 42, editable ? 260 : 470);
-    if (editable) {
-      ctx.fillStyle = "#555c67";
-      ctx.fillRect(284, 12, 104, 40);
+    const drawToolbar = (source: boolean): void => {
+      ctx.save();
+      ctx.fillStyle = "#343944";
+      ctx.fillRect(4, 4, canvas.width - 8, NOTE_TOOLBAR_HEIGHT - 4);
       ctx.fillStyle = "#f5f5f5";
-      ctx.fillText("Reading", 292, 40);
-      ctx.fillText("Source", 410, 40);
-    }
+      ctx.font = "22px sans-serif";
+      ctx.fillText(entry.author, 20, 42, editable ? NOTE_READING_BUTTON_X - 32 : 470);
+      if (editable) {
+        ctx.fillStyle = "#555c67";
+        ctx.fillRect(source ? NOTE_SOURCE_BUTTON_X : NOTE_READING_BUTTON_X, 12, NOTE_MODE_BUTTON_SIZE, NOTE_MODE_BUTTON_SIZE);
+        ctx.fillStyle = "#f5f5f5";
+        ctx.save();
+        ctx.strokeStyle = "#f5f5f5";
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        // Open book for reading mode.
+        ctx.save();
+        ctx.translate(NOTE_READING_BUTTON_X + NOTE_MODE_BUTTON_SIZE / 2, 32);
+        ctx.scale(0.65, 0.65);
+        ctx.translate(-336, -32);
+        ctx.beginPath();
+        ctx.moveTo(336, 23);
+        ctx.quadraticCurveTo(326, 18, 316, 21);
+        ctx.lineTo(316, 43);
+        ctx.quadraticCurveTo(326, 40, 336, 45);
+        ctx.quadraticCurveTo(346, 40, 356, 43);
+        ctx.lineTo(356, 21);
+        ctx.quadraticCurveTo(346, 18, 336, 23);
+        ctx.lineTo(336, 45);
+        ctx.stroke();
+        ctx.restore();
+        // Code brackets for source mode.
+        ctx.save();
+        ctx.translate(NOTE_SOURCE_BUTTON_X + NOTE_MODE_BUTTON_SIZE / 2, 32);
+        ctx.scale(0.56, 0.65);
+        ctx.translate(-450, -32);
+        ctx.beginPath();
+        ctx.moveTo(436, 22);
+        ctx.lineTo(425, 32);
+        ctx.lineTo(436, 42);
+        ctx.moveTo(464, 22);
+        ctx.lineTo(475, 32);
+        ctx.lineTo(464, 42);
+        ctx.moveTo(455, 20);
+        ctx.lineTo(445, 44);
+        ctx.stroke();
+        ctx.restore();
+        ctx.restore();
+      }
+      ctx.restore();
+    };
+    drawToolbar(false);
     ctx.fillStyle = "#f5f5f5";
     ctx.font = "30px sans-serif";
     visibleLines.forEach((line, index) => ctx.fillText(line, 24, 118 + index * 40));
 
     const texture = new Three.CanvasTexture(canvas);
     const sprite = new Three.Sprite(
-      new Three.SpriteMaterial({ map: texture, depthTest: false, sizeAttenuation: false }),
+      new Three.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, sizeAttenuation: false }),
     );
     const width = 300;
     const height = (width * canvas.height) / canvas.width;
     sprite.renderOrder = 1000;
     const line = new Three.LineSegments(
       new Three.BufferGeometry().setFromPoints(Array.from({ length: elements.length * 6 }, () => new Three.Vector3())),
-      new Three.LineBasicMaterial({ color, depthTest: false }),
+      // Draw in the transparent pass, after model materials, without affecting depth.
+      new Three.LineBasicMaterial({ color, transparent: true, depthTest: false, depthWrite: false }),
     );
     line.renderOrder = 999;
     line.frustumCulled = false;
     Canvas.scene.add(line, sprite);
-    return { element: elements[0], elements, entry, note, editable, sprite, line, texture, width, height };
+    return { element: elements[0], elements, entry, note, editable, color, sprite, line, texture, drawToolbar, width, height };
   }
 
   private removeBillboard(billboard: NoteBillboard): void {
+    if (this.hoveredBillboard === billboard) this.clearNoteHover();
     Canvas.scene.remove(billboard.sprite, billboard.line);
     billboard.sprite.material.dispose();
     (billboard.line.material as THREE.Material).dispose();
@@ -343,6 +484,7 @@ class NotesTweak extends ToggleTweak {
     const rect = preview.canvas.getBoundingClientRect();
     const toolbarHeight = (screen.width * NOTE_TOOLBAR_HEIGHT) / NOTE_TEXTURE_WIDTH;
     Object.assign(editor.textarea.style, {
+      borderColor: authorColor(editor.billboard.entry.author),
       left: `${rect.left + screen.x - screen.width / 2}px`,
       top: `${rect.top + screen.y - screen.height / 2 + toolbarHeight}px`,
       width: `${screen.width}px`,
@@ -354,6 +496,8 @@ class NotesTweak extends ToggleTweak {
     const editor = this.editor;
     if (!editor) return;
     this.editor = undefined;
+    editor.billboard.drawToolbar(false);
+    editor.billboard.texture.needsUpdate = true;
     editor.textarea.onblur = null;
     document.removeEventListener("keydown", editor.onKeyDown, true);
     const note = save ? editor.textarea.value : editor.original;
@@ -401,6 +545,8 @@ class NotesTweak extends ToggleTweak {
       }
     };
     this.editor = { textarea, billboard, project: Project, original, onKeyDown };
+    billboard.drawToolbar(true);
+    billboard.texture.needsUpdate = true;
     textarea.onblur = () => this.finishInlineEditor(true);
     document.addEventListener("keydown", onKeyDown, true);
     document.body.appendChild(textarea);
@@ -427,8 +573,11 @@ class NotesTweak extends ToggleTweak {
       const toolbarHeight = (screen.width * NOTE_TOOLBAR_HEIGHT) / NOTE_TEXTURE_WIDTH;
       const inToolbar = y < screen.y - screen.height / 2 + toolbarHeight;
       const textureX = ((x - screen.x + screen.width / 2) / screen.width) * NOTE_TEXTURE_WIDTH;
-      if (billboard.editable && inToolbar && textureX >= 284) {
-        if (textureX >= 390) {
+      const textureY = ((y - screen.y + screen.height / 2) / screen.width) * NOTE_TEXTURE_WIDTH;
+      const inReadingButton = textureX >= NOTE_READING_BUTTON_X && textureX <= NOTE_READING_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
+      const inSourceButton = textureX >= NOTE_SOURCE_BUTTON_X && textureX <= NOTE_SOURCE_BUTTON_X + NOTE_MODE_BUTTON_SIZE;
+      if (billboard.editable && inToolbar && textureY >= 12 && textureY <= 12 + NOTE_MODE_BUTTON_SIZE && (inReadingButton || inSourceButton)) {
+        if (inSourceButton) {
           if (this.editor?.billboard === billboard) this.editor.textarea.focus();
           else if (this.canEditEntry(billboard.entry)) this.openInlineEditor(billboard);
         } else if (this.editor?.billboard === billboard) {
@@ -456,6 +605,11 @@ class NotesTweak extends ToggleTweak {
   };
 
   private onBillboardPointerMove = (event: PointerEvent): void => {
+    this.hoverPointer = { x: event.clientX, y: event.clientY };
+    this.updateNoteHover();
+    // The preview's normal hover handler clears element tints when the cursor
+    // is over a note. Keep it from competing with the note's hover highlight.
+    if (this.hoveredBillboard) event.stopImmediatePropagation();
     const drag = this.dragging;
     if (!drag) return;
     event.preventDefault();
@@ -492,7 +646,7 @@ class NotesTweak extends ToggleTweak {
   };
 
   private updateBillboards = (): void => {
-    if (Project && this.panelIdentity !== this.getIdentity().id) this.refreshPanel();
+    this.refreshPanel();
     if (this.editor && Project !== this.editor.project) this.finishInlineEditor(true);
     if (this.pendingEditor && Project !== this.pendingEditor.project) {
       this.pendingEditor = undefined;
@@ -503,6 +657,7 @@ class NotesTweak extends ToggleTweak {
       this.dragging = undefined;
       for (const billboard of this.billboards.values()) this.removeBillboard(billboard);
       this.billboards.clear();
+      this.updateNoteHover();
       this.animationFrame = requestAnimationFrame(this.updateBillboards);
       return;
     }
@@ -535,6 +690,7 @@ class NotesTweak extends ToggleTweak {
         !current ||
         current.entry.text !== billboard.note ||
         current.entry.author !== billboard.entry.author ||
+        authorColor(current.entry.author) !== billboard.color ||
         this.canEditEntry(current.entry) !== billboard.editable
       ) {
         this.removeBillboard(billboard);
@@ -560,6 +716,7 @@ class NotesTweak extends ToggleTweak {
       }
     }
     if (this.billboards.size === 0) {
+      this.updateNoteHover();
       this.animationFrame = requestAnimationFrame(this.updateBillboards);
       return;
     }
@@ -605,14 +762,37 @@ class NotesTweak extends ToggleTweak {
       const placements: {
         billboard: NoteBillboard;
         anchor: ReturnType<typeof toScreen>;
-        targets: { index: number; anchor: ReturnType<typeof toScreen> }[];
+        targets: { index: number; anchor: ReturnType<typeof toScreen>; outline: ReturnType<typeof toScreen>[] }[];
       }[] = [];
       for (const billboard of this.billboards.values()) {
         const targets = billboard.elements.flatMap((element, index) => {
           const mesh = this.getElementMesh(element);
-          return mesh?.visible
-            ? [{ index, anchor: toScreen(new Three.Box3().setFromObject(mesh).getCenter(new Three.Vector3())) }]
-            : [];
+          if (!mesh?.visible) return [];
+          const projected: ReturnType<typeof toScreen>[] = [];
+          mesh.traverse((object) => {
+            if (!object.visible) return;
+            const geometry = (object as THREE.Mesh).geometry;
+            const position = geometry?.attributes.position;
+            if (!position) return;
+            for (let i = 0; i < position.count; i++) {
+              projected.push(toScreen(new Three.Vector3().fromBufferAttribute(position as THREE.BufferAttribute, i).applyMatrix4(object.matrixWorld)));
+            }
+          });
+          // The projected convex hull follows rotated element edges as the camera moves.
+          projected.sort((a, b) => a.x - b.x || a.y - b.y);
+          const cross = (a: typeof projected[number], b: typeof a, c: typeof a) =>
+            (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+          const half = (points: typeof projected) => {
+            const hull: typeof projected = [];
+            for (const point of points) {
+              while (hull.length >= 2 && cross(hull[hull.length - 2], hull[hull.length - 1], point) <= 0) hull.pop();
+              hull.push(point);
+            }
+            hull.pop();
+            return hull;
+          };
+          const outline = [...half(projected), ...half([...projected].reverse())];
+          return [{ index, anchor: toScreen(new Three.Box3().setFromObject(mesh).getCenter(new Three.Vector3())), outline }];
         });
         billboard.sprite.visible = targets.length > 0;
         billboard.line.visible = targets.length > 0;
@@ -746,9 +926,29 @@ class NotesTweak extends ToggleTweak {
         billboard.sprite.scale.set(cardWidth * worldPerPixel, cardHeight * worldPerPixel, 1);
         billboard.sprite.position.copy(toWorld(cardX, cardY, anchor.z));
 
+        // Group by visible distance, keeping every member close to the others
+        // so a chain of nearby elements cannot merge distant endpoints.
+        const groups: typeof targets[] = [];
+        for (const target of targets) {
+          const group = groups.find((members) =>
+            members.every((member) =>
+              Math.hypot(member.anchor.x - target.anchor.x, member.anchor.y - target.anchor.y) <= NOTE_ARROW_GROUP_DISTANCE,
+            ),
+          );
+          if (group) group.push(target);
+          else groups.push([target]);
+        }
+        const arrowTargets = groups.map((members) => {
+          const center = members.reduce(
+            (sum, member) => ({ x: sum.x + member.anchor.x, y: sum.y + member.anchor.y, z: sum.z + member.anchor.z }),
+            { x: 0, y: 0, z: 0 },
+          );
+          return { x: center.x / members.length, y: center.y / members.length, z: center.z / members.length };
+        });
         const points = billboard.line.geometry.attributes.position as THREE.BufferAttribute;
-        for (let index = 0; index < billboard.elements.length; index++) {
-          const target = targets.find((item) => item.index === index)?.anchor;
+        billboard.line.geometry.setDrawRange(0, arrowTargets.length * 6);
+        for (let index = 0; index < arrowTargets.length; index++) {
+          let target = arrowTargets[index];
           const dx = (target?.x ?? cardX) - cardX;
           const dy = (target?.y ?? cardY) - cardY;
           const side =
@@ -761,6 +961,27 @@ class NotesTweak extends ToggleTweak {
                 : "top";
           const startX = cardX + (side === "right" ? halfWidth : side === "left" ? -halfWidth : 0);
           const startY = cardY + (side === "top" ? -halfHeight : side === "bottom" ? halfHeight : 0);
+          const rayX = target.x - startX;
+          const rayY = target.y - startY;
+          let nearest = 1;
+          // Stop at the first element outline crossed by a shared arrow.
+          for (const member of groups[index]) {
+            const outline = member.outline;
+            for (let i = 0; i < outline.length; i++) {
+              const a = outline[i];
+              const b = outline[(i + 1) % outline.length];
+              const edgeX = b.x - a.x;
+              const edgeY = b.y - a.y;
+              const determinant = rayX * edgeY - rayY * edgeX;
+              if (Math.abs(determinant) < 1e-8) continue;
+              const offsetX = a.x - startX;
+              const offsetY = a.y - startY;
+              const t = (offsetX * edgeY - offsetY * edgeX) / determinant;
+              const u = (offsetX * rayY - offsetY * rayX) / determinant;
+              if (t >= 0 && t < nearest && u >= 0 && u <= 1) nearest = t;
+            }
+          }
+          target = { x: startX + rayX * nearest, y: startY + rayY * nearest, z: target.z };
           const length = Math.hypot((target?.x ?? startX) - startX, (target?.y ?? startY) - startY) || 1;
           const ux = ((target?.x ?? startX) - startX) / length;
           const uy = ((target?.y ?? startY) - startY) / length;
@@ -796,6 +1017,7 @@ class NotesTweak extends ToggleTweak {
         billboard.screen = undefined;
       }
     }
+    this.updateNoteHover();
     this.animationFrame = requestAnimationFrame(this.updateBillboards);
   };
 
@@ -822,33 +1044,42 @@ class NotesTweak extends ToggleTweak {
     NotesTweak.instance = this;
     this.notesVisible = localStorage.getItem("tweaks_n_stuff_element_notes_visible") !== "false";
     const css = `#note_editor {
-      height: 100%;
-      min-height: 0;
-      overflow-y: auto;
+      height: 100%; min-height: 0; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 12px; box-sizing: border-box;
     }
-    #note_editor .note_editor {
-      height: 100%;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
+    #note_editor .note_card {
+      border: 1px solid var(--color-border); border-radius: 6px;
+      background: var(--color-back); flex-shrink: 0; overflow: hidden;
     }
-    #note_editor .note_editor > .prism-editor-component {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
+    #note_editor .note_card_header {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      color: var(--color-subtle_text); font-size: 12px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    #note_editor .note_author { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    #note_editor .note_edit, #note_editor .note_elements_icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex: 0 0 24px; width: 24px; min-width: 24px; max-width: 24px;
+      height: 24px; min-height: 24px; padding: 0; box-sizing: border-box;
+      line-height: 1; text-indent: 0;
+    }
+    #note_editor .note_edit .material-icons, #note_editor .note_elements_icon .material-icons {
+      display: block; position: static; float: none;
+      width: 18px; height: 18px; margin: 0; padding: 0;
+      font-size: 18px; line-height: 18px; text-align: center;
+      transform: none;
+    }
+    #note_editor .note_elements_icon { cursor: help; }
+    #note_editor .preview.markdown { padding: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+    #note_editor .preview.markdown > :first-child { margin-top: 0; }
+    #note_editor .preview.markdown > :last-child { margin-bottom: 0; }
+    #note_editor .note_empty { padding: 12px; color: var(--color-subtle_text); line-height: 1.6; }
+    #note_editor .note_card textarea {
+      width: 100%; min-height: 100px; padding: 12px; box-sizing: border-box;
+      border: none; background: transparent; color: var(--color-text); resize: vertical; line-height: 1.6;
     }`;
-    const noteEditorMode = new BarSelect("note_editor_mode", {
-      // @ts-ignore
-      icon_mode: true,
-      options: {
-        source: { name: true, icon: "code" },
-        reading: { name: true, icon: "menu_book" },
-      },
-      onChange() {
-        NotesTweak.panel.vue.mode = this.value;
-      },
-    });
-    NotesTweak.panel = new Panel("note", {
+    NotesTweak.panel = new Panel("notes", {
       icon: "note",
       resizable: true,
       growable: true,
@@ -858,54 +1089,42 @@ class NotesTweak extends ToggleTweak {
         float_size: [300, 400],
         height: 400,
       },
-      toolbars: [
-        new Toolbar("note_editor", {
-          children: ["note_editor_mode"],
-        }),
-      ],
       component: {
         data: {
-          mode: noteEditorMode.value,
-          notes: "",
-          otherNotes: [] as NoteEntry[],
-          canEditOthers: false,
-        },
-        watch: {
-          notes(value: string) {
-            if (!Project || value === NotesTweak.instance?.ownNote(notesFor(Project as NotesProject))) return;
-            NotesTweak.instance?.updateEntry(Project, undefined, value);
-          },
+          elementNotes: [] as (NoteEntry & { elementNames: string; editable: boolean })[],
+          editingId: null as string | null,
         },
         methods: {
-          formatNote(text: string): string {
-            return pureMarked(text);
-          },
-          editOtherNote(entry: NoteEntry, text: string): void {
-            if (Project && (!Project.EditSession?.active || Project.EditSession.hosting)) {
-              NotesTweak.instance?.updateEntry(Project, undefined, text, entry.id);
+          formatNote(text: string): string { return pureMarked(text); },
+          noteColor(author: string): string { return authorColor(author); },
+          editNote(entry: NoteEntry, text: string): void {
+            const instance = NotesTweak.instance;
+            const element = Project?.elements.find((item) => entry.elements.includes(item.uuid));
+            if (Project && element && instance?.canEditEntry(entry)) {
+              instance.updateEntry(Project, element, text, entry.id, entry.elements);
             }
           },
         },
-        components: {
-          VuePrismEditor,
-        },
         template: `<div id="note_editor">
-            <div v-if="otherNotes.length" class="other_notes">
-                <div v-for="entry in otherNotes" :key="entry.id"><strong>{{ entry.author }}</strong>
-                    <textarea v-if="canEditOthers" :value="entry.text" @change="editOtherNote(entry, $event.target.value)"></textarea>
-                    <div v-else class="preview markdown" v-html="formatNote(entry.text)"></div>
+            <div v-if="!elementNotes.length" class="note_empty">No element notes yet. Right-click an element and choose Add Note.</div>
+            <div v-for="entry in elementNotes" :key="entry.id" class="note_card" :style="{ borderColor: noteColor(entry.author) }">
+                <div class="note_card_header">
+                    <span class="note_author">{{ entry.author }}</span>
+                    <span class="note_elements_icon" tabindex="0" :data-note-id="entry.id" :title="entry.elementNames" :aria-label="'Elements: ' + entry.elementNames">
+                        <i class="material-icons" aria-hidden="true">view_in_ar</i>
+                    </span>
+                    <button v-if="entry.editable" class="note_edit" :title="editingId === entry.id ? 'Reading' : 'Edit note'" :aria-label="editingId === entry.id ? 'Reading' : 'Edit note'" @click="editingId = editingId === entry.id ? null : entry.id">
+                        <i class="material-icons" aria-hidden="true">{{ editingId === entry.id ? 'menu_book' : 'code' }}</i>
+                    </button>
                 </div>
-            </div>
-            <div v-if="mode==='reading'">
-                <div class="preview markdown" v-html="formatNote(notes)"></div>
-            </div>
-
-            <div v-if="mode==='source'">
-                <vue-prism-editor v-model="notes" language="markdown" class="note_editor" />
+                <textarea v-if="editingId === entry.id && entry.editable" :value="entry.text" :aria-label="'Note by ' + entry.author" @change="editNote(entry, $event.target.value)"></textarea>
+                <div v-else class="preview markdown" v-html="formatNote(entry.text)"></div>
             </div>
         </div>`,
       },
     });
+    this.panelNotesSignature = undefined;
+    this.refreshPanel();
     const select = Blockbench.on("select_project", () => this.refreshPanel());
     const joined = Blockbench.on("join_session", () => this.refreshPanel());
     const created = Blockbench.on("create_session", () => this.refreshPanel());
@@ -948,7 +1167,7 @@ class NotesTweak extends ToggleTweak {
       else if (index >= 0) entries[index] = entry;
       else entries.push(entry);
       project.notes = entries;
-      if (!element) this.refreshPanel();
+      this.refreshPanel();
       project.saved = false;
     });
 
@@ -1012,21 +1231,28 @@ class NotesTweak extends ToggleTweak {
       this.deleteables.push({ delete: () => menu.removeAction(visibilityToggle.id!) });
     }
 
-    this.deleteables.push(Blockbench.addCSS(css), noteEditorMode, NotesTweak.panel, select, joined, created, received);
+    this.deleteables.push(Blockbench.addCSS(css), NotesTweak.panel, select, joined, created, received);
     document.addEventListener("pointerdown", this.onBillboardPointerDown, true);
     window.addEventListener("pointermove", this.onBillboardPointerMove, true);
+    window.addEventListener("mousemove", this.onNoteMouseMove, true);
     window.addEventListener("pointerup", this.onBillboardPointerUp, true);
     window.addEventListener("pointercancel", this.onBillboardPointerUp, true);
+    document.addEventListener("pointerleave", this.onNotePointerLeave);
+    window.addEventListener("blur", this.onNotePointerLeave);
     this.animationFrame = requestAnimationFrame(this.updateBillboards);
   }
 
   onDisable(): void {
+    this.onNotePointerLeave();
     this.finishInlineEditor(true);
     this.pendingEditor = undefined;
     document.removeEventListener("pointerdown", this.onBillboardPointerDown, true);
     window.removeEventListener("pointermove", this.onBillboardPointerMove, true);
+    window.removeEventListener("mousemove", this.onNoteMouseMove, true);
     window.removeEventListener("pointerup", this.onBillboardPointerUp, true);
     window.removeEventListener("pointercancel", this.onBillboardPointerUp, true);
+    document.removeEventListener("pointerleave", this.onNotePointerLeave);
+    window.removeEventListener("blur", this.onNotePointerLeave);
     this.dragging = undefined;
     if (this.animationFrame !== undefined) cancelAnimationFrame(this.animationFrame);
     this.animationFrame = undefined;

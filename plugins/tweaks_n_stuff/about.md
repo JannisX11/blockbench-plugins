@@ -8,35 +8,25 @@ Tweaks are configurable through the plugin settings, found in the tab bar that i
 
 See your current profile at a glace.
 
-![Header in all profile colors.](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_1.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_1.webp" alt="headerr in all profile colors" width="50%">
 
 ### Wrap Tabs
 
 Quickly navigate large workspaces.
 
-![wrap tabs](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_2.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_2.webp" alt="wrap tabs" width="50%">
 
 ### Notes
 
-Add a note to any project.
+Add a note to any element, and group.
 
-In an edit session, each participant can write their own project and element notes. Notes are shared live and saved with the project under the participant's name.
-Each element note has its own billboard labeled with its author. The author and session host can edit it.
-An author's billboard border and arrow share a color derived from their name, so that color stays the same across session joins and leaves.
-Any participant can move any billboard on their own client. Positions are saved locally and do not move notes for other session participants.
-Newly joined clients automatically spread note billboards apart when no local position has been set.
-Use Show Element Notes in the blank canvas context menu to hide or show billboards on your client.
-Outside an edit session, any saved note can be edited or removed by clearing its text.
-Project files store notes in a root `notes` list. Project notes have an empty `elements` list; element notes list their element UUIDs.
-Select multiple elements, then use Add Note on one of them to attach one note to the selection. It appears as one billboard with an arrow to each visible element.
-
-![notes](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_9.webp" alt="notes" width="50%">
 
 ### Pin Tab
 
 Adds 'Pin Tab' and 'Unpin Tab' to the project context menu, opened by right-clicking on a project tab.
 
-![pin tabs](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_4.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_4.webp" alt="pin tabs" width="50%">
 
 ## Utilities
 
@@ -44,25 +34,25 @@ Adds 'Pin Tab' and 'Unpin Tab' to the project context menu, opened by right-clic
 
 Adds `Close Others`, `Close to the Right`, `Close Saved`, and `Close All` to the project context menu, opened by right-clicking on a project tab.
 
-![close actions](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_3.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_3.webp" alt="close actions" width="50%">
 
-### Bedrock Block Geometry
+### Bedrock Block
 
 Adds a File > Import action to open the geometry referenced by a Bedrock block JSON file.
 
-![bedrock block geometry](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_8.webp" alt="bedrock block" width="50%">
 
-### Bedrock Entity Geometry
+### Bedrock Entity
 
 Opens geometry and custom hit test boxes from a behavior pack entity JSON file.
 
-![bedrock entity geometry](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_7.webp" alt="bedrock entity" width="50%">
 
 ### Clear Recent Projects
 
 Adds a button beside Recent on the main screen to clear the recent projects list.
 
-![clear recent projects](https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_.webp)
+<img src="https://cdn.lpsmods.dev/data/tweaks_n_stuff/Screenshot_6.webp" alt="clear recent projects" width="50%">
 
 ### Bedrock Open All
 
