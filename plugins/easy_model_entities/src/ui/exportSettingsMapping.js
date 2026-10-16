@@ -21,7 +21,8 @@ const {getDefaults, applyTemplate, deepMerge} = require('../model/templates');
 const {
   MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY,
-  behaviorForMode
+  behaviorForMode,
+  isCustomEntity
 } = require('../model/presetTypes');
 const {
   EXPORT_TYPE_PACKS,
@@ -138,12 +139,23 @@ function activePreset(form) {
       ? (form.blockPreset || 'static') : (form.preset || 'custom');
 }
 
-function presetFormValues(presetType, modelType, modelDimensions,
+function presetKey(form) {
+  return `${activeModelType(form)}|${activePreset(form)}`;
+}
+
+function presetSettings(presetType, modelType, modelDimensions,
     visibleBounds) {
   const settings = ModelDimensions.applyModelDimensions(
       applyTemplate(presetType, modelType), modelDimensions);
   VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  const form = settingsToForm(settings);
+
+  return settings;
+}
+
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const form = settingsToForm(presetSettings(presetType, modelType,
+      modelDimensions, visibleBounds));
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
@@ -156,14 +168,9 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds,
   const modelType = activeModelType(form);
   const preset = activePreset(form);
 
-  let settings;
-  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
-    settings = deepMerge(getDefaults(), base);
-  } else {
-    settings = ModelDimensions.applyModelDimensions(
-        applyTemplate(preset, modelType), modelDimensions);
-    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  }
+  let settings = isCustomEntity(modelType, preset)
+      ? deepMerge(getDefaults(), base)
+      : presetSettings(preset, modelType, modelDimensions, visibleBounds);
 
   settings.modelType = modelType;
   settings.presetType = preset;
@@ -189,6 +196,7 @@ module.exports = {
   formToSettings,
   activeModelType,
   activePreset,
+  presetKey,
   presetFormValues,
   resolveExportSettings
 };

@@ -22,6 +22,7 @@ const os = require('os');
 const path = require('path');
 
 const {BlockbenchAdapter} = require('../BlockbenchAdapter');
+const {t} = require('../i18n/translations');
 
 describe('writeToDirectory', () => {
   let rootDir;
@@ -43,13 +44,15 @@ describe('writeToDirectory', () => {
 
   test('rejects path traversal', () => {
     expect(() => BlockbenchAdapter.writeToDirectory(rootDir,
-        [{path: '../escape.json', content: '{}'}])).toThrow('PATH_TRAVERSAL');
+        [{path: '../escape.json', content: '{}'}])).toThrow(
+        t('eme.validation.PATH_TRAVERSAL', '../escape.json'));
     expect(fs.existsSync(path.join(rootDir, '..', 'escape.json'))).toBe(false);
   });
 
   test('rejects absolute paths', () => {
     expect(() => BlockbenchAdapter.writeToDirectory(rootDir,
-        [{path: 'C:/escape.json', content: '{}'}])).toThrow('ABSOLUTE_PATH');
+        [{path: 'C:/escape.json', content: '{}'}])).toThrow(
+        t('eme.validation.ABSOLUTE_PATH', 'C:/escape.json'));
   });
 });
 

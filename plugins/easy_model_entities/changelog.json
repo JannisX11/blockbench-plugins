@@ -51,6 +51,7 @@
         "title": "Features",
         "list": [
           "Minecraft target version 26.3.",
+          "Inherited animations: models with the same bones take over the animations of a parent model and keep them in sync.",
           "New advanced settings for opacity, animation variants and their weights, and the shoulder position and scale of entities.",
           "More checks in the export dialog and the status bar: parts the mod cannot load or ignores, groups or animations with the same name, and a changed target version.",
           "\"Wrap in root bone\" button for cubes outside of a group.",

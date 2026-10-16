@@ -210,8 +210,8 @@ const EN = {
       'More than %0 animations. The mod does not load the model',
   'eme.validation.SOFT_ANIMATION_COUNT': 'More than %0 animations',
   'eme.validation.CUSTOM_ANIMATION_CLIP':
-      'Animation "%0" never plays on its own, only by command. Names that '
-      + 'play on their own: %1 and numbered variants like idle_2',
+      'These animations never play on their own, only by command: %0. Names '
+      + 'that play on their own: %1 and numbered variants like idle_2',
   'eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION':
       'Animation "%0" uses formulas in keyframes. The mod only supports plain '
       + 'numbers and skips this animation',
@@ -227,13 +227,97 @@ const EN = {
       + 'and folder',
   'eme.validation.MISSING_TEXTURE_INDEX':
       'Texture slot 0 is missing, the model has no primary texture',
+  'eme.validation.INVALID_OUTPUT_PATH': 'A file to write has no path',
+  'eme.validation.PATH_TRAVERSAL':
+      'The path %0 leads outside the selected folder',
+  'eme.validation.ABSOLUTE_PATH':
+      'The path %0 must be relative to the selected folder',
   'eme.texture.custom': 'Custom Texture',
   'eme.message.openProjectFirst': 'Open a project first',
   'eme.message.packsExported': 'Easy Model Entities packs exported',
   'eme.message.modProjectWritten':
       'Easy Model Entities files written to mod project',
   'eme.message.exportFailed': 'Export failed',
-  'eme.message.selectResourcesDirectory': 'Select src/main/resources directory'
+  'eme.message.unsupportedTargetVersion':
+      'Minecraft %0 is not supported as target version. Choose another one in '
+      + 'the export dialog',
+  'eme.message.unexpectedError':
+      'Something unexpected went wrong. If this happens again, please report '
+      + 'it with these details:\n\n%0',
+  'eme.message.errorDetails': 'Details: %0',
+  'eme.error.noPermission':
+      'No permission to write %0. Choose another folder or check the folder '
+      + 'permissions',
+  'eme.error.fileInUse':
+      '%0 is in use by another program. Close it and try again',
+  'eme.error.diskFull': 'Not enough disk space to write %0',
+  'eme.error.readOnly': '%0 is on a read-only drive',
+  'eme.error.notFound':
+      'The folder for %0 no longer exists. Choose the folder again',
+  'eme.message.selectResourcesDirectory': 'Select src/main/resources directory',
+  'eme.inherit.title': 'Inherited Animations',
+  'eme.inherit.permission':
+      'Reads the parent model to keep inherited animations in sync',
+  'eme.inherit.action.parent': 'Inherit Animations...',
+  'eme.inherit.action.parentDescription':
+      'Takes over the animations of a parent model and keeps them in sync.',
+  'eme.inherit.action.sync': 'Sync Inherited Animations...',
+  'eme.inherit.action.syncDescription':
+      'Compares the inherited animations with the parent model.',
+  'eme.inherit.action.takeFromParent': 'Take From Parent',
+  'eme.inherit.parentDialogTitle': 'Inherit Animations',
+  'eme.inherit.parentDialogInfo':
+      'Choose a parent model. Its animations are copied into this model as '
+      + 'their own group and saved with it, so the mod still reads them. '
+      + 'Clear the field to unlink the parent.',
+  'eme.inherit.parentModel': 'Parent Model',
+  'eme.inherit.syncTitle': 'Sync With %0',
+  'eme.inherit.syncInfo':
+      'Checked animations are replaced by the version of the parent model. '
+      + 'Unchecked animations stay as they are.',
+  'eme.inherit.status.parentChanged': 'changed in parent',
+  'eme.inherit.status.localChanged': 'changed here',
+  'eme.inherit.status.bothChanged': 'changed here and in parent',
+  'eme.inherit.status.newInParent': 'new in parent',
+  'eme.inherit.status.removedLocally': 'deleted here',
+  'eme.inherit.status.missingInParent': 'no longer in parent, stays here',
+  'eme.inherit.detail.bones': 'Bones: %0',
+  'eme.inherit.detail.setting': '%0: %1 here, %2 in parent',
+  'eme.inherit.detail.missingBones': 'Bones missing in this model: %0',
+  'eme.inherit.overwriteLocal':
+      'Your changes to %0 will be replaced by the parent version.',
+  'eme.inherit.linkReplaces':
+      'These animations differ from %0 and will be replaced: %1',
+  'eme.inherit.unlinkConfirm':
+      'Unlink %0? The animations stay in this model as normal animations.',
+  'eme.inherit.button.apply': 'Apply',
+  'eme.inherit.button.replace': 'Replace',
+  'eme.inherit.button.unlink': 'Unlink',
+  'eme.inherit.button.openSync': 'Open Sync',
+  'eme.inherit.button.later': 'Later',
+  'eme.inherit.undoSync': 'Sync inherited animations',
+  'eme.inherit.saveFirst': 'Save the model first, the parent is stored '
+      + 'relative to it',
+  'eme.inherit.linkSelf': 'A model cannot be its own parent',
+  'eme.inherit.parentMissing': 'Parent model %0 not found',
+  'eme.inherit.parentUnreadable': 'Parent model %0 could not be read',
+  'eme.inherit.parentEmpty': 'Parent model %0 has no animations',
+  'eme.inherit.linked': '%0 animations inherited from %1',
+  'eme.inherit.linkedMissingBones':
+      '%0 animations inherited from %1. These bones do not exist in this '
+      + 'model and are skipped: %2',
+  'eme.inherit.unlinked': '%0 unlinked',
+  'eme.inherit.upToDate': 'All animations match %0',
+  'eme.inherit.animationUpToDate': '%0 already matches the parent',
+  'eme.inherit.notInParent': '%0 does not exist in %1',
+  'eme.inherit.updated': '%0 animations updated',
+  'eme.inherit.parentUpdated':
+      'The parent model %0 has changed: %1 changed and %2 new animations.',
+  'eme.inherit.childrenNotified':
+      'These models inherit animations from this one and will offer the '
+      + 'update when opened: %0',
+  'eme.inherit.editWarning':
+      '%0 is inherited from %1, a sync can replace this change',
 };
 
 const DE = {
@@ -435,8 +519,8 @@ const DE = {
       'Mehr als %0 Animationen. Der Mod lädt das Modell nicht',
   'eme.validation.SOFT_ANIMATION_COUNT': 'Mehr als %0 Animationen',
   'eme.validation.CUSTOM_ANIMATION_CLIP':
-      'Die Animation "%0" startet nie von selbst, nur per Befehl. Von selbst '
-      + 'starten: %1 und nummerierte Varianten wie idle_2',
+      'Diese Animationen starten nie von selbst, nur per Befehl: %0. Von '
+      + 'selbst starten: %1 und nummerierte Varianten wie idle_2',
   'eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION':
       'Die Animation "%0" nutzt Formeln in Keyframes. Der Mod unterstützt nur '
       + 'einfache Zahlen und überspringt diese Animation',
@@ -452,13 +536,102 @@ const DE = {
       + 'Ordner',
   'eme.validation.MISSING_TEXTURE_INDEX':
       'Textur-Slot 0 fehlt, das Modell hat keine Haupttextur',
+  'eme.validation.INVALID_OUTPUT_PATH':
+      'Eine zu schreibende Datei hat keinen Pfad',
+  'eme.validation.PATH_TRAVERSAL':
+      'Der Pfad %0 führt aus dem gewählten Ordner heraus',
+  'eme.validation.ABSOLUTE_PATH':
+      'Der Pfad %0 muss relativ zum gewählten Ordner sein',
   'eme.texture.custom': 'Eigene Textur',
   'eme.message.openProjectFirst': 'Öffne zuerst ein Projekt',
   'eme.message.packsExported': 'Easy Model Entities Packs exportiert',
   'eme.message.modProjectWritten':
       'Easy Model Entities Dateien in das Mod-Projekt geschrieben',
   'eme.message.exportFailed': 'Export fehlgeschlagen',
-  'eme.message.selectResourcesDirectory': 'Ordner src/main/resources auswählen'
+  'eme.message.unsupportedTargetVersion':
+      'Minecraft %0 wird als Zielversion nicht unterstützt. Wähle im '
+      + 'Export-Dialog eine andere',
+  'eme.message.unexpectedError':
+      'Etwas Unerwartetes ist schiefgelaufen. Wenn das erneut passiert, melde '
+      + 'es bitte mit diesen Details:\n\n%0',
+  'eme.message.errorDetails': 'Details: %0',
+  'eme.error.noPermission':
+      'Keine Berechtigung, %0 zu schreiben. Wähle einen anderen Ordner oder '
+      + 'prüfe die Ordnerrechte',
+  'eme.error.fileInUse':
+      '%0 wird von einem anderen Programm verwendet. Schließe es und versuche '
+      + 'es erneut',
+  'eme.error.diskFull': 'Nicht genug Speicherplatz, um %0 zu schreiben',
+  'eme.error.readOnly': '%0 liegt auf einem schreibgeschützten Laufwerk',
+  'eme.error.notFound':
+      'Der Ordner für %0 existiert nicht mehr. Wähle den Ordner erneut',
+  'eme.message.selectResourcesDirectory': 'Ordner src/main/resources auswählen',
+  'eme.inherit.title': 'Geerbte Animationen',
+  'eme.inherit.permission':
+      'Liest das Parent-Modell, um geerbte Animationen abzugleichen',
+  'eme.inherit.action.parent': 'Animationen erben...',
+  'eme.inherit.action.parentDescription':
+      'Übernimmt die Animationen eines Parent-Modells und hält sie synchron.',
+  'eme.inherit.action.sync': 'Geerbte Animationen abgleichen...',
+  'eme.inherit.action.syncDescription':
+      'Vergleicht die geerbten Animationen mit dem Parent-Modell.',
+  'eme.inherit.action.takeFromParent': 'Vom Parent übernehmen',
+  'eme.inherit.parentDialogTitle': 'Animationen erben',
+  'eme.inherit.parentDialogInfo':
+      'Wähle ein Parent-Modell. Seine Animationen werden als eigene Gruppe in '
+      + 'dieses Modell kopiert und mitgespeichert, der Mod liest sie also '
+      + 'weiterhin. Leere das Feld, um die Verknüpfung zu lösen.',
+  'eme.inherit.parentModel': 'Parent-Modell',
+  'eme.inherit.syncTitle': 'Abgleich mit %0',
+  'eme.inherit.syncInfo':
+      'Markierte Animationen werden durch die Version des Parent-Modells '
+      + 'ersetzt. Nicht markierte bleiben unverändert.',
+  'eme.inherit.status.parentChanged': 'im Parent geändert',
+  'eme.inherit.status.localChanged': 'hier geändert',
+  'eme.inherit.status.bothChanged': 'hier und im Parent geändert',
+  'eme.inherit.status.newInParent': 'neu im Parent',
+  'eme.inherit.status.removedLocally': 'hier gelöscht',
+  'eme.inherit.status.missingInParent': 'nicht mehr im Parent, bleibt hier',
+  'eme.inherit.detail.bones': 'Bones: %0',
+  'eme.inherit.detail.setting': '%0: hier %1, im Parent %2',
+  'eme.inherit.detail.missingBones': 'In diesem Modell fehlende Bones: %0',
+  'eme.inherit.overwriteLocal':
+      'Deine Änderungen an %0 werden durch die Parent-Version ersetzt.',
+  'eme.inherit.linkReplaces':
+      'Diese Animationen weichen von %0 ab und werden ersetzt: %1',
+  'eme.inherit.unlinkConfirm':
+      '%0 lösen? Die Animationen bleiben als normale Animationen in diesem '
+      + 'Modell.',
+  'eme.inherit.button.apply': 'Übernehmen',
+  'eme.inherit.button.replace': 'Ersetzen',
+  'eme.inherit.button.unlink': 'Lösen',
+  'eme.inherit.button.openSync': 'Abgleich öffnen',
+  'eme.inherit.button.later': 'Später',
+  'eme.inherit.undoSync': 'Geerbte Animationen abgleichen',
+  'eme.inherit.saveFirst': 'Speichere das Modell zuerst, der Parent wird '
+      + 'relativ dazu gespeichert',
+  'eme.inherit.linkSelf': 'Ein Modell kann nicht sein eigener Parent sein',
+  'eme.inherit.parentMissing': 'Parent-Modell %0 nicht gefunden',
+  'eme.inherit.parentUnreadable': 'Parent-Modell %0 konnte nicht gelesen '
+      + 'werden',
+  'eme.inherit.parentEmpty': 'Parent-Modell %0 hat keine Animationen',
+  'eme.inherit.linked': '%0 Animationen von %1 geerbt',
+  'eme.inherit.linkedMissingBones':
+      '%0 Animationen von %1 geerbt. Diese Bones gibt es in diesem Modell '
+      + 'nicht, sie werden übersprungen: %2',
+  'eme.inherit.unlinked': '%0 gelöst',
+  'eme.inherit.upToDate': 'Alle Animationen stimmen mit %0 überein',
+  'eme.inherit.animationUpToDate': '%0 stimmt bereits mit dem Parent überein',
+  'eme.inherit.notInParent': '%0 gibt es in %1 nicht',
+  'eme.inherit.updated': '%0 Animationen aktualisiert',
+  'eme.inherit.parentUpdated':
+      'Das Parent-Modell %0 wurde geändert: %1 geänderte und %2 neue '
+      + 'Animationen.',
+  'eme.inherit.childrenNotified':
+      'Diese Modelle erben Animationen von diesem und bieten das Update beim '
+      + 'Öffnen an: %0',
+  'eme.inherit.editWarning':
+      '%0 ist von %1 geerbt, ein Abgleich kann diese Änderung ersetzen',
 };
 
 function registerTranslations() {
@@ -486,4 +659,11 @@ function t(key, ...params) {
       translate(key));
 }
 
-module.exports = {EN, DE, registerTranslations, t};
+class LocalizedError extends Error {
+  constructor(key, ...params) {
+    super(t(key, ...params));
+    this.name = 'LocalizedError';
+  }
+}
+
+module.exports = {EN, DE, LocalizedError, registerTranslations, t};

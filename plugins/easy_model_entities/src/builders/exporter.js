@@ -113,9 +113,8 @@ function packFileNames(settings) {
 }
 
 function buildPackBundle(settings, options) {
-  const opts = options || {};
   const {serverProfile, renderProfile} = buildProfiles(settings,
-      opts.textureResolution);
+      options.textureResolution);
   const exportType = settings.exportType || EXPORT_TYPE_PACKS;
   const fileNames = packFileNames(settings);
   const withDataPack = includesDataPack(exportType);
@@ -128,7 +127,7 @@ function buildPackBundle(settings, options) {
     } : null,
     datapack: withDataPack ? datapackFiles(settings, serverProfile) : null,
     resourcepack: withResourcePack
-        ? resourcepackFiles(settings, renderProfile, opts) : null,
+        ? resourcepackFiles(settings, renderProfile, options) : null,
     datapackFileName: fileNames.datapack,
     resourcepackFileName: fileNames.resourcepack,
     serverProfile,
@@ -137,8 +136,8 @@ function buildPackBundle(settings, options) {
 }
 
 function buildModProjectFiles(settings, options) {
-  const opts = options || {};
-  const renderProfile = buildRenderProfile(settings, opts.textureResolution);
+  const renderProfile = buildRenderProfile(settings,
+      options.textureResolution);
   const paths = dataPaths(settings);
 
   const files = [];
@@ -151,8 +150,8 @@ function buildModProjectFiles(settings, options) {
 
   files.push(
       jsonFile(paths.renderProfile, renderProfile),
-      {path: paths.model, content: opts.modelBytes, binary: true},
-      ...textureFiles(opts.textureResolution));
+      {path: paths.model, content: options.modelBytes, binary: true},
+      ...textureFiles(options.textureResolution));
 
   return {files, serverProfile, renderProfile};
 }

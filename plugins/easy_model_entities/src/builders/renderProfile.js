@@ -24,7 +24,7 @@ const {
   defaultAnimationSettings,
   defaultShoulderSettings,
   normalizeName,
-  isCustom,
+  isCustomEntity,
   SCHEMA_VERSION,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
@@ -98,8 +98,7 @@ function buildShoulder(settings) {
 
 function buildRenderProfile(settings, textureResolution) {
   const renderPreset = renderPresetType(settings);
-  const custom = settings.modelType !== MODEL_TYPE_BLOCK_ENTITY
-      && isCustom(settings.presetType);
+  const custom = isCustomEntity(settings.modelType, settings.presetType);
   const profile = {
     schema_version: SCHEMA_VERSION,
     preset_type: renderPreset

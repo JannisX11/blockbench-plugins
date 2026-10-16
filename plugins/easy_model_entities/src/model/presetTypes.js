@@ -190,6 +190,10 @@ function isCustom(presetType) {
   return presetType === 'custom';
 }
 
+function isCustomEntity(modelType, presetType) {
+  return modelType !== MODEL_TYPE_BLOCK_ENTITY && isCustom(presetType);
+}
+
 function isStill(presetType) {
   return String(presetType).endsWith('_still');
 }
@@ -395,6 +399,7 @@ module.exports = {
   variantClipNames,
   isStablePreset,
   isCustom,
+  isCustomEntity,
   bodyType,
   behaviorForMode,
   behaviorDefaults,
