@@ -47,16 +47,20 @@ Animations come from your Blockbench clips. These names play on their own:
    do not.
 2. Click **File > Export > Export Easy Model Entity**.
 3. Choose the **Export Type**:
-  - **Complete: Data Pack + Resource Pack (ZIP)**: both packs and a README in one file. Use this
-    the first time and when you share your model.
-  - **Update: Resource Pack only (ZIP)**: after you changed the model, texture or animations.
-  - **Update: Data Pack only (ZIP)**: after you changed entity data like size or movement.
-  - **Standalone: write into mod project**: writes all files into a `src/main/resources` folder.
-  - **Model only: mod integration (no data pack)**: writes only the model, texture and render
-    profile. For mods that bring their own entities.
+
+- **Complete: Data Pack + Resource Pack (ZIP)**: both packs and a README in one file. Use this
+  the first time and when you share your model.
+- **Update: Resource Pack only (ZIP)**: after you changed the model, texture or animations.
+- **Update: Data Pack only (ZIP)**: after you changed entity data like size or movement.
+- **Standalone: write into mod project**: writes all files into a `src/main/resources` folder.
+- **Model only: mod integration (no data pack)**: writes only the model, texture and render
+  profile. For mods that bring their own entities.
+
 4. Choose the **Type** (not shown for *Model only*):
-  - **Entity**: a mob that moves on its own.
-  - **Block Entity**: a block that can play animations.
+
+- **Entity**: a mob that moves on its own.
+- **Block Entity**: a block that can play animations.
+
 5. Pick a **Preset**. The plugin suggests one based on your group names, so most models need
    nothing else.
 6. Set the **Namespace (mod id)**, the **Profile ID** and the Minecraft version.
@@ -68,6 +72,22 @@ Changed only a small thing? Use one of the update exports. The new pack still fi
 already installed. If you changed the model **and** the entity data, export both packs again.
 
 Your export settings are saved in the `.bbmodel` file and come back on the next export.
+
+## Inherited animations
+
+Several models with the same bones can share their animations with one parent model.
+
+1. Save the child model, then click **Animation > Inherit Animations...** in the Animate tab and
+   choose the parent `.bbmodel`.
+2. The parent's animations are copied into a group named after the parent. They are saved in the
+   child file, so the mod reads them like any other animation.
+3. When the parent changes, the child offers a sync the next time you open it or switch to its tab.
+   **Animation > Sync Inherited Animations...** shows each animation's status. Only the checked
+   animations are replaced.
+
+You can still edit inherited animations. Blockbench warns you once, and the sync dialog does not
+check them by default. Your own animations, including ones with the same name as a parent
+animation, are never touched. To unlink the parent, clear the field in **Inherit Animations...**.
 
 ## Blockbench settings
 

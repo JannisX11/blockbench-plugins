@@ -20,7 +20,7 @@
 const {Validator} = require('./model/Validator');
 const {normalizeName} = require('./model/presetTypes');
 const {parseExternalLocation} = require('./utils/TextureResolver');
-const {t} = require('./i18n/translations');
+const {LocalizedError, t} = require('./i18n/translations');
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -36,6 +36,10 @@ class BlockbenchAdapter {
     }
 
     return bytes;
+  }
+
+  static #allOf(typeName) {
+    return globalThis[typeName]?.all || [];
   }
 
   static #firstTexture() {
@@ -57,37 +61,20 @@ class BlockbenchAdapter {
   }
 
   static collectTextureLocations() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all.map((texture, position) =>
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) =>
         BlockbenchAdapter.#describeTexture(texture, position));
   }
 
   static collectTextures() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all.map((texture, position) => ({
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) => ({
       ...BlockbenchAdapter.#describeTexture(texture, position),
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
   }
 
   static #externalTextureLocations() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all
-    .map((texture) => parseExternalLocation({
-      namespace: texture.namespace,
-      folder: texture.folder,
-      name: texture.name,
-      path: texture.path
-    }))
+    return BlockbenchAdapter.collectTextureLocations()
+    .map(parseExternalLocation)
     .filter((location) => location && !location.startsWith('minecraft:'));
   }
 
@@ -158,9 +145,8 @@ class BlockbenchAdapter {
   static #collectGeometry() {
     const elements = BlockbenchAdapter.#outlinerList('elements');
     const rootNodes = BlockbenchAdapter.#outlinerList('root');
-    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const textures =
-        typeof Texture !== 'undefined' && Texture.all ? Texture.all : [];
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const textures = BlockbenchAdapter.#allOf('Texture');
     const cubes = elements.filter((element) => element.type === 'cube');
     const names = (list) => list.map((node) => node.name || '');
 
@@ -203,10 +189,9 @@ class BlockbenchAdapter {
   }
 
   static getModelLoadStats() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const animations =
-        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
     const geometry = BlockbenchAdapter.#collectGeometry();
 
     return {
@@ -219,10 +204,9 @@ class BlockbenchAdapter {
   }
 
   static getModelStats() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const animations =
-        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
     const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
@@ -269,7 +253,7 @@ class BlockbenchAdapter {
   }
 
   static getModelBounds() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
     if (cubes.length === 0) {
       return null;
     }
@@ -297,9 +281,7 @@ class BlockbenchAdapter {
   }
 
   static getModelCubes() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-
-    return cubes.map((cube) => ({
+    return BlockbenchAdapter.#allOf('Cube').map((cube) => ({
       from: (cube.from || [0, 0, 0]).slice(),
       to: (cube.to || [0, 0, 0]).slice()
     }));
@@ -411,7 +393,7 @@ class BlockbenchAdapter {
     files.forEach((file) => {
       const result = Validator.validateOutputPath(file.path);
       if (!result.valid) {
-        throw new Error(`${result.code}: ${result.message} (${file.path})`);
+        throw new LocalizedError(`eme.validation.${result.code}`, file.path);
       }
       const fullPath = path.join(rootDir, file.path);
       fs.mkdirSync(path.dirname(fullPath), {recursive: true});

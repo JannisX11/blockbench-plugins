@@ -21,7 +21,7 @@ const {
   presetDefaults,
   movementDefaults,
   behaviorDefaults,
-  isCustom,
+  isCustomEntity,
   SCHEMA_VERSION,
   DEFAULT_MAX_HEALTH,
   DEFAULT_FOLLOW_RANGE,
@@ -105,7 +105,7 @@ function buildDimensions(settings, defaults, custom) {
 function buildServerProfile(settings) {
   const modelType = settings.modelType || MODEL_TYPE_ENTITY;
   const blockEntity = modelType === MODEL_TYPE_BLOCK_ENTITY;
-  const custom = !blockEntity && isCustom(settings.presetType);
+  const custom = isCustomEntity(modelType, settings.presetType);
   const defaults = effectiveDefaults(settings);
 
   const profile = {

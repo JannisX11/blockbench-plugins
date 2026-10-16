@@ -17,6 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {normalizeName} = require('../model/presetTypes');
 const {ResourceLocation} = require('./ResourceLocation');
 const {t} = require('../i18n/translations');
 
@@ -42,7 +43,7 @@ function customLocation(settings, index) {
 }
 
 function parseExternalLocation(descriptor) {
-  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
+  const namespace = normalizeName(descriptor.namespace);
   if (namespace) {
     const folder = trimSlashes(String(descriptor.folder || '').trim());
     const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();

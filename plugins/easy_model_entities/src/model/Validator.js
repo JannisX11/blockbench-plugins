@@ -248,11 +248,12 @@ class Validator {
         : listed;
   }
 
-  static #pushNamed(issues, code, names) {
+  static #pushNamed(issues, code, names, ...params) {
     if (names && names.length > 0) {
       issues.push({
         code: code,
-        message: t(`eme.validation.${code}`, Validator.#formatNames(names))
+        message: t(`eme.validation.${code}`, Validator.#formatNames(names),
+            ...params)
       });
     }
   }
@@ -405,16 +406,14 @@ class Validator {
     Validator.#pushNamed(warnings, 'DUPLICATE_ANIMATION_NAME',
         Validator.#duplicateNames(
             (ctx.animations || []).map((animation) => animation.name)));
+    Validator.#pushNamed(warnings, 'CUSTOM_ANIMATION_CLIP',
+        (ctx.animations || []).filter((animation) => {
+          const name = normalizeName(animation.name);
+          const shoulderClip = !blockEntity && name === SHOULDER_CLIP;
+
+          return !isStandardClip(name) && !shoulderClip;
+        }).map((animation) => animation.name), ANIMATION_CLIPS.join(', '));
     (ctx.animations || []).forEach((animation) => {
-      const name = normalizeName(animation.name);
-      const shoulderClip = !blockEntity && name === SHOULDER_CLIP;
-      if (!isStandardClip(name) && !shoulderClip) {
-        warnings.push({
-          code: 'CUSTOM_ANIMATION_CLIP',
-          message: t('eme.validation.CUSTOM_ANIMATION_CLIP', animation.name,
-              ANIMATION_CLIPS.join(', '))
-        });
-      }
       if (animation.hasExpression) {
         warnings.push({
           code: 'UNSUPPORTED_ANIMATION_EXPRESSION',
@@ -479,7 +478,7 @@ class Validator {
       return {
         valid: false,
         code: 'INVALID_OUTPUT_PATH',
-        message: 'Empty output path'
+        message: t('eme.validation.INVALID_OUTPUT_PATH')
       };
     }
 
@@ -488,7 +487,7 @@ class Validator {
       return {
         valid: false,
         code: 'PATH_TRAVERSAL',
-        message: 'Path traversal detected'
+        message: t('eme.validation.PATH_TRAVERSAL', relativePath)
       };
     }
 
@@ -496,7 +495,7 @@ class Validator {
       return {
         valid: false,
         code: 'ABSOLUTE_PATH',
-        message: 'Absolute paths are not allowed'
+        message: t('eme.validation.ABSOLUTE_PATH', relativePath)
       };
     }
 

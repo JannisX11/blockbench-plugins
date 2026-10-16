@@ -21,7 +21,11 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const {performExport, zipExportName} = require('../exportFlow');
+const {
+  describeExportError,
+  performExport,
+  zipExportName
+} = require('../exportFlow');
 const {BlockbenchAdapter} = require('../BlockbenchAdapter');
 const {registerEmeCodecHooks} = require('../format/EmeCodecHooks');
 const {FORMAT_ID} = require('../format/EmeFormat');
@@ -30,6 +34,7 @@ const {
   EXPORT_TYPE_MOD_PROJECT,
   EXPORT_TYPE_RESOURCE_PACK
 } = require('../model/exportTypes');
+const {LocalizedError, t} = require('../i18n/translations');
 const {fixtureSettings, fixtureTextureResolution} = require('./fixtureData');
 
 function compileProject() {
@@ -122,11 +127,52 @@ describe('performExport', () => {
     .toBeUndefined();
   });
 
+  test('reports a failing pack export instead of throwing', async () => {
+    const shownMessages = [];
+    global.Blockbench.showMessageBox = (box) => shownMessages.push(box);
+    jest.spyOn(console, 'error').mockImplementation(() => {
+    });
+    const settings = {
+      ...fixtureSettings(),
+      exportType: EXPORT_TYPE_RESOURCE_PACK,
+      targetVersion: '0.0'
+    };
+
+    await performExport(settings, fixtureTextureResolution(settings));
+    expect(shownMessages).toEqual([{
+      title: t('eme.message.exportFailed'),
+      message: t('eme.message.unsupportedTargetVersion', '0.0')
+    }]);
+    console.error.mockRestore();
+  });
+
   test('an empty project property is not treated as stored settings', () => {
     global.Project = {[BlockbenchAdapter.PROJECT_PROPERTY]: {}};
 
     expect(BlockbenchAdapter.loadSettings()).toBeNull();
     expect(compileProject().emeSettings).toBeUndefined();
+  });
+});
+
+describe('describeExportError', () => {
+  test('shows a localized error as it is', () => {
+    expect(describeExportError(
+        new LocalizedError('eme.message.unsupportedTargetVersion', '1.0')))
+    .toBe(t('eme.message.unsupportedTargetVersion', '1.0'));
+  });
+
+  test('explains a known file system error with the affected path', () => {
+    const error = Object.assign(new Error('EBUSY: resource busy'),
+        {code: 'EBUSY', path: 'C:/pack/lizard.json'});
+
+    expect(describeExportError(error)).toBe(
+        t('eme.error.fileInUse', 'C:/pack/lizard.json') + '\n\n'
+        + t('eme.message.errorDetails', 'EBUSY: resource busy'));
+  });
+
+  test('asks to report anything unexpected with its details', () => {
+    expect(describeExportError(new TypeError('boom'))).toBe(
+        t('eme.message.unexpectedError', 'boom'));
   });
 });
 

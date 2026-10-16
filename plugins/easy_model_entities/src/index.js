@@ -49,6 +49,10 @@ const {FORMAT_ID, registerEmeFormat, unregisterEmeFormat} = require(
     './format/EmeFormat');
 const {registerEmeCodecHooks, unregisterEmeCodecHooks} = require(
     './format/EmeCodecHooks');
+const {
+  registerAnimationInheritance,
+  unregisterAnimationInheritance
+} = require('./animation/animationParentLink');
 
 const MODDED_ENTITY_FORMAT_ID = 'modded_entity';
 const EXPORT_FORMAT_IDS = [FORMAT_ID, MODDED_ENTITY_FORMAT_ID];
@@ -127,7 +131,7 @@ function resolveDialogState() {
 }
 
 function formatIssues(issues) {
-  return issues.map((issue) => `• ${issue.message}`).join('\n');
+  return issues.map((issue) => `- ${issue.message}`).join('\n');
 }
 
 function pairingWarnings(settings) {
@@ -291,8 +295,10 @@ BBPlugin.register('easy_model_entities', {
         modelLoadErrors);
 
     patchTexturePanel(FORMAT_ID);
+    registerAnimationInheritance();
   },
   onunload() {
+    unregisterAnimationInheritance();
     unpatchTexturePanel();
     unregisterEmeCodecHooks();
     unregisterEmeFormat();

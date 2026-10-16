@@ -19,9 +19,14 @@
 
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  isCustomEntity
 } = require('../model/presetTypes');
-const {EXPORT_TYPE_DATA_PACK} = require('../model/exportTypes');
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MODEL_ONLY
+} = require('../model/exportTypes');
 const {Validator} = require('../model/Validator');
 const {t} = require('../i18n/translations');
 const {
@@ -42,6 +47,7 @@ const {
   variantWeightKey,
   activeModelType,
   activePreset,
+  presetKey,
   presetFormValues,
   resolveExportSettings
 } = require('./exportSettingsMapping');
@@ -170,7 +176,7 @@ function buildFormConfig(settings, ui) {
   const values = settingsToForm(settings, variantClips);
   const allowCustomize = !!state.showCustomization;
 
-  const standalone = (form) => form.exportType !== 'model_only';
+  const standalone = (form) => form.exportType !== EXPORT_TYPE_MODEL_ONLY;
   const blockEntitySelected = (form) =>
       standalone(form) && form.modelType === MODEL_TYPE_BLOCK_ENTITY;
   const customizeOn = (form) => allowCustomize && !!form.customize;
@@ -188,7 +194,7 @@ function buildFormConfig(settings, ui) {
       label: t('eme.field.exportType'),
       type: 'select',
       options: exportTypeOptions(),
-      value: state.exportType || 'packs'
+      value: state.exportType || EXPORT_TYPE_PACKS
     },
     modelType: {
       label: t('eme.field.modelType'),
@@ -279,7 +285,7 @@ function openExportDialog(options) {
   const settings = options.settings;
   const modelDimensions = options.modelDimensions;
   const visibleBounds = options.visibleBounds;
-  let lastKey = `${activeModelType(options)}|${activePreset(options)}`;
+  let lastKey = presetKey(options);
 
   const dialog = new Dialog({
     id: 'eme_export_dialog',
@@ -294,12 +300,12 @@ function openExportDialog(options) {
       } : undefined
     }),
     onFormChange(form) {
-      const modelType = activeModelType(form);
-      const preset = activePreset(form);
-      const key = `${modelType}|${preset}`;
+      const key = presetKey(form);
       if (key !== lastKey) {
         lastKey = key;
-        if (modelType !== MODEL_TYPE_ENTITY || preset !== 'custom') {
+        const modelType = activeModelType(form);
+        const preset = activePreset(form);
+        if (!isCustomEntity(modelType, preset)) {
           dialog.setFormValues(
               presetFormValues(preset, modelType, modelDimensions,
                   visibleBounds), false);
@@ -315,8 +321,7 @@ function openExportDialog(options) {
   dialog.show();
   if (options.formValues) {
     dialog.setFormValues(options.formValues, false);
-    lastKey = `${activeModelType(options.formValues)}|${activePreset(
-        options.formValues)}`;
+    lastKey = presetKey(options.formValues);
   }
 
   return dialog;

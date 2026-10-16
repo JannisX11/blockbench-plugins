@@ -28,7 +28,38 @@ const {
   EXPORT_TYPE_DATA_PACK,
   isZipExport
 } = require('./model/exportTypes');
-const {t} = require('./i18n/translations');
+const {LocalizedError, t} = require('./i18n/translations');
+
+const FILE_SYSTEM_ERROR_KEYS = {
+  EACCES: 'eme.error.noPermission',
+  EPERM: 'eme.error.noPermission',
+  EBUSY: 'eme.error.fileInUse',
+  ENOSPC: 'eme.error.diskFull',
+  EROFS: 'eme.error.readOnly',
+  ENOENT: 'eme.error.notFound'
+};
+
+function describeExportError(error) {
+  if (error instanceof LocalizedError) {
+    return error.message;
+  }
+
+  const fileSystemKey = FILE_SYSTEM_ERROR_KEYS[error?.code];
+  if (fileSystemKey && error.path) {
+    return t(fileSystemKey, error.path) + '\n\n'
+        + t('eme.message.errorDetails', error.message);
+  }
+
+  return t('eme.message.unexpectedError', error?.message || String(error));
+}
+
+function showExportError(error) {
+  console.error('[Easy Model Entities] Export failed:', error);
+  Blockbench.showMessageBox({
+    title: t('eme.message.exportFailed'),
+    message: describeExportError(error)
+  });
+}
 
 function zipExportName(settings) {
   const base = `${settings.namespace}_${settings.profileId}`;
@@ -44,16 +75,14 @@ function zipExportName(settings) {
 }
 
 function exportToZip(settings, options, onWritten) {
-  return BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options), zipExportName(settings))
+  return Promise.resolve()
+  .then(() => BlockbenchAdapter.exportPackBundle(
+      buildPackBundle(settings, options), zipExportName(settings)))
   .then(() => {
     onWritten();
     Blockbench.showQuickMessage(t('eme.message.packsExported'), 1500);
   })
-  .catch((error) => {
-    Blockbench.showMessageBox(
-        {title: t('eme.message.exportFailed'), message: String(error)});
-  });
+  .catch(showExportError);
 }
 
 function exportToModProject(settings, options, onWritten) {
@@ -63,8 +92,15 @@ function exportToModProject(settings, options, onWritten) {
     return;
   }
 
-  const {files} = buildModProjectFiles(settings, options);
-  const existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
+  let files;
+  let existing;
+  try {
+    files = buildModProjectFiles(settings, options).files;
+    existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
+  } catch (error) {
+    showExportError(error);
+    return;
+  }
 
   const write = () => {
     try {
@@ -72,15 +108,15 @@ function exportToModProject(settings, options, onWritten) {
       onWritten();
       Blockbench.showQuickMessage(t('eme.message.modProjectWritten'), 1500);
     } catch (error) {
-      Blockbench.showMessageBox(
-          {title: t('eme.message.exportFailed'), message: String(error)});
+      showExportError(error);
     }
   };
 
   if (existing.length > 0) {
     BlockbenchAdapter.confirm(t('eme.message.overwriteTitle'),
         t('eme.message.overwriteFiles', existing.length) + '\n\n'
-        + existing.join('\n'), t('eme.button.overwrite'), write);
+        + existing.map((file) => `- \`${file}\``).join('\n'),
+        t('eme.button.overwrite'), write);
   } else {
     write();
   }
@@ -109,4 +145,4 @@ function performExport(settings, textureResolution) {
   return exportToModProject(settings, options, onWritten);
 }
 
-module.exports = {performExport, zipExportName};
+module.exports = {describeExportError, performExport, zipExportName};

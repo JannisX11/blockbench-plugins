@@ -242,6 +242,23 @@ describe('validateSettings', () => {
     expect(codes(result.warnings)).toContain('CUSTOM_ANIMATION_CLIP');
   });
 
+  test('lists all custom clips in a single warning', () => {
+    const result = Validator.validateSettings(fixtureSettings(), {
+      hasModel: true,
+      hasTexture: true,
+      animations: [
+        {name: 'wave', channels: [], hasExpression: false},
+        {name: 'idle', channels: [], hasExpression: false},
+        {name: 'point', channels: [], hasExpression: false}
+      ],
+      boneNames: QUADRUPED_BONES
+    });
+    const customClipWarnings = result.warnings.filter(
+        (warning) => warning.code === 'CUSTOM_ANIMATION_CLIP');
+    expect(customClipWarnings).toHaveLength(1);
+    expect(customClipWarnings[0].message).toContain('wave, point');
+  });
+
   test.each([
     ['opacity above 1', (s) => s.rendering.opacity = 1.5,
       'INVALID_RENDER_SETTINGS'],

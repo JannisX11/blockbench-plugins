@@ -18,6 +18,7 @@
  */
 
 const {standardClipNames, normalizeName} = require('./presetTypes');
+const {ModelDimensions} = require('./ModelDimensions');
 
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
@@ -35,23 +36,6 @@ class PresetDetector {
 
   static #count(names, needle) {
     return names.filter((name) => name.includes(needle)).length;
-  }
-
-  static #extents(bounds) {
-    if (!bounds) {
-      return null;
-    }
-
-    if (!['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
-        (key) => Number.isFinite(bounds[key]))) {
-      return null;
-    }
-
-    return {
-      x: Math.max(0, bounds.maxX - bounds.minX),
-      y: Math.max(0, bounds.maxY - bounds.minY),
-      z: Math.max(0, bounds.maxZ - bounds.minZ)
-    };
   }
 
   static detect(stats, bounds) {
@@ -86,7 +70,7 @@ class PresetDetector {
       return {presetType: 'humanoid_still', reason: 'arm bones'};
     }
 
-    const extents = PresetDetector.#extents(bounds);
+    const extents = ModelDimensions.extentsOf(bounds);
     if (extents && extents.x > 0 && extents.y > 0 && extents.z > 0) {
       if (Math.max(extents.x, extents.y, extents.z) / Math.min(extents.x,
           extents.y, extents.z) <= PresetDetector.#CUBE_RATIO) {
