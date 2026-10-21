@@ -1747,5 +1747,22 @@
 		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
 		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
+	},
+	"vintagestory": {
+		"title": "Vintage Story Format Support",
+		"icon": "icon.png",
+		"author": "Anego Studios",
+		"contributors": [
+			"codename-B",
+			"Darkluke1111"
+		],
+		"description": "A Blockbench plugin that adds support for Vintage Story models",
+		"version": "0.12.2",
+		"variant": "desktop",
+		"min_version": "5.0.0",
+		"repository": "https://github.com/anegostudios/blockbenchplugin",
+		"tags": [
+			"Vintage Story"
+		]
 	}
 }
