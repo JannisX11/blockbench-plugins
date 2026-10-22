@@ -1410,6 +1410,7 @@
     const PLAYER_MODEL_TEXTURE_DATA_URL = "data:image/png;base64,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";
 
     let actions = [];
+    let animationProperties = [];
     let palFormat = null;
     let dragoncoreFormat = null;
     let nativeAnimationCodec = null;
@@ -1471,12 +1472,16 @@
         icon: "icon.png",
         description: "Create, import, and export PAL, Emotecraft, DragonCore player-model, and PlayerAnimationLibraryMoreRotation animations.",
         tags: ["Minecraft: Java Edition", "Animation", "Tools"],
-        version: "0.4.0",
+        version: "0.4.1",
         variant: "both",
         min_version: "4.8.0",
         repository: "https://github.com/kltyton/Pal-bend-player-tools",
         bug_tracker: "https://github.com/kltyton/Pal-bend-player-tools/issues",
         onload() {
+            animationProperties = [
+                new Property(Animation, "object", "pal_bend_animation_metadata", {default: {}}),
+                new Property(Keyframe, "object", "pal_bend_easing", {default: {}})
+            ];
             registerTranslations();
             registerPalFormat();
             actions = [
@@ -1525,6 +1530,8 @@
             setTimeout(hookNativeAnimationImport, 250);
         },
         onunload() {
+            animationProperties.forEach(property => property.delete());
+            animationProperties = [];
             unhookNativeAnimationImport();
             actions.forEach(action => action.delete());
             actions = [];
@@ -2007,6 +2014,23 @@
     }
 
     function importAnimationData(data, fileName, options = {}) {
+        const animationNames = Object.keys((data && data.animations) || {});
+        if (animationNames.length > 1) {
+            const total = {created: 0, missing: 0, missingBones: []};
+            animationNames.forEach(name => {
+                const result = importAnimationData({...data, animations: {[name]: data.animations[name]}}, fileName, {...options, silent: true});
+                total.created += result.created;
+                total.missing += result.missing;
+                result.missingBones.forEach(bone => {
+                    if (!total.missingBones.includes(bone)) total.missingBones.push(bone);
+                });
+            });
+            if (!options.silent) Blockbench.showQuickMessage(t("importSummary", {
+                created: total.created, profile: t("profileAuto"),
+                missing: total.missing ? t("importMissing", {count: total.missing, bones: total.missingBones.join(", ")}) : ""
+            }), 4200);
+            return total;
+        }
         const fileBase = baseName(fileName || "animation").replace(/\.[^.]+$/, "");
         let animationsJson;
         if (data && data.emote) {
@@ -2083,7 +2107,7 @@
         const missingText = result.missing
             ? t("importMissing", {count: result.missing, bones: result.missingBones.join(", ")})
             : "";
-        Blockbench.showQuickMessage(t("importSummary", {
+        if (!options.silent) Blockbench.showQuickMessage(t("importSummary", {
             created: result.created,
             profile: formatImportProfileLabel(importProfile),
             missing: missingText
@@ -2300,6 +2324,11 @@
                 snapping: 20,
                 loop: blockbenchLoopForAnimation(animObj.loop)
             }).add();
+            bbAnimation.pal_bend_animation_metadata = {};
+            if (Number.isFinite(animObj.loopTick)) bbAnimation.pal_bend_animation_metadata.loopTick = animObj.loopTick;
+            if (animObj.player_animation_library && typeof animObj.player_animation_library === "object") {
+                bbAnimation.pal_bend_animation_metadata.player_animation_library = clone(animObj.player_animation_library);
+            }
             if (options.sourceMatchesCurrentRig) bbAnimation.pal_bend_same_rig_import = true;
             if (options.runtimeLocalSourceRig) {
                 bbAnimation.pal_bend_runtime_local_source_rig = clone(options.runtimeLocalSourceRig);
@@ -2543,6 +2572,7 @@
             if (key.easing && key.easing !== DEFAULT_EASING) keyframeData.easing = easingForAnimation(key.easing);
             if (key.interpolation) keyframeData.interpolation = key.interpolation;
             if (key.easingArgs) keyframeData.easingArgs = key.easingArgs;
+            if (key.palEasing) keyframeData.pal_bend_easing = key.palEasing;
             animator.addKeyframe(keyframeData);
         });
     }
@@ -2704,10 +2734,14 @@
         let interpolation;
         let easing = DEFAULT_EASING;
         let easingArgs;
+        const palEasing = {};
         const style = Array.isArray(element) ? "array" : undefined;
         if (element && typeof element === "object" && !Array.isArray(element)) {
             easing = normalizeEasing(element.easing || DEFAULT_EASING);
             easingArgs = element.easingArgs;
+            ["easingArgs", "easingX", "easingY", "easingZ", "easingArgsX", "easingArgsY", "easingArgsZ"].forEach(key => {
+                if (element[key] !== undefined) palEasing[key] = clone(element[key]);
+            });
             if (element.lerp_mode === "catmullrom") interpolation = "catmullrom";
             if (element.lerp_mode === "bezier" || (element.pre !== undefined && element.post !== undefined)) interpolation = "bezier";
         }
@@ -2719,7 +2753,7 @@
             dataPoints.push(vectorDataPoint(valueToVector(element, channel)));
         }
         if (!dataPoints.length) return null;
-        return {dataPoints, easing, interpolation, easingArgs, style};
+        return {dataPoints, easing, interpolation, easingArgs, style, palEasing};
     }
 
     function compileAnimationsFromProject(animations) {
@@ -2734,6 +2768,9 @@
             };
             const loopValue = animationLoopForJson(animation.loop);
             if (loopValue !== undefined) animObj.loop = loopValue;
+            const metadata = animation.pal_bend_animation_metadata || {};
+            if (loopValue === true && Number.isFinite(metadata.loopTick)) animObj.loopTick = metadata.loopTick;
+            if (metadata.player_animation_library) animObj.player_animation_library = clone(metadata.player_animation_library);
             addEffectTracksFromAnimation(animation, animObj);
             Object.keys(animation.animators || {}).forEach(id => {
                 const animator = animation.animators[id];
@@ -2786,6 +2823,7 @@
             if (hasEasing) {
                 obj.easing = easingForAnimation(keyframe.easing);
             }
+            Object.assign(obj, clone(keyframe.pal_bend_easing || {}));
             track[time] = obj;
         });
         return track;
@@ -2843,6 +2881,7 @@
         if (out.vector !== undefined) out.vector = mirrorPositionXPayload(valueToVector(out.vector, "position"));
         if (out.pre !== undefined) out.pre = mirrorPositionXPayload(out.pre);
         if (out.post !== undefined) out.post = mirrorPositionXPayload(out.post);
+        mirrorBezierHandles(out, [-1, 1, 1]);
         return out;
     }
 
@@ -2899,7 +2938,21 @@
         if (out.vector !== undefined) out.vector = mirrorVector(valueToVector(out.vector, channel), channel);
         if (out.pre !== undefined) out.pre = mirrorKeyPayload(out.pre, channel);
         if (out.post !== undefined) out.post = mirrorKeyPayload(out.post, channel);
+        mirrorBezierHandles(out, mirrorVector([1, 1, 1], channel));
         return out;
+    }
+
+    function mirrorBezierHandles(key, signs) {
+        const generic = key.easingArgs;
+        const genericBezier = normalizeEasing(key.easing) === "bezier";
+        ["X", "Y", "Z"].forEach((axis, index) => {
+            const mode = normalizeEasing(key["easing" + axis] || key.easing);
+            const args = key["easingArgs" + axis] || generic;
+            if (mode !== "bezier" || !Array.isArray(args)) return;
+            key["easingArgs" + axis] = args.map((value, i) =>
+                signs[index] < 0 && (i === 0 || i === 2) ? invertAnimationValue(value) : value);
+        });
+        if (genericBezier && Array.isArray(generic)) delete key.easingArgs;
     }
 
     function mirrorVector(vector, channel) {
@@ -3111,8 +3164,11 @@
     }
 
     function getHierarchyMetadataRig(data) {
-        const parentsObj = data.parents || firstAnimationObjectWith(data, "parents");
-        const modelObj = data.model || firstAnimationObjectWith(data, "model");
+        const localParents = firstAnimationObjectWith(data, "parents");
+        const localModel = firstAnimationObjectWith(data, "model");
+        const sharedMetadata = data.parents && data.model;
+        const parentsObj = localParents && Object.keys(localParents).length ? localParents : sharedMetadata ? data.parents : localParents;
+        const modelObj = localModel && Object.keys(localModel).length ? localModel : sharedMetadata ? data.model : localModel;
         if (!parentsObj && !modelObj) return null;
         const parents = {};
         const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
@@ -3919,7 +3975,32 @@
             if (!bone || typeof bone !== "object") return;
             ["position", "rotation", "scale"].forEach(channel => collectTrackTimes(bone[channel], times));
         });
+        const sorted = Array.from(times).sort((a, b) => a - b);
+        if (chainHasPalCurveMetadata(bones, boneName, parentChain)) {
+            for (let i = 1; i < sorted.length; i++) {
+                const start = sorted[i - 1], end = sorted[i];
+                const steps = Math.ceil((end - start) * 60);
+                for (let step = 1; step < steps; step++) times.add(start + (end - start) * step / steps);
+            }
+        }
         return Array.from(times).sort((a, b) => a - b);
+    }
+
+    function hasPalCurveMetadata(key) {
+        return key && typeof key === "object" && !Array.isArray(key)
+            && (key.easingArgs !== undefined || ["X", "Y", "Z"].some(axis =>
+                key["easing" + axis] !== undefined || key["easingArgs" + axis] !== undefined));
+    }
+
+    function chainHasPalCurveMetadata(bones, boneName, parentChain) {
+        return [boneName, ...parentChain].some(name => {
+            const bone = bones[name] || {};
+            return ["position", "rotation", "scale"].some(channel => {
+                const track = bone[channel];
+                return hasPalCurveMetadata(track) || (track && typeof track === "object"
+                    && Object.values(track).some(hasPalCurveMetadata));
+            });
+        });
     }
 
     function collectTrackTimes(track, times) {
@@ -4013,6 +4094,24 @@
             .filter(entry => !Number.isNaN(entry.time))
             .sort((a, b) => a.time - b.time);
         if (!samples.length) return fallback.slice();
+        if (samples.some(entry => valueToVector(entry.value, channel).some(isSkip))) {
+            return [0, 1, 2].map(index => {
+                const axis = ["X", "Y", "Z"][index];
+                const axisTrack = {};
+                samples.forEach(entry => {
+                    const vector = valueToVector(entry.value, channel);
+                    if (isSkip(vector[index])) return;
+                    const source = entry.value && typeof entry.value === "object" && !Array.isArray(entry.value) ? entry.value : {};
+                    const frame = {vector: [vector[index], vector[index], vector[index]]};
+                    const easing = source["easing" + axis] || source.easing || source.lerp_mode;
+                    const args = source["easingArgs" + axis] || source.easingArgs;
+                    if (easing) frame.easingX = easing;
+                    if (args) frame.easingArgsX = clone(args);
+                    axisTrack[entry.time] = frame;
+                });
+                return sampleTrackVector(axisTrack, channel, time, [fallback[index], fallback[index], fallback[index]])[0];
+            });
+        }
         const exact = samples.find(entry => Math.abs(entry.time - time) < 1e-6);
         if (exact) return cleanNumber(valueToVector(exact.value, channel));
         let prev = null;
@@ -4037,6 +4136,9 @@
         const a = valueToVectorForSegmentStart(prev.value, channel);
         const b = valueToVectorForSegmentEnd(next.value, channel);
         if (!a.every(isFiniteNumberLike) || !b.every(isFiniteNumberLike)) return null;
+        if (hasPalCurveMetadata(prev.value) || hasPalCurveMetadata(next.value)) {
+            return a.map((value, index) => samplePalAxisCurve(prev, next, index, Number(value), Number(b[index]), alpha));
+        }
         if (mode === "constant" || mode === "step") return a;
         if (mode === "catmullrom") {
             const p0 = valueToVectorForSegmentStart((samples[Math.max(prevIndex - 1, 0)] || prev).value, channel);
@@ -4046,6 +4148,65 @@
             }
         }
         return interpolateVector(a, b, alpha, channel);
+    }
+
+    function samplePalAxisCurve(prev, next, index, start, end, alpha) {
+        const axis = ["X", "Y", "Z"][index];
+        const p = prev.value || {}, n = next.value || {};
+        const beforeMode = normalizeEasing(p["easing" + axis] || p.easing);
+        const mode = normalizeEasing(n["easing" + axis] || n.easing);
+        const before = p["easingArgs" + axis] || p.easingArgs;
+        const after = n["easingArgs" + axis] || n.easingArgs;
+        if (mode === "bezier" || beforeMode === "bezier") {
+            const duration = next.time - prev.time;
+            let rightValue = beforeMode === "bezier" && Array.isArray(before) ? numberOr(before[2], 0) : 0;
+            let rightTime = beforeMode === "bezier" && Array.isArray(before) ? numberOr(before[3], 0) / duration : 0;
+            let leftValue = mode === "bezier" && Array.isArray(after) ? numberOr(after[0], 0) : 0;
+            let leftTime = mode === "bezier" && Array.isArray(after) ? numberOr(after[1], 0) / duration : 0;
+            const clampRight = Math.max(0, Math.min(1, rightTime));
+            const clampLeft = Math.max(-1, Math.min(0, leftTime));
+            rightValue /= 1 + Math.abs(clampRight - rightTime);
+            leftValue /= 1 + Math.abs(clampLeft - leftTime);
+            const bezier = (t, a, b, c, d) => (1-t)**3*a + 3*(1-t)**2*t*b + 3*(1-t)*t*t*c + t**3*d;
+            let low = 0, high = 1;
+            for (let i = 0; i < 24; i++) {
+                const middle = (low + high) / 2;
+                if (bezier(middle, 0, clampRight, 1 + clampLeft, 1) < alpha) low = middle;
+                else high = middle;
+            }
+            return bezier((low + high) / 2, start, start + rightValue, end + leftValue, end);
+        }
+        return start + (end - start) * samplePalEasing(mode, alpha, Array.isArray(after) ? after[0] : undefined);
+    }
+
+    function samplePalEasing(mode, time, argument) {
+        if (mode === "constant") return 0;
+        if (mode === "step") {
+            const steps = Math.max(2, numberOr(argument, 2));
+            return Math.floor(time * steps) / (steps - 1);
+        }
+        const match = /^ease(inout|in|out)(sine|quad|cubic|quart|quint|expo|circ|back|elastic|bounce)$/.exec(mode);
+        if (!match) return time;
+        const curve = t => {
+            switch (match[2]) {
+                case "sine": return 1 - Math.cos(t * Math.PI / 2);
+                case "quad": return t*t;
+                case "cubic": return t**3;
+                case "quart": return t**4;
+                case "quint": return t**5;
+                case "expo": return 2**(10*(t-1));
+                case "circ": return 1 - Math.sqrt(1-t*t);
+                case "back": { const n = numberOr(argument, 1) * 1.70158; return t*t*((n+1)*t-n); }
+                case "elastic": return 1 - Math.cos(t*Math.PI/2)**3 * Math.cos(t*numberOr(argument,1)*Math.PI);
+                case "bounce": {
+                    const n = numberOr(argument, 0.5);
+                    return Math.min(121/16*t*t, 121/4*n*(t-6/11)**2+1-n,
+                        121*n*n*(t-9/11)**2+1-n*n, 484*n**3*(t-10.5/11)**2+1-n**3);
+                }
+            }
+        };
+        return match[1] === "in" ? curve(time) : match[1] === "out" ? 1-curve(1-time)
+            : time < 0.5 ? curve(2*time)/2 : 1-curve(2-2*time)/2;
     }
 
     function normalizeInterpolationMode(value) {
@@ -4133,6 +4294,8 @@
     }
 
     function findBakeEasing(bones, boneName, parentChain, time) {
+        // Matrix composition changes handle values and axes; sampled transforms use linear segments.
+        if (chainHasPalCurveMetadata(bones, boneName, parentChain)) return {easing: "linear"};
         for (const name of [boneName, ...parentChain.slice().reverse()]) {
             const bone = bones[name];
             if (!bone || typeof bone !== "object") continue;
