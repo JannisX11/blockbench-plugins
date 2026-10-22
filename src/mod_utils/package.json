@@ -1,0 +1,15 @@
+{
+  "name": "mod_utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+		"build": "esbuild mod_utils.js --bundle --outfile=out.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ARR",
+  "devDependencies": {
+    "esbuild": "0.19.5"
+  }
+}
