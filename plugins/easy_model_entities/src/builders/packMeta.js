@@ -18,6 +18,7 @@
  */
 
 const {getPackFormats} = require('../model/versionMatrix');
+const {LocalizedError} = require('../i18n/translations');
 
 function buildPack(descriptor, description) {
   const pack = {pack_format: descriptor.packFormat};
@@ -35,8 +36,8 @@ function buildPack(descriptor, description) {
 function buildMcmeta(settings, kind, description) {
   const formats = getPackFormats(settings.targetVersion);
   if (!formats) {
-    throw new Error(
-        `Unsupported or disabled target version: ${settings.targetVersion}`);
+    throw new LocalizedError('eme.message.unsupportedTargetVersion',
+        settings.targetVersion);
   }
   return buildPack(formats[kind], description);
 }

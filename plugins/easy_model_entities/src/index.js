@@ -18,14 +18,15 @@
  */
 
 const {
-  getDefaults,
-  deepMerge,
+  expandModelSettings,
   applyTemplate,
-  DEFAULT_PRESET
+  DEFAULT_PRESET,
+  DEFAULT_PROFILE_ID
 } = require('./model/templates');
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  variantClipNames
 } = require('./model/presetTypes');
 const {ModelDimensions} = require('./model/ModelDimensions');
 const {VisibleBounds} = require('./model/VisibleBounds');
@@ -48,20 +49,26 @@ const {FORMAT_ID, registerEmeFormat, unregisterEmeFormat} = require(
     './format/EmeFormat');
 const {registerEmeCodecHooks, unregisterEmeCodecHooks} = require(
     './format/EmeCodecHooks');
+const {
+  registerAnimationInheritance,
+  unregisterAnimationInheritance
+} = require('./animation/animationParentLink');
 
 const MODDED_ENTITY_FORMAT_ID = 'modded_entity';
+const EXPORT_FORMAT_IDS = [FORMAT_ID, MODDED_ENTITY_FORMAT_ID];
+const STATIC_PRESET = 'statue';
 const ACTION_ID = 'eme_export';
-const SETTING_ID = 'eme_enable_customization';
-const EXPERIMENTAL_SETTING_ID = 'eme_enable_experimental';
+const VALIDATOR_CHECK_ID = 'eme_model_load';
+const SETTING_NAMES = ['enable_customization', 'enable_experimental'];
 const EXPORT_ICON = 'data:image/svg+xml,' + encodeURIComponent(exportIconSvg);
 const CREATE_ICON = 'data:image/svg+xml,' + encodeURIComponent(createIconSvg);
 let exportAction;
+let modelLoadCheck;
 let projectProperty;
-let customizationSetting;
-let experimentalSetting;
+const pluginSettings = new Map();
 
-function settingEnabled(setting) {
-  return !!setting && typeof setting.value === 'boolean' && setting.value;
+function settingEnabled(name) {
+  return pluginSettings.get(name)?.value === true;
 }
 
 function resolveDialogState() {
@@ -78,7 +85,7 @@ function resolveDialogState() {
   let exportType;
 
   if (storedSettings) {
-    settings = deepMerge(getDefaults(), storedSettings);
+    settings = expandModelSettings(storedSettings);
     modelType = settings.modelType || MODEL_TYPE_ENTITY;
     customize = !!storedSettings.customize;
     exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
@@ -106,8 +113,7 @@ function resolveDialogState() {
 
   const projectName = BlockbenchAdapter.getProjectName();
   if (projectName
-      && (!settings.profileId || settings.profileId
-          === getDefaults().profileId)) {
+      && (!settings.profileId || settings.profileId === DEFAULT_PROFILE_ID)) {
     settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
   }
 
@@ -118,12 +124,14 @@ function resolveDialogState() {
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
     visibleBounds, modelDimensions,
-    hasExternalTextures: (stats.externalTextures || []).length > 0
+    variantClips: variantClipNames(stats.animations),
+    hasExternalTextures: (stats.externalTextures || []).length > 0,
+    geometry: stats.geometry
   };
 }
 
 function formatIssues(issues) {
-  return issues.map((issue) => `• ${issue.message}`).join('\n');
+  return issues.map((issue) => `- ${issue.message}`).join('\n');
 }
 
 function pairingWarnings(settings) {
@@ -134,72 +142,97 @@ function pairingWarnings(settings) {
 
   return [{
     code: 'NO_PAIRED_EXPORT',
-    message: 'This project has no earlier export to pair with, so the single '
-        + 'pack may not match the installed one. Export both packs instead'
+    message: t('eme.validation.NO_PAIRED_EXPORT')
   }];
 }
 
-function runExport(settings, target) {
+function targetVersionWarnings(settings) {
+  if (!settings.lastExportedTargetVersion
+      || settings.lastExportedTargetVersion === settings.targetVersion) {
+    return [];
+  }
+
+  return [{
+    code: 'TARGET_VERSION_CHANGED',
+    message: t('eme.validation.TARGET_VERSION_CHANGED',
+        settings.lastExportedTargetVersion, settings.targetVersion)
+  }];
+}
+
+function runExport(settings) {
+  BlockbenchAdapter.saveSettings(settings);
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
   const result = Validator.validateSettings(settings, {
     ...BlockbenchAdapter.getModelStats(),
+    modelFileSize: BlockbenchAdapter.getModelFileSize(),
     textureIssues: textureResolution.issues,
     referencedTextures: textureResolution.referencedOnly
   });
-  const warnings = [...result.warnings, ...pairingWarnings(settings)];
+  const warnings = [...result.warnings, ...pairingWarnings(settings),
+    ...targetVersionWarnings(settings)];
 
   if (!result.valid) {
     Blockbench.showMessageBox({
       title: t('eme.dialog.title'),
-      message: 'Export blocked. Please fix the following issues:\n\n'
-          + formatIssues(result.errors)
+      message: `${t('eme.message.exportBlocked')}\n\n${formatIssues(
+          result.errors)}`
     });
     return;
   }
 
-  const doExport = () => performExport(settings, target, textureResolution);
+  const doExport = () => performExport(settings, textureResolution);
 
   if (warnings.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: t('eme.dialog.title'),
-          message: 'The following warnings were found:\n\n' + formatIssues(
-              warnings) + '\n\nExport anyway?',
-          buttons: ['Export', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            doExport();
-          }
-        }
-    );
+    BlockbenchAdapter.confirm(t('eme.dialog.title'),
+        `${t('eme.message.exportWarnings')}\n\n${formatIssues(
+            warnings)}\n\n${t('eme.message.exportAnyway')}`,
+        t('eme.button.export'), doExport);
   } else {
     doExport();
   }
 }
 
-function openDialog() {
+function modelLoadErrors() {
+  const stats = BlockbenchAdapter.getModelLoadStats();
+  if (!stats.hasModel) {
+    return [];
+  }
+
+  const storedSettings = BlockbenchAdapter.loadSettings();
+  // Until a preset was exported, the body type is unknown; a static one skips
+  // the body part check instead of reporting parts of a guessed preset.
+  const settings = storedSettings ? expandModelSettings(storedSettings)
+      : applyTemplate(STATIC_PRESET);
+  const textureResolution = resolveTextures(
+      BlockbenchAdapter.collectTextureLocations(), settings);
+
+  return Validator.validateModelLoad(settings,
+      {...stats, textureIssues: textureResolution.issues});
+}
+
+function wrapInRootBoneAndReopen(formValues) {
+  BlockbenchAdapter.wrapInRootBone(t('eme.action.wrapInRootBone'));
+  openDialog(formValues);
+}
+
+function openDialog(formValues) {
   if (!Project) {
-    Blockbench.showQuickMessage('Open a project first', 1500);
+    Blockbench.showQuickMessage(t('eme.message.openProjectFirst'), 1500);
     return;
   }
 
   const state = resolveDialogState();
+  const geometryIssues = Validator.validateGeometry(state.geometry);
+  const canWrapInRootBone = geometryIssues.errors.some(
+      (issue) => issue.code === 'CUBE_OUTSIDE_GROUP');
   openExportDialog({
-    settings: state.settings,
-    preset: state.preset,
-    blockPreset: state.blockPreset,
-    modelType: state.modelType,
-    customize: state.customize,
-    exportType: state.exportType,
-    showCustomization: settingEnabled(customizationSetting),
-    experimental: settingEnabled(experimentalSetting),
-    modelDimensions: state.modelDimensions,
-    visibleBounds: state.visibleBounds,
-    hasExternalTextures: state.hasExternalTextures,
+    ...state,
+    showCustomization: settingEnabled('enable_customization'),
+    experimental: settingEnabled('enable_experimental'),
+    geometryIssues,
+    formValues,
+    onWrapInRootBone: canWrapInRootBone ? wrapInRootBoneAndReopen : undefined,
     onExport: runExport
   });
 }
@@ -210,8 +243,8 @@ BBPlugin.register('easy_model_entities', {
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
   tags: ['Minecraft: Java Edition', 'Format', 'Entity'],
-  version: '1.0.0',
-  min_version: '4.9.0',
+  version: '1.1.0',
+  min_version: '5.0.0',
   variant: 'desktop',
   await_loading: true,
   has_changelog: true,
@@ -230,29 +263,26 @@ BBPlugin.register('easy_model_entities', {
         BlockbenchAdapter.PROJECT_PROPERTY, {
           label: 'Easy Model Entities Settings',
           exposed: false,
+          export: false,
           default: undefined
         });
 
-    customizationSetting = new Setting(SETTING_ID, {
-      name: t('eme.setting.enable_customization'),
-      category: 'export',
-      type: 'toggle',
-      value: false
-    });
-
-    experimentalSetting = new Setting(EXPERIMENTAL_SETTING_ID, {
-      name: t('eme.setting.enable_experimental'),
-      category: 'export',
-      type: 'toggle',
-      value: false
-    });
+    for (const name of SETTING_NAMES) {
+      pluginSettings.set(name, new Setting(`eme_${name}`, {
+        name: t(`eme.setting.${name}`),
+        description: t(`eme.setting.${name}.description`),
+        category: 'export',
+        type: 'toggle',
+        value: false
+      }));
+    }
 
     exportAction = new Action(ACTION_ID, {
       name: t('eme.action.export'),
       description: t('eme.action.exportDescription'),
       icon: EXPORT_ICON,
       condition: () => typeof Format !== 'undefined' && Format
-          && (Format.id === FORMAT_ID || Format.id === MODDED_ENTITY_FORMAT_ID),
+          && EXPORT_FORMAT_IDS.includes(Format.id),
       click() {
         openDialog();
       }
@@ -260,21 +290,26 @@ BBPlugin.register('easy_model_entities', {
 
     MenuBar.addAction(exportAction, 'file.export');
 
+    modelLoadCheck = BlockbenchAdapter.registerValidatorCheck(
+        VALIDATOR_CHECK_ID, t('eme.validator.modelLoad'), EXPORT_FORMAT_IDS,
+        modelLoadErrors);
+
     patchTexturePanel(FORMAT_ID);
+    registerAnimationInheritance();
   },
   onunload() {
+    unregisterAnimationInheritance();
     unpatchTexturePanel();
     unregisterEmeCodecHooks();
     unregisterEmeFormat();
     if (exportAction) {
       exportAction.delete();
     }
-    if (customizationSetting) {
-      customizationSetting.delete();
+    if (modelLoadCheck) {
+      modelLoadCheck.delete();
     }
-    if (experimentalSetting) {
-      experimentalSetting.delete();
-    }
+    pluginSettings.forEach((setting) => setting.delete());
+    pluginSettings.clear();
     if (projectProperty) {
       projectProperty.delete();
     }

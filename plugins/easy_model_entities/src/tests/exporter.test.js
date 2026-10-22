@@ -82,7 +82,7 @@ describe('buildPackBundle', () => {
 
   test('pack.mcmeta carries a pack format without pair metadata', () => {
     const meta = JSON.parse(fileByPath(bundle.datapack, 'pack.mcmeta').content);
-    expect(meta.pack.pack_format).toBe(15);
+    expect(meta.pack.pack_format).toBe(48);
     expect(meta.easy_model_entities).toBeUndefined();
   });
 
@@ -147,6 +147,21 @@ describe('buildPackBundle', () => {
             complete.serverProfile.version);
       });
 
+  test('render profile model and texture point at files in the resource pack',
+      () => {
+        const render = JSON.parse(fileByPath(bundle.resourcepack,
+            'assets/example/easy_model_entities/render_profiles/entity/lizard.json')
+            .content);
+        const assetPath = (location) => {
+          const [namespace, path] = location.split(':');
+          return `assets/${namespace}/${path}`;
+        };
+        expect(fileByPath(bundle.resourcepack,
+            `${assetPath(render.model)}.bbmodel`)).toBeDefined();
+        expect(fileByPath(bundle.resourcepack, assetPath(render.texture)))
+        .toBeDefined();
+      });
+
   test('writes model and texture bytes unchanged as binary entries', () => {
     const opts = fixtureExportOptions();
     const model = fileByPath(bundle.resourcepack,
@@ -188,7 +203,7 @@ describe('model-only export (mod integration)', () => {
     const settings = applyTemplate('cuboid_still');
     settings.namespace = 'example';
     settings.profileId = 'chestling';
-    settings.modelOnly = true;
+    settings.exportType = 'model_only';
     return settings;
   }
 

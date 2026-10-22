@@ -21,14 +21,18 @@ const {MODEL_TYPE_ENTITY, presetDefaults} = require('./presetTypes');
 const {getDefaultVersionId} = require('./versionMatrix');
 
 const DEFAULT_PRESET = 'statue';
+const DEFAULT_PROFILE_ID = 'entity';
 
-const MODEL_SETTING_KEYS = [
-  'schemaVersion',
+const IDENTITY_KEYS = [
   'modelType',
   'presetType',
   'namespace',
   'profileId',
-  'targetVersion',
+  'targetVersion'
+];
+
+const MODEL_SETTING_KEYS = [
+  ...IDENTITY_KEYS,
   'customize',
   'includeExternalTextures',
   'host',
@@ -38,22 +42,15 @@ const MODEL_SETTING_KEYS = [
   'attributes',
   'rendering',
   'animation',
-  'lastExportedVersion'
+  'shoulder',
+  'lastExportedVersion',
+  'lastExportedTargetVersion'
 ];
 
-function pickModelSettings(settings) {
-  if (!settings || typeof settings !== 'object') {
-    return settings;
-  }
-
-  const picked = {};
-  MODEL_SETTING_KEYS.forEach((key) => {
-    if (settings[key] !== undefined) {
-      picked[key] = settings[key];
-    }
-  });
-
-  return picked;
+function pickKeys(settings, keys) {
+  return Object.fromEntries(keys
+  .filter((key) => settings[key] !== undefined)
+  .map((key) => [key, settings[key]]));
 }
 
 function deepMerge(target, source) {
@@ -62,7 +59,7 @@ function deepMerge(target, source) {
   });
   Object.keys(source).forEach((key) => {
     const value = source[key];
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
+    if (isPlainObject(value)) {
       result[key] = deepMerge(result[key] || {}, value);
     } else if (Array.isArray(value)) {
       result[key] = value.slice();
@@ -77,8 +74,10 @@ function deepMerge(target, source) {
 function getDefaults() {
   return deepMerge(presetDefaults(DEFAULT_PRESET), {
     namespace: 'example_org',
-    profileId: 'entity',
-    targetVersion: getDefaultVersionId()
+    profileId: DEFAULT_PROFILE_ID,
+    targetVersion: getDefaultVersionId(),
+    customize: false,
+    includeExternalTextures: true
   });
 }
 
@@ -87,10 +86,53 @@ function applyTemplate(presetType, modelType) {
       presetDefaults(presetType, modelType || MODEL_TYPE_ENTITY));
 }
 
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function differenceFrom(template, value) {
+  if (isPlainObject(value) && isPlainObject(template)) {
+    const difference = {};
+    Object.keys(value).forEach((key) => {
+      const changed = differenceFrom(template[key], value[key]);
+      if (changed !== undefined) {
+        difference[key] = changed;
+      }
+    });
+
+    return Object.keys(difference).length > 0 ? difference : undefined;
+  }
+
+  return JSON.stringify(value) === JSON.stringify(template)
+      ? undefined : value;
+}
+
+function presetTemplate(settings) {
+  return applyTemplate(settings.presetType || DEFAULT_PRESET,
+      settings.modelType);
+}
+
+// Identity keys are kept even at their default, so a changed plugin default
+// never retargets an existing project.
+function compactModelSettings(settings) {
+  const picked = pickKeys(settings, MODEL_SETTING_KEYS);
+
+  return {
+    ...pickKeys(picked, IDENTITY_KEYS),
+    ...differenceFrom(presetTemplate(picked), picked)
+  };
+}
+
+function expandModelSettings(storedSettings) {
+  return deepMerge(presetTemplate(storedSettings), storedSettings);
+}
+
 module.exports = {
   DEFAULT_PRESET,
+  DEFAULT_PROFILE_ID,
   getDefaults,
   applyTemplate,
   deepMerge,
-  pickModelSettings
+  compactModelSettings,
+  expandModelSettings
 };
