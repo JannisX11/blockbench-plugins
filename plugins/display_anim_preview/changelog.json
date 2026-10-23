@@ -17,5 +17,22 @@
         ]
       }
     ]
+  },
+  "1.1.2": {
+    "title": "1.1.2",
+    "date": "2026-10-04",
+    "author": "rieyi",
+    "categories": [
+      {
+        "title": "Features since 1.0.0",
+        "list": [
+          "Add a feature management panel.",
+          "Provide a first-person preview window in Animate mode to preview the first-person result while editing animations.",
+          "Multiple animation tracks and configurable project sampling at 1-20 FPS.",
+          "Optional animated player-skin arms in first-person views; require Minecraft Java 1.21.11+ and are incompatible with shader packs.",
+          "Quick/exact isolated bounds checks and insertion into existing packs."
+        ]
+      }
+    ]
   }
 }
