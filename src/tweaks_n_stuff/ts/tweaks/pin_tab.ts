@@ -1,11 +1,5 @@
 import { ToggleTweak } from "./base";
 
-declare global {
-  interface ModelProject {
-    pinned?: boolean;
-  }
-}
-
 class PinTabTweak extends ToggleTweak {
   static originalClose?: any;
 
