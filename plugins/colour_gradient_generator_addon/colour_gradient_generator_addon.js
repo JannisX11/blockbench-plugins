@@ -81,10 +81,10 @@ function gradientAddonExtend(dialog) {
   gradientAddonDialogs.set(dialog, old)
   const saved = JSON.parse(localStorage.getItem(gradientAddonId) || '{}')
   for (const key of Object.keys(gradientAddonDefaults)) {
-    component.data.data[key] = saved[key] ?? gradientAddonDefaults[key]
+    Vue.set(component.data.data, key, saved[key] ?? gradientAddonDefaults[key])
   }
-  component.data.copiedIndex = -1
-  component.data.copyTimeout = null
+  Vue.set(component.data, 'copiedIndex', -1)
+  Vue.set(component.data, 'copyTimeout', null)
   const originalSave = old.methods.save
   component.methods.save = function() {
     originalSave.call(this)
@@ -236,4 +236,3 @@ Plugin.register(gradientAddonId, {
     gradientAddonDialogs.clear()
   }
 })
-
