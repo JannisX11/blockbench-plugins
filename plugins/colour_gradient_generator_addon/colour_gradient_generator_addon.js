@@ -199,7 +199,7 @@ function gradientAddonExtend(dialog) {
 
 Plugin.register(gradientAddonId, {
   title: 'Colour Gradient Generator Add-on',
-  icon: 'gradient',
+  icon: 'icon.png',
   author: 'Hlamingo',
   description: 'Adds extra shade controls, model texture eyedropper, and copyable swatches to Colour Gradient Generator.',
   tags: ['Paint', 'Palette', 'Color'],

@@ -328,7 +328,7 @@
 	},
 	"colour_gradient_generator_addon": {
 		"title": "Colour Gradient Generator Add-on",
-		"icon": "gradient",
+		"icon": "icon.png",
 		"author": "Hlamingo",
 		"description": "Adds extra shade controls, model texture eyedropper, and copyable swatches to Colour Gradient Generator.",
 		"tags": [
