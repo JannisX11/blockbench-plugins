@@ -185,8 +185,8 @@ function gradientAddonExtend(dialog) {
   dialog.lines.push(`<style>
     #colour_gradient_generator .gradient-addon-colour-row { display:flex; align-items:center; gap:6px; min-width:0; }
     #colour_gradient_generator .gradient-addon-colour-row .sp-replacer { flex:1; min-width:0; }
-    #colour_gradient_generator .gradient-addon-picker { box-sizing:border-box; width:48px !important; min-width:0 !important; max-width:48px !important; height:32px; flex:0 0 48px; padding:0; display:grid; place-items:center; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); }
-    #colour_gradient_generator .gradient-addon-picker .material-icons { font-size:17px; line-height:1; }
+    #colour_gradient_generator .gradient-addon-picker { box-sizing:border-box; width:52px !important; min-width:0 !important; max-width:52px !important; height:32px; flex:0 0 52px; padding:0; display:grid; place-items:center; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); }
+    #colour_gradient_generator .gradient-addon-picker .material-icons { font-size:17px; line-height:1; transform:translate(1px, 1px); }
     #colour_gradient_generator .gradient-addon-tuning { display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; margin:-8px 0 20px; }
     #colour_gradient_generator .gradient-addon-tuning .header-bar h2 { font-size:.95em; }
     #colour_gradient_generator #colour-gradient-preview, #colour_gradient_generator #colour-gradient-preview .strip { overflow:visible; }
