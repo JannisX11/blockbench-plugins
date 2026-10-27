@@ -7,6 +7,148 @@ const gradientAddonDefaults = {
 const gradientAddonDialogs = new Map()
 let gradientAddonShow, gradientAddonShowWrapper, gradientAddonPick
 let gradientAddonCompatibilityNotice = false
+let gradientAddonPaletteAction, gradientAddonPaletteStyle
+const gradientAddonPaletteSelection = { active: false, indexes: new Set(), anchor: -1, signature: '' }
+
+function gradientAddonPaletteSignature() {
+  return ColorPanel.palette.join('\u001f')
+}
+
+function gradientAddonPaletteBar() {
+  const list = document.getElementById('palette_list')
+  if (!list) return null
+  let bar = document.getElementById('gradient-addon-palette-controls')
+  if (!bar) {
+    bar = document.createElement('div')
+    bar.id = 'gradient-addon-palette-controls'
+    bar.innerHTML = '<span class="gradient-addon-palette-count">0 selected</span><button type="button" class="gradient-addon-palette-delete" disabled>Delete selected</button><button type="button" class="gradient-addon-palette-cancel">Cancel</button>'
+    list.parentElement.insertBefore(bar, list)
+    bar.querySelector('.gradient-addon-palette-delete').addEventListener('click', gradientAddonDeleteSelectedColours)
+    bar.querySelector('.gradient-addon-palette-cancel').addEventListener('click', gradientAddonStopPaletteSelection)
+  }
+  return bar
+}
+
+function gradientAddonRefreshPaletteSelection() {
+  if (!gradientAddonPaletteSelection.active) return
+  const list = document.getElementById('palette_list')
+  const bar = gradientAddonPaletteBar()
+  if (!list || !bar) return
+  list.classList.add('gradient-addon-selecting')
+  Array.from(list.children).forEach((swatch, index) => {
+    swatch.dataset.gradientAddonSelected = gradientAddonPaletteSelection.indexes.has(index) ? 'true' : 'false'
+    swatch.tabIndex = 0
+    swatch.setAttribute('aria-selected', swatch.dataset.gradientAddonSelected)
+  })
+  const count = gradientAddonPaletteSelection.indexes.size
+  bar.querySelector('.gradient-addon-palette-count').textContent = `${count} selected`
+  bar.querySelector('.gradient-addon-palette-delete').disabled = count === 0
+}
+
+function gradientAddonStopPaletteSelection() {
+  gradientAddonPaletteSelection.active = false
+  gradientAddonPaletteSelection.indexes.clear()
+  gradientAddonPaletteSelection.anchor = -1
+  gradientAddonPaletteSelection.signature = ''
+  if (typeof document.getElementById !== 'function') return
+  const list = document.getElementById('palette_list')
+  if (list) {
+    list.classList.remove('gradient-addon-selecting')
+    Array.from(list.children).forEach(swatch => {
+      delete swatch.dataset.gradientAddonSelected
+      swatch.removeAttribute('aria-selected')
+      swatch.removeAttribute('tabindex')
+    })
+  }
+  document.getElementById('gradient-addon-palette-controls')?.remove()
+}
+
+function gradientAddonDeleteIndexes(palette, indexes) {
+  Array.from(indexes).sort((a, b) => b - a).forEach(index => {
+    if (index >= 0 && index < palette.length) palette.splice(index, 1)
+  })
+}
+
+function gradientAddonDeleteSelectedColours() {
+  if (StateMemory.color_palette_locked) {
+    Blockbench.showQuickMessage('Palette is locked')
+    return
+  }
+  if (gradientAddonPaletteSignature() !== gradientAddonPaletteSelection.signature) {
+    gradientAddonPaletteSelection.indexes.clear()
+    gradientAddonPaletteSelection.signature = gradientAddonPaletteSignature()
+    gradientAddonRefreshPaletteSelection()
+    Blockbench.showQuickMessage('Palette changed; select colours again')
+    return
+  }
+  if (!gradientAddonPaletteSelection.indexes.size) return
+  gradientAddonDeleteIndexes(ColorPanel.palette, gradientAddonPaletteSelection.indexes)
+  ColorPanel.saveLocalStorages()
+  gradientAddonStopPaletteSelection()
+}
+
+function gradientAddonTogglePaletteSelection() {
+  if (gradientAddonPaletteSelection.active) {
+    gradientAddonStopPaletteSelection()
+  } else {
+    if (StateMemory.color_palette_locked) {
+      Blockbench.showQuickMessage('Palette is locked')
+      return
+    }
+    if (!document.getElementById('palette_list')) {
+      Blockbench.showQuickMessage('Open the palette panel to select colours')
+      return
+    }
+    gradientAddonPaletteSelection.active = true
+    gradientAddonPaletteSelection.signature = gradientAddonPaletteSignature()
+    gradientAddonRefreshPaletteSelection()
+  }
+}
+
+function gradientAddonPaletteSwatch(event) {
+  if (!gradientAddonPaletteSelection.active) return null
+  return event.target.closest?.('#palette_list li.color') || null
+}
+
+function gradientAddonPalettePointerDown(event) {
+  if (gradientAddonPaletteSwatch(event)) event.stopImmediatePropagation()
+}
+
+function gradientAddonPaletteClick(event) {
+  const swatch = gradientAddonPaletteSwatch(event)
+  if (!swatch) return
+  event.preventDefault()
+  event.stopImmediatePropagation()
+  const index = Array.prototype.indexOf.call(swatch.parentElement.children, swatch)
+  if (gradientAddonPaletteSignature() !== gradientAddonPaletteSelection.signature) {
+    gradientAddonPaletteSelection.indexes.clear()
+    gradientAddonPaletteSelection.anchor = -1
+    gradientAddonPaletteSelection.signature = gradientAddonPaletteSignature()
+  }
+  if (event.shiftKey && gradientAddonPaletteSelection.anchor >= 0) {
+    const low = Math.min(index, gradientAddonPaletteSelection.anchor)
+    const high = Math.max(index, gradientAddonPaletteSelection.anchor)
+    for (let i = low; i <= high; i++) gradientAddonPaletteSelection.indexes.add(i)
+  } else if (gradientAddonPaletteSelection.indexes.has(index)) {
+    gradientAddonPaletteSelection.indexes.delete(index)
+  } else {
+    gradientAddonPaletteSelection.indexes.add(index)
+  }
+  gradientAddonPaletteSelection.anchor = index
+  gradientAddonRefreshPaletteSelection()
+}
+
+function gradientAddonPaletteKeyDown(event) {
+  if (!gradientAddonPaletteSelection.active) return
+  const swatch = gradientAddonPaletteSwatch(event)
+  if (!swatch) return
+  if (event.key === 'Enter' || event.key === ' ') gradientAddonPaletteClick(event)
+  else if (event.key === 'Delete' || event.key === 'Backspace') {
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    gradientAddonDeleteSelectedColours()
+  }
+}
 
 function gradientAddonStopPick(colour) {
   if (!gradientAddonPick) return
@@ -207,7 +349,7 @@ Plugin.register(gradientAddonId, {
   title: 'Colour Gradient Generator Add-on',
   icon: 'icon.png',
   author: 'Hlamingo',
-  description: 'Adds extra shade controls, model texture eyedropper, and copyable swatches to Colour Gradient Generator.',
+  description: 'Adds shade controls, texture eyedropper, copyable swatches, and palette colour selection to Colour Gradient Generator.',
   tags: ['Paint', 'Palette', 'Color'],
   version: '0.1.0',
   min_version: '5.0.0',
@@ -220,8 +362,41 @@ Plugin.register(gradientAddonId, {
       return gradientAddonShow.apply(this, args)
     }
     Dialog.prototype.show = gradientAddonShowWrapper
+    gradientAddonPaletteAction = new Action('gradient_addon_select_palette_colours', {
+      name: 'Select Palette Colours',
+      description: 'Select several palette colours, then delete them together',
+      icon: 'select_all',
+      category: 'color',
+      condition: { modes: ['paint'] },
+      click: gradientAddonTogglePaletteSelection
+    })
+    Toolbars.palette?.add(gradientAddonPaletteAction)
+    document.addEventListener('pointerdown', gradientAddonPalettePointerDown, true)
+    document.addEventListener('click', gradientAddonPaletteClick, true)
+    document.addEventListener('keydown', gradientAddonPaletteKeyDown, true)
+    if (document.head) {
+      gradientAddonPaletteStyle = document.createElement('style')
+      gradientAddonPaletteStyle.textContent = `
+        #gradient-addon-palette-controls { display:flex; align-items:center; gap:5px; padding:4px 2px; font-size:12px; }
+        #gradient-addon-palette-controls .gradient-addon-palette-count { flex:1; color:var(--color-text); }
+        #gradient-addon-palette-controls button { min-width:0; padding:3px 6px; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); cursor:pointer; }
+        #gradient-addon-palette-controls button:disabled { opacity:.45; cursor:default; }
+        #gradient-addon-palette-controls .gradient-addon-palette-delete:not(:disabled) { color:var(--color-accent); }
+        #palette_list.gradient-addon-selecting li.color { cursor:pointer; }
+        #palette_list li.color[data-gradient-addon-selected="true"] .color_inner { box-shadow:inset 0 0 0 2px #fff, 0 0 0 3px var(--color-accent); }
+      `
+      document.head.appendChild(gradientAddonPaletteStyle)
+    }
   },
   onunload() {
+    gradientAddonStopPaletteSelection()
+    document.removeEventListener('pointerdown', gradientAddonPalettePointerDown, true)
+    document.removeEventListener('click', gradientAddonPaletteClick, true)
+    document.removeEventListener('keydown', gradientAddonPaletteKeyDown, true)
+    gradientAddonPaletteAction?.delete()
+    gradientAddonPaletteAction = null
+    gradientAddonPaletteStyle?.remove()
+    gradientAddonPaletteStyle = null
     if (gradientAddonPick) {
       document.removeEventListener('keydown', gradientAddonPick.onKeyDown, true)
       if (Painter.colorPicker === gradientAddonPick.wrappedPicker) Painter.colorPicker = gradientAddonPick.originalPicker
