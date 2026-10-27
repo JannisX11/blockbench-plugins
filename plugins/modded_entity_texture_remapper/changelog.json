@@ -1,0 +1,19 @@
+{
+	"1.0.0": {
+		"title": "Initial release",
+		"author": "Globox_Z",
+		"date": "2026-10-11",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Adds \"Modded Entity (Remap Texture)\" to File > Convert Project.",
+					"Packs all cubes into a new box UV texture and copies the pixels of every face, including flipped and rotated face UVs.",
+					"Turns overlay cubes into a smaller cube with inflate instead of resampling them.",
+					"Rounds non integer cube sizes up and compensates with inflate.",
+					"Checks every pixel after the conversion and reports resampled faces and geometry changes."
+				]
+			}
+		]
+	}
+}
