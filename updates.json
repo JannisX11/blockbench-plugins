@@ -748,5 +748,10 @@
     "version": "2.6.1",
     "created": 1793133549477,
     "updated": 1793133549477
+  },
+  "noise_composite": {
+    "version": "1.0.0",
+    "created": 1793134475452,
+    "updated": 1793134475452
   }
 }
