@@ -1,0 +1,168 @@
+{
+	"0.1.0": {
+		"title": "0.1.0",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "First release",
+				"list": [
+					"Imports a glTF model from a ZIP into a GeckoLib project: bones, cubes, textures and animations.",
+					"Browses Sketchfab inside Blockbench through the official Data API."
+				]
+			}
+		]
+	},
+	"0.1.1": {
+		"title": "0.1.1",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "New",
+				"list": [
+					"Export to Customizable Player Models: the same import, saved as a .cpmproject, with the player height, the bone mapping and the pose of each animation asked at the end."
+				]
+			}
+		]
+	},
+	"0.1.2": {
+		"title": "0.1.2",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Renamed from GeckoLib Model Importer to glTF to Minecraft.",
+					"All entries moved to File > Import.",
+					"The Sketchfab search lists models made in Blockbench by default."
+				]
+			},
+			{
+				"title": "New",
+				"list": [
+					"Import from an unpacked folder as well as from a ZIP.",
+					"The report says when a texture has lost the alpha its material asks for."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"A folder with several .gltf files uses the one with the textures, not whichever comes first.",
+					"Textures no mesh refers to stay out of the atlas.",
+					"Objects that name no texture get the main texture instead of the whole atlas."
+				]
+			}
+		]
+	},
+	"0.1.3": {
+		"title": "0.1.3",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "New",
+				"list": [
+					"Parts that are not cubes — bevels, wedges, rounded shapes — are rebuilt from thin plates that follow their surface, each cut to its outline by a baked texture, instead of becoming one box around them. Rounded parts: Fast, or Best quality, which also lays a strip along each sharp slanted edge. The rebuild shows its progress and can be finished early or cancelled.",
+					"Pieces of a rebuilt part that no side can see are left out; the file's own cubes always stay.",
+					"Open a model as meshes instead of rebuilding it into cubes, chosen at the top of the import window: the geometry stays the author's own, for Blockbench's mesh tools to take from there, while bones, textures and animations come across the same way. Cubes stay the default, since cubes are what the game renders, and a format that cannot hold meshes is not offered for them. A model with enough triangles to slow the editor down says so in the window, before the import rather than after.",
+					"Choose what to build into: GeckoLib, Bedrock Entity, Generic Model or a still Java block/item model. The choice is remembered.",
+					"Java models are fitted into the box the format allows, and the report says which Minecraft version their cube rotations need.",
+					"GeckoLib is no longer required: Bedrock, Generic and Java come with Blockbench, and the Customizable Player Models export needs no plugin at all.",
+					"Sketchfab search: an Animated filter, and each card shows the model's triangle and animation counts.",
+					"Sketchfab cards say whether a model looks built from cubes: the blockbench tag alone does not tell.",
+					"The outliner is tidied: folders that hold one thing and carry no animation are dropped, cubes take their author's names, and Sketchfab's numbering is taken off. Advanced settings can keep every node.",
+					"The Customizable Player Models dialog and file use the same names, and the dialog no longer asks about the export wrapper.",
+					"Add a model to the open project instead of a new one: a sword into the selected hand, a helmet onto a head. It arrives as one folder standing on that folder's pivot, and one undo takes it all back.",
+					"GeckoLib and Bedrock keep one texture per model, so the model's texture is drawn beside the project's, which grows to hold both; the UV already made stay as they are. Generic and Java models get the texture as a texture of their own.",
+					"Folder and animation names of an added model never take a name the project already has; its animations are added only when asked, with the model's name in front.",
+					"Sketchfab search: order the results by relevance, likes, views or newest; the choice is remembered. Sketchfab offers no order by downloads, so none is shown.",
+					"Look at a Sketchfab model in 3D before taking it: the 3D button on a card turns the model in the plugin's own view, with Import and Open on Sketchfab beside it. Pressing it downloads the model, because the view is drawn out of the model's own geometry, and the import then takes that same download rather than fetching it twice.",
+					"Search cards show the like count; the tooltip adds views and the date the model was published.",
+					"Sketchfab downloads take the author's original when the model was uploaded from Blockbench: Sketchfab's own conversion can lose a texture's transparency. The licence then comes from the model's page.",
+					"When every part of a file points at one texture while others go unused, the report says the file has most likely lost which parts use which material.",
+					"Everything the plugin shows reads in Blockbench's language: the windows, the messages, the Sketchfab search, the Customizable Player Models dialog and every line of the import report. Thirteen languages besides English: Russian, Chinese, Spanish, Portuguese, German, French, Japanese, Korean, Ukrainian, Turkish, Polish, Italian and Dutch. The developer console stays in English, so a log pasted into an issue reads the same whoever ran the import."
+				]
+			},
+			{
+				"title": "Changes",
+				"list": [
+					"The report no longer calls a texture without alpha lost: some models ask for transparency on a texture that never had any.",
+					"The import dialog names the formats that come with Blockbench as Blockbench names them, in its language."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"A cube whose faces use different textures took the first face's texture for all six, and when that first face had none, the whole cube came out invisible. Each face now gets its own texture, and faces exported without one stay hidden, as they were in Blockbench.",
+					"The transparent stand-in Blockbench exports for untextured faces no longer takes room in the texture, and no longer turns into invisible extra cubes.",
+					"On Blockbench 5 the GeckoLib message named GeckoLib Animation Utils, which does not install there. It now names the GeckoLib plugin that installs on your build and opens the plugin list on it.",
+					"Clicking a Sketchfab card again while it downloaded started another download, and each opened its own import dialog. Downloads now go one at a time.",
+					"The format list in the import dialog was cut off; the explanation now sits under it.",
+					"Panels a thousandth of a pixel thick — leaves, awnings, signs — came out with both sides empty, and vanished.",
+					"Textures of materials in the specular-glossiness workflow were not read, so parts wore another part's picture.",
+					"Toon outlines made as inside-out copies of a part covered that part with a dark casing; such outlines are now left out.",
+					"A glTF scene with no node list stopped the import with a script error; it is now read as an empty scene.",
+					"Animations of a model built at any size but ×16 moved each part by the wrong distance: the offsets were always taken at ×16, so at ×8 they came out twice as long, and the parts flew apart while they played, though the model itself stood whole.",
+					"Blockbench puts every keyframe on its animation's grid, 24 a second unless told otherwise, and a keyframe landing on another replaces it. Models animated at another rate, such as 25 or 50 a second, had their keyframes moved, and keyframes added to ease a rotation wiped out the ones beside them. Each animation now gets a grid that holds its keyframes. Where no grid Blockbench offers holds them all, they move by a step at most, and the report says how many.",
+					"Bones that turn had their pivots rounded to the 0.25 px grid, so their parts swung a little off at every turn. Animated bones now keep their exact pivots.",
+					"Animations in which a bone turned far between two keyframes, or all the way round, threw parts out of place while they played, though the model itself stood whole. Blockbench and Customizable Player Models ease each angle in a straight line; the plugin now writes the nearest of the equal angles and, in Blockbench, adds keyframes wherever that line would stray from the turn. The report says how many it added.",
+					"Scale keyframes were left out, so parts that grow, shrink or fold away kept their size. They now come across, to Blockbench and to Customizable Player Models. A bone scaled along axes that are slanted at rest can only be matched closely, and the report names such bones.",
+					"Step animations hold each keyframe until the next instead of easing between them, and cubic-spline animations no longer read their tangents as poses.",
+					"In Customizable Player Models, a looping animation in which a bone makes a whole turn wound back on its last frame. Such an animation now ends on a frame of its own that closes the turn.",
+					"Translations that left out part of a sentence are whole again: the note on Java models, for one, never said the model is moved into the allowed box and shrunk only if it is larger.",
+					"The start screen page said parts that are not cubes become a box around them. They are rebuilt from plates, and the box is one of the choices in the advanced settings.",
+					"Thanks to Snownee for reporting the invisible-cube bug (#1)."
+				]
+			},
+			{
+				"title": "Security",
+				"list": [
+					"Hostile input limits: cyclic node graphs, oversized accessors, ZIP bombs and oversized images are rejected before allocation. Thanks to HadesScience (#2).",
+					"A model past a limit is explained in the window: which limit, and what to change. A damaged file is still told apart from a large one, so a broken animation channel is skipped and an unreadable PNG goes to Blockbench's own decoder, as before.",
+					"Only colour textures count toward the image limits: a normal map too large is left out, as such maps always were, instead of stopping the import.",
+					"Animations past the data limit are dropped with a line in the report, and the model itself still imports.",
+					"Sketchfab cards mark archives too large to import, and such an archive is not downloaded at all."
+				]
+			}
+		]
+	},
+	"0.1.4": {
+		"title": "0.1.4",
+		"author": "MopicMP",
+		"categories": [
+			{
+				"title": "New",
+				"list": [
+					"A catalogue of Blockbench models, inside Blockbench: Browse Mosaicary Models, in the File menu beside Open Model, opens Mosaicary and Sketchfab in one window. A model from Mosaicary was made in Blockbench, so it opens as the project its author saved — nothing is converted and nothing is rebuilt. Search by name, author or tag, and order the models by newest, most liked, most downloaded, most discussed or by name.",
+					"Four shelves in that window: the catalogue, the models you put a heart on, your own ones, drafts included, and Recent.",
+					"The Recent shelf holds what you last opened in Blockbench, beside the models from the site. It needs no account, opens an entry the way the start screen does, and on the web build, where Blockbench keeps no recents, it lists the open tabs instead. Search works on that shelf; the filters and the orders do not, as a file on a disk has no author, licence or tags.",
+					"Filters for the catalogue: the format, what the model is for, what is inside it — cubes only, nothing untextured — how detailed it is, how large its textures are, its licence, its tags, taken all together, any of them or all but them, where in a model the words you typed are looked for, when it was added, and whether models for adults are among them. How many were found stands under the filters, and one button puts them all back.",
+					"A window for a model before you take it: the model itself turning in a view, its animations with play, pause and loop, its figures — bones, vertices, textures and their size, file size, format, licence, when it was published and how many have looked at it — its description, and its comments, where you can answer somebody and take back what you wrote. A heart puts the model on your Loved shelf, Report it on the site tells whoever runs the site, and Open in Blockbench takes the model. A model for adults waits behind a cover until you ask to see it. Sketchfab models get the same window, where the view waits for the 3D button, as it has to download the model to turn it.",
+					"The Sketchfab search no longer leaves out models whose author does not allow downloading. They were hidden because they cannot be imported, and hiding them made this search look a quarter the size of the same search on Sketchfab's own site. They now take a part of each page, marked with a lock, and their window offers the model's page and the catalogue rather than an import that could only fail. Such a model cannot be turned in 3D either: the view is drawn out of the model's geometry, and that geometry is the download its author does not allow. A switch in the filters leaves them out again, and it is remembered.",
+					"How the cards look is yours to set: their size, how many go in a row or as many as fit, and the colour behind a model — a palette of fourteen or one you pick yourself, either only where the author chose none or behind every model.",
+					"Once a model has been taken, the catalogue gets out of the way: it moves into a Blockbench panel and folds there, and the model's own window closes, instead of standing over the model it just delivered. A switch in the catalogue header turns that off, for taking several models one after another.",
+					"A bell in the catalogue header: what the site has to tell you about your own models — a comment, an answer to one, a decision about a model — with a count on it until you have looked, and a button that opens the model it is about.",
+					"An account, for the shelves and the comments that need one: sign in through the browser — Blockbench shows a code, the page has to show the same code, and you allow it there — or paste an API key by hand. Several accounts are remembered and switched between in a line of their own. Signing out forgets the key here; on the site it stays until you remove it there. The site's address is a setting too, for reaching a copy of the site running elsewhere.",
+					"Upload Model to Mosaicary: the open project goes up as a model, published or as a draft nobody but you sees. Its name, description, tags, licence, the author and a link to the original where the model is not yours, and who it is for. The picture on its card is drawn in that same window — turn the model to the angle you want, choose the colour behind it, and where the model has animations of its own, pick which one and the moment in it the picture is taken at. Textures that live on disk are drawn into the file first, or the model would arrive grey, and paths to files on this computer are taken out of what goes up. The file's fingerprint lets the site know a model it already has, and say when somebody published this very shape before yours. The sending goes step by step, and whatever stops it says which step and why: no room left, enough uploads for today, a licence not chosen.",
+					"Leave a Review: one review of the plugin and one of Mosaicary, on the public wall of reviews, and yours can be rewritten whenever you like.",
+					"The import window is rebuilt: the settings on the left, under headings and icons, and the model itself turning in a view on the right with a card of its figures below. Drag to turn it, scroll to come closer, double-click to go back. The long explanations moved onto a question mark beside the setting they explain, so the window no longer runs past the screen; and where the import was started before a file was chosen, the file is chosen inside the window, in the view's place.",
+					"The import report is rebuilt to match: the model's name and what it became at the top, its figures in the same icon grid the catalogue cards use, warnings as notes with a bar beside them, and the log folded behind a button, with Save log and Copy under it.",
+					"GeckoLib needs no second plugin. This plugin registers the GeckoLib format itself where the GeckoLib plugin is not installed, so an import into GeckoLib opens an ordinary project, a .bbmodel somebody else exported from GeckoLib opens instead of being turned away, and Export GeckoLib Geometry, in File > Export, writes the .geo.json the mod reads; the animation files Blockbench writes itself, as it always did. Where the GeckoLib plugin is installed nothing changes: its format and its own exports stay in charge, and none of this is shown.",
+					"Every window and message of this reads in Blockbench's language, in the same thirteen languages besides English. Only what the site writes into the bell comes in English, as the site writes it."
+				]
+			},
+			{
+				"title": "Changes",
+				"list": [
+					"The plugin is called Mosaicary, after the catalogue it opens. Nothing else moves: the same entries in the same menus, and the settings, accounts and projects you have stay as they were.",
+					"The plugin has an icon: a head under a straw hat, rendered from a Blockbench model by the same arithmetic that draws the cards, so the icon and the catalogue are drawn by one thing."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Notes in the catalogue and in the model windows were drawn a pixel smaller than they should be, and a note about a problem took a red of its own instead of Blockbench's: a rule written for the import window was overriding them.",
+					"An empty shelf of your own models said The catalogue is empty, right above a note saying your models will appear once you upload them: two answers to one question, and neither about the shelf you were looking at. Every shelf but the catalogue now says how many models it holds."
+				]
+			}
+		]
+	}
+}
