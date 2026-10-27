@@ -733,5 +733,10 @@
     "version": "0.12.2",
     "created": 1792605789168,
     "updated": 1792605789168
+  },
+  "mesh_to_cube_converter": {
+    "version": "1.0.0",
+    "created": 1793132165020,
+    "updated": 1793132165020
   }
 }
