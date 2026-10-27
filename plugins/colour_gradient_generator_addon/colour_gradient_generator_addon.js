@@ -58,9 +58,10 @@ function gradientAddonExtend(dialog) {
   const component = dialog.component
   const firstPicker = '<div><input ref="colour" /></div>'
   const secondPicker = '<div v-show="data.colourMode === \'double\'"><input ref="colour2" /></div>'
+  const resetClick = '@click="data[s.key] = defaults[s.key]"'
   const swatch = '<div v-for="col in result.colours" :class="{ primary: col === result.primaryHex, \'light-marker\': col === result.primaryHex && markerLight }" :style="{ backgroundColor: col }"></div>'
   if (!component?.methods?.doubleResult || !component.template?.includes(firstPicker) ||
-      !component.template.includes(secondPicker) || !component.template.includes(swatch) ||
+      !component.template.includes(secondPicker) || !component.template.includes(resetClick) || !component.template.includes(swatch) ||
       component.template.split('            <div class="tab_bar">').length < 3) {
     if (!gradientAddonCompatibilityNotice) {
       Blockbench.showQuickMessage('Gradient add-on needs the original Colour Gradient Generator 3.0.0')
@@ -94,6 +95,11 @@ function gradientAddonExtend(dialog) {
   component.methods.reset = function() {
     old.methods.reset.call(this)
     for (const key of Object.keys(gradientAddonDefaults)) this.data[key] = gradientAddonDefaults[key]
+  }
+  component.methods.resetSlider = function(key) {
+    this.data[key] = Object.prototype.hasOwnProperty.call(gradientAddonDefaults, key)
+      ? gradientAddonDefaults[key]
+      : this.defaults[key]
   }
   component.methods.doubleResult = function() {
     const result = old.methods.doubleResult.call(this)
@@ -163,7 +169,7 @@ function gradientAddonExtend(dialog) {
     if (this._gradientAddonReopening) this._gradientAddonReopening = false
     else old.onOpen?.call(this)
   }
-  let template = component.template
+  let template = component.template.replace(resetClick, '@click="resetSlider(s.key)"')
   template = template.replace(firstPicker, '<div class="gradient-addon-colour-row"><input ref="colour" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick first colour from model texture" @click="pickFromModel(\'colour\')"><i class="material-icons">colorize</i></button></div>')
   template = template.replace(secondPicker, '<div v-show="data.colourMode === \'double\'" class="gradient-addon-colour-row"><input ref="colour2" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick second colour from model texture" @click="pickFromModel(\'colour2\')"><i class="material-icons">colorize</i></button></div>')
   const tab = '            <div class="tab_bar">'
@@ -171,7 +177,7 @@ function gradientAddonExtend(dialog) {
   if (tabIndex >= 0) template = template.slice(0, tabIndex) + `
             <div v-if="data.colourMode === 'double'" class="gradient-addon-tuning">
               <div v-for="s in extensionSliders" :key="s.key" :class="{ disabled: s.disabled }">
-                <div class="header-bar"><h2>{{ s.title }}</h2><i title="Reset" class="material-icons" @click="data[s.key] = 0">replay</i></div>
+                <div class="header-bar"><h2>{{ s.title }}</h2><i title="Reset" class="material-icons" @click="resetSlider(s.key)">replay</i></div>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="data[s.key]" :min="s.min" :max="s.max" step="1" />
                   <numeric-input class="tool disp_text" v-model.number="data[s.key]" :min="s.min" :max="s.max" :step="1" />
