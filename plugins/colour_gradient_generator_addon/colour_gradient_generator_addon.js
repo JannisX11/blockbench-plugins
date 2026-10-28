@@ -7,8 +7,9 @@ const gradientAddonDefaults = {
 const gradientAddonDialogs = new Map()
 let gradientAddonShow, gradientAddonShowWrapper, gradientAddonPick
 let gradientAddonCompatibilityNotice = false
-let gradientAddonPaletteAction, gradientAddonPaletteStyle
+let gradientAddonPaletteAction, gradientAddonPaletteEditAction, gradientAddonPaletteStyle
 const gradientAddonPaletteSelection = { active: false, indexes: new Set(), anchor: -1, signature: '' }
+const gradientAddonPaletteEdit = { active: false, index: -1, signature: '', picker: null }
 
 function gradientAddonPaletteSignature() {
   return ColorPanel.palette.join('\u001f')
@@ -91,6 +92,7 @@ function gradientAddonTogglePaletteSelection() {
   if (gradientAddonPaletteSelection.active) {
     gradientAddonStopPaletteSelection()
   } else {
+    gradientAddonStopPaletteEdit()
     if (StateMemory.color_palette_locked) {
       Blockbench.showQuickMessage('Palette is locked')
       return
@@ -105,8 +107,119 @@ function gradientAddonTogglePaletteSelection() {
   }
 }
 
+function gradientAddonPaletteEditBar() {
+  const list = document.getElementById('palette_list')
+  if (!list) return null
+  let bar = document.getElementById('gradient-addon-palette-edit-controls')
+  if (!bar) {
+    bar = document.createElement('div')
+    bar.id = 'gradient-addon-palette-edit-controls'
+    bar.innerHTML = '<span class="gradient-addon-edit-hint">Click a palette colour</span><input class="gradient-addon-edit-colour" type="color" aria-label="Choose replacement colour"><input class="gradient-addon-edit-hex" type="text" aria-label="Replacement HEX colour" spellcheck="false" maxlength="9"><button type="button" class="gradient-addon-edit-pick" title="Pick from model texture" aria-label="Pick replacement colour from model texture"><i class="material-icons">colorize</i></button><button type="button" class="gradient-addon-edit-save">Replace</button><button type="button" class="gradient-addon-edit-cancel">Cancel</button>'
+    list.parentElement.insertBefore(bar, list)
+    const colourInput = bar.querySelector('.gradient-addon-edit-colour')
+    const hexInput = bar.querySelector('.gradient-addon-edit-hex')
+    colourInput.addEventListener('input', () => { hexInput.value = colourInput.value })
+    hexInput.addEventListener('input', () => {
+      const hex = gradientAddonPaletteHex(hexInput.value)
+      if (hex) colourInput.value = hex.slice(0, 7)
+    })
+    bar.querySelector('.gradient-addon-edit-pick').addEventListener('click', gradientAddonPaletteEditStartPick)
+    bar.querySelector('.gradient-addon-edit-save').addEventListener('click', gradientAddonPaletteReplaceColour)
+    bar.querySelector('.gradient-addon-edit-cancel').addEventListener('click', gradientAddonStopPaletteEdit)
+  }
+  return bar
+}
+
+function gradientAddonPaletteHex(value) {
+  const hex = String(value || '').trim().replace(/^#/, '')
+  return /^(?:[0-9a-f]{6}|[0-9a-f]{8})$/i.test(hex) ? '#' + hex.toLowerCase() : null
+}
+
+function gradientAddonPaletteEditRefresh() {
+  const list = document.getElementById('palette_list')
+  if (!list) return
+  list.classList.toggle('gradient-addon-editing', gradientAddonPaletteEdit.active)
+  Array.from(list.children).forEach((swatch, index) => {
+    swatch.dataset.gradientAddonEditing = index === gradientAddonPaletteEdit.index ? 'true' : 'false'
+  })
+  const bar = gradientAddonPaletteEditBar()
+  if (!bar) return
+  const selected = gradientAddonPaletteEdit.index >= 0
+  bar.querySelector('.gradient-addon-edit-hint').textContent = selected
+    ? `Colour ${gradientAddonPaletteEdit.index + 1}` : 'Click a palette colour'
+  bar.querySelectorAll('input, button.gradient-addon-edit-pick, button.gradient-addon-edit-save').forEach(control => {
+    control.disabled = !selected
+  })
+}
+
+function gradientAddonPaletteEditSelect(index) {
+  if (index < 0 || index >= ColorPanel.palette.length) return
+  gradientAddonPaletteEdit.index = index
+  gradientAddonPaletteEdit.signature = gradientAddonPaletteSignature()
+  const bar = gradientAddonPaletteEditBar()
+  const hex = gradientAddonPaletteHex(ColorPanel.palette[index]) || '#000000'
+  bar.querySelector('.gradient-addon-edit-hex').value = hex
+  bar.querySelector('.gradient-addon-edit-colour').value = hex.slice(0, 7)
+  gradientAddonPaletteEditRefresh()
+}
+
+function gradientAddonStopPaletteEditPick() {
+  const picker = gradientAddonPaletteEdit.picker
+  if (!picker) return
+  document.removeEventListener('keydown', picker.onKeyDown, true)
+  if (Painter.colorPicker === picker.wrappedPicker) Painter.colorPicker = picker.originalPicker
+  gradientAddonPaletteEdit.picker = null
+  if (Toolbox.selected === BarItems.color_picker) picker.previousTool?.select?.()
+}
+
+function gradientAddonStopPaletteEdit() {
+  gradientAddonStopPaletteEditPick()
+  gradientAddonPaletteEdit.active = false
+  gradientAddonPaletteEdit.index = -1
+  gradientAddonPaletteEdit.signature = ''
+  const list = document.getElementById('palette_list')
+  if (list) {
+    list.classList.remove('gradient-addon-editing')
+    Array.from(list.children).forEach(swatch => { delete swatch.dataset.gradientAddonEditing })
+  }
+  document.getElementById('gradient-addon-palette-edit-controls')?.remove()
+}
+
+function gradientAddonTogglePaletteEdit() {
+  if (gradientAddonPaletteEdit.active) { gradientAddonStopPaletteEdit(); return }
+  if (StateMemory.color_palette_locked) {
+    Blockbench.showQuickMessage('Palette is locked')
+    return
+  }
+  if (!document.getElementById('palette_list')) {
+    Blockbench.showQuickMessage('Open the palette panel to edit colours')
+    return
+  }
+  gradientAddonStopPaletteSelection()
+  gradientAddonPaletteEdit.active = true
+  gradientAddonPaletteEditRefresh()
+  Blockbench.showQuickMessage('Click a palette colour to edit it')
+}
+
+function gradientAddonPaletteReplaceColour() {
+  if (!gradientAddonPaletteEdit.active || gradientAddonPaletteEdit.index < 0) return
+  if (StateMemory.color_palette_locked) { Blockbench.showQuickMessage('Palette is locked'); return }
+  if (gradientAddonPaletteSignature() !== gradientAddonPaletteEdit.signature) {
+    gradientAddonStopPaletteEdit()
+    Blockbench.showQuickMessage('Palette changed; select the colour again')
+    return
+  }
+  const bar = gradientAddonPaletteEditBar()
+  const hex = gradientAddonPaletteHex(bar.querySelector('.gradient-addon-edit-hex').value)
+  if (!hex) { Blockbench.showQuickMessage('Enter a 6- or 8-digit HEX colour'); return }
+  ColorPanel.palette.splice(gradientAddonPaletteEdit.index, 1, hex)
+  ColorPanel.saveLocalStorages()
+  gradientAddonStopPaletteEdit()
+  Blockbench.showQuickMessage('Palette colour replaced')
+}
+
 function gradientAddonPaletteSwatch(event) {
-  if (!gradientAddonPaletteSelection.active) return null
+  if (!gradientAddonPaletteSelection.active && !gradientAddonPaletteEdit.active) return null
   return event.target.closest?.('#palette_list li.color') || null
 }
 
@@ -120,6 +233,10 @@ function gradientAddonPaletteClick(event) {
   event.preventDefault()
   event.stopImmediatePropagation()
   const index = Array.prototype.indexOf.call(swatch.parentElement.children, swatch)
+  if (gradientAddonPaletteEdit.active) {
+    gradientAddonPaletteEditSelect(index)
+    return
+  }
   if (gradientAddonPaletteSignature() !== gradientAddonPaletteSelection.signature) {
     gradientAddonPaletteSelection.indexes.clear()
     gradientAddonPaletteSelection.anchor = -1
@@ -139,15 +256,58 @@ function gradientAddonPaletteClick(event) {
 }
 
 function gradientAddonPaletteKeyDown(event) {
-  if (!gradientAddonPaletteSelection.active) return
+  if (!gradientAddonPaletteSelection.active && !gradientAddonPaletteEdit.active) return
   const swatch = gradientAddonPaletteSwatch(event)
   if (!swatch) return
   if (event.key === 'Enter' || event.key === ' ') gradientAddonPaletteClick(event)
-  else if (event.key === 'Delete' || event.key === 'Backspace') {
+  else if (gradientAddonPaletteSelection.active && (event.key === 'Delete' || event.key === 'Backspace')) {
     event.preventDefault()
     event.stopImmediatePropagation()
     gradientAddonDeleteSelectedColours()
   }
+}
+
+function gradientAddonTextureColour(texture, x, y) {
+  let colour
+  if (settings.pick_combined_color.value === false && texture.getActiveLayer()) {
+    const layer = texture.getActiveLayer()
+    colour = Painter.getPixelColor(texture.getActiveCanvas().ctx, x - layer.offset[0], y - layer.offset[1])
+  }
+  if (!colour || colour.toHex8() === '00000000') colour = Painter.getPixelColor(texture.ctx, x, y)
+  return colour && colour.getAlpha() > 0 ? colour.toHexString() : null
+}
+
+function gradientAddonPaletteEditStartPick() {
+  if (!gradientAddonPaletteEdit.active || gradientAddonPaletteEdit.index < 0) return
+  if (!BarItems.color_picker?.select || !Painter?.colorPicker) {
+    Blockbench.showQuickMessage('Model colour picker is unavailable')
+    return
+  }
+  gradientAddonStopPaletteEditPick()
+  const previousTool = Toolbox.selected
+  const originalPicker = Painter.colorPicker
+  const onKeyDown = event => {
+    if (event.key !== 'Escape') return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    gradientAddonStopPaletteEditPick()
+  }
+  const wrappedPicker = (texture, x, y, event) => {
+    if (event?.button === 2) return
+    const hex = gradientAddonTextureColour(texture, x, y)
+    if (!hex) return
+    gradientAddonStopPaletteEditPick()
+    const bar = document.getElementById('gradient-addon-palette-edit-controls')
+    if (!bar || !gradientAddonPaletteEdit.active) return
+    bar.querySelector('.gradient-addon-edit-hex').value = hex
+    bar.querySelector('.gradient-addon-edit-colour').value = hex.slice(0, 7)
+    Blockbench.showQuickMessage('Colour picked; press Replace to apply')
+  }
+  gradientAddonPaletteEdit.picker = { previousTool, originalPicker, wrappedPicker, onKeyDown }
+  Painter.colorPicker = wrappedPicker
+  document.addEventListener('keydown', onKeyDown, true)
+  BarItems.color_picker.select()
+  Blockbench.showQuickMessage('Click the model to pick a texture colour · Esc to cancel', 2500)
 }
 
 function gradientAddonStopPick(colour) {
@@ -178,14 +338,8 @@ function gradientAddonStartPick(dialog, field) {
   }
   const wrappedPicker = (texture, x, y, event) => {
     if (event?.button === 2) return
-    let colour
-    if (settings.pick_combined_color.value === false && texture.getActiveLayer()) {
-      const layer = texture.getActiveLayer()
-      colour = Painter.getPixelColor(texture.getActiveCanvas().ctx, x - layer.offset[0], y - layer.offset[1])
-    }
-    if (!colour || colour.toHex8() === '00000000') colour = Painter.getPixelColor(texture.ctx, x, y)
-    if (!colour || colour.getAlpha() === 0) return
-    setTimeout(() => gradientAddonStopPick(colour.toHexString()), 0)
+    const hex = gradientAddonTextureColour(texture, x, y)
+    if (hex) setTimeout(() => gradientAddonStopPick(hex), 0)
   }
   gradientAddonPick = { dialog, field, previousTool, originalPicker, wrappedPicker, onKeyDown }
   dialog.hide()
@@ -349,9 +503,9 @@ Plugin.register(gradientAddonId, {
   title: 'Colour Gradient Generator Add-on',
   icon: 'icon.png',
   author: 'Hlamingo',
-  description: 'Adds shade controls, texture eyedropper, copyable swatches, and palette colour selection to Colour Gradient Generator.',
+  description: 'Adds shade controls, texture eyedropper, copyable swatches, and palette colour editing to Colour Gradient Generator.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.1.0',
+  version: '0.2.0',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
@@ -371,6 +525,15 @@ Plugin.register(gradientAddonId, {
       click: gradientAddonTogglePaletteSelection
     })
     Toolbars.palette?.add(gradientAddonPaletteAction)
+    gradientAddonPaletteEditAction = new Action('gradient_addon_edit_palette_colour', {
+      name: 'Edit Palette Colour',
+      description: 'Replace one palette colour with a HEX value or a colour picked from the model texture',
+      icon: 'edit',
+      category: 'color',
+      condition: { modes: ['paint'] },
+      click: gradientAddonTogglePaletteEdit
+    })
+    Toolbars.palette?.add(gradientAddonPaletteEditAction)
     document.addEventListener('pointerdown', gradientAddonPalettePointerDown, true)
     document.addEventListener('click', gradientAddonPaletteClick, true)
     document.addEventListener('keydown', gradientAddonPaletteKeyDown, true)
@@ -384,17 +547,32 @@ Plugin.register(gradientAddonId, {
         #gradient-addon-palette-controls .gradient-addon-palette-delete:not(:disabled) { color:var(--color-accent); }
         #palette_list.gradient-addon-selecting li.color { cursor:pointer; }
         #palette_list li.color[data-gradient-addon-selected="true"] .color_inner { box-shadow:inset 0 0 0 2px #fff, 0 0 0 3px var(--color-accent); }
+        #palette_list.gradient-addon-editing li.color { cursor:pointer; }
+        #palette_list.gradient-addon-editing li.color:hover .color_inner { box-shadow:inset 0 0 0 2px #fff; }
+        #palette_list li.color[data-gradient-addon-editing="true"] .color_inner { box-shadow:inset 0 0 0 2px #fff, 0 0 0 3px var(--color-accent); }
+        #gradient-addon-palette-edit-controls { display:flex; flex-wrap:wrap; align-items:center; gap:5px; padding:5px 2px; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-hint { flex:1 1 100%; font-size:12px; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-colour { width:34px; height:27px; min-width:34px; padding:0; border:0; background:transparent; cursor:pointer; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-hex { width:94px; min-width:65px; flex:1; padding:3px 5px; }
+        #gradient-addon-palette-edit-controls button { min-width:0; padding:3px 6px; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); cursor:pointer; }
+        #gradient-addon-palette-edit-controls button:disabled { opacity:.45; cursor:default; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-pick { width:29px; height:27px; padding:0; display:grid; place-items:center; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-pick .material-icons { font-size:16px; line-height:1; }
+        #gradient-addon-palette-edit-controls .gradient-addon-edit-save:not(:disabled) { color:var(--color-accent); }
       `
       document.head.appendChild(gradientAddonPaletteStyle)
     }
   },
   onunload() {
+    gradientAddonStopPaletteEdit()
     gradientAddonStopPaletteSelection()
     document.removeEventListener('pointerdown', gradientAddonPalettePointerDown, true)
     document.removeEventListener('click', gradientAddonPaletteClick, true)
     document.removeEventListener('keydown', gradientAddonPaletteKeyDown, true)
     gradientAddonPaletteAction?.delete()
     gradientAddonPaletteAction = null
+    gradientAddonPaletteEditAction?.delete()
+    gradientAddonPaletteEditAction = null
     gradientAddonPaletteStyle?.remove()
     gradientAddonPaletteStyle = null
     if (gradientAddonPick) {
@@ -417,3 +595,4 @@ Plugin.register(gradientAddonId, {
     gradientAddonDialogs.clear()
   }
 })
+
