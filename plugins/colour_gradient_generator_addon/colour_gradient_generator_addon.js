@@ -80,8 +80,12 @@ function gradientAddonUpdateSpacingStyle() {
   if (ungrouped.length) starts.push(ungrouped[0])
   const positions = [...new Set(starts.map(colour => ColorPanel.palette.indexOf(colour) + 1))]
     .filter(position => position > 1)
-  gradientAddonGroupSpacingStyle.textContent = positions.map(position =>
-    `#palette_list > li.color:nth-child(${position}) { margin-left:10px !important; }`).join('\n')
+  gradientAddonGroupSpacingStyle.textContent = positions.length ? [
+    '#palette_list > li.color { float:left; }',
+    '#palette_list::after { content:""; display:block; clear:both; }',
+    ...positions.map(position =>
+      `#palette_list > li.color:nth-child(${position}) { clear:left; margin-left:0 !important; }`)
+  ].join('\n') : ''
 }
 
 function gradientAddonRenderGroups() {
@@ -736,7 +740,7 @@ Plugin.register(gradientAddonId, {
   author: 'Hlamingo',
   description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette groups.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.4.3',
+  version: '0.4.4',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
@@ -782,7 +786,7 @@ Plugin.register(gradientAddonId, {
         #gradient-addon-palette-controls button:disabled { opacity:.45; cursor:default; }
         #gradient-addon-palette-controls .gradient-addon-palette-delete:not(:disabled) { color:var(--color-accent); }
         #gradient-addon-palette-controls .gradient-addon-palette-group:not(:disabled) { color:var(--color-accent); }
-        #palette_list li.color.gradient-addon-group-start { margin-left:10px; }
+        #palette_list li.color.gradient-addon-group-start { clear:left; margin-left:0; }
         #palette_list.gradient-addon-selecting li.color { cursor:pointer; }
         #palette_list li.color[data-gradient-addon-selected="true"] .color_inner { box-shadow:inset 0 0 0 2px #fff, 0 0 0 3px var(--color-accent); }
         #palette_list.gradient-addon-editing li.color { cursor:pointer; }
