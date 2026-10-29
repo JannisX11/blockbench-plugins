@@ -447,7 +447,8 @@ function gradientAddonExtend(dialog) {
   }
   component.computed.sliders = function() {
     if (this.data.colourMode === 'single') return old.computed.sliders.call(this)
-    const sliders = old.computed.sliders.call({ ...this, data: { ...this.data, colourMode: 'double' } })
+    // Do not spread the Vue instance: reading its computed properties here would recurse into sliders.
+    const sliders = old.computed.sliders.call({ data: { ...this.data, colourMode: 'double' } })
     return [...sliders,
       ...(this.data.colourMode === 'triple' ? [{
         key: 'middlePosition', title: 'Middle Position',
@@ -556,7 +557,7 @@ Plugin.register(gradientAddonId, {
   author: 'Hlamingo',
   description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette editing.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.3.0',
+  version: '0.3.1',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
