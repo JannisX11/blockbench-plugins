@@ -8,10 +8,10 @@ const gradientAddonDefaults = {
 const gradientAddonDialogs = new Map()
 let gradientAddonShow, gradientAddonShowWrapper, gradientAddonPick
 let gradientAddonCompatibilityNotice = false
-let gradientAddonPaletteAction, gradientAddonPaletteEditAction, gradientAddonPaletteStyle
+let gradientAddonPaletteAction, gradientAddonPaletteEditAction, gradientAddonPaletteStyle, gradientAddonGroupSpacingStyle
 const gradientAddonPaletteSelection = { active: false, indexes: new Set(), anchor: -1, signature: '' }
 const gradientAddonPaletteEdit = { active: false, index: -1, signature: '', picker: null }
-const gradientAddonGroups = { items: [], visible: false, observer: null }
+const gradientAddonGroups = { items: [], visible: false, observer: null, mountObserver: null }
 
 function gradientAddonLoadGroups() {
   try {
@@ -32,11 +32,9 @@ function gradientAddonReconcileGroups() {
   const palette = new Set(ColorPanel.palette)
   const assigned = new Set()
   for (const group of gradientAddonGroups.items) {
-    group.colours = group.colours.filter(colour => {
-      if (!palette.has(colour) || assigned.has(colour)) return false
-      assigned.add(colour)
-      return true
-    })
+    for (const colour of group.colours) {
+      if (palette.has(colour)) assigned.add(colour)
+    }
   }
   return ColorPanel.palette.filter(colour => !assigned.has(colour))
 }
@@ -48,7 +46,6 @@ function gradientAddonCreateGroup(name, colours) {
     group.colours = group.colours.filter(colour => !unique.includes(colour))
   }
   gradientAddonGroups.items.push({ name, colours: unique })
-  gradientAddonReconcileGroups()
   gradientAddonGroups.items = gradientAddonGroups.items.filter(group => group.colours.length)
   gradientAddonSaveGroups()
   gradientAddonOrderPalette()
@@ -57,21 +54,46 @@ function gradientAddonCreateGroup(name, colours) {
 
 function gradientAddonOrderPalette() {
   const ungrouped = gradientAddonReconcileGroups()
-  const ordered = [...gradientAddonGroups.items.flatMap(group => group.colours), ...ungrouped]
+  const present = new Set(ColorPanel.palette)
+  const assigned = new Set()
+  const grouped = gradientAddonGroups.items.flatMap(group => group.colours.filter(colour => {
+    if (!present.has(colour) || assigned.has(colour)) return false
+    assigned.add(colour)
+    return true
+  }))
+  const ordered = [...grouped, ...ungrouped]
   if (ordered.length !== ColorPanel.palette.length ||
       ordered.every((colour, index) => colour === ColorPanel.palette[index])) return
   ColorPanel.palette.splice(0, ColorPanel.palette.length, ...ordered)
   ColorPanel.saveLocalStorages()
 }
 
+function gradientAddonUpdateSpacingStyle() {
+  if (!document.head) return
+  if (!gradientAddonGroupSpacingStyle) {
+    gradientAddonGroupSpacingStyle = document.createElement('style')
+    document.head.appendChild(gradientAddonGroupSpacingStyle)
+  }
+  if (!gradientAddonGroups.visible) { gradientAddonGroupSpacingStyle.textContent = ''; return }
+  const ungrouped = gradientAddonReconcileGroups()
+  const starts = gradientAddonGroups.items.map(group => group.colours.find(colour => ColorPanel.palette.includes(colour))).filter(Boolean)
+  if (ungrouped.length) starts.push(ungrouped[0])
+  const positions = [...new Set(starts.map(colour => ColorPanel.palette.indexOf(colour) + 1))]
+    .filter(position => position > 1)
+  gradientAddonGroupSpacingStyle.textContent = positions.map(position =>
+    `#palette_list > li.color:nth-child(${position}) { margin-left:10px !important; }`).join('\n')
+}
+
 function gradientAddonRenderGroups() {
+  gradientAddonUpdateSpacingStyle()
   const list = document.getElementById('palette_list')
   if (!list) return
   const starts = new Map()
   if (gradientAddonGroups.visible) {
     const ungrouped = gradientAddonReconcileGroups()
     for (const group of gradientAddonGroups.items) {
-      if (group.colours.length) starts.set(group.colours[0], group.name)
+      const first = group.colours.find(colour => ColorPanel.palette.includes(colour))
+      if (first) starts.set(first, group.name)
     }
     if (ungrouped.length) starts.set(ungrouped[0], 'Ungrouped')
   }
@@ -88,6 +110,15 @@ function gradientAddonShowGroups() {
   gradientAddonGroups.visible = true
   gradientAddonRenderGroups()
   const list = document.getElementById('palette_list')
+  if (!list && document.body && !gradientAddonGroups.mountObserver && typeof MutationObserver !== 'undefined') {
+    gradientAddonGroups.mountObserver = new MutationObserver(() => {
+      if (!document.getElementById('palette_list')) return
+      gradientAddonGroups.mountObserver.disconnect()
+      gradientAddonGroups.mountObserver = null
+      gradientAddonShowGroups()
+    })
+    gradientAddonGroups.mountObserver.observe(document.body, { childList: true, subtree: true })
+  }
   if (list && !gradientAddonGroups.observer && typeof MutationObserver !== 'undefined') {
     gradientAddonGroups.observer = new MutationObserver(() => gradientAddonRenderGroups())
     gradientAddonGroups.observer.observe(list, { childList: true })
@@ -225,7 +256,10 @@ function gradientAddonDeleteSelectedColours() {
   if (!gradientAddonPaletteSelection.indexes.size) return
   gradientAddonDeleteIndexes(ColorPanel.palette, gradientAddonPaletteSelection.indexes)
   ColorPanel.saveLocalStorages()
-  gradientAddonReconcileGroups()
+  const remaining = new Set(ColorPanel.palette)
+  for (const group of gradientAddonGroups.items) {
+    group.colours = group.colours.filter(colour => remaining.has(colour))
+  }
   gradientAddonGroups.items = gradientAddonGroups.items.filter(group => group.colours.length)
   gradientAddonSaveGroups()
   gradientAddonStopPaletteSelection()
@@ -702,7 +736,7 @@ Plugin.register(gradientAddonId, {
   author: 'Hlamingo',
   description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette groups.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.4.2',
+  version: '0.4.3',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
@@ -748,7 +782,7 @@ Plugin.register(gradientAddonId, {
         #gradient-addon-palette-controls button:disabled { opacity:.45; cursor:default; }
         #gradient-addon-palette-controls .gradient-addon-palette-delete:not(:disabled) { color:var(--color-accent); }
         #gradient-addon-palette-controls .gradient-addon-palette-group:not(:disabled) { color:var(--color-accent); }
-        #palette_list li.color.gradient-addon-group-start { margin-left:8px; }
+        #palette_list li.color.gradient-addon-group-start { margin-left:10px; }
         #palette_list.gradient-addon-selecting li.color { cursor:pointer; }
         #palette_list li.color[data-gradient-addon-selected="true"] .color_inner { box-shadow:inset 0 0 0 2px #fff, 0 0 0 3px var(--color-accent); }
         #palette_list.gradient-addon-editing li.color { cursor:pointer; }
@@ -771,6 +805,10 @@ Plugin.register(gradientAddonId, {
     gradientAddonHideGroups()
     gradientAddonGroups.observer?.disconnect()
     gradientAddonGroups.observer = null
+    gradientAddonGroups.mountObserver?.disconnect()
+    gradientAddonGroups.mountObserver = null
+    gradientAddonGroupSpacingStyle?.remove()
+    gradientAddonGroupSpacingStyle = null
     try {
       const originalSettings = JSON.parse(localStorage.getItem('colour_gradient_generator') || '{}')
       if (originalSettings.colourMode === 'triple') {
