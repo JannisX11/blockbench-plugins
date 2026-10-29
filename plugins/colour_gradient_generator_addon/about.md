@@ -10,7 +10,7 @@ This add-on extends Ewan Howell's **Colour Gradient Generator**. The original pl
 - Click a preview swatch to copy its HEX colour.
 - Use the eyedropper beside either colour field to pick the underlying model texture colour. Viewport shading does not affect the sample. Press **Esc** to cancel.
 - In the **Palette** panel, click **Select Palette Colours** to select several swatches. Click individual swatches or Shift-click a range, then press **Delete selected**. Press **Cancel** to leave selection mode. This removes colours from the palette, not from the model texture.
-- The selection controls also offer **Group selected**. Name the group to display those colours in their own row. Use **Show Palette Groups** to switch between grouped and flat views; group headings have controls to rename, move, or remove a group without deleting its colours.
+- The selection controls also offer **Group selected**. Name the group to display those colours in their own row. Groups stay visible in the palette; group headings have controls to rename, move, or remove a group without deleting its colours.
 - In the gradient dialog, enable **Separate group** to put newly generated colours into their own palette group. Group names and layout are stored locally in Blockbench; exporting a palette still exports its colours as a flat list.
 - Click **Edit Palette Colour** in the Palette toolbar, then choose a swatch. Enter a HEX colour, use the colour picker, or sample a colour from the model texture with the eyedropper. Press **Replace** to update only that palette swatch. Press **Cancel** to leave editing mode.
 
