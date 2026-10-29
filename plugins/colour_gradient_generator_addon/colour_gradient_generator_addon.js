@@ -84,7 +84,9 @@ function gradientAddonUpdateSpacingStyle() {
     '#palette_list > li.color { float:left; }',
     '#palette_list::after { content:""; display:block; clear:both; }',
     ...positions.map(position =>
-      `#palette_list > li.color:nth-child(${position}) { clear:left; margin-left:0 !important; }`)
+      `#palette_list > li.color:nth-child(${position}) { clear:left; margin-left:0 !important; }`),
+    ...positions.map(position =>
+      `#palette_list > li.color:nth-child(${position - 1}) { margin-bottom:5px; }`)
   ].join('\n') : ''
 }
 
@@ -740,7 +742,7 @@ Plugin.register(gradientAddonId, {
   author: 'Hlamingo',
   description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette groups.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.4.4',
+  version: '0.4.5',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
