@@ -330,13 +330,13 @@
 		"title": "Colour Gradient Generator Add-on",
 		"icon": "icon.png",
 		"author": "Hlamingo",
-		"description": "Adds shade controls, texture eyedropper, copyable swatches, and palette colour editing to Colour Gradient Generator.",
+		"description": "Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette editing.",
 		"tags": [
 			"Paint",
 			"Palette",
 			"Color"
 		],
-		"version": "0.2.0",
+		"version": "0.3.0",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"dependencies": [
