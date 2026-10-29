@@ -2,7 +2,8 @@
 const gradientAddonId = 'colour_gradient_generator_addon'
 const gradientAddonDefaults = {
   darkerShades: 0, lighterShades: 0, darkReach: 35, lightReach: 35,
-  darkSaturation: 0, lightSaturation: 0, darkHueShift: 0, lightHueShift: 0
+  darkSaturation: 0, lightSaturation: 0, darkHueShift: 0, lightHueShift: 0,
+  middlePosition: 50
 }
 const gradientAddonDialogs = new Map()
 let gradientAddonShow, gradientAddonShowWrapper, gradientAddonPick
@@ -13,6 +14,31 @@ const gradientAddonPaletteEdit = { active: false, index: -1, signature: '', pick
 
 function gradientAddonPaletteSignature() {
   return ColorPanel.palette.join('\u001f')
+}
+
+function gradientAddonAddOuterShades(points, firstColour, lastColour, data) {
+  if (points.length < 2) return { points }
+  const first = tinycolor(firstColour).toHsl()
+  const last = tinycolor(lastColour).toHsl()
+  points[0] = { ...first, hex: tinycolor(firstColour).toHexString() }
+  points[points.length - 1] = { ...last, hex: tinycolor(lastColour).toHexString() }
+  const darkerIsFirst = first.l <= last.l
+  const dark = darkerIsFirst ? first : last
+  const light = darkerIsFirst ? last : first
+  const shades = (base, count, target, saturation, hueShift) => Array.from({ length: count }, (_, index) => {
+    const t = (index + 1) / count
+    const l = Math.lerp(base.l, target, t)
+    const h = ((base.h + hueShift * t) % 360 + 360) % 360
+    const s = saturation >= 0
+      ? base.s + (1 - base.s) * saturation / 100 * t
+      : base.s * (1 + saturation / 100 * t)
+    return { hex: tinycolor({ h, s, l }).toHexString(), h, s, l }
+  })
+  const darker = shades(dark, data.darkerShades, dark.l * (1 - data.darkReach / 100), data.darkSaturation, data.darkHueShift)
+  const lighter = shades(light, data.lighterShades, light.l + (1 - light.l) * data.lightReach / 100, data.lightSaturation, data.lightHueShift)
+  return { points: darkerIsFirst
+    ? [...darker.reverse(), ...points, ...lighter]
+    : [...lighter.reverse(), ...points, ...darker] }
 }
 
 function gradientAddonPaletteBar() {
@@ -371,6 +397,7 @@ function gradientAddonExtend(dialog) {
     methods: { ...component.methods },
     computed: { ...component.computed },
     watch: { ...component.watch },
+    mounted: component.mounted,
     beforeDestroy: component.beforeDestroy,
     onOpen: dialog.onOpen,
     linesLength: dialog.lines.length
@@ -382,6 +409,7 @@ function gradientAddonExtend(dialog) {
   }
   Vue.set(component.data, 'copiedIndex', -1)
   Vue.set(component.data, 'copyTimeout', null)
+  Vue.set(component.data, 'colour3', '#ffffff')
   const originalSave = old.methods.save
   component.methods.save = function() {
     originalSave.call(this)
@@ -399,39 +427,48 @@ function gradientAddonExtend(dialog) {
   }
   component.methods.doubleResult = function() {
     const result = old.methods.doubleResult.call(this)
-    const points = result.points
-    if (points.length < 2) return result
-    const first = tinycolor(this.colour).toHsl()
-    const last = tinycolor(this.colour2).toHsl()
-    points[0].hex = tinycolor(this.colour).toHexString()
-    points[points.length - 1].hex = tinycolor(this.colour2).toHexString()
-    const darkerIsFirst = first.l <= last.l
-    const dark = darkerIsFirst ? first : last
-    const light = darkerIsFirst ? last : first
-    const shades = (base, count, target, saturation, hueShift) => Array.from({ length: count }, (_, index) => {
-      const t = (index + 1) / count
-      const l = Math.lerp(base.l, target, t)
-      const h = ((base.h + hueShift * t) % 360 + 360) % 360
-      const s = saturation >= 0
-        ? base.s + (1 - base.s) * saturation / 100 * t
-        : base.s * (1 + saturation / 100 * t)
-      return { hex: tinycolor({ h, s, l }).toHexString(), h, s, l }
-    })
-    const darker = shades(dark, this.data.darkerShades, dark.l * (1 - this.data.darkReach / 100), this.data.darkSaturation, this.data.darkHueShift)
-    const lighter = shades(light, this.data.lighterShades, light.l + (1 - light.l) * this.data.lightReach / 100, this.data.lightSaturation, this.data.lightHueShift)
-    return { points: darkerIsFirst
-      ? [...darker.reverse(), ...points, ...lighter]
-      : [...lighter.reverse(), ...points, ...darker] }
+    return gradientAddonAddOuterShades(result.points, this.colour, this.colour2, this.data)
+  }
+  component.methods.tripleResult = function() {
+    const N = Math.max(3, Math.floor(this.data.steps))
+    const middleIndex = Math.clamp(Math.round((N - 1) * this.data.middlePosition / 100), 1, N - 2)
+    const first = old.methods.doubleResult.call({
+      data: { ...this.data, steps: middleIndex + 1 }, colour: this.colour, colour2: this.colour2
+    }).points
+    const second = old.methods.doubleResult.call({
+      data: { ...this.data, steps: N - middleIndex }, colour: this.colour2, colour2: this.colour3
+    }).points
+    const middle = tinycolor(this.colour2).toHsl()
+    first[first.length - 1] = { ...middle, hex: tinycolor(this.colour2).toHexString() }
+    const joined = [...first, ...second.slice(1)]
+    const result = gradientAddonAddOuterShades(joined, this.colour, this.colour3, this.data)
+    result.middleHex = tinycolor(this.colour2).toHexString()
+    return result
   }
   component.computed.sliders = function() {
-    const sliders = old.computed.sliders.call(this)
-    if (this.data.colourMode !== 'double') return sliders
+    if (this.data.colourMode === 'single') return old.computed.sliders.call(this)
+    const sliders = old.computed.sliders.call({ ...this, data: { ...this.data, colourMode: 'double' } })
     return [...sliders,
+      ...(this.data.colourMode === 'triple' ? [{
+        key: 'middlePosition', title: 'Middle Position',
+        desc: 'Where the middle chosen colour sits in the gradient', min: 10, max: 90,
+        disabled: this.data.steps <= 3
+      }] : []),
       { key: 'darkerShades', title: 'Darker Shades', desc: 'Extra shades beyond the darker chosen colour', min: 0, max: 16 },
       { key: 'lighterShades', title: 'Lighter Shades', desc: 'Extra shades beyond the lighter chosen colour', min: 0, max: 16 },
       { key: 'darkReach', title: 'Dark Reach', desc: 'How far the extra shades go toward black', min: 1, max: 100, disabled: !this.data.darkerShades },
       { key: 'lightReach', title: 'Light Reach', desc: 'How far the extra shades go toward white', min: 1, max: 100, disabled: !this.data.lighterShades }
     ]
+  }
+  component.computed.result = function() {
+    if (this.data.colourMode !== 'triple') return old.computed.result.call(this)
+    const { points, middleHex } = this.tripleResult()
+    this.save()
+    return {
+      colours: [...new Set(points.map(point => point.hex))],
+      primaryHex: middleHex, points,
+      anchors: [this.colour, this.colour2, this.colour3].map(colour => tinycolor(colour).toHexString())
+    }
   }
   component.computed.extensionSliders = function() {
     return [
@@ -453,10 +490,19 @@ function gradientAddonExtend(dialog) {
     this.copyTimeout = setTimeout(() => { this.copiedIndex = -1 }, 900)
   }
   component.methods.pickFromModel = field => gradientAddonStartPick(dialog, field)
+  component.mounted = function() {
+    old.mounted.call(this)
+    const setColour = colour => { this.colour3 = colour.toHexString() }
+    $(this.$refs.colour3).spectrum({
+      preferredFormat: 'hex', color: this.colour3, showAlpha: false, showInput: true,
+      move: setColour, change: setColour, hide: setColour
+    })
+  }
   component.watch.result = function() {
     this.copiedIndex = -1
     this.queueDraw()
   }
+  component.watch.colour3 = function(value) { this.syncPicker('colour3', value) }
   component.beforeDestroy = function() {
     clearTimeout(this.copyTimeout)
     old.beforeDestroy?.call(this)
@@ -466,12 +512,14 @@ function gradientAddonExtend(dialog) {
     else old.onOpen?.call(this)
   }
   let template = component.template.replace(resetClick, '@click="resetSlider(s.key)"')
-  template = template.replace(firstPicker, '<div class="gradient-addon-colour-row"><input ref="colour" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick first colour from model texture" @click="pickFromModel(\'colour\')"><i class="material-icons">colorize</i></button></div>')
-  template = template.replace(secondPicker, '<div v-show="data.colourMode === \'double\'" class="gradient-addon-colour-row"><input ref="colour2" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick second colour from model texture" @click="pickFromModel(\'colour2\')"><i class="material-icons">colorize</i></button></div>')
+  template = template.replace("{ single: 'Single Colour', double: 'Two Colours' }", "{ single: 'Single Colour', double: 'Two Colours', triple: 'Three Colours' }")
+  template = template.replace("{{ data.colourMode === 'double' ? 'Colours' : 'Colour' }}", "{{ data.colourMode === 'single' ? 'Colour' : 'Colours' }}")
+  template = template.replace(firstPicker, '<div class="gradient-addon-picker-column"><label v-if="data.colourMode === \'triple\'" class="gradient-addon-anchor-label">Dark</label><div class="gradient-addon-colour-row"><input ref="colour" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick first colour from model texture" @click="pickFromModel(\'colour\')"><i class="material-icons">colorize</i></button></div></div>')
+  template = template.replace(secondPicker, '<div v-show="data.colourMode === \'double\' || data.colourMode === \'triple\'" class="gradient-addon-picker-column"><label v-if="data.colourMode === \'triple\'" class="gradient-addon-anchor-label">Middle</label><div class="gradient-addon-colour-row"><input ref="colour2" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick second colour from model texture" @click="pickFromModel(\'colour2\')"><i class="material-icons">colorize</i></button></div></div><div v-show="data.colourMode === \'triple\'" class="gradient-addon-picker-column"><label class="gradient-addon-anchor-label">Light</label><div class="gradient-addon-colour-row"><input ref="colour3" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick third colour from model texture" @click="pickFromModel(\'colour3\')"><i class="material-icons">colorize</i></button></div></div>')
   const tab = '            <div class="tab_bar">'
   const tabIndex = template.lastIndexOf(tab)
   if (tabIndex >= 0) template = template.slice(0, tabIndex) + `
-            <div v-if="data.colourMode === 'double'" class="gradient-addon-tuning">
+            <div v-if="data.colourMode === 'double' || data.colourMode === 'triple'" class="gradient-addon-tuning">
               <div v-for="s in extensionSliders" :key="s.key" :class="{ disabled: s.disabled }">
                 <div class="header-bar"><h2>{{ s.title }}</h2><i title="Reset" class="material-icons" @click="resetSlider(s.key)">replay</i></div>
                 <div class="bar slider_input_combo">
@@ -482,9 +530,11 @@ function gradientAddonExtend(dialog) {
             </div>
 ` + template.slice(tabIndex)
   template = template.replace(swatch,
-    '<div v-for="(col, index) in result.colours" :key="index" role="button" tabindex="0" :aria-label="\'Copy HEX \' + col.toUpperCase()" :title="\'Copy \' + col.toUpperCase()" :class="{ primary: col === result.primaryHex, \'light-marker\': col === result.primaryHex && markerLight, copied: copiedIndex === index }" :style="{ backgroundColor: col }" @click="copyShade(col, index)" @keydown.enter.prevent="copyShade(col, index)" @keydown.space.prevent="copyShade(col, index)"><span v-if="copiedIndex === index" class="gradient-addon-feedback">HEX copied</span></div>')
+    '<div v-for="(col, index) in result.colours" :key="index" role="button" tabindex="0" :aria-label="\'Copy HEX \' + col.toUpperCase()" :title="\'Copy \' + col.toUpperCase()" :class="{ primary: col === result.primaryHex, \'light-marker\': col === result.primaryHex && markerLight, \'gradient-addon-anchor\': result.anchors && result.anchors.includes(col), copied: copiedIndex === index }" :style="{ backgroundColor: col }" @click="copyShade(col, index)" @keydown.enter.prevent="copyShade(col, index)" @keydown.space.prevent="copyShade(col, index)"><span v-if="copiedIndex === index" class="gradient-addon-feedback">HEX copied</span></div>')
   component.template = template
   dialog.lines.push(`<style>
+    #colour_gradient_generator .gradient-addon-picker-column { min-width:0; flex:1; }
+    #colour_gradient_generator .gradient-addon-anchor-label { display:block; font-size:12px; color:var(--color-subtle_text); margin-bottom:3px; }
     #colour_gradient_generator .gradient-addon-colour-row { display:flex; align-items:center; gap:6px; min-width:0; }
     #colour_gradient_generator .gradient-addon-colour-row .sp-replacer { flex:1; min-width:0; }
     #colour_gradient_generator .gradient-addon-picker { box-sizing:border-box; width:52px !important; min-width:0 !important; max-width:52px !important; height:32px; flex:0 0 52px; padding:0; display:grid; place-items:center; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); }
@@ -494,6 +544,7 @@ function gradientAddonExtend(dialog) {
     #colour_gradient_generator #colour-gradient-preview, #colour_gradient_generator #colour-gradient-preview .strip { overflow:visible; }
     #colour_gradient_generator #colour-gradient-preview .strip > div { min-width:0; cursor:pointer; transition:transform 160ms ease,filter 160ms ease,box-shadow 160ms ease; }
     #colour_gradient_generator #colour-gradient-preview .strip > div:hover, #colour_gradient_generator #colour-gradient-preview .strip > div:focus-visible { z-index:2; transform:translateY(-2px); filter:brightness(1.08); box-shadow:inset 0 0 0 2px #fff,0 2px 8px #0006; outline:none; }
+    #colour_gradient_generator #colour-gradient-preview .strip > div.gradient-addon-anchor:not(.primary)::before { content:''; position:absolute; left:0; right:0; bottom:0; height:3px; background:#fff; }
     #colour_gradient_generator .gradient-addon-feedback { position:absolute; left:50%; bottom:calc(100% + 7px); transform:translateX(-50%); padding:4px 7px; border-radius:4px; background:#192025; color:#fff; font-size:12px; font-weight:600; white-space:nowrap; pointer-events:none; }
   </style>`)
   if (dialog.object) dialog.delete()
@@ -503,9 +554,9 @@ Plugin.register(gradientAddonId, {
   title: 'Colour Gradient Generator Add-on',
   icon: 'icon.png',
   author: 'Hlamingo',
-  description: 'Adds shade controls, texture eyedropper, copyable swatches, and palette colour editing to Colour Gradient Generator.',
+  description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette editing.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.2.0',
+  version: '0.3.0',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
@@ -564,6 +615,13 @@ Plugin.register(gradientAddonId, {
     }
   },
   onunload() {
+    try {
+      const originalSettings = JSON.parse(localStorage.getItem('colour_gradient_generator') || '{}')
+      if (originalSettings.colourMode === 'triple') {
+        originalSettings.colourMode = 'double'
+        localStorage.setItem('colour_gradient_generator', JSON.stringify(originalSettings))
+      }
+    } catch (error) { /* Keep the original plugin's settings if they are invalid. */ }
     gradientAddonStopPaletteEdit()
     gradientAddonStopPaletteSelection()
     document.removeEventListener('pointerdown', gradientAddonPalettePointerDown, true)
@@ -583,11 +641,13 @@ Plugin.register(gradientAddonId, {
     if (Dialog.prototype.show === gradientAddonShowWrapper) Dialog.prototype.show = gradientAddonShow
     for (const [dialog, old] of gradientAddonDialogs) {
       if (dialog.object) dialog.delete()
+      if (dialog.component.data.data.colourMode === 'triple') dialog.component.data.data.colourMode = 'double'
       dialog.component.template = old.template
       dialog.component.data = old.data
       dialog.component.methods = old.methods
       dialog.component.computed = old.computed
       dialog.component.watch = old.watch
+      dialog.component.mounted = old.mounted
       dialog.component.beforeDestroy = old.beforeDestroy
       dialog.onOpen = old.onOpen
       dialog.lines.length = old.linesLength
