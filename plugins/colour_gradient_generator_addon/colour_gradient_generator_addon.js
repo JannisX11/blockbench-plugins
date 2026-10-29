@@ -454,12 +454,7 @@ function gradientAddonExtend(dialog) {
         key: 'middlePosition', title: 'Middle Position',
         desc: 'Where the middle chosen colour sits in the gradient', min: 10, max: 90,
         disabled: this.data.steps <= 3
-      }] : []),
-      { key: 'darkerShades', title: 'Darker Shades', desc: 'Extra shades beyond the darker chosen colour', min: 0, max: 16 },
-      { key: 'lighterShades', title: 'Lighter Shades', desc: 'Extra shades beyond the lighter chosen colour', min: 0, max: 16 },
-      { key: 'darkReach', title: 'Dark Reach', desc: 'How far the extra shades go toward black', min: 1, max: 100, disabled: !this.data.darkerShades },
-      { key: 'lightReach', title: 'Light Reach', desc: 'How far the extra shades go toward white', min: 1, max: 100, disabled: !this.data.lighterShades }
-    ]
+      }] : [])]
   }
   component.computed.result = function() {
     if (this.data.colourMode !== 'triple') return old.computed.result.call(this)
@@ -473,6 +468,10 @@ function gradientAddonExtend(dialog) {
   }
   component.computed.extensionSliders = function() {
     return [
+      { key: 'darkerShades', title: 'Darker Shades', desc: 'Colours beyond the dark end', min: 0, max: 16 },
+      { key: 'lighterShades', title: 'Lighter Shades', desc: 'Colours beyond the light end', min: 0, max: 16 },
+      { key: 'darkReach', title: 'Dark Reach', desc: 'How far toward black', min: 1, max: 100, disabled: !this.data.darkerShades },
+      { key: 'lightReach', title: 'Light Reach', desc: 'How far toward white', min: 1, max: 100, disabled: !this.data.lighterShades },
       { key: 'darkSaturation', title: 'Dark Saturation', min: -100, max: 100, disabled: !this.data.darkerShades },
       { key: 'lightSaturation', title: 'Light Saturation', min: -100, max: 100, disabled: !this.data.lighterShades },
       { key: 'darkHueShift', title: 'Dark Hue Shift', min: -120, max: 120, disabled: !this.data.darkerShades },
@@ -517,12 +516,15 @@ function gradientAddonExtend(dialog) {
   template = template.replace("{{ data.colourMode === 'double' ? 'Colours' : 'Colour' }}", "{{ data.colourMode === 'single' ? 'Colour' : 'Colours' }}")
   template = template.replace(firstPicker, '<div class="gradient-addon-picker-column"><label v-if="data.colourMode === \'triple\'" class="gradient-addon-anchor-label">Dark</label><div class="gradient-addon-colour-row"><input ref="colour" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick first colour from model texture" @click="pickFromModel(\'colour\')"><i class="material-icons">colorize</i></button></div></div>')
   template = template.replace(secondPicker, '<div v-show="data.colourMode === \'double\' || data.colourMode === \'triple\'" class="gradient-addon-picker-column"><label v-if="data.colourMode === \'triple\'" class="gradient-addon-anchor-label">Middle</label><div class="gradient-addon-colour-row"><input ref="colour2" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick second colour from model texture" @click="pickFromModel(\'colour2\')"><i class="material-icons">colorize</i></button></div></div><div v-show="data.colourMode === \'triple\'" class="gradient-addon-picker-column"><label class="gradient-addon-anchor-label">Light</label><div class="gradient-addon-colour-row"><input ref="colour3" /><button type="button" class="gradient-addon-picker" title="Pick from model texture" aria-label="Pick third colour from model texture" @click="pickFromModel(\'colour3\')"><i class="material-icons">colorize</i></button></div></div>')
+  template = template.replace('<div v-for="s in sliders" :key="s.key" :class="{ disabled: s.disabled }">', '<div v-for="s in sliders" :key="s.key" :class="{ disabled: s.disabled, \'gradient-addon-middle-position\': s.key === \'middlePosition\' }">')
   const tab = '            <div class="tab_bar">'
   const tabIndex = template.lastIndexOf(tab)
   if (tabIndex >= 0) template = template.slice(0, tabIndex) + `
+            <h2 v-if="data.colourMode === 'double' || data.colourMode === 'triple'" class="gradient-addon-section-title">Extra shades</h2>
             <div v-if="data.colourMode === 'double' || data.colourMode === 'triple'" class="gradient-addon-tuning">
               <div v-for="s in extensionSliders" :key="s.key" :class="{ disabled: s.disabled }">
                 <div class="header-bar"><h2>{{ s.title }}</h2><i title="Reset" class="material-icons" @click="resetSlider(s.key)">replay</i></div>
+                <p v-if="s.desc">{{ s.desc }}</p>
                 <div class="bar slider_input_combo">
                   <input type="range" class="tool disp_range" v-model.number="data[s.key]" :min="s.min" :max="s.max" step="1" />
                   <numeric-input class="tool disp_text" v-model.number="data[s.key]" :min="s.min" :max="s.max" :step="1" />
@@ -540,7 +542,9 @@ function gradientAddonExtend(dialog) {
     #colour_gradient_generator .gradient-addon-colour-row .sp-replacer { flex:1; min-width:0; }
     #colour_gradient_generator .gradient-addon-picker { box-sizing:border-box; width:52px !important; min-width:0 !important; max-width:52px !important; height:32px; flex:0 0 52px; padding:0; display:grid; place-items:center; border:1px solid var(--color-border); border-radius:4px; background:var(--color-button); color:var(--color-text); }
     #colour_gradient_generator .gradient-addon-picker .material-icons { font-size:17px; line-height:1; transform:translate(1px, 1px); }
-    #colour_gradient_generator .gradient-addon-tuning { display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; margin:-8px 0 20px; }
+    #colour_gradient_generator .gradient-addon-middle-position { grid-column:1 / -1; }
+    #colour_gradient_generator .gradient-addon-section-title { margin:4px 0 10px; padding-top:12px; border-top:1px solid var(--color-border); }
+    #colour_gradient_generator .gradient-addon-tuning { display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; margin:0 0 20px; }
     #colour_gradient_generator .gradient-addon-tuning .header-bar h2 { font-size:.95em; }
     #colour_gradient_generator #colour-gradient-preview, #colour_gradient_generator #colour-gradient-preview .strip { overflow:visible; }
     #colour_gradient_generator #colour-gradient-preview .strip > div { min-width:0; cursor:pointer; transition:transform 160ms ease,filter 160ms ease,box-shadow 160ms ease; }
@@ -557,7 +561,7 @@ Plugin.register(gradientAddonId, {
   author: 'Hlamingo',
   description: 'Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette editing.',
   tags: ['Paint', 'Palette', 'Color'],
-  version: '0.3.1',
+  version: '0.3.2',
   min_version: '5.0.0',
   variant: 'both',
   dependencies: ['colour_gradient_generator'],
