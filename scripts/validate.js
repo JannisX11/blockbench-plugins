@@ -69,7 +69,7 @@ let id = '';
 let source_meta = {};
 
 if (!json_meta) {
-	logError(`Plugin with ID "${PLUGIN_ID} not found in plugins.json"`);
+	logError(`Plugin with ID "${PLUGIN_ID}" not found in plugins.json`);
 	process.exit();
 }
 

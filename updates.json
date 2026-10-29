@@ -5,9 +5,9 @@
     "updated": 0
   },
   "animated_java": {
-    "version": "1.10.2",
+    "version": "1.11.0",
     "created": 1736294400000,
-    "updated": 1782338671538
+    "updated": 1791634792259
   },
   "armor_stand_animator": {
     "version": "1.1.0",
@@ -385,7 +385,7 @@
     "updated": 0
   },
   "explorer": {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "created": 0,
     "updated": 1776286387152
   },
@@ -420,9 +420,9 @@
     "updated": 0
   },
   "azurelib_utils": {
-    "version": "2.1.5",
+    "version": "2.2.0",
     "created": 1680566400000,
-    "updated": 1776713189096
+    "updated": 1791319482880
   },
   "cube_inverter": {
     "version": "1.0.0",
@@ -530,9 +530,9 @@
     "updated": 1765964433931
   },
   "hytale_plugin": {
-    "version": "0.10.0",
+    "version": "0.11.0",
     "created": 1766421748990,
-    "updated": 1788299500877
+    "updated": 1791577717892
   },
   "texture_downscaler": {
     "version": "1.0.0",
@@ -590,7 +590,7 @@
     "updated": 1771677037011
   },
   "hytale_hitbox_helper": {
-    "version": "1.0.1",
+    "version": "1.0.2",
     "created": 1771678722825,
     "updated": 1771678722825
   },
@@ -713,5 +713,45 @@
     "version": "1.0.0",
     "created": 1790448134201,
     "updated": 1790448134201
+  },
+  "add_tint": {
+    "version": "0.4.3",
+    "created": 1790955314224,
+    "updated": 1790955314224
+  },
+  "display_anim_preview": {
+    "version": "1.0.0",
+    "created": 1791042659876,
+    "updated": 1791042659876
+  },
+  "palette_swap": {
+    "version": "2.2.0",
+    "created": 1791043595063,
+    "updated": 1791043595063
+  },
+  "vintagestory": {
+    "version": "0.12.2",
+    "created": 1792605789168,
+    "updated": 1792605789168
+  },
+  "mesh_to_cube_converter": {
+    "version": "1.0.0",
+    "created": 1793132165020,
+    "updated": 1793132165020
+  },
+  "nowmobmanager_particle_exporter": {
+    "version": "1.0.0",
+    "created": 1793132806779,
+    "updated": 1793132806779
+  },
+  "two_bone_ik": {
+    "version": "2.6.1",
+    "created": 1793133549477,
+    "updated": 1793133549477
+  },
+  "noise_composite": {
+    "version": "1.0.0",
+    "created": 1793134475452,
+    "updated": 1793134475452
   }
 }

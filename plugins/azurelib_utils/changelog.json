@@ -248,5 +248,29 @@
 				]
 			}
 		]
+	},
+	"2.2.0": {
+		"title": "2.2.0",
+		"date": "2026-10-05",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds AzureLib's Ping-Pong, Repeat and Freeze play behaviors to Loop Mode in the Animation Properties dialog and the animation right-click Loop Mode menu, only while an AzureLib model is open.",
+					"Adds Repeat Count and Freeze At settings to the Animation Properties dialog, including a Use Playhead Time button for the freeze point.",
+					"Timeline playback now previews Ping-Pong, Repeat and Freeze exactly as AzureLib plays them in game, including Blockbench's loop playback toggle.",
+					"Exports and imports the play behavior through the animation file's loop, repeat_times and freeze_at fields, so mods no longer need AzCommands to set them (requires AzureLib 4.0.3+).",
+					"Play behaviors added by other mods are preserved when importing and re-exporting animation files."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes Play Once animations exporting as \"loop\": \"once\", which AzureLib did not recognise. Play Once now omits the loop field like Bedrock files.",
+					"Fixes animation files using \"once\" or \"hold\" as their loop value not importing with the correct loop mode."
+				]
+			}
+		]
 	}
 }

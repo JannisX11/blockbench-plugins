@@ -1,4 +1,15 @@
 {
+	"palette_swap": {
+		"title": "Palette Swap",
+		"author": "Cmetanochkaa (Cmetanochka Creations)",
+		"icon": "icon.png",
+		"description": "Fast palette swap: texture colors are grouped into families by hue, and a whole family of shades is recolored to a new color in one move while preserving light and shadow. Live preview on the model, selection-aware, Undo.",
+		"version": "2.2.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"website": "https://discord.gg/Xjp4ApB2qg",
+		"tags": ["Color", "Texture", "Palette"]
+	},
 	"hytale_uv_preserving_scale": {
 		"title": "Hytale UV-Preserving Scale",
 		"author": "CODEFELICE",
@@ -10,6 +21,16 @@
 		"min_version": "5.0.5",
 		"repository": "https://github.com/CODEFELICE/hytale-uv-preserving-scale",
 		"bug_tracker": "https://github.com/CODEFELICE/hytale-uv-preserving-scale/issues"
+	},
+	"two_bone_ik": {
+		"title": "IK Tools",
+		"author": "dh",
+		"tags": ["Animation"],
+		"description": "Two-bone IK, pure FABRIK chain IK, Spline IK, and aim IK with IK/FK blending, project-saved constraints, live preview, and individual or batch pose and frame-range baking.",
+		"icon": "precision_manufacturing",
+		"version": "2.6.1",
+		"min_version": "5.1.0",
+		"variant": "both"
 	},
 	"sam3dj": {
 		"title": "sam3DJ",
@@ -25,7 +46,7 @@
 		"title": "Animated Java",
 		"author": "Titus Evans (SnaveSutit)",
 		"description": "Effortlessly craft complex animations for Minecraft: Java Edition",
-		"version": "1.10.2",
+		"version": "1.11.0",
 		"await_loading": true,
 		"icon": "icon.svg",
 		"variant": "desktop",
@@ -492,6 +513,21 @@
 		"creation_date": "2024-12-20",
 		"has_changelog": true
 	},
+	"mesh_to_cube_converter": {
+		"title": "Mesh to Cube Converter",
+		"icon": "icon.svg",
+		"author": "Ewan Howell",
+		"description": "Detect cuboids within meshes and convert them into real cubes.",
+		"tags": ["Meshes", "Cubes", "Utility"],
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"website": "https://ewanhowell.com/plugins/mesh-to-cube-converter/",
+		"repository": "https://github.com/ewanhowell5195/blockbenchPlugins/tree/main/mesh_to_cube_converter",
+		"bug_tracker": "https://github.com/ewanhowell5195/blockbenchPlugins/issues/new?title=[Mesh to Cube Converter]",
+		"creation_date": "2026-08-15",
+		"has_changelog": true
+	},
 	"threecore_exporter": {
 		"title": "ThreeCore Exporter",
 		"author": "Lucas, Spyeedy",
@@ -555,7 +591,7 @@
 		"title": "Hytale Models",
 		"author": "JannisX11, Kanno",
 		"icon": "icon.png",
-		"version": "0.10.0",
+		"version": "0.11.0",
 		"description": "Create models and animations for Hytale",
 		"tags": ["Hytale"],
 		"contributes": {
@@ -563,7 +599,7 @@
 			"open_extensions": ["blockymodel"]
 		},
 		"variant": "both",
-		"min_version": "5.0.5",
+		"min_version": "5.2.0",
 		"creation_date": "2025-12-22",
 		"await_loading": true,
 		"has_changelog": true,
@@ -613,6 +649,24 @@
 		"description": "Allows exporting to BlockStateProvider datagen code",
 		"version": "1.0.0",
 		"variant": "both"
+	},
+	"display_anim_preview": {
+		"title": "Java Display Animator",
+		"author": "rieyi",
+		"description": "Preview frame-baked Minecraft Java item animations per display context and export complete resource packs and animation-driving datapacks.",
+		"icon": "icon.png",
+		"tags": ["Minecraft: Java Edition", "Animation", "Exporter"],
+		"version": "1.0.0",
+		"min_version": "5.1.5",
+		"variant": "desktop",
+		"creation_date": "2026-08-07",
+		"has_changelog": true,
+		"repository": "https://github.com/rieyi/display-anim-preview",
+		"bug_tracker": "https://github.com/rieyi/display-anim-preview/issues",
+		"await_loading": true,
+		"contributes": {
+			"formats": ["display_animation_sequence"]
+		}
 	},
 	"duplicate_renamer": {
 		"title": "Duplicate Bone Renamer",
@@ -1024,7 +1078,7 @@
 		"author": "JannisX11",
 		"description": "Navigate the files in your project from the sidebar in Blockbench!",
 		"tags": ["Files"],
-		"version": "1.1.0",
+		"version": "1.1.1",
 		"min_version": "5.1.0",
 		"variant": "desktop",
 		"has_changelog": true
@@ -1098,7 +1152,7 @@
 		"icon": "azureicon.png",
 		"description": "Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.",
 		"tags": ["Minecraft: Java Edition"],
-		"version": "2.1.5",
+		"version": "2.2.0",
 		"min_version": "4.8.0",
 		"new_repository_format": true,
 		"await_loading": true,
@@ -1484,11 +1538,12 @@
   	"hytale_hitbox_helper": {
 		"title": "Hytale Hitbox Helper",
 		"author": "Marck.A.A",
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"description": "Dedicated tool to create Hytale hitboxes and JSON export.",
 		"icon": "icon.png",
 		"variant": "both",
-		"min_version": "4.8.0",
+		"min_version": "5.0.7",
+		"website": "https://youtube.com/@marck.a.a?si=ReXYtA53GBi9XhVv",
 		"tags": ["Hytale"]	
 	},
 	"baked_ambient_occlusion": {
@@ -1590,6 +1645,16 @@
 		"variant": "both",
 		"tags": ["Texture", "Paint", "Tool"]
 	},
+	"add_tint": {
+		"title": "addTint",
+		"author": "YOHEMAL",
+		"description": "Batch-edit Minecraft tint indices, preview tint colors, and prepare textures.",
+		"icon": "format_color_fill",
+		"version": "0.4.3",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Utility"]
+	},
 	"easings": {
 		"title": "Easings",
 		"author": "Svdex",
@@ -1677,6 +1742,16 @@
 		"bug_tracker": "https://github.com/MesterMan03/structure-to-model/issues",
 		"creation_date": "2026/05/06"
 	},
+	"nowmobmanager_particle_exporter": {
+		"title": "nowMobmanager Particle Exporter",
+		"author": "_NotWhale (now)",
+		"description": "Export Blockbench models and animations as baked particle animations for nowMobmanager.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"tags": ["Minecraft: Java Edition", "Animation", "Exporter"]
+	},
 	"easy_model_entities": {
 		"title": "Easy Model Entities",
 		"author": "Markus Bordihn",
@@ -1695,6 +1770,17 @@
 		"repository": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities",
 		"bug_tracker": "https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues"
 	},
+	"noise_composite": {
+		"title": "Noise & Composite",
+		"author": "the0dll",
+		"icon": "icon.png",
+		"description": "Advanced procedural noise generator and texture compositor with custom blend modes, alpha masking, and presets.",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"creation_date": "2026-09-12",
+		"variant": "both",
+		"tags": ["Texture", "Paint", "Tool"]
+	},
 	"gltf_to_minecraft": {
 		"title": "glTF to Minecraft",
 		"author": "MopicMP",
@@ -1708,6 +1794,23 @@
 		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
 		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
+	},
+	"vintagestory": {
+		"title": "Vintage Story Format Support",
+		"icon": "icon.png",
+		"author": "Anego Studios",
+		"contributors": [
+			"codename-B",
+			"Darkluke1111"
+		],
+		"description": "A Blockbench plugin that adds support for Vintage Story models",
+		"version": "0.12.2",
+		"variant": "desktop",
+		"min_version": "5.0.0",
+		"repository": "https://github.com/anegostudios/blockbenchplugin",
+		"tags": [
+			"Vintage Story"
+		]
 	},
 	"armor_trim_editor": {
 		"title": "Armor Trim Editor",
