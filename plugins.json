@@ -336,7 +336,7 @@
 			"Palette",
 			"Color"
 		],
-		"version": "0.3.0",
+		"version": "0.3.1",
 		"min_version": "5.0.0",
 		"variant": "both",
 		"dependencies": [
