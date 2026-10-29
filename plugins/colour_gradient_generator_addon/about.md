@@ -4,6 +4,7 @@ This add-on extends Ewan Howell's **Colour Gradient Generator**. The original pl
 
 ## Added controls
 
+- In **Three Colours**, choose exact dark, middle, and light colours. The generator blends across both intervals, keeps all three selected colours, and lets you move the middle colour's position in the gradient. Each colour field has a model-texture eyedropper.
 - In **Two Colours**, generate extra shades beyond the darker and lighter chosen colours.
 - Adjust the reach, saturation, and hue shift of those extra shades independently.
 - Click a preview swatch to copy its HEX colour.
