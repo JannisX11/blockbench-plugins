@@ -1804,7 +1804,7 @@
 			"Darkluke1111"
 		],
 		"description": "A Blockbench plugin that adds support for Vintage Story models",
-		"version": "0.12.2",
+		"version": "0.12.3",
 		"variant": "desktop",
 		"min_version": "5.0.0",
 		"repository": "https://github.com/anegostudios/blockbenchplugin",

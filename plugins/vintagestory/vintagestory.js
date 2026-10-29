@@ -1458,6 +1458,22 @@
     });
     return property;
   }
+  function registerNoOutlineProperty(targetClass) {
+    const property = new Property(targetClass, "boolean", "noOutline", {
+      default: false,
+      label: "No Outline",
+      exposed: true,
+      inputs: {
+        element_panel: {
+          input: {
+            label: "No Outline",
+            type: "checkbox"
+          }
+        }
+      }
+    });
+    return property;
+  }
   var VS_PROJECT_PROPS, PALETTE_SLOT_OPTIONS, VS_GROUP_PROPS, VS_CUBE_PROPS, VS_TEXTURE_PROPS, VS_LOCATOR_PROPS, VS_FACE_PROPS, isNonEmptyString;
   var init_property = __esm({
     "src/property.ts"() {
@@ -1500,7 +1516,8 @@
             Canvas.updateAllPositions();
           }
         }),
-        registerPaletteSlotProperty(Group)
+        registerPaletteSlotProperty(Group),
+        registerNoOutlineProperty(Group)
       ];
       new Property(Group, "string", "clothingSlot", {
         default: "",
@@ -1569,6 +1586,7 @@
           }
         }),
         registerPaletteSlotProperty(Cube),
+        registerNoOutlineProperty(Cube),
         new Property(Cube, "boolean", "shade", {
           default: true,
           label: "Shade",
@@ -1784,6 +1802,7 @@
   }
   function is_dropped_element_value(name2, value, on_group) {
     if (name2 === "shade") return on_group || value !== false;
+    if (name2 === "noOutline") return false;
     if (name2 === "faces") return on_group && is_empty_record(value);
     if (ELEMENT_UNTRACKED_KEYS.has(name2)) return false;
     if (name2 === "rotationX" || name2 === "rotationY" || name2 === "rotationZ") return Number(value) === 0;
@@ -8329,7 +8348,7 @@
     name,
     title: "Vintage Story Format Support",
     description: "A Blockbench plugin that adds support for Vintage Story models",
-    version: "0.12.2",
+    version: "0.12.3",
     author: {
       name: "Anego Studios",
       email: "office@anegostudios.com",
@@ -8788,7 +8807,7 @@
     const absolute_to = vector_add(vsElement.to, object_space_pos);
     const group = new Group({
       name: vsElement.name,
-      origin: vsElement.rotationOrigin ? vector_add(vsElement.rotationOrigin, object_space_pos) : absolute_from,
+      origin: vector_add(vsElement.rotationOrigin ?? [0, 0, 0], object_space_pos),
       rotation: [vsElement.rotationX || 0, vsElement.rotationY || 0, vsElement.rotationZ || 0]
     });
     group.vs_group_from = absolute_from;
@@ -8895,7 +8914,7 @@
       uv_offset: vsElement.uv,
       shade: vsElement.shade ?? true,
       rotation: [vsElement.rotationX || 0, vsElement.rotationY || 0, vsElement.rotationZ || 0],
-      origin: vsElement.rotationOrigin ? vector_add(vsElement.rotationOrigin, object_space_pos) : vector_add(vsElement.from, object_space_pos),
+      origin: vector_add(vsElement.rotationOrigin ?? [0, 0, 0], object_space_pos),
       faces
     };
     const cube = new Cube(cube_options);
@@ -9002,6 +9021,7 @@
       to: vector_sub(complex.to, complex.from),
       stepParentName: void 0,
       paletteSlot: void 0,
+      noOutline: void 0,
       attachmentpoints: void 0,
       children: [],
       name: `${complex.name}_geo`
@@ -9410,11 +9430,11 @@
   function create_animation(vsAnimation, path7, saved_name) {
     const FPS = fps;
     const animationLength = vsAnimation.quantityframes / FPS;
-    const isLooping = vsAnimation.onAnimationEnd === "Repeat";
+    const onAnimationEnd = vsAnimation.onAnimationEnd ?? "Repeat";
     const animation = new Blockbench.Animation({
       name: vsAnimation.name,
       path: path7 || "",
-      loop: isLooping ? "loop" : vsAnimation.onAnimationEnd === "Hold" ? "hold" : "once",
+      loop: onAnimationEnd === "Repeat" ? "loop" : onAnimationEnd === "Hold" ? "hold" : "once",
       length: animationLength,
       snapping: FPS
     }).add();
@@ -9424,8 +9444,8 @@
       animation.saved = true;
     }
     animation.vs_code = vsAnimation.code;
-    animation.vs_onActivityStopped = vsAnimation.onActivityStopped;
-    animation.vs_onAnimationEnd = vsAnimation.onAnimationEnd;
+    animation.vs_onActivityStopped = vsAnimation.onActivityStopped ?? "Rewind";
+    animation.vs_onAnimationEnd = onAnimationEnd;
     store_animation_extras(animation, vsAnimation);
     const channelFrames = buildChannelFrames(vsAnimation);
     vsAnimation.keyframes.forEach((vsKeyframe) => {
@@ -9958,7 +9978,7 @@
       name: animation.name,
       code: storedCode || animation.name.toLowerCase().replace(/ /g, ""),
       quantityframes: get_frame_quantity(animation, keyframes),
-      onActivityStopped: storedOnActivityStopped || "EaseOut",
+      onActivityStopped: storedOnActivityStopped || "Rewind",
       onAnimationEnd,
       keyframes: Object.values(keyframes).sort((a, b) => a.frame - b.frame)
     };
@@ -10620,6 +10640,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (groupPaletteSlot === 0 && geometryPaletteSlot !== 0) {
       vsElement.paletteSlot = geometryPaletteSlot;
     }
+    if (!node.noOutline && geoChild.noOutline) {
+      vsElement.noOutline = geoChild.noOutline;
+    }
     for (const prop of VS_CUBE_PROPS) {
       const prop_name = prop.name;
       if (VS_GROUP_PROPS.some((groupProp) => groupProp.name === prop_name)) continue;
@@ -11044,14 +11067,22 @@ This can be undone with Ctrl+Z.`)) {
         if (!this.doRender()) return;
         this.getGroup();
         Animator.MolangParser.context.animation = this.animation;
+        const mesh = this.group.mesh;
+        const offset = mesh.position.clone().sub(mesh.fix_position).applyQuaternion(mesh.quaternion.clone().invert()).divide(mesh.scale);
         if (!this.muted.rotation) this.displayRotation(this.interpolate("rotation"), multiplier);
-        if (!this.muted.scale) this.displayScale(this.interpolate("scale"), multiplier);
+        const scale = !this.muted.scale && this.interpolate("scale");
+        if (scale) {
+          if (this.animation.override) mesh.scale.set(1, 1, 1);
+          mesh.scale.x = mesh.scale.x + (scale[0] - 1) * multiplier || 1e-5;
+          mesh.scale.y = mesh.scale.y + (scale[1] - 1) * multiplier || 1e-5;
+          mesh.scale.z = mesh.scale.z + (scale[2] - 1) * multiplier || 1e-5;
+        }
         const position = this.interpolate("position");
         if (!this.muted.position && position) {
-          const mesh = this.group.mesh;
-          const offset = new THREE.Vector3().fromArray(position).multiply(mesh.scale).applyQuaternion(mesh.quaternion);
-          this.displayPosition(offset.toArray(), multiplier);
+          if (this.animation.override) offset.set(0, 0, 0);
+          offset.addScaledVector(new THREE.Vector3().fromArray(position), multiplier);
         }
+        mesh.position.copy(mesh.fix_position).add(offset.multiply(mesh.scale).applyQuaternion(mesh.quaternion));
       };
       return context;
     },
@@ -11193,6 +11224,9 @@ This can be undone with Ctrl+Z.`)) {
           },
           "paletteSlot": {
             "type": "number"
+          },
+          "noOutline": {
+            "type": "boolean"
           },
           "seasonColorMap": {
             "type": "string"
@@ -11430,10 +11464,22 @@ This can be undone with Ctrl+Z.`)) {
             "type": "number"
           },
           "onActivityStopped": {
-            "$ref": "#/definitions/VS_OnActivityStopped"
+            "enum": [
+              "EaseOut",
+              "PlayTillEnd",
+              "Rewind",
+              "Stop"
+            ],
+            "type": "string"
           },
           "onAnimationEnd": {
-            "$ref": "#/definitions/VS_OnAnimationEnd"
+            "enum": [
+              "EaseOut",
+              "Hold",
+              "Repeat",
+              "Stop"
+            ],
+            "type": "string"
           },
           "easeAnimationSpeed": {
             "type": "boolean"
@@ -11449,28 +11495,8 @@ This can be undone with Ctrl+Z.`)) {
           "code",
           "keyframes",
           "name",
-          "onActivityStopped",
-          "onAnimationEnd",
           "quantityframes"
         ]
-      },
-      "VS_OnActivityStopped": {
-        "enum": [
-          "EaseOut",
-          "PlayTillEnd",
-          "Rewind",
-          "Stop"
-        ],
-        "type": "string"
-      },
-      "VS_OnAnimationEnd": {
-        "enum": [
-          "EaseOut",
-          "Hold",
-          "Repeat",
-          "Stop"
-        ],
-        "type": "string"
       },
       "VS_Keyframe": {
         "type": "object",
@@ -13751,6 +13777,7 @@ This action cannot be undone.`)) {
     const panel2 = new Panel("attachments_panel", {
       id: "attachments_panel",
       name: "Attachments",
+      condition: { formats: ["formatVS"] },
       icon: "attach_file",
       expand_button: false,
       default_side: "right",
@@ -14045,12 +14072,25 @@ This action cannot be undone.`)) {
       console.warn(`[${logPrefix}] Keeping paletteSlot ${targetSlot} on "${target.name}"; imported "${source.name}" requested ${sourceSlot}.`);
     }
   }
+  function mergeNoOutline(source, target) {
+    if (source.noOutline) {
+      target.noOutline = true;
+    }
+  }
   function preserveInheritedPaletteOnChildren(source, children) {
     const sourceSlot = Number(source?.paletteSlot) || 0;
     if (sourceSlot === 0) return;
     children.forEach((child) => {
       if ((child instanceof Group || child instanceof Cube) && (Number(child.paletteSlot) || 0) === 0) {
         child.paletteSlot = sourceSlot;
+      }
+    });
+  }
+  function preserveInheritedNoOutlineOnChildren(source, children) {
+    if (!source.noOutline) return;
+    children.forEach((child) => {
+      if ((child instanceof Group || child instanceof Cube) && !child.noOutline) {
+        child.noOutline = true;
       }
     });
   }
@@ -14071,6 +14111,23 @@ This action cannot be undone.`)) {
     };
     roots.forEach((root) => walk(root, 0));
   }
+  function materializeNoOutlineInheritance(newElements, newElementsSet) {
+    const roots = newElements.filter(
+      (element) => (element instanceof Group || element instanceof Cube) && (!element.parent || !newElementsSet.has(element.parent))
+    );
+    const walk = (element, inheritedNoOutline) => {
+      if (!(element instanceof Group || element instanceof Cube) || !newElementsSet.has(element)) return;
+      const ownNoOutline = element.noOutline === true;
+      const effectiveNoOutline = ownNoOutline || inheritedNoOutline;
+      if (!ownNoOutline && inheritedNoOutline) {
+        element.noOutline = inheritedNoOutline;
+      }
+      if (element instanceof Group) {
+        element.children.forEach((child) => walk(child, effectiveNoOutline));
+      }
+    };
+    roots.forEach((root) => walk(root, false));
+  }
   function smartMatchGroups(newElements, newElementsSet, existingElements, logPrefix) {
     const topLevelGroups = newElements.filter(
       (e) => e instanceof Group && (!e.parent || !newElementsSet.has(e.parent)) && !isWithinStepParentAttachment(e, newElementsSet)
@@ -14084,6 +14141,7 @@ This action cannot be undone.`)) {
       if (match) {
         if (DEBUG4) console.log(`[${logPrefix}] Matched "${newGroup.name}" -> "${match.name}" (slot: ${slot})`);
         mergePaletteSlot(newGroup, match, logPrefix);
+        mergeNoOutline(newGroup, match);
         [...newGroup.children].forEach((child) => child.addTo(match));
         matchCount++;
         if (newGroup.children.length === 0) newGroup.remove();
@@ -14104,6 +14162,7 @@ This action cannot be undone.`)) {
         if (DEBUG4) console.log(`[${logPrefix}] Merging "${newGroup.name}" into "${target.name}"`);
         const movedChildren = [...newGroup.children];
         preserveInheritedPaletteOnChildren(newGroup, movedChildren);
+        preserveInheritedNoOutlineOnChildren(newGroup, movedChildren);
         movedChildren.forEach((child) => child.addTo(target));
         if (newGroup.children.length === 0) {
           newGroup.remove();
@@ -14137,6 +14196,7 @@ This action cannot be undone.`)) {
           if (!newElementsSet.has(g)) return;
           if (DEBUG4) console.log(`[${logPrefix}] Merging "${g.name}" into "${finalTarget.name}" (slot: ${slot})`);
           mergePaletteSlot(g, finalTarget, logPrefix);
+          mergeNoOutline(g, finalTarget);
           [...g.children].forEach((c) => c.addTo(finalTarget));
           if (g.children.length === 0) {
             g.remove();
@@ -14265,6 +14325,7 @@ This action cannot be undone.`)) {
     }
     applyClothingSlot(newElements, masterSlot, logPrefix);
     materializePaletteInheritance(newElements, newElementsSet);
+    materializeNoOutlineInheritance(newElements, newElementsSet);
     const matchCount = smartMatchGroups(newElements, newElementsSet, elementsBefore, logPrefix);
     if (matchCount > 0) {
       Blockbench.showQuickMessage(`Matched ${matchCount} groups`, QUICK_MESSAGE_DURATION);
@@ -14487,11 +14548,14 @@ This action cannot be undone.`)) {
     const slot = Number(value);
     return Number.isFinite(slot) && slot !== 0 ? slot : 0;
   }
-  function createCubeFromElementData(elemData, parentGroup, textureMap, createdGroups, inheritedPaletteSlot = 0) {
+  function createCubeFromElementData(elemData, parentGroup, textureMap, createdGroups, inheritedPaletteSlot = 0, inheritedNoOutline = false) {
     const cubeProps = { ...elemData };
     delete cubeProps.uuid;
     if (normalizePaletteSlot(cubeProps.paletteSlot) === 0 && inheritedPaletteSlot !== 0) {
       cubeProps.paletteSlot = inheritedPaletteSlot;
+    }
+    if (!cubeProps.noOutline && inheritedNoOutline) {
+      cubeProps.noOutline = inheritedNoOutline;
     }
     remapCubeFaceTextures(cubeProps, textureMap);
     const cubeClothingSlot = cubeProps.clothingSlot;
@@ -14522,15 +14586,17 @@ This action cannot be undone.`)) {
     }
     return null;
   }
-  function getOrCreateGroup(groupSeed, parentGroup, createdGroups, inheritedPaletteSlot = 0) {
+  function getOrCreateGroup(groupSeed, parentGroup, createdGroups, inheritedPaletteSlot = 0, inheritedNoOutline = false) {
     const groupName = typeof groupSeed.name === "string" ? groupSeed.name : "";
     const hasExternalStepParent = typeof groupSeed.stepParentName === "string" && groupSeed.stepParentName.trim() !== "";
     const ownPaletteSlot = normalizePaletteSlot(groupSeed.paletteSlot);
     const childPaletteSlot = ownPaletteSlot || inheritedPaletteSlot;
+    const ownNoOutline = groupSeed.noOutline === true;
+    const childNoOutline = ownNoOutline || inheritedNoOutline;
     const existing = hasExternalStepParent ? null : findExistingGroupByName(parentGroup, groupName);
     if (existing) {
       logDebug2(`[Import BB] Merging into existing group: ${groupName}`);
-      return { group: existing, childPaletteSlot };
+      return { group: existing, childPaletteSlot, childNoOutline };
     }
     const groupProps = { ...groupSeed };
     delete groupProps.uuid;
@@ -14538,11 +14604,14 @@ This action cannot be undone.`)) {
     if (ownPaletteSlot === 0 && inheritedPaletteSlot !== 0) {
       groupProps.paletteSlot = inheritedPaletteSlot;
     }
+    if (!ownNoOutline && inheritedNoOutline) {
+      groupProps.noOutline = inheritedNoOutline;
+    }
     const group = new Group(groupProps);
     group.addTo(parentGroup).init();
     createdGroups.add(group);
     logDebug2(`[Import BB] Created new group: ${groupName || "(unnamed group)"}`);
-    return { group, childPaletteSlot };
+    return { group, childPaletteSlot, childNoOutline };
   }
   function isCubeElement(value) {
     return isRecord(value) && typeof value.uuid === "string" && value.type === "cube";
@@ -14571,44 +14640,44 @@ This action cannot be undone.`)) {
       const elementByUuid = buildUuidMap(model.elements);
       const groupByUuid = buildUuidMap(model.groups);
       const createdGroups = /* @__PURE__ */ new Set();
-      const processChildren = (children, parent, inheritedPaletteSlot = 0) => {
-        for (const child of children) processOutlinerItem(child, parent, inheritedPaletteSlot);
+      const processChildren = (children, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
+        for (const child of children) processOutlinerItem(child, parent, inheritedPaletteSlot, inheritedNoOutline);
       };
-      const tryCreateCubeByUuid = (uuid, parent, inheritedPaletteSlot = 0) => {
+      const tryCreateCubeByUuid = (uuid, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
         const elemData = elementByUuid.get(uuid);
         if (!isCubeElement(elemData)) return false;
-        createCubeFromElementData(elemData, parent, textureMap, createdGroups, inheritedPaletteSlot);
+        createCubeFromElementData(elemData, parent, textureMap, createdGroups, inheritedPaletteSlot, inheritedNoOutline);
         return true;
       };
-      const tryProcessGroupByUuid = (uuid, node, parent, inheritedPaletteSlot = 0) => {
+      const tryProcessGroupByUuid = (uuid, node, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
         const groupData = groupByUuid.get(uuid);
         if (!groupData) return false;
         const seed = { ...groupData, ...node };
-        const { group: targetGroup, childPaletteSlot } = getOrCreateGroup(seed, parent, createdGroups, inheritedPaletteSlot);
+        const { group: targetGroup, childPaletteSlot, childNoOutline } = getOrCreateGroup(seed, parent, createdGroups, inheritedPaletteSlot, inheritedNoOutline);
         const children = asArray(node.children);
-        processChildren(children, targetGroup, childPaletteSlot);
+        processChildren(children, targetGroup, childPaletteSlot, childNoOutline);
         return true;
       };
-      const processUuidStringItem = (uuid, parent, inheritedPaletteSlot = 0) => {
-        if (tryCreateCubeByUuid(uuid, parent, inheritedPaletteSlot)) return;
+      const processUuidStringItem = (uuid, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
+        if (tryCreateCubeByUuid(uuid, parent, inheritedPaletteSlot, inheritedNoOutline)) return;
       };
-      const processInlineGroupNode = (node, parent, inheritedPaletteSlot = 0) => {
-        const { group: targetGroup, childPaletteSlot } = getOrCreateGroup(node, parent, createdGroups, inheritedPaletteSlot);
+      const processInlineGroupNode = (node, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
+        const { group: targetGroup, childPaletteSlot, childNoOutline } = getOrCreateGroup(node, parent, createdGroups, inheritedPaletteSlot, inheritedNoOutline);
         const children = asArray(node.children);
-        processChildren(children, targetGroup, childPaletteSlot);
+        processChildren(children, targetGroup, childPaletteSlot, childNoOutline);
       };
-      const processObjectNode = (node, parent, inheritedPaletteSlot = 0) => {
+      const processObjectNode = (node, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
         const uuid = typeof node.uuid === "string" ? node.uuid : void 0;
         if (uuid) {
-          if (tryCreateCubeByUuid(uuid, parent, inheritedPaletteSlot)) return;
-          if (tryProcessGroupByUuid(uuid, node, parent, inheritedPaletteSlot)) return;
+          if (tryCreateCubeByUuid(uuid, parent, inheritedPaletteSlot, inheritedNoOutline)) return;
+          if (tryProcessGroupByUuid(uuid, node, parent, inheritedPaletteSlot, inheritedNoOutline)) return;
         }
-        processInlineGroupNode(node, parent, inheritedPaletteSlot);
+        processInlineGroupNode(node, parent, inheritedPaletteSlot, inheritedNoOutline);
       };
-      const processOutlinerItem = (item, parent, inheritedPaletteSlot = 0) => {
-        if (typeof item === "string") return processUuidStringItem(item, parent, inheritedPaletteSlot);
+      const processOutlinerItem = (item, parent, inheritedPaletteSlot = 0, inheritedNoOutline = false) => {
+        if (typeof item === "string") return processUuidStringItem(item, parent, inheritedPaletteSlot, inheritedNoOutline);
         if (!isRecord(item)) return;
-        return processObjectNode(item, parent, inheritedPaletteSlot);
+        return processObjectNode(item, parent, inheritedPaletteSlot, inheritedNoOutline);
       };
       for (const item of asArray(model.outliner)) {
         processOutlinerItem(item, null);
@@ -14632,6 +14701,7 @@ This action cannot be undone.`)) {
       icon: config.icon,
       category: "file",
       description: config.description,
+      condition: { formats: ["formatVS"] },
       click: () => {
         Blockbench.import({
           resource_id: config.resource_id,
@@ -14722,6 +14792,7 @@ This action cannot be undone.`)) {
     deletables.push(actions.importBB, actions.importVS, panel2);
     const attachment_mode = new Mode("attachments", {
       name: "Attachments",
+      condition: { formats: ["formatVS"] },
       onSelect: () => {
         panel2.moveTo("right_bar", Panels.vs_face_properties, true);
         findAttachments();
