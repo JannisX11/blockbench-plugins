@@ -28,6 +28,7 @@ import codec, {
   maybeImportItemJson
 } from './core/azure-codec.js';
 import { restoreOverrides } from './core/azure-utils.js';
+import { registerRig, unregisterRig } from './rig/azure-rig.js';
 
 const { version, blockbenchConfig } = pkg;
 const RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
@@ -46,6 +47,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), RANGE)) {
       registerAzureCodec();
       initializeAnimationUI();
       registerKeyframeOverrides();
+      registerRig();
       console.log('[AzureLib] Animator loaded');
 	  
       Blockbench.on('ready', () => {
@@ -158,6 +160,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), RANGE)) {
       exportDisplay.delete();
       importDisplay.delete();
       settingsButton.delete();
+      unregisterRig();
       unregisterKeyframeOverrides();
       unloadAnimationUI();
       unregisterAzureCodec();

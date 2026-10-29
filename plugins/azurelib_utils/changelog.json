@@ -272,5 +272,22 @@
 				]
 			}
 		]
+	},
+	"2.3.0": {
+		"title": "2.3.0",
+		"date": "2026-10-29",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds the AzureLib Rig panel (a tab next to the Outliner in Edit and Animate) for setting up AzureLib's rig features on your model: bone hitboxes, sockets, IK chains, look-at, bone constraints, spring bones and blend spaces. Everything is saved in the .bbmodel and supports undo.",
+					"Previews the rig in the viewport: hitboxes are drawn on their bones like F3 + B, sockets show which way they face, and in Animate mode IK, look-at, spring bones and constraints run on top of your animation the way they do in game.",
+					"Blend spaces can be previewed in Animate mode, with a slider for the input and the weight of each animation.",
+					"Adds Generate AzureLib Rig Code, which writes the Java for your rig (hitbox set, sockets, pose modifiers, blend spaces and an attachment layer) for 26.3, 1.21.1, 1.20.1, 1.18.2, 1.12.2/1.7.10 and Beta 1.7.3, ready to copy or save as a .java file.",
+					"Adds Check AzureLib Rig, which finds problems such as renamed or missing bones, chain bones out of order and duplicate names before you generate code."
+				]
+			}
+		]
 	}
 }

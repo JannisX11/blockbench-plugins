@@ -18,7 +18,6 @@
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
 import { invertMolang } from '../core/azure-utils.js';
-import { IKManager } from './azure-ik.js';
 import {
   writePlaybackJson,
   readPlaybackJson,
@@ -1370,7 +1369,6 @@ function unpatchExportAnimationAction() {
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
-  //IKManager.register();
 
   const codec = createAzureAnimationCodec();
   if (!codec) {
@@ -1411,7 +1409,6 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
-  //IKManager.unregister();
 
   unpatchExportAnimationAction();
   unregisterPlayBehaviors();
