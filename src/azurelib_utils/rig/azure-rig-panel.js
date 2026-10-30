@@ -264,7 +264,7 @@ function editConstraint(index) {
       max: vec(r.max),
       standalone: r.standalone,
     });
-  }), ['<p>Degrees relative to the bone\'s rest pose, with the same signs as keyframes. Hinges use only their own axis. IK, look-at and spring bones on this bone respect it; "clamp the final pose" also clamps the animation itself.</p>']);
+  }), ['<p>Degrees relative to the bone\'s rest pose, with the signs of the exported animation file: for X and Y that\'s the opposite of what Blockbench 5 shows on keyframes (Z is the same). Hinges use only their own axis. IK, look-at and spring bones on this bone respect it; "clamp the final pose" also clamps the animation itself.</p>']);
 }
 
 function editSpring(index) {
