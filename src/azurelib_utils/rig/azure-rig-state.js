@@ -44,6 +44,7 @@ export function emptyRig() {
     lookAts: [],
     constraints: [],
     springBones: [],
+    colliders: [],
     blendSpaces: [],
   };
 }
@@ -122,7 +123,22 @@ export function newSpringBone(id, bones) {
     gravity: 0,
     inertia: 1,
     priority: 200,
+    colliders: [],
+    radius: 0,
+    ground: false,
     preview: { enabled: true },
+  };
+}
+
+/** A spring collider; positions are pixels from the bone's pivot along its axes, as for sockets. */
+export function newCollider(id, bone) {
+  return {
+    id,
+    bone,
+    shape: 'sphere',
+    start: [0, 0, 0],
+    end: [0, 0, 0],
+    radius: 2,
   };
 }
 
@@ -186,6 +202,10 @@ export const RigStore = {
     this.notify();
   },
 };
+
+// ---------------------------------------------------------------------------
+// Normalisation: tolerate older or hand-edited data
+// ---------------------------------------------------------------------------
 
 function vec3(value, fallback) {
   if (!Array.isArray(value) || value.length < 3) return fallback.slice();
@@ -256,9 +276,21 @@ export function normalizeRig(raw) {
       ...d,
       ...s,
       tip: Array.isArray(s.tip) ? vec3(s.tip, [0, 0, 0]) : null,
+      colliders: Array.isArray(s.colliders) ? s.colliders.map(String) : [],
+      radius: Math.max(0, Number(s.radius) || 0),
+      ground: !!s.ground,
       preview: { ...d.preview, ...(s.preview || {}) },
     };
   });
+
+  base.colliders = list(raw.colliders).map(c => ({
+    ...newCollider(c.id || 'collider', c.bone || ''),
+    ...c,
+    shape: c.shape === 'capsule' ? 'capsule' : 'sphere',
+    start: vec3(c.start, [0, 0, 0]),
+    end: vec3(c.end, [0, 0, 0]),
+    radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
+  }));
 
   base.blendSpaces = list(raw.blendSpaces).map(b => ({
     ...newBlendSpace(b.name || 'blend'),
@@ -353,6 +385,23 @@ export function validateRig(rig = RigStore.rig) {
 
   for (const c of rig.constraints) {
     if (!bones.has(c.bone)) issues.push(`Constraint on "${c.bone}": bone doesn't exist.`);
+  }
+
+  const colliderIds = new Set();
+  for (const c of rig.colliders || []) {
+    if (colliderIds.has(c.id)) issues.push(`Collider id "${c.id}" is used twice.`);
+    colliderIds.add(c.id);
+    if (!bones.has(c.bone)) issues.push(`Collider "${c.id}": bone "${c.bone}" doesn't exist.`);
+    if (!(Number(c.radius) > 0)) issues.push(`Collider "${c.id}" needs a radius above 0.`);
+  }
+  for (const s of rig.springBones) {
+    for (const id of s.colliders || []) {
+      if (!colliderIds.has(id)) issues.push(`Spring bone "${s.id}": collider "${id}" doesn't exist.`);
+    }
+    for (const id of s.colliders || []) {
+      const c = (rig.colliders || []).find(x => x.id === id);
+      if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
+    }
   }
 
   const animations = new Set((typeof Animation !== 'undefined' ? Animation.all : []).map(a => a.name));

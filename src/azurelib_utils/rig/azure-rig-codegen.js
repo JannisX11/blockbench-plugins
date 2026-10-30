@@ -95,6 +95,7 @@ function importsBlock(target, names, override) {
     AzIkTargets: `${root}.animation.pose.ik.AzIkTargets`,
     AzLookAt: `${root}.animation.pose.ik.AzLookAt`,
     AzSpringBone: `${root}.animation.pose.secondary.AzSpringBone`,
+    AzSpringCollider: `${root}.animation.pose.secondary.AzSpringCollider`,
     AzBlendSpace1D: `${root}.animation.blend.AzBlendSpace1D`,
     AzBlendSpace2D: `${root}.animation.blend.AzBlendSpace2D`,
     AzAnimationControllerContainer: `${root}.animation.controller.AzAnimationControllerContainer`,
@@ -211,6 +212,17 @@ function constraintField(c) {
   return `${constantName(c.bone)}_LIMIT`;
 }
 
+function colliderField(c) {
+  return `${constantName(c.id)}_COLLIDER`;
+}
+
+function colliderExpression(c) {
+  if (c.shape === 'capsule') {
+    return `AzSpringCollider.capsule(${js(c.bone)}, ${vecArgs(c.start)}, ${vecArgs(c.end)}, ${jf(c.radius)})`;
+  }
+  return `AzSpringCollider.sphere(${js(c.bone)}, ${vecArgs(c.start)}, ${jf(c.radius)})`;
+}
+
 function ikTargetExpression(t, entityClass) {
   switch (t.type) {
     case 'ground': return `AzIkTargets.ground(${jf(t.stepUp)}, ${jf(t.stepDown)})`;
@@ -242,6 +254,8 @@ export function generatePoseModifierSection(rig, options = {}) {
   const body = [];
 
   const constraintsByBone = new Map(rig.constraints.map(c => [c.bone, c]));
+  const collidersById = new Map((rig.colliders || []).map(c => [c.id, c]));
+  const usedColliders = new Set();
   const usedConstraints = new Set();
   const constraintRefs = bones => bones
     .filter(b => constraintsByBone.has(b))
@@ -293,6 +307,13 @@ export function generatePoseModifierSection(rig, options = {}) {
     if (Number(s.inertia) !== 1) lines.push(`.inertia(${jf(s.inertia)})`);
     const refs = constraintRefs(s.bones);
     if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
+    const colliders = (s.colliders || []).map(id => collidersById.get(id)).filter(Boolean);
+    if (colliders.length) {
+      colliders.forEach(c => usedColliders.add(c.id));
+      lines.push(`.collider(${colliders.map(colliderField).join(', ')})`);
+    }
+    if (Number(s.radius) > 0) lines.push(`.radius(${jf(s.radius)})`);
+    if (s.ground) lines.push('.ground(true)');
     lines.push(`.build())${modifierTail(s)};`);
     body.push(lines.join(`\n${ind}${ind}${ind}`));
   }
@@ -307,6 +328,12 @@ export function generatePoseModifierSection(rig, options = {}) {
     if (!usedConstraints.has(c.bone)) continue;
     imports.add('AzBoneConstraint').add('AzBoneConstraints');
     fields.push(`${ind}private static final AzBoneConstraint ${constraintField(c)} = ${constraintExpression(c)};`);
+  }
+
+  for (const c of rig.colliders || []) {
+    if (!usedColliders.has(c.id)) continue;
+    imports.add('AzSpringCollider');
+    fields.push(`${ind}private static final AzSpringCollider ${colliderField(c)} = ${colliderExpression(c)};`);
   }
 
   if (!body.length) return null;

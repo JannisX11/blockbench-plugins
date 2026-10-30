@@ -6,6 +6,7 @@
  *   • Hitboxes, fitted the way AzureLib fits them (the AABB of the bone's own
  *     cubes around its pivot, or an explicit size), coloured like F3 + B.
  *   • Sockets, as a forward arrow (the socket's -Z) and an up arrow.
+ *   • Spring colliders, as orange wireframe spheres and capsules.
  *   • In Animate mode, the pose modifiers run on top of the animation every
  *     frame, in AzureLib's priority order, with the same solvers the game
  *     uses: two-bone and CCD IK, look-at, spring bones and constraints.
@@ -32,11 +33,13 @@ const COLOR_ANCHOR = 0xffff55;
 const COLOR_SOCKET = 0xff55ff;
 const COLOR_SOCKET_UP = 0xaa66ff;
 const COLOR_TARGET = 0xffaa00;
+const COLOR_COLLIDER = 0xff8a3d;
 
 /** Runtime-only preview switches (not saved with the project). */
 export const PreviewSettings = {
   hitboxes: true,
   sockets: true,
+  colliders: true,
   modifiers: true,
 };
 
@@ -83,6 +86,7 @@ const overlay = {
   root: null,
   hitboxes: [],
   sockets: [],
+  colliders: [],
   dirty: true,
 };
 
@@ -100,7 +104,7 @@ function attachOverlayRoot() {
 }
 
 function clearOverlay() {
-  for (const item of [...overlay.hitboxes, ...overlay.sockets]) {
+  for (const item of [...overlay.hitboxes, ...overlay.sockets, ...overlay.colliders]) {
     item.object.parent?.remove(item.object);
     item.object.traverse(o => {
       o.geometry?.dispose?.();
@@ -109,6 +113,7 @@ function clearOverlay() {
   }
   overlay.hitboxes = [];
   overlay.sockets = [];
+  overlay.colliders = [];
 }
 
 function hitboxColor(h) {
@@ -193,6 +198,59 @@ function makeArrow(direction, color, length) {
   return arrow;
 }
 
+/**
+ * Wireframe for a spring collider in its bone's space (pixels): three rings around each end and,
+ * for a capsule, four lines joining the ends.
+ */
+export function colliderLinePoints(c) {
+  const a = new THREE.Vector3(c.start[0], c.start[1], c.start[2]);
+  const capsule = c.shape === 'capsule';
+  const b = capsule ? new THREE.Vector3(c.end[0], c.end[1], c.end[2]) : a.clone();
+  const r = Math.max(0.01, Number(c.radius) || 0);
+  const points = [];
+  const segments = 24;
+  const ring = (center, u, v) => {
+    for (let i = 0; i < segments; i++) {
+      const t0 = (i / segments) * Math.PI * 2;
+      const t1 = ((i + 1) / segments) * Math.PI * 2;
+      for (const t of [t0, t1]) {
+        points.push(center.x + (u.x * Math.cos(t) + v.x * Math.sin(t)) * r,
+          center.y + (u.y * Math.cos(t) + v.y * Math.sin(t)) * r,
+          center.z + (u.z * Math.cos(t) + v.z * Math.sin(t)) * r);
+      }
+    }
+  };
+  const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
+  for (const center of capsule ? [a, b] : [a]) {
+    ring(center, X, Y);
+    ring(center, X, Z);
+    ring(center, Y, Z);
+  }
+  if (capsule) {
+    const axis = b.clone().sub(a);
+    if (axis.lengthSq() > 1e-12) {
+      axis.normalize();
+      const helper = Math.abs(axis.y) < 0.9 ? Y : X;
+      const u = new THREE.Vector3().crossVectors(axis, helper).normalize();
+      const v = new THREE.Vector3().crossVectors(axis, u).normalize();
+      for (const side of [u, v, u.clone().multiplyScalar(-1), v.clone().multiplyScalar(-1)]) {
+        points.push(a.x + side.x * r, a.y + side.y * r, a.z + side.z * r, b.x + side.x * r, b.y + side.y * r, b.z + side.z * r);
+      }
+    }
+  }
+  return points;
+}
+
+function makeColliderLines(c) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(colliderLinePoints(c), 3));
+  const material = new THREE.LineBasicMaterial({ color: COLOR_COLLIDER, depthTest: false, transparent: true, opacity: 0.85 });
+  const lines = new THREE.LineSegments(geometry, material);
+  lines.renderOrder = 999;
+  lines.matrixAutoUpdate = false;
+  return lines;
+}
+
 function makeSocketGizmo() {
   const group = new THREE.Object3D();
   group.add(makeArrow(new THREE.Vector3(0, 0, -1), COLOR_SOCKET, 4));
@@ -219,6 +277,12 @@ function rebuildOverlay() {
     const object = makeSocketGizmo();
     root.add(object);
     overlay.sockets.push({ def: s, object });
+  }
+
+  for (const c of rig.colliders || []) {
+    const object = makeColliderLines(c);
+    root.add(object);
+    overlay.colliders.push({ def: c, object });
   }
 }
 
@@ -273,6 +337,14 @@ function syncOverlay() {
     item.object.matrix.copy(parentInverse)
       .multiply(mesh.matrixWorld)
       .multiply(new THREE.Matrix4().compose(box.center, new THREE.Quaternion(), box.half.clone().multiplyScalar(2)));
+  }
+
+  for (const item of overlay.colliders) {
+    const mesh = PreviewSettings.colliders ? boneMesh(item.def.bone) : null;
+    item.object.visible = !!mesh;
+    if (!mesh) continue;
+    mesh.updateWorldMatrix(true, false);
+    item.object.matrix.copy(parentInverse).multiply(mesh.matrixWorld);
   }
 
   for (const item of overlay.sockets) {
@@ -506,6 +578,54 @@ function runLookAt(look) {
 const springStates = new Map();
 
 /**
+ * A spring chain's colliders in world space for this frame: [{a, b, radius, capsule}], with the
+ * radius in pixels. Mirrors AzSpringBone#updateColliders.
+ */
+function springColliders(spring) {
+  const byId = new Map((RigStore.rig.colliders || []).map(c => [c.id, c]));
+  const out = [];
+  for (const id of spring.colliders || []) {
+    const c = byId.get(id);
+    const mesh = c && boneMesh(c.bone);
+    if (!mesh) continue;
+    const capsule = c.shape === 'capsule';
+    out.push({
+      a: pointOnBone(mesh, c.start),
+      b: pointOnBone(mesh, capsule ? c.end : c.start),
+      radius: Math.max(0, Number(c.radius) || 0),
+      capsule,
+    });
+  }
+  return out;
+}
+
+/** Pushes every swinging joint out of the colliders and above the ground. Mirrors AzSpringBone#collide. */
+function collideSpring(p, colliders, particleRadius, groundY) {
+  for (let j = 1; j < p.length; j++) {
+    for (const c of colliders) {
+      // Closest point on the collider's core: its centre, or the nearest point on a capsule's line.
+      const core = c.a.clone();
+      if (c.capsule) {
+        const axis = c.b.clone().sub(c.a);
+        const lengthSq = axis.lengthSq();
+        if (lengthSq > 1e-12) {
+          const along = Math.max(0, Math.min(1, p[j].clone().sub(c.a).dot(axis) / lengthSq));
+          core.add(axis.multiplyScalar(along));
+        }
+      }
+      const reach = c.radius + particleRadius;
+      const away = p[j].clone().sub(core);
+      const dist = away.length();
+      if (dist >= reach) continue;
+      if (dist < 1e-6) away.set(0, 1, 0);
+      else away.divideScalar(dist);
+      p[j].copy(core).add(away.multiplyScalar(reach));
+    }
+    if (groundY !== null && p[j].y < groundY + particleRadius) p[j].y = groundY + particleRadius;
+  }
+}
+
+/**
  * AzSpringBone: damped particles, each pulled towards its animated position relative to the
  * particle before it, held at segment length; the bones are then aimed at them.
  */
@@ -520,6 +640,11 @@ function runSpring(spring) {
   const targets = [];
   for (let j = 0; j < count; j++) targets.push(chainPoint(j));
 
+  const colliders = springColliders(spring);
+  const particleRadius = Math.max(0, Number(spring.radius) || 0);
+  // The ground is the model's origin: the entity's feet.
+  const groundY = spring.ground ? modelToWorld([0, 0, 0]).y : null;
+
   const time = Timeline.time || 0;
   let state = springStates.get(spring.id);
   const fresh = !state || state.count !== count;
@@ -532,6 +657,7 @@ function runSpring(spring) {
       position: targets.map(t => t.clone()),
       velocity: targets.map(() => new THREE.Vector3()),
     };
+    collideSpring(state.position, colliders, particleRadius, groundY);
     springStates.set(spring.id, state);
   } else {
     const stiffness = Math.min(1, Math.max(0, Number(spring.stiffness) || 0));
@@ -558,13 +684,21 @@ function runSpring(spring) {
         p[j].add(v[j].clone().multiplyScalar(dt));
       }
 
-      for (let j = 1; j < count; j++) {
-        const rest = targets[j].distanceTo(targets[j - 1]);
-        const dir = p[j].clone().sub(p[j - 1]);
-        const length = dir.length();
-        if (length > 1e-6) p[j].copy(p[j - 1]).add(dir.multiplyScalar(rest / length));
-        v[j].copy(p[j]).sub(previous[j]).divideScalar(dt);
+      // Hold every segment at its animated length and push joints out of colliders; alternated so
+      // the chain ends up both the right length and outside the colliders.
+      const passes = colliders.length || groundY !== null ? 3 : 1;
+      for (let pass = 0; pass < passes; pass++) {
+        for (let j = 1; j < count; j++) {
+          const rest = targets[j].distanceTo(targets[j - 1]);
+          const dir = p[j].clone().sub(p[j - 1]);
+          const length = dir.length();
+          if (length > 1e-6) p[j].copy(p[j - 1]).add(dir.multiplyScalar(rest / length));
+        }
+        collideSpring(p, colliders, particleRadius, groundY);
       }
+
+      // Derive velocity from the corrected motion, so contact slides and settles instead of bouncing.
+      for (let j = 1; j < count; j++) v[j].copy(p[j]).sub(previous[j]).divideScalar(dt);
 
       remaining -= dt;
     }

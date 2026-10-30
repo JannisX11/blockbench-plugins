@@ -23,6 +23,7 @@ import {
   newLookAt,
   newConstraint,
   newSpringBone,
+  newCollider,
   newBlendSpace,
   validateRig,
 } from './azure-rig-state.js';
@@ -278,6 +279,9 @@ function editSpring(index) {
     gravity: { label: 'Gravity (blocks/tick²)', type: 'number', value: s.gravity, step: 0.001 },
     inertia: { label: 'Inertia (0–1)', type: 'number', value: s.inertia, min: 0, max: 1, step: 0.05 },
     priority: { label: 'Priority', type: 'number', value: s.priority },
+    colliders: { label: 'Colliders (comma separated ids)', type: 'text', value: (s.colliders || []).join(', ') },
+    radius: { label: 'Chain radius (pixels)', type: 'number', value: s.radius || 0, min: 0, step: 0.25 },
+    ground: { label: 'Stay above the ground', type: 'checkbox', value: !!s.ground },
     previewEnabled: { label: 'Preview while animating', type: 'checkbox', value: s.preview?.enabled !== false },
   }, r => RigStore.edit('Edit spring bones', rig => {
     Object.assign(rig.springBones[index], {
@@ -289,9 +293,43 @@ function editSpring(index) {
       gravity: toNumber(r.gravity),
       inertia: Math.min(1, Math.max(0, toNumber(r.inertia, 1))),
       priority: Math.round(toNumber(r.priority, 200)),
+      colliders: parseBones(r.colliders),
+      radius: Math.max(0, toNumber(r.radius)),
+      ground: r.ground,
       preview: { enabled: r.previewEnabled },
     });
-  }), ['<p>The first bone follows the animation and anchors the chain. Play the animation to see the swing; inertia only affects entities moving in game.</p>']);
+  }), [
+    '<p>The first bone follows the animation and anchors the chain. Play the animation to see the swing; inertia only affects entities moving in game.</p>',
+    `<p>Colliders here: ${RigStore.rig.colliders.length ? RigStore.rig.colliders.map(c => `<code>${c.id}</code>`).join(', ') : '<i>none yet; add them in the Colliders section</i>'}. The chain radius is roughly how thick the chain is; it keeps it off colliders and the ground.</p>`,
+  ]);
+}
+
+function editCollider(index) {
+  const c = RigStore.rig.colliders[index];
+  openForm(`Collider: ${c.id}`, {
+    id: { label: 'Id', type: 'text', value: c.id },
+    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: c.bone },
+    shape: { label: 'Shape', type: 'select', options: { sphere: 'Sphere', capsule: 'Capsule' }, value: c.shape },
+    start: { label: 'Centre (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'sphere' },
+    capStart: { label: 'Start (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'capsule' },
+    end: { label: 'End (pixels)', type: 'vector', dimensions: 3, value: c.end, condition: f => f.shape === 'capsule' },
+    radius: { label: 'Radius (pixels)', type: 'number', value: c.radius, min: 0.1, step: 0.25 },
+  }, r => RigStore.edit('Edit collider', rig => {
+    const oldId = rig.colliders[index].id;
+    const id = r.id.trim() || oldId;
+    Object.assign(rig.colliders[index], {
+      id,
+      bone: r.bone,
+      shape: r.shape,
+      start: vec(r.shape === 'capsule' ? r.capStart : r.start),
+      end: vec(r.shape === 'capsule' ? r.end : r.start),
+      radius: Math.max(0.1, toNumber(r.radius, 2)),
+    });
+    // Keep spring chains pointing at a renamed collider.
+    if (id !== oldId) {
+      for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).map(x => (x === oldId ? id : x));
+    }
+  }), ['<p>Positions are pixels from the bone\'s pivot along its axes. Spring chains that list this collider swing around it instead of through it.</p>']);
 }
 
 function samplesToText(b) {
@@ -333,6 +371,25 @@ function requireBones(names, what) {
   if (names.length) return true;
   Blockbench.showQuickMessage(`Select the bone(s) for the ${what} first.`, 2500);
   return false;
+}
+
+function fitCollider(bone) {
+  const box = hitboxBox({ bone, fit: true, size: [0, 0, 0], offset: [0, 0, 0], inflate: 0, anchorAtPivot: false });
+  if (!box) return { shape: 'sphere', start: [0, 0, 0], end: [0, 0, 0], radius: 2 };
+  const round = v => Math.round(v * 100) / 100;
+  const center = [box.center.x, box.center.y, box.center.z];
+  const half = [box.half.x, box.half.y, box.half.z];
+  const axis = half.indexOf(Math.max(...half));
+  const radius = Math.max(...half.filter((_, i) => i !== axis));
+  const reach = half[axis] - radius;
+  if (reach < 0.5) {
+    return { shape: 'sphere', start: center.map(round), end: center.map(round), radius: round(Math.max(...half)) };
+  }
+  const start = center.slice();
+  const end = center.slice();
+  start[axis] -= reach;
+  end[axis] += reach;
+  return { shape: 'capsule', start: start.map(round), end: end.map(round), radius: round(radius) };
 }
 
 const Add = {
@@ -411,6 +468,18 @@ const Add = {
     if (!requireBones(bones, 'spring chain')) return;
     RigStore.edit('Add spring bones', rig => {
       rig.springBones.push(newSpringBone(uniqueId(`${bones[0]}_spring`, modifierIds()), bones));
+    });
+  },
+
+  collider() {
+    const groups = selectedGroups();
+    if (!requireBones(groups, 'collider')) return;
+    RigStore.edit('Add collider', rig => {
+      for (const g of groups) {
+        const c = newCollider(uniqueId(g.name, rig.colliders.map(x => x.id)), g.name);
+        Object.assign(c, fitCollider(g.name));
+        rig.colliders.push(c);
+      }
     });
   },
 
@@ -581,6 +650,7 @@ const SECTIONS = [
   { key: 'lookAts', title: 'Look-at', add: 'lookAt', addTitle: 'Add a look-at from the selected bones (e.g. neck, head)' },
   { key: 'constraints', title: 'Constraints', add: 'constraint', addTitle: 'Add a rotation limit to each selected bone' },
   { key: 'springBones', title: 'Spring bones', add: 'spring', addTitle: 'Add a spring chain from the selected bones (root → tip, or just the root)' },
+  { key: 'colliders', title: 'Colliders', add: 'collider', addTitle: 'Add a collider fitted to each selected bone, for spring bones to swing around' },
   { key: 'blendSpaces', title: 'Blend spaces', add: 'blendSpace', addTitle: 'Add a blend space' },
 ];
 
@@ -591,6 +661,7 @@ const EDITORS = {
   lookAts: editLookAt,
   constraints: editConstraint,
   springBones: editSpring,
+  colliders: editCollider,
   blendSpaces: editBlendSpace,
 };
 
@@ -600,6 +671,7 @@ const SECTION_COLORS = {
   lookAts: '#44aaff',
   constraints: '#ff9900',
   springBones: '#aa66ff',
+  colliders: '#ff8a3d',
   blendSpaces: '#ffaa00',
 };
 
@@ -670,7 +742,13 @@ function registerPanel() {
         },
         remove(key, index) {
           if (key === 'blendSpaces' && this.blend.index === index) this.stopBlend();
-          RigStore.edit('Remove entry', rig => { rig[key].splice(index, 1); });
+          RigStore.edit('Remove entry', rig => {
+            const [removed] = rig[key].splice(index, 1);
+            // Spring chains stop using a removed collider.
+            if (key === 'colliders' && removed) {
+              for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).filter(id => id !== removed.id);
+            }
+          });
         },
         edit(key, index) {
           EDITORS[key](index);
@@ -705,7 +783,13 @@ function registerPanel() {
             case 'ikChains': return `${item.bones.length} bones · ${item.target.type.replace('_', ' ')}`;
             case 'lookAts': return item.bones.join(' › ');
             case 'constraints': return `${item.type.replace('_', ' ')}${item.standalone ? ' · clamps pose' : ''}`;
-            case 'springBones': return `${item.bones.length} bones`;
+            case 'springBones': {
+              const extras = [];
+              if ((item.colliders || []).length) extras.push(`${item.colliders.length} collider${item.colliders.length === 1 ? '' : 's'}`);
+              if (item.ground) extras.push('ground');
+              return [`${item.bones.length} bones`, ...extras].join(' · ');
+            }
+            case 'colliders': return `${item.shape} · ${item.bone} · r${item.radius}`;
             case 'blendSpaces': return `${item.dimensions}D · ${item.samples.length} samples`;
             default: return '';
           }
@@ -721,11 +805,16 @@ function registerPanel() {
               return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
             case 'constraints':
               return this.boneSet.has(item.bone) ? '' : 'missing bone';
+            case 'colliders':
+              return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
             case 'ikChains':
             case 'lookAts':
             case 'springBones': {
               const gone = this.missing(item.bones);
-              return gone.length ? `missing ${gone.join(', ')}` : '';
+              if (gone.length) return `missing ${gone.join(', ')}`;
+              const known = new Set(this.rig.colliders.map(c => c.id));
+              const unknown = (item.colliders || []).filter(id => !known.has(id));
+              return unknown.length ? `unknown collider ${unknown.join(', ')}` : '';
             }
             default:
               return '';
@@ -773,6 +862,7 @@ function registerPanel() {
     <span class="azl-spacer"></span>
     <span class="azl-chip" :class="{on: preview.hitboxes}" @click="togglePreview('hitboxes')" title="Show hitboxes in the viewport">Boxes</span>
     <span class="azl-chip" :class="{on: preview.sockets}" @click="togglePreview('sockets')" title="Show sockets in the viewport">Sockets</span>
+    <span class="azl-chip" :class="{on: preview.colliders}" @click="togglePreview('colliders')" title="Show spring colliders in the viewport">Colliders</span>
     <span class="azl-chip" :class="{on: preview.modifiers}" @click="togglePreview('modifiers')" title="Run IK, look-at, spring bones and constraints while animating">Pose</span>
   </div>
   <div v-if="isEmpty" class="azl-hint">Select bones or locators, then press + on a section.</div>
