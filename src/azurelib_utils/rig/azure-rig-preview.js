@@ -599,27 +599,61 @@ function springColliders(spring) {
   return out;
 }
 
-/** Pushes every swinging joint out of the colliders and above the ground. Mirrors AzSpringBone#collide. */
+/** Closest points between segments p0-p1 and a-b: returns [s, t], the parameters along each. */
+function closestSegmentParams(p0, p1, a, b) {
+  const d1 = p1.clone().sub(p0);
+  const d2 = b.clone().sub(a);
+  const r = p0.clone().sub(a);
+  const aa = d1.dot(d1);
+  const ee = d2.dot(d2);
+  const ff = d2.dot(r);
+  let s;
+  let t;
+
+  if (aa <= 1e-12 && ee <= 1e-12) return [0, 0];
+  if (aa <= 1e-12) return [0, Math.max(0, Math.min(1, ff / ee))];
+
+  const c = d1.dot(r);
+  if (ee <= 1e-12) {
+    s = Math.max(0, Math.min(1, -c / aa));
+    t = 0;
+  } else {
+    const bb = d1.dot(d2);
+    const denom = aa * ee - bb * bb;
+    s = denom > 1e-12 ? Math.max(0, Math.min(1, (bb * ff - c * ee) / denom)) : 0;
+    t = (bb * s + ff) / ee;
+    if (t < 0) {
+      t = 0;
+      s = Math.max(0, Math.min(1, -c / aa));
+    } else if (t > 1) {
+      t = 1;
+      s = Math.max(0, Math.min(1, (bb - c) / aa));
+    }
+  }
+  return [s, t];
+}
+
+/**
+ * Pushes the chain out of the colliders and above the ground. Each segment is tested against
+ * each collider's core, so thin colliders can't slip between two joints; the segment's outer
+ * joint is moved so the segment clears it. Mirrors AzSpringBone#collide.
+ */
 function collideSpring(p, colliders, particleRadius, groundY) {
   for (let j = 1; j < p.length; j++) {
     for (const c of colliders) {
-      // Closest point on the collider's core: its centre, or the nearest point on a capsule's line.
-      const core = c.a.clone();
-      if (c.capsule) {
-        const axis = c.b.clone().sub(c.a);
-        const lengthSq = axis.lengthSq();
-        if (lengthSq > 1e-12) {
-          const along = Math.max(0, Math.min(1, p[j].clone().sub(c.a).dot(axis) / lengthSq));
-          core.add(axis.multiplyScalar(along));
-        }
-      }
       const reach = c.radius + particleRadius;
-      const away = p[j].clone().sub(core);
+      const coreEnd = c.capsule ? c.b : c.a;
+      const [sAlong, tAlong] = closestSegmentParams(p[j - 1], p[j], c.a, coreEnd);
+      const onChain = p[j - 1].clone().lerp(p[j], sAlong);
+      const onCore = c.a.clone().lerp(coreEnd, tAlong);
+      const away = onChain.clone().sub(onCore);
       const dist = away.length();
       if (dist >= reach) continue;
       if (dist < 1e-6) away.set(0, 1, 0);
       else away.divideScalar(dist);
-      p[j].copy(core).add(away.multiplyScalar(reach));
+      // Moving the outer joint by d moves the contact point by s * d; the root end of the
+      // segment is handled by the segment before it.
+      p[j].add(away.multiplyScalar((reach - dist) / Math.max(sAlong, 0.25)));
     }
     if (groundY !== null && p[j].y < groundY + particleRadius) p[j].y = groundY + particleRadius;
   }
