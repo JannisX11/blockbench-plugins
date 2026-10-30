@@ -336,6 +336,23 @@
 		"creation_date": "2022-06-02",
 		"has_changelog": true
 	},
+	"colour_gradient_generator_addon": {
+		"title": "Colour Gradient Generator Add-on",
+		"icon": "icon.png",
+		"author": "Hlamingo",
+		"description": "Adds three-colour gradients, shade controls, texture eyedropper, copyable swatches, and palette groups.",
+		"tags": [
+			"Paint",
+			"Palette",
+			"Color"
+		],
+		"version": "0.4.5",
+		"min_version": "5.0.0",
+		"variant": "both",
+		"dependencies": [
+			"colour_gradient_generator"
+		]
+	},
 	"collapsible_start_screen_categories": {
 		"title": "Collapsible Start Screen Categories",
 		"icon": "chevron_right",
