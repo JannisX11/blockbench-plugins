@@ -21,15 +21,20 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const {performExport, zipExportName} = require('../exportFlow');
+const {
+  describeExportError,
+  performExport,
+  zipExportName
+} = require('../exportFlow');
 const {BlockbenchAdapter} = require('../BlockbenchAdapter');
 const {registerEmeCodecHooks} = require('../format/EmeCodecHooks');
 const {FORMAT_ID} = require('../format/EmeFormat');
-const {pickModelSettings} = require('../model/templates');
+const {compactModelSettings} = require('../model/templates');
 const {
   EXPORT_TYPE_MOD_PROJECT,
   EXPORT_TYPE_RESOURCE_PACK
 } = require('../model/exportTypes');
+const {LocalizedError, t} = require('../i18n/translations');
 const {fixtureSettings, fixtureTextureResolution} = require('./fixtureData');
 
 function compileProject() {
@@ -79,14 +84,13 @@ describe('performExport', () => {
   function modProjectSettings() {
     return {
       ...fixtureSettings(),
-      exportType: EXPORT_TYPE_MOD_PROJECT,
-      exportTarget: EXPORT_TYPE_MOD_PROJECT
+      exportType: EXPORT_TYPE_MOD_PROJECT
     };
   }
 
   test('exported model carries the settings of this very export', () => {
     const settings = modProjectSettings();
-    performExport(settings, EXPORT_TYPE_MOD_PROJECT,
+    performExport(settings,
         fixtureTextureResolution(settings));
 
     const exported = JSON.parse(fs.readFileSync(
@@ -94,7 +98,7 @@ describe('performExport', () => {
             'assets/example/easy_model_entities/models/lizard.bbmodel'),
         'utf8'));
     expect(exported.emeSettings).toEqual(
-        pickModelSettings(BlockbenchAdapter.loadSettings()));
+        compactModelSettings(BlockbenchAdapter.loadSettings()));
     expect(exported.emeSettings.presetType).toBe(settings.presetType);
     expect(exported.emeSettings.profileId).toBe('lizard');
     expect(exported.emeSettings.lastExportedVersion).toMatch(/^[0-9a-f]{8}$/);
@@ -102,11 +106,44 @@ describe('performExport', () => {
 
   test('stores the pairing version for the next single pack export', () => {
     const settings = modProjectSettings();
-    performExport(settings, EXPORT_TYPE_MOD_PROJECT,
+    performExport(settings,
         fixtureTextureResolution(settings));
 
     expect(BlockbenchAdapter.loadSettings().lastExportedVersion).toMatch(
         /^[0-9a-f]{8}$/);
+    expect(BlockbenchAdapter.loadSettings().lastExportedTargetVersion).toBe(
+        settings.targetVersion);
+  });
+
+  test('keeps the previous pairing when no files are written', () => {
+    global.Blockbench.pickDirectory = () => null;
+    const settings = modProjectSettings();
+    performExport(settings,
+        fixtureTextureResolution(settings));
+
+    expect(BlockbenchAdapter.loadSettings().lastExportedVersion)
+    .toBeUndefined();
+    expect(BlockbenchAdapter.loadSettings().lastExportedTargetVersion)
+    .toBeUndefined();
+  });
+
+  test('reports a failing pack export instead of throwing', async () => {
+    const shownMessages = [];
+    global.Blockbench.showMessageBox = (box) => shownMessages.push(box);
+    jest.spyOn(console, 'error').mockImplementation(() => {
+    });
+    const settings = {
+      ...fixtureSettings(),
+      exportType: EXPORT_TYPE_RESOURCE_PACK,
+      targetVersion: '0.0'
+    };
+
+    await performExport(settings, fixtureTextureResolution(settings));
+    expect(shownMessages).toEqual([{
+      title: t('eme.message.exportFailed'),
+      message: t('eme.message.unsupportedTargetVersion', '0.0')
+    }]);
+    console.error.mockRestore();
   });
 
   test('an empty project property is not treated as stored settings', () => {
@@ -114,6 +151,28 @@ describe('performExport', () => {
 
     expect(BlockbenchAdapter.loadSettings()).toBeNull();
     expect(compileProject().emeSettings).toBeUndefined();
+  });
+});
+
+describe('describeExportError', () => {
+  test('shows a localized error as it is', () => {
+    expect(describeExportError(
+        new LocalizedError('eme.message.unsupportedTargetVersion', '1.0')))
+    .toBe(t('eme.message.unsupportedTargetVersion', '1.0'));
+  });
+
+  test('explains a known file system error with the affected path', () => {
+    const error = Object.assign(new Error('EBUSY: resource busy'),
+        {code: 'EBUSY', path: 'C:/pack/lizard.json'});
+
+    expect(describeExportError(error)).toBe(
+        t('eme.error.fileInUse', 'C:/pack/lizard.json') + '\n\n'
+        + t('eme.message.errorDetails', 'EBUSY: resource busy'));
+  });
+
+  test('asks to report anything unexpected with its details', () => {
+    expect(describeExportError(new TypeError('boom'))).toBe(
+        t('eme.message.unexpectedError', 'boom'));
   });
 });
 

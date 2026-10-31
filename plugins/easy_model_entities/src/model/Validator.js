@@ -22,11 +22,24 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_CLIPS,
+  ANIMATION_MODES,
+  ANIMATION_VARIANT_MODES,
+  BEHAVIOR_MODES,
+  BODY_TYPES,
+  GAIT_TYPES,
+  MOVEMENT_TYPES,
+  SHOULDER_CLIP,
   MODEL_TYPE_BLOCK_ENTITY,
+  normalizeName,
+  isStandardClip,
   standardClipNames
 } = require('./presetTypes');
+const {t} = require('../i18n/translations');
 
 const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
+const ANY_FINITE = [-Number.MAX_VALUE, Number.MAX_VALUE];
+const NON_NEGATIVE = [0, Number.MAX_VALUE];
+const POSITIVE = 'positive';
 
 class Validator {
   static BUDGETS = {
@@ -40,7 +53,8 @@ class Validator {
     softBoneCount: 96,
     maxHierarchyDepth: 32,
     softHierarchyDepth: 24,
-    maxAnimationCount: 16
+    maxAnimationCount: 64,
+    softAnimationCount: 32
   };
 
   static LIMITS = {
@@ -51,12 +65,29 @@ class Validator {
   };
 
   static REQUIRED_BODY_PARTS = {
-    quadruped: ['root', 'body', 'head', 'front_left_leg', 'front_right_leg',
+    biped: ['head', 'body', 'left_arm', 'right_arm', 'left_leg', 'right_leg'],
+    quadruped: ['body', 'head', 'front_left_leg', 'front_right_leg',
       'back_left_leg', 'back_right_leg'],
-    biped: ['root', 'head', 'body', 'left_arm', 'right_arm', 'left_leg',
-      'right_leg'],
+    aquatic: ['body'],
+    amphibious: ['body'],
+    winged: ['body', 'head', 'left_wing', 'right_wing'],
+    winged_humanoid: ['body', 'head', 'left_arm', 'right_arm', 'left_wing',
+      'right_wing'],
+    arthropod: ['body', 'head', 'front_left_leg', 'front_right_leg',
+      'middle_front_left_leg', 'middle_front_right_leg',
+      'middle_back_left_leg', 'middle_back_right_leg', 'back_left_leg',
+      'back_right_leg'],
+    cuboid: ['body'],
+    floating: ['body'],
     static: []
   };
+
+  static MAX_LISTED_NAMES = 5;
+
+  static MODEL_LOAD_ERROR_CODES = new Set(['MISSING_TEXTURE',
+    'INVALID_TEXTURE_LOCATION', 'DUPLICATE_TEXTURE_INDEX',
+    'MISSING_TEXTURE_INDEX', 'HIGH_ANIMATION_COUNT', 'MISSING_BODY_PART',
+    'UNSUPPORTED_ELEMENT', 'CUBE_OUTSIDE_GROUP']);
 
   static #isFiniteNumber(value) {
     return typeof value === 'number' && Number.isFinite(value);
@@ -66,7 +97,7 @@ class Validator {
     if (!Validator.#isFiniteNumber(value)) {
       errors.push({
         code: 'INVALID_NUMERIC',
-        message: `${label} must be a finite number`
+        message: t('eme.validation.INVALID_NUMERIC', label)
       });
       return false;
     }
@@ -82,13 +113,8 @@ class Validator {
 
     errors.push({
       code: code,
-      message: `${label} must be between ${minimum} and ${maximum}`
+      message: t('eme.validation.range', label, minimum, maximum)
     });
-  }
-
-  static #validateNonNegative(errors, code, label, value) {
-    Validator.#validateRange(errors, code, label, value, 0,
-        Number.MAX_VALUE);
   }
 
   static #validatePositive(errors, code, label, value) {
@@ -96,19 +122,178 @@ class Validator {
       return;
     }
 
-    errors.push({code: code, message: `${label} must be greater than 0`});
+    errors.push({code: code, message: t('eme.validation.positive', label)});
   }
 
-  static #warnIfOverBudget(warnings, value, soft, max, softWarning,
-      maxWarning) {
-    if (!Validator.#isFiniteNumber(value)) {
-      return;
+  static #choiceChecks(settings) {
+    const {host, behavior, animation} = settings;
+
+    return [
+      ['INVALID_HOST_SETTINGS', 'entity.body_type', host.bodyType, BODY_TYPES],
+      ['INVALID_HOST_SETTINGS', 'entity.movement_type', host.movementType,
+        MOVEMENT_TYPES],
+      ['INVALID_BEHAVIOR_SETTINGS', 'behavior.mode', behavior?.mode,
+        BEHAVIOR_MODES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.mode', animation.mode,
+        ANIMATION_MODES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.gait', animation.gait,
+        GAIT_TYPES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.variant_mode',
+        animation.variantMode, ANIMATION_VARIANT_MODES]
+    ];
+  }
+
+  static #numericChecks(settings) {
+    const limits = Validator.LIMITS;
+    const {dimensions, movement, attributes, rendering, animation} = settings;
+    const dimensionRange = [limits.minDimension, limits.maxDimension];
+    const maxEyeHeight = Number.isFinite(dimensions.height)
+        ? dimensions.height : limits.maxDimension;
+
+    return [
+      ['INVALID_DIMENSIONS', 'dimensions.width', dimensions.width,
+        dimensionRange],
+      ['INVALID_DIMENSIONS', 'dimensions.height', dimensions.height,
+        dimensionRange],
+      ['INVALID_DIMENSIONS', 'dimensions.eye_height', dimensions.eyeHeight,
+        [0, maxEyeHeight]],
+      ['INVALID_MOVEMENT', 'movement.speed', movement.speed,
+        [0, limits.maxMovementSpeed]],
+      ['INVALID_MOVEMENT', 'movement.step_height', movement.stepHeight,
+        [0, limits.maxStepHeight]],
+      ['INVALID_ATTRIBUTES', 'attributes.max_health', attributes.maxHealth,
+        NON_NEGATIVE],
+      ['INVALID_ATTRIBUTES', 'attributes.movement_speed',
+        attributes.movementSpeed, NON_NEGATIVE],
+      ['INVALID_ATTRIBUTES', 'attributes.follow_range', attributes.followRange,
+        NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.scale', rendering.scale,
+        POSITIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.shadow_radius',
+        rendering.shadowRadius, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.visible_bounds_width',
+        rendering.visibleBoundsWidth ?? 0, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.visible_bounds_height',
+        rendering.visibleBoundsHeight ?? 0, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.swing_speed',
+        animation.swingSpeed, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.walk_speed_multiplier',
+        animation.walkSpeedMultiplier, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.idle_strength',
+        animation.idleStrength ?? 1, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.opacity', rendering.opacity ?? 1,
+        [0, 1]],
+      ...Validator.#variantWeightChecks(animation),
+      ...Validator.#shoulderChecks(settings)
+    ];
+  }
+
+  static #variantWeightChecks(animation) {
+    if (animation.variantMode === 'none') {
+      return [];
     }
-    if (value > max) {
-      warnings.push(maxWarning);
-    } else if (value > soft) {
-      warnings.push(softWarning);
+
+    return Object.entries(animation.variantWeights || {}).map(
+        ([clipName, weight]) => ['INVALID_ANIMATION_SETTINGS',
+          `animation.variant_weights.${clipName}`, weight, POSITIVE]);
+  }
+
+  static #shoulderChecks(settings) {
+    if (settings.modelType === MODEL_TYPE_BLOCK_ENTITY || !settings.shoulder) {
+      return [];
     }
+
+    const offset = settings.shoulder.offset || [0, 0, 0];
+
+    return [
+      ...['x', 'y', 'z'].map((axis, index) => ['INVALID_RENDER_SETTINGS',
+        `shoulder.offset.${axis}`, offset[index], ANY_FINITE]),
+      ['INVALID_RENDER_SETTINGS', 'shoulder.scale',
+        settings.shoulder.scale ?? 1, POSITIVE]
+    ];
+  }
+
+  static #budgetChecks(context) {
+    const budgets = Validator.BUDGETS;
+    const textureSize = Validator.#isFiniteNumber(context.textureWidth)
+    && Validator.#isFiniteNumber(context.textureHeight)
+        ? Math.max(context.textureWidth, context.textureHeight) : undefined;
+    const bytesPerMegabyte = 1024 * 1024;
+
+    return [
+      [textureSize, budgets.softTextureSize, budgets.maxTextureSize,
+        'SOFT_TEXTURE_SIZE', 'LARGE_TEXTURE',
+        (limit) => t('eme.validation.budget.textureSize', limit)],
+      [context.modelFileSize, budgets.softModelFileSizeBytes,
+        budgets.maxModelFileSizeBytes, 'SOFT_MODEL_SIZE', 'LARGE_MODEL',
+        (limit) => t('eme.validation.budget.modelSize',
+            limit / bytesPerMegabyte)],
+      [context.cubeCount, budgets.softCubeCount, budgets.maxCubeCount,
+        'SOFT_CUBE_COUNT', 'HIGH_CUBE_COUNT',
+        (limit) => t('eme.validation.budget.cubeCount', limit)],
+      [context.boneCount, budgets.softBoneCount, budgets.maxBoneCount,
+        'SOFT_BONE_COUNT', 'HIGH_BONE_COUNT',
+        (limit) => t('eme.validation.budget.boneCount', limit)],
+      [context.hierarchyDepth, budgets.softHierarchyDepth,
+        budgets.maxHierarchyDepth, 'SOFT_HIERARCHY_DEPTH', 'DEEP_HIERARCHY',
+        (limit) => t('eme.validation.budget.hierarchyDepth', limit)]
+    ];
+  }
+
+  static #formatNames(names) {
+    const listed = names.slice(0, Validator.MAX_LISTED_NAMES).join(', ');
+    const remaining = names.length - Validator.MAX_LISTED_NAMES;
+
+    return remaining > 0 ? t('eme.validation.more', listed, remaining)
+        : listed;
+  }
+
+  static #pushNamed(issues, code, names, ...params) {
+    if (names && names.length > 0) {
+      issues.push({
+        code: code,
+        message: t(`eme.validation.${code}`, Validator.#formatNames(names),
+            ...params)
+      });
+    }
+  }
+
+  static #duplicateNames(names) {
+    const seen = new Set();
+    const duplicates = new Set();
+    (names || []).map(normalizeName).filter(Boolean).forEach((name) => {
+      if (seen.has(name)) {
+        duplicates.add(name);
+      } else {
+        seen.add(name);
+      }
+    });
+
+    return [...duplicates];
+  }
+
+  static validateGeometry(geometry) {
+    const errors = [];
+    const warnings = [];
+
+    Validator.#pushNamed(errors, 'UNSUPPORTED_ELEMENT',
+        geometry.unsupportedElements);
+    Validator.#pushNamed(errors, 'CUBE_OUTSIDE_GROUP', geometry.rootCubes);
+    Validator.#pushNamed(warnings, 'FACE_UV_ROTATION_IGNORED',
+        geometry.rotatedFaceCubes);
+    Validator.#pushNamed(warnings, 'PER_TEXTURE_UV_SIZE',
+        geometry.customUvSizeTextures);
+    // The mod binds every modded_entity cube to texture 0, so only eme_entity
+    // keeps a texture per cube that a mix on its faces can contradict.
+    if (geometry.formatId === 'eme_entity') {
+      Validator.#pushNamed(warnings, 'MIXED_TEXTURES_PER_CUBE',
+          geometry.mixedTextureCubes);
+    }
+    Validator.#pushNamed(warnings, 'HIDDEN_ELEMENT', geometry.hiddenNodes);
+    Validator.#pushNamed(warnings, 'DUPLICATE_GROUP_NAME',
+        Validator.#duplicateNames(geometry.exportedGroupNames));
+
+    return {errors, warnings};
   }
 
   static validateSettings(settings, context) {
@@ -119,27 +304,15 @@ class Validator {
     if (!ResourceLocation.isValidNamespace(settings.namespace)) {
       errors.push({
         code: 'INVALID_NAMESPACE',
-        message: `Invalid namespace: ${settings.namespace}, use for example `
-            + `${ResourceLocation.sanitizeNamespace(settings.namespace)}`
+        message: t('eme.validation.INVALID_NAMESPACE', settings.namespace,
+            ResourceLocation.sanitizeNamespace(settings.namespace))
       });
     }
     if (!ResourceLocation.isValidPath(settings.profileId)) {
       errors.push({
         code: 'INVALID_PROFILE_ID',
-        message: `Invalid profile ID: ${settings.profileId}, use for example `
-            + `${ResourceLocation.sanitizeProfileId(settings.profileId)}`
-      });
-    }
-
-    const id = `${settings.namespace}:${settings.profileId}`;
-    if (
-        ResourceLocation.isValidNamespace(settings.namespace) &&
-        ResourceLocation.isValidPath(settings.profileId) &&
-        !ResourceLocation.isValidResourceLocation(id)
-    ) {
-      errors.push({
-        code: 'INVALID_RESOURCE_LOCATION',
-        message: `Invalid resource location: ${id}`
+        message: t('eme.validation.INVALID_PROFILE_ID', settings.profileId,
+            ResourceLocation.sanitizeProfileId(settings.profileId))
       });
     }
     const blockEntity = settings.modelType === MODEL_TYPE_BLOCK_ENTITY;
@@ -148,65 +321,47 @@ class Validator {
             settings.host.entityType)) {
       errors.push({
         code: 'INVALID_RESOURCE_LOCATION',
-        message: `Invalid host entity type: ${settings.host.entityType}`
+        message: t('eme.validation.INVALID_RESOURCE_LOCATION',
+            settings.host.entityType)
       });
     }
     const validPresets = blockEntity ? BLOCK_ENTITY_PRESET_TYPES : PRESET_TYPES;
     if (!validPresets.includes(settings.presetType)) {
       errors.push({
         code: 'INVALID_PRESET_TYPE',
-        message: `Invalid preset type: ${settings.presetType}`
+        message: t('eme.validation.INVALID_PRESET_TYPE', settings.presetType)
       });
     }
 
-    const limits = Validator.LIMITS;
-    const {width, height, eyeHeight} = settings.dimensions;
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.width',
-        width, limits.minDimension, limits.maxDimension);
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.height',
-        height, limits.minDimension, limits.maxDimension);
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS',
-        'dimensions.eye_height', eyeHeight, 0,
-        Number.isFinite(height) ? height : limits.maxDimension);
-
-    Validator.#validateRange(errors, 'INVALID_MOVEMENT', 'movement.speed',
-        settings.movement.speed, 0, limits.maxMovementSpeed);
-    Validator.#validateRange(errors, 'INVALID_MOVEMENT',
-        'movement.step_height', settings.movement.stepHeight, 0,
-        limits.maxStepHeight);
-
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.max_health', settings.attributes.maxHealth);
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.movement_speed', settings.attributes.movementSpeed);
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.follow_range', settings.attributes.followRange);
-
-    const rendering = settings.rendering;
-    Validator.#validatePositive(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.scale', rendering.scale);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.shadow_radius', rendering.shadowRadius);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.visible_bounds_width', rendering.visibleBoundsWidth ?? 0);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.visible_bounds_height', rendering.visibleBoundsHeight ?? 0);
-
-    const animation = settings.animation;
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.swing_speed', animation.swingSpeed);
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.walk_speed_multiplier', animation.walkSpeedMultiplier);
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.idle_strength', animation.idleStrength ?? 1);
+    for (const [code, label, value, range] of Validator.#numericChecks(
+        settings)) {
+      if (range === POSITIVE) {
+        Validator.#validatePositive(errors, code, label, value);
+      } else {
+        Validator.#validateRange(errors, code, label, value, ...range);
+      }
+    }
+    for (const [code, field, value, choices] of Validator.#choiceChecks(
+        settings)) {
+      if (value !== undefined && !choices.includes(value)) {
+        errors.push({
+          code: code,
+          message: t('eme.validation.choice', field, choices.join(', '))
+        });
+      }
+    }
 
     if (ctx.hasModel === false) {
-      errors.push(
-          {code: 'MISSING_MODEL', message: 'No model present in project'});
+      errors.push({
+        code: 'MISSING_MODEL',
+        message: t('eme.validation.MISSING_MODEL')
+      });
     }
     if (ctx.hasTexture === false) {
-      errors.push(
-          {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
+      errors.push({
+        code: 'MISSING_TEXTURE',
+        message: t('eme.validation.MISSING_TEXTURE')
+      });
     }
     (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
 
@@ -214,94 +369,64 @@ class Validator {
     if (referencedTextures.length > 0) {
       warnings.push({
         code: 'EXTERNAL_TEXTURE_REFERENCE',
-        message: `${referencedTextures.join(
-                ', ')} stays a reference and is not `
-            + 'part of the export; the mod or pack providing it has to be '
-            + 'installed, or enable "Include external textures"'
+        message: t('eme.validation.EXTERNAL_TEXTURE_REFERENCE',
+            referencedTextures.join(', '),
+            t('eme.field.includeExternalTextures'))
       });
     }
 
-    if (Validator.#isFiniteNumber(ctx.textureWidth)
-        && Validator.#isFiniteNumber(ctx.textureHeight)) {
-      const textureSize = Math.max(ctx.textureWidth, ctx.textureHeight);
-      Validator.#warnIfOverBudget(warnings, textureSize,
-          Validator.BUDGETS.softTextureSize, Validator.BUDGETS.maxTextureSize,
-          {
-            code: 'SOFT_TEXTURE_SIZE',
-            message: `Texture larger than ${Validator.BUDGETS.softTextureSize}x${Validator.BUDGETS.softTextureSize}`
-          },
-          {
-            code: 'LARGE_TEXTURE',
-            message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
-          });
+    for (const [value, soft, max, softCode, maxCode, describe]
+        of Validator.#budgetChecks(ctx)) {
+      if (!Validator.#isFiniteNumber(value)) {
+        continue;
+      }
+      if (value > max) {
+        warnings.push({code: maxCode, message: describe(max)});
+      } else if (value > soft) {
+        warnings.push({code: softCode, message: describe(soft)});
+      }
     }
-    Validator.#warnIfOverBudget(warnings, ctx.modelFileSize,
-        Validator.BUDGETS.softModelFileSizeBytes,
-        Validator.BUDGETS.maxModelFileSizeBytes,
-        {
-          code: 'SOFT_MODEL_SIZE',
-          message: 'Model file larger than 1 MB'
-        },
-        {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
-    Validator.#warnIfOverBudget(warnings, ctx.cubeCount,
-        Validator.BUDGETS.softCubeCount, Validator.BUDGETS.maxCubeCount,
-        {
-          code: 'SOFT_CUBE_COUNT',
-          message: `More than ${Validator.BUDGETS.softCubeCount} cubes`
-        },
-        {
-          code: 'HIGH_CUBE_COUNT',
-          message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
-        });
-    Validator.#warnIfOverBudget(warnings, ctx.boneCount,
-        Validator.BUDGETS.softBoneCount, Validator.BUDGETS.maxBoneCount,
-        {
-          code: 'SOFT_BONE_COUNT',
-          message: `More than ${Validator.BUDGETS.softBoneCount} bones`
-        },
-        {
-          code: 'HIGH_BONE_COUNT',
-          message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
-        });
-    Validator.#warnIfOverBudget(warnings, ctx.hierarchyDepth,
-        Validator.BUDGETS.softHierarchyDepth,
-        Validator.BUDGETS.maxHierarchyDepth,
-        {
-          code: 'SOFT_HIERARCHY_DEPTH',
-          message: `Hierarchy deeper than ${Validator.BUDGETS.softHierarchyDepth}`
-        },
-        {
-          code: 'DEEP_HIERARCHY',
-          message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
-        });
+    const budgets = Validator.BUDGETS;
     if (Validator.#isFiniteNumber(ctx.animationCount)
-        && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
+        && ctx.animationCount > budgets.maxAnimationCount) {
       errors.push({
         code: 'HIGH_ANIMATION_COUNT',
-        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations; the mod refuses to load the model`
+        message: t('eme.validation.HIGH_ANIMATION_COUNT',
+            budgets.maxAnimationCount)
+      });
+    } else if (Validator.#isFiniteNumber(ctx.animationCount)
+        && ctx.animationCount > budgets.softAnimationCount) {
+      warnings.push({
+        code: 'SOFT_ANIMATION_COUNT',
+        message: t('eme.validation.SOFT_ANIMATION_COUNT',
+            budgets.softAnimationCount)
       });
     }
 
+    Validator.#pushNamed(warnings, 'DUPLICATE_ANIMATION_NAME',
+        Validator.#duplicateNames(
+            (ctx.animations || []).map((animation) => animation.name)));
+    Validator.#pushNamed(warnings, 'CUSTOM_ANIMATION_CLIP',
+        (ctx.animations || []).filter((animation) => {
+          const name = normalizeName(animation.name);
+          const shoulderClip = !blockEntity && name === SHOULDER_CLIP;
+
+          return !isStandardClip(name) && !shoulderClip;
+        }).map((animation) => animation.name), ANIMATION_CLIPS.join(', '));
     (ctx.animations || []).forEach((animation) => {
-      const name = String(animation.name || '').toLowerCase();
-      if (!ANIMATION_CLIPS.includes(name)) {
-        warnings.push({
-          code: 'CUSTOM_ANIMATION_CLIP',
-          message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
-              ', ')} and is never played automatically; it can only be played by name via command or API`
-        });
-      }
       if (animation.hasExpression) {
         warnings.push({
           code: 'UNSUPPORTED_ANIMATION_EXPRESSION',
-          message: `Animation "${animation.name}" uses expressions; the mod only supports numeric keyframes and drops the clip`
+          message: t('eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION',
+              animation.name)
         });
       }
       (animation.channels || []).forEach((channel) => {
         if (!SUPPORTED_ANIMATION_CHANNELS.has(channel)) {
           warnings.push({
             code: 'UNSUPPORTED_ANIMATION_CHANNEL',
-            message: `Animation "${animation.name}" uses the "${channel}" channel which is ignored by the mod`
+            message: t('eme.validation.UNSUPPORTED_ANIMATION_CHANNEL',
+                animation.name, channel)
           });
         }
       });
@@ -313,28 +438,37 @@ class Validator {
             || settings.host.bodyType === 'static')) {
       warnings.push({
         code: 'ANIMATIONS_NEVER_PLAYED',
-        message: `The preset ${settings.presetType} renders without animation, `
-            + `so the mod never plays ${clipNames.join(
-                ', ')}; pick an animated `
-            + 'preset instead'
+        message: t('eme.validation.ANIMATIONS_NEVER_PLAYED',
+            settings.presetType, clipNames.join(', '))
       });
     }
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {
-      warnings.push({
+      errors.push({
         code: 'MISSING_BODY_PART',
-        message: `Missing recommended body part: ${part}`
+        message: t('eme.validation.MISSING_BODY_PART', settings.host.bodyType,
+            part)
       });
     });
+
+    if (ctx.geometry) {
+      const geometryResult = Validator.validateGeometry(ctx.geometry);
+      errors.push(...geometryResult.errors);
+      warnings.push(...geometryResult.warnings);
+    }
 
     return {errors, warnings, valid: errors.length === 0};
   }
 
+  static validateModelLoad(settings, context) {
+    return Validator.validateSettings(settings, context).errors.filter(
+        (issue) => Validator.MODEL_LOAD_ERROR_CODES.has(issue.code));
+  }
+
   static getMissingBodyParts(bodyType, boneNames) {
     const required = Validator.REQUIRED_BODY_PARTS[bodyType] || [];
-    const present = new Set(
-        (boneNames || []).map((name) => String(name).toLowerCase()));
+    const present = new Set((boneNames || []).map(normalizeName));
 
     return required.filter((part) => !present.has(part));
   }
@@ -344,7 +478,7 @@ class Validator {
       return {
         valid: false,
         code: 'INVALID_OUTPUT_PATH',
-        message: 'Empty output path'
+        message: t('eme.validation.INVALID_OUTPUT_PATH')
       };
     }
 
@@ -353,7 +487,7 @@ class Validator {
       return {
         valid: false,
         code: 'PATH_TRAVERSAL',
-        message: 'Path traversal detected'
+        message: t('eme.validation.PATH_TRAVERSAL', relativePath)
       };
     }
 
@@ -361,7 +495,7 @@ class Validator {
       return {
         valid: false,
         code: 'ABSOLUTE_PATH',
-        message: 'Absolute paths are not allowed'
+        message: t('eme.validation.ABSOLUTE_PATH', relativePath)
       };
     }
 

@@ -1,6 +1,6 @@
 {
   "schema_version": "0.2.0",
-  "api_version": "2.0.0",
+  "api_version": "2.5.0",
   "supported_schema_versions": [
     "0.1.0",
     "0.2.0"
@@ -16,7 +16,8 @@
     "soft_cube_count": 384,
     "max_hierarchy_depth": 32,
     "soft_hierarchy_depth": 24,
-    "max_animation_count": 16
+    "max_animation_count": 64,
+    "soft_animation_count": 32
   },
   "enums": {
     "model_types": [
@@ -80,6 +81,11 @@
       "random_idle",
       "none"
     ],
+    "animation_variant_modes": [
+      "random",
+      "sequential",
+      "none"
+    ],
     "animation_states": [
       "auto",
       "idle",
@@ -114,11 +120,17 @@
     "playback_modes": [
       "once",
       "loop",
-      "repeat"
+      "repeat",
+      "hold"
     ],
     "animation_types": [
       "standard",
       "custom"
+    ],
+    "texture_blends": [
+      "cutout",
+      "translucent",
+      "emissive"
     ],
     "gaits": [
       "natural",
