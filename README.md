@@ -72,6 +72,7 @@ In order to submit your plugin, you need to meet a few requirements:
 * Make sure to not bundle dependencies that are already included in Blockbench. Blockbench comes with a number of libraries already included that can be used by plugins, such as ThreeJS, Vue 2, JSZip, Marked, and MolangJS.
 * Plugins may not execute code from external sources. This includes separately hosted scripts, user inputs or files, or otherwise externally hosted or generated code. This also applies to rendering of HTML content.
 * Plugins that utilize generative AI are not accepted into this repository but may be shared externally.
+* Plugin submissions may not contain AI generated art, whether as plugin icon, images in the about page, or in other places. Vibe-coded plugins will not be accepted. If coding assistant tools with AI were used, you must retain full understanding of how the code functions.
 
 This list of plugins is curated to some extent. Plugins will be reviewed and may not be accepted if they don't meet quality standards. Already published plugins may also be taken down if they no longer meet the requirements.
 

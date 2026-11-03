@@ -26,11 +26,15 @@ Supported Minecraft versions:
 </p>
 
 ```
-- 1.17.1 Forge/Fabric
+- 1.7.10 Forge
+- 1.12.2 Forge
+- 1.18.2 Forge/Fabric
 - 1.19.2 Forge/Fabric
-- 1.19.4 Forge/Fabric
 - 1.20.1 Forge/NeoForge/Fabric
 - 1.21.1 NeoForge/Fabric
+- 26.1.2 NeoForge/Fabric
+- 26.2 NeoForge/Fabric
+- 26.3 NeoForge/Fabric
 ```
 
 <p align="center">

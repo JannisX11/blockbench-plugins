@@ -5,18 +5,18 @@
 	Plugin.register('double_sided_cubes', {
 		title: 'Double Sided Cubes',
 		author: 'SnaveSutit',
-		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in java edition.',
+		description: 'Creates inverted duplicates of the selected cube(s) to allow double-sided rendering in Minecraft: Java Edition.',
         tags: ["Minecraft: Java Edition"],
 		icon: 'flip_to_back',
-		version: '1.0.1',
+		version: '1.0.2',
 		variant: 'both',
 		onload() {
 			cube_action = new Action({
-				id:"create_double_sided_cubes",
+				id: "create_double_sided_cubes",
 				name: 'Create Double Sided Cube',
 				icon: 'flip_to_back',
 				category: 'edit',
-				condition: () => !Project.box_uv,
+				condition: () => !Project.box_uv || Project.optional_box_uv,
 				click: function(ev) {
 					if (selected.length === 0) {
 						Blockbench.showMessage('No cubes selected', 'center')
@@ -26,13 +26,19 @@
 					let cubes = [];
 					Cube.selected.forEach((cube) => {
 						const new_cube = cube.duplicate();
-						new_cube.name = new_cube.name + " inverted";
-						if (cube.parent !== "root") {
-							new_cube.addTo(cube.parent);
-						};
+						// Set the new cube to Per-Face UV if it was using Box UV
+						if (!!new_cube.box_uv) {
+							new_cube.setUVMode(false);
+						}
+						// Invert new_cube
 						for (i=0; i<3; i++){
 							new_cube.flip(i, 0, false)
 						};
+						// cube.duplicate() and new_cube.flip(...) will sometimes change new_cube.name, 
+						//   so we make sure to set the name here, and base it on cube.name instead
+						new_cube.name = cube.name + " inverted";
+						// Place new_cube immediately after cube in the outliner
+						new_cube.sortInBefore(cube, 1);
 						new_cube.from = [...cube.to];
 						new_cube.to = [...cube.from];
 						new_cube.inflate = -new_cube.inflate;
