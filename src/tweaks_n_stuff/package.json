@@ -13,11 +13,15 @@
   "author": "legopitstop",
   "license": "MIT",
   "dependencies": {
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.25.12",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "blockbench-types": "^5.0.0",
+    "blockbench-types": "^5.1.0",
     "chokidar-cli": "^3.0.0"
+  },
+  "allowScripts": {
+    "electron@40.10.6": true,
+    "esbuild@0.25.12": true
   }
 }

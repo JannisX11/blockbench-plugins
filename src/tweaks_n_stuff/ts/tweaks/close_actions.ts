@@ -7,7 +7,7 @@ class CloseActionsTweak extends ToggleTweak {
     super("close_actions", { author: "legopitstop", category: "interface" });
   }
 
-  closeAllProjects() {
+  private closeAllProjects() {
     Blockbench.showQuickMessage("Closing all projects…");
     process([...ModelProject.all], (p) => {
       if (!p || p.pinned) return;
@@ -15,7 +15,7 @@ class CloseActionsTweak extends ToggleTweak {
     });
   }
 
-  closeSavedProjects() {
+  private closeSavedProjects() {
     Blockbench.showQuickMessage("Closing saved projects…");
     process([...ModelProject.all], (p) => {
       if (!p || !p.saved || p.pinned) return;
@@ -23,7 +23,7 @@ class CloseActionsTweak extends ToggleTweak {
     });
   }
 
-  closeRightProjects() {
+  private closeRightProjects() {
     Blockbench.showQuickMessage("Closing projects to right…");
     if (!Project) return;
     const index = ModelProject.all.indexOf(Project);
@@ -33,7 +33,7 @@ class CloseActionsTweak extends ToggleTweak {
     });
   }
 
-  closeOtherProjects() {
+  private closeOtherProjects() {
     Blockbench.showQuickMessage("Closing other projects…");
     if (!Project) return;
     const uuid = Project.uuid;
@@ -42,6 +42,8 @@ class CloseActionsTweak extends ToggleTweak {
       p.close(false, false);
     });
   }
+
+  // EVENTS
 
   onEnable() {
     var close_others = new Action("close_others", {

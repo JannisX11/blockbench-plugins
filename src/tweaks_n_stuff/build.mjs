@@ -2,7 +2,7 @@ import { build } from "esbuild";
 
 const buildOptions = {
   entryPoints: ["./ts"],
-  outfile: "../tweaks_n_stuff.js",
+  outfile: "../../plugins/tweaks_n_stuff/tweaks_n_stuff.js",
   format: "esm",
   bundle: true,
   minify: true,

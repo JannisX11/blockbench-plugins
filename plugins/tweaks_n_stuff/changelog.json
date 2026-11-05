@@ -39,7 +39,10 @@
     "categories": [
       {
         "title": "General",
-        "list": ["Plugin now uses typescript.", "Added translation support. (Translations found in `plugins/tweaks_n_stuff/src/ts/lang`)"]
+        "list": [
+          "Plugin now uses typescript.",
+          "Added translation support. (Translations found in `plugins/tweaks_n_stuff/src/ts/lang`)"
+        ]
       },
       {
         "title": "New Tweaks",
@@ -48,6 +51,23 @@
       {
         "title": "Bug Fixes",
         "list": ["Changing the profile color wouldn't update the header color."]
+      }
+    ]
+  },
+  "1.2.0": {
+    "title": "1.2.0",
+    "date": "2026-10-13",
+    "author": "legopitstop",
+    "categories": [
+      {
+        "title": "New",
+        "list": [
+          "Added `bedrock block` tweak",
+          "Added `bedrock entity` tweak",
+          "Added `bedrock open all` tweak",
+          "Added `clear recent projects` tweak",
+          "Added `notes` tweak"
+        ]
       }
     ]
   }
