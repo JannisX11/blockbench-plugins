@@ -75,7 +75,7 @@
 		"icon": "icon.png",
 		"description": "Create, import, and export PAL, Emotecraft, DragonCore player-model, and PlayerAnimationLibraryMoreRotation animations.",
 		"tags": ["Minecraft: Java Edition", "Animation", "Tools"],
-		"version": "0.4.0",
+		"version": "0.4.1",
 		"variant": "both",
 		"min_version": "4.8.0",
 		"repository": "https://github.com/kltyton/Pal-bend-player-tools",

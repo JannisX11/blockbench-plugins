@@ -13,6 +13,7 @@ Create a player animation project and convert PlayerAnimationLibrary / Emotecraf
 - Exports DragonCore-friendly parented projects as flat PAL bone animations by baking the current Blockbench hierarchy and pivots.
 - Imports flat PAL/emote back into parented projects by unbaking it into local Blockbench bone tracks.
 - Converts legacy DragonCore-authored animations into the current project rig before loading them.
+- Imports the August 2026 Emotecraft Blender export metadata, animation-local hierarchy, per-axis easing, and sparse `pal.disabled` tracks. Curves are sampled at 60 Hz when changing the rig hierarchy; direct tracks retain their easing parameters.
 
 ## 中文
 
@@ -25,6 +26,7 @@ Create a player animation project and convert PlayerAnimationLibrary / Emotecraf
 - 导出时会把当前 Blockbench 项目的父子关系和 pivot 烘焙成平铺 PAL 骨骼动画。
 - 导入平铺 PAL/emote 到带父子关系的项目时，会反向解烘焙成本地 Blockbench 骨骼轨道。
 - 导入龙核旧动画时会先转换到当前项目的 rig，再加载到时间轴。
+- 支持 2026 年 8 月新版 Emotecraft Blender 导出的动画元数据、独立层级、逐轴缓动与 `pal.disabled` 稀疏轨道。转换层级时按每秒 60 次采样；直接导入的轨道保留缓动参数。
 
 ## Notes
 
