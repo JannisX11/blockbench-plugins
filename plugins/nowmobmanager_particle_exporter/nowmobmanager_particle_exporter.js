@@ -10,11 +10,11 @@ let exporterBaseParticles = [];
 
 
 Plugin.register('nowmobmanager_particle_exporter', {
-    title: 'nowMobmanager Particle Exporter',
-    author: '_NotWhale (now)',
-    description: 'Export Blockbench models and animations as baked particle animations for nowMobmanager.',
+    title: 'nowMobManager Particle Exporter',
+    author: 'now04',
+    description: 'Convert Blockbench models and animations into baked particle animation data for nowMobManager.',
     icon: 'icon.png',
-    version: '1.0.0',
+    version: '1.0.1',
     variant: 'desktop',
     min_version: '5.0.0',
     new_repository_format: true,
@@ -23,14 +23,14 @@ Plugin.register('nowmobmanager_particle_exporter', {
         exportAction = new Action(
             'nowmobmanager_particle_exporter_baked',
             {
-                name: 'Export nowMobmanager Particle Animation',
-                description: 'Export the current Blockbench model as baked particle animation.',
+                name: 'Export nowMobManager Particle Animation',
+                description: 'Export the current Blockbench model as baked particle animation data for nowMobManager.',
                 icon: 'save',
                 click() {exportBakedParticleAnimation();}
             }
         );
         MenuBar.menus.tools.addAction(exportAction);
-        console.log('[nowMobmanager Particle Exporter] ' + 'Loaded nowMobmanager Particle Exporter v1.0.0');
+        console.log('[nowMobmanager Particle Exporter] ' + 'Loaded nowMobManager Particle Exporter v1.0.1');
     },
     onunload() {
         if (exportAction) {
