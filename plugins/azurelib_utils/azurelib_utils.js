@@ -589,7 +589,704 @@ module.exports = arrayLikeKeys;
 
 /***/ }),
 
-/***/ 814:
+/***/ 938:
+/***/ ((module) => {
+
+/**
+ * Removes `key` and its value from the stack.
+ *
+ * @private
+ * @name delete
+ * @memberOf Stack
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function stackDelete(key) {
+  var data = this.__data__,
+      result = data['delete'](key);
+
+  this.size = data.size;
+  return result;
+}
+
+module.exports = stackDelete;
+
+
+/***/ }),
+
+/***/ 945:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ListCache = __webpack_require__(79),
+    Map = __webpack_require__(8223),
+    MapCache = __webpack_require__(3661);
+
+/** Used as the size to enable large array optimizations. */
+var LARGE_ARRAY_SIZE = 200;
+
+/**
+ * Sets the stack `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Stack
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the stack cache instance.
+ */
+function stackSet(key, value) {
+  var data = this.__data__;
+  if (data instanceof ListCache) {
+    var pairs = data.__data__;
+    if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
+      pairs.push([key, value]);
+      this.size = ++data.size;
+      return this;
+    }
+    data = this.__data__ = new MapCache(pairs);
+  }
+  data.set(key, value);
+  this.size = data.size;
+  return this;
+}
+
+module.exports = stackSet;
+
+
+/***/ }),
+
+/***/ 1033:
+/***/ ((module) => {
+
+/**
+ * A faster alternative to `Function#apply`, this function invokes `func`
+ * with the `this` binding of `thisArg` and the arguments of `args`.
+ *
+ * @private
+ * @param {Function} func The function to invoke.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} args The arguments to invoke `func` with.
+ * @returns {*} Returns the result of `func`.
+ */
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0: return func.call(thisArg);
+    case 1: return func.call(thisArg, args[0]);
+    case 2: return func.call(thisArg, args[0], args[1]);
+    case 3: return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+
+module.exports = apply;
+
+
+/***/ }),
+
+/***/ 1042:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getNative = __webpack_require__(6110);
+
+/* Built-in method references that are verified to be native. */
+var nativeCreate = getNative(Object, 'create');
+
+module.exports = nativeCreate;
+
+
+/***/ }),
+
+/***/ 1123:
+/***/ ((module) => {
+
+const numeric = /^[0-9]+$/
+const compareIdentifiers = (a, b) => {
+  const anum = numeric.test(a)
+  const bnum = numeric.test(b)
+
+  if (anum && bnum) {
+    a = +a
+    b = +b
+  }
+
+  return a === b ? 0
+    : (anum && !bnum) ? -1
+    : (bnum && !anum) ? 1
+    : a < b ? -1
+    : 1
+}
+
+const rcompareIdentifiers = (a, b) => compareIdentifiers(b, a)
+
+module.exports = {
+  compareIdentifiers,
+  rcompareIdentifiers,
+}
+
+
+/***/ }),
+
+/***/ 1175:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assocIndexOf = __webpack_require__(6025);
+
+/**
+ * Sets the list cache `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf ListCache
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the list cache instance.
+ */
+function listCacheSet(key, value) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  if (index < 0) {
+    ++this.size;
+    data.push([key, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+
+module.exports = listCacheSet;
+
+
+/***/ }),
+
+/***/ 1331:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(2552),
+    getPrototype = __webpack_require__(8879),
+    isObjectLike = __webpack_require__(346);
+
+/** `Object#toString` result references. */
+var objectTag = '[object Object]';
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype,
+    objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Used to infer the `Object` constructor. */
+var objectCtorString = funcToString.call(Object);
+
+/**
+ * Checks if `value` is a plain object, that is, an object created by the
+ * `Object` constructor or one with a `[[Prototype]]` of `null`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.8.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ * }
+ *
+ * _.isPlainObject(new Foo);
+ * // => false
+ *
+ * _.isPlainObject([1, 2, 3]);
+ * // => false
+ *
+ * _.isPlainObject({ 'x': 0, 'y': 0 });
+ * // => true
+ *
+ * _.isPlainObject(Object.create(null));
+ * // => true
+ */
+function isPlainObject(value) {
+  if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
+    return false;
+  }
+  var proto = getPrototype(value);
+  if (proto === null) {
+    return true;
+  }
+  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
+  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
+    funcToString.call(Ctor) == objectCtorString;
+}
+
+module.exports = isPlainObject;
+
+
+/***/ }),
+
+/***/ 1420:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ListCache = __webpack_require__(79);
+
+/**
+ * Removes all key-value entries from the stack.
+ *
+ * @private
+ * @name clear
+ * @memberOf Stack
+ */
+function stackClear() {
+  this.__data__ = new ListCache;
+  this.size = 0;
+}
+
+module.exports = stackClear;
+
+
+/***/ }),
+
+/***/ 1549:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var hashClear = __webpack_require__(2032),
+    hashDelete = __webpack_require__(3862),
+    hashGet = __webpack_require__(6721),
+    hashHas = __webpack_require__(2749),
+    hashSet = __webpack_require__(5749);
+
+/**
+ * Creates a hash object.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function Hash(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `Hash`.
+Hash.prototype.clear = hashClear;
+Hash.prototype['delete'] = hashDelete;
+Hash.prototype.get = hashGet;
+Hash.prototype.has = hashHas;
+Hash.prototype.set = hashSet;
+
+module.exports = Hash;
+
+
+/***/ }),
+
+/***/ 1769:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isArray = __webpack_require__(6449),
+    isKey = __webpack_require__(8586),
+    stringToPath = __webpack_require__(1802),
+    toString = __webpack_require__(3222);
+
+/**
+ * Casts `value` to a path array if it's not one.
+ *
+ * @private
+ * @param {*} value The value to inspect.
+ * @param {Object} [object] The object to query keys on.
+ * @returns {Array} Returns the cast property path array.
+ */
+function castPath(value, object) {
+  if (isArray(value)) {
+    return value;
+  }
+  return isKey(value, object) ? [value] : stringToPath(toString(value));
+}
+
+module.exports = castPath;
+
+
+/***/ }),
+
+/***/ 1791:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assignValue = __webpack_require__(6547),
+    baseAssignValue = __webpack_require__(3360);
+
+/**
+ * Copies properties of `source` to `object`.
+ *
+ * @private
+ * @param {Object} source The object to copy properties from.
+ * @param {Array} props The property identifiers to copy.
+ * @param {Object} [object={}] The object to copy properties to.
+ * @param {Function} [customizer] The function to customize copied values.
+ * @returns {Object} Returns `object`.
+ */
+function copyObject(source, props, object, customizer) {
+  var isNew = !object;
+  object || (object = {});
+
+  var index = -1,
+      length = props.length;
+
+  while (++index < length) {
+    var key = props[index];
+
+    var newValue = customizer
+      ? customizer(object[key], source[key], key, object, source)
+      : undefined;
+
+    if (newValue === undefined) {
+      newValue = source[key];
+    }
+    if (isNew) {
+      baseAssignValue(object, key, newValue);
+    } else {
+      assignValue(object, key, newValue);
+    }
+  }
+  return object;
+}
+
+module.exports = copyObject;
+
+
+/***/ }),
+
+/***/ 1802:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var memoizeCapped = __webpack_require__(2224);
+
+/** Used to match property names within property paths. */
+var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
+
+/** Used to match backslashes in property paths. */
+var reEscapeChar = /\\(\\)?/g;
+
+/**
+ * Converts `string` to a property path array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the property path array.
+ */
+var stringToPath = memoizeCapped(function(string) {
+  var result = [];
+  if (string.charCodeAt(0) === 46 /* . */) {
+    result.push('');
+  }
+  string.replace(rePropName, function(match, number, quote, subString) {
+    result.push(quote ? subString.replace(reEscapeChar, '$1') : (number || match));
+  });
+  return result;
+});
+
+module.exports = stringToPath;
+
+
+/***/ }),
+
+/***/ 1811:
+/***/ ((module) => {
+
+/** Used to detect hot functions by number of calls within a span of milliseconds. */
+var HOT_COUNT = 800,
+    HOT_SPAN = 16;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeNow = Date.now;
+
+/**
+ * Creates a function that'll short out and invoke `identity` instead
+ * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
+ * milliseconds.
+ *
+ * @private
+ * @param {Function} func The function to restrict.
+ * @returns {Function} Returns the new shortable function.
+ */
+function shortOut(func) {
+  var count = 0,
+      lastCalled = 0;
+
+  return function() {
+    var stamp = nativeNow(),
+        remaining = HOT_SPAN - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(undefined, arguments);
+  };
+}
+
+module.exports = shortOut;
+
+
+/***/ }),
+
+/***/ 1873:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var root = __webpack_require__(9325);
+
+/** Built-in value references. */
+var Symbol = root.Symbol;
+
+module.exports = Symbol;
+
+
+/***/ }),
+
+/***/ 1882:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(2552),
+    isObject = __webpack_require__(3805);
+
+/** `Object#toString` result references. */
+var asyncTag = '[object AsyncFunction]',
+    funcTag = '[object Function]',
+    genTag = '[object GeneratorFunction]',
+    proxyTag = '[object Proxy]';
+
+/**
+ * Checks if `value` is classified as a `Function` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ *
+ * _.isFunction(/abc/);
+ * // => false
+ */
+function isFunction(value) {
+  if (!isObject(value)) {
+    return false;
+  }
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in Safari 9 which returns 'object' for typed arrays and other constructors.
+  var tag = baseGetTag(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
+
+module.exports = isFunction;
+
+
+/***/ }),
+
+/***/ 1961:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var cloneArrayBuffer = __webpack_require__(9653);
+
+/**
+ * Creates a clone of `typedArray`.
+ *
+ * @private
+ * @param {Object} typedArray The typed array to clone.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned typed array.
+ */
+function cloneTypedArray(typedArray, isDeep) {
+  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+
+module.exports = cloneTypedArray;
+
+
+/***/ }),
+
+/***/ 2032:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(1042);
+
+/**
+ * Removes all key-value entries from the hash.
+ *
+ * @private
+ * @name clear
+ * @memberOf Hash
+ */
+function hashClear() {
+  this.__data__ = nativeCreate ? nativeCreate(null) : {};
+  this.size = 0;
+}
+
+module.exports = hashClear;
+
+
+/***/ }),
+
+/***/ 2111:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const eq = __webpack_require__(4641)
+const neq = __webpack_require__(3999)
+const gt = __webpack_require__(5580)
+const gte = __webpack_require__(4089)
+const lt = __webpack_require__(7059)
+const lte = __webpack_require__(5200)
+
+const cmp = (a, op, b, loose) => {
+  switch (op) {
+    case '===':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a === b
+
+    case '!==':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a !== b
+
+    case '':
+    case '=':
+    case '==':
+      return eq(a, b, loose)
+
+    case '!=':
+      return neq(a, b, loose)
+
+    case '>':
+      return gt(a, b, loose)
+
+    case '>=':
+      return gte(a, b, loose)
+
+    case '<':
+      return lt(a, b, loose)
+
+    case '<=':
+      return lte(a, b, loose)
+
+    default:
+      throw new TypeError(`Invalid operator: ${op}`)
+  }
+}
+module.exports = cmp
+
+
+/***/ }),
+
+/***/ 2199:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayPush = __webpack_require__(4528),
+    isArray = __webpack_require__(6449);
+
+/**
+ * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
+ * `keysFunc` and `symbolsFunc` to get the enumerable property names and
+ * symbols of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {Function} keysFunc The function to get the keys of `object`.
+ * @param {Function} symbolsFunc The function to get the symbols of `object`.
+ * @returns {Array} Returns the array of property names and symbols.
+ */
+function baseGetAllKeys(object, keysFunc, symbolsFunc) {
+  var result = keysFunc(object);
+  return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
+}
+
+module.exports = baseGetAllKeys;
+
+
+/***/ }),
+
+/***/ 2224:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var memoize = __webpack_require__(104);
+
+/** Used as the maximum memoize cache size. */
+var MAX_MEMOIZE_SIZE = 500;
+
+/**
+ * A specialized version of `_.memoize` which clears the memoized function's
+ * cache when it exceeds `MAX_MEMOIZE_SIZE`.
+ *
+ * @private
+ * @param {Function} func The function to have its output memoized.
+ * @returns {Function} Returns the new memoized function.
+ */
+function memoizeCapped(func) {
+  var result = memoize(func, function(key) {
+    if (cache.size === MAX_MEMOIZE_SIZE) {
+      cache.clear();
+    }
+    return key;
+  });
+
+  var cache = result.cache;
+  return result;
+}
+
+module.exports = memoizeCapped;
+
+
+/***/ }),
+
+/***/ 2271:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var copyObject = __webpack_require__(1791),
+    getSymbols = __webpack_require__(4664);
+
+/**
+ * Copies own symbols of `source` to `object`.
+ *
+ * @private
+ * @param {Object} source The object to copy symbols from.
+ * @param {Object} [object={}] The object to copy symbols to.
+ * @returns {Object} Returns `object`.
+ */
+function copySymbols(source, object) {
+  return copyObject(source, getSymbols(source), object);
+}
+
+module.exports = copySymbols;
+
+
+/***/ }),
+
+/***/ 2341:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3202,9 +3899,15 @@ function parseAnimation(name, src, filePath) {
   if (src.bones) {
     for (const boneName in src.bones) {
       const bone = src.bones[boneName];
-      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-      const uuid = group ? group.uuid : guid();
-      const boneAnim = new BoneAnimator(uuid, anim, boneName);
+      const lowerName = boneName.toLowerCase();
+      const group = Group.all.find(g => g.name.toLowerCase() === lowerName);
+      const armatureBone = !group && typeof ArmatureBone !== 'undefined'
+        ? ArmatureBone.all.find(b => b.name.toLowerCase() === lowerName)
+        : null;
+      const target = group || armatureBone;
+      const uuid = target ? target.uuid : guid();
+      const AnimatorType = armatureBone && ArmatureBone.animator ? ArmatureBone.animator : BoneAnimator;
+      const boneAnim = new AnimatorType(uuid, anim, boneName);
       anim.animators[uuid] = boneAnim;
 
       for (const channel in bone) {
@@ -3960,6 +4663,1297 @@ function unregisterAzureAnimationFormat() {
   azureAnimationCodec = null;
   console.log('[AzureLib] Azure animation codec unregistered');
 }
+;// ./core/azure-mesh.js
+/**
+ * AzureLib Animator — Mesh & Armature Export
+ * ------------------------------------------
+ * Blockbench's Bedrock geometry codec only writes cubes, locators and texture
+ * meshes. This module hooks its compile event (for the azure_model format) and
+ * adds the polygon meshes and armatures the Bedrock compiler skips:
+ *
+ *  - A Mesh directly under a group (or at the root) is written to that bone's
+ *    standard Bedrock `poly_mesh`. Every mesh under the same bone is merged into
+ *    one poly_mesh, baked into the bone's absolute (pivot) space, so it moves
+ *    rigidly with the bone exactly like a cube does.
+ *
+ *  - An Armature becomes a plain bone (flagged `azurelib:armature`) parented to
+ *    the armature's group, and each ArmatureBone becomes a regular bone under it
+ *    (flagged `azurelib:armature_bone`). AzureLib animates them like any other
+ *    bone, so animation keyframes on armature bones export unchanged.
+ *
+ *  - A Mesh inside an Armature is written to the armature bone's
+ *    `azurelib:skinned_meshes` list: rest-pose positions in model space, per
+ *    corner normals/UVs, and up to four normalized joint weights per position.
+ *    AzureLib deforms these with linear blend skinning, the same math as the
+ *    Blockbench preview, so the in-editor deformation is what you get in game.
+ *
+ * Coordinates follow the Bedrock convention used by the rest of the file: X is
+ * negated on export and negated back by AzureLib's loader. Vertex order is kept
+ * as Blockbench renders it (tris as stored, quads in sorted loop order), so the
+ * winding matches the exported normals.
+ *
+ * azure-mesh-import.js rebuilds all of this when a .geo.json is opened again,
+ * using the azurelib:* metadata written here.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+const EXT_SKINNED_MESHES = 'azurelib:skinned_meshes';
+const EXT_ARMATURE = 'azurelib:armature';
+const EXT_ARMATURE_BONE = 'azurelib:armature_bone';
+const EXT_MESH_PARTS = 'azurelib:mesh_parts';
+const MAX_INFLUENCES = 4;
+
+const MIN_WEIGHT = 1e-4;
+const DEDUPE_PRECISION = 1e5;
+
+let meshValidatorCheck = null;
+let lastExportWarnings = [];
+
+function hasMeshes() {
+  return typeof Mesh !== 'undefined' && Array.isArray(Mesh.all);
+}
+
+function hasArmatures() {
+  return typeof Armature !== 'undefined' && typeof ArmatureBone !== 'undefined' && Array.isArray(Armature.all);
+}
+
+function isNode(node) {
+  return node && node !== 'root' && typeof node === 'object';
+}
+
+function formatEulerOrder() {
+  return (typeof Format !== 'undefined' && Format?.euler_order) || 'ZYX';
+}
+
+function eulerOrder(node) {
+  const order = node?.mesh?.rotation?.order;
+  if (typeof order === 'string' && order.length === 3) return order;
+  if (typeof Mesh !== 'undefined' && node instanceof Mesh) return 'XYZ';
+  return formatEulerOrder();
+}
+
+function degToRad(value) {
+  return ((Number(value) || 0) * Math.PI) / 180;
+}
+
+function localMatrix(node) {
+  const matrix = new THREE.Matrix4();
+
+  if (hasArmatures() && node instanceof Armature) {
+    return matrix;
+  }
+
+  const origin = Array.isArray(node.origin) ? node.origin : [0, 0, 0];
+  const position = new THREE.Vector3(origin[0], origin[1], origin[2]);
+  const parent = node.parent;
+
+  if (isNode(parent) && parent.getTypeBehavior?.('use_absolute_position') && Array.isArray(parent.origin)) {
+    position.x -= parent.origin[0];
+    position.y -= parent.origin[1];
+    position.z -= parent.origin[2];
+  }
+
+  const quaternion = new THREE.Quaternion();
+  if (Array.isArray(node.rotation)) {
+    quaternion.setFromEuler(
+      new THREE.Euler(degToRad(node.rotation[0]), degToRad(node.rotation[1]), degToRad(node.rotation[2]), eulerOrder(node))
+    );
+  }
+
+  const scale = new THREE.Vector3(1, 1, 1);
+  if (Array.isArray(node.scale) && node.getTypeBehavior?.('scalable')) {
+    scale.set(node.scale[0] || 1e-7, node.scale[1] || 1e-7, node.scale[2] || 1e-7);
+  }
+
+  return matrix.compose(position, quaternion, scale);
+}
+
+function restWorldMatrix(node) {
+  const chain = [];
+  for (let current = node; isNode(current); current = current.parent) {
+    chain.unshift(current);
+  }
+
+  const matrix = new THREE.Matrix4();
+  for (const link of chain) {
+    matrix.multiply(localMatrix(link));
+  }
+  return matrix;
+}
+
+function groupPivot(group) {
+  return group instanceof Group ? group.origin.slice() : [0, 0, 0];
+}
+
+function extractPolygons(mesh) {
+  const smooth = mesh.shading === 'smooth';
+  const vertexNormals = smooth ? mesh.calculateNormals() : null;
+  const polygons = [];
+
+  for (const fkey in mesh.faces) {
+    const face = mesh.faces[fkey];
+    if (!face || face.vertices.length < 3) continue;
+    if (face.texture === null) continue;
+
+    const order = face.vertices.length === 4 ? face.getSortedVertices() : face.vertices.slice();
+    const faceNormal = face.getNormal(true);
+    const corners = [];
+
+    for (const vkey of order) {
+      const position = mesh.vertices[vkey];
+      if (!position) continue;
+
+      const normal = (smooth && vertexNormals?.[vkey]) || faceNormal;
+      const uv = face.uv?.[vkey] || [0, 0];
+
+      corners.push({ vkey, position, normal, uv });
+    }
+
+    if (corners.length >= 3) polygons.push(corners);
+  }
+
+  return polygons;
+}
+
+function round(value, precision = DEDUPE_PRECISION) {
+  return Math.round(value * precision) / precision;
+}
+
+function toBedrock(vector) {
+  return [-vector.x, vector.y, vector.z];
+}
+
+class PolyMeshBuilder {
+  constructor() {
+    this.positions = [];
+    this.normals = [];
+    this.uvs = [];
+    this.polys = [];
+    this.positionIndex = new Map();
+    this.normalIndex = new Map();
+    this.uvIndex = new Map();
+  }
+
+  addPosition(key, vector) {
+    let index = this.positionIndex.get(key);
+    if (index === undefined) {
+      index = this.positions.length;
+      this.positions.push(toBedrock(vector));
+      this.positionIndex.set(key, index);
+    }
+    return index;
+  }
+
+  addNormal(vector) {
+    const normal = toBedrock(vector).map(component => round(component));
+    const key = normal.join(',');
+    let index = this.normalIndex.get(key);
+    if (index === undefined) {
+      index = this.normals.length;
+      this.normals.push(normal);
+      this.normalIndex.set(key, index);
+    }
+    return index;
+  }
+
+  addUV(uv) {
+    const value = [round(uv[0]), round(uv[1])];
+    const key = value.join(',');
+    let index = this.uvIndex.get(key);
+    if (index === undefined) {
+      index = this.uvs.length;
+      this.uvs.push(value);
+      this.uvIndex.set(key, index);
+    }
+    return index;
+  }
+
+  addMesh(mesh, matrix, onPosition) {
+    const normalMatrix = new THREE.Matrix3().getNormalMatrix(matrix);
+    const position = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+    let polygonCount = 0;
+
+    for (const corners of extractPolygons(mesh)) {
+      const poly = [];
+
+      for (const corner of corners) {
+        const key = `${mesh.uuid}:${corner.vkey}`;
+        const isNew = !this.positionIndex.has(key);
+
+        position.fromArray(corner.position).applyMatrix4(matrix);
+        const positionIndex = this.addPosition(key, position);
+        if (isNew && onPosition) onPosition(corner.vkey, positionIndex);
+
+        normal.fromArray(corner.normal).applyMatrix3(normalMatrix).normalize();
+        poly.push([positionIndex, this.addNormal(normal), this.addUV(corner.uv)]);
+      }
+
+      this.polys.push(poly);
+      polygonCount++;
+    }
+
+    return polygonCount;
+  }
+
+  isEmpty() {
+    return this.polys.length === 0;
+  }
+
+  toJSON() {
+    return {
+      normalized_uvs: false,
+      positions: this.positions,
+      normals: this.normals,
+      uvs: this.uvs,
+      polys: this.polys,
+    };
+  }
+}
+
+function vertexInfluences(mesh, vkey, bones, jointIndexOf, stats) {
+  const influences = [];
+
+  for (const bone of bones) {
+    const weight = bone.getVertexWeight(mesh, vkey);
+    if (weight > 0) influences.push({ bone, weight });
+  }
+
+  if (influences.length > MAX_INFLUENCES) {
+    stats.truncated++;
+    influences.sort((a, b) => b.weight - a.weight);
+    influences.length = MAX_INFLUENCES;
+  }
+
+  const total = influences.reduce((sum, entry) => sum + entry.weight, 0);
+  if (total <= 0) {
+    stats.unweighted++;
+    return [[0, 1]];
+  }
+
+  const result = [];
+  for (const { bone, weight } of influences) {
+    const normalized = weight / total;
+    if (normalized < MIN_WEIGHT) continue;
+    result.push([jointIndexOf(bone), round(normalized)]);
+  }
+
+  return result.length ? result : [[0, 1]];
+}
+
+function findLooseBone(bones) {
+  const realGroupNames = new Set(Group.all.map(group => group.name));
+  return bones.find(bone => !bone.parent && /^bb_main\d*$/.test(bone.name) && !realGroupNames.has(bone.name));
+}
+
+function ownerBoneFor(element, bonesByName, bones) {
+  const parent = element.parent;
+  if (parent instanceof Group) return bonesByName.get(parent.name) || null;
+  if (!isNode(parent)) return findLooseBone(bones) || null;
+  return null;
+}
+
+function exportRigidMeshes(bones, bonesByName, warnings) {
+  if (!hasMeshes()) return 0;
+
+  const builders = new Map();
+  const parts = new Map();
+  let exported = 0;
+
+  for (const mesh of Mesh.all) {
+    if (!mesh.export) continue;
+    if (mesh.getArmature?.()) continue;
+
+    const parent = mesh.parent;
+    if (isNode(parent) && !(parent instanceof Group)) {
+      warnings.push(`Mesh "${mesh.name}" is inside a ${parent.type}, which AzureLib can't attach geometry to. Move it into a group or an armature.`);
+      continue;
+    }
+
+    const bone = ownerBoneFor(mesh, bonesByName, bones);
+    if (!bone) {
+      warnings.push(`Mesh "${mesh.name}" has no exported bone to attach to and was skipped.`);
+      continue;
+    }
+
+    if (bone.poly_mesh && !builders.has(bone)) {
+      warnings.push(`Bone "${bone.name}" already had a poly_mesh; it was replaced by the bone's Blockbench meshes.`);
+    }
+
+    const owner = parent instanceof Group ? parent : null;
+    const pivot = groupPivot(owner);
+    const toBoneSpace = new THREE.Matrix4()
+      .makeTranslation(pivot[0], pivot[1], pivot[2])
+      .multiply(restWorldMatrix(owner).invert())
+      .multiply(restWorldMatrix(mesh));
+
+    let builder = builders.get(bone);
+    if (!builder) {
+      builder = new PolyMeshBuilder();
+      builders.set(bone, builder);
+    }
+
+    const start = builder.polys.length;
+    const count = builder.addMesh(mesh, toBoneSpace);
+    if (count > 0) {
+      exported++;
+      if (!parts.has(bone)) parts.set(bone, []);
+      parts.get(bone).push({ ...meshMetadata(mesh), polys: [start, count] });
+    }
+  }
+
+  for (const [bone, builder] of builders) {
+    if (builder.isEmpty()) continue;
+    bone.poly_mesh = builder.toJSON();
+    if (parts.has(bone)) bone[EXT_MESH_PARTS] = parts.get(bone);
+  }
+
+  return exported;
+}
+
+function meshMetadata(mesh) {
+  const meta = { name: mesh.name, shading: mesh.shading === 'smooth' ? 'smooth' : 'flat' };
+  if (Array.isArray(mesh.origin)) meta.origin = mesh.origin.slice();
+  if (Array.isArray(mesh.rotation) && !mesh.rotation.allEqual(0)) meta.rotation = mesh.rotation.slice();
+  if (typeof mesh.color === 'number') meta.color = mesh.color;
+  return meta;
+}
+
+function uniqueBoneName(name, usedNames) {
+  if (!usedNames.has(name)) return name;
+  let index = 2;
+  while (usedNames.has(`${name}_${index}`)) index++;
+  return `${name}_${index}`;
+}
+
+function exportArmatures(bones, bonesByName, warnings) {
+  if (!hasArmatures()) return { armatures: 0, skinned: 0 };
+
+  const usedNames = new Set(bones.map(bone => bone.name));
+  let armatureCount = 0;
+  let skinnedCount = 0;
+
+  for (const armature of Armature.all) {
+    if (!armature.export) continue;
+
+    const parent = armature.parent;
+    const ownerGroup = parent instanceof Group ? parent : null;
+    if (isNode(parent) && !ownerGroup) {
+      warnings.push(`Armature "${armature.name}" must be at the root or inside a group to export.`);
+      continue;
+    }
+
+    const parentBone = ownerGroup ? bonesByName.get(ownerGroup.name) : null;
+    if (ownerGroup && !parentBone) {
+      warnings.push(`Armature "${armature.name}" is inside group "${ownerGroup.name}", which was not exported. It was exported at the root instead.`);
+    }
+
+    const armaturePivot = groupPivot(ownerGroup);
+    const armatureName = uniqueBoneName(armature.name, usedNames);
+    if (armatureName !== armature.name) {
+      warnings.push(`Armature "${armature.name}" was exported as bone "${armatureName}" because a bone with that name already exists.`);
+    }
+    usedNames.add(armatureName);
+
+    const armatureBone = {
+      name: armatureName,
+      pivot: [-armaturePivot[0], armaturePivot[1], armaturePivot[2]],
+      [EXT_ARMATURE]: true,
+    };
+    if (parentBone) armatureBone.parent = parentBone.name;
+    bones.push(armatureBone);
+    bonesByName.set(armatureName, armatureBone);
+    armatureCount++;
+
+    const exportedBones = [];
+    const visit = (node, parentName, parentPivot) => {
+      for (const child of node.children) {
+        if (!(child instanceof ArmatureBone)) continue;
+
+        const pivot = [
+          parentPivot[0] + child.origin[0],
+          parentPivot[1] + child.origin[1],
+          parentPivot[2] + child.origin[2],
+        ];
+
+        if (!child.export) {
+          visit(child, parentName, pivot);
+          continue;
+        }
+
+        if (usedNames.has(child.name)) {
+          warnings.push(`Armature bone "${child.name}" has the same name as another bone. AzureLib keeps only one of them, so rename one.`);
+        }
+        usedNames.add(child.name);
+
+        const bone = {
+          name: child.name,
+          parent: parentName,
+          pivot: [-pivot[0], pivot[1], pivot[2]],
+          [EXT_ARMATURE_BONE]: {
+            length: child.length,
+            width: child.width,
+            connected: child.connected !== false,
+          },
+        };
+
+        if (Array.isArray(child.rotation) && !child.rotation.allEqual(0)) {
+          bone.rotation = [-child.rotation[0], -child.rotation[1], child.rotation[2]];
+        }
+
+        const locators = compileArmatureBoneLocators(child, pivot);
+        if (locators) bone.locators = locators;
+
+        bones.push(bone);
+        bonesByName.set(child.name, bone);
+        exportedBones.push(child);
+        visit(child, child.name, pivot);
+      }
+    };
+    visit(armature, armatureName, armaturePivot);
+
+    const skinnedMeshes = [];
+    for (const mesh of armature.children) {
+      if (!(mesh instanceof Mesh) || !mesh.export) continue;
+
+      const joints = [armatureName];
+      const jointIndices = new Map();
+      const jointIndexOf = bone => {
+        let index = jointIndices.get(bone);
+        if (index === undefined) {
+          index = joints.length;
+          joints.push(bone.name);
+          jointIndices.set(bone, index);
+        }
+        return index;
+      };
+
+      const builder = new PolyMeshBuilder();
+      const weights = [];
+      const stats = { truncated: 0, unweighted: 0 };
+
+      builder.addMesh(mesh, restWorldMatrix(mesh), (vkey, positionIndex) => {
+        weights[positionIndex] = vertexInfluences(mesh, vkey, exportedBones, jointIndexOf, stats);
+      });
+
+      if (builder.isEmpty()) continue;
+
+      if (stats.truncated) {
+        warnings.push(`Mesh "${mesh.name}": ${stats.truncated} vertices have more than ${MAX_INFLUENCES} bone weights. Only the ${MAX_INFLUENCES} strongest were kept.`);
+      }
+      if (stats.unweighted && stats.unweighted === builder.positions.length) {
+        warnings.push(`Mesh "${mesh.name}" has no vertex weights, so it won't deform. Paint weights or use Attach Armature.`);
+      }
+
+      skinnedMeshes.push({
+        ...meshMetadata(mesh),
+        joints,
+        ...builder.toJSON(),
+        weights,
+      });
+      skinnedCount++;
+    }
+
+    if (skinnedMeshes.length) armatureBone[EXT_SKINNED_MESHES] = skinnedMeshes;
+  }
+
+  return { armatures: armatureCount, skinned: skinnedCount };
+}
+
+function compileArmatureBoneLocators(bone, pivot) {
+  const locators = {};
+
+  for (const child of bone.children) {
+    if (!child.export) continue;
+    if (!(child instanceof Locator) && !(typeof NullObject !== 'undefined' && child instanceof NullObject)) continue;
+
+    const position = child.position || child.from || [0, 0, 0];
+    const offset = [-(pivot[0] + position[0]), pivot[1] + position[1], pivot[2] + position[2]];
+    const key = child instanceof Locator ? child.name : `_null_${child.name}`;
+    const rotatable = child.getTypeBehavior?.('rotatable') && Array.isArray(child.rotation) && !child.rotation.allEqual(0);
+
+    if (rotatable || child.ignore_inherited_scale) {
+      locators[key] = { offset };
+      if (rotatable) locators[key].rotation = [-child.rotation[0], -child.rotation[1], child.rotation[2]];
+      if (child.ignore_inherited_scale) locators[key].ignore_inherited_scale = true;
+    } else {
+      locators[key] = offset;
+    }
+  }
+
+  return Object.keys(locators).length ? locators : null;
+}
+
+function injectMeshGeometry(geometry) {
+  if (!geometry) return;
+  const meshCount = hasMeshes() ? Mesh.all.length : 0;
+  const armatureCount = hasArmatures() ? Armature.all.length : 0;
+  if (!meshCount && !armatureCount) {
+    lastExportWarnings = [];
+    return;
+  }
+
+  if (!Array.isArray(geometry.bones)) geometry.bones = [];
+  const bones = geometry.bones;
+  const bonesByName = new Map(bones.map(bone => [bone.name, bone]));
+  const warnings = [];
+
+  try {
+    exportRigidMeshes(bones, bonesByName, warnings);
+    exportArmatures(bones, bonesByName, warnings);
+  } catch (error) {
+    console.error('[AzureLib] Mesh export failed', error);
+    warnings.push(`Mesh export failed: ${error?.message || error}`);
+  }
+
+  lastExportWarnings = warnings;
+  if (warnings.length) {
+    console.warn('[AzureLib] Mesh export warnings:\n' + warnings.join('\n'));
+    Blockbench.showQuickMessage(`[AzureLib] Exported with ${warnings.length} mesh warning(s). See the Validator for details.`, 3000);
+    Validator?.validate?.();
+  }
+}
+
+function runMeshValidation() {
+  for (const message of lastExportWarnings) {
+    this.warn({ message });
+  }
+
+  if (!hasArmatures()) return;
+
+  const groupNames = new Set(Group.all.map(group => group.name));
+  for (const bone of ArmatureBone.all) {
+    if (groupNames.has(bone.name)) {
+      this.warn({
+        message: `Armature bone "${bone.name}" has the same name as a group. AzureLib addresses bones by name, so one of them will be ignored.`,
+        buttons: [{ name: 'Select', icon: 'fa-crosshairs', click() { bone.select(); } }],
+      });
+    }
+  }
+
+  for (const mesh of Mesh.all) {
+    const armature = mesh.getArmature?.();
+    if (!armature) continue;
+
+    const bones = armature.getAllBones();
+    let over = 0;
+    for (const vkey in mesh.vertices) {
+      let count = 0;
+      for (const bone of bones) {
+        if (bone.getVertexWeight(mesh, vkey) > 0) count++;
+      }
+      if (count > MAX_INFLUENCES) over++;
+    }
+
+    if (over) {
+      this.warn({
+        message: `Mesh "${mesh.name}" has ${over} vertices weighted to more than ${MAX_INFLUENCES} bones. AzureLib keeps the ${MAX_INFLUENCES} strongest, so they may deform slightly differently in game.`,
+        buttons: [{ name: 'Select', icon: 'fa-crosshairs', click() { mesh.select(); } }],
+      });
+    }
+  }
+}
+
+function registerMeshSupport() {
+  if (meshValidatorCheck || typeof ValidatorCheck === 'undefined') return;
+
+  meshValidatorCheck = new ValidatorCheck('azurelib_meshes', {
+    condition: { formats: ['azure_model'] },
+    update_triggers: ['update_selection'],
+    run: runMeshValidation,
+  });
+}
+
+function unregisterMeshSupport() {
+  meshValidatorCheck?.delete();
+  meshValidatorCheck = null;
+  lastExportWarnings = [];
+}
+
+;// ./core/azure-mesh-import.js
+/**
+ * AzureLib Animator — Mesh & Armature Import
+ * ------------------------------------------
+ * Rebuilds polygon meshes, armatures, armature bones and vertex weights from an
+ * exported .geo.json, so a model can be recovered when its .bbmodel is lost.
+ *
+ * Cubes, groups, locators and UVs still load through Blockbench's own Bedrock
+ * parser (Codecs.bedrock.parseGeometry). This module hooks that parser's
+ * events:
+ *
+ *  - parse:  for AzureLib geometry, switch the project to the AzureLib format
+ *            (Bedrock's own format can't hold meshes or armatures) and pull the
+ *            armature bones out of the bone list so they don't load as groups.
+ *  - parsed: rebuild meshes from poly_mesh, and armatures with their skinned
+ *            meshes from the stashed bones.
+ *
+ * It runs for the "Import AzureLib .geo Model" action, and when a .geo.json is
+ * opened the normal way and the user picks AzureLib. Normal opens ask whether to
+ * open the file as an AzureLib or a Bedrock model, as set by the "Open Bedrock
+ * .geo.json files as" setting.
+ *
+ * Exports carry per-mesh metadata (name, shading, origin, rotation, and which
+ * polygons belong to which mesh). Geometry without it, such as poly_mesh from
+ * other tools, still loads: meshes that share a bone come back as one mesh and
+ * shading is guessed from the stored normals.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+const FORMAT_ID = 'azure_model';
+
+let explicitImport = false;
+let pending = null;
+let importAction = null;
+let openAs = null;
+let originalBedrockLoad = null;
+let openSetting = null;
+
+const SETTING_ID = 'azurelib_geo_open_mode';
+
+const OPEN_MODES = {
+  ask: 'Ask every time',
+  auto: 'AzureLib for AzureLib exports, otherwise Bedrock',
+  azurelib: 'Always AzureLib',
+  bedrock: 'Always Bedrock',
+};
+
+function isAzureGeometry(model) {
+  return Array.isArray(model?.bones) && model.bones.some(bone =>
+    bone && (bone[EXT_ARMATURE] || bone[EXT_ARMATURE_BONE] || bone[EXT_SKINNED_MESHES] || bone[EXT_MESH_PARTS])
+  );
+}
+
+function hasPolyMesh(model) {
+  return Array.isArray(model?.bones) && model.bones.some(bone => bone?.poly_mesh);
+}
+
+function canHoldMeshes() {
+  return typeof Mesh !== 'undefined' && !!Format?.meshes;
+}
+
+function canHoldArmatures() {
+  return typeof Armature !== 'undefined' && typeof ArmatureBone !== 'undefined' && !!Format?.armature_rig;
+}
+
+function handleGeometryParse(event) {
+  pending = null;
+  const choice = openAs;
+  openAs = null;
+
+  const model = event?.model;
+  if (!model) return;
+
+  const azure = isAzureGeometry(model);
+  const useAzure = explicitImport || choice === 'azurelib' || (choice === null && azure);
+
+  if (!useAzure) {
+    if (azure) {
+      Blockbench.showQuickMessage('Opened as a Bedrock model: AzureLib meshes and armatures were not loaded.', 3500);
+    }
+    return;
+  }
+
+  if (Format?.id !== FORMAT_ID && Formats?.[FORMAT_ID]) {
+    Formats[FORMAT_ID].select();
+  }
+
+  const stashed = [];
+  if (Array.isArray(model.bones)) {
+    model.bones = model.bones.filter(bone => {
+      if (bone && (bone[EXT_ARMATURE] || bone[EXT_ARMATURE_BONE])) {
+        stashed.push(bone);
+        return false;
+      }
+      return true;
+    });
+  }
+
+  pending = { model, stashed };
+}
+
+function handleGeometryParsed(event) {
+  const state = pending;
+  pending = null;
+
+  if (!state) {
+    if (hasPolyMesh(event?.model) && !canHoldMeshes()) {
+      Blockbench.showQuickMessage('This model has polygon meshes. Use File > Import > Import AzureLib .geo Model to load them.', 4000);
+    }
+    return;
+  }
+
+  const report = { meshes: 0, armatures: 0, bones: 0, skinned: 0, warnings: [] };
+
+  try {
+    rebuildRigidMeshes(state.model, report);
+    rebuildArmatures(state.stashed, report);
+  } catch (error) {
+    console.error('[AzureLib] Mesh import failed', error);
+    report.warnings.push(`Mesh import failed: ${error?.message || error}`);
+  }
+
+  Canvas.updateAll();
+  Canvas.updateAllBones?.();
+
+  const parts = [];
+  if (report.meshes) parts.push(`${report.meshes} mesh${report.meshes === 1 ? '' : 'es'}`);
+  if (report.armatures) parts.push(`${report.armatures} armature${report.armatures === 1 ? '' : 's'} (${report.bones} bones, ${report.skinned} skinned mesh${report.skinned === 1 ? '' : 'es'})`);
+  if (parts.length) console.log(`[AzureLib] Rebuilt ${parts.join(', ')}`);
+
+  if (report.warnings.length) {
+    console.warn('[AzureLib] Mesh import warnings:\n' + report.warnings.join('\n'));
+    Blockbench.showMessageBox({
+      title: 'AzureLib Mesh Import',
+      message: report.warnings.join('\n\n'),
+      buttons: ['OK'],
+    });
+  } else if (parts.length) {
+    Blockbench.showQuickMessage(`[AzureLib] Rebuilt ${parts.join(', ')}`, 2500);
+  }
+}
+
+function fromBedrock(vector) {
+  return [-(vector?.[0] || 0), vector?.[1] || 0, vector?.[2] || 0];
+}
+
+function findGroup(name) {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  return Group.all.find(group => group.name === name) || Group.all.find(group => group.name.toLowerCase() === lower) || null;
+}
+
+function explicitPolys(polyMesh) {
+  const polys = polyMesh?.polys;
+  if (Array.isArray(polys)) return polys;
+
+  const size = polys === 'quad_list' ? 4 : polys === 'tri_list' ? 3 : 0;
+  const count = Array.isArray(polyMesh?.positions) ? polyMesh.positions.length : 0;
+  if (!size) return [];
+
+  const result = [];
+  for (let start = 0; start + size <= count; start += size) {
+    const poly = [];
+    for (let i = start; i < start + size; i++) poly.push([i, i, i]);
+    result.push(poly);
+  }
+  return result;
+}
+
+function looksSmooth(polyMesh, polys) {
+  const normalOf = new Map();
+  let shared = false;
+
+  for (const poly of polys) {
+    for (const corner of poly) {
+      const [position, normal] = corner;
+      if (!normalOf.has(position)) {
+        normalOf.set(position, normal);
+      } else if (normalOf.get(position) !== normal) {
+        return false;
+      } else {
+        shared = true;
+      }
+    }
+  }
+
+  return shared;
+}
+
+function uvScale(polyMesh) {
+  if (polyMesh?.normalized_uvs !== true) return [1, 1];
+  return [Project.texture_width || 16, Project.texture_height || 16];
+}
+
+function buildMesh(parent, meta, polyMesh, polys, positionToSource, makeToLocal, sourceToParent = null) {
+  const positions = polyMesh.positions || [];
+  const uvs = polyMesh.uvs || [];
+  const [uScale, vScale] = uvScale(polyMesh);
+
+  const mesh = new Mesh({
+    name: meta.name || 'mesh',
+    origin: meta.origin ? meta.origin.slice() : [0, 0, 0],
+    rotation: meta.rotation ? meta.rotation.slice() : [0, 0, 0],
+    vertices: {},
+  });
+  mesh.shading = meta.shading || (looksSmooth(polyMesh, polys) ? 'smooth' : 'flat');
+  if (typeof meta.color === 'number') mesh.color = meta.color;
+
+  mesh.addTo(parent || undefined).init();
+
+  if (!meta.origin) {
+    const centre = new THREE.Vector3();
+    let count = 0;
+    for (const index of new Set(polys.flatMap(poly => poly.map(corner => corner[0])))) {
+      if (!positions[index]) continue;
+      centre.add(new THREE.Vector3(...positionToSource(positions[index])));
+      count++;
+    }
+    if (count) {
+      centre.divideScalar(count);
+      if (sourceToParent) centre.applyMatrix4(sourceToParent);
+      mesh.origin = centre.toArray().map(value => Math.round(value * 1e4) / 1e4);
+    }
+  }
+
+  const toLocal = makeToLocal(mesh);
+  const keyOf = new Map();
+  const vector = new THREE.Vector3();
+
+  const keyFor = index => {
+    let key = keyOf.get(index);
+    if (key === undefined) {
+      vector.fromArray(positionToSource(positions[index])).applyMatrix4(toLocal);
+      key = mesh.addVertices(vector.toArray().map(value => Math.round(value * 1e5) / 1e5))[0];
+      keyOf.set(index, key);
+    }
+    return key;
+  };
+
+  for (const poly of polys) {
+    const corners = [];
+    for (const corner of poly) {
+      if (!Array.isArray(corner) || !positions[corner[0]]) continue;
+      if (corners.length && corners[corners.length - 1][0] === corner[0]) continue;
+      corners.push(corner);
+    }
+    if (corners.length > 3 && corners[0][0] === corners[corners.length - 1][0]) corners.pop();
+    if (corners.length < 3) continue;
+
+    const pieces = corners.length <= 4
+      ? [corners]
+      : corners.slice(1, -1).map((corner, i) => [corners[0], corner, corners[i + 2]]);
+
+    for (const piece of pieces) {
+      const vertices = [];
+      const uv = {};
+      for (const [position, , uvIndex] of piece) {
+        const key = keyFor(position);
+        if (vertices.includes(key)) continue;
+        vertices.push(key);
+        const value = uvs[uvIndex] || [0, 0];
+        uv[key] = [value[0] * uScale, value[1] * vScale];
+      }
+      if (vertices.length >= 3) mesh.addFaces(new MeshFace(mesh, { vertices, uv }));
+    }
+  }
+
+  return { mesh, keyOf };
+}
+
+function rebuildRigidMeshes(model, report) {
+  if (!Array.isArray(model?.bones)) return;
+
+  for (const bone of model.bones) {
+    const polyMesh = bone?.poly_mesh;
+    if (!polyMesh) continue;
+
+    if (!canHoldMeshes()) {
+      report.warnings.push('This project format does not support meshes, so polygon meshes were skipped.');
+      return;
+    }
+
+    const group = findGroup(bone.name);
+    if (!group) {
+      report.warnings.push(`Bone "${bone.name}" has a poly_mesh but wasn't imported as a group, so its mesh was skipped.`);
+      continue;
+    }
+
+    const polys = explicitPolys(polyMesh);
+    const storedParts = Array.isArray(bone[EXT_MESH_PARTS]) ? bone[EXT_MESH_PARTS] : null;
+    const parts = storedParts || [{ name: group.name === 'bb_main' ? 'mesh' : `${group.name}_mesh`, polys: [0, polys.length] }];
+
+    const pivot = group.origin;
+    const groupSpace = restWorldMatrix(group).multiply(new THREE.Matrix4().makeTranslation(-pivot[0], -pivot[1], -pivot[2]));
+
+    for (const part of parts) {
+      const [start, count] = Array.isArray(part.polys) ? part.polys : [0, polys.length];
+      const subset = polys.slice(start, start + count);
+      if (!subset.length) continue;
+
+      buildMesh(
+        group,
+        part,
+        polyMesh,
+        subset,
+        position => fromBedrock(position),
+        mesh => restWorldMatrix(mesh).invert().multiply(groupSpace)
+      );
+      report.meshes++;
+    }
+  }
+}
+
+function rebuildArmatures(stashed, report) {
+  if (!stashed.length) return;
+
+  if (!canHoldArmatures()) {
+    report.warnings.push('This Blockbench version or format does not support armatures, so armatures and skinned meshes were skipped.');
+    return;
+  }
+
+  const byName = new Map(stashed.map(bone => [bone.name, bone]));
+  const childrenOf = new Map();
+  for (const bone of stashed) {
+    if (!bone[EXT_ARMATURE_BONE]) continue;
+    if (!childrenOf.has(bone.parent)) childrenOf.set(bone.parent, []);
+    childrenOf.get(bone.parent).push(bone);
+  }
+
+  const built = new Set();
+
+  for (const data of stashed) {
+    if (!data[EXT_ARMATURE]) continue;
+
+    const group = data.parent ? findGroup(data.parent) : null;
+    if (data.parent && !group) {
+      report.warnings.push(`Armature "${data.name}" belonged to bone "${data.parent}", which wasn't found. It was placed at the root.`);
+    }
+
+    const armature = new Armature({ name: data.name });
+    armature.addTo(group || undefined).init();
+    armature.isOpen = true;
+    built.add(data.name);
+    report.armatures++;
+
+    const nodesByName = new Map([[data.name, armature]]);
+
+    const visit = (parentData, parentNode) => {
+      const parentPivot = fromBedrock(parentData.pivot);
+      for (const childData of childrenOf.get(parentData.name) || []) {
+        const pivot = fromBedrock(childData.pivot);
+        const extra = typeof childData[EXT_ARMATURE_BONE] === 'object' ? childData[EXT_ARMATURE_BONE] : {};
+        const rotation = Array.isArray(childData.rotation)
+          ? [-childData.rotation[0], -childData.rotation[1], childData.rotation[2]]
+          : [0, 0, 0];
+
+        const node = new ArmatureBone({
+          name: childData.name,
+          origin: pivot.map((value, i) => value - parentPivot[i]),
+          rotation,
+          ...(typeof extra.length === 'number' ? { length: extra.length } : {}),
+          ...(typeof extra.width === 'number' ? { width: extra.width } : {}),
+          ...(typeof extra.connected === 'boolean' ? { connected: extra.connected } : {}),
+        });
+        node.addTo(parentNode).init();
+        node.isOpen = true;
+        nodesByName.set(childData.name, node);
+        built.add(childData.name);
+        report.bones++;
+
+        rebuildLocators(childData, node, pivot);
+        visit(childData, node);
+      }
+    };
+    visit(data, armature);
+
+    const skinned = Array.isArray(data[EXT_SKINNED_MESHES]) ? data[EXT_SKINNED_MESHES] : [];
+    for (const entry of skinned) {
+      if (rebuildSkinnedMesh(entry, armature, nodesByName, report)) report.skinned++;
+    }
+  }
+
+  for (const bone of stashed) {
+    if (!built.has(bone.name)) {
+      report.warnings.push(`Armature bone "${bone.name}" has no armature above it in the file and was skipped.`);
+    }
+  }
+}
+
+function rebuildLocators(data, node, pivot) {
+  if (!data.locators || typeof data.locators !== 'object') return;
+
+  for (const [key, value] of Object.entries(data.locators)) {
+    const offset = fromBedrock(Array.isArray(value) ? value : value?.offset);
+    const position = offset.map((v, i) => v - pivot[i]);
+    const rotation = Array.isArray(value?.rotation) ? [-value.rotation[0], -value.rotation[1], value.rotation[2]] : undefined;
+
+    if (key.startsWith('_null_') && typeof NullObject !== 'undefined') {
+      new NullObject({ name: key.substring(6), position }).addTo(node).init();
+    } else {
+      const locator = new Locator({ name: key, position, rotation });
+      if (value?.ignore_inherited_scale) locator.ignore_inherited_scale = true;
+      locator.addTo(node).init();
+    }
+  }
+}
+
+function rebuildSkinnedMesh(entry, armature, nodesByName, report) {
+  if (!canHoldMeshes()) return false;
+
+  const polys = explicitPolys(entry);
+  if (!polys.length || !Array.isArray(entry.positions)) return false;
+
+  const { mesh, keyOf } = buildMesh(
+    armature,
+    entry,
+    entry,
+    polys,
+    position => fromBedrock(position),
+    built => restWorldMatrix(built).invert(),
+    restWorldMatrix(armature).invert()
+  );
+
+  const joints = Array.isArray(entry.joints) ? entry.joints : [];
+  const jointNodes = joints.map(name => {
+    const node = nodesByName.get(name);
+    return node instanceof ArmatureBone ? node : null;
+  });
+
+  const missing = new Set();
+  const weights = Array.isArray(entry.weights) ? entry.weights : [];
+
+  for (const [position, key] of keyOf) {
+    for (const pair of weights[position] || []) {
+      if (!Array.isArray(pair)) continue;
+      const [jointIndex, weight] = pair;
+      const node = jointNodes[jointIndex];
+      if (node) {
+        node.setVertexWeight(mesh, key, weight);
+      } else if (joints[jointIndex] && !nodesByName.has(joints[jointIndex])) {
+        missing.add(joints[jointIndex]);
+      }
+    }
+  }
+
+  if (missing.size) {
+    report.warnings.push(`Mesh "${mesh.name}" is weighted to bones that aren't in its armature (${[...missing].join(', ')}); those weights were dropped.`);
+  }
+
+  return true;
+}
+
+function openMode() {
+  const value = openSetting?.value ?? globalThis.settings?.[SETTING_ID]?.value;
+  return OPEN_MODES[value] ? value : 'ask';
+}
+
+function rememberOpenMode(mode) {
+  if (!openSetting) return;
+  if (typeof openSetting.set === 'function') {
+    openSetting.set(mode);
+  } else {
+    openSetting.value = mode;
+    globalThis.Settings?.saveLocalStorages?.();
+  }
+}
+
+function loadWithChoice(model, file, args = {}) {
+  const codec = this;
+  const importToCurrent = typeof args === 'boolean' ? args : args?.import_to_current_project;
+  openAs = null;
+
+  if (importToCurrent || !Formats?.[FORMAT_ID]) {
+    return originalBedrockLoad.call(codec, model, file, args);
+  }
+
+  const geometries = Array.isArray(model?.['minecraft:geometry']) ? model['minecraft:geometry'] : [];
+  const azure = geometries.some(isAzureGeometry);
+  const proceed = choice => {
+    openAs = choice;
+    return originalBedrockLoad.call(codec, model, file, args);
+  };
+
+  const mode = openMode();
+  if (mode === 'azurelib' || mode === 'bedrock') return proceed(mode);
+  if (mode === 'auto') return proceed(azure ? 'azurelib' : 'bedrock');
+
+  const name = file?.path ? pathToName(file.path, true) : (file?.name || 'this model');
+  const meshNote = azure
+    ? 'It contains AzureLib meshes or armatures, which only load as an AzureLib model.'
+    : geometries.some(hasPolyMesh)
+      ? 'It contains polygon meshes, which only load as an AzureLib model.'
+      : 'Open it as an AzureLib model to use AzureLib\'s animation and rig tools, or as a Bedrock model for Minecraft Bedrock.';
+
+  Blockbench.showMessageBox({
+    title: 'Open Bedrock Geometry',
+    message: `How do you want to open ${name}?\n\n${meshNote}`,
+    icon: 'view_in_ar',
+    buttons: ['AzureLib Model', 'Bedrock Model', 'dialog.cancel'],
+    confirm: azure ? 0 : 1,
+    confirmIndex: azure ? 0 : 1,
+    cancel: 2,
+    cancelIndex: 2,
+    checkboxes: {
+      remember: { value: false, text: 'Remember my choice (change it in Settings > AzureLib)' },
+    },
+  }, (button, result) => {
+    if (button !== 0 && button !== 1) return;
+    const choice = button === 0 ? 'azurelib' : 'bedrock';
+    if (result?.remember) rememberOpenMode(choice);
+    proceed(choice);
+  });
+}
+
+const SETTINGS_CATEGORY = 'azurelib';
+
+let addedSettingsCategory = false;
+
+function ensureSettingsCategory() {
+  const S = globalThis.Settings;
+  if (!S?.structure) return 'general';
+  if (S.structure[SETTINGS_CATEGORY]) return SETTINGS_CATEGORY;
+
+  try {
+    if (S.dialog?.object && typeof S.addCategory === 'function') {
+      S.addCategory(SETTINGS_CATEGORY, { name: 'AzureLib' });
+    } else {
+      S.structure[SETTINGS_CATEGORY] = { name: 'AzureLib', open: false, items: {} };
+      if (S.dialog?.sidebar?.pages) S.dialog.sidebar.pages[SETTINGS_CATEGORY] = 'AzureLib';
+    }
+    addedSettingsCategory = true;
+  } catch (error) {
+    console.warn('[AzureLib] Could not add the AzureLib settings page', error);
+  }
+
+  return S.structure[SETTINGS_CATEGORY] ? SETTINGS_CATEGORY : 'general';
+}
+
+function removeSettingsCategory() {
+  const S = globalThis.Settings;
+  if (!addedSettingsCategory || !S?.structure?.[SETTINGS_CATEGORY]) return;
+  if (Object.keys(S.structure[SETTINGS_CATEGORY].items || {}).length) return;
+
+  delete S.structure[SETTINGS_CATEGORY];
+  if (S.dialog?.sidebar?.pages) delete S.dialog.sidebar.pages[SETTINGS_CATEGORY];
+  try {
+    if (S.dialog?.object) S.dialog.sidebar.build();
+  } catch {}
+  addedSettingsCategory = false;
+}
+
+function registerOpenChoice() {
+  const bedrock = Codecs?.bedrock;
+  if (!bedrock || originalBedrockLoad) return;
+
+  if (typeof Setting !== 'undefined') {
+    try {
+      openSetting = new Setting(SETTING_ID, {
+        name: 'Open Bedrock .geo.json files as',
+        description: 'Whether opening a Bedrock geometry file creates an AzureLib model or a Bedrock model.',
+        category: ensureSettingsCategory(),
+        type: 'select',
+        value: 'ask',
+        options: OPEN_MODES,
+      });
+    } catch (error) {
+      console.warn('[AzureLib] Could not register the open-mode setting', error);
+      openSetting = null;
+    }
+  }
+
+  originalBedrockLoad = bedrock.load;
+  bedrock.load = loadWithChoice;
+}
+
+function unregisterOpenChoice() {
+  const bedrock = Codecs?.bedrock;
+  if (bedrock && originalBedrockLoad) bedrock.load = originalBedrockLoad;
+  originalBedrockLoad = null;
+  openSetting?.delete?.();
+  openSetting = null;
+  removeSettingsCategory();
+  openAs = null;
+}
+
+function pickGeometry(geometries, callback) {
+  if (geometries.length === 1) return callback(geometries[0]);
+
+  const options = {};
+  geometries.forEach((geo, index) => {
+    options[index] = geo?.description?.identifier || `geometry ${index + 1}`;
+  });
+
+  new Dialog({
+    id: 'azurelib_select_geometry',
+    title: 'Select Geometry',
+    form: { geometry: { label: 'Geometry', type: 'select', options, default: '0' } },
+    onConfirm(form) {
+      callback(geometries[Number(form.geometry)]);
+    },
+  }).show();
+}
+
+function importGeometryFile(file) {
+  let json;
+  try {
+    json = autoParseJSON(file.content, false);
+  } catch {
+    return Blockbench.showQuickMessage('[AzureLib] Not a valid JSON file.');
+  }
+
+  const geometries = (json?.['minecraft:geometry'] || []).filter(geo => geo && typeof geo === 'object');
+  if (!geometries.length) {
+    return Blockbench.showQuickMessage('[AzureLib] No geometry found in this file.');
+  }
+
+  pickGeometry(geometries, geometry => {
+    const create = typeof newProject === 'function'
+      ? () => newProject(Formats[FORMAT_ID])
+      : () => Formats[FORMAT_ID].new();
+    if (!create()) return;
+
+    if (file.path && isApp) {
+      const name = pathToName(file.path, true);
+      Project.name = pathToName(name, false);
+      Project.export_path = file.path;
+    }
+
+    openAs = null;
+    explicitImport = true;
+    try {
+      Codecs.bedrock.parseGeometry({ object: geometry }, { switch_to_existing_tab: false });
+    } finally {
+      explicitImport = false;
+    }
+  });
+}
+
+function registerMeshImport() {
+  const bedrock = Codecs?.bedrock;
+  if (!bedrock) return;
+
+  bedrock.on('parse', handleGeometryParse);
+  bedrock.on('parsed', handleGeometryParsed);
+  try {
+    registerOpenChoice();
+  } catch (error) {
+    console.error('[AzureLib] Could not set up the AzureLib/Bedrock open prompt', error);
+  }
+
+  importAction = new Action('import_azurelib_geo', {
+    name: 'Import AzureLib .geo Model',
+    description: 'Open a .geo.json as an AzureLib model, rebuilding its meshes, armatures and vertex weights.',
+    icon: 'view_in_ar',
+    category: 'file',
+    click() {
+      Blockbench.import({
+        resource_id: 'model',
+        type: 'AzureLib Geometry',
+        extensions: ['json'],
+        readtype: 'text',
+        multiple: false,
+      }, files => {
+        if (files?.[0]) importGeometryFile(files[0]);
+      });
+    },
+  });
+  MenuBar.addAction(importAction, 'file.import');
+}
+
+function unregisterMeshImport() {
+  const bedrock = Codecs?.bedrock;
+  bedrock?.events?.parse?.remove?.(handleGeometryParse);
+  bedrock?.events?.parsed?.remove?.(handleGeometryParsed);
+  unregisterOpenChoice();
+  importAction?.delete();
+  importAction = null;
+  pending = null;
+}
+
 ;// ./core/azure-codec.js
 /**
  * AzureLib Animator — Codec & Format Registration
@@ -3973,6 +5967,8 @@ function unregisterAzureAnimationFormat() {
  *
  * © 2026 AzureDoom — MIT License
  */
+
+
 
 
 
@@ -4017,6 +6013,8 @@ function ensureAzureFormat() {
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    meshes: true,
+    armature_rig: true,
     select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
@@ -4054,6 +6052,8 @@ function registerAzureCodec() {
   projectCodec.on('compile', handleProjectCompile);
   projectCodec.on('parse', handleProjectParse);
   bedrockCodec.on('compile', handleBedrockCompile);
+  registerMeshSupport();
+  registerMeshImport();
 
   registerAzureAnimationFormat();
   azureFormat.animation_codec = createAzureAnimationCodec() || undefined;
@@ -4077,6 +6077,8 @@ function unregisterAzureCodec() {
   projectCodec?.events?.compile?.remove?.(handleProjectCompile);
   projectCodec?.events?.parse?.remove?.(handleProjectParse);
   bedrockCodec?.events?.compile?.remove?.(handleBedrockCompile);
+  unregisterMeshImport();
+  unregisterMeshSupport();
 
   unloadAnimationUI();
   unregisterKeyframeOverrides();
@@ -4172,6 +6174,7 @@ function handleBedrockCompile(event) {
     geometry.forEach(geo => {
       delete geo.item_display_transforms;
     });
+    injectMeshGeometry(geometry[0]);
   }
 }
 
@@ -7621,703 +9624,6 @@ function loadAzureLib() {
       restoreOverrides();
       console.log('[AzureLib] Animator unloaded.');
     }
-
-
-/***/ }),
-
-/***/ 938:
-/***/ ((module) => {
-
-/**
- * Removes `key` and its value from the stack.
- *
- * @private
- * @name delete
- * @memberOf Stack
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function stackDelete(key) {
-  var data = this.__data__,
-      result = data['delete'](key);
-
-  this.size = data.size;
-  return result;
-}
-
-module.exports = stackDelete;
-
-
-/***/ }),
-
-/***/ 945:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var ListCache = __webpack_require__(79),
-    Map = __webpack_require__(8223),
-    MapCache = __webpack_require__(3661);
-
-/** Used as the size to enable large array optimizations. */
-var LARGE_ARRAY_SIZE = 200;
-
-/**
- * Sets the stack `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf Stack
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the stack cache instance.
- */
-function stackSet(key, value) {
-  var data = this.__data__;
-  if (data instanceof ListCache) {
-    var pairs = data.__data__;
-    if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
-      pairs.push([key, value]);
-      this.size = ++data.size;
-      return this;
-    }
-    data = this.__data__ = new MapCache(pairs);
-  }
-  data.set(key, value);
-  this.size = data.size;
-  return this;
-}
-
-module.exports = stackSet;
-
-
-/***/ }),
-
-/***/ 1033:
-/***/ ((module) => {
-
-/**
- * A faster alternative to `Function#apply`, this function invokes `func`
- * with the `this` binding of `thisArg` and the arguments of `args`.
- *
- * @private
- * @param {Function} func The function to invoke.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} args The arguments to invoke `func` with.
- * @returns {*} Returns the result of `func`.
- */
-function apply(func, thisArg, args) {
-  switch (args.length) {
-    case 0: return func.call(thisArg);
-    case 1: return func.call(thisArg, args[0]);
-    case 2: return func.call(thisArg, args[0], args[1]);
-    case 3: return func.call(thisArg, args[0], args[1], args[2]);
-  }
-  return func.apply(thisArg, args);
-}
-
-module.exports = apply;
-
-
-/***/ }),
-
-/***/ 1042:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var getNative = __webpack_require__(6110);
-
-/* Built-in method references that are verified to be native. */
-var nativeCreate = getNative(Object, 'create');
-
-module.exports = nativeCreate;
-
-
-/***/ }),
-
-/***/ 1123:
-/***/ ((module) => {
-
-const numeric = /^[0-9]+$/
-const compareIdentifiers = (a, b) => {
-  const anum = numeric.test(a)
-  const bnum = numeric.test(b)
-
-  if (anum && bnum) {
-    a = +a
-    b = +b
-  }
-
-  return a === b ? 0
-    : (anum && !bnum) ? -1
-    : (bnum && !anum) ? 1
-    : a < b ? -1
-    : 1
-}
-
-const rcompareIdentifiers = (a, b) => compareIdentifiers(b, a)
-
-module.exports = {
-  compareIdentifiers,
-  rcompareIdentifiers,
-}
-
-
-/***/ }),
-
-/***/ 1175:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var assocIndexOf = __webpack_require__(6025);
-
-/**
- * Sets the list cache `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf ListCache
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the list cache instance.
- */
-function listCacheSet(key, value) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  if (index < 0) {
-    ++this.size;
-    data.push([key, value]);
-  } else {
-    data[index][1] = value;
-  }
-  return this;
-}
-
-module.exports = listCacheSet;
-
-
-/***/ }),
-
-/***/ 1331:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseGetTag = __webpack_require__(2552),
-    getPrototype = __webpack_require__(8879),
-    isObjectLike = __webpack_require__(346);
-
-/** `Object#toString` result references. */
-var objectTag = '[object Object]';
-
-/** Used for built-in method references. */
-var funcProto = Function.prototype,
-    objectProto = Object.prototype;
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/** Used to infer the `Object` constructor. */
-var objectCtorString = funcToString.call(Object);
-
-/**
- * Checks if `value` is a plain object, that is, an object created by the
- * `Object` constructor or one with a `[[Prototype]]` of `null`.
- *
- * @static
- * @memberOf _
- * @since 0.8.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- * }
- *
- * _.isPlainObject(new Foo);
- * // => false
- *
- * _.isPlainObject([1, 2, 3]);
- * // => false
- *
- * _.isPlainObject({ 'x': 0, 'y': 0 });
- * // => true
- *
- * _.isPlainObject(Object.create(null));
- * // => true
- */
-function isPlainObject(value) {
-  if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
-    return false;
-  }
-  var proto = getPrototype(value);
-  if (proto === null) {
-    return true;
-  }
-  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
-  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
-    funcToString.call(Ctor) == objectCtorString;
-}
-
-module.exports = isPlainObject;
-
-
-/***/ }),
-
-/***/ 1420:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var ListCache = __webpack_require__(79);
-
-/**
- * Removes all key-value entries from the stack.
- *
- * @private
- * @name clear
- * @memberOf Stack
- */
-function stackClear() {
-  this.__data__ = new ListCache;
-  this.size = 0;
-}
-
-module.exports = stackClear;
-
-
-/***/ }),
-
-/***/ 1549:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var hashClear = __webpack_require__(2032),
-    hashDelete = __webpack_require__(3862),
-    hashGet = __webpack_require__(6721),
-    hashHas = __webpack_require__(2749),
-    hashSet = __webpack_require__(5749);
-
-/**
- * Creates a hash object.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function Hash(entries) {
-  var index = -1,
-      length = entries == null ? 0 : entries.length;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-// Add methods to `Hash`.
-Hash.prototype.clear = hashClear;
-Hash.prototype['delete'] = hashDelete;
-Hash.prototype.get = hashGet;
-Hash.prototype.has = hashHas;
-Hash.prototype.set = hashSet;
-
-module.exports = Hash;
-
-
-/***/ }),
-
-/***/ 1769:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var isArray = __webpack_require__(6449),
-    isKey = __webpack_require__(8586),
-    stringToPath = __webpack_require__(1802),
-    toString = __webpack_require__(3222);
-
-/**
- * Casts `value` to a path array if it's not one.
- *
- * @private
- * @param {*} value The value to inspect.
- * @param {Object} [object] The object to query keys on.
- * @returns {Array} Returns the cast property path array.
- */
-function castPath(value, object) {
-  if (isArray(value)) {
-    return value;
-  }
-  return isKey(value, object) ? [value] : stringToPath(toString(value));
-}
-
-module.exports = castPath;
-
-
-/***/ }),
-
-/***/ 1791:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var assignValue = __webpack_require__(6547),
-    baseAssignValue = __webpack_require__(3360);
-
-/**
- * Copies properties of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy properties from.
- * @param {Array} props The property identifiers to copy.
- * @param {Object} [object={}] The object to copy properties to.
- * @param {Function} [customizer] The function to customize copied values.
- * @returns {Object} Returns `object`.
- */
-function copyObject(source, props, object, customizer) {
-  var isNew = !object;
-  object || (object = {});
-
-  var index = -1,
-      length = props.length;
-
-  while (++index < length) {
-    var key = props[index];
-
-    var newValue = customizer
-      ? customizer(object[key], source[key], key, object, source)
-      : undefined;
-
-    if (newValue === undefined) {
-      newValue = source[key];
-    }
-    if (isNew) {
-      baseAssignValue(object, key, newValue);
-    } else {
-      assignValue(object, key, newValue);
-    }
-  }
-  return object;
-}
-
-module.exports = copyObject;
-
-
-/***/ }),
-
-/***/ 1802:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var memoizeCapped = __webpack_require__(2224);
-
-/** Used to match property names within property paths. */
-var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
-
-/** Used to match backslashes in property paths. */
-var reEscapeChar = /\\(\\)?/g;
-
-/**
- * Converts `string` to a property path array.
- *
- * @private
- * @param {string} string The string to convert.
- * @returns {Array} Returns the property path array.
- */
-var stringToPath = memoizeCapped(function(string) {
-  var result = [];
-  if (string.charCodeAt(0) === 46 /* . */) {
-    result.push('');
-  }
-  string.replace(rePropName, function(match, number, quote, subString) {
-    result.push(quote ? subString.replace(reEscapeChar, '$1') : (number || match));
-  });
-  return result;
-});
-
-module.exports = stringToPath;
-
-
-/***/ }),
-
-/***/ 1811:
-/***/ ((module) => {
-
-/** Used to detect hot functions by number of calls within a span of milliseconds. */
-var HOT_COUNT = 800,
-    HOT_SPAN = 16;
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeNow = Date.now;
-
-/**
- * Creates a function that'll short out and invoke `identity` instead
- * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
- * milliseconds.
- *
- * @private
- * @param {Function} func The function to restrict.
- * @returns {Function} Returns the new shortable function.
- */
-function shortOut(func) {
-  var count = 0,
-      lastCalled = 0;
-
-  return function() {
-    var stamp = nativeNow(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return arguments[0];
-      }
-    } else {
-      count = 0;
-    }
-    return func.apply(undefined, arguments);
-  };
-}
-
-module.exports = shortOut;
-
-
-/***/ }),
-
-/***/ 1873:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var root = __webpack_require__(9325);
-
-/** Built-in value references. */
-var Symbol = root.Symbol;
-
-module.exports = Symbol;
-
-
-/***/ }),
-
-/***/ 1882:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var baseGetTag = __webpack_require__(2552),
-    isObject = __webpack_require__(3805);
-
-/** `Object#toString` result references. */
-var asyncTag = '[object AsyncFunction]',
-    funcTag = '[object Function]',
-    genTag = '[object GeneratorFunction]',
-    proxyTag = '[object Proxy]';
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a function, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- *
- * _.isFunction(/abc/);
- * // => false
- */
-function isFunction(value) {
-  if (!isObject(value)) {
-    return false;
-  }
-  // The use of `Object#toString` avoids issues with the `typeof` operator
-  // in Safari 9 which returns 'object' for typed arrays and other constructors.
-  var tag = baseGetTag(value);
-  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
-}
-
-module.exports = isFunction;
-
-
-/***/ }),
-
-/***/ 1961:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var cloneArrayBuffer = __webpack_require__(9653);
-
-/**
- * Creates a clone of `typedArray`.
- *
- * @private
- * @param {Object} typedArray The typed array to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the cloned typed array.
- */
-function cloneTypedArray(typedArray, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
-  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-}
-
-module.exports = cloneTypedArray;
-
-
-/***/ }),
-
-/***/ 2032:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var nativeCreate = __webpack_require__(1042);
-
-/**
- * Removes all key-value entries from the hash.
- *
- * @private
- * @name clear
- * @memberOf Hash
- */
-function hashClear() {
-  this.__data__ = nativeCreate ? nativeCreate(null) : {};
-  this.size = 0;
-}
-
-module.exports = hashClear;
-
-
-/***/ }),
-
-/***/ 2111:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const eq = __webpack_require__(4641)
-const neq = __webpack_require__(3999)
-const gt = __webpack_require__(5580)
-const gte = __webpack_require__(4089)
-const lt = __webpack_require__(7059)
-const lte = __webpack_require__(5200)
-
-const cmp = (a, op, b, loose) => {
-  switch (op) {
-    case '===':
-      if (typeof a === 'object') {
-        a = a.version
-      }
-      if (typeof b === 'object') {
-        b = b.version
-      }
-      return a === b
-
-    case '!==':
-      if (typeof a === 'object') {
-        a = a.version
-      }
-      if (typeof b === 'object') {
-        b = b.version
-      }
-      return a !== b
-
-    case '':
-    case '=':
-    case '==':
-      return eq(a, b, loose)
-
-    case '!=':
-      return neq(a, b, loose)
-
-    case '>':
-      return gt(a, b, loose)
-
-    case '>=':
-      return gte(a, b, loose)
-
-    case '<':
-      return lt(a, b, loose)
-
-    case '<=':
-      return lte(a, b, loose)
-
-    default:
-      throw new TypeError(`Invalid operator: ${op}`)
-  }
-}
-module.exports = cmp
-
-
-/***/ }),
-
-/***/ 2199:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayPush = __webpack_require__(4528),
-    isArray = __webpack_require__(6449);
-
-/**
- * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
- * `keysFunc` and `symbolsFunc` to get the enumerable property names and
- * symbols of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {Function} keysFunc The function to get the keys of `object`.
- * @param {Function} symbolsFunc The function to get the symbols of `object`.
- * @returns {Array} Returns the array of property names and symbols.
- */
-function baseGetAllKeys(object, keysFunc, symbolsFunc) {
-  var result = keysFunc(object);
-  return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
-}
-
-module.exports = baseGetAllKeys;
-
-
-/***/ }),
-
-/***/ 2224:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var memoize = __webpack_require__(104);
-
-/** Used as the maximum memoize cache size. */
-var MAX_MEMOIZE_SIZE = 500;
-
-/**
- * A specialized version of `_.memoize` which clears the memoized function's
- * cache when it exceeds `MAX_MEMOIZE_SIZE`.
- *
- * @private
- * @param {Function} func The function to have its output memoized.
- * @returns {Function} Returns the new memoized function.
- */
-function memoizeCapped(func) {
-  var result = memoize(func, function(key) {
-    if (cache.size === MAX_MEMOIZE_SIZE) {
-      cache.clear();
-    }
-    return key;
-  });
-
-  var cache = result.cache;
-  return result;
-}
-
-module.exports = memoizeCapped;
-
-
-/***/ }),
-
-/***/ 2271:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(1791),
-    getSymbols = __webpack_require__(4664);
-
-/**
- * Copies own symbols of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy symbols from.
- * @param {Object} [object={}] The object to copy symbols to.
- * @returns {Object} Returns `object`.
- */
-function copySymbols(source, object) {
-  return copyObject(source, getSymbols(source), object);
-}
-
-module.exports = copySymbols;
 
 
 /***/ }),
@@ -31099,12 +32405,12 @@ Plugin.register('azurelib_utils', {
     has_changelog: true,
   
     onload() {
-      const { loadAzureLib } = __webpack_require__(814);
+      const { loadAzureLib } = __webpack_require__(2341);
       loadAzureLib();
     },
   
     onunload() {
-      const { unloadAzureLib } = __webpack_require__(814);
+      const { unloadAzureLib } = __webpack_require__(2341);
       unloadAzureLib();
     }
   });

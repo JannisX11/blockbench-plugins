@@ -21,6 +21,12 @@ import {
   unregisterAzureAnimationFormat,
 } from '../animation/azure-animation-tab.js';
 import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
+import {
+  injectMeshGeometry,
+  registerMeshSupport,
+  unregisterMeshSupport,
+} from './azure-mesh.js';
+import { registerMeshImport, unregisterMeshImport } from './azure-mesh-import.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
 const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
@@ -58,6 +64,8 @@ export function ensureAzureFormat() {
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    meshes: true,
+    armature_rig: true,
     select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
@@ -95,6 +103,8 @@ export function registerAzureCodec() {
   projectCodec.on('compile', handleProjectCompile);
   projectCodec.on('parse', handleProjectParse);
   bedrockCodec.on('compile', handleBedrockCompile);
+  registerMeshSupport();
+  registerMeshImport();
 
   registerAzureAnimationFormat();
   azureFormat.animation_codec = createAzureAnimationCodec() || undefined;
@@ -118,6 +128,8 @@ export function unregisterAzureCodec() {
   projectCodec?.events?.compile?.remove?.(handleProjectCompile);
   projectCodec?.events?.parse?.remove?.(handleProjectParse);
   bedrockCodec?.events?.compile?.remove?.(handleBedrockCompile);
+  unregisterMeshImport();
+  unregisterMeshSupport();
 
   unloadAnimationUI();
   unregisterKeyframeOverrides();
@@ -213,6 +225,7 @@ function handleBedrockCompile(event) {
     geometry.forEach(geo => {
       delete geo.item_display_transforms;
     });
+    injectMeshGeometry(geometry[0]);
   }
 }
 
