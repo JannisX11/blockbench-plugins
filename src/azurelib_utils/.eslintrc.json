@@ -35,7 +35,11 @@
     "Group": "readonly",
     "Outliner": "readonly",
     "Dialog": "readonly",
-    "DisplayMode": "readonly"
+    "DisplayMode": "readonly",
+    "Panel": "readonly",
+    "Locator": "readonly",
+    "Animation": "readonly",
+    "THREE": "readonly"
   },
   "rules": {
     "no-console": "error"

@@ -272,5 +272,30 @@
 				]
 			}
 		]
+	},
+	"2.3.0": {
+		"title": "2.3.0",
+		"date": "2026-10-29",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds the AzureLib Rig panel (a tab next to the Outliner in Edit and Animate) for setting up AzureLib's rig features on your model: bone hitboxes, sockets, IK chains, look-at, bone constraints, spring bones and blend spaces. Everything is saved in the .bbmodel and supports undo.",
+					"Previews the rig in the viewport: hitboxes are drawn on their bones like F3 + B, sockets show which way they face, and in Animate mode IK, look-at, spring bones and constraints run on top of your animation the way they do in game.",
+					"Blend spaces can be previewed in Animate mode, with a slider for the input and the weight of each animation.",
+					"Adds Generate AzureLib Rig Code, which writes the Java for your rig (hitbox set, sockets, pose modifiers, blend spaces and an attachment layer) for 26.3, 1.21.1, 1.20.1, 1.18.2, 1.12.2/1.7.10 and Beta 1.7.3, ready to copy or save as a .java file.",
+					"Adds Check AzureLib Rig, which finds problems such as renamed or missing bones, chain bones out of order and duplicate names before you generate code.",
+					"Add spring bone colliders to the AzureLib Rig panel",
+					"Adds polygon mesh support to AzureLib models. Meshes inside a bone export to that bone's poly_mesh and move with it like cubes. Flat and smooth shading both export.",
+					"Adds armature support for smooth mesh deformation. Meshes inside an armature bend with its bones using up to four vertex weights each, matching the Blockbench preview. Use Attach Armature or the Weight Brush to set weights.",
+					"Armature bones export as regular bones, so their animations export unchanged and AzureLib's hitboxes, sockets, IK and procedural poses work on them.",
+					"Adds Import AzureLib .geo Model, which opens a .geo.json as an AzureLib model and rebuilds its meshes, armatures and vertex weights. Use it to recover a model when the .bbmodel is lost. It also loads Bedrock poly_mesh geometry made by other tools.",
+					"Opening a Bedrock .geo.json now asks whether to open it as an AzureLib model or a Bedrock model, with an option to remember the choice. AzureLib models rebuild their meshes and armatures; Bedrock's format can't hold them. Change the default under Settings > AzureLib > Open Bedrock .geo.json files as (Ask every time, AzureLib for AzureLib exports, Always AzureLib, or Always Bedrock).",
+					"Importing animation files now restores keyframes on armature bones as well as on groups.",
+					"Adds Validator warnings for armature bones that share a name with a group, vertices weighted to more than four bones, and mesh export problems."
+				]
+			}
+		]
 	}
 }

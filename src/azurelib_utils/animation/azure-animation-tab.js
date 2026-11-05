@@ -18,7 +18,6 @@
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
 import { invertMolang } from '../core/azure-utils.js';
-import { IKManager } from './azure-ik.js';
 import {
   writePlaybackJson,
   readPlaybackJson,
@@ -670,9 +669,15 @@ function parseAnimation(name, src, filePath) {
   if (src.bones) {
     for (const boneName in src.bones) {
       const bone = src.bones[boneName];
-      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-      const uuid = group ? group.uuid : guid();
-      const boneAnim = new BoneAnimator(uuid, anim, boneName);
+      const lowerName = boneName.toLowerCase();
+      const group = Group.all.find(g => g.name.toLowerCase() === lowerName);
+      const armatureBone = !group && typeof ArmatureBone !== 'undefined'
+        ? ArmatureBone.all.find(b => b.name.toLowerCase() === lowerName)
+        : null;
+      const target = group || armatureBone;
+      const uuid = target ? target.uuid : guid();
+      const AnimatorType = armatureBone && ArmatureBone.animator ? ArmatureBone.animator : BoneAnimator;
+      const boneAnim = new AnimatorType(uuid, anim, boneName);
       anim.animators[uuid] = boneAnim;
 
       for (const channel in bone) {
@@ -1370,7 +1375,6 @@ function unpatchExportAnimationAction() {
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
-  //IKManager.register();
 
   const codec = createAzureAnimationCodec();
   if (!codec) {
@@ -1411,7 +1415,6 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
-  //IKManager.unregister();
 
   unpatchExportAnimationAction();
   unregisterPlayBehaviors();
