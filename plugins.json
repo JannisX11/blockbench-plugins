@@ -1811,5 +1811,17 @@
 		"tags": [
 			"Vintage Story"
 		]
+
+	},
+	"jpeg_compressor": {
+		"title": "JPEG Compressor",
+		"author": "the0dll",
+		"description": "JPEG compression (Soft / Standard / Deep-fry) with 2D preview and 3D model preview.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "4.8.0",
+		"variant": "both",
+		"tags": ["Texture","Paint","Tool"],
+		"creation_date": "2026-10-31"
 	}
 }
