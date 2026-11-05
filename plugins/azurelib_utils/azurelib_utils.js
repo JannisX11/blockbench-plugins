@@ -589,6 +589,7042 @@ module.exports = arrayLikeKeys;
 
 /***/ }),
 
+/***/ 814:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  loadAzureLib: () => (/* binding */ loadAzureLib),
+  unloadAzureLib: () => (/* binding */ unloadAzureLib)
+});
+
+// EXTERNAL MODULE: ./node_modules/semver/functions/coerce.js
+var coerce = __webpack_require__(6170);
+var coerce_default = /*#__PURE__*/__webpack_require__.n(coerce);
+// EXTERNAL MODULE: ./node_modules/semver/functions/satisfies.js
+var satisfies = __webpack_require__(7638);
+var satisfies_default = /*#__PURE__*/__webpack_require__.n(satisfies);
+;// ./package.json
+const package_namespaceObject = /*#__PURE__*/JSON.parse('{"rE":"2.3.0","Ug":{"title":"AzureLib Animator","author":"AzureDoom, Eliot Lash, Gecko, McHorse","icon":"azureicon.png","description":"Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.","min_version":"4.8.0","max_version":"15.0.0","new_repository_format":true,"await_loading":true,"variant":"both","creation_date":"2023-04-04","contributes":{"formats":["azure_model"]},"has_changelog":true,"website":"https://wiki.azuredoom.com/","tags":["Minecraft: Java Edition"]}}');
+// EXTERNAL MODULE: ./node_modules/lodash/lodash.js
+var lodash = __webpack_require__(2543);
+;// ./animation/azure-easing.js
+/**
+ * AzureLib Animator — Easing Definitions
+ * --------------------------------------
+ * Provides the easing function registry and argument parsing logic
+ * used for interpolating animated keyframes in AzureLib.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+// ---------------------------------------------------------------------------
+// Constants and types
+// ---------------------------------------------------------------------------
+
+/**
+ * Enumeration of supported easing functions.
+ * Matches AzureLib's Java easing mappings for full parity.
+ */
+const EASING_TYPES = {
+  linear: 'linear',
+  step: 'step',
+  easeInSine: 'easeInSine',
+  easeOutSine: 'easeOutSine',
+  easeInOutSine: 'easeInOutSine',
+  easeInQuad: 'easeInQuad',
+  easeOutQuad: 'easeOutQuad',
+  easeInOutQuad: 'easeInOutQuad',
+  easeInCubic: 'easeInCubic',
+  easeOutCubic: 'easeOutCubic',
+  easeInOutCubic: 'easeInOutCubic',
+  easeInQuart: 'easeInQuart',
+  easeOutQuart: 'easeOutQuart',
+  easeInOutQuart: 'easeInOutQuart',
+  easeInQuint: 'easeInQuint',
+  easeOutQuint: 'easeOutQuint',
+  easeInOutQuint: 'easeInOutQuint',
+  easeInExpo: 'easeInExpo',
+  easeOutExpo: 'easeOutExpo',
+  easeInOutExpo: 'easeInOutExpo',
+  easeInCirc: 'easeInCirc',
+  easeOutCirc: 'easeOutCirc',
+  easeInOutCirc: 'easeInOutCirc',
+  easeInBack: 'easeInBack',
+  easeOutBack: 'easeOutBack',
+  easeInOutBack: 'easeInOutBack',
+  easeInElastic: 'easeInElastic',
+  easeOutElastic: 'easeOutElastic',
+  easeInOutElastic: 'easeInOutElastic',
+  easeInBounce: 'easeInBounce',
+  easeOutBounce: 'easeOutBounce',
+  easeInOutBounce: 'easeInOutBounce',
+};
+
+/** Default easing for new keyframes. */
+const EASING_DEFAULT = EASING_TYPES.linear;
+
+/** Default argument for easing functions that use one. */
+const DEFAULT_ARG = 1;
+
+// ---------------------------------------------------------------------------
+// Core helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute an eased value between 0 and 1 based on an easing type.
+ * @param {string} easingName
+ * @param {number} t - normalized time (0..1)
+ * @param {number} [arg] - optional argument
+ * @returns {number}
+ */
+function applyEasing(easingName, t, arg = DEFAULT_ARG) {
+  const ease = easingRegistry[easingName] || easingRegistry.linear;
+  return ease(t, arg);
+}
+
+/**
+ * Return whether a given easing type expects a numeric argument.
+ * @param {string} easingName
+ * @returns {boolean}
+ */
+function hasArgs(easingName) {
+  return (
+    easingName?.includes('Back') ||
+    easingName?.includes('Elastic') ||
+    easingName?.includes('Bounce') ||
+    easingName === 'step'
+  );
+}
+
+/**
+ * Returns the default argument for a given easing.
+ * @param {string} easingName
+ * @returns {number}
+ */
+function getEasingArgDefault(easingName) {
+  if (!hasArgs(easingName)) return DEFAULT_ARG;
+  if (easingName?.includes('Back')) return 1.70158;
+  if (easingName?.includes('Elastic')) return 1;
+  if (easingName?.includes('Bounce')) return 1;
+  if (easingName === 'step') return 4;
+  return DEFAULT_ARG;
+}
+
+/**
+ * Parses an argument from user input, falling back to defaults if invalid.
+ * @param {object} keyframe
+ * @param {string} input
+ * @returns {number}
+ */
+function parseEasingArg(keyframe, input) {
+  const num = parseFloat(input);
+  if (isNaN(num)) return getEasingArgDefault(keyframe.easing);
+  const arg = Math.max(-9999, Math.min(9999, num));
+  return arg;
+}
+
+// ---------------------------------------------------------------------------
+// Easing function implementations
+// ---------------------------------------------------------------------------
+
+const PI = Math.PI;
+const c1 = 1.70158;
+const c2 = c1 * 1.525;
+const c3 = c1 + 1;
+const c4 = (2 * PI) / 3;
+const c5 = (2 * PI) / 4.5;
+
+const bounceOut = x => {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (x < 1 / d1) return n1 * x * x;
+  if (x < 2 / d1) return n1 * (x -= 1.5 / d1) * x + 0.75;
+  if (x < 2.5 / d1) return n1 * (x -= 2.25 / d1) * x + 0.9375;
+  return n1 * (x -= 2.625 / d1) * x + 0.984375;
+};
+
+/**
+ * The easing registry maps an easing name → function.
+ * Each function takes `(t, arg?)` and returns eased t.
+ */
+const easingRegistry = {
+  linear: t => t,
+
+  step: (t, n = 4) => Math.floor((0,lodash.clamp)(t * n, 0, n - 1)) / (n - 1),
+
+  easeInSine: t => 1 - Math.cos((t * PI) / 2),
+  easeOutSine: t => Math.sin((t * PI) / 2),
+  easeInOutSine: t => -(Math.cos(PI * t) - 1) / 2,
+
+  easeInQuad: t => t * t,
+  easeOutQuad: t => 1 - (1 - t) * (1 - t),
+  easeInOutQuad: t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+
+  easeInCubic: t => t * t * t,
+  easeOutCubic: t => 1 - Math.pow(1 - t, 3),
+  easeInOutCubic: t =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+
+  easeInQuart: t => t * t * t * t,
+  easeOutQuart: t => 1 - Math.pow(1 - t, 4),
+  easeInOutQuart: t =>
+    t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2,
+
+  easeInQuint: t => t * t * t * t * t,
+  easeOutQuint: t => 1 - Math.pow(1 - t, 5),
+  easeInOutQuint: t =>
+    t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2,
+
+  easeInExpo: t => (t === 0 ? 0 : Math.pow(2, 10 * t - 10)),
+  easeOutExpo: t => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  easeInOutExpo: t =>
+    t === 0
+      ? 0
+      : t === 1
+      ? 1
+      : t < 0.5
+      ? Math.pow(2, 20 * t - 10) / 2
+      : (2 - Math.pow(2, -20 * t + 10)) / 2,
+
+  easeInCirc: t => 1 - Math.sqrt(1 - Math.pow(t, 2)),
+  easeOutCirc: t => Math.sqrt(1 - Math.pow(t - 1, 2)),
+  easeInOutCirc: t =>
+    t < 0.5
+      ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
+      : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2,
+
+  easeInBack: (t, s = c1) => c3 * t * t * t - s * t * t,
+  easeOutBack: (t, s = c1) =>
+    1 + c3 * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2),
+  easeInOutBack: (t, s = c1) =>
+    t < 0.5
+      ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
+      : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2,
+
+  easeInElastic: (t, p = 1) =>
+    t === 0
+      ? 0
+      : t === 1
+      ? 1
+      : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * c4 * p),
+
+  easeOutElastic: (t, p = 1) =>
+    t === 0
+      ? 0
+      : t === 1
+      ? 1
+      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4 * p) + 1,
+
+  easeInOutElastic: (t, p = 1) =>
+    t === 0
+      ? 0
+      : t === 1
+      ? 1
+      : t < 0.5
+      ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5 * p)) / 2
+      : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5 * p)) / 2 +
+        1,
+
+  easeInBounce: t => 1 - bounceOut(1 - t),
+  easeOutBounce: bounceOut,
+  easeInOutBounce: t =>
+    t < 0.5
+      ? (1 - bounceOut(1 - 2 * t)) / 2
+      : (1 + bounceOut(2 * t - 1)) / 2,
+};
+
+/* harmony default export */ const azure_easing = ((/* unused pure expression or super */ null && (easingRegistry)));
+
+;// ./animation/azure-animation-ui.js
+/**
+ * AzureLib Animator — Unified Animation UI
+ * ----------------------------------------
+ * Custom animation panel that replaces the Minecraft Bedrock animation tab.
+ * Supports AzureLib custom easings and Bedrock lerp_mode (catmullrom/linear)
+ * in one unified interface.
+ *
+ * UI features:
+ *   - Easing family picker (Azure easings: sine, quad, cubic … + linear/step)
+ *   - In / Out / InOut type toggle
+ *   - Numeric argument input for Back/Elastic/Bounce/Step
+ *   - Bedrock catmullrom toggle (sets interpolation, not easing)
+ *   - All controls update all selected keyframes atomically via the undo system
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+
+// ---------------------------------------------------------------------------
+// Lifecycle
+// ---------------------------------------------------------------------------
+
+let _uiListeners = false;
+
+function initializeAnimationUI() {
+  if (_uiListeners) return;
+
+  Blockbench.on('display_animation_frame', _onFrame);
+  Blockbench.on('update_keyframe_selection', refreshKeyframeUI);
+
+  // Expose handlers globally so inline HTML oninput/onclick can call them
+  window._azureApplyEasing       = applyKeyframeEasing;
+  window._azureApplyEasingArg    = applyEasingArgument;
+  window._azureToggleCatmullrom  = toggleCatmullrom;  // kept for compat
+  window._azureSetInterpolation   = setInterpolation;
+
+  // Suppress Blockbench's stock interpolation selector in Azure format
+  _patchStockInterpolationBar();
+
+  _uiListeners = true;
+  console.log('[AzureLib] Animation UI initialised');
+}
+
+function unloadAnimationUI() {
+  if (!_uiListeners) return;
+
+  Blockbench.removeListener('display_animation_frame', _onFrame);
+  Blockbench.removeListener('update_keyframe_selection', refreshKeyframeUI);
+
+  delete window._azureApplyEasing;
+  delete window._azureApplyEasingArg;
+  delete window._azureToggleCatmullrom;
+
+  _cleanupKeyframePanel();
+  _uiListeners = false;
+}
+
+// ---------------------------------------------------------------------------
+// Keyframe panel refresh (main entry point)
+// ---------------------------------------------------------------------------
+
+const PANEL_BARS = [
+  'azl_bar_catmullrom',
+  'azl_bar_easing',
+  'azl_bar_easing_azure',
+  'azl_bar_easing_type',
+  'azl_bar_easing_arg',
+];
+
+function refreshKeyframeUI() {
+  _cleanupKeyframePanel();
+
+  // Only show Azure controls when our format is active
+  if (Format?.id !== 'azure_model') return;
+
+  // Show/hide the stock pre/post toggle button
+  const addPrePost = document.querySelector('#keyframe_type_label > div');
+  if (addPrePost) addPrePost.hidden = true;
+
+  const selected = Timeline.selected;
+  if (!selected || !selected.length) return;
+
+  const keyframesByChannel = _groupByChannel(Timeline.keyframes);
+  const firstInChannel = kf => {
+    const ch = keyframesByChannel.get(kf.animator)?.[kf.channel] || [];
+    return ch.indexOf(kf) < 1;
+  };
+
+  // Only render for bone keyframes that are not the first in their channel
+  if (!selected.every(kf => kf.animator instanceof BoneAnimator && !firstInChannel(kf))) return;
+
+  const panel = document.getElementById('panel_keyframe');
+  if (!panel) return;
+
+  _renderInterpolationBar(panel, selected);
+  _renderEasingBar(panel, selected);
+}
+
+// ---------------------------------------------------------------------------
+// Bedrock interpolation bar
+// Blockbench stores these as kf.interpolation:
+//   undefined / null → AzureLib easing mode (our default)
+//   'catmullrom'     → Bedrock smooth spline (BB "Smooth")
+//   'bezier'         → Bezier curves (BB "Bezier")
+//   'step'           → Discrete step (BB "Step")
+// ---------------------------------------------------------------------------
+
+/**
+ * All Blockbench-native interpolation modes we expose.
+ * Selecting any of these sets kf.interpolation and clears kf.easing.
+ * "Azure Easing" is our own mode — clears interpolation, uses kf.easing instead.
+ */
+const BB_INTERP_MODES = [
+  { id: null,          label: 'Azure Easing', title: 'Use AzureLib custom easing (see section below)' },
+  { id: 'catmullrom',  label: 'Smooth',        title: 'Bedrock catmullrom spline (BB: Smooth)' },
+  { id: 'bezier',      label: 'Bezier',        title: 'Bezier curve interpolation (BB: Bezier)' },
+  { id: 'step',        label: 'Step',          title: 'Discrete step / hold (BB: Step)' },
+];
+
+function _renderInterpolationBar(panel, selected) {
+  // Read the shared interpolation across selected keyframes.
+  // null/undefined/'linear' all mean "Azure easing mode" — 'linear' is our internal
+  // sentinel used to keep Blockbench's BarSelect happy (it rejects undefined).
+  const normalizeInterp = kf => {
+    const v = kf.interpolation;
+    return (!v || v === 'linear') ? null : v;
+  };
+  const currentInterp = _readMulti(selected, normalizeInterp, null, '(mixed)');
+
+  const bar = _createBar('azl_bar_catmullrom', panel);
+
+  // Section heading — plain text, no background, matches BB's own keyframe labels
+  const heading = document.createElement('p');
+  heading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
+  heading.textContent = 'Interpolation';
+  bar.appendChild(heading);
+
+  for (const { id, label, title } of BB_INTERP_MODES) {
+    const isActive = (currentInterp === id);
+    const btn = document.createElement('button');
+    btn.id = 'azl_btn_interp_' + (id ?? 'azure');
+    btn.className = 'dark_bordered';
+    btn.textContent = label;
+    btn.title = title;
+    btn.style.cssText = `padding:2px 10px;margin:1px;cursor:pointer;${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}`;
+    btn.onclick = () => window._azureSetInterpolation(id);
+    bar.appendChild(btn);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Easing bar
+// ---------------------------------------------------------------------------
+
+/**
+ * AzureLib easing families (custom Java-side easings).
+ * "linear" and "step" are special-cased (no In/Out/InOut variants).
+ */
+const AZURE_EASING_FAMILIES = [
+  { id: 'linear',  label: 'Linear'  },
+  { id: 'step',    label: 'Step'    },
+  { id: 'sine',    label: 'Sine'    },
+  { id: 'quad',    label: 'Quad'    },
+  { id: 'cubic',   label: 'Cubic'   },
+  { id: 'quart',   label: 'Quart'   },
+  { id: 'quint',   label: 'Quint'   },
+  { id: 'expo',    label: 'Expo'    },
+  { id: 'circ',    label: 'Circ'    },
+  { id: 'back',    label: 'Back'    },
+  { id: 'elastic', label: 'Elastic' },
+  { id: 'bounce',  label: 'Bounce'  },
+];
+
+const EASING_TYPES_LIST = [
+  { id: 'in',    label: 'In'    },
+  { id: 'out',   label: 'Out'   },
+  { id: 'inout', label: 'In/Out'},
+];
+
+function _renderEasingBar(panel, selected) {
+  // Don't show Azure easing picker when all selected have a Bedrock interpolation mode.
+  // 'linear' is our internal sentinel for Azure easing mode (not a real Bedrock interp),
+  // so it must NOT be treated as a Bedrock mode here.
+  const isBedrock = kf => !!kf.interpolation && kf.interpolation !== 'linear';
+  const allBedrock = selected.every(isBedrock);
+
+  const displayedEasing = _readMulti(selected, kf => kf.easing, EASING_DEFAULT, '(mixed)');
+  const currentFamily   = _easingFamilyOf(displayedEasing);
+  const currentType     = _easingTypeOf(displayedEasing);
+
+  // --- Section header ---
+  const headerBar = _createBar('azl_bar_easing', panel);
+  const easingHeading = document.createElement('p');
+  easingHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
+  easingHeading.textContent = 'AzureLib Easings';
+  headerBar.appendChild(easingHeading);
+
+  // --- Azure easing family buttons (icon + label inside each button) ---
+  const azureRow = _createBar('azl_bar_easing_azure', panel);
+  azureRow.style.flexWrap = 'wrap';
+
+  for (const { id, label } of AZURE_EASING_FAMILIES) {
+    const isSelected = !allBedrock && (id === currentFamily);
+    const icon = EASING_ICONS[id] || '';
+    const btn = document.createElement('button');
+    btn.id = `azl_kf_easing_${id}`;
+    btn.className = 'dark_bordered';
+    btn.title = `Switch to ${label} easing`;
+    btn.style.cssText = `
+      padding: 2px 6px;
+      margin: 1px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      ${isSelected ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
+    `;
+    btn.innerHTML = `${icon}<span>${label}</span>`;
+    btn.onclick = () => {
+      const nextEasing = _assembleEasingId(id, currentType);
+      applyKeyframeEasing(nextEasing);
+    };
+    azureRow.appendChild(btn);
+  }
+
+  // --- Type (In / Out / In/Out) row — only for families with variants ---
+  if (!allBedrock && currentFamily !== 'linear' && currentFamily !== 'step') {
+    const typeBar = _createBar('azl_bar_easing_type', panel);
+    const typeHeading = document.createElement('p');
+    typeHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
+    typeHeading.textContent = 'Type';
+    typeBar.appendChild(typeHeading);
+
+    for (const { id, label } of EASING_TYPES_LIST) {
+      const isActive = (id === currentType);
+      const btn = document.createElement('button');
+      btn.id = `azl_kf_type_${id}`;
+      btn.className = 'dark_bordered';
+      btn.textContent = label;
+      btn.style.cssText = `
+        padding: 2px 10px;
+        margin: 1px;
+        cursor: pointer;
+        ${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
+      `;
+      btn.onclick = () => {
+        const nextEasing = _assembleEasingId(currentFamily, id);
+        applyKeyframeEasing(nextEasing);
+      };
+      typeBar.appendChild(btn);
+    }
+  }
+
+  // --- Argument row (for Back/Elastic/Bounce/Step) ---
+  if (selected.every(kf => hasArgs(kf.easing))) {
+    const argLabel = _getArgLabel(selected[0].easing);
+    const defaultArg = getEasingArgDefault(selected[0].easing);
+    const currentArg = _readMulti(
+      selected,
+      kf => (Array.isArray(kf.easingArgs) && kf.easingArgs.length ? kf.easingArgs[0] : defaultArg),
+      defaultArg,
+      defaultArg,
+    );
+
+    const argBar = _createBar('azl_bar_easing_arg', panel);
+    argBar.innerHTML = `
+      <p style="margin:4px 0 2px 0;padding:0;color:var(--color-text);min-width:90px;">${argLabel}</p>
+      <input
+        type="number"
+        id="azl_easing_arg_input"
+        class="dark_bordered code keyframe_input tab_target"
+        value="${currentArg}"
+        oninput="window._azureApplyEasingArg(this)"
+        style="flex:1;margin-right:9px;">`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply an easing name to all selected keyframes.
+ * @param {string} easingId - e.g. 'easeInSine', 'linear', 'step'
+ */
+function applyKeyframeEasing(easingId) {
+  if (!easingId || easingId === '-') return;
+  Undo.initEdit({ keyframes: Timeline.selected });
+
+  Timeline.selected.forEach(kf => {
+    kf.easing = easingId;
+    // Switching to an Azure easing clears any Bedrock interpolation mode.
+    // Use 'linear' (not undefined) so BB's BarSelect keyframe_interpolation stays valid.
+    if (kf.interpolation && kf.interpolation !== 'linear') kf.interpolation = 'linear';
+  });
+
+  Undo.finishEdit('Set keyframe easing');
+  refreshKeyframeUI();
+}
+
+/**
+ * Apply the numeric easing argument from the input field.
+ * @param {HTMLInputElement} el
+ */
+function applyEasingArgument(el) {
+  const raw = $(el).val();
+  if (raw === '' || raw === '-') return;
+  Undo.initEdit({ keyframes: Timeline.selected });
+
+  Timeline.selected.forEach(kf => {
+    kf.easingArgs = [parseEasingArg(kf, String(raw).trim())];
+  });
+
+  Undo.finishEdit('Set keyframe easing argument');
+}
+
+/**
+ * Set a Blockbench-native interpolation mode on all selected keyframes.
+ * @param {string|null} mode - 'catmullrom' | 'bezier' | 'step' | null
+ *   null means "Azure easing mode" — clears interpolation so kf.easing takes over.
+ */
+function setInterpolation(mode) {
+  Undo.initEdit({ keyframes: Timeline.selected });
+
+  Timeline.selected.forEach(kf => {
+    if (mode === null || mode === undefined) {
+      // Azure easing mode: use 'linear' sentinel (not undefined) so BB's BarSelect stays valid.
+      kf.interpolation = 'linear';
+    } else {
+      // Bedrock interpolation: set mode, clear Azure easing
+      kf.interpolation = mode;
+      kf.easing = EASING_DEFAULT;
+      kf.easingArgs = undefined;
+    }
+  });
+
+  Undo.finishEdit('Set keyframe interpolation');
+  refreshKeyframeUI();
+}
+
+/** @deprecated use setInterpolation — kept for backward compatibility */
+function toggleCatmullrom(forceValue) {
+  setInterpolation(forceValue === false ? null : 'catmullrom');
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function _onFrame() { /* reserved */ }
+
+function _createBar(id, parent) {
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'bar flex';
+  el.style.flexWrap = 'wrap';
+  el.style.alignItems = 'center';
+  el.style.gap = '2px';
+  el.style.marginTop = '4px';
+  parent.appendChild(el);
+  return el;
+}
+
+function _cleanupKeyframePanel() {
+  PANEL_BARS.forEach(id => document.getElementById(id)?.remove());
+  const prePost = document.querySelector('#keyframe_type_label > div');
+  if (prePost) prePost.hidden = false;
+}
+
+function _groupByChannel(keyframes) {
+  const map = new Map();
+  for (const kf of keyframes) {
+    if (!map.has(kf.animator)) map.set(kf.animator, {});
+    const ch = map.get(kf.animator);
+    if (!ch[kf.channel]) ch[kf.channel] = [];
+    ch[kf.channel].push(kf);
+    ch[kf.channel].sort((a, b) => a.time - b.time);
+  }
+  return map;
+}
+
+/**
+ * Read a value from all selected keyframes.
+ * If all values are equal, return it; otherwise return `conflict`.
+ */
+function _readMulti(selected, selector, def, conflict) {
+  const fn = typeof selector === 'function' ? selector : kf => kf[selector];
+  if (selected.length === 0) return def;
+  if (selected.length === 1) return fn(selected[0]) ?? def;
+  const values = (0,lodash.uniq)(selected.map(fn));
+  return values.length === 1 ? values[0] : conflict;
+}
+
+/**
+ * Extract the easing family from a full easing name.
+ * 'easeInOutSine' → 'sine', 'linear' → 'linear'
+ */
+function _easingFamilyOf(name) {
+  if (!name || name === 'linear') return 'linear';
+  if (name === 'step') return 'step';
+  const m = String(name).match(/^ease(?:InOut|In|Out)([\w]+)$/i);
+  return m ? m[1].toLowerCase() : name.toLowerCase();
+}
+
+/**
+ * Extract the easing type (in/out/inout) from a full easing name.
+ * 'easeInOutSine' → 'inout', 'easeOutBounce' → 'out', 'easeInQuad' → 'in'
+ */
+function _easingTypeOf(name) {
+  const m = String(name).match(/^ease(InOut|In|Out)/i);
+  if (!m) return 'in';
+  const raw = m[1].toLowerCase();
+  return raw === 'inout' ? 'inout' : raw;
+}
+
+/**
+ * Assemble a full easing ID from family + type.
+ * ('sine', 'out') → 'easeOutSine'
+ * ('linear', *) → 'linear'
+ * ('step', *) → 'step'
+ */
+function _assembleEasingId(family, type) {
+  if (family === 'linear') return 'linear';
+  if (family === 'step') return 'step';
+  const typeStr = type === 'inout' ? 'InOut' : type === 'out' ? 'Out' : 'In';
+  return `ease${typeStr}${family.charAt(0).toUpperCase()}${family.slice(1)}`;
+}
+
+function _getArgLabel(easing) {
+  if (!easing) return 'Arg';
+  if (easing.includes('Back')) return 'Overshoot';
+  if (easing.includes('Elastic')) return 'Bounciness';
+  if (easing.includes('Bounce')) return 'Bounciness';
+  if (easing === 'step') return 'Steps';
+  return 'Arg';
+}
+
+function _patchStockInterpolationBar() {
+  if (!BarItems.keyframe_interpolation) return;
+  const orig = BarItems.keyframe_interpolation.condition;
+  BarItems.keyframe_interpolation.condition = function (...args) {
+    if (Format?.id === 'azure_model') return false;
+    return typeof orig === 'function' ? orig.apply(this, args) : true;
+  };
+}
+
+// ---------------------------------------------------------------------------
+// SVG easing curve icons (inline)
+// ---------------------------------------------------------------------------
+
+const EASING_ICONS = {
+  linear:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  step:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 0,-1.32 H 1.85 v -1.32 H 3.17 v -1.33 h 1.32 v -1.32 l 1.33,1e-5" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  sine:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 1.85,5.82 4.76,2.38 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quad:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.04 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  cubic:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quart:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.17,0 4.23,-2.64 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  quint:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.44,0 4.23,-1.85 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  expo:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 4.23,0 5.29,-1.06 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  circ:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 5.82,4.97 5.82,3.17 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  back:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.29 c 3.17,0 4.23,2.91 5.29,-4.76" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  elastic: '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.15 c 0.79,0 0.79,-0.26 1.32,-0.26 0.53,0 0.79,0.53 1.32,0.53 0.53,0 1.01,-1.84 1.32,-0.79 0.79,2.64 1.32,1.32 1.32,-3.97" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+  bounce:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 0.26,-0.26 0.53,-0.26 0.79,0 0.53,-0.53 0.53,-0.53 1.06,0 0.79,-2.12 1.59,-2.12 2.38,0 0.26,-4.23 1.06,-5.29 1.06,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
+};
+
+;// ./core/azure-utils.js
+/**
+ * AzureLib Animator — Utility & Patching Layer
+ * --------------------------------------------
+ * Provides function override registration and restoration.
+ * Replaces the old addMonkeypatch/removeMonkeypatch system.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+const PatchRegistry = new Map();
+
+/**
+ * Register a new override on a target object.
+ * Keeps a reference to the original method.
+ */
+function injectOverride(symbol, path, key, newImpl) {
+  const target = path ? symbol[path] : symbol;
+  if (!PatchRegistry.has(symbol)) PatchRegistry.set(symbol, { _target: target });
+  const entry = PatchRegistry.get(symbol);
+  entry[key] = target[key];
+  target[key] = newImpl;
+}
+
+/**
+ * Restore all previously injected overrides.
+ */
+function restoreOverrides() {
+  PatchRegistry.forEach(entry => {
+    Object.keys(entry).forEach(key => {
+      if (key.startsWith('_')) return;
+      entry._target[key] = entry[key];
+    });
+  });
+  PatchRegistry.clear();
+}
+
+/**
+ * Whether an easing type uses arguments.
+ */
+const azure_utils_hasArgs = easing =>
+  easing?.includes('Back') ||
+  easing?.includes('Elastic') ||
+  easing?.includes('Bounce') ||
+  easing === 'step';
+
+/**
+ * Fallback Molang inverter for AzureLib standalone use.
+ */
+function invertMolang(molang) {
+  const OPEN = ['(', '[', '{'];
+  const CLOSE = [')', ']', '}'];
+
+  if (typeof molang === 'number') return -molang;
+  if (molang === '' || molang === '0') return molang;
+
+  if (!isNaN(parseFloat(molang)) && isFinite(molang)) {
+    const val = parseFloat(molang);
+    return (-val).toString();
+  }
+
+  let invert = true;
+  let depth = 0;
+  let lastOp;
+  let result = '';
+
+  for (let ch of molang) {
+    if (!depth) {
+      let op;
+      let hadInput = true;
+
+      if (ch === '-' && lastOp !== '*' && lastOp !== '/') {
+        if (!invert && !lastOp) result += '+';
+        invert = false;
+        continue;
+      } else if (ch === '+' && lastOp !== '*' && lastOp !== '/') {
+        result += '-';
+        invert = false;
+        continue;
+      } else if ('?:'.includes(ch)) {
+        invert = true;
+        op = ch;
+      } else if (invert) {
+        result += '-';
+        invert = false;
+      } else if ('+-*/&|'.includes(ch)) {
+        op = ch;
+      }
+
+      lastOp = op || lastOp;
+    }
+
+    if (OPEN.includes(ch)) depth++;
+    if (CLOSE.includes(ch)) depth--;
+
+    result += ch;
+  }
+
+  return result;
+}
+
+;// ./animation/azure-keyframes.js
+/**
+ * AzureLib Animator — Keyframe Interpolation & Overrides
+ * ------------------------------------------------------
+ * Adds easing-aware keyframe interpolation and export behaviour
+ * for AzureLib's unified animation format.
+ *
+ * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
+ * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+let ORIG = null;
+let ORIG_REVERSE_CONDITION = null;
+let PATCHED = false;
+
+// ---------------------------------------------------------------------------
+// Capture originals once
+// ---------------------------------------------------------------------------
+
+function captureOriginalsOnce() {
+  if (ORIG) return;
+  ORIG = {
+    getLerp: Keyframe.prototype.getLerp,
+    compileBedrockKeyframe: Keyframe.prototype.compileBedrockKeyframe,
+    getUndoCopy: Keyframe.prototype.getUndoCopy,
+    extend: Keyframe.prototype.extend,
+  };
+  try {
+    ORIG_REVERSE_CONDITION = BarItems.reverse_keyframes?.condition || null;
+  } catch {
+    ORIG_REVERSE_CONDITION = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
+function registerKeyframeOverrides() {
+  if (PATCHED) return;
+  captureOriginalsOnce();
+
+  if (!Keyframe.prototype._azurePatched) {
+    Keyframe.prototype.getLerp              = getLerpOverride;
+    Keyframe.prototype.compileBedrockKeyframe = compileBedrockKeyframe;
+    Keyframe.prototype.getUndoCopy          = getUndoCopy;
+    Keyframe.prototype.extend               = extendKeyframe;
+    Keyframe.prototype._azurePatched        = true;
+  }
+
+  if (BarItems.reverse_keyframes && !BarItems.reverse_keyframes._azurePatched) {
+    if (!ORIG_REVERSE_CONDITION) ORIG_REVERSE_CONDITION = BarItems.reverse_keyframes.condition;
+    BarItems.reverse_keyframes.condition = reverseCondition;
+    BarItems.reverse_keyframes._azurePatched = true;
+  }
+
+  // Hook Blockbench's playback dispatcher so Azure-easing segments are
+  // actually interpolated. Without this, kf.interpolation === 'linear'
+  // (our marker for "Azure easing mode") would use BB's plain linear branch
+  // and ignore any Azure easing curve set on the keyframe.
+  Blockbench.on('interpolate_keyframes', azureInterpolateListener);
+
+  PATCHED = true;
+}
+
+function unregisterKeyframeOverrides() {
+  if (!PATCHED || !ORIG) return;
+  try {
+    if (Keyframe.prototype._azurePatched) {
+      Keyframe.prototype.getLerp              = ORIG.getLerp;
+      Keyframe.prototype.compileBedrockKeyframe = ORIG.compileBedrockKeyframe;
+      Keyframe.prototype.getUndoCopy          = ORIG.getUndoCopy;
+      Keyframe.prototype.extend               = ORIG.extend;
+      delete Keyframe.prototype._azurePatched;
+    }
+    if (BarItems.reverse_keyframes?._azurePatched && ORIG_REVERSE_CONDITION) {
+      BarItems.reverse_keyframes.condition = ORIG_REVERSE_CONDITION;
+      delete BarItems.reverse_keyframes._azurePatched;
+    }
+    try { Blockbench.removeListener('interpolate_keyframes', azureInterpolateListener); } catch { /* noop */ }
+  } finally {
+    PATCHED = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// interpolate_keyframes listener — drives Azure-easing playback
+// ---------------------------------------------------------------------------
+//
+// Blockbench's BoneAnimator.interpolate dispatches this event before its
+// own interpolation switch. If a listener returns { value: [x, y, z] }
+// the dispatcher returns that array directly and the built-in
+// linear/catmullrom/bezier branches are skipped.
+//
+// We use this for Azure-easing segments (kf.interpolation falsy or 'linear')
+// — without it, kf.interpolation === undefined doesn't match any of BB's
+// built-in branches and BoneAnimator.interpolate falls off the end without
+// returning a value, freezing the bone between keyframes.
+//
+// Returning undefined from the listener leaves BB's normal dispatch in
+// place, which is what we want for catmullrom/bezier/step segments.
+
+function azureInterpolateListener(args) {
+  if (Format?.id !== 'azure_model') return;
+
+  const before = args && args.keyframe_before;
+  const after  = args && args.keyframe_after;
+  if (!before || !after) return;
+
+  // Only handle Azure-easing segments. Anything that names a BB-native
+  // interpolation mode (catmullrom / bezier / step) is left to BB.
+  // 'linear' is treated as Azure-eligible because that's the default value
+  // BB stamps onto fresh keyframes — and it's also semantically a no-op
+  // when the easing happens to be plain linear.
+  const azureEligible = mode => !mode || mode === 'linear';
+  if (!azureEligible(before.interpolation) || !azureEligible(after.interpolation)) return;
+
+  // Defer to BB when either side carries molang expressions — the eased
+  // numeric path can't preserve string expressions and would silently
+  // change behaviour. (Safe: BB's linear→linear branch handles this case.)
+  if (before.has_expressions || after.has_expressions) return;
+
+  // Resolve easing from the destination keyframe. AzureLib reads easing
+  // off the "to" keyframe, mirroring the Java runtime.
+  const easing = after.easing || EASING_DEFAULT;
+  const fn = easingRegistry[easing] || easingRegistry.linear;
+
+  let eased;
+  if (azure_utils_hasArgs(easing)) {
+    const arg = (Array.isArray(after.easingArgs) && after.easingArgs.length)
+      ? after.easingArgs[0]
+      : getEasingArgDefault(easing);
+    eased = fn(args.t, arg);
+  } else {
+    eased = fn(args.t);
+  }
+
+  if (typeof eased !== 'number' || Number.isNaN(eased)) return;
+
+  // Match the data_point selection used by Keyframe.prototype.getLerp:
+  // earlier-in-time kf uses dp 1 if it has multiple, later kf uses dp 0.
+  // before.time < after.time is guaranteed here by BoneAnimator.interpolate.
+  const beforeDP = (before.data_points.length > 1) ? 1 : 0;
+  const afterDP  = 0;
+
+  const value = ['x', 'y', 'z'].map(axis => {
+    const a = before.calc(axis, beforeDP);
+    const b = after.calc(axis, afterDP);
+    return a + (b - a) * eased;
+  });
+
+  return { value };
+}
+
+// ---------------------------------------------------------------------------
+// getLerp — easing-aware interpolation
+// ---------------------------------------------------------------------------
+//
+// Reachable in two situations:
+//   1. BoneAnimator.interpolate's linear-only branch (only when both kfs
+//      have interpolation === 'linear'). With the event listener above,
+//      that branch is short-circuited for Azure-easing segments, so this
+//      path mostly handles plain linear→linear segments at runtime.
+//   2. The keyframe optimizer in animation.js (~line 1462) uses the same
+//      linear-only gate during bake/optimize and calls getLerp directly.
+//      We honour Azure easing there too so optimized output matches
+//      playback behaviour.
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function getLerpOverride(other, axis, t) {
+  if (Format?.id !== 'azure_model') {
+    return ORIG.getLerp.apply(this, arguments);
+  }
+
+  // Defer to Blockbench for explicit Bedrock spline/bezier/step modes.
+  // Note: 'linear' is intentionally NOT in this list — we want to apply
+  // the Azure easing curve when one is set, even if the kf carries
+  // BB's default interpolation === 'linear' marker.
+  if (other.interpolation === 'catmullrom' ||
+      other.interpolation === 'bezier'     ||
+      other.interpolation === 'step') {
+    return ORIG.getLerp.apply(this, arguments);
+  }
+
+  const easing = other.easing || EASING_DEFAULT;
+
+  // Plain linear with no custom easing → BB's original implementation
+  // is fine and preserves its allow_expression fast-path.
+  if (easing === EASING_DEFAULT && (!other.easingArgs || !other.easingArgs.length)) {
+    return ORIG.getLerp.apply(this, arguments);
+  }
+
+  let func = easingRegistry[easing] || easingRegistry.linear;
+
+  if (azure_utils_hasArgs(easing)) {
+    const arg = Array.isArray(other.easingArgs) && other.easingArgs.length
+      ? other.easingArgs[0]
+      : getEasingArgDefault(easing);
+    func = func.bind(null, arg);
+  }
+
+  const eased = func(t);
+  const start = this.calc(axis);
+  const stop  = other.calc(axis);
+  const result = lerp(start, stop, eased);
+
+  if (Number.isNaN(result)) throw new Error('[AzureLib] Invalid easing result');
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// compileBedrockKeyframe — unified serialiser
+// ---------------------------------------------------------------------------
+
+function compileBedrockKeyframe() {
+  if (Format?.id !== 'azure_model') {
+    return ORIG.compileBedrockKeyframe.apply(this, arguments);
+  }
+
+  const base = ORIG.compileBedrockKeyframe.apply(this, arguments);
+  const cloneArray = arr => Array.isArray(arr) ? [...arr] : arr;
+
+  // --- Bedrock lerp_mode keyframes (linear / catmullrom): keep pre/post/lerp_mode ---
+  if (this.interpolation === 'catmullrom') {
+    const siblings = this.animator?.keyframes?.filter(k => k.channel === this.channel) || [];
+    const channelIsEasing = siblings.some(k => k.easing && k.easing !== EASING_DEFAULT);
+    if (!channelIsEasing) {
+      const lerpMode = 'catmullrom';
+      if (base && typeof base === 'object') {
+        return {
+          ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
+          post:      cloneArray(base.post || base),
+          lerp_mode: lerpMode,
+        };
+      }
+      return { post: cloneArray(base), lerp_mode: lerpMode };
+    }
+  }
+
+  // --- Bezier keyframes: Blockbench handles pre/post natively, pass through ---
+  if (this.interpolation === 'bezier') {
+    if (base && typeof base === 'object') {
+      return {
+        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
+        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
+      };
+    }
+    return base;
+  }
+
+  // --- Step transition: keep pre/post pair ---
+  const prev = this.getPreviousKeyframe?.();
+  if (this.data_points.length === 1 && prev && prev.interpolation === 'step') {
+    if (base && typeof base === 'object') {
+      return {
+        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
+        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
+      };
+    }
+    return base;
+  }
+
+  // --- If Blockbench emitted explicit pre/post transition data, keep raw ---
+  if (
+    base && typeof base === 'object' && !Array.isArray(base) &&
+    (base.pre !== undefined || base.post !== undefined)
+  ) {
+    const out = {
+      ...(base.pre       !== undefined ? { pre:       cloneArray(base.pre)       } : {}),
+      ...(base.post      !== undefined ? { post:      cloneArray(base.post)      } : {}),
+      ...(base.lerp_mode !== undefined ? { lerp_mode: base.lerp_mode             } : {}),
+    };
+    if (this.easing && this.easing !== EASING_DEFAULT) out.easing = this.easing;
+    if (azure_utils_hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
+      out.easingArgs = [...this.easingArgs];
+    }
+    return out;
+  }
+
+  // --- AzureLib easing node ---
+  const withAzureVectorNode = value => {
+    // Already an object with extra fields? (e.g. existing easing data)
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const out = { ...value };
+      if (out.easing === undefined && this.easing !== undefined) {
+        out.easing = this.easing;
+      }
+      if (out.easingArgs === undefined && azure_utils_hasArgs(this.easing) &&
+          Array.isArray(this.easingArgs) && this.easingArgs.length) {
+        out.easingArgs = [...this.easingArgs];
+      }
+      return out;
+    }
+
+    // Plain array → Azure node
+    const out = { vector: cloneArray(value) };
+    if (this.easing && this.easing !== EASING_DEFAULT) {
+      out.easing = this.easing;
+    }
+    if (azure_utils_hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
+      out.easingArgs = [...this.easingArgs];
+    }
+
+    // Flatten to plain array if there are no extra fields
+    if (!out.easing && !out.easingArgs) {
+      return out.vector;
+    }
+    return out;
+  };
+
+  return withAzureVectorNode(base);
+}
+
+// ---------------------------------------------------------------------------
+// getUndoCopy — preserve easing state in undo history
+// ---------------------------------------------------------------------------
+
+function getUndoCopy() {
+  const base = ORIG.getUndoCopy.apply(this, arguments);
+  if (Format?.id === 'azure_model') {
+    base.easing = this.easing;
+    base.interpolation = this.interpolation;
+    if (azure_utils_hasArgs(this.easing)) base.easingArgs = this.easingArgs ? [...this.easingArgs] : undefined;
+  }
+  return base;
+}
+
+// ---------------------------------------------------------------------------
+// extend — parse keyframe data on load
+// ---------------------------------------------------------------------------
+
+function extendKeyframe(dataIn) {
+  const data = Object.assign({}, dataIn);
+
+  if (Format?.id !== 'azure_model') {
+    return ORIG.extend.apply(this, [data]);
+  }
+
+  const cloneVec = (vec, fallback = [0, 0, 0]) => {
+    if (!Array.isArray(vec)) return [...fallback];
+    return [
+      vec[0] !== undefined ? vec[0] : fallback[0],
+      vec[1] !== undefined ? vec[1] : fallback[1],
+      vec[2] !== undefined ? vec[2] : fallback[2],
+    ];
+  };
+
+  const unwrapNode = value => {
+    if (Array.isArray(value)) {
+      return { vector: cloneVec(value) };
+    }
+    if (value && typeof value === 'object') {
+      const out = {};
+      if (value.easing       !== undefined) out.easing       = value.easing;
+      if (value.interpolation !== undefined) out.interpolation = value.interpolation;
+      if (Array.isArray(value.easingArgs))   out.easingArgs   = [...value.easingArgs];
+      if (Array.isArray(value.vector))       { out.vector = cloneVec(value.vector); return out; }
+      if ('x' in value && 'y' in value && 'z' in value) {
+        out.vector = cloneVec([value.x, value.y, value.z]); return out;
+      }
+    }
+    return { vector: null };
+  };
+
+  const valuesNode = unwrapNode(data.values);
+  const preNode    = unwrapNode(data.pre);
+  const postNode   = unwrapNode(data.post);
+
+  // Apply easing from whichever node carries it
+  const easingSource = valuesNode.easing ?? data.easing ?? postNode.easing;
+  if (easingSource !== undefined)     this.easing      = easingSource;
+
+  // Apply interpolation only for explicit Bedrock modes (catmullrom / bezier / step).
+  // We intentionally IGNORE data.interpolation === 'linear' from Blockbench core because
+  // 'linear' is Blockbench's own default interp label and would shadow our Azure easing.
+  // 'linear' as a Bedrock lerp_mode is set via data.lerp_mode, not data.interpolation.
+  // Only store Blockbench-native interpolation modes that we explicitly support.
+  // We intentionally ignore data.interpolation === 'linear' (Blockbench's own default)
+  // because it would shadow Azure easings. lerp_mode:'linear' from JSON is also dropped —
+  // it is handled by AzureLib's own linear easing instead.
+  const BEDROCK_INTERP_MODES = new Set(['catmullrom', 'bezier', 'step']);
+  let rawInterp = data.interpolation ?? postNode.interpolation;
+  // Prefer explicit lerp_mode from JSON over Blockbench's data.interpolation default
+  if (data.lerp_mode !== undefined && data.lerp_mode !== 'linear') rawInterp = data.lerp_mode;
+
+  if (rawInterp !== undefined && BEDROCK_INTERP_MODES.has(rawInterp)) {
+    this.interpolation = rawInterp;
+  } else {
+    this.interpolation = 'linear';
+  }
+
+  const easingArgsSource = valuesNode.easingArgs ?? data.easingArgs ?? postNode.easingArgs;
+  if (easingArgsSource !== undefined) this.easingArgs   = [...easingArgsSource];
+
+  // Strip Azure/Bedrock wrappers before handing off to Blockbench core
+  const plain = Object.assign({}, data);
+  ['values', 'pre', 'post'].forEach(key => {
+    if (plain[key] && typeof plain[key] === 'object' && !Array.isArray(plain[key])) {
+      delete plain[key];
+    }
+  });
+
+  const result = ORIG.extend.apply(this, [plain]);
+
+  // Re-hydrate axis data explicitly
+  const ensurePoint = idx => {
+    if (!Array.isArray(this.data_points)) this.data_points = [];
+    if (!this.data_points[idx]) this.data_points[idx] = {};
+    return this.data_points[idx];
+  };
+
+  const toNum = v => {
+    if (typeof v !== 'string') return v;
+    const n = Number(v);
+    return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+  };
+  const writeVector = (point, vec) => {
+    if (!vec) return;
+    point.x = toNum(vec[0]);
+    point.y = toNum(vec[1]);
+    point.z = toNum(vec[2]);
+    delete point.vector;
+  };
+
+  if (preNode.vector && postNode.vector) {
+    writeVector(ensurePoint(0), preNode.vector);
+    writeVector(ensurePoint(1), postNode.vector);
+  } else if (preNode.vector) {
+    writeVector(ensurePoint(0), preNode.vector);
+  } else if (!preNode.vector && postNode.vector && this.interpolation === 'catmullrom') {
+    writeVector(ensurePoint(0), postNode.vector);
+  } else if (valuesNode.vector) {
+    writeVector(ensurePoint(0), valuesNode.vector);
+  } else if (postNode.vector) {
+    writeVector(ensurePoint(0), postNode.vector);
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Reverse keyframes guard
+// ---------------------------------------------------------------------------
+
+function reverseCondition() {
+  if (reverseCondition._inAzureCall) return false;
+  try {
+    reverseCondition._inAzureCall = true;
+    if (!ORIG_REVERSE_CONDITION || typeof ORIG_REVERSE_CONDITION !== 'function') return false;
+    const result = ORIG_REVERSE_CONDITION.call(BarItems.reverse_keyframes);
+    return result && Format?.id !== 'azure_model';
+  } finally {
+    reverseCondition._inAzureCall = false;
+  }
+}
+
+/* harmony default export */ const azure_keyframes = ({ registerKeyframeOverrides, unregisterKeyframeOverrides });
+
+;// ./templates/armorTemplate.json
+const armorTemplate_namespaceObject = /*#__PURE__*/JSON.parse('{"meta":{"format_version":"3.2","model_format":"azure_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"armorHead_layer1","from":[-4,24,-4],"to":[4,32,4],"inflate":0.75,"autouv":0,"color":1,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[0,0],"uuid":"a1000001-0000-0000-0000-000000000001"},{"name":"armorHead_layer2","from":[-4,24,-4],"to":[4,32,4],"inflate":1,"autouv":0,"color":1,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[32,0],"uuid":"a1000002-0000-0000-0000-000000000002"},{"name":"armorBody_cube","from":[-4,12,-2],"to":[4,24,2],"inflate":0.75,"autouv":0,"color":2,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[4,16],"uuid":"a2000001-0000-0000-0000-000000000001"},{"name":"armorRightArm_cube","from":[-8,12,-2],"to":[-4,24,2],"inflate":0.7,"autouv":0,"color":4,"export":true,"locked":false,"origin":[-5,22,0],"uv_offset":[4,32],"uuid":"a4000001-0000-0000-0000-000000000001"},{"name":"armorLeftArm_cube","from":[4,12,-2],"to":[8,24,2],"inflate":0.7,"autouv":0,"color":4,"export":true,"locked":false,"mirror_uv":true,"origin":[5,22,0],"uv_offset":[20,32],"uuid":"a5000001-0000-0000-0000-000000000001"},{"name":"armorLeftLeg_cube","from":[0,0,-2],"to":[4,12,2],"inflate":0.5,"autouv":0,"color":5,"export":true,"locked":false,"mirror_uv":true,"origin":[-2,12,0],"uv_offset":[20,48],"uuid":"a6000001-0000-0000-0000-000000000001"},{"name":"armorLeftBoot_cube","from":[0,0,-2],"to":[4,12,2],"inflate":0.7,"autouv":0,"color":5,"export":true,"locked":false,"mirror_uv":true,"origin":[-2,12,0],"uv_offset":[20,64],"uuid":"a6000002-0000-0000-0000-000000000002"},{"name":"armorRightLeg_cube","from":[-4,0,-2],"to":[0,12,2],"inflate":0.5,"autouv":0,"color":5,"export":true,"locked":false,"origin":[2,12,0],"uv_offset":[4,48],"uuid":"a7000001-0000-0000-0000-000000000001"},{"name":"armorRightBoot_cube","from":[-4,0,-2],"to":[0,12,2],"inflate":0.7,"autouv":0,"color":5,"export":true,"locked":false,"origin":[2,12,0],"uv_offset":[4,64],"uuid":"a7000002-0000-0000-0000-000000000002"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["a1000001-0000-0000-0000-000000000001","a1000002-0000-0000-0000-000000000002"]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["a2000001-0000-0000-0000-000000000001"]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":[{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":["a4000001-0000-0000-0000-000000000001"]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":[{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":["a5000001-0000-0000-0000-000000000001"]}]},{"name":"bipedWaist","uuid":"d8125cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,12,0],"children":[{"name":"armorWaist","uuid":"c9000e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,12,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["a6000001-0000-0000-0000-000000000001"]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["a6000002-0000-0000-0000-000000000002"]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["a7000001-0000-0000-0000-000000000001"]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["a7000002-0000-0000-0000-000000000002"]}]}],"textures":[]}');
+;// ./core/azure-settings.js
+/**
+ * AzureLib Animator — Settings & Templates
+ * ----------------------------------------
+ * Defines runtime configuration, SDK targets, and automatic
+ * template loading for armor models.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+const makeOptions = list => Object.fromEntries(list.map(x => [x, x]));
+
+const SDK_FORGE = 'Forge 1.12 - 1.16';
+const SDK_FABRIC = 'Fabric 1.15 - 1.16';
+const SDK_OPTIONS = makeOptions([SDK_FORGE, SDK_FABRIC]);
+
+const TYPE_ENTITY = 'AZURE_ENTITY';
+const TYPE_ARMOR = 'AZURE_ARMOR';
+const TYPE_ITEMBLOCK = 'AZURE_ITEM_BLOCK';
+
+const TYPE_OPTIONS = {
+  [TYPE_ENTITY]: 'Entity/Block/Item',
+  [TYPE_ARMOR]: 'Armor',
+};
+
+const DEFAULT_CONFIG = Object.freeze({
+  formatVersion: 2,
+  modSDK: SDK_FORGE,
+  objectType: TYPE_ENTITY,
+  entityType: 'Entity/Block/Item',
+  javaPackage: 'com.example.mod',
+  animFileNamespace: 'modid',
+  animFilePath: 'animations/animation.json',
+});
+
+const AzureConfig = Object.assign({}, DEFAULT_CONFIG);
+
+let _ghostModel = null;
+
+function removeGhostPlayer() {
+  if (_ghostModel) {
+    scene.remove(_ghostModel);
+    _ghostModel = null;
+  }
+}
+
+function injectGhostPlayer() {
+  removeGhostPlayer();
+
+  // Use Blockbench's own display reference player model directly.
+  // It's already built, skinned, and kept up to date by updateDisplaySkin().
+  // We just clone its THREE.Object3D and add it to the edit mode scene.
+  const refPlayer = displayReferenceObjects?.refmodels?.player;
+  if (!refPlayer) {
+    console.warn('[AzureLib] displayReferenceObjects.refmodels.player not available');
+    return;
+  }
+
+  // Ensure the model is initialised (it lazy-builds on first Display tab visit)
+  if (!refPlayer.initialized) {
+    for (const model of refPlayer.models) {
+      refPlayer.buildModel(model);
+    }
+    refPlayer.setModelVariant('steve');
+    updateDisplaySkin?.();
+    refPlayer.initialized = true;
+  }
+
+  // Clone so we don't disturb the Display tab's own copy
+  _ghostModel = refPlayer.model.clone();
+
+  _ghostModel.children.forEach(mesh => {
+    mesh.rotation.set(0, 0, 0);
+  });
+
+  scene.add(_ghostModel);
+  console.log('[AzureLib] Ghost player injected using display refmodel.');
+}
+
+/**
+ * Applies configuration and injects armor templates when applicable.
+ */
+function onSettingsChanged() {
+  Modes.selected.select();
+
+  if (AzureConfig.objectType === TYPE_ARMOR) {
+    if (Outliner.root.length === 0) {
+      Codecs.project.parse(armorTemplate_namespaceObject);
+      console.log('[AzureLib] Loaded armor template.');
+
+      injectGhostPlayer();
+      Blockbench.once('close_project', removeGhostPlayer);
+      Blockbench.once('new_project', removeGhostPlayer);
+    } else {
+      alert(
+        'Cannot apply Armor Template — please select Armor type in an empty project.'
+      );
+    }
+  } else if (AzureConfig.objectType === TYPE_ENTITY) {
+    Project.parent = 'builtin/entity';
+  }
+}
+
+/* harmony default export */ const azure_settings = (AzureConfig);
+// EXTERNAL MODULE: ./node_modules/lodash/omit.js
+var omit = __webpack_require__(179);
+var omit_default = /*#__PURE__*/__webpack_require__.n(omit);
+;// ./animation/azure-playback.js
+/**
+ * AzureLib Animator — Play Behaviors
+ * ----------------------------------
+ * Adds AzureLib's play behaviors (ping-pong, repeat X times, freeze on frame) next to Blockbench's own loop modes,
+ * only while an AzureLib model is open:
+ *
+ *   - the stock Animation Properties dialog gets the extra Loop Mode options plus their settings
+ *   - the animation right-click "Loop Mode" submenu gets the extra options
+ *   - timeline playback previews them for real (ping-pong plays back and forth, repeat stops after its plays,
+ *     freeze stops at its frame)
+ *   - the animation JSON gets the fields AzureLib reads, so mods don't need AzCommands for them
+ *
+ * JSON written per animation (read by AzAnimationDefaults on the mod side):
+ *   "loop": true | "hold_on_last_frame" | "ping_pong" | "repeat_x_times" | "freeze_on_frame"   (omitted = play once)
+ *   "repeat_times": 3        only with repeat_x_times
+ *   "freeze_at": 1.25        only with freeze_on_frame, in seconds like every other time in the file
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+const PROP_BEHAVIOR = 'azl_play_behavior';
+const PROP_REPEAT = 'azl_repeat_times';
+const PROP_FREEZE = 'azl_freeze_at';
+
+const DEFAULT_REPEAT_TIMES = 2;
+
+const PLAY_BEHAVIORS = {
+  play_once:          { label: 'menu.animation.loop.once', native: 'once', option: 'once',            extended: false },
+  hold_on_last_frame: { label: 'menu.animation.loop.hold', native: 'hold', option: 'hold',            extended: false },
+  loop:               { label: 'menu.animation.loop.loop', native: 'loop', option: 'loop',            extended: false },
+  ping_pong:          { label: 'Ping-Pong',                native: 'loop', option: 'ping_pong',       extended: true  },
+  repeat_x_times:     { label: 'Repeat',                   native: 'loop', option: 'repeat_x_times',  extended: true  },
+  freeze_on_frame:    { label: 'Freeze',                   native: 'hold', option: 'freeze_on_frame', extended: true  },
+};
+
+const NATIVE_TO_BEHAVIOR = { once: 'play_once', loop: 'loop', hold: 'hold_on_last_frame' };
+const OPTION_TO_BEHAVIOR = Object.fromEntries(Object.entries(PLAY_BEHAVIORS).map(([id, def]) => [def.option, id]));
+
+const isAzureFormat = () => Format?.id === 'azure_model';
+const roundSeconds = t => Math.round(t * 1e6) / 1e6;
+
+function isCustomBehavior(name) {
+  return typeof name === 'string' && name !== '' && !PLAY_BEHAVIORS[name];
+}
+
+function getPlayBehavior(anim) {
+  const extended = anim?.[PROP_BEHAVIOR];
+  const def = PLAY_BEHAVIORS[extended];
+
+  if (def?.extended && anim.loop === def.native) return extended;
+
+  if (isCustomBehavior(extended) && anim.loop === 'once') return extended;
+
+  return NATIVE_TO_BEHAVIOR[anim?.loop] || 'play_once';
+}
+
+function getRepeatTimes(anim) {
+  const value = Number(anim?.[PROP_REPEAT]);
+  return Number.isFinite(value) && value >= 1 ? Math.round(value) : DEFAULT_REPEAT_TIMES;
+}
+
+function getFreezeAt(anim) {
+  const value = Number(anim?.[PROP_FREEZE]);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+function hasFreezeAt(anim) {
+  const value = Number(anim?.[PROP_FREEZE]);
+  return Number.isFinite(value) && value >= 0;
+}
+
+function repeatPlayCount(repeatTimes) {
+  return Math.max(1, Math.round(repeatTimes));
+}
+
+function applyPlayBehavior(anim, behavior, { repeatTimes, freezeAt } = {}) {
+  if (isCustomBehavior(behavior)) {
+    anim.loop = 'once';
+    anim[PROP_BEHAVIOR] = behavior;
+    return;
+  }
+
+  const def = PLAY_BEHAVIORS[behavior] || PLAY_BEHAVIORS.play_once;
+
+  anim.loop = def.native;
+  anim[PROP_BEHAVIOR] = def.extended ? behavior : '';
+
+  if (repeatTimes !== undefined) anim[PROP_REPEAT] = Math.max(1, Math.round(Number(repeatTimes) || 1));
+  if (freezeAt !== undefined) anim[PROP_FREEZE] = Math.max(0, Number(freezeAt) || 0);
+}
+
+function playbackDiffers(anim, behavior, repeatTimes, freezeAt) {
+  if (getPlayBehavior(anim) !== behavior) return true;
+  if (behavior === 'repeat_x_times' && getRepeatTimes(anim) !== Math.max(1, Math.round(Number(repeatTimes) || 1))) return true;
+  if (behavior === 'freeze_on_frame' && (!hasFreezeAt(anim) || getFreezeAt(anim) !== Math.max(0, Number(freezeAt) || 0))) return true;
+  return false;
+}
+
+function setPlayBehaviorWithUndo(anim, behavior, settings = {}) {
+  Undo.initEdit({ animations: [anim] });
+  applyPlayBehavior(anim, behavior, settings);
+  anim.saved = false;
+  Undo.finishEdit('Change animation loop mode');
+  resetPreviewClock();
+  Animator.preview();
+}
+
+function writePlaybackJson(anim, obj) {
+  const behavior = getPlayBehavior(anim);
+
+  delete obj.loop;
+  delete obj.repeat_times;
+  delete obj.freeze_at;
+
+  switch (behavior) {
+    case 'play_once':
+      break;
+    case 'loop':
+      obj.loop = true;
+      break;
+    case 'repeat_x_times':
+      obj.loop = behavior;
+      obj.repeat_times = getRepeatTimes(anim);
+      break;
+    case 'freeze_on_frame':
+      obj.loop = behavior;
+      obj.freeze_at = roundSeconds(getFreezeAt(anim));
+      break;
+    default:
+      obj.loop = behavior;
+  }
+
+  return obj;
+}
+
+function readPlaybackJson(src) {
+  const loop = typeof src?.loop === 'string' ? src.loop.trim() : src?.loop;
+  let behavior;
+
+  if (loop === true) behavior = 'loop';
+  else if (loop === false || loop === undefined || loop === null || loop === '') behavior = 'play_once';
+  else if (loop === 'once') behavior = 'play_once';
+  else if (loop === 'hold') behavior = 'hold_on_last_frame';
+  else if (PLAY_BEHAVIORS[loop]) behavior = loop;
+  else if (isCustomBehavior(loop)) {
+    return { loop: 'once', [PROP_BEHAVIOR]: loop };
+  } else {
+    behavior = 'play_once';
+  }
+
+  const def = PLAY_BEHAVIORS[behavior];
+  const fields = {
+    loop: def.native,
+    [PROP_BEHAVIOR]: def.extended ? behavior : '',
+  };
+
+  if (src?.repeat_times !== undefined) fields[PROP_REPEAT] = Math.max(1, Math.round(Number(src.repeat_times) || 1));
+  if (src?.freeze_at !== undefined) fields[PROP_FREEZE] = Math.max(0, Number(src.freeze_at) || 0);
+
+  return fields;
+}
+
+function assignPlaybackFields(anim, fields) {
+  for (const [key, value] of Object.entries(fields)) {
+    anim[key] = value;
+  }
+}
+
+let originalPropertiesDialog = null;
+let pendingDialogEdit = null;
+
+function wrappedPropertiesDialog(...args) {
+  if (!isAzureFormat() || typeof Dialog === 'undefined') {
+    return originalPropertiesDialog.apply(this, args);
+  }
+
+  const animation = this;
+  const proto = Dialog.prototype;
+  const originalShow = proto.show;
+
+  proto.show = function (...showArgs) {
+    if (this.id === 'animation_properties' && !this._azlInjected) {
+      this._azlInjected = true;
+      try {
+        injectPlaybackIntoDialog(this, animation);
+      } catch (error) {
+        console.error('[AzureLib] Failed to extend animation properties dialog', error);
+      }
+    }
+    return originalShow.apply(this, showArgs);
+  };
+
+  try {
+    return originalPropertiesDialog.apply(this, args);
+  } finally {
+    proto.show = originalShow;
+  }
+}
+
+function injectPlaybackIntoDialog(dialog, animation) {
+  const config = dialog.form_config;
+  if (!config?.loop) return;
+
+  const current = getPlayBehavior(animation);
+  const options = {};
+  for (const def of Object.values(PLAY_BEHAVIORS)) options[def.option] = def.label;
+  if (isCustomBehavior(current)) options[current] = `Custom: ${current}`;
+
+  const currentOption = PLAY_BEHAVIORS[current]?.option ?? current;
+  const isRepeat = form => form.loop === 'repeat_x_times';
+  const isFreeze = form => form.loop === 'freeze_on_frame';
+
+  const playbackFields = {
+    azl_repeat_times: {
+      label: 'Repeat Count',
+      type: 'number',
+      value: getRepeatTimes(animation),
+      min: 1,
+      step: 1,
+      condition: isRepeat,
+      description: 'How many times the animation plays in total. Same value as AzCommand setRepeatAmount.'
+    },
+    azl_freeze_at: {
+      label: 'Freeze At',
+      type: 'number',
+      value: hasFreezeAt(animation) ? getFreezeAt(animation) : roundSeconds(Timeline.time || 0),
+      min: 0,
+      step: 0.05,
+      condition: isFreeze,
+      description: 'Time in seconds where the animation stops and holds.',
+    },
+    azl_freeze_playhead: {
+      type: 'buttons',
+      buttons: ['Use Playhead Time'],
+      condition: isFreeze,
+      click() {
+        dialog.setFormValues({ azl_freeze_at: roundSeconds(Timeline.time || 0) });
+      },
+    },
+  };
+
+  const rebuilt = {};
+  for (const [key, value] of Object.entries(config)) {
+    rebuilt[key] = key === 'loop' ? { ...value, options, value: currentOption } : value;
+    if (key === 'loop') Object.assign(rebuilt, playbackFields);
+  }
+  dialog.form_config = rebuilt;
+
+  const originalConfirm = dialog.onConfirm;
+
+  dialog.onConfirm = (formResult, event) => {
+    const behavior = OPTION_TO_BEHAVIOR[formResult.loop] ?? formResult.loop;
+    const def = PLAY_BEHAVIORS[behavior];
+    const edit = {
+      animation,
+      behavior,
+      settings: {
+        repeatTimes: behavior === 'repeat_x_times' ? formResult.azl_repeat_times : undefined,
+        freezeAt: behavior === 'freeze_on_frame' ? formResult.azl_freeze_at : undefined,
+      },
+      applied: false,
+    };
+
+    const nativeResult = { ...formResult, loop: def ? def.native : 'once' };
+    delete nativeResult.azl_repeat_times;
+    delete nativeResult.azl_freeze_at;
+    delete nativeResult.azl_freeze_playhead;
+
+    pendingDialogEdit = edit;
+    try {
+      return originalConfirm?.(nativeResult, event);
+    } finally {
+      pendingDialogEdit = null;
+      if (!edit.applied
+        && playbackDiffers(animation, behavior, edit.settings.repeatTimes, edit.settings.freezeAt)) {
+        setPlayBehaviorWithUndo(animation, behavior, edit.settings);
+      }
+    }
+  };
+}
+
+function onEditAnimationProperties({ animation } = {}) {
+  const edit = pendingDialogEdit;
+  if (!edit || edit.animation !== animation) return;
+
+  applyPlayBehavior(animation, edit.behavior, edit.settings);
+  edit.applied = true;
+  resetPreviewClock();
+}
+
+const injectedMenuItems = [];
+const wrappedNativeMenuItems = [];
+
+const radioIcon = selected => (selected ? 'far.fa-dot-circle' : 'far.fa-circle');
+
+function findLoopSubmenu() {
+  const structure = Animation.prototype.menu?.structure;
+  if (!Array.isArray(structure)) return null;
+  return structure.find(item => item && typeof item === 'object' && item.name === 'menu.animation.loop') || null;
+}
+
+function injectLoopMenu() {
+  const loopMenu = findLoopSubmenu();
+  if (!loopMenu || !Array.isArray(loopMenu.children)) {
+    console.warn('[AzureLib] Animation loop submenu not found; extended loop modes are only in the properties dialog');
+    return;
+  }
+
+  const nativeByLabel = {
+    'menu.animation.loop.once': 'play_once',
+    'menu.animation.loop.hold': 'hold_on_last_frame',
+    'menu.animation.loop.loop': 'loop',
+  };
+
+  for (const item of loopMenu.children) {
+    const behavior = nativeByLabel[item?.name];
+    if (!behavior) continue;
+
+    const original = { icon: item.icon, click: item.click };
+    wrappedNativeMenuItems.push({ item, original });
+
+    item.icon = animation => (isAzureFormat()
+      ? radioIcon(getPlayBehavior(animation) === behavior)
+      : (typeof original.icon === 'function' ? original.icon(animation) : original.icon));
+
+    item.click = (animation, event) => (isAzureFormat()
+      ? setPlayBehaviorFromMenu(animation, behavior)
+      : original.click?.(animation, event));
+  }
+
+  for (const behavior of ['ping_pong', 'repeat_x_times', 'freeze_on_frame']) {
+    const def = PLAY_BEHAVIORS[behavior];
+    const menuItem = {
+      name: def.label === 'Repeat' ? 'Repeat X Times' : def.label === 'Freeze' ? 'Freeze on Frame' : def.label,
+      id: `azl_loop_${behavior}`,
+      icon: animation => radioIcon(getPlayBehavior(animation) === behavior),
+      condition: () => isAzureFormat(),
+      click: animation => setPlayBehaviorFromMenu(animation, behavior),
+    };
+    loopMenu.children.push(menuItem);
+    injectedMenuItems.push({ loopMenu, menuItem });
+  }
+}
+
+function setPlayBehaviorFromMenu(animation, behavior) {
+  if (!animation || getPlayBehavior(animation) === behavior) return;
+
+  const settings = behavior === 'freeze_on_frame' && !hasFreezeAt(animation)
+    ? { freezeAt: roundSeconds(Timeline.time || 0) }
+    : {};
+
+  setPlayBehaviorWithUndo(animation, behavior, settings);
+}
+
+function restoreLoopMenu() {
+  for (const { loopMenu, menuItem } of injectedMenuItems) {
+    const index = loopMenu.children.indexOf(menuItem);
+    if (index !== -1) loopMenu.children.splice(index, 1);
+  }
+  injectedMenuItems.length = 0;
+
+  for (const { item, original } of wrappedNativeMenuItems) {
+    item.icon = original.icon;
+    item.click = original.click;
+  }
+  wrappedNativeMenuItems.length = 0;
+}
+
+let originalTimelineLoop = null;
+let previewClock = null;
+
+function resetPreviewClock() {
+  previewClock = null;
+}
+
+function getPreviewBehavior(anim) {
+  if (!isAzureFormat() || !anim || !(anim.length > 0)) return null;
+  if (anim.anim_time_update) return null;
+  if (Timeline.custom_range?.[1]) return null;
+
+  const behavior = getPlayBehavior(anim);
+  return PLAY_BEHAVIORS[behavior]?.extended ? behavior : null;
+}
+
+function startPreviewClock(anim, behavior) {
+  const length = anim.length;
+  const time = Timeline.time || 0;
+
+  switch (behavior) {
+    case 'freeze_on_frame': {
+      const freezeAt = Math.min(getFreezeAt(anim), length);
+      if (time >= freezeAt - 1e-4) {
+        Timeline.setTime(0);
+        return 0;
+      }
+      return time;
+    }
+    case 'repeat_x_times':
+      if (time >= length - 1e-4) {
+        Timeline.setTime(0);
+        return 0;
+      }
+      return time;
+    default:
+      return time;
+  }
+}
+
+function previewDelta() {
+  const now = performance.now();
+  let delta = (now - Timeline.last_frame_timecode) / 1000;
+  if (delta < 0) delta += 1;
+  Timeline.last_frame_timecode = now;
+  return Math.clamp(delta, 0, 0.1) * ((Timeline.playback_speed ?? 100) / 100);
+}
+
+function stopPreview(time, keepPose) {
+  Timeline.setTime(time);
+  Animator.preview(false);
+  Timeline.pause();
+  previewClock = null;
+  if (!keepPose) Animator.preview();
+}
+
+function wrappedTimelineLoop(...args) {
+  const anim = Animation.selected;
+  const behavior = getPreviewBehavior(anim);
+
+  if (!behavior) {
+    previewClock = null;
+    return originalTimelineLoop.apply(this, args);
+  }
+
+  if (previewClock === null) previewClock = startPreviewClock(anim, behavior);
+  previewClock += previewDelta();
+
+  const length = anim.length;
+  const looped = !!BarItems.looped_animation_playback?.value;
+
+  switch (behavior) {
+    case 'ping_pong': {
+      const cycle = previewClock % (2 * length);
+      Timeline.setTime(cycle <= length ? cycle : 2 * length - cycle);
+      Animator.preview(true);
+      return;
+    }
+
+    case 'repeat_x_times': {
+      const total = repeatPlayCount(getRepeatTimes(anim)) * length;
+
+      if (previewClock >= total) {
+        if (looped) {
+          previewClock %= total;
+        } else {
+          stopPreview(0, false);
+          return;
+        }
+      }
+
+      Timeline.setTime(previewClock % length);
+      Animator.preview(true);
+      return;
+    }
+
+    case 'freeze_on_frame': {
+      const freezeAt = Math.min(getFreezeAt(anim), length);
+
+      if (previewClock >= freezeAt) {
+        if (looped) {
+          previewClock = 0;
+          Timeline.setTime(0);
+          Animator.preview(true);
+        } else {
+          stopPreview(freezeAt, true);
+        }
+        return;
+      }
+
+      Timeline.setTime(previewClock);
+      Animator.preview(true);
+    }
+  }
+}
+
+function onTimelinePlay() {
+  previewClock = null;
+}
+
+let properties = [];
+let registered = false;
+
+function registerPlayBehaviors() {
+  if (registered) return;
+  registered = true;
+
+  if (typeof Property !== 'undefined') {
+    properties = [
+      new Property(Animation, 'string', PROP_BEHAVIOR, { default: '' }),
+      new Property(Animation, 'number', PROP_REPEAT, { default: DEFAULT_REPEAT_TIMES }),
+      new Property(Animation, 'number', PROP_FREEZE, { default: -1 }),
+    ];
+  }
+
+  if (typeof Animation.prototype.propertiesDialog === 'function') {
+    originalPropertiesDialog = Animation.prototype.propertiesDialog;
+    Animation.prototype.propertiesDialog = wrappedPropertiesDialog;
+  }
+
+  try {
+    injectLoopMenu();
+  } catch (error) {
+    console.error('[AzureLib] Failed to extend animation loop menu', error);
+  }
+
+  if (typeof Timeline?.loop === 'function') {
+    originalTimelineLoop = Timeline.loop;
+    Timeline.loop = wrappedTimelineLoop;
+  }
+
+  Blockbench.on('edit_animation_properties', onEditAnimationProperties);
+  Blockbench.on('timeline_play', onTimelinePlay);
+}
+
+function unregisterPlayBehaviors() {
+  if (!registered) return;
+  registered = false;
+
+  Blockbench.removeListener('edit_animation_properties', onEditAnimationProperties);
+  Blockbench.removeListener('timeline_play', onTimelinePlay);
+
+  if (originalTimelineLoop) {
+    Timeline.loop = originalTimelineLoop;
+    originalTimelineLoop = null;
+  }
+  previewClock = null;
+
+  restoreLoopMenu();
+
+  if (originalPropertiesDialog) {
+    Animation.prototype.propertiesDialog = originalPropertiesDialog;
+    originalPropertiesDialog = null;
+  }
+
+  properties.forEach(property => property.delete?.());
+  properties = [];
+}
+
+;// ./animation/azure-animation-tab.js
+/**
+ * AzureLib Animator — Unified Animation Tab
+ * ------------------------------------------
+ * Replaces the Minecraft Bedrock animation tab with a fully custom
+ * AnimationCodec that supports both AzureLib custom easings AND
+ * Bedrock catmullrom/lerp_mode keyframes in one unified JSON.
+ *
+ * Keyframe schema auto-detection:
+ *   - AzureLib:  { "vector": [...], "easing": "easeInSine", "easingArgs": [...] }
+ *   - Bedrock:   { "post": [...], "lerp_mode": "catmullrom" }
+ *   - Both can coexist in the same animation file.
+ *
+ * Built on Blockbench's AnimationCodec API — no monkey-patching of
+ * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const AZURE_ANIM_FORMAT_ID = 'azure_animation';
+const FORMAT_VERSION = '1.8.0';
+
+/**
+ * Stores top-level animation include metadata by source file path so we can
+ * round-trip the user's custom include system without forcing a dedicated UI.
+ *
+ * Key: animation file path (or '' for unpathed/ephemeral files)
+ * Value: normalised includes array
+ */
+const animationIncludesByPath = new Map();
+
+/** Bedrock lerp modes that this plugin understands natively. */
+const BEDROCK_LERP_MODES = new Set(['linear', 'catmullrom']);
+
+/** AzureLib easing names that map 1:1 to Bedrock lerp_mode on export. */
+const AZURE_TO_BEDROCK_LERP = {
+  linear: 'linear',
+  // catmullrom is set via interpolation='catmullrom', not easing field
+};
+
+// ---------------------------------------------------------------------------
+// Schema detection helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true if a keyframe object uses the Bedrock pre/post/lerp_mode schema.
+ */
+function isBedrockKeyframe(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  return obj.lerp_mode !== undefined || obj.pre !== undefined || obj.post !== undefined;
+}
+
+/**
+ * Returns true if a keyframe object uses the AzureLib { vector, easing } schema.
+ */
+function isAzureKeyframe(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  return obj.vector !== undefined || obj.easing !== undefined;
+}
+
+/**
+ * Unwrap a value to a plain [x, y, z] array, handling all known wrapping forms.
+ */
+function unwrapToArray(v) {
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === 'object') {
+    if (Array.isArray(v.vector)) return v.vector;
+    if (v.vector && typeof v.vector === 'object' && Array.isArray(v.vector.vector)) return v.vector.vector;
+  }
+  return null;
+}
+
+/**
+ * Normalise a time key string: "0.0" → "0", "1.000" → "1", "0.5" stays.
+ */
+function normTime(t) {
+  return String(t).replace(/^(-?\d+)\.0+$/, '$1');
+}
+
+const KEY_ORDER = Symbol('azureKeyOrder');
+
+function orderedMap(entries) {
+  const obj = Object.fromEntries(entries);
+  Object.defineProperty(obj, KEY_ORDER, {
+    value: entries.map(([k]) => k),
+    enumerable: false,
+    configurable: true,
+  });
+  return obj;
+}
+
+function normalizeAnimationIncludes(includes) {
+  if (!Array.isArray(includes) || !includes.length) return [];
+
+  return includes
+    .filter(entry => entry && typeof entry === 'object')
+    .map(entry => ({
+      file_id: String(entry.file_id || '').trim(),
+      animations: Array.isArray(entry.animations)
+        ? entry.animations
+            .map(name => String(name || '').trim())
+            .filter(Boolean)
+        : [],
+    }))
+    .filter(entry => entry.file_id && entry.animations.length);
+}
+
+function cloneAnimationIncludes(includes) {
+  return normalizeAnimationIncludes(includes).map(entry => ({
+    file_id: entry.file_id,
+    animations: [...entry.animations],
+  }));
+}
+
+function getAnimationIncludesForPath(path) {
+  return cloneAnimationIncludes(animationIncludesByPath.get(path || '') || []);
+}
+
+function setAnimationIncludesForPath(path, includes) {
+  const key = path || '';
+  const normal = normalizeAnimationIncludes(includes);
+  if (normal.length) animationIncludesByPath.set(key, normal);
+  else animationIncludesByPath.delete(key);
+}
+
+function applyAnimationIncludes(out, includes) {
+  const normal = cloneAnimationIncludes(includes);
+  if (normal.length) out.includes = normal;
+  else delete out.includes;
+  return out;
+}
+
+
+function getIncludesTargetPath() {
+  const selected = Animation?.selected;
+  if (selected) return selected.path || '';
+
+  const uniquePaths = [...new Set(Animation.all.map(anim => anim.path || ''))];
+  if (uniquePaths.length === 1) return uniquePaths[0];
+
+  return '';
+}
+
+function getAnimationNamesForPath(path) {
+  return Animation.all
+    .filter(anim => (anim.path || '') === (path || '') && anim.name)
+    .map(anim => anim.name)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function findDuplicateIncludedAnimationNames(includes) {
+  const seen = new Map();
+  const duplicates = [];
+
+  includes.forEach((entry, entryIndex) => {
+    (entry.animations || []).forEach(name => {
+      const key = String(name || '').trim();
+      if (!key) return;
+
+      const previous = seen.get(key);
+      if (previous !== undefined) {
+        duplicates.push({ name: key, firstIndex: previous, secondIndex: entryIndex });
+      } else {
+        seen.set(key, entryIndex);
+      }
+    });
+  });
+
+  return duplicates;
+}
+
+function showAnimationIncludesDialog() {
+  const targetPath = getIncludesTargetPath();
+  const current = getAnimationIncludesForPath(targetPath);
+  const animationNames = getAnimationNamesForPath(targetPath);
+  const fileLabel = targetPath || 'Unsaved animation file';
+
+  const dialog = new Dialog({
+    id: 'azl_animation_includes_editor',
+    title: 'Edit Animation Includes',
+    width: 760,
+    component: {
+      data() {
+        return {
+          targetPath,
+          fileLabel,
+          rows: current.length
+            ? current.map(entry => ({
+                file_id: entry.file_id,
+                animations_text: entry.animations.join(', '),
+              }))
+            : [{ file_id: '', animations_text: '' }],
+          animationNames,
+          exampleAnimationNames: animationNames.join(', '),
+        };
+      },
+      methods: {
+        addRow() {
+          this.rows.push({ file_id: '', animations_text: '' });
+        },
+        removeRow(index) {
+          this.rows.splice(index, 1);
+          if (!this.rows.length) this.addRow();
+        },
+      },
+      template: `
+        <div class="dialog_content azure_includes_dialog" style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+          <div style="min-width:0;">
+            <p style="margin:0;"><strong>Editing file:</strong> <span style="word-break:break-all;">{{ fileLabel }}</span></p>
+            <p style="margin:6px 0 0 0;opacity:0.8;">
+              These entries are saved at the top level of the animation JSON as <code>includes</code>.
+            </p>
+            <p v-if="exampleAnimationNames" style="margin:6px 0 0 0;opacity:0.8;line-height:1.45;">
+              Animations currently in this file: <code style="white-space:pre-wrap;word-break:break-word;">{{ exampleAnimationNames }}</code>
+            </p>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong>Include Entries</strong>
+            <button
+              type="button"
+              style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;min-height:32px;white-space:nowrap;"
+              @click="addRow()"
+            >
+              Add Include
+            </button>
+          </div>
+          
+          <div style="display:flex;flex-direction:column;gap:12px;max-height:420px;overflow:auto;padding-right:4px;min-width:0;">
+            <div
+              v-for="(row, index) in rows"
+              :key="index"
+              style="display:block;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.03);box-sizing:border-box;min-width:0;"
+            >
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="font-weight:600;opacity:0.95;">Include {{ index + 1 }}</div>
+                <button
+                  type="button"
+                  style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;min-height:28px;white-space:nowrap;"
+                  @click="removeRow(index)"
+                >
+                  Remove
+                </button>
+              </div>
+          
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
+                  <span>File ID</span>
+                  <input
+                    type="text"
+                    class="dark_bordered"
+                    style="display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;"
+                    v-model="row.file_id"
+                    placeholder="mod_id:path/to/other_animation.json"
+                  />
+                </label>
+          
+                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
+                  <span>Animations (comma-separated)</span>
+                  <textarea
+                    class="dark_bordered"
+                    rows="3"
+                    style="display:block;width:100%;min-width:0;max-width:100%;resize:vertical;box-sizing:border-box;line-height:1.4;"
+                    v-model="row.animations_text"
+                    placeholder="animation_name_1, animation_name_2"
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+    },
+    onConfirm() {
+      const rows = dialog.content_vue?.rows || [];
+      const normalized = normalizeAnimationIncludes(rows.map(row => ({
+        file_id: row.file_id,
+        animations: String(row.animations_text || '')
+          .split(',')
+          .map(name => name.trim())
+          .filter(Boolean),
+      })));
+
+      const duplicates = findDuplicateIncludedAnimationNames(normalized);
+      if (duplicates.length) {
+        const preview = duplicates
+          .slice(0, 6)
+          .map(dup => `${dup.name} (entries ${dup.firstIndex + 1} and ${dup.secondIndex + 1})`)
+          .join('\n');
+      
+        if (typeof Blockbench.showMessageBox === 'function') {
+          Blockbench.showMessageBox({
+            title: 'Duplicate Included Animations',
+            message:
+              'Each included animation name must be unique across all include entries.\n\n' +
+              preview +
+              (duplicates.length > 6 ? `\n…and ${duplicates.length - 6} more.` : ''),
+          });
+        } else {
+          Blockbench.showQuickMessage('Duplicate included animation names detected.', 2400);
+        }
+      
+        return false;
+      }
+
+      setAnimationIncludesForPath(targetPath, normalized);
+      Blockbench.showQuickMessage(
+        normalized.length
+          ? `Saved ${normalized.length} animation include${normalized.length === 1 ? '' : 's'}.`
+          : 'Cleared animation includes.',
+        2000
+      );
+    },
+  });
+
+  dialog.show();
+}
+
+// ---------------------------------------------------------------------------
+// Animation file builder (export)
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialise all open Animation objects into the unified AzureLib JSON structure.
+ * Kept as a convenience for callers that want everything in the project.
+ * The codec itself uses compileFile(animations) so it can scope by file path.
+ */
+function buildAzureAnimationFile() {
+  const out = applyAnimationIncludes({
+    format_version: FORMAT_VERSION,
+    animations: {},
+  }, getAnimationIncludesForPath(''));
+
+  for (const anim of Animation.all) {
+    if (!anim.name) continue;
+    const animOut = serializeAnimation(anim);
+    out.animations[anim.name] = animOut;
+  }
+
+  return out;
+}
+
+function serializeAnimation(anim) {
+  const obj = {};
+
+  writePlaybackJson(anim, obj);
+
+  if (anim.override) obj.override_previous_animation = true;
+  if (anim.anim_time_update) obj.anim_time_update = anim.anim_time_update.replace(/;\n/g, ';');
+  if (anim.blend_weight) obj.blend_weight = anim.blend_weight.replace(/;\n/g, ';');
+  if (anim.length) obj.animation_length = Math.round(anim.length * 1e6) / 1e6;
+
+  const bones = {};
+  const effects = anim.animators.effects;
+  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator);
+
+  for (const boneAnim of boneAnimators) {
+    const boneName = boneAnim.name;
+    const boneOut = {};
+
+    for (const channel of ['position', 'rotation', 'scale']) {
+      const keyframes = boneAnim.keyframes.filter(kf => kf.channel === channel);
+      if (!keyframes.length) continue;
+
+      // Sort by time
+      keyframes.sort((a, b) => a.time - b.time);
+
+      if (keyframes.length === 1) {
+        // Constant value — AzureLib format: { "vector": [...] }
+        // Easing and easingArgs sit alongside vector at the same level (not nested).
+        const kf = keyframes[0];
+        const vec = extractKeyframeVector(kf, channel, true);
+        const node = { vector: vec };
+        const easing = kf.easing;
+        if (easing && easing !== EASING_DEFAULT) node.easing = easing;
+        if (hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
+          node.easingArgs = [...kf.easingArgs];
+        }
+        boneOut[channel] = node;
+      } else {
+        const channelIsEasing = keyframes.some(
+            kf => kf.easing && kf.easing !== EASING_DEFAULT
+        );
+
+        const entries = keyframes.map(kf => {
+          const t = normTime(roundTime(kf.time));
+          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
+          return [t, serialized];
+        });
+        boneOut[channel] = orderedMap(entries);
+      }
+    }
+
+    if (Object.keys(boneOut).length) {
+      bones[boneName] = boneOut;
+    }
+  }
+
+  if (Object.keys(bones).length) obj.bones = bones;
+
+  // Effects (sound/particle/timeline)
+  if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
+    const soundEntries = [];
+    const particleEntries = [];
+    const timelineEntries = [];
+
+    const sortedEffectKeyframes = [...effects.keyframes].sort((a, b) => a.time - b.time);
+
+    for (const kf of sortedEffectKeyframes) {
+      const t = normTime(roundTime(kf.time));
+      if (kf.channel === 'sound') {
+        const pts = (kf.data_points || []).map(p => {
+          const effect = typeof p === 'string' ? p : p.effect;
+          if (!effect) return null;
+          const o = { effect };
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return o;
+        }).filter(Boolean);
+        if (pts.length === 1) soundEntries.push([t, pts[0]]);
+        else if (pts.length > 1) soundEntries.push([t, pts]);
+      } else if (kf.channel === 'particle') {
+        const pts = (kf.data_points || []).map(p => {
+          const o = {};
+          if (p.effect) o.effect = p.effect;
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return Object.keys(o).length ? o : null;
+        }).filter(Boolean);
+        if (pts.length === 1) particleEntries.push([t, pts[0]]);
+        else if (pts.length > 1) particleEntries.push([t, pts]);
+      } else if (kf.channel === 'timeline') {
+        const script = (kf.data_points?.[0]?.script) || '';
+        if (script) timelineEntries.push([t, script]);
+      }
+    }
+
+    if (soundEntries.length) obj.sound_effects = orderedMap(soundEntries);
+    if (particleEntries.length) obj.particle_effects = orderedMap(particleEntries);
+    if (timelineEntries.length) obj.timeline = orderedMap(timelineEntries);
+  }
+
+  return obj;
+}
+
+/**
+ * Map Blockbench interpolation mode → Bedrock lerp_mode string.
+ * 'linear' in BB is called 'linear' in Bedrock JSON.
+ * 'catmullrom' in BB is called 'catmullrom' in Bedrock JSON.
+ * 'bezier' uses Blockbench's own pre/post pair format.
+ * 'step' uses a pre/post pair where pre = previous value.
+ */
+const BB_INTERP_TO_LERP_MODE = {
+  catmullrom: 'catmullrom',
+  // bezier and step are handled structurally (pre/post pairs), not via lerp_mode
+};
+
+/**
+ * Serialise a single keyframe into its JSON representation.
+ *
+ * Bedrock interpolation modes (kf.interpolation is set):
+ *   'linear'     → { post: [...], lerp_mode: 'linear' }
+ *   'catmullrom' → { post: [...], lerp_mode: 'catmullrom' }   (+ pre if available)
+ *   'bezier'     → { pre: [...], post: [...] }                 (Blockbench bezier handles pre/post natively)
+ *   'step'       → { pre: [...], post: [...] }                 (discrete hold)
+ *
+ * AzureLib easing mode (kf.interpolation is undefined/null):
+ *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
+ *   No easing     → [x, y, z]   (plain array shorthand)
+ */
+function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
+  const vec    = extractKeyframeVector(kf, channel, true);
+  const interp = kf.interpolation;
+
+  // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
+  if (interp === 'catmullrom' && !channelIsEasing) {
+    const node = { post: vec, lerp_mode: 'catmullrom' };
+    const preVec = extractKeyframePreVector(kf, channel);
+    if (preVec) node.pre = preVec;
+    return node;
+  }
+
+  // --- Bezier keyframes: always have explicit pre/post control points ---
+  if (interp === 'bezier') {
+    const preVec = extractKeyframePreVector(kf, channel);
+    return preVec
+      ? { pre: preVec, post: vec }
+      : { post: vec };
+  }
+
+  // --- Step / discrete hold: emit pre (previous value) + post (this value) ---
+  if (interp === 'step') {
+    const prevKf = getPreviousKeyframe(kf, allKeyframes);
+    const preVec = extractKeyframePreVector(kf, channel)
+      || (prevKf ? extractKeyframeVector(prevKf, channel, true) : null);
+    return preVec ? { pre: preVec, post: vec } : { post: vec };
+  }
+
+  // --- Transition into a step keyframe: emit pre/post pair at this boundary ---
+  const prevKf = getPreviousKeyframe(kf, allKeyframes);
+  if (prevKf && prevKf.interpolation === 'step') {
+    const preVec = extractKeyframePreVector(kf, channel)
+      || extractKeyframeVector(prevKf, channel, true);
+    const out = { pre: preVec, post: vec };
+    if (kf.easing && kf.easing !== EASING_DEFAULT) out.easing = kf.easing;
+    if (hasArgs(kf.easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
+      out.easingArgs = [...kf.easingArgs];
+    }
+    return out;
+  }
+
+  // --- AzureLib easing node (no Bedrock interpolation set) ---
+  // Timed keyframes always use { "vector": [...] } form — never bare arrays.
+  // Easing is only written when it differs from the default ('linear').
+  // Easing is suppressed for Molang expression vectors (easing is meaningless there).
+  const easing = kf.easing;
+  const vecHasMolang = vec.some(v => typeof v === 'string' && isNaN(Number(v)));
+  const writeEasing  = easing && easing !== EASING_DEFAULT && !vecHasMolang;
+  const writeArgs    = writeEasing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length;
+
+  const node = { vector: vec };
+  if (writeEasing) node.easing = easing;
+  if (writeArgs)   node.easingArgs = [...kf.easingArgs];
+  return node;
+}
+
+/**
+ * Invert a single axis value only when needed for BB 5.0+ coordinate fix.
+ * Numeric zero stays as numeric 0 (not converted to string "0").
+ * Molang strings are inverted via invertMolang.
+ * Non-zero numbers are negated directly.
+ */
+function safeInvert(v) {
+  v = normalizeAxisValue(v);
+  if (typeof v === 'string') return invertMolang(v);
+  if (typeof v === 'number') return v === 0 ? 0 : -v;
+  return v;
+}
+
+function normalizeAxisValue(v) {
+  // Treat empty UI values as real numeric zero
+  if (v === null || v === undefined) return 0;
+
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+
+    // This catches '', '\n', '   ', etc.
+    if (trimmed === '') return 0;
+
+    // Preserve Molang expressions, but convert numeric strings
+    const n = Number(trimmed);
+    return Number.isNaN(n) ? v : n;
+  }
+
+  return v;
+}
+
+function extractKeyframeVector(kf, channel, applyInversion) {
+  const dp = kf.data_points?.[kf.data_points.length > 1 ? 1 : 0] || kf.data_points?.[0];
+  if (!dp) return [0, 0, 0];
+
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
+
+  if (applyInversion && Blockbench.isNewerThan('4.99')) {
+    if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
+    else if (channel === 'position') { x = safeInvert(x); }
+  }
+
+  return [roundVal(x), roundVal(y), roundVal(z)];
+}
+
+function extractKeyframePreVector(kf, channel) {
+  if (!kf.data_points || kf.data_points.length < 2) return null;
+  const dp = kf.data_points[0];
+
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
+
+  if (Blockbench.isNewerThan('4.99')) {
+    if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
+    else if (channel === 'position') { x = safeInvert(x); }
+  }
+
+  return [roundVal(x), roundVal(y), roundVal(z)];
+}
+
+function getPreviousKeyframe(kf, allKeyframes) {
+  const idx = allKeyframes.indexOf(kf);
+  return idx > 0 ? allKeyframes[idx - 1] : null;
+}
+
+function roundTime(t) {
+  return Math.round(t * 1e6) / 1e6;
+}
+
+function roundVal(v) {
+  if (typeof v === 'number') return Math.round(v * 1e5) / 1e5;
+  return v;
+}
+
+// ---------------------------------------------------------------------------
+// Animation file loader (import)
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a unified AzureLib/Bedrock animation JSON file and create
+ * Animation + BoneAnimator + Keyframe objects in Blockbench.
+ */
+function loadAzureAnimationFile(file, filter) {
+  const json = file.json || (typeof autoParseJSON === 'function' ? autoParseJSON(file.content) : JSON.parse(file.content));
+  if (!json || typeof json.animations !== 'object') return [];
+
+  setAnimationIncludesForPath(file?.path, json.includes);
+
+  const animsOut = [];
+
+  for (const name in json.animations) {
+    if (filter && !filter.includes(name)) continue;
+    const src = json.animations[name];
+    const anim = parseAnimation(name, src, file.path);
+    animsOut.push(anim);
+  }
+
+  return animsOut;
+}
+
+function parseAnimation(name, src, filePath) {
+  const playback = readPlaybackJson(src);
+  const anim = new Animation({
+    name,
+    path: filePath,
+    saved_name: name,
+    ...playback,
+    override: !!src.override_previous_animation,
+    anim_time_update: typeof src.anim_time_update === 'string'
+      ? src.anim_time_update.replace(/;(?!$)/, ';\n')
+      : src.anim_time_update || '',
+    blend_weight: typeof src.blend_weight === 'string'
+      ? src.blend_weight.replace(/;(?!$)/, ';\n')
+      : src.blend_weight || '',
+    length: Number(src.animation_length || 0),
+  }).add();
+
+  assignPlaybackFields(anim, playback);
+
+  // Effects
+  if (src.sound_effects || src.particle_effects || src.timeline || src.instructions) {
+    const effectsAnim = ensureEffectsAnimator(anim);
+    parseEffects(effectsAnim, src);
+  }
+
+  // Bones
+  if (src.bones) {
+    for (const boneName in src.bones) {
+      const bone = src.bones[boneName];
+      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
+      const uuid = group ? group.uuid : guid();
+      const boneAnim = new BoneAnimator(uuid, anim, boneName);
+      anim.animators[uuid] = boneAnim;
+
+      for (const channel in bone) {
+        if (!Animator.possible_channels[channel]) continue;
+        parseChannel(boneAnim, channel, bone[channel]);
+      }
+    }
+  }
+
+  anim.calculateSnappingFromKeyframes?.();
+  if (!Animation.selected && Animator.open) anim.select();
+
+  return anim;
+}
+
+function parseChannel(boneAnim, channel, channelData) {
+  if (!channelData) return;
+
+  const addKf = (time, data) => {
+    const parsed = parseKeyframeData(data, channel, time);
+    if (!parsed) return;
+
+    boneAnim.addKeyframe({
+      time,
+      channel,
+      easing: parsed.easing,
+      easingArgs: parsed.easingArgs,
+      interpolation: parsed.interpolation,
+      uniform: parsed.uniform,
+      data_points: parsed.data_points,
+    });
+  };
+
+  // Shorthand constant value (array or { vector: [...] })
+  if (Array.isArray(channelData) || (channelData.vector !== undefined && Object.keys(channelData).length <= 3)) {
+    const vec = unwrapToArray(channelData) || channelData;
+    if (Array.isArray(vec)) {
+      addKf(0, vec);
+      return;
+    }
+  }
+
+  // Check if the whole channel object is a single keyframe with lerp_mode/pre/post/vector
+  if (
+    channelData.lerp_mode !== undefined ||
+    channelData.pre !== undefined ||
+    channelData.post !== undefined ||
+    (channelData.vector !== undefined && typeof channelData.vector !== 'object')
+  ) {
+    addKf(0, channelData);
+    return;
+  }
+
+  // Normal timed keyframes map: { "0.0": {...}, "0.5": {...}, ... }
+  for (const rawT in channelData) {
+    const time = parseFloat(rawT);
+    const entry = channelData[rawT];
+    addKf(time, entry);
+  }
+}
+
+/**
+ * Converts a raw JSON keyframe entry into a normalised data structure
+ * that Blockbench's Keyframe system can consume.
+ * Handles all three forms:
+ *   1. Plain array          [x, y, z]
+ *   2. AzureLib node        { vector, easing?, easingArgs? }
+ *   3. Bedrock spline node  { post, pre?, lerp_mode }
+ */
+
+function toNum(v) {
+  if (typeof v !== 'string') return v;
+  const n = Number(v);
+  return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+}
+
+function coerceVec(vec) {
+  return vec.map(toNum);
+}
+
+function parseKeyframeData(data, channel, time) {
+  // --- 1. Plain array ---
+  if (Array.isArray(data)) {
+    const vec = applyFlipOnLoad(coerceVec(data), channel);
+    return {
+      easing: EASING_DEFAULT,
+      easingArgs: undefined,
+      interpolation: undefined,
+      uniform: false,
+      data_points: [{ x: vec[0], y: vec[1], z: vec[2] }],
+    };
+  }
+
+  if (!data || typeof data !== 'object') return null;
+
+  // --- 2. AzureLib node (has vector or easing) ---
+  if (isAzureKeyframe(data) && !isBedrockKeyframe(data)) {
+    const rawVec = unwrapToArray(data.vector || data) || [0, 0, 0];
+    const vec = applyFlipOnLoad(coerceVec(rawVec), channel);
+    return {
+      easing: data.easing || EASING_DEFAULT,
+      easingArgs: Array.isArray(data.easingArgs) && data.easingArgs.length ? data.easingArgs : undefined,
+      interpolation: undefined,
+      uniform: false,
+      data_points: [{ x: vec[0], y: vec[1], z: vec[2] }],
+    };
+  }
+
+  // --- 3. Bedrock interpolation node (has lerp_mode, pre, or post) ---
+  if (isBedrockKeyframe(data)) {
+    // Map JSON lerp_mode strings back to Blockbench interpolation identifiers
+    const lerp = data.lerp_mode;
+    const interpolation =
+      lerp === 'catmullrom' ? 'catmullrom' :
+      // lerp_mode:'linear' treated as no special interpolation — AzureLib linear easing handles it
+      lerp === 'linear'     ? undefined      :
+      // pre/post without lerp_mode is bezier in Blockbench's own format
+      (data.pre !== undefined || data.post !== undefined) ? 'bezier' :
+      undefined;
+    const data_points = [];
+
+    const postRaw = unwrapToArray(data.post);
+    const preRaw = unwrapToArray(data.pre);
+
+    if (preRaw) {
+      const pre = applyFlipOnLoad(coerceVec(preRaw), channel);
+      data_points.push({ x: pre[0], y: pre[1], z: pre[2] });
+    }
+
+    const postVec = postRaw ? applyFlipOnLoad(coerceVec(postRaw), channel) : [0, 0, 0];
+    data_points.push({ x: postVec[0], y: postVec[1], z: postVec[2] });
+
+    return {
+      easing: EASING_DEFAULT,
+      easingArgs: undefined,
+      interpolation,
+      uniform: false,
+      data_points: data_points.length ? data_points : [{ x: 0, y: 0, z: 0 }],
+    };
+  }
+
+  // Fallback — treat as raw vector object
+  const x = toNum(data.x ?? 0);
+  const y = toNum(data.y ?? 0);
+  const z = toNum(data.z ?? 0);
+  return {
+    easing: EASING_DEFAULT,
+    easingArgs: undefined,
+    interpolation: undefined,
+    uniform: false,
+    data_points: [{ x, y, z }],
+  };
+}
+
+function applyFlipOnLoad(vec, channel) {
+  if (!Blockbench.isNewerThan('4.99')) return vec;
+  const v = [...vec];
+  if (channel === 'rotation') {
+    v[0] = invertMolang(v[0]);
+    v[1] = invertMolang(v[1]);
+  } else if (channel === 'position') {
+    v[0] = invertMolang(v[0]);
+  }
+  return v;
+}
+
+function parseEffects(effectsAnim, src) {
+  if (src.sound_effects) {
+    for (const t in src.sound_effects) {
+      let sounds = src.sound_effects[t];
+      if (!Array.isArray(sounds)) sounds = [sounds];
+      const pts = sounds.filter(Boolean).map(s => (typeof s === 'string' ? { effect: s } : { ...s }));
+      effectsAnim.addKeyframe({ channel: 'sound', time: parseFloat(t), data_points: pts });
+    }
+  }
+
+  if (src.particle_effects) {
+    for (const t in src.particle_effects) {
+      let particles = src.particle_effects[t];
+      if (!Array.isArray(particles)) particles = [particles];
+      const pts = particles.filter(Boolean).map(p => {
+        const o = { ...p };
+        if (o.pre_effect_script && !o.script) o.script = o.pre_effect_script;
+        return o;
+      });
+      effectsAnim.addKeyframe({ channel: 'particle', time: parseFloat(t), data_points: pts });
+    }
+  }
+
+  const timeline = src.timeline || src.instructions;
+  if (timeline) {
+    for (const t in timeline) {
+      const entry = timeline[t];
+      const script = Array.isArray(entry) ? entry.join('\n') : entry;
+      effectsAnim.addKeyframe({ channel: 'timeline', time: parseFloat(t), data_points: [{ script }] });
+    }
+  }
+}
+
+function ensureEffectsAnimator(anim) {
+  if (!anim.animators.effects) {
+    anim.animators.effects = new EffectAnimator(anim);
+  }
+  return anim.animators.effects;
+}
+
+// ---------------------------------------------------------------------------
+// Pretty-printer (kept from the original — formats arrays inline)
+// ---------------------------------------------------------------------------
+
+/**
+ * Recursive stringifier used in place of JSON.stringify() for the top-level
+ * object.
+ *
+ * The ONLY reason this exists instead of a plain JSON.stringify(obj, null,
+ * '\t') call: JS object key enumeration always places integer-index-looking
+ * keys ("0", "3") ahead of non-integer keys ("1.5"), in ascending numeric
+ * order, regardless of insertion order. Keyframe time maps mix whole-number
+ * and fractional time keys, so a correctly time-sorted entry list like
+ * "0", "1.5", "3" gets silently re-emitted as "0", "3", "1.5" by
+ * JSON.stringify. AzureLib's runtime loader trusts file order rather than
+ * re-sorting on load, so that reorder becomes a real, silent timeline
+ * corruption (a segment that runs backwards and a bone that freezes).
+ *
+ * This function walks the object tree itself and, for any object tagged
+ * with KEY_ORDER (via orderedMap()), emits keys in that explicit order
+ * instead of using Object.keys()/JSON.stringify's native enumeration.
+ * Everything else behaves like a normal pretty-printed JSON.stringify.
+ */
+function orderedStringify(value, indent, currentIndent) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+
+  const childIndent = currentIndent + indent;
+
+  if (Array.isArray(value)) {
+    if (!value.length) return '[]';
+    const items = value.map(v => childIndent + orderedStringify(v, indent, childIndent));
+    return '[\n' + items.join(',\n') + '\n' + currentIndent + ']';
+  }
+
+  const keys = value[KEY_ORDER] || Object.keys(value);
+  if (!keys.length) return '{}';
+  const items = keys.map(k =>
+    childIndent + JSON.stringify(k) + ': ' + orderedStringify(value[k], indent, childIndent)
+  );
+  return '{\n' + items.join(',\n') + '\n' + currentIndent + '}';
+}
+
+/**
+ * JSON serialiser that pretty-prints with tabs but keeps arrays compact on one line.
+ * This matches the original Bedrock/AzureLib animation file format exactly.
+ */
+function serializeAnimationJson(obj) {
+  // First pass: order-preserving pretty-print (see orderedStringify above —
+  // this replaces a plain JSON.stringify(obj, null, '\t') specifically to
+  // avoid its integer-key reordering behaviour on keyframe time maps).
+  const raw = orderedStringify(obj, '\t', '');
+  // Second pass: collapse arrays that contain only numbers/strings onto one line.
+  // Matches [ followed by whitespace+values+whitespace ] across newlines.
+  return raw.replace(
+    /\[\s*([\s\S]*?)\s*\]/g,
+    (match, inner) => {
+      // Only collapse if every element is a number or a quoted string (no nested objects/arrays)
+      const trimmed = inner.trim();
+      if (!trimmed) return '[]';
+      // Check that the inner content has no { or [ — i.e. it's a flat value array
+      if (/[{\[\]]/.test(trimmed)) return match;
+      // Collapse: replace all internal whitespace/newlines/tabs between values with ', '
+      const items = trimmed.split(/,\s*/).map(s => s.trim());
+      return '[' + items.join(', ') + ']';
+    }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AnimationCodec — the public-facing format integration
+// ---------------------------------------------------------------------------
+
+/**
+ * Filesystem helpers — only used in the desktop app. Guarded so the codec
+ * still works in the web build (where save/reload-by-path are no-ops).
+ */
+const _fs = ( true && typeof isApp !== 'undefined' && isApp)
+  ? __webpack_require__(9896)
+  : null;
+
+/**
+ * Try to recover a previously written file's JSON (for in-place merges).
+ * Returns null if the file is missing or unparseable, never throws.
+ */
+function _readExistingAnimationFile(path) {
+  if (!_fs || !path) return null;
+  try {
+    if (!_fs.existsSync(path)) return null;
+    const raw = _fs.readFileSync(path, 'utf-8');
+    const parsed = typeof autoParseJSON === 'function'
+      ? autoParseJSON(raw, false)
+      : JSON.parse(raw);
+    return (parsed && typeof parsed.animations === 'object') ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Lazily-created codec instance.
+ *
+ * IMPORTANT:
+ * Do not construct AnimationCodec at module load, because the blockbench-plugins
+ * validator evaluates the bundle in a VM before the full app/runtime exists.
+ */
+let azureAnimationCodec = null;
+
+function createAzureAnimationCodec() {
+  if (azureAnimationCodec) return azureAnimationCodec;
+
+  if (typeof AnimationCodec === 'undefined') {
+    console.warn('[AzureLib] AnimationCodec API is unavailable in this Blockbench version.');
+    return null;
+  }
+
+  azureAnimationCodec = new AnimationCodec(AZURE_ANIM_FORMAT_ID, {
+    multiple_per_file: true,
+
+    // ---- Import side ---------------------------------------------------
+
+    pickFile() {
+      Blockbench.import({
+        resource_id: 'azure_animation',
+        type: 'AzureLib Animation',
+        extensions: ['json'],
+        readtype: 'text',
+        multiple: true,
+      }, async (files) => {
+        if (!files || !files.length) return;
+        for (const file of files) {
+          await this.importFile(file);
+        }
+      });
+    },
+
+    importFile(file, auto_loaded) {
+      let parsed;
+      try {
+        parsed = typeof autoParseJSON === 'function'
+          ? autoParseJSON(file.content, false)
+          : JSON.parse(file.content);
+      } catch (error) {
+        console.error('[AzureLib] Failed to parse animation file:', error);
+        Blockbench.showQuickMessage('[AzureLib] Failed to parse animation file.');
+        return [];
+      }
+
+      file.json = parsed;
+      return this.loadFile(file, null, auto_loaded);
+    },
+
+    loadFile(file, animation_filter, auto_loaded) {
+      const json = file?.json || (
+        typeof autoParseJSON === 'function'
+          ? autoParseJSON(file.content, false)
+          : JSON.parse(file.content)
+      );
+
+      if (!json || typeof json.animations !== 'object') {
+        Blockbench.showQuickMessage('[AzureLib] No animations found in file.');
+        return [];
+      }
+
+      const path = file.path || '';
+      setAnimationIncludesForPath(path, json.includes || []);
+
+      const created = [];
+
+      for (const [name, animData] of Object.entries(json.animations)) {
+        if (Array.isArray(animation_filter) && animation_filter.length && !animation_filter.includes(name)) {
+          continue;
+        }
+
+        // Delegate to parseAnimation which correctly handles bone UUID assignment,
+        // channel parsing (including numeric coercion and flip-on-load), and effects.
+        const anim = parseAnimation(name, animData, path);
+        anim.saved = true;
+        created.push(anim);
+      }
+
+      if (!auto_loaded && created.length) {
+        Animation.selected = created[0];
+      }
+
+      return created;
+    },
+
+    // ---- Export side ---------------------------------------------------
+
+    compileFile(animations = Animation.all) {
+      const scoped = Array.isArray(animations) ? animations : Animation.all;
+      const path = scoped.length ? (scoped[0].path || '') : '';
+      const out = applyAnimationIncludes({
+        format_version: FORMAT_VERSION,
+        animations: {},
+      }, getAnimationIncludesForPath(path));
+
+      for (const anim of scoped) {
+        if (!anim?.name) continue;
+        out.animations[anim.name] = serializeAnimation(anim);
+      }
+
+      return out;
+    },
+
+    write(content, path) {
+      return serializeAnimationJson(content);
+    },
+
+    /**
+     * Save a single animation back into its source file while preserving
+     * sibling animations and includes.
+     */
+    saveAnimation(animation, save_as) {
+      const compileSingleFile = () => applyAnimationIncludes({
+        format_version: FORMAT_VERSION,
+        animations: {
+          [animation.name]: serializeAnimation(animation),
+        },
+      }, getAnimationIncludesForPath(animation.path));
+
+      if (!isApp || !animation.path || save_as) {
+        Blockbench.export({
+          resource_id: 'azure_animation',
+          type: 'AzureLib Animation',
+          extensions: ['json'],
+          name: (Project?.geometry_name || Project?.name || 'animation') + '.animation',
+          startpath: animation.path,
+          content: serializeAnimationJson(compileSingleFile()),
+        }, (real_path) => {
+          const previousPath = animation.path || '';
+          const includes = getAnimationIncludesForPath(previousPath);
+          setAnimationIncludesForPath(real_path, includes);
+
+          if (real_path !== previousPath && previousPath) {
+            animationIncludesByPath.delete(previousPath);
+          }
+
+          animation.path = real_path;
+          animation.saved = true;
+          animation.saved_name = animation.name;
+        });
+        return;
+      }
+
+      let content = compileSingleFile();
+      const existing = _readExistingAnimationFile(animation.path);
+
+      if (existing) {
+        const fresh = content.animations[animation.name];
+        content = existing;
+
+        if (animation.saved_name && animation.saved_name !== animation.name) {
+          delete content.animations[animation.saved_name];
+        }
+
+        content.animations[animation.name] = fresh;
+        applyAnimationIncludes(content, getAnimationIncludesForPath(animation.path));
+
+        const fileKeys = Object.keys(content.animations);
+        const projectKeys = Animation.all
+          .filter(a => a.path === animation.path)
+          .map(a => a.name);
+
+        let changed = false;
+        let cursor = 0;
+
+        for (const key of projectKeys) {
+          const at = fileKeys.indexOf(key);
+          if (at === -1) continue;
+
+          if (at < cursor) {
+            fileKeys.splice(at, 1);
+            fileKeys.splice(cursor, 0, key);
+            changed = true;
+          } else {
+            cursor = at;
+          }
+        }
+
+        if (changed) {
+          const sorted = {};
+          fileKeys.forEach(k => {
+            sorted[k] = content.animations[k];
+          });
+          content.animations = sorted;
+        }
+      }
+
+      Blockbench.writeFile(animation.path, {
+        content: serializeAnimationJson(content),
+      }, (real_path) => {
+        animation.saved = true;
+        animation.saved_name = animation.name;
+        animation.path = real_path;
+      });
+    },
+
+    /**
+     * Export all animations that share the given path.
+     */
+    exportFile(path, save_as) {
+      const filterPath = path || '';
+      const animations = Animation.all.filter(a => (a.path || '') === filterPath);
+
+      if (!save_as && isApp && path && _fs && _fs.existsSync(path)) {
+        animations.forEach(a => {
+          if (!a.saved) a.save();
+        });
+        return;
+      }
+
+      const content = serializeAnimationJson(this.compileFile(animations));
+
+      Blockbench.export({
+        resource_id: 'azure_animation',
+        type: 'AzureLib Animation',
+        extensions: ['json'],
+        name: (Project?.geometry_name || Project?.name || 'animation') + '.animation',
+        startpath: path,
+        content,
+      }, (real_path) => {
+        const previousPath = filterPath || '';
+        const includes = getAnimationIncludesForPath(previousPath);
+        setAnimationIncludesForPath(real_path, includes);
+
+        if (real_path !== previousPath && previousPath) {
+          animationIncludesByPath.delete(previousPath);
+        }
+
+        animations.forEach(a => {
+          a.path = real_path;
+          a.saved = true;
+          a.saved_name = a.name;
+        });
+      });
+    },
+
+    deleteAnimationFromFile(animation) {
+      if (!_fs || !animation.path) return;
+
+      const existing = _readExistingAnimationFile(animation.path);
+      if (!existing || !existing.animations?.[animation.name]) return;
+
+      delete existing.animations[animation.name];
+      applyAnimationIncludes(existing, getAnimationIncludesForPath(animation.path));
+
+      Blockbench.writeFile(animation.path, {
+        content: serializeAnimationJson(existing),
+      });
+    },
+  });
+
+  return azureAnimationCodec;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy export wrappers — keep external callers working.
+// ---------------------------------------------------------------------------
+
+function exportAzureAnimation() {
+  const codec = createAzureAnimationCodec();
+  if (!codec?.exportFile) return;
+
+  const anyPath = Animation.all.find(a => a.path)?.path || '';
+  codec.exportFile(anyPath, true);
+}
+
+function importAzureAnimation() {
+  const codec = createAzureAnimationCodec();
+  codec?.pickFile?.();
+}
+
+// ---------------------------------------------------------------------------
+// "Export" menu override
+// ---------------------------------------------------------------------------
+
+/**
+ * Blockbench's built-in "Export" action (id: export_animation_file, defined
+ * in animations/animation.js) is core code we can't edit. It calls
+ * codec.compileFile(animations) — our own, correctly time-sorted and
+ * KEY_ORDER-tagged builder — but then stringifies the result with its own
+ * autoStringify(), which knows nothing about our KEY_ORDER tagging. Plain
+ * JS object enumeration (which autoStringify ultimately relies on) always
+ * places integer-index-looking string keys ("0", "1", "2") ahead of
+ * non-integer ones ("0.125", "0.375") in ascending numeric order,
+ * regardless of insertion order — so fractional keyframe times get
+ * silently reordered on export, even though compileFile() built them in
+ * the right order to begin with.
+ *
+ * "Save All Animations" never hits this because it calls codec.exportFile()
+ * directly, which already runs content through our own
+ * serializeAnimationJson() (which does respect KEY_ORDER via
+ * orderedStringify()).
+ *
+ * We can't change what autoStringify does, and we can't edit the core
+ * action. So when our format is active, we swap the action's click handler
+ * for a re-implementation of the exact same picker dialog that serializes
+ * with serializeAnimationJson() instead. Any other format's Export click
+ * falls straight through to the original, untouched.
+ */
+let originalExportAnimationClick = null;
+
+function isAzureCodecActive() {
+  const codec = (typeof AnimationCodec !== 'undefined' && AnimationCodec.getCodec)
+    ? AnimationCodec.getCodec()
+    : null;
+  return !!codec && codec === azureAnimationCodec;
+}
+
+function showAzureAnimationExportDialog() {
+  const form = {};
+  let keys = [];
+  let animations = Animation.all.slice();
+
+  if (Condition(Animation.properties.path.condition)) {
+    animations.sort((a1, a2) => (a1.path ?? a1.name).hashCode() - (a2.path ?? a2.name).hashCode());
+  }
+
+  animations.forEach(animation => {
+    const key = animation.name;
+    keys.push(key);
+    form[key.hashCode()] = { label: key, type: 'checkbox', value: true };
+  });
+
+  const dialog = new Dialog({
+    id: 'azl_animation_export',
+    title: 'dialog.animation_export.title',
+    form,
+    onConfirm(form_result) {
+      dialog.hide();
+      const selectedKeys = keys.filter(key => form_result[key.hashCode()]);
+      const selectedAnimations = Animation.all.filter(a => selectedKeys.includes(a.name));
+      const codec = azureAnimationCodec || AnimationCodec.getCodec() || AnimationCodec.codecs.bedrock;
+      const content = codec.compileFile(selectedAnimations);
+
+      Blockbench.export({
+        resource_id: 'animation',
+        type: 'JSON Animation',
+        extensions: ['json'],
+        name: (Project.geometry_name || 'model') + '.animation',
+        content: serializeAnimationJson(content),
+      });
+    },
+  });
+
+  form.select_all_none = {
+    type: 'buttons',
+    buttons: ['generic.select_all', 'generic.select_none'],
+    click(index) {
+      const values = {};
+      keys.forEach(key => { values[key.hashCode()] = (index === 0); });
+      dialog.setFormValues(values);
+    },
+  };
+
+  dialog.show();
+}
+
+function patchExportAnimationAction() {
+  if (originalExportAnimationClick) return;
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (!action) return;
+
+  originalExportAnimationClick = action.click;
+
+  action.click = function azureExportAnimationOverride(...args) {
+    if (!isAzureCodecActive()) {
+      return originalExportAnimationClick.apply(this, args);
+    }
+    showAzureAnimationExportDialog();
+  };
+}
+
+function unpatchExportAnimationAction() {
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (action && originalExportAnimationClick) {
+    action.click = originalExportAnimationClick;
+  }
+  originalExportAnimationClick = null;
+}
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
+let editAnimationIncludesAction = null;
+
+function registerAzureAnimationFormat() {
+
+  const codec = createAzureAnimationCodec();
+  if (!codec) {
+    console.warn(
+      '[AzureLib] AnimationCodec API is unavailable in this Blockbench version. ' +
+      'Animation import/export will not work. Please update Blockbench.'
+    );
+    return;
+  }
+
+  patchExportAnimationAction();
+  registerPlayBehaviors();
+
+  if (!editAnimationIncludesAction) {
+    editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
+      name: 'Edit Animation Includes',
+      description: 'Edit AzureLib animation include entries for the current animation file',
+      icon: 'playlist_add',
+      category: 'animation',
+      condition: () => Format?.id === 'azure_model' && Animator.open,
+      click: () => showAnimationIncludesDialog(),
+    });
+
+    try {
+      MenuBar.menus?.animation?.addAction(editAnimationIncludesAction);
+    } catch (_) {}
+  }
+
+  if (!Formats?.azure_animation) {
+    Formats.azure_animation = {
+      id: AZURE_ANIM_FORMAT_ID,
+      name: 'Azure Animation',
+      animation_codec: codec,
+    };
+  }
+
+  console.log('[AzureLib] Azure animation codec registered');
+}
+
+function unregisterAzureAnimationFormat() {
+
+  unpatchExportAnimationAction();
+  unregisterPlayBehaviors();
+
+  editAnimationIncludesAction?.delete();
+  editAnimationIncludesAction = null;
+
+  try {
+    delete Formats?.azure_animation;
+  } catch {}
+
+  if (azureAnimationCodec && AnimationCodec?.codecs) {
+    delete AnimationCodec.codecs[AZURE_ANIM_FORMAT_ID];
+  }
+
+  azureAnimationCodec = null;
+  console.log('[AzureLib] Azure animation codec unregistered');
+}
+;// ./core/azure-codec.js
+/**
+ * AzureLib Animator — Codec & Format Registration
+ * -----------------------------------------------
+ * Defines the Blockbench model format for AzureLib (.geo / .animation)
+ * and handles project load, save, and import/export utilities.
+ *
+ * Animation handling is fully owned by azure-animation-tab.js.
+ * The animation codec is now created lazily at runtime so validation
+ * does not execute AnimationCodec construction during module evaluation.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+
+
+
+
+const azure_codec_invertMolang = globalThis.invertMolang || invertMolang;
+const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
+
+let hasNotifiedConversion = false;
+let azureCodecRegistered = false;
+let format = null;
+
+function getBedrockCodec() {
+  return globalThis.Codecs?.bedrock || null;
+}
+
+function getProjectCodec() {
+  return globalThis.Codecs?.project || null;
+}
+
+function ensureAzureFormat() {
+  if (format) return format;
+
+  if (typeof ModelFormat === 'undefined' || !globalThis.Codecs?.project) {
+    console.warn('[AzureLib] ModelFormat or Codecs.project unavailable');
+    return null;
+  }
+
+  format = new ModelFormat({
+    id: 'azure_model',
+    name: 'AzureLib Animated Model',
+    category: 'minecraft',
+    description: 'Animated model for Java mods using AzureLib.',
+    icon: 'view_in_ar',
+    rotate_cubes: true,
+    box_uv: true,
+    optional_box_uv: true,
+    single_texture: false,
+    bone_rig: true,
+    centered_grid: true,
+    animated_textures: true,
+    select_texture_for_particles: true,
+    animation_mode: true,
+    animation_files: true,
+    animation_codec: undefined,
+    locators: true,
+    codec: getProjectCodec(),
+    display_mode: true,
+    onActivation() {},
+  });
+
+  return format;
+}
+
+function getAzureFormat() {
+  return format;
+}
+
+// ---------------------------------------------------------------------------
+// Lifecycle registration
+// ---------------------------------------------------------------------------
+
+function registerAzureCodec() {
+  if (azureCodecRegistered) return;
+  azureCodecRegistered = true;
+
+  const projectCodec = globalThis.Codecs?.project;
+  const bedrockCodec = globalThis.Codecs?.bedrock;
+  const azureFormat = ensureAzureFormat();
+
+  if (!projectCodec || !bedrockCodec || !azureFormat) {
+    console.warn('[AzureLib] Required codec APIs are unavailable');
+    return;
+  }
+
+  projectCodec.on('compile', handleProjectCompile);
+  projectCodec.on('parse', handleProjectParse);
+  bedrockCodec.on('compile', handleBedrockCompile);
+
+  registerAzureAnimationFormat();
+  azureFormat.animation_codec = createAzureAnimationCodec() || undefined;
+
+  registerKeyframeOverrides();
+  initializeAnimationUI();
+
+  Blockbench.on('close_project', resetDefaults);
+  Blockbench.on('new_project', resetDefaults);
+
+  console.log('[AzureLib] Azure codec registered (AnimationCodec-backed)');
+}
+
+function unregisterAzureCodec() {
+  if (!azureCodecRegistered) return;
+  azureCodecRegistered = false;
+
+  const projectCodec = globalThis.Codecs?.project;
+  const bedrockCodec = globalThis.Codecs?.bedrock;
+
+  projectCodec?.events?.compile?.remove?.(handleProjectCompile);
+  projectCodec?.events?.parse?.remove?.(handleProjectParse);
+  bedrockCodec?.events?.compile?.remove?.(handleBedrockCompile);
+
+  unloadAnimationUI();
+  unregisterKeyframeOverrides();
+  unregisterAzureAnimationFormat();
+
+  if (format) {
+    format.animation_codec = undefined;
+  }
+
+  console.log('[AzureLib] Azure codec unregistered');
+}
+
+function resetDefaults() {
+  Object.assign(azure_settings, DEFAULT_CONFIG);
+  hasNotifiedConversion = false;
+  console.log('[AzureLib] Settings reset to defaults');
+}
+
+// ---------------------------------------------------------------------------
+// Project compile/parse hooks
+// ---------------------------------------------------------------------------
+
+function handleProjectCompile(event) {
+  if (Format?.id !== 'azure_model') return;
+
+  if (azure_settings.objectType === 'AZURE_ITEM_BLOCK') {
+    azure_settings.objectType = 'AZURE_ENTITY';
+    azure_settings.entityType = 'Entity/Block/Item';
+  }
+
+  event.model.azurelibSettings = azure_settings;
+}
+
+function handleProjectParse(event) {
+  const model = event.model || {};
+  const formatId = model?.meta?.model_format || model?.model_format;
+  if (formatId !== 'azure_model') return;
+
+  const settings = model.azurelibSettings;
+  if (settings && typeof settings === 'object') {
+    const wasDeprecated = settings.objectType === 'AZURE_ITEM_BLOCK';
+    Object.assign(azure_settings, omit_default()(settings, ['formatVersion']));
+
+    if (wasDeprecated) {
+      azure_settings.objectType = 'AZURE_ENTITY';
+      azure_settings.entityType = 'Entity/Block/Item';
+      console.warn('[AzureLib] Converted deprecated AZURE_ITEM_BLOCK -> AZURE_ENTITY');
+    }
+
+    onSettingsChanged();
+
+    if (wasDeprecated && !hasNotifiedConversion) {
+      hasNotifiedConversion = true;
+      Blockbench.showMessageBox({
+        title: 'AzureLib Conversion',
+        message:
+          'This project used an older "Block/Item" type.\n\nIt has been updated to the unified "Entity/Block/Item" type (AZURE_ENTITY).',
+        buttons: ['OK'],
+      });
+    }
+  } else if (formatId === 'azure_model' && !model.azurelibSettings) {
+    console.debug('[AzureLib] Azure model detected but no settings loaded yet.');
+  }
+
+  if (Blockbench.isNewerThan('4.99') && model.animations) {
+    console.log('[AzureLib] Applying legacy animation inversion fix for Blockbench 5.0+');
+    for (const [, anim] of Object.entries(model.animations)) {
+      for (const bone of Object.values(anim.bones || {})) {
+        for (const [channel, frames] of Object.entries(bone)) {
+          if (channel === 'rotation' || channel === 'position') {
+            for (const kf of Object.values(frames)) {
+              if (kf?.vector) {
+                if (channel === 'rotation') {
+                  kf.vector[0] = azure_codec_invertMolang(kf.vector[0]);
+                  kf.vector[1] = azure_codec_invertMolang(kf.vector[1]);
+                } else if (channel === 'position') {
+                  kf.vector[0] = azure_codec_invertMolang(kf.vector[0]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function handleBedrockCompile(event) {
+  if (Format?.id !== 'azure_model') return;
+
+  const geometry = event.model?.['minecraft:geometry'];
+  if (geometry) {
+    geometry.forEach(geo => {
+      delete geo.item_display_transforms;
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Export helpers
+// ---------------------------------------------------------------------------
+
+function maybeExportItemJson(options = {}, as) {
+  const should = (key, fallback) => (options[key] === undefined ? fallback : options[key]);
+  const model = {};
+  const bedrockCodec = getBedrockCodec();
+
+  if (should('comment', settings.credit.value)) model.credit = settings.credit.value;
+  model.parent = 'builtin/entity';
+
+  if (should('ambientocclusion', Project.ambientocclusion === false)) model.ambientocclusion = false;
+  if (Project.texture_width !== 16 || Project.texture_height !== 16) {
+    model.texture_size = [Project.texture_width, Project.texture_height];
+  }
+  if (should('front_gui_light', Project.front_gui_light)) model.gui_light = 'front';
+  if (should('overrides', Project.overrides)) model.overrides = Project.overrides;
+
+  if (should('display', Object.keys(Project.display_settings).length >= 1)) {
+    const display = {};
+    for (const key in DisplayMode.slots) {
+      const slot = DisplayMode.slots[key];
+      if (DisplayMode.slots.hasOwnProperty(key) && Project.display_settings[slot]?.export) {
+        display[slot] = Project.display_settings[slot].export();
+      }
+    }
+    if (Object.keys(display).length) {
+      model.display = display;
+      for (const [, data] of Object.entries(display)) {
+        if (Array.isArray(data?.translation)) {
+          data.translation = [
+            data.translation[0],
+            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
+            data.translation[2],
+          ];
+        }
+      }
+    }
+  }
+
+  if (Project.textures && should('textures', Object.keys(Project.textures).length >= 1)) {
+    for (const tex of Object.values(Project.textures)) {
+      if (tex.particle || Object.keys(Project.textures).length === 1) {
+        const name = tex.name.replace('.png', '');
+        if (/^[-._a-z0-9/]+$/.test(name)) {
+          model.textures = { particle: name };
+          break;
+        }
+      }
+    }
+  }
+
+  const jsonStr = JSON.stringify(model, null, 2);
+  const path = azure_settings.itemModelPath;
+
+  Blockbench.export({
+    resource_id: 'model',
+    type: Codecs.java_block.name,
+    extensions: ['json'],
+    name: (bedrockCodec?.fileName?.() || 'model.geo').replace('.geo', '.item'),
+    startpath: path,
+    content: jsonStr,
+  }, realPath => {
+    azure_settings.itemModelPath = realPath;
+  });
+
+  return this;
+}
+
+function maybeImportItemJson() {
+  Blockbench.import({
+    resource_id: 'model',
+    type: 'json',
+    extensions: ['json'],
+    readtype: 'text',
+    multiple: false,
+  }, files => {
+    if (!files?.[0]) return;
+
+    let json;
+    try {
+      json = JSON.parse(files[0].content);
+    } catch {
+      return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
+    }
+
+    if (json.parent !== 'builtin/entity' || typeof json.display !== 'object') {
+      return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
+    }
+
+    Project.display_settings = {};
+
+    for (const [slot, data] of Object.entries(json.display)) {
+      if (!DisplayMode.slots.includes(slot)) continue;
+
+      const rotation = Array.isArray(data.rotation) ? data.rotation.slice() : [0, 0, 0];
+      const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
+      const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
+
+      translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
+
+      const slotObj = new DisplaySlot(slot);
+      Object.assign(slotObj, { rotation, translation, scale });
+      Project.display_settings[slot] = slotObj;
+    }
+
+    Project.saved = false;
+    DisplayMode.vue.$forceUpdate();
+    DisplayMode.updateDisplayBase();
+    Blockbench.showQuickMessage('[AzureLib] Display settings imported.');
+  });
+}
+
+/* harmony default export */ const azure_codec = (getBedrockCodec());
+;// ./rig/azure-rig-state.js
+/**
+ * AzureLib Animator — Rig Definitions
+ * ------------------------------------
+ * Project-persisted definitions for AzureLib's runtime rig features:
+ * bone hitboxes, bone sockets, IK chains, look-at chains, bone constraints,
+ * spring bones and blend spaces.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+const RIG_VERSION = 1;
+
+const HITBOX_ROLES = ['COMBAT', 'INTERACT', 'ANCHOR'];
+
+const IK_TARGETS = {
+  bone: 'Animated bone',
+  ground: 'Ground (foot placement)',
+  entity_eyes: 'Another entity\'s eyes',
+  world: 'World position (code)',
+  model: 'Fixed model point',
+};
+
+const IK_SOLVERS = {
+  auto: 'Auto (two-bone for 2–3 bones, else CCD)',
+  two_bone: 'Two-bone',
+  ccd: 'CCD',
+};
+
+const CONSTRAINT_TYPES = {
+  limit: 'Limit (all axes)',
+  hinge_x: 'Hinge X',
+  hinge_y: 'Hinge Y',
+  hinge_z: 'Hinge Z',
+};
+
+/** A fresh, empty rig. */
+function emptyRig() {
+  return {
+    version: RIG_VERSION,
+    codegen: { target: 'v1_21_1', entityClass: 'ExampleEntity', packageRoot: '' },
+    hitboxOptions: { keepEntityBox: false, clientOnly: false },
+    hitboxes: [],
+    sockets: [],
+    ikChains: [],
+    lookAts: [],
+    constraints: [],
+    springBones: [],
+    colliders: [],
+    blendSpaces: [],
+  };
+}
+
+function newHitbox(bone) {
+  return {
+    name: bone,
+    bone,
+    role: 'COMBAT',
+    fit: true,
+    size: [4, 4, 4],
+    offset: [0, 0, 0],
+    inflate: 0,
+    anchorAtPivot: false,
+    damageMultiplier: 1,
+    tags: [],
+  };
+}
+
+function newSocket(name, { bone = null, locator = null } = {}) {
+  return {
+    name,
+    bone,
+    locator,
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    serverHitbox: '',
+  };
+}
+
+function newIkChain(id, bones) {
+  return {
+    id,
+    bones,
+    effector: [0, 0, 0],
+    solver: 'auto',
+    pole: null,
+    iterations: 10,
+    tolerance: 0.1,
+    target: { type: 'ground', stepUp: 0.5, stepDown: 0.75, point: [0, 0, 0], bone: '' },
+    priority: 50,
+    weight: 1,
+    preview: { enabled: true, mode: 'ground', groundHeight: 0, locator: '', point: [0, 0, -16] },
+  };
+}
+
+function newLookAt(id, bones) {
+  return {
+    id,
+    bones,
+    forward: [0, 0, -1],
+    target: { type: 'entity_eyes', point: [0, 0, 0], bone: '' },
+    priority: 40,
+    weight: 1,
+    preview: { enabled: true, mode: 'point', locator: '', point: [0, 24, -32] },
+  };
+}
+
+function newConstraint(bone) {
+  return {
+    bone,
+    type: 'limit',
+    min: [-45, -45, -45],
+    max: [45, 45, 45],
+    standalone: false,
+  };
+}
+
+function newSpringBone(id, bones) {
+  return {
+    id,
+    bones,
+    tip: null,
+    stiffness: 0.2,
+    damping: 0.25,
+    gravity: 0,
+    inertia: 1,
+    priority: 200,
+    colliders: [],
+    radius: 0,
+    ground: false,
+    preview: { enabled: true },
+  };
+}
+
+/** A spring collider; positions are pixels from the bone's pivot along its axes, as for sockets. */
+function newCollider(id, bone) {
+  return {
+    id,
+    bone,
+    shape: 'sphere',
+    start: [0, 0, 0],
+    end: [0, 0, 0],
+    radius: 2,
+  };
+}
+
+function newBlendSpace(name) {
+  return {
+    name,
+    dimensions: 1,
+    input: { x: 'speed', y: 'forward' },
+    samples: [],
+    smoothing: 0,
+    syncPhase: true,
+  };
+}
+
+const listeners = new Set();
+
+const RigStore = {
+  rig: emptyRig(),
+
+  onChange(fn) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
+
+  notify() {
+    for (const fn of listeners) {
+      try { fn(this.rig); } catch (e) { console.error('[AzureLib Rig] listener failed', e); }
+    }
+  },
+
+  set(rig) {
+    this.rig = normalizeRig(rig);
+    this.notify();
+  },
+
+  reset() {
+    this.set(emptyRig());
+  },
+
+  snapshot() {
+    return JSON.parse(JSON.stringify(this.rig));
+  },
+
+  edit(name, mutate) {
+    const before = this.snapshot();
+    mutate(this.rig);
+    const after = this.snapshot();
+
+    if (JSON.stringify(before) === JSON.stringify(after)) return;
+
+    try {
+      Undo.initEdit({});
+      Undo.finishEdit(`AzureLib Rig: ${name}`);
+      const entry = Undo.history?.[Undo.index - 1];
+      if (entry) undoSnapshots.set(entry, { before, after });
+    } catch (e) {
+      console.warn('[AzureLib Rig] Could not record undo step', e);
+    }
+
+    if (typeof Project !== 'undefined' && Project) Project.saved = false;
+    this.notify();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Normalisation: tolerate older or hand-edited data
+// ---------------------------------------------------------------------------
+
+function vec3(value, fallback) {
+  if (!Array.isArray(value) || value.length < 3) return fallback.slice();
+  return [0, 1, 2].map(i => (Number.isFinite(Number(value[i])) ? Number(value[i]) : fallback[i]));
+}
+
+function list(value) {
+  return Array.isArray(value) ? value.filter(v => v && typeof v === 'object') : [];
+}
+
+function normalizeRig(raw) {
+  const base = emptyRig();
+  if (!raw || typeof raw !== 'object') return base;
+
+  base.codegen = { ...base.codegen, ...(raw.codegen || {}) };
+  if (base.codegen.target === 'modern') base.codegen.target = 'v1_21_1';
+  base.hitboxOptions = { ...base.hitboxOptions, ...(raw.hitboxOptions || {}) };
+
+  base.hitboxes = list(raw.hitboxes).map(h => ({
+    ...newHitbox(h.bone || ''),
+    ...h,
+    size: vec3(h.size, [4, 4, 4]),
+    offset: vec3(h.offset, [0, 0, 0]),
+    tags: Array.isArray(h.tags) ? h.tags.map(String) : [],
+    role: HITBOX_ROLES.includes(h.role) ? h.role : 'COMBAT',
+  }));
+
+  base.sockets = list(raw.sockets).map(s => ({
+    ...newSocket(s.name || 'socket'),
+    ...s,
+    offset: vec3(s.offset, [0, 0, 0]),
+    rotation: vec3(s.rotation, [0, 0, 0]),
+  }));
+
+  base.ikChains = list(raw.ikChains).map(c => {
+    const d = newIkChain(c.id || 'ik', Array.isArray(c.bones) ? c.bones : []);
+    return {
+      ...d,
+      ...c,
+      effector: vec3(c.effector, [0, 0, 0]),
+      pole: Array.isArray(c.pole) ? vec3(c.pole, [0, 0, 0]) : null,
+      target: { ...d.target, ...(c.target || {}), point: vec3(c.target?.point, [0, 0, 0]) },
+      preview: { ...d.preview, ...(c.preview || {}), point: vec3(c.preview?.point, d.preview.point) },
+    };
+  });
+
+  base.lookAts = list(raw.lookAts).map(l => {
+    const d = newLookAt(l.id || 'look', Array.isArray(l.bones) ? l.bones : []);
+    return {
+      ...d,
+      ...l,
+      forward: vec3(l.forward, [0, 0, -1]),
+      target: { ...d.target, ...(l.target || {}), point: vec3(l.target?.point, [0, 0, 0]) },
+      preview: { ...d.preview, ...(l.preview || {}), point: vec3(l.preview?.point, d.preview.point) },
+    };
+  });
+
+  base.constraints = list(raw.constraints).map(c => ({
+    ...newConstraint(c.bone || ''),
+    ...c,
+    min: vec3(c.min, [-45, -45, -45]),
+    max: vec3(c.max, [45, 45, 45]),
+  }));
+
+  base.springBones = list(raw.springBones).map(s => {
+    const d = newSpringBone(s.id || 'spring', Array.isArray(s.bones) ? s.bones : []);
+    return {
+      ...d,
+      ...s,
+      tip: Array.isArray(s.tip) ? vec3(s.tip, [0, 0, 0]) : null,
+      colliders: Array.isArray(s.colliders) ? s.colliders.map(String) : [],
+      radius: Math.max(0, Number(s.radius) || 0),
+      ground: !!s.ground,
+      preview: { ...d.preview, ...(s.preview || {}) },
+    };
+  });
+
+  base.colliders = list(raw.colliders).map(c => ({
+    ...newCollider(c.id || 'collider', c.bone || ''),
+    ...c,
+    shape: c.shape === 'capsule' ? 'capsule' : 'sphere',
+    start: vec3(c.start, [0, 0, 0]),
+    end: vec3(c.end, [0, 0, 0]),
+    radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
+  }));
+
+  base.blendSpaces = list(raw.blendSpaces).map(b => ({
+    ...newBlendSpace(b.name || 'blend'),
+    ...b,
+    input: { x: 'speed', y: 'forward', ...(b.input || {}) },
+    samples: list(b.samples).map(s => ({
+      x: Number(s.x) || 0,
+      y: Number(s.y) || 0,
+      animation: String(s.animation || ''),
+    })),
+  }));
+
+  return base;
+}
+
+function boneNames() {
+  return (typeof Group !== 'undefined' ? Group.all : []).map(g => g.name);
+}
+
+function locatorNames() {
+  return (typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name);
+}
+
+function findBone(name) {
+  return (typeof Group !== 'undefined' ? Group.all : []).find(g => g.name === name) || null;
+}
+
+function isDescendant(child, ancestor) {
+  for (let node = child?.parent; node && node !== 'root'; node = node.parent) {
+    if (node === ancestor) return true;
+  }
+  return false;
+}
+
+function validateRig(rig = RigStore.rig) {
+  const issues = [];
+  const bones = new Set(boneNames());
+  const locators = new Set(locatorNames());
+
+  const checkChain = (kind, id, names) => {
+    if (!names.length) {
+      issues.push(`${kind} "${id}" has no bones.`);
+      return;
+    }
+    for (const n of names) {
+      if (!bones.has(n)) issues.push(`${kind} "${id}": bone "${n}" doesn't exist.`);
+    }
+    for (let i = 1; i < names.length; i++) {
+      const parent = findBone(names[i - 1]);
+      const child = findBone(names[i]);
+      if (parent && child && !isDescendant(child, parent)) {
+        issues.push(`${kind} "${id}": "${names[i]}" isn't under "${names[i - 1]}"; list bones root first, each inside the one before.`);
+      }
+    }
+  };
+
+  const seenHitboxes = new Set();
+  for (const h of rig.hitboxes) {
+    if (!bones.has(h.bone)) issues.push(`Hitbox "${h.name}": bone "${h.bone}" doesn't exist.`);
+    if (seenHitboxes.has(h.name)) issues.push(`Hitbox name "${h.name}" is used twice.`);
+    seenHitboxes.add(h.name);
+    if (!h.fit && h.size.every(v => !v) && !h.inflate) issues.push(`Hitbox "${h.name}" has no size.`);
+    if (h.fit) {
+      const bone = findBone(h.bone);
+      const hasCubes = bone?.children?.some(c => typeof Cube !== 'undefined' && c instanceof Cube);
+      if (bone && !hasCubes) issues.push(`Hitbox "${h.name}" fits bone "${h.bone}", which has no cubes of its own; give it a size.`);
+    }
+  }
+
+  const seenSockets = new Set();
+  for (const s of rig.sockets) {
+    if (seenSockets.has(s.name)) issues.push(`Socket name "${s.name}" is used twice.`);
+    seenSockets.add(s.name);
+    if (s.locator && !locators.has(s.locator)) issues.push(`Socket "${s.name}": locator "${s.locator}" doesn't exist.`);
+    if (!s.locator && !bones.has(s.bone)) issues.push(`Socket "${s.name}": bone "${s.bone}" doesn't exist.`);
+    if (s.serverHitbox && s.locator) issues.push(`Socket "${s.name}" follows a locator, so its server hitbox must be added by hand (toAnchorHitbox() only works for bone sockets).`);
+  }
+
+  const locatorCounts = {};
+  for (const l of locatorNames()) locatorCounts[l] = (locatorCounts[l] || 0) + 1;
+  for (const [name, count] of Object.entries(locatorCounts)) {
+    if (count > 1) issues.push(`Locator name "${name}" is used ${count} times; AzureLib resolves the first one it finds.`);
+  }
+
+  const checkBoneTarget = (kind, id, target, chainBones) => {
+    if (target?.type !== 'bone') return;
+    if (!target.bone) {
+      issues.push(`${kind} "${id}": pick the bone to follow.`);
+      return;
+    }
+    if (!bones.has(target.bone)) {
+      issues.push(`${kind} "${id}": target bone "${target.bone}" doesn't exist.`);
+      return;
+    }
+    const targetBone = findBone(target.bone);
+    const driven = chainBones.map(findBone).filter(Boolean);
+    if (chainBones.includes(target.bone) || driven.some(b => isDescendant(targetBone, b))) {
+      issues.push(`${kind} "${id}": target bone "${target.bone}" is part of the chain it drives; move it under a bone outside the chain.`);
+    }
+  };
+
+  for (const c of rig.ikChains) {
+    checkChain('IK chain', c.id, c.bones);
+    checkBoneTarget('IK chain', c.id, c.target, c.bones);
+    const solver = c.solver === 'auto' ? (c.bones.length === 2 || c.bones.length === 3 ? 'two_bone' : 'ccd') : c.solver;
+    if (solver === 'two_bone' && c.bones.length < 2) issues.push(`IK chain "${c.id}": the two-bone solver needs at least 2 bones.`);
+  }
+  for (const l of rig.lookAts) {
+    checkChain('Look-at', l.id, l.bones);
+    checkBoneTarget('Look-at', l.id, l.target, l.bones);
+  }
+  for (const s of rig.springBones) checkChain('Spring bone', s.id, s.bones);
+
+  for (const c of rig.constraints) {
+    if (!bones.has(c.bone)) issues.push(`Constraint on "${c.bone}": bone doesn't exist.`);
+  }
+
+  const colliderIds = new Set();
+  for (const c of rig.colliders || []) {
+    if (colliderIds.has(c.id)) issues.push(`Collider id "${c.id}" is used twice.`);
+    colliderIds.add(c.id);
+    if (!bones.has(c.bone)) issues.push(`Collider "${c.id}": bone "${c.bone}" doesn't exist.`);
+    if (!(Number(c.radius) > 0)) issues.push(`Collider "${c.id}" needs a radius above 0.`);
+  }
+  for (const s of rig.springBones) {
+    for (const id of s.colliders || []) {
+      if (!colliderIds.has(id)) issues.push(`Spring bone "${s.id}": collider "${id}" doesn't exist.`);
+    }
+    for (const id of s.colliders || []) {
+      const c = (rig.colliders || []).find(x => x.id === id);
+      if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
+    }
+  }
+
+  const animations = new Set((typeof Animation !== 'undefined' ? Animation.all : []).map(a => a.name));
+  for (const b of rig.blendSpaces) {
+    if (b.samples.length < 2) issues.push(`Blend space "${b.name}" needs at least 2 samples.`);
+    for (const s of b.samples) {
+      if (!animations.has(s.animation)) issues.push(`Blend space "${b.name}": animation "${s.animation}" doesn't exist in this project.`);
+    }
+  }
+
+  const ids = {};
+  for (const x of [...rig.ikChains, ...rig.lookAts, ...rig.springBones]) ids[x.id] = (ids[x.id] || 0) + 1;
+  if (rig.constraints.some(c => c.standalone)) ids.bone_limits = (ids.bone_limits || 0) + 1;
+  for (const [id, n] of Object.entries(ids)) {
+    if (n > 1) issues.push(`Pose modifier id "${id}" is used ${n} times; AzureLib requires unique ids.`);
+  }
+
+  return issues;
+}
+
+const undoSnapshots = new WeakMap();
+let handlers = null;
+
+function registerRigState() {
+  if (handlers) return;
+
+  handlers = {
+    compile: event => {
+      if (Format?.id !== 'azure_model') return;
+      event.model.azurelibRig = RigStore.snapshot();
+    },
+    parsed: event => {
+      const model = event?.model || {};
+      RigStore.set(model.azurelibRig || emptyRig());
+    },
+    reset: () => RigStore.reset(),
+    undo: event => {
+      const snap = undoSnapshots.get(event?.entry);
+      if (snap) RigStore.set(snap.before);
+    },
+    redo: event => {
+      const snap = undoSnapshots.get(event?.entry);
+      if (snap) RigStore.set(snap.after);
+    },
+    select: event => {
+      // Switching tabs: the store mirrors the selected project's rig.
+      const project = event?.project || Project;
+      RigStore.set(project?.azurelibRig || emptyRig());
+    },
+    unselect: event => {
+      const project = event?.project || Project;
+      if (project) project.azurelibRig = RigStore.snapshot();
+    },
+  };
+
+  Codecs.project.on('compile', handlers.compile);
+  Codecs.project.on('parsed', handlers.parsed);
+  Blockbench.on('new_project', handlers.reset);
+  Blockbench.on('undo', handlers.undo);
+  Blockbench.on('redo', handlers.redo);
+  Blockbench.on('unselect_project', handlers.unselect);
+  Blockbench.on('select_project', handlers.select);
+}
+
+function unregisterRigState() {
+  if (!handlers) return;
+  Codecs.project.events?.compile?.remove?.(handlers.compile);
+  Codecs.project.events?.parsed?.remove?.(handlers.parsed);
+  Blockbench.removeListener('new_project', handlers.reset);
+  Blockbench.removeListener('undo', handlers.undo);
+  Blockbench.removeListener('redo', handlers.redo);
+  Blockbench.removeListener('unselect_project', handlers.unselect);
+  Blockbench.removeListener('select_project', handlers.select);
+  handlers = null;
+}
+
+;// ./rig/azure-rig-math.js
+/**
+ * AzureLib Animator — Rig Math
+ * -----------------------------
+ * Ports of AzureLib's runtime weight math (AzBlendWeights), so blend-space
+ * previews in Blockbench mix animations with exactly the weights the game will.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+/**
+ * 1D weights: the input is clamped to the samples' range and split linearly
+ * between the two samples around it. Positions must be ascending.
+ */
+function linearWeights(positions, input) {
+  const n = positions.length;
+  const dest = new Array(n).fill(0);
+
+  if (n === 0) return dest;
+
+  if (n === 1 || input <= positions[0]) {
+    dest[0] = 1;
+    return dest;
+  }
+
+  if (input >= positions[n - 1]) {
+    dest[n - 1] = 1;
+    return dest;
+  }
+
+  for (let i = 0; i < n - 1; i++) {
+    const from = positions[i];
+    const to = positions[i + 1];
+
+    if (input <= to) {
+      const span = to - from;
+      const t = span <= 0 ? 1 : (input - from) / span;
+      dest[i] = 1 - t;
+      dest[i + 1] = t;
+      return dest;
+    }
+  }
+
+  dest[n - 1] = 1;
+  return dest;
+}
+
+/**
+ * 2D weights by gradient band interpolation (freeform cartesian), as
+ * AzBlendWeights.gradientBand: the input on a sample plays that sample alone.
+ */
+function gradientBandWeights(xs, ys, x, y) {
+  const n = xs.length;
+  const dest = new Array(n).fill(0);
+
+  if (n === 0) return dest;
+
+  let total = 0;
+
+  for (let i = 0; i < n; i++) {
+    let weight = 1;
+    const px = x - xs[i];
+    const py = y - ys[i];
+
+    for (let j = 0; j < n && weight > 0; j++) {
+      if (i === j) continue;
+
+      const ex = xs[j] - xs[i];
+      const ey = ys[j] - ys[i];
+      const lengthSq = ex * ex + ey * ey;
+
+      if (lengthSq <= 0) continue;
+
+      const h = 1 - (px * ex + py * ey) / lengthSq;
+      weight = Math.min(weight, Math.max(0, Math.min(1, h)));
+    }
+
+    dest[i] = weight;
+    total += weight;
+  }
+
+  if (total > 0) {
+    for (let i = 0; i < n; i++) dest[i] /= total;
+    return dest;
+  }
+
+  let nearest = 0;
+  let best = Infinity;
+
+  for (let i = 0; i < n; i++) {
+    const dx = x - xs[i];
+    const dy = y - ys[i];
+    const d = dx * dx + dy * dy;
+    dest[i] = 0;
+
+    if (d < best) {
+      best = d;
+      nearest = i;
+    }
+  }
+
+  dest[nearest] = 1;
+  return dest;
+}
+
+/**
+ * Sample weights for a blend space definition at the given input, with the
+ * samples in the same order as {@code blendSpace.samples}.
+ */
+function blendSpaceWeights(blendSpace, inputX, inputY = 0) {
+  const samples = blendSpace.samples || [];
+
+  if (blendSpace.dimensions === 2) {
+    return gradientBandWeights(samples.map(s => s.x), samples.map(s => s.y), inputX, inputY);
+  }
+
+  // 1D: AzureLib sorts samples by position; weight in sorted order, then map back.
+  const order = samples.map((s, i) => i).sort((a, b) => samples[a].x - samples[b].x);
+  const sorted = linearWeights(order.map(i => samples[i].x), inputX);
+  const weights = new Array(samples.length).fill(0);
+  order.forEach((sampleIndex, sortedIndex) => { weights[sampleIndex] = sorted[sortedIndex]; });
+  return weights;
+}
+
+/** The input range a blend space covers, for preview sliders. */
+function blendSpaceRange(blendSpace) {
+  const samples = blendSpace.samples || [];
+  const range = (values) => {
+    if (!values.length) return [0, 1];
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    if (min === max) { min -= 1; max += 1; }
+    return [min, max];
+  };
+  return { x: range(samples.map(s => s.x)), y: range(samples.map(s => s.y)) };
+}
+
+;// ./rig/azure-rig-preview.js
+/**
+ * AzureLib Animator — Rig Preview
+ * --------------------------------
+ * Shows AzureLib's runtime rig features in the Blockbench viewport:
+ *
+ *   • Hitboxes, fitted the way AzureLib fits them (the AABB of the bone's own
+ *     cubes around its pivot, or an explicit size), coloured like F3 + B.
+ *   • Sockets, as a forward arrow (the socket's -Z) and an up arrow.
+ *   • Spring colliders, as orange wireframe spheres and capsules.
+ *   • In Animate mode, the pose modifiers run on top of the animation every
+ *     frame, in AzureLib's priority order, with the same solvers the game
+ *     uses: two-bone and CCD IK, look-at, spring bones and constraints.
+ *   • Blend spaces, by stacking their samples at AzureLib's weights (without
+ *     touching the animations' own playing state or blend weights).
+ *
+ * The preview never writes keyframes or project data.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+const DEG = Math.PI / 180;
+const TICKS_PER_SECOND = 20;
+const PIXELS_PER_BLOCK = 16;
+
+const COLOR_COMBAT = 0x55ff55;
+const COLOR_STRONG = 0xff5555;
+const COLOR_WEAK = 0x5599ff;
+const COLOR_INTERACT = 0x55ffff;
+const COLOR_ANCHOR = 0xffff55;
+const COLOR_SOCKET = 0xff55ff;
+const COLOR_SOCKET_UP = 0xaa66ff;
+const COLOR_TARGET = 0xffaa00;
+const COLOR_COLLIDER = 0xff8a3d;
+
+/** Runtime-only preview switches (not saved with the project). */
+const PreviewSettings = {
+  hitboxes: true,
+  sockets: true,
+  colliders: true,
+  modifiers: true,
+};
+
+function isActive() {
+  return typeof Format !== 'undefined' && Format?.id === 'azure_model' && typeof Project !== 'undefined' && !!Project;
+}
+
+function azure_rig_preview_findBone(name) {
+  return Group.all.find(g => g.name === name) || null;
+}
+
+function findLocator(name) {
+  return (typeof Locator !== 'undefined' ? Locator.all : []).find(l => l.name === name) || null;
+}
+
+function boneMesh(name) {
+  return azure_rig_preview_findBone(name)?.mesh || null;
+}
+
+function worldPosition(object, target = new THREE.Vector3()) {
+  object.updateWorldMatrix(true, false);
+  return target.setFromMatrixPosition(object.matrixWorld);
+}
+
+/** Model-space point (Blockbench pixels from the model origin) to world space. */
+function modelToWorld(point) {
+  const v = new THREE.Vector3(point[0], point[1], point[2]);
+  const root = Project?.model_3d;
+  if (root) {
+    root.updateWorldMatrix(true, false);
+    v.applyMatrix4(root.matrixWorld);
+  }
+  return v;
+}
+
+/** A Blockbench rotation in degrees as a quaternion, applied Z, then Y, then X like bone rotations. */
+function bbRotation(degrees) {
+  return new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(degrees[0] * DEG, degrees[1] * DEG, degrees[2] * DEG, 'ZYX'),
+  );
+}
+
+const overlay = {
+  root: null,
+  hitboxes: [],
+  sockets: [],
+  colliders: [],
+  dirty: true,
+};
+
+function ensureOverlayRoot() {
+  if (overlay.root) return overlay.root;
+  overlay.root = new THREE.Object3D();
+  overlay.root.name = 'azurelib_rig_overlay';
+  return overlay.root;
+}
+
+function attachOverlayRoot() {
+  const root = ensureOverlayRoot();
+  const scene = typeof Canvas !== 'undefined' ? Canvas.scene : null;
+  if (scene && root.parent !== scene) scene.add(root);
+}
+
+function clearOverlay() {
+  for (const item of [...overlay.hitboxes, ...overlay.sockets, ...overlay.colliders]) {
+    item.object.parent?.remove(item.object);
+    item.object.traverse(o => {
+      o.geometry?.dispose?.();
+      o.material?.dispose?.();
+    });
+  }
+  overlay.hitboxes = [];
+  overlay.sockets = [];
+  overlay.colliders = [];
+}
+
+function hitboxColor(h) {
+  if (h.role === 'INTERACT') return COLOR_INTERACT;
+  if (h.role === 'ANCHOR') return COLOR_ANCHOR;
+  if (h.damageMultiplier > 1) return COLOR_STRONG;
+  if (h.damageMultiplier < 1) return COLOR_WEAK;
+  return COLOR_COMBAT;
+}
+
+/**
+ * The hitbox's box in bone space, like AzHitboxClientHooks#fitBoneSpaceBox:
+ * bounds of the bone's own cubes around its pivot, explicit size centred on
+ * the cubes (or the pivot with anchorAtPivot), plus offset and inflate.
+ * Returns {center, half} in pixels, or null when the box would be empty.
+ */
+function hitboxBox(h) {
+  const bone = azure_rig_preview_findBone(h.bone);
+  const mesh = bone?.mesh;
+  if (!mesh) return null;
+
+  const bounds = new THREE.Box3();
+  mesh.updateWorldMatrix(true, false);
+  const toBone = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
+
+  for (const child of bone.children || []) {
+    if (!(child instanceof Cube) || !child.mesh?.geometry) continue;
+    const geometry = child.mesh.geometry;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    child.mesh.updateWorldMatrix(true, false);
+    const local = new THREE.Matrix4().multiplyMatrices(toBone, child.mesh.matrixWorld);
+    const { min, max } = geometry.boundingBox;
+    for (let i = 0; i < 8; i++) {
+      bounds.expandByPoint(new THREE.Vector3(
+        i & 1 ? max.x : min.x,
+        i & 2 ? max.y : min.y,
+        i & 4 ? max.z : min.z,
+      ).applyMatrix4(local));
+    }
+  }
+
+  const hasCubes = !bounds.isEmpty();
+  const center = new THREE.Vector3();
+  const half = new THREE.Vector3();
+
+  if (hasCubes && !h.anchorAtPivot) bounds.getCenter(center);
+
+  if (h.fit) {
+    if (!hasCubes) return null;
+    bounds.getSize(half).multiplyScalar(0.5);
+  } else {
+    half.set(h.size[0] / 2, h.size[1] / 2, h.size[2] / 2);
+  }
+
+  const inflate = Number(h.inflate) || 0;
+  half.set(Math.max(0, half.x + inflate), Math.max(0, half.y + inflate), Math.max(0, half.z + inflate));
+  if (half.x === 0 && half.y === 0 && half.z === 0) return null;
+
+  // Offsets are Blockbench pixels along the bone's axes; in Blockbench space no axis is mirrored.
+  center.add(new THREE.Vector3(h.offset[0], h.offset[1], h.offset[2]));
+  return { center, half };
+}
+
+function makeBoxLines(color) {
+  const geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
+  const material = new THREE.LineBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.9 });
+  const lines = new THREE.LineSegments(geometry, material);
+  lines.renderOrder = 999;
+  lines.matrixAutoUpdate = false;
+  return lines;
+}
+
+function makeArrow(direction, color, length) {
+  const arrow = new THREE.ArrowHelper(direction, new THREE.Vector3(), length, color, length * 0.3, length * 0.18);
+  arrow.traverse(o => {
+    if (o.material) {
+      o.material.depthTest = false;
+      o.material.transparent = true;
+    }
+    o.renderOrder = 999;
+  });
+  return arrow;
+}
+
+/**
+ * Wireframe for a spring collider in its bone's space (pixels): three rings around each end and,
+ * for a capsule, four lines joining the ends.
+ */
+function colliderLinePoints(c) {
+  const a = new THREE.Vector3(c.start[0], c.start[1], c.start[2]);
+  const capsule = c.shape === 'capsule';
+  const b = capsule ? new THREE.Vector3(c.end[0], c.end[1], c.end[2]) : a.clone();
+  const r = Math.max(0.01, Number(c.radius) || 0);
+  const points = [];
+  const segments = 24;
+  const ring = (center, u, v) => {
+    for (let i = 0; i < segments; i++) {
+      const t0 = (i / segments) * Math.PI * 2;
+      const t1 = ((i + 1) / segments) * Math.PI * 2;
+      for (const t of [t0, t1]) {
+        points.push(center.x + (u.x * Math.cos(t) + v.x * Math.sin(t)) * r,
+          center.y + (u.y * Math.cos(t) + v.y * Math.sin(t)) * r,
+          center.z + (u.z * Math.cos(t) + v.z * Math.sin(t)) * r);
+      }
+    }
+  };
+  const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
+  for (const center of capsule ? [a, b] : [a]) {
+    ring(center, X, Y);
+    ring(center, X, Z);
+    ring(center, Y, Z);
+  }
+  if (capsule) {
+    const axis = b.clone().sub(a);
+    if (axis.lengthSq() > 1e-12) {
+      axis.normalize();
+      const helper = Math.abs(axis.y) < 0.9 ? Y : X;
+      const u = new THREE.Vector3().crossVectors(axis, helper).normalize();
+      const v = new THREE.Vector3().crossVectors(axis, u).normalize();
+      for (const side of [u, v, u.clone().multiplyScalar(-1), v.clone().multiplyScalar(-1)]) {
+        points.push(a.x + side.x * r, a.y + side.y * r, a.z + side.z * r, b.x + side.x * r, b.y + side.y * r, b.z + side.z * r);
+      }
+    }
+  }
+  return points;
+}
+
+function makeColliderLines(c) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(colliderLinePoints(c), 3));
+  const material = new THREE.LineBasicMaterial({ color: COLOR_COLLIDER, depthTest: false, transparent: true, opacity: 0.85 });
+  const lines = new THREE.LineSegments(geometry, material);
+  lines.renderOrder = 999;
+  lines.matrixAutoUpdate = false;
+  return lines;
+}
+
+function makeSocketGizmo() {
+  const group = new THREE.Object3D();
+  group.add(makeArrow(new THREE.Vector3(0, 0, -1), COLOR_SOCKET, 4));
+  group.add(makeArrow(new THREE.Vector3(0, 1, 0), COLOR_SOCKET_UP, 2));
+  group.matrixAutoUpdate = false;
+  return group;
+}
+
+function rebuildOverlay() {
+  clearOverlay();
+  overlay.dirty = false;
+  if (!isActive()) return;
+
+  const root = ensureOverlayRoot();
+  const rig = RigStore.rig;
+
+  for (const h of rig.hitboxes) {
+    const object = makeBoxLines(hitboxColor(h));
+    root.add(object);
+    overlay.hitboxes.push({ def: h, object, box: null });
+  }
+
+  for (const s of rig.sockets) {
+    const object = makeSocketGizmo();
+    root.add(object);
+    overlay.sockets.push({ def: s, object });
+  }
+
+  for (const c of rig.colliders || []) {
+    const object = makeColliderLines(c);
+    root.add(object);
+    overlay.colliders.push({ def: c, object });
+  }
+}
+
+/** Socket frame in world space: bone pivot, plus locator and socket offset, then locator and socket rotation. */
+function socketWorldMatrix(s) {
+  let bone = s.locator ? null : azure_rig_preview_findBone(s.bone);
+  let localPosition = new THREE.Vector3(s.offset[0], s.offset[1], s.offset[2]);
+  let rotation = bbRotation(s.rotation);
+
+  if (s.locator) {
+    const locator = findLocator(s.locator);
+    if (!locator) return null;
+    bone = locator.parent instanceof Group ? locator.parent : null;
+    const origin = bone ? bone.origin : [0, 0, 0];
+    localPosition.add(new THREE.Vector3(
+      locator.position[0] - origin[0],
+      locator.position[1] - origin[1],
+      locator.position[2] - origin[2],
+    ));
+    rotation = bbRotation(locator.rotation || [0, 0, 0]).multiply(rotation);
+  }
+
+  const parent = bone?.mesh || Project?.model_3d;
+  if (!parent) return null;
+  parent.updateWorldMatrix(true, false);
+
+  return new THREE.Matrix4()
+    .copy(parent.matrixWorld)
+    .multiply(new THREE.Matrix4().compose(localPosition, rotation, new THREE.Vector3(1, 1, 1)));
+}
+
+function syncOverlay() {
+  if (!isActive()) {
+    if (overlay.root) overlay.root.visible = false;
+    return;
+  }
+
+  // Creates the overlay root on first use and keeps it in the scene.
+  attachOverlayRoot();
+  overlay.root.visible = true;
+  if (overlay.dirty) rebuildOverlay();
+
+  const parentInverse = new THREE.Matrix4();
+  overlay.root.parent?.updateWorldMatrix(true, false);
+  if (overlay.root.parent) parentInverse.copy(overlay.root.parent.matrixWorld).invert();
+
+  for (const item of overlay.hitboxes) {
+    const mesh = boneMesh(item.def.bone);
+    const box = PreviewSettings.hitboxes && mesh ? hitboxBox(item.def) : null;
+    item.object.visible = !!box;
+    if (!box) continue;
+    item.object.matrix.copy(parentInverse)
+      .multiply(mesh.matrixWorld)
+      .multiply(new THREE.Matrix4().compose(box.center, new THREE.Quaternion(), box.half.clone().multiplyScalar(2)));
+  }
+
+  for (const item of overlay.colliders) {
+    const mesh = PreviewSettings.colliders ? boneMesh(item.def.bone) : null;
+    item.object.visible = !!mesh;
+    if (!mesh) continue;
+    mesh.updateWorldMatrix(true, false);
+    item.object.matrix.copy(parentInverse).multiply(mesh.matrixWorld);
+  }
+
+  for (const item of overlay.sockets) {
+    const matrix = PreviewSettings.sockets ? socketWorldMatrix(item.def) : null;
+    item.object.visible = !!matrix;
+    if (!matrix) continue;
+    item.object.matrix.copy(parentInverse).multiply(matrix);
+  }
+}
+
+function restRotation(bone) {
+  const mesh = bone.mesh;
+  if (mesh?.fix_rotation) return mesh.fix_rotation;
+  const r = bone.rotation || [0, 0, 0];
+  return new THREE.Euler(r[0] * DEG, r[1] * DEG, r[2] * DEG, 'ZYX');
+}
+
+/** Turns a bone about its pivot by a world-space rotation. */
+function rotateWorld(mesh, worldDelta) {
+  const parentQuat = new THREE.Quaternion();
+  mesh.parent.updateWorldMatrix(true, false);
+  mesh.parent.getWorldQuaternion(parentQuat);
+  const local = parentQuat.clone().invert().multiply(worldDelta).multiply(parentQuat);
+  mesh.quaternion.premultiply(local);
+  mesh.updateMatrixWorld(true);
+}
+
+/** Turns a bone so the direction to {@code from} points at {@code to}, by {@code fraction} of the turn. */
+function aim(mesh, from, to, fraction = 1) {
+  const pivot = worldPosition(mesh);
+  const u = from.clone().sub(pivot);
+  const v = to.clone().sub(pivot);
+  if (u.lengthSq() < 1e-8 || v.lengthSq() < 1e-8) return false;
+  u.normalize();
+  v.normalize();
+  if (u.dot(v) > 1 - 1e-9) return false;
+
+  let q = new THREE.Quaternion().setFromUnitVectors(u, v);
+  if (fraction < 1) q = new THREE.Quaternion().slerp(q, fraction);
+  rotateWorld(mesh, q);
+  return true;
+}
+
+/** A point fixed to a bone, in Blockbench pixels from its pivot, in world space. */
+function pointOnBone(mesh, offset) {
+  mesh.updateWorldMatrix(true, false);
+  return new THREE.Vector3(offset[0], offset[1], offset[2]).applyMatrix4(mesh.matrixWorld);
+}
+
+function directionOnBone(mesh, direction) {
+  const q = new THREE.Quaternion();
+  mesh.updateWorldMatrix(true, false);
+  mesh.getWorldQuaternion(q);
+  return new THREE.Vector3(direction[0], direction[1], direction[2]).normalize().applyQuaternion(q);
+}
+
+function wrapAngle(a) {
+  return Math.atan2(Math.sin(a), Math.cos(a));
+}
+
+/**
+ * Clamps a bone's rotation relative to its rest pose. Limits are keyframe
+ * degrees; keyframes land on the mesh with X and Y negated (as in AzureLib),
+ * so the mesh ranges for X and Y are [-max, -min].
+ */
+function applyConstraint(bone, c) {
+  const mesh = bone.mesh;
+  if (!mesh) return;
+  const rest = restRotation(bone);
+  const ranges = {
+    x: [-c.max[0] * DEG, -c.min[0] * DEG],
+    y: [-c.max[1] * DEG, -c.min[1] * DEG],
+    z: [c.min[2] * DEG, c.max[2] * DEG],
+  };
+  if (c.type === 'hinge_x') { ranges.y = [0, 0]; ranges.z = [0, 0]; }
+  if (c.type === 'hinge_y') { ranges.x = [0, 0]; ranges.z = [0, 0]; }
+  if (c.type === 'hinge_z') { ranges.x = [0, 0]; ranges.y = [0, 0]; }
+
+  const euler = new THREE.Euler().setFromQuaternion(mesh.quaternion, 'ZYX');
+  for (const axis of ['x', 'y', 'z']) {
+    const offset = wrapAngle(euler[axis] - rest[axis]);
+    const [min, max] = ranges[axis];
+    euler[axis] = rest[axis] + Math.min(max, Math.max(min, offset));
+  }
+  mesh.quaternion.setFromEuler(euler);
+  mesh.updateMatrixWorld(true);
+}
+
+function constraintsFor(boneNames) {
+  const byBone = new Map(RigStore.rig.constraints.map(c => [c.bone, c]));
+  return boneNames.map(n => byBone.get(n) || null);
+}
+
+function resolvedSolver(chain) {
+  if (chain.solver !== 'auto') return chain.solver;
+  return chain.bones.length === 2 || chain.bones.length === 3 ? 'two_bone' : 'ccd';
+}
+
+/** AzIkSolvers.twoBone: bend the middle joint, swing the root, then twist towards the pole. */
+function solveTwoBone(bones, effector, target, constraints, pole) {
+  const [upper, lower] = bones.map(b => b.mesh);
+  const last = bones[bones.length - 1].mesh;
+  const a = worldPosition(upper);
+  const b = worldPosition(lower);
+  const c = pointOnBone(last, effector);
+  const upperLen = a.distanceTo(b);
+  const lowerLen = b.distanceTo(c);
+  if (upperLen < 1e-5 || lowerLen < 1e-5) return;
+
+  const reach = Math.min(upperLen + lowerLen - 1e-4, Math.max(Math.abs(upperLen - lowerLen) + 1e-4, a.distanceTo(target)));
+  const u = a.clone().sub(b);
+  const v = c.clone().sub(b);
+  let axis = new THREE.Vector3().crossVectors(u, v);
+  if (axis.lengthSq() < 1e-12) {
+    axis = directionOnBone(upper, [1, 0, 0]);
+  }
+  axis.normalize();
+
+  const current = Math.acos(Math.min(1, Math.max(-1, u.dot(v) / (upperLen * lowerLen))));
+  const desired = Math.acos(Math.min(1, Math.max(-1, (upperLen * upperLen + lowerLen * lowerLen - reach * reach) / (2 * upperLen * lowerLen))));
+  rotateWorld(lower, new THREE.Quaternion().setFromAxisAngle(axis, desired - current));
+  if (constraints[1]) applyConstraint(bones[1], constraints[1]);
+
+  aim(upper, pointOnBone(last, effector), target);
+  if (constraints[0]) applyConstraint(bones[0], constraints[0]);
+
+  if (pole) {
+    const root = worldPosition(upper);
+    const k = target.clone().sub(root);
+    if (k.lengthSq() < 1e-10) return;
+    k.normalize();
+    const knee = worldPosition(lower).sub(root);
+    const toPole = modelToWorld(pole).sub(root);
+    knee.sub(k.clone().multiplyScalar(knee.dot(k)));
+    toPole.sub(k.clone().multiplyScalar(toPole.dot(k)));
+    if (knee.lengthSq() < 1e-10 || toPole.lengthSq() < 1e-10) return;
+    const angle = Math.atan2(k.dot(new THREE.Vector3().crossVectors(knee, toPole)), knee.dot(toPole));
+    rotateWorld(upper, new THREE.Quaternion().setFromAxisAngle(k, angle));
+    if (constraints[0]) applyConstraint(bones[0], constraints[0]);
+  }
+}
+
+/** AzIkSolvers.ccd: every pass turns each bone, tip first, to point the effector at the target. */
+function solveCcd(bones, effector, target, constraints, iterations, tolerance) {
+  const last = bones[bones.length - 1].mesh;
+  for (let it = 0; it < iterations; it++) {
+    for (let i = bones.length - 1; i >= 0; i--) {
+      aim(bones[i].mesh, pointOnBone(last, effector), target);
+      if (constraints[i]) applyConstraint(bones[i], constraints[i]);
+    }
+    if (pointOnBone(last, effector).distanceTo(target) <= tolerance) return;
+  }
+}
+
+/** Where a chain's preview target is this frame, in world space, or null to skip. */
+function previewTarget(entry, effectorWorld) {
+  if (entry.target?.type === 'bone') {
+    const mesh = entry.target.bone ? boneMesh(entry.target.bone) : null;
+    return mesh ? pointOnBone(mesh, entry.target.point || [0, 0, 0]) : null;
+  }
+
+  const p = entry.preview || {};
+  if (p.enabled === false || p.mode === 'off') return null;
+
+  if (p.mode === 'locator') {
+    const locator = findLocator(p.locator);
+    return locator?.mesh ? worldPosition(locator.mesh) : null;
+  }
+
+  if (p.mode === 'ground') {
+    // AzIkTargets.ground keeps the animated foot height but measures it from the
+    // ground under the foot: with flat preview ground raised by groundHeight,
+    // the foot moves up by that much.
+    return effectorWorld.clone().add(new THREE.Vector3(0, Number(p.groundHeight) || 0, 0));
+  }
+
+  return modelToWorld(p.point || [0, 0, 0]);
+}
+
+/** Captures bone rotations so a modifier's result can be blended in by its weight. */
+function captureRotations(meshes) {
+  return meshes.map(m => m.quaternion.clone());
+}
+
+function blendRotations(meshes, before, weight) {
+  if (weight >= 1) return;
+  meshes.forEach((m, i) => m.quaternion.copy(before[i].clone().slerp(m.quaternion.clone(), Math.max(0, weight))));
+  meshes.forEach(m => m.updateMatrixWorld(true));
+}
+
+function runIkChain(chain) {
+  const bones = chain.bones.map(azure_rig_preview_findBone);
+  if (bones.some(b => !b?.mesh) || !bones.length) return;
+  const meshes = bones.map(b => b.mesh);
+  const last = meshes[meshes.length - 1];
+  const target = previewTarget(chain, pointOnBone(last, chain.effector));
+  if (!target) return;
+
+  const before = captureRotations(meshes);
+  const constraints = constraintsFor(chain.bones);
+  const solver = resolvedSolver(chain);
+
+  if (solver === 'two_bone' && bones.length >= 2) {
+    solveTwoBone(bones, chain.effector, target, constraints, chain.pole);
+  } else {
+    solveCcd(bones, chain.effector, target, constraints, Math.max(1, chain.iterations | 0), Math.max(0.001, Number(chain.tolerance) || 0.1));
+  }
+
+  blendRotations(meshes, before, Number(chain.weight) || 0);
+}
+
+function runLookAt(look) {
+  const bones = look.bones.map(azure_rig_preview_findBone);
+  if (bones.some(b => !b?.mesh) || !bones.length) return;
+  const meshes = bones.map(b => b.mesh);
+  const head = meshes[meshes.length - 1];
+  const target = previewTarget(look, worldPosition(head));
+  if (!target) return;
+
+  const before = captureRotations(meshes);
+  const constraints = constraintsFor(look.bones);
+  const last = meshes.length - 1;
+
+  for (let i = 0; i <= last; i++) {
+    const headPos = worldPosition(head);
+    const distance = headPos.distanceTo(target);
+    if (distance < 1e-4) break;
+    const aimPoint = directionOnBone(head, look.forward).multiplyScalar(distance).add(headPos);
+    aim(meshes[i], aimPoint, target, 1 / (last - i + 1));
+    if (constraints[i]) applyConstraint(bones[i], constraints[i]);
+  }
+
+  blendRotations(meshes, before, Number(look.weight) || 0);
+}
+
+const springStates = new Map();
+
+/**
+ * A spring chain's colliders in world space for this frame: [{a, b, radius, capsule}], with the
+ * radius in pixels. Mirrors AzSpringBone#updateColliders.
+ */
+function springColliders(spring) {
+  const byId = new Map((RigStore.rig.colliders || []).map(c => [c.id, c]));
+  const out = [];
+  for (const id of spring.colliders || []) {
+    const c = byId.get(id);
+    const mesh = c && boneMesh(c.bone);
+    if (!mesh) continue;
+    const capsule = c.shape === 'capsule';
+    out.push({
+      a: pointOnBone(mesh, c.start),
+      b: pointOnBone(mesh, capsule ? c.end : c.start),
+      radius: Math.max(0, Number(c.radius) || 0),
+      capsule,
+    });
+  }
+  return out;
+}
+
+/** Closest points between segments p0-p1 and a-b: returns [s, t], the parameters along each. */
+function closestSegmentParams(p0, p1, a, b) {
+  const d1 = p1.clone().sub(p0);
+  const d2 = b.clone().sub(a);
+  const r = p0.clone().sub(a);
+  const aa = d1.dot(d1);
+  const ee = d2.dot(d2);
+  const ff = d2.dot(r);
+  let s;
+  let t;
+
+  if (aa <= 1e-12 && ee <= 1e-12) return [0, 0];
+  if (aa <= 1e-12) return [0, Math.max(0, Math.min(1, ff / ee))];
+
+  const c = d1.dot(r);
+  if (ee <= 1e-12) {
+    s = Math.max(0, Math.min(1, -c / aa));
+    t = 0;
+  } else {
+    const bb = d1.dot(d2);
+    const denom = aa * ee - bb * bb;
+    s = denom > 1e-12 ? Math.max(0, Math.min(1, (bb * ff - c * ee) / denom)) : 0;
+    t = (bb * s + ff) / ee;
+    if (t < 0) {
+      t = 0;
+      s = Math.max(0, Math.min(1, -c / aa));
+    } else if (t > 1) {
+      t = 1;
+      s = Math.max(0, Math.min(1, (bb - c) / aa));
+    }
+  }
+  return [s, t];
+}
+
+/**
+ * Pushes the chain out of the colliders and above the ground. Each segment is tested against
+ * each collider's core, so thin colliders can't slip between two joints; the segment's outer
+ * joint is moved so the segment clears it. Mirrors AzSpringBone#collide.
+ */
+function collideSpring(p, colliders, particleRadius, groundY) {
+  for (let j = 1; j < p.length; j++) {
+    for (const c of colliders) {
+      const reach = c.radius + particleRadius;
+      const coreEnd = c.capsule ? c.b : c.a;
+      const [sAlong, tAlong] = closestSegmentParams(p[j - 1], p[j], c.a, coreEnd);
+      const onChain = p[j - 1].clone().lerp(p[j], sAlong);
+      const onCore = c.a.clone().lerp(coreEnd, tAlong);
+      const away = onChain.clone().sub(onCore);
+      const dist = away.length();
+      if (dist >= reach) continue;
+      if (dist < 1e-6) away.set(0, 1, 0);
+      else away.divideScalar(dist);
+      // Moving the outer joint by d moves the contact point by s * d; the root end of the
+      // segment is handled by the segment before it.
+      p[j].add(away.multiplyScalar((reach - dist) / Math.max(sAlong, 0.25)));
+    }
+    if (groundY !== null && p[j].y < groundY + particleRadius) p[j].y = groundY + particleRadius;
+  }
+}
+
+/**
+ * AzSpringBone: damped particles, each pulled towards its animated position relative to the
+ * particle before it, held at segment length; the bones are then aimed at them.
+ */
+function runSpring(spring) {
+  const bones = spring.bones.map(azure_rig_preview_findBone);
+  if (bones.some(b => !b?.mesh) || !bones.length || spring.preview?.enabled === false) return;
+  const meshes = bones.map(b => b.mesh);
+  const tip = spring.tip;
+  const count = meshes.length + (tip ? 1 : 0);
+
+  const chainPoint = j => (j < meshes.length ? worldPosition(meshes[j]) : pointOnBone(meshes[meshes.length - 1], tip));
+  const targets = [];
+  for (let j = 0; j < count; j++) targets.push(chainPoint(j));
+
+  const colliders = springColliders(spring);
+  const particleRadius = Math.max(0, Number(spring.radius) || 0);
+  // The ground is the model's origin: the entity's feet.
+  const groundY = spring.ground ? modelToWorld([0, 0, 0]).y : null;
+
+  const time = Timeline.time || 0;
+  const now = performance.now();
+  const playing = !!Timeline.playing;
+  let state = springStates.get(spring.id);
+  const fresh = !state || state.count !== count;
+
+  // While playback runs, step by real time (scaled by the playback speed), so looping back to
+  // the start of the animation or the loop range doesn't count as going backwards. When
+  // scrubbing, step by timeline time, and reset on a jump backwards or a big jump forwards.
+  let delta = 0;
+  if (!fresh) {
+    delta = playing && state.playing
+      ? ((now - state.wall) / 1000) * TICKS_PER_SECOND * ((Timeline.playback_speed ?? 100) / 100)
+      : (time - state.time) * TICKS_PER_SECOND;
+  }
+
+  if (fresh || delta < 0 || delta > 10) {
+    state = {
+      count,
+      time,
+      wall: now,
+      playing,
+      position: targets.map(t => t.clone()),
+      velocity: targets.map(() => new THREE.Vector3()),
+    };
+    collideSpring(state.position, colliders, particleRadius, groundY);
+    springStates.set(spring.id, state);
+  } else {
+    const stiffness = Math.min(1, Math.max(0, Number(spring.stiffness) || 0));
+    const damping = Math.min(1, Math.max(0, Number(spring.damping) || 0));
+    const gravity = (Number(spring.gravity) || 0) * PIXELS_PER_BLOCK;
+    const p = state.position;
+    const v = state.velocity;
+    p[0].copy(targets[0]);
+
+    let remaining = delta;
+    while (remaining > 1e-4) {
+      const dt = Math.min(remaining, 1);
+      const keep = Math.max(0, 1 - damping * dt);
+      const previous = p.map(x => x.clone());
+
+      for (let j = 1; j < count; j++) {
+        // Each joint springs towards where the animation puts it relative to the joint
+        // before it, so lag builds up along the chain and it bends and whips instead of
+        // swinging as one rigid piece.
+        const rest = targets[j].clone().sub(targets[j - 1]).add(p[j - 1]);
+        v[j].add(rest.sub(p[j]).multiplyScalar(stiffness * dt));
+        v[j].y -= gravity * dt;
+        v[j].multiplyScalar(keep);
+        p[j].add(v[j].clone().multiplyScalar(dt));
+      }
+
+      // Hold every segment at its animated length and push joints out of colliders; alternated so
+      // the chain ends up both the right length and outside the colliders.
+      const passes = colliders.length || groundY !== null ? 3 : 1;
+      for (let pass = 0; pass < passes; pass++) {
+        for (let j = 1; j < count; j++) {
+          const rest = targets[j].distanceTo(targets[j - 1]);
+          const dir = p[j].clone().sub(p[j - 1]);
+          const length = dir.length();
+          if (length > 1e-6) p[j].copy(p[j - 1]).add(dir.multiplyScalar(rest / length));
+        }
+        collideSpring(p, colliders, particleRadius, groundY);
+      }
+
+      // Derive velocity from the corrected motion, so contact slides and settles instead of bouncing.
+      for (let j = 1; j < count; j++) v[j].copy(p[j]).sub(previous[j]).divideScalar(dt);
+
+      remaining -= dt;
+    }
+    state.time = time;
+    state.wall = now;
+    state.playing = playing;
+  }
+
+  const constraints = constraintsFor(spring.bones);
+  for (let i = 0; i < count - 1; i++) {
+    aim(meshes[i], chainPoint(i + 1), state.position[i + 1]);
+    if (constraints[i]) applyConstraint(bones[i], constraints[i]);
+  }
+}
+
+function runStandaloneConstraints() {
+  for (const c of RigStore.rig.constraints) {
+    if (!c.standalone) continue;
+    const bone = azure_rig_preview_findBone(c.bone);
+    if (bone) applyConstraint(bone, c);
+  }
+}
+
+function runModifiers() {
+  if (!isActive() || !PreviewSettings.modifiers || !Animator?.open) return;
+  const rig = RigStore.rig;
+
+  const jobs = [
+    ...rig.ikChains.map(c => ({ priority: Number(c.priority) || 0, run: () => runIkChain(c) })),
+    ...rig.lookAts.map(l => ({ priority: Number(l.priority) || 0, run: () => runLookAt(l) })),
+    ...rig.springBones.map(s => ({ priority: Number(s.priority) || 0, run: () => runSpring(s) })),
+  ];
+  if (rig.constraints.some(c => c.standalone)) jobs.push({ priority: 1000, run: runStandaloneConstraints });
+
+  // AzureLib runs modifiers in ascending priority, then in the order they were added.
+  jobs.map((job, i) => ({ ...job, i }))
+    .sort((a, b) => a.priority - b.priority || a.i - b.i)
+    .forEach(job => {
+      try {
+        job.run();
+      } catch (e) {
+        console.warn('[AzureLib Rig] Preview failed for a modifier', e);
+      }
+    });
+}
+
+const BlendPreview = {
+  active: null,
+  inputX: 0,
+  inputY: 0,
+
+  start(blendSpace) {
+    this.active = blendSpace;
+    this.refresh();
+  },
+
+  stop() {
+    this.active = null;
+    this.refresh();
+  },
+
+  refresh() {
+    try { if (Animator?.open) Animator.preview(); } catch (_) { /* not in animate mode */ }
+  },
+
+  weights() {
+    return this.active ? blendSpaceWeights(this.active, this.inputX, this.inputY) : [];
+  },
+
+  display() {
+    if (!this.active) return false;
+    const weights = this.weights();
+    const blend = {};
+    const animations = [];
+
+    this.active.samples.forEach((sample, i) => {
+      const animation = Animation.all.find(a => a.name === sample.animation);
+      if (!animation || !(weights[i] > 0)) return;
+      if (blend[animation.uuid] === undefined) {
+        blend[animation.uuid] = 0;
+        animations.push(animation);
+      }
+      blend[animation.uuid] += weights[i];
+    });
+
+    if (!animations.length) return false;
+    Animator.showDefaultPose(true);
+    Animator.stackAnimations(animations, false, blend);
+    return true;
+  },
+};
+
+let azure_rig_preview_handlers = null;
+let unsubscribe = null;
+
+function markOverlayDirty() {
+  overlay.dirty = true;
+}
+
+function registerRigPreview() {
+  if (azure_rig_preview_handlers) return;
+
+  azure_rig_preview_handlers = {
+    frame: () => {
+      if (isActive() && Animator?.open && BlendPreview.active) BlendPreview.display();
+      runModifiers();
+    },
+    render: () => syncOverlay(),
+    dirty: () => { overlay.dirty = true; },
+    resetSprings: () => springStates.clear(),
+    leaveAnimate: () => { if (BlendPreview.active) BlendPreview.stop(); },
+  };
+
+  unsubscribe = RigStore.onChange(() => {
+    overlay.dirty = true;
+    springStates.clear();
+  });
+
+  Blockbench.on('display_animation_frame', azure_rig_preview_handlers.frame);
+  Blockbench.on('render_frame', azure_rig_preview_handlers.render);
+  Blockbench.on('finished_edit', azure_rig_preview_handlers.dirty);
+  Blockbench.on('load_project', azure_rig_preview_handlers.dirty);
+  Blockbench.on('select_project', azure_rig_preview_handlers.dirty);
+  Blockbench.on('select_animation', azure_rig_preview_handlers.resetSprings);
+  Blockbench.on('unselect_mode', azure_rig_preview_handlers.leaveAnimate);
+  Blockbench.on('unselect_project', azure_rig_preview_handlers.leaveAnimate);
+}
+
+function unregisterRigPreview() {
+  if (!azure_rig_preview_handlers) return;
+  BlendPreview.stop();
+  Blockbench.removeListener('display_animation_frame', azure_rig_preview_handlers.frame);
+  Blockbench.removeListener('render_frame', azure_rig_preview_handlers.render);
+  Blockbench.removeListener('finished_edit', azure_rig_preview_handlers.dirty);
+  Blockbench.removeListener('load_project', azure_rig_preview_handlers.dirty);
+  Blockbench.removeListener('select_project', azure_rig_preview_handlers.dirty);
+  Blockbench.removeListener('select_animation', azure_rig_preview_handlers.resetSprings);
+  Blockbench.removeListener('unselect_mode', azure_rig_preview_handlers.leaveAnimate);
+  Blockbench.removeListener('unselect_project', azure_rig_preview_handlers.leaveAnimate);
+  unsubscribe?.();
+  unsubscribe = null;
+  azure_rig_preview_handlers = null;
+  clearOverlay();
+  overlay.root?.parent?.remove(overlay.root);
+  overlay.root = null;
+}
+
+;// ./rig/azure-rig-codegen.js
+/**
+ * AzureLib Animator — Rig Code Generation
+ * ---------------------------------------
+ * Turns the rig definitions into Java code for Azurelib: the entity's hitbox set and
+ * socket constants, the animator's pose modifiers (IK, look-at, spring bones,
+ * constraints) and blend spaces, and the renderer's attachment layer.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+/**
+ * AzureLib branches the generator can target. `root` is the default package
+ * root (overridable per project); `mojmap` marks branches on Mojang's mapped
+ * names, which share the entity accessors used by blend-space inputs.
+ */
+const TARGETS = {
+  v26_3: { label: '26.3', root: 'mod.azure.azurelib.common', mojmap: true },
+  v1_21_1: { label: '1.21.1', root: 'mod.azure.azurelib.common', mojmap: true },
+  v1_20_1: { label: '1.20.1', root: 'mod.azure.azurelib.common', mojmap: true },
+  v1_18: { label: '1.18.2', root: 'mod.azure.azurelib', mojmap: true },
+  legacy: { label: '1.12.2 / 1.7.10', root: 'mod.azure.azurelib', mojmap: false },
+  beta: { label: 'Beta 1.7.3 (Ornithe / StationAPI)', root: 'mod.azure.azurelib', mojmap: false },
+};
+
+/** Target id -> label, for select inputs. */
+const CODEGEN_TARGETS = Object.fromEntries(Object.entries(TARGETS).map(([id, t]) => [id, t.label]));
+
+/** Older saved projects used `modern` for 1.21.x. */
+function normalizeTarget(target) {
+  if (target === 'modern') return 'v1_21_1';
+  return TARGETS[target] ? target : 'v1_21_1';
+}
+
+const BLEND_INPUTS = {
+  speed: 'Horizontal speed (blocks/second)',
+  forward: 'Forward speed (blocks/second)',
+  strafe: 'Strafe speed, right positive (blocks/second)',
+  pitch: 'Look pitch (degrees)',
+  custom: 'Custom (fill in by hand)',
+};
+
+const DEFAULT_OPTIONS = {
+  target: 'v1_21_1',
+  packageRoot: '',
+  entityClass: 'ExampleEntity',
+  indent: '    ',
+};
+
+function jf(value) {
+  const n = Number(value) || 0;
+  if (Number.isInteger(n)) return String(n);
+  return `${parseFloat(n.toFixed(4))}F`;
+}
+
+function jd(value) {
+  const n = Number(value) || 0;
+  return Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(4)));
+}
+
+function js(value) {
+  return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function constantName(value) {
+  const cleaned = String(value)
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^A-Za-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase();
+  return /^[0-9]/.test(cleaned) ? `_${cleaned}` : cleaned || 'UNNAMED';
+}
+
+const isZero = v => !v || v.every(n => !Number(n));
+const vecArgs = v => v.map(jf).join(', ');
+
+function packageRoot(target, override) {
+  return (override || '').trim() || TARGETS[normalizeTarget(target)].root;
+}
+
+const isMojmap = target => TARGETS[normalizeTarget(target)].mojmap;
+
+function importsBlock(target, names, override) {
+  const root = packageRoot(target, override);
+  const paths = {
+    AzHitboxSet: `${root}.hitbox.AzHitboxSet`,
+    AzHitboxHolder: `${root}.hitbox.AzHitboxHolder`,
+    AzBoneSocket: `${root}.socket.AzBoneSocket`,
+    AzAttachment: `${root}.socket.AzAttachment`,
+    AzAttachmentLayer: `${root}.socket.AzAttachmentLayer`,
+    AzPoseModifierRegistry: `${root}.animation.pose.AzPoseModifierRegistry`,
+    AzBoneConstraint: `${root}.animation.pose.AzBoneConstraint`,
+    AzBoneConstraints: `${root}.animation.pose.AzBoneConstraints`,
+    AzIkChain: `${root}.animation.pose.ik.AzIkChain`,
+    AzIkSolvers: `${root}.animation.pose.ik.AzIkSolvers`,
+    AzIkTargets: `${root}.animation.pose.ik.AzIkTargets`,
+    AzLookAt: `${root}.animation.pose.ik.AzLookAt`,
+    AzSpringBone: `${root}.animation.pose.secondary.AzSpringBone`,
+    AzSpringCollider: `${root}.animation.pose.secondary.AzSpringCollider`,
+    AzBlendSpace1D: `${root}.animation.blend.AzBlendSpace1D`,
+    AzBlendSpace2D: `${root}.animation.blend.AzBlendSpace2D`,
+    AzAnimationControllerContainer: `${root}.animation.controller.AzAnimationControllerContainer`,
+    Mth: isMojmap(target) ? 'net.minecraft.util.Mth' : `${root}.util.math.Mth`,
+    Mc: `${root}.platform.mc.Mc`,
+    UUID: 'java.util.UUID',
+  };
+  return [...new Set(names)]
+    .filter(n => paths[n])
+    .map(n => `import ${paths[n]};`)
+    .sort()
+    .join('\n');
+}
+
+function section(title, imports, body) {
+  return { title, imports, body: body.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n' };
+}
+
+function hitboxCall(h, ind) {
+  const options = [];
+
+  if (h.role === 'INTERACT') options.push('.interact()');
+  if (h.role === 'ANCHOR') options.push('.anchor()');
+  if (!h.fit) {
+    const [x, y, z] = h.size;
+    options.push(x === y && y === z ? `.size(${jf(x)})` : `.size(${vecArgs(h.size)})`);
+  }
+  if (!isZero(h.offset)) options.push(`.offset(${vecArgs(h.offset)})`);
+  if (Number(h.inflate)) options.push(`.inflate(${jf(h.inflate)})`);
+  if (h.anchorAtPivot) options.push('.anchorAtPivot()');
+  if (Number(h.damageMultiplier) !== 1 && h.role === 'COMBAT') options.push(`.damageMultiplier(${jf(h.damageMultiplier)})`);
+  for (const tag of h.tags || []) options.push(`.tag(${js(tag)})`);
+
+  const sameName = h.name === h.bone;
+
+  if (!options.length) {
+    return sameName ? `${ind}.add(${js(h.bone)})` : `${ind}.add(${js(h.name)}, ${js(h.bone)}, h -> h)`;
+  }
+
+  const lambda = `h -> h${options.join('')}`;
+  return sameName ? `${ind}.add(${js(h.bone)}, ${lambda})` : `${ind}.add(${js(h.name)}, ${js(h.bone)}, ${lambda})`;
+}
+
+function socketExpression(s) {
+  const parts = [s.locator ? `AzBoneSocket.locator(${js(s.locator)})` : `AzBoneSocket.bone(${js(s.name)}, ${js(s.bone)})`];
+  if (!isZero(s.offset)) parts.push(`.offset(${vecArgs(s.offset)})`);
+  if (!isZero(s.rotation)) parts.push(`.rotation(${vecArgs(s.rotation)})`);
+  if (s.serverHitbox) parts.push(`.serverHitbox(${js(s.serverHitbox)})`);
+  parts.push('.build()');
+  return parts.join('');
+}
+
+function socketName(s) {
+  return s.locator || s.name;
+}
+
+function generateEntitySection(rig, options = {}) {
+  const o = { ...DEFAULT_OPTIONS, ...options };
+  const ind = o.indent;
+  const lines = [];
+  const imports = [];
+
+  if (rig.sockets.length) {
+    imports.push('AzBoneSocket');
+    lines.push(`${ind}// Bone sockets: find them with AzBoneSockets.resolve(this, SOCKET, partialTick, transform).`);
+    for (const s of rig.sockets) {
+      lines.push(`${ind}public static final AzBoneSocket ${constantName(socketName(s))} = ${socketExpression(s)};`);
+    }
+    lines.push('');
+  }
+
+  const anchorSockets = rig.sockets.filter(s => s.serverHitbox && !s.locator
+    && !rig.hitboxes.some(h => h.name === s.serverHitbox));
+
+  if (rig.hitboxes.length || anchorSockets.length) {
+    imports.push('AzHitboxSet', 'AzHitboxHolder');
+    lines.push(`${ind}private static final AzHitboxSet HITBOXES = AzHitboxSet.builder()`);
+    for (const h of rig.hitboxes) lines.push(hitboxCall(h, `${ind}${ind}`));
+    for (const s of anchorSockets) {
+      lines.push(`${ind}${ind}.add(${constantName(socketName(s))}.toAnchorHitbox()) // Server-side position for the ${js(socketName(s))} socket.`);
+    }
+    if (rig.hitboxOptions.keepEntityBox) lines.push(`${ind}${ind}.keepEntityBox(true)`);
+    if (rig.hitboxOptions.clientOnly) lines.push(`${ind}${ind}.clientOnly()`);
+    lines.push(`${ind}${ind}.build();`);
+    lines.push('');
+    lines.push(`${ind}// ${o.entityClass} implements AzHitboxHolder`);
+    lines.push(`${ind}@Override`);
+    lines.push(`${ind}public AzHitboxSet getHitboxSet() {`);
+    lines.push(`${ind}${ind}return HITBOXES;`);
+    lines.push(`${ind}}`);
+  }
+
+  for (const s of rig.sockets.filter(s => s.serverHitbox && s.locator)) {
+    lines.push('');
+    lines.push(`${ind}// TODO: socket ${js(socketName(s))} follows a locator, so add its anchor hitbox ${js(s.serverHitbox)} yourself:`);
+    lines.push(`${ind}//   AzHitbox.builder(${js(s.serverHitbox)}, "<locator's bone>").anchor().anchorAtPivot().offset(<locator offset>).size(1).build()`);
+  }
+
+  if (!lines.length) return null;
+  return section(`${o.entityClass} (entity)`, importsBlock(o.target, imports, o.packageRoot), lines.join('\n'));
+}
+
+function constraintExpression(c) {
+  switch (c.type) {
+    case 'hinge_x': return `AzBoneConstraints.hingeX(${js(c.bone)}, ${jf(c.min[0])}, ${jf(c.max[0])})`;
+    case 'hinge_y': return `AzBoneConstraints.hingeY(${js(c.bone)}, ${jf(c.min[1])}, ${jf(c.max[1])})`;
+    case 'hinge_z': return `AzBoneConstraints.hingeZ(${js(c.bone)}, ${jf(c.min[2])}, ${jf(c.max[2])})`;
+    default:
+      return `AzBoneConstraints.limit(${js(c.bone)}, ${jf(c.min[0])}, ${jf(c.max[0])}, ${jf(c.min[1])}, ${jf(c.max[1])}, ${jf(c.min[2])}, ${jf(c.max[2])})`;
+  }
+}
+
+function constraintField(c) {
+  return `${constantName(c.bone)}_LIMIT`;
+}
+
+function colliderField(c) {
+  return `${constantName(c.id)}_COLLIDER`;
+}
+
+function colliderExpression(c) {
+  if (c.shape === 'capsule') {
+    return `AzSpringCollider.capsule(${js(c.bone)}, ${vecArgs(c.start)}, ${vecArgs(c.end)}, ${jf(c.radius)})`;
+  }
+  return `AzSpringCollider.sphere(${js(c.bone)}, ${vecArgs(c.start)}, ${jf(c.radius)})`;
+}
+
+function ikTargetExpression(t, entityClass) {
+  switch (t.type) {
+    case 'ground': return `AzIkTargets.ground(${jf(t.stepUp)}, ${jf(t.stepDown)})`;
+    case 'entity_eyes': return `AzIkTargets.entityEyes(entity -> null /* TODO: return the (synced) entity to look at */)`;
+    case 'world': return `AzIkTargets.world((entity, partialTick) -> null /* TODO: return the world position */)`;
+    case 'model': return `AzIkTargets.<${entityClass}>model(${vecArgs(t.point)})`;
+    case 'bone':
+      return isZero(t.point)
+        ? `AzIkTargets.<${entityClass}>bone(${js(t.bone || '')})`
+        : `AzIkTargets.<${entityClass}>bone(${js(t.bone || '')}, ${vecArgs(t.point)})`;
+    default: return 'null /* TODO: target */';
+  }
+}
+
+function azure_rig_codegen_resolvedSolver(chain) {
+  if (chain.solver !== 'auto') return chain.solver;
+  return chain.bones.length === 2 || chain.bones.length === 3 ? 'two_bone' : 'ccd';
+}
+
+function modifierTail(entry, defaultPriority = 0) {
+  const tail = [];
+  if (Number(entry.priority) !== defaultPriority) tail.push(`.priority(${Math.round(Number(entry.priority) || 0)})`);
+  if (entry.weight !== undefined && Number(entry.weight) !== 1) tail.push(`.defaultWeight(${jd(entry.weight)})`);
+  return tail.join('');
+}
+
+function generatePoseModifierSection(rig, options = {}) {
+  const o = { ...DEFAULT_OPTIONS, ...options };
+  const ind = o.indent;
+  const E = o.entityClass;
+  const imports = new Set();
+  const fields = [];
+  const body = [];
+
+  const constraintsByBone = new Map(rig.constraints.map(c => [c.bone, c]));
+  const collidersById = new Map((rig.colliders || []).map(c => [c.id, c]));
+  const usedColliders = new Set();
+  const usedConstraints = new Set();
+  const constraintRefs = bones => bones
+    .filter(b => constraintsByBone.has(b))
+    .map(b => {
+      usedConstraints.add(b);
+      return constraintField(constraintsByBone.get(b));
+    });
+
+  for (const c of rig.ikChains) {
+    imports.add('AzIkChain').add('AzIkTargets');
+    const lines = [`modifiers.add(${js(c.id)}, AzIkChain.<${E}>builder(${c.bones.map(js).join(', ')})`];
+    if (!isZero(c.effector)) lines.push(`.effector(${vecArgs(c.effector)})`);
+
+    const solver = azure_rig_codegen_resolvedSolver(c);
+    if (solver === 'two_bone' && (c.solver !== 'auto' || c.pole)) {
+      imports.add('AzIkSolvers');
+      lines.push(`.solver(AzIkSolvers.twoBone()${c.pole ? `.pole(${vecArgs(c.pole)})` : ''})`);
+    } else if (solver === 'ccd' && (c.solver !== 'auto' || c.iterations !== 10 || Number(c.tolerance) !== 0.1)) {
+      imports.add('AzIkSolvers');
+      lines.push(`.solver(AzIkSolvers.ccd(${Math.max(1, Math.round(c.iterations))}, ${jf(c.tolerance)}))`);
+    }
+
+    lines.push(`.target(${ikTargetExpression(c.target, E)})`);
+    const refs = constraintRefs(c.bones);
+    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
+    lines.push(`.build())${modifierTail(c)};`);
+    body.push(lines.join(`\n${ind}${ind}${ind}`));
+  }
+
+  for (const l of rig.lookAts) {
+    imports.add('AzLookAt').add('AzIkTargets');
+    const lines = [`modifiers.add(${js(l.id)}, AzLookAt.<${E}>builder(${l.bones.map(js).join(', ')})`];
+    const [fx, fy, fz] = l.forward;
+    if (fx !== 0 || fy !== 0 || fz !== -1) lines.push(`.forward(${vecArgs(l.forward)})`);
+    lines.push(`.target(${ikTargetExpression(l.target, E)})`);
+    const refs = constraintRefs(l.bones);
+    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
+    lines.push(`.build())${modifierTail(l)};`);
+    body.push(lines.join(`\n${ind}${ind}${ind}`));
+  }
+
+  for (const s of rig.springBones) {
+    imports.add('AzSpringBone');
+    const lines = [`modifiers.add(${js(s.id)}, AzSpringBone.<${E}>chain(${s.bones.map(js).join(', ')})`];
+    if (s.tip) lines.push(`.tip(${vecArgs(s.tip)})`);
+    lines.push(`.stiffness(${jf(s.stiffness)})`);
+    lines.push(`.damping(${jf(s.damping)})`);
+    if (Number(s.gravity)) lines.push(`.gravity(${jf(s.gravity)})`);
+    if (Number(s.inertia) !== 1) lines.push(`.inertia(${jf(s.inertia)})`);
+    const refs = constraintRefs(s.bones);
+    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
+    const colliders = (s.colliders || []).map(id => collidersById.get(id)).filter(Boolean);
+    if (colliders.length) {
+      colliders.forEach(c => usedColliders.add(c.id));
+      lines.push(`.collider(${colliders.map(colliderField).join(', ')})`);
+    }
+    if (Number(s.radius) > 0) lines.push(`.radius(${jf(s.radius)})`);
+    if (s.ground) lines.push('.ground(true)');
+    lines.push(`.build())${modifierTail(s)};`);
+    body.push(lines.join(`\n${ind}${ind}${ind}`));
+  }
+
+  const standalone = rig.constraints.filter(c => c.standalone);
+  if (standalone.length) {
+    standalone.forEach(c => usedConstraints.add(c.bone));
+    body.push(`// Clamp the final pose (after animation and every other modifier).\n${ind}${ind}modifiers.add("bone_limits", AzBoneConstraints.modifier(${standalone.map(constraintField).join(', ')})).priority(1000);`);
+  }
+
+  for (const c of rig.constraints) {
+    if (!usedConstraints.has(c.bone)) continue;
+    imports.add('AzBoneConstraint').add('AzBoneConstraints');
+    fields.push(`${ind}private static final AzBoneConstraint ${constraintField(c)} = ${constraintExpression(c)};`);
+  }
+
+  for (const c of rig.colliders || []) {
+    if (!usedColliders.has(c.id)) continue;
+    imports.add('AzSpringCollider');
+    fields.push(`${ind}private static final AzSpringCollider ${colliderField(c)} = ${colliderExpression(c)};`);
+  }
+
+  if (!body.length) return null;
+  imports.add('AzPoseModifierRegistry');
+
+  const text = [
+    ...fields,
+    fields.length ? '' : null,
+    `${ind}@Override`,
+    `${ind}protected void registerPoseModifiers(AzPoseModifierRegistry<${E}> modifiers) {`,
+    body.map(b => `${ind}${ind}${b}`).join('\n\n'),
+    `${ind}}`,
+  ].filter(l => l !== null).join('\n');
+
+  return section(`${E}Animator: pose modifiers`, importsBlock(o.target, [...imports], o.packageRoot), text);
+}
+
+function blendInputExpression(kind, target, used) {
+  const modern = isMojmap(target);
+  switch (kind) {
+    case 'speed':
+      if (modern) return 'entity.getDeltaMovement().horizontalDistance() * 20';
+      if (target === 'beta') return 'Math.sqrt(Mc.velocityX(entity) * Mc.velocityX(entity) + Mc.velocityZ(entity) * Mc.velocityZ(entity)) * 20';
+      return 'Math.sqrt(entity.motionX * entity.motionX + entity.motionZ * entity.motionZ) * 20';
+    case 'forward':
+      used.add('forward');
+      return 'entity.getForwardSpeed()';
+    case 'strafe':
+      used.add('strafe');
+      return 'entity.getStrafeSpeed()';
+    case 'pitch':
+      if (modern) return 'entity.getViewXRot(partialTick)';
+      if (target === 'beta') return 'Mth.lerp(partialTick, Mc.prevPitch(entity), Mc.pitch(entity))';
+      return 'Mth.lerp(partialTick, entity.prevRotationPitch, entity.rotationPitch)';
+    default:
+      return '0 /* TODO: input */';
+  }
+}
+
+function speedHelpers(target, used, ind) {
+  if (!used.size) return '';
+  const modern = isMojmap(target);
+  const yaw = modern ? 'yBodyRot' : target === 'beta' ? 'Mc.bodyYaw(this)' : 'renderYawOffset';
+  const mx = modern ? 'getDeltaMovement().x' : target === 'beta' ? 'Mc.velocityX(this)' : 'motionX';
+  const mz = modern ? 'getDeltaMovement().z' : target === 'beta' ? 'Mc.velocityZ(this)' : 'motionZ';
+  const out = [`${ind}// Add to your entity class; used by the blend space inputs.`];
+  if (used.has('forward')) {
+    out.push(`${ind}public double getForwardSpeed() {`);
+    out.push(`${ind}${ind}double yaw = Math.toRadians(${yaw});`);
+    out.push(`${ind}${ind}return (-Math.sin(yaw) * ${mx} + Math.cos(yaw) * ${mz}) * 20;`);
+    out.push(`${ind}}`);
+  }
+  if (used.has('strafe')) {
+    out.push(`${ind}public double getStrafeSpeed() {`);
+    out.push(`${ind}${ind}double yaw = Math.toRadians(${yaw});`);
+    out.push(`${ind}${ind}return -(Math.cos(yaw) * ${mx} + Math.sin(yaw) * ${mz}) * 20;`);
+    out.push(`${ind}}`);
+  }
+  return out.join('\n');
+}
+
+function generateBlendSpaceSection(rig, options = {}) {
+  const o = { ...DEFAULT_OPTIONS, ...options };
+  const ind = o.indent;
+  const E = o.entityClass;
+  if (!rig.blendSpaces.length) return null;
+
+  const imports = new Set(['AzAnimationControllerContainer']);
+  const used = new Set();
+  const blocks = [];
+
+  for (const b of rig.blendSpaces) {
+    const two = b.dimensions === 2;
+    imports.add(two ? 'AzBlendSpace2D' : 'AzBlendSpace1D');
+    const x = blendInputExpression(b.input.x, o.target, used);
+    const lines = [`${two ? 'AzBlendSpace2D' : 'AzBlendSpace1D'}.builder(this, ${js(b.name)})`];
+
+    if (two) {
+      const y = blendInputExpression(b.input.y, o.target, used);
+      lines.push(`.input((entity, partialTick) -> ${x}, (entity, partialTick) -> ${y})`);
+    } else {
+      lines.push(`.input((entity, partialTick) -> ${x})`);
+    }
+
+    const samples = two ? b.samples : b.samples.slice().sort((a, c) => a.x - c.x);
+    for (const s of samples) {
+      lines.push(two ? `.sample(${jd(s.x)}, ${jd(s.y)}, ${js(s.animation)})` : `.sample(${jd(s.x)}, ${js(s.animation)})`);
+    }
+    if (Number(b.smoothing) > 0) lines.push(`.smoothing(${jd(b.smoothing)})`);
+    if (b.syncPhase === false) lines.push('.syncPhase(false)');
+    lines.push('.build()');
+    lines.push('.addTo(container);');
+    blocks.push(lines.join(`\n${ind}${ind}${ind}`));
+
+    for (const kind of [b.input.x, two ? b.input.y : null]) {
+      if (kind === 'pitch' && !isMojmap(o.target)) imports.add('Mth');
+      if ((kind === 'speed' || kind === 'pitch') && o.target === 'beta') imports.add('Mc');
+    }
+  }
+  if (o.target === 'beta' && used.size) imports.add('Mc');
+
+  const text = [
+    `${ind}@Override`,
+    `${ind}public void registerControllers(AzAnimationControllerContainer<${E}> container) {`,
+    `${ind}${ind}// Blend spaces are layered like controllers: add those that go on top after them.`,
+    blocks.map(b => `${ind}${ind}${b}`).join('\n\n'),
+    `${ind}}`,
+  ].join('\n');
+
+  const helpers = speedHelpers(o.target, used, ind);
+  return section(`${E}Animator: blend spaces`, importsBlock(o.target, [...imports], o.packageRoot), helpers ? `${text}\n\n${helpers}` : text);
+}
+
+function generateAttachmentSection(rig, options = {}) {
+  const o = { ...DEFAULT_OPTIONS, ...options };
+  const ind = o.indent;
+  const E = o.entityClass;
+  if (!rig.sockets.length) return null;
+
+  const lines = [
+    `${ind}// In your renderer config builder:`,
+    `${ind}.addRenderLayer(`,
+    `${ind}${ind}new AzAttachmentLayer<UUID, ${E}>()`,
+  ];
+  for (const s of rig.sockets) {
+    lines.push(`${ind}${ind}${ind}.attach(${E}.${constantName(socketName(s))}, (context, bone) -> {`);
+    lines.push(`${ind}${ind}${ind}${ind}// TODO: draw at the ${js(socketName(s))} socket, or use AzAttachment.item(...) / AzAttachment.block(...)`);
+    lines.push(`${ind}${ind}${ind}})`);
+  }
+  lines.push(`${ind})`);
+
+  return section(`${E}Renderer: attachments`, importsBlock(o.target, ['AzAttachmentLayer', 'AzAttachment', 'UUID'], o.packageRoot), lines.join('\n'));
+}
+
+function generateAll(rig, options = {}) {
+  options = { ...options, target: normalizeTarget(options.target) };
+  return [
+    generateEntitySection(rig, options),
+    generatePoseModifierSection(rig, options),
+    generateBlendSpaceSection(rig, options),
+    generateAttachmentSection(rig, options),
+  ].filter(Boolean);
+}
+
+function generateText(rig, options = {}) {
+  const o = { ...DEFAULT_OPTIONS, ...options, target: normalizeTarget(options.target) };
+  const sections = generateAll(rig, o);
+  if (!sections.length) return '// Nothing to generate yet: add hitboxes, sockets, IK, spring bones or blend spaces first.\n';
+
+  return [
+    `// Generated by the AzureLib Animator Blockbench plugin for AzureLib ${CODEGEN_TARGETS[o.target]} (${packageRoot(o.target, o.packageRoot)}).`,
+    '// Paste each section into the class named in its header.',
+    '',
+    ...sections.map(s => [
+      `// ===== ${s.title} =====`,
+      s.imports,
+      '',
+      s.body,
+    ].join('\n')),
+  ].join('\n');
+}
+
+;// ./rig/azure-rig-panel.js
+/**
+ * AzureLib Animator — Rig Panel
+ * ------------------------------
+ * The "AzureLib Rig" panel: create and edit hitboxes, sockets, IK chains,
+ * look-at chains, constraints, spring bones and blend spaces; toggle their
+ * viewport preview; validate the rig; and generate AzureLib code.
+ *
+ * Every edit goes through RigStore.edit, so it is undoable and saved with the
+ * project.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+
+
+/** Selected bones from every selection source Blockbench has used (4.x and 5.x, Edit and Animate). */
+function selectedGroups() {
+  const sources = [
+    ...(Outliner.selected || []),
+    ...(Array.isArray(Group.selected) ? Group.selected : [Group.selected]),
+    ...(Group.multi_selected || []),
+    ...Group.all.filter(g => g.selected),
+  ];
+  return [...new Set(sources)].filter(el => el instanceof Group);
+}
+
+function selectedLocators() {
+  if (typeof Locator === 'undefined') return [];
+  return [...new Set([...(Outliner.selected || []), ...Locator.all.filter(l => l.selected)])]
+    .filter(el => el instanceof Locator);
+}
+
+function depth(group) {
+  let d = 0;
+  for (let node = group.parent; node && node !== 'root'; node = node.parent) d++;
+  return d;
+}
+
+/**
+ * Bones for a chain from the selection, root first: several selected bones in
+ * hierarchy order, or one selected bone plus its single-child descendants.
+ */
+function chainFromSelection() {
+  const selected = selectedGroups();
+  if (selected.length >= 2) return selected.slice().sort((a, b) => depth(a) - depth(b)).map(g => g.name);
+  if (selected.length === 1) {
+    const chain = [selected[0]];
+    for (;;) {
+      const kids = (chain[chain.length - 1].children || []).filter(c => c instanceof Group);
+      if (kids.length !== 1) break;
+      chain.push(kids[0]);
+    }
+    return chain.map(g => g.name);
+  }
+  return [];
+}
+
+function uniqueId(base, taken) {
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  for (let i = 2; ; i++) if (!used.has(`${base}_${i}`)) return `${base}_${i}`;
+}
+
+function modifierIds() {
+  const r = RigStore.rig;
+  return [...r.ikChains, ...r.lookAts, ...r.springBones].map(x => x.id);
+}
+
+const parseBones = text => String(text || '').split(/[\s,>]+/).map(s => s.trim()).filter(Boolean);
+const toNumber = (v, fallback = 0) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+const vec = v => [0, 1, 2].map(i => toNumber(v?.[i]));
+
+const boneOptions = () => Object.fromEntries([['', '—'], ...Group.all.map(g => [g.name, g.name])]);
+const locatorOptions = () => Object.fromEntries([['', '—'], ...(typeof Locator !== 'undefined' ? Locator.all : []).map(l => [l.name, l.name])]);
+const animationOptions = () => Object.fromEntries((typeof Animation !== 'undefined' ? Animation.all : []).map(a => [a.name, a.name]));
+
+function openForm(title, form, onConfirm, lines = []) {
+  new Dialog({
+    id: 'azurelib_rig_edit',
+    title,
+    width: 520,
+    lines,
+    form,
+    onConfirm(result) {
+      onConfirm(result);
+    },
+  }).show();
+}
+
+function editHitbox(index) {
+  const h = RigStore.rig.hitboxes[index];
+  openForm(`Hitbox: ${h.name}`, {
+    name: { label: 'Name', type: 'text', value: h.name },
+    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: h.bone },
+    role: { label: 'Role', type: 'select', options: Object.fromEntries(HITBOX_ROLES.map(r => [r, r.charAt(0) + r.slice(1).toLowerCase()])), value: h.role },
+    fit: { label: 'Fit to bone cubes', type: 'checkbox', value: h.fit },
+    size: { label: 'Size (pixels)', type: 'vector', dimensions: 3, value: h.size, condition: f => !f.fit },
+    offset: { label: 'Offset (pixels)', type: 'vector', dimensions: 3, value: h.offset },
+    inflate: { label: 'Inflate (pixels)', type: 'number', value: h.inflate, step: 0.25 },
+    anchorAtPivot: { label: 'Center on pivot', type: 'checkbox', value: h.anchorAtPivot },
+    damageMultiplier: { label: 'Damage multiplier', type: 'number', value: h.damageMultiplier, step: 0.1, min: 0, condition: f => f.role === 'COMBAT' },
+    tags: { label: 'Tags (comma separated)', type: 'text', value: h.tags.join(', ') },
+  }, r => RigStore.edit('Edit hitbox', rig => {
+    Object.assign(rig.hitboxes[index], {
+      name: r.name.trim() || r.bone,
+      bone: r.bone,
+      role: r.role,
+      fit: r.fit,
+      size: vec(r.size),
+      offset: vec(r.offset),
+      inflate: toNumber(r.inflate),
+      anchorAtPivot: r.anchorAtPivot,
+      damageMultiplier: toNumber(r.damageMultiplier, 1),
+      tags: r.tags.split(',').map(t => t.trim()).filter(Boolean),
+    });
+  }), ['<p>Hitboxes follow their bone. Without a size, AzureLib fits the box to the bone\'s own cubes.</p>']);
+}
+
+function editHitboxes(indices) {
+  const list = indices.map(i => RigStore.rig.hitboxes[i]).filter(Boolean);
+  if (!list.length) return;
+  const names = list.map(h => h.name);
+  const keep = { '': '(unchanged)' };
+  const roles = { ...keep, ...Object.fromEntries(HITBOX_ROLES.map(r => [r, r.charAt(0) + r.slice(1).toLowerCase()])) };
+  const allTags = [...new Set(list.flatMap(h => h.tags || []))];
+
+  openForm(`Edit ${list.length} hitboxes`, {
+    role: { label: 'Role', type: 'select', options: roles, value: '' },
+    damageMultiplier: { label: 'Damage multiplier', type: 'text', value: '', placeholder: '(unchanged)' },
+    inflate: { label: 'Inflate (pixels)', type: 'text', value: '', placeholder: '(unchanged)' },
+    sizing: { label: 'Size', type: 'select', options: { '': '(unchanged)', fit: 'Fit to bone cubes', size: 'Set a size' }, value: '' },
+    size: { label: 'Size (pixels)', type: 'vector', dimensions: 3, value: [4, 4, 4], condition: f => f.sizing === 'size' },
+    anchorAtPivot: { label: 'Center on pivot', type: 'select', options: { '': '(unchanged)', on: 'On', off: 'Off' }, value: '' },
+    clearTags: { label: 'Remove all existing tags first', type: 'checkbox', value: false },
+    addTags: { label: 'Add tags (comma separated)', type: 'text', value: '' },
+    removeTags: { label: 'Remove tags (comma separated)', type: 'text', value: '', placeholder: allTags.join(', ') },
+  }, r => {
+    const number = text => {
+      const t = String(text ?? '').trim();
+      if (!t) return undefined;
+      const n = Number(t);
+      return Number.isFinite(n) ? n : undefined;
+    };
+    const tagList = text => String(text || '').split(',').map(t => t.trim()).filter(Boolean);
+    const damage = number(r.damageMultiplier);
+    const inflate = number(r.inflate);
+    const add = tagList(r.addTags);
+    const remove = new Set(tagList(r.removeTags));
+
+    RigStore.edit(`Edit ${list.length} hitboxes`, rig => {
+      for (const i of indices) {
+        const h = rig.hitboxes[i];
+        if (!h) continue;
+        if (r.role) h.role = r.role;
+        if (damage !== undefined) h.damageMultiplier = Math.max(0, damage);
+        if (inflate !== undefined) h.inflate = inflate;
+        if (r.sizing === 'fit') h.fit = true;
+        if (r.sizing === 'size') { h.fit = false; h.size = vec(r.size); }
+        if (r.anchorAtPivot) h.anchorAtPivot = r.anchorAtPivot === 'on';
+        let tags = r.clearTags ? [] : (h.tags || []).filter(t => !remove.has(t));
+        for (const t of add) if (!tags.includes(t)) tags.push(t);
+        h.tags = tags;
+      }
+    });
+  }, [`<p>Editing ${names.length > 8 ? `${names.slice(0, 8).join(', ')} and ${names.length - 8} more` : names.join(', ')}. Fields left as they are keep each hitbox\'s own value.</p>`]);
+}
+
+function editSocket(index) {
+  const s = RigStore.rig.sockets[index];
+  openForm(`Socket: ${s.locator || s.name}`, {
+    follows: { label: 'Follows', type: 'select', options: { bone: 'A bone', locator: 'A Blockbench locator' }, value: s.locator ? 'locator' : 'bone' },
+    name: { label: 'Name', type: 'text', value: s.name, condition: f => f.follows === 'bone' },
+    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: s.bone || '', condition: f => f.follows === 'bone' },
+    locator: { label: 'Locator', type: 'select', options: locatorOptions(), value: s.locator || '', condition: f => f.follows === 'locator' },
+    offset: { label: 'Offset (pixels, bone axes)', type: 'vector', dimensions: 3, value: s.offset },
+    rotation: { label: 'Rotation (degrees)', type: 'vector', dimensions: 3, value: s.rotation },
+    serverHitbox: { label: 'Server anchor hitbox', type: 'text', value: s.serverHitbox, placeholder: 'e.g. muzzle_anchor (optional)' },
+  }, r => RigStore.edit('Edit socket', rig => {
+    const target = rig.sockets[index];
+    const isLocator = r.follows === 'locator';
+    Object.assign(target, {
+      name: isLocator ? r.locator : (r.name.trim() || 'socket'),
+      bone: isLocator ? null : r.bone,
+      locator: isLocator ? r.locator : null,
+      offset: vec(r.offset),
+      rotation: vec(r.rotation),
+      serverHitbox: r.serverHitbox.trim(),
+    });
+  }), ['<p>The arrow in the viewport is the socket\'s front (-Z); the short arrow is up. A server anchor hitbox lets the server resolve the socket too.</p>']);
+}
+
+function targetForm(t, kinds) {
+  return {
+    targetType: { label: 'Target', type: 'select', options: Object.fromEntries(kinds.map(k => [k, IK_TARGETS[k]])), value: t.type },
+    stepUp: { label: 'Max step up (blocks)', type: 'number', value: t.stepUp ?? 0.5, step: 0.05, condition: f => f.targetType === 'ground' },
+    stepDown: { label: 'Max step down (blocks)', type: 'number', value: t.stepDown ?? 0.75, step: 0.05, condition: f => f.targetType === 'ground' },
+    targetPoint: { label: 'Model point (pixels)', type: 'vector', dimensions: 3, value: t.point, condition: f => f.targetType === 'model' },
+    targetBone: { label: 'Bone to follow', type: 'select', options: boneOptions(), value: t.bone || '', condition: f => f.targetType === 'bone' },
+    boneOffset: { label: 'Offset from its pivot (pixels)', type: 'vector', dimensions: 3, value: t.type === 'bone' ? t.point : [0, 0, 0], condition: f => f.targetType === 'bone' },
+    _boneHint: { type: 'info', text: 'Use an empty bone outside this chain and animate its position; the limb reaches for it.', condition: f => f.targetType === 'bone' },
+  };
+}
+
+function previewForm(p, allowGround) {
+  const modes = { off: 'Off', point: 'Fixed point', locator: 'Follow a locator' };
+  if (allowGround) modes.ground = 'Ground (raised by offset)';
+  return {
+    _preview: { type: 'info', text: '<b>Viewport preview</b> (Animate mode)' },
+    _previewBone: { type: 'info', text: 'The preview follows the bone itself.', condition: f => f.targetType === 'bone' },
+    previewMode: { label: 'Preview target', type: 'select', options: modes, value: p.enabled === false ? 'off' : p.mode, condition: f => f.targetType !== 'bone' },
+    groundHeight: { label: 'Ground offset (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
+    previewPoint: { label: 'Point (pixels)', type: 'vector', dimensions: 3, value: p.point, condition: f => f.targetType !== 'bone' && f.previewMode === 'point' },
+    previewLocator: { label: 'Locator', type: 'select', options: locatorOptions(), value: p.locator || '', condition: f => f.targetType !== 'bone' && f.previewMode === 'locator' },
+  };
+}
+
+function readPreview(r) {
+  return {
+    enabled: r.previewMode !== 'off',
+    mode: r.previewMode === 'off' ? 'point' : r.previewMode,
+    groundHeight: toNumber(r.groundHeight),
+    point: vec(r.previewPoint),
+    locator: r.previewLocator || '',
+  };
+}
+
+function readTarget(r) {
+  const bone = r.targetType === 'bone';
+  return {
+    type: r.targetType,
+    stepUp: toNumber(r.stepUp, 0.5),
+    stepDown: toNumber(r.stepDown, 0.75),
+    point: vec(bone ? r.boneOffset : r.targetPoint),
+    bone: bone ? (r.targetBone || '') : '',
+  };
+}
+
+function editIkChain(index) {
+  const c = RigStore.rig.ikChains[index];
+  openForm(`IK chain: ${c.id}`, {
+    id: { label: 'Modifier id', type: 'text', value: c.id },
+    bones: { label: 'Bones (root first)', type: 'text', value: c.bones.join(', ') },
+    effector: { label: 'Effector (pixels from last bone pivot)', type: 'vector', dimensions: 3, value: c.effector },
+    solver: { label: 'Solver', type: 'select', options: IK_SOLVERS, value: c.solver },
+    usePole: { label: 'Use pole (two-bone)', type: 'checkbox', value: !!c.pole, condition: f => f.solver !== 'ccd' },
+    pole: { label: 'Pole (model pixels)', type: 'vector', dimensions: 3, value: c.pole || [0, 8, -20], condition: f => f.usePole && f.solver !== 'ccd' },
+    iterations: { label: 'Iterations', type: 'number', value: c.iterations, min: 1, max: 64, condition: f => f.solver !== 'two_bone' },
+    tolerance: { label: 'Tolerance (pixels)', type: 'number', value: c.tolerance, step: 0.05, condition: f => f.solver !== 'two_bone' },
+    ...targetForm(c.target, ['ground', 'bone', 'entity_eyes', 'world', 'model']),
+    priority: { label: 'Priority', type: 'number', value: c.priority },
+    weight: { label: 'Default weight', type: 'number', value: c.weight, min: 0, max: 1, step: 0.05 },
+    ...previewForm(c.preview, true),
+  }, r => RigStore.edit('Edit IK chain', rig => {
+    Object.assign(rig.ikChains[index], {
+      id: r.id.trim() || c.id,
+      bones: parseBones(r.bones),
+      effector: vec(r.effector),
+      solver: r.solver,
+      pole: r.usePole && r.solver !== 'ccd' ? vec(r.pole) : null,
+      iterations: Math.max(1, Math.round(toNumber(r.iterations, 10))),
+      tolerance: toNumber(r.tolerance, 0.1),
+      target: readTarget(r),
+      priority: Math.round(toNumber(r.priority)),
+      weight: Math.min(1, Math.max(0, toNumber(r.weight, 1))),
+      preview: readPreview(r),
+    });
+  }), ['<p>Constraints on chain bones are applied by the solver automatically.</p>']);
+}
+
+function editLookAt(index) {
+  const l = RigStore.rig.lookAts[index];
+  openForm(`Look-at: ${l.id}`, {
+    id: { label: 'Modifier id', type: 'text', value: l.id },
+    bones: { label: 'Bones (root first, last one faces the target)', type: 'text', value: l.bones.join(', ') },
+    forward: { label: 'Forward (last bone axes)', type: 'vector', dimensions: 3, value: l.forward },
+    ...targetForm(l.target, ['entity_eyes', 'bone', 'world', 'model']),
+    priority: { label: 'Priority', type: 'number', value: l.priority },
+    weight: { label: 'Default weight', type: 'number', value: l.weight, min: 0, max: 1, step: 0.05 },
+    ...previewForm(l.preview, false),
+  }, r => RigStore.edit('Edit look-at', rig => {
+    Object.assign(rig.lookAts[index], {
+      id: r.id.trim() || l.id,
+      bones: parseBones(r.bones),
+      forward: vec(r.forward),
+      target: readTarget(r),
+      priority: Math.round(toNumber(r.priority)),
+      weight: Math.min(1, Math.max(0, toNumber(r.weight, 1))),
+      preview: readPreview(r),
+    });
+  }));
+}
+
+function editConstraint(index) {
+  const c = RigStore.rig.constraints[index];
+  openForm(`Constraint: ${c.bone}`, {
+    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: c.bone },
+    type: { label: 'Type', type: 'select', options: CONSTRAINT_TYPES, value: c.type },
+    min: { label: 'Min (degrees)', type: 'vector', dimensions: 3, value: c.min },
+    max: { label: 'Max (degrees)', type: 'vector', dimensions: 3, value: c.max },
+    standalone: { label: 'Also clamp the final pose', type: 'checkbox', value: c.standalone },
+  }, r => RigStore.edit('Edit constraint', rig => {
+    Object.assign(rig.constraints[index], {
+      bone: r.bone,
+      type: r.type,
+      min: vec(r.min),
+      max: vec(r.max),
+      standalone: r.standalone,
+    });
+  }), ['<p>Degrees relative to the bone\'s rest pose, with the signs of the exported animation file: for X and Y that\'s the opposite of what Blockbench 5 shows on keyframes (Z is the same). Hinges use only their own axis. IK, look-at and spring bones on this bone respect it; "clamp the final pose" also clamps the animation itself.</p>']);
+}
+
+function editSpring(index) {
+  const s = RigStore.rig.springBones[index];
+  openForm(`Spring bones: ${s.id}`, {
+    id: { label: 'Modifier id', type: 'text', value: s.id },
+    bones: { label: 'Bones (root first)', type: 'text', value: s.bones.join(', ') },
+    useTip: { label: 'Last bone swings (tip)', type: 'checkbox', value: !!s.tip },
+    tip: { label: 'Tip (pixels from last bone pivot)', type: 'vector', dimensions: 3, value: s.tip || [0, 0, 4], condition: f => f.useTip },
+    stiffness: { label: 'Stiffness (0–1)', type: 'number', value: s.stiffness, min: 0, max: 1, step: 0.05 },
+    damping: { label: 'Damping (0–1)', type: 'number', value: s.damping, min: 0, max: 1, step: 0.05 },
+    gravity: { label: 'Gravity (blocks/tick²)', type: 'number', value: s.gravity, step: 0.001 },
+    inertia: { label: 'Inertia (0–1)', type: 'number', value: s.inertia, min: 0, max: 1, step: 0.05 },
+    priority: { label: 'Priority', type: 'number', value: s.priority },
+    colliders: { label: 'Colliders (comma separated ids)', type: 'text', value: (s.colliders || []).join(', ') },
+    radius: { label: 'Chain radius (pixels)', type: 'number', value: s.radius || 0, min: 0, step: 0.25 },
+    ground: { label: 'Stay above the ground', type: 'checkbox', value: !!s.ground },
+    previewEnabled: { label: 'Preview while animating', type: 'checkbox', value: s.preview?.enabled !== false },
+  }, r => RigStore.edit('Edit spring bones', rig => {
+    Object.assign(rig.springBones[index], {
+      id: r.id.trim() || s.id,
+      bones: parseBones(r.bones),
+      tip: r.useTip ? vec(r.tip) : null,
+      stiffness: Math.min(1, Math.max(0, toNumber(r.stiffness, 0.2))),
+      damping: Math.min(1, Math.max(0, toNumber(r.damping, 0.25))),
+      gravity: toNumber(r.gravity),
+      inertia: Math.min(1, Math.max(0, toNumber(r.inertia, 1))),
+      priority: Math.round(toNumber(r.priority, 200)),
+      colliders: parseBones(r.colliders),
+      radius: Math.max(0, toNumber(r.radius)),
+      ground: r.ground,
+      preview: { enabled: r.previewEnabled },
+    });
+  }), [
+    '<p>The first bone follows the animation and anchors the chain. Play the animation to see the swing; inertia only affects entities moving in game.</p>',
+    `<p>Colliders here: ${RigStore.rig.colliders.length ? RigStore.rig.colliders.map(c => `<code>${c.id}</code>`).join(', ') : '<i>none yet; add them in the Colliders section</i>'}. The chain radius is roughly how thick the chain is; it keeps it off colliders and the ground.</p>`,
+  ]);
+}
+
+function editCollider(index) {
+  const c = RigStore.rig.colliders[index];
+  openForm(`Collider: ${c.id}`, {
+    id: { label: 'Id', type: 'text', value: c.id },
+    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: c.bone },
+    shape: { label: 'Shape', type: 'select', options: { sphere: 'Sphere', capsule: 'Capsule' }, value: c.shape },
+    start: { label: 'Centre (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'sphere' },
+    capStart: { label: 'Start (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'capsule' },
+    end: { label: 'End (pixels)', type: 'vector', dimensions: 3, value: c.end, condition: f => f.shape === 'capsule' },
+    radius: { label: 'Radius (pixels)', type: 'number', value: c.radius, min: 0.1, step: 0.25 },
+  }, r => RigStore.edit('Edit collider', rig => {
+    const oldId = rig.colliders[index].id;
+    const id = r.id.trim() || oldId;
+    Object.assign(rig.colliders[index], {
+      id,
+      bone: r.bone,
+      shape: r.shape,
+      start: vec(r.shape === 'capsule' ? r.capStart : r.start),
+      end: vec(r.shape === 'capsule' ? r.end : r.start),
+      radius: Math.max(0.1, toNumber(r.radius, 2)),
+    });
+    // Keep spring chains pointing at a renamed collider.
+    if (id !== oldId) {
+      for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).map(x => (x === oldId ? id : x));
+    }
+  }), ['<p>Positions are pixels from the bone\'s pivot along its axes. Spring chains that list this collider swing around it instead of through it.</p>']);
+}
+
+function samplesToText(b) {
+  return b.samples.map(s => (b.dimensions === 2 ? `${s.x}, ${s.y}, ${s.animation}` : `${s.x}, ${s.animation}`)).join('\n');
+}
+
+function textToSamples(text, dimensions) {
+  return String(text || '').split('\n').map(line => line.split(',').map(p => p.trim())).filter(p => p.length >= 2 && p[p.length - 1])
+    .map(p => (dimensions === 2
+      ? { x: toNumber(p[0]), y: toNumber(p[1]), animation: p.slice(2).join(',') }
+      : { x: toNumber(p[0]), y: 0, animation: p.slice(1).join(',') }));
+}
+
+function editBlendSpace(index) {
+  const b = RigStore.rig.blendSpaces[index];
+  const animations = Object.keys(animationOptions());
+  openForm(`Blend space: ${b.name}`, {
+    name: { label: 'Name', type: 'text', value: b.name },
+    dimensions: { label: 'Dimensions', type: 'select', options: { 1: '1D', 2: '2D' }, value: String(b.dimensions) },
+    inputX: { label: 'Input (X)', type: 'select', options: BLEND_INPUTS, value: b.input.x },
+    inputY: { label: 'Input (Y)', type: 'select', options: BLEND_INPUTS, value: b.input.y, condition: f => String(f.dimensions) === '2' },
+    samples: { label: 'Samples', type: 'textarea', value: samplesToText(b), height: 120, placeholder: '1D: position, animation\n2D: x, y, animation' },
+    smoothing: { label: 'Input smoothing (ticks)', type: 'number', value: b.smoothing, min: 0, step: 0.5 },
+    syncPhase: { label: 'Sync phase', type: 'checkbox', value: b.syncPhase },
+  }, r => RigStore.edit('Edit blend space', rig => {
+    const dimensions = String(r.dimensions) === '2' ? 2 : 1;
+    Object.assign(rig.blendSpaces[index], {
+      name: r.name.trim() || b.name,
+      dimensions,
+      input: { x: r.inputX, y: r.inputY },
+      samples: textToSamples(r.samples, dimensions),
+      smoothing: Math.max(0, toNumber(r.smoothing)),
+      syncPhase: r.syncPhase,
+    });
+  }), [`<p>One sample per line: <code>position, animation</code> for 1D, <code>x, y, animation</code> for 2D. Animations here: ${animations.length ? animations.map(a => `<code>${a}</code>`).join(', ') : '<i>none yet</i>'}.</p>`]);
+}
+
+function requireBones(names, what) {
+  if (names.length) return true;
+  Blockbench.showQuickMessage(`Select the bone(s) for the ${what} first.`, 2500);
+  return false;
+}
+
+function fitCollider(bone) {
+  const box = hitboxBox({ bone, fit: true, size: [0, 0, 0], offset: [0, 0, 0], inflate: 0, anchorAtPivot: false });
+  if (!box) return { shape: 'sphere', start: [0, 0, 0], end: [0, 0, 0], radius: 2 };
+  const round = v => Math.round(v * 100) / 100;
+  const center = [box.center.x, box.center.y, box.center.z];
+  const half = [box.half.x, box.half.y, box.half.z];
+  const axis = half.indexOf(Math.max(...half));
+  const radius = Math.max(...half.filter((_, i) => i !== axis));
+  const reach = half[axis] - radius;
+  if (reach < 0.5) {
+    return { shape: 'sphere', start: center.map(round), end: center.map(round), radius: round(Math.max(...half)) };
+  }
+  const start = center.slice();
+  const end = center.slice();
+  start[axis] -= reach;
+  end[axis] += reach;
+  return { shape: 'capsule', start: start.map(round), end: end.map(round), radius: round(radius) };
+}
+
+const Add = {
+  hitbox() {
+    const groups = selectedGroups();
+    if (!requireBones(groups, 'hitbox')) return;
+    RigStore.edit('Add hitbox', rig => {
+      for (const g of groups) {
+        const h = newHitbox(g.name);
+        h.name = uniqueId(g.name, rig.hitboxes.map(x => x.name));
+        rig.hitboxes.push(h);
+      }
+    });
+  },
+
+  socket() {
+    const locators = selectedLocators();
+    const groups = selectedGroups();
+    if (!locators.length && !groups.length) {
+      Blockbench.showQuickMessage('Select a locator, or a bone to put the socket on.', 2500);
+      return;
+    }
+    RigStore.edit('Add socket', rig => {
+      const taken = () => rig.sockets.map(s => s.locator || s.name);
+      for (const l of locators) {
+        if (!rig.sockets.some(s => s.locator === l.name)) rig.sockets.push(newSocket(l.name, { locator: l.name }));
+      }
+      if (!locators.length) {
+        for (const g of groups) rig.sockets.push(newSocket(uniqueId(`${g.name}_socket`, taken()), { bone: g.name }));
+      }
+    });
+  },
+
+  allLocators() {
+    const locators = typeof Locator !== 'undefined' ? Locator.all : [];
+    if (!locators.length) {
+      Blockbench.showQuickMessage('This model has no locators.', 2000);
+      return;
+    }
+    RigStore.edit('Add sockets for locators', rig => {
+      for (const l of locators) {
+        if (!rig.sockets.some(s => s.locator === l.name)) rig.sockets.push(newSocket(l.name, { locator: l.name }));
+      }
+    });
+  },
+
+  ikChain() {
+    const bones = chainFromSelection();
+    if (!requireBones(bones, 'IK chain')) return;
+    RigStore.edit('Add IK chain', rig => {
+      rig.ikChains.push(newIkChain(uniqueId(`${bones[0]}_ik`, modifierIds()), bones));
+    });
+    editIkChain(RigStore.rig.ikChains.length - 1);
+  },
+
+  lookAt() {
+    const bones = chainFromSelection();
+    if (!requireBones(bones, 'look-at')) return;
+    RigStore.edit('Add look-at', rig => {
+      rig.lookAts.push(newLookAt(uniqueId(`${bones[bones.length - 1]}_look`, modifierIds()), bones));
+    });
+  },
+
+  constraint() {
+    const groups = selectedGroups();
+    if (!requireBones(groups, 'constraint')) return;
+    RigStore.edit('Add constraint', rig => {
+      for (const g of groups) {
+        if (!rig.constraints.some(c => c.bone === g.name)) rig.constraints.push(newConstraint(g.name));
+      }
+    });
+  },
+
+  spring() {
+    const bones = chainFromSelection();
+    if (!requireBones(bones, 'spring chain')) return;
+    RigStore.edit('Add spring bones', rig => {
+      rig.springBones.push(newSpringBone(uniqueId(`${bones[0]}_spring`, modifierIds()), bones));
+    });
+  },
+
+  collider() {
+    const groups = selectedGroups();
+    if (!requireBones(groups, 'collider')) return;
+    RigStore.edit('Add collider', rig => {
+      for (const g of groups) {
+        const c = newCollider(uniqueId(g.name, rig.colliders.map(x => x.id)), g.name);
+        Object.assign(c, fitCollider(g.name));
+        rig.colliders.push(c);
+      }
+    });
+  },
+
+  blendSpace() {
+    RigStore.edit('Add blend space', rig => {
+      rig.blendSpaces.push(newBlendSpace(uniqueId('locomotion', rig.blendSpaces.map(b => b.name))));
+    });
+    editBlendSpace(RigStore.rig.blendSpaces.length - 1);
+  },
+};
+
+function showValidation() {
+  const issues = validateRig();
+  new Dialog({
+    id: 'azurelib_rig_validation',
+    title: 'AzureLib Rig Check',
+    width: 560,
+    lines: [issues.length
+      ? `<ul style="padding-left:18px;line-height:1.6">${issues.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
+      : '<p>No problems found.</p>'],
+    buttons: ['dialog.close'],
+  }).show();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function showCodeExport() {
+  const rig = RigStore.rig;
+  const issues = validateRig();
+
+  new Dialog({
+    id: 'azurelib_rig_codegen',
+    title: 'Generate AzureLib Code',
+    width: 560,
+    lines: issues.length
+      ? [`<p style="color:var(--color-warning, #e8b400)">${issues.length} problem(s) found. The code is generated anyway; run <b>Check Rig</b> to see them.</p>`]
+      : [],
+    form: {
+      target: { label: 'AzureLib branch', type: 'select', options: CODEGEN_TARGETS, value: normalizeTarget(rig.codegen.target) },
+      entityClass: { label: 'Animatable class', type: 'text', value: rig.codegen.entityClass },
+      packageRoot: { label: 'Package root', type: 'text', value: rig.codegen.packageRoot || '', placeholder: 'Leave blank for the branch default' },
+      _roots: {
+        type: 'info',
+        text: `Defaults: ${Object.values(TARGETS).map(t => `${t.label} <code>${t.root}</code>`).join(', ')}.`,
+      },
+    },
+    onConfirm(form) {
+      const entityClass = (form.entityClass || '').trim().replace(/[^A-Za-z0-9_$]/g, '') || 'ExampleEntity';
+      const packageRoot = (form.packageRoot || '').trim().replace(/[^A-Za-z0-9_.]/g, '').replace(/^[.]+|[.]+$/g, '');
+      RigStore.edit('Code generation settings', r => { r.codegen = { target: form.target, entityClass, packageRoot }; });
+      const text = generateText(RigStore.rig, { target: form.target, entityClass, packageRoot });
+      showCodeResult(text, entityClass);
+    },
+  }).show();
+}
+
+function showCodeResult(text, entityClass) {
+  const dialog = new Dialog({
+    id: 'azurelib_rig_code',
+    title: 'AzureLib Code',
+    width: 900,
+    form: {
+      code: { type: 'textarea', value: text, height: 460 },
+    },
+    buttons: ['Copy', 'Save .java', 'dialog.close'],
+    onButton(index) {
+      if (index === 0) {
+        const copy = navigator.clipboard?.writeText?.(text);
+        if (copy) {
+          copy.then(() => Blockbench.showQuickMessage('Copied to clipboard', 1500));
+        } else {
+          Blockbench.showQuickMessage('Clipboard unavailable; select the text and copy it instead.', 2500);
+        }
+        return false;
+      }
+      if (index === 1) {
+        Blockbench.export({
+          type: 'Java Source',
+          extensions: ['java'],
+          name: `${entityClass}Rig`,
+          content: text,
+        });
+        return false;
+      }
+      return true;
+    },
+  });
+  dialog.show();
+}
+
+const PANEL_ID = 'azurelib_rig';
+const STYLE_ID = 'azurelib-rig-style';
+
+let panel = null;
+let actions = [];
+let azure_rig_panel_unsubscribe = null;
+let onModeChange = null;
+let onModelChange = null;
+
+const PANEL_CSS = `
+.azl-rig {
+  padding: 4px 6px 0; font-size: 12px; line-height: 1.35;
+  display: flex; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0; box-sizing: border-box;
+}
+.azl-rig .azl-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
+.azl-rig .azl-row.selected { background: var(--color-selected, rgba(70, 130, 255, .25)); }
+.azl-rig .azl-row.selected:hover { background: var(--color-selected, rgba(70, 130, 255, .32)); }
+.azl-rig .azl-selbar {
+  display: flex; align-items: center; gap: 4px; margin: 2px 0 2px 18px; padding: 2px 6px; border-radius: 4px;
+  background: var(--color-button); font-size: 11px;
+}
+.azl-rig .azl-selbar .azl-btn { height: 18px; line-height: 18px; padding: 0 6px; font-size: 11px; }
+.azl-rig .azl-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; flex: none; }
+.azl-rig .azl-spacer { flex: 1; }
+.azl-rig .azl-btn {
+  height: 22px; min-width: 0; padding: 0 8px; font-size: 12px; line-height: 22px;
+  border-radius: 4px; background: var(--color-button); color: var(--color-text); cursor: pointer;
+}
+.azl-rig .azl-btn:hover { background: var(--color-accent); color: var(--color-accent_text); }
+.azl-rig .azl-badge {
+  display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 8px; font-size: 10px; line-height: 15px;
+  background: var(--color-warning, #e8b400); color: #000;
+}
+.azl-rig .azl-chip {
+  padding: 0 6px; height: 20px; line-height: 20px; border-radius: 10px; font-size: 11px; cursor: pointer;
+  border: 1px solid var(--color-border); color: var(--color-subtle_text); user-select: none;
+}
+.azl-rig .azl-chip.on { border-color: var(--color-accent); color: var(--color-text); }
+.azl-rig .azl-hint { color: var(--color-subtle_text); padding: 2px 4px 6px; }
+.azl-rig .azl-head {
+  display: flex; align-items: center; gap: 4px; height: 22px; padding: 0 4px; margin-top: 2px;
+  border-radius: 4px; cursor: pointer; user-select: none;
+}
+.azl-rig .azl-head:hover { background: var(--color-button); }
+.azl-rig .azl-caret { width: 10px; color: var(--color-subtle_text); font-size: 10px; }
+.azl-rig .azl-title { font-weight: 600; }
+.azl-rig .azl-count { color: var(--color-subtle_text); font-size: 11px; }
+.azl-rig .azl-add, .azl-rig .azl-del {
+  width: 18px; height: 18px; line-height: 17px; text-align: center; border-radius: 3px; cursor: pointer;
+  color: var(--color-subtle_text); font-size: 15px;
+}
+.azl-rig .azl-add:hover { background: var(--color-accent); color: var(--color-accent_text); }
+.azl-rig .azl-add.small { width: auto; padding: 0 4px; font-size: 11px; }
+.azl-rig .azl-row {
+  display: flex; align-items: center; gap: 6px; height: 21px; padding: 0 4px 0 18px; border-radius: 4px; cursor: pointer;
+}
+.azl-rig .azl-row:hover { background: var(--color-button); }
+.azl-rig .azl-dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.azl-rig .azl-name { flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.azl-rig .azl-detail { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-subtle_text); font-size: 11px; }
+.azl-rig .azl-detail.warn { color: var(--color-warning, #e8b400); }
+.azl-rig .azl-del { visibility: hidden; }
+.azl-rig .azl-row:hover .azl-del { visibility: visible; }
+.azl-rig .azl-del:hover { color: var(--color-close, #e66); }
+.azl-rig .azl-sub { padding: 2px 4px 4px 18px; color: var(--color-subtle_text); font-size: 11px; }
+.azl-rig .azl-sub label { margin-right: 10px; cursor: pointer; }
+.azl-rig .azl-sub input[type=range] { width: 100%; height: 16px; margin: 0; }
+.azl-rig .azl-weights { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 2px; }
+`;
+
+function injectStyle() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = PANEL_CSS;
+  document.head.appendChild(style);
+}
+
+function removeStyle() {
+  document.getElementById(STYLE_ID)?.remove();
+}
+
+const SECTIONS = [
+  { key: 'hitboxes', title: 'Hitboxes', add: 'hitbox', addTitle: 'Add a hitbox to each selected bone' },
+  { key: 'sockets', title: 'Sockets', add: 'socket', addTitle: 'Add a socket for the selected locator or bone' },
+  { key: 'ikChains', title: 'IK chains', add: 'ikChain', addTitle: 'Add an IK chain from the selected bones (root → tip, or just the root)' },
+  { key: 'lookAts', title: 'Look-at', add: 'lookAt', addTitle: 'Add a look-at from the selected bones (e.g. neck, head)' },
+  { key: 'constraints', title: 'Constraints', add: 'constraint', addTitle: 'Add a rotation limit to each selected bone' },
+  { key: 'springBones', title: 'Spring bones', add: 'spring', addTitle: 'Add a spring chain from the selected bones (root → tip, or just the root)' },
+  { key: 'colliders', title: 'Colliders', add: 'collider', addTitle: 'Add a collider fitted to each selected bone, for spring bones to swing around' },
+  { key: 'blendSpaces', title: 'Blend spaces', add: 'blendSpace', addTitle: 'Add a blend space' },
+];
+
+const EDITORS = {
+  hitboxes: editHitbox,
+  sockets: editSocket,
+  ikChains: editIkChain,
+  lookAts: editLookAt,
+  constraints: editConstraint,
+  springBones: editSpring,
+  colliders: editCollider,
+  blendSpaces: editBlendSpace,
+};
+
+const SECTION_COLORS = {
+  sockets: '#ff55ff',
+  ikChains: '#00ff88',
+  lookAts: '#44aaff',
+  constraints: '#ff9900',
+  springBones: '#aa66ff',
+  colliders: '#ff8a3d',
+  blendSpaces: '#ffaa00',
+};
+
+/** Which sections are expanded; null means "open if it has entries". Kept for the session. */
+const sectionOpen = Object.fromEntries(SECTIONS.map(sec => [sec.key, null]));
+
+function registerPanel() {
+  injectStyle();
+
+  panel = new Panel(PANEL_ID, {
+    name: 'AzureLib Rig',
+    icon: 'accessibility_new',
+    display_condition: { modes: ['edit', 'animate'], formats: ['azure_model'] },
+    default_position: {
+      slot: 'right_bar',
+      float_position: [0, 0],
+      float_size: [320, 480],
+      height: 360,
+      folded: false,
+      attached_to: 'outliner',
+    },
+    component: {
+      name: 'azl-rig-panel',
+      data() {
+        return {
+          rig: RigStore.rig,
+          preview: PreviewSettings,
+          sections: SECTIONS,
+          open: sectionOpen,
+          blend: { index: -1, x: 0, y: 0 },
+          sel: { key: null, items: [], anchor: null, count: 0 },
+          version: 0,
+          mode: typeof Modes !== 'undefined' && Modes.selected ? Modes.selected.id : '',
+        };
+      },
+      mounted() {
+        this._off = RigStore.onChange(rig => {
+          this.rig = rig;
+          if (this.blend.index >= rig.blendSpaces.length) this.stopBlend();
+          // Entries added or removed: the selected indices would point at the wrong rows.
+          if (this.sel.key && rig[this.sel.key].length !== this.sel.count) this.clearSelection();
+          this.version++;
+        });
+      },
+      beforeDestroy() {
+        this._off?.();
+      },
+      computed: {
+        boneSet() { this.version; return new Set(Group.all.map(g => g.name)); },
+        locatorSet() { this.version; return new Set((typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name)); },
+        issueCount() { this.version; return validateRig(this.rig).length; },
+        isEmpty() { return SECTIONS.every(sec => !this.rig[sec.key].length); },
+        isAnimate() { return this.mode === 'animate'; },
+        blendRange() {
+          const b = this.blend.index >= 0 ? this.rig.blendSpaces[this.blend.index] : null;
+          return b ? blendSpaceRange(b) : { x: [0, 1], y: [0, 1] };
+        },
+        blendWeights() { this.blend.x; this.blend.y; this.blend.index; return BlendPreview.weights(); },
+      },
+      methods: {
+        isOpen(key) {
+          const state = this.open[key];
+          return state === null ? this.rig[key].length > 0 : state;
+        },
+        toggle(key) {
+          this.open[key] = !this.isOpen(key);
+        },
+        add(kind, key) {
+          Add[kind]();
+          if (key) this.open[key] = true;
+        },
+        rowClick(key, index, event) {
+          const toggle = event.ctrlKey || event.metaKey;
+          const range = event.shiftKey;
+          if (!toggle && !range) {
+            this.clearSelection();
+            this.edit(key, index);
+            return;
+          }
+          if (this.sel.key !== key) {
+            this.sel.key = key;
+            this.sel.items = [];
+            this.sel.anchor = null;
+          }
+          this.sel.count = this.rig[key].length;
+          if (range && this.sel.anchor !== null) {
+            const from = Math.min(this.sel.anchor, index);
+            const to = Math.max(this.sel.anchor, index);
+            for (let i = from; i <= to; i++) if (!this.sel.items.includes(i)) this.sel.items.push(i);
+          } else {
+            const at = this.sel.items.indexOf(index);
+            if (at >= 0) this.sel.items.splice(at, 1);
+            else this.sel.items.push(index);
+            this.sel.anchor = index;
+          }
+          if (!this.sel.items.length) this.clearSelection();
+        },
+        isSelected(key, index) {
+          return this.sel.key === key && this.sel.items.includes(index);
+        },
+        clearSelection() {
+          this.sel.key = null;
+          this.sel.items = [];
+          this.sel.anchor = null;
+          this.sel.count = 0;
+        },
+        selectAll(key) {
+          this.sel.key = key;
+          this.sel.items = this.rig[key].map((_, i) => i);
+          this.sel.count = this.rig[key].length;
+        },
+        bulkEdit() {
+          if (this.sel.key === 'hitboxes') editHitboxes(this.sel.items.slice().sort((a, b) => a - b));
+        },
+        bulkDelete() {
+          const key = this.sel.key;
+          const indices = this.sel.items.slice().sort((a, b) => b - a);
+          if (!key || !indices.length) return;
+          if (key === 'blendSpaces' && indices.includes(this.blend.index)) this.stopBlend();
+          this.clearSelection();
+          RigStore.edit(`Remove ${indices.length} entries`, rig => {
+            for (const i of indices) {
+              const [removed] = rig[key].splice(i, 1);
+              // Spring chains stop using a removed collider.
+              if (key === 'colliders' && removed) {
+                for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).filter(id => id !== removed.id);
+              }
+            }
+          });
+        },
+        remove(key, index) {
+          if (key === 'blendSpaces' && this.blend.index === index) this.stopBlend();
+          RigStore.edit('Remove entry', rig => {
+            const [removed] = rig[key].splice(index, 1);
+            // Spring chains stop using a removed collider.
+            if (key === 'colliders' && removed) {
+              for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).filter(id => id !== removed.id);
+            }
+          });
+        },
+        edit(key, index) {
+          EDITORS[key](index);
+        },
+        missing(names) { return names.filter(n => !this.boneSet.has(n)); },
+        color(key, item) {
+          if (key !== 'hitboxes') return SECTION_COLORS[key];
+          if (item.role === 'INTERACT') return '#55ffff';
+          if (item.role === 'ANCHOR') return '#ffff55';
+          if (item.damageMultiplier > 1) return '#ff5555';
+          if (item.damageMultiplier < 1) return '#5599ff';
+          return '#55ff55';
+        },
+        label(key, item) {
+          if (key === 'hitboxes') return item.name;
+          if (key === 'sockets') return item.locator || item.name;
+          if (key === 'constraints') return item.bone;
+          if (key === 'blendSpaces') return item.name;
+          return item.id;
+        },
+        detail(key, item) {
+          switch (key) {
+            case 'hitboxes': {
+              const parts = [];
+              if (item.name !== item.bone) parts.push(item.bone);
+              if (item.role !== 'COMBAT') parts.push(item.role.toLowerCase());
+              else if (item.damageMultiplier !== 1) parts.push(`×${item.damageMultiplier}`);
+              if (!item.fit) parts.push(item.size.join('×'));
+              return parts.join(' · ');
+            }
+            case 'sockets': return [item.locator ? 'locator' : item.bone, item.serverHitbox ? 'server' : ''].filter(Boolean).join(' · ');
+            case 'ikChains': return `${item.bones.length} bones · ${item.target.type === 'bone' ? `follows ${item.target.bone || '?'}` : item.target.type.replace('_', ' ')}`;
+            case 'lookAts': return item.bones.join(' › ');
+            case 'constraints': return `${item.type.replace('_', ' ')}${item.standalone ? ' · clamps pose' : ''}`;
+            case 'springBones': {
+              const extras = [];
+              if ((item.colliders || []).length) extras.push(`${item.colliders.length} collider${item.colliders.length === 1 ? '' : 's'}`);
+              if (item.ground) extras.push('ground');
+              return [`${item.bones.length} bones`, ...extras].join(' · ');
+            }
+            case 'colliders': return `${item.shape} · ${item.bone} · r${item.radius}`;
+            case 'blendSpaces': return `${item.dimensions}D · ${item.samples.length} samples`;
+            default: return '';
+          }
+        },
+        warning(key, item) {
+          this.version;
+          switch (key) {
+            case 'hitboxes':
+              if (!this.boneSet.has(item.bone)) return `missing bone ${item.bone}`;
+              return hitboxBox(item) ? '' : 'empty box';
+            case 'sockets':
+              if (item.locator) return this.locatorSet.has(item.locator) ? '' : 'missing locator';
+              return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
+            case 'constraints':
+              return this.boneSet.has(item.bone) ? '' : 'missing bone';
+            case 'colliders':
+              return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
+            case 'ikChains':
+            case 'lookAts':
+            case 'springBones': {
+              const gone = this.missing(item.bones);
+              if (gone.length) return `missing ${gone.join(', ')}`;
+              const known = new Set(this.rig.colliders.map(c => c.id));
+              const unknown = (item.colliders || []).filter(id => !known.has(id));
+              return unknown.length ? `unknown collider ${unknown.join(', ')}` : '';
+            }
+            default:
+              return '';
+          }
+        },
+        togglePreview(key) {
+          PreviewSettings[key] = !PreviewSettings[key];
+          if (Animator?.open) { try { Animator.preview(); } catch (_) { /* ignore */ } }
+        },
+        toggleBlend(index) {
+          if (this.blend.index === index) {
+            this.stopBlend();
+            return;
+          }
+          const b = this.rig.blendSpaces[index];
+          const range = blendSpaceRange(b);
+          this.blend.index = index;
+          this.blend.x = Math.max(range.x[0], Math.min(range.x[1], this.blend.x));
+          this.blend.y = Math.max(range.y[0], Math.min(range.y[1], this.blend.y));
+          BlendPreview.inputX = this.blend.x;
+          BlendPreview.inputY = this.blend.y;
+          BlendPreview.start(b);
+        },
+        stopBlend() {
+          this.blend.index = -1;
+          BlendPreview.stop();
+        },
+        setBlendInput() {
+          BlendPreview.inputX = Number(this.blend.x);
+          BlendPreview.inputY = Number(this.blend.y);
+          BlendPreview.refresh();
+        },
+        toggleOption(key) {
+          RigStore.edit('Hitbox set options', rig => { rig.hitboxOptions[key] = !rig.hitboxOptions[key]; });
+        },
+        check() { showValidation(); },
+        generate() { showCodeExport(); },
+        pct(v) { return `${Math.round((v || 0) * 100)}%`; },
+      },
+      template: `
+<div class="azl-rig">
+  <div class="azl-bar">
+    <span class="azl-btn" @click="generate()" title="Generate AzureLib Java for this rig">Code</span>
+    <span class="azl-btn" @click="check()" title="Check the rig against the model">Check<span v-if="issueCount" class="azl-badge">{{ issueCount }}</span></span>
+    <span class="azl-spacer"></span>
+    <span class="azl-chip" :class="{on: preview.hitboxes}" @click="togglePreview('hitboxes')" title="Show hitboxes in the viewport">Boxes</span>
+    <span class="azl-chip" :class="{on: preview.sockets}" @click="togglePreview('sockets')" title="Show sockets in the viewport">Sockets</span>
+    <span class="azl-chip" :class="{on: preview.colliders}" @click="togglePreview('colliders')" title="Show spring colliders in the viewport">Colliders</span>
+    <span class="azl-chip" :class="{on: preview.modifiers}" @click="togglePreview('modifiers')" title="Run IK, look-at, spring bones and constraints while animating">Pose</span>
+  </div>
+  <div class="azl-scroll">
+  <div v-if="isEmpty" class="azl-hint">Select bones or locators, then press + on a section.</div>
+
+  <div v-for="sec in sections" :key="sec.key">
+    <div class="azl-head" @click="toggle(sec.key)" :title="sec.addTitle">
+      <span class="azl-caret">{{ isOpen(sec.key) ? '▼' : '▶' }}</span>
+      <span class="azl-title">{{ sec.title }}</span>
+      <span class="azl-count" v-if="rig[sec.key].length">{{ rig[sec.key].length }}</span>
+      <span class="azl-spacer"></span>
+      <span v-if="sec.key === 'sockets'" class="azl-add small" title="Add a socket for every locator" @click.stop="add('allLocators', sec.key)">all</span>
+      <span class="azl-add" :title="sec.addTitle" @click.stop="add(sec.add, sec.key)">+</span>
+    </div>
+
+    <template v-if="isOpen(sec.key)">
+      <div v-if="sel.key === sec.key" class="azl-selbar">
+        <span>{{ sel.items.length }} selected</span>
+        <span class="azl-spacer"></span>
+        <span v-if="sec.key === 'hitboxes'" class="azl-btn" @click="bulkEdit()" title="Edit the selected hitboxes together">Edit</span>
+        <span class="azl-btn" @click="selectAll(sec.key)" title="Select every entry in this section">All</span>
+        <span class="azl-btn" @click="bulkDelete()" title="Remove the selected entries">Delete</span>
+        <span class="azl-btn" @click="clearSelection()" title="Clear the selection">×</span>
+      </div>
+      <div v-for="(item, i) in rig[sec.key]" :key="sec.key + i">
+        <div class="azl-row" :class="{selected: isSelected(sec.key, i)}" @click="rowClick(sec.key, i, $event)" title="Click to edit · Ctrl/⌘-click or Shift-click to select several">
+          <span class="azl-dot" :style="{background: color(sec.key, item)}"></span>
+          <span class="azl-name">{{ label(sec.key, item) }}</span>
+          <span class="azl-detail" :class="{warn: !!warning(sec.key, item)}">{{ warning(sec.key, item) || detail(sec.key, item) }}</span>
+          <span v-if="sec.key === 'blendSpaces' && isAnimate" class="azl-add" :title="blend.index === i ? 'Stop preview' : 'Preview'" @click.stop="toggleBlend(i)">{{ blend.index === i ? '■' : '▶' }}</span>
+          <span class="azl-del" title="Remove" @click.stop="remove(sec.key, i)">×</span>
+        </div>
+        <div v-if="sec.key === 'blendSpaces' && blend.index === i" class="azl-sub">
+          <div>X {{ Number(blend.x).toFixed(2) }}</div>
+          <input type="range" :min="blendRange.x[0]" :max="blendRange.x[1]" step="0.01" v-model.number="blend.x" @input="setBlendInput()">
+          <template v-if="item.dimensions === 2">
+            <div>Y {{ Number(blend.y).toFixed(2) }}</div>
+            <input type="range" :min="blendRange.y[0]" :max="blendRange.y[1]" step="0.01" v-model.number="blend.y" @input="setBlendInput()">
+          </template>
+          <div class="azl-weights">
+            <span v-for="(s, j) in item.samples" :key="j">{{ s.animation }} {{ pct(blendWeights[j]) }}</span>
+          </div>
+          <div style="margin-top:2px">Press play to see motion. Samples share one timeline here; in game, phase sync keeps cycles in step.</div>
+        </div>
+      </div>
+      <div v-if="sec.key === 'hitboxes' && rig.hitboxes.length" class="azl-sub">
+        <label><input type="checkbox" :checked="rig.hitboxOptions.keepEntityBox" @change="toggleOption('keepEntityBox')"> keep entity box</label>
+        <label><input type="checkbox" :checked="rig.hitboxOptions.clientOnly" @change="toggleOption('clientOnly')"> client only</label>
+      </div>
+    </template>
+  </div>
+  </div>
+</div>`,
+    },
+  });
+}
+
+function registerActions() {
+  actions = [
+    new Action('azurelib_rig_generate_code', {
+      name: 'Generate AzureLib Rig Code',
+      description: 'Generate AzureLib Java for the hitboxes, sockets, IK, spring bones and blend spaces in this model',
+      icon: 'code',
+      category: 'file',
+      condition: () => Format?.id === 'azure_model',
+      click: () => showCodeExport(),
+    }),
+    new Action('azurelib_rig_validate', {
+      name: 'Check AzureLib Rig',
+      description: 'Check the AzureLib rig against the model',
+      icon: 'rule',
+      category: 'file',
+      condition: () => Format?.id === 'azure_model',
+      click: () => showValidation(),
+    }),
+  ];
+  MenuBar.addAction(actions[0], 'file.export');
+  MenuBar.addAction(actions[1], 'file.export');
+}
+
+function registerRigPanel() {
+  if (panel) return;
+  registerPanel();
+  registerActions();
+  azure_rig_panel_unsubscribe = RigStore.onChange(() => panel?.inside_vue?.$forceUpdate?.());
+
+  onModeChange = event => {
+    const vue = panel?.inside_vue;
+    if (!vue) return;
+    vue.mode = event?.mode?.id || '';
+    if (vue.mode !== 'animate' && vue.blend.index >= 0) vue.stopBlend();
+  };
+  Blockbench.on('select_mode', onModeChange);
+
+  onModelChange = () => {
+    const vue = panel?.inside_vue;
+    if (vue) vue.version++;
+  };
+  Blockbench.on('finished_edit', onModelChange);
+  Blockbench.on('select_project', onModelChange);
+}
+
+function unregisterRigPanel() {
+  azure_rig_panel_unsubscribe?.();
+  azure_rig_panel_unsubscribe = null;
+  if (onModeChange) Blockbench.removeListener('select_mode', onModeChange);
+  if (onModelChange) {
+    Blockbench.removeListener('finished_edit', onModelChange);
+    Blockbench.removeListener('select_project', onModelChange);
+  }
+  onModeChange = null;
+  onModelChange = null;
+  for (const action of actions) action.delete();
+  actions = [];
+  panel?.delete();
+  panel = null;
+  removeStyle();
+}
+
+;// ./rig/azure-rig.js
+/**
+ * AzureLib Animator — Rig Features
+ * --------------------------------
+ * Entry point for AzureLib's runtime rig features in Blockbench: hitboxes,
+ * sockets, runtime IK, look-at, constraints, spring bones and blend spaces.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+
+let azure_rig_registered = false;
+
+function registerRig() {
+  if (azure_rig_registered) return;
+  azure_rig_registered = true;
+  registerRigState();
+  registerRigPreview();
+  registerRigPanel();
+}
+
+function unregisterRig() {
+  if (!azure_rig_registered) return;
+  azure_rig_registered = false;
+  unregisterRigPanel();
+  unregisterRigPreview();
+  unregisterRigState();
+}
+
+;// ./runtime.js
+/**
+ * AzureLib Animator — Blockbench Plugin Entry
+ * -------------------------------------------
+ * Registers the AzureLib animation format and editor utilities.
+ *
+ * © 2025 AzureDoom — MIT License
+ */
+
+
+
+
+
+
+
+
+
+
+
+const { /* version */ "rE": version, /* blockbenchConfig */ "Ug": blockbenchConfig } = package_namespaceObject;
+const RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
+if (!satisfies_default()(coerce_default()(Blockbench.version), RANGE)) {
+  alert(`AzureLib Animator supports Blockbench ${RANGE}. Update for best results.`);
+}
+
+let exportAction, exportDisplay, importDisplay, settingsButton;
+
+function loadAzureLib() {
+      registerAzureCodec();
+      initializeAnimationUI();
+      registerKeyframeOverrides();
+      registerRig();
+      console.log('[AzureLib] Animator loaded');
+	  
+      Blockbench.on('ready', () => {
+        setTimeout(() => {
+          if (!Keyframe.prototype._azurePatched) {
+            console.log('[AzureLib] Reattaching keyframe overrides after ready()');
+            registerKeyframeOverrides();
+          }
+        }, 0);
+      });
+
+      // Auto show settings for Azure model
+      Blockbench.on('new_project', () => {
+        if (Format?.id === 'azure_model') {
+          setTimeout(() => {
+            try {
+              Interface.dialog?.close();
+            } catch {}
+            new Dialog({
+              id: 'azurelib_model_settings',
+              title: 'AzureLib Model Settings',
+              width: 540,
+              lines: [
+                `<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animator v${version}</b>`,
+                '<p>Select your model type to begin.</p>',
+              ],
+              form: {
+                objectType: {
+                  label: 'Object Type',
+                  type: 'select',
+                  default: azure_settings.objectType,
+                  options: TYPE_OPTIONS,
+                },
+              },
+              onConfirm(form) {
+                Object.assign(azure_settings, form);
+                onSettingsChanged();
+              },
+            }).show();
+          }, 150);
+        }
+      });
+
+      exportAction = new Action({
+        id: 'export_AzureLib_model',
+        name: 'Export AzureLib .geo Model',
+        icon: 'archive',
+        description: 'Export your .geo model for AzureLib.',
+        category: 'file',
+        condition: () => Format.id === 'azure_model',
+        click: () => azure_codec.export(),
+      });
+      MenuBar.addAction(exportAction, 'file.export');
+
+      exportDisplay = new Action({
+        id: 'export_AzureLib_display',
+        name: 'Export AzureLib Display Settings',
+        icon: 'icon-bb_interface',
+        category: 'file',
+        description: 'Export display settings for AzureLib.',
+        condition: () => Format.id === 'azure_model',
+        click: maybeExportItemJson,
+      });
+      MenuBar.addAction(exportDisplay, 'file.export');
+
+      importDisplay = new Action({
+        id: 'import_AzureLib_display',
+        name: 'Import AzureLib Display Settings',
+        icon: 'icon-bow',
+        category: 'file',
+        condition: () => Format.id === 'azure_model',
+        click: maybeImportItemJson,
+      });
+      MenuBar.addAction(importDisplay, 'file.import');
+
+      settingsButton = new Action('azurelib_settings', {
+        name: 'AzureLib Model Settings',
+        description: 'Change model type',
+        icon: 'info',
+        condition: () => Format.id === 'azure_model',
+        click: () => {
+          const dialog = new Dialog({
+            id: 'project',
+            title: 'AzureLib Model Settings',
+            width: 540,
+            lines: [
+              `<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animator v${version}</b>`,
+            ],
+            form: {
+              objectType: {
+                label: 'Object Type',
+                type: 'select',
+                default: azure_settings.objectType,
+                options: TYPE_OPTIONS,
+              },
+            },
+            onConfirm: result => {
+              Object.assign(azure_settings, result);
+              onSettingsChanged();
+              dialog.hide();
+            },
+          });
+          dialog.show();
+        },
+      });
+      MenuBar.addAction(settingsButton, 'file.1');
+    }
+
+    function unloadAzureLib() {
+      exportAction.delete();
+      exportDisplay.delete();
+      importDisplay.delete();
+      settingsButton.delete();
+      unregisterRig();
+      unregisterKeyframeOverrides();
+      unloadAnimationUI();
+      unregisterAzureCodec();
+      restoreOverrides();
+      console.log('[AzureLib] Animator unloaded.');
+    }
+
+
+/***/ }),
+
 /***/ 938:
 /***/ ((module) => {
 
@@ -24022,6 +31058,17 @@ module.exports = baseClone;
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/node module decorator */
 /******/ 	(() => {
 /******/ 		__webpack_require__.nmd = (module) => {
@@ -24033,6910 +31080,11 @@ module.exports = baseClone;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
-(() => {
-"use strict";
-
-// EXTERNAL MODULE: ./node_modules/semver/functions/coerce.js
-var coerce = __webpack_require__(6170);
-var coerce_default = /*#__PURE__*/__webpack_require__.n(coerce);
-// EXTERNAL MODULE: ./node_modules/semver/functions/satisfies.js
-var satisfies = __webpack_require__(7638);
-var satisfies_default = /*#__PURE__*/__webpack_require__.n(satisfies);
-;// ./package.json
-const package_namespaceObject = /*#__PURE__*/JSON.parse('{"rE":"2.3.0","Ug":{"title":"AzureLib Animator","author":"AzureDoom, Eliot Lash, Gecko, McHorse","icon":"azureicon.png","description":"Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.","min_version":"4.8.0","max_version":"15.0.0","new_repository_format":true,"await_loading":true,"variant":"both","creation_date":"2023-04-04","contributes":{"formats":["azure_model"]},"has_changelog":true,"website":"https://wiki.azuredoom.com/","tags":["Minecraft: Java Edition"]}}');
-// EXTERNAL MODULE: ./node_modules/lodash/lodash.js
-var lodash = __webpack_require__(2543);
-;// ./animation/azure-easing.js
-/**
- * AzureLib Animator — Easing Definitions
- * --------------------------------------
- * Provides the easing function registry and argument parsing logic
- * used for interpolating animated keyframes in AzureLib.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-// ---------------------------------------------------------------------------
-// Constants and types
-// ---------------------------------------------------------------------------
-
-/**
- * Enumeration of supported easing functions.
- * Matches AzureLib's Java easing mappings for full parity.
- */
-const EASING_TYPES = {
-  linear: 'linear',
-  step: 'step',
-  easeInSine: 'easeInSine',
-  easeOutSine: 'easeOutSine',
-  easeInOutSine: 'easeInOutSine',
-  easeInQuad: 'easeInQuad',
-  easeOutQuad: 'easeOutQuad',
-  easeInOutQuad: 'easeInOutQuad',
-  easeInCubic: 'easeInCubic',
-  easeOutCubic: 'easeOutCubic',
-  easeInOutCubic: 'easeInOutCubic',
-  easeInQuart: 'easeInQuart',
-  easeOutQuart: 'easeOutQuart',
-  easeInOutQuart: 'easeInOutQuart',
-  easeInQuint: 'easeInQuint',
-  easeOutQuint: 'easeOutQuint',
-  easeInOutQuint: 'easeInOutQuint',
-  easeInExpo: 'easeInExpo',
-  easeOutExpo: 'easeOutExpo',
-  easeInOutExpo: 'easeInOutExpo',
-  easeInCirc: 'easeInCirc',
-  easeOutCirc: 'easeOutCirc',
-  easeInOutCirc: 'easeInOutCirc',
-  easeInBack: 'easeInBack',
-  easeOutBack: 'easeOutBack',
-  easeInOutBack: 'easeInOutBack',
-  easeInElastic: 'easeInElastic',
-  easeOutElastic: 'easeOutElastic',
-  easeInOutElastic: 'easeInOutElastic',
-  easeInBounce: 'easeInBounce',
-  easeOutBounce: 'easeOutBounce',
-  easeInOutBounce: 'easeInOutBounce',
-};
-
-/** Default easing for new keyframes. */
-const EASING_DEFAULT = EASING_TYPES.linear;
-
-/** Default argument for easing functions that use one. */
-const DEFAULT_ARG = 1;
-
-// ---------------------------------------------------------------------------
-// Core helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Compute an eased value between 0 and 1 based on an easing type.
- * @param {string} easingName
- * @param {number} t - normalized time (0..1)
- * @param {number} [arg] - optional argument
- * @returns {number}
- */
-function applyEasing(easingName, t, arg = DEFAULT_ARG) {
-  const ease = easingRegistry[easingName] || easingRegistry.linear;
-  return ease(t, arg);
-}
-
-/**
- * Return whether a given easing type expects a numeric argument.
- * @param {string} easingName
- * @returns {boolean}
- */
-function hasArgs(easingName) {
-  return (
-    easingName?.includes('Back') ||
-    easingName?.includes('Elastic') ||
-    easingName?.includes('Bounce') ||
-    easingName === 'step'
-  );
-}
-
-/**
- * Returns the default argument for a given easing.
- * @param {string} easingName
- * @returns {number}
- */
-function getEasingArgDefault(easingName) {
-  if (!hasArgs(easingName)) return DEFAULT_ARG;
-  if (easingName?.includes('Back')) return 1.70158;
-  if (easingName?.includes('Elastic')) return 1;
-  if (easingName?.includes('Bounce')) return 1;
-  if (easingName === 'step') return 4;
-  return DEFAULT_ARG;
-}
-
-/**
- * Parses an argument from user input, falling back to defaults if invalid.
- * @param {object} keyframe
- * @param {string} input
- * @returns {number}
- */
-function parseEasingArg(keyframe, input) {
-  const num = parseFloat(input);
-  if (isNaN(num)) return getEasingArgDefault(keyframe.easing);
-  const arg = Math.max(-9999, Math.min(9999, num));
-  return arg;
-}
-
-// ---------------------------------------------------------------------------
-// Easing function implementations
-// ---------------------------------------------------------------------------
-
-const PI = Math.PI;
-const c1 = 1.70158;
-const c2 = c1 * 1.525;
-const c3 = c1 + 1;
-const c4 = (2 * PI) / 3;
-const c5 = (2 * PI) / 4.5;
-
-const bounceOut = x => {
-  const n1 = 7.5625;
-  const d1 = 2.75;
-  if (x < 1 / d1) return n1 * x * x;
-  if (x < 2 / d1) return n1 * (x -= 1.5 / d1) * x + 0.75;
-  if (x < 2.5 / d1) return n1 * (x -= 2.25 / d1) * x + 0.9375;
-  return n1 * (x -= 2.625 / d1) * x + 0.984375;
-};
-
-/**
- * The easing registry maps an easing name → function.
- * Each function takes `(t, arg?)` and returns eased t.
- */
-const easingRegistry = {
-  linear: t => t,
-
-  step: (t, n = 4) => Math.floor((0,lodash.clamp)(t * n, 0, n - 1)) / (n - 1),
-
-  easeInSine: t => 1 - Math.cos((t * PI) / 2),
-  easeOutSine: t => Math.sin((t * PI) / 2),
-  easeInOutSine: t => -(Math.cos(PI * t) - 1) / 2,
-
-  easeInQuad: t => t * t,
-  easeOutQuad: t => 1 - (1 - t) * (1 - t),
-  easeInOutQuad: t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
-
-  easeInCubic: t => t * t * t,
-  easeOutCubic: t => 1 - Math.pow(1 - t, 3),
-  easeInOutCubic: t =>
-    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
-
-  easeInQuart: t => t * t * t * t,
-  easeOutQuart: t => 1 - Math.pow(1 - t, 4),
-  easeInOutQuart: t =>
-    t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2,
-
-  easeInQuint: t => t * t * t * t * t,
-  easeOutQuint: t => 1 - Math.pow(1 - t, 5),
-  easeInOutQuint: t =>
-    t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2,
-
-  easeInExpo: t => (t === 0 ? 0 : Math.pow(2, 10 * t - 10)),
-  easeOutExpo: t => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-  easeInOutExpo: t =>
-    t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : t < 0.5
-      ? Math.pow(2, 20 * t - 10) / 2
-      : (2 - Math.pow(2, -20 * t + 10)) / 2,
-
-  easeInCirc: t => 1 - Math.sqrt(1 - Math.pow(t, 2)),
-  easeOutCirc: t => Math.sqrt(1 - Math.pow(t - 1, 2)),
-  easeInOutCirc: t =>
-    t < 0.5
-      ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
-      : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2,
-
-  easeInBack: (t, s = c1) => c3 * t * t * t - s * t * t,
-  easeOutBack: (t, s = c1) =>
-    1 + c3 * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2),
-  easeInOutBack: (t, s = c1) =>
-    t < 0.5
-      ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
-      : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2,
-
-  easeInElastic: (t, p = 1) =>
-    t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * c4 * p),
-
-  easeOutElastic: (t, p = 1) =>
-    t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4 * p) + 1,
-
-  easeInOutElastic: (t, p = 1) =>
-    t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : t < 0.5
-      ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5 * p)) / 2
-      : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5 * p)) / 2 +
-        1,
-
-  easeInBounce: t => 1 - bounceOut(1 - t),
-  easeOutBounce: bounceOut,
-  easeInOutBounce: t =>
-    t < 0.5
-      ? (1 - bounceOut(1 - 2 * t)) / 2
-      : (1 + bounceOut(2 * t - 1)) / 2,
-};
-
-/* harmony default export */ const azure_easing = ((/* unused pure expression or super */ null && (easingRegistry)));
-
-;// ./animation/azure-animation-ui.js
-/**
- * AzureLib Animator — Unified Animation UI
- * ----------------------------------------
- * Custom animation panel that replaces the Minecraft Bedrock animation tab.
- * Supports AzureLib custom easings and Bedrock lerp_mode (catmullrom/linear)
- * in one unified interface.
- *
- * UI features:
- *   - Easing family picker (Azure easings: sine, quad, cubic … + linear/step)
- *   - In / Out / InOut type toggle
- *   - Numeric argument input for Back/Elastic/Bounce/Step
- *   - Bedrock catmullrom toggle (sets interpolation, not easing)
- *   - All controls update all selected keyframes atomically via the undo system
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
-
-let _uiListeners = false;
-
-function initializeAnimationUI() {
-  if (_uiListeners) return;
-
-  Blockbench.on('display_animation_frame', _onFrame);
-  Blockbench.on('update_keyframe_selection', refreshKeyframeUI);
-
-  // Expose handlers globally so inline HTML oninput/onclick can call them
-  window._azureApplyEasing       = applyKeyframeEasing;
-  window._azureApplyEasingArg    = applyEasingArgument;
-  window._azureToggleCatmullrom  = toggleCatmullrom;  // kept for compat
-  window._azureSetInterpolation   = setInterpolation;
-
-  // Suppress Blockbench's stock interpolation selector in Azure format
-  _patchStockInterpolationBar();
-
-  _uiListeners = true;
-  console.log('[AzureLib] Animation UI initialised');
-}
-
-function unloadAnimationUI() {
-  if (!_uiListeners) return;
-
-  Blockbench.removeListener('display_animation_frame', _onFrame);
-  Blockbench.removeListener('update_keyframe_selection', refreshKeyframeUI);
-
-  delete window._azureApplyEasing;
-  delete window._azureApplyEasingArg;
-  delete window._azureToggleCatmullrom;
-
-  _cleanupKeyframePanel();
-  _uiListeners = false;
-}
-
-// ---------------------------------------------------------------------------
-// Keyframe panel refresh (main entry point)
-// ---------------------------------------------------------------------------
-
-const PANEL_BARS = [
-  'azl_bar_catmullrom',
-  'azl_bar_easing',
-  'azl_bar_easing_azure',
-  'azl_bar_easing_type',
-  'azl_bar_easing_arg',
-];
-
-function refreshKeyframeUI() {
-  _cleanupKeyframePanel();
-
-  // Only show Azure controls when our format is active
-  if (Format?.id !== 'azure_model') return;
-
-  // Show/hide the stock pre/post toggle button
-  const addPrePost = document.querySelector('#keyframe_type_label > div');
-  if (addPrePost) addPrePost.hidden = true;
-
-  const selected = Timeline.selected;
-  if (!selected || !selected.length) return;
-
-  const keyframesByChannel = _groupByChannel(Timeline.keyframes);
-  const firstInChannel = kf => {
-    const ch = keyframesByChannel.get(kf.animator)?.[kf.channel] || [];
-    return ch.indexOf(kf) < 1;
-  };
-
-  // Only render for bone keyframes that are not the first in their channel
-  if (!selected.every(kf => kf.animator instanceof BoneAnimator && !firstInChannel(kf))) return;
-
-  const panel = document.getElementById('panel_keyframe');
-  if (!panel) return;
-
-  _renderInterpolationBar(panel, selected);
-  _renderEasingBar(panel, selected);
-}
-
-// ---------------------------------------------------------------------------
-// Bedrock interpolation bar
-// Blockbench stores these as kf.interpolation:
-//   undefined / null → AzureLib easing mode (our default)
-//   'catmullrom'     → Bedrock smooth spline (BB "Smooth")
-//   'bezier'         → Bezier curves (BB "Bezier")
-//   'step'           → Discrete step (BB "Step")
-// ---------------------------------------------------------------------------
-
-/**
- * All Blockbench-native interpolation modes we expose.
- * Selecting any of these sets kf.interpolation and clears kf.easing.
- * "Azure Easing" is our own mode — clears interpolation, uses kf.easing instead.
- */
-const BB_INTERP_MODES = [
-  { id: null,          label: 'Azure Easing', title: 'Use AzureLib custom easing (see section below)' },
-  { id: 'catmullrom',  label: 'Smooth',        title: 'Bedrock catmullrom spline (BB: Smooth)' },
-  { id: 'bezier',      label: 'Bezier',        title: 'Bezier curve interpolation (BB: Bezier)' },
-  { id: 'step',        label: 'Step',          title: 'Discrete step / hold (BB: Step)' },
-];
-
-function _renderInterpolationBar(panel, selected) {
-  // Read the shared interpolation across selected keyframes.
-  // null/undefined/'linear' all mean "Azure easing mode" — 'linear' is our internal
-  // sentinel used to keep Blockbench's BarSelect happy (it rejects undefined).
-  const normalizeInterp = kf => {
-    const v = kf.interpolation;
-    return (!v || v === 'linear') ? null : v;
-  };
-  const currentInterp = _readMulti(selected, normalizeInterp, null, '(mixed)');
-
-  const bar = _createBar('azl_bar_catmullrom', panel);
-
-  // Section heading — plain text, no background, matches BB's own keyframe labels
-  const heading = document.createElement('p');
-  heading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
-  heading.textContent = 'Interpolation';
-  bar.appendChild(heading);
-
-  for (const { id, label, title } of BB_INTERP_MODES) {
-    const isActive = (currentInterp === id);
-    const btn = document.createElement('button');
-    btn.id = 'azl_btn_interp_' + (id ?? 'azure');
-    btn.className = 'dark_bordered';
-    btn.textContent = label;
-    btn.title = title;
-    btn.style.cssText = `padding:2px 10px;margin:1px;cursor:pointer;${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}`;
-    btn.onclick = () => window._azureSetInterpolation(id);
-    bar.appendChild(btn);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Easing bar
-// ---------------------------------------------------------------------------
-
-/**
- * AzureLib easing families (custom Java-side easings).
- * "linear" and "step" are special-cased (no In/Out/InOut variants).
- */
-const AZURE_EASING_FAMILIES = [
-  { id: 'linear',  label: 'Linear'  },
-  { id: 'step',    label: 'Step'    },
-  { id: 'sine',    label: 'Sine'    },
-  { id: 'quad',    label: 'Quad'    },
-  { id: 'cubic',   label: 'Cubic'   },
-  { id: 'quart',   label: 'Quart'   },
-  { id: 'quint',   label: 'Quint'   },
-  { id: 'expo',    label: 'Expo'    },
-  { id: 'circ',    label: 'Circ'    },
-  { id: 'back',    label: 'Back'    },
-  { id: 'elastic', label: 'Elastic' },
-  { id: 'bounce',  label: 'Bounce'  },
-];
-
-const EASING_TYPES_LIST = [
-  { id: 'in',    label: 'In'    },
-  { id: 'out',   label: 'Out'   },
-  { id: 'inout', label: 'In/Out'},
-];
-
-function _renderEasingBar(panel, selected) {
-  // Don't show Azure easing picker when all selected have a Bedrock interpolation mode.
-  // 'linear' is our internal sentinel for Azure easing mode (not a real Bedrock interp),
-  // so it must NOT be treated as a Bedrock mode here.
-  const isBedrock = kf => !!kf.interpolation && kf.interpolation !== 'linear';
-  const allBedrock = selected.every(isBedrock);
-
-  const displayedEasing = _readMulti(selected, kf => kf.easing, EASING_DEFAULT, '(mixed)');
-  const currentFamily   = _easingFamilyOf(displayedEasing);
-  const currentType     = _easingTypeOf(displayedEasing);
-
-  // --- Section header ---
-  const headerBar = _createBar('azl_bar_easing', panel);
-  const easingHeading = document.createElement('p');
-  easingHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding: 0 0 0 10px;color:var(--color-text);';
-  easingHeading.textContent = 'AzureLib Easings';
-  headerBar.appendChild(easingHeading);
-
-  // --- Azure easing family buttons (icon + label inside each button) ---
-  const azureRow = _createBar('azl_bar_easing_azure', panel);
-  azureRow.style.flexWrap = 'wrap';
-
-  for (const { id, label } of AZURE_EASING_FAMILIES) {
-    const isSelected = !allBedrock && (id === currentFamily);
-    const icon = EASING_ICONS[id] || '';
-    const btn = document.createElement('button');
-    btn.id = `azl_kf_easing_${id}`;
-    btn.className = 'dark_bordered';
-    btn.title = `Switch to ${label} easing`;
-    btn.style.cssText = `
-      padding: 2px 6px;
-      margin: 1px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      ${isSelected ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
-    `;
-    btn.innerHTML = `${icon}<span>${label}</span>`;
-    btn.onclick = () => {
-      const nextEasing = _assembleEasingId(id, currentType);
-      applyKeyframeEasing(nextEasing);
-    };
-    azureRow.appendChild(btn);
-  }
-
-  // --- Type (In / Out / In/Out) row — only for families with variants ---
-  if (!allBedrock && currentFamily !== 'linear' && currentFamily !== 'step') {
-    const typeBar = _createBar('azl_bar_easing_type', panel);
-    const typeHeading = document.createElement('p');
-    typeHeading.style.cssText = 'min-width:100%;margin:4px 0 2px 0;padding:0;color:var(--color-text);';
-    typeHeading.textContent = 'Type';
-    typeBar.appendChild(typeHeading);
-
-    for (const { id, label } of EASING_TYPES_LIST) {
-      const isActive = (id === currentType);
-      const btn = document.createElement('button');
-      btn.id = `azl_kf_type_${id}`;
-      btn.className = 'dark_bordered';
-      btn.textContent = label;
-      btn.style.cssText = `
-        padding: 2px 10px;
-        margin: 1px;
-        cursor: pointer;
-        ${isActive ? 'color:var(--color-accent);border-color:var(--color-accent);' : ''}
-      `;
-      btn.onclick = () => {
-        const nextEasing = _assembleEasingId(currentFamily, id);
-        applyKeyframeEasing(nextEasing);
-      };
-      typeBar.appendChild(btn);
-    }
-  }
-
-  // --- Argument row (for Back/Elastic/Bounce/Step) ---
-  if (selected.every(kf => hasArgs(kf.easing))) {
-    const argLabel = _getArgLabel(selected[0].easing);
-    const defaultArg = getEasingArgDefault(selected[0].easing);
-    const currentArg = _readMulti(
-      selected,
-      kf => (Array.isArray(kf.easingArgs) && kf.easingArgs.length ? kf.easingArgs[0] : defaultArg),
-      defaultArg,
-      defaultArg,
-    );
-
-    const argBar = _createBar('azl_bar_easing_arg', panel);
-    argBar.innerHTML = `
-      <p style="margin:4px 0 2px 0;padding:0;color:var(--color-text);min-width:90px;">${argLabel}</p>
-      <input
-        type="number"
-        id="azl_easing_arg_input"
-        class="dark_bordered code keyframe_input tab_target"
-        value="${currentArg}"
-        oninput="window._azureApplyEasingArg(this)"
-        style="flex:1;margin-right:9px;">`;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Event handlers
-// ---------------------------------------------------------------------------
-
-/**
- * Apply an easing name to all selected keyframes.
- * @param {string} easingId - e.g. 'easeInSine', 'linear', 'step'
- */
-function applyKeyframeEasing(easingId) {
-  if (!easingId || easingId === '-') return;
-  Undo.initEdit({ keyframes: Timeline.selected });
-
-  Timeline.selected.forEach(kf => {
-    kf.easing = easingId;
-    // Switching to an Azure easing clears any Bedrock interpolation mode.
-    // Use 'linear' (not undefined) so BB's BarSelect keyframe_interpolation stays valid.
-    if (kf.interpolation && kf.interpolation !== 'linear') kf.interpolation = 'linear';
-  });
-
-  Undo.finishEdit('Set keyframe easing');
-  refreshKeyframeUI();
-}
-
-/**
- * Apply the numeric easing argument from the input field.
- * @param {HTMLInputElement} el
- */
-function applyEasingArgument(el) {
-  const raw = $(el).val();
-  if (raw === '' || raw === '-') return;
-  Undo.initEdit({ keyframes: Timeline.selected });
-
-  Timeline.selected.forEach(kf => {
-    kf.easingArgs = [parseEasingArg(kf, String(raw).trim())];
-  });
-
-  Undo.finishEdit('Set keyframe easing argument');
-}
-
-/**
- * Set a Blockbench-native interpolation mode on all selected keyframes.
- * @param {string|null} mode - 'catmullrom' | 'bezier' | 'step' | null
- *   null means "Azure easing mode" — clears interpolation so kf.easing takes over.
- */
-function setInterpolation(mode) {
-  Undo.initEdit({ keyframes: Timeline.selected });
-
-  Timeline.selected.forEach(kf => {
-    if (mode === null || mode === undefined) {
-      // Azure easing mode: use 'linear' sentinel (not undefined) so BB's BarSelect stays valid.
-      kf.interpolation = 'linear';
-    } else {
-      // Bedrock interpolation: set mode, clear Azure easing
-      kf.interpolation = mode;
-      kf.easing = EASING_DEFAULT;
-      kf.easingArgs = undefined;
-    }
-  });
-
-  Undo.finishEdit('Set keyframe interpolation');
-  refreshKeyframeUI();
-}
-
-/** @deprecated use setInterpolation — kept for backward compatibility */
-function toggleCatmullrom(forceValue) {
-  setInterpolation(forceValue === false ? null : 'catmullrom');
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function _onFrame() { /* reserved */ }
-
-function _createBar(id, parent) {
-  const el = document.createElement('div');
-  el.id = id;
-  el.className = 'bar flex';
-  el.style.flexWrap = 'wrap';
-  el.style.alignItems = 'center';
-  el.style.gap = '2px';
-  el.style.marginTop = '4px';
-  parent.appendChild(el);
-  return el;
-}
-
-function _cleanupKeyframePanel() {
-  PANEL_BARS.forEach(id => document.getElementById(id)?.remove());
-  const prePost = document.querySelector('#keyframe_type_label > div');
-  if (prePost) prePost.hidden = false;
-}
-
-function _groupByChannel(keyframes) {
-  const map = new Map();
-  for (const kf of keyframes) {
-    if (!map.has(kf.animator)) map.set(kf.animator, {});
-    const ch = map.get(kf.animator);
-    if (!ch[kf.channel]) ch[kf.channel] = [];
-    ch[kf.channel].push(kf);
-    ch[kf.channel].sort((a, b) => a.time - b.time);
-  }
-  return map;
-}
-
-/**
- * Read a value from all selected keyframes.
- * If all values are equal, return it; otherwise return `conflict`.
- */
-function _readMulti(selected, selector, def, conflict) {
-  const fn = typeof selector === 'function' ? selector : kf => kf[selector];
-  if (selected.length === 0) return def;
-  if (selected.length === 1) return fn(selected[0]) ?? def;
-  const values = (0,lodash.uniq)(selected.map(fn));
-  return values.length === 1 ? values[0] : conflict;
-}
-
-/**
- * Extract the easing family from a full easing name.
- * 'easeInOutSine' → 'sine', 'linear' → 'linear'
- */
-function _easingFamilyOf(name) {
-  if (!name || name === 'linear') return 'linear';
-  if (name === 'step') return 'step';
-  const m = String(name).match(/^ease(?:InOut|In|Out)([\w]+)$/i);
-  return m ? m[1].toLowerCase() : name.toLowerCase();
-}
-
-/**
- * Extract the easing type (in/out/inout) from a full easing name.
- * 'easeInOutSine' → 'inout', 'easeOutBounce' → 'out', 'easeInQuad' → 'in'
- */
-function _easingTypeOf(name) {
-  const m = String(name).match(/^ease(InOut|In|Out)/i);
-  if (!m) return 'in';
-  const raw = m[1].toLowerCase();
-  return raw === 'inout' ? 'inout' : raw;
-}
-
-/**
- * Assemble a full easing ID from family + type.
- * ('sine', 'out') → 'easeOutSine'
- * ('linear', *) → 'linear'
- * ('step', *) → 'step'
- */
-function _assembleEasingId(family, type) {
-  if (family === 'linear') return 'linear';
-  if (family === 'step') return 'step';
-  const typeStr = type === 'inout' ? 'InOut' : type === 'out' ? 'Out' : 'In';
-  return `ease${typeStr}${family.charAt(0).toUpperCase()}${family.slice(1)}`;
-}
-
-function _getArgLabel(easing) {
-  if (!easing) return 'Arg';
-  if (easing.includes('Back')) return 'Overshoot';
-  if (easing.includes('Elastic')) return 'Bounciness';
-  if (easing.includes('Bounce')) return 'Bounciness';
-  if (easing === 'step') return 'Steps';
-  return 'Arg';
-}
-
-function _patchStockInterpolationBar() {
-  if (!BarItems.keyframe_interpolation) return;
-  const orig = BarItems.keyframe_interpolation.condition;
-  BarItems.keyframe_interpolation.condition = function (...args) {
-    if (Format?.id === 'azure_model') return false;
-    return typeof orig === 'function' ? orig.apply(this, args) : true;
-  };
-}
-
-// ---------------------------------------------------------------------------
-// SVG easing curve icons (inline)
-// ---------------------------------------------------------------------------
-
-const EASING_ICONS = {
-  linear:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  step:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 0,-1.32 H 1.85 v -1.32 H 3.17 v -1.33 h 1.32 v -1.32 l 1.33,1e-5" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  sine:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 1.85,5.82 4.76,2.38 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  quad:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.04 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  cubic:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 3.17,5.82 4.76,3.82 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  quart:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.17,0 4.23,-2.64 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  quint:   '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 3.44,0 4.23,-1.85 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  expo:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 4.23,0 5.29,-1.06 5.29,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  circ:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="M 0.53,5.82 C 5.82,4.97 5.82,3.17 5.82,0.53" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  back:    '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.29 c 3.17,0 4.23,2.91 5.29,-4.76" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  elastic: '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.15 c 0.79,0 0.79,-0.26 1.32,-0.26 0.53,0 0.79,0.53 1.32,0.53 0.53,0 1.01,-1.84 1.32,-0.79 0.79,2.64 1.32,1.32 1.32,-3.97" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-  bounce:  '<svg viewBox="0 0 6.35 6.35" height="20" width="20"><path d="m 0.53,5.82 c 0.26,-0.26 0.53,-0.26 0.79,0 0.53,-0.53 0.53,-0.53 1.06,0 0.79,-2.12 1.59,-2.12 2.38,0 0.26,-4.23 1.06,-5.29 1.06,-5.29" style="fill:none;stroke:currentColor;stroke-width:0.53"/></svg>',
-};
-
-;// ./core/azure-utils.js
-/**
- * AzureLib Animator — Utility & Patching Layer
- * --------------------------------------------
- * Provides function override registration and restoration.
- * Replaces the old addMonkeypatch/removeMonkeypatch system.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-const PatchRegistry = new Map();
-
-/**
- * Register a new override on a target object.
- * Keeps a reference to the original method.
- */
-function injectOverride(symbol, path, key, newImpl) {
-  const target = path ? symbol[path] : symbol;
-  if (!PatchRegistry.has(symbol)) PatchRegistry.set(symbol, { _target: target });
-  const entry = PatchRegistry.get(symbol);
-  entry[key] = target[key];
-  target[key] = newImpl;
-}
-
-/**
- * Restore all previously injected overrides.
- */
-function restoreOverrides() {
-  PatchRegistry.forEach(entry => {
-    Object.keys(entry).forEach(key => {
-      if (key.startsWith('_')) return;
-      entry._target[key] = entry[key];
-    });
-  });
-  PatchRegistry.clear();
-}
-
-/**
- * Whether an easing type uses arguments.
- */
-const azure_utils_hasArgs = easing =>
-  easing?.includes('Back') ||
-  easing?.includes('Elastic') ||
-  easing?.includes('Bounce') ||
-  easing === 'step';
-
-/**
- * Fallback Molang inverter for AzureLib standalone use.
- */
-function invertMolang(molang) {
-  const OPEN = ['(', '[', '{'];
-  const CLOSE = [')', ']', '}'];
-
-  if (typeof molang === 'number') return -molang;
-  if (molang === '' || molang === '0') return molang;
-
-  if (!isNaN(parseFloat(molang)) && isFinite(molang)) {
-    const val = parseFloat(molang);
-    return (-val).toString();
-  }
-
-  let invert = true;
-  let depth = 0;
-  let lastOp;
-  let result = '';
-
-  for (let ch of molang) {
-    if (!depth) {
-      let op;
-      let hadInput = true;
-
-      if (ch === '-' && lastOp !== '*' && lastOp !== '/') {
-        if (!invert && !lastOp) result += '+';
-        invert = false;
-        continue;
-      } else if (ch === '+' && lastOp !== '*' && lastOp !== '/') {
-        result += '-';
-        invert = false;
-        continue;
-      } else if ('?:'.includes(ch)) {
-        invert = true;
-        op = ch;
-      } else if (invert) {
-        result += '-';
-        invert = false;
-      } else if ('+-*/&|'.includes(ch)) {
-        op = ch;
-      }
-
-      lastOp = op || lastOp;
-    }
-
-    if (OPEN.includes(ch)) depth++;
-    if (CLOSE.includes(ch)) depth--;
-
-    result += ch;
-  }
-
-  return result;
-}
-
-;// ./animation/azure-keyframes.js
-/**
- * AzureLib Animator — Keyframe Interpolation & Overrides
- * ------------------------------------------------------
- * Adds easing-aware keyframe interpolation and export behaviour
- * for AzureLib's unified animation format.
- *
- * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
- * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-let ORIG = null;
-let ORIG_REVERSE_CONDITION = null;
-let PATCHED = false;
-
-// ---------------------------------------------------------------------------
-// Capture originals once
-// ---------------------------------------------------------------------------
-
-function captureOriginalsOnce() {
-  if (ORIG) return;
-  ORIG = {
-    getLerp: Keyframe.prototype.getLerp,
-    compileBedrockKeyframe: Keyframe.prototype.compileBedrockKeyframe,
-    getUndoCopy: Keyframe.prototype.getUndoCopy,
-    extend: Keyframe.prototype.extend,
-  };
-  try {
-    ORIG_REVERSE_CONDITION = BarItems.reverse_keyframes?.condition || null;
-  } catch {
-    ORIG_REVERSE_CONDITION = null;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Registration
-// ---------------------------------------------------------------------------
-
-function registerKeyframeOverrides() {
-  if (PATCHED) return;
-  captureOriginalsOnce();
-
-  if (!Keyframe.prototype._azurePatched) {
-    Keyframe.prototype.getLerp              = getLerpOverride;
-    Keyframe.prototype.compileBedrockKeyframe = compileBedrockKeyframe;
-    Keyframe.prototype.getUndoCopy          = getUndoCopy;
-    Keyframe.prototype.extend               = extendKeyframe;
-    Keyframe.prototype._azurePatched        = true;
-  }
-
-  if (BarItems.reverse_keyframes && !BarItems.reverse_keyframes._azurePatched) {
-    if (!ORIG_REVERSE_CONDITION) ORIG_REVERSE_CONDITION = BarItems.reverse_keyframes.condition;
-    BarItems.reverse_keyframes.condition = reverseCondition;
-    BarItems.reverse_keyframes._azurePatched = true;
-  }
-
-  // Hook Blockbench's playback dispatcher so Azure-easing segments are
-  // actually interpolated. Without this, kf.interpolation === 'linear'
-  // (our marker for "Azure easing mode") would use BB's plain linear branch
-  // and ignore any Azure easing curve set on the keyframe.
-  Blockbench.on('interpolate_keyframes', azureInterpolateListener);
-
-  PATCHED = true;
-}
-
-function unregisterKeyframeOverrides() {
-  if (!PATCHED || !ORIG) return;
-  try {
-    if (Keyframe.prototype._azurePatched) {
-      Keyframe.prototype.getLerp              = ORIG.getLerp;
-      Keyframe.prototype.compileBedrockKeyframe = ORIG.compileBedrockKeyframe;
-      Keyframe.prototype.getUndoCopy          = ORIG.getUndoCopy;
-      Keyframe.prototype.extend               = ORIG.extend;
-      delete Keyframe.prototype._azurePatched;
-    }
-    if (BarItems.reverse_keyframes?._azurePatched && ORIG_REVERSE_CONDITION) {
-      BarItems.reverse_keyframes.condition = ORIG_REVERSE_CONDITION;
-      delete BarItems.reverse_keyframes._azurePatched;
-    }
-    try { Blockbench.removeListener('interpolate_keyframes', azureInterpolateListener); } catch { /* noop */ }
-  } finally {
-    PATCHED = false;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// interpolate_keyframes listener — drives Azure-easing playback
-// ---------------------------------------------------------------------------
-//
-// Blockbench's BoneAnimator.interpolate dispatches this event before its
-// own interpolation switch. If a listener returns { value: [x, y, z] }
-// the dispatcher returns that array directly and the built-in
-// linear/catmullrom/bezier branches are skipped.
-//
-// We use this for Azure-easing segments (kf.interpolation falsy or 'linear')
-// — without it, kf.interpolation === undefined doesn't match any of BB's
-// built-in branches and BoneAnimator.interpolate falls off the end without
-// returning a value, freezing the bone between keyframes.
-//
-// Returning undefined from the listener leaves BB's normal dispatch in
-// place, which is what we want for catmullrom/bezier/step segments.
-
-function azureInterpolateListener(args) {
-  if (Format?.id !== 'azure_model') return;
-
-  const before = args && args.keyframe_before;
-  const after  = args && args.keyframe_after;
-  if (!before || !after) return;
-
-  // Only handle Azure-easing segments. Anything that names a BB-native
-  // interpolation mode (catmullrom / bezier / step) is left to BB.
-  // 'linear' is treated as Azure-eligible because that's the default value
-  // BB stamps onto fresh keyframes — and it's also semantically a no-op
-  // when the easing happens to be plain linear.
-  const azureEligible = mode => !mode || mode === 'linear';
-  if (!azureEligible(before.interpolation) || !azureEligible(after.interpolation)) return;
-
-  // Defer to BB when either side carries molang expressions — the eased
-  // numeric path can't preserve string expressions and would silently
-  // change behaviour. (Safe: BB's linear→linear branch handles this case.)
-  if (before.has_expressions || after.has_expressions) return;
-
-  // Resolve easing from the destination keyframe. AzureLib reads easing
-  // off the "to" keyframe, mirroring the Java runtime.
-  const easing = after.easing || EASING_DEFAULT;
-  const fn = easingRegistry[easing] || easingRegistry.linear;
-
-  let eased;
-  if (azure_utils_hasArgs(easing)) {
-    const arg = (Array.isArray(after.easingArgs) && after.easingArgs.length)
-      ? after.easingArgs[0]
-      : getEasingArgDefault(easing);
-    eased = fn(args.t, arg);
-  } else {
-    eased = fn(args.t);
-  }
-
-  if (typeof eased !== 'number' || Number.isNaN(eased)) return;
-
-  // Match the data_point selection used by Keyframe.prototype.getLerp:
-  // earlier-in-time kf uses dp 1 if it has multiple, later kf uses dp 0.
-  // before.time < after.time is guaranteed here by BoneAnimator.interpolate.
-  const beforeDP = (before.data_points.length > 1) ? 1 : 0;
-  const afterDP  = 0;
-
-  const value = ['x', 'y', 'z'].map(axis => {
-    const a = before.calc(axis, beforeDP);
-    const b = after.calc(axis, afterDP);
-    return a + (b - a) * eased;
-  });
-
-  return { value };
-}
-
-// ---------------------------------------------------------------------------
-// getLerp — easing-aware interpolation
-// ---------------------------------------------------------------------------
-//
-// Reachable in two situations:
-//   1. BoneAnimator.interpolate's linear-only branch (only when both kfs
-//      have interpolation === 'linear'). With the event listener above,
-//      that branch is short-circuited for Azure-easing segments, so this
-//      path mostly handles plain linear→linear segments at runtime.
-//   2. The keyframe optimizer in animation.js (~line 1462) uses the same
-//      linear-only gate during bake/optimize and calls getLerp directly.
-//      We honour Azure easing there too so optimized output matches
-//      playback behaviour.
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function getLerpOverride(other, axis, t) {
-  if (Format?.id !== 'azure_model') {
-    return ORIG.getLerp.apply(this, arguments);
-  }
-
-  // Defer to Blockbench for explicit Bedrock spline/bezier/step modes.
-  // Note: 'linear' is intentionally NOT in this list — we want to apply
-  // the Azure easing curve when one is set, even if the kf carries
-  // BB's default interpolation === 'linear' marker.
-  if (other.interpolation === 'catmullrom' ||
-      other.interpolation === 'bezier'     ||
-      other.interpolation === 'step') {
-    return ORIG.getLerp.apply(this, arguments);
-  }
-
-  const easing = other.easing || EASING_DEFAULT;
-
-  // Plain linear with no custom easing → BB's original implementation
-  // is fine and preserves its allow_expression fast-path.
-  if (easing === EASING_DEFAULT && (!other.easingArgs || !other.easingArgs.length)) {
-    return ORIG.getLerp.apply(this, arguments);
-  }
-
-  let func = easingRegistry[easing] || easingRegistry.linear;
-
-  if (azure_utils_hasArgs(easing)) {
-    const arg = Array.isArray(other.easingArgs) && other.easingArgs.length
-      ? other.easingArgs[0]
-      : getEasingArgDefault(easing);
-    func = func.bind(null, arg);
-  }
-
-  const eased = func(t);
-  const start = this.calc(axis);
-  const stop  = other.calc(axis);
-  const result = lerp(start, stop, eased);
-
-  if (Number.isNaN(result)) throw new Error('[AzureLib] Invalid easing result');
-  return result;
-}
-
-// ---------------------------------------------------------------------------
-// compileBedrockKeyframe — unified serialiser
-// ---------------------------------------------------------------------------
-
-function compileBedrockKeyframe() {
-  if (Format?.id !== 'azure_model') {
-    return ORIG.compileBedrockKeyframe.apply(this, arguments);
-  }
-
-  const base = ORIG.compileBedrockKeyframe.apply(this, arguments);
-  const cloneArray = arr => Array.isArray(arr) ? [...arr] : arr;
-
-  // --- Bedrock lerp_mode keyframes (linear / catmullrom): keep pre/post/lerp_mode ---
-  if (this.interpolation === 'catmullrom') {
-    const siblings = this.animator?.keyframes?.filter(k => k.channel === this.channel) || [];
-    const channelIsEasing = siblings.some(k => k.easing && k.easing !== EASING_DEFAULT);
-    if (!channelIsEasing) {
-      const lerpMode = 'catmullrom';
-      if (base && typeof base === 'object') {
-        return {
-          ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
-          post:      cloneArray(base.post || base),
-          lerp_mode: lerpMode,
-        };
-      }
-      return { post: cloneArray(base), lerp_mode: lerpMode };
-    }
-  }
-
-  // --- Bezier keyframes: Blockbench handles pre/post natively, pass through ---
-  if (this.interpolation === 'bezier') {
-    if (base && typeof base === 'object') {
-      return {
-        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
-        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
-      };
-    }
-    return base;
-  }
-
-  // --- Step transition: keep pre/post pair ---
-  const prev = this.getPreviousKeyframe?.();
-  if (this.data_points.length === 1 && prev && prev.interpolation === 'step') {
-    if (base && typeof base === 'object') {
-      return {
-        ...(base.pre  !== undefined ? { pre:  cloneArray(base.pre)  } : {}),
-        ...(base.post !== undefined ? { post: cloneArray(base.post) } : {}),
-      };
-    }
-    return base;
-  }
-
-  // --- If Blockbench emitted explicit pre/post transition data, keep raw ---
-  if (
-    base && typeof base === 'object' && !Array.isArray(base) &&
-    (base.pre !== undefined || base.post !== undefined)
-  ) {
-    const out = {
-      ...(base.pre       !== undefined ? { pre:       cloneArray(base.pre)       } : {}),
-      ...(base.post      !== undefined ? { post:      cloneArray(base.post)      } : {}),
-      ...(base.lerp_mode !== undefined ? { lerp_mode: base.lerp_mode             } : {}),
-    };
-    if (this.easing && this.easing !== EASING_DEFAULT) out.easing = this.easing;
-    if (azure_utils_hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
-      out.easingArgs = [...this.easingArgs];
-    }
-    return out;
-  }
-
-  // --- AzureLib easing node ---
-  const withAzureVectorNode = value => {
-    // Already an object with extra fields? (e.g. existing easing data)
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      const out = { ...value };
-      if (out.easing === undefined && this.easing !== undefined) {
-        out.easing = this.easing;
-      }
-      if (out.easingArgs === undefined && azure_utils_hasArgs(this.easing) &&
-          Array.isArray(this.easingArgs) && this.easingArgs.length) {
-        out.easingArgs = [...this.easingArgs];
-      }
-      return out;
-    }
-
-    // Plain array → Azure node
-    const out = { vector: cloneArray(value) };
-    if (this.easing && this.easing !== EASING_DEFAULT) {
-      out.easing = this.easing;
-    }
-    if (azure_utils_hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
-      out.easingArgs = [...this.easingArgs];
-    }
-
-    // Flatten to plain array if there are no extra fields
-    if (!out.easing && !out.easingArgs) {
-      return out.vector;
-    }
-    return out;
-  };
-
-  return withAzureVectorNode(base);
-}
-
-// ---------------------------------------------------------------------------
-// getUndoCopy — preserve easing state in undo history
-// ---------------------------------------------------------------------------
-
-function getUndoCopy() {
-  const base = ORIG.getUndoCopy.apply(this, arguments);
-  if (Format?.id === 'azure_model') {
-    base.easing = this.easing;
-    base.interpolation = this.interpolation;
-    if (azure_utils_hasArgs(this.easing)) base.easingArgs = this.easingArgs ? [...this.easingArgs] : undefined;
-  }
-  return base;
-}
-
-// ---------------------------------------------------------------------------
-// extend — parse keyframe data on load
-// ---------------------------------------------------------------------------
-
-function extendKeyframe(dataIn) {
-  const data = Object.assign({}, dataIn);
-
-  if (Format?.id !== 'azure_model') {
-    return ORIG.extend.apply(this, [data]);
-  }
-
-  const cloneVec = (vec, fallback = [0, 0, 0]) => {
-    if (!Array.isArray(vec)) return [...fallback];
-    return [
-      vec[0] !== undefined ? vec[0] : fallback[0],
-      vec[1] !== undefined ? vec[1] : fallback[1],
-      vec[2] !== undefined ? vec[2] : fallback[2],
-    ];
-  };
-
-  const unwrapNode = value => {
-    if (Array.isArray(value)) {
-      return { vector: cloneVec(value) };
-    }
-    if (value && typeof value === 'object') {
-      const out = {};
-      if (value.easing       !== undefined) out.easing       = value.easing;
-      if (value.interpolation !== undefined) out.interpolation = value.interpolation;
-      if (Array.isArray(value.easingArgs))   out.easingArgs   = [...value.easingArgs];
-      if (Array.isArray(value.vector))       { out.vector = cloneVec(value.vector); return out; }
-      if ('x' in value && 'y' in value && 'z' in value) {
-        out.vector = cloneVec([value.x, value.y, value.z]); return out;
-      }
-    }
-    return { vector: null };
-  };
-
-  const valuesNode = unwrapNode(data.values);
-  const preNode    = unwrapNode(data.pre);
-  const postNode   = unwrapNode(data.post);
-
-  // Apply easing from whichever node carries it
-  const easingSource = valuesNode.easing ?? data.easing ?? postNode.easing;
-  if (easingSource !== undefined)     this.easing      = easingSource;
-
-  // Apply interpolation only for explicit Bedrock modes (catmullrom / bezier / step).
-  // We intentionally IGNORE data.interpolation === 'linear' from Blockbench core because
-  // 'linear' is Blockbench's own default interp label and would shadow our Azure easing.
-  // 'linear' as a Bedrock lerp_mode is set via data.lerp_mode, not data.interpolation.
-  // Only store Blockbench-native interpolation modes that we explicitly support.
-  // We intentionally ignore data.interpolation === 'linear' (Blockbench's own default)
-  // because it would shadow Azure easings. lerp_mode:'linear' from JSON is also dropped —
-  // it is handled by AzureLib's own linear easing instead.
-  const BEDROCK_INTERP_MODES = new Set(['catmullrom', 'bezier', 'step']);
-  let rawInterp = data.interpolation ?? postNode.interpolation;
-  // Prefer explicit lerp_mode from JSON over Blockbench's data.interpolation default
-  if (data.lerp_mode !== undefined && data.lerp_mode !== 'linear') rawInterp = data.lerp_mode;
-
-  if (rawInterp !== undefined && BEDROCK_INTERP_MODES.has(rawInterp)) {
-    this.interpolation = rawInterp;
-  } else {
-    this.interpolation = 'linear';
-  }
-
-  const easingArgsSource = valuesNode.easingArgs ?? data.easingArgs ?? postNode.easingArgs;
-  if (easingArgsSource !== undefined) this.easingArgs   = [...easingArgsSource];
-
-  // Strip Azure/Bedrock wrappers before handing off to Blockbench core
-  const plain = Object.assign({}, data);
-  ['values', 'pre', 'post'].forEach(key => {
-    if (plain[key] && typeof plain[key] === 'object' && !Array.isArray(plain[key])) {
-      delete plain[key];
-    }
-  });
-
-  const result = ORIG.extend.apply(this, [plain]);
-
-  // Re-hydrate axis data explicitly
-  const ensurePoint = idx => {
-    if (!Array.isArray(this.data_points)) this.data_points = [];
-    if (!this.data_points[idx]) this.data_points[idx] = {};
-    return this.data_points[idx];
-  };
-
-  const toNum = v => {
-    if (typeof v !== 'string') return v;
-    const n = Number(v);
-    return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
-  };
-  const writeVector = (point, vec) => {
-    if (!vec) return;
-    point.x = toNum(vec[0]);
-    point.y = toNum(vec[1]);
-    point.z = toNum(vec[2]);
-    delete point.vector;
-  };
-
-  if (preNode.vector && postNode.vector) {
-    writeVector(ensurePoint(0), preNode.vector);
-    writeVector(ensurePoint(1), postNode.vector);
-  } else if (preNode.vector) {
-    writeVector(ensurePoint(0), preNode.vector);
-  } else if (!preNode.vector && postNode.vector && this.interpolation === 'catmullrom') {
-    writeVector(ensurePoint(0), postNode.vector);
-  } else if (valuesNode.vector) {
-    writeVector(ensurePoint(0), valuesNode.vector);
-  } else if (postNode.vector) {
-    writeVector(ensurePoint(0), postNode.vector);
-  }
-
-  return result;
-}
-
-// ---------------------------------------------------------------------------
-// Reverse keyframes guard
-// ---------------------------------------------------------------------------
-
-function reverseCondition() {
-  if (reverseCondition._inAzureCall) return false;
-  try {
-    reverseCondition._inAzureCall = true;
-    if (!ORIG_REVERSE_CONDITION || typeof ORIG_REVERSE_CONDITION !== 'function') return false;
-    const result = ORIG_REVERSE_CONDITION.call(BarItems.reverse_keyframes);
-    return result && Format?.id !== 'azure_model';
-  } finally {
-    reverseCondition._inAzureCall = false;
-  }
-}
-
-/* harmony default export */ const azure_keyframes = ({ registerKeyframeOverrides, unregisterKeyframeOverrides });
-
-;// ./templates/armorTemplate.json
-const armorTemplate_namespaceObject = /*#__PURE__*/JSON.parse('{"meta":{"format_version":"3.2","model_format":"azure_model","box_uv":true},"name":"CustomArmor","geo_name":"CustomArmor","resolution":{"width":64,"height":64},"elements":[{"name":"armorHead_layer1","from":[-4,24,-4],"to":[4,32,4],"inflate":0.75,"autouv":0,"color":1,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[0,0],"uuid":"a1000001-0000-0000-0000-000000000001"},{"name":"armorHead_layer2","from":[-4,24,-4],"to":[4,32,4],"inflate":1,"autouv":0,"color":1,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[32,0],"uuid":"a1000002-0000-0000-0000-000000000002"},{"name":"armorBody_cube","from":[-4,12,-2],"to":[4,24,2],"inflate":0.75,"autouv":0,"color":2,"export":true,"locked":false,"origin":[0,24,0],"uv_offset":[4,16],"uuid":"a2000001-0000-0000-0000-000000000001"},{"name":"armorRightArm_cube","from":[-8,12,-2],"to":[-4,24,2],"inflate":0.7,"autouv":0,"color":4,"export":true,"locked":false,"origin":[-5,22,0],"uv_offset":[4,32],"uuid":"a4000001-0000-0000-0000-000000000001"},{"name":"armorLeftArm_cube","from":[4,12,-2],"to":[8,24,2],"inflate":0.7,"autouv":0,"color":4,"export":true,"locked":false,"mirror_uv":true,"origin":[5,22,0],"uv_offset":[20,32],"uuid":"a5000001-0000-0000-0000-000000000001"},{"name":"armorLeftLeg_cube","from":[0,0,-2],"to":[4,12,2],"inflate":0.5,"autouv":0,"color":5,"export":true,"locked":false,"mirror_uv":true,"origin":[-2,12,0],"uv_offset":[20,48],"uuid":"a6000001-0000-0000-0000-000000000001"},{"name":"armorLeftBoot_cube","from":[0,0,-2],"to":[4,12,2],"inflate":0.7,"autouv":0,"color":5,"export":true,"locked":false,"mirror_uv":true,"origin":[-2,12,0],"uv_offset":[20,64],"uuid":"a6000002-0000-0000-0000-000000000002"},{"name":"armorRightLeg_cube","from":[-4,0,-2],"to":[0,12,2],"inflate":0.5,"autouv":0,"color":5,"export":true,"locked":false,"origin":[2,12,0],"uv_offset":[4,48],"uuid":"a7000001-0000-0000-0000-000000000001"},{"name":"armorRightBoot_cube","from":[-4,0,-2],"to":[0,12,2],"inflate":0.7,"autouv":0,"color":5,"export":true,"locked":false,"origin":[2,12,0],"uv_offset":[4,64],"uuid":"a7000002-0000-0000-0000-000000000002"}],"outliner":[{"name":"bipedHead","uuid":"d340b6fa-56aa-9c0f-3560-7a067643b77d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[{"name":"armorHead","uuid":"6ab88dea-c816-d2bb-6be9-05ed7838da97","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["a1000001-0000-0000-0000-000000000001","a1000002-0000-0000-0000-000000000002"]}]},{"name":"bipedBody","uuid":"ce5b366c-fd87-41ae-9a73-e0a4d4b05f8d","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":[{"name":"armorBody","uuid":"282fcdbb-8ea9-4a13-4154-f2ed20d696c8","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,24,0],"children":["a2000001-0000-0000-0000-000000000001"]}]},{"name":"bipedRightArm","uuid":"d8113cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":[{"name":"armorRightArm","uuid":"c5300e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[5,22,0],"children":["a4000001-0000-0000-0000-000000000001"]}]},{"name":"bipedLeftArm","uuid":"3b8901e8-3420-0834-51eb-76d64ff2ae8f","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":[{"name":"armorLeftArm","uuid":"b0d41a53-f4ce-53c1-f899-5a2048c90ac2","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-5,22,0],"children":["a5000001-0000-0000-0000-000000000001"]}]},{"name":"bipedWaist","uuid":"d8125cc7-7e10-0930-259e-b8e4211ce9da","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,12,0],"children":[{"name":"armorWaist","uuid":"c9000e23-fd2f-b56c-3552-45d6650e11c6","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[0,12,0],"children":[]}]},{"name":"bipedLeftLeg","uuid":"37231be7-a8ef-22ca-7fea-40aed58003bb","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":[{"name":"armorLeftLeg","uuid":"e4b19746-2d17-1f56-befe-00718165ae50","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["a6000001-0000-0000-0000-000000000001"]},{"name":"armorLeftBoot","uuid":"9fe26b9a-ad66-9e6b-2fa2-4168e333b4be","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[-2,12,0],"children":["a6000002-0000-0000-0000-000000000002"]}]},{"name":"bipedRightLeg","uuid":"45c031a5-b6be-e0a7-5454-b45d07f28429","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":[{"name":"armorRightLeg","uuid":"60238f18-e74b-c863-cb45-2e2f162221bd","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["a7000001-0000-0000-0000-000000000001"]},{"name":"armorRightBoot","uuid":"eb3db34b-ccfe-dae9-ac4d-4e22c3222f70","export":true,"isOpen":true,"visibility":true,"autouv":0,"origin":[2,12,0],"children":["a7000002-0000-0000-0000-000000000002"]}]}],"textures":[]}');
-;// ./core/azure-settings.js
-/**
- * AzureLib Animator — Settings & Templates
- * ----------------------------------------
- * Defines runtime configuration, SDK targets, and automatic
- * template loading for armor models.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-const makeOptions = list => Object.fromEntries(list.map(x => [x, x]));
-
-const SDK_FORGE = 'Forge 1.12 - 1.16';
-const SDK_FABRIC = 'Fabric 1.15 - 1.16';
-const SDK_OPTIONS = makeOptions([SDK_FORGE, SDK_FABRIC]);
-
-const TYPE_ENTITY = 'AZURE_ENTITY';
-const TYPE_ARMOR = 'AZURE_ARMOR';
-const TYPE_ITEMBLOCK = 'AZURE_ITEM_BLOCK';
-
-const TYPE_OPTIONS = {
-  [TYPE_ENTITY]: 'Entity/Block/Item',
-  [TYPE_ARMOR]: 'Armor',
-};
-
-const DEFAULT_CONFIG = Object.freeze({
-  formatVersion: 2,
-  modSDK: SDK_FORGE,
-  objectType: TYPE_ENTITY,
-  entityType: 'Entity/Block/Item',
-  javaPackage: 'com.example.mod',
-  animFileNamespace: 'modid',
-  animFilePath: 'animations/animation.json',
-});
-
-const AzureConfig = Object.assign({}, DEFAULT_CONFIG);
-
-let _ghostModel = null;
-
-function removeGhostPlayer() {
-  if (_ghostModel) {
-    scene.remove(_ghostModel);
-    _ghostModel = null;
-  }
-}
-
-function injectGhostPlayer() {
-  removeGhostPlayer();
-
-  // Use Blockbench's own display reference player model directly.
-  // It's already built, skinned, and kept up to date by updateDisplaySkin().
-  // We just clone its THREE.Object3D and add it to the edit mode scene.
-  const refPlayer = displayReferenceObjects?.refmodels?.player;
-  if (!refPlayer) {
-    console.warn('[AzureLib] displayReferenceObjects.refmodels.player not available');
-    return;
-  }
-
-  // Ensure the model is initialised (it lazy-builds on first Display tab visit)
-  if (!refPlayer.initialized) {
-    for (const model of refPlayer.models) {
-      refPlayer.buildModel(model);
-    }
-    refPlayer.setModelVariant('steve');
-    updateDisplaySkin?.();
-    refPlayer.initialized = true;
-  }
-
-  // Clone so we don't disturb the Display tab's own copy
-  _ghostModel = refPlayer.model.clone();
-
-  _ghostModel.children.forEach(mesh => {
-    mesh.rotation.set(0, 0, 0);
-  });
-
-  scene.add(_ghostModel);
-  console.log('[AzureLib] Ghost player injected using display refmodel.');
-}
-
-/**
- * Applies configuration and injects armor templates when applicable.
- */
-function onSettingsChanged() {
-  Modes.selected.select();
-
-  if (AzureConfig.objectType === TYPE_ARMOR) {
-    if (Outliner.root.length === 0) {
-      Codecs.project.parse(armorTemplate_namespaceObject);
-      console.log('[AzureLib] Loaded armor template.');
-
-      injectGhostPlayer();
-      Blockbench.once('close_project', removeGhostPlayer);
-      Blockbench.once('new_project', removeGhostPlayer);
-    } else {
-      alert(
-        'Cannot apply Armor Template — please select Armor type in an empty project.'
-      );
-    }
-  } else if (AzureConfig.objectType === TYPE_ENTITY) {
-    Project.parent = 'builtin/entity';
-  }
-}
-
-/* harmony default export */ const azure_settings = (AzureConfig);
-// EXTERNAL MODULE: ./node_modules/lodash/omit.js
-var omit = __webpack_require__(179);
-var omit_default = /*#__PURE__*/__webpack_require__.n(omit);
-;// ./animation/azure-playback.js
-/**
- * AzureLib Animator — Play Behaviors
- * ----------------------------------
- * Adds AzureLib's play behaviors (ping-pong, repeat X times, freeze on frame) next to Blockbench's own loop modes,
- * only while an AzureLib model is open:
- *
- *   - the stock Animation Properties dialog gets the extra Loop Mode options plus their settings
- *   - the animation right-click "Loop Mode" submenu gets the extra options
- *   - timeline playback previews them for real (ping-pong plays back and forth, repeat stops after its plays,
- *     freeze stops at its frame)
- *   - the animation JSON gets the fields AzureLib reads, so mods don't need AzCommands for them
- *
- * JSON written per animation (read by AzAnimationDefaults on the mod side):
- *   "loop": true | "hold_on_last_frame" | "ping_pong" | "repeat_x_times" | "freeze_on_frame"   (omitted = play once)
- *   "repeat_times": 3        only with repeat_x_times
- *   "freeze_at": 1.25        only with freeze_on_frame, in seconds like every other time in the file
- *
- * © 2026 AzureDoom — MIT License
- */
-const PROP_BEHAVIOR = 'azl_play_behavior';
-const PROP_REPEAT = 'azl_repeat_times';
-const PROP_FREEZE = 'azl_freeze_at';
-
-const DEFAULT_REPEAT_TIMES = 2;
-
-const PLAY_BEHAVIORS = {
-  play_once:          { label: 'menu.animation.loop.once', native: 'once', option: 'once',            extended: false },
-  hold_on_last_frame: { label: 'menu.animation.loop.hold', native: 'hold', option: 'hold',            extended: false },
-  loop:               { label: 'menu.animation.loop.loop', native: 'loop', option: 'loop',            extended: false },
-  ping_pong:          { label: 'Ping-Pong',                native: 'loop', option: 'ping_pong',       extended: true  },
-  repeat_x_times:     { label: 'Repeat',                   native: 'loop', option: 'repeat_x_times',  extended: true  },
-  freeze_on_frame:    { label: 'Freeze',                   native: 'hold', option: 'freeze_on_frame', extended: true  },
-};
-
-const NATIVE_TO_BEHAVIOR = { once: 'play_once', loop: 'loop', hold: 'hold_on_last_frame' };
-const OPTION_TO_BEHAVIOR = Object.fromEntries(Object.entries(PLAY_BEHAVIORS).map(([id, def]) => [def.option, id]));
-
-const isAzureFormat = () => Format?.id === 'azure_model';
-const roundSeconds = t => Math.round(t * 1e6) / 1e6;
-
-function isCustomBehavior(name) {
-  return typeof name === 'string' && name !== '' && !PLAY_BEHAVIORS[name];
-}
-
-function getPlayBehavior(anim) {
-  const extended = anim?.[PROP_BEHAVIOR];
-  const def = PLAY_BEHAVIORS[extended];
-
-  if (def?.extended && anim.loop === def.native) return extended;
-
-  if (isCustomBehavior(extended) && anim.loop === 'once') return extended;
-
-  return NATIVE_TO_BEHAVIOR[anim?.loop] || 'play_once';
-}
-
-function getRepeatTimes(anim) {
-  const value = Number(anim?.[PROP_REPEAT]);
-  return Number.isFinite(value) && value >= 1 ? Math.round(value) : DEFAULT_REPEAT_TIMES;
-}
-
-function getFreezeAt(anim) {
-  const value = Number(anim?.[PROP_FREEZE]);
-  return Number.isFinite(value) && value >= 0 ? value : 0;
-}
-
-function hasFreezeAt(anim) {
-  const value = Number(anim?.[PROP_FREEZE]);
-  return Number.isFinite(value) && value >= 0;
-}
-
-function repeatPlayCount(repeatTimes) {
-  return Math.max(1, Math.round(repeatTimes));
-}
-
-function applyPlayBehavior(anim, behavior, { repeatTimes, freezeAt } = {}) {
-  if (isCustomBehavior(behavior)) {
-    anim.loop = 'once';
-    anim[PROP_BEHAVIOR] = behavior;
-    return;
-  }
-
-  const def = PLAY_BEHAVIORS[behavior] || PLAY_BEHAVIORS.play_once;
-
-  anim.loop = def.native;
-  anim[PROP_BEHAVIOR] = def.extended ? behavior : '';
-
-  if (repeatTimes !== undefined) anim[PROP_REPEAT] = Math.max(1, Math.round(Number(repeatTimes) || 1));
-  if (freezeAt !== undefined) anim[PROP_FREEZE] = Math.max(0, Number(freezeAt) || 0);
-}
-
-function playbackDiffers(anim, behavior, repeatTimes, freezeAt) {
-  if (getPlayBehavior(anim) !== behavior) return true;
-  if (behavior === 'repeat_x_times' && getRepeatTimes(anim) !== Math.max(1, Math.round(Number(repeatTimes) || 1))) return true;
-  if (behavior === 'freeze_on_frame' && (!hasFreezeAt(anim) || getFreezeAt(anim) !== Math.max(0, Number(freezeAt) || 0))) return true;
-  return false;
-}
-
-function setPlayBehaviorWithUndo(anim, behavior, settings = {}) {
-  Undo.initEdit({ animations: [anim] });
-  applyPlayBehavior(anim, behavior, settings);
-  anim.saved = false;
-  Undo.finishEdit('Change animation loop mode');
-  resetPreviewClock();
-  Animator.preview();
-}
-
-function writePlaybackJson(anim, obj) {
-  const behavior = getPlayBehavior(anim);
-
-  delete obj.loop;
-  delete obj.repeat_times;
-  delete obj.freeze_at;
-
-  switch (behavior) {
-    case 'play_once':
-      break;
-    case 'loop':
-      obj.loop = true;
-      break;
-    case 'repeat_x_times':
-      obj.loop = behavior;
-      obj.repeat_times = getRepeatTimes(anim);
-      break;
-    case 'freeze_on_frame':
-      obj.loop = behavior;
-      obj.freeze_at = roundSeconds(getFreezeAt(anim));
-      break;
-    default:
-      obj.loop = behavior;
-  }
-
-  return obj;
-}
-
-function readPlaybackJson(src) {
-  const loop = typeof src?.loop === 'string' ? src.loop.trim() : src?.loop;
-  let behavior;
-
-  if (loop === true) behavior = 'loop';
-  else if (loop === false || loop === undefined || loop === null || loop === '') behavior = 'play_once';
-  else if (loop === 'once') behavior = 'play_once';
-  else if (loop === 'hold') behavior = 'hold_on_last_frame';
-  else if (PLAY_BEHAVIORS[loop]) behavior = loop;
-  else if (isCustomBehavior(loop)) {
-    return { loop: 'once', [PROP_BEHAVIOR]: loop };
-  } else {
-    behavior = 'play_once';
-  }
-
-  const def = PLAY_BEHAVIORS[behavior];
-  const fields = {
-    loop: def.native,
-    [PROP_BEHAVIOR]: def.extended ? behavior : '',
-  };
-
-  if (src?.repeat_times !== undefined) fields[PROP_REPEAT] = Math.max(1, Math.round(Number(src.repeat_times) || 1));
-  if (src?.freeze_at !== undefined) fields[PROP_FREEZE] = Math.max(0, Number(src.freeze_at) || 0);
-
-  return fields;
-}
-
-function assignPlaybackFields(anim, fields) {
-  for (const [key, value] of Object.entries(fields)) {
-    anim[key] = value;
-  }
-}
-
-let originalPropertiesDialog = null;
-let pendingDialogEdit = null;
-
-function wrappedPropertiesDialog(...args) {
-  if (!isAzureFormat() || typeof Dialog === 'undefined') {
-    return originalPropertiesDialog.apply(this, args);
-  }
-
-  const animation = this;
-  const proto = Dialog.prototype;
-  const originalShow = proto.show;
-
-  proto.show = function (...showArgs) {
-    if (this.id === 'animation_properties' && !this._azlInjected) {
-      this._azlInjected = true;
-      try {
-        injectPlaybackIntoDialog(this, animation);
-      } catch (error) {
-        console.error('[AzureLib] Failed to extend animation properties dialog', error);
-      }
-    }
-    return originalShow.apply(this, showArgs);
-  };
-
-  try {
-    return originalPropertiesDialog.apply(this, args);
-  } finally {
-    proto.show = originalShow;
-  }
-}
-
-function injectPlaybackIntoDialog(dialog, animation) {
-  const config = dialog.form_config;
-  if (!config?.loop) return;
-
-  const current = getPlayBehavior(animation);
-  const options = {};
-  for (const def of Object.values(PLAY_BEHAVIORS)) options[def.option] = def.label;
-  if (isCustomBehavior(current)) options[current] = `Custom: ${current}`;
-
-  const currentOption = PLAY_BEHAVIORS[current]?.option ?? current;
-  const isRepeat = form => form.loop === 'repeat_x_times';
-  const isFreeze = form => form.loop === 'freeze_on_frame';
-
-  const playbackFields = {
-    azl_repeat_times: {
-      label: 'Repeat Count',
-      type: 'number',
-      value: getRepeatTimes(animation),
-      min: 1,
-      step: 1,
-      condition: isRepeat,
-      description: 'How many times the animation plays in total. Same value as AzCommand setRepeatAmount.'
-    },
-    azl_freeze_at: {
-      label: 'Freeze At',
-      type: 'number',
-      value: hasFreezeAt(animation) ? getFreezeAt(animation) : roundSeconds(Timeline.time || 0),
-      min: 0,
-      step: 0.05,
-      condition: isFreeze,
-      description: 'Time in seconds where the animation stops and holds.',
-    },
-    azl_freeze_playhead: {
-      type: 'buttons',
-      buttons: ['Use Playhead Time'],
-      condition: isFreeze,
-      click() {
-        dialog.setFormValues({ azl_freeze_at: roundSeconds(Timeline.time || 0) });
-      },
-    },
-  };
-
-  const rebuilt = {};
-  for (const [key, value] of Object.entries(config)) {
-    rebuilt[key] = key === 'loop' ? { ...value, options, value: currentOption } : value;
-    if (key === 'loop') Object.assign(rebuilt, playbackFields);
-  }
-  dialog.form_config = rebuilt;
-
-  const originalConfirm = dialog.onConfirm;
-
-  dialog.onConfirm = (formResult, event) => {
-    const behavior = OPTION_TO_BEHAVIOR[formResult.loop] ?? formResult.loop;
-    const def = PLAY_BEHAVIORS[behavior];
-    const edit = {
-      animation,
-      behavior,
-      settings: {
-        repeatTimes: behavior === 'repeat_x_times' ? formResult.azl_repeat_times : undefined,
-        freezeAt: behavior === 'freeze_on_frame' ? formResult.azl_freeze_at : undefined,
-      },
-      applied: false,
-    };
-
-    const nativeResult = { ...formResult, loop: def ? def.native : 'once' };
-    delete nativeResult.azl_repeat_times;
-    delete nativeResult.azl_freeze_at;
-    delete nativeResult.azl_freeze_playhead;
-
-    pendingDialogEdit = edit;
-    try {
-      return originalConfirm?.(nativeResult, event);
-    } finally {
-      pendingDialogEdit = null;
-      if (!edit.applied
-        && playbackDiffers(animation, behavior, edit.settings.repeatTimes, edit.settings.freezeAt)) {
-        setPlayBehaviorWithUndo(animation, behavior, edit.settings);
-      }
-    }
-  };
-}
-
-function onEditAnimationProperties({ animation } = {}) {
-  const edit = pendingDialogEdit;
-  if (!edit || edit.animation !== animation) return;
-
-  applyPlayBehavior(animation, edit.behavior, edit.settings);
-  edit.applied = true;
-  resetPreviewClock();
-}
-
-const injectedMenuItems = [];
-const wrappedNativeMenuItems = [];
-
-const radioIcon = selected => (selected ? 'far.fa-dot-circle' : 'far.fa-circle');
-
-function findLoopSubmenu() {
-  const structure = Animation.prototype.menu?.structure;
-  if (!Array.isArray(structure)) return null;
-  return structure.find(item => item && typeof item === 'object' && item.name === 'menu.animation.loop') || null;
-}
-
-function injectLoopMenu() {
-  const loopMenu = findLoopSubmenu();
-  if (!loopMenu || !Array.isArray(loopMenu.children)) {
-    console.warn('[AzureLib] Animation loop submenu not found; extended loop modes are only in the properties dialog');
-    return;
-  }
-
-  const nativeByLabel = {
-    'menu.animation.loop.once': 'play_once',
-    'menu.animation.loop.hold': 'hold_on_last_frame',
-    'menu.animation.loop.loop': 'loop',
-  };
-
-  for (const item of loopMenu.children) {
-    const behavior = nativeByLabel[item?.name];
-    if (!behavior) continue;
-
-    const original = { icon: item.icon, click: item.click };
-    wrappedNativeMenuItems.push({ item, original });
-
-    item.icon = animation => (isAzureFormat()
-      ? radioIcon(getPlayBehavior(animation) === behavior)
-      : (typeof original.icon === 'function' ? original.icon(animation) : original.icon));
-
-    item.click = (animation, event) => (isAzureFormat()
-      ? setPlayBehaviorFromMenu(animation, behavior)
-      : original.click?.(animation, event));
-  }
-
-  for (const behavior of ['ping_pong', 'repeat_x_times', 'freeze_on_frame']) {
-    const def = PLAY_BEHAVIORS[behavior];
-    const menuItem = {
-      name: def.label === 'Repeat' ? 'Repeat X Times' : def.label === 'Freeze' ? 'Freeze on Frame' : def.label,
-      id: `azl_loop_${behavior}`,
-      icon: animation => radioIcon(getPlayBehavior(animation) === behavior),
-      condition: () => isAzureFormat(),
-      click: animation => setPlayBehaviorFromMenu(animation, behavior),
-    };
-    loopMenu.children.push(menuItem);
-    injectedMenuItems.push({ loopMenu, menuItem });
-  }
-}
-
-function setPlayBehaviorFromMenu(animation, behavior) {
-  if (!animation || getPlayBehavior(animation) === behavior) return;
-
-  const settings = behavior === 'freeze_on_frame' && !hasFreezeAt(animation)
-    ? { freezeAt: roundSeconds(Timeline.time || 0) }
-    : {};
-
-  setPlayBehaviorWithUndo(animation, behavior, settings);
-}
-
-function restoreLoopMenu() {
-  for (const { loopMenu, menuItem } of injectedMenuItems) {
-    const index = loopMenu.children.indexOf(menuItem);
-    if (index !== -1) loopMenu.children.splice(index, 1);
-  }
-  injectedMenuItems.length = 0;
-
-  for (const { item, original } of wrappedNativeMenuItems) {
-    item.icon = original.icon;
-    item.click = original.click;
-  }
-  wrappedNativeMenuItems.length = 0;
-}
-
-let originalTimelineLoop = null;
-let previewClock = null;
-
-function resetPreviewClock() {
-  previewClock = null;
-}
-
-function getPreviewBehavior(anim) {
-  if (!isAzureFormat() || !anim || !(anim.length > 0)) return null;
-  if (anim.anim_time_update) return null;
-  if (Timeline.custom_range?.[1]) return null;
-
-  const behavior = getPlayBehavior(anim);
-  return PLAY_BEHAVIORS[behavior]?.extended ? behavior : null;
-}
-
-function startPreviewClock(anim, behavior) {
-  const length = anim.length;
-  const time = Timeline.time || 0;
-
-  switch (behavior) {
-    case 'freeze_on_frame': {
-      const freezeAt = Math.min(getFreezeAt(anim), length);
-      if (time >= freezeAt - 1e-4) {
-        Timeline.setTime(0);
-        return 0;
-      }
-      return time;
-    }
-    case 'repeat_x_times':
-      if (time >= length - 1e-4) {
-        Timeline.setTime(0);
-        return 0;
-      }
-      return time;
-    default:
-      return time;
-  }
-}
-
-function previewDelta() {
-  const now = performance.now();
-  let delta = (now - Timeline.last_frame_timecode) / 1000;
-  if (delta < 0) delta += 1;
-  Timeline.last_frame_timecode = now;
-  return Math.clamp(delta, 0, 0.1) * ((Timeline.playback_speed ?? 100) / 100);
-}
-
-function stopPreview(time, keepPose) {
-  Timeline.setTime(time);
-  Animator.preview(false);
-  Timeline.pause();
-  previewClock = null;
-  if (!keepPose) Animator.preview();
-}
-
-function wrappedTimelineLoop(...args) {
-  const anim = Animation.selected;
-  const behavior = getPreviewBehavior(anim);
-
-  if (!behavior) {
-    previewClock = null;
-    return originalTimelineLoop.apply(this, args);
-  }
-
-  if (previewClock === null) previewClock = startPreviewClock(anim, behavior);
-  previewClock += previewDelta();
-
-  const length = anim.length;
-  const looped = !!BarItems.looped_animation_playback?.value;
-
-  switch (behavior) {
-    case 'ping_pong': {
-      const cycle = previewClock % (2 * length);
-      Timeline.setTime(cycle <= length ? cycle : 2 * length - cycle);
-      Animator.preview(true);
-      return;
-    }
-
-    case 'repeat_x_times': {
-      const total = repeatPlayCount(getRepeatTimes(anim)) * length;
-
-      if (previewClock >= total) {
-        if (looped) {
-          previewClock %= total;
-        } else {
-          stopPreview(0, false);
-          return;
-        }
-      }
-
-      Timeline.setTime(previewClock % length);
-      Animator.preview(true);
-      return;
-    }
-
-    case 'freeze_on_frame': {
-      const freezeAt = Math.min(getFreezeAt(anim), length);
-
-      if (previewClock >= freezeAt) {
-        if (looped) {
-          previewClock = 0;
-          Timeline.setTime(0);
-          Animator.preview(true);
-        } else {
-          stopPreview(freezeAt, true);
-        }
-        return;
-      }
-
-      Timeline.setTime(previewClock);
-      Animator.preview(true);
-    }
-  }
-}
-
-function onTimelinePlay() {
-  previewClock = null;
-}
-
-let properties = [];
-let registered = false;
-
-function registerPlayBehaviors() {
-  if (registered) return;
-  registered = true;
-
-  if (typeof Property !== 'undefined') {
-    properties = [
-      new Property(Animation, 'string', PROP_BEHAVIOR, { default: '' }),
-      new Property(Animation, 'number', PROP_REPEAT, { default: DEFAULT_REPEAT_TIMES }),
-      new Property(Animation, 'number', PROP_FREEZE, { default: -1 }),
-    ];
-  }
-
-  if (typeof Animation.prototype.propertiesDialog === 'function') {
-    originalPropertiesDialog = Animation.prototype.propertiesDialog;
-    Animation.prototype.propertiesDialog = wrappedPropertiesDialog;
-  }
-
-  try {
-    injectLoopMenu();
-  } catch (error) {
-    console.error('[AzureLib] Failed to extend animation loop menu', error);
-  }
-
-  if (typeof Timeline?.loop === 'function') {
-    originalTimelineLoop = Timeline.loop;
-    Timeline.loop = wrappedTimelineLoop;
-  }
-
-  Blockbench.on('edit_animation_properties', onEditAnimationProperties);
-  Blockbench.on('timeline_play', onTimelinePlay);
-}
-
-function unregisterPlayBehaviors() {
-  if (!registered) return;
-  registered = false;
-
-  Blockbench.removeListener('edit_animation_properties', onEditAnimationProperties);
-  Blockbench.removeListener('timeline_play', onTimelinePlay);
-
-  if (originalTimelineLoop) {
-    Timeline.loop = originalTimelineLoop;
-    originalTimelineLoop = null;
-  }
-  previewClock = null;
-
-  restoreLoopMenu();
-
-  if (originalPropertiesDialog) {
-    Animation.prototype.propertiesDialog = originalPropertiesDialog;
-    originalPropertiesDialog = null;
-  }
-
-  properties.forEach(property => property.delete?.());
-  properties = [];
-}
-
-;// ./animation/azure-animation-tab.js
-/**
- * AzureLib Animator — Unified Animation Tab
- * ------------------------------------------
- * Replaces the Minecraft Bedrock animation tab with a fully custom
- * AnimationCodec that supports both AzureLib custom easings AND
- * Bedrock catmullrom/lerp_mode keyframes in one unified JSON.
- *
- * Keyframe schema auto-detection:
- *   - AzureLib:  { "vector": [...], "easing": "easeInSine", "easingArgs": [...] }
- *   - Bedrock:   { "post": [...], "lerp_mode": "catmullrom" }
- *   - Both can coexist in the same animation file.
- *
- * Built on Blockbench's AnimationCodec API — no monkey-patching of
- * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const AZURE_ANIM_FORMAT_ID = 'azure_animation';
-const FORMAT_VERSION = '1.8.0';
-
-/**
- * Stores top-level animation include metadata by source file path so we can
- * round-trip the user's custom include system without forcing a dedicated UI.
- *
- * Key: animation file path (or '' for unpathed/ephemeral files)
- * Value: normalised includes array
- */
-const animationIncludesByPath = new Map();
-
-/** Bedrock lerp modes that this plugin understands natively. */
-const BEDROCK_LERP_MODES = new Set(['linear', 'catmullrom']);
-
-/** AzureLib easing names that map 1:1 to Bedrock lerp_mode on export. */
-const AZURE_TO_BEDROCK_LERP = {
-  linear: 'linear',
-  // catmullrom is set via interpolation='catmullrom', not easing field
-};
-
-// ---------------------------------------------------------------------------
-// Schema detection helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Returns true if a keyframe object uses the Bedrock pre/post/lerp_mode schema.
- */
-function isBedrockKeyframe(obj) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  return obj.lerp_mode !== undefined || obj.pre !== undefined || obj.post !== undefined;
-}
-
-/**
- * Returns true if a keyframe object uses the AzureLib { vector, easing } schema.
- */
-function isAzureKeyframe(obj) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  return obj.vector !== undefined || obj.easing !== undefined;
-}
-
-/**
- * Unwrap a value to a plain [x, y, z] array, handling all known wrapping forms.
- */
-function unwrapToArray(v) {
-  if (Array.isArray(v)) return v;
-  if (v && typeof v === 'object') {
-    if (Array.isArray(v.vector)) return v.vector;
-    if (v.vector && typeof v.vector === 'object' && Array.isArray(v.vector.vector)) return v.vector.vector;
-  }
-  return null;
-}
-
-/**
- * Normalise a time key string: "0.0" → "0", "1.000" → "1", "0.5" stays.
- */
-function normTime(t) {
-  return String(t).replace(/^(-?\d+)\.0+$/, '$1');
-}
-
-const KEY_ORDER = Symbol('azureKeyOrder');
-
-function orderedMap(entries) {
-  const obj = Object.fromEntries(entries);
-  Object.defineProperty(obj, KEY_ORDER, {
-    value: entries.map(([k]) => k),
-    enumerable: false,
-    configurable: true,
-  });
-  return obj;
-}
-
-function normalizeAnimationIncludes(includes) {
-  if (!Array.isArray(includes) || !includes.length) return [];
-
-  return includes
-    .filter(entry => entry && typeof entry === 'object')
-    .map(entry => ({
-      file_id: String(entry.file_id || '').trim(),
-      animations: Array.isArray(entry.animations)
-        ? entry.animations
-            .map(name => String(name || '').trim())
-            .filter(Boolean)
-        : [],
-    }))
-    .filter(entry => entry.file_id && entry.animations.length);
-}
-
-function cloneAnimationIncludes(includes) {
-  return normalizeAnimationIncludes(includes).map(entry => ({
-    file_id: entry.file_id,
-    animations: [...entry.animations],
-  }));
-}
-
-function getAnimationIncludesForPath(path) {
-  return cloneAnimationIncludes(animationIncludesByPath.get(path || '') || []);
-}
-
-function setAnimationIncludesForPath(path, includes) {
-  const key = path || '';
-  const normal = normalizeAnimationIncludes(includes);
-  if (normal.length) animationIncludesByPath.set(key, normal);
-  else animationIncludesByPath.delete(key);
-}
-
-function applyAnimationIncludes(out, includes) {
-  const normal = cloneAnimationIncludes(includes);
-  if (normal.length) out.includes = normal;
-  else delete out.includes;
-  return out;
-}
-
-
-function getIncludesTargetPath() {
-  const selected = Animation?.selected;
-  if (selected) return selected.path || '';
-
-  const uniquePaths = [...new Set(Animation.all.map(anim => anim.path || ''))];
-  if (uniquePaths.length === 1) return uniquePaths[0];
-
-  return '';
-}
-
-function getAnimationNamesForPath(path) {
-  return Animation.all
-    .filter(anim => (anim.path || '') === (path || '') && anim.name)
-    .map(anim => anim.name)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function findDuplicateIncludedAnimationNames(includes) {
-  const seen = new Map();
-  const duplicates = [];
-
-  includes.forEach((entry, entryIndex) => {
-    (entry.animations || []).forEach(name => {
-      const key = String(name || '').trim();
-      if (!key) return;
-
-      const previous = seen.get(key);
-      if (previous !== undefined) {
-        duplicates.push({ name: key, firstIndex: previous, secondIndex: entryIndex });
-      } else {
-        seen.set(key, entryIndex);
-      }
-    });
-  });
-
-  return duplicates;
-}
-
-function showAnimationIncludesDialog() {
-  const targetPath = getIncludesTargetPath();
-  const current = getAnimationIncludesForPath(targetPath);
-  const animationNames = getAnimationNamesForPath(targetPath);
-  const fileLabel = targetPath || 'Unsaved animation file';
-
-  const dialog = new Dialog({
-    id: 'azl_animation_includes_editor',
-    title: 'Edit Animation Includes',
-    width: 760,
-    component: {
-      data() {
-        return {
-          targetPath,
-          fileLabel,
-          rows: current.length
-            ? current.map(entry => ({
-                file_id: entry.file_id,
-                animations_text: entry.animations.join(', '),
-              }))
-            : [{ file_id: '', animations_text: '' }],
-          animationNames,
-          exampleAnimationNames: animationNames.join(', '),
-        };
-      },
-      methods: {
-        addRow() {
-          this.rows.push({ file_id: '', animations_text: '' });
-        },
-        removeRow(index) {
-          this.rows.splice(index, 1);
-          if (!this.rows.length) this.addRow();
-        },
-      },
-      template: `
-        <div class="dialog_content azure_includes_dialog" style="display:flex;flex-direction:column;gap:12px;min-width:0;">
-          <div style="min-width:0;">
-            <p style="margin:0;"><strong>Editing file:</strong> <span style="word-break:break-all;">{{ fileLabel }}</span></p>
-            <p style="margin:6px 0 0 0;opacity:0.8;">
-              These entries are saved at the top level of the animation JSON as <code>includes</code>.
-            </p>
-            <p v-if="exampleAnimationNames" style="margin:6px 0 0 0;opacity:0.8;line-height:1.45;">
-              Animations currently in this file: <code style="white-space:pre-wrap;word-break:break-word;">{{ exampleAnimationNames }}</code>
-            </p>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <strong>Include Entries</strong>
-            <button
-              type="button"
-              style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;min-height:32px;white-space:nowrap;"
-              @click="addRow()"
-            >
-              Add Include
-            </button>
-          </div>
-          
-          <div style="display:flex;flex-direction:column;gap:12px;max-height:420px;overflow:auto;padding-right:4px;min-width:0;">
-            <div
-              v-for="(row, index) in rows"
-              :key="index"
-              style="display:block;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.03);box-sizing:border-box;min-width:0;"
-            >
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
-                <div style="font-weight:600;opacity:0.95;">Include {{ index + 1 }}</div>
-                <button
-                  type="button"
-                  style="position:static;display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;min-height:28px;white-space:nowrap;"
-                  @click="removeRow(index)"
-                >
-                  Remove
-                </button>
-              </div>
-          
-              <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
-                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
-                  <span>File ID</span>
-                  <input
-                    type="text"
-                    class="dark_bordered"
-                    style="display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;"
-                    v-model="row.file_id"
-                    placeholder="mod_id:path/to/other_animation.json"
-                  />
-                </label>
-          
-                <label style="display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;">
-                  <span>Animations (comma-separated)</span>
-                  <textarea
-                    class="dark_bordered"
-                    rows="3"
-                    style="display:block;width:100%;min-width:0;max-width:100%;resize:vertical;box-sizing:border-box;line-height:1.4;"
-                    v-model="row.animations_text"
-                    placeholder="animation_name_1, animation_name_2"
-                  ></textarea>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
-    },
-    onConfirm() {
-      const rows = dialog.content_vue?.rows || [];
-      const normalized = normalizeAnimationIncludes(rows.map(row => ({
-        file_id: row.file_id,
-        animations: String(row.animations_text || '')
-          .split(',')
-          .map(name => name.trim())
-          .filter(Boolean),
-      })));
-
-      const duplicates = findDuplicateIncludedAnimationNames(normalized);
-      if (duplicates.length) {
-        const preview = duplicates
-          .slice(0, 6)
-          .map(dup => `${dup.name} (entries ${dup.firstIndex + 1} and ${dup.secondIndex + 1})`)
-          .join('\n');
-      
-        if (typeof Blockbench.showMessageBox === 'function') {
-          Blockbench.showMessageBox({
-            title: 'Duplicate Included Animations',
-            message:
-              'Each included animation name must be unique across all include entries.\n\n' +
-              preview +
-              (duplicates.length > 6 ? `\n…and ${duplicates.length - 6} more.` : ''),
-          });
-        } else {
-          Blockbench.showQuickMessage('Duplicate included animation names detected.', 2400);
-        }
-      
-        return false;
-      }
-
-      setAnimationIncludesForPath(targetPath, normalized);
-      Blockbench.showQuickMessage(
-        normalized.length
-          ? `Saved ${normalized.length} animation include${normalized.length === 1 ? '' : 's'}.`
-          : 'Cleared animation includes.',
-        2000
-      );
-    },
-  });
-
-  dialog.show();
-}
-
-// ---------------------------------------------------------------------------
-// Animation file builder (export)
-// ---------------------------------------------------------------------------
-
-/**
- * Serialise all open Animation objects into the unified AzureLib JSON structure.
- * Kept as a convenience for callers that want everything in the project.
- * The codec itself uses compileFile(animations) so it can scope by file path.
- */
-function buildAzureAnimationFile() {
-  const out = applyAnimationIncludes({
-    format_version: FORMAT_VERSION,
-    animations: {},
-  }, getAnimationIncludesForPath(''));
-
-  for (const anim of Animation.all) {
-    if (!anim.name) continue;
-    const animOut = serializeAnimation(anim);
-    out.animations[anim.name] = animOut;
-  }
-
-  return out;
-}
-
-function serializeAnimation(anim) {
-  const obj = {};
-
-  writePlaybackJson(anim, obj);
-
-  if (anim.override) obj.override_previous_animation = true;
-  if (anim.anim_time_update) obj.anim_time_update = anim.anim_time_update.replace(/;\n/g, ';');
-  if (anim.blend_weight) obj.blend_weight = anim.blend_weight.replace(/;\n/g, ';');
-  if (anim.length) obj.animation_length = Math.round(anim.length * 1e6) / 1e6;
-
-  const bones = {};
-  const effects = anim.animators.effects;
-  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator);
-
-  for (const boneAnim of boneAnimators) {
-    const boneName = boneAnim.name;
-    const boneOut = {};
-
-    for (const channel of ['position', 'rotation', 'scale']) {
-      const keyframes = boneAnim.keyframes.filter(kf => kf.channel === channel);
-      if (!keyframes.length) continue;
-
-      // Sort by time
-      keyframes.sort((a, b) => a.time - b.time);
-
-      if (keyframes.length === 1) {
-        // Constant value — AzureLib format: { "vector": [...] }
-        // Easing and easingArgs sit alongside vector at the same level (not nested).
-        const kf = keyframes[0];
-        const vec = extractKeyframeVector(kf, channel, true);
-        const node = { vector: vec };
-        const easing = kf.easing;
-        if (easing && easing !== EASING_DEFAULT) node.easing = easing;
-        if (hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
-          node.easingArgs = [...kf.easingArgs];
-        }
-        boneOut[channel] = node;
-      } else {
-        const channelIsEasing = keyframes.some(
-            kf => kf.easing && kf.easing !== EASING_DEFAULT
-        );
-
-        const entries = keyframes.map(kf => {
-          const t = normTime(roundTime(kf.time));
-          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
-          return [t, serialized];
-        });
-        boneOut[channel] = orderedMap(entries);
-      }
-    }
-
-    if (Object.keys(boneOut).length) {
-      bones[boneName] = boneOut;
-    }
-  }
-
-  if (Object.keys(bones).length) obj.bones = bones;
-
-  // Effects (sound/particle/timeline)
-  if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
-    const soundEntries = [];
-    const particleEntries = [];
-    const timelineEntries = [];
-
-    const sortedEffectKeyframes = [...effects.keyframes].sort((a, b) => a.time - b.time);
-
-    for (const kf of sortedEffectKeyframes) {
-      const t = normTime(roundTime(kf.time));
-      if (kf.channel === 'sound') {
-        const pts = (kf.data_points || []).map(p => {
-          const effect = typeof p === 'string' ? p : p.effect;
-          if (!effect) return null;
-          const o = { effect };
-          if (p.locator !== undefined) o.locator = p.locator;
-          if (p.script !== undefined) o.script = p.script;
-          return o;
-        }).filter(Boolean);
-        if (pts.length === 1) soundEntries.push([t, pts[0]]);
-        else if (pts.length > 1) soundEntries.push([t, pts]);
-      } else if (kf.channel === 'particle') {
-        const pts = (kf.data_points || []).map(p => {
-          const o = {};
-          if (p.effect) o.effect = p.effect;
-          if (p.locator !== undefined) o.locator = p.locator;
-          if (p.script !== undefined) o.script = p.script;
-          return Object.keys(o).length ? o : null;
-        }).filter(Boolean);
-        if (pts.length === 1) particleEntries.push([t, pts[0]]);
-        else if (pts.length > 1) particleEntries.push([t, pts]);
-      } else if (kf.channel === 'timeline') {
-        const script = (kf.data_points?.[0]?.script) || '';
-        if (script) timelineEntries.push([t, script]);
-      }
-    }
-
-    if (soundEntries.length) obj.sound_effects = orderedMap(soundEntries);
-    if (particleEntries.length) obj.particle_effects = orderedMap(particleEntries);
-    if (timelineEntries.length) obj.timeline = orderedMap(timelineEntries);
-  }
-
-  return obj;
-}
-
-/**
- * Map Blockbench interpolation mode → Bedrock lerp_mode string.
- * 'linear' in BB is called 'linear' in Bedrock JSON.
- * 'catmullrom' in BB is called 'catmullrom' in Bedrock JSON.
- * 'bezier' uses Blockbench's own pre/post pair format.
- * 'step' uses a pre/post pair where pre = previous value.
- */
-const BB_INTERP_TO_LERP_MODE = {
-  catmullrom: 'catmullrom',
-  // bezier and step are handled structurally (pre/post pairs), not via lerp_mode
-};
-
-/**
- * Serialise a single keyframe into its JSON representation.
- *
- * Bedrock interpolation modes (kf.interpolation is set):
- *   'linear'     → { post: [...], lerp_mode: 'linear' }
- *   'catmullrom' → { post: [...], lerp_mode: 'catmullrom' }   (+ pre if available)
- *   'bezier'     → { pre: [...], post: [...] }                 (Blockbench bezier handles pre/post natively)
- *   'step'       → { pre: [...], post: [...] }                 (discrete hold)
- *
- * AzureLib easing mode (kf.interpolation is undefined/null):
- *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
- *   No easing     → [x, y, z]   (plain array shorthand)
- */
-function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
-  const vec    = extractKeyframeVector(kf, channel, true);
-  const interp = kf.interpolation;
-
-  // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
-  if (interp === 'catmullrom' && !channelIsEasing) {
-    const node = { post: vec, lerp_mode: 'catmullrom' };
-    const preVec = extractKeyframePreVector(kf, channel);
-    if (preVec) node.pre = preVec;
-    return node;
-  }
-
-  // --- Bezier keyframes: always have explicit pre/post control points ---
-  if (interp === 'bezier') {
-    const preVec = extractKeyframePreVector(kf, channel);
-    return preVec
-      ? { pre: preVec, post: vec }
-      : { post: vec };
-  }
-
-  // --- Step / discrete hold: emit pre (previous value) + post (this value) ---
-  if (interp === 'step') {
-    const prevKf = getPreviousKeyframe(kf, allKeyframes);
-    const preVec = extractKeyframePreVector(kf, channel)
-      || (prevKf ? extractKeyframeVector(prevKf, channel, true) : null);
-    return preVec ? { pre: preVec, post: vec } : { post: vec };
-  }
-
-  // --- Transition into a step keyframe: emit pre/post pair at this boundary ---
-  const prevKf = getPreviousKeyframe(kf, allKeyframes);
-  if (prevKf && prevKf.interpolation === 'step') {
-    const preVec = extractKeyframePreVector(kf, channel)
-      || extractKeyframeVector(prevKf, channel, true);
-    const out = { pre: preVec, post: vec };
-    if (kf.easing && kf.easing !== EASING_DEFAULT) out.easing = kf.easing;
-    if (hasArgs(kf.easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
-      out.easingArgs = [...kf.easingArgs];
-    }
-    return out;
-  }
-
-  // --- AzureLib easing node (no Bedrock interpolation set) ---
-  // Timed keyframes always use { "vector": [...] } form — never bare arrays.
-  // Easing is only written when it differs from the default ('linear').
-  // Easing is suppressed for Molang expression vectors (easing is meaningless there).
-  const easing = kf.easing;
-  const vecHasMolang = vec.some(v => typeof v === 'string' && isNaN(Number(v)));
-  const writeEasing  = easing && easing !== EASING_DEFAULT && !vecHasMolang;
-  const writeArgs    = writeEasing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length;
-
-  const node = { vector: vec };
-  if (writeEasing) node.easing = easing;
-  if (writeArgs)   node.easingArgs = [...kf.easingArgs];
-  return node;
-}
-
-/**
- * Invert a single axis value only when needed for BB 5.0+ coordinate fix.
- * Numeric zero stays as numeric 0 (not converted to string "0").
- * Molang strings are inverted via invertMolang.
- * Non-zero numbers are negated directly.
- */
-function safeInvert(v) {
-  v = normalizeAxisValue(v);
-  if (typeof v === 'string') return invertMolang(v);
-  if (typeof v === 'number') return v === 0 ? 0 : -v;
-  return v;
-}
-
-function normalizeAxisValue(v) {
-  // Treat empty UI values as real numeric zero
-  if (v === null || v === undefined) return 0;
-
-  if (typeof v === 'string') {
-    const trimmed = v.trim();
-
-    // This catches '', '\n', '   ', etc.
-    if (trimmed === '') return 0;
-
-    // Preserve Molang expressions, but convert numeric strings
-    const n = Number(trimmed);
-    return Number.isNaN(n) ? v : n;
-  }
-
-  return v;
-}
-
-function extractKeyframeVector(kf, channel, applyInversion) {
-  const dp = kf.data_points?.[kf.data_points.length > 1 ? 1 : 0] || kf.data_points?.[0];
-  if (!dp) return [0, 0, 0];
-
-  let x = normalizeAxisValue(dp.x);
-  let y = normalizeAxisValue(dp.y);
-  let z = normalizeAxisValue(dp.z);
-
-  if (applyInversion && Blockbench.isNewerThan('4.99')) {
-    if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
-    else if (channel === 'position') { x = safeInvert(x); }
-  }
-
-  return [roundVal(x), roundVal(y), roundVal(z)];
-}
-
-function extractKeyframePreVector(kf, channel) {
-  if (!kf.data_points || kf.data_points.length < 2) return null;
-  const dp = kf.data_points[0];
-
-  let x = normalizeAxisValue(dp.x);
-  let y = normalizeAxisValue(dp.y);
-  let z = normalizeAxisValue(dp.z);
-
-  if (Blockbench.isNewerThan('4.99')) {
-    if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
-    else if (channel === 'position') { x = safeInvert(x); }
-  }
-
-  return [roundVal(x), roundVal(y), roundVal(z)];
-}
-
-function getPreviousKeyframe(kf, allKeyframes) {
-  const idx = allKeyframes.indexOf(kf);
-  return idx > 0 ? allKeyframes[idx - 1] : null;
-}
-
-function roundTime(t) {
-  return Math.round(t * 1e6) / 1e6;
-}
-
-function roundVal(v) {
-  if (typeof v === 'number') return Math.round(v * 1e5) / 1e5;
-  return v;
-}
-
-// ---------------------------------------------------------------------------
-// Animation file loader (import)
-// ---------------------------------------------------------------------------
-
-/**
- * Parse a unified AzureLib/Bedrock animation JSON file and create
- * Animation + BoneAnimator + Keyframe objects in Blockbench.
- */
-function loadAzureAnimationFile(file, filter) {
-  const json = file.json || (typeof autoParseJSON === 'function' ? autoParseJSON(file.content) : JSON.parse(file.content));
-  if (!json || typeof json.animations !== 'object') return [];
-
-  setAnimationIncludesForPath(file?.path, json.includes);
-
-  const animsOut = [];
-
-  for (const name in json.animations) {
-    if (filter && !filter.includes(name)) continue;
-    const src = json.animations[name];
-    const anim = parseAnimation(name, src, file.path);
-    animsOut.push(anim);
-  }
-
-  return animsOut;
-}
-
-function parseAnimation(name, src, filePath) {
-  const playback = readPlaybackJson(src);
-  const anim = new Animation({
-    name,
-    path: filePath,
-    saved_name: name,
-    ...playback,
-    override: !!src.override_previous_animation,
-    anim_time_update: typeof src.anim_time_update === 'string'
-      ? src.anim_time_update.replace(/;(?!$)/, ';\n')
-      : src.anim_time_update || '',
-    blend_weight: typeof src.blend_weight === 'string'
-      ? src.blend_weight.replace(/;(?!$)/, ';\n')
-      : src.blend_weight || '',
-    length: Number(src.animation_length || 0),
-  }).add();
-
-  assignPlaybackFields(anim, playback);
-
-  // Effects
-  if (src.sound_effects || src.particle_effects || src.timeline || src.instructions) {
-    const effectsAnim = ensureEffectsAnimator(anim);
-    parseEffects(effectsAnim, src);
-  }
-
-  // Bones
-  if (src.bones) {
-    for (const boneName in src.bones) {
-      const bone = src.bones[boneName];
-      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-      const uuid = group ? group.uuid : guid();
-      const boneAnim = new BoneAnimator(uuid, anim, boneName);
-      anim.animators[uuid] = boneAnim;
-
-      for (const channel in bone) {
-        if (!Animator.possible_channels[channel]) continue;
-        parseChannel(boneAnim, channel, bone[channel]);
-      }
-    }
-  }
-
-  anim.calculateSnappingFromKeyframes?.();
-  if (!Animation.selected && Animator.open) anim.select();
-
-  return anim;
-}
-
-function parseChannel(boneAnim, channel, channelData) {
-  if (!channelData) return;
-
-  const addKf = (time, data) => {
-    const parsed = parseKeyframeData(data, channel, time);
-    if (!parsed) return;
-
-    boneAnim.addKeyframe({
-      time,
-      channel,
-      easing: parsed.easing,
-      easingArgs: parsed.easingArgs,
-      interpolation: parsed.interpolation,
-      uniform: parsed.uniform,
-      data_points: parsed.data_points,
-    });
-  };
-
-  // Shorthand constant value (array or { vector: [...] })
-  if (Array.isArray(channelData) || (channelData.vector !== undefined && Object.keys(channelData).length <= 3)) {
-    const vec = unwrapToArray(channelData) || channelData;
-    if (Array.isArray(vec)) {
-      addKf(0, vec);
-      return;
-    }
-  }
-
-  // Check if the whole channel object is a single keyframe with lerp_mode/pre/post/vector
-  if (
-    channelData.lerp_mode !== undefined ||
-    channelData.pre !== undefined ||
-    channelData.post !== undefined ||
-    (channelData.vector !== undefined && typeof channelData.vector !== 'object')
-  ) {
-    addKf(0, channelData);
-    return;
-  }
-
-  // Normal timed keyframes map: { "0.0": {...}, "0.5": {...}, ... }
-  for (const rawT in channelData) {
-    const time = parseFloat(rawT);
-    const entry = channelData[rawT];
-    addKf(time, entry);
-  }
-}
-
-/**
- * Converts a raw JSON keyframe entry into a normalised data structure
- * that Blockbench's Keyframe system can consume.
- * Handles all three forms:
- *   1. Plain array          [x, y, z]
- *   2. AzureLib node        { vector, easing?, easingArgs? }
- *   3. Bedrock spline node  { post, pre?, lerp_mode }
- */
-
-function toNum(v) {
-  if (typeof v !== 'string') return v;
-  const n = Number(v);
-  return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
-}
-
-function coerceVec(vec) {
-  return vec.map(toNum);
-}
-
-function parseKeyframeData(data, channel, time) {
-  // --- 1. Plain array ---
-  if (Array.isArray(data)) {
-    const vec = applyFlipOnLoad(coerceVec(data), channel);
-    return {
-      easing: EASING_DEFAULT,
-      easingArgs: undefined,
-      interpolation: undefined,
-      uniform: false,
-      data_points: [{ x: vec[0], y: vec[1], z: vec[2] }],
-    };
-  }
-
-  if (!data || typeof data !== 'object') return null;
-
-  // --- 2. AzureLib node (has vector or easing) ---
-  if (isAzureKeyframe(data) && !isBedrockKeyframe(data)) {
-    const rawVec = unwrapToArray(data.vector || data) || [0, 0, 0];
-    const vec = applyFlipOnLoad(coerceVec(rawVec), channel);
-    return {
-      easing: data.easing || EASING_DEFAULT,
-      easingArgs: Array.isArray(data.easingArgs) && data.easingArgs.length ? data.easingArgs : undefined,
-      interpolation: undefined,
-      uniform: false,
-      data_points: [{ x: vec[0], y: vec[1], z: vec[2] }],
-    };
-  }
-
-  // --- 3. Bedrock interpolation node (has lerp_mode, pre, or post) ---
-  if (isBedrockKeyframe(data)) {
-    // Map JSON lerp_mode strings back to Blockbench interpolation identifiers
-    const lerp = data.lerp_mode;
-    const interpolation =
-      lerp === 'catmullrom' ? 'catmullrom' :
-      // lerp_mode:'linear' treated as no special interpolation — AzureLib linear easing handles it
-      lerp === 'linear'     ? undefined      :
-      // pre/post without lerp_mode is bezier in Blockbench's own format
-      (data.pre !== undefined || data.post !== undefined) ? 'bezier' :
-      undefined;
-    const data_points = [];
-
-    const postRaw = unwrapToArray(data.post);
-    const preRaw = unwrapToArray(data.pre);
-
-    if (preRaw) {
-      const pre = applyFlipOnLoad(coerceVec(preRaw), channel);
-      data_points.push({ x: pre[0], y: pre[1], z: pre[2] });
-    }
-
-    const postVec = postRaw ? applyFlipOnLoad(coerceVec(postRaw), channel) : [0, 0, 0];
-    data_points.push({ x: postVec[0], y: postVec[1], z: postVec[2] });
-
-    return {
-      easing: EASING_DEFAULT,
-      easingArgs: undefined,
-      interpolation,
-      uniform: false,
-      data_points: data_points.length ? data_points : [{ x: 0, y: 0, z: 0 }],
-    };
-  }
-
-  // Fallback — treat as raw vector object
-  const x = toNum(data.x ?? 0);
-  const y = toNum(data.y ?? 0);
-  const z = toNum(data.z ?? 0);
-  return {
-    easing: EASING_DEFAULT,
-    easingArgs: undefined,
-    interpolation: undefined,
-    uniform: false,
-    data_points: [{ x, y, z }],
-  };
-}
-
-function applyFlipOnLoad(vec, channel) {
-  if (!Blockbench.isNewerThan('4.99')) return vec;
-  const v = [...vec];
-  if (channel === 'rotation') {
-    v[0] = invertMolang(v[0]);
-    v[1] = invertMolang(v[1]);
-  } else if (channel === 'position') {
-    v[0] = invertMolang(v[0]);
-  }
-  return v;
-}
-
-function parseEffects(effectsAnim, src) {
-  if (src.sound_effects) {
-    for (const t in src.sound_effects) {
-      let sounds = src.sound_effects[t];
-      if (!Array.isArray(sounds)) sounds = [sounds];
-      const pts = sounds.filter(Boolean).map(s => (typeof s === 'string' ? { effect: s } : { ...s }));
-      effectsAnim.addKeyframe({ channel: 'sound', time: parseFloat(t), data_points: pts });
-    }
-  }
-
-  if (src.particle_effects) {
-    for (const t in src.particle_effects) {
-      let particles = src.particle_effects[t];
-      if (!Array.isArray(particles)) particles = [particles];
-      const pts = particles.filter(Boolean).map(p => {
-        const o = { ...p };
-        if (o.pre_effect_script && !o.script) o.script = o.pre_effect_script;
-        return o;
-      });
-      effectsAnim.addKeyframe({ channel: 'particle', time: parseFloat(t), data_points: pts });
-    }
-  }
-
-  const timeline = src.timeline || src.instructions;
-  if (timeline) {
-    for (const t in timeline) {
-      const entry = timeline[t];
-      const script = Array.isArray(entry) ? entry.join('\n') : entry;
-      effectsAnim.addKeyframe({ channel: 'timeline', time: parseFloat(t), data_points: [{ script }] });
-    }
-  }
-}
-
-function ensureEffectsAnimator(anim) {
-  if (!anim.animators.effects) {
-    anim.animators.effects = new EffectAnimator(anim);
-  }
-  return anim.animators.effects;
-}
-
-// ---------------------------------------------------------------------------
-// Pretty-printer (kept from the original — formats arrays inline)
-// ---------------------------------------------------------------------------
-
-/**
- * Recursive stringifier used in place of JSON.stringify() for the top-level
- * object.
- *
- * The ONLY reason this exists instead of a plain JSON.stringify(obj, null,
- * '\t') call: JS object key enumeration always places integer-index-looking
- * keys ("0", "3") ahead of non-integer keys ("1.5"), in ascending numeric
- * order, regardless of insertion order. Keyframe time maps mix whole-number
- * and fractional time keys, so a correctly time-sorted entry list like
- * "0", "1.5", "3" gets silently re-emitted as "0", "3", "1.5" by
- * JSON.stringify. AzureLib's runtime loader trusts file order rather than
- * re-sorting on load, so that reorder becomes a real, silent timeline
- * corruption (a segment that runs backwards and a bone that freezes).
- *
- * This function walks the object tree itself and, for any object tagged
- * with KEY_ORDER (via orderedMap()), emits keys in that explicit order
- * instead of using Object.keys()/JSON.stringify's native enumeration.
- * Everything else behaves like a normal pretty-printed JSON.stringify.
- */
-function orderedStringify(value, indent, currentIndent) {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value);
-  }
-
-  const childIndent = currentIndent + indent;
-
-  if (Array.isArray(value)) {
-    if (!value.length) return '[]';
-    const items = value.map(v => childIndent + orderedStringify(v, indent, childIndent));
-    return '[\n' + items.join(',\n') + '\n' + currentIndent + ']';
-  }
-
-  const keys = value[KEY_ORDER] || Object.keys(value);
-  if (!keys.length) return '{}';
-  const items = keys.map(k =>
-    childIndent + JSON.stringify(k) + ': ' + orderedStringify(value[k], indent, childIndent)
-  );
-  return '{\n' + items.join(',\n') + '\n' + currentIndent + '}';
-}
-
-/**
- * JSON serialiser that pretty-prints with tabs but keeps arrays compact on one line.
- * This matches the original Bedrock/AzureLib animation file format exactly.
- */
-function serializeAnimationJson(obj) {
-  // First pass: order-preserving pretty-print (see orderedStringify above —
-  // this replaces a plain JSON.stringify(obj, null, '\t') specifically to
-  // avoid its integer-key reordering behaviour on keyframe time maps).
-  const raw = orderedStringify(obj, '\t', '');
-  // Second pass: collapse arrays that contain only numbers/strings onto one line.
-  // Matches [ followed by whitespace+values+whitespace ] across newlines.
-  return raw.replace(
-    /\[\s*([\s\S]*?)\s*\]/g,
-    (match, inner) => {
-      // Only collapse if every element is a number or a quoted string (no nested objects/arrays)
-      const trimmed = inner.trim();
-      if (!trimmed) return '[]';
-      // Check that the inner content has no { or [ — i.e. it's a flat value array
-      if (/[{\[\]]/.test(trimmed)) return match;
-      // Collapse: replace all internal whitespace/newlines/tabs between values with ', '
-      const items = trimmed.split(/,\s*/).map(s => s.trim());
-      return '[' + items.join(', ') + ']';
-    }
-  );
-}
-
-// ---------------------------------------------------------------------------
-// AnimationCodec — the public-facing format integration
-// ---------------------------------------------------------------------------
-
-/**
- * Filesystem helpers — only used in the desktop app. Guarded so the codec
- * still works in the web build (where save/reload-by-path are no-ops).
- */
-const _fs = ( true && typeof isApp !== 'undefined' && isApp)
-  ? __webpack_require__(9896)
-  : null;
-
-/**
- * Try to recover a previously written file's JSON (for in-place merges).
- * Returns null if the file is missing or unparseable, never throws.
- */
-function _readExistingAnimationFile(path) {
-  if (!_fs || !path) return null;
-  try {
-    if (!_fs.existsSync(path)) return null;
-    const raw = _fs.readFileSync(path, 'utf-8');
-    const parsed = typeof autoParseJSON === 'function'
-      ? autoParseJSON(raw, false)
-      : JSON.parse(raw);
-    return (parsed && typeof parsed.animations === 'object') ? parsed : null;
-  } catch (_) {
-    return null;
-  }
-}
-
-/**
- * Lazily-created codec instance.
- *
- * IMPORTANT:
- * Do not construct AnimationCodec at module load, because the blockbench-plugins
- * validator evaluates the bundle in a VM before the full app/runtime exists.
- */
-let azureAnimationCodec = null;
-
-function createAzureAnimationCodec() {
-  if (azureAnimationCodec) return azureAnimationCodec;
-
-  if (typeof AnimationCodec === 'undefined') {
-    console.warn('[AzureLib] AnimationCodec API is unavailable in this Blockbench version.');
-    return null;
-  }
-
-  azureAnimationCodec = new AnimationCodec(AZURE_ANIM_FORMAT_ID, {
-    multiple_per_file: true,
-
-    // ---- Import side ---------------------------------------------------
-
-    pickFile() {
-      Blockbench.import({
-        resource_id: 'azure_animation',
-        type: 'AzureLib Animation',
-        extensions: ['json'],
-        readtype: 'text',
-        multiple: true,
-      }, async (files) => {
-        if (!files || !files.length) return;
-        for (const file of files) {
-          await this.importFile(file);
-        }
-      });
-    },
-
-    importFile(file, auto_loaded) {
-      let parsed;
-      try {
-        parsed = typeof autoParseJSON === 'function'
-          ? autoParseJSON(file.content, false)
-          : JSON.parse(file.content);
-      } catch (error) {
-        console.error('[AzureLib] Failed to parse animation file:', error);
-        Blockbench.showQuickMessage('[AzureLib] Failed to parse animation file.');
-        return [];
-      }
-
-      file.json = parsed;
-      return this.loadFile(file, null, auto_loaded);
-    },
-
-    loadFile(file, animation_filter, auto_loaded) {
-      const json = file?.json || (
-        typeof autoParseJSON === 'function'
-          ? autoParseJSON(file.content, false)
-          : JSON.parse(file.content)
-      );
-
-      if (!json || typeof json.animations !== 'object') {
-        Blockbench.showQuickMessage('[AzureLib] No animations found in file.');
-        return [];
-      }
-
-      const path = file.path || '';
-      setAnimationIncludesForPath(path, json.includes || []);
-
-      const created = [];
-
-      for (const [name, animData] of Object.entries(json.animations)) {
-        if (Array.isArray(animation_filter) && animation_filter.length && !animation_filter.includes(name)) {
-          continue;
-        }
-
-        // Delegate to parseAnimation which correctly handles bone UUID assignment,
-        // channel parsing (including numeric coercion and flip-on-load), and effects.
-        const anim = parseAnimation(name, animData, path);
-        anim.saved = true;
-        created.push(anim);
-      }
-
-      if (!auto_loaded && created.length) {
-        Animation.selected = created[0];
-      }
-
-      return created;
-    },
-
-    // ---- Export side ---------------------------------------------------
-
-    compileFile(animations = Animation.all) {
-      const scoped = Array.isArray(animations) ? animations : Animation.all;
-      const path = scoped.length ? (scoped[0].path || '') : '';
-      const out = applyAnimationIncludes({
-        format_version: FORMAT_VERSION,
-        animations: {},
-      }, getAnimationIncludesForPath(path));
-
-      for (const anim of scoped) {
-        if (!anim?.name) continue;
-        out.animations[anim.name] = serializeAnimation(anim);
-      }
-
-      return out;
-    },
-
-    write(content, path) {
-      return serializeAnimationJson(content);
-    },
-
-    /**
-     * Save a single animation back into its source file while preserving
-     * sibling animations and includes.
-     */
-    saveAnimation(animation, save_as) {
-      const compileSingleFile = () => applyAnimationIncludes({
-        format_version: FORMAT_VERSION,
-        animations: {
-          [animation.name]: serializeAnimation(animation),
-        },
-      }, getAnimationIncludesForPath(animation.path));
-
-      if (!isApp || !animation.path || save_as) {
-        Blockbench.export({
-          resource_id: 'azure_animation',
-          type: 'AzureLib Animation',
-          extensions: ['json'],
-          name: (Project?.geometry_name || Project?.name || 'animation') + '.animation',
-          startpath: animation.path,
-          content: serializeAnimationJson(compileSingleFile()),
-        }, (real_path) => {
-          const previousPath = animation.path || '';
-          const includes = getAnimationIncludesForPath(previousPath);
-          setAnimationIncludesForPath(real_path, includes);
-
-          if (real_path !== previousPath && previousPath) {
-            animationIncludesByPath.delete(previousPath);
-          }
-
-          animation.path = real_path;
-          animation.saved = true;
-          animation.saved_name = animation.name;
-        });
-        return;
-      }
-
-      let content = compileSingleFile();
-      const existing = _readExistingAnimationFile(animation.path);
-
-      if (existing) {
-        const fresh = content.animations[animation.name];
-        content = existing;
-
-        if (animation.saved_name && animation.saved_name !== animation.name) {
-          delete content.animations[animation.saved_name];
-        }
-
-        content.animations[animation.name] = fresh;
-        applyAnimationIncludes(content, getAnimationIncludesForPath(animation.path));
-
-        const fileKeys = Object.keys(content.animations);
-        const projectKeys = Animation.all
-          .filter(a => a.path === animation.path)
-          .map(a => a.name);
-
-        let changed = false;
-        let cursor = 0;
-
-        for (const key of projectKeys) {
-          const at = fileKeys.indexOf(key);
-          if (at === -1) continue;
-
-          if (at < cursor) {
-            fileKeys.splice(at, 1);
-            fileKeys.splice(cursor, 0, key);
-            changed = true;
-          } else {
-            cursor = at;
-          }
-        }
-
-        if (changed) {
-          const sorted = {};
-          fileKeys.forEach(k => {
-            sorted[k] = content.animations[k];
-          });
-          content.animations = sorted;
-        }
-      }
-
-      Blockbench.writeFile(animation.path, {
-        content: serializeAnimationJson(content),
-      }, (real_path) => {
-        animation.saved = true;
-        animation.saved_name = animation.name;
-        animation.path = real_path;
-      });
-    },
-
-    /**
-     * Export all animations that share the given path.
-     */
-    exportFile(path, save_as) {
-      const filterPath = path || '';
-      const animations = Animation.all.filter(a => (a.path || '') === filterPath);
-
-      if (!save_as && isApp && path && _fs && _fs.existsSync(path)) {
-        animations.forEach(a => {
-          if (!a.saved) a.save();
-        });
-        return;
-      }
-
-      const content = serializeAnimationJson(this.compileFile(animations));
-
-      Blockbench.export({
-        resource_id: 'azure_animation',
-        type: 'AzureLib Animation',
-        extensions: ['json'],
-        name: (Project?.geometry_name || Project?.name || 'animation') + '.animation',
-        startpath: path,
-        content,
-      }, (real_path) => {
-        const previousPath = filterPath || '';
-        const includes = getAnimationIncludesForPath(previousPath);
-        setAnimationIncludesForPath(real_path, includes);
-
-        if (real_path !== previousPath && previousPath) {
-          animationIncludesByPath.delete(previousPath);
-        }
-
-        animations.forEach(a => {
-          a.path = real_path;
-          a.saved = true;
-          a.saved_name = a.name;
-        });
-      });
-    },
-
-    deleteAnimationFromFile(animation) {
-      if (!_fs || !animation.path) return;
-
-      const existing = _readExistingAnimationFile(animation.path);
-      if (!existing || !existing.animations?.[animation.name]) return;
-
-      delete existing.animations[animation.name];
-      applyAnimationIncludes(existing, getAnimationIncludesForPath(animation.path));
-
-      Blockbench.writeFile(animation.path, {
-        content: serializeAnimationJson(existing),
-      });
-    },
-  });
-
-  return azureAnimationCodec;
-}
-
-// ---------------------------------------------------------------------------
-// Legacy export wrappers — keep external callers working.
-// ---------------------------------------------------------------------------
-
-function exportAzureAnimation() {
-  const codec = createAzureAnimationCodec();
-  if (!codec?.exportFile) return;
-
-  const anyPath = Animation.all.find(a => a.path)?.path || '';
-  codec.exportFile(anyPath, true);
-}
-
-function importAzureAnimation() {
-  const codec = createAzureAnimationCodec();
-  codec?.pickFile?.();
-}
-
-// ---------------------------------------------------------------------------
-// "Export" menu override
-// ---------------------------------------------------------------------------
-
-/**
- * Blockbench's built-in "Export" action (id: export_animation_file, defined
- * in animations/animation.js) is core code we can't edit. It calls
- * codec.compileFile(animations) — our own, correctly time-sorted and
- * KEY_ORDER-tagged builder — but then stringifies the result with its own
- * autoStringify(), which knows nothing about our KEY_ORDER tagging. Plain
- * JS object enumeration (which autoStringify ultimately relies on) always
- * places integer-index-looking string keys ("0", "1", "2") ahead of
- * non-integer ones ("0.125", "0.375") in ascending numeric order,
- * regardless of insertion order — so fractional keyframe times get
- * silently reordered on export, even though compileFile() built them in
- * the right order to begin with.
- *
- * "Save All Animations" never hits this because it calls codec.exportFile()
- * directly, which already runs content through our own
- * serializeAnimationJson() (which does respect KEY_ORDER via
- * orderedStringify()).
- *
- * We can't change what autoStringify does, and we can't edit the core
- * action. So when our format is active, we swap the action's click handler
- * for a re-implementation of the exact same picker dialog that serializes
- * with serializeAnimationJson() instead. Any other format's Export click
- * falls straight through to the original, untouched.
- */
-let originalExportAnimationClick = null;
-
-function isAzureCodecActive() {
-  const codec = (typeof AnimationCodec !== 'undefined' && AnimationCodec.getCodec)
-    ? AnimationCodec.getCodec()
-    : null;
-  return !!codec && codec === azureAnimationCodec;
-}
-
-function showAzureAnimationExportDialog() {
-  const form = {};
-  let keys = [];
-  let animations = Animation.all.slice();
-
-  if (Condition(Animation.properties.path.condition)) {
-    animations.sort((a1, a2) => (a1.path ?? a1.name).hashCode() - (a2.path ?? a2.name).hashCode());
-  }
-
-  animations.forEach(animation => {
-    const key = animation.name;
-    keys.push(key);
-    form[key.hashCode()] = { label: key, type: 'checkbox', value: true };
-  });
-
-  const dialog = new Dialog({
-    id: 'azl_animation_export',
-    title: 'dialog.animation_export.title',
-    form,
-    onConfirm(form_result) {
-      dialog.hide();
-      const selectedKeys = keys.filter(key => form_result[key.hashCode()]);
-      const selectedAnimations = Animation.all.filter(a => selectedKeys.includes(a.name));
-      const codec = azureAnimationCodec || AnimationCodec.getCodec() || AnimationCodec.codecs.bedrock;
-      const content = codec.compileFile(selectedAnimations);
-
-      Blockbench.export({
-        resource_id: 'animation',
-        type: 'JSON Animation',
-        extensions: ['json'],
-        name: (Project.geometry_name || 'model') + '.animation',
-        content: serializeAnimationJson(content),
-      });
-    },
-  });
-
-  form.select_all_none = {
-    type: 'buttons',
-    buttons: ['generic.select_all', 'generic.select_none'],
-    click(index) {
-      const values = {};
-      keys.forEach(key => { values[key.hashCode()] = (index === 0); });
-      dialog.setFormValues(values);
-    },
-  };
-
-  dialog.show();
-}
-
-function patchExportAnimationAction() {
-  if (originalExportAnimationClick) return;
-  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
-  if (!action) return;
-
-  originalExportAnimationClick = action.click;
-
-  action.click = function azureExportAnimationOverride(...args) {
-    if (!isAzureCodecActive()) {
-      return originalExportAnimationClick.apply(this, args);
-    }
-    showAzureAnimationExportDialog();
-  };
-}
-
-function unpatchExportAnimationAction() {
-  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
-  if (action && originalExportAnimationClick) {
-    action.click = originalExportAnimationClick;
-  }
-  originalExportAnimationClick = null;
-}
-
-// ---------------------------------------------------------------------------
-// Registration
-// ---------------------------------------------------------------------------
-
-let editAnimationIncludesAction = null;
-
-function registerAzureAnimationFormat() {
-
-  const codec = createAzureAnimationCodec();
-  if (!codec) {
-    console.warn(
-      '[AzureLib] AnimationCodec API is unavailable in this Blockbench version. ' +
-      'Animation import/export will not work. Please update Blockbench.'
-    );
-    return;
-  }
-
-  patchExportAnimationAction();
-  registerPlayBehaviors();
-
-  if (!editAnimationIncludesAction) {
-    editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
-      name: 'Edit Animation Includes',
-      description: 'Edit AzureLib animation include entries for the current animation file',
-      icon: 'playlist_add',
-      category: 'animation',
-      condition: () => Format?.id === 'azure_model' && Animator.open,
-      click: () => showAnimationIncludesDialog(),
-    });
-
-    try {
-      MenuBar.menus?.animation?.addAction(editAnimationIncludesAction);
-    } catch (_) {}
-  }
-
-  if (!Formats?.azure_animation) {
-    Formats.azure_animation = {
-      id: AZURE_ANIM_FORMAT_ID,
-      name: 'Azure Animation',
-      animation_codec: codec,
-    };
-  }
-
-  console.log('[AzureLib] Azure animation codec registered');
-}
-
-function unregisterAzureAnimationFormat() {
-
-  unpatchExportAnimationAction();
-  unregisterPlayBehaviors();
-
-  editAnimationIncludesAction?.delete();
-  editAnimationIncludesAction = null;
-
-  try {
-    delete Formats?.azure_animation;
-  } catch {}
-
-  if (azureAnimationCodec && AnimationCodec?.codecs) {
-    delete AnimationCodec.codecs[AZURE_ANIM_FORMAT_ID];
-  }
-
-  azureAnimationCodec = null;
-  console.log('[AzureLib] Azure animation codec unregistered');
-}
-;// ./core/azure-codec.js
-/**
- * AzureLib Animator — Codec & Format Registration
- * -----------------------------------------------
- * Defines the Blockbench model format for AzureLib (.geo / .animation)
- * and handles project load, save, and import/export utilities.
- *
- * Animation handling is fully owned by azure-animation-tab.js.
- * The animation codec is now created lazily at runtime so validation
- * does not execute AnimationCodec construction during module evaluation.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-
-
-
-
-const azure_codec_invertMolang = globalThis.invertMolang || invertMolang;
-const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
-
-let hasNotifiedConversion = false;
-let azureCodecRegistered = false;
-let format = null;
-
-function getBedrockCodec() {
-  return globalThis.Codecs?.bedrock || null;
-}
-
-function getProjectCodec() {
-  return globalThis.Codecs?.project || null;
-}
-
-function ensureAzureFormat() {
-  if (format) return format;
-
-  if (typeof ModelFormat === 'undefined' || !globalThis.Codecs?.project) {
-    console.warn('[AzureLib] ModelFormat or Codecs.project unavailable');
-    return null;
-  }
-
-  format = new ModelFormat({
-    id: 'azure_model',
-    name: 'AzureLib Animated Model',
-    category: 'minecraft',
-    description: 'Animated model for Java mods using AzureLib.',
-    icon: 'view_in_ar',
-    rotate_cubes: true,
-    box_uv: true,
-    optional_box_uv: true,
-    single_texture: false,
-    bone_rig: true,
-    centered_grid: true,
-    animated_textures: true,
-    select_texture_for_particles: true,
-    animation_mode: true,
-    animation_files: true,
-    animation_codec: undefined,
-    locators: true,
-    codec: getProjectCodec(),
-    display_mode: true,
-    onActivation() {},
-  });
-
-  return format;
-}
-
-function getAzureFormat() {
-  return format;
-}
-
-// ---------------------------------------------------------------------------
-// Lifecycle registration
-// ---------------------------------------------------------------------------
-
-function registerAzureCodec() {
-  if (azureCodecRegistered) return;
-  azureCodecRegistered = true;
-
-  const projectCodec = globalThis.Codecs?.project;
-  const bedrockCodec = globalThis.Codecs?.bedrock;
-  const azureFormat = ensureAzureFormat();
-
-  if (!projectCodec || !bedrockCodec || !azureFormat) {
-    console.warn('[AzureLib] Required codec APIs are unavailable');
-    return;
-  }
-
-  projectCodec.on('compile', handleProjectCompile);
-  projectCodec.on('parse', handleProjectParse);
-  bedrockCodec.on('compile', handleBedrockCompile);
-
-  registerAzureAnimationFormat();
-  azureFormat.animation_codec = createAzureAnimationCodec() || undefined;
-
-  registerKeyframeOverrides();
-  initializeAnimationUI();
-
-  Blockbench.on('close_project', resetDefaults);
-  Blockbench.on('new_project', resetDefaults);
-
-  console.log('[AzureLib] Azure codec registered (AnimationCodec-backed)');
-}
-
-function unregisterAzureCodec() {
-  if (!azureCodecRegistered) return;
-  azureCodecRegistered = false;
-
-  const projectCodec = globalThis.Codecs?.project;
-  const bedrockCodec = globalThis.Codecs?.bedrock;
-
-  projectCodec?.events?.compile?.remove?.(handleProjectCompile);
-  projectCodec?.events?.parse?.remove?.(handleProjectParse);
-  bedrockCodec?.events?.compile?.remove?.(handleBedrockCompile);
-
-  unloadAnimationUI();
-  unregisterKeyframeOverrides();
-  unregisterAzureAnimationFormat();
-
-  if (format) {
-    format.animation_codec = undefined;
-  }
-
-  console.log('[AzureLib] Azure codec unregistered');
-}
-
-function resetDefaults() {
-  Object.assign(azure_settings, DEFAULT_CONFIG);
-  hasNotifiedConversion = false;
-  console.log('[AzureLib] Settings reset to defaults');
-}
-
-// ---------------------------------------------------------------------------
-// Project compile/parse hooks
-// ---------------------------------------------------------------------------
-
-function handleProjectCompile(event) {
-  if (Format?.id !== 'azure_model') return;
-
-  if (azure_settings.objectType === 'AZURE_ITEM_BLOCK') {
-    azure_settings.objectType = 'AZURE_ENTITY';
-    azure_settings.entityType = 'Entity/Block/Item';
-  }
-
-  event.model.azurelibSettings = azure_settings;
-}
-
-function handleProjectParse(event) {
-  const model = event.model || {};
-  const formatId = model?.meta?.model_format || model?.model_format;
-  if (formatId !== 'azure_model') return;
-
-  const settings = model.azurelibSettings;
-  if (settings && typeof settings === 'object') {
-    const wasDeprecated = settings.objectType === 'AZURE_ITEM_BLOCK';
-    Object.assign(azure_settings, omit_default()(settings, ['formatVersion']));
-
-    if (wasDeprecated) {
-      azure_settings.objectType = 'AZURE_ENTITY';
-      azure_settings.entityType = 'Entity/Block/Item';
-      console.warn('[AzureLib] Converted deprecated AZURE_ITEM_BLOCK -> AZURE_ENTITY');
-    }
-
-    onSettingsChanged();
-
-    if (wasDeprecated && !hasNotifiedConversion) {
-      hasNotifiedConversion = true;
-      Blockbench.showMessageBox({
-        title: 'AzureLib Conversion',
-        message:
-          'This project used an older "Block/Item" type.\n\nIt has been updated to the unified "Entity/Block/Item" type (AZURE_ENTITY).',
-        buttons: ['OK'],
-      });
-    }
-  } else if (formatId === 'azure_model' && !model.azurelibSettings) {
-    console.debug('[AzureLib] Azure model detected but no settings loaded yet.');
-  }
-
-  if (Blockbench.isNewerThan('4.99') && model.animations) {
-    console.log('[AzureLib] Applying legacy animation inversion fix for Blockbench 5.0+');
-    for (const [, anim] of Object.entries(model.animations)) {
-      for (const bone of Object.values(anim.bones || {})) {
-        for (const [channel, frames] of Object.entries(bone)) {
-          if (channel === 'rotation' || channel === 'position') {
-            for (const kf of Object.values(frames)) {
-              if (kf?.vector) {
-                if (channel === 'rotation') {
-                  kf.vector[0] = azure_codec_invertMolang(kf.vector[0]);
-                  kf.vector[1] = azure_codec_invertMolang(kf.vector[1]);
-                } else if (channel === 'position') {
-                  kf.vector[0] = azure_codec_invertMolang(kf.vector[0]);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-function handleBedrockCompile(event) {
-  if (Format?.id !== 'azure_model') return;
-
-  const geometry = event.model?.['minecraft:geometry'];
-  if (geometry) {
-    geometry.forEach(geo => {
-      delete geo.item_display_transforms;
-    });
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Export helpers
-// ---------------------------------------------------------------------------
-
-function maybeExportItemJson(options = {}, as) {
-  const should = (key, fallback) => (options[key] === undefined ? fallback : options[key]);
-  const model = {};
-  const bedrockCodec = getBedrockCodec();
-
-  if (should('comment', settings.credit.value)) model.credit = settings.credit.value;
-  model.parent = 'builtin/entity';
-
-  if (should('ambientocclusion', Project.ambientocclusion === false)) model.ambientocclusion = false;
-  if (Project.texture_width !== 16 || Project.texture_height !== 16) {
-    model.texture_size = [Project.texture_width, Project.texture_height];
-  }
-  if (should('front_gui_light', Project.front_gui_light)) model.gui_light = 'front';
-  if (should('overrides', Project.overrides)) model.overrides = Project.overrides;
-
-  if (should('display', Object.keys(Project.display_settings).length >= 1)) {
-    const display = {};
-    for (const key in DisplayMode.slots) {
-      const slot = DisplayMode.slots[key];
-      if (DisplayMode.slots.hasOwnProperty(key) && Project.display_settings[slot]?.export) {
-        display[slot] = Project.display_settings[slot].export();
-      }
-    }
-    if (Object.keys(display).length) {
-      model.display = display;
-      for (const [, data] of Object.entries(display)) {
-        if (Array.isArray(data?.translation)) {
-          data.translation = [
-            data.translation[0],
-            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
-            data.translation[2],
-          ];
-        }
-      }
-    }
-  }
-
-  if (Project.textures && should('textures', Object.keys(Project.textures).length >= 1)) {
-    for (const tex of Object.values(Project.textures)) {
-      if (tex.particle || Object.keys(Project.textures).length === 1) {
-        const name = tex.name.replace('.png', '');
-        if (/^[-._a-z0-9/]+$/.test(name)) {
-          model.textures = { particle: name };
-          break;
-        }
-      }
-    }
-  }
-
-  const jsonStr = JSON.stringify(model, null, 2);
-  const path = azure_settings.itemModelPath;
-
-  Blockbench.export({
-    resource_id: 'model',
-    type: Codecs.java_block.name,
-    extensions: ['json'],
-    name: (bedrockCodec?.fileName?.() || 'model.geo').replace('.geo', '.item'),
-    startpath: path,
-    content: jsonStr,
-  }, realPath => {
-    azure_settings.itemModelPath = realPath;
-  });
-
-  return this;
-}
-
-function maybeImportItemJson() {
-  Blockbench.import({
-    resource_id: 'model',
-    type: 'json',
-    extensions: ['json'],
-    readtype: 'text',
-    multiple: false,
-  }, files => {
-    if (!files?.[0]) return;
-
-    let json;
-    try {
-      json = JSON.parse(files[0].content);
-    } catch {
-      return Blockbench.showQuickMessage('[AzureLib] Invalid JSON file.');
-    }
-
-    if (json.parent !== 'builtin/entity' || typeof json.display !== 'object') {
-      return Blockbench.showQuickMessage('[AzureLib] Not a valid AzureLib display file.');
-    }
-
-    Project.display_settings = {};
-
-    for (const [slot, data] of Object.entries(json.display)) {
-      if (!DisplayMode.slots.includes(slot)) continue;
-
-      const rotation = Array.isArray(data.rotation) ? data.rotation.slice() : [0, 0, 0];
-      const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
-      const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
-
-      translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
-
-      const slotObj = new DisplaySlot(slot);
-      Object.assign(slotObj, { rotation, translation, scale });
-      Project.display_settings[slot] = slotObj;
-    }
-
-    Project.saved = false;
-    DisplayMode.vue.$forceUpdate();
-    DisplayMode.updateDisplayBase();
-    Blockbench.showQuickMessage('[AzureLib] Display settings imported.');
-  });
-}
-
-/* harmony default export */ const azure_codec = (getBedrockCodec());
-;// ./rig/azure-rig-state.js
-/**
- * AzureLib Animator — Rig Definitions
- * ------------------------------------
- * Project-persisted definitions for AzureLib's runtime rig features:
- * bone hitboxes, bone sockets, IK chains, look-at chains, bone constraints,
- * spring bones and blend spaces.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-const RIG_VERSION = 1;
-
-const HITBOX_ROLES = ['COMBAT', 'INTERACT', 'ANCHOR'];
-
-const IK_TARGETS = {
-  bone: 'Animated bone',
-  ground: 'Ground (foot placement)',
-  entity_eyes: 'Another entity\'s eyes',
-  world: 'World position (code)',
-  model: 'Fixed model point',
-};
-
-const IK_SOLVERS = {
-  auto: 'Auto (two-bone for 2–3 bones, else CCD)',
-  two_bone: 'Two-bone',
-  ccd: 'CCD',
-};
-
-const CONSTRAINT_TYPES = {
-  limit: 'Limit (all axes)',
-  hinge_x: 'Hinge X',
-  hinge_y: 'Hinge Y',
-  hinge_z: 'Hinge Z',
-};
-
-/** A fresh, empty rig. */
-function emptyRig() {
-  return {
-    version: RIG_VERSION,
-    codegen: { target: 'v1_21_1', entityClass: 'ExampleEntity', packageRoot: '' },
-    hitboxOptions: { keepEntityBox: false, clientOnly: false },
-    hitboxes: [],
-    sockets: [],
-    ikChains: [],
-    lookAts: [],
-    constraints: [],
-    springBones: [],
-    colliders: [],
-    blendSpaces: [],
-  };
-}
-
-function newHitbox(bone) {
-  return {
-    name: bone,
-    bone,
-    role: 'COMBAT',
-    fit: true,
-    size: [4, 4, 4],
-    offset: [0, 0, 0],
-    inflate: 0,
-    anchorAtPivot: false,
-    damageMultiplier: 1,
-    tags: [],
-  };
-}
-
-function newSocket(name, { bone = null, locator = null } = {}) {
-  return {
-    name,
-    bone,
-    locator,
-    offset: [0, 0, 0],
-    rotation: [0, 0, 0],
-    serverHitbox: '',
-  };
-}
-
-function newIkChain(id, bones) {
-  return {
-    id,
-    bones,
-    effector: [0, 0, 0],
-    solver: 'auto',
-    pole: null,
-    iterations: 10,
-    tolerance: 0.1,
-    target: { type: 'ground', stepUp: 0.5, stepDown: 0.75, point: [0, 0, 0], bone: '' },
-    priority: 50,
-    weight: 1,
-    preview: { enabled: true, mode: 'ground', groundHeight: 0, locator: '', point: [0, 0, -16] },
-  };
-}
-
-function newLookAt(id, bones) {
-  return {
-    id,
-    bones,
-    forward: [0, 0, -1],
-    target: { type: 'entity_eyes', point: [0, 0, 0], bone: '' },
-    priority: 40,
-    weight: 1,
-    preview: { enabled: true, mode: 'point', locator: '', point: [0, 24, -32] },
-  };
-}
-
-function newConstraint(bone) {
-  return {
-    bone,
-    type: 'limit',
-    min: [-45, -45, -45],
-    max: [45, 45, 45],
-    standalone: false,
-  };
-}
-
-function newSpringBone(id, bones) {
-  return {
-    id,
-    bones,
-    tip: null,
-    stiffness: 0.2,
-    damping: 0.25,
-    gravity: 0,
-    inertia: 1,
-    priority: 200,
-    colliders: [],
-    radius: 0,
-    ground: false,
-    preview: { enabled: true },
-  };
-}
-
-/** A spring collider; positions are pixels from the bone's pivot along its axes, as for sockets. */
-function newCollider(id, bone) {
-  return {
-    id,
-    bone,
-    shape: 'sphere',
-    start: [0, 0, 0],
-    end: [0, 0, 0],
-    radius: 2,
-  };
-}
-
-function newBlendSpace(name) {
-  return {
-    name,
-    dimensions: 1,
-    input: { x: 'speed', y: 'forward' },
-    samples: [],
-    smoothing: 0,
-    syncPhase: true,
-  };
-}
-
-const listeners = new Set();
-
-const RigStore = {
-  rig: emptyRig(),
-
-  onChange(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
-
-  notify() {
-    for (const fn of listeners) {
-      try { fn(this.rig); } catch (e) { console.error('[AzureLib Rig] listener failed', e); }
-    }
-  },
-
-  set(rig) {
-    this.rig = normalizeRig(rig);
-    this.notify();
-  },
-
-  reset() {
-    this.set(emptyRig());
-  },
-
-  snapshot() {
-    return JSON.parse(JSON.stringify(this.rig));
-  },
-
-  edit(name, mutate) {
-    const before = this.snapshot();
-    mutate(this.rig);
-    const after = this.snapshot();
-
-    if (JSON.stringify(before) === JSON.stringify(after)) return;
-
-    try {
-      Undo.initEdit({});
-      Undo.finishEdit(`AzureLib Rig: ${name}`);
-      const entry = Undo.history?.[Undo.index - 1];
-      if (entry) undoSnapshots.set(entry, { before, after });
-    } catch (e) {
-      console.warn('[AzureLib Rig] Could not record undo step', e);
-    }
-
-    if (typeof Project !== 'undefined' && Project) Project.saved = false;
-    this.notify();
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Normalisation: tolerate older or hand-edited data
-// ---------------------------------------------------------------------------
-
-function vec3(value, fallback) {
-  if (!Array.isArray(value) || value.length < 3) return fallback.slice();
-  return [0, 1, 2].map(i => (Number.isFinite(Number(value[i])) ? Number(value[i]) : fallback[i]));
-}
-
-function list(value) {
-  return Array.isArray(value) ? value.filter(v => v && typeof v === 'object') : [];
-}
-
-function normalizeRig(raw) {
-  const base = emptyRig();
-  if (!raw || typeof raw !== 'object') return base;
-
-  base.codegen = { ...base.codegen, ...(raw.codegen || {}) };
-  if (base.codegen.target === 'modern') base.codegen.target = 'v1_21_1';
-  base.hitboxOptions = { ...base.hitboxOptions, ...(raw.hitboxOptions || {}) };
-
-  base.hitboxes = list(raw.hitboxes).map(h => ({
-    ...newHitbox(h.bone || ''),
-    ...h,
-    size: vec3(h.size, [4, 4, 4]),
-    offset: vec3(h.offset, [0, 0, 0]),
-    tags: Array.isArray(h.tags) ? h.tags.map(String) : [],
-    role: HITBOX_ROLES.includes(h.role) ? h.role : 'COMBAT',
-  }));
-
-  base.sockets = list(raw.sockets).map(s => ({
-    ...newSocket(s.name || 'socket'),
-    ...s,
-    offset: vec3(s.offset, [0, 0, 0]),
-    rotation: vec3(s.rotation, [0, 0, 0]),
-  }));
-
-  base.ikChains = list(raw.ikChains).map(c => {
-    const d = newIkChain(c.id || 'ik', Array.isArray(c.bones) ? c.bones : []);
-    return {
-      ...d,
-      ...c,
-      effector: vec3(c.effector, [0, 0, 0]),
-      pole: Array.isArray(c.pole) ? vec3(c.pole, [0, 0, 0]) : null,
-      target: { ...d.target, ...(c.target || {}), point: vec3(c.target?.point, [0, 0, 0]) },
-      preview: { ...d.preview, ...(c.preview || {}), point: vec3(c.preview?.point, d.preview.point) },
-    };
-  });
-
-  base.lookAts = list(raw.lookAts).map(l => {
-    const d = newLookAt(l.id || 'look', Array.isArray(l.bones) ? l.bones : []);
-    return {
-      ...d,
-      ...l,
-      forward: vec3(l.forward, [0, 0, -1]),
-      target: { ...d.target, ...(l.target || {}), point: vec3(l.target?.point, [0, 0, 0]) },
-      preview: { ...d.preview, ...(l.preview || {}), point: vec3(l.preview?.point, d.preview.point) },
-    };
-  });
-
-  base.constraints = list(raw.constraints).map(c => ({
-    ...newConstraint(c.bone || ''),
-    ...c,
-    min: vec3(c.min, [-45, -45, -45]),
-    max: vec3(c.max, [45, 45, 45]),
-  }));
-
-  base.springBones = list(raw.springBones).map(s => {
-    const d = newSpringBone(s.id || 'spring', Array.isArray(s.bones) ? s.bones : []);
-    return {
-      ...d,
-      ...s,
-      tip: Array.isArray(s.tip) ? vec3(s.tip, [0, 0, 0]) : null,
-      colliders: Array.isArray(s.colliders) ? s.colliders.map(String) : [],
-      radius: Math.max(0, Number(s.radius) || 0),
-      ground: !!s.ground,
-      preview: { ...d.preview, ...(s.preview || {}) },
-    };
-  });
-
-  base.colliders = list(raw.colliders).map(c => ({
-    ...newCollider(c.id || 'collider', c.bone || ''),
-    ...c,
-    shape: c.shape === 'capsule' ? 'capsule' : 'sphere',
-    start: vec3(c.start, [0, 0, 0]),
-    end: vec3(c.end, [0, 0, 0]),
-    radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
-  }));
-
-  base.blendSpaces = list(raw.blendSpaces).map(b => ({
-    ...newBlendSpace(b.name || 'blend'),
-    ...b,
-    input: { x: 'speed', y: 'forward', ...(b.input || {}) },
-    samples: list(b.samples).map(s => ({
-      x: Number(s.x) || 0,
-      y: Number(s.y) || 0,
-      animation: String(s.animation || ''),
-    })),
-  }));
-
-  return base;
-}
-
-function boneNames() {
-  return (typeof Group !== 'undefined' ? Group.all : []).map(g => g.name);
-}
-
-function locatorNames() {
-  return (typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name);
-}
-
-function findBone(name) {
-  return (typeof Group !== 'undefined' ? Group.all : []).find(g => g.name === name) || null;
-}
-
-function isDescendant(child, ancestor) {
-  for (let node = child?.parent; node && node !== 'root'; node = node.parent) {
-    if (node === ancestor) return true;
-  }
-  return false;
-}
-
-function validateRig(rig = RigStore.rig) {
-  const issues = [];
-  const bones = new Set(boneNames());
-  const locators = new Set(locatorNames());
-
-  const checkChain = (kind, id, names) => {
-    if (!names.length) {
-      issues.push(`${kind} "${id}" has no bones.`);
-      return;
-    }
-    for (const n of names) {
-      if (!bones.has(n)) issues.push(`${kind} "${id}": bone "${n}" doesn't exist.`);
-    }
-    for (let i = 1; i < names.length; i++) {
-      const parent = findBone(names[i - 1]);
-      const child = findBone(names[i]);
-      if (parent && child && !isDescendant(child, parent)) {
-        issues.push(`${kind} "${id}": "${names[i]}" isn't under "${names[i - 1]}"; list bones root first, each inside the one before.`);
-      }
-    }
-  };
-
-  const seenHitboxes = new Set();
-  for (const h of rig.hitboxes) {
-    if (!bones.has(h.bone)) issues.push(`Hitbox "${h.name}": bone "${h.bone}" doesn't exist.`);
-    if (seenHitboxes.has(h.name)) issues.push(`Hitbox name "${h.name}" is used twice.`);
-    seenHitboxes.add(h.name);
-    if (!h.fit && h.size.every(v => !v) && !h.inflate) issues.push(`Hitbox "${h.name}" has no size.`);
-    if (h.fit) {
-      const bone = findBone(h.bone);
-      const hasCubes = bone?.children?.some(c => typeof Cube !== 'undefined' && c instanceof Cube);
-      if (bone && !hasCubes) issues.push(`Hitbox "${h.name}" fits bone "${h.bone}", which has no cubes of its own; give it a size.`);
-    }
-  }
-
-  const seenSockets = new Set();
-  for (const s of rig.sockets) {
-    if (seenSockets.has(s.name)) issues.push(`Socket name "${s.name}" is used twice.`);
-    seenSockets.add(s.name);
-    if (s.locator && !locators.has(s.locator)) issues.push(`Socket "${s.name}": locator "${s.locator}" doesn't exist.`);
-    if (!s.locator && !bones.has(s.bone)) issues.push(`Socket "${s.name}": bone "${s.bone}" doesn't exist.`);
-    if (s.serverHitbox && s.locator) issues.push(`Socket "${s.name}" follows a locator, so its server hitbox must be added by hand (toAnchorHitbox() only works for bone sockets).`);
-  }
-
-  const locatorCounts = {};
-  for (const l of locatorNames()) locatorCounts[l] = (locatorCounts[l] || 0) + 1;
-  for (const [name, count] of Object.entries(locatorCounts)) {
-    if (count > 1) issues.push(`Locator name "${name}" is used ${count} times; AzureLib resolves the first one it finds.`);
-  }
-
-  const checkBoneTarget = (kind, id, target, chainBones) => {
-    if (target?.type !== 'bone') return;
-    if (!target.bone) {
-      issues.push(`${kind} "${id}": pick the bone to follow.`);
-      return;
-    }
-    if (!bones.has(target.bone)) {
-      issues.push(`${kind} "${id}": target bone "${target.bone}" doesn't exist.`);
-      return;
-    }
-    const targetBone = findBone(target.bone);
-    const driven = chainBones.map(findBone).filter(Boolean);
-    if (chainBones.includes(target.bone) || driven.some(b => isDescendant(targetBone, b))) {
-      issues.push(`${kind} "${id}": target bone "${target.bone}" is part of the chain it drives; move it under a bone outside the chain.`);
-    }
-  };
-
-  for (const c of rig.ikChains) {
-    checkChain('IK chain', c.id, c.bones);
-    checkBoneTarget('IK chain', c.id, c.target, c.bones);
-    const solver = c.solver === 'auto' ? (c.bones.length === 2 || c.bones.length === 3 ? 'two_bone' : 'ccd') : c.solver;
-    if (solver === 'two_bone' && c.bones.length < 2) issues.push(`IK chain "${c.id}": the two-bone solver needs at least 2 bones.`);
-  }
-  for (const l of rig.lookAts) {
-    checkChain('Look-at', l.id, l.bones);
-    checkBoneTarget('Look-at', l.id, l.target, l.bones);
-  }
-  for (const s of rig.springBones) checkChain('Spring bone', s.id, s.bones);
-
-  for (const c of rig.constraints) {
-    if (!bones.has(c.bone)) issues.push(`Constraint on "${c.bone}": bone doesn't exist.`);
-  }
-
-  const colliderIds = new Set();
-  for (const c of rig.colliders || []) {
-    if (colliderIds.has(c.id)) issues.push(`Collider id "${c.id}" is used twice.`);
-    colliderIds.add(c.id);
-    if (!bones.has(c.bone)) issues.push(`Collider "${c.id}": bone "${c.bone}" doesn't exist.`);
-    if (!(Number(c.radius) > 0)) issues.push(`Collider "${c.id}" needs a radius above 0.`);
-  }
-  for (const s of rig.springBones) {
-    for (const id of s.colliders || []) {
-      if (!colliderIds.has(id)) issues.push(`Spring bone "${s.id}": collider "${id}" doesn't exist.`);
-    }
-    for (const id of s.colliders || []) {
-      const c = (rig.colliders || []).find(x => x.id === id);
-      if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
-    }
-  }
-
-  const animations = new Set((typeof Animation !== 'undefined' ? Animation.all : []).map(a => a.name));
-  for (const b of rig.blendSpaces) {
-    if (b.samples.length < 2) issues.push(`Blend space "${b.name}" needs at least 2 samples.`);
-    for (const s of b.samples) {
-      if (!animations.has(s.animation)) issues.push(`Blend space "${b.name}": animation "${s.animation}" doesn't exist in this project.`);
-    }
-  }
-
-  const ids = {};
-  for (const x of [...rig.ikChains, ...rig.lookAts, ...rig.springBones]) ids[x.id] = (ids[x.id] || 0) + 1;
-  if (rig.constraints.some(c => c.standalone)) ids.bone_limits = (ids.bone_limits || 0) + 1;
-  for (const [id, n] of Object.entries(ids)) {
-    if (n > 1) issues.push(`Pose modifier id "${id}" is used ${n} times; AzureLib requires unique ids.`);
-  }
-
-  return issues;
-}
-
-const undoSnapshots = new WeakMap();
-let handlers = null;
-
-function registerRigState() {
-  if (handlers) return;
-
-  handlers = {
-    compile: event => {
-      if (Format?.id !== 'azure_model') return;
-      event.model.azurelibRig = RigStore.snapshot();
-    },
-    parsed: event => {
-      const model = event?.model || {};
-      RigStore.set(model.azurelibRig || emptyRig());
-    },
-    reset: () => RigStore.reset(),
-    undo: event => {
-      const snap = undoSnapshots.get(event?.entry);
-      if (snap) RigStore.set(snap.before);
-    },
-    redo: event => {
-      const snap = undoSnapshots.get(event?.entry);
-      if (snap) RigStore.set(snap.after);
-    },
-    select: event => {
-      // Switching tabs: the store mirrors the selected project's rig.
-      const project = event?.project || Project;
-      RigStore.set(project?.azurelibRig || emptyRig());
-    },
-    unselect: event => {
-      const project = event?.project || Project;
-      if (project) project.azurelibRig = RigStore.snapshot();
-    },
-  };
-
-  Codecs.project.on('compile', handlers.compile);
-  Codecs.project.on('parsed', handlers.parsed);
-  Blockbench.on('new_project', handlers.reset);
-  Blockbench.on('undo', handlers.undo);
-  Blockbench.on('redo', handlers.redo);
-  Blockbench.on('unselect_project', handlers.unselect);
-  Blockbench.on('select_project', handlers.select);
-}
-
-function unregisterRigState() {
-  if (!handlers) return;
-  Codecs.project.events?.compile?.remove?.(handlers.compile);
-  Codecs.project.events?.parsed?.remove?.(handlers.parsed);
-  Blockbench.removeListener('new_project', handlers.reset);
-  Blockbench.removeListener('undo', handlers.undo);
-  Blockbench.removeListener('redo', handlers.redo);
-  Blockbench.removeListener('unselect_project', handlers.unselect);
-  Blockbench.removeListener('select_project', handlers.select);
-  handlers = null;
-}
-
-;// ./rig/azure-rig-math.js
-/**
- * AzureLib Animator — Rig Math
- * -----------------------------
- * Ports of AzureLib's runtime weight math (AzBlendWeights), so blend-space
- * previews in Blockbench mix animations with exactly the weights the game will.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-/**
- * 1D weights: the input is clamped to the samples' range and split linearly
- * between the two samples around it. Positions must be ascending.
- */
-function linearWeights(positions, input) {
-  const n = positions.length;
-  const dest = new Array(n).fill(0);
-
-  if (n === 0) return dest;
-
-  if (n === 1 || input <= positions[0]) {
-    dest[0] = 1;
-    return dest;
-  }
-
-  if (input >= positions[n - 1]) {
-    dest[n - 1] = 1;
-    return dest;
-  }
-
-  for (let i = 0; i < n - 1; i++) {
-    const from = positions[i];
-    const to = positions[i + 1];
-
-    if (input <= to) {
-      const span = to - from;
-      const t = span <= 0 ? 1 : (input - from) / span;
-      dest[i] = 1 - t;
-      dest[i + 1] = t;
-      return dest;
-    }
-  }
-
-  dest[n - 1] = 1;
-  return dest;
-}
-
-/**
- * 2D weights by gradient band interpolation (freeform cartesian), as
- * AzBlendWeights.gradientBand: the input on a sample plays that sample alone.
- */
-function gradientBandWeights(xs, ys, x, y) {
-  const n = xs.length;
-  const dest = new Array(n).fill(0);
-
-  if (n === 0) return dest;
-
-  let total = 0;
-
-  for (let i = 0; i < n; i++) {
-    let weight = 1;
-    const px = x - xs[i];
-    const py = y - ys[i];
-
-    for (let j = 0; j < n && weight > 0; j++) {
-      if (i === j) continue;
-
-      const ex = xs[j] - xs[i];
-      const ey = ys[j] - ys[i];
-      const lengthSq = ex * ex + ey * ey;
-
-      if (lengthSq <= 0) continue;
-
-      const h = 1 - (px * ex + py * ey) / lengthSq;
-      weight = Math.min(weight, Math.max(0, Math.min(1, h)));
-    }
-
-    dest[i] = weight;
-    total += weight;
-  }
-
-  if (total > 0) {
-    for (let i = 0; i < n; i++) dest[i] /= total;
-    return dest;
-  }
-
-  let nearest = 0;
-  let best = Infinity;
-
-  for (let i = 0; i < n; i++) {
-    const dx = x - xs[i];
-    const dy = y - ys[i];
-    const d = dx * dx + dy * dy;
-    dest[i] = 0;
-
-    if (d < best) {
-      best = d;
-      nearest = i;
-    }
-  }
-
-  dest[nearest] = 1;
-  return dest;
-}
-
-/**
- * Sample weights for a blend space definition at the given input, with the
- * samples in the same order as {@code blendSpace.samples}.
- */
-function blendSpaceWeights(blendSpace, inputX, inputY = 0) {
-  const samples = blendSpace.samples || [];
-
-  if (blendSpace.dimensions === 2) {
-    return gradientBandWeights(samples.map(s => s.x), samples.map(s => s.y), inputX, inputY);
-  }
-
-  // 1D: AzureLib sorts samples by position; weight in sorted order, then map back.
-  const order = samples.map((s, i) => i).sort((a, b) => samples[a].x - samples[b].x);
-  const sorted = linearWeights(order.map(i => samples[i].x), inputX);
-  const weights = new Array(samples.length).fill(0);
-  order.forEach((sampleIndex, sortedIndex) => { weights[sampleIndex] = sorted[sortedIndex]; });
-  return weights;
-}
-
-/** The input range a blend space covers, for preview sliders. */
-function blendSpaceRange(blendSpace) {
-  const samples = blendSpace.samples || [];
-  const range = (values) => {
-    if (!values.length) return [0, 1];
-    let min = Math.min(...values);
-    let max = Math.max(...values);
-    if (min === max) { min -= 1; max += 1; }
-    return [min, max];
-  };
-  return { x: range(samples.map(s => s.x)), y: range(samples.map(s => s.y)) };
-}
-
-;// ./rig/azure-rig-preview.js
-/**
- * AzureLib Animator — Rig Preview
- * --------------------------------
- * Shows AzureLib's runtime rig features in the Blockbench viewport:
- *
- *   • Hitboxes, fitted the way AzureLib fits them (the AABB of the bone's own
- *     cubes around its pivot, or an explicit size), coloured like F3 + B.
- *   • Sockets, as a forward arrow (the socket's -Z) and an up arrow.
- *   • Spring colliders, as orange wireframe spheres and capsules.
- *   • In Animate mode, the pose modifiers run on top of the animation every
- *     frame, in AzureLib's priority order, with the same solvers the game
- *     uses: two-bone and CCD IK, look-at, spring bones and constraints.
- *   • Blend spaces, by stacking their samples at AzureLib's weights (without
- *     touching the animations' own playing state or blend weights).
- *
- * The preview never writes keyframes or project data.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-const DEG = Math.PI / 180;
-const TICKS_PER_SECOND = 20;
-const PIXELS_PER_BLOCK = 16;
-
-const COLOR_COMBAT = 0x55ff55;
-const COLOR_STRONG = 0xff5555;
-const COLOR_WEAK = 0x5599ff;
-const COLOR_INTERACT = 0x55ffff;
-const COLOR_ANCHOR = 0xffff55;
-const COLOR_SOCKET = 0xff55ff;
-const COLOR_SOCKET_UP = 0xaa66ff;
-const COLOR_TARGET = 0xffaa00;
-const COLOR_COLLIDER = 0xff8a3d;
-
-/** Runtime-only preview switches (not saved with the project). */
-const PreviewSettings = {
-  hitboxes: true,
-  sockets: true,
-  colliders: true,
-  modifiers: true,
-};
-
-function isActive() {
-  return typeof Format !== 'undefined' && Format?.id === 'azure_model' && typeof Project !== 'undefined' && !!Project;
-}
-
-function azure_rig_preview_findBone(name) {
-  return Group.all.find(g => g.name === name) || null;
-}
-
-function findLocator(name) {
-  return (typeof Locator !== 'undefined' ? Locator.all : []).find(l => l.name === name) || null;
-}
-
-function boneMesh(name) {
-  return azure_rig_preview_findBone(name)?.mesh || null;
-}
-
-function worldPosition(object, target = new THREE.Vector3()) {
-  object.updateWorldMatrix(true, false);
-  return target.setFromMatrixPosition(object.matrixWorld);
-}
-
-/** Model-space point (Blockbench pixels from the model origin) to world space. */
-function modelToWorld(point) {
-  const v = new THREE.Vector3(point[0], point[1], point[2]);
-  const root = Project?.model_3d;
-  if (root) {
-    root.updateWorldMatrix(true, false);
-    v.applyMatrix4(root.matrixWorld);
-  }
-  return v;
-}
-
-/** A Blockbench rotation in degrees as a quaternion, applied Z, then Y, then X like bone rotations. */
-function bbRotation(degrees) {
-  return new THREE.Quaternion().setFromEuler(
-    new THREE.Euler(degrees[0] * DEG, degrees[1] * DEG, degrees[2] * DEG, 'ZYX'),
-  );
-}
-
-const overlay = {
-  root: null,
-  hitboxes: [],
-  sockets: [],
-  colliders: [],
-  dirty: true,
-};
-
-function ensureOverlayRoot() {
-  if (overlay.root) return overlay.root;
-  overlay.root = new THREE.Object3D();
-  overlay.root.name = 'azurelib_rig_overlay';
-  return overlay.root;
-}
-
-function attachOverlayRoot() {
-  const root = ensureOverlayRoot();
-  const scene = typeof Canvas !== 'undefined' ? Canvas.scene : null;
-  if (scene && root.parent !== scene) scene.add(root);
-}
-
-function clearOverlay() {
-  for (const item of [...overlay.hitboxes, ...overlay.sockets, ...overlay.colliders]) {
-    item.object.parent?.remove(item.object);
-    item.object.traverse(o => {
-      o.geometry?.dispose?.();
-      o.material?.dispose?.();
-    });
-  }
-  overlay.hitboxes = [];
-  overlay.sockets = [];
-  overlay.colliders = [];
-}
-
-function hitboxColor(h) {
-  if (h.role === 'INTERACT') return COLOR_INTERACT;
-  if (h.role === 'ANCHOR') return COLOR_ANCHOR;
-  if (h.damageMultiplier > 1) return COLOR_STRONG;
-  if (h.damageMultiplier < 1) return COLOR_WEAK;
-  return COLOR_COMBAT;
-}
-
-/**
- * The hitbox's box in bone space, like AzHitboxClientHooks#fitBoneSpaceBox:
- * bounds of the bone's own cubes around its pivot, explicit size centred on
- * the cubes (or the pivot with anchorAtPivot), plus offset and inflate.
- * Returns {center, half} in pixels, or null when the box would be empty.
- */
-function hitboxBox(h) {
-  const bone = azure_rig_preview_findBone(h.bone);
-  const mesh = bone?.mesh;
-  if (!mesh) return null;
-
-  const bounds = new THREE.Box3();
-  mesh.updateWorldMatrix(true, false);
-  const toBone = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
-
-  for (const child of bone.children || []) {
-    if (!(child instanceof Cube) || !child.mesh?.geometry) continue;
-    const geometry = child.mesh.geometry;
-    if (!geometry.boundingBox) geometry.computeBoundingBox();
-    child.mesh.updateWorldMatrix(true, false);
-    const local = new THREE.Matrix4().multiplyMatrices(toBone, child.mesh.matrixWorld);
-    const { min, max } = geometry.boundingBox;
-    for (let i = 0; i < 8; i++) {
-      bounds.expandByPoint(new THREE.Vector3(
-        i & 1 ? max.x : min.x,
-        i & 2 ? max.y : min.y,
-        i & 4 ? max.z : min.z,
-      ).applyMatrix4(local));
-    }
-  }
-
-  const hasCubes = !bounds.isEmpty();
-  const center = new THREE.Vector3();
-  const half = new THREE.Vector3();
-
-  if (hasCubes && !h.anchorAtPivot) bounds.getCenter(center);
-
-  if (h.fit) {
-    if (!hasCubes) return null;
-    bounds.getSize(half).multiplyScalar(0.5);
-  } else {
-    half.set(h.size[0] / 2, h.size[1] / 2, h.size[2] / 2);
-  }
-
-  const inflate = Number(h.inflate) || 0;
-  half.set(Math.max(0, half.x + inflate), Math.max(0, half.y + inflate), Math.max(0, half.z + inflate));
-  if (half.x === 0 && half.y === 0 && half.z === 0) return null;
-
-  // Offsets are Blockbench pixels along the bone's axes; in Blockbench space no axis is mirrored.
-  center.add(new THREE.Vector3(h.offset[0], h.offset[1], h.offset[2]));
-  return { center, half };
-}
-
-function makeBoxLines(color) {
-  const geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
-  const material = new THREE.LineBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.9 });
-  const lines = new THREE.LineSegments(geometry, material);
-  lines.renderOrder = 999;
-  lines.matrixAutoUpdate = false;
-  return lines;
-}
-
-function makeArrow(direction, color, length) {
-  const arrow = new THREE.ArrowHelper(direction, new THREE.Vector3(), length, color, length * 0.3, length * 0.18);
-  arrow.traverse(o => {
-    if (o.material) {
-      o.material.depthTest = false;
-      o.material.transparent = true;
-    }
-    o.renderOrder = 999;
-  });
-  return arrow;
-}
-
-/**
- * Wireframe for a spring collider in its bone's space (pixels): three rings around each end and,
- * for a capsule, four lines joining the ends.
- */
-function colliderLinePoints(c) {
-  const a = new THREE.Vector3(c.start[0], c.start[1], c.start[2]);
-  const capsule = c.shape === 'capsule';
-  const b = capsule ? new THREE.Vector3(c.end[0], c.end[1], c.end[2]) : a.clone();
-  const r = Math.max(0.01, Number(c.radius) || 0);
-  const points = [];
-  const segments = 24;
-  const ring = (center, u, v) => {
-    for (let i = 0; i < segments; i++) {
-      const t0 = (i / segments) * Math.PI * 2;
-      const t1 = ((i + 1) / segments) * Math.PI * 2;
-      for (const t of [t0, t1]) {
-        points.push(center.x + (u.x * Math.cos(t) + v.x * Math.sin(t)) * r,
-          center.y + (u.y * Math.cos(t) + v.y * Math.sin(t)) * r,
-          center.z + (u.z * Math.cos(t) + v.z * Math.sin(t)) * r);
-      }
-    }
-  };
-  const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
-  for (const center of capsule ? [a, b] : [a]) {
-    ring(center, X, Y);
-    ring(center, X, Z);
-    ring(center, Y, Z);
-  }
-  if (capsule) {
-    const axis = b.clone().sub(a);
-    if (axis.lengthSq() > 1e-12) {
-      axis.normalize();
-      const helper = Math.abs(axis.y) < 0.9 ? Y : X;
-      const u = new THREE.Vector3().crossVectors(axis, helper).normalize();
-      const v = new THREE.Vector3().crossVectors(axis, u).normalize();
-      for (const side of [u, v, u.clone().multiplyScalar(-1), v.clone().multiplyScalar(-1)]) {
-        points.push(a.x + side.x * r, a.y + side.y * r, a.z + side.z * r, b.x + side.x * r, b.y + side.y * r, b.z + side.z * r);
-      }
-    }
-  }
-  return points;
-}
-
-function makeColliderLines(c) {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(colliderLinePoints(c), 3));
-  const material = new THREE.LineBasicMaterial({ color: COLOR_COLLIDER, depthTest: false, transparent: true, opacity: 0.85 });
-  const lines = new THREE.LineSegments(geometry, material);
-  lines.renderOrder = 999;
-  lines.matrixAutoUpdate = false;
-  return lines;
-}
-
-function makeSocketGizmo() {
-  const group = new THREE.Object3D();
-  group.add(makeArrow(new THREE.Vector3(0, 0, -1), COLOR_SOCKET, 4));
-  group.add(makeArrow(new THREE.Vector3(0, 1, 0), COLOR_SOCKET_UP, 2));
-  group.matrixAutoUpdate = false;
-  return group;
-}
-
-function rebuildOverlay() {
-  clearOverlay();
-  overlay.dirty = false;
-  if (!isActive()) return;
-
-  const root = ensureOverlayRoot();
-  const rig = RigStore.rig;
-
-  for (const h of rig.hitboxes) {
-    const object = makeBoxLines(hitboxColor(h));
-    root.add(object);
-    overlay.hitboxes.push({ def: h, object, box: null });
-  }
-
-  for (const s of rig.sockets) {
-    const object = makeSocketGizmo();
-    root.add(object);
-    overlay.sockets.push({ def: s, object });
-  }
-
-  for (const c of rig.colliders || []) {
-    const object = makeColliderLines(c);
-    root.add(object);
-    overlay.colliders.push({ def: c, object });
-  }
-}
-
-/** Socket frame in world space: bone pivot, plus locator and socket offset, then locator and socket rotation. */
-function socketWorldMatrix(s) {
-  let bone = s.locator ? null : azure_rig_preview_findBone(s.bone);
-  let localPosition = new THREE.Vector3(s.offset[0], s.offset[1], s.offset[2]);
-  let rotation = bbRotation(s.rotation);
-
-  if (s.locator) {
-    const locator = findLocator(s.locator);
-    if (!locator) return null;
-    bone = locator.parent instanceof Group ? locator.parent : null;
-    const origin = bone ? bone.origin : [0, 0, 0];
-    localPosition.add(new THREE.Vector3(
-      locator.position[0] - origin[0],
-      locator.position[1] - origin[1],
-      locator.position[2] - origin[2],
-    ));
-    rotation = bbRotation(locator.rotation || [0, 0, 0]).multiply(rotation);
-  }
-
-  const parent = bone?.mesh || Project?.model_3d;
-  if (!parent) return null;
-  parent.updateWorldMatrix(true, false);
-
-  return new THREE.Matrix4()
-    .copy(parent.matrixWorld)
-    .multiply(new THREE.Matrix4().compose(localPosition, rotation, new THREE.Vector3(1, 1, 1)));
-}
-
-function syncOverlay() {
-  if (!isActive()) {
-    if (overlay.root) overlay.root.visible = false;
-    return;
-  }
-
-  // Creates the overlay root on first use and keeps it in the scene.
-  attachOverlayRoot();
-  overlay.root.visible = true;
-  if (overlay.dirty) rebuildOverlay();
-
-  const parentInverse = new THREE.Matrix4();
-  overlay.root.parent?.updateWorldMatrix(true, false);
-  if (overlay.root.parent) parentInverse.copy(overlay.root.parent.matrixWorld).invert();
-
-  for (const item of overlay.hitboxes) {
-    const mesh = boneMesh(item.def.bone);
-    const box = PreviewSettings.hitboxes && mesh ? hitboxBox(item.def) : null;
-    item.object.visible = !!box;
-    if (!box) continue;
-    item.object.matrix.copy(parentInverse)
-      .multiply(mesh.matrixWorld)
-      .multiply(new THREE.Matrix4().compose(box.center, new THREE.Quaternion(), box.half.clone().multiplyScalar(2)));
-  }
-
-  for (const item of overlay.colliders) {
-    const mesh = PreviewSettings.colliders ? boneMesh(item.def.bone) : null;
-    item.object.visible = !!mesh;
-    if (!mesh) continue;
-    mesh.updateWorldMatrix(true, false);
-    item.object.matrix.copy(parentInverse).multiply(mesh.matrixWorld);
-  }
-
-  for (const item of overlay.sockets) {
-    const matrix = PreviewSettings.sockets ? socketWorldMatrix(item.def) : null;
-    item.object.visible = !!matrix;
-    if (!matrix) continue;
-    item.object.matrix.copy(parentInverse).multiply(matrix);
-  }
-}
-
-function restRotation(bone) {
-  const mesh = bone.mesh;
-  if (mesh?.fix_rotation) return mesh.fix_rotation;
-  const r = bone.rotation || [0, 0, 0];
-  return new THREE.Euler(r[0] * DEG, r[1] * DEG, r[2] * DEG, 'ZYX');
-}
-
-/** Turns a bone about its pivot by a world-space rotation. */
-function rotateWorld(mesh, worldDelta) {
-  const parentQuat = new THREE.Quaternion();
-  mesh.parent.updateWorldMatrix(true, false);
-  mesh.parent.getWorldQuaternion(parentQuat);
-  const local = parentQuat.clone().invert().multiply(worldDelta).multiply(parentQuat);
-  mesh.quaternion.premultiply(local);
-  mesh.updateMatrixWorld(true);
-}
-
-/** Turns a bone so the direction to {@code from} points at {@code to}, by {@code fraction} of the turn. */
-function aim(mesh, from, to, fraction = 1) {
-  const pivot = worldPosition(mesh);
-  const u = from.clone().sub(pivot);
-  const v = to.clone().sub(pivot);
-  if (u.lengthSq() < 1e-8 || v.lengthSq() < 1e-8) return false;
-  u.normalize();
-  v.normalize();
-  if (u.dot(v) > 1 - 1e-9) return false;
-
-  let q = new THREE.Quaternion().setFromUnitVectors(u, v);
-  if (fraction < 1) q = new THREE.Quaternion().slerp(q, fraction);
-  rotateWorld(mesh, q);
-  return true;
-}
-
-/** A point fixed to a bone, in Blockbench pixels from its pivot, in world space. */
-function pointOnBone(mesh, offset) {
-  mesh.updateWorldMatrix(true, false);
-  return new THREE.Vector3(offset[0], offset[1], offset[2]).applyMatrix4(mesh.matrixWorld);
-}
-
-function directionOnBone(mesh, direction) {
-  const q = new THREE.Quaternion();
-  mesh.updateWorldMatrix(true, false);
-  mesh.getWorldQuaternion(q);
-  return new THREE.Vector3(direction[0], direction[1], direction[2]).normalize().applyQuaternion(q);
-}
-
-function wrapAngle(a) {
-  return Math.atan2(Math.sin(a), Math.cos(a));
-}
-
-/**
- * Clamps a bone's rotation relative to its rest pose. Limits are keyframe
- * degrees; keyframes land on the mesh with X and Y negated (as in AzureLib),
- * so the mesh ranges for X and Y are [-max, -min].
- */
-function applyConstraint(bone, c) {
-  const mesh = bone.mesh;
-  if (!mesh) return;
-  const rest = restRotation(bone);
-  const ranges = {
-    x: [-c.max[0] * DEG, -c.min[0] * DEG],
-    y: [-c.max[1] * DEG, -c.min[1] * DEG],
-    z: [c.min[2] * DEG, c.max[2] * DEG],
-  };
-  if (c.type === 'hinge_x') { ranges.y = [0, 0]; ranges.z = [0, 0]; }
-  if (c.type === 'hinge_y') { ranges.x = [0, 0]; ranges.z = [0, 0]; }
-  if (c.type === 'hinge_z') { ranges.x = [0, 0]; ranges.y = [0, 0]; }
-
-  const euler = new THREE.Euler().setFromQuaternion(mesh.quaternion, 'ZYX');
-  for (const axis of ['x', 'y', 'z']) {
-    const offset = wrapAngle(euler[axis] - rest[axis]);
-    const [min, max] = ranges[axis];
-    euler[axis] = rest[axis] + Math.min(max, Math.max(min, offset));
-  }
-  mesh.quaternion.setFromEuler(euler);
-  mesh.updateMatrixWorld(true);
-}
-
-function constraintsFor(boneNames) {
-  const byBone = new Map(RigStore.rig.constraints.map(c => [c.bone, c]));
-  return boneNames.map(n => byBone.get(n) || null);
-}
-
-function resolvedSolver(chain) {
-  if (chain.solver !== 'auto') return chain.solver;
-  return chain.bones.length === 2 || chain.bones.length === 3 ? 'two_bone' : 'ccd';
-}
-
-/** AzIkSolvers.twoBone: bend the middle joint, swing the root, then twist towards the pole. */
-function solveTwoBone(bones, effector, target, constraints, pole) {
-  const [upper, lower] = bones.map(b => b.mesh);
-  const last = bones[bones.length - 1].mesh;
-  const a = worldPosition(upper);
-  const b = worldPosition(lower);
-  const c = pointOnBone(last, effector);
-  const upperLen = a.distanceTo(b);
-  const lowerLen = b.distanceTo(c);
-  if (upperLen < 1e-5 || lowerLen < 1e-5) return;
-
-  const reach = Math.min(upperLen + lowerLen - 1e-4, Math.max(Math.abs(upperLen - lowerLen) + 1e-4, a.distanceTo(target)));
-  const u = a.clone().sub(b);
-  const v = c.clone().sub(b);
-  let axis = new THREE.Vector3().crossVectors(u, v);
-  if (axis.lengthSq() < 1e-12) {
-    axis = directionOnBone(upper, [1, 0, 0]);
-  }
-  axis.normalize();
-
-  const current = Math.acos(Math.min(1, Math.max(-1, u.dot(v) / (upperLen * lowerLen))));
-  const desired = Math.acos(Math.min(1, Math.max(-1, (upperLen * upperLen + lowerLen * lowerLen - reach * reach) / (2 * upperLen * lowerLen))));
-  rotateWorld(lower, new THREE.Quaternion().setFromAxisAngle(axis, desired - current));
-  if (constraints[1]) applyConstraint(bones[1], constraints[1]);
-
-  aim(upper, pointOnBone(last, effector), target);
-  if (constraints[0]) applyConstraint(bones[0], constraints[0]);
-
-  if (pole) {
-    const root = worldPosition(upper);
-    const k = target.clone().sub(root);
-    if (k.lengthSq() < 1e-10) return;
-    k.normalize();
-    const knee = worldPosition(lower).sub(root);
-    const toPole = modelToWorld(pole).sub(root);
-    knee.sub(k.clone().multiplyScalar(knee.dot(k)));
-    toPole.sub(k.clone().multiplyScalar(toPole.dot(k)));
-    if (knee.lengthSq() < 1e-10 || toPole.lengthSq() < 1e-10) return;
-    const angle = Math.atan2(k.dot(new THREE.Vector3().crossVectors(knee, toPole)), knee.dot(toPole));
-    rotateWorld(upper, new THREE.Quaternion().setFromAxisAngle(k, angle));
-    if (constraints[0]) applyConstraint(bones[0], constraints[0]);
-  }
-}
-
-/** AzIkSolvers.ccd: every pass turns each bone, tip first, to point the effector at the target. */
-function solveCcd(bones, effector, target, constraints, iterations, tolerance) {
-  const last = bones[bones.length - 1].mesh;
-  for (let it = 0; it < iterations; it++) {
-    for (let i = bones.length - 1; i >= 0; i--) {
-      aim(bones[i].mesh, pointOnBone(last, effector), target);
-      if (constraints[i]) applyConstraint(bones[i], constraints[i]);
-    }
-    if (pointOnBone(last, effector).distanceTo(target) <= tolerance) return;
-  }
-}
-
-/** Where a chain's preview target is this frame, in world space, or null to skip. */
-function previewTarget(entry, effectorWorld) {
-  if (entry.target?.type === 'bone') {
-    const mesh = entry.target.bone ? boneMesh(entry.target.bone) : null;
-    return mesh ? pointOnBone(mesh, entry.target.point || [0, 0, 0]) : null;
-  }
-
-  const p = entry.preview || {};
-  if (p.enabled === false || p.mode === 'off') return null;
-
-  if (p.mode === 'locator') {
-    const locator = findLocator(p.locator);
-    return locator?.mesh ? worldPosition(locator.mesh) : null;
-  }
-
-  if (p.mode === 'ground') {
-    // AzIkTargets.ground keeps the animated foot height but measures it from the
-    // ground under the foot: with flat preview ground raised by groundHeight,
-    // the foot moves up by that much.
-    return effectorWorld.clone().add(new THREE.Vector3(0, Number(p.groundHeight) || 0, 0));
-  }
-
-  return modelToWorld(p.point || [0, 0, 0]);
-}
-
-/** Captures bone rotations so a modifier's result can be blended in by its weight. */
-function captureRotations(meshes) {
-  return meshes.map(m => m.quaternion.clone());
-}
-
-function blendRotations(meshes, before, weight) {
-  if (weight >= 1) return;
-  meshes.forEach((m, i) => m.quaternion.copy(before[i].clone().slerp(m.quaternion.clone(), Math.max(0, weight))));
-  meshes.forEach(m => m.updateMatrixWorld(true));
-}
-
-function runIkChain(chain) {
-  const bones = chain.bones.map(azure_rig_preview_findBone);
-  if (bones.some(b => !b?.mesh) || !bones.length) return;
-  const meshes = bones.map(b => b.mesh);
-  const last = meshes[meshes.length - 1];
-  const target = previewTarget(chain, pointOnBone(last, chain.effector));
-  if (!target) return;
-
-  const before = captureRotations(meshes);
-  const constraints = constraintsFor(chain.bones);
-  const solver = resolvedSolver(chain);
-
-  if (solver === 'two_bone' && bones.length >= 2) {
-    solveTwoBone(bones, chain.effector, target, constraints, chain.pole);
-  } else {
-    solveCcd(bones, chain.effector, target, constraints, Math.max(1, chain.iterations | 0), Math.max(0.001, Number(chain.tolerance) || 0.1));
-  }
-
-  blendRotations(meshes, before, Number(chain.weight) || 0);
-}
-
-function runLookAt(look) {
-  const bones = look.bones.map(azure_rig_preview_findBone);
-  if (bones.some(b => !b?.mesh) || !bones.length) return;
-  const meshes = bones.map(b => b.mesh);
-  const head = meshes[meshes.length - 1];
-  const target = previewTarget(look, worldPosition(head));
-  if (!target) return;
-
-  const before = captureRotations(meshes);
-  const constraints = constraintsFor(look.bones);
-  const last = meshes.length - 1;
-
-  for (let i = 0; i <= last; i++) {
-    const headPos = worldPosition(head);
-    const distance = headPos.distanceTo(target);
-    if (distance < 1e-4) break;
-    const aimPoint = directionOnBone(head, look.forward).multiplyScalar(distance).add(headPos);
-    aim(meshes[i], aimPoint, target, 1 / (last - i + 1));
-    if (constraints[i]) applyConstraint(bones[i], constraints[i]);
-  }
-
-  blendRotations(meshes, before, Number(look.weight) || 0);
-}
-
-const springStates = new Map();
-
-/**
- * A spring chain's colliders in world space for this frame: [{a, b, radius, capsule}], with the
- * radius in pixels. Mirrors AzSpringBone#updateColliders.
- */
-function springColliders(spring) {
-  const byId = new Map((RigStore.rig.colliders || []).map(c => [c.id, c]));
-  const out = [];
-  for (const id of spring.colliders || []) {
-    const c = byId.get(id);
-    const mesh = c && boneMesh(c.bone);
-    if (!mesh) continue;
-    const capsule = c.shape === 'capsule';
-    out.push({
-      a: pointOnBone(mesh, c.start),
-      b: pointOnBone(mesh, capsule ? c.end : c.start),
-      radius: Math.max(0, Number(c.radius) || 0),
-      capsule,
-    });
-  }
-  return out;
-}
-
-/** Closest points between segments p0-p1 and a-b: returns [s, t], the parameters along each. */
-function closestSegmentParams(p0, p1, a, b) {
-  const d1 = p1.clone().sub(p0);
-  const d2 = b.clone().sub(a);
-  const r = p0.clone().sub(a);
-  const aa = d1.dot(d1);
-  const ee = d2.dot(d2);
-  const ff = d2.dot(r);
-  let s;
-  let t;
-
-  if (aa <= 1e-12 && ee <= 1e-12) return [0, 0];
-  if (aa <= 1e-12) return [0, Math.max(0, Math.min(1, ff / ee))];
-
-  const c = d1.dot(r);
-  if (ee <= 1e-12) {
-    s = Math.max(0, Math.min(1, -c / aa));
-    t = 0;
-  } else {
-    const bb = d1.dot(d2);
-    const denom = aa * ee - bb * bb;
-    s = denom > 1e-12 ? Math.max(0, Math.min(1, (bb * ff - c * ee) / denom)) : 0;
-    t = (bb * s + ff) / ee;
-    if (t < 0) {
-      t = 0;
-      s = Math.max(0, Math.min(1, -c / aa));
-    } else if (t > 1) {
-      t = 1;
-      s = Math.max(0, Math.min(1, (bb - c) / aa));
-    }
-  }
-  return [s, t];
-}
-
-/**
- * Pushes the chain out of the colliders and above the ground. Each segment is tested against
- * each collider's core, so thin colliders can't slip between two joints; the segment's outer
- * joint is moved so the segment clears it. Mirrors AzSpringBone#collide.
- */
-function collideSpring(p, colliders, particleRadius, groundY) {
-  for (let j = 1; j < p.length; j++) {
-    for (const c of colliders) {
-      const reach = c.radius + particleRadius;
-      const coreEnd = c.capsule ? c.b : c.a;
-      const [sAlong, tAlong] = closestSegmentParams(p[j - 1], p[j], c.a, coreEnd);
-      const onChain = p[j - 1].clone().lerp(p[j], sAlong);
-      const onCore = c.a.clone().lerp(coreEnd, tAlong);
-      const away = onChain.clone().sub(onCore);
-      const dist = away.length();
-      if (dist >= reach) continue;
-      if (dist < 1e-6) away.set(0, 1, 0);
-      else away.divideScalar(dist);
-      // Moving the outer joint by d moves the contact point by s * d; the root end of the
-      // segment is handled by the segment before it.
-      p[j].add(away.multiplyScalar((reach - dist) / Math.max(sAlong, 0.25)));
-    }
-    if (groundY !== null && p[j].y < groundY + particleRadius) p[j].y = groundY + particleRadius;
-  }
-}
-
-/**
- * AzSpringBone: damped particles, each pulled towards its animated position relative to the
- * particle before it, held at segment length; the bones are then aimed at them.
- */
-function runSpring(spring) {
-  const bones = spring.bones.map(azure_rig_preview_findBone);
-  if (bones.some(b => !b?.mesh) || !bones.length || spring.preview?.enabled === false) return;
-  const meshes = bones.map(b => b.mesh);
-  const tip = spring.tip;
-  const count = meshes.length + (tip ? 1 : 0);
-
-  const chainPoint = j => (j < meshes.length ? worldPosition(meshes[j]) : pointOnBone(meshes[meshes.length - 1], tip));
-  const targets = [];
-  for (let j = 0; j < count; j++) targets.push(chainPoint(j));
-
-  const colliders = springColliders(spring);
-  const particleRadius = Math.max(0, Number(spring.radius) || 0);
-  // The ground is the model's origin: the entity's feet.
-  const groundY = spring.ground ? modelToWorld([0, 0, 0]).y : null;
-
-  const time = Timeline.time || 0;
-  const now = performance.now();
-  const playing = !!Timeline.playing;
-  let state = springStates.get(spring.id);
-  const fresh = !state || state.count !== count;
-
-  // While playback runs, step by real time (scaled by the playback speed), so looping back to
-  // the start of the animation or the loop range doesn't count as going backwards. When
-  // scrubbing, step by timeline time, and reset on a jump backwards or a big jump forwards.
-  let delta = 0;
-  if (!fresh) {
-    delta = playing && state.playing
-      ? ((now - state.wall) / 1000) * TICKS_PER_SECOND * ((Timeline.playback_speed ?? 100) / 100)
-      : (time - state.time) * TICKS_PER_SECOND;
-  }
-
-  if (fresh || delta < 0 || delta > 10) {
-    state = {
-      count,
-      time,
-      wall: now,
-      playing,
-      position: targets.map(t => t.clone()),
-      velocity: targets.map(() => new THREE.Vector3()),
-    };
-    collideSpring(state.position, colliders, particleRadius, groundY);
-    springStates.set(spring.id, state);
-  } else {
-    const stiffness = Math.min(1, Math.max(0, Number(spring.stiffness) || 0));
-    const damping = Math.min(1, Math.max(0, Number(spring.damping) || 0));
-    const gravity = (Number(spring.gravity) || 0) * PIXELS_PER_BLOCK;
-    const p = state.position;
-    const v = state.velocity;
-    p[0].copy(targets[0]);
-
-    let remaining = delta;
-    while (remaining > 1e-4) {
-      const dt = Math.min(remaining, 1);
-      const keep = Math.max(0, 1 - damping * dt);
-      const previous = p.map(x => x.clone());
-
-      for (let j = 1; j < count; j++) {
-        // Each joint springs towards where the animation puts it relative to the joint
-        // before it, so lag builds up along the chain and it bends and whips instead of
-        // swinging as one rigid piece.
-        const rest = targets[j].clone().sub(targets[j - 1]).add(p[j - 1]);
-        v[j].add(rest.sub(p[j]).multiplyScalar(stiffness * dt));
-        v[j].y -= gravity * dt;
-        v[j].multiplyScalar(keep);
-        p[j].add(v[j].clone().multiplyScalar(dt));
-      }
-
-      // Hold every segment at its animated length and push joints out of colliders; alternated so
-      // the chain ends up both the right length and outside the colliders.
-      const passes = colliders.length || groundY !== null ? 3 : 1;
-      for (let pass = 0; pass < passes; pass++) {
-        for (let j = 1; j < count; j++) {
-          const rest = targets[j].distanceTo(targets[j - 1]);
-          const dir = p[j].clone().sub(p[j - 1]);
-          const length = dir.length();
-          if (length > 1e-6) p[j].copy(p[j - 1]).add(dir.multiplyScalar(rest / length));
-        }
-        collideSpring(p, colliders, particleRadius, groundY);
-      }
-
-      // Derive velocity from the corrected motion, so contact slides and settles instead of bouncing.
-      for (let j = 1; j < count; j++) v[j].copy(p[j]).sub(previous[j]).divideScalar(dt);
-
-      remaining -= dt;
-    }
-    state.time = time;
-    state.wall = now;
-    state.playing = playing;
-  }
-
-  const constraints = constraintsFor(spring.bones);
-  for (let i = 0; i < count - 1; i++) {
-    aim(meshes[i], chainPoint(i + 1), state.position[i + 1]);
-    if (constraints[i]) applyConstraint(bones[i], constraints[i]);
-  }
-}
-
-function runStandaloneConstraints() {
-  for (const c of RigStore.rig.constraints) {
-    if (!c.standalone) continue;
-    const bone = azure_rig_preview_findBone(c.bone);
-    if (bone) applyConstraint(bone, c);
-  }
-}
-
-function runModifiers() {
-  if (!isActive() || !PreviewSettings.modifiers || !Animator?.open) return;
-  const rig = RigStore.rig;
-
-  const jobs = [
-    ...rig.ikChains.map(c => ({ priority: Number(c.priority) || 0, run: () => runIkChain(c) })),
-    ...rig.lookAts.map(l => ({ priority: Number(l.priority) || 0, run: () => runLookAt(l) })),
-    ...rig.springBones.map(s => ({ priority: Number(s.priority) || 0, run: () => runSpring(s) })),
-  ];
-  if (rig.constraints.some(c => c.standalone)) jobs.push({ priority: 1000, run: runStandaloneConstraints });
-
-  // AzureLib runs modifiers in ascending priority, then in the order they were added.
-  jobs.map((job, i) => ({ ...job, i }))
-    .sort((a, b) => a.priority - b.priority || a.i - b.i)
-    .forEach(job => {
-      try {
-        job.run();
-      } catch (e) {
-        console.warn('[AzureLib Rig] Preview failed for a modifier', e);
-      }
-    });
-}
-
-const BlendPreview = {
-  active: null,
-  inputX: 0,
-  inputY: 0,
-
-  start(blendSpace) {
-    this.active = blendSpace;
-    this.refresh();
-  },
-
-  stop() {
-    this.active = null;
-    this.refresh();
-  },
-
-  refresh() {
-    try { if (Animator?.open) Animator.preview(); } catch (_) { /* not in animate mode */ }
-  },
-
-  weights() {
-    return this.active ? blendSpaceWeights(this.active, this.inputX, this.inputY) : [];
-  },
-
-  display() {
-    if (!this.active) return false;
-    const weights = this.weights();
-    const blend = {};
-    const animations = [];
-
-    this.active.samples.forEach((sample, i) => {
-      const animation = Animation.all.find(a => a.name === sample.animation);
-      if (!animation || !(weights[i] > 0)) return;
-      if (blend[animation.uuid] === undefined) {
-        blend[animation.uuid] = 0;
-        animations.push(animation);
-      }
-      blend[animation.uuid] += weights[i];
-    });
-
-    if (!animations.length) return false;
-    Animator.showDefaultPose(true);
-    Animator.stackAnimations(animations, false, blend);
-    return true;
-  },
-};
-
-let azure_rig_preview_handlers = null;
-let unsubscribe = null;
-
-function markOverlayDirty() {
-  overlay.dirty = true;
-}
-
-function registerRigPreview() {
-  if (azure_rig_preview_handlers) return;
-
-  azure_rig_preview_handlers = {
-    frame: () => {
-      if (isActive() && Animator?.open && BlendPreview.active) BlendPreview.display();
-      runModifiers();
-    },
-    render: () => syncOverlay(),
-    dirty: () => { overlay.dirty = true; },
-    resetSprings: () => springStates.clear(),
-    leaveAnimate: () => { if (BlendPreview.active) BlendPreview.stop(); },
-  };
-
-  unsubscribe = RigStore.onChange(() => {
-    overlay.dirty = true;
-    springStates.clear();
-  });
-
-  Blockbench.on('display_animation_frame', azure_rig_preview_handlers.frame);
-  Blockbench.on('render_frame', azure_rig_preview_handlers.render);
-  Blockbench.on('finished_edit', azure_rig_preview_handlers.dirty);
-  Blockbench.on('load_project', azure_rig_preview_handlers.dirty);
-  Blockbench.on('select_project', azure_rig_preview_handlers.dirty);
-  Blockbench.on('select_animation', azure_rig_preview_handlers.resetSprings);
-  Blockbench.on('unselect_mode', azure_rig_preview_handlers.leaveAnimate);
-  Blockbench.on('unselect_project', azure_rig_preview_handlers.leaveAnimate);
-}
-
-function unregisterRigPreview() {
-  if (!azure_rig_preview_handlers) return;
-  BlendPreview.stop();
-  Blockbench.removeListener('display_animation_frame', azure_rig_preview_handlers.frame);
-  Blockbench.removeListener('render_frame', azure_rig_preview_handlers.render);
-  Blockbench.removeListener('finished_edit', azure_rig_preview_handlers.dirty);
-  Blockbench.removeListener('load_project', azure_rig_preview_handlers.dirty);
-  Blockbench.removeListener('select_project', azure_rig_preview_handlers.dirty);
-  Blockbench.removeListener('select_animation', azure_rig_preview_handlers.resetSprings);
-  Blockbench.removeListener('unselect_mode', azure_rig_preview_handlers.leaveAnimate);
-  Blockbench.removeListener('unselect_project', azure_rig_preview_handlers.leaveAnimate);
-  unsubscribe?.();
-  unsubscribe = null;
-  azure_rig_preview_handlers = null;
-  clearOverlay();
-  overlay.root?.parent?.remove(overlay.root);
-  overlay.root = null;
-}
-
-;// ./rig/azure-rig-codegen.js
-/**
- * AzureLib Animator — Rig Code Generation
- * ---------------------------------------
- * Turns the rig definitions into Java code for Azurelib: the entity's hitbox set and
- * socket constants, the animator's pose modifiers (IK, look-at, spring bones,
- * constraints) and blend spaces, and the renderer's attachment layer.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-/**
- * AzureLib branches the generator can target. `root` is the default package
- * root (overridable per project); `mojmap` marks branches on Mojang's mapped
- * names, which share the entity accessors used by blend-space inputs.
- */
-const TARGETS = {
-  v26_3: { label: '26.3', root: 'mod.azure.azurelib.common', mojmap: true },
-  v1_21_1: { label: '1.21.1', root: 'mod.azure.azurelib.common', mojmap: true },
-  v1_20_1: { label: '1.20.1', root: 'mod.azure.azurelib.common', mojmap: true },
-  v1_18: { label: '1.18.2', root: 'mod.azure.azurelib', mojmap: true },
-  legacy: { label: '1.12.2 / 1.7.10', root: 'mod.azure.azurelib', mojmap: false },
-  beta: { label: 'Beta 1.7.3 (Ornithe / StationAPI)', root: 'mod.azure.azurelib', mojmap: false },
-};
-
-/** Target id -> label, for select inputs. */
-const CODEGEN_TARGETS = Object.fromEntries(Object.entries(TARGETS).map(([id, t]) => [id, t.label]));
-
-/** Older saved projects used `modern` for 1.21.x. */
-function normalizeTarget(target) {
-  if (target === 'modern') return 'v1_21_1';
-  return TARGETS[target] ? target : 'v1_21_1';
-}
-
-const BLEND_INPUTS = {
-  speed: 'Horizontal speed (blocks/second)',
-  forward: 'Forward speed (blocks/second)',
-  strafe: 'Strafe speed, right positive (blocks/second)',
-  pitch: 'Look pitch (degrees)',
-  custom: 'Custom (fill in by hand)',
-};
-
-const DEFAULT_OPTIONS = {
-  target: 'v1_21_1',
-  packageRoot: '',
-  entityClass: 'ExampleEntity',
-  indent: '    ',
-};
-
-function jf(value) {
-  const n = Number(value) || 0;
-  if (Number.isInteger(n)) return String(n);
-  return `${parseFloat(n.toFixed(4))}F`;
-}
-
-function jd(value) {
-  const n = Number(value) || 0;
-  return Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(4)));
-}
-
-function js(value) {
-  return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-}
-
-function constantName(value) {
-  const cleaned = String(value)
-    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    .replace(/[^A-Za-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .toUpperCase();
-  return /^[0-9]/.test(cleaned) ? `_${cleaned}` : cleaned || 'UNNAMED';
-}
-
-const isZero = v => !v || v.every(n => !Number(n));
-const vecArgs = v => v.map(jf).join(', ');
-
-function packageRoot(target, override) {
-  return (override || '').trim() || TARGETS[normalizeTarget(target)].root;
-}
-
-const isMojmap = target => TARGETS[normalizeTarget(target)].mojmap;
-
-function importsBlock(target, names, override) {
-  const root = packageRoot(target, override);
-  const paths = {
-    AzHitboxSet: `${root}.hitbox.AzHitboxSet`,
-    AzHitboxHolder: `${root}.hitbox.AzHitboxHolder`,
-    AzBoneSocket: `${root}.socket.AzBoneSocket`,
-    AzAttachment: `${root}.socket.AzAttachment`,
-    AzAttachmentLayer: `${root}.socket.AzAttachmentLayer`,
-    AzPoseModifierRegistry: `${root}.animation.pose.AzPoseModifierRegistry`,
-    AzBoneConstraint: `${root}.animation.pose.AzBoneConstraint`,
-    AzBoneConstraints: `${root}.animation.pose.AzBoneConstraints`,
-    AzIkChain: `${root}.animation.pose.ik.AzIkChain`,
-    AzIkSolvers: `${root}.animation.pose.ik.AzIkSolvers`,
-    AzIkTargets: `${root}.animation.pose.ik.AzIkTargets`,
-    AzLookAt: `${root}.animation.pose.ik.AzLookAt`,
-    AzSpringBone: `${root}.animation.pose.secondary.AzSpringBone`,
-    AzSpringCollider: `${root}.animation.pose.secondary.AzSpringCollider`,
-    AzBlendSpace1D: `${root}.animation.blend.AzBlendSpace1D`,
-    AzBlendSpace2D: `${root}.animation.blend.AzBlendSpace2D`,
-    AzAnimationControllerContainer: `${root}.animation.controller.AzAnimationControllerContainer`,
-    Mth: isMojmap(target) ? 'net.minecraft.util.Mth' : `${root}.util.math.Mth`,
-    Mc: `${root}.platform.mc.Mc`,
-    UUID: 'java.util.UUID',
-  };
-  return [...new Set(names)]
-    .filter(n => paths[n])
-    .map(n => `import ${paths[n]};`)
-    .sort()
-    .join('\n');
-}
-
-function section(title, imports, body) {
-  return { title, imports, body: body.replace(/\n{3,}/g, '\n\n').trimEnd() + '\n' };
-}
-
-function hitboxCall(h, ind) {
-  const options = [];
-
-  if (h.role === 'INTERACT') options.push('.interact()');
-  if (h.role === 'ANCHOR') options.push('.anchor()');
-  if (!h.fit) {
-    const [x, y, z] = h.size;
-    options.push(x === y && y === z ? `.size(${jf(x)})` : `.size(${vecArgs(h.size)})`);
-  }
-  if (!isZero(h.offset)) options.push(`.offset(${vecArgs(h.offset)})`);
-  if (Number(h.inflate)) options.push(`.inflate(${jf(h.inflate)})`);
-  if (h.anchorAtPivot) options.push('.anchorAtPivot()');
-  if (Number(h.damageMultiplier) !== 1 && h.role === 'COMBAT') options.push(`.damageMultiplier(${jf(h.damageMultiplier)})`);
-  for (const tag of h.tags || []) options.push(`.tag(${js(tag)})`);
-
-  const sameName = h.name === h.bone;
-
-  if (!options.length) {
-    return sameName ? `${ind}.add(${js(h.bone)})` : `${ind}.add(${js(h.name)}, ${js(h.bone)}, h -> h)`;
-  }
-
-  const lambda = `h -> h${options.join('')}`;
-  return sameName ? `${ind}.add(${js(h.bone)}, ${lambda})` : `${ind}.add(${js(h.name)}, ${js(h.bone)}, ${lambda})`;
-}
-
-function socketExpression(s) {
-  const parts = [s.locator ? `AzBoneSocket.locator(${js(s.locator)})` : `AzBoneSocket.bone(${js(s.name)}, ${js(s.bone)})`];
-  if (!isZero(s.offset)) parts.push(`.offset(${vecArgs(s.offset)})`);
-  if (!isZero(s.rotation)) parts.push(`.rotation(${vecArgs(s.rotation)})`);
-  if (s.serverHitbox) parts.push(`.serverHitbox(${js(s.serverHitbox)})`);
-  parts.push('.build()');
-  return parts.join('');
-}
-
-function socketName(s) {
-  return s.locator || s.name;
-}
-
-function generateEntitySection(rig, options = {}) {
-  const o = { ...DEFAULT_OPTIONS, ...options };
-  const ind = o.indent;
-  const lines = [];
-  const imports = [];
-
-  if (rig.sockets.length) {
-    imports.push('AzBoneSocket');
-    lines.push(`${ind}// Bone sockets: find them with AzBoneSockets.resolve(this, SOCKET, partialTick, transform).`);
-    for (const s of rig.sockets) {
-      lines.push(`${ind}public static final AzBoneSocket ${constantName(socketName(s))} = ${socketExpression(s)};`);
-    }
-    lines.push('');
-  }
-
-  const anchorSockets = rig.sockets.filter(s => s.serverHitbox && !s.locator
-    && !rig.hitboxes.some(h => h.name === s.serverHitbox));
-
-  if (rig.hitboxes.length || anchorSockets.length) {
-    imports.push('AzHitboxSet', 'AzHitboxHolder');
-    lines.push(`${ind}private static final AzHitboxSet HITBOXES = AzHitboxSet.builder()`);
-    for (const h of rig.hitboxes) lines.push(hitboxCall(h, `${ind}${ind}`));
-    for (const s of anchorSockets) {
-      lines.push(`${ind}${ind}.add(${constantName(socketName(s))}.toAnchorHitbox()) // Server-side position for the ${js(socketName(s))} socket.`);
-    }
-    if (rig.hitboxOptions.keepEntityBox) lines.push(`${ind}${ind}.keepEntityBox(true)`);
-    if (rig.hitboxOptions.clientOnly) lines.push(`${ind}${ind}.clientOnly()`);
-    lines.push(`${ind}${ind}.build();`);
-    lines.push('');
-    lines.push(`${ind}// ${o.entityClass} implements AzHitboxHolder`);
-    lines.push(`${ind}@Override`);
-    lines.push(`${ind}public AzHitboxSet getHitboxSet() {`);
-    lines.push(`${ind}${ind}return HITBOXES;`);
-    lines.push(`${ind}}`);
-  }
-
-  for (const s of rig.sockets.filter(s => s.serverHitbox && s.locator)) {
-    lines.push('');
-    lines.push(`${ind}// TODO: socket ${js(socketName(s))} follows a locator, so add its anchor hitbox ${js(s.serverHitbox)} yourself:`);
-    lines.push(`${ind}//   AzHitbox.builder(${js(s.serverHitbox)}, "<locator's bone>").anchor().anchorAtPivot().offset(<locator offset>).size(1).build()`);
-  }
-
-  if (!lines.length) return null;
-  return section(`${o.entityClass} (entity)`, importsBlock(o.target, imports, o.packageRoot), lines.join('\n'));
-}
-
-function constraintExpression(c) {
-  switch (c.type) {
-    case 'hinge_x': return `AzBoneConstraints.hingeX(${js(c.bone)}, ${jf(c.min[0])}, ${jf(c.max[0])})`;
-    case 'hinge_y': return `AzBoneConstraints.hingeY(${js(c.bone)}, ${jf(c.min[1])}, ${jf(c.max[1])})`;
-    case 'hinge_z': return `AzBoneConstraints.hingeZ(${js(c.bone)}, ${jf(c.min[2])}, ${jf(c.max[2])})`;
-    default:
-      return `AzBoneConstraints.limit(${js(c.bone)}, ${jf(c.min[0])}, ${jf(c.max[0])}, ${jf(c.min[1])}, ${jf(c.max[1])}, ${jf(c.min[2])}, ${jf(c.max[2])})`;
-  }
-}
-
-function constraintField(c) {
-  return `${constantName(c.bone)}_LIMIT`;
-}
-
-function colliderField(c) {
-  return `${constantName(c.id)}_COLLIDER`;
-}
-
-function colliderExpression(c) {
-  if (c.shape === 'capsule') {
-    return `AzSpringCollider.capsule(${js(c.bone)}, ${vecArgs(c.start)}, ${vecArgs(c.end)}, ${jf(c.radius)})`;
-  }
-  return `AzSpringCollider.sphere(${js(c.bone)}, ${vecArgs(c.start)}, ${jf(c.radius)})`;
-}
-
-function ikTargetExpression(t, entityClass) {
-  switch (t.type) {
-    case 'ground': return `AzIkTargets.ground(${jf(t.stepUp)}, ${jf(t.stepDown)})`;
-    case 'entity_eyes': return `AzIkTargets.entityEyes(entity -> null /* TODO: return the (synced) entity to look at */)`;
-    case 'world': return `AzIkTargets.world((entity, partialTick) -> null /* TODO: return the world position */)`;
-    case 'model': return `AzIkTargets.<${entityClass}>model(${vecArgs(t.point)})`;
-    case 'bone':
-      return isZero(t.point)
-        ? `AzIkTargets.<${entityClass}>bone(${js(t.bone || '')})`
-        : `AzIkTargets.<${entityClass}>bone(${js(t.bone || '')}, ${vecArgs(t.point)})`;
-    default: return 'null /* TODO: target */';
-  }
-}
-
-function azure_rig_codegen_resolvedSolver(chain) {
-  if (chain.solver !== 'auto') return chain.solver;
-  return chain.bones.length === 2 || chain.bones.length === 3 ? 'two_bone' : 'ccd';
-}
-
-function modifierTail(entry, defaultPriority = 0) {
-  const tail = [];
-  if (Number(entry.priority) !== defaultPriority) tail.push(`.priority(${Math.round(Number(entry.priority) || 0)})`);
-  if (entry.weight !== undefined && Number(entry.weight) !== 1) tail.push(`.defaultWeight(${jd(entry.weight)})`);
-  return tail.join('');
-}
-
-function generatePoseModifierSection(rig, options = {}) {
-  const o = { ...DEFAULT_OPTIONS, ...options };
-  const ind = o.indent;
-  const E = o.entityClass;
-  const imports = new Set();
-  const fields = [];
-  const body = [];
-
-  const constraintsByBone = new Map(rig.constraints.map(c => [c.bone, c]));
-  const collidersById = new Map((rig.colliders || []).map(c => [c.id, c]));
-  const usedColliders = new Set();
-  const usedConstraints = new Set();
-  const constraintRefs = bones => bones
-    .filter(b => constraintsByBone.has(b))
-    .map(b => {
-      usedConstraints.add(b);
-      return constraintField(constraintsByBone.get(b));
-    });
-
-  for (const c of rig.ikChains) {
-    imports.add('AzIkChain').add('AzIkTargets');
-    const lines = [`modifiers.add(${js(c.id)}, AzIkChain.<${E}>builder(${c.bones.map(js).join(', ')})`];
-    if (!isZero(c.effector)) lines.push(`.effector(${vecArgs(c.effector)})`);
-
-    const solver = azure_rig_codegen_resolvedSolver(c);
-    if (solver === 'two_bone' && (c.solver !== 'auto' || c.pole)) {
-      imports.add('AzIkSolvers');
-      lines.push(`.solver(AzIkSolvers.twoBone()${c.pole ? `.pole(${vecArgs(c.pole)})` : ''})`);
-    } else if (solver === 'ccd' && (c.solver !== 'auto' || c.iterations !== 10 || Number(c.tolerance) !== 0.1)) {
-      imports.add('AzIkSolvers');
-      lines.push(`.solver(AzIkSolvers.ccd(${Math.max(1, Math.round(c.iterations))}, ${jf(c.tolerance)}))`);
-    }
-
-    lines.push(`.target(${ikTargetExpression(c.target, E)})`);
-    const refs = constraintRefs(c.bones);
-    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
-    lines.push(`.build())${modifierTail(c)};`);
-    body.push(lines.join(`\n${ind}${ind}${ind}`));
-  }
-
-  for (const l of rig.lookAts) {
-    imports.add('AzLookAt').add('AzIkTargets');
-    const lines = [`modifiers.add(${js(l.id)}, AzLookAt.<${E}>builder(${l.bones.map(js).join(', ')})`];
-    const [fx, fy, fz] = l.forward;
-    if (fx !== 0 || fy !== 0 || fz !== -1) lines.push(`.forward(${vecArgs(l.forward)})`);
-    lines.push(`.target(${ikTargetExpression(l.target, E)})`);
-    const refs = constraintRefs(l.bones);
-    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
-    lines.push(`.build())${modifierTail(l)};`);
-    body.push(lines.join(`\n${ind}${ind}${ind}`));
-  }
-
-  for (const s of rig.springBones) {
-    imports.add('AzSpringBone');
-    const lines = [`modifiers.add(${js(s.id)}, AzSpringBone.<${E}>chain(${s.bones.map(js).join(', ')})`];
-    if (s.tip) lines.push(`.tip(${vecArgs(s.tip)})`);
-    lines.push(`.stiffness(${jf(s.stiffness)})`);
-    lines.push(`.damping(${jf(s.damping)})`);
-    if (Number(s.gravity)) lines.push(`.gravity(${jf(s.gravity)})`);
-    if (Number(s.inertia) !== 1) lines.push(`.inertia(${jf(s.inertia)})`);
-    const refs = constraintRefs(s.bones);
-    if (refs.length) lines.push(`.constraint(${refs.join(', ')})`);
-    const colliders = (s.colliders || []).map(id => collidersById.get(id)).filter(Boolean);
-    if (colliders.length) {
-      colliders.forEach(c => usedColliders.add(c.id));
-      lines.push(`.collider(${colliders.map(colliderField).join(', ')})`);
-    }
-    if (Number(s.radius) > 0) lines.push(`.radius(${jf(s.radius)})`);
-    if (s.ground) lines.push('.ground(true)');
-    lines.push(`.build())${modifierTail(s)};`);
-    body.push(lines.join(`\n${ind}${ind}${ind}`));
-  }
-
-  const standalone = rig.constraints.filter(c => c.standalone);
-  if (standalone.length) {
-    standalone.forEach(c => usedConstraints.add(c.bone));
-    body.push(`// Clamp the final pose (after animation and every other modifier).\n${ind}${ind}modifiers.add("bone_limits", AzBoneConstraints.modifier(${standalone.map(constraintField).join(', ')})).priority(1000);`);
-  }
-
-  for (const c of rig.constraints) {
-    if (!usedConstraints.has(c.bone)) continue;
-    imports.add('AzBoneConstraint').add('AzBoneConstraints');
-    fields.push(`${ind}private static final AzBoneConstraint ${constraintField(c)} = ${constraintExpression(c)};`);
-  }
-
-  for (const c of rig.colliders || []) {
-    if (!usedColliders.has(c.id)) continue;
-    imports.add('AzSpringCollider');
-    fields.push(`${ind}private static final AzSpringCollider ${colliderField(c)} = ${colliderExpression(c)};`);
-  }
-
-  if (!body.length) return null;
-  imports.add('AzPoseModifierRegistry');
-
-  const text = [
-    ...fields,
-    fields.length ? '' : null,
-    `${ind}@Override`,
-    `${ind}protected void registerPoseModifiers(AzPoseModifierRegistry<${E}> modifiers) {`,
-    body.map(b => `${ind}${ind}${b}`).join('\n\n'),
-    `${ind}}`,
-  ].filter(l => l !== null).join('\n');
-
-  return section(`${E}Animator: pose modifiers`, importsBlock(o.target, [...imports], o.packageRoot), text);
-}
-
-function blendInputExpression(kind, target, used) {
-  const modern = isMojmap(target);
-  switch (kind) {
-    case 'speed':
-      if (modern) return 'entity.getDeltaMovement().horizontalDistance() * 20';
-      if (target === 'beta') return 'Math.sqrt(Mc.velocityX(entity) * Mc.velocityX(entity) + Mc.velocityZ(entity) * Mc.velocityZ(entity)) * 20';
-      return 'Math.sqrt(entity.motionX * entity.motionX + entity.motionZ * entity.motionZ) * 20';
-    case 'forward':
-      used.add('forward');
-      return 'entity.getForwardSpeed()';
-    case 'strafe':
-      used.add('strafe');
-      return 'entity.getStrafeSpeed()';
-    case 'pitch':
-      if (modern) return 'entity.getViewXRot(partialTick)';
-      if (target === 'beta') return 'Mth.lerp(partialTick, Mc.prevPitch(entity), Mc.pitch(entity))';
-      return 'Mth.lerp(partialTick, entity.prevRotationPitch, entity.rotationPitch)';
-    default:
-      return '0 /* TODO: input */';
-  }
-}
-
-function speedHelpers(target, used, ind) {
-  if (!used.size) return '';
-  const modern = isMojmap(target);
-  const yaw = modern ? 'yBodyRot' : target === 'beta' ? 'Mc.bodyYaw(this)' : 'renderYawOffset';
-  const mx = modern ? 'getDeltaMovement().x' : target === 'beta' ? 'Mc.velocityX(this)' : 'motionX';
-  const mz = modern ? 'getDeltaMovement().z' : target === 'beta' ? 'Mc.velocityZ(this)' : 'motionZ';
-  const out = [`${ind}// Add to your entity class; used by the blend space inputs.`];
-  if (used.has('forward')) {
-    out.push(`${ind}public double getForwardSpeed() {`);
-    out.push(`${ind}${ind}double yaw = Math.toRadians(${yaw});`);
-    out.push(`${ind}${ind}return (-Math.sin(yaw) * ${mx} + Math.cos(yaw) * ${mz}) * 20;`);
-    out.push(`${ind}}`);
-  }
-  if (used.has('strafe')) {
-    out.push(`${ind}public double getStrafeSpeed() {`);
-    out.push(`${ind}${ind}double yaw = Math.toRadians(${yaw});`);
-    out.push(`${ind}${ind}return -(Math.cos(yaw) * ${mx} + Math.sin(yaw) * ${mz}) * 20;`);
-    out.push(`${ind}}`);
-  }
-  return out.join('\n');
-}
-
-function generateBlendSpaceSection(rig, options = {}) {
-  const o = { ...DEFAULT_OPTIONS, ...options };
-  const ind = o.indent;
-  const E = o.entityClass;
-  if (!rig.blendSpaces.length) return null;
-
-  const imports = new Set(['AzAnimationControllerContainer']);
-  const used = new Set();
-  const blocks = [];
-
-  for (const b of rig.blendSpaces) {
-    const two = b.dimensions === 2;
-    imports.add(two ? 'AzBlendSpace2D' : 'AzBlendSpace1D');
-    const x = blendInputExpression(b.input.x, o.target, used);
-    const lines = [`${two ? 'AzBlendSpace2D' : 'AzBlendSpace1D'}.builder(this, ${js(b.name)})`];
-
-    if (two) {
-      const y = blendInputExpression(b.input.y, o.target, used);
-      lines.push(`.input((entity, partialTick) -> ${x}, (entity, partialTick) -> ${y})`);
-    } else {
-      lines.push(`.input((entity, partialTick) -> ${x})`);
-    }
-
-    const samples = two ? b.samples : b.samples.slice().sort((a, c) => a.x - c.x);
-    for (const s of samples) {
-      lines.push(two ? `.sample(${jd(s.x)}, ${jd(s.y)}, ${js(s.animation)})` : `.sample(${jd(s.x)}, ${js(s.animation)})`);
-    }
-    if (Number(b.smoothing) > 0) lines.push(`.smoothing(${jd(b.smoothing)})`);
-    if (b.syncPhase === false) lines.push('.syncPhase(false)');
-    lines.push('.build()');
-    lines.push('.addTo(container);');
-    blocks.push(lines.join(`\n${ind}${ind}${ind}`));
-
-    for (const kind of [b.input.x, two ? b.input.y : null]) {
-      if (kind === 'pitch' && !isMojmap(o.target)) imports.add('Mth');
-      if ((kind === 'speed' || kind === 'pitch') && o.target === 'beta') imports.add('Mc');
-    }
-  }
-  if (o.target === 'beta' && used.size) imports.add('Mc');
-
-  const text = [
-    `${ind}@Override`,
-    `${ind}public void registerControllers(AzAnimationControllerContainer<${E}> container) {`,
-    `${ind}${ind}// Blend spaces are layered like controllers: add those that go on top after them.`,
-    blocks.map(b => `${ind}${ind}${b}`).join('\n\n'),
-    `${ind}}`,
-  ].join('\n');
-
-  const helpers = speedHelpers(o.target, used, ind);
-  return section(`${E}Animator: blend spaces`, importsBlock(o.target, [...imports], o.packageRoot), helpers ? `${text}\n\n${helpers}` : text);
-}
-
-function generateAttachmentSection(rig, options = {}) {
-  const o = { ...DEFAULT_OPTIONS, ...options };
-  const ind = o.indent;
-  const E = o.entityClass;
-  if (!rig.sockets.length) return null;
-
-  const lines = [
-    `${ind}// In your renderer config builder:`,
-    `${ind}.addRenderLayer(`,
-    `${ind}${ind}new AzAttachmentLayer<UUID, ${E}>()`,
-  ];
-  for (const s of rig.sockets) {
-    lines.push(`${ind}${ind}${ind}.attach(${E}.${constantName(socketName(s))}, (context, bone) -> {`);
-    lines.push(`${ind}${ind}${ind}${ind}// TODO: draw at the ${js(socketName(s))} socket, or use AzAttachment.item(...) / AzAttachment.block(...)`);
-    lines.push(`${ind}${ind}${ind}})`);
-  }
-  lines.push(`${ind})`);
-
-  return section(`${E}Renderer: attachments`, importsBlock(o.target, ['AzAttachmentLayer', 'AzAttachment', 'UUID'], o.packageRoot), lines.join('\n'));
-}
-
-function generateAll(rig, options = {}) {
-  options = { ...options, target: normalizeTarget(options.target) };
-  return [
-    generateEntitySection(rig, options),
-    generatePoseModifierSection(rig, options),
-    generateBlendSpaceSection(rig, options),
-    generateAttachmentSection(rig, options),
-  ].filter(Boolean);
-}
-
-function generateText(rig, options = {}) {
-  const o = { ...DEFAULT_OPTIONS, ...options, target: normalizeTarget(options.target) };
-  const sections = generateAll(rig, o);
-  if (!sections.length) return '// Nothing to generate yet: add hitboxes, sockets, IK, spring bones or blend spaces first.\n';
-
-  return [
-    `// Generated by the AzureLib Animator Blockbench plugin for AzureLib ${CODEGEN_TARGETS[o.target]} (${packageRoot(o.target, o.packageRoot)}).`,
-    '// Paste each section into the class named in its header.',
-    '',
-    ...sections.map(s => [
-      `// ===== ${s.title} =====`,
-      s.imports,
-      '',
-      s.body,
-    ].join('\n')),
-  ].join('\n');
-}
-
-;// ./rig/azure-rig-panel.js
-/**
- * AzureLib Animator — Rig Panel
- * ------------------------------
- * The "AzureLib Rig" panel: create and edit hitboxes, sockets, IK chains,
- * look-at chains, constraints, spring bones and blend spaces; toggle their
- * viewport preview; validate the rig; and generate AzureLib code.
- *
- * Every edit goes through RigStore.edit, so it is undoable and saved with the
- * project.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-
-
-/** Selected bones from every selection source Blockbench has used (4.x and 5.x, Edit and Animate). */
-function selectedGroups() {
-  const sources = [
-    ...(Outliner.selected || []),
-    ...(Array.isArray(Group.selected) ? Group.selected : [Group.selected]),
-    ...(Group.multi_selected || []),
-    ...Group.all.filter(g => g.selected),
-  ];
-  return [...new Set(sources)].filter(el => el instanceof Group);
-}
-
-function selectedLocators() {
-  if (typeof Locator === 'undefined') return [];
-  return [...new Set([...(Outliner.selected || []), ...Locator.all.filter(l => l.selected)])]
-    .filter(el => el instanceof Locator);
-}
-
-function depth(group) {
-  let d = 0;
-  for (let node = group.parent; node && node !== 'root'; node = node.parent) d++;
-  return d;
-}
-
-/**
- * Bones for a chain from the selection, root first: several selected bones in
- * hierarchy order, or one selected bone plus its single-child descendants.
- */
-function chainFromSelection() {
-  const selected = selectedGroups();
-  if (selected.length >= 2) return selected.slice().sort((a, b) => depth(a) - depth(b)).map(g => g.name);
-  if (selected.length === 1) {
-    const chain = [selected[0]];
-    for (;;) {
-      const kids = (chain[chain.length - 1].children || []).filter(c => c instanceof Group);
-      if (kids.length !== 1) break;
-      chain.push(kids[0]);
-    }
-    return chain.map(g => g.name);
-  }
-  return [];
-}
-
-function uniqueId(base, taken) {
-  const used = new Set(taken);
-  if (!used.has(base)) return base;
-  for (let i = 2; ; i++) if (!used.has(`${base}_${i}`)) return `${base}_${i}`;
-}
-
-function modifierIds() {
-  const r = RigStore.rig;
-  return [...r.ikChains, ...r.lookAts, ...r.springBones].map(x => x.id);
-}
-
-const parseBones = text => String(text || '').split(/[\s,>]+/).map(s => s.trim()).filter(Boolean);
-const toNumber = (v, fallback = 0) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
-const vec = v => [0, 1, 2].map(i => toNumber(v?.[i]));
-
-const boneOptions = () => Object.fromEntries([['', '—'], ...Group.all.map(g => [g.name, g.name])]);
-const locatorOptions = () => Object.fromEntries([['', '—'], ...(typeof Locator !== 'undefined' ? Locator.all : []).map(l => [l.name, l.name])]);
-const animationOptions = () => Object.fromEntries((typeof Animation !== 'undefined' ? Animation.all : []).map(a => [a.name, a.name]));
-
-function openForm(title, form, onConfirm, lines = []) {
-  new Dialog({
-    id: 'azurelib_rig_edit',
-    title,
-    width: 520,
-    lines,
-    form,
-    onConfirm(result) {
-      onConfirm(result);
-    },
-  }).show();
-}
-
-function editHitbox(index) {
-  const h = RigStore.rig.hitboxes[index];
-  openForm(`Hitbox: ${h.name}`, {
-    name: { label: 'Name', type: 'text', value: h.name },
-    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: h.bone },
-    role: { label: 'Role', type: 'select', options: Object.fromEntries(HITBOX_ROLES.map(r => [r, r.charAt(0) + r.slice(1).toLowerCase()])), value: h.role },
-    fit: { label: 'Fit to bone cubes', type: 'checkbox', value: h.fit },
-    size: { label: 'Size (pixels)', type: 'vector', dimensions: 3, value: h.size, condition: f => !f.fit },
-    offset: { label: 'Offset (pixels)', type: 'vector', dimensions: 3, value: h.offset },
-    inflate: { label: 'Inflate (pixels)', type: 'number', value: h.inflate, step: 0.25 },
-    anchorAtPivot: { label: 'Center on pivot', type: 'checkbox', value: h.anchorAtPivot },
-    damageMultiplier: { label: 'Damage multiplier', type: 'number', value: h.damageMultiplier, step: 0.1, min: 0, condition: f => f.role === 'COMBAT' },
-    tags: { label: 'Tags (comma separated)', type: 'text', value: h.tags.join(', ') },
-  }, r => RigStore.edit('Edit hitbox', rig => {
-    Object.assign(rig.hitboxes[index], {
-      name: r.name.trim() || r.bone,
-      bone: r.bone,
-      role: r.role,
-      fit: r.fit,
-      size: vec(r.size),
-      offset: vec(r.offset),
-      inflate: toNumber(r.inflate),
-      anchorAtPivot: r.anchorAtPivot,
-      damageMultiplier: toNumber(r.damageMultiplier, 1),
-      tags: r.tags.split(',').map(t => t.trim()).filter(Boolean),
-    });
-  }), ['<p>Hitboxes follow their bone. Without a size, AzureLib fits the box to the bone\'s own cubes.</p>']);
-}
-
-function editHitboxes(indices) {
-  const list = indices.map(i => RigStore.rig.hitboxes[i]).filter(Boolean);
-  if (!list.length) return;
-  const names = list.map(h => h.name);
-  const keep = { '': '(unchanged)' };
-  const roles = { ...keep, ...Object.fromEntries(HITBOX_ROLES.map(r => [r, r.charAt(0) + r.slice(1).toLowerCase()])) };
-  const allTags = [...new Set(list.flatMap(h => h.tags || []))];
-
-  openForm(`Edit ${list.length} hitboxes`, {
-    role: { label: 'Role', type: 'select', options: roles, value: '' },
-    damageMultiplier: { label: 'Damage multiplier', type: 'text', value: '', placeholder: '(unchanged)' },
-    inflate: { label: 'Inflate (pixels)', type: 'text', value: '', placeholder: '(unchanged)' },
-    sizing: { label: 'Size', type: 'select', options: { '': '(unchanged)', fit: 'Fit to bone cubes', size: 'Set a size' }, value: '' },
-    size: { label: 'Size (pixels)', type: 'vector', dimensions: 3, value: [4, 4, 4], condition: f => f.sizing === 'size' },
-    anchorAtPivot: { label: 'Center on pivot', type: 'select', options: { '': '(unchanged)', on: 'On', off: 'Off' }, value: '' },
-    clearTags: { label: 'Remove all existing tags first', type: 'checkbox', value: false },
-    addTags: { label: 'Add tags (comma separated)', type: 'text', value: '' },
-    removeTags: { label: 'Remove tags (comma separated)', type: 'text', value: '', placeholder: allTags.join(', ') },
-  }, r => {
-    const number = text => {
-      const t = String(text ?? '').trim();
-      if (!t) return undefined;
-      const n = Number(t);
-      return Number.isFinite(n) ? n : undefined;
-    };
-    const tagList = text => String(text || '').split(',').map(t => t.trim()).filter(Boolean);
-    const damage = number(r.damageMultiplier);
-    const inflate = number(r.inflate);
-    const add = tagList(r.addTags);
-    const remove = new Set(tagList(r.removeTags));
-
-    RigStore.edit(`Edit ${list.length} hitboxes`, rig => {
-      for (const i of indices) {
-        const h = rig.hitboxes[i];
-        if (!h) continue;
-        if (r.role) h.role = r.role;
-        if (damage !== undefined) h.damageMultiplier = Math.max(0, damage);
-        if (inflate !== undefined) h.inflate = inflate;
-        if (r.sizing === 'fit') h.fit = true;
-        if (r.sizing === 'size') { h.fit = false; h.size = vec(r.size); }
-        if (r.anchorAtPivot) h.anchorAtPivot = r.anchorAtPivot === 'on';
-        let tags = r.clearTags ? [] : (h.tags || []).filter(t => !remove.has(t));
-        for (const t of add) if (!tags.includes(t)) tags.push(t);
-        h.tags = tags;
-      }
-    });
-  }, [`<p>Editing ${names.length > 8 ? `${names.slice(0, 8).join(', ')} and ${names.length - 8} more` : names.join(', ')}. Fields left as they are keep each hitbox\'s own value.</p>`]);
-}
-
-function editSocket(index) {
-  const s = RigStore.rig.sockets[index];
-  openForm(`Socket: ${s.locator || s.name}`, {
-    follows: { label: 'Follows', type: 'select', options: { bone: 'A bone', locator: 'A Blockbench locator' }, value: s.locator ? 'locator' : 'bone' },
-    name: { label: 'Name', type: 'text', value: s.name, condition: f => f.follows === 'bone' },
-    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: s.bone || '', condition: f => f.follows === 'bone' },
-    locator: { label: 'Locator', type: 'select', options: locatorOptions(), value: s.locator || '', condition: f => f.follows === 'locator' },
-    offset: { label: 'Offset (pixels, bone axes)', type: 'vector', dimensions: 3, value: s.offset },
-    rotation: { label: 'Rotation (degrees)', type: 'vector', dimensions: 3, value: s.rotation },
-    serverHitbox: { label: 'Server anchor hitbox', type: 'text', value: s.serverHitbox, placeholder: 'e.g. muzzle_anchor (optional)' },
-  }, r => RigStore.edit('Edit socket', rig => {
-    const target = rig.sockets[index];
-    const isLocator = r.follows === 'locator';
-    Object.assign(target, {
-      name: isLocator ? r.locator : (r.name.trim() || 'socket'),
-      bone: isLocator ? null : r.bone,
-      locator: isLocator ? r.locator : null,
-      offset: vec(r.offset),
-      rotation: vec(r.rotation),
-      serverHitbox: r.serverHitbox.trim(),
-    });
-  }), ['<p>The arrow in the viewport is the socket\'s front (-Z); the short arrow is up. A server anchor hitbox lets the server resolve the socket too.</p>']);
-}
-
-function targetForm(t, kinds) {
-  return {
-    targetType: { label: 'Target', type: 'select', options: Object.fromEntries(kinds.map(k => [k, IK_TARGETS[k]])), value: t.type },
-    stepUp: { label: 'Max step up (blocks)', type: 'number', value: t.stepUp ?? 0.5, step: 0.05, condition: f => f.targetType === 'ground' },
-    stepDown: { label: 'Max step down (blocks)', type: 'number', value: t.stepDown ?? 0.75, step: 0.05, condition: f => f.targetType === 'ground' },
-    targetPoint: { label: 'Model point (pixels)', type: 'vector', dimensions: 3, value: t.point, condition: f => f.targetType === 'model' },
-    targetBone: { label: 'Bone to follow', type: 'select', options: boneOptions(), value: t.bone || '', condition: f => f.targetType === 'bone' },
-    boneOffset: { label: 'Offset from its pivot (pixels)', type: 'vector', dimensions: 3, value: t.type === 'bone' ? t.point : [0, 0, 0], condition: f => f.targetType === 'bone' },
-    _boneHint: { type: 'info', text: 'Use an empty bone outside this chain and animate its position; the limb reaches for it.', condition: f => f.targetType === 'bone' },
-  };
-}
-
-function previewForm(p, allowGround) {
-  const modes = { off: 'Off', point: 'Fixed point', locator: 'Follow a locator' };
-  if (allowGround) modes.ground = 'Ground (raised by offset)';
-  return {
-    _preview: { type: 'info', text: '<b>Viewport preview</b> (Animate mode)' },
-    _previewBone: { type: 'info', text: 'The preview follows the bone itself.', condition: f => f.targetType === 'bone' },
-    previewMode: { label: 'Preview target', type: 'select', options: modes, value: p.enabled === false ? 'off' : p.mode, condition: f => f.targetType !== 'bone' },
-    groundHeight: { label: 'Ground offset (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
-    previewPoint: { label: 'Point (pixels)', type: 'vector', dimensions: 3, value: p.point, condition: f => f.targetType !== 'bone' && f.previewMode === 'point' },
-    previewLocator: { label: 'Locator', type: 'select', options: locatorOptions(), value: p.locator || '', condition: f => f.targetType !== 'bone' && f.previewMode === 'locator' },
-  };
-}
-
-function readPreview(r) {
-  return {
-    enabled: r.previewMode !== 'off',
-    mode: r.previewMode === 'off' ? 'point' : r.previewMode,
-    groundHeight: toNumber(r.groundHeight),
-    point: vec(r.previewPoint),
-    locator: r.previewLocator || '',
-  };
-}
-
-function readTarget(r) {
-  const bone = r.targetType === 'bone';
-  return {
-    type: r.targetType,
-    stepUp: toNumber(r.stepUp, 0.5),
-    stepDown: toNumber(r.stepDown, 0.75),
-    point: vec(bone ? r.boneOffset : r.targetPoint),
-    bone: bone ? (r.targetBone || '') : '',
-  };
-}
-
-function editIkChain(index) {
-  const c = RigStore.rig.ikChains[index];
-  openForm(`IK chain: ${c.id}`, {
-    id: { label: 'Modifier id', type: 'text', value: c.id },
-    bones: { label: 'Bones (root first)', type: 'text', value: c.bones.join(', ') },
-    effector: { label: 'Effector (pixels from last bone pivot)', type: 'vector', dimensions: 3, value: c.effector },
-    solver: { label: 'Solver', type: 'select', options: IK_SOLVERS, value: c.solver },
-    usePole: { label: 'Use pole (two-bone)', type: 'checkbox', value: !!c.pole, condition: f => f.solver !== 'ccd' },
-    pole: { label: 'Pole (model pixels)', type: 'vector', dimensions: 3, value: c.pole || [0, 8, -20], condition: f => f.usePole && f.solver !== 'ccd' },
-    iterations: { label: 'Iterations', type: 'number', value: c.iterations, min: 1, max: 64, condition: f => f.solver !== 'two_bone' },
-    tolerance: { label: 'Tolerance (pixels)', type: 'number', value: c.tolerance, step: 0.05, condition: f => f.solver !== 'two_bone' },
-    ...targetForm(c.target, ['ground', 'bone', 'entity_eyes', 'world', 'model']),
-    priority: { label: 'Priority', type: 'number', value: c.priority },
-    weight: { label: 'Default weight', type: 'number', value: c.weight, min: 0, max: 1, step: 0.05 },
-    ...previewForm(c.preview, true),
-  }, r => RigStore.edit('Edit IK chain', rig => {
-    Object.assign(rig.ikChains[index], {
-      id: r.id.trim() || c.id,
-      bones: parseBones(r.bones),
-      effector: vec(r.effector),
-      solver: r.solver,
-      pole: r.usePole && r.solver !== 'ccd' ? vec(r.pole) : null,
-      iterations: Math.max(1, Math.round(toNumber(r.iterations, 10))),
-      tolerance: toNumber(r.tolerance, 0.1),
-      target: readTarget(r),
-      priority: Math.round(toNumber(r.priority)),
-      weight: Math.min(1, Math.max(0, toNumber(r.weight, 1))),
-      preview: readPreview(r),
-    });
-  }), ['<p>Constraints on chain bones are applied by the solver automatically.</p>']);
-}
-
-function editLookAt(index) {
-  const l = RigStore.rig.lookAts[index];
-  openForm(`Look-at: ${l.id}`, {
-    id: { label: 'Modifier id', type: 'text', value: l.id },
-    bones: { label: 'Bones (root first, last one faces the target)', type: 'text', value: l.bones.join(', ') },
-    forward: { label: 'Forward (last bone axes)', type: 'vector', dimensions: 3, value: l.forward },
-    ...targetForm(l.target, ['entity_eyes', 'bone', 'world', 'model']),
-    priority: { label: 'Priority', type: 'number', value: l.priority },
-    weight: { label: 'Default weight', type: 'number', value: l.weight, min: 0, max: 1, step: 0.05 },
-    ...previewForm(l.preview, false),
-  }, r => RigStore.edit('Edit look-at', rig => {
-    Object.assign(rig.lookAts[index], {
-      id: r.id.trim() || l.id,
-      bones: parseBones(r.bones),
-      forward: vec(r.forward),
-      target: readTarget(r),
-      priority: Math.round(toNumber(r.priority)),
-      weight: Math.min(1, Math.max(0, toNumber(r.weight, 1))),
-      preview: readPreview(r),
-    });
-  }));
-}
-
-function editConstraint(index) {
-  const c = RigStore.rig.constraints[index];
-  openForm(`Constraint: ${c.bone}`, {
-    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: c.bone },
-    type: { label: 'Type', type: 'select', options: CONSTRAINT_TYPES, value: c.type },
-    min: { label: 'Min (degrees)', type: 'vector', dimensions: 3, value: c.min },
-    max: { label: 'Max (degrees)', type: 'vector', dimensions: 3, value: c.max },
-    standalone: { label: 'Also clamp the final pose', type: 'checkbox', value: c.standalone },
-  }, r => RigStore.edit('Edit constraint', rig => {
-    Object.assign(rig.constraints[index], {
-      bone: r.bone,
-      type: r.type,
-      min: vec(r.min),
-      max: vec(r.max),
-      standalone: r.standalone,
-    });
-  }), ['<p>Degrees relative to the bone\'s rest pose, with the signs of the exported animation file: for X and Y that\'s the opposite of what Blockbench 5 shows on keyframes (Z is the same). Hinges use only their own axis. IK, look-at and spring bones on this bone respect it; "clamp the final pose" also clamps the animation itself.</p>']);
-}
-
-function editSpring(index) {
-  const s = RigStore.rig.springBones[index];
-  openForm(`Spring bones: ${s.id}`, {
-    id: { label: 'Modifier id', type: 'text', value: s.id },
-    bones: { label: 'Bones (root first)', type: 'text', value: s.bones.join(', ') },
-    useTip: { label: 'Last bone swings (tip)', type: 'checkbox', value: !!s.tip },
-    tip: { label: 'Tip (pixels from last bone pivot)', type: 'vector', dimensions: 3, value: s.tip || [0, 0, 4], condition: f => f.useTip },
-    stiffness: { label: 'Stiffness (0–1)', type: 'number', value: s.stiffness, min: 0, max: 1, step: 0.05 },
-    damping: { label: 'Damping (0–1)', type: 'number', value: s.damping, min: 0, max: 1, step: 0.05 },
-    gravity: { label: 'Gravity (blocks/tick²)', type: 'number', value: s.gravity, step: 0.001 },
-    inertia: { label: 'Inertia (0–1)', type: 'number', value: s.inertia, min: 0, max: 1, step: 0.05 },
-    priority: { label: 'Priority', type: 'number', value: s.priority },
-    colliders: { label: 'Colliders (comma separated ids)', type: 'text', value: (s.colliders || []).join(', ') },
-    radius: { label: 'Chain radius (pixels)', type: 'number', value: s.radius || 0, min: 0, step: 0.25 },
-    ground: { label: 'Stay above the ground', type: 'checkbox', value: !!s.ground },
-    previewEnabled: { label: 'Preview while animating', type: 'checkbox', value: s.preview?.enabled !== false },
-  }, r => RigStore.edit('Edit spring bones', rig => {
-    Object.assign(rig.springBones[index], {
-      id: r.id.trim() || s.id,
-      bones: parseBones(r.bones),
-      tip: r.useTip ? vec(r.tip) : null,
-      stiffness: Math.min(1, Math.max(0, toNumber(r.stiffness, 0.2))),
-      damping: Math.min(1, Math.max(0, toNumber(r.damping, 0.25))),
-      gravity: toNumber(r.gravity),
-      inertia: Math.min(1, Math.max(0, toNumber(r.inertia, 1))),
-      priority: Math.round(toNumber(r.priority, 200)),
-      colliders: parseBones(r.colliders),
-      radius: Math.max(0, toNumber(r.radius)),
-      ground: r.ground,
-      preview: { enabled: r.previewEnabled },
-    });
-  }), [
-    '<p>The first bone follows the animation and anchors the chain. Play the animation to see the swing; inertia only affects entities moving in game.</p>',
-    `<p>Colliders here: ${RigStore.rig.colliders.length ? RigStore.rig.colliders.map(c => `<code>${c.id}</code>`).join(', ') : '<i>none yet; add them in the Colliders section</i>'}. The chain radius is roughly how thick the chain is; it keeps it off colliders and the ground.</p>`,
-  ]);
-}
-
-function editCollider(index) {
-  const c = RigStore.rig.colliders[index];
-  openForm(`Collider: ${c.id}`, {
-    id: { label: 'Id', type: 'text', value: c.id },
-    bone: { label: 'Bone', type: 'select', options: boneOptions(), value: c.bone },
-    shape: { label: 'Shape', type: 'select', options: { sphere: 'Sphere', capsule: 'Capsule' }, value: c.shape },
-    start: { label: 'Centre (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'sphere' },
-    capStart: { label: 'Start (pixels)', type: 'vector', dimensions: 3, value: c.start, condition: f => f.shape === 'capsule' },
-    end: { label: 'End (pixels)', type: 'vector', dimensions: 3, value: c.end, condition: f => f.shape === 'capsule' },
-    radius: { label: 'Radius (pixels)', type: 'number', value: c.radius, min: 0.1, step: 0.25 },
-  }, r => RigStore.edit('Edit collider', rig => {
-    const oldId = rig.colliders[index].id;
-    const id = r.id.trim() || oldId;
-    Object.assign(rig.colliders[index], {
-      id,
-      bone: r.bone,
-      shape: r.shape,
-      start: vec(r.shape === 'capsule' ? r.capStart : r.start),
-      end: vec(r.shape === 'capsule' ? r.end : r.start),
-      radius: Math.max(0.1, toNumber(r.radius, 2)),
-    });
-    // Keep spring chains pointing at a renamed collider.
-    if (id !== oldId) {
-      for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).map(x => (x === oldId ? id : x));
-    }
-  }), ['<p>Positions are pixels from the bone\'s pivot along its axes. Spring chains that list this collider swing around it instead of through it.</p>']);
-}
-
-function samplesToText(b) {
-  return b.samples.map(s => (b.dimensions === 2 ? `${s.x}, ${s.y}, ${s.animation}` : `${s.x}, ${s.animation}`)).join('\n');
-}
-
-function textToSamples(text, dimensions) {
-  return String(text || '').split('\n').map(line => line.split(',').map(p => p.trim())).filter(p => p.length >= 2 && p[p.length - 1])
-    .map(p => (dimensions === 2
-      ? { x: toNumber(p[0]), y: toNumber(p[1]), animation: p.slice(2).join(',') }
-      : { x: toNumber(p[0]), y: 0, animation: p.slice(1).join(',') }));
-}
-
-function editBlendSpace(index) {
-  const b = RigStore.rig.blendSpaces[index];
-  const animations = Object.keys(animationOptions());
-  openForm(`Blend space: ${b.name}`, {
-    name: { label: 'Name', type: 'text', value: b.name },
-    dimensions: { label: 'Dimensions', type: 'select', options: { 1: '1D', 2: '2D' }, value: String(b.dimensions) },
-    inputX: { label: 'Input (X)', type: 'select', options: BLEND_INPUTS, value: b.input.x },
-    inputY: { label: 'Input (Y)', type: 'select', options: BLEND_INPUTS, value: b.input.y, condition: f => String(f.dimensions) === '2' },
-    samples: { label: 'Samples', type: 'textarea', value: samplesToText(b), height: 120, placeholder: '1D: position, animation\n2D: x, y, animation' },
-    smoothing: { label: 'Input smoothing (ticks)', type: 'number', value: b.smoothing, min: 0, step: 0.5 },
-    syncPhase: { label: 'Sync phase', type: 'checkbox', value: b.syncPhase },
-  }, r => RigStore.edit('Edit blend space', rig => {
-    const dimensions = String(r.dimensions) === '2' ? 2 : 1;
-    Object.assign(rig.blendSpaces[index], {
-      name: r.name.trim() || b.name,
-      dimensions,
-      input: { x: r.inputX, y: r.inputY },
-      samples: textToSamples(r.samples, dimensions),
-      smoothing: Math.max(0, toNumber(r.smoothing)),
-      syncPhase: r.syncPhase,
-    });
-  }), [`<p>One sample per line: <code>position, animation</code> for 1D, <code>x, y, animation</code> for 2D. Animations here: ${animations.length ? animations.map(a => `<code>${a}</code>`).join(', ') : '<i>none yet</i>'}.</p>`]);
-}
-
-function requireBones(names, what) {
-  if (names.length) return true;
-  Blockbench.showQuickMessage(`Select the bone(s) for the ${what} first.`, 2500);
-  return false;
-}
-
-function fitCollider(bone) {
-  const box = hitboxBox({ bone, fit: true, size: [0, 0, 0], offset: [0, 0, 0], inflate: 0, anchorAtPivot: false });
-  if (!box) return { shape: 'sphere', start: [0, 0, 0], end: [0, 0, 0], radius: 2 };
-  const round = v => Math.round(v * 100) / 100;
-  const center = [box.center.x, box.center.y, box.center.z];
-  const half = [box.half.x, box.half.y, box.half.z];
-  const axis = half.indexOf(Math.max(...half));
-  const radius = Math.max(...half.filter((_, i) => i !== axis));
-  const reach = half[axis] - radius;
-  if (reach < 0.5) {
-    return { shape: 'sphere', start: center.map(round), end: center.map(round), radius: round(Math.max(...half)) };
-  }
-  const start = center.slice();
-  const end = center.slice();
-  start[axis] -= reach;
-  end[axis] += reach;
-  return { shape: 'capsule', start: start.map(round), end: end.map(round), radius: round(radius) };
-}
-
-const Add = {
-  hitbox() {
-    const groups = selectedGroups();
-    if (!requireBones(groups, 'hitbox')) return;
-    RigStore.edit('Add hitbox', rig => {
-      for (const g of groups) {
-        const h = newHitbox(g.name);
-        h.name = uniqueId(g.name, rig.hitboxes.map(x => x.name));
-        rig.hitboxes.push(h);
-      }
-    });
-  },
-
-  socket() {
-    const locators = selectedLocators();
-    const groups = selectedGroups();
-    if (!locators.length && !groups.length) {
-      Blockbench.showQuickMessage('Select a locator, or a bone to put the socket on.', 2500);
-      return;
-    }
-    RigStore.edit('Add socket', rig => {
-      const taken = () => rig.sockets.map(s => s.locator || s.name);
-      for (const l of locators) {
-        if (!rig.sockets.some(s => s.locator === l.name)) rig.sockets.push(newSocket(l.name, { locator: l.name }));
-      }
-      if (!locators.length) {
-        for (const g of groups) rig.sockets.push(newSocket(uniqueId(`${g.name}_socket`, taken()), { bone: g.name }));
-      }
-    });
-  },
-
-  allLocators() {
-    const locators = typeof Locator !== 'undefined' ? Locator.all : [];
-    if (!locators.length) {
-      Blockbench.showQuickMessage('This model has no locators.', 2000);
-      return;
-    }
-    RigStore.edit('Add sockets for locators', rig => {
-      for (const l of locators) {
-        if (!rig.sockets.some(s => s.locator === l.name)) rig.sockets.push(newSocket(l.name, { locator: l.name }));
-      }
-    });
-  },
-
-  ikChain() {
-    const bones = chainFromSelection();
-    if (!requireBones(bones, 'IK chain')) return;
-    RigStore.edit('Add IK chain', rig => {
-      rig.ikChains.push(newIkChain(uniqueId(`${bones[0]}_ik`, modifierIds()), bones));
-    });
-    editIkChain(RigStore.rig.ikChains.length - 1);
-  },
-
-  lookAt() {
-    const bones = chainFromSelection();
-    if (!requireBones(bones, 'look-at')) return;
-    RigStore.edit('Add look-at', rig => {
-      rig.lookAts.push(newLookAt(uniqueId(`${bones[bones.length - 1]}_look`, modifierIds()), bones));
-    });
-  },
-
-  constraint() {
-    const groups = selectedGroups();
-    if (!requireBones(groups, 'constraint')) return;
-    RigStore.edit('Add constraint', rig => {
-      for (const g of groups) {
-        if (!rig.constraints.some(c => c.bone === g.name)) rig.constraints.push(newConstraint(g.name));
-      }
-    });
-  },
-
-  spring() {
-    const bones = chainFromSelection();
-    if (!requireBones(bones, 'spring chain')) return;
-    RigStore.edit('Add spring bones', rig => {
-      rig.springBones.push(newSpringBone(uniqueId(`${bones[0]}_spring`, modifierIds()), bones));
-    });
-  },
-
-  collider() {
-    const groups = selectedGroups();
-    if (!requireBones(groups, 'collider')) return;
-    RigStore.edit('Add collider', rig => {
-      for (const g of groups) {
-        const c = newCollider(uniqueId(g.name, rig.colliders.map(x => x.id)), g.name);
-        Object.assign(c, fitCollider(g.name));
-        rig.colliders.push(c);
-      }
-    });
-  },
-
-  blendSpace() {
-    RigStore.edit('Add blend space', rig => {
-      rig.blendSpaces.push(newBlendSpace(uniqueId('locomotion', rig.blendSpaces.map(b => b.name))));
-    });
-    editBlendSpace(RigStore.rig.blendSpaces.length - 1);
-  },
-};
-
-function showValidation() {
-  const issues = validateRig();
-  new Dialog({
-    id: 'azurelib_rig_validation',
-    title: 'AzureLib Rig Check',
-    width: 560,
-    lines: [issues.length
-      ? `<ul style="padding-left:18px;line-height:1.6">${issues.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
-      : '<p>No problems found.</p>'],
-    buttons: ['dialog.close'],
-  }).show();
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
-
-function showCodeExport() {
-  const rig = RigStore.rig;
-  const issues = validateRig();
-
-  new Dialog({
-    id: 'azurelib_rig_codegen',
-    title: 'Generate AzureLib Code',
-    width: 560,
-    lines: issues.length
-      ? [`<p style="color:var(--color-warning, #e8b400)">${issues.length} problem(s) found. The code is generated anyway; run <b>Check Rig</b> to see them.</p>`]
-      : [],
-    form: {
-      target: { label: 'AzureLib branch', type: 'select', options: CODEGEN_TARGETS, value: normalizeTarget(rig.codegen.target) },
-      entityClass: { label: 'Animatable class', type: 'text', value: rig.codegen.entityClass },
-      packageRoot: { label: 'Package root', type: 'text', value: rig.codegen.packageRoot || '', placeholder: 'Leave blank for the branch default' },
-      _roots: {
-        type: 'info',
-        text: `Defaults: ${Object.values(TARGETS).map(t => `${t.label} <code>${t.root}</code>`).join(', ')}.`,
-      },
-    },
-    onConfirm(form) {
-      const entityClass = (form.entityClass || '').trim().replace(/[^A-Za-z0-9_$]/g, '') || 'ExampleEntity';
-      const packageRoot = (form.packageRoot || '').trim().replace(/[^A-Za-z0-9_.]/g, '').replace(/^[.]+|[.]+$/g, '');
-      RigStore.edit('Code generation settings', r => { r.codegen = { target: form.target, entityClass, packageRoot }; });
-      const text = generateText(RigStore.rig, { target: form.target, entityClass, packageRoot });
-      showCodeResult(text, entityClass);
-    },
-  }).show();
-}
-
-function showCodeResult(text, entityClass) {
-  const dialog = new Dialog({
-    id: 'azurelib_rig_code',
-    title: 'AzureLib Code',
-    width: 900,
-    form: {
-      code: { type: 'textarea', value: text, height: 460 },
-    },
-    buttons: ['Copy', 'Save .java', 'dialog.close'],
-    onButton(index) {
-      if (index === 0) {
-        const copy = navigator.clipboard?.writeText?.(text);
-        if (copy) {
-          copy.then(() => Blockbench.showQuickMessage('Copied to clipboard', 1500));
-        } else {
-          Blockbench.showQuickMessage('Clipboard unavailable; select the text and copy it instead.', 2500);
-        }
-        return false;
-      }
-      if (index === 1) {
-        Blockbench.export({
-          type: 'Java Source',
-          extensions: ['java'],
-          name: `${entityClass}Rig`,
-          content: text,
-        });
-        return false;
-      }
-      return true;
-    },
-  });
-  dialog.show();
-}
-
-const PANEL_ID = 'azurelib_rig';
-const STYLE_ID = 'azurelib-rig-style';
-
-let panel = null;
-let actions = [];
-let azure_rig_panel_unsubscribe = null;
-let onModeChange = null;
-let onModelChange = null;
-
-const PANEL_CSS = `
-.azl-rig {
-  padding: 4px 6px 0; font-size: 12px; line-height: 1.35;
-  display: flex; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0; box-sizing: border-box;
-}
-.azl-rig .azl-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
-.azl-rig .azl-row.selected { background: var(--color-selected, rgba(70, 130, 255, .25)); }
-.azl-rig .azl-row.selected:hover { background: var(--color-selected, rgba(70, 130, 255, .32)); }
-.azl-rig .azl-selbar {
-  display: flex; align-items: center; gap: 4px; margin: 2px 0 2px 18px; padding: 2px 6px; border-radius: 4px;
-  background: var(--color-button); font-size: 11px;
-}
-.azl-rig .azl-selbar .azl-btn { height: 18px; line-height: 18px; padding: 0 6px; font-size: 11px; }
-.azl-rig .azl-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; flex: none; }
-.azl-rig .azl-spacer { flex: 1; }
-.azl-rig .azl-btn {
-  height: 22px; min-width: 0; padding: 0 8px; font-size: 12px; line-height: 22px;
-  border-radius: 4px; background: var(--color-button); color: var(--color-text); cursor: pointer;
-}
-.azl-rig .azl-btn:hover { background: var(--color-accent); color: var(--color-accent_text); }
-.azl-rig .azl-badge {
-  display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 8px; font-size: 10px; line-height: 15px;
-  background: var(--color-warning, #e8b400); color: #000;
-}
-.azl-rig .azl-chip {
-  padding: 0 6px; height: 20px; line-height: 20px; border-radius: 10px; font-size: 11px; cursor: pointer;
-  border: 1px solid var(--color-border); color: var(--color-subtle_text); user-select: none;
-}
-.azl-rig .azl-chip.on { border-color: var(--color-accent); color: var(--color-text); }
-.azl-rig .azl-hint { color: var(--color-subtle_text); padding: 2px 4px 6px; }
-.azl-rig .azl-head {
-  display: flex; align-items: center; gap: 4px; height: 22px; padding: 0 4px; margin-top: 2px;
-  border-radius: 4px; cursor: pointer; user-select: none;
-}
-.azl-rig .azl-head:hover { background: var(--color-button); }
-.azl-rig .azl-caret { width: 10px; color: var(--color-subtle_text); font-size: 10px; }
-.azl-rig .azl-title { font-weight: 600; }
-.azl-rig .azl-count { color: var(--color-subtle_text); font-size: 11px; }
-.azl-rig .azl-add, .azl-rig .azl-del {
-  width: 18px; height: 18px; line-height: 17px; text-align: center; border-radius: 3px; cursor: pointer;
-  color: var(--color-subtle_text); font-size: 15px;
-}
-.azl-rig .azl-add:hover { background: var(--color-accent); color: var(--color-accent_text); }
-.azl-rig .azl-add.small { width: auto; padding: 0 4px; font-size: 11px; }
-.azl-rig .azl-row {
-  display: flex; align-items: center; gap: 6px; height: 21px; padding: 0 4px 0 18px; border-radius: 4px; cursor: pointer;
-}
-.azl-rig .azl-row:hover { background: var(--color-button); }
-.azl-rig .azl-dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
-.azl-rig .azl-name { flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.azl-rig .azl-detail { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-subtle_text); font-size: 11px; }
-.azl-rig .azl-detail.warn { color: var(--color-warning, #e8b400); }
-.azl-rig .azl-del { visibility: hidden; }
-.azl-rig .azl-row:hover .azl-del { visibility: visible; }
-.azl-rig .azl-del:hover { color: var(--color-close, #e66); }
-.azl-rig .azl-sub { padding: 2px 4px 4px 18px; color: var(--color-subtle_text); font-size: 11px; }
-.azl-rig .azl-sub label { margin-right: 10px; cursor: pointer; }
-.azl-rig .azl-sub input[type=range] { width: 100%; height: 16px; margin: 0; }
-.azl-rig .azl-weights { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 2px; }
-`;
-
-function injectStyle() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = PANEL_CSS;
-  document.head.appendChild(style);
-}
-
-function removeStyle() {
-  document.getElementById(STYLE_ID)?.remove();
-}
-
-const SECTIONS = [
-  { key: 'hitboxes', title: 'Hitboxes', add: 'hitbox', addTitle: 'Add a hitbox to each selected bone' },
-  { key: 'sockets', title: 'Sockets', add: 'socket', addTitle: 'Add a socket for the selected locator or bone' },
-  { key: 'ikChains', title: 'IK chains', add: 'ikChain', addTitle: 'Add an IK chain from the selected bones (root → tip, or just the root)' },
-  { key: 'lookAts', title: 'Look-at', add: 'lookAt', addTitle: 'Add a look-at from the selected bones (e.g. neck, head)' },
-  { key: 'constraints', title: 'Constraints', add: 'constraint', addTitle: 'Add a rotation limit to each selected bone' },
-  { key: 'springBones', title: 'Spring bones', add: 'spring', addTitle: 'Add a spring chain from the selected bones (root → tip, or just the root)' },
-  { key: 'colliders', title: 'Colliders', add: 'collider', addTitle: 'Add a collider fitted to each selected bone, for spring bones to swing around' },
-  { key: 'blendSpaces', title: 'Blend spaces', add: 'blendSpace', addTitle: 'Add a blend space' },
-];
-
-const EDITORS = {
-  hitboxes: editHitbox,
-  sockets: editSocket,
-  ikChains: editIkChain,
-  lookAts: editLookAt,
-  constraints: editConstraint,
-  springBones: editSpring,
-  colliders: editCollider,
-  blendSpaces: editBlendSpace,
-};
-
-const SECTION_COLORS = {
-  sockets: '#ff55ff',
-  ikChains: '#00ff88',
-  lookAts: '#44aaff',
-  constraints: '#ff9900',
-  springBones: '#aa66ff',
-  colliders: '#ff8a3d',
-  blendSpaces: '#ffaa00',
-};
-
-/** Which sections are expanded; null means "open if it has entries". Kept for the session. */
-const sectionOpen = Object.fromEntries(SECTIONS.map(sec => [sec.key, null]));
-
-function registerPanel() {
-  injectStyle();
-
-  panel = new Panel(PANEL_ID, {
-    name: 'AzureLib Rig',
-    icon: 'accessibility_new',
-    display_condition: { modes: ['edit', 'animate'], formats: ['azure_model'] },
-    default_position: {
-      slot: 'right_bar',
-      float_position: [0, 0],
-      float_size: [320, 480],
-      height: 360,
-      folded: false,
-      attached_to: 'outliner',
-    },
-    component: {
-      name: 'azl-rig-panel',
-      data() {
-        return {
-          rig: RigStore.rig,
-          preview: PreviewSettings,
-          sections: SECTIONS,
-          open: sectionOpen,
-          blend: { index: -1, x: 0, y: 0 },
-          sel: { key: null, items: [], anchor: null, count: 0 },
-          version: 0,
-          mode: typeof Modes !== 'undefined' && Modes.selected ? Modes.selected.id : '',
-        };
-      },
-      mounted() {
-        this._off = RigStore.onChange(rig => {
-          this.rig = rig;
-          if (this.blend.index >= rig.blendSpaces.length) this.stopBlend();
-          // Entries added or removed: the selected indices would point at the wrong rows.
-          if (this.sel.key && rig[this.sel.key].length !== this.sel.count) this.clearSelection();
-          this.version++;
-        });
-      },
-      beforeDestroy() {
-        this._off?.();
-      },
-      computed: {
-        boneSet() { this.version; return new Set(Group.all.map(g => g.name)); },
-        locatorSet() { this.version; return new Set((typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name)); },
-        issueCount() { this.version; return validateRig(this.rig).length; },
-        isEmpty() { return SECTIONS.every(sec => !this.rig[sec.key].length); },
-        isAnimate() { return this.mode === 'animate'; },
-        blendRange() {
-          const b = this.blend.index >= 0 ? this.rig.blendSpaces[this.blend.index] : null;
-          return b ? blendSpaceRange(b) : { x: [0, 1], y: [0, 1] };
-        },
-        blendWeights() { this.blend.x; this.blend.y; this.blend.index; return BlendPreview.weights(); },
-      },
-      methods: {
-        isOpen(key) {
-          const state = this.open[key];
-          return state === null ? this.rig[key].length > 0 : state;
-        },
-        toggle(key) {
-          this.open[key] = !this.isOpen(key);
-        },
-        add(kind, key) {
-          Add[kind]();
-          if (key) this.open[key] = true;
-        },
-        rowClick(key, index, event) {
-          const toggle = event.ctrlKey || event.metaKey;
-          const range = event.shiftKey;
-          if (!toggle && !range) {
-            this.clearSelection();
-            this.edit(key, index);
-            return;
-          }
-          if (this.sel.key !== key) {
-            this.sel.key = key;
-            this.sel.items = [];
-            this.sel.anchor = null;
-          }
-          this.sel.count = this.rig[key].length;
-          if (range && this.sel.anchor !== null) {
-            const from = Math.min(this.sel.anchor, index);
-            const to = Math.max(this.sel.anchor, index);
-            for (let i = from; i <= to; i++) if (!this.sel.items.includes(i)) this.sel.items.push(i);
-          } else {
-            const at = this.sel.items.indexOf(index);
-            if (at >= 0) this.sel.items.splice(at, 1);
-            else this.sel.items.push(index);
-            this.sel.anchor = index;
-          }
-          if (!this.sel.items.length) this.clearSelection();
-        },
-        isSelected(key, index) {
-          return this.sel.key === key && this.sel.items.includes(index);
-        },
-        clearSelection() {
-          this.sel.key = null;
-          this.sel.items = [];
-          this.sel.anchor = null;
-          this.sel.count = 0;
-        },
-        selectAll(key) {
-          this.sel.key = key;
-          this.sel.items = this.rig[key].map((_, i) => i);
-          this.sel.count = this.rig[key].length;
-        },
-        bulkEdit() {
-          if (this.sel.key === 'hitboxes') editHitboxes(this.sel.items.slice().sort((a, b) => a - b));
-        },
-        bulkDelete() {
-          const key = this.sel.key;
-          const indices = this.sel.items.slice().sort((a, b) => b - a);
-          if (!key || !indices.length) return;
-          if (key === 'blendSpaces' && indices.includes(this.blend.index)) this.stopBlend();
-          this.clearSelection();
-          RigStore.edit(`Remove ${indices.length} entries`, rig => {
-            for (const i of indices) {
-              const [removed] = rig[key].splice(i, 1);
-              // Spring chains stop using a removed collider.
-              if (key === 'colliders' && removed) {
-                for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).filter(id => id !== removed.id);
-              }
-            }
-          });
-        },
-        remove(key, index) {
-          if (key === 'blendSpaces' && this.blend.index === index) this.stopBlend();
-          RigStore.edit('Remove entry', rig => {
-            const [removed] = rig[key].splice(index, 1);
-            // Spring chains stop using a removed collider.
-            if (key === 'colliders' && removed) {
-              for (const sb of rig.springBones) sb.colliders = (sb.colliders || []).filter(id => id !== removed.id);
-            }
-          });
-        },
-        edit(key, index) {
-          EDITORS[key](index);
-        },
-        missing(names) { return names.filter(n => !this.boneSet.has(n)); },
-        color(key, item) {
-          if (key !== 'hitboxes') return SECTION_COLORS[key];
-          if (item.role === 'INTERACT') return '#55ffff';
-          if (item.role === 'ANCHOR') return '#ffff55';
-          if (item.damageMultiplier > 1) return '#ff5555';
-          if (item.damageMultiplier < 1) return '#5599ff';
-          return '#55ff55';
-        },
-        label(key, item) {
-          if (key === 'hitboxes') return item.name;
-          if (key === 'sockets') return item.locator || item.name;
-          if (key === 'constraints') return item.bone;
-          if (key === 'blendSpaces') return item.name;
-          return item.id;
-        },
-        detail(key, item) {
-          switch (key) {
-            case 'hitboxes': {
-              const parts = [];
-              if (item.name !== item.bone) parts.push(item.bone);
-              if (item.role !== 'COMBAT') parts.push(item.role.toLowerCase());
-              else if (item.damageMultiplier !== 1) parts.push(`×${item.damageMultiplier}`);
-              if (!item.fit) parts.push(item.size.join('×'));
-              return parts.join(' · ');
-            }
-            case 'sockets': return [item.locator ? 'locator' : item.bone, item.serverHitbox ? 'server' : ''].filter(Boolean).join(' · ');
-            case 'ikChains': return `${item.bones.length} bones · ${item.target.type === 'bone' ? `follows ${item.target.bone || '?'}` : item.target.type.replace('_', ' ')}`;
-            case 'lookAts': return item.bones.join(' › ');
-            case 'constraints': return `${item.type.replace('_', ' ')}${item.standalone ? ' · clamps pose' : ''}`;
-            case 'springBones': {
-              const extras = [];
-              if ((item.colliders || []).length) extras.push(`${item.colliders.length} collider${item.colliders.length === 1 ? '' : 's'}`);
-              if (item.ground) extras.push('ground');
-              return [`${item.bones.length} bones`, ...extras].join(' · ');
-            }
-            case 'colliders': return `${item.shape} · ${item.bone} · r${item.radius}`;
-            case 'blendSpaces': return `${item.dimensions}D · ${item.samples.length} samples`;
-            default: return '';
-          }
-        },
-        warning(key, item) {
-          this.version;
-          switch (key) {
-            case 'hitboxes':
-              if (!this.boneSet.has(item.bone)) return `missing bone ${item.bone}`;
-              return hitboxBox(item) ? '' : 'empty box';
-            case 'sockets':
-              if (item.locator) return this.locatorSet.has(item.locator) ? '' : 'missing locator';
-              return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
-            case 'constraints':
-              return this.boneSet.has(item.bone) ? '' : 'missing bone';
-            case 'colliders':
-              return this.boneSet.has(item.bone) ? '' : `missing bone ${item.bone}`;
-            case 'ikChains':
-            case 'lookAts':
-            case 'springBones': {
-              const gone = this.missing(item.bones);
-              if (gone.length) return `missing ${gone.join(', ')}`;
-              const known = new Set(this.rig.colliders.map(c => c.id));
-              const unknown = (item.colliders || []).filter(id => !known.has(id));
-              return unknown.length ? `unknown collider ${unknown.join(', ')}` : '';
-            }
-            default:
-              return '';
-          }
-        },
-        togglePreview(key) {
-          PreviewSettings[key] = !PreviewSettings[key];
-          if (Animator?.open) { try { Animator.preview(); } catch (_) { /* ignore */ } }
-        },
-        toggleBlend(index) {
-          if (this.blend.index === index) {
-            this.stopBlend();
-            return;
-          }
-          const b = this.rig.blendSpaces[index];
-          const range = blendSpaceRange(b);
-          this.blend.index = index;
-          this.blend.x = Math.max(range.x[0], Math.min(range.x[1], this.blend.x));
-          this.blend.y = Math.max(range.y[0], Math.min(range.y[1], this.blend.y));
-          BlendPreview.inputX = this.blend.x;
-          BlendPreview.inputY = this.blend.y;
-          BlendPreview.start(b);
-        },
-        stopBlend() {
-          this.blend.index = -1;
-          BlendPreview.stop();
-        },
-        setBlendInput() {
-          BlendPreview.inputX = Number(this.blend.x);
-          BlendPreview.inputY = Number(this.blend.y);
-          BlendPreview.refresh();
-        },
-        toggleOption(key) {
-          RigStore.edit('Hitbox set options', rig => { rig.hitboxOptions[key] = !rig.hitboxOptions[key]; });
-        },
-        check() { showValidation(); },
-        generate() { showCodeExport(); },
-        pct(v) { return `${Math.round((v || 0) * 100)}%`; },
-      },
-      template: `
-<div class="azl-rig">
-  <div class="azl-bar">
-    <span class="azl-btn" @click="generate()" title="Generate AzureLib Java for this rig">Code</span>
-    <span class="azl-btn" @click="check()" title="Check the rig against the model">Check<span v-if="issueCount" class="azl-badge">{{ issueCount }}</span></span>
-    <span class="azl-spacer"></span>
-    <span class="azl-chip" :class="{on: preview.hitboxes}" @click="togglePreview('hitboxes')" title="Show hitboxes in the viewport">Boxes</span>
-    <span class="azl-chip" :class="{on: preview.sockets}" @click="togglePreview('sockets')" title="Show sockets in the viewport">Sockets</span>
-    <span class="azl-chip" :class="{on: preview.colliders}" @click="togglePreview('colliders')" title="Show spring colliders in the viewport">Colliders</span>
-    <span class="azl-chip" :class="{on: preview.modifiers}" @click="togglePreview('modifiers')" title="Run IK, look-at, spring bones and constraints while animating">Pose</span>
-  </div>
-  <div class="azl-scroll">
-  <div v-if="isEmpty" class="azl-hint">Select bones or locators, then press + on a section.</div>
-
-  <div v-for="sec in sections" :key="sec.key">
-    <div class="azl-head" @click="toggle(sec.key)" :title="sec.addTitle">
-      <span class="azl-caret">{{ isOpen(sec.key) ? '▼' : '▶' }}</span>
-      <span class="azl-title">{{ sec.title }}</span>
-      <span class="azl-count" v-if="rig[sec.key].length">{{ rig[sec.key].length }}</span>
-      <span class="azl-spacer"></span>
-      <span v-if="sec.key === 'sockets'" class="azl-add small" title="Add a socket for every locator" @click.stop="add('allLocators', sec.key)">all</span>
-      <span class="azl-add" :title="sec.addTitle" @click.stop="add(sec.add, sec.key)">+</span>
-    </div>
-
-    <template v-if="isOpen(sec.key)">
-      <div v-if="sel.key === sec.key" class="azl-selbar">
-        <span>{{ sel.items.length }} selected</span>
-        <span class="azl-spacer"></span>
-        <span v-if="sec.key === 'hitboxes'" class="azl-btn" @click="bulkEdit()" title="Edit the selected hitboxes together">Edit</span>
-        <span class="azl-btn" @click="selectAll(sec.key)" title="Select every entry in this section">All</span>
-        <span class="azl-btn" @click="bulkDelete()" title="Remove the selected entries">Delete</span>
-        <span class="azl-btn" @click="clearSelection()" title="Clear the selection">×</span>
-      </div>
-      <div v-for="(item, i) in rig[sec.key]" :key="sec.key + i">
-        <div class="azl-row" :class="{selected: isSelected(sec.key, i)}" @click="rowClick(sec.key, i, $event)" title="Click to edit · Ctrl/⌘-click or Shift-click to select several">
-          <span class="azl-dot" :style="{background: color(sec.key, item)}"></span>
-          <span class="azl-name">{{ label(sec.key, item) }}</span>
-          <span class="azl-detail" :class="{warn: !!warning(sec.key, item)}">{{ warning(sec.key, item) || detail(sec.key, item) }}</span>
-          <span v-if="sec.key === 'blendSpaces' && isAnimate" class="azl-add" :title="blend.index === i ? 'Stop preview' : 'Preview'" @click.stop="toggleBlend(i)">{{ blend.index === i ? '■' : '▶' }}</span>
-          <span class="azl-del" title="Remove" @click.stop="remove(sec.key, i)">×</span>
-        </div>
-        <div v-if="sec.key === 'blendSpaces' && blend.index === i" class="azl-sub">
-          <div>X {{ Number(blend.x).toFixed(2) }}</div>
-          <input type="range" :min="blendRange.x[0]" :max="blendRange.x[1]" step="0.01" v-model.number="blend.x" @input="setBlendInput()">
-          <template v-if="item.dimensions === 2">
-            <div>Y {{ Number(blend.y).toFixed(2) }}</div>
-            <input type="range" :min="blendRange.y[0]" :max="blendRange.y[1]" step="0.01" v-model.number="blend.y" @input="setBlendInput()">
-          </template>
-          <div class="azl-weights">
-            <span v-for="(s, j) in item.samples" :key="j">{{ s.animation }} {{ pct(blendWeights[j]) }}</span>
-          </div>
-          <div style="margin-top:2px">Press play to see motion. Samples share one timeline here; in game, phase sync keeps cycles in step.</div>
-        </div>
-      </div>
-      <div v-if="sec.key === 'hitboxes' && rig.hitboxes.length" class="azl-sub">
-        <label><input type="checkbox" :checked="rig.hitboxOptions.keepEntityBox" @change="toggleOption('keepEntityBox')"> keep entity box</label>
-        <label><input type="checkbox" :checked="rig.hitboxOptions.clientOnly" @change="toggleOption('clientOnly')"> client only</label>
-      </div>
-    </template>
-  </div>
-  </div>
-</div>`,
-    },
-  });
-}
-
-function registerActions() {
-  actions = [
-    new Action('azurelib_rig_generate_code', {
-      name: 'Generate AzureLib Rig Code',
-      description: 'Generate AzureLib Java for the hitboxes, sockets, IK, spring bones and blend spaces in this model',
-      icon: 'code',
-      category: 'file',
-      condition: () => Format?.id === 'azure_model',
-      click: () => showCodeExport(),
-    }),
-    new Action('azurelib_rig_validate', {
-      name: 'Check AzureLib Rig',
-      description: 'Check the AzureLib rig against the model',
-      icon: 'rule',
-      category: 'file',
-      condition: () => Format?.id === 'azure_model',
-      click: () => showValidation(),
-    }),
-  ];
-  MenuBar.addAction(actions[0], 'file.export');
-  MenuBar.addAction(actions[1], 'file.export');
-}
-
-function registerRigPanel() {
-  if (panel) return;
-  registerPanel();
-  registerActions();
-  azure_rig_panel_unsubscribe = RigStore.onChange(() => panel?.inside_vue?.$forceUpdate?.());
-
-  onModeChange = event => {
-    const vue = panel?.inside_vue;
-    if (!vue) return;
-    vue.mode = event?.mode?.id || '';
-    if (vue.mode !== 'animate' && vue.blend.index >= 0) vue.stopBlend();
-  };
-  Blockbench.on('select_mode', onModeChange);
-
-  onModelChange = () => {
-    const vue = panel?.inside_vue;
-    if (vue) vue.version++;
-  };
-  Blockbench.on('finished_edit', onModelChange);
-  Blockbench.on('select_project', onModelChange);
-}
-
-function unregisterRigPanel() {
-  azure_rig_panel_unsubscribe?.();
-  azure_rig_panel_unsubscribe = null;
-  if (onModeChange) Blockbench.removeListener('select_mode', onModeChange);
-  if (onModelChange) {
-    Blockbench.removeListener('finished_edit', onModelChange);
-    Blockbench.removeListener('select_project', onModelChange);
-  }
-  onModeChange = null;
-  onModelChange = null;
-  for (const action of actions) action.delete();
-  actions = [];
-  panel?.delete();
-  panel = null;
-  removeStyle();
-}
-
-;// ./rig/azure-rig.js
-/**
- * AzureLib Animator — Rig Features
- * --------------------------------
- * Entry point for AzureLib's runtime rig features in Blockbench: hitboxes,
- * sockets, runtime IK, look-at, constraints, spring bones and blend spaces.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-
-
-
-
-let azure_rig_registered = false;
-
-function registerRig() {
-  if (azure_rig_registered) return;
-  azure_rig_registered = true;
-  registerRigState();
-  registerRigPreview();
-  registerRigPanel();
-}
-
-function unregisterRig() {
-  if (!azure_rig_registered) return;
-  azure_rig_registered = false;
-  unregisterRigPanel();
-  unregisterRigPreview();
-  unregisterRigState();
-}
-
-;// ./index.js
-/**
- * AzureLib Animator — Blockbench Plugin Entry
- * -------------------------------------------
- * Registers the AzureLib animation format and editor utilities.
- *
- * © 2025 AzureDoom — MIT License
- */
-
-
-
-
-
-
-
-
-
-
-
-const { /* version */ "rE": version, /* blockbenchConfig */ "Ug": blockbenchConfig } = package_namespaceObject;
-const RANGE = `${blockbenchConfig.min_version} - ${blockbenchConfig.max_version}`;
-if (!satisfies_default()(coerce_default()(Blockbench.version), RANGE)) {
-  alert(`AzureLib Animator supports Blockbench ${RANGE}. Update for best results.`);
-}
-
-(function () {
-  let exportAction, exportDisplay, importDisplay, settingsButton;
-
-  Plugin.register('azurelib_utils', {
+Plugin.register('azurelib_utils', {
     title: 'AzureLib Animator',
     author: 'AzureDoom, Eliot Lash, Gecko, McHorse',
     icon: 'azureicon.png',
-    description: 'Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.',
+    description: 'Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.',
     tags: ['Minecraft: Java Edition'],
     version: '2.3.0',
     variant: 'both',
@@ -30949,134 +31097,16 @@ if (!satisfies_default()(coerce_default()(Blockbench.version), RANGE)) {
       formats: ['azure_model']
     },
     has_changelog: true,
+  
     onload() {
-      registerAzureCodec();
-      initializeAnimationUI();
-      registerKeyframeOverrides();
-      registerRig();
-      console.log('[AzureLib] Animator loaded');
-	  
-      Blockbench.on('ready', () => {
-        setTimeout(() => {
-          if (!Keyframe.prototype._azurePatched) {
-            console.log('[AzureLib] Reattaching keyframe overrides after ready()');
-            registerKeyframeOverrides();
-          }
-        }, 0);
-      });
-
-      // Auto show settings for Azure model
-      Blockbench.on('new_project', () => {
-        if (Format?.id === 'azure_model') {
-          setTimeout(() => {
-            try {
-              Interface.dialog?.close();
-            } catch {}
-            new Dialog({
-              id: 'azurelib_model_settings',
-              title: 'AzureLib Model Settings',
-              width: 540,
-              lines: [
-                `<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animator v${version}</b>`,
-                '<p>Select your model type to begin.</p>',
-              ],
-              form: {
-                objectType: {
-                  label: 'Object Type',
-                  type: 'select',
-                  default: azure_settings.objectType,
-                  options: TYPE_OPTIONS,
-                },
-              },
-              onConfirm(form) {
-                Object.assign(azure_settings, form);
-                onSettingsChanged();
-              },
-            }).show();
-          }, 150);
-        }
-      });
-
-      exportAction = new Action({
-        id: 'export_AzureLib_model',
-        name: 'Export AzureLib .geo Model',
-        icon: 'archive',
-        description: 'Export your .geo model for AzureLib.',
-        category: 'file',
-        condition: () => Format.id === 'azure_model',
-        click: () => azure_codec.export(),
-      });
-      MenuBar.addAction(exportAction, 'file.export');
-
-      exportDisplay = new Action({
-        id: 'export_AzureLib_display',
-        name: 'Export AzureLib Display Settings',
-        icon: 'icon-bb_interface',
-        category: 'file',
-        description: 'Export display settings for AzureLib.',
-        condition: () => Format.id === 'azure_model',
-        click: maybeExportItemJson,
-      });
-      MenuBar.addAction(exportDisplay, 'file.export');
-
-      importDisplay = new Action({
-        id: 'import_AzureLib_display',
-        name: 'Import AzureLib Display Settings',
-        icon: 'icon-bow',
-        category: 'file',
-        condition: () => Format.id === 'azure_model',
-        click: maybeImportItemJson,
-      });
-      MenuBar.addAction(importDisplay, 'file.import');
-
-      settingsButton = new Action('azurelib_settings', {
-        name: 'AzureLib Model Settings',
-        description: 'Change model type',
-        icon: 'info',
-        condition: () => Format.id === 'azure_model',
-        click: () => {
-          const dialog = new Dialog({
-            id: 'project',
-            title: 'AzureLib Model Settings',
-            width: 540,
-            lines: [
-              `<b class="tl"><a href="https://wiki.azuredoom.com/">AzureLib</a> Animator v${version}</b>`,
-            ],
-            form: {
-              objectType: {
-                label: 'Object Type',
-                type: 'select',
-                default: azure_settings.objectType,
-                options: TYPE_OPTIONS,
-              },
-            },
-            onConfirm: result => {
-              Object.assign(azure_settings, result);
-              onSettingsChanged();
-              dialog.hide();
-            },
-          });
-          dialog.show();
-        },
-      });
-      MenuBar.addAction(settingsButton, 'file.1');
+      const { loadAzureLib } = __webpack_require__(814);
+      loadAzureLib();
     },
+  
     onunload() {
-      exportAction.delete();
-      exportDisplay.delete();
-      importDisplay.delete();
-      settingsButton.delete();
-      unregisterRig();
-      unregisterKeyframeOverrides();
-      unloadAnimationUI();
-      unregisterAzureCodec();
-      restoreOverrides();
-      console.log('[AzureLib] Animator unloaded.');
-    },
+      const { unloadAzureLib } = __webpack_require__(814);
+      unloadAzureLib();
+    }
   });
-})();
-
-})();
-
 /******/ })()
 ;

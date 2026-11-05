@@ -3,9 +3,7 @@ const PathModule = require('path');
 module.exports = {
   mode: 'production',
   target: 'node',
-
   entry: './index.js',
-
   output: {
     filename: 'azurelib_utils.js',
     path: PathModule.resolve(
@@ -13,7 +11,6 @@ module.exports = {
       '../../plugins/azurelib_utils'
     )
   },
-
   optimization: {
     minimize: false
   }
