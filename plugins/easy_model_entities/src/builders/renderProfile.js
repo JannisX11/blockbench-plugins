@@ -22,7 +22,10 @@ const {
   animationMode,
   defaultRenderingSettings,
   defaultAnimationSettings,
-  isCustom,
+  defaultShoulderSettings,
+  normalizeName,
+  isCustomEntity,
+  SCHEMA_VERSION,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
 const {diffFlat, assignIfPresent} = require('./profileDiff');
@@ -36,9 +39,10 @@ function toRenderingJson(values) {
   return {
     scale: values.scale,
     shadow_radius: values.shadowRadius,
-    visible_bounds_width: values.visibleBoundsWidth ?? 0,
-    visible_bounds_height: values.visibleBoundsHeight ?? 0,
-    visible_bounds_offset: values.visibleBoundsOffset || [0, 0, 0]
+    visible_bounds_width: values.visibleBoundsWidth,
+    visible_bounds_height: values.visibleBoundsHeight,
+    visible_bounds_offset: values.visibleBoundsOffset,
+    opacity: values.opacity
   };
 }
 
@@ -52,9 +56,16 @@ function toAnimationJson(values) {
     mode: values.mode,
     swing_speed: values.swingSpeed,
     walk_speed_multiplier: values.walkSpeedMultiplier,
-    idle_strength: values.idleStrength ?? 1,
-    gait: values.gait || 'natural'
+    idle_strength: values.idleStrength,
+    gait: values.gait,
+    variant_mode: values.variantMode
   };
+}
+
+function variantWeightsJson(variantWeights) {
+  return Object.fromEntries(Object.entries(variantWeights)
+  .map(([clipName, weight]) => [normalizeName(clipName), weight])
+  .filter(([clipName, weight]) => clipName.length > 0 && weight !== 1));
 }
 
 function buildAnimation(settings) {
@@ -69,16 +80,27 @@ function buildAnimation(settings) {
     delete animation.idle_strength;
     delete animation.gait;
   }
+  if (settings.animation.variantMode !== 'none') {
+    assignIfPresent(animation, 'variant_weights',
+        variantWeightsJson(settings.animation.variantWeights));
+  }
 
   return animation;
 }
 
+function buildShoulder(settings) {
+  if (settings.modelType === MODEL_TYPE_BLOCK_ENTITY) {
+    return {};
+  }
+
+  return diffFlat(settings.shoulder, defaultShoulderSettings());
+}
+
 function buildRenderProfile(settings, textureResolution) {
   const renderPreset = renderPresetType(settings);
-  const custom = settings.modelType !== MODEL_TYPE_BLOCK_ENTITY
-      && isCustom(settings.presetType);
+  const custom = isCustomEntity(settings.modelType, settings.presetType);
   const profile = {
-    schema_version: settings.schemaVersion,
+    schema_version: SCHEMA_VERSION,
     preset_type: renderPreset
   };
 
@@ -97,6 +119,7 @@ function buildRenderProfile(settings, textureResolution) {
 
   assignIfPresent(profile, 'rendering', buildRendering(settings));
   assignIfPresent(profile, 'animation', buildAnimation(settings));
+  assignIfPresent(profile, 'shoulder', buildShoulder(settings));
 
   return profile;
 }

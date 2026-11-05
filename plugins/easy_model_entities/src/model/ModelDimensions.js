@@ -27,30 +27,36 @@ class ModelDimensions {
 
   static #EYE_HEIGHT_FACTOR = {biped: 0.9, quadruped: 0.8, static: 0.85};
 
-  static #round(value) {
+  static round(value) {
     return Math.round(value * 1000) / 1000;
   }
 
-  static #isUsableBounds(bounds) {
+  static extentsOf(bounds) {
     if (!bounds) {
-      return false;
+      return null;
     }
 
-    return ['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
-        (key) => Number.isFinite(bounds[key]));
+    if (!['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
+        (key) => Number.isFinite(bounds[key]))) {
+      return null;
+    }
+
+    return {
+      x: Math.max(0, bounds.maxX - bounds.minX),
+      y: Math.max(0, bounds.maxY - bounds.minY),
+      z: Math.max(0, bounds.maxZ - bounds.minZ)
+    };
   }
 
   static deriveDimensions(bounds, bodyType) {
-    if (!ModelDimensions.#isUsableBounds(bounds)) {
+    const extents = ModelDimensions.extentsOf(bounds);
+    if (!extents) {
       return {...ModelDimensions.FALLBACK};
     }
 
-    const width = Math.max(
-        Math.max(0, bounds.maxX - bounds.minX),
-        Math.max(0, bounds.maxZ - bounds.minZ)
-    ) / ModelDimensions.PIXELS_PER_BLOCK;
-    const height = Math.max(0, bounds.maxY - bounds.minY)
+    const width = Math.max(extents.x, extents.z)
         / ModelDimensions.PIXELS_PER_BLOCK;
+    const height = extents.y / ModelDimensions.PIXELS_PER_BLOCK;
 
     if (width <= 0 || height <= 0) {
       return {...ModelDimensions.FALLBACK};
@@ -60,9 +66,9 @@ class ModelDimensions {
         ?? ModelDimensions.#EYE_HEIGHT_FACTOR.static;
 
     return {
-      width: ModelDimensions.#round(width),
-      height: ModelDimensions.#round(height),
-      eyeHeight: ModelDimensions.#round(height * eyeHeightFactor)
+      width: ModelDimensions.round(width),
+      height: ModelDimensions.round(height),
+      eyeHeight: ModelDimensions.round(height * eyeHeightFactor)
     };
   }
 

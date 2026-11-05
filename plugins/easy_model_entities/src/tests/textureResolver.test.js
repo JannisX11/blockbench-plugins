@@ -91,18 +91,67 @@ describe('resolveTextures', () => {
     expect(result.issues).toEqual([]);
   });
 
-  test('foreign-namespace texture is packed under its own namespace', () => {
+  test('foreign-namespace texture is packed under the export namespace', () => {
     const result = resolveTextures(
         [{
           index: 0, namespace: 'othermod', folder: 'entity', name: 'thing',
           path: '', bytes: BYTES
         }],
         SETTINGS);
-    expect(result.texture).toBe('othermod:textures/entity/thing.png');
+    expect(result.texture).toBe('example:textures/entity/thing.png');
     expect(result.textures).toEqual({});
     expect(result.packed).toEqual(
-        [{path: 'assets/othermod/textures/entity/thing.png', bytes: BYTES}]);
+        [{path: 'assets/example/textures/entity/thing.png', bytes: BYTES}]);
     expect(result.referencedOnly).toEqual([]);
+    expect(result.issues).toEqual([]);
+  });
+
+  test('keeps the names of several foreign textures per slot', () => {
+    const result = resolveTextures([
+      {
+        index: 0, namespace: 'othermod', folder: 'entity', name: 'post',
+        path: '', bytes: BYTES
+      },
+      {
+        index: 1, namespace: 'othermod', folder: 'entity', name: 'crow',
+        path: '', bytes: BYTES
+      }
+    ], SETTINGS);
+
+    expect(result.texture).toBe('example:textures/entity/post.png');
+    expect(result.textures).toEqual({1: 'example:textures/entity/crow.png'});
+    expect(result.packed.map((entry) => entry.path)).toEqual([
+      'assets/example/textures/entity/post.png',
+      'assets/example/textures/entity/crow.png']);
+  });
+
+  test('renames a foreign texture that would overwrite another slot', () => {
+    const result = resolveTextures([
+      {
+        index: 0, namespace: 'othermod', folder: 'entity', name: 'thing',
+        path: '', bytes: BYTES
+      },
+      {
+        index: 1, namespace: 'thirdmod', folder: 'entity', name: 'thing',
+        path: '', bytes: BYTES
+      },
+      {
+        index: 2, namespace: 'othermod', folder: 'entity', name: 'lizard_3',
+        path: '', bytes: BYTES
+      },
+      {
+        index: 3, namespace: '', folder: 'block', name: 'eye', path: '',
+        bytes: BYTES
+      }
+    ], SETTINGS);
+
+    expect(result.texture).toBe('example:textures/entity/thing.png');
+    expect(result.textures).toEqual({
+      1: 'example:textures/entity/lizard_1.png',
+      2: 'example:textures/entity/lizard_2.png',
+      3: 'example:textures/entity/lizard_3.png'
+    });
+    expect(new Set(result.packed.map((entry) => entry.path)).size).toBe(4);
     expect(result.issues).toEqual([]);
   });
 

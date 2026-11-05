@@ -41,15 +41,75 @@ const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
 const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
   'attack', 'sit'];
+const ANIMATION_VARIANT_MODES = ['random', 'sequential', 'none'];
+const SHOULDER_CLIP = 'shoulder';
+const CLIP_VARIANT_SUFFIX = /^(.+?)[_ ]([1-9][0-9]*)$/;
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
 const STATIC_ENTITY = 'easy_model_entities:static_entity';
 const AQUATIC_ENTITY = 'easy_model_entities:aquatic_entity';
 const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
+const HOST_ENTITY_TYPES = [GROUND_ENTITY, STATIC_ENTITY, AQUATIC_ENTITY,
+  AMPHIBIOUS_ENTITY];
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
+
+const STATIC_FAMILY = {
+  bodyType: 'static',
+  dimensions: FALLBACK_DIMENSIONS,
+  shadowRadius: 0.3
+};
+const PRESET_FAMILIES = new Map([
+  ['humanoid', {...STATIC_FAMILY, bodyType: 'biped'}],
+  ['quadruped', {
+    bodyType: 'quadruped',
+    dimensions: {width: 0.9, height: 0.9, eyeHeight: 0.6},
+    shadowRadius: 0.45
+  }],
+  ['aquatic', {
+    bodyType: 'aquatic',
+    dimensions: {width: 0.7, height: 0.4, eyeHeight: 0.25},
+    shadowRadius: 0.25
+  }],
+  ['amphibious', {
+    bodyType: 'amphibious',
+    dimensions: {width: 0.9, height: 0.6, eyeHeight: 0.4},
+    shadowRadius: 0.45
+  }],
+  ['winged', {
+    bodyType: 'winged',
+    dimensions: {width: 0.6, height: 0.9, eyeHeight: 0.6},
+    shadowRadius: 0.25
+  }],
+  ['winged_humanoid', {
+    bodyType: 'winged_humanoid',
+    dimensions: {width: 0.6, height: 0.8, eyeHeight: 0.6},
+    shadowRadius: 0.25
+  }],
+  ['arthropod', {
+    bodyType: 'arthropod',
+    dimensions: {width: 1.4, height: 0.9, eyeHeight: 0.45},
+    shadowRadius: 0.7
+  }],
+  ['cuboid', {
+    bodyType: 'cuboid',
+    dimensions: BLOCK_ENTITY_DIMENSIONS,
+    shadowRadius: 0.5
+  }],
+  ['floating', {
+    bodyType: 'floating',
+    dimensions: BLOCK_ENTITY_DIMENSIONS,
+    shadowRadius: 0.5
+  }]
+]);
+const PRESET_MOTION_SUFFIX = /_(still|wandering|swimming|hopping)$/;
+
+const DEFAULT_SPEEDS = new Map([['ground', 0.22], ['amphibious', 0.15],
+  ['water', 0.1]]);
+const BLOCK_ENTITY_ANIMATION_MODES = new Map([['animated', 'automatic'],
+  ['animated_randomly', 'random_idle']]);
 
 const DEFAULT_MAX_HEALTH = 10;
 const DEFAULT_FOLLOW_RANGE = 16;
@@ -84,45 +144,54 @@ const BLOCK_ENTITY_PRESET_TYPES = [
   'animated_randomly'
 ];
 
-const STABLE_PRESET_TYPES = new Set([
-  'static',
-  'statue',
-  'humanoid_still',
-  'humanoid_wandering',
-  'quadruped_still',
-  'quadruped_wandering',
-  'aquatic_still',
-  'aquatic_swimming',
-  'amphibious_still',
-  'amphibious_wandering',
-  'winged_still',
-  'winged_wandering',
-  'winged_humanoid_still',
-  'winged_humanoid_wandering',
-  'arthropod_still',
-  'arthropod_wandering',
-  'cuboid_still',
-  'cuboid_hopping',
-  'floating_still',
-  // Block entity stable presets.
-  'animated',
-  'animated_randomly'
-]);
+const EXPERIMENTAL_PRESET_TYPES = new Set(['custom', 'ticking']);
 
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
 
+function normalizeName(name) {
+  return String(name || '').trim().toLowerCase();
+}
+
+function clipBaseName(clipName) {
+  const match = CLIP_VARIANT_SUFFIX.exec(clipName);
+
+  return match ? match[1] : clipName;
+}
+
+function isStandardClip(name) {
+  return ANIMATION_CLIPS.includes(clipBaseName(normalizeName(name)));
+}
+
 function standardClipNames(animations) {
   return (animations || [])
-  .map((animation) => String(animation.name || '').toLowerCase())
-  .filter((name) => ANIMATION_CLIPS.includes(name));
+  .map((animation) => normalizeName(animation.name))
+  .filter(isStandardClip);
+}
+
+function variantClipNames(animations) {
+  const clipNames = [...new Set((animations || [])
+  .map((animation) => normalizeName(animation.name))
+  .filter((clipName) => clipName.length > 0))];
+  const groupSizes = new Map();
+  clipNames.forEach((clipName) => {
+    const baseName = clipBaseName(clipName);
+    groupSizes.set(baseName, (groupSizes.get(baseName) ?? 0) + 1);
+  });
+
+  return clipNames.filter(
+      (clipName) => groupSizes.get(clipBaseName(clipName)) > 1);
 }
 
 function isStablePreset(presetType) {
-  return STABLE_PRESET_TYPES.has(presetType);
+  return !EXPERIMENTAL_PRESET_TYPES.has(presetType);
 }
 
 function isCustom(presetType) {
   return presetType === 'custom';
+}
+
+function isCustomEntity(modelType, presetType) {
+  return modelType !== MODEL_TYPE_BLOCK_ENTITY && isCustom(presetType);
 }
 
 function isStill(presetType) {
@@ -135,37 +204,17 @@ function isMoving(presetType) {
       || presetType === 'cuboid_hopping';
 }
 
-function bodyType(presetType) {
-  switch (presetType) {
-    case 'humanoid_still':
-    case 'humanoid_wandering':
-      return 'biped';
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-      return 'quadruped';
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-      return 'aquatic';
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return 'amphibious';
-    case 'winged_still':
-    case 'winged_wandering':
-      return 'winged';
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return 'winged_humanoid';
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return 'arthropod';
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-      return 'cuboid';
-    case 'floating_still':
-      return 'floating';
-    default:
-      return 'static';
+function presetFamily(presetType) {
+  if (!PRESET_TYPES.includes(presetType)) {
+    return STATIC_FAMILY;
   }
+
+  return PRESET_FAMILIES.get(presetType.replace(PRESET_MOTION_SUFFIX, ''))
+      || STATIC_FAMILY;
+}
+
+function bodyType(presetType) {
+  return presetFamily(presetType).bodyType;
 }
 
 function isAquatic(presetType) {
@@ -201,58 +250,7 @@ function entityType(presetType) {
 }
 
 function presetDimensions(presetType) {
-  switch (presetType) {
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-      return {width: 0.9, height: 0.9, eyeHeight: 0.6};
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-      return {width: 0.7, height: 0.4, eyeHeight: 0.25};
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return {width: 0.9, height: 0.6, eyeHeight: 0.4};
-    case 'winged_still':
-    case 'winged_wandering':
-      return {width: 0.6, height: 0.9, eyeHeight: 0.6};
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return {width: 0.6, height: 0.8, eyeHeight: 0.6};
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return {width: 1.4, height: 0.9, eyeHeight: 0.45};
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-    case 'floating_still':
-      return {width: 1.0, height: 1.0, eyeHeight: 0.5};
-    default:
-      return {...FALLBACK_DIMENSIONS};
-  }
-}
-
-function presetShadowRadius(presetType) {
-  switch (presetType) {
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return 0.45;
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-    case 'winged_still':
-    case 'winged_wandering':
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return 0.25;
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return 0.7;
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-    case 'floating_still':
-      return 0.5;
-    default:
-      return 0.3;
-  }
+  return {...presetFamily(presetType).dimensions};
 }
 
 function behaviorModeFor(presetType, move) {
@@ -271,30 +269,25 @@ function behaviorModeFor(presetType, move) {
   return 'static';
 }
 
-function behaviorMode(presetType) {
-  return behaviorModeFor(presetType, movementType(presetType));
-}
-
 function wandersByMovement(move) {
   return move === 'ground' || move === 'amphibious' || move === 'water';
 }
 
-function defaultSpeed(move) {
-  switch (move) {
-    case 'ground':
-      return 0.22;
-    case 'amphibious':
-      return 0.15;
-    case 'water':
-      return 0.1;
-    default:
-      return 0;
-  }
+function behaviorForMode(mode, move) {
+  return {
+    mode: mode,
+    lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
+    randomStroll: wandersByMovement(move) && mode === 'ambient'
+  };
+}
+
+function behaviorDefaults(presetType, move) {
+  return behaviorForMode(behaviorModeFor(presetType, move), move);
 }
 
 function movementDefaults(presetType, move) {
   return {
-    speed: defaultSpeed(move),
+    speed: DEFAULT_SPEEDS.get(move) ?? 0,
     stepHeight: move === 'ground' || move === 'amphibious' ? 0.6 : 0,
     gravity: presetType === 'static' || move !== 'static'
   };
@@ -305,24 +298,14 @@ function animationMode(presetType) {
   || presetType === 'statue' ? 'none' : 'automatic';
 }
 
-function blockEntityAnimationMode(presetType) {
-  switch (presetType) {
-    case 'animated':
-      return 'automatic';
-    case 'animated_randomly':
-      return 'random_idle';
-    default:
-      return 'none';
-  }
-}
-
 function defaultRenderingSettings(presetType) {
   return {
     scale: 1,
-    shadowRadius: presetShadowRadius(presetType),
+    shadowRadius: presetFamily(presetType).shadowRadius,
     visibleBoundsWidth: 0,
     visibleBoundsHeight: 0,
-    visibleBoundsOffset: [0, 0, 0]
+    visibleBoundsOffset: [0, 0, 0],
+    opacity: 1
   };
 }
 
@@ -332,13 +315,18 @@ function defaultAnimationSettings(mode) {
     swingSpeed: 1,
     walkSpeedMultiplier: 1,
     idleStrength: 1,
-    gait: 'natural'
+    gait: 'natural',
+    variantMode: 'random',
+    variantWeights: {}
   };
+}
+
+function defaultShoulderSettings() {
+  return {offset: [0, 0, 0], scale: 1};
 }
 
 function blockEntityPresetDefaults(presetType) {
   return {
-    schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_BLOCK_ENTITY,
     presetType: presetType,
     host: {entityType: '', movementType: 'static', bodyType: 'static'},
@@ -351,7 +339,8 @@ function blockEntityPresetDefaults(presetType) {
       followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings('cuboid_still'),
-    animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
+    animation: defaultAnimationSettings(
+        BLOCK_ENTITY_ANIMATION_MODES.get(presetType) ?? 'none')
   };
 }
 
@@ -362,10 +351,8 @@ function presetDefaults(presetType, modelType) {
 
   const move = movementType(presetType);
   const movement = movementDefaults(presetType, move);
-  const mode = behaviorMode(presetType);
 
   return {
-    schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_ENTITY,
     presetType: presetType,
     host: {
@@ -374,23 +361,16 @@ function presetDefaults(presetType, modelType) {
       bodyType: bodyType(presetType)
     },
     dimensions: presetDimensions(presetType),
-    movement: {
-      speed: movement.speed,
-      stepHeight: movement.stepHeight,
-      gravity: movement.gravity
-    },
-    behavior: {
-      mode: mode,
-      lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
-      randomStroll: wandersByMovement(move) && mode === 'ambient'
-    },
+    movement: movement,
+    behavior: behaviorDefaults(presetType, move),
     attributes: {
       maxHealth: DEFAULT_MAX_HEALTH,
       movementSpeed: movement.speed,
       followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings(presetType),
-    animation: defaultAnimationSettings(animationMode(presetType))
+    animation: defaultAnimationSettings(animationMode(presetType)),
+    shoulder: defaultShoulderSettings()
   };
 }
 
@@ -408,18 +388,25 @@ module.exports = {
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
   ANIMATION_CLIPS,
+  ANIMATION_VARIANT_MODES,
+  SHOULDER_CLIP,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
+  HOST_ENTITY_TYPES,
+  normalizeName,
+  isStandardClip,
   standardClipNames,
+  variantClipNames,
   isStablePreset,
   isCustom,
+  isCustomEntity,
   bodyType,
-  behaviorModeFor,
+  behaviorForMode,
+  behaviorDefaults,
   movementDefaults,
-  wandersByMovement,
   animationMode,
-  presetDimensions,
   presetDefaults,
   defaultRenderingSettings,
-  defaultAnimationSettings
+  defaultAnimationSettings,
+  defaultShoulderSettings
 };

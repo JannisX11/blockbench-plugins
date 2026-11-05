@@ -18,12 +18,14 @@
  */
 
 const {ResourceLocation} = require('../utils/ResourceLocation');
+const {MIN_MOD_VERSION} = require('../model/versionMatrix');
+const {MODEL_TYPE_ENTITY} = require('../model/presetTypes');
 const TEMPLATE = require('../resources/readme.md');
 
 function buildReadme(settings, fileNames) {
   const id = ResourceLocation.buildResourceLocation(settings.namespace,
       settings.profileId);
-  const modelType = settings.modelType || 'entity';
+  const modelType = settings.modelType || MODEL_TYPE_ENTITY;
   const serverProfileId = ResourceLocation.buildResourceLocation(
       settings.namespace, `${modelType}/${settings.profileId}`);
   return TEMPLATE
@@ -31,6 +33,7 @@ function buildReadme(settings, fileNames) {
   .replaceAll('{{serverProfileId}}', serverProfileId)
   .replaceAll('{{mcVersion}}',
       `Minecraft: Java Edition ${settings.targetVersion}`)
+  .replaceAll('{{modVersion}}', MIN_MOD_VERSION)
   .replaceAll('{{datapackFile}}', fileNames.datapack)
   .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
 }

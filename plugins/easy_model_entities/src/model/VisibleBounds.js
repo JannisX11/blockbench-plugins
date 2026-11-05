@@ -17,15 +17,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-class VisibleBounds {
-  static PIXELS_PER_BLOCK = 16;
+const {ModelDimensions} = require('./ModelDimensions');
 
+class VisibleBounds {
   static #empty() {
     return {width: 0, height: 0, offset: [0, 0, 0]};
-  }
-
-  static #round(value) {
-    return Math.round(value * 1000) / 1000;
   }
 
   static #usableCubes(cubes) {
@@ -62,30 +58,31 @@ class VisibleBounds {
       return VisibleBounds.#empty();
     }
 
-    const ppb = VisibleBounds.PIXELS_PER_BLOCK;
+    const pixelsPerBlock = ModelDimensions.PIXELS_PER_BLOCK;
+    const round = ModelDimensions.round;
     const bounds = VisibleBounds.#bounds(usable);
     const xExtent = bounds.max[0] - bounds.min[0];
     const yExtent = bounds.max[1] - bounds.min[1];
     const zExtent = bounds.max[2] - bounds.min[2];
-    const width = Math.max(xExtent, zExtent) / ppb;
-    const height = yExtent / ppb;
+    const width = Math.max(xExtent, zExtent) / pixelsPerBlock;
+    const height = yExtent / pixelsPerBlock;
 
     if (width <= 0 || height <= 0) {
       return VisibleBounds.#empty();
     }
 
     return {
-      width: VisibleBounds.#round(width),
-      height: VisibleBounds.#round(height),
+      width: round(width),
+      height: round(height),
       offset: [
-        VisibleBounds.#round(((bounds.min[0] + bounds.max[0]) / 2) / ppb),
-        VisibleBounds.#round(bounds.min[1] / ppb),
-        VisibleBounds.#round(((bounds.min[2] + bounds.max[2]) / 2) / ppb)
+        round(((bounds.min[0] + bounds.max[0]) / 2) / pixelsPerBlock),
+        round(bounds.min[1] / pixelsPerBlock),
+        round(((bounds.min[2] + bounds.max[2]) / 2) / pixelsPerBlock)
       ]
     };
   }
 
-  static hasVisibleBounds(settings) {
+  static #hasVisibleBounds(settings) {
     const rendering = settings && settings.rendering;
     return !!rendering && rendering.visibleBoundsWidth > 0
         && rendering.visibleBoundsHeight > 0;
@@ -95,7 +92,8 @@ class VisibleBounds {
     if (!derived || !settings || !settings.rendering) {
       return settings;
     }
-    if (options?.preserveExisting && VisibleBounds.hasVisibleBounds(settings)) {
+    if (options?.preserveExisting && VisibleBounds.#hasVisibleBounds(
+        settings)) {
       return settings;
     }
 

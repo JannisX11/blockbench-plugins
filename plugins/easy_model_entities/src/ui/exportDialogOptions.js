@@ -26,8 +26,10 @@ const {
   GAIT_TYPES,
   BEHAVIOR_MODES,
   ANIMATION_MODES,
+  ANIMATION_VARIANT_MODES,
+  HOST_ENTITY_TYPES,
+  MODEL_TYPES,
   isStablePreset,
-  MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = require('../model/presetTypes');
 const {
@@ -42,66 +44,36 @@ const {t} = require('../i18n/translations');
 function optionsFromEnum(values, prefix) {
   const options = {};
   values.forEach((id) => {
-    options[id] = t(`${prefix}.${id}`);
+    options[id] = t(`${prefix}.${id.split(':').pop()}`);
   });
 
   return options;
-}
-
-function presetLabel(id) {
-  return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
-}
-
-function entityPresetIds(experimental) {
-  return experimental
-      ? ['custom', ...SELECTABLE_PRESET_TYPES]
-      : SELECTABLE_PRESET_TYPES.filter(isStablePreset);
-}
-
-function blockPresetIds(experimental) {
-  return experimental
-      ? [...BLOCK_ENTITY_PRESET_TYPES]
-      : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
 }
 
 function presetOptions(modelType, experimental, ensure) {
-  const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
-      ? blockPresetIds(experimental) : entityPresetIds(experimental);
+  const presetIds = modelType === MODEL_TYPE_BLOCK_ENTITY
+      ? BLOCK_ENTITY_PRESET_TYPES : ['custom', ...SELECTABLE_PRESET_TYPES];
+  const ids = presetIds.filter(
+      (presetId) => experimental || isStablePreset(presetId));
   if (ensure && !ids.includes(ensure)) {
     ids.push(ensure);
   }
-  const options = {};
-  ids.forEach((id) => {
-    options[id] = presetLabel(id);
-  });
 
-  return options;
+  return optionsFromEnum(ids, 'eme.preset');
 }
 
 function modelTypeOptions() {
-  return {
-    [MODEL_TYPE_ENTITY]: t('eme.modelType.entity'),
-    [MODEL_TYPE_BLOCK_ENTITY]: t('eme.modelType.block_entity')
-  };
+  return optionsFromEnum(MODEL_TYPES, 'eme.modelType');
 }
 
 function exportTypeOptions() {
-  return {
-    [EXPORT_TYPE_PACKS]: t('eme.exportType.packs'),
-    [EXPORT_TYPE_RESOURCE_PACK]: t('eme.exportType.resource_pack'),
-    [EXPORT_TYPE_DATA_PACK]: t('eme.exportType.data_pack'),
-    [EXPORT_TYPE_MOD_PROJECT]: t('eme.exportType.mod_project'),
-    [EXPORT_TYPE_MODEL_ONLY]: t('eme.exportType.model_only')
-  };
+  return optionsFromEnum([EXPORT_TYPE_PACKS, EXPORT_TYPE_RESOURCE_PACK,
+        EXPORT_TYPE_DATA_PACK, EXPORT_TYPE_MOD_PROJECT, EXPORT_TYPE_MODEL_ONLY],
+      'eme.exportType');
 }
 
 function hostEntityTypeOptions() {
-  return {
-    'easy_model_entities:ground_entity': t('eme.entity.ground_entity'),
-    'easy_model_entities:static_entity': t('eme.entity.static_entity'),
-    'easy_model_entities:aquatic_entity': t('eme.entity.aquatic_entity'),
-    'easy_model_entities:amphibious_entity': t('eme.entity.amphibious_entity')
-  };
+  return optionsFromEnum(HOST_ENTITY_TYPES, 'eme.entity');
 }
 
 function movementTypeOptions() {
@@ -124,6 +96,10 @@ function animationModeOptions() {
   return optionsFromEnum(ANIMATION_MODES, 'eme.animation');
 }
 
+function variantModeOptions() {
+  return optionsFromEnum(ANIMATION_VARIANT_MODES, 'eme.variant');
+}
+
 function versionOptions() {
   const options = {};
   getVersions().forEach((version) => {
@@ -144,5 +120,6 @@ module.exports = {
   gaitOptions,
   behaviorModeOptions,
   animationModeOptions,
+  variantModeOptions,
   versionOptions
 };

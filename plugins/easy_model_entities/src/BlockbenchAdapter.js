@@ -18,7 +18,9 @@
  */
 
 const {Validator} = require('./model/Validator');
+const {normalizeName} = require('./model/presetTypes');
 const {parseExternalLocation} = require('./utils/TextureResolver');
+const {LocalizedError, t} = require('./i18n/translations');
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -36,6 +38,10 @@ class BlockbenchAdapter {
     return bytes;
   }
 
+  static #allOf(typeName) {
+    return globalThis[typeName]?.all || [];
+  }
+
   static #firstTexture() {
     if (typeof Texture === 'undefined') {
       return null;
@@ -44,33 +50,31 @@ class BlockbenchAdapter {
     return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
-  static collectTextures() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all.map((texture, position) => ({
+  static #describeTexture(texture, position) {
+    return {
       index: position,
       name: texture.name || '',
       namespace: texture.namespace || '',
       folder: texture.folder || '',
-      path: texture.path || '',
+      path: texture.path || ''
+    };
+  }
+
+  static collectTextureLocations() {
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) =>
+        BlockbenchAdapter.#describeTexture(texture, position));
+  }
+
+  static collectTextures() {
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) => ({
+      ...BlockbenchAdapter.#describeTexture(texture, position),
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
   }
 
   static #externalTextureLocations() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all
-    .map((texture) => parseExternalLocation({
-      namespace: texture.namespace,
-      folder: texture.folder,
-      name: texture.name,
-      path: texture.path
-    }))
+    return BlockbenchAdapter.collectTextureLocations()
+    .map(parseExternalLocation)
     .filter((location) => location && !location.startsWith('minecraft:'));
   }
 
@@ -111,11 +115,98 @@ class BlockbenchAdapter {
     };
   }
 
+  static #outlinerList(key) {
+    return typeof Outliner !== 'undefined' && Outliner[key] ? Outliner[key]
+        : [];
+  }
+
+  static #hasUnsupportedFaceRotation(cube) {
+    return Object.values(cube.faces || {}).some(
+        (face) => !!face?.rotation && face.rotation % 90 !== 0);
+  }
+
+  static #hasMixedFaceTextures(cube) {
+    const faceTextures = Object.values(cube.faces || {})
+    .map((face) => face?.texture)
+    .filter((faceTexture) => faceTexture !== null && faceTexture !== undefined
+        && faceTexture !== false);
+
+    return new Set(faceTextures).size > 1;
+  }
+
+  static #hasCustomUvSize(texture) {
+    return typeof Format !== 'undefined' && !!Format?.per_texture_uv_size
+        && ((texture.uv_width ?? Project.texture_width)
+            !== Project.texture_width
+            || (texture.uv_height ?? Project.texture_height)
+            !== Project.texture_height);
+  }
+
+  static #collectGeometry() {
+    const elements = BlockbenchAdapter.#outlinerList('elements');
+    const rootNodes = BlockbenchAdapter.#outlinerList('root');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const textures = BlockbenchAdapter.#allOf('Texture');
+    const cubes = elements.filter((element) => element.type === 'cube');
+    const names = (list) => list.map((node) => node.name || '');
+
+    return {
+      formatId: typeof Format !== 'undefined' && Format ? Format.id : '',
+      unsupportedElements: elements
+      .filter((element) => element.type !== 'cube')
+      .map((element) => `${element.name || ''} (${element.type})`),
+      rootCubes: names(rootNodes.filter((node) => node.type === 'cube')),
+      rotatedFaceCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasUnsupportedFaceRotation(cube))),
+      mixedTextureCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasMixedFaceTextures(cube))),
+      customUvSizeTextures: names(textures.filter(
+          (texture) => BlockbenchAdapter.#hasCustomUvSize(texture))),
+      hiddenNodes: names([...groups, ...elements].filter(
+          (node) => node.visibility === false)),
+      exportedGroupNames: names(groups.filter(
+          (group) => BlockbenchAdapter.#isExported(group)))
+    };
+  }
+
+  static #isExported(node) {
+    for (let current = node; current && typeof current === 'object';
+        current = current.parent) {
+      if (current.export === false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static getModelFileSize() {
+    if (typeof Codecs === 'undefined' || !Codecs.project) {
+      return undefined;
+    }
+
+    return String(BlockbenchAdapter.getModelBytes()).length;
+  }
+
+  static getModelLoadStats() {
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
+    const geometry = BlockbenchAdapter.#collectGeometry();
+
+    return {
+      hasModel: cubes.length > 0 || groups.length > 0,
+      hasTexture: !!BlockbenchAdapter.#firstTexture(),
+      animationCount: animations.length,
+      boneNames: geometry.exportedGroupNames,
+      geometry: geometry
+    };
+  }
+
   static getModelStats() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const animations =
-        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
     const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
@@ -132,19 +223,29 @@ class BlockbenchAdapter {
     });
 
     return {
-      hasModel: cubes.length > 0 || groups.length > 0,
-      hasTexture: !!texture,
+      ...BlockbenchAdapter.getModelLoadStats(),
       cubeCount: cubes.length,
       boneCount: groups.length,
-      animationCount: animations.length,
       animations: animations.map(
           (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
-      boneNames: groups.map((group) => group.name),
       externalTextures: BlockbenchAdapter.#externalTextureLocations(),
       textureWidth: texture ? texture.width : undefined,
       textureHeight: texture ? texture.height : undefined
     };
+  }
+
+  static wrapInRootBone(undoLabel) {
+    const rootNodes = [...BlockbenchAdapter.#outlinerList('root')];
+    Undo.initEdit({outliner: true});
+    const root = rootNodes.find(
+            (node) => node.type === 'group' && normalizeName(node.name) === 'root')
+        || new Group({name: 'root', origin: [0, 0, 0]}).init();
+    rootNodes
+    .filter((node) => node !== root)
+    .forEach((node) => node.addTo(root));
+    Canvas.updateAll();
+    Undo.finishEdit(undoLabel);
   }
 
   static getModelBytes() {
@@ -152,7 +253,7 @@ class BlockbenchAdapter {
   }
 
   static getModelBounds() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
     if (cubes.length === 0) {
       return null;
     }
@@ -180,9 +281,7 @@ class BlockbenchAdapter {
   }
 
   static getModelCubes() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-
-    return cubes.map((cube) => ({
+    return BlockbenchAdapter.#allOf('Cube').map((cube) => ({
       from: (cube.from || [0, 0, 0]).slice(),
       to: (cube.to || [0, 0, 0]).slice()
     }));
@@ -225,8 +324,8 @@ class BlockbenchAdapter {
     if (typeof Project !== 'undefined' && Project) {
       Project[BlockbenchAdapter.PROJECT_PROPERTY] = structuredClone(
           settings);
-      if (typeof Blockbench !== 'undefined' && Blockbench.dispatchEvent) {
-        Blockbench.dispatchEvent('eme_settings_saved', {settings});
+      if (typeof Canvas !== 'undefined' && Canvas.updateRenderSides) {
+        Canvas.updateRenderSides();
       }
     }
   }
@@ -294,7 +393,7 @@ class BlockbenchAdapter {
     files.forEach((file) => {
       const result = Validator.validateOutputPath(file.path);
       if (!result.valid) {
-        throw new Error(`${result.code}: ${result.message} (${file.path})`);
+        throw new LocalizedError(`eme.validation.${result.code}`, file.path);
       }
       const fullPath = path.join(rootDir, file.path);
       fs.mkdirSync(path.dirname(fullPath), {recursive: true});
@@ -305,9 +404,39 @@ class BlockbenchAdapter {
     });
   }
 
+  static confirm(title, message, confirmLabel, onConfirm) {
+    Blockbench.showMessageBox(
+        {
+          title: title,
+          message: message,
+          buttons: [confirmLabel, t('eme.button.cancel')],
+          confirm: 0,
+          cancel: 1
+        },
+        (button) => {
+          if (button === 0) {
+            onConfirm();
+          }
+        }
+    );
+  }
+
   static pickDirectory(title) {
     return Blockbench.pickDirectory(
         {title: title, resource_id: 'eme_mod_project'});
+  }
+
+  static registerValidatorCheck(id, name, formatIds, collectErrors) {
+    const check = new ValidatorCheck(id, {
+      update_triggers: ['update_selection', 'add_texture'],
+      condition: {formats: formatIds},
+      run() {
+        collectErrors().forEach((issue) => this.fail({message: issue.message}));
+      }
+    });
+    check.name = name;
+
+    return check;
   }
 }
 
