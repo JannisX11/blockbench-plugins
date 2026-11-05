@@ -7475,7 +7475,7 @@ function unregisterRig() {
  * -------------------------------------------
  * Registers the AzureLib animation format and editor utilities.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 
