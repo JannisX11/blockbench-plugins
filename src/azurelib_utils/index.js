@@ -40,9 +40,22 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), RANGE)) {
   let exportAction, exportDisplay, importDisplay, settingsButton;
 
   Plugin.register('azurelib_utils', {
-    ...blockbenchConfig,
-    version,
+    title: 'AzureLib Animator',
+    author: 'AzureDoom, Eliot Lash, Gecko, McHorse',
+    icon: 'azureicon.png',
+    description: 'Create animated blocks, items, entity, and armor using the AzureLib library and plugin. This is a fork of Geckolib and cross compatibility will not be promised in the future.',
+    tags: ['Minecraft: Java Edition'],
+    version: '2.3.0',
+    variant: 'both',
+    min_version: '4.8.0',
+    website: 'https://wiki.azuredoom.com/',
     await_loading: true,
+    creation_date: '2023-04-04',
+    new_repository_format: true,
+    contributes: {
+      formats: ['azure_model']
+    },
+    has_changelog: true,
     onload() {
       registerAzureCodec();
       initializeAnimationUI();
