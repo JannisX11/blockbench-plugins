@@ -31,6 +31,21 @@ import { registerMeshImport, unregisterMeshImport } from './azure-mesh-import.js
 const invertMolang = globalThis.invertMolang || localInvert;
 const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
 
+function displayGridOffset(rotation, scale, sign) {
+  const r = Array.isArray(rotation) ? rotation : [0, 0, 0];
+  const s = Array.isArray(scale) ? scale : [1, 1, 1];
+  const v = new THREE.Vector3(0, sign * OFFSET_Y * Number(s[1] ?? 1), 0);
+  v.applyEuler(new THREE.Euler(
+    THREE.MathUtils.degToRad(Number(r[0] || 0)),
+    THREE.MathUtils.degToRad(Number(r[1] || 0)),
+    THREE.MathUtils.degToRad(Number(r[2] || 0)),
+    'XYZ'
+  ));
+  return [v.x, v.y, v.z];
+}
+
+const round2 = n => Math.round(n * 100) / 100;
+
 let hasNotifiedConversion = false;
 let azureCodecRegistered = false;
 let format = null;
@@ -259,13 +274,14 @@ export function maybeExportItemJson(options = {}, as) {
     if (Object.keys(display).length) {
       model.display = display;
       for (const [, data] of Object.entries(display)) {
-        if (Array.isArray(data?.translation)) {
-          data.translation = [
-            data.translation[0],
-            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
-            data.translation[2],
-          ];
-        }
+        if (!data) continue;
+        const t = Array.isArray(data.translation) ? data.translation : [0, 0, 0];
+        const o = displayGridOffset(data.rotation, data.scale, -1);
+        data.translation = [
+          round2(Number(t[0] || 0) + o[0]),
+          round2(Number(t[1] || 0) + o[1]),
+          round2(Number(t[2] || 0) + o[2]),
+        ];
       }
     }
   }
@@ -329,7 +345,8 @@ export function maybeImportItemJson() {
       const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
       const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
 
-      translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
+      const o = displayGridOffset(rotation, scale, +1);
+      for (let i = 0; i < 3; i++) translation[i] = round2(Number(translation[i] || 0) + o[i]);
 
       const slotObj = new DisplaySlot(slot);
       Object.assign(slotObj, { rotation, translation, scale });
