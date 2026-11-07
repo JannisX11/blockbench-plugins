@@ -10,6 +10,8 @@
  *   • In Animate mode, the pose modifiers run on top of the animation every
  *     frame, in AzureLib's priority order, with the same solvers the game
  *     uses: two-bone and CCD IK, look-at, spring bones and constraints.
+ *   • Each modifier's weight is its rig default, or what the selected
+ *     animation sets for it (fixed weight with fade-in, or a weight track).
  *   • Blend spaces, by stacking their samples at AzureLib's weights (without
  *     touching the animations' own playing state or blend weights).
  *
@@ -20,6 +22,7 @@
 
 import { RigStore } from './azure-rig-state.js';
 import { blendSpaceWeights } from './azure-rig-math.js';
+import { previewWeight } from '../animation/azure-pose-weights.js';
 
 const DEG = Math.PI / 180;
 const TICKS_PER_SECOND = 20;
@@ -536,6 +539,8 @@ function blendRotations(meshes, before, weight) {
 }
 
 function runIkChain(chain) {
+  const weight = previewWeight(chain.id, chain.weight);
+  if (weight <= 0) return;
   const bones = chain.bones.map(findBone);
   if (bones.some(b => !b?.mesh) || !bones.length) return;
   const meshes = bones.map(b => b.mesh);
@@ -553,10 +558,12 @@ function runIkChain(chain) {
     solveCcd(bones, chain.effector, target, constraints, Math.max(1, chain.iterations | 0), Math.max(0.001, Number(chain.tolerance) || 0.1));
   }
 
-  blendRotations(meshes, before, Number(chain.weight) || 0);
+  blendRotations(meshes, before, weight);
 }
 
 function runLookAt(look) {
+  const weight = previewWeight(look.id, look.weight);
+  if (weight <= 0) return;
   const bones = look.bones.map(findBone);
   if (bones.some(b => !b?.mesh) || !bones.length) return;
   const meshes = bones.map(b => b.mesh);
@@ -577,7 +584,7 @@ function runLookAt(look) {
     if (constraints[i]) applyConstraint(bones[i], constraints[i]);
   }
 
-  blendRotations(meshes, before, Number(look.weight) || 0);
+  blendRotations(meshes, before, weight);
 }
 
 const springStates = new Map();
@@ -672,6 +679,8 @@ function runSpring(spring) {
   const bones = spring.bones.map(findBone);
   if (bones.some(b => !b?.mesh) || !bones.length || spring.preview?.enabled === false) return;
   const meshes = bones.map(b => b.mesh);
+  const weight = previewWeight(spring.id, spring.weight);
+  const before = captureRotations(meshes);
   const tip = spring.tip;
   const count = meshes.length + (tip ? 1 : 0);
 
@@ -759,19 +768,26 @@ function runSpring(spring) {
     state.playing = playing;
   }
 
+  if (weight <= 0) return;
   const constraints = constraintsFor(spring.bones);
   for (let i = 0; i < count - 1; i++) {
     aim(meshes[i], chainPoint(i + 1), state.position[i + 1]);
     if (constraints[i]) applyConstraint(bones[i], constraints[i]);
   }
+  blendRotations(meshes, before, weight);
 }
 
 function runStandaloneConstraints() {
-  for (const c of RigStore.rig.constraints) {
-    if (!c.standalone) continue;
-    const bone = findBone(c.bone);
-    if (bone) applyConstraint(bone, c);
-  }
+  const weight = previewWeight('bone_limits', 1);
+  if (weight <= 0) return;
+  const bones = RigStore.rig.constraints
+    .filter(c => c.standalone)
+    .map(c => ({ c, bone: findBone(c.bone) }))
+    .filter(x => x.bone?.mesh);
+  const meshes = bones.map(x => x.bone.mesh);
+  const before = captureRotations(meshes);
+  for (const { c, bone } of bones) applyConstraint(bone, c);
+  blendRotations(meshes, before, weight);
 }
 
 function runModifiers() {
