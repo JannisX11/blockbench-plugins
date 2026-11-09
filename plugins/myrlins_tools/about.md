@@ -1,54 +1,31 @@
 # Myrlin's Tools
 
-A comprehensive toolkit for Hytale model creation in Blockbench.
+Tools for building Hytale models in Blockbench: count and reduce nodes, check a model against Hytale's limits, start from a template and package a model as a Hytale mod. Everything runs inside Blockbench. The plugin makes no network requests and uses no AI.
 
-## Features
+## Optimize
 
-**Optimization**
-- Box Optimizer: merge adjacent boxes to reduce count (spatial-hash O(n))
-- Hollow Interior: remove hidden internal boxes
-- Node Budget: visualize per-bone node distribution
+- **Optimize Boxes** (Ctrl+Shift+O): merges neighbouring boxes that share a material to lower the box count. It shows the estimate before it changes anything, never merges stretched boxes, and can be undone with Ctrl+Z.
+- **Smart Merge (Strict)** and **Smart Merge (Fuzzy)**: merge cubes that share faces, or nearby cubes with looser alignment.
+- **Merge Brush** and **Quad Brush**: drag over cubes to merge them, or paint a flat quad along an edge.
+- **Convert to Quad** and **Flatten to Quad**: turn thin cuboids into zero-depth quads (blade edges, hair, eyelids).
+- **Palette Converter**: remaps texture colours to a Hytale-style palette.
 
-**Validation**
-- Art Style Validator: check against Hytale requirements (255 nodes, pixel ratios, stretch limits)
-- Engine Validation: validate for Hytale, ModelEngine, or FreeMinecraftModels
-- Severity grading: ERROR / WARNING / INFO with one-click fixes
+## Check
 
-**Auto-Repair**
-- Naming normalization (PascalCase)
-- Aspect ratio fixer (split extreme cuboids)
-- Hierarchy repair (auto-grouping)
-- Node limit reducer (merge + hollow)
-- Symmetry enforcement
+- **Status bar and panel**: the node count as Hytale counts it (every group is a node, its first unrotated cube is free, every other cube is a node) against the limit of 255, with a per-bone breakdown.
+- **Validate Hytale Model**: checks the model against Hytale's limits and lists each issue with its severity.
+- **Validate for Engine** and **Validate Against Spec**: check against an engine's rules or against an asset spec (missing bones, naming).
 
-**Export**
-- Multi-engine export: Hytale (.blockymodel), Blockbench (.bbmodel), ModelEngine (YAML)
-- Format-aware validation before export
-- Blockbench 5.0 compatible
+## Build
 
-**Templates**
-- Template Wizard: create correctly structured starter models
-- Config Generator: export model + JSON configs as mod .zip
+- **New Hytale Asset**: starter models with the right structure (weapons, armour, props, creatures and more).
+- **Auto-Group by Proximity**, **Build Hierarchy** and **Smart Rename**: group, structure and name loose cubes.
+- **Export Hytale Mod Package**: the model with its JSON configs as a mod .zip.
+- **Mod Project**: keep the assets of one mod together.
 
-**Community**
-- Model Browser: browse and import from the Myrlin gallery
+## Notes
 
-## Installation
-
-Install from the Blockbench plugin store, or install from URL:
-```
-https://forge.myrlin.io/plugins/myrlins_tools.js
-```
-
-## AI Add-on
-
-For AI-powered features (semantic naming, repair suggestions), install the separate add-on:
-```
-https://forge.myrlin.io/plugins/myrlins_ai.js
-```
-Requires the core plugin to be installed first.
-
-## Requirements
-
-- Blockbench 4.8.0 or later
-- Internet connection for model browser and API-based validation (offline mode available)
+- Hollow Interior is switched off in this version and shows as "coming back soon".
+- Validation lists issues for you to fix by hand; it does not change the model.
+- Source: the `src` folder next to this file (TypeScript, bundled with esbuild; see `src/README.md`).
+- Made by Myrlin (forge.myrlin.io).
