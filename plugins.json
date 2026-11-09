@@ -1811,5 +1811,19 @@
 		"tags": [
 			"Vintage Story"
 		]
+	},
+	"myrlins_tools": {
+		"title": "Myrlin's Tools",
+		"author": "Myrlin (forge.myrlin.io)",
+		"icon": "auto_fix_high",
+		"description": "Hytale modding toolkit - Box optimizer, art style validator, template wizard, config generator, and more.",
+		"tags": [
+			"Hytale",
+			"Optimization",
+			"Validation"
+		],
+		"version": "3.4.3",
+		"variant": "both",
+		"min_version": "4.8.0"
 	}
 }
