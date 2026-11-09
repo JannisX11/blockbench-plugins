@@ -26,7 +26,7 @@ if (!semverSatisfies(semverCoerce(Blockbench.version), SUPPORTED_BB_VERSION_RANG
 // Register the plugin and define what it adds
 (function () {
   let pluginSettings: Setting[];
-  let pluginProperties: Property<any>[];
+  let pluginProperties: Property[];
   let pluginMenuItems: { action: Action, menuCategory: string }[];
 
     // @ts-expect-error - Typescript doesn't like that the "Tags" collection could be empty instead of implicitly non-empty
@@ -138,7 +138,7 @@ function createPluginSettings(): Setting[] {
  * <p>
  * These are metadata values stored in the project, usually used in project settings windows
  */
-function createPluginProperties(): Property<any>[] {
+function createPluginProperties(): Property[] {
   return [
       make(
           new Property(ModelProject, "string", PROPERTY_MODID, {

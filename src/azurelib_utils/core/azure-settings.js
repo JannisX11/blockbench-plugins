@@ -4,7 +4,7 @@
  * Defines runtime configuration, SDK targets, and automatic
  * template loading for armor models.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import armorTemplate from '../templates/armorTemplate.json';
@@ -36,6 +36,48 @@ export const DEFAULT_CONFIG = Object.freeze({
 
 export const AzureConfig = Object.assign({}, DEFAULT_CONFIG);
 
+let _ghostModel = null;
+
+function removeGhostPlayer() {
+  if (_ghostModel) {
+    scene.remove(_ghostModel);
+    _ghostModel = null;
+  }
+}
+
+function injectGhostPlayer() {
+  removeGhostPlayer();
+
+  // Use Blockbench's own display reference player model directly.
+  // It's already built, skinned, and kept up to date by updateDisplaySkin().
+  // We just clone its THREE.Object3D and add it to the edit mode scene.
+  const refPlayer = displayReferenceObjects?.refmodels?.player;
+  if (!refPlayer) {
+    console.warn('[AzureLib] displayReferenceObjects.refmodels.player not available');
+    return;
+  }
+
+  // Ensure the model is initialised (it lazy-builds on first Display tab visit)
+  if (!refPlayer.initialized) {
+    for (const model of refPlayer.models) {
+      refPlayer.buildModel(model);
+    }
+    refPlayer.setModelVariant('steve');
+    updateDisplaySkin?.();
+    refPlayer.initialized = true;
+  }
+
+  // Clone so we don't disturb the Display tab's own copy
+  _ghostModel = refPlayer.model.clone();
+
+  _ghostModel.children.forEach(mesh => {
+    mesh.rotation.set(0, 0, 0);
+  });
+
+  scene.add(_ghostModel);
+  console.log('[AzureLib] Ghost player injected using display refmodel.');
+}
+
 /**
  * Applies configuration and injects armor templates when applicable.
  */
@@ -46,6 +88,10 @@ export function onSettingsChanged() {
     if (Outliner.root.length === 0) {
       Codecs.project.parse(armorTemplate);
       console.log('[AzureLib] Loaded armor template.');
+
+      injectGhostPlayer();
+      Blockbench.once('close_project', removeGhostPlayer);
+      Blockbench.once('new_project', removeGhostPlayer);
     } else {
       alert(
         'Cannot apply Armor Template — please select Armor type in an empty project.'

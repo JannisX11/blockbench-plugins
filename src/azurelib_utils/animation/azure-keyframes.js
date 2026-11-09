@@ -7,7 +7,7 @@
  * Both AzureLib easing nodes ({ vector, easing, easingArgs }) and
  * Bedrock spline nodes ({ post, pre?, lerp_mode }) are handled here.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { hasArgs } from '../core/azure-utils.js';
@@ -59,9 +59,9 @@ export function registerKeyframeOverrides() {
   }
 
   // Hook Blockbench's playback dispatcher so Azure-easing segments are
-  // actually interpolated. Without this, kf.interpolation === undefined
-  // (our marker for "Azure easing mode") falls through every branch in
-  // BoneAnimator.interpolate and the bone never updates between keyframes.
+  // actually interpolated. Without this, kf.interpolation === 'linear'
+  // (our marker for "Azure easing mode") would use BB's plain linear branch
+  // and ignore any Azure easing curve set on the keyframe.
   Blockbench.on('interpolate_keyframes', azureInterpolateListener);
 
   PATCHED = true;
@@ -229,15 +229,19 @@ function compileBedrockKeyframe() {
 
   // --- Bedrock lerp_mode keyframes (linear / catmullrom): keep pre/post/lerp_mode ---
   if (this.interpolation === 'catmullrom') {
-    const lerpMode = 'catmullrom';
-    if (base && typeof base === 'object') {
-      return {
-        ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
-        post:      cloneArray(base.post || base),
-        lerp_mode: lerpMode,
-      };
+    const siblings = this.animator?.keyframes?.filter(k => k.channel === this.channel) || [];
+    const channelIsEasing = siblings.some(k => k.easing && k.easing !== EASING_DEFAULT);
+    if (!channelIsEasing) {
+      const lerpMode = 'catmullrom';
+      if (base && typeof base === 'object') {
+        return {
+          ...(base.pre !== undefined ? { pre: cloneArray(base.pre) } : {}),
+          post:      cloneArray(base.post || base),
+          lerp_mode: lerpMode,
+        };
+      }
+      return { post: cloneArray(base), lerp_mode: lerpMode };
     }
-    return { post: cloneArray(base), lerp_mode: lerpMode };
   }
 
   // --- Bezier keyframes: Blockbench handles pre/post natively, pass through ---
@@ -268,11 +272,16 @@ function compileBedrockKeyframe() {
     base && typeof base === 'object' && !Array.isArray(base) &&
     (base.pre !== undefined || base.post !== undefined)
   ) {
-    return {
+    const out = {
       ...(base.pre       !== undefined ? { pre:       cloneArray(base.pre)       } : {}),
       ...(base.post      !== undefined ? { post:      cloneArray(base.post)      } : {}),
       ...(base.lerp_mode !== undefined ? { lerp_mode: base.lerp_mode             } : {}),
     };
+    if (this.easing && this.easing !== EASING_DEFAULT) out.easing = this.easing;
+    if (hasArgs(this.easing) && Array.isArray(this.easingArgs) && this.easingArgs.length) {
+      out.easingArgs = [...this.easingArgs];
+    }
+    return out;
   }
 
   // --- AzureLib easing node ---
@@ -384,8 +393,7 @@ function extendKeyframe(dataIn) {
   if (rawInterp !== undefined && BEDROCK_INTERP_MODES.has(rawInterp)) {
     this.interpolation = rawInterp;
   } else {
-    // Not a recognised Bedrock mode — clear so Azure easing applies
-    this.interpolation = undefined;
+    this.interpolation = 'linear';
   }
 
   const easingArgsSource = valuesNode.easingArgs ?? data.easingArgs ?? postNode.easingArgs;
@@ -408,11 +416,16 @@ function extendKeyframe(dataIn) {
     return this.data_points[idx];
   };
 
+  const toNum = v => {
+    if (typeof v !== 'string') return v;
+    const n = Number(v);
+    return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+  };
   const writeVector = (point, vec) => {
     if (!vec) return;
-    point.x = vec[0];
-    point.y = vec[1];
-    point.z = vec[2];
+    point.x = toNum(vec[0]);
+    point.y = toNum(vec[1]);
+    point.z = toNum(vec[2]);
     delete point.vector;
   };
 

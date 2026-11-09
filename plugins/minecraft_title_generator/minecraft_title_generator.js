@@ -1,6 +1,6 @@
 (async () => {
   const repo = "ewanhowell5195/MinecraftTitleGenerator"
-  const branch = "main"
+  const branch = "legacy"
   const thumbnail = "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvX8AKEBcw//M///MfgAe2jSQp2iSPOr+nSXPHOng7ov8TUKa/ZLlkuWT5VVyOy1FKKXNFRBwtJ0mU3YktcTmu31JKKVPklPlPZXoA"
   const shapeThumbnail = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAsAQMAAAA+dijMAAAABlBMVEUAAAD///+l2Z/dAAAAE0lEQVQIW2NggAP7////DAcCDgA7eYDpLi6r7QAAAABJRU5ErkJggg=="
   const fonts = {
@@ -242,7 +242,7 @@
     author: "Ewan Howell",
     description,
     tags: ["Minecraft", "Title", "Logo"],
-    version: "1.10.4",
+    version: "1.10.5",
     min_version: "5.0.0",
     variant: "both",
     creation_date: "2023-06-10",

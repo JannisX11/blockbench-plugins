@@ -1,0 +1,13 @@
+{
+    "1.0.0": {
+        "release_date": "2025-01-19",
+        "changes": [
+            "Initial release of the Fly Mode plugin.",
+            "Added FPS-style fly navigation: hold RMB to look around and fly.",
+            "W/A/S/D movement, Space/Shift for up/down, with mouse wheel speed control.",
+            "Integrated toggle into the View menu.",
+            "All movement keys rebindable via the Keybindings menu.",
+            "Configurable base speed, faster/slower multipliers, mouse sensitivity, and invert-pitch toggle in Settings → Preview."
+        ]
+    }
+}

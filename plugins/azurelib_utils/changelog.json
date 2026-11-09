@@ -171,5 +171,131 @@
 				]
 			}
 		]
+	},
+	"2.1.1": {
+		"title": "2.1.1",
+		"date": "2026-04-27",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes an issue that was preventing Azurelib easings from exporting.",
+					"Fixes an issue with exporting display setting not being correct and incorrectly modifying the UI rendering as well.",
+					"Fixes an issue that was preventing Azurelib easings as importing correctly.",
+					"Fixes easings not being selected correctly when reimporting or opening old projects"
+				]
+			}
+		]
+	},
+	"2.1.2": {
+		"title": "2.1.2",
+		"date": "2026-05-18",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix blank keyframe axes exporting as newline strings."
+				]
+			}
+		]
+	},
+	"2.1.3": {
+		"title": "2.1.3",
+		"date": "2026-05-18",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Now supports multiple textures in the format, to help plan how layers will work.",
+					"Removed dontTouch cubes/bones from Armor format, now instead renders a player model to scale based off the display screen."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix sound effects triggers in aniamtions not exporting and breaking saving",
+					"Fix stale keyframes keeping incorrect data when removing smooth off all keyframes but the first one.",
+					"Fix armor template armor cubes not being inflated enough for the 2nd layer of player skins."
+				]
+			}
+		]
+	},
+	"2.1.4": {
+		"title": "2.1.4",
+		"date": "2026-08-26",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes ordering of keyframes when exporting"
+				]
+			}
+		]
+	},
+	"2.1.5": {
+		"title": "2.1.5",
+		"date": "2026-09-02",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed exporting animations via Blockbench's built-in Export menu action could reorder fractional keyframe times (e.g. 0, 1, 2, 0.125, 0.25, etc) because that dialog serializes with Blockbench's own autoStringify() instead of AzureLib's ordered serializer. Save All Animations was unaffected. AzureLib now overrides the Export action while its format is active so both paths serialize identically."
+				]
+			}
+		]
+	},
+	"2.2.0": {
+		"title": "2.2.0",
+		"date": "2026-10-05",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds AzureLib's Ping-Pong, Repeat and Freeze play behaviors to Loop Mode in the Animation Properties dialog and the animation right-click Loop Mode menu, only while an AzureLib model is open.",
+					"Adds Repeat Count and Freeze At settings to the Animation Properties dialog, including a Use Playhead Time button for the freeze point.",
+					"Timeline playback now previews Ping-Pong, Repeat and Freeze exactly as AzureLib plays them in game, including Blockbench's loop playback toggle.",
+					"Exports and imports the play behavior through the animation file's loop, repeat_times and freeze_at fields, so mods no longer need AzCommands to set them (requires AzureLib 4.0.3+).",
+					"Play behaviors added by other mods are preserved when importing and re-exporting animation files."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixes Play Once animations exporting as \"loop\": \"once\", which AzureLib did not recognise. Play Once now omits the loop field like Bedrock files.",
+					"Fixes animation files using \"once\" or \"hold\" as their loop value not importing with the correct loop mode."
+				]
+			}
+		]
+	},
+	"2.3.0": {
+		"title": "2.3.0",
+		"date": "2026-10-29",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds the AzureLib Rig panel (a tab next to the Outliner in Edit and Animate) for setting up AzureLib's rig features on your model: bone hitboxes, sockets, IK chains, look-at, bone constraints, spring bones and blend spaces. Everything is saved in the .bbmodel and supports undo.",
+					"Previews the rig in the viewport: hitboxes are drawn on their bones like F3 + B, sockets show which way they face, and in Animate mode IK, look-at, spring bones and constraints run on top of your animation the way they do in game.",
+					"Blend spaces can be previewed in Animate mode, with a slider for the input and the weight of each animation.",
+					"Adds Generate AzureLib Rig Code, which writes the Java for your rig (hitbox set, sockets, pose modifiers, blend spaces and an attachment layer) for 26.3, 1.21.1, 1.20.1, 1.18.2, 1.12.2/1.7.10 and Beta 1.7.3, ready to copy or save as a .java file.",
+					"Adds Check AzureLib Rig, which finds problems such as renamed or missing bones, chain bones out of order and duplicate names before you generate code.",
+					"Add spring bone colliders to the AzureLib Rig panel",
+					"Adds polygon mesh support to AzureLib models. Meshes inside a bone export to that bone's poly_mesh and move with it like cubes. Flat and smooth shading both export.",
+					"Adds armature support for smooth mesh deformation. Meshes inside an armature bend with its bones using up to four vertex weights each, matching the Blockbench preview. Use Attach Armature or the Weight Brush to set weights.",
+					"Armature bones export as regular bones, so their animations export unchanged and AzureLib's hitboxes, sockets, IK and procedural poses work on them.",
+					"Adds Import AzureLib .geo Model, which opens a .geo.json as an AzureLib model and rebuilds its meshes, armatures and vertex weights. Use it to recover a model when the .bbmodel is lost. It also loads Bedrock poly_mesh geometry made by other tools.",
+					"Opening a Bedrock .geo.json now asks whether to open it as an AzureLib model or a Bedrock model, with an option to remember the choice. AzureLib models rebuild their meshes and armatures; Bedrock's format can't hold them. Change the default under Settings > AzureLib > Open Bedrock .geo.json files as (Ask every time, AzureLib for AzureLib exports, Always AzureLib, or Always Bedrock).",
+					"Importing animation files now restores keyframes on armature bones as well as on groups.",
+					"Adds Validator warnings for armature bones that share a name with a group, vertices weighted to more than four bones, and mesh export problems."
+				]
+			}
+		]
 	}
 }

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="493.00385"
+   height="487.98157"
+   viewBox="0 0 493.00385 487.98157"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1">
+    <rect
+       x="380"
+       y="419"
+       width="79.617012"
+       height="32.060661"
+       id="rect8" />
+  </defs>
+  <title
+     id="title1">Menu Icon Exporter Icon</title>
+  <g
+     id="layer1"
+     transform="translate(-0.00255924,-0.00337934)">
+    <rect
+       style="display:none;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.00023;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect7"
+       width="530.48975"
+       height="523.53943"
+       x="7.2643929"
+       y="10.194901" />
+    <rect
+       style="fill:#f3f4f0;fill-opacity:1;stroke:#ffffff;stroke-width:1.00019;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1"
+       width="492.00366"
+       height="486.98138"
+       x="0.50265425"
+       y="0.50347435" />
+    <rect
+       style="fill:#979f89;fill-opacity:1;stroke:#ffffff;stroke-width:0.917629;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2"
+       width="452.64224"
+       height="445.54813"
+       x="21.158264"
+       y="20.247238" />
+    <rect
+       style="fill:#626954;fill-opacity:1;stroke:#626954;stroke-width:0.836935;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect3"
+       width="415.15994"
+       height="404.09436"
+       x="39.890007"
+       y="39.966675" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:#626954;stroke-width:0.755198;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4"
+       width="376.69958"
+       height="362.61185"
+       x="59.62141"
+       y="60.705154" />
+    <rect
+       style="fill:#2e2e13;fill-opacity:1;stroke:#2e2e13;stroke-width:0.698257;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       id="rect5"
+       width="339.67596"
+       height="343.78116"
+       x="77.635628"
+       y="78.808456" />
+  </g>
+  <g
+     id="layer3"
+     style="display:inline"
+     transform="translate(-0.00255924,-0.00337934)">
+    <text
+       xml:space="preserve"
+       id="text7"
+       style="font-size:24px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect8);display:inline;fill:#26260f;fill-opacity:1;stroke:#26260f;stroke-width:0.807;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.82398296,0,0,0.79427115,41.895444,60.181002)"><tspan
+         x="380"
+         y="440.89593"
+         id="tspan2">- NET</tspan></text>
+  </g>
+  <g
+     id="layer4"
+     transform="translate(11.31115,4.2392614)"
+     style="display:inline">
+    <path
+       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.806968;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       d="M 237.62232,81.612589 91.870093,162.43888 V 333.71417 L 238.62653,413.33596 380.43811,334.06805 V 160.66951 Z"
+       id="path12" />
+    <path
+       style="fill:#dcae46;fill-opacity:1;stroke:#dcae46;stroke-width:0.806968;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       d="m 119.94984,167.39313 117.79368,-65.11292 119.20649,65.4668 -118.85329,65.90914 z"
+       id="path9" />
+    <path
+       style="fill:#ad802e;fill-opacity:1;stroke:#ad802e;stroke-width:0.806968;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       d="M 109.53031,186.50235 V 322.921 l 117.61708,64.75904 V 250.46518 Z"
+       id="path10" />
+    <path
+       style="fill:#714f17;fill-opacity:1;stroke:#714f17;stroke-width:0.806968;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       d="m 249.39926,250.28824 114.96805,-65.90913 0.17659,137.83414 -114.96803,65.11292 z"
+       id="path11" />
+  </g>
+  <g
+     id="layer2"
+     style="display:inline"
+     transform="translate(-0.00255924,-0.00337934)">
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0.744456;stroke-linecap:round;stroke-miterlimit:1.5;stroke-dasharray:none;stroke-opacity:1"
+       d="m 292.1412,147.69981 c 0,0 38.58016,10.74563 51.10394,24.06513 12.52379,13.3195 22.73028,57.20472 22.73028,57.20472 0,0 11.31964,-43.92406 25.62778,-57.27118 14.30813,-13.34713 52.01481,-19.58133 52.01481,-19.58133 0,0 -39.63875,-10.03229 -54.01561,-23.19679 -14.37685,-13.16452 -22.00692,-54.435761 -22.00692,-54.435761 0,0 -12.06208,41.147041 -24.92552,54.047981 -12.86345,12.90093 -50.52876,19.16723 -50.52876,19.16723 z"
+       id="path1" />
+  </g>
+  <metadata
+     id="metadata6">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Menu Icon Exporter Icon</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

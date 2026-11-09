@@ -8,7 +8,7 @@
  * The animation codec is now created lazily at runtime so validation
  * does not execute AnimationCodec construction during module evaluation.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import omit from 'lodash/omit';
@@ -21,8 +21,15 @@ import {
   unregisterAzureAnimationFormat,
 } from '../animation/azure-animation-tab.js';
 import { initializeAnimationUI, unloadAnimationUI } from '../animation/azure-animation-ui.js';
+import {
+  injectMeshGeometry,
+  registerMeshSupport,
+  unregisterMeshSupport,
+} from './azure-mesh.js';
+import { registerMeshImport, unregisterMeshImport } from './azure-mesh-import.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
+const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
 
 let hasNotifiedConversion = false;
 let azureCodecRegistered = false;
@@ -53,10 +60,12 @@ export function ensureAzureFormat() {
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
-    single_texture: true,
+    single_texture: false,
     bone_rig: true,
     centered_grid: true,
     animated_textures: true,
+    meshes: true,
+    armature_rig: true,
     select_texture_for_particles: true,
     animation_mode: true,
     animation_files: true,
@@ -94,6 +103,8 @@ export function registerAzureCodec() {
   projectCodec.on('compile', handleProjectCompile);
   projectCodec.on('parse', handleProjectParse);
   bedrockCodec.on('compile', handleBedrockCompile);
+  registerMeshSupport();
+  registerMeshImport();
 
   registerAzureAnimationFormat();
   azureFormat.animation_codec = createAzureAnimationCodec() || undefined;
@@ -117,6 +128,8 @@ export function unregisterAzureCodec() {
   projectCodec?.events?.compile?.remove?.(handleProjectCompile);
   projectCodec?.events?.parse?.remove?.(handleProjectParse);
   bedrockCodec?.events?.compile?.remove?.(handleBedrockCompile);
+  unregisterMeshImport();
+  unregisterMeshSupport();
 
   unloadAnimationUI();
   unregisterKeyframeOverrides();
@@ -212,6 +225,7 @@ function handleBedrockCompile(event) {
     geometry.forEach(geo => {
       delete geo.item_display_transforms;
     });
+    injectMeshGeometry(geometry[0]);
   }
 }
 
@@ -244,10 +258,14 @@ export function maybeExportItemJson(options = {}, as) {
     }
     if (Object.keys(display).length) {
       model.display = display;
-      const OFFSET_Y = 4.0;
       for (const [, data] of Object.entries(display)) {
-        const tr = data?.translation;
-        if (Array.isArray(tr)) tr[1] = Math.round((Number(tr[1] || 0) - OFFSET_Y) * 100) / 100;
+        if (Array.isArray(data?.translation)) {
+          data.translation = [
+            data.translation[0],
+            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
+            data.translation[2],
+          ];
+        }
       }
     }
   }
@@ -303,7 +321,6 @@ export function maybeImportItemJson() {
     }
 
     Project.display_settings = {};
-    const OFFSET_Y = 4.0;
 
     for (const [slot, data] of Object.entries(json.display)) {
       if (!DisplayMode.slots.includes(slot)) continue;

@@ -13,12 +13,18 @@
  * Built on Blockbench's AnimationCodec API — no monkey-patching of
  * Animator.buildFile / Animator.loadFile, no hiding of built-in menu items.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
 import { invertMolang } from '../core/azure-utils.js';
-import { IKManager } from './azure-ik.js';
+import {
+  writePlaybackJson,
+  readPlaybackJson,
+  assignPlaybackFields,
+  registerPlayBehaviors,
+  unregisterPlayBehaviors,
+} from './azure-playback.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -82,6 +88,18 @@ function unwrapToArray(v) {
  */
 function normTime(t) {
   return String(t).replace(/^(-?\d+)\.0+$/, '$1');
+}
+
+const KEY_ORDER = Symbol('azureKeyOrder');
+
+function orderedMap(entries) {
+  const obj = Object.fromEntries(entries);
+  Object.defineProperty(obj, KEY_ORDER, {
+    value: entries.map(([k]) => k),
+    enumerable: false,
+    configurable: true,
+  });
+  return obj;
 }
 
 function normalizeAnimationIncludes(includes) {
@@ -338,9 +356,7 @@ export function buildAzureAnimationFile() {
 function serializeAnimation(anim) {
   const obj = {};
 
-  if (anim.loop === 'loop') obj.loop = true;
-  else if (anim.loop === 'hold') obj.loop = 'hold_on_last_frame';
-  else if (anim.loop) obj.loop = anim.loop;
+  writePlaybackJson(anim, obj);
 
   if (anim.override) obj.override_previous_animation = true;
   if (anim.anim_time_update) obj.anim_time_update = anim.anim_time_update.replace(/;\n/g, ';');
@@ -375,12 +391,16 @@ function serializeAnimation(anim) {
         }
         boneOut[channel] = node;
       } else {
-        const channelOut = {};
-        for (const kf of keyframes) {
+        const channelIsEasing = keyframes.some(
+            kf => kf.easing && kf.easing !== EASING_DEFAULT
+        );
+
+        const entries = keyframes.map(kf => {
           const t = normTime(roundTime(kf.time));
-          channelOut[t] = serializeKeyframe(kf, channel, keyframes);
-        }
-        boneOut[channel] = channelOut;
+          const serialized = serializeKeyframe(kf, channel, keyframes, channelIsEasing);
+          return [t, serialized];
+        });
+        boneOut[channel] = orderedMap(entries);
       }
     }
 
@@ -393,16 +413,25 @@ function serializeAnimation(anim) {
 
   // Effects (sound/particle/timeline)
   if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
-    const sounds = {};
-    const particles = {};
-    const timeline = {};
+    const soundEntries = [];
+    const particleEntries = [];
+    const timelineEntries = [];
 
-    for (const kf of effects.keyframes) {
+    const sortedEffectKeyframes = [...effects.keyframes].sort((a, b) => a.time - b.time);
+
+    for (const kf of sortedEffectKeyframes) {
       const t = normTime(roundTime(kf.time));
       if (kf.channel === 'sound') {
-        const pts = (kf.data_points || []).map(p => (typeof p === 'string' ? { effect: p } : { ...p })).filter(p => p.effect);
-        if (pts.length === 1) sounds[t] = pts[0];
-        else if (pts.length > 1) sounds[t] = pts;
+        const pts = (kf.data_points || []).map(p => {
+          const effect = typeof p === 'string' ? p : p.effect;
+          if (!effect) return null;
+          const o = { effect };
+          if (p.locator !== undefined) o.locator = p.locator;
+          if (p.script !== undefined) o.script = p.script;
+          return o;
+        }).filter(Boolean);
+        if (pts.length === 1) soundEntries.push([t, pts[0]]);
+        else if (pts.length > 1) soundEntries.push([t, pts]);
       } else if (kf.channel === 'particle') {
         const pts = (kf.data_points || []).map(p => {
           const o = {};
@@ -411,17 +440,17 @@ function serializeAnimation(anim) {
           if (p.script !== undefined) o.script = p.script;
           return Object.keys(o).length ? o : null;
         }).filter(Boolean);
-        if (pts.length === 1) particles[t] = pts[0];
-        else if (pts.length > 1) particles[t] = pts;
+        if (pts.length === 1) particleEntries.push([t, pts[0]]);
+        else if (pts.length > 1) particleEntries.push([t, pts]);
       } else if (kf.channel === 'timeline') {
         const script = (kf.data_points?.[0]?.script) || '';
-        if (script) timeline[t] = script;
+        if (script) timelineEntries.push([t, script]);
       }
     }
 
-    if (Object.keys(sounds).length) obj.sound_effects = sounds;
-    if (Object.keys(particles).length) obj.particle_effects = particles;
-    if (Object.keys(timeline).length) obj.timeline = timeline;
+    if (soundEntries.length) obj.sound_effects = orderedMap(soundEntries);
+    if (particleEntries.length) obj.particle_effects = orderedMap(particleEntries);
+    if (timelineEntries.length) obj.timeline = orderedMap(timelineEntries);
   }
 
   return obj;
@@ -452,12 +481,12 @@ const BB_INTERP_TO_LERP_MODE = {
  *   With easing   → { vector: [...], easing: "easeInSine", easingArgs?: [...] }
  *   No easing     → [x, y, z]   (plain array shorthand)
  */
-function serializeKeyframe(kf, channel, allKeyframes) {
+function serializeKeyframe(kf, channel, allKeyframes, channelIsEasing = false) {
   const vec    = extractKeyframeVector(kf, channel, true);
   const interp = kf.interpolation;
 
   // --- Bedrock lerp_mode-based keyframes (linear / catmullrom) ---
-  if (interp === 'catmullrom') {
+  if (interp === 'catmullrom' && !channelIsEasing) {
     const node = { post: vec, lerp_mode: 'catmullrom' };
     const preVec = extractKeyframePreVector(kf, channel);
     if (preVec) node.pre = preVec;
@@ -485,7 +514,12 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   if (prevKf && prevKf.interpolation === 'step') {
     const preVec = extractKeyframePreVector(kf, channel)
       || extractKeyframeVector(prevKf, channel, true);
-    return { pre: preVec, post: vec };
+    const out = { pre: preVec, post: vec };
+    if (kf.easing && kf.easing !== EASING_DEFAULT) out.easing = kf.easing;
+    if (hasArgs(kf.easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) {
+      out.easingArgs = [...kf.easingArgs];
+    }
+    return out;
   }
 
   // --- AzureLib easing node (no Bedrock interpolation set) ---
@@ -493,7 +527,7 @@ function serializeKeyframe(kf, channel, allKeyframes) {
   // Easing is only written when it differs from the default ('linear').
   // Easing is suppressed for Molang expression vectors (easing is meaningless there).
   const easing = kf.easing;
-  const vecHasMolang = vec.some(v => typeof v === 'string');
+  const vecHasMolang = vec.some(v => typeof v === 'string' && isNaN(Number(v)));
   const writeEasing  = easing && easing !== EASING_DEFAULT && !vecHasMolang;
   const writeArgs    = writeEasing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length;
 
@@ -510,8 +544,27 @@ function serializeKeyframe(kf, channel, allKeyframes) {
  * Non-zero numbers are negated directly.
  */
 function safeInvert(v) {
+  v = normalizeAxisValue(v);
   if (typeof v === 'string') return invertMolang(v);
   if (typeof v === 'number') return v === 0 ? 0 : -v;
+  return v;
+}
+
+function normalizeAxisValue(v) {
+  // Treat empty UI values as real numeric zero
+  if (v === null || v === undefined) return 0;
+
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+
+    // This catches '', '\n', '   ', etc.
+    if (trimmed === '') return 0;
+
+    // Preserve Molang expressions, but convert numeric strings
+    const n = Number(trimmed);
+    return Number.isNaN(n) ? v : n;
+  }
+
   return v;
 }
 
@@ -519,9 +572,9 @@ function extractKeyframeVector(kf, channel, applyInversion) {
   const dp = kf.data_points?.[kf.data_points.length > 1 ? 1 : 0] || kf.data_points?.[0];
   if (!dp) return [0, 0, 0];
 
-  let x = dp.x ?? 0;
-  let y = dp.y ?? 0;
-  let z = dp.z ?? 0;
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
 
   if (applyInversion && Blockbench.isNewerThan('4.99')) {
     if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
@@ -535,9 +588,9 @@ function extractKeyframePreVector(kf, channel) {
   if (!kf.data_points || kf.data_points.length < 2) return null;
   const dp = kf.data_points[0];
 
-  let x = dp.x ?? 0;
-  let y = dp.y ?? 0;
-  let z = dp.z ?? 0;
+  let x = normalizeAxisValue(dp.x);
+  let y = normalizeAxisValue(dp.y);
+  let z = normalizeAxisValue(dp.z);
 
   if (Blockbench.isNewerThan('4.99')) {
     if (channel === 'rotation') { x = safeInvert(x); y = safeInvert(y); }
@@ -588,19 +641,23 @@ export function loadAzureAnimationFile(file, filter) {
 }
 
 function parseAnimation(name, src, filePath) {
+  const playback = readPlaybackJson(src);
   const anim = new Animation({
     name,
     path: filePath,
-    loop: src.loop === true ? 'loop' : src.loop === 'hold_on_last_frame' ? 'hold' : src.loop,
-    override: src.override_previous_animation,
+    saved_name: name,
+    ...playback,
+    override: !!src.override_previous_animation,
     anim_time_update: typeof src.anim_time_update === 'string'
       ? src.anim_time_update.replace(/;(?!$)/, ';\n')
-      : src.anim_time_update,
+      : src.anim_time_update || '',
     blend_weight: typeof src.blend_weight === 'string'
       ? src.blend_weight.replace(/;(?!$)/, ';\n')
-      : src.blend_weight,
-    length: src.animation_length,
+      : src.blend_weight || '',
+    length: Number(src.animation_length || 0),
   }).add();
+
+  assignPlaybackFields(anim, playback);
 
   // Effects
   if (src.sound_effects || src.particle_effects || src.timeline || src.instructions) {
@@ -612,9 +669,15 @@ function parseAnimation(name, src, filePath) {
   if (src.bones) {
     for (const boneName in src.bones) {
       const bone = src.bones[boneName];
-      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-      const uuid = group ? group.uuid : guid();
-      const boneAnim = new BoneAnimator(uuid, anim, boneName);
+      const lowerName = boneName.toLowerCase();
+      const group = Group.all.find(g => g.name.toLowerCase() === lowerName);
+      const armatureBone = !group && typeof ArmatureBone !== 'undefined'
+        ? ArmatureBone.all.find(b => b.name.toLowerCase() === lowerName)
+        : null;
+      const target = group || armatureBone;
+      const uuid = target ? target.uuid : guid();
+      const AnimatorType = armatureBone && ArmatureBone.animator ? ArmatureBone.animator : BoneAnimator;
+      const boneAnim = new AnimatorType(uuid, anim, boneName);
       anim.animators[uuid] = boneAnim;
 
       for (const channel in bone) {
@@ -684,10 +747,21 @@ function parseChannel(boneAnim, channel, channelData) {
  *   2. AzureLib node        { vector, easing?, easingArgs? }
  *   3. Bedrock spline node  { post, pre?, lerp_mode }
  */
+
+function toNum(v) {
+  if (typeof v !== 'string') return v;
+  const n = Number(v);
+  return isNaN(n) ? v : n;  // Molang → keep string; numeric string → number
+}
+
+function coerceVec(vec) {
+  return vec.map(toNum);
+}
+
 function parseKeyframeData(data, channel, time) {
   // --- 1. Plain array ---
   if (Array.isArray(data)) {
-    const vec = applyFlipOnLoad(data, channel);
+    const vec = applyFlipOnLoad(coerceVec(data), channel);
     return {
       easing: EASING_DEFAULT,
       easingArgs: undefined,
@@ -702,7 +776,7 @@ function parseKeyframeData(data, channel, time) {
   // --- 2. AzureLib node (has vector or easing) ---
   if (isAzureKeyframe(data) && !isBedrockKeyframe(data)) {
     const rawVec = unwrapToArray(data.vector || data) || [0, 0, 0];
-    const vec = applyFlipOnLoad(rawVec, channel);
+    const vec = applyFlipOnLoad(coerceVec(rawVec), channel);
     return {
       easing: data.easing || EASING_DEFAULT,
       easingArgs: Array.isArray(data.easingArgs) && data.easingArgs.length ? data.easingArgs : undefined,
@@ -729,11 +803,11 @@ function parseKeyframeData(data, channel, time) {
     const preRaw = unwrapToArray(data.pre);
 
     if (preRaw) {
-      const pre = applyFlipOnLoad(preRaw, channel);
+      const pre = applyFlipOnLoad(coerceVec(preRaw), channel);
       data_points.push({ x: pre[0], y: pre[1], z: pre[2] });
     }
 
-    const postVec = postRaw ? applyFlipOnLoad(postRaw, channel) : [0, 0, 0];
+    const postVec = postRaw ? applyFlipOnLoad(coerceVec(postRaw), channel) : [0, 0, 0];
     data_points.push({ x: postVec[0], y: postVec[1], z: postVec[2] });
 
     return {
@@ -746,9 +820,9 @@ function parseKeyframeData(data, channel, time) {
   }
 
   // Fallback — treat as raw vector object
-  const x = data.x ?? 0;
-  const y = data.y ?? 0;
-  const z = data.z ?? 0;
+  const x = toNum(data.x ?? 0);
+  const y = toNum(data.y ?? 0);
+  const z = toNum(data.z ?? 0);
   return {
     easing: EASING_DEFAULT,
     easingArgs: undefined,
@@ -815,12 +889,54 @@ function ensureEffectsAnimator(anim) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Recursive stringifier used in place of JSON.stringify() for the top-level
+ * object.
+ *
+ * The ONLY reason this exists instead of a plain JSON.stringify(obj, null,
+ * '\t') call: JS object key enumeration always places integer-index-looking
+ * keys ("0", "3") ahead of non-integer keys ("1.5"), in ascending numeric
+ * order, regardless of insertion order. Keyframe time maps mix whole-number
+ * and fractional time keys, so a correctly time-sorted entry list like
+ * "0", "1.5", "3" gets silently re-emitted as "0", "3", "1.5" by
+ * JSON.stringify. AzureLib's runtime loader trusts file order rather than
+ * re-sorting on load, so that reorder becomes a real, silent timeline
+ * corruption (a segment that runs backwards and a bone that freezes).
+ *
+ * This function walks the object tree itself and, for any object tagged
+ * with KEY_ORDER (via orderedMap()), emits keys in that explicit order
+ * instead of using Object.keys()/JSON.stringify's native enumeration.
+ * Everything else behaves like a normal pretty-printed JSON.stringify.
+ */
+function orderedStringify(value, indent, currentIndent) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+
+  const childIndent = currentIndent + indent;
+
+  if (Array.isArray(value)) {
+    if (!value.length) return '[]';
+    const items = value.map(v => childIndent + orderedStringify(v, indent, childIndent));
+    return '[\n' + items.join(',\n') + '\n' + currentIndent + ']';
+  }
+
+  const keys = value[KEY_ORDER] || Object.keys(value);
+  if (!keys.length) return '{}';
+  const items = keys.map(k =>
+    childIndent + JSON.stringify(k) + ': ' + orderedStringify(value[k], indent, childIndent)
+  );
+  return '{\n' + items.join(',\n') + '\n' + currentIndent + '}';
+}
+
+/**
  * JSON serialiser that pretty-prints with tabs but keeps arrays compact on one line.
  * This matches the original Bedrock/AzureLib animation file format exactly.
  */
 function serializeAnimationJson(obj) {
-  // First pass: standard pretty-print
-  const raw = JSON.stringify(obj, null, '\t');
+  // First pass: order-preserving pretty-print (see orderedStringify above —
+  // this replaces a plain JSON.stringify(obj, null, '\t') specifically to
+  // avoid its integer-key reordering behaviour on keyframe time maps).
+  const raw = orderedStringify(obj, '\t', '');
   // Second pass: collapse arrays that contain only numbers/strings onto one line.
   // Matches [ followed by whitespace+values+whitespace ] across newlines.
   return raw.replace(
@@ -937,125 +1053,21 @@ export function createAzureAnimationCodec() {
       setAnimationIncludesForPath(path, json.includes || []);
 
       const created = [];
-      const entries = Object.entries(json.animations);
 
-      for (const [name, animData] of entries) {
+      for (const [name, animData] of Object.entries(json.animations)) {
         if (Array.isArray(animation_filter) && animation_filter.length && !animation_filter.includes(name)) {
           continue;
         }
 
-        const anim = new Animation({
-          name,
-          path,
-          saved_name: name,
-          loop:
-            animData.loop === true ? 'loop'
-            : animData.loop === 'hold_on_last_frame' ? 'hold'
-            : animData.loop || 'once',
-          override: !!animData.override_previous_animation,
-          anim_time_update: animData.anim_time_update || '',
-          blend_weight: animData.blend_weight || '',
-          length: Number(animData.animation_length || 0),
-        }).add();
-
+        // Delegate to parseAnimation which correctly handles bone UUID assignment,
+        // channel parsing (including numeric coercion and flip-on-load), and effects.
+        const anim = parseAnimation(name, animData, path);
         anim.saved = true;
-
-        if (animData.bones && typeof animData.bones === 'object') {
-          for (const [boneName, boneData] of Object.entries(animData.bones)) {
-            let animator = anim.animators[boneName];
-            if (!animator) {
-              animator = new BoneAnimator(boneName, anim);
-              anim.animators[boneName] = animator;
-            }
-
-            for (const channel of ['position', 'rotation', 'scale']) {
-              const channelData = boneData?.[channel];
-              if (!channelData) continue;
-
-              const addKf = (time, entry) => {
-                const parsedKf = parseKeyframeData(entry, channel, time);
-                if (!parsedKf) return;
-
-                const kf = animator.addKeyframe({
-                  time,
-                  channel,
-                  interpolation: parsedKf.interpolation,
-                  data_points: parsedKf.data_points,
-                  easing: parsedKf.easing,
-                  easingArgs: parsedKf.easingArgs,
-                  uniform: parsedKf.uniform,
-                });
-
-                if (kf && parsedKf.interpolation) {
-                  kf.interpolation = parsedKf.interpolation;
-                }
-                if (kf && parsedKf.easing) {
-                  kf.easing = parsedKf.easing;
-                }
-                if (kf && parsedKf.easingArgs) {
-                  kf.easingArgs = parsedKf.easingArgs;
-                }
-              };
-
-              if (Array.isArray(channelData) || isAzureKeyframe(channelData) || isBedrockKeyframe(channelData)) {
-                addKf(0, channelData);
-              } else if (typeof channelData === 'object') {
-                for (const rawT in channelData) {
-                  const time = parseFloat(rawT);
-                  if (Number.isNaN(time)) continue;
-                  addKf(time, channelData[rawT]);
-                }
-              }
-            }
-          }
-        }
-
-        const effectAnimator = anim.animators.effects;
-
-        if (effectAnimator) {
-          const addEffectKeyframe = (time, channel, data_points) => {
-            effectAnimator.addKeyframe({
-              time,
-              channel,
-              data_points,
-            });
-          };
-
-          if (animData.sound_effects && typeof animData.sound_effects === 'object') {
-            for (const [rawT, entry] of Object.entries(animData.sound_effects)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              const list = Array.isArray(entry) ? entry : [entry];
-              addEffectKeyframe(time, 'sound', list.map(p => typeof p === 'string' ? { effect: p } : { ...p }));
-            }
-          }
-
-          if (animData.particle_effects && typeof animData.particle_effects === 'object') {
-            for (const [rawT, entry] of Object.entries(animData.particle_effects)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              const list = Array.isArray(entry) ? entry : [entry];
-              addEffectKeyframe(time, 'particle', list.map(p => ({ ...p })));
-            }
-          }
-
-          if (animData.timeline && typeof animData.timeline === 'object') {
-            for (const [rawT, script] of Object.entries(animData.timeline)) {
-              const time = parseFloat(rawT);
-              if (Number.isNaN(time)) continue;
-              addEffectKeyframe(time, 'timeline', [{ script: String(script || '') }]);
-            }
-          }
-        }
-
         created.push(anim);
       }
 
       if (!auto_loaded && created.length) {
-        const first = created[0];
-        if (first) {
-          Animation.selected = first;
-        }
+        Animation.selected = created[0];
       }
 
       return created;
@@ -1248,12 +1260,122 @@ export function importAzureAnimation() {
 }
 
 // ---------------------------------------------------------------------------
+// "Export" menu override
+// ---------------------------------------------------------------------------
+
+/**
+ * Blockbench's built-in "Export" action (id: export_animation_file, defined
+ * in animations/animation.js) is core code we can't edit. It calls
+ * codec.compileFile(animations) — our own, correctly time-sorted and
+ * KEY_ORDER-tagged builder — but then stringifies the result with its own
+ * autoStringify(), which knows nothing about our KEY_ORDER tagging. Plain
+ * JS object enumeration (which autoStringify ultimately relies on) always
+ * places integer-index-looking string keys ("0", "1", "2") ahead of
+ * non-integer ones ("0.125", "0.375") in ascending numeric order,
+ * regardless of insertion order — so fractional keyframe times get
+ * silently reordered on export, even though compileFile() built them in
+ * the right order to begin with.
+ *
+ * "Save All Animations" never hits this because it calls codec.exportFile()
+ * directly, which already runs content through our own
+ * serializeAnimationJson() (which does respect KEY_ORDER via
+ * orderedStringify()).
+ *
+ * We can't change what autoStringify does, and we can't edit the core
+ * action. So when our format is active, we swap the action's click handler
+ * for a re-implementation of the exact same picker dialog that serializes
+ * with serializeAnimationJson() instead. Any other format's Export click
+ * falls straight through to the original, untouched.
+ */
+let originalExportAnimationClick = null;
+
+function isAzureCodecActive() {
+  const codec = (typeof AnimationCodec !== 'undefined' && AnimationCodec.getCodec)
+    ? AnimationCodec.getCodec()
+    : null;
+  return !!codec && codec === azureAnimationCodec;
+}
+
+function showAzureAnimationExportDialog() {
+  const form = {};
+  let keys = [];
+  let animations = Animation.all.slice();
+
+  if (Condition(Animation.properties.path.condition)) {
+    animations.sort((a1, a2) => (a1.path ?? a1.name).hashCode() - (a2.path ?? a2.name).hashCode());
+  }
+
+  animations.forEach(animation => {
+    const key = animation.name;
+    keys.push(key);
+    form[key.hashCode()] = { label: key, type: 'checkbox', value: true };
+  });
+
+  const dialog = new Dialog({
+    id: 'azl_animation_export',
+    title: 'dialog.animation_export.title',
+    form,
+    onConfirm(form_result) {
+      dialog.hide();
+      const selectedKeys = keys.filter(key => form_result[key.hashCode()]);
+      const selectedAnimations = Animation.all.filter(a => selectedKeys.includes(a.name));
+      const codec = azureAnimationCodec || AnimationCodec.getCodec() || AnimationCodec.codecs.bedrock;
+      const content = codec.compileFile(selectedAnimations);
+
+      Blockbench.export({
+        resource_id: 'animation',
+        type: 'JSON Animation',
+        extensions: ['json'],
+        name: (Project.geometry_name || 'model') + '.animation',
+        content: serializeAnimationJson(content),
+      });
+    },
+  });
+
+  form.select_all_none = {
+    type: 'buttons',
+    buttons: ['generic.select_all', 'generic.select_none'],
+    click(index) {
+      const values = {};
+      keys.forEach(key => { values[key.hashCode()] = (index === 0); });
+      dialog.setFormValues(values);
+    },
+  };
+
+  dialog.show();
+}
+
+function patchExportAnimationAction() {
+  if (originalExportAnimationClick) return;
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (!action) return;
+
+  originalExportAnimationClick = action.click;
+
+  action.click = function azureExportAnimationOverride(...args) {
+    if (!isAzureCodecActive()) {
+      return originalExportAnimationClick.apply(this, args);
+    }
+    showAzureAnimationExportDialog();
+  };
+}
+
+function unpatchExportAnimationAction() {
+  const action = typeof BarItems !== 'undefined' ? BarItems.export_animation_file : null;
+  if (action && originalExportAnimationClick) {
+    action.click = originalExportAnimationClick;
+  }
+  originalExportAnimationClick = null;
+}
+
+// ---------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------
 
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
+
   const codec = createAzureAnimationCodec();
   if (!codec) {
     console.warn(
@@ -1262,6 +1384,9 @@ export function registerAzureAnimationFormat() {
     );
     return;
   }
+
+  patchExportAnimationAction();
+  registerPlayBehaviors();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -1290,6 +1415,10 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
+
+  unpatchExportAnimationAction();
+  unregisterPlayBehaviors();
+
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
 

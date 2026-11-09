@@ -4,7 +4,7 @@
  * Provides function override registration and restoration.
  * Replaces the old addMonkeypatch/removeMonkeypatch system.
  *
- * © 2025 AzureDoom — MIT License
+ * © 2026 AzureDoom — MIT License
  */
 
 export const PatchRegistry = new Map();

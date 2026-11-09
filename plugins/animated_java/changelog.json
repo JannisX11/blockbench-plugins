@@ -603,5 +603,378 @@
 				]
 			}
 		]
+	},
+	"1.9.0-beta.1": {
+		"title": "v1.9.0-beta.1",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-03-17",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"[BREAKING] Nodes are no longer passengers of the root entity in versions 1.21.4 and above. Any code that relies on `on passengers` to target rig nodes will need to be updated to use `as_node` instead.`",
+					"[BREAKING] `as_locator` & `as_all_locators` no longer execute `at` the targeted locators.",
+					"Added `as_at_locator` & `as_at_all_locators` functions to replace previous `as_locator` and `as_all_locators` positional functionality.",
+					"Made camera and rig rotation much more precise for 1.21.4 and above.",
+					"Added support for the removal of item model rotation restrictions in 1.21.11.",
+					"Added `as_node` function."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed [#475](https://github.com/Animated-Java/animated-java/issues/475)",
+					"Fixed [#474](https://github.com/Animated-Java/animated-java/issues/474)",
+					"Fixed [#472](https://github.com/Animated-Java/animated-java/issues/472)",
+					"Fixed [#471](https://github.com/Animated-Java/animated-java/issues/471)",
+					"Fixed [#469](https://github.com/Animated-Java/animated-java/issues/469)",
+					"Fixed [#468](https://github.com/Animated-Java/animated-java/issues/468)",
+					"Fixed `move` function not transforming floating entities."
+				]
+			}
+		]
+	},
+	"1.9.0-beta.2": {
+		"title": "v1.9.0-beta.2",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-03-17",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": ["Improved error messages for `as_all_locators` and similar functions."]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed locators failing to tick, and display entities being left behind when moving the root (either by `tp` or `move` function)."
+				]
+			}
+		]
+	},
+	"1.9.0-beta.3": {
+		"title": "v1.9.0-beta.3",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-03-27",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Updated Russian translations to improve consistency and punctuation. - Thanks Koishem!",
+					"Re-enabled Plugin mode - WARNING: This is experimental, and is using a new plugin JSON schema that will likely change in the future. - Thanks Meekiavelique!",
+					"Added Bisect hosting partnership banner."
+				]
+			}
+		]
+	},
+	"1.10.0-beta.5": {
+		"title": "v1.10.0-beta.5",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-04-26",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"[BREAKING] Removed `data` entity in favor of much faster score-indexed storage. Thanks @Xanbelor!",
+					"[BREAKING] Added support for custom namespaces. The `Export Namespace` setting has been renamed to `Blueprint ID` and now supports namespaces. E.g. `my_cool_pack:rigs/my_awesome_blueprint`. Tags will also use the `Blueprint ID` as their prefix: `aj.my_rig.root` -> `my_cool_pack.rigs.my_awesome_blueprint`. The default namespace is now `aj:` to keep tags prefixes consistent with previous versions.",
+					"Overhauled Blueprint Settings UI to be more user friendly and easier to navigate.",
+					"Added `.zip` export format for Data Pack and Resource Pack.",
+					"Added visualization for Structure Groups.",
+					"Added syntax highlighting for settings.",
+					"Updated Plugin exporter to support modern Minecraft's free element rotations.",
+					"Added translation string and keybind resolution for JSON text components. Translation strings from vanilla will automatically be resolved to the correct text for your target version when previewing Text Displays.",
+					"Added display names to all entities in the rig to make debugging easier.",
+					"Switched to using `blockbench-patch-manager` for safer handling of Blockbench monkey-patches.",
+					"Moved JSON text component system into its own library called `book-and-quill`.",
+					"Improved MC font loading handling and caching.",
+					"Improved internal MC asset handling and caching.",
+					"Updated to Blockbench 5.1.4.",
+					"Updated to Svelte 5.",
+					"Updated to MCB 4.0.5."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": ["Fixed \"infinite loading popup\" issue."]
+			}
+		]
+	},
+	"1.10.0-beta.6": {
+		"title": "v1.10.0-beta.6",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-05-04",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added `Rig` page to Blueprint settings.",
+					"Added `Custom Rig Entity Tags` option to Blueprint settings.",
+					"Added `Use Entity Stacking` option to Blueprint settings."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Blueprints failing to save due to missing `fs` global.",
+					"Fixed Animated Java failing to reload correctly when plugins are reloaded.",
+					"Fixed JSON Text Components failing to add quotes around strings that start with numeric characters.",
+					"Fixed [#491](https://github.com/Animated-Java/animated-java/issues/491)",
+					"Fixed [#490](https://github.com/Animated-Java/animated-java/issues/490)"
+				]
+			}
+		]
+	},
+	"1.10.0-beta.7": {
+		"title": "v1.10.0-beta.7",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-06-04",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"[BREAKING] The play function no longer automatically pauses all other animations. Use the new `play_exclusive` function to pause all other animations and play the desired animation.",
+					"Added Interaction element",
+					"Added functions for interacting with Interactions, similar to the locator functions, such as `as_interaction` and `as_all_interactions`.",
+					"Split Display Entity config option `brightnessOverride` into two separate properties: `blockBrightness` and `skyBrightness`.",
+					"Added marker color support to Display entity elements.",
+					"Made `Use Entity Stacking` default to true.",
+					"Added `Item Model Config` to Groups with cube children.",
+					"Added support for adding custom constant tints to item models."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed Item Display, Block Display, and Text Display elements ignoring flip actions.",
+					"Fixed custom element size not being rendered in element panel.",
+					"Fixed [#509](https://github.com/Animated-Java/animated-java/issues/509)",
+					"Fixed [#507](https://github.com/Animated-Java/animated-java/issues/507)",
+					"Fixed [#510](https://github.com/Animated-Java/animated-java/issues/510)",
+					"Fixed [#505](https://github.com/Animated-Java/animated-java/issues/505)",
+					"Fixed [#495](https://github.com/Animated-Java/animated-java/issues/495)"
+				]
+			}
+		]
+	},
+	"1.10.0": {
+		"title": "v1.10.0",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-06-24",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"[BREAKING] Removed `data` entity in favor of much faster score-indexed storage. Thanks @Xanbelor!",
+					"[BREAKING] Added support for custom namespaces. The `Export Namespace` setting has been renamed to `Blueprint ID` and now supports namespaces. E.g. `my_cool_pack:rigs/my_awesome_blueprint`. Tags will also use the `Blueprint ID` as their prefix: `aj.my_rig.root` -> `my_cool_pack.rigs.my_awesome_blueprint`. The default namespace is now `aj:` to keep tags prefixes consistent with previous versions.",
+					"[BREAKING] `as_locator` & `as_all_locators` no longer execute `at` the targeted locators.",
+
+					"Added Interaction element",
+					"Added functions for interacting with Interactions, similar to the locator functions, such as `as_interaction` and `as_all_interactions`.",
+					"Split Display Entity config option `brightnessOverride` into two separate properties: `blockBrightness` and `skyBrightness`.",
+					"Added marker color support to Display entity elements.",
+					"Made `Use Entity Stacking` default to true.",
+					"Added `Item Model Config` to Groups with cube children.",
+					"Added support for adding custom constant tints to item models.",
+
+					"Added support for Minecraft 26.2 predicate changes.",
+					"Added syntax highlighting to function keyframes, and keyframe execute conditions.",
+					"Added Entity Counter dialog and toolbar element.",
+					"Added `zh_cn` localization - Thanks jiuwu02!",
+					"Disabled camera roll in Blockbench preview to better match in-game behavior.",
+					"Moved keyframe easings into their own panel, and improved reactivity.",
+
+					"Added `Rig` page to Blueprint settings.",
+					"Added `Custom Rig Entity Tags` option to Blueprint settings.",
+					"Added `Use Entity Stacking` option to Blueprint settings.",
+
+					"Overhauled Blueprint Settings UI to be more user friendly and easier to navigate.",
+					"Added `.zip` export format for Data Pack and Resource Pack.",
+					"Added visualization for Structure Groups.",
+					"Added syntax highlighting for settings.",
+					"Updated Plugin exporter to support modern Minecraft's free element rotations.",
+					"Added translation string and keybind resolution for JSON text components. Translation strings from vanilla will automatically be resolved to the correct text for your target version when previewing Text Displays.",
+					"Added display names to all entities in the rig to make debugging easier.",
+					"Switched to using `blockbench-patch-manager` for safer handling of Blockbench monkey-patches.",
+					"Moved JSON text component system into its own library called `book-and-quill`.",
+					"Improved MC font loading handling and caching.",
+					"Improved internal MC asset handling and caching.",
+					"Updated to Blockbench 5.1.4.",
+					"Updated to Svelte 5.",
+					"Updated to MCB 4.0.5.",
+
+					"Updated Russian translations to improve consistency and punctuation. - Thanks Koishem!",
+					"Re-enabled Plugin mode - WARNING: This is experimental, and is using a new plugin JSON schema that will likely change in the future. - Thanks Meekiavelique!",
+					"Added Bisect hosting partnership banner.",
+
+					"Improved error messages for `as_all_locators` and similar functions.",
+
+					"Added `as_at_locator` & `as_at_all_locators` functions to replace previous `as_locator` and `as_all_locators` positional functionality.",
+					"Made camera and rig rotation much more precise for 1.21.4 and above.",
+					"Added support for the removal of item model rotation restrictions in 1.21.11.",
+					"Added `as_node` function."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed interactions being left behind when moving a Rig.",
+					"Fixed [#515](https://github.com/Animated-Java/animated-java/issues/515)",
+					"Fixed [#505](https://github.com/Animated-Java/animated-java/issues/505)",
+					"Fixed [#506](https://github.com/Animated-Java/animated-java/issues/506)",
+					"Fixed [#516](https://github.com/Animated-Java/animated-java/issues/516)",
+					"Fixed [#512](https://github.com/Animated-Java/animated-java/issues/512)",
+					"Fixed [#514](https://github.com/Animated-Java/animated-java/issues/514)",
+
+					"Fixed Item Display, Block Display, and Text Display elements ignoring flip actions.",
+					"Fixed custom element size not being rendered in element panel.",
+					"Fixed [#509](https://github.com/Animated-Java/animated-java/issues/509)",
+					"Fixed [#507](https://github.com/Animated-Java/animated-java/issues/507)",
+					"Fixed [#510](https://github.com/Animated-Java/animated-java/issues/510)",
+					"Fixed [#505](https://github.com/Animated-Java/animated-java/issues/505)",
+					"Fixed [#495](https://github.com/Animated-Java/animated-java/issues/495)",
+
+					"Fixed Blueprints failing to save due to missing `fs` global.",
+					"Fixed Animated Java failing to reload correctly when plugins are reloaded.",
+					"Fixed JSON Text Components failing to add quotes around strings that start with numeric characters.",
+					"Fixed [#491](https://github.com/Animated-Java/animated-java/issues/491)",
+					"Fixed [#490](https://github.com/Animated-Java/animated-java/issues/490)",
+
+					"Fixed \"infinite loading popup\" issue.",
+
+					"Fixed locators failing to tick, and display entities being left behind when moving the root (either by `tp` or `move` function).",
+
+					"Fixed [#475](https://github.com/Animated-Java/animated-java/issues/475)",
+					"Fixed [#474](https://github.com/Animated-Java/animated-java/issues/474)",
+					"Fixed [#472](https://github.com/Animated-Java/animated-java/issues/472)",
+					"Fixed [#471](https://github.com/Animated-Java/animated-java/issues/471)",
+					"Fixed [#469](https://github.com/Animated-Java/animated-java/issues/469)",
+					"Fixed [#468](https://github.com/Animated-Java/animated-java/issues/468)",
+					"Fixed `move` function not transforming floating entities."
+				]
+			}
+		]
+	},
+	"1.10.1": {
+		"title": "v1.10.1",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-06-24",
+		"categories": [
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed broken website links.",
+					"Fixed plugin data desyncs.",
+					"Fixed missing translations for resource pack folder path.",
+					"Fixed missing message for file access request.",
+					"Fixed dependencies requiring node:fs early in the plugin load process."
+				]
+			}
+		]
+	},
+	"1.10.2": {
+		"title": "v1.10.2",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-07-08",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Reworked the Display Entity Config dialog with separate General and Per-Variant pages, including a dropdown to select which Variant you're configuring.",
+					"Added an `Enchanted` option to Display Entity Configs that previews the enchantment glint effect on Cubes and Item Displays directly in Blockbench.",
+					"Added a root On-Apply Function to Variants, which runs `as` and `at` the root entity whenever the Variant is applied.",
+					"Disabled Display Entity Config on Structure Groups, since it never applied to them.",
+					"Vanilla Block Display and Item Display models are now automatically refreshed after changing a Blueprint's target Minecraft version.",
+					"Updated the Data Pack icon in Blueprint Settings to use an animated icon."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed selecting a Variant crashing Blockbench.",
+					"Fixed custom fonts breaking Text Display word wrapping.",
+					"Fixed Item Display translation being applied on the wrong axis, and in the wrong order relative to scale.",
+					"Fixed the `summon` function failing if a locator summoned another rig from its own On-Summon Function.",
+					"Improved the reliability of the Block Display and Item Display panels.",
+					"Fixed the Entity Counter dialog reporting inaccurate entity counts.",
+					"Fixed the Paint Tool breaking when used on Interactions.",
+					"Fixed the outdated rig warning not glowing all rig entities red, and improved its performance."
+				]
+			}
+		]
+	},
+
+	"1.11.0": {
+		"title": "v1.11.0",
+		"author": "Titus Evans (SnaveSutit)",
+		"date": "2026-10-07",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"[BREAKING] On Minecraft 1.21.4 and newer, bone items' `custom_model_data` strings now hold each Texture Slot's current texture instead of the applied Variant's name.",
+					"[BREAKING] Animation frame objectives now include the Blueprint ID (`aj.<animation>.frame` -> `<blueprint_id>.<animation>.frame`), so rigs with the same animation names no longer clash.",
+					"[BREAKING] Plugin JSON format version 3: `display_properties` is renamed to `entity_properties`, `settings.id` no longer has an `animated_java:` prefix, `texture_palettes` is replaced by `texture_slots`, texture keys no longer end in `_png`, and Variants are exported in a new `variants` section with `variant` keyframes instead of being flattened into `texture_slot` keyframes.",
+
+					"Added support for Minecraft 26.3.",
+					"Added Texture Slots. Assign faces to a slot, then switch every face in it to any of the slot's textures. On Minecraft 1.21.4 and newer, each slot can be switched on its own with `function <blueprint_id>/texture_slots/<slot>/<texture>`.",
+					"Variants now pick a texture for each Texture Slot instead of mapping textures, and leave slots they don't set unchanged. Existing Blueprints are migrated automatically.",
+					"The default Variant can now be renamed.",
+					"Variant keyframes can now apply several Variants, in order.",
+					"Added Texture Slot keyframes, which switch Texture Slots to any of their textures during an animation. Requires Minecraft 1.21.4 or newer.",
+					"Variant and Texture Slot keyframes now only change the editor preview in Animate mode, and each bone shows what the animation has applied to it. Previews start from the default Variant, or from the new Preview Variants and Preview Texture Slots in Animation Properties.",
+					"Added a `tween_paused` function that tweens into an animation without playing it. ([#382](https://github.com/Animated-Java/animated-java/issues/382))",
+					"Item, Block, and Text Displays can now rotate and scale around a custom pivot point.",
+					"Added blockstate dropdowns to the Block Display panel.",
+					"Item Model Properties now support every vanilla tint type, not just constant tints.",
+					"Added `Shadow Radius` and `Shadow Strength` options to the Rig page of Blueprint Settings. ([#414](https://github.com/Animated-Java/animated-java/issues/414))",
+					"Added a Preview page to Blueprint Settings that loads resource packs into the editor, so custom fonts, models, and textures show up in previews. Preview packs are never exported.",
+					"Vanilla Item and Block Display previews are now more accurate, using the `block-model-renderer` library. Thanks Ewan!",
+
+					"Exports are now much faster.",
+					"Faster in-game entity UUID lookups on Minecraft 1.21.5 and newer.",
+					"Removed entity display names to improve in-game performance.",
+					"The export progress dialog now shows what's being exported, with a second progress bar for each step.",
+
+					"Textures now show a link icon when linked from a resource pack, and a box icon when stored inside the Blueprint.",
+					"Internal texture names are now automatically cleaned up and kept unique. ([#337](https://github.com/Animated-Java/animated-java/issues/337))",
+					"Texture dropdowns in the Variant config now show texture thumbnails.",
+					"Exported models now include a credit to Animated Java. ([#319](https://github.com/Animated-Java/animated-java/issues/319))",
+					"Moved `Auto Update Rig Orientation` to the Rig page of Blueprint Settings.",
+					"Changed the default target Minecraft version to 26.2.",
+					"Plugin mode exports now include Interactions and each node's parent, and no longer build a resource pack.",
+					"Improved the About page."
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fixed custom changes to the resource pack's block atlas being wiped on export. ([#470](https://github.com/Animated-Java/animated-java/issues/470))",
+					"Fixed Resource Pack `.zip` export following the Data Pack's export mode setting.",
+					"Fixed old rig entries never being removed from function tags.",
+					"Fixed Variants not swapping models on Minecraft 1.21.0 and 1.21.1. ([#528](https://github.com/Animated-Java/animated-java/issues/528))",
+					"Fixed Variants breaking bones they don't change on Minecraft 1.21.2.",
+					"Fixed texture groups disappearing after reopening a Blueprint. ([#407](https://github.com/Animated-Java/animated-java/issues/407))",
+					"Fixed cameras breaking when a keyframe position was very close to zero. ([#518](https://github.com/Animated-Java/animated-java/issues/518))",
+					"Fixed child bones ignoring a parent's Step interpolation if they were more than one level deep. ([#396](https://github.com/Animated-Java/animated-java/issues/396))",
+					"Fixed invalid commands in keyframes or settings showing up as a crash instead of a clear error. ([#315](https://github.com/Animated-Java/animated-java/issues/315))",
+					"Fixed Plugin mode requiring Resource Pack and Data Pack folders. ([#524](https://github.com/Animated-Java/animated-java/issues/524))",
+					"Fixed texture animations missing from Plugin mode exports.",
+					"Fixed the General, Resource Pack, and Misc pages of Blueprint Settings not being translated. ([#525](https://github.com/Animated-Java/animated-java/issues/525))",
+					"Fixed the Variants list scrolling forever after dragging a Variant. ([#408](https://github.com/Animated-Java/animated-java/issues/408))",
+					"Fixed the selected Variant carrying over between open projects.",
+					"Fixed Interaction functions failing to load on versions before Minecraft 1.21.5.",
+					"Fixed `set_default_pose` and `apply_default_pose` not saving floating entity positions on versions before Minecraft 1.21.5.",
+					"Fixed a blank `Custom Rig Entity Tags` setting adding an empty tag to every rig entity.",
+					"Fixed constant log spam when Unjank is installed.",
+					"Fixed cubes rotated on more than one axis sometimes passing rotation checks on versions before Minecraft 1.21.11.",
+					"Fixed rotation snapping not applying on versions before Minecraft 1.21.6.",
+					"Fixed animated Item Displays having flipped rotation and position.",
+					"Fixed vanilla blockstate data not loading until Blockbench was restarted after an update.",
+					"Fixed the `.ajmodel` importer failing to load. ([#532](https://github.com/Animated-Java/animated-java/issues/532))",
+					"Fixed Variant and function keyframes never running with the Storage Animation System.",
+					"Fixed Variant and function keyframes on the last frame of a looping animation only running if a Locator also moved on that frame.",
+					"Fixed Enter not starting a new line in code editors on Blockbench 5.2. ([#535](https://github.com/Animated-Java/animated-java/issues/535))"
+				]
+			}
+		]
 	}
 }

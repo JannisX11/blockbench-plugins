@@ -254,5 +254,17 @@
         ]
       }
     ]
+  },
+  "4.2.5": {
+    "title": "4.2.5",
+    "author": "matmat37000",
+    "categories": [
+      {
+        "title": "Bug Fixes",
+        "list": [
+          "Fixed an issue where importing an existing animation.json file will cause GeckoLib frame keys to be reset."
+        ]
+      }
+    ]
   }
 }

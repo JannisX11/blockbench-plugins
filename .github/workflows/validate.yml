@@ -26,8 +26,10 @@ jobs:
           fetch-depth: 0 # Ensures we have the full history for diff
 
       - name: Validate
+        id: validate_step
         run: |
           npm ci
           git fetch origin ${{ github.base_ref }}
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          CHANGED_FILES=$(git diff --name-status origin/${{ github.base_ref }}...HEAD)
           CHANGED_FILES="$CHANGED_FILES" npm run validate
+
