@@ -9,6 +9,7 @@
   <p>Complete 6 sided cuboids always convert, even when merged into other geometry.</p>
   <p>Partial cuboids with missing faces (such as a hidden face deleted where a slope was merged on) convert when at least 4 faces remain. Missing faces become disabled faces on the cube.</p>
   <p>Isolated geometry that is not attached to anything else converts with any number of faces, so a lone flat plane becomes a zero thickness cube.</p>
+  <p>Anything left over is rebuilt into cubes from its overall shape, at any rotation. Faces that cannot keep their exact UVs stay behind as mesh.</p>
 </div>
 <style>
   .about {
