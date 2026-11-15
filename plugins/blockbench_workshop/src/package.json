@@ -1,0 +1,12 @@
+{
+  "name": "blockbench-workshop-plugin-source",
+  "private": true,
+  "type": "module",
+  "description": "Source of the Blockbench Workshop plugin. npm run build writes ../blockbench_workshop.js.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}
