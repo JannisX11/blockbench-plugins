@@ -1,4 +1,14 @@
 {
+	  "display_idle_preview": {
+		"title": "Display Idle Preview",
+		"author": "chikuwaten",
+		"description": "Check how items look in the pose selected in the display settings.",
+		"icon": "icon.png",
+		"tags": ["Minecraft", "Display"],
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.8.0"
+	  },
 	"palette_swap": {
 		"title": "Palette Swap",
 		"author": "Cmetanochkaa (Cmetanochka Creations)",
