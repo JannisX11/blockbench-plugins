@@ -15,18 +15,19 @@ export function process<T>(array: Array<T>, callback: (chunk: T, index: number) 
   processChunk();
 }
 
+class DeletableScript implements Deletable {
+  constructor(private node: Element) {}
+  delete() {
+    this.node.remove();
+  }
+}
+
 /**
  * Imports this package.
  * @param {string} url
  * @returns {Deletable}
  */
 export function addScript(url: string): Deletable {
-  class DeletableScript implements Deletable {
-    constructor(private node: Element) {}
-    delete() {
-      this.node.remove();
-    }
-  }
   const script = document.createElement("script");
   script.src = url;
   try {
@@ -61,4 +62,10 @@ export function wrapError(callback: () => void): void {
  */
 export function getPlugin(id: string): global.Plugin | undefined {
   return Plugins.all.find((p) => p.id == id);
+}
+
+export function randomInt(min: number, max: number): number {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
