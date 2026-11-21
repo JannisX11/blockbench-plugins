@@ -18,7 +18,13 @@
 
 import { EASING_TYPES, EASING_DEFAULT, easingRegistry, hasArgs, getEasingArgDefault, parseEasingArg } from './azure-easing.js';
 import { invertMolang } from '../core/azure-utils.js';
-import { IKManager } from './azure-ik.js';
+import {
+  writePlaybackJson,
+  readPlaybackJson,
+  assignPlaybackFields,
+  registerPlayBehaviors,
+  unregisterPlayBehaviors,
+} from './azure-playback.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -350,9 +356,7 @@ export function buildAzureAnimationFile() {
 function serializeAnimation(anim) {
   const obj = {};
 
-  if (anim.loop === 'loop') obj.loop = true;
-  else if (anim.loop === 'hold') obj.loop = 'hold_on_last_frame';
-  else if (anim.loop) obj.loop = anim.loop;
+  writePlaybackJson(anim, obj);
 
   if (anim.override) obj.override_previous_animation = true;
   if (anim.anim_time_update) obj.anim_time_update = anim.anim_time_update.replace(/;\n/g, ';');
@@ -637,11 +641,12 @@ export function loadAzureAnimationFile(file, filter) {
 }
 
 function parseAnimation(name, src, filePath) {
+  const playback = readPlaybackJson(src);
   const anim = new Animation({
     name,
     path: filePath,
     saved_name: name,
-    loop: src.loop === true ? 'loop' : src.loop === 'hold_on_last_frame' ? 'hold' : src.loop || 'once',
+    ...playback,
     override: !!src.override_previous_animation,
     anim_time_update: typeof src.anim_time_update === 'string'
       ? src.anim_time_update.replace(/;(?!$)/, ';\n')
@@ -651,6 +656,8 @@ function parseAnimation(name, src, filePath) {
       : src.blend_weight || '',
     length: Number(src.animation_length || 0),
   }).add();
+
+  assignPlaybackFields(anim, playback);
 
   // Effects
   if (src.sound_effects || src.particle_effects || src.timeline || src.instructions) {
@@ -662,9 +669,15 @@ function parseAnimation(name, src, filePath) {
   if (src.bones) {
     for (const boneName in src.bones) {
       const bone = src.bones[boneName];
-      const group = Group.all.find(g => g.name.toLowerCase() === boneName.toLowerCase());
-      const uuid = group ? group.uuid : guid();
-      const boneAnim = new BoneAnimator(uuid, anim, boneName);
+      const lowerName = boneName.toLowerCase();
+      const group = Group.all.find(g => g.name.toLowerCase() === lowerName);
+      const armatureBone = !group && typeof ArmatureBone !== 'undefined'
+        ? ArmatureBone.all.find(b => b.name.toLowerCase() === lowerName)
+        : null;
+      const target = group || armatureBone;
+      const uuid = target ? target.uuid : guid();
+      const AnimatorType = armatureBone && ArmatureBone.animator ? ArmatureBone.animator : BoneAnimator;
+      const boneAnim = new AnimatorType(uuid, anim, boneName);
       anim.animators[uuid] = boneAnim;
 
       for (const channel in bone) {
@@ -1362,7 +1375,6 @@ function unpatchExportAnimationAction() {
 let editAnimationIncludesAction = null;
 
 export function registerAzureAnimationFormat() {
-  //IKManager.register();
 
   const codec = createAzureAnimationCodec();
   if (!codec) {
@@ -1374,6 +1386,7 @@ export function registerAzureAnimationFormat() {
   }
 
   patchExportAnimationAction();
+  registerPlayBehaviors();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -1402,9 +1415,9 @@ export function registerAzureAnimationFormat() {
 }
 
 export function unregisterAzureAnimationFormat() {
-  //IKManager.unregister();
 
   unpatchExportAnimationAction();
+  unregisterPlayBehaviors();
 
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;

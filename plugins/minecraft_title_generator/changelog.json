@@ -595,5 +595,18 @@
         ]
       }
     ]
+  },
+  "1.10.5": {
+    "title": "1.10.5",
+    "date": "2026-11-03",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "Technical Changes",
+        "list": [
+          "The plugin now pulls from the legacy repository branch instead of main"
+        ]
+      }
+    ]
   }
 }

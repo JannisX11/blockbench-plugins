@@ -1,11 +1,17 @@
-const PathModule = require('path')
+const PathModule = require('path');
 
 module.exports = {
-    mode: 'production',
-    target: 'node',
-    entry: './index.js',
-    output: {
-        filename: 'azurelib_utils.js',
-        path: PathModule.resolve(__dirname, '../../plugins/azurelib_utils')
-    }
-}
+  mode: 'production',
+  target: 'node',
+  entry: './index.js',
+  output: {
+    filename: 'azurelib_utils.js',
+    path: PathModule.resolve(
+      __dirname,
+      '../../plugins/azurelib_utils'
+    )
+  },
+  optimization: {
+    minimize: false
+  }
+};

@@ -18,7 +18,11 @@ let CHANGED_FILES = process.env.CHANGED_FILES;
 if (CHANGED_FILES) {
 	let changes = CHANGED_FILES.replace(/\//g, '/').split('\n');
 	// Remove change type flag (M\tplugins.json)
-	let changed_files = changes.map(change => change.replace(/^\w\t/, ''));
+	let changed_files = [];
+	for (let change of changes) {
+		let cleared = change.replace(/^\w\d*\t/, '');
+		changed_files.push(...cleared.split('\t'));
+	}
 	if (!PLUGIN_ID) {
 		for (let path of changed_files) {
 			if (path.startsWith('plugins/')) {
@@ -69,7 +73,7 @@ let id = '';
 let source_meta = {};
 
 if (!json_meta) {
-	logError(`Plugin with ID "${PLUGIN_ID} not found in plugins.json"`);
+	logError(`Plugin with ID "${PLUGIN_ID}" not found in plugins.json`);
 	process.exit();
 }
 

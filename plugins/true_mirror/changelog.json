@@ -1,0 +1,32 @@
+{
+	"1.0.0": {
+		"title": "1.0.0",
+		"date": "2026-08-04",
+		"author": "Kegoscho",
+		"categories": [
+			{
+				"title": "Features",
+				"list": [
+					"Mirrors only the edit you made, so asymmetric detail elsewhere on the model is left alone",
+					"Move, rotate and scale in vertex, edge and face selection modes",
+					"Extrude, including the new side walls and the matching face on the other side",
+					"Mirror across X, Y or Z, set from a dropdown in the toolbar",
+					"Two mirror planes: Global uses world zero, Local uses the element's own pivot",
+					"Rotated elements work under Local, where the plane rotates with the element",
+					"A translucent guide shows where the mirror plane actually is",
+					"Edits that cannot be mirrored safely are skipped with a message naming the cause"
+				]
+			},
+			{
+				"title": "Known limits",
+				"list": [
+					"Loop cut, knife and deletion are not mirrored",
+					"Extrusions landing on or across the mirror plane are skipped, since nothing is welded at the seam",
+					"Mirroring happens inside one element, so rigged limb pairs are not paired up",
+					"New faces copy the source face's UVs; the UVs themselves are not mirrored",
+					"Mesh elements only, and Blockbench's built-in Mirror Modeling has to be off"
+				]
+			}
+		]
+	}
+}
