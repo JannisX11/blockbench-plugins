@@ -5968,7 +5968,14 @@
                     }
                     return true;
                 });
-                Undo.initEdit({elements: targetCubes, textures: [tex]});
+                const isSingleTex = !context.scopeRoot && globalThis.Format && Format.single_texture;
+                Undo.initEdit({elements: targetCubes, textures: isSingleTex ? Texture.all.slice() : [tex]});
+                if (isSingleTex) {
+                    (Texture.all || []).forEach(existing => {
+                        existing.use_as_default = (existing === tex);
+                    });
+                    if (typeof tex.select === "function") tex.select();
+                }
                 targetCubes.forEach(cube => {
                     if (typeof cube.applyTexture === "function") cube.applyTexture(tex, true);
                 });
@@ -6413,10 +6420,11 @@
         }
 
         function openNewMenu(event) {
+            const anchor = event && event.currentTarget instanceof HTMLElement ? event.currentTarget : event;
             new Menu([
                 {name: t("panelNewStandard"), icon: "accessibility_new", click: () => createPlayerProject()},
                 {name: t("panelNewDragoncore"), icon: "sports_martial_arts", click: () => createDragoncorePlayerProject()}
-            ]).open(event);
+            ]).open(anchor);
         }
 
         panel = new Panel("pal_bend_player_panel", {
