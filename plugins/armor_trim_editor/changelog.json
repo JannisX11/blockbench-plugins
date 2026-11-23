@@ -1,0 +1,42 @@
+{
+	"1.0.0": {
+		"title": "1.0.0",
+		"date": "2026-09-27",
+		"author": "BbIJABNPOBATEJb",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Initial release"
+				]
+			}
+		]
+	},
+	"1.1.0": {
+		"title": "1.1.0",
+		"date": "2026-09-29",
+		"author": "BbIJABNPOBATEJb",
+		"categories": [
+			{
+				"title": "New Features",
+				"list": [
+					"Armor icons: draw how the trim looks on armor items in the inventory, with a preview on every armor type and trim material",
+					"Armor icon generators: from the trim on the player, the vanilla overlay or simple shapes",
+					"Armor icons are exported in the Visual Armor Trims format, into Visual Armor Trims itself if the pack contains it"
+				]
+			},
+			{
+				"title": "Improvements",
+				"list": [
+					"Vanilla palettes are only added to the atlas for Minecraft versions that have them (copper_darker, resin)",
+					"Several trims can be opened from a resource pack at once, each in its own tab; a trim that is already open gets its tab back",
+					"Export only rewrites files whose content changed and keeps the line endings of edited JSON files",
+					"Re-exporting armor icons keeps the order of existing item model cases",
+					"Empty armor icons leave the pack entries of those items untouched, and a generator never replaces a drawn icon with an empty one",
+					"An empty template icon is not exported; the import finds the template icon path by itself",
+					"No backups for packs under git, and only the latest 10 backups are kept"
+				]
+			}
+		]
+	}
+}
