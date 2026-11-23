@@ -182,10 +182,11 @@
             panelNoRigHint: "Open a PAL player model, select a PAL actor in AnimCue, or create a new player project.",
             panelNewStandard: "Standard PAL Player",
             panelNewDragoncore: "DragonCore Player",
-            panelToolNew: "New Player Project",
-            panelToolSkin: "Load Skin (.png)",
-            panelToolImport: "Import PAL / Emote / Blender Animation",
-            panelToolExport: "Export PAL / MoreRotation / Emote",
+            panelToolNew: "New",
+            panelToolSkin: "Skin",
+            panelToolImport: "Import Animation",
+            panelToolExport: "Export",
+            panelPickHint: "Click any limb or bend joint",
             panelPoseMirror: "Mirror L↔R",
             panelPoseResetBone: "Reset Bone",
             panelPoseResetAll: "Reset All",
@@ -269,10 +270,11 @@
             panelNoRigHint: "打开玩家模型、选中合拍中的 PAL 角色，或点上方 + 新建玩家项目。",
             panelNewStandard: "标准 PAL 玩家",
             panelNewDragoncore: "龙核玩家模型版",
-            panelToolNew: "新建玩家项目",
-            panelToolSkin: "加载皮肤 (.png)",
-            panelToolImport: "导入 PAL / Emote / Blender 动画",
-            panelToolExport: "导出 PAL / MoreRotation / Emote",
+            panelToolNew: "新建",
+            panelToolSkin: "换皮肤",
+            panelToolImport: "导入动画",
+            panelToolExport: "导出",
+            panelPickHint: "点击部位切换骨骼或弯曲关节",
             panelPoseMirror: "镜像 L↔R",
             panelPoseResetBone: "归零单骨",
             panelPoseResetAll: "归零全身",
@@ -6157,61 +6159,96 @@
                 flex-direction: column;
                 height: 100%;
                 min-height: 0;
+                font-size: 12px;
             }
             .pal-bar {
                 display: flex;
                 align-items: center;
-                height: 30px;
-                padding: 0 4px;
-                gap: 2px;
+                height: 34px;
+                padding: 0 6px;
+                gap: 4px;
                 border-bottom: 1px solid var(--color-border);
                 flex-shrink: 0;
             }
             .pal-bar .pal-spacer { flex: 1; }
+            .pal-action-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                height: 24px;
+                padding: 0 7px;
+                border-radius: 4px;
+                border: 1px solid var(--color-border);
+                background: var(--color-button);
+                color: var(--color-text);
+                font-size: 11.5px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: background 0.12s ease;
+            }
+            .pal-action-btn:hover {
+                background: var(--color-selected);
+                color: var(--color-light);
+            }
+            .pal-action-btn.primary {
+                background: var(--color-accent);
+                border-color: var(--color-accent);
+                color: var(--color-accent_text);
+                font-weight: 500;
+            }
+            .pal-action-btn.primary:hover { filter: brightness(1.08); }
+            .pal-action-btn i { font-size: 15px; }
             .pal-tool {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                width: 26px;
-                height: 26px;
+                width: 24px;
+                height: 24px;
                 cursor: pointer;
                 color: var(--color-subtle_text);
-                border-radius: 2px;
+                border-radius: 4px;
             }
             .pal-tool:hover {
                 color: var(--color-light);
                 background: var(--color-selected);
             }
-            .pal-tool.accent { color: var(--color-accent); }
-            .pal-tool i { font-size: 18px; }
-            .pal-rig-wrap {
+            .pal-tool i { font-size: 17px; }
+            .pal-body {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 6px 8px 4px;
+                gap: 5px;
+                padding: 6px;
                 overflow-y: auto;
                 min-height: 0;
             }
+            .pal-stage {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 5px 6px 4px;
+                border-radius: 6px;
+                background: var(--color-back);
+                border: 1px solid var(--color-border);
+            }
             .pal-rig-svg {
-                width: 116px;
-                height: 144px;
+                width: 96px;
+                height: 114px;
                 user-select: none;
                 flex-shrink: 0;
             }
             .pal-part {
                 fill: var(--color-button);
                 stroke: var(--color-subtle_text);
-                stroke-opacity: 0.55;
+                stroke-opacity: 0.45;
                 stroke-width: 1.1;
                 cursor: pointer;
-                transition: fill 0.08s ease;
+                transition: fill 0.1s ease, stroke-opacity 0.1s ease;
             }
             .pal-part.bend {
-                fill: var(--color-back);
+                fill: rgba(62, 144, 255, 0.11);
                 stroke: var(--color-accent);
-                stroke-opacity: 0.65;
+                stroke-opacity: 0.55;
                 stroke-dasharray: 2.5 1.5;
             }
             .pal-part:hover {
@@ -6225,15 +6262,26 @@
                 stroke-dasharray: none;
             }
             .pal-part.missing {
-                opacity: 0.16;
+                opacity: 0.14;
+                pointer-events: none;
+            }
+            .pal-eye {
+                fill: var(--color-subtle_text);
+                opacity: 0.45;
+                pointer-events: none;
+            }
+            .pal-hinge {
+                fill: var(--color-accent);
+                opacity: 0.55;
                 pointer-events: none;
             }
             .pal-side-label {
                 fill: var(--color-subtle_text);
                 font-size: 9px;
+                font-weight: 600;
                 text-anchor: middle;
                 pointer-events: none;
-                opacity: 0.7;
+                opacity: 0.65;
             }
             .pal-kf-dot {
                 fill: var(--color-accent);
@@ -6242,49 +6290,87 @@
             .pal-part.selected + .pal-kf-dot {
                 fill: var(--color-accent_text);
             }
-            .pal-pose-bar {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                padding: 4px 6px 6px;
-                border-top: 1px solid var(--color-border);
+            .pal-readout {
+                margin-top: 3px;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-size: 11px;
+                color: var(--color-subtle_text);
+                background: var(--color-ui);
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .pal-readout.active {
+                color: var(--color-text);
+            }
+            .pal-pose-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 5px;
                 flex-shrink: 0;
             }
             .pal-pose-btn {
                 display: inline-flex;
                 align-items: center;
+                justify-content: center;
                 gap: 3px;
-                height: 24px;
-                padding: 0 7px;
+                height: 26px;
+                padding: 0 5px;
                 font-size: 11px;
                 color: var(--color-text);
                 background: var(--color-button);
                 border: 1px solid var(--color-border);
-                border-radius: 2px;
+                border-radius: 4px;
                 cursor: pointer;
                 white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: background 0.12s ease, border-color 0.12s ease;
             }
-            .pal-pose-btn:hover { background: var(--color-selected); }
+            .pal-pose-btn:hover {
+                background: var(--color-selected);
+                border-color: var(--color-subtle_text);
+                color: var(--color-light);
+            }
             .pal-pose-btn i { font-size: 14px; color: var(--color-subtle_text); }
             .pal-empty {
-                padding: 12px 10px;
-                font-size: 12px;
+                padding: 14px 10px;
+                text-align: center;
+                font-size: 11.5px;
                 color: var(--color-subtle_text);
                 line-height: 1.5;
+                background: var(--color-back);
+                border: 1px dashed var(--color-border);
+                border-radius: 5px;
             }
             .pal-footer {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                height: 22px;
+                height: 24px;
                 padding: 0 8px;
                 border-top: 1px solid var(--color-border);
                 font-size: 11px;
                 color: var(--color-subtle_text);
                 flex-shrink: 0;
             }
-            .pal-footer .more-rot { color: var(--color-accent); }
+            .pal-mode-chip {
+                display: inline-flex;
+                align-items: center;
+                height: 16px;
+                padding: 0 5px;
+                border-radius: 3px;
+                font-size: 10px;
+                background: var(--color-button);
+                color: var(--color-subtle_text);
+            }
+            .pal-mode-chip.more-rot {
+                background: rgba(62, 144, 255, 0.16);
+                color: var(--color-accent);
+                border: 1px solid rgba(62, 144, 255, 0.35);
+            }
         `;
 
         if (globalThis.Blockbench && typeof Blockbench.addCSS === "function") {
@@ -6309,13 +6395,14 @@
                 };
             });
             const isMoreRot = detectLiveAnimationMoreRotation(ctx);
+            const activePart = parts.find(p => p.selected);
             return {
                 hasRig: !!ctx,
                 rigLabel: ctx ? ctx.label : "",
                 inAnimate,
                 isMoreRot,
                 modeLabel: isMoreRot ? t("panelModeMoreRotation") : t("panelModeOriginal"),
-                selectedName: selected ? (selected.animcue_bone_name || selected.name) : "",
+                selectedLabel: activePart ? activePart.title : (selected ? (selected.animcue_bone_name || selected.name) : ""),
                 parts
             };
         }
@@ -6342,7 +6429,7 @@
                 slot: "right_bar",
                 float_position: [0, 0],
                 float_size: [240, 300],
-                height: 260
+                height: 278
             },
             insert_before: "outliner",
             component: {
@@ -6380,61 +6467,76 @@
                 template: `
                     <div class="pal-panel">
                         <div class="pal-bar">
-                            <div class="pal-tool" :title="t('panelToolNew')" @click="openNew($event)">
-                                <i class="material-icons">add</i>
+                            <div class="pal-action-btn" :title="t('panelToolNew')" @click="openNew($event)">
+                                <i class="material-icons">add</i><span>{{ t('panelToolNew') }}</span>
                             </div>
-                            <div v-if="hasRig" class="pal-tool" :title="t('panelToolSkin')" @click="loadSkin">
-                                <i class="material-icons">face</i>
+                            <div v-if="hasRig" class="pal-action-btn" :title="t('actionLoadSkinName')" @click="loadSkin">
+                                <i class="material-icons">face</i><span>{{ t('panelToolSkin') }}</span>
                             </div>
                             <div class="pal-spacer"></div>
                             <div class="pal-tool" :title="t('panelToolImport')" @click="doImport">
                                 <i class="material-icons">file_upload</i>
                             </div>
-                            <div v-if="hasRig" class="pal-tool accent" :title="t('panelToolExport')" @click="doExport">
-                                <i class="material-icons">file_download</i>
+                            <div v-if="hasRig" class="pal-action-btn primary" :title="t('actionExportName')" @click="doExport">
+                                <i class="material-icons">file_download</i><span>{{ t('panelToolExport') }}</span>
                             </div>
                         </div>
 
-                        <div v-if="!hasRig" class="pal-empty">
-                            <div>{{ t('panelNoRigHint') }}</div>
-                            <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;">
-                                <button @click="newStandard">{{ t('panelNewStandard') }}</button>
-                                <button @click="newDragoncore">{{ t('panelNewDragoncore') }}</button>
+                        <div v-if="!hasRig" class="pal-body">
+                            <div class="pal-empty">
+                                <div>{{ t('panelNoRigHint') }}</div>
+                                <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap;">
+                                    <div class="pal-action-btn primary" @click="newStandard">{{ t('panelNewStandard') }}</div>
+                                    <div class="pal-action-btn" @click="newDragoncore">{{ t('panelNewDragoncore') }}</div>
+                                </div>
                             </div>
                         </div>
 
                         <template v-else>
-                            <div class="pal-rig-wrap">
-                                <svg class="pal-rig-svg" viewBox="0 0 116 144">
-                                    <text class="pal-side-label" x="12" y="28">R</text>
-                                    <text class="pal-side-label" x="104" y="28">L</text>
-                                    <g v-for="part in parts" :key="part.id" @click="pickPart(part.id)">
-                                        <rect class="pal-part"
-                                              :class="{bend: part.bend, selected: part.selected, missing: !part.exists}"
-                                              :x="part.x" :y="part.y" :width="part.w" :height="part.h" rx="1.5">
-                                            <title>{{ part.title }}</title>
-                                        </rect>
-                                        <circle v-if="part.hasKeys" class="pal-kf-dot"
-                                                :cx="part.x + part.w - 3.5" :cy="part.y + 3.5" r="2" />
-                                    </g>
-                                </svg>
-                            </div>
+                            <div class="pal-body">
+                                <div class="pal-stage">
+                                    <svg class="pal-rig-svg" viewBox="0 0 116 144">
+                                        <text class="pal-side-label" x="12" y="26">R</text>
+                                        <text class="pal-side-label" x="104" y="26">L</text>
+                                        <g v-for="part in parts" :key="part.id" @click="pickPart(part.id)">
+                                            <rect class="pal-part"
+                                                  :class="{bend: part.bend, selected: part.selected, missing: !part.exists}"
+                                                  :x="part.x" :y="part.y" :width="part.w" :height="part.h" rx="2">
+                                                <title>{{ part.title }}</title>
+                                            </rect>
+                                            <circle v-if="part.hasKeys" class="pal-kf-dot"
+                                                    :cx="part.x + part.w - 3.5" :cy="part.y + 3.5" r="2.1" />
+                                        </g>
+                                        <!-- Subtle Steve face eyes & bend joint markers -->
+                                        <rect class="pal-eye" x="49" y="16" width="5" height="3.5" rx="0.6" />
+                                        <rect class="pal-eye" x="62" y="16" width="5" height="3.5" rx="0.6" />
+                                        <circle class="pal-hinge" cx="30" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="86" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="58" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="49.5" cy="102" r="1.5" />
+                                        <circle class="pal-hinge" cx="66.5" cy="102" r="1.5" />
+                                    </svg>
+                                    <div class="pal-readout" :class="{active: !!selectedLabel}">
+                                        {{ selectedLabel || t('panelPickHint') }}
+                                    </div>
+                                </div>
 
-                            <div class="pal-pose-bar" v-if="inAnimate">
-                                <div class="pal-pose-btn" :title="t('actionMirrorPoseDescription')" @click="mirrorPose">
-                                    <i class="material-icons">flip</i><span>{{ t('panelPoseMirror') }}</span>
-                                </div>
-                                <div class="pal-pose-btn" :title="t('actionResetBoneDescription')" @click="resetBone">
-                                    <i class="material-icons">undo</i><span>{{ t('panelPoseResetBone') }}</span>
-                                </div>
-                                <div class="pal-pose-btn" :title="t('actionResetPoseDescription')" @click="resetPose">
-                                    <i class="material-icons">restart_alt</i><span>{{ t('panelPoseResetAll') }}</span>
+                                <div class="pal-pose-grid" v-if="inAnimate">
+                                    <div class="pal-pose-btn" :title="t('actionMirrorPoseDescription')" @click="mirrorPose">
+                                        <i class="material-icons">flip</i><span>{{ t('panelPoseMirror') }}</span>
+                                    </div>
+                                    <div class="pal-pose-btn" :title="t('actionResetBoneDescription')" @click="resetBone">
+                                        <i class="material-icons">undo</i><span>{{ t('panelPoseResetBone') }}</span>
+                                    </div>
+                                    <div class="pal-pose-btn" :title="t('actionResetPoseDescription')" @click="resetPose">
+                                        <i class="material-icons">restart_alt</i><span>{{ t('panelPoseResetAll') }}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="pal-footer">
                                 <span>{{ rigLabel }}</span>
-                                <span :class="{'more-rot': isMoreRot}">{{ modeLabel }}</span>
+                                <span class="pal-mode-chip" :class="{'more-rot': isMoreRot}">{{ modeLabel }}</span>
                             </div>
                         </template>
                     </div>
@@ -6443,7 +6545,7 @@
         });
 
         if (globalThis.Blockbench && typeof Blockbench.on === "function") {
-            ["select_project", "close_project", "update_selection", "finished_edit", "select_mode", "load_project"].forEach(event => {
+            ["select_project", "close_project", "update_selection", "update_keyframe_selection", "finished_edit", "select_mode", "load_project"].forEach(event => {
                 const handler = () => refresh();
                 Blockbench.on(event, handler);
                 cleanups.push(() => Blockbench.removeListener(event, handler));
