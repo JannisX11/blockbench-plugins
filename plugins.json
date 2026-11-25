@@ -1812,5 +1812,19 @@
 		"tags": [
 			"Vintage Story"
 		]
+	},
+	"blockbench_workshop": {
+		"title": "Blockbench Workshop",
+		"author": "Blockbench Workshop",
+		"icon": "icon.svg",
+		"description": "Link your Workshop account and send the open project to the upload page.",
+		"version": "1.0.0",
+		"variant": "both",
+		"min_version": "4.8.0",
+		"website": "https://blockbenchworkshop.com",
+		"tags": [
+			"Utility",
+			"Sharing"
+		]
 	}
 }
