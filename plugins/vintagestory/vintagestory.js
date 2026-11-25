@@ -5,16 +5,10 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-    get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-  }) : x)(function(x) {
-    if (typeof require !== "undefined") return require.apply(this, arguments);
-    throw Error('Dynamic require of "' + x + '" is not supported');
-  });
   var __esm = (fn, res) => function __init() {
     return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
   };
-  var __commonJS = (cb, mod) => function __require2() {
+  var __commonJS = (cb, mod) => function __require() {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var __export = (target, all) => {
@@ -71,6 +65,14 @@
   });
 
   // src/util.ts
+  function is_glint_preset() {
+    return Settings.get("attachment_preset") === "glint";
+  }
+  function get_texture_location(shape_path, location) {
+    const [, assets, shape_domain] = shape_path.replace(/\\/g, "/").match(/^(.*\/assets)\/([^/]+)\/shapes\//) ?? [];
+    const [domain, rel] = location.includes(":") ? location.split(":") : [shape_domain, location];
+    return [`${assets}/${domain}/textures/${rel}.png`, `${get_game_path()}/assets/${domain}/textures/${rel}.png`].find((f) => fs.existsSync(f)) ?? "";
+  }
   function vector_equals(a, b) {
     for (let i = 0; i < 3; i++) {
       if (a[i] != b[i]) {
@@ -111,26 +113,11 @@
       THREE.MathUtils.radToDeg(euler.z)
     ];
   }
-  var path, fps, get_texture_location;
+  var fps;
   var init_util = __esm({
     "src/util.ts"() {
-      path = __toESM(__require("path"), 1);
       init_native();
       fps = 30;
-      get_texture_location = function(domain, rel_path) {
-        for (const base_mod_path of ["creative", "game", "survival"]) {
-          const f = path.posix.format({
-            root: get_game_path() + path.sep + "assets" + path.sep + base_mod_path + path.sep + "textures" + path.sep,
-            name: rel_path,
-            ext: ".png"
-          });
-          const exists = fs.existsSync(f);
-          if (exists) {
-            return f;
-          }
-        }
-        return "";
-      };
     }
   });
 
@@ -5328,8 +5315,8 @@
           wsComponents.secure = void 0;
         }
         if (wsComponents.resourceName) {
-          const [path7, query] = wsComponents.resourceName.split("?");
-          wsComponents.path = path7 && path7 !== "/" ? path7 : void 0;
+          const [path6, query] = wsComponents.resourceName.split("?");
+          wsComponents.path = path6 && path6 !== "/" ? path6 : void 0;
           wsComponents.query = query;
           wsComponents.resourceName = void 0;
         }
@@ -8348,7 +8335,7 @@
     name,
     title: "Vintage Story Format Support",
     description: "A Blockbench plugin that adds support for Vintage Story models",
-    version: "0.12.3",
+    version: "0.12.5",
     author: {
       name: "Anego Studios",
       email: "office@anegostudios.com",
@@ -8551,7 +8538,7 @@
   init_util();
   var import_json5 = __toESM(require_lib(), 1);
   init_native();
-  var path2 = requireNativeModule("path");
+  var path = requireNativeModule("path");
   var reExportAction = createAction(`${name}:reExport`, {
     name: "Reexport Test",
     icon: "fa-flask-vial",
@@ -8574,8 +8561,8 @@
           const test_files = fs.readdirSync(test_folder, { encoding: "utf-8" });
           for (const test_file of test_files) {
             if (!test_file.endsWith(".json") || test_file.startsWith("reexport_")) continue;
-            const input_path = path2.resolve(test_folder, test_file);
-            const output_path = path2.resolve(test_folder, `reexport_${test_file}`);
+            const input_path = path.resolve(test_folder, test_file);
+            const output_path = path.resolve(test_folder, `reexport_${test_file}`);
             if (!fs?.statSync(input_path).isFile()) continue;
             console.log(`Processing: ${input_path} \u2192 ${output_path}`);
             try {
@@ -8626,32 +8613,32 @@
     "autoUnwrap",
     "disableRandomDrawOffset"
   ]);
-  function deepCompare(a, b, path7) {
+  function deepCompare(a, b, path6) {
     const diffs = [];
     if (a === b) return diffs;
     if (a === void 0 && b === void 0) return diffs;
     if (a === null && b === null) return diffs;
     if (a == null || b == null) {
-      diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+      diffs.push(`${path6}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
       return diffs;
     }
     if (typeof a === "number" && typeof b === "number") {
       if (Math.abs(a - b) > FLOAT_EPSILON) {
-        diffs.push(`${path7}: ${a} vs ${b}`);
+        diffs.push(`${path6}: ${a} vs ${b}`);
       }
       return diffs;
     }
     if (typeof a !== typeof b) {
-      diffs.push(`${path7}: type ${typeof a} vs ${typeof b} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`);
+      diffs.push(`${path6}: type ${typeof a} vs ${typeof b} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`);
       return diffs;
     }
     if (Array.isArray(a) && Array.isArray(b)) {
       const maxLen = Math.max(a.length, b.length);
       if (a.length !== b.length) {
-        diffs.push(`${path7}: array length ${a.length} vs ${b.length}`);
+        diffs.push(`${path6}: array length ${a.length} vs ${b.length}`);
       }
       for (let i = 0; i < maxLen; i++) {
-        diffs.push(...deepCompare(a[i], b[i], `${path7}[${i}]`));
+        diffs.push(...deepCompare(a[i], b[i], `${path6}[${i}]`));
       }
       return diffs;
     }
@@ -8663,7 +8650,7 @@
         if (VS_EMPTY_EQUIVALENT_KEYS.has(key) && isVsEmpty(aObj[key]) && isVsEmpty(bObj[key])) {
           continue;
         }
-        diffs.push(...deepCompare(aObj[key], bObj[key], `${path7}.${key}`));
+        diffs.push(...deepCompare(aObj[key], bObj[key], `${path6}.${key}`));
       }
       return diffs;
     }
@@ -8672,13 +8659,13 @@
       const bNum = Number(b);
       if (!isNaN(aNum) && !isNaN(bNum)) {
         if (Math.abs(aNum - bNum) > FLOAT_EPSILON) {
-          diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+          diffs.push(`${path6}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
         }
         return diffs;
       }
     }
     if (a !== b) {
-      diffs.push(`${path7}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+      diffs.push(`${path6}: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
     }
     return diffs;
   }
@@ -8705,7 +8692,7 @@
           let totalDiffs = 0;
           for (const test_file of test_files) {
             if (!test_file.endsWith(".json") || test_file.includes("reexport_")) continue;
-            const input_path = path2.resolve(test_folder, test_file);
+            const input_path = path.resolve(test_folder, test_file);
             if (!fs.statSync(input_path).isFile()) continue;
             try {
               const originalContent = fs.readFileSync(input_path, "utf-8");
@@ -8872,13 +8859,12 @@
 
   // src/import_model/cube/faces.ts
   function process_faces(faces) {
-    if (!faces) {
-      return {};
-    }
     const processed_faces = {};
     for (const direction of Object.values(VS_Direction)) {
-      const faceData = faces[direction];
-      if (faceData) {
+      const faceData = faces?.[direction];
+      if (!faceData) {
+        processed_faces[direction] = { texture: null };
+      } else {
         const texture_name = faceData.texture ? faceData.texture.substring(1) : null;
         let texture = Texture.all.find((t) => t.name === texture_name);
         if (!texture && texture_name) {
@@ -9192,9 +9178,9 @@
     if (!ctx) return null;
     const colon = effectCode.indexOf(":");
     const domain = colon >= 0 ? effectCode.slice(0, colon) : ctx.domain;
-    const path7 = colon >= 0 ? effectCode.slice(colon + 1) : effectCode;
-    if (!path7) return null;
-    return nodePath.join(ctx.assetsRoot, domain, "particles", `${path7}.json`);
+    const path6 = colon >= 0 ? effectCode.slice(colon + 1) : effectCode;
+    if (!path6) return null;
+    return nodePath.join(ctx.assetsRoot, domain, "particles", `${path6}.json`);
   }
   function resolve_particle_effect(effectCode) {
     const code = effectCode.trim();
@@ -9322,11 +9308,11 @@
     if (dp.vs_looping === true) out.looping = true;
     return out;
   }
-  function without_extension(path7) {
+  function without_extension(path6) {
     for (const ext of SOUND_EXTENSIONS) {
-      if (path7.toLowerCase().endsWith(ext)) return path7.slice(0, -ext.length);
+      if (path6.toLowerCase().endsWith(ext)) return path6.slice(0, -ext.length);
     }
-    return path7;
+    return path6;
   }
   function sound_location_for_file(filePath) {
     const p = filePath.replace(/\\/g, "/");
@@ -9357,9 +9343,9 @@
     if (!ctx) return null;
     const colon = location.indexOf(":");
     const domain = colon >= 0 ? location.slice(0, colon) : ctx.domain;
-    const path7 = (colon >= 0 ? location.slice(colon + 1) : location).replace(/^sounds\//, "");
-    if (!path7) return null;
-    const concrete = path7.split("*").join("1");
+    const path6 = (colon >= 0 ? location.slice(colon + 1) : location).replace(/^sounds\//, "");
+    if (!path6) return null;
+    const concrete = path6.split("*").join("1");
     const soundsRoot = `${ctx.assetsRoot}/${domain}/sounds`;
     for (const ext of SOUND_EXTENSIONS) {
       const candidate = `${soundsRoot}/${concrete}${ext}`;
@@ -9427,18 +9413,18 @@
 
   // src/import_animation.ts
   init_preserved_props();
-  function create_animation(vsAnimation, path7, saved_name) {
+  function create_animation(vsAnimation, path6, saved_name) {
     const FPS = fps;
     const animationLength = vsAnimation.quantityframes / FPS;
     const onAnimationEnd = vsAnimation.onAnimationEnd ?? "Repeat";
     const animation = new Blockbench.Animation({
       name: vsAnimation.name,
-      path: path7 || "",
+      path: path6 || "",
       loop: onAnimationEnd === "Repeat" ? "loop" : onAnimationEnd === "Hold" ? "hold" : "once",
       length: animationLength,
       snapping: FPS
     }).add();
-    if (path7) animation.path = path7;
+    if (path6) animation.path = path6;
     if (saved_name) {
       animation.saved_name = saved_name;
       animation.saved = true;
@@ -9447,6 +9433,11 @@
     animation.vs_onActivityStopped = vsAnimation.onActivityStopped ?? "Rewind";
     animation.vs_onAnimationEnd = onAnimationEnd;
     store_animation_extras(animation, vsAnimation);
+    import_animation_keyframes(animation, vsAnimation);
+    return animation;
+  }
+  function import_animation_keyframes(animation, vsAnimation) {
+    const FPS = fps;
     const channelFrames = buildChannelFrames(vsAnimation);
     vsAnimation.keyframes.forEach((vsKeyframe) => {
       if (vsKeyframe.particles && vsKeyframe.particles.length > 0) {
@@ -9494,7 +9485,6 @@
         });
       }
     });
-    return animation;
   }
   function import_animations(animations) {
     animations.forEach((vsAnimation) => create_animation(vsAnimation));
@@ -9658,7 +9648,7 @@
   // src/util/misc.ts
   var import_json52 = __toESM(require_lib(), 1);
   init_native();
-  var path3 = requireNativeModule("path");
+  var path2 = requireNativeModule("path");
   function load_back_drop_shape(backDropShape) {
     Blockbench.read([get_shape_location(null, backDropShape)], {
       readtype: "text",
@@ -9669,8 +9659,8 @@
   }
   function get_shape_location(domain, rel_path) {
     for (const base_mod_path of ["creative", "game", "survival"]) {
-      const f = path3.posix.format({
-        root: get_game_path() + path3.sep + "assets" + path3.sep + base_mod_path + path3.sep + "shapes" + path3.sep,
+      const f = path2.posix.format({
+        root: get_game_path() + path2.sep + "assets" + path2.sep + base_mod_path + path2.sep + "shapes" + path2.sep,
         name: rel_path,
         ext: ".json"
       });
@@ -9978,7 +9968,7 @@
       name: animation.name,
       code: storedCode || animation.name.toLowerCase().replace(/ /g, ""),
       quantityframes: get_frame_quantity(animation, keyframes),
-      onActivityStopped: storedOnActivityStopped || "Rewind",
+      onActivityStopped: storedOnActivityStopped || (is_glint_preset() ? "EaseOut" : "Rewind"),
       onAnimationEnd,
       keyframes: Object.values(keyframes).sort((a, b) => a.frame - b.frame)
     };
@@ -10005,6 +9995,9 @@
           vsAnimation.keyframes.sort((a, b) => a.frame - b.frame);
         }
       }
+    }
+    if (vsAnimation.onAnimationEnd !== "Repeat" && is_glint_preset()) {
+      hold_end_pose(vsAnimation.keyframes, vsAnimation.quantityframes - 1);
     }
     if (vsAnimation.keyframes.length === 0) return null;
     apply_extra_props(vsAnimation, animation.vs_extra_props);
@@ -10055,6 +10048,35 @@
     shiftedKeyframe.frame = lastExportableFrame;
     keyframes[lastExportableFrame] = shiftedKeyframe;
     delete keyframes[terminalFrame];
+  }
+  function hold_end_pose(keyframes, lastFrame) {
+    const start = {};
+    const end = {};
+    for (const [axes] of CHANNEL_AXIS_NEUTRALS) {
+      const seen = {};
+      for (const keyframe of keyframes) {
+        for (const [name2, elem] of Object.entries(keyframe.elements)) {
+          if (elem[axes[0]] === void 0) continue;
+          const entry = seen[name2] ??= { first: keyframe, last: keyframe, count: 0 };
+          entry.last = keyframe;
+          entry.count++;
+        }
+      }
+      for (const [name2, { first, last, count }] of Object.entries(seen)) {
+        if (count < 2) continue;
+        if (first.frame > 0) Object.assign(start[name2] ??= {}, pick(first.elements[name2], axes));
+        if (last.frame < lastFrame) Object.assign(end[name2] ??= {}, pick(last.elements[name2], axes));
+      }
+    }
+    for (const [frame, additions] of [[0, start], [lastFrame, end]]) {
+      if (!Object.keys(additions).length) continue;
+      const keyframe = keyframes.find((kf) => kf.frame === frame) ?? keyframes[keyframes.push({ frame, elements: {} }) - 1];
+      for (const [name2, values] of Object.entries(additions)) Object.assign(keyframe.elements[name2] ??= {}, values);
+    }
+    keyframes.sort((a, b) => a.frame - b.frame);
+  }
+  function pick(elem, keys) {
+    return Object.fromEntries(keys.map((key) => [key, elem[key]]));
   }
   function keyframe_contents_match(a, b) {
     return stable_keyframe_content(a) === stable_keyframe_content(b);
@@ -10121,9 +10143,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     const ctx = parse_model_location(modelPath);
     return ctx ? `${ctx.assetsRoot}/${ctx.domain}/animations` : void 0;
   }
-  function build_library(path7, animations) {
-    const meta = path7 ? libraryMeta.get(path7) : void 0;
-    const stem = path7 ? basename_no_ext(path7) : void 0;
+  function build_library(path6, animations) {
+    const meta = path6 ? libraryMeta.get(path6) : void 0;
+    const stem = path6 ? basename_no_ext(path6) : void 0;
     const library = { animations };
     const code = meta?.code ?? stem;
     const name2 = meta?.name ?? stem;
@@ -10131,10 +10153,10 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     if (name2) library.name = name2;
     return library;
   }
-  function read_library(path7) {
-    if (!path7 || !fs.existsSync(path7)) return null;
-    const library = import_json53.default.parse(fs.readFileSync(path7, "utf-8"));
-    if (!Array.isArray(library.animations)) throw new Error(`Invalid animation library: ${path7}`);
+  function read_library(path6) {
+    if (!path6 || !fs.existsSync(path6)) return null;
+    const library = import_json53.default.parse(fs.readFileSync(path6, "utf-8"));
+    if (!Array.isArray(library.animations)) throw new Error(`Invalid animation library: ${path6}`);
     return library;
   }
   function load_file(file, animation_filter) {
@@ -10149,8 +10171,8 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     return created;
   }
   function compile_file(animations, compiled = compile_animation_library(animations).animations) {
-    const path7 = animations[0]?.path;
-    const sharedPath = path7 && animations.every((a) => a.path === path7) ? path7 : void 0;
+    const path6 = animations[0]?.path;
+    const sharedPath = path6 && animations.every((a) => a.path === path6) ? path6 : void 0;
     const library = read_library(sharedPath);
     if (!library) return build_library(sharedPath, compiled);
     if (sharedPath) libraryMeta.set(sharedPath, { code: library.code, name: library.name });
@@ -10191,13 +10213,13 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
   }
   function reload_animations(animations) {
     if (!animations.length) return;
-    const path7 = animations[0].path;
-    const json = import_json53.default.parse(fs.readFileSync(path7, "utf-8"));
-    if (!Array.isArray(json.animations)) throw new Error(`Invalid animation library: ${path7}`);
+    const path6 = animations[0].path;
+    const json = import_json53.default.parse(fs.readFileSync(path6, "utf-8"));
+    if (!Array.isArray(json.animations)) throw new Error(`Invalid animation library: ${path6}`);
     const selected = animations.find((a) => a.selected);
     Undo.initEdit({ animations, outliner: true, elements: Cube.all });
     animations.forEach((a) => a.remove(false, false));
-    const created = load_file({ path: path7, json }, animations.map((a) => a.saved_name || a.name));
+    const created = load_file({ path: path6, json }, animations.map((a) => a.saved_name || a.name));
     for (const animation of created) {
       const previous = animations.find((a) => (a.saved_name || a.name) === animation.name);
       animation.vs_library_ref = previous.vs_library_ref;
@@ -10214,9 +10236,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       });
       return;
     }
-    const path7 = animation.path;
+    const path6 = animation.path;
     const library = compile_file([animation], [vsAnim]);
-    Blockbench.writeFile(path7, { content: autoStringify(library) }, (real_path) => {
+    Blockbench.writeFile(path6, { content: autoStringify(library) }, (real_path) => {
       animation.saved = true;
       animation.saved_name = animation.name;
       animation.path = real_path;
@@ -10242,8 +10264,8 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     }
     write_animation_to_library(animation);
   }
-  function export_file(path7, save_as) {
-    const filterPath = path7 || "";
+  function export_file(path6, save_as) {
+    const filterPath = path6 || "";
     const animations = all_animations().filter((a) => (a.path || "") === filterPath);
     if (animations.length === 0) return;
     if (!save_as && filterPath && fs.existsSync(filterPath)) {
@@ -10271,12 +10293,12 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     });
   }
   function delete_animation_from_file(animation) {
-    const path7 = animation.path;
-    const library = read_library(path7);
+    const path6 = animation.path;
+    const library = read_library(path6);
     if (!library) return;
     const target = animation.saved_name ?? animation.name;
     library.animations = library.animations.filter((a) => a.name !== target);
-    Blockbench.writeFile(path7, { content: autoStringify(library) });
+    Blockbench.writeFile(path6, { content: autoStringify(library) });
   }
   function create_vs_animation_codec() {
     if (typeof AnimationCodec === "undefined") {
@@ -10288,7 +10310,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       pickFile: pick_file,
       importFile: import_file,
       loadFile: load_file,
-      reloadFile: (path7) => reload_animations(all_animations().filter((a) => a.path === path7 && a.saved)),
+      reloadFile: (path6) => reload_animations(all_animations().filter((a) => a.path === path6 && a.saved)),
       reloadAnimation: (animation) => reload_animations([animation]),
       compileAnimation: (animation) => compile_animation(animation),
       compileFile: compile_file,
@@ -10301,7 +10323,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
 
   // src/import.ts
   init_native();
-  function im(content, _path, asBackdrop) {
+  function im(content, shape_path, asBackdrop) {
     if (!Project) {
       throw new Error("No project loaded during import");
     }
@@ -10311,7 +10333,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       Project.vs_textureSizes = { ...content.textureSizes };
     }
     for (const name2 in content.textures) {
-      const texturePath = get_texture_location(null, content.textures[name2]);
+      const texturePath = get_texture_location(shape_path, content.textures[name2]);
       const texture = new Texture({ name: name2, path: texturePath }).add().load();
       if (content.textureSizes && content.textureSizes[name2]) {
         texture.uv_width = content.textureSizes[name2][0];
@@ -10338,12 +10360,12 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         load_back_drop_shape(Project.backDropShape);
       }
     }
-    import_model(content, asBackdrop, _path);
+    import_model(content, asBackdrop, shape_path);
     if (content.animations) {
       import_animations(content.animations);
     }
     if (content.animationLibraries && content.animationLibraries.length > 0) {
-      load_animation_libraries(content.animationLibraries, _path);
+      load_animation_libraries(content.animationLibraries, shape_path);
     }
   }
   function load_animation_libraries(refs, modelPath) {
@@ -10736,7 +10758,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
 
   // src/export_textures.ts
   init_native();
-  var path4 = requireNativeModule("path");
+  var path3 = requireNativeModule("path");
   function warnTextureReadErrors(readErrors) {
     if (readErrors.size === 0) return;
     console.error("[VS Export] Unresolved texture search; unreadable folders:", readErrors);
@@ -10747,14 +10769,14 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       return "";
     }
     let texturesPath = null;
-    const shapesIndex = projectPath.indexOf(path4.sep + "shapes" + path4.sep);
+    const shapesIndex = projectPath.indexOf(path3.sep + "shapes" + path3.sep);
     if (shapesIndex !== -1) {
       const basePath = projectPath.substring(0, shapesIndex);
-      texturesPath = path4.join(basePath, "textures");
+      texturesPath = path3.join(basePath, "textures");
     } else {
-      const texturesIndex = projectPath.indexOf(path4.sep + "textures" + path4.sep);
+      const texturesIndex = projectPath.indexOf(path3.sep + "textures" + path3.sep);
       if (texturesIndex !== -1) {
-        texturesPath = projectPath.substring(0, texturesIndex + path4.sep.length + "textures".length);
+        texturesPath = projectPath.substring(0, texturesIndex + path3.sep.length + "textures".length);
       } else {
         return "";
       }
@@ -10764,9 +10786,9 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     }
     const textureFile = findTextureFile(texturesPath, textureName, readErrors);
     if (!textureFile) return "";
-    const relativePath = path4.relative(texturesPath, textureFile);
+    const relativePath = path3.relative(texturesPath, textureFile);
     const withoutExt = relativePath.replace(/\.[^.]+$/, "");
-    return withoutExt.split(path4.sep).join("/");
+    return withoutExt.split(path3.sep).join("/");
   }
   function findTextureFile(dir, textureName, readErrors) {
     let entries;
@@ -10779,7 +10801,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       return null;
     }
     for (const entry of entries) {
-      const fullPath = path4.join(dir, entry.name);
+      const fullPath = path3.join(dir, entry.name);
       if (entry.isDirectory()) {
         const found = findTextureFile(fullPath, textureName, readErrors);
         if (found) return found;
@@ -10792,7 +10814,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
 
   // src/export.ts
   init_native();
-  var path5 = requireNativeModule("path");
+  var path4 = requireNativeModule("path");
   function saveTextureToFile(texture, textureDir, textureSubPath) {
     try {
       if (typeof texture.getDataURL !== "function") {
@@ -10803,11 +10825,11 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       if (!filename.match(/\.(png|jpg|jpeg)$/i)) {
         filename += ".png";
       }
-      const fullTextureDir = path5.join(textureDir, textureSubPath);
+      const fullTextureDir = path4.join(textureDir, textureSubPath);
       if (!fs.existsSync(fullTextureDir)) {
         fs.mkdirSync(fullTextureDir, { recursive: true });
       }
-      const texturePath = path5.join(fullTextureDir, filename);
+      const texturePath = path4.join(fullTextureDir, filename);
       const dataUrl = texture.getDataURL();
       if (!dataUrl) {
         console.warn(`Could not get data URL for texture: ${texture.name}`);
@@ -10817,7 +10839,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
       const buffer = Buffer.from(base64Data, "base64");
       fs.writeFileSync(texturePath, buffer);
       const filenameWithoutExt = filename.replace(/\.[^.]+$/, "");
-      const normalizedSubPath = textureSubPath.split(path5.sep).join("/");
+      const normalizedSubPath = textureSubPath.split(path4.sep).join("/");
       return normalizedSubPath ? `${normalizedSubPath}/${filenameWithoutExt}` : filenameWithoutExt;
     } catch (e) {
       console.error(`Failed to save texture ${texture.name}:`, e);
@@ -10833,12 +10855,12 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
     let textureBaseDir = exportDir;
     let textureSubPath = "";
     if (exportPath) {
-      const shapesIndex = exportPath.indexOf(path5.sep + "shapes" + path5.sep);
+      const shapesIndex = exportPath.indexOf(path4.sep + "shapes" + path4.sep);
       if (shapesIndex !== -1) {
         const basePath = exportPath.substring(0, shapesIndex);
-        textureBaseDir = path5.join(basePath, "textures");
-        const afterShapes = exportPath.substring(shapesIndex + path5.sep.length + "shapes".length + path5.sep.length);
-        const lastSep = afterShapes.lastIndexOf(path5.sep);
+        textureBaseDir = path4.join(basePath, "textures");
+        const afterShapes = exportPath.substring(shapesIndex + path4.sep.length + "shapes".length + path4.sep.length);
+        const lastSep = afterShapes.lastIndexOf(path4.sep);
         if (lastSep !== -1) {
           textureSubPath = afterShapes.substring(0, lastSep);
         }
@@ -10912,7 +10934,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
 
   // src/actions.ts
   init_native();
-  var path6 = requireNativeModule("path");
+  var path5 = requireNativeModule("path");
   var export_action = createAction(`${name}:export_vs`, {
     name: "Export into VS Format",
     icon: icon_default,
@@ -10930,7 +10952,7 @@ Vintage Story has no native catmull-rom mode, so these keyframes were exported a
         savetype: "text",
         custom_writer: (_content, exportPath) => {
           try {
-            const exportDir = path6.dirname(exportPath);
+            const exportDir = path5.dirname(exportPath);
             const data = ex({ path: exportPath, exportDir });
             const jsonContent = autoStringify(data);
             fs.writeFileSync(exportPath, jsonContent);
@@ -11023,6 +11045,55 @@ This can be undone with Ctrl+Z.`)) {
   });
   MenuBar.addAction(reload_vfx_action, "animation");
 
+  // src/animation_textures.ts
+  init_util();
+  var swaps = /* @__PURE__ */ new Map();
+  var overriding = {};
+  var applied = "";
+  var refreshing = false;
+  function active_overrides() {
+    const overrides = {};
+    for (const animation of Blockbench.Animation.all.filter((a) => a.playing)) {
+      const frames = Math.round(animation.length * fps);
+      const frame = animation.loop === "loop" ? Math.round(animation.time * fps) % frames : Math.min(Math.round(animation.time * fps), frames - 1);
+      const keyframes = (animation.animators.effects?.timeline ?? []).filter((kf) => Math.round(kf.time * fps) <= frame).sort((a, b) => b.time - a.time);
+      const latest = keyframes.map((kf) => parseTextureSwapScript(kf.data_points[0].script ?? "")).find((textures) => textures && Object.keys(textures).length);
+      Object.assign(overrides, latest);
+    }
+    return overrides;
+  }
+  function swap_file(base, location) {
+    if (!location.includes("*")) return get_texture_location(Project.save_path || Project.export_path, location);
+    const name2 = location.replace(/^.*\//, "").replace("*", base.path.replace(/^.*[\\/]/, "").replace(/\.png$/i, ""));
+    return `${base.path.replace(/[^\\/]*$/, "")}${name2}.png`;
+  }
+  function apply(overrides) {
+    const key = JSON.stringify(overrides);
+    if (key === applied) return;
+    applied = key;
+    overriding = {};
+    for (const [code, location] of Object.entries(overrides)) {
+      const base = Texture.all.find((t) => t.name === code);
+      if (!base?.path) continue;
+      const file = swap_file(base, location);
+      if (!file) continue;
+      if (!swaps.has(file)) swaps.set(file, new Texture({ name: code, path: file }).load());
+      overriding[base.uuid] = swaps.get(file);
+    }
+    refreshing = true;
+    for (const cube of Cube.all) Cube.preview_controller.updateFaces(cube);
+    refreshing = false;
+  }
+  Blockbench.on("get_face_texture", ({ face }) => refreshing ? overriding[String(face.texture)] : void 0);
+  Blockbench.on("display_animation_frame", () => {
+    if (is_vs_project(Project)) apply(active_overrides());
+  });
+  Blockbench.on("select_mode", () => apply({}));
+  Blockbench.on("select_project", () => {
+    applied = "";
+    overriding = {};
+  });
+
   // src/vintagestory.ts
   init_property();
 
@@ -11042,10 +11113,13 @@ This can be undone with Ctrl+Z.`)) {
         if (!is_vs_project(Project) || !length || keys.length < 2) {
           return context.original_interpolate.call(this, channel, allow_expression, axis);
         }
-        const lastFrameTime = Math.max(0, Math.round(length * fps) - 1) / fps;
-        const time = animation.loop === "loop" ? animation.time : Math.min(animation.time, lastFrameTime);
         const times = keys.map((key) => key.time);
-        const outsideKeys = time < Math.min(...times) || time > Math.max(...times);
+        const firstKeyTime = Math.min(...times);
+        const lastKeyTime = Math.max(...times);
+        const lastFrameTime = Math.max(Math.round(length * fps) - 1, Math.round(lastKeyTime * fps)) / fps;
+        let time = animation.loop === "loop" ? animation.time : Math.min(animation.time, lastFrameTime);
+        if (animation.loop !== "loop" && is_glint_preset()) time = Math.min(Math.max(time, firstKeyTime), lastKeyTime);
+        const outsideKeys = time < firstKeyTime || time > lastKeyTime;
         if (!outsideKeys && time === animation.time) {
           return context.original_interpolate.call(this, channel, allow_expression, axis);
         }
@@ -11089,6 +11163,62 @@ This can be undone with Ctrl+Z.`)) {
     (context) => {
       Blockbench.BoneAnimator.prototype.displayFrame = context.original;
       Blockbench.BoneAnimator.prototype.interpolate = context.original_interpolate;
+    }
+  );
+
+  // src/mods/animationTransformMod.ts
+  init_util();
+  var AXES = ["x", "y", "z"];
+  createBlockbenchMod(
+    `${name}:animation_transform_mod`,
+    {
+      module: TransformerModule.modules.animation,
+      original: TransformerModule.modules.animation.onMove,
+      original_gizmo: TransformerModule.modules.animation.updateGizmo
+    },
+    (context) => {
+      context.module.updateGizmo = function() {
+        const result = context.original_gizmo.call(this);
+        const mesh = Group.first_selected?.mesh;
+        if (is_vs_project(Project) && Toolbox.selected.id === "rotate_tool" && mesh) {
+          Transformer.position.copy(mesh.parent.localToWorld(mesh.fix_position.clone()));
+        }
+        return result;
+      };
+      context.module.onMove = function(ctx) {
+        const tool = Toolbox.selected.id;
+        const space = BarItems[tool === "rotate_tool" ? "rotation_space" : "transform_space"].get();
+        const rotate = tool === "rotate_tool" && space !== "global" && Transformer.axis !== "E";
+        if (!is_vs_project(Project) || !(tool === "move_tool" || rotate)) return context.original.call(this, ctx);
+        const keyframe = Blockbench.Keyframe.selected[0];
+        const mesh = (Group.first_selected ?? Outliner.selected[0]).mesh;
+        const difference = ctx.value - this.previous_value;
+        if (rotate) {
+          const order = mesh.rotation.order;
+          mesh.rotation.reorder(["ZYX", "ZXY", "XYZ"][ctx.axis_number]);
+          mesh.rotation[ctx.axis] += Math.degToRad(Math.abs(difference) > 120 ? 0 : difference);
+          mesh.rotation.reorder(order);
+          const base = mesh.pre_rotation ?? mesh.fix_rotation;
+          for (const axis of AXES) {
+            keyframe.offset(axis, Math.roundTo(Math.trimDeg(Math.radToDeg(mesh.rotation[axis] - base[axis]) - keyframe.calc(axis)), 4));
+          }
+          Blockbench.setCursorTooltip(trimFloatNumber(ctx.value - this.initial_value));
+        } else {
+          context.original.call(this, ctx);
+          const parent = new THREE.Vector3();
+          parent[ctx.axis] = difference;
+          if (space === "global") parent.applyQuaternion(mesh.parent.getWorldQuaternion(new THREE.Quaternion()).invert());
+          if (space === "local") parent.applyQuaternion(mesh.quaternion);
+          const local = parent.clone().applyQuaternion(mesh.quaternion.clone().invert());
+          for (const axis of AXES) keyframe.offset(axis, local[axis] - parent[axis]);
+        }
+        Animator.preview();
+      };
+      return context;
+    },
+    (context) => {
+      context.module.onMove = context.original;
+      context.module.updateGizmo = context.original_gizmo;
     }
   );
 
@@ -11685,6 +11815,7 @@ This can be undone with Ctrl+Z.`)) {
       display_mode: false,
       // Only some Minecraft Skin stuff it seems
       animation_mode: true,
+      molang: false,
       pose_mode: false,
       animation_controllers: false,
       // VS has no animation-controller concept
@@ -11762,7 +11893,7 @@ This can be undone with Ctrl+Z.`)) {
         description: "Choose the clothing/attachment slot system to use. Glint for Glint character customization, Vintage Story for Seraph models, or Custom for your own slots.",
         category: "general",
         type: "select",
-        value: "glint",
+        value: "vintage_story",
         options: {
           glint: "Glint (Outerwear, Top, Bottoms, Boots, etc.)",
           vintage_story: "Vintage Story (Arm, Head, UpperBody, etc.)",
@@ -12761,14 +12892,14 @@ This can be undone with Ctrl+Z.`)) {
       extensions: ["json"],
       name: `${selection[0].name}_attachment.json`,
       startpath: Project.save_path,
-      custom_writer: (content, path7) => {
-        logDebug(`[VS Attachment Export] Writing to path: ${path7}`);
+      custom_writer: (content, path6) => {
+        logDebug(`[VS Attachment Export] Writing to path: ${path6}`);
         const usedTextureNames = getUsedTextureNames(data.elements);
         logDebug(`[VS Attachment Export] Used textures: ${Array.from(usedTextureNames).join(", ")}`);
-        if (fs.existsSync(path7)) {
+        if (fs.existsSync(path6)) {
           logDebug("[VS Attachment Export] File exists, will overwrite");
           try {
-            const existingContent = fs.readFileSync(path7, "utf8");
+            const existingContent = fs.readFileSync(path6, "utf8");
             const existingData = JSON.parse(existingContent);
             if (existingData.textureSizes) {
               for (const [name2, size] of Object.entries(existingData.textureSizes)) {
@@ -12798,9 +12929,9 @@ This can be undone with Ctrl+Z.`)) {
         cleanupUnusedTextures(data, usedTextureNames);
         const finalContent = autoStringify(data);
         try {
-          fs.writeFileSync(path7, finalContent, "utf8");
-          logDebug(`[VS Attachment Export] Successfully wrote file: ${path7}`);
-          Blockbench.showQuickMessage(`Exported attachment to ${path7.split(/[/\\]/).pop()}`, 2e3);
+          fs.writeFileSync(path6, finalContent, "utf8");
+          logDebug(`[VS Attachment Export] Successfully wrote file: ${path6}`);
+          Blockbench.showQuickMessage(`Exported attachment to ${path6.split(/[/\\]/).pop()}`, 2e3);
         } catch (e) {
           console.error("[VS Attachment Export] Error writing file:", e);
           Blockbench.showQuickMessage(`Failed to write file: ${e instanceof Error ? e.message : String(e)}`, 5e3);
@@ -14038,18 +14169,18 @@ This action cannot be undone.`)) {
   }
   function applyClothingSlot(newElements, slot, logPrefix) {
     if (DEBUG4) console.log(`[${logPrefix}] Applying slot "${slot}" to ${newElements.length} elements.`);
-    const apply = (element) => {
+    const apply2 = (element) => {
       if (element instanceof Group || element instanceof Cube) {
         element.clothingSlot = slot;
       }
       if (element.children) {
-        element.children.forEach(apply);
+        element.children.forEach(apply2);
       }
     };
     const newElementsSet = new Set(newElements);
     const topLevel = newElements.filter((e) => !e.parent || !newElementsSet.has(e.parent));
     topLevel.forEach((element) => {
-      apply(element);
+      apply2(element);
       markAsRecentlyImported(element);
       element.children?.forEach((child) => markAsRecentlyImported(child));
     });
@@ -14405,16 +14536,16 @@ This action cannot be undone.`)) {
     }
     return match;
   }
-  function createVSAttachmentTexture(name2, path7, textureLocation, content) {
-    const texture = new Texture({ name: name2, path: path7 || void 0 }).add();
+  function createVSAttachmentTexture(name2, path6, textureLocation, content) {
+    const texture = new Texture({ name: name2, path: path6 || void 0 }).add();
     texture.textureLocation = textureLocation;
     updateTextureUVSize(texture, name2, content);
-    if (path7 && path7.length > 0 && !path7.startsWith("data:")) {
+    if (path6 && path6.length > 0 && !path6.startsWith("data:")) {
       texture.load();
     }
     return texture;
   }
-  function handleExistingTextureByName(texture, name2, textureLocation, content, match) {
+  function handleExistingTextureByName(texture, name2, textureLocation, content, match, shape_path) {
     if (!texture.textureLocation) {
       texture.textureLocation = textureLocation;
     }
@@ -14426,7 +14557,7 @@ This action cannot be undone.`)) {
       texture.path = match.byFilename.path;
       texture.load();
     } else {
-      const texturePath = get_texture_location(null, textureLocation);
+      const texturePath = get_texture_location(shape_path, textureLocation);
       if (texturePath && texturePath.length > 0) {
         texture.path = texturePath;
         texture.load();
@@ -14445,7 +14576,7 @@ This action cannot be undone.`)) {
     texture.textureLocation = textureLocation;
     updateTextureUVSize(texture, name2, content);
   }
-  function handleVSTextures(content) {
+  function handleVSTextures(content, shape_path) {
     if (!content || !content.textures) {
       return;
     }
@@ -14457,13 +14588,13 @@ This action cannot be undone.`)) {
       const match = findExistingTextures(name2, textureLocation);
       const locationFilename = extractFilename(textureLocation) || "";
       if (match.byName) {
-        handleExistingTextureByName(match.byName, name2, textureLocation, content, match);
+        handleExistingTextureByName(match.byName, name2, textureLocation, content, match, shape_path);
       } else if (match.byLocation) {
         handleExistingTextureByLocation(match.byLocation, name2, textureLocation, content);
       } else if (match.byFilename) {
         handleExistingTextureByFilename(match.byFilename, name2, textureLocation, locationFilename, content);
       } else {
-        const texturePath = get_texture_location(null, textureLocation);
+        const texturePath = get_texture_location(shape_path, textureLocation);
         createVSAttachmentTexture(name2, texturePath, textureLocation, content);
       }
     }
@@ -14616,12 +14747,17 @@ This action cannot be undone.`)) {
   function isCubeElement(value) {
     return isRecord(value) && typeof value.uuid === "string" && value.type === "cube";
   }
-  function mergeVSAttachment(content, filePath) {
+  function mergeVSAttachment(content, filePath, options = {}) {
     const elementsBefore = /* @__PURE__ */ new Set([...Group.all, ...Cube.all]);
-    handleVSTextures(content);
+    if (options.textures !== false) {
+      handleVSTextures(content, filePath ?? "");
+    }
     import_model(content, false, filePath, { rootOffset: [0, 0, 0] });
     for (const element of [...Group.all, ...Cube.all]) {
       if (elementsBefore.has(element)) continue;
+      if (options.slot) {
+        element.clothingSlot = options.slot;
+      }
       const parentIsNew = element.parent instanceof Group && !elementsBefore.has(element.parent);
       if (!parentIsNew && element.stepParentName?.trim()) {
         element.vs_step_parent_local = true;
@@ -15292,6 +15428,33 @@ This action cannot be undone.`)) {
     }
   );
 
+  // src/character-api.ts
+  init_native();
+  var api = {
+    version: 1,
+    files() {
+      return {
+        readFileSync: fs.readFileSync,
+        writeFileSync: fs.writeFileSync,
+        existsSync: fs.existsSync,
+        readdirSync: fs.readdirSync
+      };
+    },
+    importModel: import_model,
+    importAttachment: mergeVSAttachment,
+    importAnimation: create_animation,
+    importAnimationKeyframes: import_animation_keyframes
+  };
+  events.LOAD.subscribe(() => {
+    globalThis.VintageStoryAPI = api;
+    Blockbench.dispatchEvent("vintagestory_api_ready");
+  });
+  events.UNLOAD.subscribe(() => {
+    if (globalThis.VintageStoryAPI === api) {
+      globalThis.VintageStoryAPI = void 0;
+    }
+  });
+
   // src/vintagestory.ts
   BBPlugin.register(package_default.name, {
     title: package_default.title,
@@ -15300,6 +15463,7 @@ This action cannot be undone.`)) {
     contributors: package_default.contributors.map((x) => x.name),
     description: package_default.description,
     version: package_default.version,
+    has_changelog: true,
     variant: "desktop",
     min_version: "5.0.0",
     repository: package_default.repository.url,

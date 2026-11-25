@@ -1,0 +1,33 @@
+{
+	"0.12.4": {
+		"title": "0.12.4",
+		"date": "2026-11-05",
+		"author": "Anego Studios",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Texture swap keyframes now preview in BlockBench",
+					"Moving a bone now tracks the gizmo arrow",
+					"Rotating a bone follows the ring, and the gizmo is now correctly positioned",
+					"Default attachment preset is now (correctly) Vintage Story",
+					"Validator no longer incorrectly flags texture swap keyframes as invalid molang",
+					"Faces missing from a json are no longer incorrectly imported"
+				]
+			}
+		]
+	},
+	"0.12.5": {
+		"title": "0.12.5",
+		"date": "2026-11-17",
+		"author": "Anego Studios",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Adds a global VintageStoryAPI to prepare for add-on plugins that extend the features of this plugin with specific workflows"
+				]
+			}
+		]
+	}
+}
