@@ -1747,5 +1747,16 @@
 		"repository": "https://github.com/MopicMP/gltf-to-minecraft",
 		"bug_tracker": "https://github.com/MopicMP/gltf-to-minecraft/issues",
 		"creation_date": "2026-08-01"
+	},
+	"modded_entity_texture_remapper": {
+		"title": "Modded Entity Texture Remapper",
+		"author": "Globox_Z",
+		"description": "Converts per-face UV models like Generic Model to Modded Entity and remaps the texture into box UV, so every face keeps its pixels.",
+		"icon": "icon.png",
+		"version": "1.0.0",
+		"min_version": "5.2.0",
+		"variant": "both",
+		"tags": ["Minecraft: Java Edition", "Texture", "Utility"],
+		"has_changelog": true
 	}
 }
