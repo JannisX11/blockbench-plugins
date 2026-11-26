@@ -11,5 +11,26 @@
         ]
       }
     ]
+  },
+  "1.1.0": {
+    "title": "1.1.0",
+    "date": "2026-11-12",
+    "author": "Ewan Howell",
+    "categories": [
+      {
+        "title": "New Features",
+        "list": [
+          "Geometry that isn't made of clean cuboids is now rebuilt into cubes from its overall shape, at any rotation",
+          "Meshes with merged faces, missing hidden faces, or inside out faces can now be converted"
+        ]
+      },
+      {
+        "title": "Changes",
+        "list": [
+          "Faces that cannot keep their exact UVs are left behind as mesh",
+          "Conversion is now faster"
+        ]
+      }
+    ]
   }
 }

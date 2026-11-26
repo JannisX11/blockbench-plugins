@@ -6,7 +6,7 @@ Plugin.register("mesh_to_cube_converter", {
   author: "Ewan Howell",
   description: "Detect cuboids within meshes and convert them into real cubes.",
   tags: ["Meshes", "Cubes", "Utility"],
-  version: "1.0.0",
+  version: "1.1.0",
   min_version: "5.0.0",
   variant: "both",
   website: "https://ewanhowell.com/plugins/mesh-to-cube-converter/",
@@ -45,9 +45,22 @@ const NORMALIZE_GRIDS = [1, 0.5, 0.25, 0.1, 0.05, 0.025, 0.01]
 const INFLATE_CANDIDATES = [0, -0.01, 0.01, -0.02, 0.02]
 const NORMALIZE_TOL = 0.002
 const NORMALIZE_RADIUS_FACTOR = 50
+const NORMALIZE_ANGLE_EPS = 0.0001
+const NORMALIZE_DET_EPS = 1e-9
+
+const VOXEL_SAMPLE = [0.5123457, 0.4731923]
+const MAX_VOXEL_CELLS = 200000
+const MAX_FRAMES = 32
+const FRAME_EPS = 1e-6
+const IDENTITY_EPS = 1e-9
+const OVERLAP_EPS = 1e-6
+const COVERAGE_TOL = 0.0001
+const SINGULAR_EPS = 1e-12
 
 const PERMS = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
 const DIRECTIONS = ["north", "east", "south", "west", "up", "down"]
+const OTHER_AXES = [[1, 2], [0, 2], [0, 1]]
+const IDENTITY = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s]
@@ -101,6 +114,487 @@ function faceCoords(direction, fx, fy, fz) {
   }
 }
 
+function uniqueSorted(values) {
+  const sorted = values.slice().sort((a, b) => a - b)
+  const out = []
+  for (const value of sorted) {
+    if (!out.length || value - out[out.length - 1] > EPS) out.push(value)
+  }
+  return out
+}
+
+function nearestIndex(list, value) {
+  let lo = 0
+  let hi = list.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (list[mid] < value - EPS) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
+function compose(axis, along, u, v) {
+  const out = []
+  out[axis] = along
+  out[OTHER_AXES[axis][0]] = u
+  out[OTHER_AXES[axis][1]] = v
+  return out
+}
+
+function shoelace(pts) {
+  let sum = 0
+  pts.forEach((p, n) => {
+    const q = pts[(n + 1) % pts.length]
+    sum += p[0] * q[1] - q[0] * p[1]
+  })
+  return sum
+}
+
+function inTriangle(p0, p1, p2, q) {
+  const d = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1])
+  if (Math.abs(d) < EPS * EPS) return false
+  const w1 = ((q[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (q[1] - p0[1])) / d
+  const w2 = ((p1[0] - p0[0]) * (q[1] - p0[1]) - (q[0] - p0[0]) * (p1[1] - p0[1])) / d
+  return w1 > 0 && w2 > 0 && 1 - w1 - w2 > 0
+}
+
+function clipArea(poly, x0, x1, y0, y1) {
+  let pts = poly
+  for (const [axis, bound, keep] of [[0, x0, 1], [0, x1, -1], [1, y0, 1], [1, y1, -1]]) {
+    const out = []
+    for (let n = 0; n < pts.length; n++) {
+      const p = pts[n]
+      const q = pts[(n + 1) % pts.length]
+      const dp = (p[axis] - bound) * keep
+      const dq = (q[axis] - bound) * keep
+      if (dp >= 0) out.push(p)
+      if ((dp >= 0) !== (dq >= 0)) {
+        const t = dp / (dp - dq)
+        out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
+      }
+    }
+    pts = out
+    if (!pts.length) return 0
+  }
+  return Math.abs(shoelace(pts)) / 2
+}
+
+function fitAffine(samples) {
+  const n = samples.length
+  const mp = [0, 0]
+  const mu = [0, 0]
+  for (const [p, uv] of samples) {
+    mp[0] += p[0] / n
+    mp[1] += p[1] / n
+    mu[0] += uv[0] / n
+    mu[1] += uv[1] / n
+  }
+  let sxx = 0, sxy = 0, syy = 0
+  const sx = [0, 0]
+  const sy = [0, 0]
+  for (const [p, uv] of samples) {
+    const dx = p[0] - mp[0]
+    const dy = p[1] - mp[1]
+    sxx += dx * dx
+    sxy += dx * dy
+    syy += dy * dy
+    for (let c = 0; c < 2; c++) {
+      sx[c] += dx * (uv[c] - mu[c])
+      sy[c] += dy * (uv[c] - mu[c])
+    }
+  }
+  const det = sxx * syy - sxy * sxy
+  if (Math.abs(det) < SINGULAR_EPS) return null
+  const coef = [0, 1].map(c => [(sx[c] * syy - sy[c] * sxy) / det, (sy[c] * sxx - sx[c] * sxy) / det])
+  const map = p => [0, 1].map(c => mu[c] + coef[c][0] * (p[0] - mp[0]) + coef[c][1] * (p[1] - mp[1]))
+  let error = 0
+  for (const [p, uv] of samples) {
+    const m = map(p)
+    error = Math.max(error, Math.abs(m[0] - uv[0]), Math.abs(m[1] - uv[1]))
+  }
+  return { map, error }
+}
+
+function uvEntry(direction, cols, centerLocal, corners, texture) {
+  const observed = [null, null, null, null]
+  for (const [position, uv] of corners) {
+    const [lx, ly] = faceCoords(direction, ...cols.map((col, i) => dot(position, col) > centerLocal[i] ? 1 : 0))
+    const slot = ly === 0 ? lx : 3 - lx
+    if (observed[slot]) return null
+    observed[slot] = uv.slice()
+  }
+  if (observed.includes(null)) return null
+
+  for (let k = 0; k < 4; k++) {
+    if (k && !Format.uv_rotation) break
+    const tl = observed[k]
+    const tr = observed[(k + 1) % 4]
+    const br = observed[(k + 2) % 4]
+    const bl = observed[(k + 3) % 4]
+    const error = Math.max(Math.abs(tl[0] - bl[0]), Math.abs(tr[0] - br[0]), Math.abs(tl[1] - tr[1]), Math.abs(bl[1] - br[1]))
+    if (error >= UV_EPS) continue
+    return {
+      uv: [
+        Math.roundTo((tl[0] + bl[0]) / 2, 4),
+        Math.roundTo((tl[1] + tr[1]) / 2, 4),
+        Math.roundTo((tr[0] + br[0]) / 2, 4),
+        Math.roundTo((bl[1] + br[1]) / 2, 4)
+      ],
+      rotation: k * 90,
+      texture
+    }
+  }
+  return null
+}
+
+function canonicalFrame(axes) {
+  let best = null
+  for (const perm of PERMS) {
+    for (let signBits = 0; signBits < 8; signBits++) {
+      const signs = [signBits & 1 ? -1 : 1, signBits & 2 ? -1 : 1, signBits & 4 ? -1 : 1]
+      const cols = [
+        scale(axes[perm[0]], signs[0]),
+        scale(axes[perm[1]], signs[1]),
+        scale(axes[perm[2]], signs[2])
+      ]
+      if (dot(cols[0], cross(cols[1], cols[2])) < 0.5) continue
+      const trace = cols[0][0] + cols[1][1] + cols[2][2]
+      if (!best || trace > best.trace) best = { cols, perm, trace }
+    }
+  }
+  return best
+}
+
+function cubeRotation(cols) {
+  const euler = new THREE.Euler().setFromRotationMatrix(basisMatrix(cols), Format.euler_order ?? "ZYX")
+  let rotation = [euler.x, euler.y, euler.z]
+    .map(rad => Math.roundTo(Math.radToDeg(rad), 4))
+    .map(deg => Math.abs(deg) < 0.01 ? 0 : deg)
+  if (rotation.some(deg => deg)) {
+    if (!Format.rotate_cubes) return null
+    if (Format.rotation_limit) {
+      const nonzero = rotation.filter(deg => deg)
+      if (nonzero.length > 1) return null
+      const snapped = Math.round(nonzero[0] / 22.5) * 22.5
+      if (Math.abs(snapped - nonzero[0]) > 0.01 || Math.abs(snapped) > 45) return null
+      rotation = rotation.map(deg => deg ? snapped : 0)
+    }
+  }
+  return rotation
+}
+
+function newellNormal(pts) {
+  const n = [0, 0, 0]
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % pts.length]
+    n[0] += (p[1] - q[1]) * (p[2] + q[2])
+    n[1] += (p[2] - q[2]) * (p[0] + q[0])
+    n[2] += (p[0] - q[0]) * (p[1] + q[1])
+  })
+  return n
+}
+
+function findFrame(faces, tried) {
+  const candidates = faces.filter(f => f.normal && !tried.some(cols => cols.some(col => Math.abs(dot(col, f.normal)) > 1 - FRAME_EPS)))
+  if (!candidates.length) return null
+  const largest = list => list.reduce((best, f) => f.area > best.area ? f : best)
+  const seed = largest(candidates)
+  const partners = candidates.filter(f => Math.abs(dot(f.normal, seed.normal)) < DOT_EPS)
+  const edges = seed.pts.map((p, i) => sub(seed.pts[(i + 1) % seed.pts.length], p))
+  const guide = partners.length ? largest(partners).normal : edges.reduce((best, e) => len(e) > len(best) ? e : best)
+  const second = norm(sub(guide, scale(seed.normal, dot(guide, seed.normal))))
+  const { cols } = canonicalFrame([seed.normal, second, cross(seed.normal, second)])
+  return cols.every((col, i) => col[i] > 1 - IDENTITY_EPS) ? IDENTITY : cols
+}
+
+function flatFaces(sources, toLocal) {
+  const faces = []
+  for (const source of sources) {
+    const pts = source.pts.map(toLocal)
+    const ax = [0, 1, 2].find(i => pts.every(p => Math.abs(p[i] - pts[0][i]) < EPS))
+    if (ax === undefined) continue
+    const [a, b] = OTHER_AXES[ax]
+    const flat = pts.map(p => [p[a], p[b]])
+    const area = shoelace(flat)
+    faces.push({
+      source,
+      ax,
+      pts,
+      flat,
+      sign: Math.sign(area) * (ax === 1 ? -1 : 1),
+      degenerate: Math.abs(area) < EPS * EPS,
+      owned: 0,
+      covers: [],
+      resolved: true
+    })
+  }
+  return faces
+}
+
+function rasterize(faces, coords) {
+  const owned = []
+  for (const f of faces) {
+    if (f.degenerate) continue
+    const [a, b] = OTHER_AXES[f.ax]
+    const fit = fitAffine(f.flat.map((p, n) => [p, f.source.uvs[n]]))
+    f.map = fit && fit.error <= UV_EPS ? fit.map : null
+    f.plane = nearestIndex(coords[f.ax], f.pts[0][f.ax])
+    f.overlaps = []
+    const triangles = f.flat.slice(2).map((p, n) => [f.flat[0], f.flat[n + 1], p])
+    const ia = f.flat.map(p => nearestIndex(coords[a], p[0]))
+    const ib = f.flat.map(p => nearestIndex(coords[b], p[1]))
+    const [i0, i1, j0, j1] = [Math.min(...ia), Math.max(...ia), Math.min(...ib), Math.max(...ib)]
+    for (let i = i0; i < i1; i++) {
+      for (let j = j0; j < j1; j++) {
+        const [x0, x1, y0, y1] = [coords[a][i], coords[a][i + 1], coords[b][j], coords[b][j + 1]]
+        const area = triangles.reduce((sum, tri) => sum + clipArea(tri, x0, x1, y0, y1), 0)
+        if (area > (x1 - x0) * (y1 - y0) * OVERLAP_EPS) f.overlaps.push({ i, j, area })
+        const sample = [x0 + (x1 - x0) * VOXEL_SAMPLE[0], y0 + (y1 - y0) * VOXEL_SAMPLE[1]]
+        if (triangles.some(tri => inTriangle(...tri, sample))) {
+          owned.push({ face: f, i, j })
+          f.owned++
+        }
+        if (owned.length > MAX_VOXEL_CELLS) return null
+      }
+    }
+  }
+  return owned
+}
+
+function orientFaces(faces, owned) {
+  const links = new Map()
+  function link(f1, f2, parity) {
+    pushTo(links, f1, [f2, parity])
+    pushTo(links, f2, [f1, parity])
+  }
+
+  const squareEdges = new Map()
+  for (const { face, i, j } of owned) {
+    const [a, b] = OTHER_AXES[face.ax]
+    for (const [edgeAxis, across, offset, t] of [[b, a, 0, 1], [b, a, 1, -1], [a, b, 0, 1], [a, b, 1, -1]]) {
+      const pos = compose(face.ax, face.plane, i, j)
+      pos[across] += offset
+      pushTo(squareEdges, edgeAxis + ":" + pos.join(","), { face, t })
+    }
+  }
+  for (const list of squareEdges.values()) {
+    if (list.length !== 2) continue
+    const [{ face: f1, t: t1 }, { face: f2, t: t2 }] = list
+    if (f1 === f2 || (f1.ax === f2.ax && t1 === t2)) continue
+    link(f1, f2, f1.sign * f2.sign * (f1.ax === f2.ax ? 1 : t1 * t2))
+  }
+
+  const meshEdges = new Map()
+  for (const face of faces) {
+    if (face.degenerate) continue
+    const keys = face.pts.map(p => p.map(v => Math.round(v / EPS)).join(","))
+    keys.forEach((key, n) => {
+      const next = keys[(n + 1) % keys.length]
+      pushTo(meshEdges, key < next ? key + "|" + next : next + "|" + key, { face, forward: key < next })
+    })
+  }
+  for (const list of meshEdges.values()) {
+    if (list.length !== 2 || list[0].face === list[1].face) continue
+    link(list[0].face, list[1].face, list[0].forward === list[1].forward ? -1 : 1)
+  }
+
+  for (const start of faces) {
+    if (start.degenerate || start.flip) continue
+    start.flip = 1
+    const component = [start]
+    for (const f of component) {
+      for (const [other, parity] of links.get(f) ?? []) {
+        if (other.flip) continue
+        other.flip = f.flip * parity
+        component.push(other)
+      }
+    }
+    let vote = 0
+    for (let k = 0; k < 3; k++) {
+      const outer = component.filter(f => f.ax === k && f.owned)
+      if (!outer.length) continue
+      const max = outer.reduce((m, f) => Math.max(m, f.plane), -Infinity)
+      const min = outer.reduce((m, f) => Math.min(m, f.plane), Infinity)
+      if (max === min) continue
+      for (const f of outer) {
+        if (f.plane === max) vote += f.sign * f.flip * f.owned
+        if (f.plane === min) vote -= f.sign * f.flip * f.owned
+      }
+    }
+    if (vote < 0) {
+      for (const f of component) f.flip = -f.flip
+    }
+  }
+
+  for (const f of faces) {
+    if (f.degenerate) continue
+    f.side = f.sign * f.flip > 0 ? 1 : 0
+    f.back = f.side ? f.plane - 1 : f.plane
+  }
+}
+
+function solidCells(faces, owned, coords, blocked) {
+  const cells = new Map()
+  function addCell(idx) {
+    const key = idx.join(",")
+    if (cells.has(key)) return
+    cells.set(key, { idx, sides: [], used: false, blocked: blocked(idx.map((c, k) => (coords[k][c] + coords[k][c + 1]) / 2)) })
+  }
+
+  for (const f of faces) {
+    if (f.owned && (f.back < 0 || f.back >= coords[f.ax].length - 1)) f.resolved = false
+  }
+  for (const { face, i, j } of owned) {
+    if (face.resolved) addCell(compose(face.ax, face.back, i, j))
+  }
+
+  const fills = [0, 1, 2].map(k => {
+    const columns = new Map()
+    for (const square of owned) {
+      if (square.face.ax === k && square.face.resolved) pushTo(columns, square.i + "," + square.j, square)
+    }
+    const filled = new Set()
+    for (const column of columns.values()) {
+      column.sort((x, y) => x.face.plane - y.face.plane)
+      for (let n = 0; n + 1 < column.length; n++) {
+        const [near, far] = [column[n].face, column[n + 1].face]
+        if (near.side !== 0 || far.side !== 1) continue
+        for (let c = near.plane; c < far.plane; c++) filled.add(compose(k, c, column[n].i, column[n].j).join(","))
+        if (filled.size > MAX_VOXEL_CELLS) return null
+      }
+    }
+    return filled
+  })
+  if (fills.includes(null)) return null
+  for (const key of fills[0]) {
+    if (fills[1].has(key) && fills[2].has(key)) addCell(key.split(",").map(Number))
+  }
+
+  for (const f of faces) {
+    if (f.degenerate) continue
+    if (!f.map) f.resolved = false
+    for (const { i, j, area } of f.overlaps) {
+      const cell = cells.get(compose(f.ax, f.back, i, j).join(","))
+      if (!cell) {
+        f.resolved = false
+        continue
+      }
+      const cover = cell.sides[f.ax * 2 + f.side] ??= []
+      cover.push({ face: f, i, j, area })
+      f.covers.push(cover)
+    }
+  }
+  return cells
+}
+
+function exactBoxes(cells, coords) {
+  const cellAt = (k, layer, i, j) => cells.get(compose(k, layer, i, j).join(","))
+
+  function sideCovers(min, max, k, side) {
+    const [a, b] = OTHER_AXES[k]
+    const covers = []
+    let bare = 0
+    for (let i = min[a]; i <= max[a]; i++) {
+      for (let j = min[b]; j <= max[b]; j++) {
+        const cover = cellAt(k, side ? max[k] : min[k], i, j).sides[k * 2 + side]
+        if (cover?.[0].face.resolved) covers.push(...cover)
+        else bare++
+      }
+    }
+    return covers.length && bare ? null : covers
+  }
+
+  function sideEntry(covers, min, max, k, side) {
+    const [a, b] = OTHER_AXES[k]
+    const { texture } = covers[0].face.source
+    if (covers.some(c => (c.face.source.texture || false) !== (texture || false))) return null
+    const samples = covers.flatMap(({ face, i, j }) => [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]].map(([ci, cj]) => [coords[a][ci], coords[b][cj]]).map(point => [point, face.map(point)]))
+    const fit = fitAffine(samples)
+    if (!fit || fit.error > UV_EPS) return null
+    const from = min.map((c, n) => coords[n][c])
+    const to = max.map((c, n) => coords[n][c + 1])
+    const corners = []
+    for (const u of [from[a], to[a]]) {
+      for (const v of [from[b], to[b]]) corners.push([compose(k, side ? to[k] : from[k], u, v), fit.map([u, v])])
+    }
+    return uvEntry(directionFromLocal(k, side === 1), IDENTITY, from.map((v, n) => (v + to[n]) / 2), corners, texture)
+  }
+
+  function boxEntries(min, max) {
+    const entries = {}
+    for (let k = 0; k < 3; k++) {
+      for (let side = 0; side <= 1; side++) {
+        const covers = sideCovers(min, max, k, side)
+        if (!covers) return null
+        if (!covers.length) continue
+        const entry = sideEntry(covers, min, max, k, side)
+        if (!entry) return null
+        entries[directionFromLocal(k, side === 1)] = entry
+      }
+    }
+    return entries
+  }
+
+  function reject(cover) {
+    const stack = cover.map(c => c.face)
+    while (stack.length) {
+      const face = stack.pop()
+      if (!face.resolved) continue
+      face.resolved = false
+      for (const other of face.covers) stack.push(...other.map(c => c.face))
+    }
+  }
+
+  function canGrow(min, max, k) {
+    const [a, b] = OTHER_AXES[k]
+    for (let i = min[a]; i <= max[a]; i++) {
+      for (let j = min[b]; j <= max[b]; j++) {
+        const cell = cellAt(k, max[k], i, j)
+        if (!cell || cell.blocked || cell.used || cell.sides[k * 2] || cellAt(k, max[k] - 1, i, j).sides[k * 2 + 1]) return false
+      }
+    }
+    return true
+  }
+
+  for (const cell of cells.values()) {
+    cell.sides.forEach((cover, s) => {
+      const [a, b] = OTHER_AXES[s >> 1]
+      const { i, j } = cover[0]
+      const area = (coords[a][i + 1] - coords[a][i]) * (coords[b][j + 1] - coords[b][j])
+      const covered = cover.reduce((sum, c) => sum + c.area, 0)
+      const exact = !cell.blocked && cover.every(c => c.face.resolved) && Math.abs(covered - area) <= area * COVERAGE_TOL && sideEntry(cover, cell.idx, cell.idx, s >> 1, s & 1)
+      if (!exact) reject(cover)
+    })
+  }
+
+  const boxes = []
+  const order = Array.from(cells.values()).sort((x, y) => x.idx[0] - y.idx[0] || x.idx[1] - y.idx[1] || x.idx[2] - y.idx[2])
+  for (const cell of order) {
+    if (cell.blocked || cell.used) continue
+    const min = cell.idx
+    let max = min.slice()
+    let entries = boxEntries(min, max)
+    for (let k = 0; k < 3; k++) {
+      while (true) {
+        const grown = max.slice()
+        grown[k]++
+        const next = canGrow(min, grown, k) && boxEntries(min, grown)
+        if (!next) break
+        max = grown
+        entries = next
+      }
+    }
+    for (let x = min[0]; x <= max[0]; x++) {
+      for (let y = min[1]; y <= max[1]; y++) {
+        for (let z = min[2]; z <= max[2]; z++) cells.get(x + "," + y + "," + z).used = true
+      }
+    }
+    if (Object.keys(entries).length) boxes.push({ min, max, entries })
+  }
+  return boxes
+}
+
 function cubeName(meshName) {
   return meshName.replace(/mesh/gi, match => {
     if (match === "MESH") return "CUBE"
@@ -116,7 +610,7 @@ function normalizePlacement(cols, authoredHalf, W) {
   const quat = new THREE.Quaternion().setFromRotationMatrix(basisMatrix(cols))
   const angle = 2 * Math.acos(Math.min(1, Math.abs(quat.w)))
 
-  if (angle < 1e-4) {
+  if (angle < NORMALIZE_ANGLE_EPS) {
     for (const g of NORMALIZE_GRIDS) {
       const from = authoredHalf.map((h, i) => snap(W[i] - h, g))
       const to = authoredHalf.map((h, i) => snap(W[i] + h, g))
@@ -135,7 +629,7 @@ function normalizePlacement(cols, authoredHalf, W) {
   const m11 = dot(e1, col1), m12 = dot(e1, col2)
   const m21 = dot(e2, col1), m22 = dot(e2, col2)
   const det = m11 * m22 - m12 * m21
-  if (Math.abs(det) < 1e-9) return null
+  if (Math.abs(det) < NORMALIZE_DET_EPS) return null
 
   const caTarget = dot(axis, W)
   const k = [0, 1, 2].reduce((prev, i) => Math.abs(axis[i]) > Math.abs(axis[prev]) ? i : prev, 0)
@@ -211,10 +705,14 @@ function convertMesh(mesh) {
   function findPid(p, tolerance = EPS) {
     const reach = Math.ceil(tolerance / cellSize)
     const [cx, cy, cz] = cell(p)
-    for (let dx = -reach; dx <= reach; dx++) {
-      for (let dy = -reach; dy <= reach; dy++) {
-        for (let dz = -reach; dz <= reach; dz++) {
-          const list = grid.get((cx + dx) + "," + (cy + dy) + "," + (cz + dz))
+    for (let x = cx - reach; x <= cx + reach; x++) {
+      const column = grid.get(x)
+      if (!column) continue
+      for (let y = cy - reach; y <= cy + reach; y++) {
+        const row = column.get(y)
+        if (!row) continue
+        for (let z = cz - reach; z <= cz + reach; z++) {
+          const list = row.get(z)
           if (!list) continue
           for (const pid of list) {
             const q = pidPositions[pid]
@@ -230,7 +728,10 @@ function convertMesh(mesh) {
     if (pid === -1) {
       pid = pidPositions.length
       pidPositions.push(p)
-      pushTo(grid, cell(p).join(","), pid)
+      const [cx, cy, cz] = cell(p)
+      if (!grid.has(cx)) grid.set(cx, new Map())
+      if (!grid.get(cx).has(cy)) grid.get(cx).set(cy, new Map())
+      pushTo(grid.get(cx).get(cy), cz, pid)
     }
     return pid
   }
@@ -332,6 +833,7 @@ function convertMesh(mesh) {
 
   const consumed = new Set()
   const rejected = new Set()
+  const placedBoxes = []
 
   const isAligned = (rec, axes) => [rec.u, rec.v].every(dir => axes.some(axis => Math.abs(dot(dir, axis)) > 1 - DOT_EPS))
 
@@ -459,21 +961,7 @@ function convertMesh(mesh) {
   function tryCreateCube(candidate) {
     const { axes, bounds } = candidate
 
-    let best = null
-    for (const perm of PERMS) {
-      for (let signBits = 0; signBits < 8; signBits++) {
-        const signs = [signBits & 1 ? -1 : 1, signBits & 2 ? -1 : 1, signBits & 4 ? -1 : 1]
-        const cols = [
-          scale(axes[perm[0]], signs[0]),
-          scale(axes[perm[1]], signs[1]),
-          scale(axes[perm[2]], signs[2])
-        ]
-        if (dot(cols[0], cross(cols[1], cols[2])) < 0.5) continue
-        const trace = cols[0][0] + cols[1][1] + cols[2][2]
-        if (!best || trace > best.trace) best = { cols, perm, trace }
-      }
-    }
-    const { cols, perm } = best
+    const { cols, perm } = canonicalFrame(axes)
 
     const center = combine(axes, bounds.map(b => (b[0] + b[1]) / 2))
     const rawSize = perm.map(axis => bounds[axis][1] - bounds[axis][0]).map(s => s < 0.0015 ? 0 : s)
@@ -502,21 +990,8 @@ function convertMesh(mesh) {
       })
     }
 
-    const rotationEuler = new THREE.Euler().setFromRotationMatrix(basisMatrix(cols), Format.euler_order ?? "ZYX")
-    let rotation = [rotationEuler.x, rotationEuler.y, rotationEuler.z]
-      .map(rad => Math.roundTo(Math.radToDeg(rad), 4))
-      .map(deg => Math.abs(deg) < 0.01 ? 0 : deg)
-
-    if (rotation.some(deg => deg)) {
-      if (!Format.rotate_cubes) return null
-      if (Format.rotation_limit) {
-        const nonzero = rotation.filter(deg => deg)
-        if (nonzero.length > 1) return null
-        const snapped = Math.round(nonzero[0] / 22.5) * 22.5
-        if (Math.abs(snapped - nonzero[0]) > 0.01 || Math.abs(snapped) > 45) return null
-        rotation = rotation.map(deg => deg ? snapped : 0)
-      }
-    }
+    const rotation = cubeRotation(cols)
+    if (!rotation) return null
 
     const centerLocal = [dot(center, cols[0]), dot(center, cols[1]), dot(center, cols[2])]
     const faceEntries = {}
@@ -526,40 +1001,7 @@ function convertMesh(mesh) {
       const localAxis = perm.indexOf(axis)
       const positive = (cols[localAxis][0] * axes[axis][0] + cols[localAxis][1] * axes[axis][1] + cols[localAxis][2] * axes[axis][2]) > 0
       const direction = directionFromLocal(localAxis, side === 1 ? positive : !positive)
-
-      const observed = [null, null, null, null]
-      for (const vkey of rec.sorted) {
-        const [lx, ly] = faceCoords(direction, ...cols.map((col, i) => dot(positions[vkey], col) > centerLocal[i] ? 1 : 0))
-        const slot = ly === 0 ? lx : 3 - lx
-        if (observed[slot]) return null
-        observed[slot] = rec.uv[vkey].slice()
-      }
-      if (observed.includes(null)) return null
-
-      let entry = null
-      for (let k = 0; k < 4; k++) {
-        if (k && !Format.uv_rotation) break
-        const tl = observed[k]
-        const tr = observed[(k + 1) % 4]
-        const br = observed[(k + 2) % 4]
-        const bl = observed[(k + 3) % 4]
-        if (
-          Math.abs(tl[0] - bl[0]) < UV_EPS && Math.abs(tr[0] - br[0]) < UV_EPS &&
-          Math.abs(tl[1] - tr[1]) < UV_EPS && Math.abs(bl[1] - br[1]) < UV_EPS
-        ) {
-          entry = {
-            uv: [
-              Math.roundTo((tl[0] + bl[0]) / 2, 4),
-              Math.roundTo((tl[1] + tr[1]) / 2, 4),
-              Math.roundTo((tr[0] + br[0]) / 2, 4),
-              Math.roundTo((bl[1] + br[1]) / 2, 4)
-            ],
-            rotation: k * 90,
-            texture: rec.texture
-          }
-          break
-        }
-      }
+      const entry = uvEntry(direction, cols, centerLocal, rec.sorted.map(vkey => [positions[vkey], rec.uv[vkey]]), rec.texture)
       if (!entry) return null
       faceEntries[direction] = entry
     }
@@ -569,6 +1011,10 @@ function convertMesh(mesh) {
       to: size.map((s, i) => center[i] + s / 2 - inflate),
       origin: center
     }
+    return buildCube(placement, inflate, rotation, faceEntries)
+  }
+
+  function buildCube(placement, inflate, rotation, faceEntries) {
     const cube = new Cube({
       name: cubeName(mesh.name),
       color: mesh.color,
@@ -585,7 +1031,46 @@ function convertMesh(mesh) {
       cube.faces[direction].extend(faceEntries[direction] ?? { texture: null })
     }
     cube.sortInBefore(mesh).init()
+    created.push(cube)
+    if (mesh.selected) selected.safePush(cube)
     return cube
+  }
+
+  function insidePlacedBox(point) {
+    return placedBoxes.some(({ axes, bounds }) => axes.every((axis, k) => {
+      const d = dot(point, axis)
+      return d > bounds[k][0] + EPS && d < bounds[k][1] - EPS
+    }))
+  }
+
+  function reconstructVolumes(cols, sources) {
+    const rotation = cubeRotation(cols)
+    if (!rotation) return
+    const toLocal = p => cols.map(col => dot(p, col))
+    const faces = flatFaces(sources, toLocal)
+    if (new Set(faces.filter(f => !f.degenerate).map(f => f.ax)).size < 2) return
+    const coords = [0, 1, 2].map(i => uniqueSorted(faces.flatMap(f => f.pts.map(p => p[i]))))
+    const owned = rasterize(faces, coords)
+    if (!owned) return
+    orientFaces(faces, owned)
+    const cells = solidCells(faces, owned, coords, center => insidePlacedBox(combine(cols, center)))
+    if (!cells) return
+
+    const shift = sub(mesh.origin, toLocal(mesh.origin))
+    function placement(from, to) {
+      if (cols !== IDENTITY) return { from: from.map((v, k) => v + shift[k]), to: to.map((v, k) => v + shift[k]), origin: mesh.origin.slice() }
+      const center = from.map((v, k) => (v + to[k]) / 2)
+      return normalizePlacement(IDENTITY, from.map((v, k) => (to[k] - v) / 2), center) ?? { from, to, origin: center }
+    }
+    for (const { min, max, entries } of exactBoxes(cells, coords)) {
+      const from = min.map((c, k) => coords[k][c])
+      const to = max.map((c, k) => coords[k][c + 1])
+      buildCube(placement(from, to), 0, rotation, entries)
+      placedBoxes.push({ axes: cols, bounds: from.map((v, k) => [v, to[k]]) })
+    }
+    for (const f of faces) {
+      if (f.resolved) consumed.add(f.source.fkey)
+    }
   }
 
   while (true) {
@@ -600,12 +1085,30 @@ function convertMesh(mesh) {
         rejected.add(candidate.signature)
         continue
       }
-      created.push(cube)
-      if (mesh.selected) selected.safePush(cube)
+      placedBoxes.push(candidate)
       for (const fkey of Object.values(candidate.faces).flatMap(rec => rec.fkeys)) consumed.add(fkey)
       progress = true
     }
     if (!progress) break
+  }
+
+  const leftover = []
+  for (const fkey in mesh.faces) {
+    const face = mesh.faces[fkey]
+    if (consumed.has(fkey) || face.vertices.length < 3) continue
+    const sorted = face.getSortedVertices()
+    const pts = sorted.map(vkey => positions[vkey])
+    const normal = newellNormal(pts)
+    const area = len(normal)
+    leftover.push({ fkey, pts, uvs: sorted.map(vkey => face.uv[vkey]), texture: face.texture, area, normal: area < EPS * EPS ? null : scale(normal, 1 / area) })
+  }
+  const frames = []
+  while (frames.length < MAX_FRAMES) {
+    const sources = leftover.filter(source => !consumed.has(source.fkey))
+    const cols = findFrame(sources, frames)
+    if (!cols) break
+    frames.push(cols)
+    reconstructVolumes(cols, sources)
   }
 
   if (!created.length) return { created, removedMesh: false }
