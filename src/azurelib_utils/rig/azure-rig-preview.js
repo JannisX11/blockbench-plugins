@@ -78,6 +78,16 @@ function modelToWorld(point) {
   return v;
 }
 
+function worldToModel(point) {
+  const v = point.clone();
+  const root = Project?.model_3d;
+  if (root) {
+    root.updateWorldMatrix(true, false);
+    v.applyMatrix4(new THREE.Matrix4().copy(root.matrixWorld).invert());
+  }
+  return v;
+}
+
 /** A Blockbench rotation in degrees as a quaternion, applied Z, then Y, then X like bone rotations. */
 function bbRotation(degrees) {
   return new THREE.Quaternion().setFromEuler(
@@ -502,6 +512,91 @@ function solveCcd(bones, effector, target, constraints, iterations, tolerance) {
   }
 }
 
+export function groundBone() {
+  const name = RigStore.rig.previewGround?.bone;
+  return name ? findBone(name) : null;
+}
+
+function groundElements(group) {
+  const out = [];
+  const walk = node => {
+    for (const child of node.children || []) {
+      if (child instanceof Group) walk(child);
+      else if (child?.mesh && (child.type === 'cube' || child.type === 'mesh')) out.push(child);
+    }
+  };
+  walk(group);
+  return out;
+}
+
+function elementHit(element, a, b) {
+  const mesh = element.mesh;
+  mesh.updateWorldMatrix(true, false);
+
+  if (element.type === 'cube') {
+    const geometry = mesh.geometry;
+    if (!geometry) return null;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const box = geometry.boundingBox;
+    const la = mesh.worldToLocal(a.clone());
+    const lb = mesh.worldToLocal(b.clone());
+    let enter = 0;
+    let exit = 1;
+    for (const axis of ['x', 'y', 'z']) {
+      const d = lb[axis] - la[axis];
+      const min = box.min[axis];
+      const max = box.max[axis];
+      if (Math.abs(d) < 1e-9) {
+        if (la[axis] < min || la[axis] > max) return null;
+        continue;
+      }
+      let t0 = (min - la[axis]) / d;
+      let t1 = (max - la[axis]) / d;
+      if (t0 > t1) [t0, t1] = [t1, t0];
+      enter = Math.max(enter, t0);
+      exit = Math.min(exit, t1);
+      if (enter > exit) return null;
+    }
+    return enter;
+  }
+
+  const length = a.distanceTo(b);
+  if (length < 1e-9) return null;
+  const raycaster = new THREE.Raycaster(a, b.clone().sub(a).normalize(), 0, length);
+  const material = mesh.material;
+  const materials = Array.isArray(material) ? material : [material];
+  const sides = materials.map(m => m?.side);
+  materials.forEach(m => { if (m) m.side = THREE.DoubleSide; });
+  try {
+    const hit = raycaster.intersectObject(mesh, false)[0];
+    return hit ? hit.distance / length : null;
+  } finally {
+    materials.forEach((m, i) => { if (m) m.side = sides[i]; });
+  }
+}
+
+export function groundHitY(from, to, floorY) {
+  let best = null;
+
+  if (RigStore.rig.previewGround?.floor !== false) {
+    // The floor is solid below floorY.
+    if (from.y <= floorY) best = 0;
+    else if (to.y <= floorY) best = (from.y - floorY) / (from.y - to.y);
+  }
+
+  const bone = groundBone();
+  if (bone) {
+    const a = modelToWorld([from.x, from.y, from.z]);
+    const b = modelToWorld([to.x, to.y, to.z]);
+    for (const element of groundElements(bone)) {
+      const t = elementHit(element, a, b);
+      if (t !== null && (best === null || t < best)) best = t;
+    }
+  }
+
+  return best === null ? null : from.y + (to.y - from.y) * best;
+}
+
 /** Where a chain's preview target is this frame, in world space, or null to skip. */
 function previewTarget(entry, effectorWorld) {
   if (entry.target?.type === 'bone') {
@@ -518,10 +613,17 @@ function previewTarget(entry, effectorWorld) {
   }
 
   if (p.mode === 'ground') {
-    // AzIkTargets.ground keeps the animated foot height but measures it from the
-    // ground under the foot: with flat preview ground raised by groundHeight,
-    // the foot moves up by that much.
-    return effectorWorld.clone().add(new THREE.Vector3(0, Number(p.groundHeight) || 0, 0));
+    // AzIkTargets.ground: search from maxStepUp above the animated foot to maxStepDown below
+    // it, skip on a miss, and otherwise raise the foot by how far that ground is from the
+    // ground the entity stands on (the model origin here).
+    const stepUp = Number.isFinite(Number(entry.target?.stepUp)) ? Number(entry.target.stepUp) : 0.5;
+    const stepDown = Number.isFinite(Number(entry.target?.stepDown)) ? Number(entry.target.stepDown) : 0.75;
+    const foot = worldToModel(effectorWorld);
+    const from = foot.clone().add(new THREE.Vector3(0, stepUp * PIXELS_PER_BLOCK, 0));
+    const to = foot.clone().add(new THREE.Vector3(0, -stepDown * PIXELS_PER_BLOCK, 0));
+    const hitY = groundHitY(from, to, Number(p.groundHeight) || 0);
+    if (hitY === null) return null;
+    return modelToWorld([foot.x, foot.y + hitY, foot.z]);
   }
 
   return modelToWorld(p.point || [0, 0, 0]);

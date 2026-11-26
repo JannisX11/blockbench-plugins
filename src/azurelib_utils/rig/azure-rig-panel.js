@@ -221,12 +221,13 @@ function targetForm(t, kinds) {
 
 function previewForm(p, allowGround) {
   const modes = { off: 'Off', point: 'Fixed point', locator: 'Follow a locator' };
-  if (allowGround) modes.ground = 'Ground (raised by offset)';
+  if (allowGround) modes.ground = 'Ground (like in game)';
   return {
     _preview: { type: 'info', text: '<b>Viewport preview</b> (Animate mode)' },
     _previewBone: { type: 'info', text: 'The preview follows the bone itself.', condition: f => f.targetType === 'bone' },
     previewMode: { label: 'Preview target', type: 'select', options: modes, value: p.enabled === false ? 'off' : p.mode, condition: f => f.targetType !== 'bone' },
-    groundHeight: { label: 'Ground offset (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
+    groundHeight: { label: 'Floor height (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
+    _groundHint: { type: 'info', text: 'The foot looks for ground between Max step up and Max step down, against the floor and the cubes of the <b>Ground</b> bone (set in the panel). Nothing in range leaves the leg as animated, as in game.', condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
     previewPoint: { label: 'Point (pixels)', type: 'vector', dimensions: 3, value: p.point, condition: f => f.targetType !== 'bone' && f.previewMode === 'point' },
     previewLocator: { label: 'Locator', type: 'select', options: locatorOptions(), value: p.locator || '', condition: f => f.targetType !== 'bone' && f.previewMode === 'locator' },
   };
@@ -550,6 +551,46 @@ const Add = {
     editBlendSpace(RigStore.rig.blendSpaces.length - 1);
   },
 };
+
+const NEW_GROUND = '__azl_new_ground__';
+
+export function editPreviewGround() {
+  const g = RigStore.rig.previewGround || { bone: '', floor: true };
+  const options = { '': 'None (floor only)', [NEW_GROUND]: 'New bone: preview_ground' };
+  for (const group of Group.all) options[group.name] = group.name;
+  openForm('Preview ground', {
+    bone: { label: 'Ground bone', type: 'select', options, value: g.bone && findGroup(g.bone) ? g.bone : '' },
+    floor: { label: 'Endless floor', type: 'checkbox', value: g.floor !== false },
+  }, r => {
+    let bone = r.bone;
+    if (bone === NEW_GROUND) bone = createGroundBone();
+    RigStore.edit('Preview ground', rig => { rig.previewGround = { bone: bone || '', floor: !!r.floor }; });
+  }, [
+    '<p>Cubes and meshes in the ground bone stand in for blocks: IK chains with a <b>Ground</b> target cast down onto them in the Animate tab, like <code>AzIkTargets.ground</code> does in game. The ground bone is left out of the exported model.</p>',
+    '<p>Keep it at the root, and keep the ground the entity stands on at the grid (y = 0): in game that\'s where the entity\'s feet are. The endless floor is that ground; turn it off to test ledges and holes.</p>',
+  ]);
+}
+
+function findGroup(name) {
+  return Group.all.find(g => g.name === name) || null;
+}
+
+/** Adds a root bone with a half-slab step in front of the model, as a starting point. */
+function createGroundBone() {
+  const name = uniqueId('preview_ground', Group.all.map(g => g.name));
+  try {
+    Undo.initEdit({ outliner: true, elements: [] });
+    const group = new Group({ name, origin: [0, 0, 0] }).init();
+    const cube = new Cube({ name: 'step', from: [-8, 0, -24], to: [8, 8, -8] }).addTo(group).init();
+    Undo.finishEdit('Add preview ground', { outliner: true, elements: [cube] });
+    Canvas.updateAll?.();
+  } catch (e) {
+    console.warn('[AzureLib Rig] Could not create the preview ground bone', e);
+    Blockbench.showQuickMessage('Could not create the ground bone; add one yourself and pick it here.', 2500);
+    return '';
+  }
+  return name;
+}
 
 export function showValidation() {
   const issues = validateRig();
@@ -984,6 +1025,11 @@ function registerPanel() {
           RigStore.edit('Hitbox set options', rig => { rig.hitboxOptions[key] = !rig.hitboxOptions[key]; });
         },
         check() { showValidation(); },
+        ground() { editPreviewGround(); },
+        groundTitle() {
+          const g = this.rig.previewGround || {};
+          return `Preview ground for Ground IK targets: ${g.bone ? `bone ${g.bone}` : 'no ground bone'}, floor ${g.floor === false ? 'off' : 'on'}`;
+        },
         generate() { showCodeExport(); },
         pct(v) { return `${Math.round((v || 0) * 100)}%`; },
       },
@@ -992,6 +1038,7 @@ function registerPanel() {
   <div class="azl-bar">
     <span class="azl-btn" @click="generate()" title="Generate AzureLib Java for this rig">Code</span>
     <span class="azl-btn" @click="check()" title="Check the rig against the model">Check<span v-if="issueCount" class="azl-badge">{{ issueCount }}</span></span>
+    <span class="azl-btn" @click="ground()" :title="groundTitle()">Ground</span>
     <span class="azl-spacer"></span>
     <span class="azl-chip" :class="{on: preview.hitboxes}" @click="togglePreview('hitboxes')" title="Show hitboxes in the viewport">Boxes</span>
     <span class="azl-chip" :class="{on: preview.sockets}" @click="togglePreview('sockets')" title="Show sockets in the viewport">Sockets</span>

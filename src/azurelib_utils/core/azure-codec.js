@@ -27,6 +27,7 @@ import {
   unregisterMeshSupport,
 } from './azure-mesh.js';
 import { registerMeshImport, unregisterMeshImport } from './azure-mesh-import.js';
+import { RigStore } from '../rig/azure-rig-state.js';
 
 const invertMolang = globalThis.invertMolang || localInvert;
 const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
@@ -241,7 +242,25 @@ function handleBedrockCompile(event) {
       delete geo.item_display_transforms;
     });
     injectMeshGeometry(geometry[0]);
+    stripPreviewGround(geometry[0]);
   }
+}
+
+function stripPreviewGround(geometry) {
+  const name = RigStore.rig?.previewGround?.bone;
+  if (!name || !Array.isArray(geometry?.bones)) return;
+  const removed = new Set([name]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const bone of geometry.bones) {
+      if (bone.parent && removed.has(bone.parent) && !removed.has(bone.name)) {
+        removed.add(bone.name);
+        grew = true;
+      }
+    }
+  }
+  geometry.bones = geometry.bones.filter(bone => !removed.has(bone.name));
 }
 
 // ---------------------------------------------------------------------------
