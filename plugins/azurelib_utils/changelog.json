@@ -297,5 +297,25 @@
 				]
 			}
 		]
+	},
+	"2.3.1": {
+		"title": "2.3.1",
+		"date": "2026-11-26",
+		"author": "AzureDoom",
+		"categories": [
+			{
+				"title": "Changes",
+				"list": [
+					"Added per-animation pose modifier weights and weight keyframe tracks",
+					"Ground IK targets now cast down onto the preview ground like AzIkTargets.ground in code"
+				]
+			},
+			{
+				"title": "Fixes",
+				"list": [
+					"Fix 900039 to Item Display outputs, all my test exports are working, please stop breaking :'("
+				]
+			}
+		]
 	}
 }

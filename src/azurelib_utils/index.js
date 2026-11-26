@@ -4,7 +4,7 @@ Plugin.register('azurelib_utils', {
     icon: 'azureicon.png',
     description: 'Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.',
     tags: ['Minecraft: Java Edition'],
-    version: '2.3.0',
+    version: '2.3.1',
     variant: 'both',
     min_version: '4.8.0',
     website: 'https://wiki.azuredoom.com/',
