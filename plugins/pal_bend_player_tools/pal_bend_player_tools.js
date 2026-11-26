@@ -13,6 +13,30 @@
         right_leg: "right_leg_bend",
         left_leg: "left_leg_bend"
     };
+    const PAL_MIRROR_PAIRS = [
+        ["right_arm", "left_arm"],
+        ["right_arm_bend", "left_arm_bend"],
+        ["right_item", "left_item"],
+        ["right_leg", "left_leg"],
+        ["right_leg_bend", "left_leg_bend"]
+    ];
+    const PAL_CENTER_BONES = ["head", "torso", "torso_bend", "body"];
+    const PAL_RIG_PARTS = [
+        {id: "head", labelKey: "partHead", x: 42, y: 4, w: 32, h: 28, bend: false},
+        {id: "torso_bend", labelKey: "partTorsoBend", x: 42, y: 36, w: 32, h: 19, bend: true},
+        {id: "torso", labelKey: "partTorso", x: 42, y: 57, w: 32, h: 19, bend: false},
+        {id: "right_arm", labelKey: "partRightArm", x: 22, y: 36, w: 16, h: 19, bend: false},
+        {id: "right_arm_bend", labelKey: "partRightArmBend", x: 22, y: 57, w: 16, h: 19, bend: true},
+        {id: "right_item", labelKey: "partRightItem", x: 6, y: 60, w: 12, h: 13, bend: false},
+        {id: "left_arm", labelKey: "partLeftArm", x: 78, y: 36, w: 16, h: 19, bend: false},
+        {id: "left_arm_bend", labelKey: "partLeftArmBend", x: 78, y: 57, w: 16, h: 19, bend: true},
+        {id: "left_item", labelKey: "partLeftItem", x: 98, y: 60, w: 12, h: 13, bend: false},
+        {id: "right_leg", labelKey: "partRightLeg", x: 42, y: 80, w: 15, h: 21, bend: false},
+        {id: "right_leg_bend", labelKey: "partRightLegBend", x: 42, y: 103, w: 15, h: 21, bend: true},
+        {id: "left_leg", labelKey: "partLeftLeg", x: 59, y: 80, w: 15, h: 21, bend: false},
+        {id: "left_leg_bend", labelKey: "partLeftLegBend", x: 59, y: 103, w: 15, h: 21, bend: true},
+        {id: "body", labelKey: "partBody", x: 34, y: 129, w: 48, h: 11, bend: false}
+    ];
     const PAL_TO_DRAGONCORE_BONES = {
         body: "root",
         torso: "Body_Lower",
@@ -145,7 +169,51 @@
             noAnimationsToExport: "There are no animations to export.",
             emoteSingleOnly: "Emote export supports one animation at a time. Choose Selected Animation.",
             emoteCannotExpressMoreRotation: "This animation uses bend Y/Z rotation or helper position/scale data that emote cannot represent. Export animations JSON instead.",
-            helperBonesMissing: "This project does not have the complete player_model.geo helper-bend bones. Create a PAL Bend Player Animation project first. The plugin will still import the animation, but tracks for missing bones will not be visible."
+            helperBonesMissing: "This project does not have the complete player_model.geo helper-bend bones. Create a PAL Bend Player Animation project first. The plugin will still import the animation, but tracks for missing bones will not be visible.",
+            actionLoadSkinName: "PAL: Load Player Skin (.png)",
+            actionLoadSkinDescription: "Preview your own 64x64 Minecraft skin on the active player rig.",
+            actionMirrorPoseName: "PAL: Mirror Pose (L ↔ R)",
+            actionMirrorPoseDescription: "Mirror the current frame pose left-to-right across limbs, bends, head, and torso.",
+            actionResetBoneName: "PAL: Reset Selected Bone",
+            actionResetBoneDescription: "Reset rotation, position, and scale of the selected bone at the current time.",
+            actionResetPoseName: "PAL: Reset Player Pose",
+            actionResetPoseDescription: "Reset all bones of the active player rig at the current time.",
+            panelTitle: "PAL Player",
+            panelNoRigHint: "Open a PAL player model, select a PAL actor in AnimCue, or create a new player project.",
+            panelNewStandard: "Standard PAL Player",
+            panelNewDragoncore: "DragonCore Player",
+            panelToolNew: "New",
+            panelToolSkin: "Skin",
+            panelToolImport: "Import Animation",
+            panelToolExport: "Export",
+            panelPickHint: "Click any limb or bend joint",
+            panelPoseMirror: "Mirror L↔R",
+            panelPoseResetBone: "Reset Bone",
+            panelPoseResetAll: "Reset All",
+            panelRigStandard: "PAL Rig",
+            panelRigDragoncore: "DragonCore",
+            panelModeOriginal: "PAL Original",
+            panelModeMoreRotation: "MoreRotation (3-Axis)",
+            skinLoaded: "Loaded skin: {name}",
+            poseMirrored: "Mirrored pose at {time}s",
+            poseResetBone: "Reset {bone}",
+            poseResetAll: "Reset player pose at {time}s",
+            needAnimationForPose: "Enter Animate mode and select an animation first.",
+            selectPlayerBoneFirst: "Select a player bone first.",
+            partHead: "Head",
+            partTorsoBend: "Upper Torso (Bend)",
+            partTorso: "Lower Torso",
+            partRightArm: "Right Arm",
+            partRightArmBend: "Right Forearm (Bend)",
+            partLeftArm: "Left Arm",
+            partLeftArmBend: "Left Forearm (Bend)",
+            partRightLeg: "Right Thigh",
+            partRightLegBend: "Right Shin (Bend)",
+            partLeftLeg: "Left Thigh",
+            partLeftLegBend: "Left Shin (Bend)",
+            partRightItem: "Right Hand Item",
+            partLeftItem: "Left Hand Item",
+            partBody: "Root (Body)"
         },
         zh: {
             actionCreateName: "PAL Bend Player Animation",
@@ -189,7 +257,51 @@
             noAnimationsToExport: "没有可导出的动画。",
             emoteSingleOnly: "emote 一次只能导出一个动画，请选择“当前选中动画”。",
             emoteCannotExpressMoreRotation: "当前动画使用了 bend 的 Y/Z 轴或 helper 位移/缩放，emote 无法表达这些 MoreRotation 数据。请导出 animations JSON。",
-            helperBonesMissing: "当前项目没有完整的 player_model.geo helper-bend 骨骼。建议先新建 PAL Bend Player Animation 项目。插件仍会导入动画，但缺少骨骼的轨道不会显示。"
+            helperBonesMissing: "当前项目没有完整的 player_model.geo helper-bend 骨骼。建议先新建 PAL Bend Player Animation 项目。插件仍会导入动画，但缺少骨骼的轨道不会显示。",
+            actionLoadSkinName: "PAL：加载玩家皮肤 (.png)",
+            actionLoadSkinDescription: "把自己的 64×64 皮肤贴到当前玩家模型上预览动作",
+            actionMirrorPoseName: "PAL：左右镜像姿势 (L ↔ R)",
+            actionMirrorPoseDescription: "把当前时间点的左右手脚、弯曲、头部和躯干姿势左右镜像",
+            actionResetBoneName: "PAL：归零当前骨骼",
+            actionResetBoneDescription: "将当前选中骨骼在当前时间点的旋转、位移和缩放归零",
+            actionResetPoseName: "PAL：归零全身姿势",
+            actionResetPoseDescription: "将当前玩家所有骨骼在当前时间点归零",
+            panelTitle: "PAL 玩家",
+            panelNoRigHint: "打开玩家模型、选中合拍中的 PAL 角色，或点上方 + 新建玩家项目。",
+            panelNewStandard: "标准 PAL 玩家",
+            panelNewDragoncore: "龙核玩家模型版",
+            panelToolNew: "新建",
+            panelToolSkin: "换皮肤",
+            panelToolImport: "导入动画",
+            panelToolExport: "导出",
+            panelPickHint: "点击部位切换骨骼或弯曲关节",
+            panelPoseMirror: "镜像 L↔R",
+            panelPoseResetBone: "归零单骨",
+            panelPoseResetAll: "归零全身",
+            panelRigStandard: "标准 PAL",
+            panelRigDragoncore: "龙核版",
+            panelModeOriginal: "PAL 原版",
+            panelModeMoreRotation: "MoreRotation (三轴)",
+            skinLoaded: "已加载皮肤：{name}",
+            poseMirrored: "已镜像 {time}s 姿势",
+            poseResetBone: "已归零 {bone}",
+            poseResetAll: "已归零 {time}s 全身姿势",
+            needAnimationForPose: "请先切到动画模式并选中一个动画。",
+            selectPlayerBoneFirst: "请先选中一根玩家骨骼。",
+            partHead: "头 (head)",
+            partTorsoBend: "上躯干 · 弯曲 (torso_bend)",
+            partTorso: "下躯干 (torso)",
+            partRightArm: "右上臂 (right_arm)",
+            partRightArmBend: "右小臂 · 弯曲 (right_arm_bend)",
+            partLeftArm: "左上臂 (left_arm)",
+            partLeftArmBend: "左小臂 · 弯曲 (left_arm_bend)",
+            partRightLeg: "右大腿 (right_leg)",
+            partRightLegBend: "右小腿 · 弯曲 (right_leg_bend)",
+            partLeftLeg: "左大腿 (left_leg)",
+            partLeftLegBend: "左小腿 · 弯曲 (left_leg_bend)",
+            partRightItem: "右手物品 (right_item)",
+            partLeftItem: "左手物品 (left_item)",
+            partBody: "整体根骨 (body)"
         }
     };
     const ANIM_TRANSFORMS = ["position", "rotation", "scale", "bend"];
@@ -1407,13 +1519,15 @@
     const DRAGONCORE_PLAYER_MODEL_GEO = makePlayerModelVariant(PLAYER_MODEL_GEO, DRAGONCORE_COMPATIBLE_BONE_SETUP, PAL_TO_DRAGONCORE_BONES);
     const PLAYER_MODEL_TEXTURE_NAME = "player_model.geo.png";
     const DEBUG_LOG_NAME = "pal_bend_player_tools.debug.log";
-    const PLAYER_MODEL_TEXTURE_DATA_URL = "data:image/png;base64,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";
+    const PLAYER_MODEL_TEXTURE_DATA_URL = "data:image/png;base64,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";
 
     let actions = [];
+    let animationProperties = [];
     let palFormat = null;
     let dragoncoreFormat = null;
     let nativeAnimationCodec = null;
     let nativeAnimationCodecLoad = null;
+    let palPanelHandle = null;
 
     function textKey(key) {
         return `${PLUGIN_ID}.${key}`;
@@ -1471,12 +1585,19 @@
         icon: "icon.png",
         description: "Create, import, and export PAL, Emotecraft, DragonCore player-model, and PlayerAnimationLibraryMoreRotation animations.",
         tags: ["Minecraft: Java Edition", "Animation", "Tools"],
-        version: "0.4.0",
+        version: "0.4.2",
         variant: "both",
         min_version: "4.8.0",
         repository: "https://github.com/kltyton/Pal-bend-player-tools",
         bug_tracker: "https://github.com/kltyton/Pal-bend-player-tools/issues",
         onload() {
+            animationProperties = [
+                new Property(Animation, "object", "pal_bend_animation_metadata", {default: {}}),
+                new Property(Keyframe, "object", "pal_bend_easing", {default: {}})
+            ];
+            if (typeof ModelProject === "function") {
+                animationProperties.push(new Property(ModelProject, "string", "pal_bend_player_tools_rig", {default: ""}));
+            }
             registerTranslations();
             registerPalFormat();
             actions = [
@@ -1510,12 +1631,42 @@
                     description: t("actionExportGeoDescription"),
                     icon: "archive",
                     click: exportBuiltInGeo
+                }),
+                new Action("pal_bend_load_skin", {
+                    name: t("actionLoadSkinName"),
+                    description: t("actionLoadSkinDescription"),
+                    icon: "face",
+                    condition: () => !!resolveActivePlayerRigContext(),
+                    click: loadCustomPlayerSkin
+                }),
+                new Action("pal_bend_mirror_pose", {
+                    name: t("actionMirrorPoseName"),
+                    description: t("actionMirrorPoseDescription"),
+                    icon: "flip",
+                    condition: () => !!resolveActivePlayerRigContext() && globalThis.Modes && Modes.animate && !!Animation.selected,
+                    click: mirrorCurrentPlayerPose
+                }),
+                new Action("pal_bend_reset_bone", {
+                    name: t("actionResetBoneName"),
+                    description: t("actionResetBoneDescription"),
+                    icon: "undo",
+                    condition: () => !!resolveActivePlayerRigContext() && globalThis.Modes && Modes.animate && !!Animation.selected,
+                    click: resetSelectedPlayerBonePose
+                }),
+                new Action("pal_bend_reset_pose", {
+                    name: t("actionResetPoseName"),
+                    description: t("actionResetPoseDescription"),
+                    icon: "restart_alt",
+                    condition: () => !!resolveActivePlayerRigContext() && globalThis.Modes && Modes.animate && !!Animation.selected,
+                    click: resetAllPlayerPose
                 })
             ];
             MenuBar.addAction(getAction("pal_bend_create_player_project"), "file.new");
             MenuBar.addAction(getAction("pal_bend_create_dragoncore_project"), "file.new");
             MenuBar.addAction(getAction("pal_bend_create_player_project"), "tools");
             MenuBar.addAction(getAction("pal_bend_create_dragoncore_project"), "tools");
+            MenuBar.addAction(getAction("pal_bend_load_skin"), "tools");
+            MenuBar.addAction(getAction("pal_bend_mirror_pose"), "animation");
             MenuBar.addAction(getAction("pal_bend_import_animation"), "file.import");
             MenuBar.addAction(getAction("pal_bend_export_animation"), "file.export");
             MenuBar.addAction(getAction("pal_bend_export_geo"), "file.export");
@@ -1523,8 +1674,15 @@
             setTimeout(attachAnimationPanelImportAction, 250);
             hookNativeAnimationImport();
             setTimeout(hookNativeAnimationImport, 250);
+            palPanelHandle = registerPalPlayerPanel();
+            registerInteropApi();
         },
         onunload() {
+            unregisterInteropApi();
+            if (palPanelHandle && typeof palPanelHandle.delete === "function") palPanelHandle.delete();
+            palPanelHandle = null;
+            animationProperties.forEach(property => property.delete());
+            animationProperties = [];
             unhookNativeAnimationImport();
             actions.forEach(action => action.delete());
             actions = [];
@@ -1688,6 +1846,7 @@
         const parsed = [];
         for (const file of files) {
             const data = parseNativeImportFileContent(file);
+            if (!data || data["kltyton:interactions"]) return false;
             if (!shouldImportWithPalBendPipeline(data)) return false;
             parsed.push({file, data});
         }
@@ -2007,6 +2166,23 @@
     }
 
     function importAnimationData(data, fileName, options = {}) {
+        const animationNames = Object.keys((data && data.animations) || {});
+        if (animationNames.length > 1) {
+            const total = {created: 0, missing: 0, missingBones: []};
+            animationNames.forEach(name => {
+                const result = importAnimationData({...data, animations: {[name]: data.animations[name]}}, fileName, {...options, silent: true});
+                total.created += result.created;
+                total.missing += result.missing;
+                result.missingBones.forEach(bone => {
+                    if (!total.missingBones.includes(bone)) total.missingBones.push(bone);
+                });
+            });
+            if (!options.silent) Blockbench.showQuickMessage(t("importSummary", {
+                created: total.created, profile: t("profileAuto"),
+                missing: total.missing ? t("importMissing", {count: total.missing, bones: total.missingBones.join(", ")}) : ""
+            }), 4200);
+            return total;
+        }
         const fileBase = baseName(fileName || "animation").replace(/\.[^.]+$/, "");
         let animationsJson;
         if (data && data.emote) {
@@ -2083,7 +2259,7 @@
         const missingText = result.missing
             ? t("importMissing", {count: result.missing, bones: result.missingBones.join(", ")})
             : "";
-        Blockbench.showQuickMessage(t("importSummary", {
+        if (!options.silent) Blockbench.showQuickMessage(t("importSummary", {
             created: result.created,
             profile: formatImportProfileLabel(importProfile),
             missing: missingText
@@ -2300,6 +2476,11 @@
                 snapping: 20,
                 loop: blockbenchLoopForAnimation(animObj.loop)
             }).add();
+            bbAnimation.pal_bend_animation_metadata = {};
+            if (Number.isFinite(animObj.loopTick)) bbAnimation.pal_bend_animation_metadata.loopTick = animObj.loopTick;
+            if (animObj.player_animation_library && typeof animObj.player_animation_library === "object") {
+                bbAnimation.pal_bend_animation_metadata.player_animation_library = clone(animObj.player_animation_library);
+            }
             if (options.sourceMatchesCurrentRig) bbAnimation.pal_bend_same_rig_import = true;
             if (options.runtimeLocalSourceRig) {
                 bbAnimation.pal_bend_runtime_local_source_rig = clone(options.runtimeLocalSourceRig);
@@ -2543,6 +2724,7 @@
             if (key.easing && key.easing !== DEFAULT_EASING) keyframeData.easing = easingForAnimation(key.easing);
             if (key.interpolation) keyframeData.interpolation = key.interpolation;
             if (key.easingArgs) keyframeData.easingArgs = key.easingArgs;
+            if (key.palEasing) keyframeData.pal_bend_easing = key.palEasing;
             animator.addKeyframe(keyframeData);
         });
     }
@@ -2704,10 +2886,14 @@
         let interpolation;
         let easing = DEFAULT_EASING;
         let easingArgs;
+        const palEasing = {};
         const style = Array.isArray(element) ? "array" : undefined;
         if (element && typeof element === "object" && !Array.isArray(element)) {
             easing = normalizeEasing(element.easing || DEFAULT_EASING);
             easingArgs = element.easingArgs;
+            ["easingArgs", "easingX", "easingY", "easingZ", "easingArgsX", "easingArgsY", "easingArgsZ"].forEach(key => {
+                if (element[key] !== undefined) palEasing[key] = clone(element[key]);
+            });
             if (element.lerp_mode === "catmullrom") interpolation = "catmullrom";
             if (element.lerp_mode === "bezier" || (element.pre !== undefined && element.post !== undefined)) interpolation = "bezier";
         }
@@ -2719,7 +2905,7 @@
             dataPoints.push(vectorDataPoint(valueToVector(element, channel)));
         }
         if (!dataPoints.length) return null;
-        return {dataPoints, easing, interpolation, easingArgs, style};
+        return {dataPoints, easing, interpolation, easingArgs, style, palEasing};
     }
 
     function compileAnimationsFromProject(animations) {
@@ -2734,6 +2920,9 @@
             };
             const loopValue = animationLoopForJson(animation.loop);
             if (loopValue !== undefined) animObj.loop = loopValue;
+            const metadata = animation.pal_bend_animation_metadata || {};
+            if (loopValue === true && Number.isFinite(metadata.loopTick)) animObj.loopTick = metadata.loopTick;
+            if (metadata.player_animation_library) animObj.player_animation_library = clone(metadata.player_animation_library);
             addEffectTracksFromAnimation(animation, animObj);
             Object.keys(animation.animators || {}).forEach(id => {
                 const animator = animation.animators[id];
@@ -2786,6 +2975,7 @@
             if (hasEasing) {
                 obj.easing = easingForAnimation(keyframe.easing);
             }
+            Object.assign(obj, clone(keyframe.pal_bend_easing || {}));
             track[time] = obj;
         });
         return track;
@@ -2843,6 +3033,7 @@
         if (out.vector !== undefined) out.vector = mirrorPositionXPayload(valueToVector(out.vector, "position"));
         if (out.pre !== undefined) out.pre = mirrorPositionXPayload(out.pre);
         if (out.post !== undefined) out.post = mirrorPositionXPayload(out.post);
+        mirrorBezierHandles(out, [-1, 1, 1]);
         return out;
     }
 
@@ -2899,7 +3090,21 @@
         if (out.vector !== undefined) out.vector = mirrorVector(valueToVector(out.vector, channel), channel);
         if (out.pre !== undefined) out.pre = mirrorKeyPayload(out.pre, channel);
         if (out.post !== undefined) out.post = mirrorKeyPayload(out.post, channel);
+        mirrorBezierHandles(out, mirrorVector([1, 1, 1], channel));
         return out;
+    }
+
+    function mirrorBezierHandles(key, signs) {
+        const generic = key.easingArgs;
+        const genericBezier = normalizeEasing(key.easing) === "bezier";
+        ["X", "Y", "Z"].forEach((axis, index) => {
+            const mode = normalizeEasing(key["easing" + axis] || key.easing);
+            const args = key["easingArgs" + axis] || generic;
+            if (mode !== "bezier" || !Array.isArray(args)) return;
+            key["easingArgs" + axis] = args.map((value, i) =>
+                signs[index] < 0 && (i === 0 || i === 2) ? invertAnimationValue(value) : value);
+        });
+        if (genericBezier && Array.isArray(generic)) delete key.easingArgs;
     }
 
     function mirrorVector(vector, channel) {
@@ -3111,8 +3316,11 @@
     }
 
     function getHierarchyMetadataRig(data) {
-        const parentsObj = data.parents || firstAnimationObjectWith(data, "parents");
-        const modelObj = data.model || firstAnimationObjectWith(data, "model");
+        const localParents = firstAnimationObjectWith(data, "parents");
+        const localModel = firstAnimationObjectWith(data, "model");
+        const sharedMetadata = data.parents && data.model;
+        const parentsObj = localParents && Object.keys(localParents).length ? localParents : sharedMetadata ? data.parents : localParents;
+        const modelObj = localModel && Object.keys(localModel).length ? localModel : sharedMetadata ? data.model : localModel;
         if (!parentsObj && !modelObj) return null;
         const parents = {};
         const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
@@ -3919,7 +4127,32 @@
             if (!bone || typeof bone !== "object") return;
             ["position", "rotation", "scale"].forEach(channel => collectTrackTimes(bone[channel], times));
         });
+        const sorted = Array.from(times).sort((a, b) => a - b);
+        if (chainHasPalCurveMetadata(bones, boneName, parentChain)) {
+            for (let i = 1; i < sorted.length; i++) {
+                const start = sorted[i - 1], end = sorted[i];
+                const steps = Math.ceil((end - start) * 60);
+                for (let step = 1; step < steps; step++) times.add(start + (end - start) * step / steps);
+            }
+        }
         return Array.from(times).sort((a, b) => a - b);
+    }
+
+    function hasPalCurveMetadata(key) {
+        return key && typeof key === "object" && !Array.isArray(key)
+            && (key.easingArgs !== undefined || ["X", "Y", "Z"].some(axis =>
+                key["easing" + axis] !== undefined || key["easingArgs" + axis] !== undefined));
+    }
+
+    function chainHasPalCurveMetadata(bones, boneName, parentChain) {
+        return [boneName, ...parentChain].some(name => {
+            const bone = bones[name] || {};
+            return ["position", "rotation", "scale"].some(channel => {
+                const track = bone[channel];
+                return hasPalCurveMetadata(track) || (track && typeof track === "object"
+                    && Object.values(track).some(hasPalCurveMetadata));
+            });
+        });
     }
 
     function collectTrackTimes(track, times) {
@@ -4013,6 +4246,24 @@
             .filter(entry => !Number.isNaN(entry.time))
             .sort((a, b) => a.time - b.time);
         if (!samples.length) return fallback.slice();
+        if (samples.some(entry => valueToVector(entry.value, channel).some(isSkip))) {
+            return [0, 1, 2].map(index => {
+                const axis = ["X", "Y", "Z"][index];
+                const axisTrack = {};
+                samples.forEach(entry => {
+                    const vector = valueToVector(entry.value, channel);
+                    if (isSkip(vector[index])) return;
+                    const source = entry.value && typeof entry.value === "object" && !Array.isArray(entry.value) ? entry.value : {};
+                    const frame = {vector: [vector[index], vector[index], vector[index]]};
+                    const easing = source["easing" + axis] || source.easing || source.lerp_mode;
+                    const args = source["easingArgs" + axis] || source.easingArgs;
+                    if (easing) frame.easingX = easing;
+                    if (args) frame.easingArgsX = clone(args);
+                    axisTrack[entry.time] = frame;
+                });
+                return sampleTrackVector(axisTrack, channel, time, [fallback[index], fallback[index], fallback[index]])[0];
+            });
+        }
         const exact = samples.find(entry => Math.abs(entry.time - time) < 1e-6);
         if (exact) return cleanNumber(valueToVector(exact.value, channel));
         let prev = null;
@@ -4037,6 +4288,9 @@
         const a = valueToVectorForSegmentStart(prev.value, channel);
         const b = valueToVectorForSegmentEnd(next.value, channel);
         if (!a.every(isFiniteNumberLike) || !b.every(isFiniteNumberLike)) return null;
+        if (hasPalCurveMetadata(prev.value) || hasPalCurveMetadata(next.value)) {
+            return a.map((value, index) => samplePalAxisCurve(prev, next, index, Number(value), Number(b[index]), alpha));
+        }
         if (mode === "constant" || mode === "step") return a;
         if (mode === "catmullrom") {
             const p0 = valueToVectorForSegmentStart((samples[Math.max(prevIndex - 1, 0)] || prev).value, channel);
@@ -4046,6 +4300,65 @@
             }
         }
         return interpolateVector(a, b, alpha, channel);
+    }
+
+    function samplePalAxisCurve(prev, next, index, start, end, alpha) {
+        const axis = ["X", "Y", "Z"][index];
+        const p = prev.value || {}, n = next.value || {};
+        const beforeMode = normalizeEasing(p["easing" + axis] || p.easing);
+        const mode = normalizeEasing(n["easing" + axis] || n.easing);
+        const before = p["easingArgs" + axis] || p.easingArgs;
+        const after = n["easingArgs" + axis] || n.easingArgs;
+        if (mode === "bezier" || beforeMode === "bezier") {
+            const duration = next.time - prev.time;
+            let rightValue = beforeMode === "bezier" && Array.isArray(before) ? numberOr(before[2], 0) : 0;
+            let rightTime = beforeMode === "bezier" && Array.isArray(before) ? numberOr(before[3], 0) / duration : 0;
+            let leftValue = mode === "bezier" && Array.isArray(after) ? numberOr(after[0], 0) : 0;
+            let leftTime = mode === "bezier" && Array.isArray(after) ? numberOr(after[1], 0) / duration : 0;
+            const clampRight = Math.max(0, Math.min(1, rightTime));
+            const clampLeft = Math.max(-1, Math.min(0, leftTime));
+            rightValue /= 1 + Math.abs(clampRight - rightTime);
+            leftValue /= 1 + Math.abs(clampLeft - leftTime);
+            const bezier = (t, a, b, c, d) => (1-t)**3*a + 3*(1-t)**2*t*b + 3*(1-t)*t*t*c + t**3*d;
+            let low = 0, high = 1;
+            for (let i = 0; i < 24; i++) {
+                const middle = (low + high) / 2;
+                if (bezier(middle, 0, clampRight, 1 + clampLeft, 1) < alpha) low = middle;
+                else high = middle;
+            }
+            return bezier((low + high) / 2, start, start + rightValue, end + leftValue, end);
+        }
+        return start + (end - start) * samplePalEasing(mode, alpha, Array.isArray(after) ? after[0] : undefined);
+    }
+
+    function samplePalEasing(mode, time, argument) {
+        if (mode === "constant") return 0;
+        if (mode === "step") {
+            const steps = Math.max(2, numberOr(argument, 2));
+            return Math.floor(time * steps) / (steps - 1);
+        }
+        const match = /^ease(inout|in|out)(sine|quad|cubic|quart|quint|expo|circ|back|elastic|bounce)$/.exec(mode);
+        if (!match) return time;
+        const curve = t => {
+            switch (match[2]) {
+                case "sine": return 1 - Math.cos(t * Math.PI / 2);
+                case "quad": return t*t;
+                case "cubic": return t**3;
+                case "quart": return t**4;
+                case "quint": return t**5;
+                case "expo": return 2**(10*(t-1));
+                case "circ": return 1 - Math.sqrt(1-t*t);
+                case "back": { const n = numberOr(argument, 1) * 1.70158; return t*t*((n+1)*t-n); }
+                case "elastic": return 1 - Math.cos(t*Math.PI/2)**3 * Math.cos(t*numberOr(argument,1)*Math.PI);
+                case "bounce": {
+                    const n = numberOr(argument, 0.5);
+                    return Math.min(121/16*t*t, 121/4*n*(t-6/11)**2+1-n,
+                        121*n*n*(t-9/11)**2+1-n*n, 484*n**3*(t-10.5/11)**2+1-n**3);
+                }
+            }
+        };
+        return match[1] === "in" ? curve(time) : match[1] === "out" ? 1-curve(1-time)
+            : time < 0.5 ? curve(2*time)/2 : 1-curve(2-2*time)/2;
     }
 
     function normalizeInterpolationMode(value) {
@@ -4133,6 +4446,8 @@
     }
 
     function findBakeEasing(bones, boneName, parentChain, time) {
+        // Matrix composition changes handle values and axes; sampled transforms use linear segments.
+        if (chainHasPalCurveMetadata(bones, boneName, parentChain)) return {easing: "linear"};
         for (const name of [boneName, ...parentChain.slice().reverse()]) {
             const bone = bones[name];
             if (!bone || typeof bone !== "object") continue;
@@ -5238,5 +5553,1032 @@
             parents: Object.assign({}, (rig && rig.parents) || {}),
             pivots: Object.assign({}, (rig && rig.pivots) || {})
         };
+    }
+
+    function detectRigFromEntries(entries = []) {
+        const list = Array.isArray(entries) ? entries.filter(item => item && item.name) : [];
+        if (!list.length) return null;
+        const byCanonical = {};
+        const parents = {};
+        const pivots = Object.assign({}, clone(PAL_DEFAULT_PIVOTS));
+        let sawDragoncoreName = false;
+        let sawBendHelper = false;
+        list.forEach(item => {
+            const rawName = String(item.name || "").trim();
+            if (isDragoncoreRawBoneName(rawName)) sawDragoncoreName = true;
+            const boneName = getCorrectPlayerBoneName(rawName);
+            if (!boneName) return;
+            byCanonical[boneName] = item;
+            if (boneName.endsWith(HELPER_SUFFIX)) sawBendHelper = true;
+            if (Array.isArray(item.origin)) pivots[boneName] = cleanNumber(item.origin.slice(0, 3));
+            else if (Array.isArray(item.pivot)) pivots[boneName] = cleanNumber(item.pivot.slice(0, 3));
+            if (item.parentName) {
+                const parentName = getCorrectPlayerBoneName(item.parentName);
+                if (parentName && parentName !== boneName) parents[boneName] = parentName;
+            }
+        });
+        const matchesSetup = setup => Object.keys(setup).every(boneName => {
+            if (!byCanonical[boneName]) return false;
+            const expectedParent = setup[boneName].parent === undefined ? null : setup[boneName].parent;
+            return (expectedParent || null) === (parents[boneName] || null);
+        });
+        if (matchesSetup(DRAGONCORE_COMPATIBLE_BONE_SETUP)) {
+            return {preset: "dragoncore", rig: getDragoncoreCompatiblePalRig(), hasBendHelpers: true};
+        }
+        const defaultRig = getDefaultPlayerModelPalRig();
+        const hasAllHelpers = Object.values(BEND_HELPER_BONES).every(helper => !!byCanonical[helper]);
+        if (hasAllHelpers && parentMapsAreEquivalent(parents, defaultRig.parents)) {
+            return {preset: "player", rig: defaultRig, hasBendHelpers: true};
+        }
+        if (sawDragoncoreName && sawBendHelper) {
+            return {preset: "dragoncore", rig: {parents, pivots}, hasBendHelpers: true};
+        }
+        if (sawBendHelper) {
+            return {preset: "player", rig: {parents, pivots}, hasBendHelpers: true};
+        }
+        return null;
+    }
+
+    function normalizeAnimCueNumericCurve(track, channel) {
+        if (track === undefined || track === null) return undefined;
+        const entries = getAnimationEntries(track, channel);
+        if (!entries.length) return undefined;
+        const needsResample = entries.some(([_t, element]) => {
+            if (!element || typeof element !== "object" || Array.isArray(element)) return false;
+            const hasPerAxis = ["easingX", "easingY", "easingZ", "easingArgs", "easingArgsX", "easingArgsY", "easingArgsZ"]
+                .some(key => element[key] !== undefined);
+            if (hasPerAxis) return true;
+            const mode = normalizeInterpolationMode(element);
+            return mode !== "linear" && mode !== "catmullrom";
+        });
+        const fallback = channel === "scale" ? [1, 1, 1] : [0, 0, 0];
+        if (needsResample) {
+            const times = collectResampleTimesForTrack(entries);
+            const sampled = {};
+            times.forEach(time => {
+                const vec = sampleTrackVector(track, channel, time, fallback).map(v => cleanZero(numberOr(v, channel === "scale" ? 1 : 0)));
+                sampled[formatSeconds(time)] = cleanNumber(vec);
+            });
+            return sampled;
+        }
+        const out = {};
+        entries.forEach(([seconds, element]) => {
+            const timeKey = formatSeconds(seconds);
+            if (element && typeof element === "object" && !Array.isArray(element)) {
+                const postVec = toStrictVec3(element.post !== undefined ? element.post : (element.vector !== undefined ? element.vector : element.pre), channel);
+                const hasPre = element.pre !== undefined;
+                const preVec = hasPre ? toStrictVec3(element.pre, channel) : null;
+                const mode = normalizeInterpolationMode(element);
+                if (!hasPre && mode === "linear") {
+                    out[timeKey] = postVec;
+                } else {
+                    const frame = {};
+                    if (hasPre) frame.pre = preVec;
+                    frame.post = postVec;
+                    if (mode === "catmullrom") frame.lerp_mode = "catmullrom";
+                    out[timeKey] = frame;
+                }
+            } else {
+                out[timeKey] = toStrictVec3(element, channel);
+            }
+        });
+        return out;
+    }
+
+    function collectResampleTimesForTrack(entries) {
+        const times = new Set();
+        entries.forEach(([seconds]) => times.add(cleanNumber(seconds)));
+        for (let i = 0; i < entries.length - 1; i++) {
+            const start = entries[i][0];
+            const end = entries[i + 1][0];
+            if (end <= start + 1e-6) continue;
+            const span = end - start;
+            const steps = Math.max(2, Math.min(240, Math.ceil(span * 20)));
+            for (let step = 1; step < steps; step++) {
+                times.add(cleanNumber(start + (span * step) / steps));
+            }
+        }
+        return Array.from(times).sort((a, b) => a - b);
+    }
+
+    function toStrictVec3(value, channel) {
+        const fallback = channel === "scale" ? 1 : 0;
+        const vec = valueToVector(value, channel);
+        return cleanNumber([
+            isSkip(vec[0]) ? fallback : numberOr(vec[0], fallback),
+            isSkip(vec[1]) ? fallback : numberOr(vec[1], fallback),
+            isSkip(vec[2]) ? fallback : numberOr(vec[2], fallback)
+        ]);
+    }
+
+    function exportBoneTracksForInterop(animationName, bones, options = {}) {
+        const clipName = safeAnimationName(animationName || "animation");
+        const rigPreset = options.preset || "player";
+        const rig = options.rig
+            ? normalizeRigForMetadata(options.rig)
+            : (rigPreset === "dragoncore" ? getDragoncoreCompatiblePalRig() : getDefaultPlayerModelPalRig());
+        const animObj = {
+            animation_length: cleanNumber(numberOr(options.length, 0)),
+            bones: clone(bones || {})
+        };
+        const loopValue = animationLoopForJson(options.loop);
+        if (loopValue !== undefined) animObj.loop = loopValue;
+        let doc = normalizeAnimationBoneNames({format_version: "1.8.0", animations: {[clipName]: animObj}});
+        const isDragoncore = rigPreset === "dragoncore" || isDragoncoreProjectRig(rig);
+        if (isDragoncore) {
+            doc = bakeDragoncoreHierarchyToBodylessFlatPal(doc, rig);
+            doc = mirrorFacingForPal(doc);
+            doc = stripBodyBones(doc);
+        } else {
+            const defaultRig = getDefaultPlayerModelPalRig();
+            if (!rigsAreEquivalent(rig, defaultRig)) {
+                doc = retargetAnimationHierarchy(doc, rig, defaultRig);
+            }
+            doc = bakeAnimationHierarchyToFlat(doc, defaultRig, getCanonicalFlatPalRig(), {
+                preserveRuntimeLocalItems: true,
+                skipRootParents: ["body"],
+                includeOwnBendHelperParent: true
+            });
+            doc = mirrorFacingForPal(doc);
+            if (!rigsAreEquivalent(rig, defaultRig)) {
+                doc = stripFlatRuntimeCompensationPositions(doc);
+            }
+            if (!options.preserveBodyRoot) {
+                doc = bakeBodyToBodylessPalExport(doc);
+            }
+        }
+        const needsMoreRotation = animationNeedsMoreRotationBend(doc);
+        const strict = !!options.animcueStrict;
+        const palDoc = stabilizePalExportNumbers(cleanPalRuntimeExport(modelAnimationsToPalBend(doc, {
+            helperSign: 1,
+            keepHelpers: false,
+            keepHelperRotations: false,
+            stripHelperPositionScale: true,
+            compoundBend: !strict && needsMoreRotation
+        })));
+        const outAnim = (palDoc.animations && palDoc.animations[clipName]) || {bones: {}};
+        let outBones = outAnim.bones || {};
+        if (strict) {
+            const strictBones = {};
+            Object.keys(outBones).forEach(boneName => {
+                const rawBone = outBones[boneName];
+                if (!rawBone || typeof rawBone !== "object") return;
+                const nextBone = {};
+                ["position", "rotation", "scale", "bend"].forEach(channel => {
+                    if (rawBone[channel] === undefined) return;
+                    const payload = channel === "bend" && isCompoundBendPayload(rawBone.bend)
+                        ? rawBone.bend.rotation
+                        : rawBone[channel];
+                    const curve = normalizeAnimCueNumericCurve(payload, channel);
+                    if (curve && Object.keys(curve).length) nextBone[channel] = curve;
+                });
+                if (Object.keys(nextBone).length) strictBones[boneName] = nextBone;
+            });
+            outBones = strictBones;
+        }
+        return {
+            bones: outBones,
+            format: needsMoreRotation ? "more_rotation" : "pal_original",
+            needsMoreRotation
+        };
+    }
+
+    function importPalTracksForInterop(inputData, options = {}) {
+        const targetPreset = options.targetPreset || "player";
+        const targetRig = options.targetRig
+            ? normalizeRigForMetadata(options.targetRig)
+            : (targetPreset === "dragoncore" ? getDragoncoreCompatiblePalRig() : getDefaultPlayerModelPalRig());
+        const fileBase = baseName(options.fileName || "animation").replace(/\.[^.]+$/, "");
+        let animationsJson;
+        const isEmote = !!(inputData && inputData.emote);
+        if (isEmote) {
+            const ir = parseEmoteToIR(inputData, fileBase);
+            animationsJson = irToAnimationsJson(ir, safeAnimationName(inputData.name || fileBase || "animation"));
+        } else if (inputData && inputData.animations) {
+            animationsJson = clone(inputData);
+        } else {
+            throw new Error(t("unsupportedFile"));
+        }
+        const profile = getImportProfile(animationsJson, isEmote);
+        animationsJson = normalizeAnimationBoneNames(animationsJson);
+        let modelAnimations = convertToBendableModelFormat(animationsJson, {
+            keepPalBend: false,
+            helperSign: 1
+        });
+        const sourceMatchesTarget = profile.sourceRig && rigsAreEquivalent(profile.sourceRig, targetRig);
+        modelAnimations = profile.sourceRig && profile.sourceCoordinate === "bedrock"
+            ? bedrockJsonToBlockbenchAnimationData(modelAnimations)
+            : mirrorFacingForBlockbench(modelAnimations);
+        if (profile.sourceRig && !sourceMatchesTarget) {
+            modelAnimations = retargetAnimationHierarchy(modelAnimations, profile.sourceRig, targetRig);
+        } else if (!profile.sourceRig && profile.unbakeFlatToCurrent) {
+            const defaultRig = getDefaultPlayerModelPalRig();
+            modelAnimations = unbakeFlatAnimationHierarchyForEdit(modelAnimations, defaultRig, getCanonicalFlatPalRig(), {
+                preserveRuntimeLocalItems: !!profile.runtimeLocalItems,
+                skipRootParents: profile.skipRuntimeRootParents
+            });
+            if (!rigsAreEquivalent(targetRig, defaultRig)) {
+                modelAnimations = retargetAnimationHierarchy(modelAnimations, defaultRig, targetRig);
+            }
+        }
+        if (shouldBakeVirtualRootForStandardProject(modelAnimations, targetRig)) {
+            modelAnimations = bakeVirtualRootForStandardProject(modelAnimations).data;
+        } else if (shouldStripFlatRuntimeCompensationPositions(profile, targetRig)) {
+            modelAnimations = stripFlatRuntimeCompensationPositions(modelAnimations);
+        }
+        if (targetPreset === "dragoncore") {
+            Object.values(modelAnimations.animations || {}).forEach(animObj => {
+                const rawBones = animObj && animObj.bones;
+                if (!rawBones || typeof rawBones !== "object") return;
+                const mapped = {};
+                Object.keys(rawBones).forEach(canonical => {
+                    const targetName = PAL_TO_DRAGONCORE_BONES[canonical] || canonical;
+                    mapped[targetName] = rawBones[canonical];
+                });
+                animObj.bones = mapped;
+            });
+        }
+        return {
+            animations: modelAnimations.animations || {},
+            profile: profile.sourceFormat,
+            profileLabel: formatImportProfileLabel(profile)
+        };
+    }
+
+    function registerInteropApi() {
+        const api = Object.freeze({
+            apiVersion: 1,
+            pluginId: PLUGIN_ID,
+            version: "0.4.2",
+            presets: ["player", "dragoncore"],
+            bendHelperBones: Object.freeze(clone(BEND_HELPER_BONES)),
+            dragoncoreBoneMap: Object.freeze(clone(PAL_TO_DRAGONCORE_BONES)),
+            getPresetGeometry(preset) {
+                return clone(preset === "dragoncore" ? DRAGONCORE_PLAYER_MODEL_GEO : PLAYER_MODEL_GEO);
+            },
+            getDefaultTexture() {
+                return {
+                    name: PLAYER_MODEL_TEXTURE_NAME,
+                    dataURL: PLAYER_MODEL_TEXTURE_DATA_URL,
+                    width: 64,
+                    height: 64
+                };
+            },
+            getPresetRig(preset) {
+                return clone(preset === "dragoncore" ? getDragoncoreCompatiblePalRig() : getDefaultPlayerModelPalRig());
+            },
+            normalizeBoneName(name) {
+                return getCorrectPlayerBoneName(name);
+            },
+            detectRig(entries) {
+                return detectRigFromEntries(entries);
+            },
+            exportBoneTracks(animationName, bones, options) {
+                return exportBoneTracksForInterop(animationName, bones, options);
+            },
+            importBoneTracks(data, options) {
+                return importPalTracksForInterop(data, options);
+            }
+        });
+        globalThis.PalBendPlayerToolsAPI = api;
+        if (globalThis.Blockbench && typeof Blockbench.dispatchEvent === "function") {
+            Blockbench.dispatchEvent("pal_bend_player_tools_ready", {api});
+        }
+    }
+
+    function mirrorPoseVector(vector, channel) {
+        const vec = valueToVector(vector, channel).map(v => numberOr(v, channel === "scale" ? 1 : 0));
+        if (channel === "position") return cleanNumber([cleanZero(-vec[0]), vec[1], vec[2]]);
+        if (channel === "rotation") return cleanNumber([vec[0], cleanZero(-vec[1]), cleanZero(-vec[2])]);
+        return cleanNumber(vec);
+    }
+
+    function findSelectedAnimCueParticipantRoot() {
+        if (!globalThis.Group) return null;
+        let node = Group.first_selected || (globalThis.Outliner && Outliner.selected && Outliner.selected[0]);
+        while (node && node !== "root") {
+            if (node instanceof Group && node.parent === "root" && node.animcue_participant && node.animcue_participant.role) {
+                return node;
+            }
+            node = node.parent;
+        }
+        return null;
+    }
+
+    function isAnimCueForeignGroup(group) {
+        return !!(group && ((group.animcue_participant && group.animcue_participant.role) || group.animcue_camera));
+    }
+
+    function collectRigBonesMap(scopeRoot) {
+        const map = {};
+        if (!globalThis.Group || !Array.isArray(Group.all)) return map;
+        const list = scopeRoot
+            ? Group.all.filter(g => g && g.isChildOf && g.isChildOf(scopeRoot))
+            : Group.all.filter(g => {
+                if (!g || isAnimCueForeignGroup(g)) return false;
+                let p = g.parent;
+                while (p && p !== "root") {
+                    if (isAnimCueForeignGroup(p)) return false;
+                    p = p.parent;
+                }
+                return true;
+            });
+        list.forEach(group => {
+            const rawName = group.animcue_bone_name || group.name;
+            const canonical = getCorrectPlayerBoneName(rawName);
+            if (canonical && !map[canonical]) map[canonical] = group;
+        });
+        return map;
+    }
+
+    function resolveActivePlayerRigContext() {
+        if (!isProjectObject() || !globalThis.Group || !Array.isArray(Group.all)) return null;
+        const participant = findSelectedAnimCueParticipantRoot();
+        if (participant) {
+            const bones = collectRigBonesMap(participant);
+            const hasHelpers = Object.values(BEND_HELPER_BONES).some(name => !!bones[name]);
+            if (hasHelpers) {
+                const isDc = Object.values(bones).some(g => isDragoncoreRawBoneName(g.animcue_bone_name || g.name));
+                return {
+                    scopeRoot: participant,
+                    bones,
+                    preset: isDc ? "dragoncore" : "player",
+                    label: `${participant.animcue_participant.role} (${isDc ? t("panelRigDragoncore") : t("panelRigStandard")})`
+                };
+            }
+        }
+        const primaryBones = collectRigBonesMap(null);
+        const hasPrimaryHelpers = Object.values(BEND_HELPER_BONES).some(name => !!primaryBones[name]);
+        if (hasPrimaryHelpers || isCurrentProjectPlayerBendRig()) {
+            const isDc = Project.pal_bend_player_tools_rig === "dragoncore"
+                || Project.pal_bend_player_tools_rig === "dragoncore_compatible"
+                || Object.values(primaryBones).some(g => isDragoncoreRawBoneName(g.name));
+            return {
+                scopeRoot: null,
+                bones: primaryBones,
+                preset: isDc ? "dragoncore" : "player",
+                label: isDc ? t("panelRigDragoncore") : t("panelRigStandard")
+            };
+        }
+        return null;
+    }
+
+    function detectLiveAnimationMoreRotation(context) {
+        if (!context || !globalThis.Animation || !Animation.selected) return false;
+        const anim = Animation.selected;
+        return Object.values(BEND_HELPER_BONES).some(helperName => {
+            const group = context.bones[helperName];
+            if (!group) return false;
+            const animator = anim.animators && anim.animators[group.uuid];
+            if (!animator) return false;
+            if ((animator.position && animator.position.length) || (animator.scale && animator.scale.length)) return true;
+            return (animator.rotation || []).some(kf => {
+                const pts = kf.data_points || [];
+                return pts.some(pt => Math.abs(numberOr(pt.y, 0)) > 1e-4 || Math.abs(numberOr(pt.z, 0)) > 1e-4);
+            });
+        });
+    }
+
+    function loadCustomPlayerSkin() {
+        const context = resolveActivePlayerRigContext();
+        if (!context) return;
+        const targetProject = Project;
+        Blockbench.import({
+            type: "Minecraft Skin",
+            extensions: ["png"],
+            readtype: "image",
+            multiple: false
+        }, files => {
+            if (!files || !files[0] || Project !== targetProject) return;
+            const file = files[0];
+            const skinName = baseName(file.name || file.path || "skin.png");
+            const tex = new Texture({
+                name: skinName,
+                keep_size: true,
+                uv_width: 64,
+                uv_height: 64
+            });
+            const applySkin = () => {
+                const targetCubes = (Cube.all || []).filter(cube => {
+                    if (context.scopeRoot) return cube.isChildOf && cube.isChildOf(context.scopeRoot);
+                    let p = cube.parent;
+                    while (p && p !== "root") {
+                        if (isAnimCueForeignGroup(p)) return false;
+                        p = p.parent;
+                    }
+                    return true;
+                });
+                const isSingleTex = !context.scopeRoot && globalThis.Format && Format.single_texture;
+                Undo.initEdit({elements: targetCubes, textures: isSingleTex ? Texture.all.slice() : [tex]});
+                if (isSingleTex) {
+                    (Texture.all || []).forEach(existing => {
+                        existing.use_as_default = (existing === tex);
+                    });
+                    if (typeof tex.select === "function") tex.select();
+                }
+                targetCubes.forEach(cube => {
+                    if (typeof cube.applyTexture === "function") cube.applyTexture(tex, true);
+                });
+                Undo.finishEdit("Load PAL player skin");
+                if (globalThis.Canvas && typeof Canvas.updateAllFaces === "function") Canvas.updateAllFaces();
+                Blockbench.showQuickMessage(t("skinLoaded", {name: skinName}), 2200);
+            };
+            let settled = false;
+            const finish = () => {
+                if (settled) return;
+                settled = true;
+                applySkin();
+            };
+            tex.load_callback = finish;
+            tex.fromDataURL(file.content).add(false);
+            if (tex.img && tex.img.complete && tex.img.naturalWidth > 0) finish();
+            setTimeout(finish, 1200);
+        });
+    }
+
+    function readBoneChannelAtTime(animation, group, channel, time) {
+        const animator = animation.getBoneAnimator(group);
+        const list = (animator && animator[channel]) || [];
+        const exact = list.find(kf => Math.abs(kf.time - time) < 0.0005);
+        if (exact && exact.data_points && exact.data_points.length) {
+            return {
+                present: true,
+                vec: dataPointVector(exact.data_points[exact.data_points.length - 1], channel)
+            };
+        }
+        if (list.length && typeof animator.interpolate === "function") {
+            const vec = animator.interpolate(channel, false);
+            if (Array.isArray(vec) && vec.length === 3) {
+                return {present: true, vec: cleanNumber(vec)};
+            }
+        }
+        return {present: false, vec: channel === "scale" ? [1, 1, 1] : [0, 0, 0]};
+    }
+
+    function writeBoneChannelAtTime(animation, group, channel, time, vec) {
+        const animator = animation.getBoneAnimator(group);
+        if (!animator) return;
+        const list = animator[channel] || [];
+        const exact = list.find(kf => Math.abs(kf.time - time) < 0.0005);
+        const point = {x: cleanZero(vec[0]), y: cleanZero(vec[1]), z: cleanZero(vec[2])};
+        if (exact) {
+            exact.data_points[exact.data_points.length - 1].extend(point);
+        } else {
+            animator.createKeyframe(point, time, channel, false, false);
+        }
+    }
+
+    function mirrorCurrentPlayerPose() {
+        const context = resolveActivePlayerRigContext();
+        if (!context) return;
+        if (!globalThis.Modes || !Modes.animate || !globalThis.Animation || !Animation.selected) {
+            Blockbench.showQuickMessage(t("needAnimationForPose"), 2200);
+            return;
+        }
+        const clip = Animation.selected;
+        const time = cleanNumber(globalThis.Timeline ? Timeline.time : 0);
+        const affected = [];
+        const snapshot = {};
+        const channels = ["rotation", "position", "scale"];
+
+        const allRelevant = [...PAL_CENTER_BONES, ...PAL_MIRROR_PAIRS.flat()];
+        allRelevant.forEach(boneName => {
+            const group = context.bones[boneName];
+            if (!group) return;
+            snapshot[boneName] = {};
+            channels.forEach(ch => {
+                snapshot[boneName][ch] = readBoneChannelAtTime(clip, group, ch, time);
+            });
+            affected.push(group);
+        });
+        if (!affected.length) return;
+
+        const existingKeyframes = [];
+        affected.forEach(group => {
+            const anim = clip.animators && clip.animators[group.uuid];
+            if (!anim) return;
+            channels.forEach(ch => (anim[ch] || []).forEach(kf => existingKeyframes.push(kf)));
+        });
+        Undo.initEdit({keyframes: existingKeyframes});
+
+        PAL_MIRROR_PAIRS.forEach(([rightName, leftName]) => {
+            const rightGroup = context.bones[rightName];
+            const leftGroup = context.bones[leftName];
+            if (!rightGroup || !leftGroup) return;
+            channels.forEach(ch => {
+                const rVal = snapshot[rightName][ch];
+                const lVal = snapshot[leftName][ch];
+                if (!rVal.present && !lVal.present) return;
+                writeBoneChannelAtTime(clip, rightGroup, ch, time, mirrorPoseVector(lVal.vec, ch));
+                writeBoneChannelAtTime(clip, leftGroup, ch, time, mirrorPoseVector(rVal.vec, ch));
+            });
+        });
+
+        PAL_CENTER_BONES.forEach(name => {
+            const group = context.bones[name];
+            if (!group) return;
+            channels.forEach(ch => {
+                const val = snapshot[name][ch];
+                if (!val.present) return;
+                writeBoneChannelAtTime(clip, group, ch, time, mirrorPoseVector(val.vec, ch));
+            });
+        });
+
+        Undo.finishEdit("Mirror PAL player pose");
+        if (globalThis.Animator && typeof Animator.preview === "function") Animator.preview();
+        if (palPanelHandle && typeof palPanelHandle.refresh === "function") palPanelHandle.refresh();
+        Blockbench.showQuickMessage(t("poseMirrored", {time: formatSeconds(time)}), 2000);
+    }
+
+    function resetSelectedPlayerBonePose() {
+        const context = resolveActivePlayerRigContext();
+        if (!context) return;
+        if (!globalThis.Modes || !Modes.animate || !globalThis.Animation || !Animation.selected) {
+            Blockbench.showQuickMessage(t("needAnimationForPose"), 2200);
+            return;
+        }
+        const selected = Group.first_selected;
+        if (!selected) {
+            Blockbench.showQuickMessage(t("selectPlayerBoneFirst"), 2000);
+            return;
+        }
+        const clip = Animation.selected;
+        const time = cleanNumber(globalThis.Timeline ? Timeline.time : 0);
+        const animator = clip.getBoneAnimator(selected);
+        const channels = ["rotation", "position", "scale"];
+        const kfs = channels.flatMap(ch => (animator[ch] || []).slice());
+        Undo.initEdit({keyframes: kfs});
+        channels.forEach(ch => {
+            const hasAny = (animator[ch] || []).length > 0;
+            if (hasAny || ch === "rotation") {
+                writeBoneChannelAtTime(clip, selected, ch, time, ch === "scale" ? [1, 1, 1] : [0, 0, 0]);
+            }
+        });
+        Undo.finishEdit("Reset PAL bone pose");
+        if (globalThis.Animator && typeof Animator.preview === "function") Animator.preview();
+        if (palPanelHandle && typeof palPanelHandle.refresh === "function") palPanelHandle.refresh();
+        Blockbench.showQuickMessage(t("poseResetBone", {bone: selected.animcue_bone_name || selected.name}), 1800);
+    }
+
+    function resetAllPlayerPose() {
+        const context = resolveActivePlayerRigContext();
+        if (!context) return;
+        if (!globalThis.Modes || !Modes.animate || !globalThis.Animation || !Animation.selected) {
+            Blockbench.showQuickMessage(t("needAnimationForPose"), 2200);
+            return;
+        }
+        const clip = Animation.selected;
+        const time = cleanNumber(globalThis.Timeline ? Timeline.time : 0);
+        const groups = Object.values(context.bones);
+        const channels = ["rotation", "position", "scale"];
+        const kfs = [];
+        groups.forEach(group => {
+            const anim = clip.animators && clip.animators[group.uuid];
+            if (!anim) return;
+            channels.forEach(ch => (anim[ch] || []).forEach(kf => kfs.push(kf)));
+        });
+        Undo.initEdit({keyframes: kfs});
+        groups.forEach(group => {
+            const anim = clip.animators && clip.animators[group.uuid];
+            if (!anim) return;
+            channels.forEach(ch => {
+                if ((anim[ch] || []).length > 0) {
+                    writeBoneChannelAtTime(clip, group, ch, time, ch === "scale" ? [1, 1, 1] : [0, 0, 0]);
+                }
+            });
+        });
+        Undo.finishEdit("Reset PAL player pose");
+        if (globalThis.Animator && typeof Animator.preview === "function") Animator.preview();
+        if (palPanelHandle && typeof palPanelHandle.refresh === "function") palPanelHandle.refresh();
+        Blockbench.showQuickMessage(t("poseResetAll", {time: formatSeconds(time)}), 2000);
+    }
+
+    function registerPalPlayerPanel() {
+        if (typeof Panel !== "function") return null;
+        let cssHandle = null;
+        let panel = null;
+        let vm = null;
+        const cleanups = [];
+
+        const STYLES = `
+            .pal-panel {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                min-height: 0;
+                font-size: 12px;
+            }
+            .pal-bar {
+                display: flex;
+                align-items: center;
+                height: 34px;
+                padding: 0 6px;
+                gap: 4px;
+                border-bottom: 1px solid var(--color-border);
+                flex-shrink: 0;
+            }
+            .pal-bar .pal-spacer { flex: 1; }
+            .pal-action-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                height: 24px;
+                padding: 0 7px;
+                border-radius: 4px;
+                border: 1px solid var(--color-border);
+                background: var(--color-button);
+                color: var(--color-text);
+                font-size: 11.5px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: background 0.12s ease;
+            }
+            .pal-action-btn:hover {
+                background: var(--color-selected);
+                color: var(--color-light);
+            }
+            .pal-action-btn.primary {
+                background: var(--color-accent);
+                border-color: var(--color-accent);
+                color: var(--color-accent_text);
+                font-weight: 500;
+            }
+            .pal-action-btn.primary:hover { filter: brightness(1.08); }
+            .pal-action-btn i { font-size: 15px; }
+            .pal-tool {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                color: var(--color-subtle_text);
+                border-radius: 4px;
+            }
+            .pal-tool:hover {
+                color: var(--color-light);
+                background: var(--color-selected);
+            }
+            .pal-tool i { font-size: 17px; }
+            .pal-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                padding: 6px;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            .pal-stage {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 5px 6px 4px;
+                border-radius: 6px;
+                background: var(--color-back);
+                border: 1px solid var(--color-border);
+            }
+            .pal-rig-svg {
+                width: 96px;
+                height: 114px;
+                user-select: none;
+                flex-shrink: 0;
+            }
+            .pal-part {
+                fill: var(--color-button);
+                stroke: var(--color-subtle_text);
+                stroke-opacity: 0.45;
+                stroke-width: 1.1;
+                cursor: pointer;
+                transition: fill 0.1s ease, stroke-opacity 0.1s ease;
+            }
+            .pal-part.bend {
+                fill: rgba(62, 144, 255, 0.11);
+                stroke: var(--color-accent);
+                stroke-opacity: 0.55;
+                stroke-dasharray: 2.5 1.5;
+            }
+            .pal-part:hover {
+                fill: var(--color-selected);
+                stroke-opacity: 0.95;
+            }
+            .pal-part.selected {
+                fill: var(--color-accent);
+                stroke: var(--color-light);
+                stroke-opacity: 1;
+                stroke-dasharray: none;
+            }
+            .pal-part.missing {
+                opacity: 0.14;
+                pointer-events: none;
+            }
+            .pal-eye {
+                fill: var(--color-subtle_text);
+                opacity: 0.45;
+                pointer-events: none;
+            }
+            .pal-hinge {
+                fill: var(--color-accent);
+                opacity: 0.55;
+                pointer-events: none;
+            }
+            .pal-side-label {
+                fill: var(--color-subtle_text);
+                font-size: 9px;
+                font-weight: 600;
+                text-anchor: middle;
+                pointer-events: none;
+                opacity: 0.65;
+            }
+            .pal-kf-dot {
+                fill: var(--color-accent);
+                pointer-events: none;
+            }
+            .pal-part.selected + .pal-kf-dot {
+                fill: var(--color-accent_text);
+            }
+            .pal-readout {
+                margin-top: 3px;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-size: 11px;
+                color: var(--color-subtle_text);
+                background: var(--color-ui);
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .pal-readout.active {
+                color: var(--color-text);
+            }
+            .pal-pose-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 5px;
+                flex-shrink: 0;
+            }
+            .pal-pose-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                height: 26px;
+                padding: 0 5px;
+                font-size: 11px;
+                color: var(--color-text);
+                background: var(--color-button);
+                border: 1px solid var(--color-border);
+                border-radius: 4px;
+                cursor: pointer;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: background 0.12s ease, border-color 0.12s ease;
+            }
+            .pal-pose-btn:hover {
+                background: var(--color-selected);
+                border-color: var(--color-subtle_text);
+                color: var(--color-light);
+            }
+            .pal-pose-btn i { font-size: 14px; color: var(--color-subtle_text); }
+            .pal-empty {
+                padding: 14px 10px;
+                text-align: center;
+                font-size: 11.5px;
+                color: var(--color-subtle_text);
+                line-height: 1.5;
+                background: var(--color-back);
+                border: 1px dashed var(--color-border);
+                border-radius: 5px;
+            }
+            .pal-footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 24px;
+                padding: 0 8px;
+                border-top: 1px solid var(--color-border);
+                font-size: 11px;
+                color: var(--color-subtle_text);
+                flex-shrink: 0;
+            }
+            .pal-mode-chip {
+                display: inline-flex;
+                align-items: center;
+                height: 16px;
+                padding: 0 5px;
+                border-radius: 3px;
+                font-size: 10px;
+                background: var(--color-button);
+                color: var(--color-subtle_text);
+            }
+            .pal-mode-chip.more-rot {
+                background: rgba(62, 144, 255, 0.16);
+                color: var(--color-accent);
+                border: 1px solid rgba(62, 144, 255, 0.35);
+            }
+        `;
+
+        if (globalThis.Blockbench && typeof Blockbench.addCSS === "function") {
+            cssHandle = Blockbench.addCSS(STYLES);
+        }
+
+        function snapshot() {
+            const ctx = resolveActivePlayerRigContext();
+            const selected = globalThis.Group ? Group.first_selected : null;
+            const clip = globalThis.Animation ? Animation.selected : null;
+            const inAnimate = !!(globalThis.Modes && Modes.animate && clip);
+            const parts = PAL_RIG_PARTS.map(part => {
+                const group = ctx && ctx.bones[part.id];
+                const animator = group && clip && clip.animators && clip.animators[group.uuid];
+                const hasKeys = !!(animator && animator.keyframes && animator.keyframes.length);
+                return {
+                    ...part,
+                    title: t(part.labelKey),
+                    exists: !!group,
+                    selected: !!(group && selected === group),
+                    hasKeys
+                };
+            });
+            const isMoreRot = detectLiveAnimationMoreRotation(ctx);
+            const activePart = parts.find(p => p.selected);
+            return {
+                hasRig: !!ctx,
+                rigLabel: ctx ? ctx.label : "",
+                inAnimate,
+                isMoreRot,
+                modeLabel: isMoreRot ? t("panelModeMoreRotation") : t("panelModeOriginal"),
+                selectedLabel: activePart ? activePart.title : (selected ? (selected.animcue_bone_name || selected.name) : ""),
+                parts
+            };
+        }
+
+        function refresh() {
+            if (!vm) return;
+            Object.assign(vm, snapshot());
+        }
+
+        function openNewMenu(event) {
+            const anchor = event && event.currentTarget instanceof HTMLElement ? event.currentTarget : event;
+            new Menu([
+                {name: t("panelNewStandard"), icon: "accessibility_new", click: () => createPlayerProject()},
+                {name: t("panelNewDragoncore"), icon: "sports_martial_arts", click: () => createDragoncorePlayerProject()}
+            ]).open(anchor);
+        }
+
+        panel = new Panel("pal_bend_player_panel", {
+            id: "pal_bend_player_panel",
+            name: t("panelTitle"),
+            icon: "accessibility_new",
+            growable: true,
+            resizable: true,
+            default_position: {
+                slot: "right_bar",
+                float_position: [0, 0],
+                float_size: [240, 300],
+                height: 278
+            },
+            insert_before: "outliner",
+            component: {
+                data() {
+                    return snapshot();
+                },
+                mounted() {
+                    vm = this;
+                },
+                beforeDestroy() {
+                    if (vm === this) vm = null;
+                },
+                methods: {
+                    t: (key, params) => t(key, params),
+                    openNew: event => openNewMenu(event),
+                    newStandard: () => createPlayerProject(),
+                    newDragoncore: () => createDragoncorePlayerProject(),
+                    loadSkin: () => loadCustomPlayerSkin(),
+                    doImport: () => importAnimationFile(),
+                    doExport: () => showExportDialog(),
+                    mirrorPose: () => mirrorCurrentPlayerPose(),
+                    resetBone: () => resetSelectedPlayerBonePose(),
+                    resetPose: () => resetAllPlayerPose(),
+                    pickPart(partId) {
+                        const ctx = resolveActivePlayerRigContext();
+                        const group = ctx && ctx.bones[partId];
+                        if (!group) return;
+                        group.select();
+                        if (globalThis.Modes && Modes.animate && globalThis.BarItems && BarItems.rotate_tool) {
+                            BarItems.rotate_tool.select();
+                        }
+                        refresh();
+                    }
+                },
+                template: `
+                    <div class="pal-panel">
+                        <div class="pal-bar">
+                            <div class="pal-action-btn" :title="t('panelToolNew')" @click="openNew($event)">
+                                <i class="material-icons">add</i><span>{{ t('panelToolNew') }}</span>
+                            </div>
+                            <div v-if="hasRig" class="pal-action-btn" :title="t('actionLoadSkinName')" @click="loadSkin">
+                                <i class="material-icons">face</i><span>{{ t('panelToolSkin') }}</span>
+                            </div>
+                            <div class="pal-spacer"></div>
+                            <div class="pal-tool" :title="t('panelToolImport')" @click="doImport">
+                                <i class="material-icons">file_upload</i>
+                            </div>
+                            <div v-if="hasRig" class="pal-action-btn primary" :title="t('actionExportName')" @click="doExport">
+                                <i class="material-icons">file_download</i><span>{{ t('panelToolExport') }}</span>
+                            </div>
+                        </div>
+
+                        <div v-if="!hasRig" class="pal-body">
+                            <div class="pal-empty">
+                                <div>{{ t('panelNoRigHint') }}</div>
+                                <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap;">
+                                    <div class="pal-action-btn primary" @click="newStandard">{{ t('panelNewStandard') }}</div>
+                                    <div class="pal-action-btn" @click="newDragoncore">{{ t('panelNewDragoncore') }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <template v-else>
+                            <div class="pal-body">
+                                <div class="pal-stage">
+                                    <svg class="pal-rig-svg" viewBox="0 0 116 144">
+                                        <text class="pal-side-label" x="12" y="26">R</text>
+                                        <text class="pal-side-label" x="104" y="26">L</text>
+                                        <g v-for="part in parts" :key="part.id" @click="pickPart(part.id)">
+                                            <rect class="pal-part"
+                                                  :class="{bend: part.bend, selected: part.selected, missing: !part.exists}"
+                                                  :x="part.x" :y="part.y" :width="part.w" :height="part.h" rx="2">
+                                                <title>{{ part.title }}</title>
+                                            </rect>
+                                            <circle v-if="part.hasKeys" class="pal-kf-dot"
+                                                    :cx="part.x + part.w - 3.5" :cy="part.y + 3.5" r="2.1" />
+                                        </g>
+                                        <!-- Subtle Steve face eyes & bend joint markers -->
+                                        <rect class="pal-eye" x="49" y="16" width="5" height="3.5" rx="0.6" />
+                                        <rect class="pal-eye" x="62" y="16" width="5" height="3.5" rx="0.6" />
+                                        <circle class="pal-hinge" cx="30" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="86" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="58" cy="56" r="1.5" />
+                                        <circle class="pal-hinge" cx="49.5" cy="102" r="1.5" />
+                                        <circle class="pal-hinge" cx="66.5" cy="102" r="1.5" />
+                                    </svg>
+                                    <div class="pal-readout" :class="{active: !!selectedLabel}">
+                                        {{ selectedLabel || t('panelPickHint') }}
+                                    </div>
+                                </div>
+
+                                <div class="pal-pose-grid" v-if="inAnimate">
+                                    <div class="pal-pose-btn" :title="t('actionMirrorPoseDescription')" @click="mirrorPose">
+                                        <i class="material-icons">flip</i><span>{{ t('panelPoseMirror') }}</span>
+                                    </div>
+                                    <div class="pal-pose-btn" :title="t('actionResetBoneDescription')" @click="resetBone">
+                                        <i class="material-icons">undo</i><span>{{ t('panelPoseResetBone') }}</span>
+                                    </div>
+                                    <div class="pal-pose-btn" :title="t('actionResetPoseDescription')" @click="resetPose">
+                                        <i class="material-icons">restart_alt</i><span>{{ t('panelPoseResetAll') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pal-footer">
+                                <span>{{ rigLabel }}</span>
+                                <span class="pal-mode-chip" :class="{'more-rot': isMoreRot}">{{ modeLabel }}</span>
+                            </div>
+                        </template>
+                    </div>
+                `
+            }
+        });
+
+        if (globalThis.Blockbench && typeof Blockbench.on === "function") {
+            ["select_project", "close_project", "update_selection", "update_keyframe_selection", "finished_edit", "select_mode", "load_project"].forEach(event => {
+                const handler = () => refresh();
+                Blockbench.on(event, handler);
+                cleanups.push(() => Blockbench.removeListener(event, handler));
+            });
+        }
+
+        return {
+            refresh,
+            delete() {
+                while (cleanups.length) cleanups.pop()();
+                if (panel && typeof panel.delete === "function") panel.delete();
+                panel = null;
+                vm = null;
+                if (cssHandle && typeof cssHandle.delete === "function") cssHandle.delete();
+                cssHandle = null;
+            }
+        };
+    }
+
+    function unregisterInteropApi() {
+        if (globalThis.PalBendPlayerToolsAPI && globalThis.PalBendPlayerToolsAPI.pluginId === PLUGIN_ID) {
+            delete globalThis.PalBendPlayerToolsAPI;
+        }
+        if (globalThis.Blockbench && typeof Blockbench.dispatchEvent === "function") {
+            Blockbench.dispatchEvent("pal_bend_player_tools_unloaded", {pluginId: PLUGIN_ID});
+        }
     }
 })();
